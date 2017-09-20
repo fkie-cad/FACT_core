@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% set active_page = "Database" %}
+
+{% block body %}
+
+
+<div class="row">
+    <div class="col-md-6 col-md-offset-3">
+
+
+        <table class="table table-hover table-bordered result" style="border-spacing: 10px;">
+            <tr>
+                <td class="active result clickable" style="text-align: center; padding:15px" onclick="location.href='/database/browse'">
+                    <b>Browse Database</b>
+                </td>
+            </tr>
+            <tr>
+                <td class="active result clickable" style="text-align: center; padding:15px" onclick="location.href='/database/search'">
+                    <b>Search Database</b>
+                </td>
+            </tr>
+            <tr>
+                <td class="active result clickable" style="text-align: center; padding:15px" onclick="location.href='/database/advanced_search'">
+                    <b>Advanced Search</b>
+                </td>
+            </tr>
+            <tr>
+                <td class="active result clickable" style="text-align: center; padding:15px" onclick="location.href='/database/binary_search'">
+                    <b>Binary Search</b>
+                </td>
+            </tr>
+        </table>
+
+    </div>
+</div>
+{% endblock %}

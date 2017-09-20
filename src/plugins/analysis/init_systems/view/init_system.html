@@ -1,0 +1,26 @@
+{% extends "analysis_plugins/general_information.html" %}
+
+{% block analysis_result_details %}
+
+    {% if firmware.processed_analysis[selected_analysis]['init_type'] %}
+        <tr>
+            <td class="active result"> Init Type </td>
+            <td class="active result"> {{ firmware.processed_analysis[selected_analysis]['init_type'][0]}} </td>
+        </tr>
+    {% endif %}
+    {% if firmware.processed_analysis[selected_analysis]['description'] %}
+        <tr>
+            <td class="active result"> Description </td>
+            <td class="active result"> {{ firmware.processed_analysis[selected_analysis]['description'][0]}} </td>
+        </tr>
+    {% endif %}
+    {% for key, value in firmware.processed_analysis[selected_analysis].items()|sort %}
+        {% if key not in ['summary', 'plugin_version', 'analysis_date', 'init_type', 'description'] %}
+            <tr>
+                <td class="active result"> {{key}} </td>
+                <td class="active result">
+                <pre><code>{{ value }}</code></pre></td>
+            </tr>
+        {% endif %}
+    {% endfor %}
+{% endblock %}

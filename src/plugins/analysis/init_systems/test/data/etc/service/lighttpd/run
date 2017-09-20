@@ -1,0 +1,4 @@
+#!/bin/sh -e
+sv -w7 check postgresql
+exec 2>&1 myprocess \
+last line

@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% set active_page = "Database" %}
+
+{% block body %}
+
+
+<div class="row">
+
+    <div class="col-md-offset-2 col-md-8">
+        <h2>Binary Search</h2>
+        <form class="form-horizontal" action="" method=post enctype=multipart/form-data>
+
+            <script>
+                function openCity(evt, tabname) {
+                    var i, tabcontent, tablinks;
+                    tabcontent = document.getElementsByClassName("tab-content");
+                    for (i = 0; i < tabcontent.length; i++) {
+                        tabcontent[i].style.display = "none";
+                    }
+                    tablinks = document.getElementsByClassName("li-tab");
+                    for (i = 0; i < tablinks.length; i++) {
+                        tablinks[i].className = tablinks[i].className.replace(" active", "");
+                    }
+                    document.getElementById(tabname).style.display = "block";
+                    evt.currentTarget.className += " active";
+                }
+            </script>
+
+
+            <ul class="nav nav-tabs">
+                <li class="li-tab active">
+                    <a href="#" onclick="openCity(event, 'fromFile')">
+                        From File
+                    </a>
+                </li>
+                <li class="li-tab">
+                    <a href="#" onclick="openCity(event, 'fromText')">
+                        From Text
+                    </a>
+                </li>
+            </ul>
+
+            <div class="form-group tab-content" id="fromFile">
+                <label class="control-label col-md-3" for="selectFile">
+                    Yara Rule File:
+                </label>
+                <div class="col-md-9">
+                    <input id="selectFile" type="file" name="file">
+                </div>
+            </div>
+
+            <div class="form-group tab-content" id="fromText" style="display: none;">
+                <label class="control-label col-md-3" for="textarea">
+                    Yara Rule:
+                </label>
+                <div class="col-md-9 clear">
+                    <textarea name="textarea" rows="5" style="resize: vertical; position: relative; z-index: 1;"
+                    class="form-control" id="textarea"></textarea>
+                    <p style="font-family: monospace; color: gray">
+                        Example: <br>
+                        rule rulename {strings: $a = { 0123456789abcdef } condition: $a }
+                    </p>
+                </div>
+            </div>
+
+            {% if error %}
+            <h5 style="color: red;">{{ error }}</h5>
+            {% endif %}
+
+            <button type="submit" value=submit class="btn btn-default" id="input_submit" onclick='showImg()'>
+                <span class="glyphicon glyphicon-search"></span> Search
+            </button>
+        </form>
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends "compare/compare.html" %}
+
+{% block body %}
+
+<div class="row">
+    <div class="col-xs-offset-2 col-md-8">
+
+        <div class="col-sm-offset-3 col-sm-9">
+            <h2>Compare Firmwares</h2>
+        </div>
+
+        <div id="form">
+            <form class="form-horizontal" action="" method=post enctype=multipart/form-data>
+
+                <div class="form-group">
+                    <label class="control-label col-sm-3" for="uid_list">Firmware UIDs</label>
+                        <div class="col-sm-9">
+                            <input type="text" name="uid_list" class="form-control" id="uid_list" placeholder="UID_1;UID_2;...;UID_X" required>
+                        </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="col-sm-offset-3 col-sm-9 checkbox">
+                        <label><input type="checkbox" value="true" id="force" name="force"> force recompare</label>
+                    </div>
+                </div>
+
+                <div class="col-sm-offset-3 col-sm-9">
+                    <button type="submit" value=submit class="btn btn-default" id="input_submit">
+                        <span class="glyphicon glyphicon-duplicate"></span> Compare
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}

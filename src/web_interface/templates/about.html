@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% set active_page = "About" %}
+
+{% block body %}
+<h3>About FACT</h3>
+The Firmware Analysis and Compare Tool (FACT) (formerly known as Fraunhofer's Firmware Analysis Framework (FAF)) is intended to automate Firmware Security Analysis.
+FACT is developed by <a href="http://www.fkie.fraunhofer.de">Fraunhofer FKIE</a>.
+The project is partly financed by <a href="https://www.bsi.bund.de">German Federal Office for Information Security (BSI)</a> and others. 
+
+<h3>Change Log</h3>
+
+<h4>FACT 2.2 (2017-09-20) (first public release)</h4>
+<ul>
+	<li>Base64 Decoder improved</li>
+	<li>Enhanced error handling</li>
+	<li>REST API improved</li>
+	<li>Code clean ups</li>
+	<li>Bug fixes</li>
+</ul>
+
+<h4>FACT 2.1 (2017-08-23)</h4>
+<ul>
+	<li>New or Improved Analysis
+		<ul>
+			<li>Init Services</li>
+		</ul>
+	</li>
+	<li>Memory consumption reduced</li>
+    <li>Load balancing improved</li>
+    <li>Hex header view</li>
+    <li>Unittest &rarr; Pytest</li>
+	<li>Code clean ups</li>
+	<li>Bug fixes</li>
+</ul>
+
+<h4>FACT 2.0 (2017-07-31)</h4>
+<ul>
+	<li>New project name: FAF &rarr; FACT </li>
+	<li>New color scheme</li>
+	<li>New plug-in system</li>
+	<li>New or Improved Analysis
+		<ul>
+			<li>Base64 Decoder</li>
+			<li>Software Detection: magic support</li>
+			<li>String Evaluator: printable string sorting</li>
+		</ul>
+	</li>
+	<li>YARA backend upgraded</li>
+	<li>Unpacking Classifier: encoding overhead consideration implemented</li>
+	<li>Code clean ups</li>
+	<li>Bug fixes</li>
+</ul>
+
+
+<h4>FAF 1.4 (2017-04-24)</h4>
+<ul>
+	<li>New or Improved Analysis
+		<ul>
+			<li><i>Re-Do Analysis</i> feature added</li>
+		</ul>
+	</li>
+	<li>Release date statistic added</li>
+	<li>Statistic filtering feature added</li>
+	<li>Frontend refactoring</li>
+	<li>Silent Mode added</li>
+	<li>Bug fixes</li>
+	<li>Code clean ups</li>
+</ul>
+
+
+<h4>FAF 1.3 (2017-03-21)</h4>
+<ul>
+	<li>New or Improved Analysis
+		<ul>
+			<li>Identify users and passwords</li>
+		</ul>
+	</li>
+	<li>New or Improved Unpacking
+		<ul>
+			<li>DJI Drone Firmware unpacker added</li>
+			<li>UBI-Image unpacker added</li>
+			<li>Zip and 7z password support added</li>
+		</ul>
+	</li>
+	<li>Several statistics added</li>
+	<li>System Health Monitoring</li>
+	<li>Statistic Graph Framework changed</li>
+	<li>Optical improvements</li>
+	<li>Bug fixes</li>
+	<li>Code clean ups</li>
+</ul>
+
+<h4>FAF 1.2 (2017-02-01)</h4>
+<ul>
+	<li>New or Improved Unpacker
+		<ul>
+			<li>yaffs2</li>
+			<li>trx (generic)</li>
+			<li>tpl</li>
+		    <li>self extracting archive</li>
+		    <li>elf and pe</li>		    
+		</ul>
+	</li>
+	<li>New or Improved Analysis
+		<ul>
+			<li>IP and Domain search plug-in</li>
+			<li>printable strings plug-in now supports 16bit characters</li>
+		</ul>
+	</li>
+    <li><i>Advanced Search</i> database map added</li>
+    <li>Latest compares and comments shown on start page</li>
+    <li>Delete comment feature added</li>
+    <li>Linux Mint 18.1 support added</li>
+    <li>Bug fixes</li>
+    <li>Code clean ups</li>
+</ul>
+
+<h4>FAF 1.1 (2016-12-20)</h4>
+<ul>
+	<li><i>Architecture detection</i> utilizing meta data</li>
+	<li><i>Firmware summary search</i> feature added</li>
+	<li><i>GenericFS fallback</i> feature added</li>
+	<li>Firmware removal feature added</li>
+	<li>Unpack info and statistic added</li>
+	<li>Clickable results on statistic page</li>
+	<li>Further LZMA signatures added</li>
+	<li>Performance enhancements</li>
+	<li>Integration tests</li>
+	<li>Bug fixes</li>
+	<li>Code clean ups</li>
+</ul>
+
+<h4>FAF 1.0 (2016-10-28)</h4>
+<ul>
+	<li><i>File tree view</i> replaces <i>included files list</i></li>
+	<li><i>Binary search</i> feature added</li>
+	<li>Statistic page added</li>
+	<li>General stats and last uploads added to <i>Home</i> page</li>
+	<li>UWSGI support</li>
+	<li>Analysis cache added</li>
+	<li>Bug fixes</li>
+</ul>
+
+{% endblock %}

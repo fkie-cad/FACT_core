@@ -1,0 +1,46 @@
+VersionStrings [description="Version String Finder"] /yara_test_file
+0x0:$a: blah test 1.2.3b
+0x1:$a: lah test 1.2.3b
+0x2:$a: ah test 1.2.3b
+0x3:$a: h test 1.2.3b
+0x5:$a: test 1.2.3b
+0x6:$a: est 1.2.3b
+0x7:$a: st 1.2.3b
+0x14:$a: TeST 3.4.2f
+0x15:$a: eST 3.4.2f
+0x16:$a: ST 3.4.2f
+testRule [software_name="Test Software",open_source=false,website="http://www.fkie.fraunhofer.de",description="Generic Software"] /yara_test_file
+0x5:$a: test 1.2.3
+0x14:$a: TeST 3.4.2
+VersionStrings [description="Version String Finder"] /Firmware/FmpUpdateWrapper.efi
+0x54c8:$a: L\x00i\x00n\x00k\x00 \x00w\x00i\x00t\x00h\x00 \x001\x00.\x005\x00
+0x54ca:$a: i\x00n\x00k\x00 \x00w\x00i\x00t\x00h\x00 \x001\x00.\x005\x00
+0x54cc:$a: n\x00k\x00 \x00w\x00i\x00t\x00h\x00 \x001\x00.\x005\x00
+0x54ce:$a: k\x00 \x00w\x00i\x00t\x00h\x00 \x001\x00.\x005\x00
+0x54d2:$a: w\x00i\x00t\x00h\x00 \x001\x00.\x005\x00
+0x54d4:$a: i\x00t\x00h\x00 \x001\x00.\x005\x00
+0x54d6:$a: t\x00h\x00 \x001\x00.\x005\x00
+r_libjpeg8_8d12b1_0 [package="libjpeg8",version="8d1-2+b1",filename="libjpeg.0"] /Firmware/drone/p3x_1320/P3X_FW_V01.03.0020.bin
+0x4bcb39a:$a: 31 32 00 43 61 75 74 69
+0x4ba015b:$b: 66 64 63 74 5F 31 36 78
+0x4ba016b:$b: 66 64 63 74 5F 31 36 78
+0x4ba035f:$c: 72 33 00 6A 70 65 67 5F
+r_fwupdate_054_0 [package="fwupdate",version="0.5-4",filename="fwupdate.fwupdate"] /assic/fwupdate
+0x2c0:$a: 8A 8B B0 69 BB E3 92 7C
+0x1c13:$b: 6C 79 20 66 69 72 6D 77
+0x858:$c: 78 74 00 66 77 75 70 5F
+genericPublicKey [author="Joerg Stucke",description="Generic Public Key Block",date="2017-03-16",version="2",version_schema_information="Version number is increased whenever something changes."] /crypto_material/generic_public_key
+0x0:$start_string: -----BEGIN PUBLIC KEY-----
+0xf7:$end_string: -----END PUBLIC KEY-----
+PgpPublicKeyBlock [author="Raphael Ernst",description="Find PGP Public key",date="2015-11-27",version="1",version_schema_information="Version number is increased whenever something changes."] /crypto_material/FP_test
+0x0:$start_string: -----BEGIN PGP PUBLIC KEY BLOCK-----
+0x7a1:$start_string: -----BEGIN PGP PUBLIC KEY BLOCK-----
+0x49:$end_string: -----END PGP PUBLIC KEY BLOCK-----
+0x7ea:$end_string: -----END PGP PUBLIC KEY BLOCK-----
+wareanalyseframework/src/test_unittests/data/crypto_material/0x6C2DF2C5-pub.asc
+0x0:$start_string: -----BEGIN PGP PUBLIC KEY BLOCK-----
+0x2d49:$end_string: -----END PGP PUBLIC KEY BLOCK-----
+PgpPublicKeyBlock_GnuPG [author="Raphael Ernst",description="Find PGP Public key from GnuPG",date="2015-11-27",version="1",version_schema_information="Version number is increased whenever something changes."] /crypto_material/0x6C2DF2C5-pub.asc
+0x0:$start_string: -----BEGIN PGP PUBLIC KEY BLOCK-----
+0x2d49:$end_string: -----END PGP PUBLIC KEY BLOCK-----
+0x25:$gnupg_version_string: Version: GnuPG

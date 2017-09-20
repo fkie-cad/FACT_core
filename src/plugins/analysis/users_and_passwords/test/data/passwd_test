@@ -1,0 +1,6 @@
+vboxadd:!:17073::::::
+mongodb:*:17079:0:99999:7:::
+clamav:!:17079:0:99999:7:::
+johndoe:$6$HcGU0JUp$LbTjc1Ai4TcTwZRi5sRyObUUHsRHtEj6YXTgduYpESFRYMZrfzZCspg2flG78QGwaqe8GSf8NLfE7tTVOUpSc1:17190:0:99999:7:::
+pulse:*:16980:0:99999:7:::
+max:$apr1$nMebU24m$ofpVAehRJU5Jq8KUcsVYj1

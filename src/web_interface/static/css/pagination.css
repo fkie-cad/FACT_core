@@ -1,0 +1,32 @@
+.pagination-page-info {
+    padding: .6em;
+    padding-left: 0;
+    width: 40em;
+    margin: .5em;
+    margin-left: 0;
+    font-size: 15px;
+}
+.pagination-page-info b {
+    color: black;
+    padding-left: 2px;
+    padding: .1em .25em;
+    font-size: 120%;
+}
+.pagination>li>a,
+.pagination>li>span {
+    border: 1px solid black;
+    color: #000;
+    border-color: #ddd;
+}
+.pagination > li > a:hover,
+.pagination > li > span:hover {
+    z-index: 3;
+    color: #000;
+    background-color: #eee;
+    border-color: #ddd;
+}
+.pagination>li.active>a{
+    background: #dff0d8 !important;
+    color: #000 !important;
+    border-color: #dff0d8 !important;
+}

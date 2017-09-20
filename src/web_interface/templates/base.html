@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+{% set navigation_bar = [
+    ("Home", "/", '<span class="glyphicon glyphicon-home"></span>'),
+    ("Database", "/database", '<span class="glyphicon glyphicon-tasks"></span>'),
+    ("Compare", "/compare", '<span class="glyphicon glyphicon-duplicate"></span>'),
+    ("Upload", "/upload", '<span class="glyphicon glyphicon-upload"></span>'),
+    ("Statistic", "/statistic", '<span class="glyphicon glyphicon-stats"></span>'),
+    ("System Health", "/system_health", '<span class="glyphicon glyphicon-heart"></span>'),
+    ("About", "/about", '<span class="glyphicon glyphicon-globe"></span>')
+] -%}
+{% set active_page = active_page|default('Home') -%}
+
+<html>
+    <head lang="en">
+        <meta charset="UTF-8">
+        <title>FACT</title>
+        <link rel="shortcut icon" href="{{ url_for('static', filename='fact_icon.ico') }}">
+        <!-- Bootstrap -->
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bootstrap/css/bootstrap.css') }}">
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bootstrap/css/bootstrap-theme.css') }}">
+        <script type="text/javascript" src="{{ url_for('static', filename='bootstrap/js/jquery.min.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='bootstrap/js/bootstrap.min.js') }}"></script>
+
+        <script type="text/javascript" src="{{ url_for('static', filename='bootstrap/js/moment.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='bootstrap/js/bootstrap-datetimepicker.min.js') }}"></script>
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bootstrap/css/bootstrap-datetimepicker.min.css') }}">
+
+        <script>
+            $(document).ready(function(){
+              $('[data-toggle="tooltip"]').tooltip();
+              $(".toggle").click(function(){
+                $(".expand").toggle();
+              });
+            })
+        </script>
+        
+        {% block head %}
+        {% endblock %}
+        
+        <style>
+            body{
+                padding-top: 70px;
+            }
+            a:link{
+                color:#2b669a;
+                text-decoration:none;
+            }
+            td.clickable {
+                cursor:pointer;
+            }
+            .navbar-inner {
+                background-color: #255e54; /*#607873; /* background color will be black for all browsers */
+                background-image: none;
+                background-repeat: no-repeat;
+                filter: none;
+            }
+                .navbar-default .navbar-brand, .navbar-default .navbar-nav > li > a {
+                color: #ddd;
+            }
+                .navbar-default .navbar-brand:hover, .navbar-default .navbar-nav > li > a:hover {
+                color: #fff;
+            }
+            .tooltip > .tooltip-inner {
+                background-color: #2b669a;
+                color: #FFFFFF;
+                border: 1px solid #2b669a;
+                padding: 5px;
+                font-size: 15px;
+            }
+            .tooltip.top > .tooltip-arrow {
+                border-top: 5px solid #2b669a;
+            }
+        </style>
+        {% block styles %}{% endblock %}
+    </head>
+
+    <body>
+
+    <nav role="navigation" class="navbar navbar-default navbar-fixed-top navbar-inner">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" data-target="#navbarCollapse" data-toggle="collapse" class="navbar-toggle">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <div class="navbar-brand hidden-sm hidden-md">
+                    <span><img height="25px" src="{{ url_for('static', filename='fact_logo_inv.svg') }}"></span>
+                    Firmware Analysis and Comparison Tool
+                </div>
+            </div>
+            <div id="navbarCollapse" class="collapse navbar-collapse">
+                <ul class="nav navbar-nav">
+                    {% for caption, href, icon in navigation_bar %}
+                        <li {% if caption == active_page %} class="active"{% endif  %}>
+                            <a href={{ href }}>{{ icon|safe }} {{ caption }}</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div style="width:90%; margin: 0 auto;">
+        <div class="container-fluid">
+            {% block body %}{% endblock %}
+        </div>
+    </div>
+
+    <hr style="margin-top: 30px;">
+    
+	<div class="row">
+		<div class="col-md-2"></div>
+		<div class="col-md-2" style="text-align:center;">
+			<a href="http://www.fkie.fraunhofer.de">
+				&copy; Fraunhofer FKIE
+			</a>
+		</div>
+		<div class="col-md-4" style="text-align:center;">
+			FACT {{ "" | print_program_version }}
+		</div>
+		<div class="col-md-2" style="text-align:center;">
+			<a href="http://www.fkie.fraunhofer.de">
+				<img width="180px" height="50px" src="http://www.fkie.fraunhofer.de/content/dam/fkie/fkie.svg" />
+			</a>
+		</div>
+		<div class="col-md-2"></div>
+	</div>
+    
+    </body>
+</html>

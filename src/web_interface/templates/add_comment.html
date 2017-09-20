@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% set active_page = "Database" %}
+
+
+{% block body %}
+
+<div class="col-sm-offset-1 col-sm-10">
+
+    <div class="row" style="margin-bottom: 16px">
+        <h2>Add Comment</h2>
+        <h5>for {{ uid }}</h5>
+        {% if error %} <h3 style="color: red">Error: UID not found in database</h3> {% endif %}
+    </div>
+
+    <form class="form-horizontal" action="" method=post enctype=multipart/form-data>
+
+        <div class="row" style="margin-bottom: 8px">
+            <label class="control-label col-sm-2" for="comment">
+                Comment:
+            </label>
+            <div class="col-xs-12 col-sm-10 clear">
+                <textarea name="comment" rows="5" style="resize: vertical; position: relative; z-index: 1;" required autofocus
+                class="form-control" id="comment"></textarea>
+            </div>
+        </div>
+
+        <div class="row" style="margin-bottom: 8px">
+            <label class="control-label col-sm-2" for="author">
+                Author:
+            </label>
+            <div class="col-xs-12 col-sm-10">
+                <input type="text" name="author" class="form-control" id="author" required style="position: relative; z-index: 1;">
+            </div>
+        </div>
+
+        <script type="text/javascript">
+        document.getElementById('author').value = 'anonymous';
+        </script>
+
+        <div class="row">
+            <div class="col-sm-offset-2 col-sm-10">
+                <button type="submit" value=submit class="btn btn-default" id="input_submit"
+                {% if error %} disabled {% endif %}>
+                    <span class="glyphicon glyphicon-edit"></span> add comment
+                </button>
+            </div>
+        </div>
+
+    </form>
+
+    <div class="row">
+        <div class="col-sm-offset-2 col-sm-10">
+            <h5 style="color:grey">Please note: it will take some time before the comment is saved and will show up on the page. Please try reloading the analysis page after a short while.</h5>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+cd "$( dirname "${BASH_SOURCE[0]}" )"
+
+echo "------------------------------------"
+echo "          install ros_pack          "
+echo "------------------------------------"
+
+cd ../../../bootstrap
+
+# get ros_pack source
+git clone https://github.com/iam-TJ/ros_pack.git
+# compile ros_pack
+(cd ros_pack && make && cp ros_unpack ../../bin/)
+rm -rf ros_pack
+
+exit 0

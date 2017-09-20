@@ -1,0 +1,14 @@
+{% extends "analysis_plugins/general_information.html" %}
+
+{% block analysis_result_details %}
+
+	<tr>
+		<td>file type:</td>
+		<td>{{ firmware.processed_analysis[selected_analysis]['full'] }}</td>
+	</tr>
+	<tr>
+		<td>MIME:</td>
+		<td>{{ firmware.processed_analysis[selected_analysis]['mime'] }}</td>
+	</tr>			
+
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% set active_page = "Database" %}
+
+
+{% block body %}
+
+<div class="col-sm-offset-1 col-sm-10">
+
+    <div class="row" style="margin-bottom: 16px">
+        <h2>Firmware deleted</h2>
+        <div class="alert alert-success">
+            <span class="glyphicon glyphicon-trash"></span>
+            <strong>Deleted firmware with UID: {{ uid }}</strong><br>
+            Deleted {{ deleted_files }} file(s) from database{% if deleted_vps %} and deleted {{ deleted_vps }} virtual paths in other database entries{% endif %}.
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

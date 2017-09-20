@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% set active_page = "Database" %}
+
+{% block head %}
+        {# angularJS import #}
+        <script type="text/javascript" src="{{ url_for('static', filename='angular.min.js') }}"></script>
+{% endblock %}
+
+{% block body %}
+
+
+<div class="row">
+
+    <div class="col-xs-offset-2 col-md-8">
+        <h2>Advanced Search</h2>
+        <form class="form-horizontal" action="" method=post enctype=multipart/form-data>
+
+            <div class="form-group {% if error %}has-error{% endif %}">
+                <label class="control-label col-xs-3" for="advanced_search">Search Request:</label>
+                <div class="col-xs-9">
+                    <input type="text" name="advanced_search" class="form-control" id="advanced_search"
+                           placeholder="MongoDB Search Request" required>
+                    {% if error %}
+                    <p style="color:red">Please enter a valid search request. {{ error }}</p>
+                    {% endif %}
+                    <br />
+                    <table>
+                        <tr>
+                            <td style="padding: 5px;">
+                                <button type="submit" value=submit class="btn btn-default" id="input_submit">
+                                     <span class="glyphicon glyphicon-search"></span> Search
+                                </button>
+                            </td>
+                            <td style="padding: 5px;">
+                                <label class="checkbox-inline" style="padding: 0; margin: 0 0 0 20px;">
+                                    <input type="checkbox" name="only_firmwares" value="True">
+                                    only show the firmwares that include the matching file objects
+                                </label>
+                            </td>
+                        </tr>
+                    </table>
+                    <hr>
+                    <p style="color:grey">Simple example:<br />{"device_class": "Router", "vendor": "Cisco Systems"}</p>
+                    <p style="color:grey">RegEx example:<br />{"processed_analysis.crypto_code.summary": {"$options": "si", "$regex": "sha"}}</p>
+                </div>
+            </div>
+
+            <h3>Structure of processed_analysis field:</h3>
+
+            {% if database_structure is mapping %}
+
+            <div ng-app="myApp" ng-controller="formCtrl">
+                <form>
+                    Select analysis plugin: <input type="text" ng-model="firstname"> (select <i>complete</i> to see all)
+                </form>
+                <br /><br />
+                <table class="table table-responsive" style="vertical-align: top;">
+                    <tr>
+                        <td>
+                            <p>Available plugins:</p>
+                            <pre>{a plugins | json a}</pre>
+                        </td>
+                        <td>
+                            <p>Structure for plugin {a firstname a}:</p>
+                            <pre>{a data[firstname] a}</pre>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <script>
+                var app = angular.module('myApp', []);
+
+                app.config(['$interpolateProvider', function($interpolateProvider) {
+                    $interpolateProvider.startSymbol('{a');
+                    $interpolateProvider.endSymbol('a}');
+                }]);
+
+                app.controller('formCtrl', function($scope) {
+                    $scope.firstname = "complete";
+                    $scope.data = {{ database_structure | tojson }};
+                    $scope.plugins = Object.keys($scope.data);
+                });
+            </script>
+
+            {% else %}
+
+            <div class="alert alert-danger">
+                <strong>No structural data present!</strong><br /> Run the update_statistic program.
+            </div>
+
+            {% endif %}
+
+        </form>
+    </div>
+</div>
+
+{% endblock %}

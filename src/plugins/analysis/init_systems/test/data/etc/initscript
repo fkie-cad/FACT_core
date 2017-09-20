@@ -1,0 +1,21 @@
+#
+# initscript   Executed by init(8) for every program it
+#              wants to spawn like this:
+#
+#              /bin/sh /etc/initscript <id> <level> <action> <process>
+#
+
+ # Set umask to safe level, and enable core dumps.
+  umask 022
+  ulimit -c 2097151
+  PATH=/bin:/sbin:/usr/bin:/usr/sbin
+  export PATH
+
+ # Increase the hard filedescriptor limit for all processes
+  # to 8192.  The soft limit is still 1024, but any unpriviliged
+  # process can increase it's soft limit up to the hardlimit
+  # with "ulimit -Sn xxx" (needs a 2.2.13 or later Linux kernel).
+  ulimit -Hn 8192
+
+ # Execute the program.
+  eval exec "$4"

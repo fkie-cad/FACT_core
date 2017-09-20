@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% set active_page = "Database" %}
+
+
+{% block styles %}
+{% if result is none %}
+    <style>
+        .glyphicon-refresh-animate {
+            -animation: spin .7s infinite linear;
+            -webkit-animation: spin2 .7s infinite linear;
+        }
+
+        @-webkit-keyframes spin2 {
+            from { -webkit-transform: rotate(0deg);}
+            to { -webkit-transform: rotate(360deg);}
+        }
+
+        @keyframes spin {
+            from { transform: scale(1) rotate(0deg);}
+            to { transform: scale(1) rotate(360deg);}
+        }
+    </style>
+    <meta http-equiv="refresh" content="10 URL=/database/database_binary_search_results.html?request_id={{ request_id }}">
+{% endif %}
+{% endblock %}
+
+{% block body %}
+
+<div class="row">
+    <div class="col-md-8 col-md-offset-2 col-lg-8 col-lg-offset-2">
+    <h2>Binary Search Results</h2>
+    {% if yara_rules %}
+        <button data-toggle="collapse" data-target="#yara_rules" class="list-group-item list-group-item-info">
+            Show Yara Rules
+        </button>
+        <div id="yara_rules" class="collapse">
+            <pre>{{ yara_rules }}</pre>
+        </div>
+    {% endif %}
+    {% if error %}
+        <h3>Error: {{ error }}</h3>
+    {% elif result == {} %}
+        <h3 style="color: red">No results found in the database</h3>
+    {% elif result %}
+        {% for rule in result %}
+            <button data-toggle="collapse" data-target="#id_{{rule}}" class="list-group-item list-group-item-success">
+                <span class="badge">{{ result[rule] | length }}</span>
+                Results for signature <b style="font-family:monospace; color: dimgray">{{ rule }}</b>:
+            </button>
+            <div id="id_{{rule}}" class="collapse">
+            <table class="table table-responsive table-hover table-bordered" style="border-spacing: 10px;">
+                {% for firmware in result[rule] %}
+                    <tr>
+                        <td class="active clickable" onclick="location.href='/analysis/{{ firmware[0] }}'">
+                            {{ firmware[1] }}
+                            <span class="label label-pill {% if firmware[2] == 'generic_carver' %} label-warning
+                                  {% elif 'failed' in firmware[2] %} label-danger {% else %} label-default {% endif %} pull-right"
+                                  style="font-size: 10px;">{{ firmware[2] }}</span>
+                            <div><font face="courier"  style="font-size:12px">{{ firmware[0] }}</font></div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </table>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="alert alert-info">
+            <span class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>
+            Waiting for results...
+        </div>
+        <div class="alert alert-warning">
+            <span class="glyphicon glyphicon-hourglass"></span>
+            <strong>Warning:</strong> The analysis might take several hours. You may bookmark this page and come back later.
+        </div>
+    {% endif %}
+    </div>
+</div>
+
+{% endblock %}

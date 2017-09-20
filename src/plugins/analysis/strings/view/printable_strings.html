@@ -1,0 +1,14 @@
+{% extends "analysis_plugins/general_information.html" %}
+
+{% block analysis_result_details %}
+
+	<tr>
+		<td>String count</td>
+		<td>{{ firmware.processed_analysis[selected_analysis]['strings'] | length }}</td>
+	</tr>
+	<tr>
+		<td>Strings</td>
+		<td><pre>{{ firmware.processed_analysis[selected_analysis]['strings'] | list_to_line_break_string }}</pre></td>
+	</tr>
+			
+{% endblock %}

@@ -1,0 +1,16 @@
+[Unit]
+Description=Foo Bar Service
+Requires=syslog.socket
+Documentation=man:rsyslogd(8)
+Documentation=https://www.google.de/#q=foobar&*
+
+[Service]
+Type=notify
+ExecStartPre=/bin/sh -c '[ "$(basename $(cat /etc/X11/default-display-manager 2>/dev/null))" = "lightdm" ]'
+ExecStart=/usr/sbin/foobar -n
+StandardOutput=null
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+Alias=foobar.service

@@ -1,0 +1,32 @@
+{% extends "compare/compare.html" %}
+
+{% block styles %}
+    <style>
+        .glyphicon-refresh-animate {
+            -animation: spin .7s infinite linear;
+            -webkit-animation: spin2 .7s infinite linear;
+        }
+
+        @-webkit-keyframes spin2 {
+            from { -webkit-transform: rotate(0deg);}
+            to { -webkit-transform: rotate(360deg);}
+        }
+
+        @keyframes spin {
+            from { transform: scale(1) rotate(0deg);}
+            to { transform: scale(1) rotate(360deg);}
+        }
+    </style>
+    <meta http-equiv="refresh" content="10 URL=/compare/{{ compare_id }}">
+{% endblock %}
+
+{% block body %}
+<div class="alert alert-custom">
+    <span class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>
+    <strong>Info:</strong> Your compare task is in progress. Please wait or <a href="/compare/{{ compare_id }}">reload</a> this page manually.
+</div>
+<div class="alert alert-warning">
+	<span class="glyphicon glyphicon-hourglass"></span>
+    <strong>Warning:</strong> The analysis might take several hours. You may bookmark this page and come back later.
+</div>
+{% endblock %}

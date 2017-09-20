@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block styles %}
+<meta http-equiv="refresh" content="10">
+{% endblock %}
+
+{% block body %}
+<div class="alert alert-warning">
+  <strong>Error!</strong>  File not found in database: {{ uid|safe }}
+</div>
+<div class="alert alert-custom">
+  <strong>Info!</strong> Analysis might still be pending... Please wait or <a href="javascript:location.reload(true)">reload</a> this page manually.
+</div>
+{% endblock %}

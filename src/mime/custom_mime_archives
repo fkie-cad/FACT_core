@@ -1,0 +1,15 @@
+# ====================== archives ======================
+
+# cpio archives
+# original code from file repository
+0	short		070707		cpio archive
+!:mime	application/x-cpio
+0	short		0143561		byte-swapped cpio archive
+!:mime	application/x-cpio # encoding: swapped
+0	string		070707		ASCII cpio archive (pre-SVR4 or odc)
+!:mime	application/x-cpio
+0	string		070701		ASCII cpio archive (SVR4 with no CRC)
+!:mime	application/x-cpio
+0	string		070702		ASCII cpio archive (SVR4 with CRC)
+!:mime	application/x-cpio
+

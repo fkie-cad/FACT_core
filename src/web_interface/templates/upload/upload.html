@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% set active_page = "Upload" %}
+
+{% block styles %}
+<style>
+    .search {
+        text-align: right;
+    }
+    .btn-file {
+        position: relative;
+        overflow: hidden;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+
+<div class="row">
+    <div class="col-xs-offset-2 col-md-8">
+        <h2>Upload Firmware</h2>
+
+        <img id="map_img" src="{{url_for('.static', filename='ajax-loader.gif')}}" style="display: none;"/>
+        <script>
+            function showImg() {
+                document.getElementById("form").style.display = "";
+            }
+        </script>
+
+        <div id="form">
+            <form class="form-horizontal" action="" method=post enctype=multipart/form-data>
+                <div class="form-group">
+                    <label class="control-label col-xs-3" for="selectFile">File:</label>
+                        <div class="col-xs-9 {% if 'file' in error.keys() %}has-error{% endif %}">
+                            <input id="selectFile" type="file" name=file required>
+                            {% if "file" in error.keys() %}
+                                <span class="help-block">{{ error["file"] }}</span>
+                            {% endif %}
+                        </div>
+                </div>
+
+                <script>
+                    var device_class_dropdown = document.getElementById('device_class_dropdown');
+                    var vendor_dropdown = document.getElementById('vendor_dropdown');
+                    function add_device_class_options(selected_device_class, selected_vendor, data) {
+                        $('#device_name_dropdown').empty();
+                        if (data.hasOwnProperty(selected_device_class)) {
+                            if (data[selected_device_class].hasOwnProperty(selected_vendor)) {
+                                var device_classes = data[selected_device_class][selected_vendor];
+                                for (var key in device_classes) {
+                                    if (device_classes.hasOwnProperty(key)) {
+                                        $('#device_name_dropdown').append('<option>' + device_classes[key] + '</option>');
+                                    }
+                                }
+                            }
+                        }
+                        $('#device_name_dropdown').append('<option>' + 'new entry' + '</option>');
+                    };
+                    function update_text_input(this_select, this_text_input) {
+                        if (this_select.options[this_select.selectedIndex].value == 'new entry') {
+                            this_text_input.style.display = 'initial';
+                            this_text_input.value = ''
+                        }
+                        else {
+                            this_text_input.style.display = 'none';
+                            this_text_input.value = this_select.options[this_select.selectedIndex].value
+                        };
+                    }
+                </script>
+
+                <div class="form-group">
+                    <label class="control-label col-xs-3" for="device_class_dropdown">Device Class:</label>
+                        <div class="col-xs-9 {% if 'device_class' in error.keys() %}has-error{% endif %}">
+                            <select class="form-control" id="device_class_dropdown" name='device_class_dropdown' size="4" required
+                                    onchange="update_text_input(this, document.getElementById('class_text'));
+                                              if (vendor_dropdown.selectedIndex != -1){
+                                                  document.getElementById('device_name_dropdown').disabled = false;
+                                                  var selected_device_class = this.options[this.selectedIndex].value;
+                                                  var selected_vendor = vendor_dropdown.options[vendor_dropdown.selectedIndex].value;
+                                                  var data = eval({{ device_names }});
+                                                  add_device_class_options(selected_device_class, selected_vendor, data);
+                                              }">
+                            {% for class in device_classes | sort %}
+                                <option value='{{ class }}'>{{ class }}</option>
+                            {% endfor %}
+                                <option value='new entry'>new entry</option>
+                            </select>
+                            <input type="text" name="device_class" class="form-control" id="class_text" placeholder="New Device Class" style="display: none;">
+                            {% if 'device_class' in error.keys() %}
+                                <span class="help-block">{{ error['device_class'] }}</span>
+                            {% endif %}
+                        </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-xs-3" for="vendor_dropdown">Vendor:</label>
+                        <div class="col-xs-9 {% if 'vendor' in error.keys() %}has-error{% endif %}">
+                            <select class="form-control" id="vendor_dropdown" name='vendor_dropdown' size="4" required
+                                    onchange="update_text_input(this, document.getElementById('vendor_text'));
+                                              if (device_class_dropdown.selectedIndex != -1){
+                                                  document.getElementById('device_name_dropdown').disabled = false;
+                                                  var selected_device_class = device_class_dropdown.options[device_class_dropdown.selectedIndex].value;
+                                                  var selected_vendor = this.options[vendor_dropdown.selectedIndex].value;
+                                                  var data = eval({{ device_names }});
+                                                  add_device_class_options(selected_device_class, selected_vendor, data);
+                                              }">
+                            {% for vendor in vendors | sort %}
+                                <option value='{{ vendor }}'>{{ vendor }}</option>
+                            {% endfor %}
+                                <option value='new entry'>new entry</option>
+                            </select>
+                            <input type="text" name="vendor" class="form-control" id="vendor_text" placeholder="New Vendor" style="display: none;">
+                            {% if 'vendor' in error.keys() %}
+                                <span class="help-block">{{ error['vendor'] }}</span>
+                            {% endif %}
+                        </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-xs-3" for="device_name_dropdown">Device Name:</label>
+                        <div class="col-xs-9 {% if 'device_name' in error.keys() %}has-error{% endif %}">
+                            <select class="form-control" id="device_name_dropdown" name='device_name_dropdown' size="4" required disabled
+                                    onchange="update_text_input(this, document.getElementById('device_name_text'));">
+                                <option value='new entry'>Please select device class and vendor</option>
+                            </select>
+                            <input type="text" name="device_name" class="form-control" id="device_name_text" placeholder="New Device Name" style="display: none;">
+                            {% if 'vendor' in error.keys() %}
+                                <span class="help-block">{{ error['vendor'] }}</span>
+                            {% endif %}
+                        </div>
+                </div>
+
+                {% set input_form_text = [
+                    ("Version", "firmware_version")
+                ] -%}
+                {% for label, id in input_form_text %}
+                <div class="form-group">
+                    <label class="control-label col-xs-3" for="{{ id }}">{{ label }}:</label>
+                        <div class="col-xs-9 {% if id in error.keys() %}has-error{% endif %}">
+                            <input type="text" name="{{ id }}" class="form-control" id="{{ id }}" placeholder="{{ label }}" required>
+                            {% if id in error.keys() %}
+                                <span class="help-block">{{ error[id] }}</span>
+                            {% endif %}
+                        </div>
+                </div>
+                {% endfor %}
+
+                <div class="form-group">
+                    <label class="control-label col-xs-3" for="datetimepicker2">Release Date:</label>
+                        <div class="col-xs-9  {% if 'release_date' in error.keys() %}has-error{% endif %}">
+                            <div class='input-group date' id='datetimepicker2'>
+                                <input type='text' name="release_date" placeholder="Release Date" class="form-control">
+                                <span class="input-group-addon">
+                                    <span class="glyphicon glyphicon-calendar"></span>
+                                </span>
+                            </div>
+                            <script type="text/javascript">
+                                $(function () {
+                                    $('#datetimepicker2').datetimepicker({
+                                        format: 'YYYY-MM-DD'
+                                    });
+                                });
+                            </script>
+                            {% if 'release_date' in error.keys() %}
+                                <span class="help-block">{{ error['release_date'] }}</span>
+                            {% endif %}
+                        </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-xs-3">Analysis Systems:</label>
+                {% for system in analysis_plugin_dict.keys() | sort %}
+                	{% if not analysis_plugin_dict[system][1] %}
+                	{# show if plug-in is not mandatory #}
+	                    <div class="{% if loop.index0 > 0 %}col-xs-offset-3 {% endif %}col-xs-9">
+	                        <label class="checkbox-inline" data-toggle="tooltip" title="{{ analysis_plugin_dict[system][0] | safe }}">
+	                            {% if analysis_plugin_dict[system][2] %}
+	                                <input type=checkbox name="analysis_systems" value="{{ system }}" checked>
+	                            {% endif %}
+	                            {% if not analysis_plugin_dict[system][2] %}
+	                               <input type=checkbox name="analysis_systems" value="{{ system }}" unchecked>
+	                            {% endif %}
+	                            <font face="courier">{{ system | replace_underscore }}</font>
+	                            <br>
+	                        </label>
+	                    </div>
+					{% endif %}
+                {% endfor %}
+                </div>
+
+                <button type="submit" value=submit class="btn btn-default" id="input_submit" onclick='showImg()'>
+                    <span class="glyphicon glyphicon-upload"></span> Submit
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+

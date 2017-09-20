@@ -1,0 +1,27 @@
+# ====================== UEFI ======================
+
+# ASUS CAP
+0  string \x8b\xa6\x3c\x4a\x23\x77\xfb\x48\x80	ASUS UEFI Image
+!:mime firmware/uefi
+
+# Gigabyte UEFI
+0x20000 string \xaa\x55\xaa\x55\x00\x00 GigaByte UEFI Image
+!:mime firmware/uefi
+
+# Dell UEFI HDR
+0 string PFS\x2eHDR	Dell HDR-PFS UEFI Image
+!:mime firmware/uefi
+0 string \x24TAG\x01\x00\x00\x00\x5D\xc2\x8e\x14	Dell HDR-TAG UEFI Image
+!:mime firmware/uefi
+
+# Dell UEFI k
+2 string \x6b\x17\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x78\xe5\x8c\x8c\x3d\x8a\x1c Dell k UEFI Image
+!:mime firmware/uefi
+
+# Flash descriptors for Intel SPI flash roms.
+# original code from file magic db
+# From Dr. Jesus <j@hug.gs>
+0	lelong		0x0ff0a55a	Intel serial flash for ICH/PCH ROM <= 5 or 3400 series A-step
+!:mime	firmware/uefi
+16	lelong		0x0ff0a55a	Intel serial flash for PCH ROM
+!:mime	firmware/uefi

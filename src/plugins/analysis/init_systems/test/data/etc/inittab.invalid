@@ -1,0 +1,118 @@
+# empty config
+# shouldn't find anything her
+# file consist only of commented lines
+
+# Level to run in
+#id:2:initdefault:
+
+# Boot-time system configuration/initialization script.
+#si::sysinit:/etc/init.d/rcS
+
+# What to do in single-user mode.
+#~:S:wait:/sbin/sulogin
+
+# /etc/init.d executes the S and K scripts upon change
+# of runlevel.
+#
+# Runlevel 0 is halt.
+# Runlevel 1 is single-user.
+# Runlevels 2-5 are multi-user.
+# Runlevel 6 is reboot.
+
+#l0:0:wait:/etc/init.d/rc 0
+#l1:1:wait:/etc/init.d/rc 1
+#l2:2:wait:/etc/init.d/rc 2
+#l3:3:wait:/etc/init.d/rc 3
+#l4:4:wait:/etc/init.d/rc 4
+#l5:5:wait:/etc/init.d/rc 5
+#l6:6:wait:/etc/init.d/rc 6
+
+# What to do at the "3 finger salute".
+#ca::ctrlaltdel:/sbin/shutdown -t1 -h now
+
+# Runlevel 2,3: getty on virtual consoles
+# Runlevel   3: getty on terminal (ttyS0) and modem (ttyS1)
+#1:23:respawn:/sbin/getty tty1 VC linux
+#2:23:respawn:/sbin/getty tty2 VC linux
+#3:23:respawn:/sbin/getty tty3 VC linux
+#4:23:respawn:/sbin/getty tty4 VC linux
+#S0:3:respawn:/sbin/getty -L 9600 ttyS0 vt320
+#S1:3:respawn:/sbin/mgetty -x0 -D ttyS1
+
+
+
+#!/bin/sh -e
+#
+# rc.local
+#
+# This script is executed at the end of each multiuser runlevel.
+# Make sure that the script will "exit 0" on success or any other
+# value on error.
+#
+# In order to enable or disable this script just change the execution
+# bits.
+#
+# By default this script does nothing.
+
+## Beispiele: 
+#/usr/bin/foo              # ein Programm
+#/usr/local/bin/bar.sh     # ein Shellskript
+#/etc/init.d/foobar start  # ein Dienst
+
+#exit 0
+
+
+
+#[Unit]
+#Description=Foo Bar Service
+#Requires=syslog.socket
+#Documentation=man:rsyslogd(8)
+#Documentation=https://www.google.de/#q=foobar&*
+
+#[Service]
+#Type=notify
+#ExecStartPre=/bin/sh -c '[ "$(basename $(cat /etc/X11/default-display-manager 2>/dev/null))" = "lightdm" ]'
+#ExecStart=/usr/sbin/foobar -n
+#StandardOutput=null
+#Restart=on-failure
+
+#[Install]
+#WantedBy=multi-user.target
+#Alias=foobar.service
+
+
+
+#!/bin/sh -e
+#sv -w7 check postgresql
+#exec 2>&1 myprocess \
+#last line
+
+
+
+#!/bin/sh
+# kFreeBSD do not accept scripts as interpreters, using #!/bin/sh and sourcing.
+#if [ true != "$INIT_D_SCRIPT_SOURCED" ] ; then
+#    set "$0" "$@"; INIT_D_SCRIPT_SOURCED=true . /lib/init/init-d-script
+#fi
+### BEGIN INIT INFO
+# Provides:          skeleton
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Example initscript
+# Description:       This file should be used to construct scripts to be
+#                    placed in /etc/init.d.  This example start a
+#                    single forking daemon capable of writing a pid
+#                    file.  To get other behavoirs, implemend
+#                    do_start(), do_stop() or other functions to
+#                    override the defaults in /lib/init/init-d-script.
+### END INIT INFO
+
+# Author: Foo Bar <foobar@baz.org>
+#
+# Please remove the "Author" lines above and replace them
+# with your own name if you copy and modify this script.
+
+#DESC="Description of the service"
+#DAEMON=/usr/sbin/daemonexecutablename
