@@ -1,6 +1,7 @@
 <p align="center">
     <img src="src/web_interface/static/FACT_smaller.png" alt="FACT Logo" width="625" height="263"/>
 </p>
+
 # The Firmware Analysis and Comparison Tool (FACT)
 
 The Firmware Analysis and Comparison Tool (formerly known as Fraunhofer's Firmware Analysis Framework (FAF)) is intended to automate most of the firmware analysis process. 
@@ -106,7 +107,7 @@ The FACT project and the [Mallware Analysis and Storage Sytem (MASS) project](ht
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <a href=http://www.gnu.org/licenses/>www.gnu.org/licenses/</a>.
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
     
     Some plug-ins may have different licenses. If so, a license file is provided in the plug-in's folder.
 ```
