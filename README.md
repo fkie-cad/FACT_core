@@ -88,7 +88,7 @@ Checkout the new sources and rerun the installer.
 
 
 ## Acknowledgments
-This project is partly financed by [German Federal Office for Information Security (BSI)](https://www.bsi.bund.de) and others. 
+This project is partly financed by [German Federal Office for Information Security (BSI)](https://www.bsi.bund.de) and others.  
 The FACT project and the [Mallware Analysis and Storage Sytem (MASS) project](https://mass-project.github.io/) form a code and plug-in sharing alliance.  
 
 ## License
