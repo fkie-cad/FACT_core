@@ -2,7 +2,6 @@
     <img src="src/web_interface/static/FACT_smaller.png" alt="FACT Logo" width="625" height="263"/>
 </p>
 # The Firmware Analysis and Comparison Tool (FACT)
-[![build status](https://git-sdn.caad.fkie.fraunhofer.de/FACT/FACT_core/badges/master/build.svg)](https://git-sdn.caad.fkie.fraunhofer.de/FACT/FACT_core/commits/master)
 
 The Firmware Analysis and Comparison Tool (formerly known as Fraunhofer's Firmware Analysis Framework (FAF)) is intended to automate most of the firmware analysis process. 
 It unpacks arbitrary firmware files and processes several analysis.
@@ -24,11 +23,14 @@ FACT is designed as a multiprocess application, the more Cores and RAM, the bett
 ### Software
 * Ubuntu 16.04
 * Python 3.5 or above
+* PIP
 * git
 
 It is possible to install FACT on any Linux distribution but the installer is limited to Ubuntu 16.04 at the moment.
 
 ## Installation
+
+:exclamation: **Caution: FACT is not intended to be used as public internet service. The GUI is not a hardened WEB-application and it may take your server at risk!**
 
 FACT consists of three components: frontend, db and backend. All components can be installed on one machine as well as on different machines. 
 There is an automated installation programm supporting Ubuntu 16.04 host systems.
@@ -86,5 +88,5 @@ Checkout the new sources and rerun the installer.
 
 ## Acknowledgments
 This project is partly financed by [German Federal Office for Information Security (BSI)](https://www.bsi.bund.de) and others. 
-
-### &copy; 2015-2017 Fraunhofer FKIE
+  
+**&copy; 2015-2017 Fraunhofer FKIE**
