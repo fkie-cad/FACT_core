@@ -53,6 +53,7 @@ If you have any additional plug-ins, copy/clone them into corresponding *src/plu
 To initialize a one system setup simply run:
 
 ```sh
+$ sudo apt install python3-pip git
 $ ./install.py
 ```
 
