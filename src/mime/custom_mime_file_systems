@@ -50,6 +50,11 @@
 >28 leshort >3
 >>8	ledate	x	created: %s
 
+## AVM Squashfs Fake
+0	string sqsh\x00\x00\x00\x00\x00\x00		AVM SquashFs Fake
+!:mime filesystem/avm-sqfs-fake
+
+
 # cramfs filesystem - original code from file magic db
 0       lelong    0x28cd3d45      Linux Compressed ROM File System data, little endian
 !:mime filesystem/cramfs
