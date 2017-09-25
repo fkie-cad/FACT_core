@@ -25,10 +25,10 @@ def get_analysis_view(view_name):
 
 
 class AnalysisRoutes(ComponentBase):
-    
+
     analysis_generic_view = get_analysis_view('generic')
     analysis_unpacker_view = get_analysis_view('unpacker')
-    
+
     def _init_component(self):
         self._app.add_url_rule('/update-analysis/<uid>', 'update-analysis/<uid>', self._update_analysis, methods=['GET', 'POST'])
         self._app.add_url_rule('/analysis/<uid>', 'analysis/<uid>', self._show_analysis_results)
@@ -80,14 +80,17 @@ class AnalysisRoutes(ComponentBase):
             firmware_including_this_fo = self._get_firmware_ids_including_this_file(file_obj)
             with ConnectTo(InterComFrontEndBinding, self._config) as sc:
                 analysis_plugins = sc.get_available_analysis_plugins()
-            return render_template_string(view, uid=uid, firmware=file_obj, selected_analysis=selected_analysis,
-                                   all_analyzed_flag=analysis_of_included_files_complete,
-                                   summary_of_included_files=summary_of_included_files, root_uid=root_uid,
-                                   firmware_including_this_fo=firmware_including_this_fo,
-                                   analysis_plugin_dict=analysis_plugins)
+            return render_template_string(view,
+                                          uid=uid,
+                                          firmware=file_obj,
+                                          selected_analysis=selected_analysis,
+                                          all_analyzed_flag=analysis_of_included_files_complete,
+                                          summary_of_included_files=summary_of_included_files,
+                                          root_uid=root_uid,
+                                          firmware_including_this_fo=firmware_including_this_fo,
+                                          analysis_plugin_dict=analysis_plugins)
         else:
             return render_template('uid_not_found.html', uid=uid)
-
 
     def _get_analysis_view(self, selected_analysis):
         if selected_analysis == 'unpacker':
@@ -99,7 +102,7 @@ class AnalysisRoutes(ComponentBase):
                 return view.decode('utf-8')
             else:
                 return self.analysis_generic_view
-            
+
     def _update_analysis(self, uid, re_do=False):
         error = {}
         if request.method == 'POST':

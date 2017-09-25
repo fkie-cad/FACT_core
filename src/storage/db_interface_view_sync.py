@@ -13,17 +13,18 @@ class ViewSyncDb(MongoInterface):
         super().__init__(config=config)
         self.view_collection = self.client[self.config['data_storage']['view_storage']]
         self.view_storage = gridfs.GridFS(self.view_collection)
-        
-    
+
+
 class ViewUpdater(ViewSyncDb):
-    
+
     READ_ONLY = False
-    
+
     def update_view(self, file_name, content):
         overwrite_file(self.view_storage, file_name, pickle.dumps(content))
-    
+
+
 class ViewReader(ViewSyncDb):
-    
+
     READ_ONLY = True
 
     def get_view(self, plugin_name):
