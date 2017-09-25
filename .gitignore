@@ -12,7 +12,6 @@ src/web_interface/static/jstree*
 src/web_interface/static/google_charts
 src/web_interface/static/angular.min.js
 src/web_interface/static/Chart.js
-src/web_interface/templates/analysis_plugins
 src/log
 src/bootstrap/doc
 src/bootstrap/man
