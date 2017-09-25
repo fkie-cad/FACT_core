@@ -1,16 +1,24 @@
-import unittest
-import os
 from multiprocessing import Queue
-from scheduler.Analysis import AnalysisScheduler, MANDATORY_PLUGINS
-from objects.firmware import Firmware
-from test.common_helper import DatabaseMock
+import os
+import unittest
+import unittest.mock
+
 from helperFunctions.config import get_config_for_testing
 from helperFunctions.fileSystem import get_test_data_dir
+from objects.firmware import Firmware
+from scheduler.Analysis import AnalysisScheduler, MANDATORY_PLUGINS
+from test.common_helper import DatabaseMock, fake_exit
 
 
 class TestScheduleInitialAnalysis(unittest.TestCase):
 
     def setUp(self):
+        self.mocked_interface = DatabaseMock()
+        self.enter_patch = unittest.mock.patch(target='helperFunctions.web_interface.ConnectTo.__enter__', new=lambda _: self.mocked_interface)
+        self.enter_patch.start()
+        self.exit_patch = unittest.mock.patch(target='helperFunctions.web_interface.ConnectTo.__exit__', new=fake_exit)
+        self.exit_patch.start()
+
         config = get_config_for_testing()
         config.add_section('ip_and_uri_finder')
         config.set('ip_and_uri_finder', 'signature_directory', 'analysis/signatures/ip_and_uri_finder/')
@@ -22,6 +30,10 @@ class TestScheduleInitialAnalysis(unittest.TestCase):
     def tearDown(self):
         self.sched.shutdown()
         self.tmp_queue.close()
+
+        self.enter_patch.stop()
+        self.exit_patch.stop()
+        self.mocked_interface.shutdown()
 
     def test_plugin_registration(self):
         self.assertIn('dummy_plugin_for_testing_only', self.sched.analysis_plugins, 'Dummy plugin not found')

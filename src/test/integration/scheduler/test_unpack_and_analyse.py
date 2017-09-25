@@ -1,17 +1,24 @@
-import unittest
 from multiprocessing import Queue
+import unittest
 from unittest.mock import patch
 
 from helperFunctions.fileSystem import get_test_data_dir
 from objects.firmware import Firmware
 from scheduler.Analysis import AnalysisScheduler
 from scheduler.Unpacking import UnpackingScheduler
+from test.common_helper import DatabaseMock, fake_exit
 from test.integration.common import initialize_config, MockDbInterface, MockFSOrganizer
 
 
 class TestFileAddition(unittest.TestCase):
     @patch('unpacker.unpack.FS_Organizer', MockFSOrganizer)
     def setUp(self):
+        self.mocked_interface = DatabaseMock()
+        self.enter_patch = unittest.mock.patch(target='helperFunctions.web_interface.ConnectTo.__enter__', new=lambda _: self.mocked_interface)
+        self.enter_patch.start()
+        self.exit_patch = unittest.mock.patch(target='helperFunctions.web_interface.ConnectTo.__exit__', new=fake_exit)
+        self.exit_patch.start()
+
         self._config = initialize_config(None)
         self._tmp_queue = Queue()
 
@@ -22,6 +29,10 @@ class TestFileAddition(unittest.TestCase):
         self._unpack_scheduler.shutdown()
         self._analysis_scheduler.shutdown()
         self._tmp_queue.close()
+
+        self.enter_patch.stop()
+        self.exit_patch.stop()
+        self.mocked_interface.shutdown()
 
     def test_unpack_and_analyse(self):
         test_fw = Firmware(file_path='{}/container/test.zip'.format(get_test_data_dir()))
