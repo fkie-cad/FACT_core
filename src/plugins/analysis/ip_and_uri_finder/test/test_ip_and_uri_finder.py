@@ -11,6 +11,7 @@ class TestAnalysisPluginIpAndUriFinder(AnalysisPluginTest):
     PLUGIN_NAME = "ip_and_uri_finder"
 
     def setUp(self):
+        super().setUp()
         config = self.init_basic_config()
         self.analysis_plugin = AnalysisPlugin(self, config=config)
 

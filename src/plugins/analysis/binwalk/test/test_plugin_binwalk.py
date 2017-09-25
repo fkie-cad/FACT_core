@@ -19,6 +19,7 @@ class TestAnalysisPluginBinwalk(AnalysisPluginTest):
     PLUGIN_NAME = 'binwalk'
 
     def setUp(self):
+        super().setUp()
         config = self.init_basic_config()
         # additional setup can go here
         self.analysis_plugin = AnalysisPlugin(self, config=config)

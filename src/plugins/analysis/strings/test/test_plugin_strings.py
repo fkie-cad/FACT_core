@@ -15,6 +15,7 @@ class TestAnalysisPlugInPrintableStrings(AnalysisPluginTest):
     PLUGIN_NAME = 'printable_strings'
 
     def setUp(self):
+        super().setUp()
         config = self.init_basic_config()
         config.set(self.PLUGIN_NAME, 'min_length', '4')
         self.analysis_plugin = AnalysisPlugin(self, config=config)

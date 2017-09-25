@@ -15,6 +15,7 @@ class TestArchDetection(AnalysisPluginTest):
     PLUGIN_NAME = 'cpu_architecture'
 
     def setUp(self):
+        super().setUp()
         config = self.init_basic_config()
         config.set(self.PLUGIN_NAME, 'mime_ignore', '')
         self.analysis_plugin = AnalysisPlugin(self, config=config)

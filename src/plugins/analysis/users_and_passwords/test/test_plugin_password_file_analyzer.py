@@ -14,6 +14,7 @@ class TestAnalysisPluginPasswordFileAnalyzer(AnalysisPluginTest):
     PLUGIN_NAME = 'users_and_passwords'
 
     def setUp(self):
+        super().setUp()
         config = self.init_basic_config()
         self.analysis_plugin = AnalysisPlugin(self, config=config)
 

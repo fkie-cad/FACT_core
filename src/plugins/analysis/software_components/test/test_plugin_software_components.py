@@ -15,6 +15,7 @@ class Test_analysis_plugins_software_components(AnalysisPluginTest):
     PLUGIN_NAME = 'software_components'
 
     def setUp(self):
+        super().setUp()
         config = self.init_basic_config()
         self.analysis_plugin = AnalysisPlugin(self, config=config)
 

@@ -8,6 +8,7 @@ class TestAnalysisPlugInStringEvaluator(AnalysisPluginTest):
     PLUGIN_NAME = 'string_evaluator'
 
     def setUp(self):
+        super().setUp()
         config = self.init_basic_config()
         self.analysis_plugin = AnalysisPlugin(self, config=config)
 

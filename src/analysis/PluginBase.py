@@ -12,6 +12,7 @@ from helperFunctions.fileSystem import get_parent_dir
 from helperFunctions.parsing import bcolors
 from helperFunctions.process import ExceptionSafeProcess, terminate_process_and_childs
 from storage.db_interface_view_sync import ViewUpdater
+from helperFunctions.web_interface import ConnectTo
 
 
 class BasePlugin(object):  # pylint: disable=too-many-instance-attributes
@@ -52,9 +53,8 @@ class BasePlugin(object):  # pylint: disable=too-many-instance-attributes
             view_source = self._get_view_file_path(plugin_path)
             if view_source is not None:
                 view = get_binary_from_file(view_source)
-                view_db = ViewUpdater(config=self.config)
-                view_db.update_view(self.NAME, view)
-                view_db.shutdown()
+                with ConnectTo(ViewUpdater, self.config) as connection:
+                    connection.update_view(self.NAME, view)
 
     def _get_view_file_path(self, plugin_path):
         plugin_path = get_parent_dir(get_dir_of_file(plugin_path))

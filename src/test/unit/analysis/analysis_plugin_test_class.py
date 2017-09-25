@@ -1,7 +1,9 @@
 import unittest
-
+import unittest.mock
 from configparser import ConfigParser
+
 from helperFunctions.config import load_config
+from test.common_helper import DatabaseMock, fake_exit
 
 
 class AnalysisPluginTest(unittest.TestCase):
@@ -12,10 +14,21 @@ class AnalysisPluginTest(unittest.TestCase):
     PLUGIN_NAME = "plugin_test"
 
     def setUp(self):
-        pass
+        self.mocked_interface = DatabaseMock()
+
+        self.enter_patch = unittest.mock.patch(target='helperFunctions.web_interface.ConnectTo.__enter__', new=lambda _: self.mocked_interface)
+        self.enter_patch.start()
+
+        self.exit_patch = unittest.mock.patch(target='helperFunctions.web_interface.ConnectTo.__exit__', new=fake_exit)
+        self.exit_patch.start()
 
     def tearDown(self):
         self.analysis_plugin.shutdown()
+
+        self.enter_patch.stop()
+        self.exit_patch.stop()
+
+        self.mocked_interface.shutdown()
 
     def init_basic_config(self):
         config = ConfigParser()
