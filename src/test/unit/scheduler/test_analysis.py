@@ -1,7 +1,7 @@
-from multiprocessing import Queue
 import os
 import unittest
 import unittest.mock
+from multiprocessing import Queue
 
 from helperFunctions.config import get_config_for_testing
 from helperFunctions.fileSystem import get_test_data_dir

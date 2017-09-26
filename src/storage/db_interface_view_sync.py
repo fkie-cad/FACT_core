@@ -1,5 +1,4 @@
 import gridfs
-import pickle
 from common_helper_mongo.gridfs import overwrite_file
 
 from storage.mongo_interface import MongoInterface
@@ -20,7 +19,7 @@ class ViewUpdater(ViewSyncDb):
     READ_ONLY = False
 
     def update_view(self, file_name, content):
-        overwrite_file(self.view_storage, file_name, pickle.dumps(content))
+        overwrite_file(self.view_storage, file_name, content)
 
 
 class ViewReader(ViewSyncDb):
@@ -30,6 +29,6 @@ class ViewReader(ViewSyncDb):
     def get_view(self, plugin_name):
         view = self.view_storage.find_one({'filename': '{}'.format(plugin_name)})
         if view:
-            return pickle.loads(view.read())
+            return view.read()
         else:
             return None

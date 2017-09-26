@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
-from common_helper_files import get_binary_from_file
-from flask import render_template, request, render_template_string
 import json
 import logging
 import os
+
+from common_helper_files import get_binary_from_file
+from flask import render_template, request, render_template_string
 
 from helperFunctions.dataConversion import none_to_none
 from helperFunctions.fileSystem import get_src_dir
