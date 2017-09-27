@@ -9,6 +9,7 @@ class test_analysis_plugin_hash(AnalysisPluginTest):
     PLUGIN_NAME = 'file_hashes'
 
     def setUp(self):
+        super().setUp()
         config = self.init_basic_config()
         config.set(self.PLUGIN_NAME, 'hashes', 'md5, sha1, foo')
         self.analysis_plugin = AnalysisPlugin(self, config=config)

@@ -48,6 +48,9 @@ class DatabaseMock:
     def shutdown(self):
         pass
 
+    def update_view(self, file_name, content):
+        pass
+
     def get_meta_list(self, firmware_list=[]):
         fw_entry = ("test_uid", "test firmware", "unpacker")
         fo_entry = ("test_fo_uid", "test file object", "unpacker")

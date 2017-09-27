@@ -10,8 +10,8 @@ class test_analysis_plugin_mime_detection(AnalysisPluginTest):
     PLUGIN_NAME = 'file_type'
 
     def setUp(self):
+        super().setUp()
         config = self.init_basic_config()
-
         self.analysis_plugin = AnalysisPlugin(self, config=config)
 
     def tearDown(self):

@@ -39,6 +39,7 @@ class TestAnalysisPluginInit(AnalysisPluginTest):
         super(TestAnalysisPluginInit, self).tearDownClass()
 
     def setUp(self):
+        super().setUp()
         config = self.init_basic_config()
         self.analysis_plugin = AnalysisPlugin(self, config=config)
 

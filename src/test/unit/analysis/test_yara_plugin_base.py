@@ -11,6 +11,7 @@ class TestAnalysisYaraBasePlugin(AnalysisPluginTest):
     PLUGIN_NAME = "Yara_Base_Plugin"
 
     def setUp(self):
+        super().setUp()
         config = self.init_basic_config()
         self.intended_signature_path = os.path.join(get_src_dir(), 'analysis/signatures', self.PLUGIN_NAME)
         self.analysis_plugin = YaraBasePlugin(self, config=config)

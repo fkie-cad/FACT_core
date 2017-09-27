@@ -4,13 +4,15 @@ from multiprocessing import Queue, Value, Manager
 from queue import Empty
 from time import time
 
-from common_helper_files import create_symlink, get_dir_of_file, get_files_in_dir
+from common_helper_files import get_dir_of_file, get_files_in_dir, get_binary_from_file
 
 from helperFunctions.config import load_config
 from helperFunctions.dependency import get_unmatched_dependencys, schedule_dependencys
-from helperFunctions.fileSystem import get_src_dir, get_parent_dir
+from helperFunctions.fileSystem import get_parent_dir
 from helperFunctions.parsing import bcolors
 from helperFunctions.process import ExceptionSafeProcess, terminate_process_and_childs
+from storage.db_interface_view_sync import ViewUpdater
+from helperFunctions.web_interface import ConnectTo
 
 
 class BasePlugin(object):  # pylint: disable=too-many-instance-attributes
@@ -44,14 +46,15 @@ class BasePlugin(object):  # pylint: disable=too-many-instance-attributes
         if not offline_testing:
             self.start_worker()
         self.register_plugin()
-        self._link_view(plugin_path)
+        self._sync_view(plugin_path)
 
-    def _link_view(self, plugin_path):
+    def _sync_view(self, plugin_path):
         if plugin_path:
             view_source = self._get_view_file_path(plugin_path)
             if view_source is not None:
-                view_dest = os.path.join(get_src_dir(), 'web_interface/templates/analysis_plugins', '{}.html'.format(self.NAME))
-                create_symlink(view_source, view_dest)
+                view = get_binary_from_file(view_source)
+                with ConnectTo(ViewUpdater, self.config) as connection:
+                    connection.update_view(self.NAME, view)
 
     def _get_view_file_path(self, plugin_path):
         plugin_path = get_parent_dir(get_dir_of_file(plugin_path))

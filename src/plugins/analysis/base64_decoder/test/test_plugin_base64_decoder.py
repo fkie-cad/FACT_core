@@ -14,6 +14,7 @@ class TestAnalysisPluginBase64Decoder(AnalysisPluginTest):
     PLUGIN_NAME = "base64_decoder"
 
     def setUp(self):
+        super().setUp()
         config = self.init_basic_config()
         config[self.PLUGIN_NAME]['base64_section_min_length'] = '20'
         config[self.PLUGIN_NAME]['string_min_length'] = '15'
