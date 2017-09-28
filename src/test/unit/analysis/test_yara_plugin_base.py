@@ -14,7 +14,10 @@ class TestAnalysisYaraBasePlugin(AnalysisPluginTest):
         super().setUp()
         config = self.init_basic_config()
         self.intended_signature_path = os.path.join(get_src_dir(), 'analysis/signatures', self.PLUGIN_NAME)
-        self.analysis_plugin = YaraBasePlugin(self, config=config)
+        self.analysis_plugin = YaraBasePlugin(self, config=config, plugin_path='/foo/bar/Yara_Base_Plugin/code/test.py')
+
+    def test_get_signature_file_name(self):
+        assert self.analysis_plugin._get_signature_file_name('/foo/bar/plugin_name/code/test.py') == 'plugin_name.yc'
 
     def test_get_signature_paths(self):
         self.assertTrue(isinstance(self.analysis_plugin.signature_path, str), "incorrect type")

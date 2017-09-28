@@ -23,7 +23,7 @@ class AnalysisPlugin(BasePlugin):
 
         # additional init stuff can go here
 
-        super().__init__(plugin_adminstrator, config=config, recursive=recursive)
+        super().__init__(plugin_adminstrator, config=config, recursive=recursive, plugin_path=__file__)
 
     def process_object(self, file_object):
         '''

@@ -21,7 +21,7 @@ class AnalysisPlugin(BasePlugin):
 
     wordlist_path = os.path.join(get_src_dir(), 'bin/passwords.txt')
 
-    def __init__(self, plugin_adminstrator, config=None, recursive=True, plugin_path=__file__):
+    def __init__(self, plugin_adminstrator, config=None, recursive=True):
         '''
         recursive flag: If True recursively analyze included files
         default flags should be edited above. Otherwise the scheduler cannot overwrite them.
