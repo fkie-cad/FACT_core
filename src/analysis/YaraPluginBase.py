@@ -23,8 +23,8 @@ class YaraBasePlugin(BasePlugin):
         propagate flag: If True add analysis result of child to parent object
         '''
         self.config = config
-        super().__init__(plugin_adminstrator, config=config, recursive=recursive, plugin_path=plugin_path)
         self._get_signature_file(plugin_path)
+        super().__init__(plugin_adminstrator, config=config, recursive=recursive, plugin_path=plugin_path)
 
     def process_object(self, file_object):
         if self.signature_path is not None:
@@ -41,16 +41,15 @@ class YaraBasePlugin(BasePlugin):
         return file_object
 
     def _get_signature_file_name(self, plugin_path):
-        if isinstance(plugin_path, str):
-            return plugin_path.split('/')[-3] + '.yc'
-        else:
-            logging.error('Could not determine plugin_path of {}'.format(self.NAME))
-        return "error.yc"
+        return plugin_path.split('/')[-3] + '.yc'
 
     def _get_signature_file(self, plugin_path):
-        sig_file_name = self._get_signature_file_name(plugin_path)
-        sig_dir = os.path.join(get_src_dir(), 'analysis/signatures')
-        self.signature_path = os.path.join(sig_dir, sig_file_name)
+        if plugin_path:
+            sig_file_name = self._get_signature_file_name(plugin_path)
+            sig_dir = os.path.join(get_src_dir(), 'analysis/signatures')
+            self.signature_path = os.path.join(sig_dir, sig_file_name)
+        else:
+            self.signature_path = None
 
     def _parse_yara_output(self, output):
         resulting_matches = dict()
