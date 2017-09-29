@@ -23,16 +23,13 @@ class YaraBasePlugin(BasePlugin):
         propagate flag: If True add analysis result of child to parent object
         '''
         self.config = config
-        self._get_signature_file()
-        if not plugin_path:
-            plugin_path = self.FILE
+        self._get_signature_file(plugin_path)
         super().__init__(plugin_adminstrator, config=config, recursive=recursive, plugin_path=plugin_path)
 
     def process_object(self, file_object):
         if self.signature_path is not None:
             with subprocess.Popen('yara --print-meta --print-strings {} {}'.format(self.signature_path, file_object.file_path), shell=True, stdout=subprocess.PIPE) as process:
                 output = process.stdout.read().decode()
-
             try:
                 result = self._parse_yara_output(output)
                 file_object.processed_analysis[self.NAME] = result
@@ -43,9 +40,16 @@ class YaraBasePlugin(BasePlugin):
             file_object.processed_analysis[self.NAME] = {'ERROR': 'Signature path not set'}
         return file_object
 
-    def _get_signature_file(self):
-        sig_dir = os.path.join(get_src_dir(), 'analysis/signatures')
-        self.signature_path = os.path.join(sig_dir, '{}.yc'.format(self.NAME))
+    def _get_signature_file_name(self, plugin_path):
+        return plugin_path.split('/')[-3] + '.yc'
+
+    def _get_signature_file(self, plugin_path):
+        if plugin_path:
+            sig_file_name = self._get_signature_file_name(plugin_path)
+            sig_dir = os.path.join(get_src_dir(), 'analysis/signatures')
+            self.signature_path = os.path.join(sig_dir, sig_file_name)
+        else:
+            self.signature_path = None
 
     def _parse_yara_output(self, output):
         resulting_matches = dict()

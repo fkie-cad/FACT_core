@@ -12,6 +12,9 @@ class AnalysisPlugin(YaraBasePlugin):
     VERSION = '0.3'
     FILE = __file__
 
+    def __init__(self, plugin_adminstrator, config=None, recursive=True):
+        super().__init__(plugin_adminstrator, config=config, recursive=recursive, plugin_path=__file__)
+
     def process_object(self, file_object):
         file_object = super().process_object(file_object)
         if len(file_object.processed_analysis[self.NAME]) > 1:
@@ -48,7 +51,7 @@ class AnalysisPlugin(YaraBasePlugin):
     def get_version_for_component(self, result):
         versions = set()
         for matched_string in result['strings']:
-            offset, rule_string, match = matched_string
+            match = matched_string[2]
             match = make_unicode_string(match)
             versions.add(self.get_version(match))
         result['meta']['version'] = list(versions)
