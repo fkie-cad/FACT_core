@@ -2,9 +2,6 @@
     <img src="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/src/web_interface/static/FACT_smaller.png" alt="FACT Logo" width="625" height="263"/>
 </p>
 
-The Firmware Analysis and Comparison Tool (FACT) is intended to automate Firmware Security analysis (Router, IoT, UEFI, Webcams, Drones, …).
-Thereby it shall be easy to use (web GUI), extend (plug-in system) and integrate (REST API).
-
 # Challenges
 Firmware analysis is a tough challenge with a lot of tasks.
 Many of these tasks can be automated (either with new approaches or incorporation of existing tools) so that a security analyst can focus on his main task: Analyzing the firmware (and finding vulnerabilities).
@@ -63,7 +60,7 @@ Integration is easy as well since we provide a REST API covering almost all of F
 More Details can be found in our [REST API documentation](https://github.com/fkie-cad/FACT_core/wiki/doku_rest).
 
 # Latest News
-Follow us on Twitter @FAndCTool
+Follow us on Twitter [@FAndCTool](https://twitter.com/FAandCTool)
 
 # Contribute
 There are many ways to contribute to FACT.
