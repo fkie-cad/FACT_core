@@ -59,6 +59,10 @@ More details can be found in the [Developer’s Manual](https://github.com/fkie-
 Integration is easy as well since we provide a REST API covering almost all of FACT’s features.
 More Details can be found in our [REST API documentation](https://github.com/fkie-cad/FACT_core/wiki/doku_rest).
 
+## Screenshots
+<img src="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/FACT_upload.png" alt="firmware upload" height="200px" /> <img src="https://github.com/fkie-cad/FACT_core/blob/master/docs/FACT_screenshots/FACT_analysis_software.png" alt="software detection" height="200px" /> <img src="https://github.com/fkie-cad/FACT_core/blob/master/docs/FACT_screenshots/FACT_analysis_av.png" alt="malware scanner" height="200px" /> <img src="https://github.com/fkie-cad/FACT_core/blob/master/docs/FACT_screenshots/FACT_analysis_binwalk.png" alt="binwalk plug-in" height="200px" /> <img src="https://github.com/fkie-cad/FACT_core/blob/master/docs/FACT_screenshots/FACT_compare.png" alt="compare firmware images" height="200px" /> <img src="https://github.com/fkie-cad/FACT_core/blob/master/docs/FACT_screenshots/FACT_bin_search.png" alt="search for arbitrary binary patterns on all unpacked files" height="200px" /> <img src="https://github.com/fkie-cad/FACT_core/blob/master/docs/FACT_screenshots/FACT_statistic.png" alt="statistics" height="200px" /> <img src="https://github.com/fkie-cad/FACT_core/blob/master/docs/FACT_screenshots/FACT_system_health.png" alt="system health monitoring" height="200px" />
+
+
 # Latest News
 Follow us on Twitter [@FAndCTool](https://twitter.com/FAandCTool)
 
