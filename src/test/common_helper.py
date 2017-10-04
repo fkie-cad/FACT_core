@@ -2,6 +2,8 @@ import json
 import os
 from copy import deepcopy
 
+import mongomock
+
 from helperFunctions.dataConversion import unify_string_list
 from helperFunctions.fileSystem import get_test_data_dir
 from helperFunctions.yara_binary_search import YaraRuleError
@@ -43,6 +45,10 @@ class DatabaseMock:
 
     def __init__(self, config=None):
         self.tasks = []
+        self._client = mongomock.MongoClient()
+        self._db = self._client.test
+        self.firmwares = self._db.firmware
+        self.file_objects = self._db.file_objects
         pass
 
     def shutdown(self):
