@@ -2,8 +2,6 @@ import json
 import os
 from copy import deepcopy
 
-import mongomock
-
 from helperFunctions.dataConversion import unify_string_list
 from helperFunctions.fileSystem import get_test_data_dir
 from helperFunctions.yara_binary_search import YaraRuleError
@@ -45,10 +43,6 @@ class DatabaseMock:
 
     def __init__(self, config=None):
         self.tasks = []
-        self._client = mongomock.MongoClient()
-        self._db = self._client.test
-        self.firmwares = self._db.firmware
-        self.file_objects = self._db.file_objects
 
     def shutdown(self):
         pass
@@ -144,6 +138,10 @@ class DatabaseMock:
             else:
                 return None
 
+        @staticmethod
+        def find(query, filter):
+            return {}
+
     class file_objects():
         @staticmethod
         def find_one(uid):
@@ -151,6 +149,10 @@ class DatabaseMock:
                 return TEST_TEXT_FILE.get_uid()
             else:
                 return None
+
+        @staticmethod
+        def find(query, filter):
+            return {}
 
     def get_data_for_nice_list(self, input_data, root_uid):
         return []
@@ -268,6 +270,9 @@ class DatabaseMock:
             return TEST_TEXT_FILE
         else:
             return None
+
+    def search_cve_summaries_for(self, keyword):
+        return [{'_id': 'CVE-2012-0002'}]
 
 
 def fake_exit(self, *args):
