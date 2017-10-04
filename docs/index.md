@@ -60,7 +60,7 @@ Integration is easy as well since we provide a REST API covering almost all of F
 More Details can be found in our [REST API documentation](https://github.com/fkie-cad/FACT_core/wiki/doku_rest).
 
 ## Screenshots
-<table>
+<table border="0px">
   <tr>
     <td><a href="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/FACT_upload.png"><img src="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/FACT_upload.png" alt="firmware upload" height="150px" /></a></td>
     <td><a href="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/FACT_analysis_software.png"><img src="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/FACT_analysis_software.png" alt="software detection" height="150px" /></a></td>
@@ -68,7 +68,7 @@ More Details can be found in our [REST API documentation](https://github.com/fki
   </tr>
   <tr>
     <td><a href="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/FACT_analysis_binwalk.png"><img src="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/FACT_analysis_binwalk.png" alt="binwalk plug-in" height="150px" /></a></td>
-    <td><a href="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/FACT_analysis_compare.png"><img src="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/FACT_compare.png" alt="compare firmware images" height="150px" /></a></td>
+    <td><a href="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/FACT_compare.png"><img src="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/FACT_compare.png" alt="compare firmware images" height="150px" /></a></td>
     <td><a href="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/FACT_bin_search.png"><img src="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/FACT_bin_search.png" alt="search for arbitrary binary patterns on all unpacked files" height="150px" /></a></td>
   </tr>
   <tr>
