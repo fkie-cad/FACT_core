@@ -271,6 +271,9 @@ class DatabaseMock:
         else:
             return None
 
+    def search_cve_summaries_for(self, keyword):
+        return [{'_id': 'CVE-2012-0002'}]
+
 
 def fake_exit(self, *args):
     pass
