@@ -49,7 +49,6 @@ class DatabaseMock:
         self._db = self._client.test
         self.firmwares = self._db.firmware
         self.file_objects = self._db.file_objects
-        pass
 
     def shutdown(self):
         pass
