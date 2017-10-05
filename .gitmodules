@@ -1,3 +1,0 @@
-[submodule "src/plugins/analysis/similar_files"]
-	path = src/plugins/analysis/similar_files
-	url = git@git-sdn.caad.fkie.fraunhofer.de:FACT/analysis_plugin/similar_files.git
