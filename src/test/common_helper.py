@@ -274,6 +274,11 @@ class DatabaseMock:
     def search_cve_summaries_for(self, keyword):
         return [{'_id': 'CVE-2012-0002'}]
 
+    def get_all_ssdeep_hashes(self):
+        return [
+            {'_id': '3', 'processed_analysis': {'file_hashes': {'ssdeep': '384:aztrofSbs/7qkBYbplFPEW5d8aODW9EyGqgm/nZuxpIdQ1s4JtUn:Urofgs/uK2lF8W5dxWyGS/AxpIws'}}},
+            {'_id': '4', 'processed_analysis': {'file_hashes': {'ssdeep': '384:aztrofSbs/7qkBYbplFPEW5d8aODW9EyGqgm/nZuxpIdQ1s4JwT:Urofgs/uK2lF8W5dxWyGS/AxpIwA'}}}
+        ]
 
 def fake_exit(self, *args):
     pass
