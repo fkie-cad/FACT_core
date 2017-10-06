@@ -94,7 +94,7 @@ class MongoInterfaceCommon(MongoInterface):
 
     @staticmethod
     def _build_search_query_for_uid_list(uid_list):
-        query = {"$or": [{"_id": uid} for uid in uid_list]}
+        query = {'_id': {'$in': list(uid_list)}}
         return query
 
     def _convert_to_firmware(self, entry, analysis_filter=None):
