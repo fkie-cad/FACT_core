@@ -124,44 +124,29 @@
 
                             {# --- all case --- #}
                             {% if 'all' in result['plugins'][plugin][feature] %}
-                                {% if result['plugins'][plugin][feature]['collapse'] %}
-                                    <td colspan="{{ uid_list | length }}">
-                                        <center>
-                                            <button type="button" class="btn btn-sm btn-fact-one" data-toggle="collapse" data-target="#{{ feature }}">
-                                                {{ result['plugins'][plugin][feature]['all'] | length }}
-                                            </button>
-                                        </center>
-                                        <div id="{{ feature }}" class="collapse">
-                                            {{ result['plugins'][plugin][feature]['all'] | nice_list | uids_to_link | replace_uid_with_file_name | safe  }}
-                                        </div>
-                                    </td>
-                                {% else %}
-                                    <td colspan="{{ uid_list | length }}" style="text-align:center;"> {{ result['plugins'][plugin][feature]['all'] | nice_uid_list | safe }} </td>
-                                {% endif %}
+                                <td colspan="{{ uid_list | length }}" style="text-align:center;">
+                                        <button data-toggle="collapse" data-target="#{{ feature + '___all' }}" class="list-group-item list-group-item-info">
+                                            <span class="badge">{{ result['plugins'][plugin][feature]['all'] | length }}</span> show files
+                                        </button>
+                                        <div id="{{ feature + '___all' }}" class="collapse"></div>
+                                    {#  {{ result['plugins'][plugin][feature]['all'] | nice_uid_list | safe }}  #}
+                                </td>
 
                             {# --- individual results --- #}
                             {% else %}
                                 {% for uid in uid_list %}
                                     <td>
-                                    {% if result['plugins'][plugin][feature]['collapse'] %}
-                                        <center>
-                                            <button type="button" class="btn btn-sm btn-primary" data-toggle="collapse" data-target="#{{ feature + uid }}">
-                                                {{ result['plugins'][plugin][feature][uid] | length }}
-                                            </button>
-                                        </center>
-                                        <div id="{{ feature + uid }}" class="collapse">
-                                            {{ result['plugins'][plugin][feature][uid] | nice_list | uids_to_link | replace_uid_with_file_name | safe }}
-                                        </div>
-                                    {% else %}
-                                        {{ result['plugins'][plugin][feature][uid] | nice_uid_list | safe }}
-                                    {% endif %}
+                                        <button data-toggle="collapse" data-target="#{{ feature + '___' + uid }}" class="list-group-item list-group-item-info">
+                                            <span class="badge">{{ result['plugins'][plugin][feature][uid] | length }}</span> show files
+                                        </button>
+                                        <div id="{{ feature + '___' + uid }}" class="collapse"></div>
+                                    {#  {{ result['plugins'][plugin][feature][uid] | nice_uid_list | safe }}  #}
                                     </td>
                                 {% endfor %}
                             {% endif %}
                         </tr>
                     {% endif %}
                 {% endfor %}
-
 
 
             {% else %}
@@ -212,5 +197,24 @@
 		
 	</tbody>
 </table>
+
+<script>
+$(document).ready(function() {
+    $(".collapse").on('show.bs.collapse', function(){
+        var parentRef = $(this).attr('href');
+        var id = $(this).prop('id');
+        var loaded_content;
+
+        if (isEmpty($(this))) {
+            $(this).load('/compare/ajax_common_files/{{ result["_id"] }}/' + id + '/');
+        }
+    });
+
+    function isEmpty(element) {
+        return !$.trim(element.html())
+    }
+});
+</script>
+
 
 {% endblock %}

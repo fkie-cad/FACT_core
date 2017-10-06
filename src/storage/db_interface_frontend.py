@@ -52,12 +52,13 @@ class FrontEndDbInterface(MongoInterfaceCommon):
         result = []
         for db_entry in db_iterable:
             if db_entry is not None:
+                virtual_file_path = db_entry["virtual_file_path"]
                 result.append({
                     "uid": db_entry["_id"],
                     "files_included": db_entry["files_included"],
                     "size": db_entry["size"],
                     "mime-type": db_entry["processed_analysis"]["file_type"]["mime"],
-                    "virtual_file_paths": db_entry["virtual_file_path"][root_uid] if root_uid in db_entry["virtual_file_path"] else get_value_of_first_key(db_entry["virtual_file_path"])
+                    "virtual_file_paths": virtual_file_path[root_uid] if root_uid in virtual_file_path else get_value_of_first_key(virtual_file_path)
                 })
         return result
 
@@ -162,7 +163,11 @@ class FrontEndDbInterface(MongoInterfaceCommon):
     # --- statistics
 
     def get_X_last_added_firmwares(self, limit_x=10):
-        db_entries = self.firmwares.find({'submission_date': {"$gt": 1}}, {'_id': 1, 'vendor': 1, 'device_name': 1, 'version': 1, 'device_class': 1, 'submission_date': 1}, limit=limit_x, sort=[('submission_date', -1)])
+        db_entries = self.firmwares.find(
+            {'submission_date': {"$gt": 1}},
+            {'_id': 1, 'vendor': 1, 'device_name': 1, 'version': 1, 'device_class': 1, 'submission_date': 1},
+            limit=limit_x, sort=[('submission_date', -1)]
+        )
         result = []
         for item in db_entries:
             result.append(item)
@@ -190,7 +195,10 @@ class FrontEndDbInterface(MongoInterfaceCommon):
 
     def get_file_type_statistics(self):
         file_type_dict = {}
-        for fo in merge_generators(self.firmwares.find({}, {"processed_analysis.file_type.mime": 1, "virtual_file_path": 1}), self.file_objects.find({}, {"processed_analysis.file_type.mime": 1, "virtual_file_path": 1})):
+        for fo in merge_generators(
+                self.firmwares.find({}, {"processed_analysis.file_type.mime": 1, "virtual_file_path": 1}),
+                self.file_objects.find({}, {"processed_analysis.file_type.mime": 1, "virtual_file_path": 1})
+        ):
             file_type = fo["processed_analysis"]["file_type"]["mime"]
             if file_type in file_type_dict:
                 # one file can appear multiple times in the same firmware or in different firmwares
@@ -247,8 +255,11 @@ class FrontEndDbInterface(MongoInterfaceCommon):
             return "Database statistics do not seem to be created yet."
 
         file_object_keys = self.client.varietyResults.file_objectsKeys.find()
-        all_field_strings = list(key_item['_id']['key'] for key_item in file_object_keys if
-                                 key_item['_id']['key'].startswith('processed_analysis') and key_item['percentContaining'] >= float(self.config['data_storage']['structural_threshold']))
+        all_field_strings = list(
+            key_item['_id']['key'] for key_item in file_object_keys
+            if key_item['_id']['key'].startswith('processed_analysis') and
+            key_item['percentContaining'] >= float(self.config['data_storage']['structural_threshold'])
+        )
         stripped_field_strings = list(field[len("processed_analysis."):] for field in all_field_strings if field != "processed_analysis")
 
         return visualize_complete_tree(stripped_field_strings)
@@ -259,6 +270,7 @@ class FrontEndDbInterface(MongoInterfaceCommon):
     def rest_get_file_objects_uids(self, offset, limit, query=None):
         return self.rest_get_object_uids(self.file_objects, offset, limit, query if query else dict())
 
-    def rest_get_object_uids(self, database, offset, limit, query):
+    @staticmethod
+    def rest_get_object_uids(database, offset, limit, query):
         uid_cursor = database.find(query, {'_id': 1}).skip(offset).limit(limit)
         return [result['_id'] for result in uid_cursor]

@@ -12,6 +12,7 @@ from storage.db_interface_compare import CompareDbInterface
 from storage.db_interface_frontend import FrontEndDbInterface
 from web_interface.components.component_base import ComponentBase
 from web_interface.filter import encode_base64_filter, bytes_to_str_filter
+from web_interface.components.jinja_filter import FilterClass
 
 
 class AjaxRoutes(ComponentBase):
@@ -20,6 +21,8 @@ class AjaxRoutes(ComponentBase):
         self._app.add_url_rule("/ajax_root/<uid>", "ajax_root/<uid>", self._ajax_get_tree_root)
         self._app.add_url_rule("/compare/ajax_tree/<compare_id>/<root_uid>/<uid>", "compare/ajax_tree/<compare_id>/<root_uid>/<uid>",
                                self._ajax_get_tree_children)
+        self._app.add_url_rule("/compare/ajax_common_files/<compare_id>/<feature_id>/", "compare/ajax_common_files/<compare_id>/<feature_id>/",
+                               self._ajax_get_common_files_for_compare)
         self._app.add_url_rule("/ajax_get_binary/<mime_type>/<uid>", "ajax_get_binary/<type>/<uid>", self._ajax_get_binary)
 
     def _get_exclusive_files(self, compare_id, root_uid):
@@ -107,6 +110,15 @@ class AjaxRoutes(ComponentBase):
         if node.has_children:
             result['children'] = self._get_jstree_child_nodes(node)
         return result
+
+    def _ajax_get_common_files_for_compare(self, compare_id, feature_id):
+        with ConnectTo(CompareDbInterface, self._config) as sc:
+            result = sc.get_compare_result(compare_id)
+        feature, key = feature_id.split("___")
+        uid_list = result["plugins"]["File_Coverage"][feature][key]
+        # filters = FilterClass(None, None, self._config)
+        FilterClass._config = self._config
+        return FilterClass._filter_nice_uid_list(FilterClass, uid_list, omit_collapse=True)
 
     def _ajax_get_binary(self, mime_type, uid):
         mime_type = mime_type.replace("_", "/")
