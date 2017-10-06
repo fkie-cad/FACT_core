@@ -322,7 +322,7 @@
 {% if stats["general_stats"] %}
 
 <div class="row">
-	<div class="col-lg-12" style="text-align:center;">These statistics were generated at: <b>{{ stats["general_stats"]["creation_time"] | nice_unix_time }}</b> in <b>{{ stats["general_stats"]["benchmark"] | nice_number }} s</b></div>
+	<div class="col-lg-12" style="text-align:center;">These statistics were generated at: <b>{{ stats["general_stats"]["creation_time"] | nice_unix_time }}</b> in <b>{{ stats["general_stats"]["benchmark"] | nice_time }}</b></div>
 </div>
 
 {% else %}
