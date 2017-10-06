@@ -59,7 +59,7 @@ class FilterClass:
         uid_list = get_all_uids_in_string(tmp)
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
             for item in uid_list:
-                tmp = tmp.replace(item, '<a href=\'/analysis/{}/ro/{}\'>{}</a>'.format(item, root_uid, sc.get_hid(item, root_uid=root_uid)))
+                tmp = tmp.replace(item, '<a href="/analysis/{}/ro/{}">{}</a>'.format(item, root_uid, sc.get_hid(item, root_uid=root_uid)))
         return tmp
 
     def _filter_nice_uid_list(self, input_data, root_uid=None, selected_analysis=None):
