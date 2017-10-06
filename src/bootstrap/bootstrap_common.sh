@@ -76,6 +76,9 @@ sudo -EH pip3 install --upgrade git+https://github.com/fkie-cad/common_helper_fi
 sudo -EH pip3 install --upgrade git+https://github.com/fkie-cad/common_helper_mongo.git
 # common_helper_encoder
 sudo -EH pip3 install --upgrade git+https://github.com/mass-project/common_helper_encoder.git
+# common_helper_filter
+sudo -EH pip3 install --upgrade git+https://github.com/fkie-cad/common_helper_filter.git
+
 
 echo "####################################"
 echo "#       install start script       #"

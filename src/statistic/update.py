@@ -10,6 +10,7 @@ from helperFunctions.dataConversion import build_time_dict
 from helperFunctions.merge_generators import sum_up_lists, avg, merge_dict
 from helperFunctions.mongo_task_conversion import is_sanitized_entry
 from storage.db_interface_statistic import StatisticDbUpdater
+from common_helper_filter.time import time_format
 
 
 class StatisticUpdater(object):
@@ -69,7 +70,7 @@ class StatisticUpdater(object):
 
         benchmark = stats['creation_time'] - self.start_time
         stats['benchmark'] = benchmark
-        logging.debug('time to create stats: {:,.2f} s'.format(benchmark))
+        logging.info('time to create stats: {}'.format(time_format(benchmark)))
         return stats
 
     def _get_malware_stats(self):

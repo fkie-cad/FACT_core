@@ -33,6 +33,7 @@ def create_test_file_object(bin_path="get_files_test/testfile1"):
     fo.virtual_file_path = fo.get_virtual_file_paths()
     return fo
 
+
 TEST_FW = create_test_firmware(device_class="test class", device_name="test device", vendor="test vendor")
 TEST_TEXT_FILE = create_test_file_object()
 
@@ -234,7 +235,8 @@ class DatabaseMock:
             'total_firmware_size': 10,
             'total_file_size': 20,
             'average_firmware_size': 10,
-            'average_file_size': 20
+            'average_file_size': 20,
+            'benchmark': 61
         }
         if identifier == 'general':
             return statistics
