@@ -12,7 +12,6 @@ from storage.db_interface_compare import CompareDbInterface
 from storage.db_interface_frontend import FrontEndDbInterface
 from web_interface.components.component_base import ComponentBase
 from web_interface.filter import encode_base64_filter, bytes_to_str_filter
-from web_interface.components.jinja_filter import FilterClass
 
 
 class AjaxRoutes(ComponentBase):
@@ -87,13 +86,12 @@ class AjaxRoutes(ComponentBase):
         child_nodes = node.get_list_of_child_nodes()
         if not child_nodes:
             return True
-        else:
-            result = []
-            for child in child_nodes:
-                result_child = self._generate_jstree_node(child)
-                if result_child is not None:
-                    result.append(result_child)
-            return result
+        result = []
+        for child in child_nodes:
+            result_child = self._generate_jstree_node(child)
+            if result_child is not None:
+                result.append(result_child)
+        return result
 
     def _generate_jstree_node(self, node):
         '''
@@ -138,5 +136,4 @@ class AjaxRoutes(ComponentBase):
             return '<pre style="white-space: pre-wrap">{}</pre>'.format(html.escape(bytes_to_str_filter(binary)))
         elif 'image/' in mime_type:
             return '{}<img src="data:image/{} ;base64,{}" style="max-width:100%"></div>'.format(div, mime_type[6:], encode_base64_filter(binary))
-        else:
-            return None
+        return None
