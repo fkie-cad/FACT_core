@@ -129,7 +129,9 @@
                                             <span class="badge">{{ result['plugins'][plugin][feature]['all'] | length }}</span> show files
                                         </button>
                                         <div id="{{ feature + '___all' }}" class="collapse"></div>
-                                    {#  {{ result['plugins'][plugin][feature]['all'] | nice_uid_list | safe }}  #}
+                                        <div id="{{ feature + '___all' + '_gif' }}" style="display: none;">
+                                            <img src="{{ url_for('static', filename = 'ajax-loader2.gif') }}">
+                                        </div>
                                 </td>
 
                             {# --- individual results --- #}
@@ -140,7 +142,9 @@
                                             <span class="badge">{{ result['plugins'][plugin][feature][uid] | length }}</span> show files
                                         </button>
                                         <div id="{{ feature + '___' + uid }}" class="collapse"></div>
-                                    {#  {{ result['plugins'][plugin][feature][uid] | nice_uid_list | safe }}  #}
+                                        <div id="{{ feature + '___' + uid + '_gif' }}" style="display: none;">
+                                            <img src="{{ url_for('static', filename = 'ajax-loader2.gif') }}">
+                                        </div>
                                     </td>
                                 {% endfor %}
                             {% endif %}
@@ -200,19 +204,29 @@
 
 <script>
 $(document).ready(function() {
+
     $(".collapse").on('show.bs.collapse', function(){
-        var parentRef = $(this).attr('href');
+        // event: collapsible content is starting to expand
         var id = $(this).prop('id');
-        var loaded_content;
+        var loading_gif = document.getElementById(id + '_gif');
 
         if (isEmpty($(this))) {
+            loading_gif.style.display = "block";
             $(this).load('/compare/ajax_common_files/{{ result["_id"] }}/' + id + '/');
         }
+    });
+
+    $(".collapse").on('shown.bs.collapse', function(){
+        // event: collapsible content is fully shown
+        var id = $(this).prop('id');
+        var loading_gif = document.getElementById(id + '_gif');
+        loading_gif.style.display = "none";
     });
 
     function isEmpty(element) {
         return !$.trim(element.html())
     }
+
 });
 </script>
 
