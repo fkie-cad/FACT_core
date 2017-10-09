@@ -33,6 +33,7 @@ def create_test_file_object(bin_path="get_files_test/testfile1"):
     fo.virtual_file_path = fo.get_virtual_file_paths()
     return fo
 
+
 TEST_FW = create_test_firmware(device_class="test class", device_name="test device", vendor="test vendor")
 TEST_TEXT_FILE = create_test_file_object()
 
@@ -43,7 +44,6 @@ class DatabaseMock:
 
     def __init__(self, config=None):
         self.tasks = []
-        pass
 
     def shutdown(self):
         pass
@@ -139,6 +139,10 @@ class DatabaseMock:
             else:
                 return None
 
+        @staticmethod
+        def find(query, filter):
+            return {}
+
     class file_objects():
         @staticmethod
         def find_one(uid):
@@ -146,6 +150,10 @@ class DatabaseMock:
                 return TEST_TEXT_FILE.get_uid()
             else:
                 return None
+
+        @staticmethod
+        def find(query, filter):
+            return {}
 
     def get_data_for_nice_list(self, input_data, root_uid):
         return []
@@ -227,7 +235,8 @@ class DatabaseMock:
             'total_firmware_size': 10,
             'total_file_size': 20,
             'average_firmware_size': 10,
-            'average_file_size': 20
+            'average_file_size': 20,
+            'benchmark': 61
         }
         if identifier == 'general':
             return statistics
@@ -263,6 +272,15 @@ class DatabaseMock:
             return TEST_TEXT_FILE
         else:
             return None
+
+    def search_cve_summaries_for(self, keyword):
+        return [{'_id': 'CVE-2012-0002'}]
+
+    def get_all_ssdeep_hashes(self):
+        return [
+            {'_id': '3', 'processed_analysis': {'file_hashes': {'ssdeep': '384:aztrofSbs/7qkBYbplFPEW5d8aODW9EyGqgm/nZuxpIdQ1s4JtUn:Urofgs/uK2lF8W5dxWyGS/AxpIws'}}},
+            {'_id': '4', 'processed_analysis': {'file_hashes': {'ssdeep': '384:aztrofSbs/7qkBYbplFPEW5d8aODW9EyGqgm/nZuxpIdQ1s4JwT:Urofgs/uK2lF8W5dxWyGS/AxpIwA'}}}
+        ]
 
 
 def fake_exit(self, *args):

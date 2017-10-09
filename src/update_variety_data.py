@@ -18,23 +18,28 @@
 '''
 
 import argparse
+from common_helper_process import execute_shell_command_get_return_code
+from common_helper_filter import time_format
 import configparser
 import logging
+import os
 import sys
+from time import time
 
 from helperFunctions.config import get_config_dir
+from helperFunctions.fileSystem import get_src_dir
 from storage.MongoMgr import MongoMgr
-from statistic.update import StatisticUpdater
 
-PROGRAM_NAME = 'FACT Statistic Updater'
-PROGRAM_VERSION = '0.2'
-PROGRAM_DESCRIPTION = 'Initialize or update FACT statistic'
+
+PROGRAM_NAME = 'FACT Variety Data Updater'
+PROGRAM_VERSION = '0.1'
+PROGRAM_DESCRIPTION = 'Initialize or update database structure information used by the "advanced search" feature.'
 
 
 def _setup_argparser():
     parser = argparse.ArgumentParser(description='{} - {}'.format(PROGRAM_NAME, PROGRAM_DESCRIPTION))
     parser.add_argument('-V', '--version', action='version', version='{} {}'.format(PROGRAM_NAME, PROGRAM_VERSION))
-    parser.add_argument('-C', '--config_file', help='set path to config File', default='{}/main.cfg'.format(get_config_dir()))
+    parser.add_argument('-C', '--config_file', help='set path to config file', default='{}/main.cfg'.format(get_config_dir()))
     parser.add_argument('-s', '--shutdown_db', action='store_true', default=False, help='shutdown mongo server after update')
     parser.add_argument('-d', '--debug', action='store_true', default=False, help='print debug messages')
     return parser.parse_args()
@@ -58,6 +63,21 @@ def _setup_logging(args):
     logger.addHandler(console_logger)
 
 
+def _create_variety_data(config):
+    full_variety_path = os.path.join(get_src_dir(), config['data_storage']['variety_path'])
+    output, return_code = execute_shell_command_get_return_code(
+        'mongo --port {mongo_port} {main_database} -u "{username}" -p "{password}" --authenticationDatabase "admin" --eval "var collection = \'file_objects\', persistResults=true" {script_path}'.format(
+            mongo_port=config['data_storage']['mongo_port'],
+            username=config['data_storage']['db_admin_user'],
+            password=config['data_storage']['db_admin_pw'],
+            main_database=config['data_storage']['main_database'],
+            script_path=full_variety_path),
+        timeout=None
+    )
+    logging.debug(output)
+    return return_code
+
+
 if __name__ == '__main__':
     args = _setup_argparser()
     config = _load_config(args)
@@ -66,12 +86,14 @@ if __name__ == '__main__':
     logging.info('Try to start Mongo Server...')
     mongo_server = MongoMgr(config=config)
 
-    updater = StatisticUpdater(config=config)
-    updater.update_all_stats()
-    updater.shutdown()
+    logging.info('updating data... this may take several hours depending on the size of your database')
+    start_time = time()
+    return_code = _create_variety_data(config)
+    process_time = time() - start_time
+    logging.info('generation time: {}'.format(time_format(process_time)))
 
     if args.shutdown_db:
         logging.info('Stopping Mongo Server...')
         mongo_server.shutdown()
 
-    sys.exit()
+    sys.exit(return_code)
