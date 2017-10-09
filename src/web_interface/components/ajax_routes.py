@@ -3,7 +3,7 @@
 import html
 
 from common_helper_files import human_readable_file_size
-from flask import jsonify
+from flask import jsonify, render_template
 
 from helperFunctions.file_tree import get_correct_icon_for_mime, FileTreeNode
 from helperFunctions.web_interface import ConnectTo
@@ -118,7 +118,18 @@ class AjaxRoutes(ComponentBase):
         uid_list = result["plugins"]["File_Coverage"][feature][key]
         # filters = FilterClass(None, None, self._config)
         FilterClass._config = self._config
-        return FilterClass._filter_nice_uid_list(FilterClass, uid_list, omit_collapse=True)
+        return self._get_nice_uid_list_html(uid_list)
+
+    def _get_nice_uid_list_html(self, input_data):
+        with ConnectTo(FrontEndDbInterface, self._config) as sc:
+            included_files = sc.get_data_for_nice_list(input_data, None)
+        number_of_unanalyzed_files = len(input_data) - len(included_files)
+        return render_template(
+            "generic_view/nice_fo_list.html",
+            fo_list=included_files,
+            number_of_unanalyzed_files=number_of_unanalyzed_files,
+            omit_collapse=True
+        )
 
     def _ajax_get_binary(self, mime_type, uid):
         mime_type = mime_type.replace("_", "/")
