@@ -116,8 +116,6 @@ class AjaxRoutes(ComponentBase):
             result = sc.get_compare_result(compare_id)
         feature, key = feature_id.split('___')
         uid_list = result['plugins']['File_Coverage'][feature][key]
-        # filters = FilterClass(None, None, self._config)
-        FilterClass._config = self._config
         return self._get_nice_uid_list_html(uid_list)
 
     def _get_nice_uid_list_html(self, input_data):
