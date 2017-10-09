@@ -61,7 +61,7 @@ class FilterClass:
                 tmp = tmp.replace(item, "<a href=\"/analysis/{}/ro/{}\">{}</a>".format(item, root_uid, sc.get_hid(item, root_uid=root_uid)))
         return tmp
 
-    def _filter_nice_uid_list(self, input_data, root_uid=None, selected_analysis=None, omit_collapse=False):
+    def _filter_nice_uid_list(self, input_data, root_uid=None, selected_analysis=None):
         root_uid = none_to_none(root_uid)
         if not is_list_of_uids(input_data):
             return input_data
@@ -71,7 +71,7 @@ class FilterClass:
                 included_files = sc.get_data_for_nice_list(input_data, root_uid)
             number_of_unanalyzed_files = len(input_data) - len(included_files)
             return render_template("generic_view/nice_fo_list.html", fo_list=included_files, u_show_id=show_id,
-                                   number_of_unanalyzed_files=number_of_unanalyzed_files, omit_collapse=omit_collapse,
+                                   number_of_unanalyzed_files=number_of_unanalyzed_files,
                                    root_uid=root_uid, selected_analysis=selected_analysis)
 
     def _filter_get_object_binary(self, uid):
