@@ -212,15 +212,10 @@ $(document).ready(function() {
 
         if (isEmpty($(this))) {
             loading_gif.style.display = "block";
-            $(this).load('/compare/ajax_common_files/{{ result["_id"] }}/' + id + '/');
+            $(this).load('/compare/ajax_common_files/{{ result["_id"] }}/' + id + '/', function() {
+                loading_gif.style.display = "none";
+            });
         }
-    });
-
-    $(".collapse").on('shown.bs.collapse', function(){
-        // event: collapsible content is fully shown
-        var id = $(this).prop('id');
-        var loading_gif = document.getElementById(id + '_gif');
-        loading_gif.style.display = "none";
     });
 
     function isEmpty(element) {
