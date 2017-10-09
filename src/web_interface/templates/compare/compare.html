@@ -137,7 +137,7 @@
                             {# --- individual results --- #}
                             {% else %}
                                 {% for uid in uid_list %}
-                                    <td>
+                                    <td style="text-align:center;">
                                         <button data-toggle="collapse" data-target="#{{ feature + '___' + uid }}" class="list-group-item list-group-item-info">
                                             <span class="badge">{{ result['plugins'][plugin][feature][uid] | length }}</span> show files
                                         </button>
