@@ -20,13 +20,13 @@ class FrontEndDbInterface(MongoInterfaceCommon):
         list_of_firmware_data = []
         if firmware_list is None:
             firmware_list = self.firmwares.find()
-        for q in firmware_list:
-            if q:
-                if q['processed_analysis']['unpacker']['file_system_flag']:
-                    unpacker = self.retrieve_analysis(deepcopy(q['processed_analysis']))['unpacker']['plugin_used']
+        for firmware in firmware_list:
+            if firmware:
+                if firmware['processed_analysis']['unpacker']['file_system_flag']:
+                    unpacker = self.retrieve_analysis(deepcopy(firmware['processed_analysis']))['unpacker']['plugin_used']
                 else:
-                    unpacker = q['processed_analysis']['unpacker']['plugin_used']
-                list_of_firmware_data.append((q['_id'], self.get_hid(q['_id']), unpacker))
+                    unpacker = firmware['processed_analysis']['unpacker']['plugin_used']
+                list_of_firmware_data.append((firmware['_id'], self.get_hid(firmware['_id']), unpacker))
         return list_of_firmware_data
 
     def get_hid(self, uid, root_uid=None):
@@ -39,8 +39,7 @@ class FrontEndDbInterface(MongoInterfaceCommon):
             hid = self._get_hid_fo(uid, root_uid)
         if hid is None:
             return ''
-        else:
-            return hid
+        return hid
 
     def get_data_for_nice_list(self, uid_list, root_uid):
         query = self._build_search_query_for_uid_list(uid_list)
@@ -63,8 +62,8 @@ class FrontEndDbInterface(MongoInterfaceCommon):
         return result
 
     def get_file_name(self, uid):
-        fo = self.get_object(uid)
-        return fo.file_name
+        file_object = self.get_object(uid)
+        return file_object.file_name
 
     def get_firmware_attribute_list(self, attribute, restrictions=None):
         attribute_list = set()
@@ -100,18 +99,16 @@ class FrontEndDbInterface(MongoInterfaceCommon):
         return FileObject.get_top_of_virtual_path(fo_dict['virtual_file_path'][root_uid][0])
 
     def _get_hid_firmware(self, uid):
-        fw = self.firmwares.find_one({'_id': uid}, {'vendor': 1, 'device_name': 1, 'version': 1, 'device_class': 1})
-        if fw is not None:
-            return '{} {} - {} ({})'.format(fw['vendor'], fw['device_name'], fw['version'], fw['device_class'])
-        else:
-            return None
+        firmware = self.firmwares.find_one({'_id': uid}, {'vendor': 1, 'device_name': 1, 'version': 1, 'device_class': 1})
+        if firmware is not None:
+            return '{} {} - {} ({})'.format(firmware['vendor'], firmware['device_name'], firmware['version'], firmware['device_class'])
+        return None
 
     def _get_hid_fo(self, uid, root_uid):
-        fo = self.file_objects.find_one({'_id': uid}, {'virtual_file_path': 1})
-        if fo is not None:
-            return self._get_one_virtual_path_of_fo(fo, root_uid)
-        else:
-            return None
+        file_object = self.file_objects.find_one({'_id': uid}, {'virtual_file_path': 1})
+        if file_object is not None:
+            return self._get_one_virtual_path_of_fo(file_object, root_uid)
+        return None
 
     def all_uids_found_in_database(self, uid_list):
         if not uid_list:
@@ -122,7 +119,7 @@ class FrontEndDbInterface(MongoInterfaceCommon):
 
     def generic_search(self, search_dict, skip=0, limit=0, only_fo_parent_firmware=False):
         try:
-            if type(search_dict) == str:
+            if isinstance(search_dict, str):
                 search_dict = json.loads(search_dict)
 
             query = self.firmwares.find(search_dict, {'_id': 1}, skip=skip, limit=limit, sort=[('vendor', 1)])
@@ -143,8 +140,8 @@ class FrontEndDbInterface(MongoInterfaceCommon):
                     parents = [match['_id'] for match in query]
                     result = remove_duplicates_from_list(result + parents)
 
-        except Exception as e:
-            error_message = 'could not process search request: {} {}'.format(sys.exc_info()[0].__name__, e)
+        except Exception as exception:
+            error_message = 'could not process search request: {} {}'.format(sys.exc_info()[0].__name__, exception)
             logging.warning(error_message)
             return error_message
         return result
@@ -162,7 +159,7 @@ class FrontEndDbInterface(MongoInterfaceCommon):
 
     # --- statistics
 
-    def get_X_last_added_firmwares(self, limit_x=10):
+    def get_last_added_firmwares(self, limit_x=10):
         db_entries = self.firmwares.find(
             {'submission_date': {'$gt': 1}},
             {'_id': 1, 'vendor': 1, 'device_name': 1, 'version': 1, 'device_class': 1, 'submission_date': 1},
@@ -195,16 +192,16 @@ class FrontEndDbInterface(MongoInterfaceCommon):
 
     def get_file_type_statistics(self):
         file_type_dict = {}
-        for fo in merge_generators(
+        for firmware_object in merge_generators(
                 self.firmwares.find({}, {'processed_analysis.file_type.mime': 1, 'virtual_file_path': 1}),
                 self.file_objects.find({}, {'processed_analysis.file_type.mime': 1, 'virtual_file_path': 1})
         ):
-            file_type = fo['processed_analysis']['file_type']['mime']
+            file_type = firmware_object['processed_analysis']['file_type']['mime']
             if file_type in file_type_dict:
                 # one file can appear multiple times in the same firmware or in different firmwares
-                file_type_dict[file_type] += len(fo['virtual_file_path'])
+                file_type_dict[file_type] += len(firmware_object['virtual_file_path'])
             else:
-                file_type_dict[file_type] = len(fo['virtual_file_path'])
+                file_type_dict[file_type] = len(firmware_object['virtual_file_path'])
         return dict_to_sorted_tuples(file_type_dict)
 
     # --- file tree
@@ -212,8 +209,8 @@ class FrontEndDbInterface(MongoInterfaceCommon):
     def _create_node_from_virtual_path(self, uid, root_uid, current_virtual_path, fo_data, whitelist=None):
         if len(current_virtual_path) > 1:  # in the middle of a virtual file path
             node = FileTreeNode(uid=None, virtual=True, name=current_virtual_path.pop(0))
-            for n in self.generate_file_tree_node(uid, root_uid, current_virtual_path=current_virtual_path, fo_data=fo_data, whitelist=whitelist):
-                node.add_child_node(n)
+            for child_node in self.generate_file_tree_node(uid, root_uid, current_virtual_path=current_virtual_path, fo_data=fo_data, whitelist=whitelist):
+                node.add_child_node(child_node)
         else:  # at the end of a virtual path aka a 'real' file
             if whitelist:
                 has_children = any(f in fo_data['files_included'] for f in whitelist)
@@ -243,7 +240,7 @@ class FrontEndDbInterface(MongoInterfaceCommon):
         if not only_parent_firmwares:
             return self.get_firmware_number(query=query) + self.get_file_object_number(query=query)
         else:
-            if type(query) == str:
+            if isinstance(query, str):
                 query = json.loads(query)
             fw_matches = {match['_id'] for match in self.firmwares.find(query)}
             fo_matches = {parent for match in self.file_objects.find(query)
