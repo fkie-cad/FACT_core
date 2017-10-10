@@ -50,6 +50,9 @@
 >28 leshort >3
 >>8	ledate	x	created: %s
 
+0	string	qshs	Squashfs filesystem
+!:mime filesystem/squashfs
+
 ## AVM Squashfs Fake
 0	string sqsh\x00\x00\x00\x00\x00\x00		AVM SquashFs Fake
 !:mime filesystem/avm-sqfs-fake
