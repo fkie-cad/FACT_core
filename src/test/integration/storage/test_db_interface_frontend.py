@@ -99,14 +99,14 @@ class TestStorageDbInterfaceFrontend(unittest.TestCase):
         self.assertEqual(self.db_frontend_interface.get_number_of_firmwares_in_db(), 1)
 
     def test_get_x_last_added_firmwares(self):
-        self.assertEqual(self.db_frontend_interface.get_X_last_added_firmwares(), [], "empty db should result in empty list")
+        self.assertEqual(self.db_frontend_interface.get_last_added_firmwares(), [], "empty db should result in empty list")
         test_fw_one = create_test_firmware(device_name="fw_one")
         self.db_backend_interface.add_firmware(test_fw_one)
         test_fw_two = create_test_firmware(device_name="fw_two", bin_path="container/test.7z")
         self.db_backend_interface.add_firmware(test_fw_two)
         test_fw_three = create_test_firmware(device_name="fw_three", bin_path="container/test.cab")
         self.db_backend_interface.add_firmware(test_fw_three)
-        result = self.db_frontend_interface.get_X_last_added_firmwares(limit_x=2)
+        result = self.db_frontend_interface.get_last_added_firmwares(limit_x=2)
         self.assertEqual(len(result), 2, "Number of results should be 2")
         self.assertEqual(result[0]['device_name'], "fw_three", "last firmware is not first entry")
         self.assertEqual(result[1]['device_name'], "fw_two", "second last firmware is not the second entry")

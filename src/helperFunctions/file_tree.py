@@ -98,6 +98,11 @@ class FileTreeNode:
     def __contains__(self, item):
         return item.get_id() in self.children
 
+    def print_tree(self, spacer=""):
+        print("{}{} (virtual:{}, has_children:{})".format(spacer, self.name, self.virtual, self.has_children))
+        for child_node in self.children.values():
+            child_node.print_tree(spacer=spacer + "\t|")
+
     def merge_node(self, node):
         current_node = self.children[node.get_id()]
         for child in node.get_list_of_child_nodes():
