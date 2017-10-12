@@ -53,6 +53,9 @@
 0	string	qshs	Squashfs filesystem
 !:mime filesystem/squashfs
 
+0	string	shsq	Squashfs filesystem
+!:mime filesystem/squashfs
+
 ## AVM Squashfs Fake
 0	string sqsh\x00\x00\x00\x00\x00\x00		AVM SquashFs Fake
 !:mime filesystem/avm-sqfs-fake
