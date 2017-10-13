@@ -19,7 +19,7 @@ cd $CURRENT_FILE_DIR
 
 
 # update submodules
-(cd ../../ && git submodule foreach 'git checkout master' && git submodule foreach 'git submodule update --remote --merge')
+(cd ../../ && git submodule foreach 'git pull')
 
 
 # make bin dir
