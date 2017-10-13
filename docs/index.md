@@ -89,7 +89,7 @@ Have a look at [FACT’s Developer’s Manual](https://github.com/fkie-cad/FACT_
 If you developed a plug-in, we would love to hear about it.
 We are going to provide a list of all available plug-ins.
 You are welcome to improve the FACT_core as well.
-Please have a look at our [Coding Guidelines](subsection/coding_guideline.md) before creating a pull request.
+Please have a look at our [Coding Guidelines](https://github.com/fkie-cad/FACT_core/wiki/coding-guidelines) before creating a pull request.
 No matter how you would like to contribute: If you have any question, do not hesitate to ask. 
 
 # Authors and Acknowledgment
