@@ -7,7 +7,7 @@ Firmware analysis is a tough challenge with a lot of tasks.
 Many of these tasks can be automated (either with new approaches or incorporation of existing tools) so that a security analyst can focus on his main task: Analyzing the firmware (and finding vulnerabilities).
 FACT implements this automation leading to more complete analysis as well as a massive speedup in vulnerability hunting (see picture blow).
 
-<img src="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_Vulnerability_Hunting.png" alt="FACT analysis speedup" width="100%"/>
+<img src="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/images/FACT_Vulnerability_Hunting.png" alt="FACT analysis speedup" width="100%"/>
 
 ## Challenge: Firmware Unpacking
 Unpacking of a firmware image can be very time consuming.
@@ -89,7 +89,7 @@ Have a look at [FACT’s Developer’s Manual](https://github.com/fkie-cad/FACT_
 If you developed a plug-in, we would love to hear about it.
 We are going to provide a list of all available plug-ins.
 You are welcome to improve the FACT_core as well.
-Please have a look at our [Coding Guidelines](https://) before creating a pull request.
+Please have a look at our [Coding Guidelines](subsection/coding_guideline.md) before creating a pull request.
 No matter how you would like to contribute: If you have any question, do not hesitate to ask. 
 
 # Authors and Acknowledgment
