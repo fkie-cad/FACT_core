@@ -144,8 +144,8 @@ sudo chown root:root /tmp/faf_overrides
 sudo mv /tmp/faf_overrides /etc/sudoers.d/faf_overrides
 
 echo "set environment variables..."
-sudo cp -f faf_env.sh /etc/profile.d/
-sudo chmod 755 /etc/profile.d/faf_env.sh
+sudo cp -f fact_env.sh /etc/profile.d/
+sudo chmod 755 /etc/profile.d/fact_env.sh
 source /etc/profile
 
 echo "####################################"
@@ -175,6 +175,7 @@ echo "####################################"
 echo "# populating backend installation  #"
 echo "####################################"
 cd ../../
-ln -s src/start_faf_backend.py start_fact_backend
+rm start_fact_backend
+ln -s src/start_fact_backend.py start_fact_backend
 
 exit 0

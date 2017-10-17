@@ -79,6 +79,7 @@ then
 fi
 
 cd ../../
-ln -s src/start_faf_frontend.py start_fact_frontend
+rm start_fact_frontend
+ln -s src/start_fact_frontend.py start_fact_frontend
 
 exit 0

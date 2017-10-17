@@ -84,7 +84,8 @@ echo "####################################"
 echo "#       install start script       #"
 echo "####################################"
 cd ../../
-ln -s src/start_faf.py start_all_installed_fact_components
+rm start_all_installed_fact_components
+ln -s src/start_fact.py start_all_installed_fact_components
 
 exit 0
 

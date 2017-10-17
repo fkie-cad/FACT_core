@@ -21,11 +21,11 @@ echo "####################################"
 echo "#       create directory           #"
 echo "####################################"
 
-fafdbdir=$(grep -oP "dbPath:[\s]*\K[^\s]+" ../config/mongod.conf)
-fafuser=$(whoami)
-fafusergroup=$(id -gn)
-sudo mkdir -p --mode=0744 $fafdbdir 2> /dev/null
-sudo chown $fafuser:$fafusergroup $fafdbdir
+factdbdir=$(grep -oP "dbPath:[\s]*\K[^\s]+" ../config/mongod.conf)
+factuser=$(whoami)
+factusergroup=$(id -gn)
+sudo mkdir -p --mode=0744 $factdbdir 2> /dev/null
+sudo chown $factuser:$factusergroup $factdbdir
 
 
 echo "####################################"
@@ -40,6 +40,7 @@ echo "####################################"
 python3 ../migrate_database.py
 
 cd ../../
-ln -s src/start_faf_db.py start_fact_db
+rm start_fact_db
+ln -s src/start_fact_db.py start_fact_db
 
 exit 0

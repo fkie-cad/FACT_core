@@ -22,7 +22,7 @@ import signal
 import sys
 from time import sleep
 
-from faf_init import _setup_argparser, _setup_logging, _load_config
+from fact_init import _setup_argparser, _setup_logging, _load_config
 from statistic.work_load import WorkLoadStatistic
 from storage.MongoMgr import MongoMgr
 

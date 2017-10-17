@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 '''
     Firmware Analysis and Comparison Tool (FACT)
     Copyright (C) 2015-2017  Fraunhofer FKIE
