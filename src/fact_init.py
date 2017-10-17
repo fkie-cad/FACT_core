@@ -28,13 +28,14 @@ from version import __VERSION__
 
 
 def _setup_argparser(name, description):
-    parser = argparse.ArgumentParser(description="{} - {}".format(name, description))
-    parser.add_argument('-V', '--version', action='version', version="{} {}".format(name, __VERSION__))
-    parser.add_argument("-l", "--log_file", help="path to log file", default=None)
-    parser.add_argument("-L", "--log_level", help="define the log level", choices=["DEBUG", "INFO", "WARNING", "ERROR"], default=None)
-    parser.add_argument("-d", "--debug", action="store_true", default=False, help="print debug messages")
-    parser.add_argument("-s", "--silent", action="store_true", default=False, help="don't log to command line")
-    parser.add_argument("-C", "--config_file", help="set path to config File", default="{}/main.cfg".format(get_config_dir()))
+    parser = argparse.ArgumentParser(description='{} - {}'.format(name, description))
+    parser.add_argument('-V', '--version', action='version', version='{} {}'.format(name, __VERSION__))
+    parser.add_argument('-l', '--log_file', help='path to log file', default=None)
+    parser.add_argument('-L', '--log_level', help='define the log level', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'], default=None)
+    parser.add_argument('-d', '--debug', action='store_true', default=False, help='print debug messages')
+    parser.add_argument('-s', '--silent', action='store_true', default=False, help='don\'t log to command line')
+    parser.add_argument('-C', '--config_file', help='set path to config File', default='{}/main.cfg'.format(get_config_dir()))
+    parser.add_argument('-t', '--testing', default=False, action='store_true', help='shutdown system after one iteration')
     return parser.parse_args()
 
 
@@ -47,7 +48,7 @@ def _get_console_output_level(debug_flag):
 
 def _setup_logging(config, args):
     log_level = getattr(logging, config['Logging']['logLevel'], None)
-    log_format = logging.Formatter(fmt="[%(asctime)s][%(module)s][%(levelname)s]: %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
+    log_format = logging.Formatter(fmt='[%(asctime)s][%(module)s][%(levelname)s]: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
     logger = logging.getLogger('')
     logger.setLevel(logging.DEBUG)
 

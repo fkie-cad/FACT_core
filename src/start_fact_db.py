@@ -51,6 +51,8 @@ if __name__ == '__main__':
     while run:
         work_load_stat.update()
         sleep(5)
+        if args.testing:
+            break
 
     work_load_stat.shutdown()
     mongo_server.shutdown()

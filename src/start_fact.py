@@ -37,6 +37,8 @@ def _evaluate_optional_args(args):
         optional_args += ' -d'
     if args.silent:
         optional_args += ' -s'
+    if args.testing:
+        optional_args += ' -t'
     return optional_args
 
 
@@ -84,6 +86,8 @@ if __name__ == '__main__':
 
     while run:
         sleep(5)
+        if args.testing:
+            break
 
     logging.debug('shutdown backend')
     _terminate_process(backend_process)

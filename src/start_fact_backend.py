@@ -59,10 +59,14 @@ if __name__ == '__main__':
         if any((unpacking_service.check_exceptions(), compare_service.check_exceptions(), analysis_service.check_exceptions())):
             break
         sleep(5)
+        if args.testing:
+            break
+    
     logging.info('shutdown components')
     work_load_stat.shutdown()
     intercom.shutdown()
     compare_service.shutdown()
     unpacking_service.shutdown()
     analysis_service.shutdown()
-    complete_shutdown()
+    if not args.testing:
+        complete_shutdown()
