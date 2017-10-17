@@ -28,7 +28,7 @@ from helperFunctions.config import get_config_dir
 from helperFunctions.dataConversion import convert_str_to_time
 
 
-PROGRAM_NAME = "FAF Database Migration Assistant"
+PROGRAM_NAME = "FACT Database Migration Assistant"
 PROGRAM_VERSION = "0.1"
 PROGRAM_DESCRIPTION = "Converts old database entries into the new format"
 

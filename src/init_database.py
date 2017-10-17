@@ -25,7 +25,7 @@ from storage.MongoMgr import MongoMgr
 from helperFunctions.config import get_config_dir
 
 
-PROGRAM_NAME = "FAF Database Initializer"
+PROGRAM_NAME = "FACT Database Initializer"
 PROGRAM_VERSION = "0.1"
 PROGRAM_DESCRIPTION = "Initialize authentication and users for FAF's Database"
 
