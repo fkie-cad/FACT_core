@@ -61,7 +61,7 @@ if __name__ == '__main__':
         sleep(5)
         if args.testing:
             break
-    
+
     logging.info('shutdown components')
     work_load_stat.shutdown()
     intercom.shutdown()
