@@ -67,3 +67,7 @@ class CompareDbInterface(MongoInterfaceCommon):
         db_entries = self.compare_results.find({'submission_date': {"$gt": 1}}, {"general.hid": 1, "submission_date": 1}, skip=skip, limit=limit, sort=[("submission_date", -1)])
         all_previous_results = [(item["_id"], item["general"]["hid"], item["submission_date"]) for item in db_entries]
         return [compare for compare in all_previous_results if not self.object_existence_quick_check(compare[0])]
+
+    def get_total_number_of_results(self):
+        db_entries = self.compare_results.find({'submission_date': {"$gt": 1}}, {"_id": 1})
+        return sum(1 for entry in db_entries if not self.object_existence_quick_check(entry['_id']))  # sum(1 for... calculates length of generator
