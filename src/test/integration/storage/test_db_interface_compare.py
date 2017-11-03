@@ -71,7 +71,7 @@ class TestCompare(unittest.TestCase):
         self.db_interface_backend.add_firmware(self.fw_two)
         before = time()
         self.db_interface_compare.add_compare_result(self.compare_dict)
-        result = self.db_interface_compare.get_latest_comparisons()
+        result = self.db_interface_compare.page_compare_results(limit=10)
         for id, hids, submission_date in result:
             self.assertIn(self.fw_one.get_uid(), hids)
             self.assertIn(self.fw_two.get_uid(), hids)
@@ -84,11 +84,11 @@ class TestCompare(unittest.TestCase):
         self.db_interface_backend.add_firmware(self.fw_two)
         self.db_interface_compare.add_compare_result(self.compare_dict)
 
-        result = self.db_interface_compare.get_latest_comparisons()
+        result = self.db_interface_compare.page_compare_results(limit=10)
         self.assertNotEqual(result, [], 'A compare result should be available')
 
         self.db_interface_admin.delete_firmware(self.fw_two.uid)
 
-        result = self.db_interface_compare.get_latest_comparisons()
+        result = self.db_interface_compare.page_compare_results(limit=10)
 
         self.assertEqual(result, [], 'No compare result should be available')
