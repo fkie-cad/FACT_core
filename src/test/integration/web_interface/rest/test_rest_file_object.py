@@ -22,6 +22,12 @@ class TestRestFileObject(RestTestBase):
         assert b'hid' in rv.data
         assert b'size' in rv.data
 
+    def test_rest_request_multiple_file_objects(self):
+        rv = self.test_client.get('/rest/file_object', follow_redirects=True)
+
+        assert b'uids' in rv.data
+        assert b'status:" 1' not in rv.data
+
     def test_rest_download_invalid_uid(self):
         rv = self.test_client.get('/rest/file_object/invalid%20uid', follow_redirects=True)
 

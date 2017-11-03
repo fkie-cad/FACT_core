@@ -264,7 +264,7 @@ class FrontEndDbInterface(MongoInterfaceCommon):
     def rest_get_firmware_uids(self, offset, limit, query=None):
         return self.rest_get_object_uids(self.firmwares, offset, limit, query if query else dict())
 
-    def rest_get_file_objects_uids(self, offset, limit, query=None):
+    def rest_get_file_object_uids(self, offset, limit, query=None):
         return self.rest_get_object_uids(self.file_objects, offset, limit, query if query else dict())
 
     @staticmethod
