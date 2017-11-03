@@ -23,9 +23,6 @@ class TestRestFileObject(RestTestBase):
         assert b'size' in rv.data
 
     def test_rest_request_multiple_file_objects(self):
-        test_file_object = create_test_file_object()
-        self.db_backend.add_file_object(test_file_object)
-
         rv = self.test_client.get('/rest/file_object', follow_redirects=True)
 
         assert b'uids' in rv.data
