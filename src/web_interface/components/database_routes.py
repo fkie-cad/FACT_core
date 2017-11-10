@@ -25,6 +25,7 @@ class DatabaseRoutes(ComponentBase):
         self._app.add_url_rule("/database/search", "database/search", self._app_show_search_database, methods=["GET", "POST"])
         self._app.add_url_rule("/database/advanced_search", "database/advanced_search", self._app_show_advanced_search, methods=["GET", "POST"])
         self._app.add_url_rule("/database/binary_search", "database/binary_search", self._app_start_binary_search, methods=["GET", "POST"])
+        self._app.add_url_rule("/database/quick_search", "database/quick_search", self._app_start_quick_search, methods=["GET"])
         self._app.add_url_rule("/database/database_binary_search_results.html", "database/database_binary_search_results.html", self._app_show_binary_search_results)
 
     @staticmethod
@@ -108,10 +109,13 @@ class DatabaseRoutes(ComponentBase):
             if request.form[item]:
                 query.update({item: {"$options": "si", "$regex": request.form[item]}})
         if request.form["hash_value"]:
-            hash_types = self._config["file_hashes"]["hashes"].split(", ")
-            hash_query = [{"processed_analysis.file_hashes.{}".format(hash_type): request.form["hash_value"]} for hash_type in hash_types]
-            query.update({"$or": hash_query})
+            self._add_hash_query_to_query(query, request.form["hash_value"])
         return json.dumps(query)
+
+    def _add_hash_query_to_query(self, query, value):
+        hash_types = self._config["file_hashes"]["hashes"].split(", ")
+        hash_query = [{"processed_analysis.file_hashes.{}".format(hash_type): value} for hash_type in hash_types]
+        query.update({"$or": hash_query})
 
     def _app_show_search_database(self):
         if request.method == "POST":
@@ -188,3 +192,14 @@ class DatabaseRoutes(ComponentBase):
             request_id = None
         return render_template("database/database_binary_search_results.html", result=firmware_dict, error=error,
                                request_id=request_id, yara_rules=yara_rules)
+
+    def _app_start_quick_search(self):
+        search_term = request.args.get('search_term')
+        query = {}
+        self._add_hash_query_to_query(query, search_term)
+        query["$or"].extend([
+            {"device_name": {"$regex": search_term}},
+            {"vendor": {"$regex": search_term}}
+        ])
+        query = json.dumps(query)
+        return redirect(url_for("database/browse", query=query))
