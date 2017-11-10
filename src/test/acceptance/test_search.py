@@ -44,8 +44,13 @@ class TestAcceptanceNormalSearch(TestAcceptanceBase):
         rv = self.test_client.post('/database/search', content_type='multipart/form-data', follow_redirects=True, data=data)
         self.assertIn(self.test_fw.get_uid().encode(), rv.data, "test firmware not found in specific search")
 
+    def _show_quick_search(self):
+        rv = self.test_client.get('/database/quick_search?search_term=test_fw', follow_redirects=True)
+        self.assertIn(self.test_fw.get_uid().encode(), rv.data, "test firmware not found in specific search")
+
     def test_search(self):
         self._show_database_access_page()
         self._show_browse_db()
         self._show_search_get()
         self._show_search_post()
+        self._show_quick_search()
