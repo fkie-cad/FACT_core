@@ -198,8 +198,8 @@ class DatabaseRoutes(ComponentBase):
         query = {}
         self._add_hash_query_to_query(query, search_term)
         query["$or"].extend([
-            {"device_name": {"$regex": search_term}},
-            {"vendor": {"$regex": search_term}}
+            {"device_name": {"$options": "si", "$regex": search_term}},
+            {"vendor": {"$options": "si", "$regex": search_term}}
         ])
         query = json.dumps(query)
         return redirect(url_for("database/browse", query=query))
