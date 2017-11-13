@@ -34,8 +34,8 @@ class TestCompare(unittest.TestCase):
         self.mongo_server.shutdown()
 
     def _create_compare_dict(self):
-        comp_dict = {'general': {'hid': {self.fw_one.get_uid(): "foo", self.fw_two.get_uid(): "bar"}}, 'plugins': {}}
-        comp_dict['general']['virtual_file_path'] = {self.fw_one.get_uid(): "dev_one_name", self.fw_two.get_uid(): "dev_two_name"}
+        comp_dict = {'general': {'hid': {self.fw_one.get_uid(): 'foo', self.fw_two.get_uid(): 'bar'}}, 'plugins': {}}
+        comp_dict['general']['virtual_file_path'] = {self.fw_one.get_uid(): 'dev_one_name', self.fw_two.get_uid(): 'dev_two_name'}
         return comp_dict
 
     def test_add_and_get_compare_result(self):
@@ -43,28 +43,28 @@ class TestCompare(unittest.TestCase):
         self.db_interface_backend.add_firmware(self.fw_two)
         self.db_interface_compare.add_compare_result(self.compare_dict)
         retrieved = self.db_interface_compare.get_compare_result('{};{}'.format(self.fw_one.get_uid(), self.fw_two.get_uid()))
-        self.assertEqual(retrieved['general']['virtual_file_path'][self.fw_one.get_uid()], "dev_one_name",
-                         "content of retrieval not correct")
+        self.assertEqual(retrieved['general']['virtual_file_path'][self.fw_one.get_uid()], 'dev_one_name',
+                         'content of retrieval not correct')
 
     def test_get_not_existing_compare_result(self):
         self.db_interface_backend.add_firmware(self.fw_one)
         self.db_interface_backend.add_firmware(self.fw_two)
         result = self.db_interface_compare.get_compare_result('{};{}'.format(self.fw_one.get_uid(), self.fw_two.get_uid()))
-        self.assertIsNone(result, "result not none")
+        self.assertIsNone(result, 'result not none')
 
     def test_calculate_compare_result_id(self):
         comp_id = self.db_interface_compare._calculate_compare_result_id(self.compare_dict)
-        self.assertEqual(comp_id, "{};{}".format(self.fw_one.get_uid(), self.fw_two.get_uid()))
+        self.assertEqual(comp_id, '{};{}'.format(self.fw_one.get_uid(), self.fw_two.get_uid()))
 
     def test_object_existence_quick_check(self):
         self.db_interface_backend.add_firmware(self.fw_one)
-        self.assertIsNone(self.db_interface_compare.object_existence_quick_check(self.fw_one.get_uid()), "existing_object not found")
-        self.assertEqual(self.db_interface_compare.object_existence_quick_check('{};none_existing_object'.format(self.fw_one.get_uid())), "none_existing_object not found in database", "error message not correct")
+        self.assertIsNone(self.db_interface_compare.object_existence_quick_check(self.fw_one.get_uid()), 'existing_object not found')
+        self.assertEqual(self.db_interface_compare.object_existence_quick_check('{};none_existing_object'.format(self.fw_one.get_uid())), 'none_existing_object not found in database', 'error message not correct')
 
     def test_get_compare_result_of_none_existing_uid(self):
         self.db_interface_backend.add_firmware(self.fw_one)
-        result = self.db_interface_compare.get_compare_result("{};none_existing_uid".format(self.fw_one.get_uid()))
-        self.assertEqual(result, "none_existing_uid not found in database", "no result not found error")
+        result = self.db_interface_compare.get_compare_result('{};none_existing_uid'.format(self.fw_one.get_uid()))
+        self.assertEqual(result, 'none_existing_uid not found in database', 'no result not found error')
 
     def test_get_latest_comparisons(self):
         self.db_interface_backend.add_firmware(self.fw_one)
@@ -92,3 +92,11 @@ class TestCompare(unittest.TestCase):
         result = self.db_interface_compare.page_compare_results(limit=10)
 
         self.assertEqual(result, [], 'No compare result should be available')
+
+    def test_get_total_number_of_results(self):
+        self.db_interface_backend.add_firmware(self.fw_one)
+        self.db_interface_backend.add_firmware(self.fw_two)
+        self.db_interface_compare.add_compare_result(self.compare_dict)
+
+        number = self.db_interface_compare.get_total_number_of_results()
+        self.assertEqual(number, 1, 'no compare result found in database')
