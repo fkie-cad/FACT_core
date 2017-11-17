@@ -27,7 +27,7 @@ class MiscellaneousRoutes(ComponentBase):
             latest_firmware_submissions = sc.get_last_added_firmwares(int(self._config["database"].get("number_of_latest_firmwares_to_display", "10")))
             latest_comments = sc.get_latest_comments(int(self._config["database"].get("number_of_latest_firmwares_to_display", "10")))
         with ConnectTo(CompareDbInterface, config=self._config) as sc:
-            latest_comparison_results = sc.get_latest_comparisons(int(self._config["database"].get("number_of_latest_firmwares_to_display", "10")))
+            latest_comparison_results = sc.page_compare_results(limit=10)
         general_stats = stats.get_general_stats()
         stats.shutdown()
         return render_template("home.html", general_stats=general_stats, latest_firmware_submissions=latest_firmware_submissions,

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% set active_page = "Database" %}
+
+
+{% block styles %}
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/pagination.css') }}">
+<style>
+    .vcenter {
+        vertical-align: bottom;
+    }
+</style>
+{% endblock %}
+
+
+{% block body %}
+<script type="text/javascript" src="{{ url_for('static', filename='js/update_url_variables.js') }}"></script>
+
+<div class="row">
+    <div class="col-md-8 col-md-offset-2 col-lg-8 col-lg-offset-2">
+        <table class="table table-responsive table-hover table-bordered" style="border-spacing: 10px;">
+            {% for id, hids, submission_date in compare_list %}
+                <tr>
+                    {% if pagination is defined %}
+                        <td style="vertical-align:middle">{{ loop.index + (page - 1) * per_page }}</td>
+                    {% endif %}
+                    <td class="active clickable" onclick="location.href='/compare/{{ id }}'">
+                        {%  for uid in hids %}
+                            {{ hids[uid] }}
+                            <div><font face="courier"  style="font-size:12px">{{ uid }}</font></div>
+                        {% endfor %}
+                    </td>
+                </tr>
+            {% else %}
+                <h2>No compare results found in database!</h2>
+            {% endfor %}
+        </table>
+
+        {% if pagination is defined %}
+            {{ pagination.info }}
+            {{ pagination.links }}
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}
