@@ -109,3 +109,19 @@ class TestRestFirmware(RestTestBase):
 
         rv = self.test_client.get('/rest/firmware/', follow_redirects=True)
         assert b'404 Not Found' in rv.data
+
+    def test_rest_update_analysis_success(self):
+        test_firmware = create_test_firmware(device_class="test class", device_name="test device", vendor="test vendor")
+        self.db_backend.add_firmware(test_firmware)
+
+        rv = self.test_client.put('/rest/firmware/{}?update={}'.format(test_firmware.uid, urllib.parse.quote('["dummy"]')), follow_redirects=True)
+        assert test_firmware.uid.encode() in rv.data
+        assert b'"status": 0' in rv.data
+
+    def test_rest_update_bad_query(self):
+        test_firmware = create_test_firmware(device_class="test class", device_name="test device", vendor="test vendor")
+        self.db_backend.add_firmware(test_firmware)
+
+        rv = self.test_client.put('/rest/firmware/{}?update=not_a_list'.format(test_firmware.uid), follow_redirects=True)
+        assert b'"status": 1' in rv.data
+        assert b'has to be a list' in rv.data
