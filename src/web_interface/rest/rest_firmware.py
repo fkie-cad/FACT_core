@@ -65,7 +65,6 @@ class RestFirmware(Resource):
                 update = get_update(request.args)
             except ValueError as value_error:
                 return error_message(str(value_error), self.URL, request_data={'uid': uid})
-
             return self._update_analysis(uid, update)
 
     def _process_data(self, data):
@@ -93,18 +92,13 @@ class RestFirmware(Resource):
             firmware = connection.get_firmware(uid)
         if not firmware:
             return error_message('No firmware with UID {} found'.format(uid), self.URL, dict(uid=uid))
-
-        with ConnectTo(InterComFrontEndBinding, self.config) as sc:
-            sc.add_re_analyze_task(firmware)
-            supported_plugins = sc.get_available_analysis_plugins().keys()
-
-        for item in update:
-            if item not in supported_plugins:
-                return error_message('Unknown analysis system \'{}\''.format(item), self.URL, dict(uid=uid, update=update))
-
         firmware.scheduled_analysis = update
 
-        with ConnectTo(InterComFrontEndBinding, self.config) as sc:
-            sc.add_re_analyze_task(firmware)
+        with ConnectTo(InterComFrontEndBinding, self.config) as intercom:
+            supported_plugins = intercom.get_available_analysis_plugins().keys()
+            for item in update:
+                if item not in supported_plugins:
+                    return error_message('Unknown analysis system \'{}\''.format(item), self.URL, dict(uid=uid, update=update))
+            intercom.add_re_analyze_task(firmware)
 
         return success_message({}, self.URL, dict(uid=uid, update=update))

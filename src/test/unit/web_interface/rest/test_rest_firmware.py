@@ -94,7 +94,7 @@ def test_submit_success(test_app):
 
 
 def test_request_update(test_app):
-    requested_analysis = json.dumps(['some_analysis_system'])
+    requested_analysis = json.dumps(['optional_plugin'])
     result = decode_response(test_app.put('/rest/firmware/{}?update={}'.format(TEST_FW.uid, quote(requested_analysis))))
     assert result['status'] == 0
 
