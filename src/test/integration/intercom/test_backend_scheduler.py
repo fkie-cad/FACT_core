@@ -49,6 +49,9 @@ class AnalysisServiceMock():
     def __init__(self, config=None):
         pass
 
+    def add_update_task(self, fo):
+        pass
+
     def get_plugin_dict(self):
         return {}
 
