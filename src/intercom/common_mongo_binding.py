@@ -23,6 +23,7 @@ class InterComMongoInterface(MongoInterface):
         'analysis_task',
         'analysis_plugins',
         're_analyze_task',
+        'update_task',
         'compare_task',
         'file_delete_task',
         'raw_download_task', 'raw_download_task_resp',
