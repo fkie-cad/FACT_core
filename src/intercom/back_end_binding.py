@@ -50,7 +50,7 @@ class InterComBackEndBinding(object):
         self._start_listener(InterComBackEndAnalysisTask, self.unpacking_service.add_task)
 
     def start_re_analyze_listener(self):
-        self._start_listener(InterComBackEndReAnalyzeTask, self.unpacking_service.add_task)
+        self._start_listener(InterComBackEndReAnalyzeTask, self.analysis_service.add_update_task)
 
     def start_compare_listener(self):
         self._start_listener(InterComBackEndCompareTask, self.compare_service.add_task)
