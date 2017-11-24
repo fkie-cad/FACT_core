@@ -91,3 +91,21 @@ def test_submit_success(test_app):
     }
     result = decode_response(test_app.put('/rest/firmware', data=json.dumps(request_data)))
     assert result['status'] == 0
+
+
+def test_request_update(test_app):
+    requested_analysis = json.dumps(['optional_plugin'])
+    result = decode_response(test_app.put('/rest/firmware/{}?update={}'.format(TEST_FW.uid, quote(requested_analysis))))
+    assert result['status'] == 0
+
+
+def test_request_update_bad_parameter(test_app):
+    result = decode_response(test_app.put('/rest/firmware/{}?update=no_list'.format(TEST_FW.uid)))
+    assert result['status'] == 1
+    assert 'has to be a list' in result['error_message']
+
+
+def test_request_update_missing_parameter(test_app):
+    result = decode_response(test_app.put('/rest/firmware/{}'.format(TEST_FW.uid)))
+    assert result['status'] == 1
+    assert 'missing parameter: update' in result['error_message']

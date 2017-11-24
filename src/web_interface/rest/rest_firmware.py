@@ -6,7 +6,7 @@ from flask_restful import Resource
 
 from helperFunctions.mongo_task_conversion import convert_analysis_task_to_fw_obj
 from helperFunctions.object_conversion import create_meta_dict
-from helperFunctions.rest import get_paging, get_query, success_message, error_message, convert_rest_request
+from helperFunctions.rest import get_paging, get_query, success_message, error_message, convert_rest_request, get_update
 from helperFunctions.web_interface import ConnectTo
 from intercom.front_end_binding import InterComFrontEndBinding
 from storage.db_interface_frontend import FrontEndDbInterface
@@ -46,19 +46,26 @@ class RestFirmware(Resource):
             fitted_firmware = self._fit_firmware(firmware)
             return success_message(dict(firmware=fitted_firmware), self.URL, request_data=dict(uid=uid))
 
-    def put(self):
-        try:
-            data = convert_rest_request(request.data)
-        except TypeError as type_error:
-            return error_message(str(type_error), self.URL, request_data=request.data)
+    def put(self, uid=None):
+        if not uid:
+            try:
+                data = convert_rest_request(request.data)
+            except TypeError as type_error:
+                return error_message(str(type_error), self.URL, request_data=request.data)
 
-        result = self._process_data(data)
-        if 'error_message' in result:
-            logging.warning('Submission not according to API guidelines! (data could not be parsed)')
-            return error_message(result['error_message'], self.URL, request_data=data)
+            result = self._process_data(data)
+            if 'error_message' in result:
+                logging.warning('Submission not according to API guidelines! (data could not be parsed)')
+                return error_message(result['error_message'], self.URL, request_data=data)
 
-        logging.debug('Upload Successful!')
-        return success_message(result, self.URL, request_data=data)
+            logging.debug('Upload Successful!')
+            return success_message(result, self.URL, request_data=data)
+        else:
+            try:
+                update = get_update(request.args)
+            except ValueError as value_error:
+                return error_message(str(value_error), self.URL, request_data={'uid': uid})
+            return self._update_analysis(uid, update)
 
     def _process_data(self, data):
         for field in ['device_name', 'device_class', 'file_name', 'firmware_version', 'vendor', 'release_date',
@@ -79,3 +86,19 @@ class RestFirmware(Resource):
         meta = create_meta_dict(firmware)
         analysis = firmware.processed_analysis
         return dict(meta_data=meta, analysis=analysis)
+
+    def _update_analysis(self, uid, update):
+        with ConnectTo(FrontEndDbInterface, self.config) as connection:
+            firmware = connection.get_firmware(uid)
+        if not firmware:
+            return error_message('No firmware with UID {} found'.format(uid), self.URL, dict(uid=uid))
+        firmware.scheduled_analysis = update
+
+        with ConnectTo(InterComFrontEndBinding, self.config) as intercom:
+            supported_plugins = intercom.get_available_analysis_plugins().keys()
+            for item in update:
+                if item not in supported_plugins:
+                    return error_message('Unknown analysis system \'{}\''.format(item), self.URL, dict(uid=uid, update=update))
+            intercom.add_re_analyze_task(firmware)
+
+        return success_message({}, self.URL, dict(uid=uid, update=update))
