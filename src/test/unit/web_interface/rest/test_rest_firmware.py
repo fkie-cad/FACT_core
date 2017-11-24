@@ -109,3 +109,12 @@ def test_request_update_missing_parameter(test_app):
     result = decode_response(test_app.put('/rest/firmware/{}'.format(TEST_FW.uid)))
     assert result['status'] == 1
     assert 'missing parameter: update' in result['error_message']
+
+
+def test_request_with_unpacking(test_app):
+    scheduled_analysis = ['unpacker', 'optional_plugin']
+    requested_analysis = json.dumps(scheduled_analysis)
+    result = decode_response(test_app.put('/rest/firmware/{}?update={}'.format(TEST_FW.uid, quote(requested_analysis))))
+    assert result['status'] == 0
+    assert sorted(result['request']['update']) == sorted(scheduled_analysis)
+    assert 'unpacker' in result['request']['update']

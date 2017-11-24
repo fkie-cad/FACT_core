@@ -11,7 +11,7 @@ TMP_DIR = TemporaryDirectory(prefix='faf_test_')
 
 
 # This number must be changed, whenever a listener is added or removed
-NUMBER_OF_LISTENERS = 6
+NUMBER_OF_LISTENERS = 7
 
 
 class ServiceMock():
