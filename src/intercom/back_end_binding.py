@@ -39,6 +39,7 @@ class InterComBackEndBinding(object):
         self.start_raw_download_listener()
         self.start_tar_repack_listener()
         self.start_binary_search_listener()
+        self.start_update_listener()
 
     def shutdown(self):
         self.stop_condition.value = 1
@@ -50,7 +51,10 @@ class InterComBackEndBinding(object):
         self._start_listener(InterComBackEndAnalysisTask, self.unpacking_service.add_task)
 
     def start_re_analyze_listener(self):
-        self._start_listener(InterComBackEndReAnalyzeTask, self.analysis_service.add_update_task)
+        self._start_listener(InterComBackEndReAnalyzeTask, self.unpacking_service.add_task)
+
+    def start_update_listener(self):
+        self._start_listener(InterComBackEndUpdateTask, self.analysis_service.add_update_task)
 
     def start_compare_listener(self):
         self._start_listener(InterComBackEndCompareTask, self.compare_service.add_task)
@@ -109,6 +113,19 @@ class InterComBackEndAnalysisTask(InterComListener):
 class InterComBackEndReAnalyzeTask(InterComListener):
 
     CONNECTION_TYPE = "re_analyze_task"
+
+    def additional_setup(self, config=None):
+        self.fs_organizer = FS_Organizer(config=config)
+
+    def post_processing(self, task, task_id):
+        file_path = self.fs_organizer.generate_path(task)
+        task.set_file_path(file_path)
+        return task
+
+
+class InterComBackEndUpdateTask(InterComListener):
+
+    CONNECTION_TYPE = "update_task"
 
     def additional_setup(self, config=None):
         self.fs_organizer = FS_Organizer(config=config)

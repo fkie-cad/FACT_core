@@ -92,6 +92,11 @@ class RestFirmware(Resource):
             firmware = connection.get_firmware(uid)
         if not firmware:
             return error_message('No firmware with UID {} found'.format(uid), self.URL, dict(uid=uid))
+
+        unpack = 'unpacker' in update
+        while 'unpacker' in update:
+            update.remove('unpacker')
+
         firmware.scheduled_analysis = update
 
         with ConnectTo(InterComFrontEndBinding, self.config) as intercom:
@@ -99,6 +104,8 @@ class RestFirmware(Resource):
             for item in update:
                 if item not in supported_plugins:
                     return error_message('Unknown analysis system \'{}\''.format(item), self.URL, dict(uid=uid, update=update))
-            intercom.add_re_analyze_task(firmware)
+            intercom.add_re_analyze_task(firmware, unpack)
 
+        if unpack:
+            update.append('unpacker')
         return success_message({}, self.URL, dict(uid=uid, update=update))
