@@ -92,6 +92,9 @@ FACT provides a REST API. More information can be found [here](https://github.co
 ## Update an older Installation
 Checkout the new sources and rerun the installer.
 
+## List of available community plug-ins
+* [Firmadyne](https://github.com/fkie-cad/FACT_firmadyne_analysis_plugin)
+
 ## Contribute
 The easiest way to contribute is writing your own plug-in.
 Our Developers Manual can be found [here](https://github.com/fkie-cad/FACT_core/wiki).
