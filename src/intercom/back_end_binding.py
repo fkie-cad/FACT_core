@@ -123,17 +123,9 @@ class InterComBackEndReAnalyzeTask(InterComListener):
         return task
 
 
-class InterComBackEndUpdateTask(InterComListener):
+class InterComBackEndUpdateTask(InterComBackEndReAnalyzeTask):
 
     CONNECTION_TYPE = "update_task"
-
-    def additional_setup(self, config=None):
-        self.fs_organizer = FS_Organizer(config=config)
-
-    def post_processing(self, task, task_id):
-        file_path = self.fs_organizer.generate_path(task)
-        task.set_file_path(file_path)
-        return task
 
 
 class InterComBackEndCompareTask(InterComListener):
