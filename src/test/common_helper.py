@@ -189,7 +189,7 @@ class DatabaseMock:
     def add_analysis_task(self, task):
         self.tasks.append(task)
 
-    def add_re_analyze_task(self, task):
+    def add_re_analyze_task(self, task, unpack=True):
         self.tasks.append(task)
 
     def add_compare_task(self, task, force=None):

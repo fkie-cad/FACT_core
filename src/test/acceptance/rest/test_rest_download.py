@@ -31,14 +31,9 @@ class TestIntegrationRestDownloadFirmware(TestAcceptanceBase):
         self.assertIn('"file_name": "{}"'.format(self.test_fw.file_name).encode(), rv.data, "rest download response incorrect")
         self.assertIn('"SHA256": "{}"'.format(self.test_fw.sha256).encode(), rv.data, "rest download response incorrect")
 
-    def _rest_update_analysis_bad_analysis(self):
-        rv = self.test_client.put('/rest/firmware/{}?update={}'.format(self.test_fw.uid, urllib.parse.quote('["unknown_system"]')), follow_redirects=True)
-        self.assertIn('Unknown analysis system'.encode(), rv.data, "rest analysis update should break on request of non existing system")
-
     def test_run_from_upload_to_show_analysis(self):
         self.test_fw = create_test_firmware(device_class="test class", device_name="test device", vendor="test vendor")
         self.db_backend.add_firmware(self.test_fw)
 
         self._rest_search()
         self._rest_download()
-        self._rest_update_analysis_bad_analysis()
