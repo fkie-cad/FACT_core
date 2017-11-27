@@ -30,6 +30,8 @@ class RestFirmware(Resource):
                 query = get_query(request.args)
             except ValueError as value_error:
                 return error_message(str(value_error), self.URL, request_data=dict(query=request.args.get('query'), recursive=request.args.get('recursive')))
+            if recursive and not query:
+                return error_message('recursive search is only permissible with non-empty query', self.URL, request_data=dict(query=request.args.get('query'), recursive=request.args.get('recursive')))
 
             try:
                 with ConnectTo(FrontEndDbInterface, self.config) as connection:
