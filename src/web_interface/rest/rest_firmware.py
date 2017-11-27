@@ -6,7 +6,7 @@ from flask_restful import Resource
 
 from helperFunctions.mongo_task_conversion import convert_analysis_task_to_fw_obj
 from helperFunctions.object_conversion import create_meta_dict
-from helperFunctions.rest import get_paging, get_query, success_message, error_message, convert_rest_request, get_update
+from helperFunctions.rest import get_paging, get_query, success_message, error_message, convert_rest_request, get_update, get_recursive
 from helperFunctions.web_interface import ConnectTo
 from intercom.front_end_binding import InterComFrontEndBinding
 from storage.db_interface_frontend import FrontEndDbInterface
@@ -26,17 +26,20 @@ class RestFirmware(Resource):
             offset, limit = paging
 
             try:
+                recursive = get_recursive(request.args)
                 query = get_query(request.args)
             except ValueError as value_error:
-                return error_message(str(value_error), self.URL, request_data=dict(query=request.args.get('query')))
+                return error_message(str(value_error), self.URL, request_data=dict(query=request.args.get('query'), recursive=request.args.get('recursive')))
+            if recursive and not query:
+                return error_message('recursive search is only permissible with non-empty query', self.URL, request_data=dict(query=request.args.get('query'), recursive=request.args.get('recursive')))
 
             try:
                 with ConnectTo(FrontEndDbInterface, self.config) as connection:
-                    uids = connection.rest_get_firmware_uids(offset=offset, limit=limit, query=query)
+                    uids = connection.rest_get_firmware_uids(offset=offset, limit=limit, query=query, recursive=recursive)
 
-                return success_message(dict(uids=uids), self.URL, dict(offset=offset, limit=limit, query=query))
+                return success_message(dict(uids=uids), self.URL, dict(offset=offset, limit=limit, query=query, recursive=recursive))
             except Exception:
-                return error_message('Unknown exception on request', self.URL, dict(offset=offset, limit=limit, query=query))
+                return error_message('Unknown exception on request', self.URL, dict(offset=offset, limit=limit, query=query, recursive=recursive))
         else:
             with ConnectTo(FrontEndDbInterface, self.config) as connection:
                 firmware = connection.get_firmware(uid)
