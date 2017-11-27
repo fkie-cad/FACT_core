@@ -3,7 +3,7 @@ from base64 import standard_b64encode
 from urllib.parse import quote
 
 from test.common_helper import TEST_FW
-from .conftest import decode_response
+from test.unit.web_interface.rest.conftest import decode_response
 
 
 def test_successful_request(test_app):
@@ -118,3 +118,13 @@ def test_request_with_unpacking(test_app):
     assert result['status'] == 0
     assert sorted(result['request']['update']) == sorted(scheduled_analysis)
     assert 'unpacker' in result['request']['update']
+
+
+def test_request_with_bad_recursive_flag(test_app):
+    result = decode_response(test_app.get('/rest/firmware?recursive=true'))
+    assert result['status'] == 1
+    assert 'only permissible with non-empty query' in result['error_message']
+
+    query = json.dumps({'processed_analysis.file_type.full': {'$regex': 'arm', '$options': 'si'}})
+    result = decode_response(test_app.get('/rest/firmware?recursive=true&query={}'.format(quote(query))))
+    assert result['status'] == 0
