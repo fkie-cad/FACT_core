@@ -9,7 +9,7 @@ from test.acceptance.base import TestAcceptanceBase
 from helperFunctions.fileSystem import get_test_data_dir
 
 
-class TestIntegrationRestAnalyzeFirmware(TestAcceptanceBase):
+class TestRestFirmware(TestAcceptanceBase):
 
     def setUp(self):
         super().setUp()
@@ -53,9 +53,29 @@ class TestIntegrationRestAnalyzeFirmware(TestAcceptanceBase):
         rv = self.test_client.get('/rest/firmware?query={}'.format(urllib.parse.quote(query)), follow_redirects=True)
         self.assertIn(self.test_container_uid.encode(), rv.data, 'test firmware not found in rest search')
 
+    def _rest_update_analysis_bad_analysis(self):
+        rv = self.test_client.put('/rest/firmware/{}?update={}'.format(self.test_container_uid, urllib.parse.quote('["unknown_system"]')), follow_redirects=True)
+        self.assertIn('Unknown analysis system'.encode(), rv.data, "rest analysis update should break on request of non existing system")
+
+    def _rest_update_analysis_success(self):
+        rv = self.test_client.put('/rest/firmware/{}?update={}'.format(self.test_container_uid, urllib.parse.quote(json.dumps(['crypto_material']))), follow_redirects=True)
+        self.assertNotIn(b'error_message', rv.data, 'Error on update request')
+
+    def _rest_check_new_analysis_exists(self):
+        rv = self.test_client.get('/rest/firmware/{}'.format(self.test_container_uid), follow_redirects=True)
+        response_data = json.loads(rv.data.decode())
+        assert response_data['firmware']['analysis']['crypto_material']
+        assert response_data['firmware']['analysis']['crypto_material']['analysis_date'] > response_data['firmware']['analysis']['software_components']['analysis_date']
+
     def test_run_from_upload_to_show_analysis_and_search(self):
         self._rest_upload_firmware()
         time.sleep(15)  # wait for analysis to complete
         self._rest_get_analysis_result()
         self._rest_search()
         self._rest_search_fw_only()
+        self._rest_update_analysis_bad_analysis()
+        self._rest_update_analysis_success()
+
+        time.sleep(10)  # wait for analysis to complete
+
+        self._rest_check_new_analysis_exists()
