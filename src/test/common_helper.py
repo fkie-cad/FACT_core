@@ -249,7 +249,7 @@ class DatabaseMock:
         else:
             raise Exception("UID not found: {}".format(uid))
 
-    def rest_get_firmware_uids(self, offset, limit, query=None):
+    def rest_get_firmware_uids(self, offset, limit, query=None, recursive=False):
         if (offset != 0) or (limit != 0):
             return []
         else:
