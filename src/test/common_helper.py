@@ -9,13 +9,14 @@ from objects.file import FileObject
 from objects.firmware import Firmware
 
 
-def create_test_firmware(device_class="Router", device_name="test_router", vendor="test_vendor", bin_path="container/test.zip", all_files_included_set=False):
+def create_test_firmware(device_class="Router", device_name="test_router", vendor="test_vendor", bin_path="container/test.zip",
+                         all_files_included_set=False, version="0.1"):
     fw = Firmware(file_path=os.path.join(get_test_data_dir(), bin_path))
     fw.set_device_class(device_class)
     fw.set_device_name(device_name)
     fw.set_vendor(vendor)
     fw.set_release_date("1970-01-01")
-    fw.version = "0.1"
+    fw.version = version
     processed_analysis = {'dummy': {'summary': ["sum a", "fw exclusive sum a"], 'content': "abcd"}}
     processed_analysis["unpacker"] = {"plugin_used": "used_unpack_plugin"}
     processed_analysis["file_type"] = {"mime": "test_type", "full": "Not a PE file"}

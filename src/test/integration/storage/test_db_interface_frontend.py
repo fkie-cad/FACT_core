@@ -143,3 +143,19 @@ class TestStorageDbInterfaceFrontend(unittest.TestCase):
         query = '{{"$or": [{{"_id": "{}"}}, {{"_id": "{}"}}]}}'.format(uid, child_fo.get_uid())
         self.assertEqual(self.db_frontend_interface.get_number_of_total_matches(query, only_parent_firmwares=False), 2)
         self.assertEqual(self.db_frontend_interface.get_number_of_total_matches(query, only_parent_firmwares=True), 1)
+
+    def test_get_other_versions_of_firmware(self):
+        parent_fw1 = create_test_firmware(version="1")
+        self.db_backend_interface.add_object(parent_fw1)
+        parent_fw2 = create_test_firmware(version="2", bin_path="container/test.7z")
+        self.db_backend_interface.add_object(parent_fw2)
+        parent_fw3 = create_test_firmware(version="3", bin_path="container/test.cab")
+        self.db_backend_interface.add_object(parent_fw3)
+
+        other_versions = self.db_frontend_interface.get_other_versions_of_firmware(parent_fw1)
+        self.assertEqual(len(other_versions), 2, "wrong number of other versions")
+        self.assertIn({"_id": parent_fw2.get_uid(), "version": "2"}, other_versions)
+        self.assertIn({"_id": parent_fw3.get_uid(), "version": "3"}, other_versions)
+
+        other_versions = self.db_frontend_interface.get_other_versions_of_firmware(parent_fw2)
+        self.assertIn({"_id": parent_fw3.get_uid(), "version": "3"}, other_versions)
