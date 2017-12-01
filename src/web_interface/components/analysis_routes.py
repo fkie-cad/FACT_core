@@ -52,7 +52,6 @@ class AnalysisRoutes(ComponentBase):
             file_obj = sc.get_object(uid, analysis_filter=analysis_filter)
         if isinstance(file_obj, Firmware):
             root_uid = file_obj.get_uid()
-            print("\n", sc.get_other_versions_of_firmware(file_obj), "\n")  # TODO wieder entfernen
             other_versions = sc.get_other_versions_of_firmware(file_obj)
         if file_obj:
             view = self._get_analysis_view(selected_analysis) if selected_analysis else self._get_template_as_string('show_analysis.html')
