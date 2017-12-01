@@ -73,6 +73,9 @@ class DatabaseRoutes(ComponentBase):
             query = self._add_date_to_query(query, request.args.get('date'))
         try:
             firmware_list = self._search_database(query, skip=per_page * (page - 1), limit=per_page, only_firmwares=only_firmwares)
+            if self._query_has_only_one_result(firmware_list, query):
+                uid = firmware_list[0][0]
+                return redirect(url_for("analysis/<uid>", uid=uid))
         except Exception as e:
             error_message = 'Could not query database: {} {}'.format(sys.exc_info()[0].__name__, e)
             logging.error(error_message)
@@ -86,6 +89,10 @@ class DatabaseRoutes(ComponentBase):
         pagination = self._get_pagination(page=page, per_page=per_page, total=total, record_name='firmwares', )
         return render_template('database/database_browse.html', firmware_list=firmware_list, page=page, per_page=per_page, pagination=pagination,
                                device_classes=device_classes, vendors=vendors, current_class=str(request.args.get('device_class')), current_vendor=str(request.args.get('vendor')))
+
+    @staticmethod
+    def _query_has_only_one_result(result_list, query):
+        return len(result_list) == 1 and query != "{}"
 
     def _search_database(self, query, skip=0, limit=0, only_firmwares=False):
         sorted_meta_list = list()
@@ -201,7 +208,8 @@ class DatabaseRoutes(ComponentBase):
         self._add_hash_query_to_query(query, search_term)
         query['$or'].extend([
             {'device_name': {'$options': 'si', '$regex': search_term}},
-            {'vendor': {'$options': 'si', '$regex': search_term}}
+            {'vendor': {'$options': 'si', '$regex': search_term}},
+            {'file_name': {'$options': 'si', '$regex': search_term}}
         ])
         query = json.dumps(query)
         return redirect(url_for('database/browse', query=query))
