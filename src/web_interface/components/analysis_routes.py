@@ -46,11 +46,14 @@ class AnalysisRoutes(ComponentBase):
 
     def _show_analysis_results(self, uid, selected_analysis=None, root_uid=None):
         root_uid = none_to_none(root_uid)
+        other_versions = None
         analysis_filter = [selected_analysis] if selected_analysis else []
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
             file_obj = sc.get_object(uid, analysis_filter=analysis_filter)
         if isinstance(file_obj, Firmware):
             root_uid = file_obj.get_uid()
+            print("\n", sc.get_other_versions_of_firmware(file_obj), "\n")  # TODO wieder entfernen
+            other_versions = sc.get_other_versions_of_firmware(file_obj)
         if file_obj:
             view = self._get_analysis_view(selected_analysis) if selected_analysis else self._get_template_as_string('show_analysis.html')
             with ConnectTo(FrontEndDbInterface, self._config) as sc:
@@ -67,7 +70,8 @@ class AnalysisRoutes(ComponentBase):
                                           summary_of_included_files=summary_of_included_files,
                                           root_uid=root_uid,
                                           firmware_including_this_fo=firmware_including_this_fo,
-                                          analysis_plugin_dict=analysis_plugins)
+                                          analysis_plugin_dict=analysis_plugins,
+                                          other_versions=other_versions)
         else:
             return render_template('uid_not_found.html', uid=uid)
 
