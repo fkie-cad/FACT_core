@@ -283,6 +283,9 @@ class DatabaseMock:
             {'_id': '4', 'processed_analysis': {'file_hashes': {'ssdeep': '384:aztrofSbs/7qkBYbplFPEW5d8aODW9EyGqgm/nZuxpIdQ1s4JwT:Urofgs/uK2lF8W5dxWyGS/AxpIwA'}}}
         ]
 
+    def get_other_versions_of_firmware(self, fo):
+        return []
+
 
 def fake_exit(self, *args):
     pass
