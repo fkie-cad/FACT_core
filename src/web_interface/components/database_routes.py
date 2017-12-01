@@ -11,7 +11,7 @@ from flask_paginate import Pagination
 from helperFunctions.dataConversion import make_unicode_string
 from helperFunctions.mongo_task_conversion import get_file_name_and_binary_from_request
 from helperFunctions.yara_binary_search import YaraRuleError, is_valid_yara_rule_file, get_yara_error
-from helperFunctions.web_interface import ConnectTo, apply_filters_to_query
+from helperFunctions.web_interface import ConnectTo, apply_filters_to_query, filter_out_illegal_characters
 from intercom.front_end_binding import InterComFrontEndBinding
 from storage.db_interface_frontend import FrontEndDbInterface
 from web_interface.components.component_base import ComponentBase
@@ -194,7 +194,9 @@ class DatabaseRoutes(ComponentBase):
                                request_id=request_id, yara_rules=yara_rules)
 
     def _app_start_quick_search(self):
-        search_term = request.args.get('search_term')
+        search_term = filter_out_illegal_characters(request.args.get('search_term'))
+        if search_term is None:
+            return render_template("error.html", message="Search string not found")
         query = {}
         self._add_hash_query_to_query(query, search_term)
         query['$or'].extend([
