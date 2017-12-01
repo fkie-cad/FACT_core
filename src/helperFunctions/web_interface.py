@@ -1,6 +1,12 @@
 import colorsys
 import json
+import re
+
 from itertools import chain
+
+
+SPECIAL_CHARACTERS = "ÄäÀàÁáÂâÃãÅåǍǎĄąĂăÆæĀāÇçĆćĈĉČčĎđĐďðÈèÉéÊêËëĚěĘęĖėĒēĜĝĢģĞğĤĥÌìÍíÎîÏïıĪīĮįĴĵĶķĹĺĻļŁłĽľÑñŃńŇňŅņÖöÒòÓóÔôÕõŐőØøŒœŔŕŘřẞßŚśŜŝŞşŠšȘș" \
+                     "ŤťŢţÞþȚțÜüÙùÚúÛûŰűŨũŲųŮůŪūŴŵÝýŸÿŶŷŹźŽžŻż"
 
 
 def _get_rgba(hue, saturation):
@@ -43,6 +49,12 @@ def apply_filters_to_query(request, query):
                 query_dict["$and"] = [{key: query_dict[key]}, {key: request.args.get(key)}]
                 query_dict.pop(key)
     return query_dict
+
+
+def filter_out_illegal_characters(string):
+    if string is None:
+        return string
+    return re.sub("[^\w {}!.-]".format(SPECIAL_CHARACTERS), "", string)
 
 
 class ConnectTo:
