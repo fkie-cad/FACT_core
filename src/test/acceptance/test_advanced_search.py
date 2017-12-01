@@ -20,7 +20,7 @@ class TestAcceptanceAdvancedSearch(TestAcceptanceBase):
         self.db_backend_interface.add_object(self.parent_fw)
         self.child_fo.processed_analysis['unpacker'] = {}
         self.child_fo.processed_analysis['unpacker']['plugin_used'] = 'test'
-        self.child_fo.processed_analysis['file_type']['mime'] = "some_type"
+        self.child_fo.processed_analysis['file_type']['mime'] = 'some_type'
         self.db_backend_interface.add_object(self.child_fo)
 
     def tearDown(self):
