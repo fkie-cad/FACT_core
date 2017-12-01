@@ -75,7 +75,7 @@ class DatabaseRoutes(ComponentBase):
             firmware_list = self._search_database(query, skip=per_page * (page - 1), limit=per_page, only_firmwares=only_firmwares)
             if self._query_has_only_one_result(firmware_list, query):
                 uid = firmware_list[0][0]
-                return redirect(url_for("analysis/<uid>", uid=uid))
+                return redirect(url_for('analysis/<uid>', uid=uid))
         except Exception as e:
             error_message = 'Could not query database: {} {}'.format(sys.exc_info()[0].__name__, e)
             logging.error(error_message)
@@ -92,7 +92,7 @@ class DatabaseRoutes(ComponentBase):
 
     @staticmethod
     def _query_has_only_one_result(result_list, query):
-        return len(result_list) == 1 and query != "{}"
+        return len(result_list) == 1 and query != '{}'
 
     def _search_database(self, query, skip=0, limit=0, only_firmwares=False):
         sorted_meta_list = list()
@@ -203,7 +203,7 @@ class DatabaseRoutes(ComponentBase):
     def _app_start_quick_search(self):
         search_term = filter_out_illegal_characters(request.args.get('search_term'))
         if search_term is None:
-            return render_template("error.html", message="Search string not found")
+            return render_template('error.html', message='Search string not found')
         query = {}
         self._add_hash_query_to_query(query, search_term)
         query['$or'].extend([
