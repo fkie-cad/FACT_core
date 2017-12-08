@@ -2,6 +2,7 @@ import unittest
 import os
 import logging
 
+from test.common_helper import get_database_names
 from web_interface.frontend_main import WebFrontEnd
 from storage.MongoMgr import MongoMgr
 from scheduler.Analysis import AnalysisScheduler
@@ -14,7 +15,8 @@ from helperFunctions.config import load_config
 from common_helper_files import create_dir_for_file
 
 
-TMP_DIR = TemporaryDirectory(prefix="faf_test_")
+TMP_DIR = TemporaryDirectory(prefix='faf_test_')
+TMP_DB_NAME = 'tmp_acceptance_tests'
 
 
 class TestAcceptanceBase(unittest.TestCase):
@@ -33,23 +35,22 @@ class TestAcceptanceBase(unittest.TestCase):
         self.frontend.app.config['TESTING'] = True
         self.test_client = self.frontend.app.test_client()
 
-        self.test_fw_a = self.TestFW("418a54d78550e8584291c96e5d6168133621f352bfc1d43cf84e81187fef4962_787",
-                                     "container/test.zip", "test_fw_a")
-        self.test_fw_b = self.TestFW("d38970f8c5153d1041810d0908292bc8df21e7fd88aab211a8fb96c54afe6b01_319",
-                                     "container/test.7z", "test_fw_b")
+        self.test_fw_a = self.TestFW('418a54d78550e8584291c96e5d6168133621f352bfc1d43cf84e81187fef4962_787',
+                                     'container/test.zip', 'test_fw_a')
+        self.test_fw_b = self.TestFW('d38970f8c5153d1041810d0908292bc8df21e7fd88aab211a8fb96c54afe6b01_319',
+                                     'container/test.7z', 'test_fw_b')
 
     def tearDown(self):
-        clean_test_database(self.config)
+        clean_test_database(self.config, get_database_names(self.config))
         self.mongo_server.shutdown()
 
     def _set_config(self):
-        self.config = load_config("main.cfg")
-        self.config.set('data_storage', 'main_database', 'tmp_acceptance_tests')
-        self.config.set('data_storage', 'intercom_database_prefix', 'tmp_acceptance_tests')
-        self.config.set('data_storage', 'statistic_database', 'tmp_acceptance_tests')
-        self.config.set('data_storage', 'cve_database', 'tmp_acceptance_tests')
+        self.config = load_config('main.cfg')
+        self.config.set('data_storage', 'main_database', TMP_DB_NAME)
+        self.config.set('data_storage', 'intercom_database_prefix', TMP_DB_NAME)
+        self.config.set('data_storage', 'statistic_database', TMP_DB_NAME)
         self.config.set('data_storage', 'firmware_file_storage_directory', TMP_DIR.name)
-        self.config.set('Logging', 'mongoDbLogFile', os.path.join(TMP_DIR.name, "mongo.log"))
+        self.config.set('Logging', 'mongoDbLogFile', os.path.join(TMP_DIR.name, 'mongo.log'))
 
     def _stop_backend(self):
         self.intercom.shutdown()
@@ -67,7 +68,7 @@ class TestAcceptanceBase(unittest.TestCase):
     def _setup_debugging_logging(self):
         # for debugging purposes only
         log_level = logging.DEBUG
-        log_format = logging.Formatter(fmt="[%(asctime)s][%(module)s][%(levelname)s]: %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
+        log_format = logging.Formatter(fmt='[%(asctime)s][%(module)s][%(levelname)s]: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
         logger = logging.getLogger('')
         logger.setLevel(logging.DEBUG)
         create_dir_for_file(self.config['Logging']['logFile'])
