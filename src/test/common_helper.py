@@ -10,16 +10,18 @@ from objects.file import FileObject
 from objects.firmware import Firmware
 
 
-def create_test_firmware(device_class='Router', device_name='test_router', vendor='test_vendor', bin_path='container/test.zip', all_files_included_set=False):
+def create_test_firmware(device_class='Router', device_name='test_router', vendor='test_vendor', bin_path='container/test.zip', all_files_included_set=False, version='0.1'):
     fw = Firmware(file_path=os.path.join(get_test_data_dir(), bin_path))
     fw.set_device_class(device_class)
     fw.set_device_name(device_name)
     fw.set_vendor(vendor)
     fw.set_release_date('1970-01-01')
-    fw.version = '0.1'
-    processed_analysis = {'dummy': {'summary': ['sum a', 'fw exclusive sum a'], 'content': 'abcd'}}
-    processed_analysis['unpacker'] = {'plugin_used': 'used_unpack_plugin'}
-    processed_analysis['file_type'] = {'mime': 'test_type', 'full': 'Not a PE file'}
+    fw.version = version
+    processed_analysis = {
+        'dummy': {'summary': ['sum a', 'fw exclusive sum a'], 'content': 'abcd'},
+        'unpacker': {'plugin_used': 'used_unpack_plugin'},
+        'file_type': {'mime': 'test_type', 'full': 'Not a PE file'}
+    }
     fw.processed_analysis.update(processed_analysis)
     if all_files_included_set:
             fw.list_of_all_included_files = list(fw.files_included)
@@ -282,6 +284,9 @@ class DatabaseMock:
             {'_id': '3', 'processed_analysis': {'file_hashes': {'ssdeep': '384:aztrofSbs/7qkBYbplFPEW5d8aODW9EyGqgm/nZuxpIdQ1s4JtUn:Urofgs/uK2lF8W5dxWyGS/AxpIws'}}},
             {'_id': '4', 'processed_analysis': {'file_hashes': {'ssdeep': '384:aztrofSbs/7qkBYbplFPEW5d8aODW9EyGqgm/nZuxpIdQ1s4JwT:Urofgs/uK2lF8W5dxWyGS/AxpIwA'}}}
         ]
+
+    def get_other_versions_of_firmware(self, fo):
+        return []
 
 
 def fake_exit(self, *args):

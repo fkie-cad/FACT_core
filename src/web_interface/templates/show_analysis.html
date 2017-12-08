@@ -71,6 +71,26 @@
                     <td class="result" style="{{ style }}">{{ firmware_including_this_fo | nice_uid_list() | safe }}</td>
 				</tr>
 			{% endif %}
+            {% if other_versions %}
+            	<tr class="active">
+                	<td class="result" width="150">other versions</td>
+                    <td class="result" style="{{ style }}">
+                                <button data-toggle="collapse" data-target="#other_versions" class="list-group-item list-group-item-info">
+                                    <span class="badge">{{ other_versions | length }}</span> show files
+                                </button>
+                                <div id="other_versions" class="collapse">
+                                    {% for version in other_versions %}
+                                        <a {% if selected_analysis %} href="/analysis/{{ version._id }}/{{selected_analysis}}"
+                                           {% else %} href="/analysis/{{ version._id }}"{% endif %} class="list-group-item">
+                                            <p class="list-group-item-text">
+                                                {{ version.version }}
+                                            </p>
+                                        </a>
+                                    {% endfor %}
+                                </div>
+                    </td>
+				</tr>
+			{% endif %}
         </table>
     </div>
 

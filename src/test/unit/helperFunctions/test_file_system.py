@@ -4,7 +4,7 @@ import unittest
 
 from helperFunctions.fileSystem import get_parent_dir, get_src_dir, \
     get_test_data_dir, get_absolute_path, get_file_type_from_path, file_is_empty, \
-    get_chroot_path, get_chroot_path_excluding_extracted_dir, get_faf_bin_dir
+    get_chroot_path, get_chroot_path_excluding_extracted_dir, get_faf_bin_dir, get_template_dir
 
 
 class TestFileSystemHelpers(unittest.TestCase):
@@ -29,6 +29,12 @@ class TestFileSystemHelpers(unittest.TestCase):
 
     def test_get_src_dir_root(self):
         self.check_correct_src_dir('/')
+
+    def test_get_template_dir(self):
+        template_dir = get_template_dir()
+        self.assertTrue(os.path.isdir(template_dir), 'template dir not found')
+        file_suffixes_in_template_dir = [os.path.basename(f).split('.')[-1] for f in os.listdir(template_dir)]
+        self.assertTrue('html' in file_suffixes_in_template_dir)
 
     def test_get_faf_bin_dir(self):
         bin_dir = get_faf_bin_dir()
