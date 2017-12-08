@@ -10,9 +10,9 @@ class TestAcceptanceAdvancedSearch(TestAcceptanceBase):
 
     def setUp(self):
         super().setUp()
+        self._start_backend()
         self.db_backend_interface = BackEndDbInterface(self.config)
-        self.config['database'] = {}
-        self.config['database']['results_per_page'] = '10'
+
         self.parent_fw = create_test_firmware()
         self.child_fo = create_test_file_object()
         uid = self.parent_fw.get_uid()
@@ -24,8 +24,9 @@ class TestAcceptanceAdvancedSearch(TestAcceptanceBase):
         self.db_backend_interface.add_object(self.child_fo)
 
     def tearDown(self):
-        super().tearDown()
         self.db_backend_interface.shutdown()
+        self._stop_backend()
+        super().tearDown()
 
     def test_advanced_search_get(self):
         rv = self.test_client.get('/database/advanced_search')
