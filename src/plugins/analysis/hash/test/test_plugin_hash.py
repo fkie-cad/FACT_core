@@ -14,7 +14,7 @@ class MockFileObject(object):
     def __init__(self, binary=b'test string', file_path='/bin/ls'):
         self.binary = binary
         self.file_path = file_path
-        self.processed_analysis = {'file_type': {'full': 'ELFarm'}}
+        self.processed_analysis = {'file_type': {'mime': 'application/x-executable'}}
 
 
 class test_analysis_plugin_hash(AnalysisPluginTest):
@@ -44,4 +44,4 @@ class test_analysis_plugin_hash(AnalysisPluginTest):
     def test_imphash(self):
         file_path = os.path.join(TEST_DATA_DIR, 'ls')
         result = self.analysis_plugin.process_object(MockFileObject(file_path=file_path)).processed_analysis[self.PLUGIN_NAME]
-        self.assertEqual(result['imphash'], '5f574ee89a625a9f169923b8f1943ee9', 'imphash not correct')
+        self.assertEqual(result['imphash'], 'd9eccd5f72564ac07601458b26040259', 'imphash not correct')
