@@ -68,3 +68,32 @@ def get_query(request_parameter):
     except json.JSONDecodeError:
         raise ValueError('Query must be a json document')
     return query if query else dict()
+
+
+def get_recursive(request_parameter):
+    try:
+        recursive = request_parameter.get('recursive')
+        recursive = json.loads(recursive if recursive else 'false')
+    except (AttributeError, KeyError):
+        return False
+    except json.JSONDecodeError:
+        raise ValueError('recursive must be true or false')
+
+    if recursive not in [True, False]:
+        raise ValueError('recursive must be true or false')
+    return recursive
+
+
+def get_update(request_parameter):
+    try:
+        update = request_parameter.get('update')
+        update = json.loads(update if update else None)
+    except (AttributeError, KeyError, TypeError):
+        raise ValueError('Malformed or missing parameter: update')
+    except json.JSONDecodeError:
+        raise ValueError('Update parameter has to be a list')
+    if not isinstance(update, list):
+        raise ValueError('Update must be a list')
+    if not update:
+        raise ValueError('Update has to be specified')
+    return update

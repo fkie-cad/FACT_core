@@ -5,7 +5,7 @@
     ("Compare", "/compare", '<span class="glyphicon glyphicon-duplicate"></span>'),
     ("Upload", "/upload", '<span class="glyphicon glyphicon-upload"></span>'),
     ("Statistic", "/statistic", '<span class="glyphicon glyphicon-stats"></span>'),
-    ("System Health", "/system_health", '<span class="glyphicon glyphicon-heart"></span>'),
+    ("System", "/system_health", '<span class="glyphicon glyphicon-heart"></span>'),
     ("About", "/about", '<span class="glyphicon glyphicon-globe"></span>')
 ] -%}
 {% set active_page = active_page|default('Home') -%}
@@ -32,6 +32,16 @@
                 $(".expand").toggle();
               });
             })
+            function toggleCollapse() {
+                $('#quick_search_div').collapse("toggle");
+                if ($("#nav_quick_search").hasClass("active")) {$("#nav_quick_search").removeClass("active")} else {$("#nav_quick_search").addClass("active")};
+                document.getElementById("quick_search_input").focus();
+            }
+            function quickSearch() {
+                var search_input = document.getElementById('quick_search_input').value;
+                var url = '/database/quick_search?search_term=' + search_input;
+                window.location = url;
+            }
         </script>
         
         {% block head %}
@@ -76,28 +86,54 @@
 
     <body>
 
-    <nav role="navigation" class="navbar navbar-default navbar-fixed-top navbar-inner">
-        <div class="container">
+    <nav role="navigation" class="navbar navbar-default navbar-fixed-top navbar-inner" style="margin-bottom:0; padding: 0">
+        <div class="container-fluid" style="padding: 0">
             <div class="navbar-header">
                 <button type="button" data-target="#navbarCollapse" data-toggle="collapse" class="navbar-toggle">
                     <span class="sr-only">Toggle navigation</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span>
                 </button>
-                <div class="navbar-brand hidden-sm hidden-md">
+                <div class="navbar-brand hidden-sm hidden-md" style="vertical-align: middle; margin-left: 15px">
                     <span><img height="25px" src="{{ url_for('static', filename='fact_logo_inv.svg') }}"></span>
+                </div>
+                <div class="navbar-brand hidden-sm hidden-md" style="vertical-align: middle">
                     Firmware Analysis and Comparison Tool
                 </div>
             </div>
             <div id="navbarCollapse" class="collapse navbar-collapse">
-                <ul class="nav navbar-nav">
+                <!-- Navbar Elements -->
+                <ul class="nav navbar-nav navbar-left" style="padding-right: 5px">
                     {% for caption, href, icon in navigation_bar %}
                         <li {% if caption == active_page %} class="active"{% endif  %}>
                             <a href={{ href }}>{{ icon|safe }} {{ caption }}</a>
                         </li>
                     {% endfor %}
                 </ul>
+
+                <!-- Navbar Quick Search Button -->
+                <ul class="nav navbar-nav navbar-right">
+                    <li class="hidden-xs float-right" id="nav_quick_search" style="padding-right: 15px">
+                        <a class="dropdown-toggle" onclick="toggleCollapse()">
+                           <!-- data-toggle="collapse" data-target="#quick_search_div"> -->
+                            <span class="glyphicon glyphicon-search"></span>
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- Navbar Quick Search Input -->
+                <div id="quick_search_div" class="col-sm-12 hidden-xs collapse" style="padding: 0">
+                    <div style="width: 100%; padding: 0; margin: 0;">
+                        <div class="input-group" style="width: 100%; padding: 0; margin: 0; background-color: #e7e7e7;">
+                            <input type="text" class="form-control" placeholder="Quick search name, vendor and hash values" id="quick_search_input" onKeyDown="if(event.keyCode==13) quickSearch();" style="margin: 0; background-color: #e7e7e7; border-radius: 0;">
+                            <span class="input-group-addon" style="background: white !important; width: 44px; padding: 0; margin: 0; border-radius: 0;">
+                                <button onclick="quickSearch()" style="border:0; background:transparent; padding: 0; margin: 0;">
+                                    <span class="glyphicon glyphicon-search"></span>
+                                </button>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     </nav>

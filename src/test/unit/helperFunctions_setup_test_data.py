@@ -14,11 +14,11 @@ def create_test_file():
     return tmpfile
 
 
-def clean_test_database(config, test_db='tmp'):
+def clean_test_database(config, list_of_test_databases):
     db = MongoInterface(config=config)
     try:
-        test_db = config.get('data_storage', 'main_database')
+        for database_name in list_of_test_databases:
+            db.client.drop_database(database_name)
     except Exception:
         pass
-    db.client.drop_database(test_db)
     db.shutdown()

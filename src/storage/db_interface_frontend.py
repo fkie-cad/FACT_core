@@ -9,6 +9,7 @@ from helperFunctions.database_structure import visualize_complete_tree
 from helperFunctions.file_tree import get_partial_virtual_path, FileTreeNode
 from helperFunctions.merge_generators import merge_generators, dict_to_sorted_tuples
 from objects.file import FileObject
+from objects.firmware import Firmware
 from storage.db_interface_common import MongoInterfaceCommon
 
 
@@ -146,6 +147,13 @@ class FrontEndDbInterface(MongoInterfaceCommon):
             return error_message
         return result
 
+    def get_other_versions_of_firmware(self, firmware_object):
+        if not isinstance(firmware_object, Firmware):
+            return []
+        query = {'vendor': firmware_object.vendor, 'device_name': firmware_object.device_name}
+        results = self.firmwares.find(query, {'_id': 1, 'version': 1})
+        return [r for r in results if r['_id'] != firmware_object.get_uid()]
+
     def get_specific_fields_of_db_entry(self, uid, field_dict):
         return self.file_objects.find_one(uid, field_dict) or self.firmwares.find_one(uid, field_dict)
 
@@ -261,7 +269,9 @@ class FrontEndDbInterface(MongoInterfaceCommon):
 
         return visualize_complete_tree(stripped_field_strings)
 
-    def rest_get_firmware_uids(self, offset, limit, query=None):
+    def rest_get_firmware_uids(self, offset, limit, query=None, recursive=False):
+        if recursive:
+            return self.generic_search(search_dict=query, skip=offset, limit=limit, only_fo_parent_firmware=True)
         return self.rest_get_object_uids(self.firmwares, offset, limit, query if query else dict())
 
     def rest_get_file_object_uids(self, offset, limit, query=None):
