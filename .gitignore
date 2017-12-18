@@ -16,6 +16,7 @@ src/log
 src/bootstrap/doc
 src/bootstrap/man
 src/bin
+src/plugins/*/*/bin
 start_faf_backend
 start_fact_backend
 start_faf_db
