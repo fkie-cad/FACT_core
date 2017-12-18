@@ -9,14 +9,14 @@ from helperFunctions.hash import get_sha256
 
 def generate_task_id(input_data):
     serialized_data = pickle.dumps(input_data)
-    task_id = "{}_{}".format(get_sha256(serialized_data), time())
+    task_id = '{}_{}'.format(get_sha256(serialized_data), time())
     return task_id
 
 
 class InterComMongoInterface(MongoInterface):
-    """
+    '''
     Common parts of the InterCom Mongo interface
-    """
+    '''
 
     INTERCOM_CONNECTION_TYPES = [
         'test',
@@ -26,23 +26,26 @@ class InterComMongoInterface(MongoInterface):
         'update_task',
         'compare_task',
         'file_delete_task',
-        'raw_download_task', 'raw_download_task_resp',
-        'tar_repack_task', 'tar_repack_task_resp',
-        'binary_search_task', 'binary_search_task_resp'
+        'raw_download_task',
+        'raw_download_task_resp',
+        'tar_repack_task',
+        'tar_repack_task_resp',
+        'binary_search_task',
+        'binary_search_task_resp'
     ]
 
     def _setup_database_mapping(self):
         self.connections = {}
         for item in self.INTERCOM_CONNECTION_TYPES:
-            self.connections[item] = {'name': "{}_{}".format(self.config['data_storage']['intercom_database_prefix'], item)}
+            self.connections[item] = {'name': '{}_{}'.format(self.config['data_storage']['intercom_database_prefix'], item)}
             self.connections[item]['collection'] = self.client[self.connections[item]['name']]
             self.connections[item]['fs'] = gridfs.GridFS(self.connections[item]['collection'])
 
 
 class InterComListener(InterComMongoInterface):
-    """
+    '''
     InterCom Listener Base Class
-    """
+    '''
 
     CONNECTION_TYPE = 'test'  # unique for each listener
 
@@ -54,48 +57,48 @@ class InterComListener(InterComMongoInterface):
         try:
             task_obj = self.connections[self.CONNECTION_TYPE]['fs'].find_one()
         except Exception as e:
-            logging.error("Could not get next task: {} {}".format(sys.exc_info()[0].__name__, e))
+            logging.error('Could not get next task: {} {}'.format(sys.exc_info()[0].__name__, e))
             return None
         if task_obj is not None:
             task = pickle.loads(task_obj.read())
             task_id = task_obj.filename
             self.connections[self.CONNECTION_TYPE]['fs'].delete(task_obj._id)
             task = self.post_processing(task, task_id)
-            logging.debug("{}: New task received: {}".format(self.CONNECTION_TYPE, task))
+            logging.debug('{}: New task received: {}'.format(self.CONNECTION_TYPE, task))
             return task
         else:
             return None
 
     def additional_setup(self, config=None):
-        """
+        '''
         optional additional setup
-        """
+        '''
         pass
 
     def post_processing(self, task, task_id):
-        """
+        '''
         optional post processing of a task
-        """
+        '''
         return task
 
 
 class InterComListenerAndResponder(InterComListener):
-    """
+    '''
     CONNECTION_TYPE and OUTGOING_CONNECTION_TYPE must be implmented by the sub_class
-    """
+    '''
 
-    CONNECTION_TYPE = "test"
-    OUTGOING_CONNECTION_TYPE = "test"
+    CONNECTION_TYPE = 'test'
+    OUTGOING_CONNECTION_TYPE = 'test'
 
     def post_processing(self, task, task_id):
-        logging.debug("request received: {} -> {}".format(self.CONNECTION_TYPE, task_id))
+        logging.debug('request received: {} -> {}'.format(self.CONNECTION_TYPE, task_id))
         response = self.get_response(task)
-        self.connections[self.OUTGOING_CONNECTION_TYPE]['fs'].put(pickle.dumps(response), filename="{}".format(task_id))
-        logging.debug("response send: {} -> {}".format(self.OUTGOING_CONNECTION_TYPE, task_id))
+        self.connections[self.OUTGOING_CONNECTION_TYPE]['fs'].put(pickle.dumps(response), filename='{}'.format(task_id))
+        logging.debug('response send: {} -> {}'.format(self.OUTGOING_CONNECTION_TYPE, task_id))
         return task
 
     def get_response(self, task):
-        """
+        '''
         this function must be implemented by the sub_class
-        """
+        '''
         return task
