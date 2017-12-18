@@ -12,7 +12,9 @@ from scheduler.Compare import CompareScheduler
 from scheduler.Unpacking import UnpackingScheduler
 from storage.MongoMgr import MongoMgr
 from storage.db_interface_compare import CompareDbInterface
+from test.common_helper import get_database_names
 from test.integration.common import initialize_config, MockFSOrganizer
+from test.unit.helperFunctions_setup_test_data import clean_test_database
 
 
 class TestFileAddition(unittest.TestCase):
@@ -35,6 +37,8 @@ class TestFileAddition(unittest.TestCase):
 
         self._compare_db_interface.client.drop_database(self._config.get('data_storage', 'main_database'))
         self._compare_db_interface.shutdown()
+
+        clean_test_database(self._config, get_database_names(self._config))
         self._mongo_server.shutdown()
 
         self._tmp_dir.cleanup()

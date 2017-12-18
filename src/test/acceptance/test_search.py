@@ -7,13 +7,15 @@ class TestAcceptanceNormalSearch(TestAcceptanceBase):
 
     def setUp(self):
         super().setUp()
+        self._start_backend()
         self.db_backend_interface = BackEndDbInterface(self.config)
         self.test_fw = create_test_firmware(device_name='test_fw')
         self.db_backend_interface.add_firmware(self.test_fw)
 
     def tearDown(self):
-        super().tearDown()
         self.db_backend_interface.shutdown()
+        self._stop_backend()
+        super().tearDown()
 
     def _show_database_access_page(self):
         rv = self.test_client.get('/database')

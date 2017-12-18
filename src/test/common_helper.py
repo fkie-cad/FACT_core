@@ -5,12 +5,12 @@ from copy import deepcopy
 from helperFunctions.dataConversion import unify_string_list
 from helperFunctions.fileSystem import get_test_data_dir
 from helperFunctions.yara_binary_search import YaraRuleError
+from intercom.common_mongo_binding import InterComMongoInterface
 from objects.file import FileObject
 from objects.firmware import Firmware
 
 
-def create_test_firmware(device_class='Router', device_name='test_router', vendor='test_vendor', bin_path='container/test.zip',
-                         all_files_included_set=False, version='0.1'):
+def create_test_firmware(device_class='Router', device_name='test_router', vendor='test_vendor', bin_path='container/test.zip', all_files_included_set=False, version='0.1'):
     fw = Firmware(file_path=os.path.join(get_test_data_dir(), bin_path))
     fw.set_device_class(device_class)
     fw.set_device_name(device_name)
@@ -291,3 +291,9 @@ class DatabaseMock:
 
 def fake_exit(self, *args):
     pass
+
+
+def get_database_names(config):
+    databases = ['{}_{}'.format(config.get('data_storage', 'intercom_database_prefix'), intercom_db) for intercom_db in InterComMongoInterface.INTERCOM_CONNECTION_TYPES]
+    databases.extend([config.get('data_storage', 'main_database'), config.get('data_storage', 'view_storage'), config.get('data_storage', 'statistic_database')])
+    return databases
