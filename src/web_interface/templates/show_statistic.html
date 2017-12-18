@@ -172,7 +172,8 @@
      {"processed_analysis.unpacker.summary": "packed","processed_analysis.file_type.mime": {"$eq": "PLACEHOLDER"}}],
     ["Data Lost File Types", "data_loss_file_types", stats["unpacker_stats"],
     {"processed_analysis.unpacker.summary": "data lost","processed_analysis.file_type.mime": {"$eq": "PLACEHOLDER"}}],
-	["Architectures", "cpu_architecture", stats["architecture_stats"], {"processed_analysis.cpu_architecture.summary": {"$regex": "PLACEHOLDER"}}]
+	["Architectures", "cpu_architecture", stats["architecture_stats"], {"processed_analysis.cpu_architecture.summary": {"$regex": "PLACEHOLDER"}}],
+	["Exploit Mitigations", "exploit_mitigations", stats["exploit_mitigations_stats"], {"processed_analysis.exploit_mitigations.summary": {"$regex": "PLACEHOLDER"}}]
 ]%}
 
 {% for title, key, data_set, query in chart_list %}
