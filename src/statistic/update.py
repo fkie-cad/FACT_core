@@ -5,7 +5,6 @@ import itertools
 import logging
 import sys
 from time import time
-import json
 
 from helperFunctions.dataConversion import build_time_dict
 from helperFunctions.merge_generators import sum_up_lists, avg, merge_dict
@@ -51,12 +50,13 @@ class StatisticUpdater(object):
     def _get_exploit_mitigations_stats(self):
         stats = {}
         aggregation_pipeline = self._get_file_object_filter_aggregation_pipeline(
-            pipeline_group={'_id': '$parent_firmware_uids', 'exploit_mitigations': {'$push': '$processed_analysis.exploit_mitigations.summary'}},
+            pipeline_group={'_id': '$parent_firmware_uids',
+                            'exploit_mitigations': {'$push': '$processed_analysis.exploit_mitigations.summary'}},
             pipeline_match={'processed_analysis.exploit_mitigations.summary': {'$exists': True, '$not': {'$size': 0}}},
             additional_projection={'processed_analysis.exploit_mitigations.summary': 1})
 
         result_list_of_lists = [list(itertools.chain.from_iterable(d['exploit_mitigations']))
-                  for d in self.db.file_objects.aggregate(aggregation_pipeline)]
+                                for d in self.db.file_objects.aggregate(aggregation_pipeline)]
         result_flattened = list(itertools.chain.from_iterable(result_list_of_lists))
         result = self._count_occurrences(result_flattened)
         stats['exploit_mitigations'] = result

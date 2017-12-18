@@ -49,7 +49,6 @@ class StatisticRoutes(ComponentBase):
                 "release_date_stats": stats_db.get_statistic("release_date"),
                 "exploit_mitigations_stats": stats_db.get_statistic("exploit_mitigations")
             }
-        print(stats_dict)
         return stats_dict
 
     def _get_live_stats(self, filter_query):

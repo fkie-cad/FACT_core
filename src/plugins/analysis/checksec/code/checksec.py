@@ -77,14 +77,15 @@ def check_nx_or_canary(file_path, dict_res, dict_sum, readelf, flag):
     if mitigation_off:
         dict_sum.update({'{} disabled'.format(flag): file_path})
         dict_res.update({flag: 'disabled'})
-    else:
+    elif not mitigation_off:
         dict_sum.update({'{} enabled'.format(flag): file_path})
         dict_res.update({flag: 'enabled'})
+    else:
+        pass
 
 
 def check_mitigations(file_path):
-    dict_res = {}
-    dict_sum = {}
+    dict_res, dict_sum = {}, {}
     readelf_results = get_readelf_result(file_path)
     check_relro(file_path, dict_res, dict_sum, readelf_results)
     check_nx_or_canary(file_path, dict_res, dict_sum, readelf_results, 'NX')
