@@ -53,6 +53,14 @@ class AnalysisScheduler(object):
         self.process_queue.close()
         logging.info('Analysis System offline')
 
+    def add_update_task(self, fo):
+        for included_file in self.db_backend_service.get_list_of_all_included_files(fo):
+            child = self.db_backend_service.get_object(included_file)
+            child.scheduled_analysis = fo.scheduled_analysis
+            shuffle(child.scheduled_analysis)
+            self.check_further_process_or_complete(child)
+        self.check_further_process_or_complete(fo)
+
     def add_task(self, fo):
         '''
         This function should be used to add a new firmware object to the scheduler

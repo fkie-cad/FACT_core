@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 
 import json
-import logging
 import os
 
 from common_helper_files import get_binary_from_file
 from flask import render_template, request, render_template_string
 
 from helperFunctions.dataConversion import none_to_none
-from helperFunctions.fileSystem import get_src_dir
+from helperFunctions.fileSystem import get_src_dir, get_template_dir
 from helperFunctions.mongo_task_conversion import check_for_errors, convert_analysis_task_to_fw_obj, create_re_analyze_task
 from helperFunctions.web_interface import ConnectTo
 from helperFunctions.web_interface import overwrite_default_plugins
@@ -34,29 +33,9 @@ class AnalysisRoutes(ComponentBase):
         self._app.add_url_rule('/update-analysis/<uid>', 'update-analysis/<uid>', self._update_analysis, methods=['GET', 'POST'])
         self._app.add_url_rule('/analysis/<uid>', 'analysis/<uid>', self._show_analysis_results)
         self._app.add_url_rule('/analysis/<uid>/ro/<root_uid>', '/analysis/<uid>/ro/<root_uid>', self._show_analysis_results)
-        self._app.add_url_rule('/analysis/<uid>/<selected_analysis>', '/analysis/<uid>/<selected_analysis>', self._show_analysis_result_details)
-        self._app.add_url_rule('/analysis/<uid>/<selected_analysis>/ro/<root_uid>', '/analysis/<uid>/<selected_analysis>/<root_uid>', self._show_analysis_result_details)
+        self._app.add_url_rule('/analysis/<uid>/<selected_analysis>', '/analysis/<uid>/<selected_analysis>', self._show_analysis_results)
+        self._app.add_url_rule('/analysis/<uid>/<selected_analysis>/ro/<root_uid>', '/analysis/<uid>/<selected_analysis>/<root_uid>', self._show_analysis_results)
         self._app.add_url_rule('/admin/re-do_analysis/<uid>', '/admin/re-do_analysis/<uid>', self._re_do_analysis, methods=['GET', 'POST'])
-
-    def _show_analysis_results(self, uid, root_uid=None):
-        root_uid = none_to_none(root_uid)
-        with ConnectTo(FrontEndDbInterface, self._config) as connection:
-            file_obj = connection.get_object(uid, analysis_filter=[])
-        if isinstance(file_obj, Firmware):
-            root_uid = file_obj.get_uid()
-        logging.debug(file_obj)
-        if file_obj:
-            firmware_including_this_fo = self._get_firmware_ids_including_this_file(file_obj)
-            with ConnectTo(FrontEndDbInterface, self._config) as sc:
-                analysis_of_included_files_complete = not sc.all_uids_found_in_database(file_obj.files_included)
-            with ConnectTo(InterComFrontEndBinding, self._config) as sc:
-                analysis_plugins = sc.get_available_analysis_plugins()
-            return render_template('show_analysis.html', uid=uid, firmware=file_obj, root_uid=root_uid,
-                                   all_analyzed_flag=analysis_of_included_files_complete,
-                                   firmware_including_this_fo=firmware_including_this_fo,
-                                   analysis_plugin_dict=analysis_plugins)
-        else:
-            return render_template('uid_not_found.html', uid=uid)
 
     @staticmethod
     def _get_firmware_ids_including_this_file(fo):
@@ -65,18 +44,19 @@ class AnalysisRoutes(ComponentBase):
         else:
             return list(fo.get_virtual_file_paths().keys())
 
-    def _show_analysis_result_details(self, uid, selected_analysis, root_uid=None):
+    def _show_analysis_results(self, uid, selected_analysis=None, root_uid=None):
         root_uid = none_to_none(root_uid)
-
+        other_versions = None
+        analysis_filter = [selected_analysis] if selected_analysis else []
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
-            file_obj = sc.get_object(uid, analysis_filter=[selected_analysis])
-
+            file_obj = sc.get_object(uid, analysis_filter=analysis_filter)
         if isinstance(file_obj, Firmware):
             root_uid = file_obj.get_uid()
+            other_versions = sc.get_other_versions_of_firmware(file_obj)
         if file_obj:
-            view = self._get_analysis_view(selected_analysis)
+            view = self._get_analysis_view(selected_analysis) if selected_analysis else self._get_template_as_string('show_analysis.html')
             with ConnectTo(FrontEndDbInterface, self._config) as sc:
-                summary_of_included_files = sc.get_summary(file_obj, selected_analysis)
+                summary_of_included_files = sc.get_summary(file_obj, selected_analysis) if selected_analysis else None
                 analysis_of_included_files_complete = not sc.all_uids_found_in_database(list(file_obj.files_included))
             firmware_including_this_fo = self._get_firmware_ids_including_this_file(file_obj)
             with ConnectTo(InterComFrontEndBinding, self._config) as sc:
@@ -89,7 +69,8 @@ class AnalysisRoutes(ComponentBase):
                                           summary_of_included_files=summary_of_included_files,
                                           root_uid=root_uid,
                                           firmware_including_this_fo=firmware_including_this_fo,
-                                          analysis_plugin_dict=analysis_plugins)
+                                          analysis_plugin_dict=analysis_plugins,
+                                          other_versions=other_versions)
         else:
             return render_template('uid_not_found.html', uid=uid)
 
@@ -103,6 +84,11 @@ class AnalysisRoutes(ComponentBase):
                 return view.decode('utf-8')
             else:
                 return self.analysis_generic_view
+
+    @staticmethod
+    def _get_template_as_string(view_name):
+        path = os.path.join(get_template_dir(), view_name)
+        return get_binary_from_file(path).decode('utf-8')
 
     def _update_analysis(self, uid, re_do=False):
         error = {}
