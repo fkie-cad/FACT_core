@@ -5,6 +5,7 @@ import itertools
 import logging
 import sys
 from time import time
+import json
 
 from helperFunctions.dataConversion import build_time_dict
 from helperFunctions.merge_generators import sum_up_lists, avg, merge_dict
@@ -41,10 +42,25 @@ class StatisticUpdater(object):
         self.db.update_statistic('architecture', self._get_architecture_stats())
         self.db.update_statistic('ips_and_uris', self._get_ip_stats())
         self.db.update_statistic('release_date', self._get_time_stats())
+        self.db.update_statistic('exploit_mitigations', self._get_exploit_mitigations_stats())
         # should always be the last, because of the benchmark
         self.db.update_statistic('general', self.get_general_stats())
 
 # ---- get statistic functions
+
+    def _get_exploit_mitigations_stats(self):
+        stats = {}
+        aggregation_pipeline = self._get_file_object_filter_aggregation_pipeline(
+            pipeline_group={'_id': '$parent_firmware_uids', 'exploit_mitigations': {'$push': '$processed_analysis.exploit_mitigations.summary'}},
+            pipeline_match={'processed_analysis.exploit_mitigations.summary': {'$exists': True, '$not': {'$size': 0}}},
+            additional_projection={'processed_analysis.exploit_mitigations.summary': 1})
+
+        result_list_of_lists = [list(itertools.chain.from_iterable(d['exploit_mitigations']))
+                  for d in self.db.file_objects.aggregate(aggregation_pipeline)]
+        result_flattened = list(itertools.chain.from_iterable(result_list_of_lists))
+        result = self._count_occurrences(result_flattened)
+        stats['exploit_mitigations'] = result
+        return stats
 
     def get_general_stats(self):
         if self.start_time is None:
