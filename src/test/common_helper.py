@@ -295,5 +295,5 @@ def fake_exit(self, *args):
 
 def get_database_names(config):
     databases = ['{}_{}'.format(config.get('data_storage', 'intercom_database_prefix'), intercom_db) for intercom_db in InterComMongoInterface.INTERCOM_CONNECTION_TYPES]
-    databases.extend([config.get('data_storage', 'main_database'), config.get('data_storage', 'view_storage')])
+    databases.extend([config.get('data_storage', 'main_database'), config.get('data_storage', 'view_storage'), config.get('data_storage', 'statistic_database')])
     return databases
