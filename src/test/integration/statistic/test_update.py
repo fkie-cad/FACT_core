@@ -5,6 +5,7 @@ from storage.MongoMgr import MongoMgr
 
 from statistic.update import StatisticUpdater
 from storage.db_interface_statistic import StatisticDbViewer
+from test.common_helper import get_database_names
 from test.unit.helperFunctions_setup_test_data import clean_test_database
 
 
@@ -17,7 +18,7 @@ class TestStatistic(unittest.TestCase):
         self.frontend_db_interface = StatisticDbViewer(config=self.config)
 
     def tearDown(self):
-        clean_test_database(self.config, [self.config.get('data_storage', 'statistic_database'), self.config.get('data_storage', 'main_database')])
+        clean_test_database(self.config, get_database_names(self.config))
         self.updater.shutdown()
         self.frontend_db_interface.shutdown()
         self.mongo_server.shutdown()

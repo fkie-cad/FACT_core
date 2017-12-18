@@ -15,7 +15,7 @@ from helperFunctions.config import load_config
 from common_helper_files import create_dir_for_file
 
 
-TMP_DIR = TemporaryDirectory(prefix='faf_test_')
+TMP_DIR = TemporaryDirectory(prefix='fact_test_')
 TMP_DB_NAME = 'tmp_acceptance_tests'
 
 
