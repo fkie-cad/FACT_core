@@ -39,9 +39,6 @@
             }
             function quickSearch() {
                 var search_input = document.getElementById('quick_search_input').value;
-                search_input = search_input.replace(/[^\w ßöäüéèêáàâîíìóòôúùû!&.-]/gui, "")
-                // var url = "/database/browse?query=%7B%22device_name%22%3A+%7B%22%24regex%22%3A+%22" + search_input + "%22%7D%7D";
-                // var query = {"$or": [{"device_name": {"$regex": search_input}}, {"vendor": {"$regex": search_input}}]};
                 var url = '/database/quick_search?search_term=' + search_input;
                 window.location = url;
             }

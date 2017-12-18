@@ -33,7 +33,6 @@ def get_config_for_testing(temp_dir=None):
     config.set('data_storage', 'main_database', 'tmp_unit_tests')
     config.set('data_storage', 'intercom_database_prefix', 'tmp_unit_tests')
     config.set('data_storage', 'statistic_database', 'tmp_unit_tests')
-    config.set('data_storage', 'cve_database', 'tmp_unit_tests')
     config.set('data_storage', 'view_storage', 'tmp_tests_view')
     config.set('data_storage', 'mongo_port', '27018')
     config.set('data_storage', 'report_threshold', '2048')
