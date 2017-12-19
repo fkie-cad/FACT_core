@@ -29,6 +29,13 @@ def get_faf_bin_dir():
     return os.path.join(get_src_dir(), 'bin')
 
 
+def get_template_dir():
+    '''
+    Returns the absolute path of the template directory
+    '''
+    return os.path.join(get_src_dir(), 'web_interface/templates')
+
+
 def get_directory_of_current_file():
     return os.path.dirname(os.path.abspath(__file__))
 
