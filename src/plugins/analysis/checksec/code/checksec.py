@@ -68,20 +68,25 @@ def check_pie(file_path, dict_res, dict_sum, readelf):
 
 def check_nx_or_canary(file_path, dict_res, dict_sum, readelf, flag):
     if flag == 'NX':
-        mitigation_off = re.search(r'GNU_STACK[\s0-9a-z]*RWE', readelf)
+        nx_off = re.search(r'GNU_STACK[\s0-9a-z]*RWE', readelf)
+        if nx_off is None:
+            mitigation_off = False
+        else:
+            mitigation_off = True
     elif flag == 'Canary':
         canary_on = re.search(r'__stack_chk_fail', readelf)
-        mitigation_off = not canary_on
+        if canary_on is None:
+            mitigation_off = True
+        else:
+            mitigation_off = False
     else:
-        pass
-    if mitigation_off:
+        return None
+    if mitigation_off is True:
         dict_sum.update({'{} disabled'.format(flag): file_path})
         dict_res.update({flag: 'disabled'})
-    elif not mitigation_off:
+    elif mitigation_off is False:
         dict_sum.update({'{} enabled'.format(flag): file_path})
         dict_res.update({flag: 'enabled'})
-    else:
-        pass
 
 
 def check_mitigations(file_path):
