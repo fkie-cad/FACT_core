@@ -1,10 +1,16 @@
 import colorsys
 import json
+import re
+
 from itertools import chain
 
 
+SPECIAL_CHARACTERS = 'ÄäÀàÁáÂâÃãÅåǍǎĄąĂăÆæĀāÇçĆćĈĉČčĎđĐďðÈèÉéÊêËëĚěĘęĖėĒēĜĝĢģĞğĤĥÌìÍíÎîÏïıĪīĮįĴĵĶķĹĺĻļŁłĽľÑñŃńŇňŅņÖöÒòÓóÔôÕõŐőØøŒœŔŕŘřẞßŚśŜŝŞşŠšȘș' \
+                     'ŤťŢţÞþȚțÜüÙùÚúÛûŰűŨũŲųŮůŪūŴŵÝýŸÿŶŷŹźŽžŻż'
+
+
 def _get_rgba(hue, saturation):
-    return "rgba({}, {}, {}, {})".format(*[int(i * 255) for i in colorsys.hsv_to_rgb(hue, 0.8, 0.75)], saturation)
+    return 'rgba({}, {}, {}, {})'.format(*[int(i * 255) for i in colorsys.hsv_to_rgb(hue, 0.8, 0.75)], saturation)
 
 
 def get_js_list_of_n_uniques_colors(n, saturation=0.7, shuffle=True):
@@ -35,14 +41,20 @@ def overwrite_default_plugins(intercom, checked_plugin_list):
 
 def apply_filters_to_query(request, query):
     query_dict = json.loads(query)
-    for key in ["device_class", "vendor"]:
+    for key in ['device_class', 'vendor']:
         if request.args.get(key):
             if key not in query_dict.keys():
                 query_dict[key] = request.args.get(key)
             else:  # key was in the previous search query
-                query_dict["$and"] = [{key: query_dict[key]}, {key: request.args.get(key)}]
+                query_dict['$and'] = [{key: query_dict[key]}, {key: request.args.get(key)}]
                 query_dict.pop(key)
     return query_dict
+
+
+def filter_out_illegal_characters(string):
+    if string is None:
+        return string
+    return re.sub('[^\w {}!.-]'.format(SPECIAL_CHARACTERS), '', string)
 
 
 class ConnectTo:
