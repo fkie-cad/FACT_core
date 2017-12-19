@@ -55,10 +55,13 @@ def get_imphash(file_object):
     if _is_elf_file(file_object):
         try:
             elf = lief.parse(file_object.file_path)
-            imphash = md5(','.join(sorted(elf.imported_functions)).encode()).hexdigest()
+            imphash = md5(
+                ','.join(sorted(elf.imported_functions)).encode()).hexdigest()
         except Exception as e:
-            logging.error('Could not compute imphash for ELF {}: {} {}'.format(file_object.file_path, sys.exc_info()[0].__name__, e))
+            logging.error('Could not compute imphash for ELF {}: {} {}'.format(
+                file_object.file_path, type(e)))
     return imphash
+
 
 if __name__ == '__main__':
     pass
