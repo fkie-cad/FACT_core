@@ -80,7 +80,7 @@ class test_analysis_plugin_checksec(AnalysisPluginTest):
     def test_check_canary(self):
         resD, sumD = {}, {}
         readelf = ''
-        print(check_nx_or_canary(FILE_PATH, resD, sumD, readelf, 'Canary'))
+        check_nx_or_canary(FILE_PATH, resD, sumD, readelf, 'Canary')
 
         self.assertEqual(resD, {'Canary': 'disabled'})
         self.assertEqual(sumD, {'Canary disabled': 'usr/test_dir/path'})
