@@ -15,6 +15,7 @@ def create_test_firmware(device_class='Router', device_name='test_router', vendo
     fw.set_device_class(device_class)
     fw.set_device_name(device_name)
     fw.set_vendor(vendor)
+
     fw.set_release_date('1970-01-01')
     fw.version = version
     processed_analysis = {
@@ -22,23 +23,35 @@ def create_test_firmware(device_class='Router', device_name='test_router', vendo
         'unpacker': {'plugin_used': 'used_unpack_plugin'},
         'file_type': {'mime': 'test_type', 'full': 'Not a PE file'}
     }
+
     fw.processed_analysis.update(processed_analysis)
     if all_files_included_set:
-            fw.list_of_all_included_files = list(fw.files_included)
-            fw.list_of_all_included_files.append(fw.get_uid())
+        fw.list_of_all_included_files = list(fw.files_included)
+        fw.list_of_all_included_files.append(fw.get_uid())
     return fw
 
 
 def create_test_file_object(bin_path='get_files_test/testfile1'):
     fo = FileObject(file_path=os.path.join(get_test_data_dir(), bin_path))
-    processed_analysis = {'dummy': {'summary': ['sum a', 'file exclusive sum b'], 'content': 'file abcd'}, 'file_type': {'full': 'Not a PE file'}}
+    processed_analysis = {'dummy': {'summary': [
+        'sum a', 'file exclusive sum b'], 'content': 'file abcd'}, 'file_type': {'full': 'Not a PE file'}}
     fo.processed_analysis.update(processed_analysis)
     fo.virtual_file_path = fo.get_virtual_file_paths()
     return fo
 
 
-TEST_FW = create_test_firmware(device_class='test class', device_name='test device', vendor='test vendor')
+TEST_FW = create_test_firmware(
+    device_class='test class', device_name='test device', vendor='test vendor')
 TEST_TEXT_FILE = create_test_file_object()
+
+
+class MockFileObject(object):
+
+    def __init__(self, binary=b'test string', file_path='/bin/ls'):
+        self.binary = binary
+        self.file_path = file_path
+        self.processed_analysis = {'file_type': {
+            'mime': 'application/x-executable'}}
 
 
 class DatabaseMock:
@@ -281,8 +294,10 @@ class DatabaseMock:
 
     def get_all_ssdeep_hashes(self):
         return [
-            {'_id': '3', 'processed_analysis': {'file_hashes': {'ssdeep': '384:aztrofSbs/7qkBYbplFPEW5d8aODW9EyGqgm/nZuxpIdQ1s4JtUn:Urofgs/uK2lF8W5dxWyGS/AxpIws'}}},
-            {'_id': '4', 'processed_analysis': {'file_hashes': {'ssdeep': '384:aztrofSbs/7qkBYbplFPEW5d8aODW9EyGqgm/nZuxpIdQ1s4JwT:Urofgs/uK2lF8W5dxWyGS/AxpIwA'}}}
+            {'_id': '3', 'processed_analysis': {'file_hashes': {
+                'ssdeep': '384:aztrofSbs/7qkBYbplFPEW5d8aODW9EyGqgm/nZuxpIdQ1s4JtUn:Urofgs/uK2lF8W5dxWyGS/AxpIws'}}},
+            {'_id': '4', 'processed_analysis': {'file_hashes': {
+                'ssdeep': '384:aztrofSbs/7qkBYbplFPEW5d8aODW9EyGqgm/nZuxpIdQ1s4JwT:Urofgs/uK2lF8W5dxWyGS/AxpIwA'}}}
         ]
 
     def get_other_versions_of_firmware(self, fo):
@@ -294,6 +309,8 @@ def fake_exit(self, *args):
 
 
 def get_database_names(config):
-    databases = ['{}_{}'.format(config.get('data_storage', 'intercom_database_prefix'), intercom_db) for intercom_db in InterComMongoInterface.INTERCOM_CONNECTION_TYPES]
-    databases.extend([config.get('data_storage', 'main_database'), config.get('data_storage', 'view_storage'), config.get('data_storage', 'statistic_database')])
+    databases = ['{}_{}'.format(config.get('data_storage', 'intercom_database_prefix'), intercom_db)
+                 for intercom_db in InterComMongoInterface.INTERCOM_CONNECTION_TYPES]
+    databases.extend([config.get('data_storage', 'main_database'), config.get(
+        'data_storage', 'view_storage'), config.get('data_storage', 'statistic_database')])
     return databases
