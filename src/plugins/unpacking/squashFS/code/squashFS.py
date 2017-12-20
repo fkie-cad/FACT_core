@@ -28,7 +28,7 @@ def unpack_function(file_path, tmp_dir):
             unpack_result['output'] = output
             break
         else:
-            unpack_result[_get_unpacker_name(unpacker)] = output
+            unpack_result['{} - error'.format(_get_unpacker_name(unpacker))] = output
     return unpack_result
 
 

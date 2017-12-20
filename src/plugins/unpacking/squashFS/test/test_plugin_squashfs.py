@@ -30,9 +30,8 @@ def test_not_unpackable_file():
     empty_test_file = os.path.join(TEST_DATA_DIR, 'empty')
     unpack_dir = TemporaryDirectory(prefix='fact_test_')
     result = unpack_function(empty_test_file, unpack_dir)
-    assert 'output' not in result.keys()
-    assert 'sasquatch' in result.keys()
-    assert 'unsquashfs4-avm-be' in result.keys()
+    assert 'sasquatch - error' in result.keys()
+    assert 'unsquashfs4-avm-be - error' in result.keys()
 
 
 class TestSquashUnpacker(TestUnpackerBase):
