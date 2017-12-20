@@ -22,7 +22,7 @@ def unpack_function(file_path, tmp_dir):
     '''
     unpack_result = dict()
     for unpacker in squash_unpacker:
-        output = execute_shell_command('fakeroot {} -d {}/faf_extracted {}'.format(unpacker, tmp_dir, file_path))
+        output = execute_shell_command('fakeroot {} -d {}/fact_extracted {}'.format(unpacker, tmp_dir, file_path))
         if _unpack_success(tmp_dir):
             unpack_result['unpacking_tool'] = _get_unpacker_name(unpacker)
             unpack_result['output'] = output
