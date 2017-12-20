@@ -16,8 +16,8 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBase):
         time.sleep(10)  # wait for systems to start
 
     def tearDown(self):
-        super().tearDown()
         self._stop_backend()
+        super().tearDown()
 
     def _upload_firmware_get(self):
         print('- upload firmware -> get ...')
