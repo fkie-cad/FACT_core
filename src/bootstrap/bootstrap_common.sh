@@ -49,7 +49,7 @@ rm get-pip.py
 
 # install general python dependencys
 sudo apt-get install -y libmagic-dev libffi-dev
-sudo -EH pip3 install --upgrade pytest pytest-cov pytest-pep8 pylint python-magic psutil xmltodict yara-python==3.6.3 appdirs
+sudo -EH pip3 install --upgrade pytest pytest-cov pytest-pep8 pylint python-magic psutil xmltodict lief yara-python==3.6.3 appdirs
 sudo -EH BUILD_LIB=1 pip3 install --upgrade ssdeep
 
 # install python mongo bindings
