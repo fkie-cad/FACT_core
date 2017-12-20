@@ -87,7 +87,7 @@ Afterwards FACT can be accesed on <http://localhost:5000> and <https://localhost
 You can shutdown the system by pressing *Ctrl + c* or by sending a SIGTERM to the *start_all_installed_faf_components* script.
 
 ### Advanced Usage - REST API
-FACT provides a REST API. More information can be found [here](https://github.com/fkie-cad/FACT_core/wiki/doku_rest).
+FACT provides a REST API. More information can be found [here](https://github.com/fkie-cad/FACT_core/wiki/rest-documentation).
 
 ## Update an older Installation
 Checkout the new sources and rerun the installer.

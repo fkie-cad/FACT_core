@@ -47,6 +47,7 @@
                         if (data.hasOwnProperty(selected_device_class)) {
                             if (data[selected_device_class].hasOwnProperty(selected_vendor)) {
                                 var device_classes = data[selected_device_class][selected_vendor];
+                                device_classes.sort();
                                 for (var key in device_classes) {
                                     if (device_classes.hasOwnProperty(key)) {
                                         $('#device_name_dropdown').append('<option>' + device_classes[key] + '</option>');

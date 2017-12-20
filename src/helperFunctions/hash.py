@@ -1,12 +1,12 @@
-from hashlib import new
+import re
+import logging
+from hashlib import new, md5
 
 from helperFunctions.dataConversion import make_bytes
 from helperFunctions.process import complete_shutdown
 
-try:
-    import ssdeep
-except ImportError:
-    complete_shutdown("Could not load ssdeep module. Install it via: BUILD_LIB=1 pip3 install ssdeep")
+import ssdeep
+import lief
 
 
 def get_hash(hash_function, binary):
@@ -43,6 +43,24 @@ def check_similarity_of_sets(pair_of_sets, all_sets):
             if first_item != second_item and {first_item, second_item} not in all_sets:
                 return False
     return True
+
+
+def _is_elf_file(file_object):
+    file_type = file_object.processed_analysis['file_type']['mime']
+    return file_type in ['application/x-executable', 'application/x-object', 'application/x-sharedlib']
+
+
+def get_imphash(file_object):
+    imphash = None
+    if _is_elf_file(file_object):
+        try:
+            elf = lief.parse(file_object.file_path)
+            imphash = md5(
+                ','.join(sorted(elf.imported_functions)).encode()).hexdigest()
+        except Exception as e:
+            logging.error('Could not compute imphash for ELF {}: {} {}'.format(
+                file_object.file_path, type(e)))
+    return imphash
 
 
 if __name__ == '__main__':
