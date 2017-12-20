@@ -15,8 +15,9 @@ class TestAcceptanceShowStats(TestAcceptanceBase):
         time.sleep(10)  # wait for systems to start
 
     def tearDown(self):
-        super().tearDown()
+        self.updater.shutdown()
         self._stop_backend()
+        super().tearDown()
 
     def _upload_firmware_get(self):
         rv = self.test_client.get('/upload')
@@ -65,7 +66,6 @@ class TestAcceptanceShowStats(TestAcceptanceBase):
         time.sleep(20)  # wait for analysis to complete
 
         self.updater.update_all_stats()
-        self.updater.shutdown()
 
         self._show_stats()
         self._click_chart()
