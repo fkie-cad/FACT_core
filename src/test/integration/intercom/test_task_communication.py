@@ -41,6 +41,7 @@ class TestInterComTaskCommunication(unittest.TestCase):
             self.backend.shutdown()
         self.frontend.shutdown()
         self.mongo_server.shutdown()
+        TMP_DIR.cleanup()
 
     def test_analysis_task(self):
         self.backend = InterComBackEndAnalysisTask(config=self.config)

@@ -18,9 +18,9 @@ class TestStatistic(unittest.TestCase):
         self.frontend_db_interface = StatisticDbViewer(config=self.config)
 
     def tearDown(self):
-        clean_test_database(self.config, get_database_names(self.config))
         self.updater.shutdown()
         self.frontend_db_interface.shutdown()
+        clean_test_database(self.config, get_database_names(self.config))
         self.mongo_server.shutdown()
 
     def test_update_and_get_statistic(self):

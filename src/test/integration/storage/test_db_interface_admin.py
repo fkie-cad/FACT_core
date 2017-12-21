@@ -48,6 +48,7 @@ class TestStorageDbInterfaceAdmin(unittest.TestCase):
         for test_file in [test_file_copy, test_firmware_copy]:
             if os.path.isfile(test_file):
                 os.remove(test_file)
+        TMP_DIR.cleanup()
 
     def test_remove_object_field(self):
         self.db_backend_interface.add_file_object(self.child_fo)

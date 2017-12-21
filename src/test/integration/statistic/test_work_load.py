@@ -19,9 +19,9 @@ class TestWorkloadStatistic(unittest.TestCase):
         self.frontend_db_interface = StatisticDbViewer(config=self.config)
 
     def tearDown(self):
-        clean_test_database(self.config, get_database_names(self.config))
-        self.workload_stat.shutdown()
         self.frontend_db_interface.shutdown()
+        self.workload_stat.shutdown()
+        clean_test_database(self.config, get_database_names(self.config))
         self.mongo_server.shutdown()
 
     def test_update_workload_statistic(self):

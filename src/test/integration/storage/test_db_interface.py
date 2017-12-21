@@ -48,10 +48,11 @@ class TestMongoInterface(unittest.TestCase):
 
     def tearDown(self):
         self.db_interface_backend.client.drop_database(self._config.get('data_storage', 'main_database'))
-        self.db_interface.client.drop_database(self._config.get('data_storage', 'sanitize_database'))
         self.db_interface_backend.shutdown()
+        self.db_interface.client.drop_database(self._config.get('data_storage', 'sanitize_database'))
         self.db_interface.shutdown()
         self.mongo_server.shutdown()
+        TMP_DIR.cleanup()
 
     def _get_all_firmware_uids(self):
         uid_list = []
@@ -208,6 +209,7 @@ class TestSummary(unittest.TestCase):
         self.db_interface.shutdown()
         self.db_interface_backend.shutdown()
         self.mongo_server.shutdown()
+        TMP_DIR.cleanup()
 
     def create_and_add_test_fimrware_and_file_object(self):
         self.test_fw = create_test_firmware()

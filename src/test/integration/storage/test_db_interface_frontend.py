@@ -25,10 +25,11 @@ class TestStorageDbInterfaceFrontend(unittest.TestCase):
         self.test_firmware = create_test_firmware()
 
     def tearDown(self):
-        self.db_backend_interface.client.drop_database(self._config.get('data_storage', 'main_database'))
         self.db_frontend_interface.shutdown()
+        self.db_backend_interface.client.drop_database(self._config.get('data_storage', 'main_database'))
         self.db_backend_interface.shutdown()
         self.mongo_server.shutdown()
+        TMP_DIR.cleanup()
 
     def test_get_meta_list(self):
         self.db_backend_interface.add_firmware(self.test_firmware)

@@ -26,11 +26,11 @@ class TestCompare(unittest.TestCase):
         self.compare_dict = self._create_compare_dict()
 
     def tearDown(self):
-        self.db_interface.client.drop_database(self._config.get('data_storage', 'main_database'))
-        self.db_interface.shutdown()
         self.db_interface_compare.shutdown()
         self.db_interface_admin.shutdown()
         self.db_interface_backend.shutdown()
+        self.db_interface.client.drop_database(self._config.get('data_storage', 'main_database'))
+        self.db_interface.shutdown()
         self.mongo_server.shutdown()
 
     def _create_compare_dict(self):
