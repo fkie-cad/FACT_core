@@ -24,6 +24,7 @@ class TestInterComListener(unittest.TestCase):
             self.generic_listener.client.drop_database(self.generic_listener.connections[item]['name'])
         self.generic_listener.shutdown()
         self.mongo_server.shutdown()
+        TMP_DIR.cleanup()
 
     def check_file(self, binary):
         self.generic_listener.connections[self.generic_listener.CONNECTION_TYPE]['fs'].put(pickle.dumps(binary))

@@ -47,6 +47,7 @@ class TestStorageDbInterfaceBackend(unittest.TestCase):
         self.db_interface_backend.shutdown()
         self.db_interface.shutdown()
         self.mongo_server.shutdown()
+        TMP_DIR.cleanup()
 
     def _get_all_firmware_uids(self):
         uid_list = []

@@ -67,8 +67,9 @@ class TestInterComBackEndScheduler(unittest.TestCase):
 
     def tearDown(self):
         self.interface.shutdown()
-        self.db.shutdown()
         self.test_queue.close()
+        self.db.shutdown()
+        TMP_DIR.cleanup()
 
     def test_backend_worker(self):
         service = ServiceMock(self.test_queue)

@@ -21,11 +21,12 @@ class TestStorageDbInterfaceFrontendEditing(unittest.TestCase):
         self.db_backend_interface = BackEndDbInterface(config=self._config)
 
     def tearDown(self):
-        self.db_backend_interface.client.drop_database(self._config.get('data_storage', 'main_database'))
         self.db_frontend_editing.shutdown()
         self.db_frontend_interface.shutdown()
+        self.db_backend_interface.client.drop_database(self._config.get('data_storage', 'main_database'))
         self.db_backend_interface.shutdown()
         self.mongo_server.shutdown()
+        TMP_DIR.cleanup()
 
     def test_add_comment(self):
         test_fw = create_test_firmware()
