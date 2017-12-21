@@ -16,6 +16,7 @@ class TestIntegrationRestDownloadFirmware(TestAcceptanceBase):
         time.sleep(10)  # wait for systems to start
 
     def tearDown(self):
+        self.db_backend.shutdown()
         self._stop_backend()
         super().tearDown()
 
