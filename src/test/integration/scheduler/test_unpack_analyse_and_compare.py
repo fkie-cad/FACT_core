@@ -24,7 +24,6 @@ class TestFileAddition(unittest.TestCase):
         self._config = initialize_config(self._tmp_dir)
 
         self._mongo_server = MongoMgr(config=self._config, auth=False)
-        self._compare_db_interface = CompareDbInterface(config=self._config)
 
         self._analysis_scheduler = AnalysisScheduler(config=self._config)
         self._unpack_scheduler = UnpackingScheduler(config=self._config, post_unpack=self._analysis_scheduler.add_task)
@@ -34,9 +33,6 @@ class TestFileAddition(unittest.TestCase):
         self._compare_scheduler.shutdown()
         self._unpack_scheduler.shutdown()
         self._analysis_scheduler.shutdown()
-
-        self._compare_db_interface.client.drop_database(self._config.get('data_storage', 'main_database'))
-        self._compare_db_interface.shutdown()
 
         clean_test_database(self._config, get_database_names(self._config))
         self._mongo_server.shutdown()
