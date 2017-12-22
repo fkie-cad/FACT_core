@@ -5,12 +5,9 @@ from time import sleep
 from random import shuffle
 
 from helperFunctions.process import ExceptionSafeProcess, terminate_process_and_childs
-from helperFunctions.config import load_config
 from helperFunctions.parsing import bcolors
 from helperFunctions.plugin import import_plugins
 from storage.db_interface_backend import BackEndDbInterface
-
-CONFIG_FILE = 'main.cfg'
 
 
 MANDATORY_PLUGINS = ['file_type', 'file_hashes']
@@ -24,10 +21,7 @@ class AnalysisScheduler(object):
     analysis_plugins = {}
 
     def __init__(self, config=None, post_analysis=None, db_interface=None):
-        if config is None:
-            self.config = load_config(CONFIG_FILE)
-        else:
-            self.config = config
+        self.config = config
         self.load_plugins()
         self.stop_condition = Value('i', 0)
         self.process_queue = Queue()

@@ -4,6 +4,7 @@ import unittest
 from compare.compare import Compare
 from helperFunctions.hash import get_ssdeep
 from test.common_helper import create_test_firmware, create_test_file_object
+from helperFunctions.config import get_config_for_testing
 
 
 class mock_db_interface(object):
@@ -27,11 +28,12 @@ class mock_db_interface(object):
 class Test_Compare(unittest.TestCase):
 
     def setUp(self):
+        self.config = get_config_for_testing()
         self.fw_one = create_test_firmware(device_name='dev_1', all_files_included_set=True)
         self.fw_one.processed_analysis['file_hashes'] = {'ssdeep': get_ssdeep(self.fw_one.binary)}
         self.fw_two = create_test_firmware(device_name='dev_2', bin_path='container/test.7z', all_files_included_set=True)
         self.fw_two.processed_analysis['file_hashes'] = {'ssdeep': get_ssdeep(self.fw_two.binary)}
-        self.compare_system = Compare(db_interface=mock_db_interface())
+        self.compare_system = Compare(db_interface=mock_db_interface(), config=self.config)
 
     def tearDown(self):
         gc.collect()
