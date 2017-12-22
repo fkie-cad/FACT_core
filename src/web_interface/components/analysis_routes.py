@@ -4,7 +4,7 @@ import json
 import os
 
 from common_helper_files import get_binary_from_file
-from flask import render_template, request, render_template_string, session, redirect, url_for
+from flask import render_template, request, render_template_string
 
 from helperFunctions.dataConversion import none_to_none
 from helperFunctions.fileSystem import get_src_dir, get_template_dir
@@ -17,6 +17,7 @@ from storage.db_interface_admin import AdminDbInterface
 from storage.db_interface_frontend import FrontEndDbInterface
 from storage.db_interface_view_sync import ViewReader
 from web_interface.components.component_base import ComponentBase
+from web_interface.components.compare_routes import get_comparison_uid_list_from_session
 
 
 def get_analysis_view(view_name):
@@ -36,9 +37,6 @@ class AnalysisRoutes(ComponentBase):
         self._app.add_url_rule('/analysis/<uid>/<selected_analysis>', '/analysis/<uid>/<selected_analysis>', self._show_analysis_results)
         self._app.add_url_rule('/analysis/<uid>/<selected_analysis>/ro/<root_uid>', '/analysis/<uid>/<selected_analysis>/<root_uid>', self._show_analysis_results)
         self._app.add_url_rule('/admin/re-do_analysis/<uid>', '/admin/re-do_analysis/<uid>', self._re_do_analysis, methods=['GET', 'POST'])
-        self._app.add_url_rule('/analysis/comparison/add/<uid>', 'analysis/comparison/add/<uid>', self._add_to_compare_basket)
-        self._app.add_url_rule('/analysis/comparison/remove/<analysis_uid>/<compare_uid>', 'analysis/comparison/remove/<analysis_uid>/<compare_uid>', self._remove_from_compare_basket)
-        self._app.add_url_rule('/analysis/comparison/remove_all/<analysis_uid>', 'analysis/comparison/remove_all/<analysis_uid>', self._remove_all_from_compare_basket)
 
     @staticmethod
     def _get_firmware_ids_including_this_file(fo):
@@ -51,7 +49,7 @@ class AnalysisRoutes(ComponentBase):
         root_uid = none_to_none(root_uid)
         other_versions = None
 
-        uids_for_comparison = self._get_comparison_uid_list_from_session()
+        uids_for_comparison = get_comparison_uid_list_from_session()
 
         analysis_filter = [selected_analysis] if selected_analysis else []
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
@@ -80,12 +78,6 @@ class AnalysisRoutes(ComponentBase):
                                           uids_for_comparison=uids_for_comparison)
         else:
             return render_template('uid_not_found.html', uid=uid)
-
-    @staticmethod
-    def _get_comparison_uid_list_from_session():
-        if 'uids_for_comparison' not in session or not isinstance(session['uids_for_comparison'], list):
-            session['uids_for_comparison'] = []
-        return session['uids_for_comparison']
 
     def _get_analysis_view(self, selected_analysis):
         if selected_analysis == 'unpacker':
@@ -138,7 +130,16 @@ class AnalysisRoutes(ComponentBase):
         else:
             title = 'update analysis'
 
-        return render_template('upload/re-analyze.html', device_classes=device_class_list, vendors=vendor_list, error=error, device_names=json.dumps(device_name_dict, sort_keys=True), firmware=old_firmware, analysis_plugin_dict=plugin_dict, title=title)
+        return render_template(
+            'upload/re-analyze.html',
+            device_classes=device_class_list,
+            vendors=vendor_list,
+            error=error,
+            device_names=json.dumps(device_name_dict, sort_keys=True),
+            firmware=old_firmware,
+            analysis_plugin_dict=plugin_dict,
+            title=title
+        )
 
     def _schedule_re_analysis_task(self, uid, analysis_task, re_do):
         fw = convert_analysis_task_to_fw_obj(analysis_task)
@@ -150,22 +151,3 @@ class AnalysisRoutes(ComponentBase):
 
     def _re_do_analysis(self, uid):
         return self._update_analysis(uid, re_do=True)
-
-    def _add_to_compare_basket(self, uid):
-        compare_uid_list = self._get_comparison_uid_list_from_session()
-        compare_uid_list.append(uid)
-        session.modified = True
-        return redirect(url_for("analysis/<uid>", uid=uid))
-
-    def _remove_from_compare_basket(self, analysis_uid, compare_uid):
-        compare_uid_list = self._get_comparison_uid_list_from_session()
-        if compare_uid in compare_uid_list:
-            session['uids_for_comparison'].remove(compare_uid)
-            session.modified = True
-        return redirect(url_for("analysis/<uid>", uid=analysis_uid))
-
-    def _remove_all_from_compare_basket(self, analysis_uid):
-        compare_uid_list = self._get_comparison_uid_list_from_session()
-        compare_uid_list.clear()
-        session.modified = True
-        return redirect(url_for("analysis/<uid>", uid=analysis_uid))
