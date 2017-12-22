@@ -1,12 +1,8 @@
+from pymongo import MongoClient, errors
 import warnings
 
 from helperFunctions.process import complete_shutdown
-from helperFunctions.config import load_config
 
-try:
-    from pymongo import MongoClient, errors
-except ImportError:
-    complete_shutdown("Pymongo not found! Install it via: pip3 install pymongo")
 
 warnings.filterwarnings("ignore", module="pymongo.topology")
 CONFIG_FILE = "main.cfg"
@@ -23,8 +19,6 @@ class MongoInterface(object):
 
     def __init__(self, config=None):
         self.config = config
-        if self.config is None:
-            self.config = load_config(CONFIG_FILE)
         mongo_server = self.config['data_storage']['mongo_server']
         mongo_port = self.config['data_storage']['mongo_port']
         self.client = MongoClient('mongodb://{}:{}'.format(mongo_server, mongo_port), connect=False)
