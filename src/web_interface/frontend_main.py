@@ -1,3 +1,4 @@
+import os
 import logging
 
 from flask import Flask
@@ -13,6 +14,7 @@ from web_interface.components.miscellaneous_routes import MiscellaneousRoutes
 from web_interface.components.statistic_routes import StatisticRoutes
 from web_interface.rest.rest_base import RestBase
 
+
 CONFIG_FILE = "main.cfg"
 
 
@@ -25,7 +27,7 @@ class WebFrontEnd(object):
 
         self.program_version = program_version
 
-        self.setup_app()
+        self._setup_app()
         logging.info("Web front end online")
 
     def _setup_config(self, config):
@@ -34,9 +36,11 @@ class WebFrontEnd(object):
         else:
             self.config = config
 
-    def setup_app(self):
+    def _setup_app(self):
         self.app = Flask(__name__)
         self.app.config.from_object(__name__)
+
+        Flask.secret_key = os.urandom(24)
 
         RestBase(app=self.app, config=self.config)
 
