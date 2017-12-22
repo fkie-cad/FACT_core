@@ -39,13 +39,13 @@ class TestAcceptanceCompareFirmwares(TestAcceptanceBase):
     def _add_firmwares_to_compare(self):
         rv = self.test_client.get('/analysis/{}'.format(self.test_fw_a.uid))
         self.assertIn(self.test_fw_a.uid, rv.data.decode(), '')
-        rv = self.test_client.get('/analysis/comparison/add/{}'.format(self.test_fw_a.uid), follow_redirects=True)
+        rv = self.test_client.get('/comparison/add/{}'.format(self.test_fw_a.uid), follow_redirects=True)
         self.assertIn('Firmwares Selected for Comparison', rv.data.decode())
 
         rv = self.test_client.get('/analysis/{}'.format(self.test_fw_b.uid))
         self.assertIn(self.test_fw_b.uid, rv.data.decode())
         self.assertIn(self.test_fw_a.name, rv.data.decode())
-        rv = self.test_client.get('/analysis/comparison/add/{}'.format(self.test_fw_b.uid), follow_redirects=True)
+        rv = self.test_client.get('/comparison/add/{}'.format(self.test_fw_b.uid), follow_redirects=True)
         self.assertIn('Remove All', rv.data.decode())
 
     def _start_compare(self):
