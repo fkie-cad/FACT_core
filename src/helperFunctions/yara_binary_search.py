@@ -1,15 +1,7 @@
-from helperFunctions.config import load_config
+from os.path import basename
 from subprocess import check_output, CalledProcessError, STDOUT
 from tempfile import NamedTemporaryFile
-from os.path import basename
-from helperFunctions.process import complete_shutdown
-
-try:
-    import yara
-except ImportError:
-    complete_shutdown("yara-python not found! Please install Yara: pip3 install yara-python")
-
-CONFIG_FILE = "main.cfg"
+import yara
 
 
 class YaraRuleError(Exception):
@@ -20,35 +12,32 @@ class YaraBinarySearchScanner:
 
     def __init__(self, config=None):
         self.matches = []
-        if config:
-            self.config = config
-        else:
-            self.config = load_config(CONFIG_FILE)
+        self.config = config
         self.db_path = self.config['data_storage']['firmware_file_storage_directory']
 
     def _execute_yara_search(self, rule_file_path):
-        """
+        '''
         scans the (whole) db directory with the provided rule file and returns the (raw) results
         yara-python cannot be used, because it (currently) supports single-file scanning only
         :param rule_file_path: file path to yara rule file
         :return: output from yara scan
-        """
+        '''
         try:
-            scan_result = check_output("yara -r {} {}".format(rule_file_path, self.db_path), shell=True, stderr=STDOUT)
+            scan_result = check_output('yara -r {} {}'.format(rule_file_path, self.db_path), shell=True, stderr=STDOUT)
         except CalledProcessError as e:
-            raise YaraRuleError("There seems to be an error in the rule file:\n{}".format(e.output.decode()))
+            raise YaraRuleError('There seems to be an error in the rule file:\n{}'.format(e.output.decode()))
         return scan_result
 
     @staticmethod
     def _parse_raw_result(raw_result):
-        """
+        '''
         :param raw_result: raw yara scan result
         :return: dict of matching rules with lists of matched UIDs as values
-        """
+        '''
         results = {}
-        for line in raw_result.split(b"\n"):
-            if line and b"warning" not in line:
-                rule, match = line.decode().split(" ")
+        for line in raw_result.split(b'\n'):
+            if line and b'warning' not in line:
+                rule, match = line.decode().split(' ')
                 match = basename(match)
                 if rule in results:
                     results[rule].append(match)
@@ -62,10 +51,10 @@ class YaraBinarySearchScanner:
             result_dict[key] = sorted(set(result_dict[key]))
 
     def get_binary_search_result(self, yara_rules):
-        """
+        '''
         :param yara_rules: byte string with the contents of the yara rule file
         :return: dict of matching rules with lists of (unique) matched UIDs as values
-        """
+        '''
         with NamedTemporaryFile() as temp_rule_file:
             temp_rule_file.write(yara_rules)
             temp_rule_file.flush()
