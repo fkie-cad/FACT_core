@@ -1,8 +1,6 @@
+from flask import Flask
 import logging
 
-from flask import Flask
-
-from helperFunctions.config import load_config
 from web_interface.components.ajax_routes import AjaxRoutes
 from web_interface.components.analysis_routes import AnalysisRoutes
 from web_interface.components.compare_routes import CompareRoutes
@@ -13,26 +11,18 @@ from web_interface.components.miscellaneous_routes import MiscellaneousRoutes
 from web_interface.components.statistic_routes import StatisticRoutes
 from web_interface.rest.rest_base import RestBase
 
-CONFIG_FILE = "main.cfg"
-
 
 class WebFrontEnd(object):
     def __init__(self,
                  config=None,
-                 program_version="not_set",
+                 program_version='not_set',
                  ):
-        self._setup_config(config)
+        self.config = config
 
         self.program_version = program_version
 
         self.setup_app()
-        logging.info("Web front end online")
-
-    def _setup_config(self, config):
-        if config is None:
-            self.config = load_config(CONFIG_FILE)
-        else:
-            self.config = config
+        logging.info('Web front end online')
 
     def setup_app(self):
         self.app = Flask(__name__)

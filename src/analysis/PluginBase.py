@@ -6,7 +6,6 @@ from time import time
 
 from common_helper_files import get_dir_of_file, get_files_in_dir, get_binary_from_file
 
-from helperFunctions.config import load_config
 from helperFunctions.dependency import get_unmatched_dependencys, schedule_dependencys
 from helperFunctions.fileSystem import get_parent_dir
 from helperFunctions.parsing import bcolors
@@ -29,10 +28,7 @@ class BasePlugin(object):  # pylint: disable=too-many-instance-attributes
 
     def __init__(self, plugin_adminstrator, config=None, recursive=True, no_multithread=False, timeout=300, offline_testing=False, plugin_path=None):  # pylint: disable=too-many-arguments
         self.history = set()
-        if config is None:
-            self.config = load_config(self.CONFIG_FILE)
-        else:
-            self.config = config
+        self.config = config
         self.check_config(no_multithread)
         self.plugin_administrator = plugin_adminstrator
         self.recursive = recursive

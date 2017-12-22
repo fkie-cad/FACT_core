@@ -3,13 +3,10 @@ from multiprocessing import Value, Queue
 from queue import Empty
 
 from compare.compare import Compare
-from helperFunctions.config import load_config
 from helperFunctions.dataConversion import string_list_to_list
 from helperFunctions.parsing import bcolors
 from helperFunctions.process import ExceptionSafeProcess, terminate_process_and_childs
 from storage.db_interface_compare import CompareDbInterface
-
-CONFIG_FILE = 'main.cfg'
 
 
 class CompareScheduler(object):
@@ -18,10 +15,7 @@ class CompareScheduler(object):
     '''
 
     def __init__(self, config=None, db_interface=None, testing=False):
-        if config is None:
-            self.config = load_config(CONFIG_FILE)
-        else:
-            self.config = config
+        self.config = config
         self.db_interface = db_interface if db_interface else CompareDbInterface(config=config)
         self.stop_condition = Value('i', 1)
         self.in_queue = Queue()
