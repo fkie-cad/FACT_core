@@ -31,7 +31,7 @@
         <div class="row" style="padding-right: 15px">
             {% if not uids_for_comparison or uid not in uids_for_comparison %}
                 <div class="pull-right">
-                    <span class="glyphicon glyphicon-plus" onclick="location.href='/analysis/comparison/add/{{ uid }}'" style="padding: 5px; margin-right: 5px;" title="Add to Comparison"></span>
+                    <span class="glyphicon glyphicon-plus" onclick="location.href='/comparison/add/{{ uid }}'" style="padding: 5px; margin-right: 5px;" title="Add to Comparison"></span>
                 </div>
             {% endif %}
 
@@ -59,7 +59,7 @@
                         {% for compare_uid in uids_for_comparison %}
                             <div class="col-xs-12" style="padding: 0;">
                                 <span style="padding: 2px; margin: 0; display: -webkit-inline-box; display: ">
-                                    <span class="close" style="font-size: 20px" onclick="location.href='/analysis/comparison/remove/{{ uid }}/{{ compare_uid }}'">
+                                    <span class="close" style="font-size: 20px" onclick="location.href='/comparison/remove/{{ uid }}/{{ compare_uid }}'">
                                         &times;
                                     </span>
                                     <span class="tag label label-{% if compare_uid == uid %}primary{% else %}default{% endif %}" style="margin-left: 3px">{{ compare_uid|replace_uid_with_hid|safe }}</span>
@@ -71,7 +71,7 @@
                     {% if uids_for_comparison|length > 1 %}
                             <td style="width: 180px; vertical-align: top;">
                             <div class="col-xs-12" style="padding: 2px;">
-                                <button type="button" class="btn btn-default btn-xs" onclick="location.href='/analysis/comparison/remove_all/{{ uid }}'" style="width: 100%">
+                                <button type="button" class="btn btn-default btn-xs" onclick="location.href='/comparison/remove_all/{{ uid }}'" style="width: 100%">
                                     <span class="glyphicon glyphicon-remove"></span> Remove All
                                 </button>
                             </div>

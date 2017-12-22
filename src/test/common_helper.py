@@ -38,12 +38,14 @@ def create_test_file_object(bin_path='get_files_test/testfile1'):
 
 
 TEST_FW = create_test_firmware(device_class='test class', device_name='test device', vendor='test vendor')
+TEST_FW_2 = create_test_firmware(device_class='test_class', device_name='test_firmware_2', vendor='test vendor', bin_path='container/test.7z')
 TEST_TEXT_FILE = create_test_file_object()
 
 
 class DatabaseMock:
     fw_uid = TEST_FW.get_uid()
     fo_uid = TEST_TEXT_FILE.get_uid()
+    fw2_uid = TEST_FW_2.get_uid()
 
     def __init__(self, config=None):
         self.tasks = []
@@ -77,6 +79,12 @@ class DatabaseMock:
                 'file_type': {'mime': 'text/plain', 'full': 'plain text'}
             }
             return result
+        elif uid == self.fw2_uid:
+            result = deepcopy(TEST_FW_2)
+            result.processed_analysis = {
+                'file_type': {'mime': 'application/octet-stream', 'full': 'test text'},
+                'mandatory_plugin': 'mandatory result',
+                'optional_plugin': 'optional result'}
         else:
             return None
 
@@ -103,6 +111,9 @@ class DatabaseMock:
     def get_compare_result(self, compare_id):
         if compare_id == 'valid_uid_list_not_in_db':
             return None
+        elif compare_id == unify_string_list(';'.join([TEST_FW.uid, TEST_FW_2.uid])):
+            return {'this_is': 'a_compare_result',
+                    'general': {'hid': {TEST_FW.uid: 'foo', TEST_TEXT_FILE.uid: 'bar'}}}
         elif compare_id == unify_string_list(';'.join([TEST_FW.uid, TEST_TEXT_FILE.uid])):
             return {'this_is': 'a_compare_result'}
         else:
@@ -118,6 +129,8 @@ class DatabaseMock:
 
     def object_existence_quick_check(self, compare_id):
         if compare_id == 'valid_uid_list_not_in_db' or compare_id == 'valid_uid_list_in_db':
+            return None
+        elif compare_id == unify_string_list(';'.join([TEST_FW_2.uid, TEST_FW.uid])):
             return None
         elif compare_id == unify_string_list(';'.join([TEST_TEXT_FILE.uid, TEST_FW.uid])):
             return None

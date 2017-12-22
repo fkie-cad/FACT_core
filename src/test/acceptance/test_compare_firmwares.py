@@ -77,4 +77,3 @@ class TestAcceptanceCompareFirmwares(TestAcceptanceBase):
         self._show_comparison_results()
         self._show_home_page()
         self._show_compare_browse()
-
