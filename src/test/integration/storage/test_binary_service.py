@@ -1,10 +1,13 @@
-import unittest
-from storage.MongoMgr import MongoMgr
-from helperFunctions.config import get_config_for_testing
-from test.common_helper import create_test_firmware
-from storage.db_interface_backend import BackEndDbInterface
-from storage.binary_service import BinaryService
+import gc
 import magic
+import unittest
+
+from helperFunctions.config import get_config_for_testing
+from storage.MongoMgr import MongoMgr
+from storage.binary_service import BinaryService
+from storage.db_interface_backend import BackEndDbInterface
+from test.common_helper import create_test_firmware
+
 
 TEST_FW = create_test_firmware()
 
@@ -24,6 +27,7 @@ class TestBinaryService(unittest.TestCase):
 
     def tearDown(self):
         self.mongo_server.shutdown()
+        gc.collect()
 
     def test_get_binary_and_file_name(self):
         binary, file_name = self.binary_service.get_binary_and_file_name(TEST_FW.get_uid())

@@ -1,17 +1,19 @@
-import unittest
-from unittest import mock
+import gc
+import os
 from tempfile import TemporaryDirectory
+from unittest import mock
+import unittest
+
 from helperFunctions.config import get_config_for_testing
+from intercom.back_end_binding import InterComBackEndAnalysisTask, \
+    InterComBackEndReAnalyzeTask, InterComBackEndCompareTask, \
+    InterComBackEndAnalysisPlugInsPublisher, InterComBackEndRawDownloadTask, \
+    InterComBackEndTarRepackTask
 from intercom.front_end_binding import InterComFrontEndBinding
 from storage.MongoMgr import MongoMgr
-import os
-
-from intercom.back_end_binding import InterComBackEndAnalysisTask,\
-    InterComBackEndReAnalyzeTask, InterComBackEndCompareTask,\
-    InterComBackEndAnalysisPlugInsPublisher, InterComBackEndRawDownloadTask,\
-    InterComBackEndTarRepackTask
-from test.common_helper import create_test_firmware
 from storage.fs_organizer import FS_Organizer
+from test.common_helper import create_test_firmware
+
 
 TMP_DIR = TemporaryDirectory(prefix='fact_test_')
 
@@ -41,6 +43,8 @@ class TestInterComTaskCommunication(unittest.TestCase):
             self.backend.shutdown()
         self.frontend.shutdown()
         self.mongo_server.shutdown()
+        TMP_DIR.cleanup()
+        gc.collect()
 
     def test_analysis_task(self):
         self.backend = InterComBackEndAnalysisTask(config=self.config)

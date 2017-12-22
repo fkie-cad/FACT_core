@@ -1,10 +1,12 @@
-import unittest
-from intercom.back_end_binding import InterComBackEndBinding
+import gc
 from multiprocessing import Value, Queue
 from tempfile import TemporaryDirectory
 from time import sleep
-from storage.MongoMgr import MongoMgr
+import unittest
+
 from helperFunctions.config import get_config_for_testing
+from intercom.back_end_binding import InterComBackEndBinding
+from storage.MongoMgr import MongoMgr
 
 
 TMP_DIR = TemporaryDirectory(prefix='fact_test_')
@@ -67,8 +69,10 @@ class TestInterComBackEndScheduler(unittest.TestCase):
 
     def tearDown(self):
         self.interface.shutdown()
-        self.db.shutdown()
         self.test_queue.close()
+        self.db.shutdown()
+        TMP_DIR.cleanup()
+        gc.collect()
 
     def test_backend_worker(self):
         service = ServiceMock(self.test_queue)

@@ -1,6 +1,7 @@
-import unittest
+import gc
 from tempfile import TemporaryDirectory
 from time import sleep
+import unittest
 from unittest.mock import patch
 
 from helperFunctions.dataConversion import unify_string_list
@@ -24,7 +25,6 @@ class TestFileAddition(unittest.TestCase):
         self._config = initialize_config(self._tmp_dir)
 
         self._mongo_server = MongoMgr(config=self._config, auth=False)
-        self._compare_db_interface = CompareDbInterface(config=self._config)
 
         self._analysis_scheduler = AnalysisScheduler(config=self._config)
         self._unpack_scheduler = UnpackingScheduler(config=self._config, post_unpack=self._analysis_scheduler.add_task)
@@ -35,13 +35,11 @@ class TestFileAddition(unittest.TestCase):
         self._unpack_scheduler.shutdown()
         self._analysis_scheduler.shutdown()
 
-        self._compare_db_interface.client.drop_database(self._config.get('data_storage', 'main_database'))
-        self._compare_db_interface.shutdown()
-
         clean_test_database(self._config, get_database_names(self._config))
         self._mongo_server.shutdown()
 
         self._tmp_dir.cleanup()
+        gc.collect()
 
     def test_unpack_analyse_and_compare(self):
         test_fw_1 = Firmware(file_path='{}/container/test.zip'.format(get_test_data_dir()))

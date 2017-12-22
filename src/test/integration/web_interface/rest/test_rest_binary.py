@@ -16,9 +16,9 @@ class TestRestDownload(RestTestBase):
         self.test_queue = Queue()
 
     def tearDown(self):
-        super().tearDown()
         self.test_queue.close()
         self.db_interface.shutdown()
+        super().tearDown()
 
     def test_rest_download_valid(self):
         backend_binding = InterComBackEndBinding(self.config, analysis_service=test_backend_scheduler.AnalysisServiceMock(), compare_service=test_backend_scheduler.ServiceMock(self.test_queue), unpacking_service=test_backend_scheduler.ServiceMock(self.test_queue))

@@ -10,8 +10,8 @@ class TestRestFileObject(RestTestBase):
         self.db_backend = BackEndDbInterface(config=self.config)
 
     def tearDown(self):
-        super().tearDown()
         self.db_backend.shutdown()
+        super().tearDown()
 
     def test_rest_download_valid(self):
         test_file_object = create_test_file_object()

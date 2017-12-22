@@ -1,3 +1,4 @@
+import gc
 from os import path
 from tempfile import TemporaryDirectory
 from time import time
@@ -47,6 +48,8 @@ class TestStorageDbInterfaceBackend(unittest.TestCase):
         self.db_interface_backend.shutdown()
         self.db_interface.shutdown()
         self.mongo_server.shutdown()
+        TMP_DIR.cleanup()
+        gc.collect()
 
     def _get_all_firmware_uids(self):
         uid_list = []

@@ -1,6 +1,7 @@
+from configparser import ConfigParser
+import gc
 import unittest
 import unittest.mock
-from configparser import ConfigParser
 
 from helperFunctions.config import load_config
 from test.common_helper import DatabaseMock, fake_exit
@@ -29,6 +30,7 @@ class AnalysisPluginTest(unittest.TestCase):
         self.exit_patch.stop()
 
         self.mocked_interface.shutdown()
+        gc.collect()
 
     def init_basic_config(self):
         config = ConfigParser()

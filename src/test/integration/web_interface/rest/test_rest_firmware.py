@@ -16,8 +16,8 @@ class TestRestFirmware(RestTestBase):
         self.db_backend = BackEndDbInterface(config=self.config)
 
     def tearDown(self):
-        super().tearDown()
         self.db_backend.shutdown()
+        super().tearDown()
 
     def test_rest_firmware_existing(self):
         test_firmware = create_test_firmware(device_class='test class', device_name='test device', vendor='test vendor')
