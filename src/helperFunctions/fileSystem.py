@@ -135,6 +135,9 @@ def _get_type_from_magic_object(path_or_binary, magic_object, function_name, mim
             result = make_unicode_string(getattr(magic_object, function_name)(path_or_binary))
         else:
             result = make_unicode_string(getattr(magic_object, function_name)(path_or_binary, mime=mime))
+    except FileNotFoundError as e:
+        logging.error('File not found: {}'.format(e))
+        result = 'error/file-not-found' if mime else 'Error: File not in storage!'
     except Exception as exception:
         logging.error('Could not determine file type: {} {}'.format(type(exception), str(exception)))
         result = 'application/octet-stream' if mime else 'data'

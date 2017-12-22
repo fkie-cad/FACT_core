@@ -1,16 +1,12 @@
 from common_helper_files import get_files_in_dir
 import logging
 from os import getgid, getuid
-import os
 from subprocess import Popen, PIPE
 import sys
 from time import time
 
-from helperFunctions.config import load_config
-from helperFunctions.fileSystem import get_file_type_from_path, get_src_dir
+from helperFunctions.fileSystem import get_file_type_from_path
 from helperFunctions.plugin import import_plugins
-
-CONFIG_FILE = 'main.cfg'
 
 
 class UnpackBase(object):
@@ -19,15 +15,9 @@ class UnpackBase(object):
     '''
 
     def __init__(self, config=None, worker_id=None):
-        self._setup_config(config)
+        self.config = config
         self.worker_id = worker_id
         self._setup_plugins()
-
-    def _setup_config(self, config):
-        if config is None:
-            self.config = load_config(CONFIG_FILE)
-        else:
-            self.config = config
 
     def _setup_plugins(self):
         self.unpacker_plugins = {}

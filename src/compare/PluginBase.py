@@ -1,39 +1,32 @@
-from helperFunctions.config import load_config
-
-
 class ComparePluginBase(object):
     '''
     This is the compare plug-in base class. All compare plug-ins should be derived from this class.
     '''
 
-    NAME = "base"
-    CONFIG_FILE = "main.cfg"
+    NAME = 'base'
     DEPENDENCYS = []
 
     def __init__(self, plugin_administrator, config=None, db_interface=None):
-        if config is None:
-            self.config = load_config(self.CONFIG_FILE)
-        else:
-            self.config = config
+        self.config = config
         self.plugin_administrator = plugin_administrator
         self.register_plugin()
         self.database = db_interface
 
     def compare_function(self, fo_list):
-        """
+        '''
         This function must be implemented by the plug-in.
         'fo_list' is a list with file_objects including analysis and all summaries
         this function should return a dictionary
-        """
+        '''
         return {'dummy': {'all': 'dummy-content', 'collapse': False}}
 
     def compare(self, fo_list):
-        """
+        '''
         This function is called by the compare module.
-        """
+        '''
         missing_deps = self.check_dependencys(fo_list)
         if len(missing_deps) > 0:
-            return {'Compare Skipped': {'all': "Required analysis not present: {}".format(missing_deps)}}
+            return {'Compare Skipped': {'all': 'Required analysis not present: {}'.format(missing_deps)}}
         else:
             return self.compare_function(fo_list)
 
