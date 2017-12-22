@@ -1,4 +1,5 @@
 from configparser import ConfigParser
+import gc
 import os
 from time import sleep
 import unittest
@@ -26,6 +27,7 @@ class Test_PluginBase(unittest.TestCase):
 
     def tearDown(self):
         self.pBase.shutdown()
+        gc.collect()
 
     def register_plugin(self, name, plugin_object):
         '''
