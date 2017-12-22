@@ -1,12 +1,9 @@
+import OpenSSL
 import logging
 from struct import unpack
-from helperFunctions.process import complete_shutdown
+
 from helperFunctions.dataConversion import make_unicode_string
 
-try:
-    import OpenSSL
-except ImportError:
-    complete_shutdown("Could not load pyOpenSSL: Install it via: pip3 install pyopenssl")
 
 TLV_KNOWN_STARTS = [0x30]
 
@@ -63,7 +60,7 @@ def read_ssl_cert(binary=None, start=None, end=None):
         return cert_text
     except OpenSSL.crypto.Error:
         logging.debug('Found SSL certificate signature, but looks false positive')
-        print(bcolors.FAIL, "Error", bcolors.ENDC)
+        print(bcolors.FAIL, 'Error', bcolors.ENDC)
         return None
 
 

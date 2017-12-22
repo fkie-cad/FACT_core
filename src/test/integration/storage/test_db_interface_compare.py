@@ -1,12 +1,13 @@
-import unittest
+import gc
 from time import time
+import unittest
 
 from helperFunctions.config import get_config_for_testing
 from storage.MongoMgr import MongoMgr
+from storage.db_interface_admin import AdminDbInterface
 from storage.db_interface_backend import BackEndDbInterface
 from storage.db_interface_common import MongoInterfaceCommon
 from storage.db_interface_compare import CompareDbInterface
-from storage.db_interface_admin import AdminDbInterface
 from test.common_helper import create_test_firmware
 
 
@@ -26,12 +27,13 @@ class TestCompare(unittest.TestCase):
         self.compare_dict = self._create_compare_dict()
 
     def tearDown(self):
-        self.db_interface.client.drop_database(self._config.get('data_storage', 'main_database'))
-        self.db_interface.shutdown()
         self.db_interface_compare.shutdown()
         self.db_interface_admin.shutdown()
         self.db_interface_backend.shutdown()
+        self.db_interface.client.drop_database(self._config.get('data_storage', 'main_database'))
+        self.db_interface.shutdown()
         self.mongo_server.shutdown()
+        gc.collect()
 
     def _create_compare_dict(self):
         comp_dict = {'general': {'hid': {self.fw_one.get_uid(): 'foo', self.fw_two.get_uid(): 'bar'}}, 'plugins': {}}

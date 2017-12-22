@@ -106,7 +106,6 @@ sudo -EH pip3 install --upgrade git+https://github.com/fkie-cad/common_helper_un
 # common_analysis_base
 sudo -EH pip3 install --upgrade git+https://github.com/mass-project/common_analysis_base.git
 
-
 echo "####################################"
 echo "#   install plug-in dependencies   #"
 echo "####################################"
