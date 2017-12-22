@@ -1,12 +1,11 @@
+from base64 import standard_b64encode
+import json
 import os
 import time
-import json
 import urllib.parse
 
-from base64 import standard_b64encode
-
-from test.acceptance.base import TestAcceptanceBase
 from helperFunctions.fileSystem import get_test_data_dir
+from test.acceptance.base import TestAcceptanceBase
 
 
 class TestIntegrationRestCompareFirmware(TestAcceptanceBase):
@@ -17,8 +16,8 @@ class TestIntegrationRestCompareFirmware(TestAcceptanceBase):
         time.sleep(10)  # wait for systems to start
 
     def tearDown(self):
-        super().tearDown()
         self._stop_backend()
+        super().tearDown()
 
     def _rest_upload_firmware(self, fw):
         testfile_path = os.path.join(get_test_data_dir(), fw.path)

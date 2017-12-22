@@ -1,12 +1,9 @@
-import re
-import logging
 from hashlib import new, md5
+import lief
+import logging
+import ssdeep
 
 from helperFunctions.dataConversion import make_bytes
-from helperFunctions.process import complete_shutdown
-
-import ssdeep
-import lief
 
 
 def get_hash(hash_function, binary):
@@ -18,11 +15,11 @@ def get_hash(hash_function, binary):
 
 
 def get_sha256(code):
-    return get_hash("sha256", code)
+    return get_hash('sha256', code)
 
 
 def get_md5(code):
-    return get_hash("md5", code)
+    return get_hash('md5', code)
 
 
 def get_ssdeep(code):
@@ -61,7 +58,3 @@ def get_imphash(file_object):
             logging.error('Could not compute imphash for ELF {}: {} {}'.format(
                 file_object.file_path, type(e)))
     return imphash
-
-
-if __name__ == '__main__':
-    pass
