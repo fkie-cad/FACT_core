@@ -25,6 +25,88 @@
 {% endblock %}
 
 {% block body %}
+
+    {# firmware comparison from analysis #}
+    {% if firmware.vendor %}
+        <div class="row" style="padding-right: 15px">
+            {% if not uids_for_comparison or uid not in uids_for_comparison %}
+                <div class="pull-right">
+                    <span class="glyphicon glyphicon-plus" onclick="location.href='/comparison/add/{{ uid }}'" style="padding: 5px; margin-right: 5px;" title="Add to Comparison"></span>
+                </div>
+            {% endif %}
+
+            {% if uids_for_comparison %}
+                <div class="pull-right">
+                    <span class="glyphicon glyphicon-list" data-toggle="collapse" data-target="#comparison-list" style="padding: 5px; margin-right: 5px;" title="Show Selected Firmwares for Comparison"></span>
+                </div>
+            {% endif %}
+
+
+            <div class="pull-right">
+                <h5 style="margin-top: 4px; margin-bottom: 0; margin-right: 5px">Compare</h5>
+            </div>
+        </div>
+
+        {% if uids_for_comparison %}
+        <div class="row" style="margin-bottom: 15px">
+            <div class="row collapse" id="comparison-list" style="margin: 0">
+                <div class="jumbotron pull-right" style="float: left; padding: 10px; margin-bottom: 0; margin-left: 15px; margin-right: 15px; width: auto; max-width: 650px; border: 1px solid #ddd; background-color: #f8f8f8;">
+                    <h4 style="margin-top: 0; text-align: center;">Firmwares Selected for Comparison</h4>
+                    <hr style="margin: 12px">
+                    <table width="auto">
+                        <tr>
+                            <td style="width: 10px; vertical-align: top;">
+                        {% for compare_uid in uids_for_comparison %}
+                            <div class="col-xs-12" style="padding: 0;">
+                                <span style="padding: 2px; margin: 0; display: -webkit-inline-box; display: ">
+                                    <span class="close" style="font-size: 20px" onclick="location.href='/comparison/remove/{{ uid }}/{{ compare_uid }}'">
+                                        &times;
+                                    </span>
+                                    <span class="tag label label-{% if compare_uid == uid %}primary{% else %}default{% endif %}" style="margin-left: 3px">{{ compare_uid|replace_uid_with_hid|safe }}</span>
+                                </span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                            </td>
+                    {% if uids_for_comparison|length > 1 %}
+                            <td style="width: 180px; vertical-align: top;">
+                            <div class="col-xs-12" style="padding: 2px;">
+                                <button type="button" class="btn btn-default btn-xs" onclick="location.href='/comparison/remove_all/{{ uid }}'" style="width: 100%">
+                                    <span class="glyphicon glyphicon-remove"></span> Remove All
+                                </button>
+                            </div>
+                            <div class="col-xs-12" style="padding: 2px;">
+                                <button type="button" id="start_compare_button" class="btn btn-default btn-xs" style="width: 100%">
+                                    <span class="glyphicon glyphicon-duplicate"></span> Compare
+                                </button>
+                            </div>
+                            <div class="form-group col-xs-12" style="margin: 0;">
+                                <div class="checkbox" style="margin: 0; margin-left: 30px; text-align: center">
+                                    <label style="padding: 2px">
+                                        <input type="checkbox" value="true" id="recompare_checkbox" style="margin-top: 2px;"> Force Recompare
+                                    </label>
+                                </div>
+                            </div>
+                            <script>
+                                function start_compare(){
+                                    var checkbox = document.getElementById('recompare_checkbox');
+                                    var link = '/compare';
+                                    if (checkbox.checked) link += '?force_recompare=true';
+                                    location.href = link;
+                                };
+                                document.getElementById("start_compare_button").onclick = start_compare;
+                            </script>
+                        </div>
+                            </td>
+                    {% endif %}
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    {% endif %}
+
 <div style="word-wrap: break-word">
     <h2>Analysis for <span class="text-primary">{{ firmware.get_hid(root_uid=root_uid) }}</span><br /><small><strong>UID:</strong> {{ uid|safe }}</small></h2>
 </div>
@@ -38,6 +120,7 @@
 <div class="row">
 
     {# general info section section #}
+
 
     <div class="col-lg-6">
         <table class="table table-bordered table-hover" width="800" valign="center" align="center" border="0">

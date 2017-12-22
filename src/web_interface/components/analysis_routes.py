@@ -17,6 +17,7 @@ from storage.db_interface_admin import AdminDbInterface
 from storage.db_interface_frontend import FrontEndDbInterface
 from storage.db_interface_view_sync import ViewReader
 from web_interface.components.component_base import ComponentBase
+from web_interface.components.compare_routes import get_comparison_uid_list_from_session
 
 
 def get_analysis_view(view_name):
@@ -47,6 +48,9 @@ class AnalysisRoutes(ComponentBase):
     def _show_analysis_results(self, uid, selected_analysis=None, root_uid=None):
         root_uid = none_to_none(root_uid)
         other_versions = None
+
+        uids_for_comparison = get_comparison_uid_list_from_session()
+
         analysis_filter = [selected_analysis] if selected_analysis else []
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
             file_obj = sc.get_object(uid, analysis_filter=analysis_filter)
@@ -70,7 +74,8 @@ class AnalysisRoutes(ComponentBase):
                                           root_uid=root_uid,
                                           firmware_including_this_fo=firmware_including_this_fo,
                                           analysis_plugin_dict=analysis_plugins,
-                                          other_versions=other_versions)
+                                          other_versions=other_versions,
+                                          uids_for_comparison=uids_for_comparison)
         else:
             return render_template('uid_not_found.html', uid=uid)
 
@@ -125,7 +130,16 @@ class AnalysisRoutes(ComponentBase):
         else:
             title = 'update analysis'
 
-        return render_template('upload/re-analyze.html', device_classes=device_class_list, vendors=vendor_list, error=error, device_names=json.dumps(device_name_dict, sort_keys=True), firmware=old_firmware, analysis_plugin_dict=plugin_dict, title=title)
+        return render_template(
+            'upload/re-analyze.html',
+            device_classes=device_class_list,
+            vendors=vendor_list,
+            error=error,
+            device_names=json.dumps(device_name_dict, sort_keys=True),
+            firmware=old_firmware,
+            analysis_plugin_dict=plugin_dict,
+            title=title
+        )
 
     def _schedule_re_analysis_task(self, uid, analysis_task, re_do):
         fw = convert_analysis_task_to_fw_obj(analysis_task)

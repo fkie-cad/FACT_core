@@ -1,5 +1,6 @@
 from flask import Flask
 import logging
+import os
 
 from web_interface.components.ajax_routes import AjaxRoutes
 from web_interface.components.analysis_routes import AnalysisRoutes
@@ -18,15 +19,16 @@ class WebFrontEnd(object):
                  program_version='not_set',
                  ):
         self.config = config
-
         self.program_version = program_version
 
-        self.setup_app()
-        logging.info('Web front end online')
+        self._setup_app()
+        logging.info("Web front end online")
 
-    def setup_app(self):
+    def _setup_app(self):
         self.app = Flask(__name__)
         self.app.config.from_object(__name__)
+
+        Flask.secret_key = os.urandom(24)
 
         RestBase(app=self.app, config=self.config)
 
