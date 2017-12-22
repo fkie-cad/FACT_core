@@ -12,7 +12,7 @@ from test.common_helper import create_test_firmware, create_test_file_object
 
 TESTS_DIR = get_test_data_dir()
 test_file_one = path.join(TESTS_DIR, 'get_files_test/testfile1')
-TMP_DIR = TemporaryDirectory(prefix='faf_test_')
+TMP_DIR = TemporaryDirectory(prefix='fact_test_')
 
 
 class TestStorageDbInterfaceFrontend(unittest.TestCase):

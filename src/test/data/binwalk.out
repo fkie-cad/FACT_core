@@ -1,0 +1,12 @@
+
+DECIMAL       HEXADECIMAL     DESCRIPTION
+--------------------------------------------------------------------------------
+0             0x0             ELF, 64-bit LSB executable, AMD x86-64, version 1 (SYSV)
+4355          0x1103          mcrypt 2.2 encrypted data, algorithm: blowfish-448, mode: CBC, keymode: 8bit
+763432        0xBA628         Unix path: /usr/share/bashdb/bashdb-main.inc
+764544        0xBAA80         Unix path: /usr/src/local/bash/bash-4.3-patched/parse.y
+776632        0xBD9B8         Unix path: /usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin:.
+783712        0xBF560         Copyright string: "Copyright (C) 2013 Free Software Foundation, Inc."
+785865        0xBFDC9         Unix path: /usr/share/locale
+883888        0xD7CB0         Unix path: /var/tmp/rltrace.%ld
+

@@ -7,7 +7,7 @@ from storage.MongoMgr import MongoMgr
 from helperFunctions.config import get_config_for_testing
 
 
-TMP_DIR = TemporaryDirectory(prefix='faf_test_')
+TMP_DIR = TemporaryDirectory(prefix='fact_test_')
 
 
 # This number must be changed, whenever a listener is added or removed
