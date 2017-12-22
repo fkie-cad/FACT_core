@@ -1,3 +1,4 @@
+import gc
 from multiprocessing import Queue
 import unittest
 from unittest.mock import patch
@@ -33,6 +34,7 @@ class TestFileAddition(unittest.TestCase):
         self.enter_patch.stop()
         self.exit_patch.stop()
         self.mocked_interface.shutdown()
+        gc.collect()
 
     def test_unpack_and_analyse(self):
         test_fw = Firmware(file_path='{}/container/test.zip'.format(get_test_data_dir()))

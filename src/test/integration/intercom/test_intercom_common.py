@@ -1,11 +1,13 @@
-import unittest
-from tempfile import TemporaryDirectory
+import gc
 import pickle
+from tempfile import TemporaryDirectory
+import unittest
 
-from helperFunctions.entropy import generate_random_data
 from helperFunctions.config import get_config_for_testing
-from storage.MongoMgr import MongoMgr
+from helperFunctions.entropy import generate_random_data
 from intercom.common_mongo_binding import InterComListener
+from storage.MongoMgr import MongoMgr
+
 
 TMP_DIR = TemporaryDirectory(prefix='fact_test_')
 
@@ -25,6 +27,7 @@ class TestInterComListener(unittest.TestCase):
         self.generic_listener.shutdown()
         self.mongo_server.shutdown()
         TMP_DIR.cleanup()
+        gc.collect()
 
     def check_file(self, binary):
         self.generic_listener.connections[self.generic_listener.CONNECTION_TYPE]['fs'].put(pickle.dumps(binary))
