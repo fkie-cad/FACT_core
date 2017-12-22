@@ -2,11 +2,7 @@ from common_helper_files import write_binary_to_file, create_dir_for_file, delet
 import logging
 import os
 
-from helperFunctions.config import load_config
 from helperFunctions.fileSystem import get_absolute_path
-
-
-CONFIG_FILE = "main.cfg"
 
 
 class FS_Organizer(object):
@@ -15,16 +11,13 @@ class FS_Organizer(object):
     '''
 
     def __init__(self, config=None):
-        if config is None:
-            self.config = load_config(CONFIG_FILE)
-        else:
-            self.config = config
+        self.config = config
         self.data_storage_path = get_absolute_path(self.config['data_storage']['firmware_file_storage_directory'])
         create_dir_for_file(self.data_storage_path)
 
     def store_file(self, file_object):
         if file_object.binary is None:
-            logging.error("Cannot store binary! No binary data specified")
+            logging.error('Cannot store binary! No binary data specified')
         else:
             destination_path = self.generate_path(file_object)
             write_binary_to_file(file_object.binary, destination_path, overwrite=False)

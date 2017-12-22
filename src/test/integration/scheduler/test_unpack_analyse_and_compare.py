@@ -49,11 +49,11 @@ class TestFileAddition(unittest.TestCase):
 
         self._unpack_scheduler.add_task(test_fw_1)
 
-        sleep(5)
+        sleep(10)
 
         self._unpack_scheduler.add_task(test_fw_2)
 
-        sleep(5)
+        sleep(10)
 
         compare_id = unify_string_list(';'.join([fw.uid for fw in [test_fw_1, test_fw_2]]))
 

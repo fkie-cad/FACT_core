@@ -1,11 +1,8 @@
 import logging
 from contextlib import suppress
 
-from helperFunctions.config import load_config
 from helperFunctions.plugin import import_plugins
 from objects.firmware import Firmware
-
-CONFIG_FILE = "main.cfg"
 
 
 class Compare(object):
@@ -19,10 +16,7 @@ class Compare(object):
         '''
         Constructor
         '''
-        if config is None:
-            self.config = load_config(CONFIG_FILE)
-        else:
-            self.config = config
+        self.config = config
         self.db_interface = db_interface
         self._setup_plugins()
         logging.info("Plug-ins available: {}".format(list(self.compare_plugins.keys())))
