@@ -1,6 +1,7 @@
-import unittest
+import gc
 from tempfile import TemporaryDirectory
 from time import sleep
+import unittest
 from unittest.mock import patch
 
 from helperFunctions.dataConversion import unify_string_list
@@ -38,6 +39,7 @@ class TestFileAddition(unittest.TestCase):
         self._mongo_server.shutdown()
 
         self._tmp_dir.cleanup()
+        gc.collect()
 
     def test_unpack_analyse_and_compare(self):
         test_fw_1 = Firmware(file_path='{}/container/test.zip'.format(get_test_data_dir()))

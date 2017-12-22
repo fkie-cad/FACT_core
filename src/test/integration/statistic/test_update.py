@@ -1,9 +1,9 @@
+import gc
 import unittest
 
 from helperFunctions.config import get_config_for_testing
-from storage.MongoMgr import MongoMgr
-
 from statistic.update import StatisticUpdater
+from storage.MongoMgr import MongoMgr
 from storage.db_interface_statistic import StatisticDbViewer
 from test.common_helper import get_database_names
 from test.unit.helperFunctions_setup_test_data import clean_test_database
@@ -22,6 +22,7 @@ class TestStatistic(unittest.TestCase):
         self.frontend_db_interface.shutdown()
         clean_test_database(self.config, get_database_names(self.config))
         self.mongo_server.shutdown()
+        gc.collect()
 
     def test_update_and_get_statistic(self):
         self.updater.db.update_statistic('test', {'test1': 1})
