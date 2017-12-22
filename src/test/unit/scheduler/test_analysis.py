@@ -1,7 +1,8 @@
+import gc
+from multiprocessing import Queue
 import os
 import unittest
 import unittest.mock
-from multiprocessing import Queue
 
 from helperFunctions.config import get_config_for_testing
 from helperFunctions.fileSystem import get_test_data_dir
@@ -34,6 +35,7 @@ class TestScheduleInitialAnalysis(unittest.TestCase):
         self.enter_patch.stop()
         self.exit_patch.stop()
         self.mocked_interface.shutdown()
+        gc.collect()
 
     def test_plugin_registration(self):
         self.assertIn('dummy_plugin_for_testing_only', self.sched.analysis_plugins, 'Dummy plugin not found')

@@ -1,6 +1,7 @@
 import unittest
 import os
 import logging
+import gc
 
 from test.common_helper import get_database_names
 from web_interface.frontend_main import WebFrontEnd
@@ -43,6 +44,7 @@ class TestAcceptanceBase(unittest.TestCase):
     def tearDown(self):
         clean_test_database(self.config, get_database_names(self.config))
         self.mongo_server.shutdown()
+        gc.collect()
 
     def _set_config(self):
         self.config = load_config('main.cfg')

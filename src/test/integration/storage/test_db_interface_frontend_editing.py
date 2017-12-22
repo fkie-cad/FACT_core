@@ -1,5 +1,6 @@
-import unittest
+import gc
 from tempfile import TemporaryDirectory
+import unittest
 
 from helperFunctions.config import get_config_for_testing
 from storage.MongoMgr import MongoMgr
@@ -7,6 +8,7 @@ from storage.db_interface_backend import BackEndDbInterface
 from storage.db_interface_frontend import FrontEndDbInterface
 from storage.db_interface_frontend_editing import FrontendEditingDbInterface
 from test.common_helper import create_test_firmware
+
 
 TMP_DIR = TemporaryDirectory(prefix='fact_test_')
 
@@ -21,11 +23,13 @@ class TestStorageDbInterfaceFrontendEditing(unittest.TestCase):
         self.db_backend_interface = BackEndDbInterface(config=self._config)
 
     def tearDown(self):
-        self.db_backend_interface.client.drop_database(self._config.get('data_storage', 'main_database'))
         self.db_frontend_editing.shutdown()
         self.db_frontend_interface.shutdown()
+        self.db_backend_interface.client.drop_database(self._config.get('data_storage', 'main_database'))
         self.db_backend_interface.shutdown()
         self.mongo_server.shutdown()
+        TMP_DIR.cleanup()
+        gc.collect()
 
     def test_add_comment(self):
         test_fw = create_test_firmware()

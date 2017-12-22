@@ -1,5 +1,6 @@
-import unittest
+import gc
 from multiprocessing import Queue
+import unittest
 from unittest.mock import patch
 
 from helperFunctions.fileSystem import get_test_data_dir
@@ -16,8 +17,9 @@ class TestFileAddition(unittest.TestCase):
         self._unpack_scheduler = UnpackingScheduler(config=self._config, post_unpack=self._dummy_callback)
 
     def tearDown(self):
-        self._tmp_queue.close()
         self._unpack_scheduler.shutdown()
+        self._tmp_queue.close()
+        gc.collect()
 
     def test_unpack_only(self):
         test_fw = Firmware(file_path='{}/container/test.zip'.format(get_test_data_dir()))

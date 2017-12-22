@@ -1,6 +1,7 @@
-import unittest
+import gc
 from os import path
 from tempfile import TemporaryDirectory
+import unittest
 
 from helperFunctions.config import get_config_for_testing
 from helperFunctions.fileSystem import get_test_data_dir
@@ -9,6 +10,7 @@ from storage.MongoMgr import MongoMgr
 from storage.db_interface_backend import BackEndDbInterface
 from storage.db_interface_frontend import FrontEndDbInterface
 from test.common_helper import create_test_firmware, create_test_file_object
+
 
 TESTS_DIR = get_test_data_dir()
 test_file_one = path.join(TESTS_DIR, 'get_files_test/testfile1')
@@ -25,10 +27,12 @@ class TestStorageDbInterfaceFrontend(unittest.TestCase):
         self.test_firmware = create_test_firmware()
 
     def tearDown(self):
-        self.db_backend_interface.client.drop_database(self._config.get('data_storage', 'main_database'))
         self.db_frontend_interface.shutdown()
+        self.db_backend_interface.client.drop_database(self._config.get('data_storage', 'main_database'))
         self.db_backend_interface.shutdown()
         self.mongo_server.shutdown()
+        TMP_DIR.cleanup()
+        gc.collect()
 
     def test_get_meta_list(self):
         self.db_backend_interface.add_firmware(self.test_firmware)
