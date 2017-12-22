@@ -36,17 +36,20 @@ class TestAcceptanceCompareFirmwares(TestAcceptanceBase):
         self.assertIn(b'Upload Successful', rv.data, 'upload not successful')
         self.assertIn(uid.encode(), rv.data, 'uid not found on upload success page')
 
-    def _show_compare_get(self):
-        rv = self.test_client.get('/compare')
-        self.assertIn(b'<h2>Compare Firmwares</h2>', rv.data, 'start compare page not displayed correctly')
+    def _add_firmwares_to_compare(self):
+        rv = self.test_client.get('/analysis/{}'.format(self.test_fw_a.uid))
+        self.assertIn(self.test_fw_a.uid, rv.data.decode(), '')
+        rv = self.test_client.get('/comparison/add/{}'.format(self.test_fw_a.uid), follow_redirects=True)
+        self.assertIn('Firmwares Selected for Comparison', rv.data.decode())
 
-    def _show_compare_post(self):
-        data = {
-            'uid_list': '418a54d78550e8584291c96e5d6168133621f352bfc1d43cf84e81187fef4962_787;'
-                        'd38970f8c5153d1041810d0908292bc8df21e7fd88aab211a8fb96c54afe6b01_319',
-            'force': ''
-        }
-        rv = self.test_client.post('/compare', content_type='multipart/form-data', data=data, follow_redirects=True)
+        rv = self.test_client.get('/analysis/{}'.format(self.test_fw_b.uid))
+        self.assertIn(self.test_fw_b.uid, rv.data.decode())
+        self.assertIn(self.test_fw_a.name, rv.data.decode())
+        rv = self.test_client.get('/comparison/add/{}'.format(self.test_fw_b.uid), follow_redirects=True)
+        self.assertIn('Remove All', rv.data.decode())
+
+    def _start_compare(self):
+        rv = self.test_client.get('/compare', follow_redirects=True)
         self.assertIn(b'Your compare task is in progress.', rv.data, 'compare wait page not displayed correctly')
 
     def _show_comparison_results(self):
@@ -68,8 +71,8 @@ class TestAcceptanceCompareFirmwares(TestAcceptanceBase):
         for fw in [self.test_fw_a, self.test_fw_b]:
             self._upload_firmware_put(fw.path, fw.name, fw.uid)
         time.sleep(20)  # wait for analysis to complete
-        self._show_compare_get()
-        self._show_compare_post()
+        self._add_firmwares_to_compare()
+        self._start_compare()
         time.sleep(20)  # wait for comparison to complete
         self._show_comparison_results()
         self._show_home_page()
