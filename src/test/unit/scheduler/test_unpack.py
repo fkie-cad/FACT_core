@@ -1,4 +1,5 @@
 from configparser import ConfigParser
+import gc
 from multiprocessing import Queue
 from tempfile import TemporaryDirectory
 from time import sleep
@@ -31,6 +32,7 @@ class TestUnpackScheduler(unittest.TestCase):
             self.sched.shutdown()
         self.tmp_dir.cleanup()
         self.tmp_queue.close()
+        gc.collect()
 
     def test_unpack_a_container_including_another_container(self):
         self._start_scheduler()

@@ -16,6 +16,7 @@ src/log
 src/bootstrap/doc
 src/bootstrap/man
 src/bin
+src/plugins/*/*/bin
 start_faf_backend
 start_fact_backend
 start_faf_db
@@ -28,7 +29,7 @@ update_statistic.cron
 log/
 src/test_unittests/data/arch_detection/
 10k_most_common.txt
-.coverage
+.coverage*
 coverage.xml
 nose2-junit.xml
 *.yc

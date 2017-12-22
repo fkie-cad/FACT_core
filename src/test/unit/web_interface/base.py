@@ -1,10 +1,12 @@
+import gc
+from tempfile import TemporaryDirectory
 import unittest
 import unittest.mock
-from tempfile import TemporaryDirectory
 
 from helperFunctions.config import get_config_for_testing
 from test.common_helper import DatabaseMock, fake_exit
 from web_interface.frontend_main import WebFrontEnd
+
 
 TMP_DIR = TemporaryDirectory(prefix="faf_test_")
 
@@ -30,3 +32,4 @@ class WebInterfaceTest(unittest.TestCase):
         self.exit_patch.stop()
 
         self.mocked_interface.shutdown()
+        gc.collect()

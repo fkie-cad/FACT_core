@@ -16,40 +16,40 @@ class TestRestFirmware(RestTestBase):
         self.db_backend = BackEndDbInterface(config=self.config)
 
     def tearDown(self):
-        super().tearDown()
         self.db_backend.shutdown()
+        super().tearDown()
 
     def test_rest_firmware_existing(self):
-        test_firmware = create_test_firmware(device_class="test class", device_name="test device", vendor="test vendor")
+        test_firmware = create_test_firmware(device_class='test class', device_name='test device', vendor='test vendor')
         self.db_backend.add_firmware(test_firmware)
 
         rv = self.test_client.get('/rest/firmware', follow_redirects=True)
-        assert b"uids" in rv.data
-        assert b"418a54d78550e8584291c96e5d6168133621f352bfc1d43cf84e81187fef4962_787" in rv.data
+        assert b'uids' in rv.data
+        assert b'418a54d78550e8584291c96e5d6168133621f352bfc1d43cf84e81187fef4962_787' in rv.data
 
     def test_offset_to_empty_response(self):
-        test_firmware = create_test_firmware(device_class="test class", device_name="test device", vendor="test vendor")
+        test_firmware = create_test_firmware(device_class='test class', device_name='test device', vendor='test vendor')
         self.db_backend.add_firmware(test_firmware)
 
         rv = self.test_client.get('/rest/firmware?offset=1', follow_redirects=True)
-        assert b"uids" in rv.data
-        assert b"418a54d78550e8584291c96e5d6168133621f352bfc1d43cf84e81187fef4962_787" not in rv.data
+        assert b'uids' in rv.data
+        assert b'418a54d78550e8584291c96e5d6168133621f352bfc1d43cf84e81187fef4962_787' not in rv.data
 
     def test_stable_response_on_bad_paging(self):
         rv = self.test_client.get('/rest/firmware?offset=Y', follow_redirects=True)
-        assert b"error_message" in rv.data
-        assert b"Malformed" in rv.data
+        assert b'error_message' in rv.data
+        assert b'Malformed' in rv.data
 
     def test_rest_search_existing(self):
-        test_firmware = create_test_firmware(device_class="test class", device_name="test device", vendor="test vendor")
+        test_firmware = create_test_firmware(device_class='test class', device_name='test device', vendor='test vendor')
         self.db_backend.add_firmware(test_firmware)
 
         rv = self.test_client.get('/rest/firmware?query={}'.format(urllib.parse.quote('{"device_class": "test class"}')), follow_redirects=True)
-        assert b"uids" in rv.data
-        assert b"418a54d78550e8584291c96e5d6168133621f352bfc1d43cf84e81187fef4962_787" in rv.data
+        assert b'uids' in rv.data
+        assert b'418a54d78550e8584291c96e5d6168133621f352bfc1d43cf84e81187fef4962_787' in rv.data
 
     def test_rest_search_not_existing(self):
-        test_firmware = create_test_firmware(device_class="test class", device_name="test device", vendor="test vendor")
+        test_firmware = create_test_firmware(device_class='test class', device_name='test device', vendor='test vendor')
         self.db_backend.add_firmware(test_firmware)
 
         rv = self.test_client.get('/rest/firmware?query={}'.format(urllib.parse.quote('{"device_class": "non-existing class"}')), follow_redirects=True)
@@ -112,9 +112,9 @@ class TestRestFirmware(RestTestBase):
         rv = self.test_client.get('/rest/firmware/', follow_redirects=True)
         assert b'404 Not Found' in rv.data
 
-    @pytest.mark.skip(reason="Intercom not running, thus not a single plugin known")
+    @pytest.mark.skip(reason='Intercom not running, thus not a single plugin known')
     def test_rest_update_analysis_success(self):
-        test_firmware = create_test_firmware(device_class="test class", device_name="test device", vendor="test vendor")
+        test_firmware = create_test_firmware(device_class='test class', device_name='test device', vendor='test vendor')
         self.db_backend.add_firmware(test_firmware)
 
         rv = self.test_client.put('/rest/firmware/{}?update={}'.format(test_firmware.uid, urllib.parse.quote('["printable_strings"]')), follow_redirects=True)
@@ -122,7 +122,7 @@ class TestRestFirmware(RestTestBase):
         assert b'"status": 0' in rv.data
 
     def test_rest_update_bad_query(self):
-        test_firmware = create_test_firmware(device_class="test class", device_name="test device", vendor="test vendor")
+        test_firmware = create_test_firmware(device_class='test class', device_name='test device', vendor='test vendor')
         self.db_backend.add_firmware(test_firmware)
 
         rv = self.test_client.put('/rest/firmware/{}?update=not_a_list'.format(test_firmware.uid), follow_redirects=True)

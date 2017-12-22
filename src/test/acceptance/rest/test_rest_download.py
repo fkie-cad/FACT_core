@@ -1,12 +1,10 @@
+from base64 import standard_b64encode
 import time
-import json
 import urllib.parse
 
-from base64 import standard_b64encode
-from test.common_helper import create_test_firmware
-
-from test.acceptance.base import TestAcceptanceBase
 from storage.db_interface_backend import BackEndDbInterface
+from test.acceptance.base import TestAcceptanceBase
+from test.common_helper import create_test_firmware
 
 
 class TestIntegrationRestDownloadFirmware(TestAcceptanceBase):
@@ -18,8 +16,9 @@ class TestIntegrationRestDownloadFirmware(TestAcceptanceBase):
         time.sleep(10)  # wait for systems to start
 
     def tearDown(self):
-        super().tearDown()
+        self.db_backend.shutdown()
         self._stop_backend()
+        super().tearDown()
 
     def _rest_search(self):
         rv = self.test_client.get('/rest/firmware?query={}'.format(urllib.parse.quote('{"device_class": "test class"}')), follow_redirects=True)

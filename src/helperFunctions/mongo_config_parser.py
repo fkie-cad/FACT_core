@@ -1,9 +1,4 @@
-from helperFunctions.process import complete_shutdown
-
-try:
-    import yaml
-except ImportError:
-    complete_shutdown("Could not load pyOpenSSL: Install it via: pip3 install pyyaml")
+import yaml
 
 
 def parse_yaml(file_path):
