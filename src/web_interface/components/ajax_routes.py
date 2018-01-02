@@ -16,7 +16,6 @@ from web_interface.filter import encode_base64_filter, bytes_to_str_filter
 
 class AjaxRoutes(ComponentBase):
     def _init_component(self):
-        self._app.add_url_rule('/ajax_tree/<uid>', 'ajax_tree/<uid>', self._ajax_get_tree_children)
         self._app.add_url_rule('/ajax_tree/<uid>/<root_uid>', '/ajax_tree/<uid>/<root_uid>', self._ajax_get_tree_children)
         self._app.add_url_rule('/ajax_root/<uid>', 'ajax_root/<uid>', self._ajax_get_tree_root)
         self._app.add_url_rule('/compare/ajax_tree/<compare_id>/<root_uid>/<uid>', 'compare/ajax_tree/<compare_id>/<root_uid>/<uid>',
