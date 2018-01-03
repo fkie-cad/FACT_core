@@ -68,6 +68,13 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBase):
         self.assertIn(b'unknown', rv.data)
         self.assertIn(self.test_fw_a.file_name.encode(), rv.data, 'file name not found')
 
+    def _check_ajax_file_tree_routes(self):
+        print('- check ajax file tree ...')
+        rv = self.test_client.get('/ajax_tree/{}/{}'.format(self.test_fw_a.uid, self.test_fw_a.uid))
+        self.assertIn(b'"children":', rv.data)
+        rv = self.test_client.get('/ajax_root/{}'.format(self.test_fw_a.uid))
+        self.assertIn(b'"children":', rv.data)
+
     def _show_analysis_details_file_type(self):
         print('- show analysis detail ...')
         rv = self.test_client.get('/analysis/{}/file_type'.format(self.test_fw_a.uid))
@@ -91,5 +98,6 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBase):
         time.sleep(15)  # wait for analysis to complete
         self._show_analysis_page()
         self._show_analysis_details_file_type()
+        self._check_ajax_file_tree_routes()
         self._show_home_page()
         self._re_do_analysis_get()
