@@ -216,7 +216,7 @@ class FrontEndDbInterface(MongoInterfaceCommon):
 
     def _create_node_from_virtual_path(self, uid, root_uid, current_virtual_path, fo_data, whitelist=None):
         if len(current_virtual_path) > 1:  # in the middle of a virtual file path
-            node = FileTreeNode(uid=None, virtual=True, name=current_virtual_path.pop(0))
+            node = FileTreeNode(uid=None, root_uid=root_uid, virtual=True, name=current_virtual_path.pop(0))
             for child_node in self.generate_file_tree_node(uid, root_uid, current_virtual_path=current_virtual_path, fo_data=fo_data, whitelist=whitelist):
                 node.add_child_node(child_node)
         else:  # at the end of a virtual path aka a 'real' file
@@ -224,7 +224,7 @@ class FrontEndDbInterface(MongoInterfaceCommon):
                 has_children = any(f in fo_data['files_included'] for f in whitelist)
             else:
                 has_children = fo_data['files_included'] != []
-            node = FileTreeNode(uid, virtual=False, name=fo_data['file_name'], size=fo_data['size'],
+            node = FileTreeNode(uid, root_uid=root_uid, virtual=False, name=fo_data['file_name'], size=fo_data['size'],
                                 mime_type=fo_data['processed_analysis']['file_type']['mime'], has_children=has_children)
         return node
 
@@ -242,7 +242,7 @@ class FrontEndDbInterface(MongoInterfaceCommon):
             else:
                 yield self._create_node_from_virtual_path(uid, root_uid, current_virtual_path, fo_data, whitelist)
         except Exception:  # the requested data is not present in the DB aka the file has not been analyzed yet
-            yield FileTreeNode(uid=uid, not_analyzed=True, name='{} (not analyzed yet)'.format(uid))
+            yield FileTreeNode(uid=uid, root_uid=root_uid, not_analyzed=True, name='{} (not analyzed yet)'.format(uid))
 
     def get_number_of_total_matches(self, query, only_parent_firmwares):
         if not only_parent_firmwares:
