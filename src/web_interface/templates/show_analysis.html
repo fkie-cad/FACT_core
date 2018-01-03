@@ -214,7 +214,7 @@
                                 'data' : {
                                   'url' : function (node) {
                                     return node.id === '#' ?
-                                        "/ajax_root/{{ uid|safe }}" : "/ajax_tree/" + node["data"]["uid"];
+                                        "/ajax_root/{{ uid|safe }}" : "/ajax_tree/" + node["data"]["uid"] + "/{{ root_uid|safe }}";
                                   }
                                 }
                               },
