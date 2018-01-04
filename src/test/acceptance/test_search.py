@@ -17,10 +17,6 @@ class TestAcceptanceNormalSearch(TestAcceptanceBase):
         self._stop_backend()
         super().tearDown()
 
-    def _show_database_access_page(self):
-        rv = self.test_client.get('/database')
-        self.assertIn(b'<b>Search Database</b>', rv.data, 'database access page not rendered correctly')
-
     def _show_search_get(self):
         rv = self.test_client.get('/database/search')
         self.assertIn(b'<h2>Search Firmware Database</h2>', rv.data, 'search page not rendered correctly')
@@ -28,6 +24,10 @@ class TestAcceptanceNormalSearch(TestAcceptanceBase):
     def _show_browse_db(self):
         rv = self.test_client.get('/database/browse')
         self.assertIn(self.test_fw.get_uid().encode(), rv.data, 'test firmware not found in browse database')
+
+    def _show_browse_compare(self):
+        rv = self.test_client.get('/database/browse_compare')
+        self.assertIn('200', rv.status, 'compare browsing site offline')
 
     def _show_search_post(self):
         data = {
@@ -51,8 +51,8 @@ class TestAcceptanceNormalSearch(TestAcceptanceBase):
         self.assertIn(self.test_fw.get_uid().encode(), rv.data, 'test firmware not found in specific search')
 
     def test_search(self):
-        self._show_database_access_page()
         self._show_browse_db()
+        self._show_browse_compare()
         self._show_search_get()
         self._show_search_post()
         self._show_quick_search()
