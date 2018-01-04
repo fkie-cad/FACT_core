@@ -20,17 +20,12 @@ from web_interface.components.component_base import ComponentBase
 class DatabaseRoutes(ComponentBase):
 
     def _init_component(self):
-        self._app.add_url_rule('/database', 'database', self._app_show_database_access)
         self._app.add_url_rule('/database/browse', 'database/browse', self._app_show_browse_database)
         self._app.add_url_rule('/database/search', 'database/search', self._app_show_search_database, methods=['GET', 'POST'])
         self._app.add_url_rule('/database/advanced_search', 'database/advanced_search', self._app_show_advanced_search, methods=['GET', 'POST'])
         self._app.add_url_rule('/database/binary_search', 'database/binary_search', self._app_start_binary_search, methods=['GET', 'POST'])
         self._app.add_url_rule('/database/quick_search', 'database/quick_search', self._app_start_quick_search, methods=['GET'])
         self._app.add_url_rule('/database/database_binary_search_results.html', 'database/database_binary_search_results.html', self._app_show_binary_search_results)
-
-    @staticmethod
-    def _app_show_database_access():
-        return render_template('database/database_access.html')
 
     def _get_page_items(self):
         page = int(request.args.get('page', 1))
