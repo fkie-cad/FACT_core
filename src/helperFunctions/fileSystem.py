@@ -82,14 +82,6 @@ def get_chroot_path_excluding_extracted_dir(absolute_path, base_path):
     return get_chroot_path(tmp, '/faf_extracted')
 
 
-def delete_file(file_path):
-    '''
-    Delete file in file_path if it exists
-    '''
-    if os.path.exists(file_path):
-        os.unlink(file_path)
-
-
 def check_critical_file_existence(file_path):
     '''
     end the program if a critical file (file_path) is missing
