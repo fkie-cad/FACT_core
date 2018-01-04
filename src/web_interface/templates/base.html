@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 {% set navigation_bar = [
     ("Home", "/", '<span class="glyphicon glyphicon-home"></span>'),
-    ("Database", "/database", '<span class="glyphicon glyphicon-tasks"></span>'),
+    ("Database", None, None),
     ("Upload", "/upload", '<span class="glyphicon glyphicon-upload"></span>'),
     ("Statistic", "/statistic", '<span class="glyphicon glyphicon-stats"></span>'),
     ("System", "/system_health", '<span class="glyphicon glyphicon-heart"></span>'),
@@ -103,9 +103,22 @@
                 <!-- Navbar Elements -->
                 <ul class="nav navbar-nav navbar-left" style="padding-right: 5px">
                     {% for caption, href, icon in navigation_bar %}
+                        {% if caption == "Database" %}
+                            <li class="dropdown {% if caption == active_page %}active{% endif  %}">
+                                <a class="dropdown-toggle" data-toggle="dropdown" href="#"><span class="glyphicon glyphicon-tasks"></span>&nbsp;Database<span class="caret"></span></a>
+                                <ul class="dropdown-menu">
+                                    <li><a href="/database/browse">Browse Firmware Analyses</a></li>
+                                    <li><a href="/database/browse_compare">Browse Firmware Compares</a></li>
+                                    <li><a href="/database/search">Basic Search</a></li>
+                                    <li><a href="/database/advanced_search">Advanced Search</a></li>
+                                    <li><a href="/database/binary_search">Binary Pattern Search</a></li>
+                                </ul>
+                            </li>
+                        {% else %}
                         <li {% if caption == active_page %} class="active"{% endif  %}>
                             <a href={{ href }}>{{ icon|safe }} {{ caption }}</a>
                         </li>
+                        {% endif %}
                     {% endfor %}
                 </ul>
 
@@ -113,7 +126,6 @@
                 <ul class="nav navbar-nav navbar-right">
                     <li class="hidden-xs float-right" id="nav_quick_search" style="padding-right: 15px">
                         <a class="dropdown-toggle" onclick="toggleCollapse()">
-                           <!-- data-toggle="collapse" data-target="#quick_search_div"> -->
                             <span class="glyphicon glyphicon-search"></span>
                         </a>
                     </li>
