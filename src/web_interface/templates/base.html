@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 {% set navigation_bar = [
     ("Home", "/", '<span class="glyphicon glyphicon-home"></span>'),
-    ("Database", "/database", '<span class="glyphicon glyphicon-tasks"></span>'),
     ("Upload", "/upload", '<span class="glyphicon glyphicon-upload"></span>'),
     ("Statistic", "/statistic", '<span class="glyphicon glyphicon-stats"></span>'),
     ("System", "/system_health", '<span class="glyphicon glyphicon-heart"></span>'),
@@ -38,6 +37,7 @@
             }
             function quickSearch() {
                 var search_input = document.getElementById('quick_search_input').value;
+                search_input = search_input.replace(/[^\w ßöäüéèêáàâîíìóòôúùû!&.-]/gui, "")
                 var url = '/database/quick_search?search_term=' + search_input;
                 window.location = url;
             }
@@ -107,13 +107,22 @@
                             <a href={{ href }}>{{ icon|safe }} {{ caption }}</a>
                         </li>
                     {% endfor %}
+                    <li class="dropdown">
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="#"><span class="glyphicon glyphicon-tasks"></span>&nbsp;Database<span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="/database/browse">Browse Database</a></li>
+                            <li><a href="/database/search">Search Database</a></li>
+                            <li><a href="/database/advanced_search">Advanced Search</a></li>
+                            <li><a href="/database/binary_search">Binary Search</a></li>
+                            <li><a href="/database/browse_compare">Browse Compare Results</a></li>
+                        </ul>
+                    </li>
                 </ul>
 
                 <!-- Navbar Quick Search Button -->
                 <ul class="nav navbar-nav navbar-right">
                     <li class="hidden-xs float-right" id="nav_quick_search" style="padding-right: 15px">
                         <a class="dropdown-toggle" onclick="toggleCollapse()">
-                           <!-- data-toggle="collapse" data-target="#quick_search_div"> -->
                             <span class="glyphicon glyphicon-search"></span>
                         </a>
                     </li>
