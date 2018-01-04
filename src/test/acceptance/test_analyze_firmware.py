@@ -20,7 +20,6 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBase):
         super().tearDown()
 
     def _upload_firmware_get(self):
-        print('- upload firmware -> get ...')
         rv = self.test_client.get('/upload')
         self.assertIn(b'<h2>Upload Firmware</h2>', rv.data, 'upload page not displayed correctly')
 
@@ -40,7 +39,6 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBase):
                           'optional plugin {} erroneously checked or not found'.format(optional_plugin))
 
     def _upload_firmware_post(self):
-        print('- upload firmware -> post ...')
         testfile_path = os.path.join(get_test_data_dir(), self.test_fw_a.path)
         with open(testfile_path, 'rb') as fp:
             data = {
@@ -57,7 +55,6 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBase):
         self.assertIn(self.test_fw_a.uid.encode(), rv.data, 'uid not found on upload success page')
 
     def _show_analysis_page(self):
-        print('- show analysis ...')
         with ConnectTo(FrontEndDbInterface, self.config) as connection:
             self.assertIsNotNone(connection.firmwares.find_one({'_id': self.test_fw_a.uid}), 'Error: Test firmware not found in DB!')
         rv = self.test_client.get('/analysis/{}'.format(self.test_fw_a.uid))
@@ -68,20 +65,27 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBase):
         self.assertIn(b'unknown', rv.data)
         self.assertIn(self.test_fw_a.file_name.encode(), rv.data, 'file name not found')
 
+    def _check_ajax_file_tree_routes(self):
+        rv = self.test_client.get('/ajax_tree/{}/{}'.format(self.test_fw_a.uid, self.test_fw_a.uid))
+        self.assertIn(b'"children":', rv.data)
+        rv = self.test_client.get('/ajax_root/{}'.format(self.test_fw_a.uid))
+        self.assertIn(b'"children":', rv.data)
+
+    def _check_ajax_on_demand_binary_load(self):
+        rv = self.test_client.get('/ajax_get_binary/text_plain/d558c9339cb967341d701e3184f863d3928973fccdc1d96042583730b5c7b76a_62')
+        self.assertIn(b'test file', rv.data)
+
     def _show_analysis_details_file_type(self):
-        print('- show analysis detail ...')
         rv = self.test_client.get('/analysis/{}/file_type'.format(self.test_fw_a.uid))
         self.assertIn(b'application/zip', rv.data)
         self.assertIn(b'Zip archive data', rv.data)
         self.assertNotIn(b'<pre><code>', rv.data, 'generic template used instead of specific template -> sync view error!')
 
     def _show_home_page(self):
-        print('- check for entry on recent analysis ...')
         rv = self.test_client.get('/')
         self.assertIn(self.test_fw_a.uid.encode(), rv.data, 'test firmware not found under recent analysis on home page')
 
     def _re_do_analysis_get(self):
-        print('- re-do analysis -> get ...')
         rv = self.test_client.get('/admin/re-do_analysis/{}'.format(self.test_fw_a.uid))
         self.assertIn(b'<input type="hidden" name="file_name" id="file_name" value="' + self.test_fw_a.file_name.encode() + b'">', rv.data, 'file name not set in re-do page')
 
@@ -91,5 +95,7 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBase):
         time.sleep(15)  # wait for analysis to complete
         self._show_analysis_page()
         self._show_analysis_details_file_type()
+        self._check_ajax_file_tree_routes()
+        self._check_ajax_on_demand_binary_load()
         self._show_home_page()
         self._re_do_analysis_get()
