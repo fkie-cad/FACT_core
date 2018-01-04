@@ -75,6 +75,11 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBase):
         rv = self.test_client.get('/ajax_root/{}'.format(self.test_fw_a.uid))
         self.assertIn(b'"children":', rv.data)
 
+    def _check_ajax_on_demand_binary_load(self):
+        print('- check ajax on demand binary load ...')
+        rv = self.test_client.get('/ajax_get_binary/text_plain/d558c9339cb967341d701e3184f863d3928973fccdc1d96042583730b5c7b76a_62')
+        self.assertIn(b'test file', rv.data)
+
     def _show_analysis_details_file_type(self):
         print('- show analysis detail ...')
         rv = self.test_client.get('/analysis/{}/file_type'.format(self.test_fw_a.uid))
@@ -99,5 +104,6 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBase):
         self._show_analysis_page()
         self._show_analysis_details_file_type()
         self._check_ajax_file_tree_routes()
+        self._check_ajax_on_demand_binary_load()
         self._show_home_page()
         self._re_do_analysis_get()
