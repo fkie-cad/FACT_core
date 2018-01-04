@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 {% set navigation_bar = [
     ("Home", "/", '<span class="glyphicon glyphicon-home"></span>'),
+    ("Database", None, None),
     ("Upload", "/upload", '<span class="glyphicon glyphicon-upload"></span>'),
     ("Statistic", "/statistic", '<span class="glyphicon glyphicon-stats"></span>'),
     ("System", "/system_health", '<span class="glyphicon glyphicon-heart"></span>'),
@@ -103,20 +104,23 @@
                 <!-- Navbar Elements -->
                 <ul class="nav navbar-nav navbar-left" style="padding-right: 5px">
                     {% for caption, href, icon in navigation_bar %}
+                        {% if caption == "Database" %}
+                            <li class="dropdown {% if caption == active_page %}active{% endif  %}">
+                                <a class="dropdown-toggle" data-toggle="dropdown" href="#"><span class="glyphicon glyphicon-tasks"></span>&nbsp;Database<span class="caret"></span></a>
+                                <ul class="dropdown-menu">
+                                    <li><a href="/database/browse">Browse Database</a></li>
+                                    <li><a href="/database/search">Search Database</a></li>
+                                    <li><a href="/database/advanced_search">Advanced Search</a></li>
+                                    <li><a href="/database/binary_search">Binary Search</a></li>
+                                    <li><a href="/database/browse_compare">Browse Compare Results</a></li>
+                                </ul>
+                            </li>
+                        {% else %}
                         <li {% if caption == active_page %} class="active"{% endif  %}>
                             <a href={{ href }}>{{ icon|safe }} {{ caption }}</a>
                         </li>
+                        {% endif %}
                     {% endfor %}
-                    <li class="dropdown">
-                        <a class="dropdown-toggle" data-toggle="dropdown" href="#"><span class="glyphicon glyphicon-tasks"></span>&nbsp;Database<span class="caret"></span></a>
-                        <ul class="dropdown-menu">
-                            <li><a href="/database/browse">Browse Database</a></li>
-                            <li><a href="/database/search">Search Database</a></li>
-                            <li><a href="/database/advanced_search">Advanced Search</a></li>
-                            <li><a href="/database/binary_search">Binary Search</a></li>
-                            <li><a href="/database/browse_compare">Browse Compare Results</a></li>
-                        </ul>
-                    </li>
                 </ul>
 
                 <!-- Navbar Quick Search Button -->
