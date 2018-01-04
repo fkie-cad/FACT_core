@@ -38,7 +38,6 @@
             }
             function quickSearch() {
                 var search_input = document.getElementById('quick_search_input').value;
-                search_input = search_input.replace(/[^\w ßöäüéèêáàâîíìóòôúùû!&.-]/gui, "")
                 var url = '/database/quick_search?search_term=' + search_input;
                 window.location = url;
             }
