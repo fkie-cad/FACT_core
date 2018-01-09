@@ -3,6 +3,7 @@
 import json
 import random
 
+from common_helper_filter.time import time_format
 from flask import render_template
 
 from helperFunctions.dataConversion import none_to_none
@@ -16,7 +17,6 @@ from web_interface.filter import byte_number_filter, encode_base64_filter, \
     nice_unix_time, infection_color, nice_number_filter, sort_chart_list_by_name, sort_chart_list_by_value, \
     text_highlighter, get_canvas_height, comment_out_regex_meta_chars, \
     generic_nice_representation, list_to_line_break_string_no_sort
-from common_helper_filter.time import time_format
 
 
 class FilterClass:

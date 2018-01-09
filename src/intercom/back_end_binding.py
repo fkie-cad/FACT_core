@@ -1,13 +1,13 @@
-from common_helper_mongo.gridfs import overwrite_file
 import logging
-from multiprocessing import Process, Value
 import pickle
+from multiprocessing import Process, Value
 from time import sleep
+
+from common_helper_mongo.gridfs import overwrite_file
 
 from helperFunctions.process import no_operation
 from helperFunctions.yara_binary_search import YaraBinarySearchScanner
-from intercom.common_mongo_binding import InterComListener, \
-    InterComMongoInterface, InterComListenerAndResponder
+from intercom.common_mongo_binding import InterComListener, InterComMongoInterface, InterComListenerAndResponder
 from storage.binary_service import BinaryService
 from storage.fs_organizer import FS_Organizer
 

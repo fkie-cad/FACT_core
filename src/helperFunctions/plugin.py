@@ -1,5 +1,6 @@
-from common_helper_files.fail_safe_file_operations import get_dirs_in_dir
 import os
+
+from common_helper_files.fail_safe_file_operations import get_dirs_in_dir
 from pluginbase import PluginBase
 
 from helperFunctions.fileSystem import get_src_dir

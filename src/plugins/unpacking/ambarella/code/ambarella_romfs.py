@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from common_helper_process import execute_shell_command
 from os import path
 
-from helperFunctions.fileSystem import get_faf_bin_dir
+from common_helper_process import execute_shell_command
 
+from helperFunctions.fileSystem import get_faf_bin_dir
 
 name = 'Ambarella_RomFS'
 mime_patterns = ['filesystem/ambarella-romfs']

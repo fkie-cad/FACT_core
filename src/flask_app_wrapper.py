@@ -17,14 +17,15 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import sys
-import os
-import pickle
 import configparser
 import logging
+import os
+import pickle
+import sys
+
+from common_helper_files import get_directory_for_filename, get_version_string_from_git, create_dir_for_file
 
 from web_interface.frontend_main import WebFrontEnd
-from common_helper_files import get_directory_for_filename, get_version_string_from_git, create_dir_for_file
 
 
 def _get_console_output_level(debug_flag):

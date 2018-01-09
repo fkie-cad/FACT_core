@@ -1,6 +1,7 @@
-from flask import Flask
 import logging
 import os
+
+from flask import Flask
 
 from web_interface.components.ajax_routes import AjaxRoutes
 from web_interface.components.analysis_routes import AnalysisRoutes
