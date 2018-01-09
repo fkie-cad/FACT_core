@@ -61,7 +61,7 @@ class MongoInterfaceCommon(MongoInterface):
         '''
         fo = self.get_object(uid)
         if fo is None:
-            raise Exception("UID not found: {}".format(uid))
+            raise Exception('UID not found: {}'.format(uid))
         else:
             fo.list_of_all_included_files = self.get_list_of_all_included_files(fo)
             for analysis in fo.processed_analysis:
@@ -73,7 +73,7 @@ class MongoInterfaceCommon(MongoInterface):
         if firmware_entry:
             return self._convert_to_firmware(firmware_entry, analysis_filter=analysis_filter)
         else:
-            logging.debug("No firmware with UID {} found.".format(uid))
+            logging.debug('No firmware with UID {} found.'.format(uid))
             return None
 
     def get_file_object(self, uid, analysis_filter=None):
@@ -81,7 +81,7 @@ class MongoInterfaceCommon(MongoInterface):
         if file_entry:
             return self._convert_to_file_object(file_entry, analysis_filter=analysis_filter)
         else:
-            logging.debug("No FileObject with UID {} found.".format(uid))
+            logging.debug('No FileObject with UID {} found.'.format(uid))
             return None
 
     def get_objects_by_uid_list(self, uid_list, analysis_filter=None):
@@ -110,8 +110,12 @@ class MongoInterfaceCommon(MongoInterface):
         firmware.processed_analysis = self.retrieve_analysis(entry['processed_analysis'], analysis_filter=analysis_filter)
         firmware.files_included = set(entry['files_included'])
         firmware.virtual_file_path = entry['virtual_file_path']
-        if "comments" in entry:  # for backwards compatibility
-            firmware.comments = entry["comments"]
+        if 'tags' in entry:
+            firmware.tags = entry['tags']
+        else:
+            firmware.tags = dict()
+        if 'comments' in entry:  # for backwards compatibility
+            firmware.comments = entry['comments']
         return firmware
 
     def _convert_to_file_object(self, entry, analysis_filter=None):
@@ -123,8 +127,8 @@ class MongoInterfaceCommon(MongoInterface):
         file_object.parents = entry['parents']
         file_object.processed_analysis = self.retrieve_analysis(entry['processed_analysis'], analysis_filter=analysis_filter)
         file_object.files_included = set(entry['files_included'])
-        file_object.parent_firmware_uids = set(entry["parent_firmware_uids"])
-        for attribute in ["comments"]:  # for backwards compatibility
+        file_object.parent_firmware_uids = set(entry['parent_firmware_uids'])
+        for attribute in ['comments']:  # for backwards compatibility
             if attribute in entry:
                 setattr(file_object, attribute, entry[attribute])
         return file_object
@@ -177,14 +181,14 @@ class MongoInterfaceCommon(MongoInterface):
                 else:
                     sanitized_dict[key].pop('file_system_flag')
             except Exception as e:
-                logging.debug("Could not retrieve information: {} {}".format(sys.exc_info()[0].__name__, e))
+                logging.debug('Could not retrieve information: {} {}'.format(sys.exc_info()[0].__name__, e))
         return sanitized_dict
 
     def _extract_binaries(self, analysis_dict, key, uid):
         tmp_dict = {}
         for analysis_key in analysis_dict[key].keys():
-            if analysis_key != "summary":
-                file_name = "{}_{}_{}".format(get_safe_name(key), get_safe_name(analysis_key), uid)
+            if analysis_key != 'summary':
+                file_name = '{}_{}_{}'.format(get_safe_name(key), get_safe_name(analysis_key), uid)
                 self.sanitize_fs.put(pickle.dumps(analysis_dict[key][analysis_key]), filename=file_name)
                 tmp_dict[analysis_key] = file_name
             else:
@@ -194,7 +198,7 @@ class MongoInterfaceCommon(MongoInterface):
     def _retrieve_binaries(self, sanitized_dict, key):
         tmp_dict = {}
         for analysis_key in sanitized_dict[key].keys():
-            if analysis_key == "summary" and type(sanitized_dict[key][analysis_key]) != str:
+            if analysis_key == 'summary' and type(sanitized_dict[key][analysis_key]) != str:
                 tmp_dict[analysis_key] = sanitized_dict[key][analysis_key]
             else:
                 logging.debug('Retrieving {}'.format(analysis_key))
@@ -202,7 +206,7 @@ class MongoInterfaceCommon(MongoInterface):
                 if tmp is not None:
                     report = pickle.loads(tmp.read())
                 else:
-                    logging.error("sanitized file not found: {}".format(sanitized_dict[key][analysis_key]))
+                    logging.error('sanitized file not found: {}'.format(sanitized_dict[key][analysis_key]))
                     report = {}
                 tmp_dict[analysis_key] = report
         return tmp_dict
@@ -212,7 +216,7 @@ class MongoInterfaceCommon(MongoInterface):
     def get_list_of_all_included_files(self, fo):
         if isinstance(fo, Firmware):
             fo.list_of_all_included_files = get_list_of_all_values(
-                self.file_objects, "$_id", match={"virtual_file_path.{}".format(fo.get_uid()): {"$exists": "true"}})
+                self.file_objects, '$_id', match={'virtual_file_path.{}'.format(fo.get_uid()): {'$exists': 'true'}})
         if fo.list_of_all_included_files is None:
             fo.list_of_all_included_files = list(self.get_set_of_all_included_files(fo))
         fo.list_of_all_included_files.sort()
@@ -238,8 +242,8 @@ class MongoInterfaceCommon(MongoInterface):
             if 'summary' in fo.processed_analysis[selected_analysis]:
                 if isinstance(fo, Firmware):
                     summary = get_list_of_all_values_and_collect_information_of_additional_field(
-                        self.file_objects, "$processed_analysis.{}.summary".format(selected_analysis), "$_id", unwind=True,
-                        match={"virtual_file_path.{}".format(fo.get_uid()): {"$exists": "true"}})
+                        self.file_objects, '$processed_analysis.{}.summary'.format(selected_analysis), '$_id', unwind=True,
+                        match={'virtual_file_path.{}'.format(fo.get_uid()): {'$exists': 'true'}})
                     fo_summary = self._get_summary_of_one(fo, selected_analysis)
                     self._update_summary(summary, fo_summary)
                     return summary
@@ -248,7 +252,7 @@ class MongoInterfaceCommon(MongoInterface):
             else:
                 return None
         else:
-            logging.warning("Analysis {} not available on {}".format(selected_analysis, fo.get_uid()))
+            logging.warning('Analysis {} not available on {}'.format(selected_analysis, fo.get_uid()))
             return None
 
     @staticmethod
@@ -259,7 +263,7 @@ class MongoInterfaceCommon(MongoInterface):
                 for item in file_object.processed_analysis[selected_analysis]['summary']:
                     summary[item] = [file_object.get_uid()]
         except Exception as e:
-            logging.warning("Could not get summary: {} {}".format(sys.exc_info()[0].__name__, e))
+            logging.warning('Could not get summary: {} {}'.format(sys.exc_info()[0].__name__, e))
         return summary
 
     def _collect_summary(self, uid_list, selected_analysis):
