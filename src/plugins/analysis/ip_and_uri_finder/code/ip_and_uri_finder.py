@@ -1,9 +1,8 @@
-import os
+import logging
 
 from common_analysis_ip_and_uri_finder import CommonAnalysisIPAndURIFinder, ip_and_uri_finder_analysis
-import logging
+
 from analysis.PluginBase import BasePlugin
-from helperFunctions.fileSystem import get_absolute_path, get_src_dir
 
 
 class AnalysisPlugin(BasePlugin):

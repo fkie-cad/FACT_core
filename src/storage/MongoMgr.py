@@ -1,8 +1,9 @@
-from common_helper_files.file_functions import create_dir_for_file
 import logging
 import os
-from pymongo import MongoClient, errors
 from subprocess import Popen, PIPE, STDOUT
+
+from common_helper_files.file_functions import create_dir_for_file
+from pymongo import MongoClient, errors
 
 from helperFunctions.config import get_config_dir
 from helperFunctions.mongo_config_parser import get_mongo_path

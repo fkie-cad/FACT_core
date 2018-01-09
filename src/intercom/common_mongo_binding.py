@@ -1,10 +1,12 @@
-from storage.mongo_interface import MongoInterface
-import gridfs
-import pickle
 import logging
+import pickle
 import sys
 from time import time
+
+import gridfs
+
 from helperFunctions.hash import get_sha256
+from storage.mongo_interface import MongoInterface
 
 
 def generate_task_id(input_data):

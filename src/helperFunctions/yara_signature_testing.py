@@ -1,11 +1,11 @@
-from common_helper_files import get_files_in_dir
-from common_helper_yara import compile_rules, scan, get_all_matched_strings
 import logging
 import os
 from tempfile import TemporaryDirectory
 
-from helperFunctions.dataConversion import make_dict_from_list
+from common_helper_files import get_files_in_dir
+from common_helper_yara import compile_rules, scan, get_all_matched_strings
 
+from helperFunctions.dataConversion import make_dict_from_list
 
 CONFIG_FILE = "main.cfg"
 

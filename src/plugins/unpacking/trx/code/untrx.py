@@ -1,9 +1,9 @@
-from common_helper_process.fail_safe_subprocess import execute_shell_command
 from os import path
 from tempfile import NamedTemporaryFile
 
-from helperFunctions.fileSystem import get_faf_bin_dir
+from common_helper_process.fail_safe_subprocess import execute_shell_command
 
+from helperFunctions.fileSystem import get_faf_bin_dir
 
 name = 'untrx'
 mime_patterns = ['firmware/trx']

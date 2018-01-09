@@ -1,11 +1,11 @@
-from common_helper_files import get_safe_name
-from common_helper_mongo.aggregate import get_list_of_all_values, \
-    get_list_of_all_values_and_collect_information_of_additional_field
-import gridfs
 import json
 import logging
 import pickle
 import sys
+
+import gridfs
+from common_helper_files import get_safe_name
+from common_helper_mongo.aggregate import get_list_of_all_values, get_list_of_all_values_and_collect_information_of_additional_field
 
 from helperFunctions.dataConversion import dict_size, convert_time_to_str
 from objects.file import FileObject
