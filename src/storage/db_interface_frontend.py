@@ -1,7 +1,6 @@
 import json
 import logging
 import sys
-from copy import deepcopy
 
 from helperFunctions.compare_sets import remove_duplicates_from_list
 from helperFunctions.dataConversion import get_value_of_first_key
@@ -11,6 +10,7 @@ from helperFunctions.merge_generators import merge_generators, dict_to_sorted_tu
 from objects.file import FileObject
 from objects.firmware import Firmware
 from storage.db_interface_common import MongoInterfaceCommon
+from helperFunctions.tag import TagColor
 
 
 class FrontEndDbInterface(MongoInterfaceCommon):
@@ -23,11 +23,12 @@ class FrontEndDbInterface(MongoInterfaceCommon):
             firmware_list = self.firmwares.find()
         for firmware in firmware_list:
             if firmware:
-                if firmware['processed_analysis']['unpacker']['file_system_flag']:
-                    unpacker = self.retrieve_analysis(deepcopy(firmware['processed_analysis']))['unpacker']['plugin_used']
+                if 'tags' in firmware:
+                    tags = firmware['tags']
                 else:
-                    unpacker = firmware['processed_analysis']['unpacker']['plugin_used']
-                list_of_firmware_data.append((firmware['_id'], self.get_hid(firmware['_id']), unpacker))
+                    tags = dict()
+                tags[firmware['processed_analysis']['unpacker']['plugin_used']] = TagColor.LIGHT_BLUE
+                list_of_firmware_data.append((firmware['_id'], self.get_hid(firmware['_id']), tags))
         return list_of_firmware_data
 
     def get_hid(self, uid, root_uid=None):

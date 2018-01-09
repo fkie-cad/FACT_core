@@ -257,3 +257,10 @@ def comment_out_regex_meta_chars(input_data):
         if c in input_data:
             input_data = input_data.replace(c, '\\{}'.format(c))
     return input_data
+
+
+def render_tags(tag_dict, additional_class='', size=10):
+    output = ''
+    for tag in sorted(tag_dict.keys()):
+        output += '<span class="label label-pill label-{} {}" style="font-size: {}px;">{}</span>\n'.format(tag_dict[tag], additional_class, size, tag)
+    return output

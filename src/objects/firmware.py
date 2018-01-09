@@ -1,5 +1,6 @@
 from objects.file import FileObject
 from helperFunctions.hash import get_md5
+from helperFunctions.tag import TagColor
 from contextlib import suppress
 
 
@@ -15,7 +16,7 @@ class Firmware(FileObject):
         self.device_class = None
         self.vendor = None
         self.release_date = None
-        self.tags = set()
+        self.tags = dict()
         self._update_root_id_and_virtual_path()
 
     def set_device_name(self, device_name):
@@ -42,12 +43,12 @@ class Firmware(FileObject):
         self.root_uid = self.get_uid()
         self.virtual_file_path = {self.get_uid(): [self.get_uid()]}
 
-    def set_tag(self, tag):
-        self.tags.add(tag)
+    def set_tag(self, tag, tag_color=TagColor.GRAY):
+        self.tags[tag] = tag_color
 
     def remove_tag(self, tag):
         with suppress(KeyError):
-            self.tags.remove(tag)
+            self.tags.pop(tag)
 
     def get_hid(self, root_uid=None):
         '''

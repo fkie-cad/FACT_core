@@ -3,6 +3,7 @@ import pytest
 
 from helperFunctions.fileSystem import get_test_data_dir
 from objects.firmware import Firmware
+from helperFunctions.tag import TagColor
 
 
 @pytest.mark.parametrize('input_data, expected_count', [
@@ -15,19 +16,19 @@ def test_add_tag(input_data, expected_count):
         test_object.set_tag(item)
     for item in input_data:
         assert item in test_object.tags
-    assert len(test_object.tags) == expected_count
+    assert len(test_object.tags.keys()) == expected_count
 
 
 @pytest.mark.parametrize('tag_set, remove_items, expected_count', [
-    (set('ab'), ['a'], 1),
-    (set('ab'), ['a', 'b', 'a'], 0)
+    ({'a': TagColor.GRAY, 'b': TagColor.GREEN}, ['a'], 1),
+    ({'a': TagColor.GRAY, 'b': TagColor.BLUE}, ['a', 'b', 'a'], 0)
 ])
 def test_remove_tag(tag_set, remove_items, expected_count):
     test_fw = Firmware()
     test_fw.tags = tag_set
     for item in remove_items:
         test_fw.remove_tag(item)
-    assert len(test_fw.tags) == expected_count
+    assert len(test_fw.tags.keys()) == expected_count
 
 
 def test_create_firmware_container_raw():
