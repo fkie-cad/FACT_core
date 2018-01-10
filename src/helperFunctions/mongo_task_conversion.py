@@ -102,7 +102,7 @@ def convert_fw_obj_to_analysis_task(fw):
                      'firmware_version': fw.version,
                      'release_date': fw.release_date,
                      'requested_analysis_systems': fw.scheduled_analysis,
-                     'tags': ','.join(fw.tags),
+                     'tags': ','.join(sorted(fw.tags.keys())),
                      'uid': fw.get_uid()}
     return analysis_task
 

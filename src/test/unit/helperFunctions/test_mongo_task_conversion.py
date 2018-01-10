@@ -1,10 +1,10 @@
 import unittest
+import pytest
 
 from helperFunctions.mongo_task_conversion import check_for_errors, \
     get_uid_of_analysis_task, get_uploaded_file_binary,\
     convert_analysis_task_to_fw_obj, convert_fw_obj_to_analysis_task, \
-    is_sanitized_entry
-from helperFunctions.tag import TagColor
+    is_sanitized_entry, _get_tag_list
 from objects.firmware import Firmware
 from test.common_helper import create_test_firmware
 
@@ -21,6 +21,14 @@ TEST_TASK = {
     'tags': 'a,b',
     'uid': '2e99758548972a8e8822ad47fa1017ff72f06f3ff6a016851f45c398732bc50c_14'
 }
+
+
+@pytest.mark.parametrize('input_data, expected', [
+    ('', []),
+    ('a,b', ['a', 'b'])
+])
+def test_get_tag_list(input_data, expected):
+    assert _get_tag_list(input_data) == expected
 
 
 class TestMongoTask(unittest.TestCase):
