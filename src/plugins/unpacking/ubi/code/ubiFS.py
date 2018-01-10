@@ -1,9 +1,9 @@
 '''
 This plugin unpacks ubi filesystem images
 '''
-from common_helper_process.fail_safe_subprocess import execute_shell_command
 import logging
 
+from common_helper_process.fail_safe_subprocess import execute_shell_command
 
 name = 'UBIFS'
 mime_patterns = ['filesystem/ubifs']

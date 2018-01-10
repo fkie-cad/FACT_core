@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
+import re
+from os import path, rename
+
 from common_helper_files import get_files_in_dir, delete_file
 from common_helper_process import execute_shell_command
-from os import path, rename
-import re
 
 from helperFunctions.fileSystem import get_faf_bin_dir
-
 
 name = 'DJI_drones'
 mime_patterns = ['firmware/dji-drone']

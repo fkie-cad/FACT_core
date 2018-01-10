@@ -1,9 +1,9 @@
-import OpenSSL
 import logging
 from struct import unpack
 
-from helperFunctions.dataConversion import make_unicode_string
+import OpenSSL
 
+from helperFunctions.dataConversion import make_unicode_string
 
 TLV_KNOWN_STARTS = [0x30]
 
