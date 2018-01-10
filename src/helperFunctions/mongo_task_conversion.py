@@ -9,14 +9,19 @@ from helperFunctions.uid import create_uid
 from objects.firmware import Firmware
 
 
+OPTIONAL_FIELDS = ['tags']
+DROPDOWN_FIELDS = ['device_class', 'vendor', 'device_name']
+
+
 def create_analysis_task(request):
     task = _get_meta_from_request(request)
+    logging.error('after_get_meta')
     if request.files['file']:
         task['file_name'], task['binary'] = get_file_name_and_binary_from_request(request)
     task['uid'] = get_uid_of_analysis_task(task)
-    if task["release_date"] == '':
+    if task['release_date'] == '':
         # set default value if date field is empty
-        task["release_date"] = "1970-01-01"
+        task['release_date'] = '1970-01-01'
     return task
 
 
@@ -25,7 +30,7 @@ def get_file_name_and_binary_from_request(request):
     try:
         result.append(request.files['file'].filename)
     except Exception:
-        result.append("no name")
+        result.append('no name')
     result.append(get_uploaded_file_binary(request.files['file']))
     return result
 
@@ -33,8 +38,8 @@ def get_file_name_and_binary_from_request(request):
 def create_re_analyze_task(request, uid):
     task = _get_meta_from_request(request)
     task['uid'] = uid
-    if not task["release_date"]:
-        task["release_date"] = "1970-01-01"
+    if not task['release_date']:
+        task['release_date'] = '1970-01-01'
     return task
 
 
@@ -45,8 +50,11 @@ def _get_meta_from_request(request):
     meta['vendor'] = request.form['vendor']
     meta['firmware_version'] = request.form['firmware_version']
     meta['release_date'] = request.form['release_date']
-    meta['requested_analysis_systems'] = request.form.getlist("analysis_systems")
-    meta['tags'] = request.form['tags']
+    meta['requested_analysis_systems'] = request.form.getlist('analysis_systems')
+    if 'tags' in request.form.keys():
+        meta['tags'] = request.form['tags']
+    else:
+        meta['tags'] = ''
     meta = _get_meta_from_dropdowns(meta, request)
     if 'file_name' in request.form.keys():
         meta['file_name'] = request.form['file_name']
@@ -55,15 +63,18 @@ def _get_meta_from_request(request):
 
 def _get_meta_from_dropdowns(meta, request):
     for item in meta.keys():
-        if not meta[item] and item not in ['firmware_version', 'release_date', 'requested_analysis_systems']:
+        if not meta[item] and item in DROPDOWN_FIELDS:
             dd = request.form['{}_dropdown'.format(item)]
-            if dd != "new entry":
+            if dd != 'new entry':
                 meta[item] = dd
     return meta
 
 
 def _get_tag_list(tag_string):
-    return tag_string.split(',')
+    if tag_string == '':
+        return []
+    else:
+        return tag_string.split(',')
 
 
 def convert_analysis_task_to_fw_obj(analysis_task):
@@ -109,8 +120,8 @@ def get_uid_of_analysis_task(analysis_task):
 
 def get_uploaded_file_binary(request_file):
     if request_file:
-        tmp_dir = TemporaryDirectory(prefix="faf_upload_")
-        tmp_file_path = os.path.join(tmp_dir.name, "upload.bin")
+        tmp_dir = TemporaryDirectory(prefix='faf_upload_')
+        tmp_file_path = os.path.join(tmp_dir.name, 'upload.bin')
         try:
             request_file.save(tmp_file_path)
             with open(tmp_file_path, 'rb') as f:
@@ -126,19 +137,19 @@ def get_uploaded_file_binary(request_file):
 def check_for_errors(analysis_task):
     error = {}
     for key in analysis_task:
-        if analysis_task[key] in [None, "", b'']:
-            error.update({key: "Please specify the {}".format(" ".join(key.split("_")))})
+        if analysis_task[key] in [None, '', b''] and key not in OPTIONAL_FIELDS:
+            error.update({key: 'Please specify the {}'.format(' '.join(key.split('_')))})
     return error
 
 
 def is_sanitized_entry(entry):
     try:
-        if re.search(r"_[0-9a-f]{64}_[0-9]+", entry) is None:
+        if re.search(r'_[0-9a-f]{64}_[0-9]+', entry) is None:
             return False
         else:
             return True
     except TypeError:  # DB entry has type other than string (e.g. integer or float)
         return False
     except Exception as e:
-        logging.error("Could not determine entry sanitization state: {} {}".format(sys.exc_info()[0].__name__, e))
+        logging.error('Could not determine entry sanitization state: {} {}'.format(sys.exc_info()[0].__name__, e))
         return False

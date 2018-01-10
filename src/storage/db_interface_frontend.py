@@ -171,7 +171,7 @@ class FrontEndDbInterface(MongoInterfaceCommon):
     def get_last_added_firmwares(self, limit_x=10):
         db_entries = self.firmwares.find(
             {'submission_date': {'$gt': 1}},
-            {'_id': 1, 'vendor': 1, 'device_name': 1, 'version': 1, 'device_class': 1, 'submission_date': 1},
+            {'_id': 1, 'vendor': 1, 'device_name': 1, 'version': 1, 'device_class': 1, 'submission_date': 1, 'tags': 1},
             limit=limit_x, sort=[('submission_date', -1)]
         )
         result = []
