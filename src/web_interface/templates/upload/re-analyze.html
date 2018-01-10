@@ -119,8 +119,7 @@
                 </div>
 
                 {% set input_form_text = [
-                    ("Version", "firmware_version", firmware.version),
-                    ("Tags", "tags", ','.join(firmware.tags.keys()))
+                    ("Version", "firmware_version", firmware.version)
                 ] -%}
                 {% for label, id, data in input_form_text %}
                 <div class="form-group">
@@ -155,7 +154,13 @@
                             {% endif %}
                         </div>
                 </div>
-
+                <div class="form-group">
+                    <label class="control-label col-xs-3" for="tags">Tags:</label>
+                    	<div class="col-xs-9">
+                            <input type="text" name="tags" class="form-control" id="tags" value="{{ ','.join(firmware.tags.keys()) }}">
+                            <span class="help-block">Optional: Comma separated list (e.g: flashdump,partial)</span>
+                        </div>
+                </div>
                 <div class="form-group">
                     <label class="control-label col-xs-3">Analysis Systems:</label>
                 {% for system in analysis_plugin_dict.keys() | sort %}

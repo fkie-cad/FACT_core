@@ -87,6 +87,7 @@ def test_submit_success(test_app):
         'firmware_version': 'no.real.version',
         'release_date': '01.01.1970',
         'vendor': 'no real vendor',
+        'tags': 'tag1,tag2',
         'requested_analysis_systems': ['file_type']
     }
     result = decode_response(test_app.put('/rest/firmware', data=json.dumps(request_data)))
