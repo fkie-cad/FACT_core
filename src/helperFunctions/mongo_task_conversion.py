@@ -15,7 +15,6 @@ DROPDOWN_FIELDS = ['device_class', 'vendor', 'device_name']
 
 def create_analysis_task(request):
     task = _get_meta_from_request(request)
-    logging.error('after_get_meta')
     if request.files['file']:
         task['file_name'], task['binary'] = get_file_name_and_binary_from_request(request)
     task['uid'] = get_uid_of_analysis_task(task)
