@@ -51,10 +51,7 @@ def _get_meta_from_request(request):
     meta['firmware_version'] = request.form['firmware_version']
     meta['release_date'] = request.form['release_date']
     meta['requested_analysis_systems'] = request.form.getlist('analysis_systems')
-    if 'tags' in request.form.keys():
-        meta['tags'] = request.form['tags']
-    else:
-        meta['tags'] = ''
+    meta['tags'] = request.form['tags']
     meta = _get_meta_from_dropdowns(meta, request)
     if 'file_name' in request.form.keys():
         meta['file_name'] = request.form['file_name']
