@@ -113,7 +113,8 @@ def test_generic_nice_representation(input_data, expected):
 
 @pytest.mark.parametrize('tag_dict, output', [
     ({'a': 'danger'}, '<span class="label label-pill label-danger " style="font-size: 10px;">a</span>\n'),
-    ({'a': 'danger', 'b': 'default'}, '<span class="label label-pill label-danger " style="font-size: 10px;">a</span>\n<span class="label label-pill label-default " style="font-size: 10px;">b</span>\n')
+    ({'a': 'danger', 'b': 'default'}, '<span class="label label-pill label-danger " style="font-size: 10px;">a</span>\n<span class="label label-pill label-default " style="font-size: 10px;">b</span>\n'),
+    (None, '')
 ])
 def test_render_tags(tag_dict, output):
     assert render_tags(tag_dict) == output
