@@ -1,6 +1,7 @@
 from os.path import basename
 from subprocess import check_output, CalledProcessError, STDOUT
 from tempfile import NamedTemporaryFile
+
 import yara
 
 

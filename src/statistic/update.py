@@ -1,16 +1,17 @@
-from bson.son import SON
-from common_helper_mongo import get_field_average, get_field_sum, get_objects_and_count_of_occurrence
-from datetime import datetime
 import itertools
 import logging
 import sys
+from datetime import datetime
 from time import time
+
+from bson.son import SON
+from common_helper_filter.time import time_format
+from common_helper_mongo import get_field_average, get_field_sum, get_objects_and_count_of_occurrence
 
 from helperFunctions.dataConversion import build_time_dict
 from helperFunctions.merge_generators import sum_up_lists, avg, merge_dict
 from helperFunctions.mongo_task_conversion import is_sanitized_entry
 from storage.db_interface_statistic import StatisticDbUpdater
-from common_helper_filter.time import time_format
 
 
 class StatisticUpdater(object):

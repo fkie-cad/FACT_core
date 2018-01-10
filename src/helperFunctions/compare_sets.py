@@ -1,5 +1,6 @@
-from helperFunctions.dataConversion import list_of_lists_to_list_of_sets
 from copy import deepcopy
+
+from helperFunctions.dataConversion import list_of_lists_to_list_of_sets
 
 
 def intersection_of_list_of_lists(list_of_lists):

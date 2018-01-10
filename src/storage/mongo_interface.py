@@ -1,8 +1,8 @@
-from pymongo import MongoClient, errors
 import warnings
 
-from helperFunctions.process import complete_shutdown
+from pymongo import MongoClient, errors
 
+from helperFunctions.process import complete_shutdown
 
 warnings.filterwarnings("ignore", module="pymongo.topology")
 CONFIG_FILE = "main.cfg"

@@ -1,7 +1,9 @@
-from storage.db_interface_common import MongoInterfaceCommon
-from common_helper_files.fail_safe_file_operations import get_binary_from_file
-from unpacker.tar_repack import tarRepack
 import logging
+
+from common_helper_files.fail_safe_file_operations import get_binary_from_file
+
+from storage.db_interface_common import MongoInterfaceCommon
+from unpacker.tar_repack import tarRepack
 
 
 class BinaryService(object):

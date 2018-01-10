@@ -1,8 +1,8 @@
-from common_helper_process.fail_safe_subprocess import execute_shell_command
 import os
 
-from helperFunctions.fileSystem import get_faf_bin_dir
+from common_helper_process.fail_safe_subprocess import execute_shell_command
 
+from helperFunctions.fileSystem import get_faf_bin_dir
 
 name = 'ROSFile'
 mime_patterns = ['firmware/ros']

@@ -1,8 +1,8 @@
+import logging
 import pickle
 from time import sleep, time
-from intercom.common_mongo_binding import InterComMongoInterface,\
-    generate_task_id
-import logging
+
+from intercom.common_mongo_binding import InterComMongoInterface, generate_task_id
 
 
 class InterComFrontEndBinding(InterComMongoInterface):

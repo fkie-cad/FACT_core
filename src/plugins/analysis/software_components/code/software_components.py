@@ -1,5 +1,6 @@
-from analysis.YaraPluginBase import YaraBasePlugin
 import re
+
+from analysis.YaraPluginBase import YaraBasePlugin
 from helperFunctions.dataConversion import make_unicode_string
 
 
