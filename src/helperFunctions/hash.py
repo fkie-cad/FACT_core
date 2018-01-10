@@ -1,6 +1,7 @@
-from hashlib import new, md5
-import lief
 import logging
+from hashlib import new, md5
+
+import lief
 import ssdeep
 
 from helperFunctions.dataConversion import make_bytes

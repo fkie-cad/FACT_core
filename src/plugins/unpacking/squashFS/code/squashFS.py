@@ -1,9 +1,10 @@
 '''
 This plugin unpacks SquashFS filesystem images
 '''
-from common_helper_process import execute_shell_command
-from common_helper_files import get_files_in_dir
 import os
+
+from common_helper_files import get_files_in_dir
+from common_helper_process import execute_shell_command
 
 THIS_FILES_DIR = os.path.dirname(os.path.abspath(__file__))
 BIN_DIR = os.path.join(THIS_FILES_DIR, '../bin')

@@ -1,9 +1,10 @@
-from common_helper_files import get_files_in_dir
 import logging
+import sys
 from os import getgid, getuid
 from subprocess import Popen, PIPE
-import sys
 from time import time
+
+from common_helper_files import get_files_in_dir
 
 from helperFunctions.fileSystem import get_file_type_from_path
 from helperFunctions.plugin import import_plugins

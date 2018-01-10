@@ -1,6 +1,7 @@
-from common_helper_files import write_binary_to_file, create_dir_for_file, delete_file
 import logging
 import os
+
+from common_helper_files import write_binary_to_file, create_dir_for_file, delete_file
 
 from helperFunctions.fileSystem import get_absolute_path
 

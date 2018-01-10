@@ -1,6 +1,7 @@
-from common_helper_files import get_dir_of_file
 import os
 import sys
+
+from common_helper_files import get_dir_of_file
 
 from analysis.PluginBase import BasePlugin
 

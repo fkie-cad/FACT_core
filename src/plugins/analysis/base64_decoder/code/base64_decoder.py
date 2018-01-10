@@ -2,9 +2,9 @@ import logging
 import os
 import re
 from binascii import a2b_base64
-from entropy import shannon_entropy  # pylint: disable=no-name-in-module
 
 from common_helper_files import get_dir_of_file, get_string_list_from_file
+from entropy import shannon_entropy  # pylint: disable=no-name-in-module
 
 from analysis.PluginBase import BasePlugin
 from helperFunctions.dataConversion import remove_linebreaks_from_byte_string

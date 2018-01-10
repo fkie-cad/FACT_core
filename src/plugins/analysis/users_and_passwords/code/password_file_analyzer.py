@@ -1,10 +1,11 @@
-from common_helper_process import execute_shell_command
-from contextlib import suppress
 import logging
 import os
 import re
 import sys
+from contextlib import suppress
 from tempfile import NamedTemporaryFile
+
+from common_helper_process import execute_shell_command
 
 from analysis.PluginBase import BasePlugin
 from helperFunctions.fileSystem import get_src_dir
