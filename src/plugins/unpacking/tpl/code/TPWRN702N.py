@@ -1,8 +1,8 @@
-from struct import unpack
 import binascii
 import hashlib
-from unpacker.helper.carving import Carver
+from struct import unpack
 
+from unpacker.helper.carving import Carver
 
 '''
 This plugin TPLink WR702n

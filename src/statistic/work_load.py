@@ -1,13 +1,14 @@
 '''
 generate workload statistics
 '''
-from common_helper_files import get_directory_for_filename, get_version_string_from_git
-import distro
 import logging
 import os
-import psutil
 import sys
 from time import time
+
+import distro
+import psutil
+from common_helper_files import get_directory_for_filename, get_version_string_from_git
 
 from storage.db_interface_statistic import StatisticDbUpdater
 

@@ -18,18 +18,18 @@
 '''
 
 import argparse
-from common_helper_process import execute_shell_command_get_return_code
-from common_helper_filter import time_format
 import configparser
 import logging
 import os
 import sys
 from time import time
 
+from common_helper_filter import time_format
+from common_helper_process import execute_shell_command_get_return_code
+
 from helperFunctions.config import get_config_dir
 from helperFunctions.fileSystem import get_src_dir
 from storage.MongoMgr import MongoMgr
-
 
 PROGRAM_NAME = 'FACT Variety Data Updater'
 PROGRAM_VERSION = '0.1'

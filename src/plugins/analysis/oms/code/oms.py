@@ -1,5 +1,6 @@
-from common_analysis_oms.oms import CommonAnalysisOMS
 import logging
+
+from common_analysis_oms.oms import CommonAnalysisOMS
 
 from analysis.PluginBase import BasePlugin
 

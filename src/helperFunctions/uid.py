@@ -1,6 +1,7 @@
-from helperFunctions.hash import get_sha256
-from helperFunctions.dataConversion import make_bytes
 import re
+
+from helperFunctions.dataConversion import make_bytes
+from helperFunctions.hash import get_sha256
 
 
 def create_uid(input_data):

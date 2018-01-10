@@ -1,9 +1,9 @@
 '''
 This plugin unpacks all files via carving
 '''
-from common_helper_process import execute_shell_command
 import logging
 
+from common_helper_process import execute_shell_command
 
 name = 'generic_carver'
 mime_patterns = ['generic/carver']

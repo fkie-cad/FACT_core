@@ -1,8 +1,9 @@
-from common_helper_files import get_binary_from_file
 import logging
 import os
 from subprocess import Popen, PIPE
 from tempfile import TemporaryDirectory
+
+from common_helper_files import get_binary_from_file
 
 from unpacker.unpackBase import UnpackBase
 
