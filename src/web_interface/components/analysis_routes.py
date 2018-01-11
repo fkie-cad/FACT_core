@@ -105,7 +105,7 @@ class AnalysisRoutes(ComponentBase):
                 return render_template('upload/upload_successful.html', uid=uid)
 
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
-            old_firmware = sc.get_object(uid=uid, analysis_filter=[])
+            old_firmware = sc.get_firmware(uid=uid, analysis_filter=[])
         if old_firmware is None:
             return render_template('uid_not_found.html', uid=uid)
 
