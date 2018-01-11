@@ -114,9 +114,9 @@ class AjaxRoutes(ComponentBase):
             result = sc.get_compare_result(compare_id)
         feature, key = feature_id.split('___')
         uid_list = result['plugins']['File_Coverage'][feature][key]
-        return self._get_nice_uid_list_html(uid_list)
+        return self._get_nice_uid_list_html(uid_list, key)
 
-    def _get_nice_uid_list_html(self, input_data):
+    def _get_nice_uid_list_html(self, input_data, root_uid=None):
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
             included_files = sc.get_data_for_nice_list(input_data, None)
         number_of_unanalyzed_files = len(input_data) - len(included_files)
@@ -124,7 +124,8 @@ class AjaxRoutes(ComponentBase):
             'generic_view/nice_fo_list.html',
             fo_list=included_files,
             number_of_unanalyzed_files=number_of_unanalyzed_files,
-            omit_collapse=True
+            omit_collapse=True,
+            root_uid=root_uid
         )
 
     def _ajax_get_binary(self, mime_type, uid):
