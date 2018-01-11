@@ -1,6 +1,7 @@
 import json
 import logging
 import sys
+from copy import deepcopy
 
 from helperFunctions.compare_sets import remove_duplicates_from_list
 from helperFunctions.dataConversion import get_value_of_first_key
@@ -27,7 +28,11 @@ class FrontEndDbInterface(MongoInterfaceCommon):
                     tags = firmware['tags']
                 else:
                     tags = dict()
-                tags[firmware['processed_analysis']['unpacker']['plugin_used']] = TagColor.LIGHT_BLUE
+                if firmware['processed_analysis']['unpacker']['file_system_flag']:
+                    unpacker = self.retrieve_analysis(deepcopy(firmware['processed_analysis']))['unpacker']['plugin_used']
+                else:
+                    unpacker = firmware['processed_analysis']['unpacker']['plugin_used']
+                tags[unpacker] = TagColor.LIGHT_BLUE
                 list_of_firmware_data.append((firmware['_id'], self.get_hid(firmware['_id']), tags))
         return list_of_firmware_data
 
