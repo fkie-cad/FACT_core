@@ -11,6 +11,7 @@ from helperFunctions.merge_generators import merge_generators, dict_to_sorted_tu
 from objects.file import FileObject
 from objects.firmware import Firmware
 from storage.db_interface_common import MongoInterfaceCommon
+from helperFunctions.tag import TagColor
 
 
 class FrontEndDbInterface(MongoInterfaceCommon):
@@ -23,11 +24,16 @@ class FrontEndDbInterface(MongoInterfaceCommon):
             firmware_list = self.firmwares.find()
         for firmware in firmware_list:
             if firmware:
+                if 'tags' in firmware:
+                    tags = firmware['tags']
+                else:
+                    tags = dict()
                 if firmware['processed_analysis']['unpacker']['file_system_flag']:
                     unpacker = self.retrieve_analysis(deepcopy(firmware['processed_analysis']))['unpacker']['plugin_used']
                 else:
                     unpacker = firmware['processed_analysis']['unpacker']['plugin_used']
-                list_of_firmware_data.append((firmware['_id'], self.get_hid(firmware['_id']), unpacker))
+                tags[unpacker] = TagColor.LIGHT_BLUE
+                list_of_firmware_data.append((firmware['_id'], self.get_hid(firmware['_id']), tags))
         return list_of_firmware_data
 
     def get_hid(self, uid, root_uid=None):
@@ -170,7 +176,7 @@ class FrontEndDbInterface(MongoInterfaceCommon):
     def get_last_added_firmwares(self, limit_x=10):
         db_entries = self.firmwares.find(
             {'submission_date': {'$gt': 1}},
-            {'_id': 1, 'vendor': 1, 'device_name': 1, 'version': 1, 'device_class': 1, 'submission_date': 1},
+            {'_id': 1, 'vendor': 1, 'device_name': 1, 'version': 1, 'device_class': 1, 'submission_date': 1, 'tags': 1},
             limit=limit_x, sort=[('submission_date', -1)]
         )
         result = []
