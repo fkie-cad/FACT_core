@@ -16,7 +16,7 @@ class mock_db_interface(object):
         self.fw.add_included_file(self.fo)
         self.fw.processed_analysis['file_hashes'] = {'ssdeep': get_ssdeep(self.fw.binary)}
 
-    def get_object(self, uid):
+    def get_object(self, uid, analysis_filter=None):
         if uid == self.fw.get_uid():
             return self.fw
         elif uid == 'error':
