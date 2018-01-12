@@ -21,7 +21,8 @@ class ComparePluginBase(object):
         self.plugin_administrator = plugin_administrator
         self.register_plugin()
         self.database = db_interface
-        self._sync_view(plugin_path)
+        if plugin_path:
+            self._sync_view(plugin_path)
 
     def _sync_view(self, plugin_path):
         if plugin_path:
