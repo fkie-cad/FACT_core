@@ -1,8 +1,12 @@
 import colorsys
 import json
+import os
 import re
 
+from common_helper_files import get_binary_from_file
 from itertools import chain
+
+from helperFunctions.fileSystem import get_template_dir
 
 
 SPECIAL_CHARACTERS = 'ÄäÀàÁáÂâÃãÅåǍǎĄąĂăÆæĀāÇçĆćĈĉČčĎđĐďðÈèÉéÊêËëĚěĘęĖėĒēĜĝĢģĞğĤĥÌìÍíÎîÏïıĪīĮįĴĵĶķĹĺĻļŁłĽľÑñŃńŇňŅņÖöÒòÓóÔôÕõŐőØøŒœŔŕŘřẞßŚśŜŝŞşŠšȘș' \
@@ -68,3 +72,8 @@ class ConnectTo:
 
     def __exit__(self, *args):
         self.connection.shutdown()
+
+
+def get_template_as_string(view_name):
+    path = os.path.join(get_template_dir(), view_name)
+    return get_binary_from_file(path).decode('utf-8')

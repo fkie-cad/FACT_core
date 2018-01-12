@@ -49,7 +49,56 @@
 		<tr>
 			<th colspan="{{ uid_list | length  + 1 }}" class="success" style="text-align:center;">{{ plugin | replace_underscore }}</th>
 		</tr>
-            {% if plugin == 'Ida_Diff_Highlighting' %}
+            {% if plugin in plugins_without_view %}
+
+                {# plugins without separate view #}
+                {% for feature in result['plugins'][plugin] | sort %}
+                    <tr>
+                        <td class="active"> {{ feature | replace_underscore }} </td>
+
+                        {# --- all case --- #}
+                        {% if 'all' in result['plugins'][plugin][feature] %}
+                            {% if result['plugins'][plugin][feature]['collapse'] %}
+                                <td colspan="{{ uid_list | length }}">
+                                    <center>
+                                        <button type="button" class="btn btn-sm btn-fact-one" data-toggle="collapse" data-target="#{{ feature }}">
+                                            {{ result['plugins'][plugin][feature]['all'] | length }}
+                                        </button>
+                                    </center>
+                                    <div id="{{ feature }}" class="collapse">
+                                        {{ result['plugins'][plugin][feature]['all'] | nice_list | uids_to_link | replace_uid_with_file_name | safe  }}
+                                    </div>
+                                </td>
+                            {% else %}
+                                <td colspan="{{ uid_list | length }}" style="text-align:center;"> {{ result['plugins'][plugin][feature]['all'] | nice_uid_list | safe }} </td>
+                            {% endif %}
+
+                        {# --- individual results --- #}
+                        {% else %}
+                            {% for uid in uid_list %}
+                                <td>
+                                {% if result['plugins'][plugin][feature]['collapse'] %}
+                                    <center>
+                                        <button type="button" class="btn btn-sm btn-primary" data-toggle="collapse" data-target="#{{ feature + uid }}">
+                                            {{ result['plugins'][plugin][feature][uid] | length }}
+                                        </button>
+                                    </center>
+                                    <div id="{{ feature + uid }}" class="collapse">
+                                        {{ result['plugins'][plugin][feature][uid] | nice_list | uids_to_link(root_uid=uid) | replace_uid_with_file_name | safe }}
+                                    </div>
+                                {% else %}
+                                    {{ result['plugins'][plugin][feature][uid] | nice_uid_list(root_uid=uid) | safe }}
+                                {% endif %}
+                                </td>
+                            {% endfor %}
+                        {% endif %}
+                    </tr>
+                {% endfor %}
+
+
+            {# individual plugin views #}
+
+            {% elif plugin == 'Ida_Diff_Highlighting' %}
                 {% if download_link %}
                     {# Success goes here #}
                         <tr>
@@ -69,161 +118,11 @@
                         </tr>
                 {% endif %}
 
-
-            {% elif plugin == 'File_Coverage' %}
-                {% for feature in result['plugins'][plugin] | sort %}
-
-                    {# --- similar files exception ---#}
-                    {% if feature == 'similar_files' %}
-                        <tr><th colspan="{{ uid_list | length + 1 }}" style="text-align:center;" class="success">SSDEEP Similarity</th></tr>
-                        {% if not result['plugins'][plugin][feature] %}
-                            <tr>
-                                <td colspan="{{ uid_list | length + 1 }}" align="center">No similar files found</td>
-                            </tr>
-                        {% endif %}
-                        {% for match in result['plugins'][plugin][feature] %}
-                            <tr>
-                                <td align="right" class="active">{{ result['plugins'][plugin][feature][match]['similarity'] }}</td>
-                            {% for uid in uid_list %}
-                                <td>{{ result['plugins'][plugin][feature][match][uid] | replace_uid_with_hid_link | safe }}</td>
-                            {% endfor %}
-                            </tr>
-                        {% endfor %}
-
-                    {% elif feature == 'exclusive_files' %}
-                        <td class="active"> {{ feature | replace_underscore }} </td>
-                        {% for firmware_uid in result['plugins'][plugin][feature] %}
-                            {% if firmware_uid != "collapse" %}
-                            <td>
-                                <div id="fileTreeAjax_{{ loop.index }}"></div>
-                                {# --- file tree ---#}
-                                <script>
-                                    $('#fileTreeAjax_{{ loop.index }}')
-                                        // generate links to the analysis page
-                                        .on("activate_node.jstree", function(e,data){window.location.href = data.node.a_attr.href;})
-                                        // generate file tree
-                                        .jstree({
-                                          "core" : {
-                                            'data' : {
-                                              'url' : function (node) {
-                                                return node.id === '#' ?
-                                                    "/ajax_root/{{ firmware_uid|safe }}" : "/compare/ajax_tree/{{ result["_id"] }}/{{ firmware_uid }}/" + node["data"]["uid"];
-                                              }
-                                            }
-                                          },
-                                          "plugins" : [ "sort" ]
-                                        });
-                                </script>
-                            </td>
-                            {% endif %}
-                        {% endfor %}
-
-                    {% else %}
-                        <tr>
-                            <td class="active"> {{ feature | replace_underscore }} </td>
-
-                            {# --- all case --- #}
-                            {% if 'all' in result['plugins'][plugin][feature] %}
-                                <td colspan="{{ uid_list | length }}" style="text-align:center;">
-                                        <button data-toggle="collapse" data-target="#{{ feature + '___all' }}" class="list-group-item list-group-item-info">
-                                            <span class="badge">{{ result['plugins'][plugin][feature]['all'] | length }}</span> show files
-                                        </button>
-                                        <div id="{{ feature + '___all' }}" class="collapse"></div>
-                                        <div id="{{ feature + '___all' + '_gif' }}" style="display: none;">
-                                            <img src="{{ url_for('static', filename = 'Pacman.gif') }}" width="50px">
-                                        </div>
-                                </td>
-
-                            {# --- individual results --- #}
-                            {% else %}
-                                {% for uid in uid_list %}
-                                    <td style="text-align:center;">
-                                        <button data-toggle="collapse" data-target="#{{ feature + '___' + uid }}" class="list-group-item list-group-item-info">
-                                            <span class="badge">{{ result['plugins'][plugin][feature][uid] | length }}</span> show files
-                                        </button>
-                                        <div id="{{ feature + '___' + uid }}" class="collapse"></div>
-                                        <div id="{{ feature + '___' + uid + '_gif' }}" style="display: none;">
-                                            <img src="{{ url_for('static', filename = 'Pacman.gif') }}" width="50px">
-                                        </div>
-                                    </td>
-                                {% endfor %}
-                            {% endif %}
-                        </tr>
-                    {% endif %}
-                {% endfor %}
-
-
-            {% else %}
-                {% for feature in result['plugins'][plugin] | sort %}
-                        <tr>
-                            <td class="active"> {{ feature | replace_underscore }} </td>
-
-                            {# --- all case --- #}
-                            {% if 'all' in result['plugins'][plugin][feature] %}
-                                {% if result['plugins'][plugin][feature]['collapse'] %}
-                                    <td colspan="{{ uid_list | length }}">
-                                        <center>
-                                            <button type="button" class="btn btn-sm btn-fact-one" data-toggle="collapse" data-target="#{{ feature }}">
-                                                {{ result['plugins'][plugin][feature]['all'] | length }}
-                                            </button>
-                                        </center>
-                                        <div id="{{ feature }}" class="collapse">
-                                            {{ result['plugins'][plugin][feature]['all'] | nice_list | uids_to_link | replace_uid_with_file_name | safe  }}
-                                        </div>
-                                    </td>
-                                {% else %}
-                                    <td colspan="{{ uid_list | length }}" style="text-align:center;"> {{ result['plugins'][plugin][feature]['all'] | nice_uid_list | safe }} </td>
-                                {% endif %}
-
-                            {# --- individual results --- #}
-                            {% else %}
-                                {% for uid in uid_list %}
-                                    <td>
-                                    {% if result['plugins'][plugin][feature]['collapse'] %}
-                                        <center>
-                                            <button type="button" class="btn btn-sm btn-primary" data-toggle="collapse" data-target="#{{ feature + uid }}">
-                                                {{ result['plugins'][plugin][feature][uid] | length }}
-                                            </button>
-                                        </center>
-                                        <div id="{{ feature + uid }}" class="collapse">
-                                            {{ result['plugins'][plugin][feature][uid] | nice_list | uids_to_link | replace_uid_with_file_name | safe }}
-                                        </div>
-                                    {% else %}
-                                        {{ result['plugins'][plugin][feature][uid] | nice_uid_list | safe }}
-                                    {% endif %}
-                                    </td>
-                                {% endfor %}
-                            {% endif %}
-                        </tr>
-                {% endfor %}
             {% endif %}
 		{% endfor %}
 		
 	</tbody>
 </table>
-
-<script>
-$(document).ready(function() {
-
-    $(".collapse").on('show.bs.collapse', function(){
-        // event: collapsible content is starting to expand
-        var id = $(this).prop('id');
-        var loading_gif = document.getElementById(id + '_gif');
-
-        if (isEmpty($(this))) {
-            loading_gif.style.display = "block";
-            $(this).load('/compare/ajax_common_files/{{ result["_id"] }}/' + id + '/', function() {
-                loading_gif.style.display = "none";
-            });
-        }
-    });
-
-    function isEmpty(element) {
-        return !$.trim(element.html())
-    }
-
-});
-</script>
 
 
 {% endblock %}

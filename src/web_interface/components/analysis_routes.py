@@ -7,9 +7,9 @@ from common_helper_files import get_binary_from_file
 from flask import render_template, request, render_template_string
 
 from helperFunctions.dataConversion import none_to_none
-from helperFunctions.fileSystem import get_src_dir, get_template_dir
+from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.mongo_task_conversion import check_for_errors, convert_analysis_task_to_fw_obj, create_re_analyze_task
-from helperFunctions.web_interface import ConnectTo
+from helperFunctions.web_interface import ConnectTo, get_template_as_string
 from helperFunctions.web_interface import overwrite_default_plugins
 from intercom.front_end_binding import InterComFrontEndBinding
 from objects.firmware import Firmware
@@ -58,7 +58,7 @@ class AnalysisRoutes(ComponentBase):
             root_uid = file_obj.get_uid()
             other_versions = sc.get_other_versions_of_firmware(file_obj)
         if file_obj:
-            view = self._get_analysis_view(selected_analysis) if selected_analysis else self._get_template_as_string('show_analysis.html')
+            view = self._get_analysis_view(selected_analysis) if selected_analysis else get_template_as_string('show_analysis.html')
             with ConnectTo(FrontEndDbInterface, self._config) as sc:
                 summary_of_included_files = sc.get_summary(file_obj, selected_analysis) if selected_analysis else None
                 analysis_of_included_files_complete = not sc.all_uids_found_in_database(list(file_obj.files_included))
@@ -89,11 +89,6 @@ class AnalysisRoutes(ComponentBase):
                 return view.decode('utf-8')
             else:
                 return self.analysis_generic_view
-
-    @staticmethod
-    def _get_template_as_string(view_name):
-        path = os.path.join(get_template_dir(), view_name)
-        return get_binary_from_file(path).decode('utf-8')
 
     def _update_analysis(self, uid, re_do=False):
         error = {}
