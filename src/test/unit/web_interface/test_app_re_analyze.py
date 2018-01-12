@@ -25,6 +25,7 @@ class TestAppReAnalyze(WebInterfaceTest):
             'firmware_version': TEST_FW.version,
             'vendor': TEST_FW.vendor,
             'release_date': TEST_FW.release_date,
+            'tags': '',
             'analysis_systems': ["new_system"]}
         rv = self.test_client.post('/update-analysis/{}'.format(TEST_FW.get_uid()), data=form_data)
         assert b'Upload Successful' in rv.data

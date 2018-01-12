@@ -289,17 +289,11 @@ class DatabaseMock:
         else:
             return [TEST_TEXT_FILE.uid, ]
 
-    def get_firmware(self, uid):
-        if uid == TEST_FW.uid:
-            return TEST_FW
-        else:
-            return None
+    def get_firmware(self, uid, analysis_filter=None):
+        return self.get_object(uid, analysis_filter)
 
-    def get_file_object(self, uid):
-        if uid == TEST_TEXT_FILE.uid:
-            return TEST_TEXT_FILE
-        else:
-            return None
+    def get_file_object(self, uid, analysis_filter=None):
+        return self.get_object(uid, analysis_filter)
 
     def search_cve_summaries_for(self, keyword):
         return [{'_id': 'CVE-2012-0002'}]
