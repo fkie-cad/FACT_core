@@ -48,9 +48,9 @@ class MongoInterfaceCommon(MongoInterface):
             - else: file_object if uid found in file_database
             - else: None
         '''
-        fo = self.get_firmware(uid, analysis_filter=analysis_filter)
+        fo = self.get_file_object(uid, analysis_filter=analysis_filter)
         if fo is None:
-            fo = self.get_file_object(uid, analysis_filter=analysis_filter)
+            fo = self.get_firmware(uid, analysis_filter=analysis_filter)
         return fo
 
     def get_complete_object_including_all_summaries(self, uid):

@@ -88,11 +88,11 @@ class ComparePlugin(ComparePluginBase):
         return remove_duplicates_from_list_of_lists(list_of_sets_to_list_of_lists(similarity_sets)), similarity
 
     def _find_similar_file_for(self, file, parent_id, potential_matches):
-        fo_one = self.database.get_object(uid=file)
+        fo_one = self.database.get_object(uid=file, analysis_filter=['file_hashes'])
         id1 = '{}:{}'.format(parent_id, fo_one.get_uid())
         hash_one = fo_one.processed_analysis['file_hashes']['ssdeep']
         for potential_match in potential_matches.files_included:
-            fo_two = self.database.get_object(uid=potential_match)
+            fo_two = self.database.get_object(uid=potential_match, analysis_filter=['file_hashes'])
             id2 = '{}:{}'.format(potential_matches.get_uid(), fo_two.get_uid())
             hash_two = fo_two.processed_analysis['file_hashes']['ssdeep']
             if get_ssdeep_comparison(hash_one, hash_two) > self.SSDEEP_IGNORE:

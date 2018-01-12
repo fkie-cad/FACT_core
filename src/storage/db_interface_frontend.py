@@ -69,7 +69,7 @@ class FrontEndDbInterface(MongoInterfaceCommon):
         return result
 
     def get_file_name(self, uid):
-        file_object = self.get_object(uid)
+        file_object = self.get_object(uid, analysis_filter=[])
         return file_object.file_name
 
     def get_firmware_attribute_list(self, attribute, restrictions=None):
