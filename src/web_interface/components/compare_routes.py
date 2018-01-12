@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import logging
+from contextlib import suppress
 
 from flask import render_template, request, redirect, url_for, session, render_template_string
 from flask_paginate import Pagination
@@ -44,28 +45,32 @@ class CompareRoutes(ComponentBase):
         return render_template('compare/error.html', error=result.__str__())
 
     def _get_compare_plugin_views(self, compare_result):
-        used_plugins = list(compare_result['plugins'].keys())
         views, plugins_without_view = [], []
-        for plugin in used_plugins:
-            with ConnectTo(ViewReader, self._config) as vr:
-                view = vr.get_view(plugin)
-            if view:
-                views.append((plugin, view))
-            else:
-                plugins_without_view.append(plugin)
+        with suppress(KeyError):
+            used_plugins = list(compare_result['plugins'].keys())
+            for plugin in used_plugins:
+                with ConnectTo(ViewReader, self._config) as vr:
+                    view = vr.get_view(plugin)
+                if view:
+                    views.append((plugin, view))
+                else:
+                    plugins_without_view.append(plugin)
         return views, plugins_without_view
 
     def _get_compare_view(self, plugin_views):
-        key = '{# individual plugin views #}'
         compare_view = get_template_as_string('compare/compare.html')
-        return self._add_plugin_views_to_compare_view(compare_view, key, plugin_views)
+        return self._add_plugin_views_to_compare_view(compare_view, plugin_views)
 
-    def _add_plugin_views_to_compare_view(self, compare_view, key, plugin_views):
+    def _add_plugin_views_to_compare_view(self, compare_view, plugin_views):
+        key = '{# individual plugin views #}'
         insertion_index = compare_view.find(key) + len(key)
-        for plugin, view in plugin_views:
-            if_case = '{{% elif plugin == \'{}\' %}}'.format(plugin)
-            view = "{}\n{}".format(if_case, view.decode())
-            compare_view = self._insert_plugin_into_view_at_index(view, compare_view, insertion_index)
+        if insertion_index == -1:
+            logging.error('compare view insertion not found in compare template')
+        else:
+            for plugin, view in plugin_views:
+                if_case = '{{% elif plugin == \'{}\' %}}'.format(plugin)
+                view = "{}\n{}".format(if_case, view.decode())
+                compare_view = self._insert_plugin_into_view_at_index(view, compare_view, insertion_index)
         return compare_view
 
     @staticmethod
