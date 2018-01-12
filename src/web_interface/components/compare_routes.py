@@ -70,7 +70,7 @@ class CompareRoutes(ComponentBase):
             insertion_index += len(key)
             for plugin, view in plugin_views:
                 if_case = '{{% elif plugin == \'{}\' %}}'.format(plugin)
-                view = "{}\n{}".format(if_case, view.decode())
+                view = '{}\n{}'.format(if_case, view.decode())
                 compare_view = self._insert_plugin_into_view_at_index(view, compare_view, insertion_index)
         return compare_view
 

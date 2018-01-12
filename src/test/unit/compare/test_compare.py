@@ -11,7 +11,7 @@ from helperFunctions.config import get_config_for_testing
 
 @pytest.fixture(autouse=True)
 def no_compare_views(monkeypatch):
-    monkeypatch.setattr(ComparePluginBase, "_sync_view", value=lambda s, p: None)
+    monkeypatch.setattr(ComparePluginBase, '_sync_view', value=lambda s, p: None)
 
 
 class MockDbInterface(object):
