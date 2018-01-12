@@ -4,6 +4,11 @@ from flask import session
 from web_interface.components.compare_routes import get_comparison_uid_list_from_session, CompareRoutes
 
 
+class AppMock:
+    def add_url_rule(self, a, b, c):
+        pass
+
+
 class TestAppCompare(WebInterfaceTest):
 
     def test__add_firmwares_to_compare(self):
@@ -90,3 +95,56 @@ class TestAppCompare(WebInterfaceTest):
             CompareRoutes._remove_all_from_compare_basket('some_uid')
             assert TEST_FW.get_uid() not in session['uids_for_comparison']
             assert TEST_FW_2.get_uid() not in session['uids_for_comparison']
+
+    def test__insert_plugin_into_view_at_index(self):
+        view = '------><------'
+        plugin = 'o'
+        index = view.find('<')
+
+        assert CompareRoutes._insert_plugin_into_view_at_index(plugin, view, 0) == 'o------><------'
+        assert CompareRoutes._insert_plugin_into_view_at_index(plugin, view, index) == '------>o<------'
+        assert CompareRoutes._insert_plugin_into_view_at_index(plugin, view, len(view) + 10) == '------><------o'
+        assert CompareRoutes._insert_plugin_into_view_at_index(plugin, view, -10) == view
+
+    def test__add_plugin_views_to_compare_view(self):
+        cr = CompareRoutes(AppMock(), None)
+        plugin_views = [
+            ('plugin_1', b'<plugin view 1>'),
+            ('plugin_2', b'<plugin view 2>')
+        ]
+        key = '{# individual plugin views #}'
+        compare_view = 'xxxxx{}yyyyy'.format(key)
+        key_index = compare_view.find(key)
+        result = cr._add_plugin_views_to_compare_view(compare_view, plugin_views)
+
+        for plugin, view in plugin_views:
+            assert 'elif plugin == \'{}\''.format(plugin) in result
+            assert view.decode() in result
+            assert key_index + len(key) <= result.find(view.decode()) < result.find('yyyyy')
+
+    def test__add_plugin_views_to_compare_view__missing_key(self):
+        cr = CompareRoutes(AppMock(), None)
+        plugin_views = [
+            ('plugin_1', b'<plugin view 1>'),
+            ('plugin_2', b'<plugin view 2>')
+        ]
+        compare_view = 'xxxxxyyyyy'
+        result = cr._add_plugin_views_to_compare_view(compare_view, plugin_views)
+        assert result == compare_view
+
+    def test__get_compare_view(self):
+        cr = CompareRoutes(AppMock(), None)
+        result = cr._get_compare_view([])
+        assert '>General Information<' in result
+        assert '--- plugin results ---' in result
+
+    def test__get_compare_plugin_views(self):
+        cr = CompareRoutes(AppMock(), None)
+        compare_result = {'plugins': {}}
+        result = cr._get_compare_plugin_views(compare_result)
+        assert result == ([], [])
+
+        compare_result = {'plugins': {'plugin_1': None, 'plugin_2': None}}
+        plugin_views, plugins_without_view = cr._get_compare_plugin_views(compare_result)
+        assert plugin_views == [('plugin_1', b'<plugin 1 view>')]
+        assert plugins_without_view == ['plugin_2']
