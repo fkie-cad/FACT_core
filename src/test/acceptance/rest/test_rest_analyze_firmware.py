@@ -32,6 +32,7 @@ class TestRestFirmware(TestAcceptanceBase):
             'firmware_version': '1.0',
             'vendor': 'test_vendor',
             'release_date': '01.01.1970',
+            'tags': '',
             'requested_analysis_systems': ['software_components']
         }
         rv = self.test_client.put('/rest/firmware', data=json.dumps(data), follow_redirects=True)
