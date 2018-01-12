@@ -63,10 +63,11 @@ class CompareRoutes(ComponentBase):
 
     def _add_plugin_views_to_compare_view(self, compare_view, plugin_views):
         key = '{# individual plugin views #}'
-        insertion_index = compare_view.find(key) + len(key)
+        insertion_index = compare_view.find(key)
         if insertion_index == -1:
-            logging.error('compare view insertion not found in compare template')
+            logging.error('compare view insertion point not found in compare template')
         else:
+            insertion_index += len(key)
             for plugin, view in plugin_views:
                 if_case = '{{% elif plugin == \'{}\' %}}'.format(plugin)
                 view = "{}\n{}".format(if_case, view.decode())
@@ -75,7 +76,10 @@ class CompareRoutes(ComponentBase):
 
     @staticmethod
     def _insert_plugin_into_view_at_index(plugin, view, index):
-        return view[:index] + plugin + view[index:]
+        if index < 0:
+            return view
+        else:
+            return view[:index] + plugin + view[index:]
 
     def _app_show_start_compare(self):
         if 'uids_for_comparison' not in session or not isinstance(session['uids_for_comparison'], list) or len(session['uids_for_comparison']) < 2:
