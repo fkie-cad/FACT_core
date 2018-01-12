@@ -46,6 +46,7 @@ class BackEndDbInterface(MongoInterfaceCommon):
                              'device_class': new_object.device_class,
                              'vendor': new_object.vendor,
                              'release_date': convert_str_to_time(new_object.release_date),
+                             'tags': new_object.tags,
                              'comments': new_object.comments}})
             except Exception as e:
                 logging.error('Could not update firmware: {} - {}'.format(sys.exc_info()[0].__name__, e))
@@ -97,7 +98,8 @@ class BackEndDbInterface(MongoInterfaceCommon):
             'device_class': firmware.device_class,
             'vendor': firmware.vendor,
             'release_date': convert_str_to_time(firmware.release_date),
-            'submission_date': time()
+            'submission_date': time(),
+            'tags': firmware.tags
         }
         if hasattr(firmware, 'comments'):  # for backwards compatibility
             entry['comments'] = firmware.comments

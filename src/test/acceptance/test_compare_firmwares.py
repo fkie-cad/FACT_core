@@ -30,6 +30,7 @@ class TestAcceptanceCompareFirmwares(TestAcceptanceBase):
                 'firmware_version': '1.0',
                 'vendor': 'test_vendor',
                 'release_date': '01.01.1970',
+                'tags': '',
                 'analysis_systems': []
             }
             rv = self.test_client.post('/upload', content_type='multipart/form-data', data=data, follow_redirects=True)
