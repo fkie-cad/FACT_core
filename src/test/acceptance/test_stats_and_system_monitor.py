@@ -79,5 +79,6 @@ class TestAcceptanceShowStatsAndSystemMonitor(TestAcceptanceBase):
         self.updater.update_all_stats()
 
         self._show_stats()
+        self._show_stats_filtered()
         self._click_chart()
         self._click_release_date_histogram()
