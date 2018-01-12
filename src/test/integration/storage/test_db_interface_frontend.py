@@ -39,6 +39,7 @@ class TestStorageDbInterfaceFrontend(unittest.TestCase):
         list_of_firmwares = self.db_frontend_interface.get_meta_list()
         test_output = list_of_firmwares.pop()
         self.assertEqual(test_output[1], 'test_vendor test_router - 0.1 (Router)', 'Firmware not successfully received')
+        self.assertIsInstance(test_output[2], dict, 'tag field is not a dict')
 
     def test_get_hid_firmware(self):
         self.db_backend_interface.add_firmware(self.test_firmware)

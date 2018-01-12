@@ -65,6 +65,7 @@ class TestRestFirmware(RestTestBase):
                 'firmware_version': '1',
                 'vendor': 'test_vendor',
                 'release_date': '01.01.1970',
+                'tags': '',
                 'requested_analysis_systems': ['dummy']
             }
         ), follow_redirects=True)
@@ -80,6 +81,7 @@ class TestRestFirmware(RestTestBase):
                 'device_class': 'test_class',
                 'vendor': 'test_vendor',
                 'release_date': '01.01.1970',
+                'tags': '',
                 'requested_analysis_systems': ['dummy']
             }
         ), follow_redirects=True)

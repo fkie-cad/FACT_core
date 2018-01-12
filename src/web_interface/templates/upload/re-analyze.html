@@ -119,13 +119,13 @@
                 </div>
 
                 {% set input_form_text = [
-                    ("Version", "firmware_version")
+                    ("Version", "firmware_version", firmware.version)
                 ] -%}
-                {% for label, id in input_form_text %}
+                {% for label, id, data in input_form_text %}
                 <div class="form-group">
                     <label class="control-label col-xs-3" for="{{ id }}">{{ label }}:</label>
                         <div class="col-xs-9 {% if id in error.keys() %}has-error{% endif %}">
-                            <input type="text" name="{{ id }}" class="form-control" id="{{ id }}" value="{{ firmware.version }}" required>
+                            <input type="text" name="{{ id }}" class="form-control" id="{{ id }}" value="{{ data }}" required>
                             {% if id in error.keys() %}
                                 <span class="help-block">{{ error[id] }}</span>
                             {% endif %}
@@ -154,7 +154,13 @@
                             {% endif %}
                         </div>
                 </div>
-
+                <div class="form-group">
+                    <label class="control-label col-xs-3" for="tags">Tags:</label>
+                    	<div class="col-xs-9">
+                            <input type="text" name="tags" class="form-control" id="tags" value="{{ ','.join(firmware.tags.keys()) }}">
+                            <span class="help-block">Optional: Comma separated list (e.g: flashdump,partial)</span>
+                        </div>
+                </div>
                 <div class="form-group">
                     <label class="control-label col-xs-3">Analysis Systems:</label>
                 {% for system in analysis_plugin_dict.keys() | sort %}
