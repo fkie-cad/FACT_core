@@ -98,26 +98,6 @@
 
             {# individual plugin views #}
 
-            {% elif plugin == 'Ida_Diff_Highlighting' %}
-                {% if download_link %}
-                    {# Success goes here #}
-                        <tr>
-                            <td class="active">Created IDB-File</td>
-                            <td colspan="{{ uid_list | length }}" align="center">
-                                <form action="{{ download_link }}">
-                                    <button class="btn btn-default" type="submit">
-                                        <span class="glyphicon glyphicon-download"></span> download idb file
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                {% else %}
-                    {# Error goes here #}
-                        <tr>
-                            <td colspan="{{ uid_list | length + 1 }}" align="center">{{ result['plugins'][plugin]['message'] }}</td>
-                        </tr>
-                {% endif %}
-
             {% endif %}
 		{% endfor %}
 		
