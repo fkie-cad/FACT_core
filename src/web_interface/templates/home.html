@@ -61,6 +61,7 @@
             		<td class="active clickable" onclick="location.href='/analysis/{{ firmware['_id'] }}'"> {{ firmware['submission_date'] | nice_unix_time | safe }} </td>
                 	<td class="active clickable" onclick="location.href='/analysis/{{ firmware['_id'] }}'">
                     	{{ firmware['vendor'] }} {{ firmware['device_name'] }} - {{ firmware['version'] }} ({{ firmware['device_class'] }})
+                    	{% if firmware['tags'] %}{{ firmware['tags']|render_tags(additional_class='pull-right')|safe}}{% endif %}
                        	<div><font face="courier"  style="font-size:12px">{{ firmware['_id'] }}</font></div>
                 	</td>
             	</tr>

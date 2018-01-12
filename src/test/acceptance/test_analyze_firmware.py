@@ -48,6 +48,7 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBase):
                 'firmware_version': '1.0',
                 'vendor': 'test_vendor',
                 'release_date': '1970-01-01',
+                'tags': '',
                 'analysis_systems': []
             }
             rv = self.test_client.post('/upload', content_type='multipart/form-data', data=data, follow_redirects=True)
