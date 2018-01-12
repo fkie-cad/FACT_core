@@ -15,26 +15,28 @@ class TestAppUpload(WebInterfaceTest):
     def test_app_upload_invalid_firmware(self):
         rv = self.test_client.post('/upload', content_type='multipart/form-data', data={
             'file': (BytesIO(b'test_file_content'), 'test_file.txt'),
-            'device_name': "test_device",
-            'device_class': "test_class",
-            'firmware_version': "",
-            'vendor': "test_vendor",
-            'release_date': "01.01.1970",
-            'analysis_systems': ["dummy"]}, follow_redirects=True)
+            'device_name': 'test_device',
+            'device_class': 'test_class',
+            'firmware_version': '',
+            'vendor': 'test_vendor',
+            'release_date': '01.01.1970',
+            'tags': '',
+            'analysis_systems': ['dummy']}, follow_redirects=True)
         assert b'Please specify the firmware version' in rv.data
-        self.assertEqual(len(self.mocked_interface.tasks), 0, "task added to intercom but should not")
+        self.assertEqual(len(self.mocked_interface.tasks), 0, 'task added to intercom but should not')
 
     def test_app_upload_valid_firmware(self):
         rv = self.test_client.post('/upload', content_type='multipart/form-data', data={
             'file': (BytesIO(b'test_file_content'), 'test_file.txt'),
-            'device_name': "test_device",
-            'device_class': "test_class",
-            'firmware_version': "1.0",
-            'vendor': "test_vendor",
-            'release_date': "01.01.1970",
-            'analysis_systems': ["dummy"]}, follow_redirects=True)
+            'device_name': 'test_device',
+            'device_class': 'test_class',
+            'firmware_version': '1.0',
+            'vendor': 'test_vendor',
+            'release_date': '01.01.1970',
+            'tags': 'tag1,tag2',
+            'analysis_systems': ['dummy']}, follow_redirects=True)
         assert b'Upload Successful' in rv.data
         assert b'c1f95369a99b765e93c335067e77a7d91af3076d2d3d64aacd04e1e0a810b3ed_17' in rv.data
-        self.assertEqual(self.mocked_interface.tasks[0].get_uid(), 'c1f95369a99b765e93c335067e77a7d91af3076d2d3d64aacd04e1e0a810b3ed_17', "fw not added to intercom")
-        self.assertIn("dummy", self.mocked_interface.tasks[0].scheduled_analysis, "analysis system not added")
-        self.assertEqual(self.mocked_interface.tasks[0].file_name, "test_file.txt", "file name not correct")
+        self.assertEqual(self.mocked_interface.tasks[0].get_uid(), 'c1f95369a99b765e93c335067e77a7d91af3076d2d3d64aacd04e1e0a810b3ed_17', 'fw not added to intercom')
+        self.assertIn('dummy', self.mocked_interface.tasks[0].scheduled_analysis, 'analysis system not added')
+        self.assertEqual(self.mocked_interface.tasks[0].file_name, 'test_file.txt', 'file name not correct')

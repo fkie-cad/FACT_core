@@ -71,6 +71,7 @@ class TestStorageDbInterfaceBackend(unittest.TestCase):
         result_common = self.db_interface.get_firmware(self.test_firmware.get_uid())
         self.assertIsNone(result_common.binary, 'binary set in common result')
         self.assertEqual(result_common.size, 787, 'file size not correct in common')
+        self.assertIsInstance(result_common.tags, dict, 'tag field type not correct')
 
     def test_add_and_get_file_object(self):
         self.db_interface_backend.add_file_object(self.test_fo)
