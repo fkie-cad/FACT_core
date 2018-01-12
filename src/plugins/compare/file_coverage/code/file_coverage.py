@@ -16,7 +16,7 @@ class ComparePlugin(ComparePluginBase):
     DEPENDENCYS = []
 
     def __init__(self, plugin_administrator, config=None, db_interface=None):
-        super().__init__(plugin_administrator, config=config, db_interface=db_interface)
+        super().__init__(plugin_administrator, config=config, db_interface=db_interface, plugin_path=__file__)
         self.SSDEEP_IGNORE = int(self.config.get('ExpertSettings', 'ssdeep_ignore'))
 
     def compare_function(self, fo_list):
