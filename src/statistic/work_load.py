@@ -8,9 +8,9 @@ from time import time
 
 import distro
 import psutil
-from common_helper_files import get_directory_for_filename, get_version_string_from_git
 
 from storage.db_interface_statistic import StatisticDbUpdater
+from version import __VERSION__
 
 
 class WorkLoadStatistic(object):
@@ -72,7 +72,7 @@ class WorkLoadStatistic(object):
     def _get_platform_information():
         operating_system = ' '.join(distro.linux_distribution()[0:2])
         python_version = '.'.join(str(x) for x in sys.version_info[0:3])
-        fact_version = get_version_string_from_git(get_directory_for_filename(__file__))
+        fact_version = __VERSION__
         return {
             'os': operating_system,
             'python': python_version,
