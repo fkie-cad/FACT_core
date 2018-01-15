@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
 
 import logging
+from contextlib import suppress
 
-from flask import render_template, request, redirect, url_for, session
+from flask import render_template, request, redirect, url_for, session, render_template_string
 from flask_paginate import Pagination
 
 from helperFunctions.dataConversion import string_list_to_list, unify_string_list, list_to_unified_string_list
-from helperFunctions.web_interface import ConnectTo
+from helperFunctions.web_interface import ConnectTo, get_template_as_string
 from intercom.front_end_binding import InterComFrontEndBinding
 from storage.db_interface_compare import CompareDbInterface
+from storage.db_interface_view_sync import ViewReader
 from web_interface.components.component_base import ComponentBase
 
 
@@ -31,8 +33,53 @@ class CompareRoutes(ComponentBase):
             return render_template('compare/wait.html', compare_id=compare_id)
         elif isinstance(result, dict):
             uid_list = string_list_to_list(compare_id)
-            return render_template('compare/compare.html', result=result, uid_list=uid_list, download_link=download_link)
+            plugin_views, plugins_without_view = self._get_compare_plugin_views(result)
+            compare_view = self._get_compare_view(plugin_views)
+            return render_template_string(
+                compare_view,
+                result=result,
+                uid_list=uid_list,
+                download_link=download_link,
+                plugins_without_view=plugins_without_view
+            )
         return render_template('compare/error.html', error=result.__str__())
+
+    def _get_compare_plugin_views(self, compare_result):
+        views, plugins_without_view = [], []
+        with suppress(KeyError):
+            used_plugins = list(compare_result['plugins'].keys())
+            for plugin in used_plugins:
+                with ConnectTo(ViewReader, self._config) as vr:
+                    view = vr.get_view(plugin)
+                if view:
+                    views.append((plugin, view))
+                else:
+                    plugins_without_view.append(plugin)
+        return views, plugins_without_view
+
+    def _get_compare_view(self, plugin_views):
+        compare_view = get_template_as_string('compare/compare.html')
+        return self._add_plugin_views_to_compare_view(compare_view, plugin_views)
+
+    def _add_plugin_views_to_compare_view(self, compare_view, plugin_views):
+        key = '{# individual plugin views #}'
+        insertion_index = compare_view.find(key)
+        if insertion_index == -1:
+            logging.error('compare view insertion point not found in compare template')
+        else:
+            insertion_index += len(key)
+            for plugin, view in plugin_views:
+                if_case = '{{% elif plugin == \'{}\' %}}'.format(plugin)
+                view = '{}\n{}'.format(if_case, view.decode())
+                compare_view = self._insert_plugin_into_view_at_index(view, compare_view, insertion_index)
+        return compare_view
+
+    @staticmethod
+    def _insert_plugin_into_view_at_index(plugin, view, index):
+        if index < 0:
+            return view
+        else:
+            return view[:index] + plugin + view[index:]
 
     def _app_show_start_compare(self):
         if 'uids_for_comparison' not in session or not isinstance(session['uids_for_comparison'], list) or len(session['uids_for_comparison']) < 2:

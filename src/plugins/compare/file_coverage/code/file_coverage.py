@@ -15,8 +15,8 @@ class ComparePlugin(ComparePluginBase):
     NAME = 'File_Coverage'
     DEPENDENCYS = []
 
-    def __init__(self, plugin_administrator, config=None, db_interface=None):
-        super().__init__(plugin_administrator, config=config, db_interface=db_interface)
+    def __init__(self, plugin_administrator, config=None, db_interface=None, plugin_path=__file__):
+        super().__init__(plugin_administrator, config=config, db_interface=db_interface, plugin_path=plugin_path)
         self.SSDEEP_IGNORE = int(self.config.get('ExpertSettings', 'ssdeep_ignore'))
 
     def compare_function(self, fo_list):

@@ -1,13 +1,20 @@
 import gc
+import pytest
 import unittest
 
+from compare.PluginBase import ComparePluginBase
 from compare.compare import Compare
 from helperFunctions.hash import get_ssdeep
 from test.common_helper import create_test_firmware, create_test_file_object
 from helperFunctions.config import get_config_for_testing
 
 
-class mock_db_interface(object):
+@pytest.fixture(autouse=True)
+def no_compare_views(monkeypatch):
+    monkeypatch.setattr(ComparePluginBase, '_sync_view', value=lambda s, p: None)
+
+
+class MockDbInterface(object):
 
     def __init__(self):
         self.fw = create_test_firmware()
@@ -25,7 +32,7 @@ class mock_db_interface(object):
             return self.fo
 
 
-class Test_Compare(unittest.TestCase):
+class TestCompare(unittest.TestCase):
 
     def setUp(self):
         self.config = get_config_for_testing()
@@ -33,7 +40,7 @@ class Test_Compare(unittest.TestCase):
         self.fw_one.processed_analysis['file_hashes'] = {'ssdeep': get_ssdeep(self.fw_one.binary)}
         self.fw_two = create_test_firmware(device_name='dev_2', bin_path='container/test.7z', all_files_included_set=True)
         self.fw_two.processed_analysis['file_hashes'] = {'ssdeep': get_ssdeep(self.fw_two.binary)}
-        self.compare_system = Compare(db_interface=mock_db_interface(), config=self.config)
+        self.compare_system = Compare(db_interface=MockDbInterface(), config=self.config)
 
     def tearDown(self):
         gc.collect()

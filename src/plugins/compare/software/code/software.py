@@ -11,6 +11,9 @@ class ComparePlugin(ComparePluginBase):
     NAME = 'Software'
     DEPENDENCYS = ['software_components']
 
+    def __init__(self, plugin_administrator, config=None, db_interface=None):
+        super().__init__(plugin_administrator, config=config, db_interface=db_interface, plugin_path=__file__)
+
     def compare_function(self, fo_list):
         """
         This function must be implemented by the plug-in.
