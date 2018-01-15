@@ -4,14 +4,16 @@ import time
 from test.acceptance.base import TestAcceptanceBase
 from helperFunctions.fileSystem import get_test_data_dir
 from statistic.update import StatisticUpdater
+from statistic.work_load import WorkLoadStatistic
 
 
-class TestAcceptanceShowStats(TestAcceptanceBase):
+class TestAcceptanceShowStatsAndSystemMonitor(TestAcceptanceBase):
 
     def setUp(self):
         super().setUp()
         self._start_backend()
         self.updater = StatisticUpdater(config=self.config)
+        self.workload = WorkLoadStatistic(config=self.config)
         time.sleep(10)  # wait for systems to start
 
     def tearDown(self):
@@ -60,14 +62,23 @@ class TestAcceptanceShowStats(TestAcceptanceBase):
         rv = self.test_client.get('/database/browse?date="January 2009"')
         self.assertIn(self.test_fw_a.uid.encode(), rv.data)
 
-    def test_show_stats(self):
+    def _show_system_monitor(self):
+        rv = self.test_client.get('/system_health')
+        self.assertIn(b'backend workload', rv.data)
+
+    def test_show_stats_and_system_monitor(self):
         self._upload_firmware_get()
         for fw in [self.test_fw_a, self.test_fw_b]:
             self._upload_firmware_put(fw.path, fw.name, fw.uid)
-        time.sleep(20)  # wait for analysis to complete
+
+        time.sleep(5)
+        self.workload.update(unpacking_workload=self.unpacking_service.get_scheduled_workload(), analysis_workload=self.analysis_service.get_scheduled_workload())
+        time.sleep(10)
+        self._show_system_monitor()
 
         self.updater.update_all_stats()
 
         self._show_stats()
+        self._show_stats_filtered()
         self._click_chart()
         self._click_release_date_histogram()
