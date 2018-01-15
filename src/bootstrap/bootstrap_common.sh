@@ -4,10 +4,11 @@ echo "####################################"
 echo "#     Update Operating System      #"
 echo "####################################"
 
-sudo apt-get update
-sudo apt-get upgrade -y
-sudo apt-get autoremove -y
-sudo apt-get clean
+sudo apt install -y apt-transport-https
+sudo apt update
+sudo apt upgrade -y
+sudo apt autoremove -y
+sudo apt clean
 
 echo "####################################"
 echo "#  installing general dependencies #"
