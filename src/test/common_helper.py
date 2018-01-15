@@ -309,6 +309,12 @@ class DatabaseMock:
     def get_other_versions_of_firmware(self, fo):
         return []
 
+    def get_view(self, name):
+        if name == 'plugin_1':
+            return b'<plugin 1 view>'
+        else:
+            return None
+
 
 def fake_exit(self, *args):
     pass
