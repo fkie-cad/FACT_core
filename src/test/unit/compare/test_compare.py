@@ -2,7 +2,7 @@ import gc
 import pytest
 import unittest
 
-from compare.PluginBase import ComparePluginBase
+from compare.PluginBase import CompareBasePlugin
 from compare.compare import Compare
 from helperFunctions.hash import get_ssdeep
 from test.common_helper import create_test_firmware, create_test_file_object
@@ -11,7 +11,7 @@ from helperFunctions.config import get_config_for_testing
 
 @pytest.fixture(autouse=True)
 def no_compare_views(monkeypatch):
-    monkeypatch.setattr(ComparePluginBase, '_sync_view', value=lambda s, p: None)
+    monkeypatch.setattr(CompareBasePlugin, '_sync_view', value=lambda s, p: None)
 
 
 class MockDbInterface(object):

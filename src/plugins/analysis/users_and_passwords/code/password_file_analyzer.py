@@ -7,22 +7,22 @@ from tempfile import NamedTemporaryFile
 
 from common_helper_process import execute_shell_command
 
-from analysis.PluginBase import BasePlugin
+from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.fileSystem import get_src_dir
 
 
-class AnalysisPlugin(BasePlugin):
+class AnalysisPlugin(AnalysisBasePlugin):
     '''
     This Plugin trys to find and crack passwords
     '''
     NAME = 'users_and_passwords'
-    DEPENDENCYS = []
+    DEPENDENCIES = []
     DESCRIPTION = 'search for UNIX and httpd password files, parse them and try to crack the passwords'
     VERSION = '0.4'
 
     wordlist_path = os.path.join(get_src_dir(), 'bin/passwords.txt')
 
-    def __init__(self, plugin_adminstrator, config=None, recursive=True):
+    def __init__(self, plugin_administrator, config=None, recursive=True):
         '''
         recursive flag: If True recursively analyze included files
         default flags should be edited above. Otherwise the scheduler cannot overwrite them.
@@ -30,7 +30,7 @@ class AnalysisPlugin(BasePlugin):
         self.config = config
 
         # additional init stuff can go here
-        super().__init__(plugin_adminstrator, config=config, recursive=recursive, no_multithread=True, plugin_path=__file__)
+        super().__init__(plugin_administrator, config=config, recursive=recursive, no_multithread=True, plugin_path=__file__)
 
     def process_object(self, file_object):
         '''

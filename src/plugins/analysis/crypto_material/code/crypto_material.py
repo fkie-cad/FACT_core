@@ -1,8 +1,8 @@
-from analysis.YaraPluginBase import YaraBasePlugin
+from analysis.YaraPluginBase import YaraAnalysisPluginBase
 from helperFunctions.parsing import read_asn1_key, read_pkcs_cert, read_ssl_cert
 
 
-class AnalysisPlugin(YaraBasePlugin):
+class AnalysisPlugin(YaraAnalysisPluginBase):
     '''
     Searches for known Crypto material (e.g., public and private keys)
     '''
@@ -17,8 +17,8 @@ class AnalysisPlugin(YaraBasePlugin):
     PKCS12 = 'Pkcs12Certificate'
     SSLCERT = 'SSLCertificate'
 
-    def __init__(self, plugin_adminstrator, config=None, recursive=True):
-        super().__init__(plugin_adminstrator, config=config, recursive=recursive, plugin_path=__file__)
+    def __init__(self, plugin_administrator, config=None, recursive=True):
+        super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__)
 
     def process_object(self, file_object):
         file_object = super().process_object(file_object)
