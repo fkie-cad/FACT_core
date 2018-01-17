@@ -69,6 +69,7 @@ def shutdown(signum, frame):
     logging.info('shutting down...')
     run = False
 
+
 signal.signal(signal.SIGINT, shutdown)
 signal.signal(signal.SIGTERM, shutdown)
 

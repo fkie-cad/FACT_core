@@ -1,8 +1,8 @@
-from analysis.PluginBase import BasePlugin
+from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.fileSystem import get_file_type_from_path
 
 
-class AnalysisPlugin(BasePlugin):
+class AnalysisPlugin(AnalysisBasePlugin):
     '''
     This Plugin detects the mime type of the file
     '''
@@ -10,7 +10,7 @@ class AnalysisPlugin(BasePlugin):
     DESCRIPTION = "identify the file type"
     VERSION = "0.1.1"
 
-    def __init__(self, plugin_adminstrator, config=None, recursive=True):
+    def __init__(self, plugin_administrator, config=None, recursive=True):
         '''
         recursive flag: If True recursively analyze included files
         propagate flag: If True add analysis result of child to parent object
@@ -20,7 +20,7 @@ class AnalysisPlugin(BasePlugin):
 
         # additional init stuff can go here
 
-        super().__init__(plugin_adminstrator, config=config, recursive=recursive, plugin_path=__file__)
+        super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__)
 
     def process_object(self, file_object):
         '''

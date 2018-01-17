@@ -2,19 +2,19 @@ import logging
 
 from common_analysis_oms.oms import CommonAnalysisOMS
 
-from analysis.PluginBase import BasePlugin
+from analysis.PluginBase import AnalysisBasePlugin
 
 
-class AnalysisPlugin(BasePlugin):
+class AnalysisPlugin(AnalysisBasePlugin):
     '''
     This Plugin creates several hashes of the file
     '''
     NAME = "malware_scanner"
-    DEPENDENCYS = []
+    DEPENDENCIES = []
     VERSION = "0.3"
     DESCRIPTION = "scan for known malware"
 
-    def __init__(self, plugin_adminstrator, config=None, recursive=True):
+    def __init__(self, plugin_administrator, config=None, recursive=True):
         '''
         recursive flag: If True recursively analyze included files
         default flags should be edited above. Otherwise the scheduler cannot overwrite them.
@@ -24,7 +24,7 @@ class AnalysisPlugin(BasePlugin):
         # additional init stuff can go here
         self.oms = CommonAnalysisOMS()
 
-        super().__init__(plugin_adminstrator, config=config, recursive=recursive, plugin_path=__file__)
+        super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__)
 
     def process_object(self, file_object):
         '''
