@@ -1,12 +1,13 @@
 import logging
+from concurrent.futures import ThreadPoolExecutor
 from multiprocessing import Queue, Value
 from queue import Empty
-from time import sleep
 from random import shuffle
+from time import sleep
 
-from helperFunctions.process import ExceptionSafeProcess, terminate_process_and_childs
 from helperFunctions.parsing import bcolors
 from helperFunctions.plugin import import_plugins
+from helperFunctions.process import ExceptionSafeProcess, terminate_process_and_childs
 from storage.db_interface_backend import BackEndDbInterface
 
 
@@ -38,10 +39,11 @@ class AnalysisScheduler(object):
         '''
         logging.debug('Shutting down...')
         self.stop_condition.value = 1
-        self.schedule_process.join()
-        self.result_collector_process.join()
-        for plugin in self.analysis_plugins:
-            self.analysis_plugins[plugin].shutdown()
+        with ThreadPoolExecutor() as e:
+            e.submit(self.schedule_process.join)
+            e.submit(self.result_collector_process.join)
+            for plugin in self.analysis_plugins:
+                e.submit(self.analysis_plugins[plugin].shutdown)
         if getattr(self.db_backend_service, 'shutdown', False):
             self.db_backend_service.shutdown()
         self.process_queue.close()
