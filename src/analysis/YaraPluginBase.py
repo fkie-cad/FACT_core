@@ -8,7 +8,7 @@ from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.fileSystem import get_src_dir
 
 
-class YaraAnalysisPluginBase(AnalysisBasePlugin):
+class YaraPluginBase(AnalysisBasePlugin):
     '''
     This should be the base for all YARA based analysis plugins
     '''
