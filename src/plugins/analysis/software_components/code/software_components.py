@@ -1,10 +1,10 @@
 import re
 
-from analysis.YaraPluginBase import YaraAnalysisPluginBase
+from analysis.YaraPluginBase import YaraPluginBase
 from helperFunctions.dataConversion import make_unicode_string
 
 
-class AnalysisPlugin(YaraAnalysisPluginBase):
+class AnalysisPlugin(YaraPluginBase):
     '''
     This plugin identifies software components
     '''
