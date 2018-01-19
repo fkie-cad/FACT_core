@@ -2,6 +2,7 @@ import gc
 import logging
 import os
 import unittest
+from unittest.mock import patch
 from concurrent.futures import ThreadPoolExecutor
 from tempfile import TemporaryDirectory
 
@@ -67,8 +68,9 @@ class TestAcceptanceBase(unittest.TestCase):
         self.analysis_service = AnalysisScheduler(config=self.config)
         self.unpacking_service = UnpackingScheduler(config=self.config, post_unpack=self.analysis_service.add_task)
         self.compare_service = CompareScheduler(config=self.config)
-        self.intercom = InterComBackEndBinding(config=self.config, analysis_service=self.analysis_service, compare_service=self.compare_service,
-                                               unpacking_service=self.unpacking_service)
+        with patch.object(InterComBackEndBinding, 'WAIT_TIME', .5):
+            self.intercom = InterComBackEndBinding(config=self.config, analysis_service=self.analysis_service, compare_service=self.compare_service,
+                                                   unpacking_service=self.unpacking_service)
 
     def _setup_debugging_logging(self):
         # for debugging purposes only

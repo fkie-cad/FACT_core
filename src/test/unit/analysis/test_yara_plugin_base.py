@@ -1,6 +1,6 @@
 import os
 
-from analysis.YaraPluginBase import YaraPluginBase
+from analysis.YaraPluginBase import YaraBasePlugin
 from helperFunctions.fileSystem import get_src_dir, get_test_data_dir
 from objects.file import FileObject
 from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
@@ -14,7 +14,7 @@ class TestAnalysisYaraBasePlugin(AnalysisPluginTest):
         super().setUp()
         config = self.init_basic_config()
         self.intended_signature_path = os.path.join(get_src_dir(), 'analysis/signatures', self.PLUGIN_NAME)
-        self.analysis_plugin = YaraPluginBase(self, config=config, plugin_path='/foo/bar/Yara_Base_Plugin/code/test.py')
+        self.analysis_plugin = YaraBasePlugin(self, config=config, plugin_path='/foo/bar/Yara_Base_Plugin/code/test.py')
 
     def test_get_signature_file_name(self):
         assert self.analysis_plugin._get_signature_file_name('/foo/bar/plugin_name/code/test.py') == 'plugin_name.yc'
