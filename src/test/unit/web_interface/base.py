@@ -8,7 +8,7 @@ from test.common_helper import DatabaseMock, fake_exit
 from web_interface.frontend_main import WebFrontEnd
 
 
-TMP_DIR = TemporaryDirectory(prefix="faf_test_")
+TMP_DIR = TemporaryDirectory(prefix="fact_test_")
 
 
 class WebInterfaceTest(unittest.TestCase):
