@@ -1,8 +1,8 @@
-from analysis.YaraPluginBase import YaraPluginBase
+from analysis.YaraPluginBase import YaraBasePlugin
 from helperFunctions.parsing import read_asn1_key, read_pkcs_cert, read_ssl_cert
 
 
-class AnalysisPlugin(YaraPluginBase):
+class AnalysisPlugin(YaraBasePlugin):
     '''
     Searches for known Crypto material (e.g., public and private keys)
     '''
