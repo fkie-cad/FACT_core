@@ -15,9 +15,12 @@ TMP_DIR = TemporaryDirectory(prefix='fact_test_')
 
 class TestStorageDbInterfaceFrontendEditing(unittest.TestCase):
 
+    @classmethod
+    def setUpClass(cls):
+        cls._config = get_config_for_testing(TMP_DIR)
+        cls.mongo_server = MongoMgr(config=cls._config)
+
     def setUp(self):
-        self._config = get_config_for_testing(TMP_DIR)
-        self.mongo_server = MongoMgr(config=self._config)
         self.db_frontend_editing = FrontendEditingDbInterface(config=self._config)
         self.db_frontend_interface = FrontEndDbInterface(config=self._config)
         self.db_backend_interface = BackEndDbInterface(config=self._config)
@@ -27,9 +30,12 @@ class TestStorageDbInterfaceFrontendEditing(unittest.TestCase):
         self.db_frontend_interface.shutdown()
         self.db_backend_interface.client.drop_database(self._config.get('data_storage', 'main_database'))
         self.db_backend_interface.shutdown()
-        self.mongo_server.shutdown()
-        TMP_DIR.cleanup()
         gc.collect()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.mongo_server.shutdown()
+        TMP_DIR.cleanup()
 
     def test_add_comment(self):
         test_fw = create_test_firmware()
