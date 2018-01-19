@@ -23,11 +23,14 @@ TMP_DIR = TemporaryDirectory(prefix='faf_test_')
 
 class TestStorageDbInterfaceAdmin(unittest.TestCase):
 
+    @classmethod
+    def setUpClass(cls):
+        cls.config = get_config_for_testing(TMP_DIR)
+        cls.config.set('data_storage', 'sanitize_database', 'tmp_sanitize')
+        cls.config.set('data_storage', 'report_threshold', '32')
+        cls.mongo_server = MongoMgr(config=cls.config)
+
     def setUp(self):
-        self.config = get_config_for_testing(TMP_DIR)
-        self.config.set('data_storage', 'sanitize_database', 'tmp_sanitize')
-        self.config.set('data_storage', 'report_threshold', '32')
-        self.mongo_server = MongoMgr(config=self.config)
         self.admin_interface = AdminDbInterface(config=self.config)
         self.db_backend_interface = BackEndDbInterface(config=self.config)
         copyfile(test_firmware_original, test_firmware_copy)
@@ -45,12 +48,15 @@ class TestStorageDbInterfaceAdmin(unittest.TestCase):
         self.admin_interface.client.drop_database(self.config.get('data_storage', 'sanitize_database'))
         self.admin_interface.shutdown()
         self.db_backend_interface.shutdown()
-        self.mongo_server.shutdown()
+        gc.collect()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.mongo_server.shutdown()
         for test_file in [test_file_copy, test_firmware_copy]:
             if os.path.isfile(test_file):
                 os.remove(test_file)
         TMP_DIR.cleanup()
-        gc.collect()
 
     def test_remove_object_field(self):
         self.db_backend_interface.add_file_object(self.child_fo)
