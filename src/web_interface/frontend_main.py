@@ -12,15 +12,13 @@ from web_interface.components.jinja_filter import FilterClass
 from web_interface.components.miscellaneous_routes import MiscellaneousRoutes
 from web_interface.components.statistic_routes import StatisticRoutes
 from web_interface.rest.rest_base import RestBase
+from version import __VERSION__
 
 
 class WebFrontEnd(object):
-    def __init__(self,
-                 config=None,
-                 program_version='not_set',
-                 ):
+    def __init__(self, config=None):
         self.config = config
-        self.program_version = program_version
+        self.program_version = __VERSION__
 
         self._setup_app()
         logging.info("Web front end online")

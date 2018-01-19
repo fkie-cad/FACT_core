@@ -122,7 +122,7 @@ echo "####################################"
 echo "#    compile custom magic file     #"
 echo "####################################"
 cat ../mime/custom_* > ../mime/custommime
-(cd ../mime && file -C -m custommime && mv custommime.mgc ../bin/)
+(cd ../mime && file -C -m custommime && mv -f custommime.mgc ../bin/)
 rm ../mime/custommime
 
 echo "######################################"
