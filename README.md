@@ -43,7 +43,7 @@ Modify *src/config/main.cfg* and *src/config/mongod.conf* to suit your needs.
 Especially, you should change the mongo passwords.
 The database is initialized with these passwords on first start.  
 Create the mongo data directory specified in *mongod.conf* and the firmware_file_storage_directory defined in *main.cfg*.
-Make sure that the logging directory exists as well.
+Make sure that the log directory exists as well.
 
 If you have any additional plug-ins, copy/clone them into corresponding *src/plugins/* directory.  
 
@@ -101,7 +101,7 @@ Our Developers Manual can be found [here](https://github.com/fkie-cad/FACT_core/
 
 ## Acknowledgments
 This project is partly financed by [German Federal Office for Information Security (BSI)](https://www.bsi.bund.de) and others.  
-The FACT project and the [Mallware Analysis and Storage Sytem (MASS) project](https://mass-project.github.io/) form a code and plug-in sharing alliance.  
+The FACT project and the [Malware Analysis and Storage Sytem (MASS) project](https://mass-project.github.io/) form a code and plug-in sharing alliance.  
 
 ## License
 ```
