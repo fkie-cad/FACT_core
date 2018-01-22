@@ -29,10 +29,13 @@ class AnalysisServiceMock():
 
 class TestInterComTaskCommunication(unittest.TestCase):
 
+    @classmethod
+    def setUpClass(cls):
+        cls.config = get_config_for_testing(temp_dir=TMP_DIR)
+        cls.config.set('ExpertSettings', 'communication_timeout', '1')
+        cls.mongo_server = MongoMgr(config=cls.config)
+
     def setUp(self):
-        self.config = get_config_for_testing(temp_dir=TMP_DIR)
-        self.config.set('ExpertSettings', 'communication_timeout', '1')
-        self.mongo_server = MongoMgr(config=self.config)
         self.frontend = InterComFrontEndBinding(config=self.config)
         self.backend = None
 
@@ -42,9 +45,12 @@ class TestInterComTaskCommunication(unittest.TestCase):
         if self.backend:
             self.backend.shutdown()
         self.frontend.shutdown()
-        self.mongo_server.shutdown()
-        TMP_DIR.cleanup()
         gc.collect()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.mongo_server.shutdown()
+        TMP_DIR.cleanup()
 
     def test_analysis_task(self):
         self.backend = InterComBackEndAnalysisTask(config=self.config)
