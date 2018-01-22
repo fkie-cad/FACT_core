@@ -5,7 +5,7 @@ from time import sleep
 
 import pytest
 
-from compare.PluginBase import ComparePluginBase
+from compare.PluginBase import CompareBasePlugin
 from objects.file import FileObject
 from scheduler.Compare import CompareScheduler
 from test.common_helper import create_test_file_object
@@ -13,7 +13,7 @@ from test.common_helper import create_test_file_object
 
 @pytest.fixture(autouse=True)
 def no_compare_views(monkeypatch):
-    monkeypatch.setattr(ComparePluginBase, '_sync_view', value=lambda s, p: None)
+    monkeypatch.setattr(CompareBasePlugin, '_sync_view', value=lambda s, p: None)
 
 
 class MockDbInterface(object):

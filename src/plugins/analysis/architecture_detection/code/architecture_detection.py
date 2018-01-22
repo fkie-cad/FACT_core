@@ -1,18 +1,18 @@
 import logging
 
-from analysis.PluginBase import BasePlugin
+from analysis.PluginBase import AnalysisBasePlugin
 
 
-class AnalysisPlugin(BasePlugin):
+class AnalysisPlugin(AnalysisBasePlugin):
     '''
     Generically detected target architecture for firmware images.
     '''
     NAME = 'cpu_architecture'
-    DEPENDENCYS = ['file_type']
+    DEPENDENCIES = ['file_type']
     DESCRIPTION = 'identify CPU architecture'
     VERSION = '0.3.1'
 
-    def __init__(self, plugin_adminstrator, config=None, recursive=True):
+    def __init__(self, plugin_administrator, config=None, recursive=True):
         '''
         recursive flag: If True recursively analyze included files
         propagate flag: If True add analysis result of child to parent object
@@ -21,7 +21,7 @@ class AnalysisPlugin(BasePlugin):
         self.config = config
         self.MIME_IGNORE = self._get_ignored_file_types()
         self.DETECTORS = [MetaDataDetector()]
-        super().__init__(plugin_adminstrator, config=config, recursive=recursive, plugin_path=__file__)
+        super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__)
 
     def process_object(self, file_object):
         '''

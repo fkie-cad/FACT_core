@@ -1,8 +1,8 @@
 import gc
-from multiprocessing import Queue
 import os
 import unittest
 import unittest.mock
+from multiprocessing import Queue
 
 from helperFunctions.config import get_config_for_testing
 from helperFunctions.fileSystem import get_test_data_dir
@@ -50,7 +50,7 @@ class TestScheduleInitialAnalysis(unittest.TestCase):
         for item in MANDATORY_PLUGINS:
             self.assertIn(item, test_fw.scheduled_analysis)
 
-    def test_whole_run_analyis_selected(self):
+    def test_whole_run_analysis_selected(self):
         test_fw = Firmware(file_path=os.path.join(get_test_data_dir(), 'get_files_test/testfile1'))
         test_fw.scheduled_analysis = ['dummy_plugin_for_testing_only']
         self.sched.add_task(test_fw)

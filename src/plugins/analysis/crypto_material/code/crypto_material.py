@@ -17,8 +17,8 @@ class AnalysisPlugin(YaraBasePlugin):
     PKCS12 = 'Pkcs12Certificate'
     SSLCERT = 'SSLCertificate'
 
-    def __init__(self, plugin_adminstrator, config=None, recursive=True):
-        super().__init__(plugin_adminstrator, config=config, recursive=recursive, plugin_path=__file__)
+    def __init__(self, plugin_administrator, config=None, recursive=True):
+        super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__)
 
     def process_object(self, file_object):
         file_object = super().process_object(file_object)

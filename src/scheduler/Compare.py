@@ -14,11 +14,12 @@ class CompareScheduler(object):
     This module handles all request regarding compares
     '''
 
-    def __init__(self, config=None, db_interface=None, testing=False):
+    def __init__(self, config=None, db_interface=None, testing=False, callback=None):
         self.config = config
         self.db_interface = db_interface if db_interface else CompareDbInterface(config=config)
         self.stop_condition = Value('i', 1)
         self.in_queue = Queue()
+        self.callback = callback
         self.compare_module = Compare(config=self.config, db_interface=self.db_interface)
         self.worker = ExceptionSafeProcess(target=self._compare_scheduler_main)
         if not testing:
@@ -68,6 +69,8 @@ class CompareScheduler(object):
                     self.db_interface.delete_old_compare_result(compare_id)
                 compares_done.add(compare_id)
                 self._process_compare(compare_id)
+                if self.callback:
+                    self.callback()
 
     def _process_compare(self, compare_id):
         result = self.compare_module.compare(string_list_to_list(compare_id))

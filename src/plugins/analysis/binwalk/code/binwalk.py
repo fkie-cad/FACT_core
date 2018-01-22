@@ -4,21 +4,21 @@ from tempfile import TemporaryDirectory
 from common_helper_files import get_binary_from_file
 from common_helper_process import execute_shell_command
 
-from analysis.PluginBase import BasePlugin
+from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.binwalk import iterate_valid_signature_lines
 from helperFunctions.dataConversion import make_unicode_string
 
 
-class AnalysisPlugin(BasePlugin):
+class AnalysisPlugin(AnalysisBasePlugin):
 
     NAME = 'binwalk'
     DESCRIPTION = 'binwalk signature and entropy analysis'
-    DEPENDENCYS = []
+    DEPENDENCIES = []
     VERSION = '0.5'
 
-    def __init__(self, plugin_adminstrator, config=None, recursive=True):
+    def __init__(self, plugin_administrator, config=None, recursive=True):
         self.config = config
-        super().__init__(plugin_adminstrator, config=config, recursive=recursive, plugin_path=__file__)
+        super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__)
 
     def process_object(self, file_object):
         result = {}

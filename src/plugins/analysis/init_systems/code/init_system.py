@@ -1,12 +1,12 @@
 import re
 
-from analysis.PluginBase import BasePlugin
+from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.dataConversion import make_unicode_string
 
 FILE_IGNORES = ['README', 'README.md', 'README.txt', 'INSTALL', 'VERSION']
 
 
-class AnalysisPlugin(BasePlugin):
+class AnalysisPlugin(AnalysisBasePlugin):
     '''
     This Plugin searches for Init-Scripts and lists the Services or Script-Files
     It displays a short description (if provided) or else the filename
@@ -17,12 +17,12 @@ class AnalysisPlugin(BasePlugin):
     '''
     NAME = 'init_systems'
     DESCRIPTION = 'detect and analyze auto start services'
-    DEPENDENCYS = ['file_type']
+    DEPENDENCIES = ['file_type']
     VERSION = '0.4.1'
 
-    def __init__(self, plugin_adminstrator, config=None, recursive=True):
+    def __init__(self, plugin_administrator, config=None, recursive=True):
         self.config = config
-        super().__init__(plugin_adminstrator, config=config, recursive=recursive, plugin_path=__file__)
+        super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__)
 
     @staticmethod
     def _is_text_file(file_object):
