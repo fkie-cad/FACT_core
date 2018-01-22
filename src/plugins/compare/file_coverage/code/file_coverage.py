@@ -1,19 +1,19 @@
 import logging
 from copy import deepcopy
 
-from compare.PluginBase import ComparePluginBase
+from compare.PluginBase import CompareBasePlugin
 from helperFunctions.compare_sets import intersection_of_list_of_lists, difference_of_lists, difference_of_sets, remove_duplicates_from_list_of_lists, make_pairs_of_sets, collapse_pair_of_sets
 from helperFunctions.dataConversion import list_of_lists_to_list_of_sets, list_of_sets_to_list_of_lists, remove_included_sets_from_list_of_sets, list_to_unified_string_list
 from helperFunctions.hash import get_ssdeep_comparison, check_similarity_of_sets
 
 
-class ComparePlugin(ComparePluginBase):
+class ComparePlugin(CompareBasePlugin):
     """
     Compares file coverage
     """
 
     NAME = 'File_Coverage'
-    DEPENDENCYS = []
+    DEPENDENCIES = []
 
     def __init__(self, plugin_administrator, config=None, db_interface=None, plugin_path=__file__):
         super().__init__(plugin_administrator, config=config, db_interface=db_interface, plugin_path=plugin_path)

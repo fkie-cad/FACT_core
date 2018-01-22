@@ -13,9 +13,12 @@ from test.common_helper import create_test_firmware
 
 class TestCompare(unittest.TestCase):
 
+    @classmethod
+    def setUpClass(cls):
+        cls._config = get_config_for_testing()
+        cls.mongo_server = MongoMgr(config=cls._config)
+
     def setUp(self):
-        self._config = get_config_for_testing()
-        self.mongo_server = MongoMgr(config=self._config)
         self.db_interface = MongoInterfaceCommon(config=self._config)
         self.db_interface_backend = BackEndDbInterface(config=self._config)
         self.db_interface_compare = CompareDbInterface(config=self._config)
@@ -32,8 +35,11 @@ class TestCompare(unittest.TestCase):
         self.db_interface_backend.shutdown()
         self.db_interface.client.drop_database(self._config.get('data_storage', 'main_database'))
         self.db_interface.shutdown()
-        self.mongo_server.shutdown()
         gc.collect()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.mongo_server.shutdown()
 
     def _create_compare_dict(self):
         comp_dict = {'general': {'hid': {self.fw_one.get_uid(): 'foo', self.fw_two.get_uid(): 'bar'}}, 'plugins': {}}

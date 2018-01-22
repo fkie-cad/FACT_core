@@ -1,19 +1,22 @@
-import unittest
-import os
-import logging
 import gc
-
-from test.common_helper import get_database_names
-from web_interface.frontend_main import WebFrontEnd
-from storage.MongoMgr import MongoMgr
-from scheduler.Analysis import AnalysisScheduler
-from scheduler.Unpacking import UnpackingScheduler
-from scheduler.Compare import CompareScheduler
-from intercom.back_end_binding import InterComBackEndBinding
-from test.unit.helperFunctions_setup_test_data import clean_test_database
+import logging
+import os
+import unittest
+from unittest.mock import patch
+from concurrent.futures import ThreadPoolExecutor
 from tempfile import TemporaryDirectory
-from helperFunctions.config import load_config
+
 from common_helper_files import create_dir_for_file
+
+from helperFunctions.config import load_config
+from intercom.back_end_binding import InterComBackEndBinding
+from scheduler.Analysis import AnalysisScheduler
+from scheduler.Compare import CompareScheduler
+from scheduler.Unpacking import UnpackingScheduler
+from storage.MongoMgr import MongoMgr
+from test.common_helper import get_database_names
+from test.unit.helperFunctions_setup_test_data import clean_test_database
+from web_interface.frontend_main import WebFrontEnd
 
 
 TMP_DIR = TemporaryDirectory(prefix='fact_test_')
@@ -55,17 +58,19 @@ class TestAcceptanceBase(unittest.TestCase):
         self.config.set('Logging', 'mongoDbLogFile', os.path.join(TMP_DIR.name, 'mongo.log'))
 
     def _stop_backend(self):
-        self.intercom.shutdown()
-        self.compare_service.shutdown()
-        self.unpacking_service.shutdown()
-        self.analysis_service.shutdown()
+        with ThreadPoolExecutor(max_workers=4) as e:
+            e.submit(self.intercom.shutdown)
+            e.submit(self.compare_service.shutdown)
+            e.submit(self.unpacking_service.shutdown)
+            e.submit(self.analysis_service.shutdown)
 
     def _start_backend(self):
         self.analysis_service = AnalysisScheduler(config=self.config)
         self.unpacking_service = UnpackingScheduler(config=self.config, post_unpack=self.analysis_service.add_task)
         self.compare_service = CompareScheduler(config=self.config)
-        self.intercom = InterComBackEndBinding(config=self.config, analysis_service=self.analysis_service, compare_service=self.compare_service,
-                                               unpacking_service=self.unpacking_service)
+        with patch.object(InterComBackEndBinding, 'WAIT_TIME', .5):
+            self.intercom = InterComBackEndBinding(config=self.config, analysis_service=self.analysis_service, compare_service=self.compare_service,
+                                                   unpacking_service=self.unpacking_service)
 
     def _setup_debugging_logging(self):
         # for debugging purposes only

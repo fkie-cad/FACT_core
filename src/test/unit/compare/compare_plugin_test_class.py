@@ -2,7 +2,7 @@ from configparser import ConfigParser
 import gc
 import unittest
 
-from compare.PluginBase import ComparePluginBase as ComparePlugin
+from compare.PluginBase import CompareBasePlugin as ComparePlugin
 from test.common_helper import create_test_firmware
 
 
