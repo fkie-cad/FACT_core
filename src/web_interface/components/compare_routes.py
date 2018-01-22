@@ -35,6 +35,7 @@ class CompareRoutes(ComponentBase):
             uid_list = string_list_to_list(compare_id)
             plugin_views, plugins_without_view = self._get_compare_plugin_views(result)
             compare_view = self._get_compare_view(plugin_views)
+            self._fill_in_empty_fields(result, compare_id)
             return render_template_string(
                 compare_view,
                 result=result,
@@ -43,6 +44,14 @@ class CompareRoutes(ComponentBase):
                 plugins_without_view=plugins_without_view
             )
         return render_template('compare/error.html', error=result.__str__())
+
+    @staticmethod
+    def _fill_in_empty_fields(result, compare_id):
+        compare_uids = compare_id.split(';')
+        for key in result['general']:
+            for uid in compare_uids:
+                if uid not in result['general'][key]:
+                    result['general'][key][uid] = ''
 
     def _get_compare_plugin_views(self, compare_result):
         views, plugins_without_view = [], []
