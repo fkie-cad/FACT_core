@@ -17,10 +17,10 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBase):
         self.analysis_finished_event = Event()
         self.elements_finished_analyzing = Value('i', 0)
         self.db_backend_service = BackEndDbInterface(config=self.config)
-        self._start_backend(post_analysis=self._callback)
+        self._start_backend(post_analysis=self._analysis_callback)
         time.sleep(2)  # wait for systems to start
 
-    def _callback(self, fo):
+    def _analysis_callback(self, fo):
         self.db_backend_service.add_object(fo)
         self.elements_finished_analyzing.value += 1
         if self.elements_finished_analyzing.value > 3:
@@ -28,6 +28,7 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBase):
 
     def tearDown(self):
         self._stop_backend()
+        self.db_backend_service.shutdown()
         super().tearDown()
 
     def _upload_firmware_get(self):

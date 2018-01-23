@@ -71,10 +71,10 @@ class TestAcceptanceBase(unittest.TestCase):
             e.submit(self.unpacking_service.shutdown)
             e.submit(self.analysis_service.shutdown)
 
-    def _start_backend(self, post_analysis=None):
+    def _start_backend(self, post_analysis=None, compare_callback=None):
         self.analysis_service = AnalysisScheduler(config=self.config, post_analysis=post_analysis)
         self.unpacking_service = UnpackingScheduler(config=self.config, post_unpack=self.analysis_service.add_task)
-        self.compare_service = CompareScheduler(config=self.config)
+        self.compare_service = CompareScheduler(config=self.config, callback=compare_callback)
         with patch.object(InterComBackEndBinding, 'WAIT_TIME', .5):
             self.intercom = InterComBackEndBinding(config=self.config, analysis_service=self.analysis_service, compare_service=self.compare_service,
                                                    unpacking_service=self.unpacking_service)
