@@ -13,19 +13,27 @@ from test.acceptance.base import TestAcceptanceBase
 
 class TestRestCompareFirmware(TestAcceptanceBase):
 
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.db_backend_service = BackEndDbInterface(config=cls.config)
+        cls.analysis_finished_event = Event()
+        cls.compare_finished_event = Event()
+        cls.elements_finished_analyzing = Value('i', 0)
+
     def setUp(self):
         super().setUp()
-        self.analysis_finished_event = Event()
-        self.compare_finished_event = Event()
-        self.elements_finished_analyzing = Value('i', 0)
         self._start_backend(post_analysis=self._analysis_callback, compare_callback=self._compare_callback)
-        self.db_backend_service = BackEndDbInterface(config=self.config)
         time.sleep(2)  # wait for systems to start
 
     def tearDown(self):
         self._stop_backend()
-        self.db_backend_service.shutdown()
         super().tearDown()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.db_backend_service.shutdown()
+        super().tearDownClass()
 
     def _analysis_callback(self, fo):
         self.db_backend_service.add_object(fo)
