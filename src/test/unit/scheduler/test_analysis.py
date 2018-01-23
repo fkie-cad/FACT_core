@@ -66,9 +66,11 @@ class TestScheduleInitialAnalysis(unittest.TestCase):
         self.assertIn('file_hashes', result.keys(), 'file hashes plugin not found')
         self.assertTrue(result['file_hashes'][1], 'mandatory flag not set')
         self.assertTrue(result['file_hashes'][2], 'default flag not set')
+        self.assertEqual(self.sched.analysis_plugins['file_hashes'].VERSION, result['file_hashes'][3], 'version not correct')
         self.assertIn('file_type', result.keys(), 'file type plugin not found')
         self.assertFalse(result['file_type'][2], 'default flag set but should not')
         self.assertEqual(result['file_type'][0], self.sched.analysis_plugins['file_type'].DESCRIPTION, 'description not correct')
+        self.assertEqual(self.sched.analysis_plugins['file_type'].VERSION, result['file_type'][3], 'version not correct')
         self.assertTrue(result['unpacker'][1], 'unpacker plugin not marked as mandatory')
         self.assertNotIn('dummy_plug_in_for_testing_only', result.keys(), 'dummy plug-in not removed')
 
