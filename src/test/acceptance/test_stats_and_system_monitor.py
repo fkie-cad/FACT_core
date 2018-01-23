@@ -1,25 +1,45 @@
 import os
 import time
+from multiprocessing import Event, Value
 
-from test.acceptance.base import TestAcceptanceBase
 from helperFunctions.fileSystem import get_test_data_dir
 from statistic.update import StatisticUpdater
 from statistic.work_load import WorkLoadStatistic
+from storage.db_interface_backend import BackEndDbInterface
+from test.acceptance.base import TestAcceptanceBase
 
 
 class TestAcceptanceShowStatsAndSystemMonitor(TestAcceptanceBase):
 
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.db_backend_service = BackEndDbInterface(config=cls.config)
+        cls.analysis_finished_event = Event()
+        cls.elements_finished_analyzing = Value('i', 0)
+
     def setUp(self):
         super().setUp()
-        self._start_backend()
+        self._start_backend(post_analysis=self._analysis_callback)
         self.updater = StatisticUpdater(config=self.config)
         self.workload = WorkLoadStatistic(config=self.config)
-        time.sleep(10)  # wait for systems to start
+        time.sleep(2)  # wait for systems to start
 
     def tearDown(self):
         self.updater.shutdown()
         self._stop_backend()
         super().tearDown()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.db_backend_service.shutdown()
+        super().tearDownClass()
+
+    def _analysis_callback(self, fo):
+        self.db_backend_service.add_object(fo)
+        self.elements_finished_analyzing.value += 1
+        if self.elements_finished_analyzing.value > 7:
+            self.analysis_finished_event.set()
 
     def _upload_firmware_get(self):
         rv = self.test_client.get('/upload')
@@ -73,7 +93,7 @@ class TestAcceptanceShowStatsAndSystemMonitor(TestAcceptanceBase):
 
         time.sleep(5)
         self.workload.update(unpacking_workload=self.unpacking_service.get_scheduled_workload(), analysis_workload=self.analysis_service.get_scheduled_workload())
-        time.sleep(10)
+        self.analysis_finished_event.wait(timeout=10)
         self._show_system_monitor()
 
         self.updater.update_all_stats()
