@@ -3,6 +3,7 @@
 from flask import render_template, request
 
 from helperFunctions.web_interface import apply_filters_to_query, ConnectTo
+from intercom.front_end_binding import InterComFrontEndBinding
 from statistic.update import StatisticUpdater
 from storage.db_interface_frontend import FrontEndDbInterface
 from storage.db_interface_statistic import StatisticDbViewer
@@ -33,7 +34,11 @@ class StatisticRoutes(ComponentBase):
         with ConnectTo(StatisticDbViewer, self._config) as stats_db:
             for component in components:
                 status.append(stats_db.get_statistic(component))
-        return render_template("system_health.html", status=status)
+
+        with ConnectTo(InterComFrontEndBinding, self._config) as sc:
+            plugin_dict = sc.get_available_analysis_plugins()
+
+        return render_template("system_health.html", status=status, analysis_plugin_info=plugin_dict)
 
     def _get_stats_from_db(self):
         with ConnectTo(StatisticDbViewer, self._config) as stats_db:

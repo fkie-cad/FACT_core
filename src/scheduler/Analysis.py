@@ -86,7 +86,7 @@ class AnalysisScheduler(object):
     def get_plugin_dict(self):
         '''
         returns a dictionary of plugins with the following form: names as keys and the respective description value
-        {NAME: (DESCRIPTION, MANDATORY_FLAG, DEFAULT_FLAG)}
+        {NAME: (DESCRIPTION, MANDATORY_FLAG, DEFAULT_FLAG, VERSION)}
         - mandatory plug-ins shall not be shown in the analysis selection but always exectued
         - default plug-ins shall be pre-selected in the analysis selection
         '''
@@ -97,7 +97,7 @@ class AnalysisScheduler(object):
         for plugin in plugin_list:
             mandatory_flag = plugin in MANDATORY_PLUGINS
             default_flag = plugin in default_plugins
-            result[plugin] = (self.analysis_plugins[plugin].DESCRIPTION, mandatory_flag, default_flag)
+            result[plugin] = (self.analysis_plugins[plugin].DESCRIPTION, mandatory_flag, default_flag, self.analysis_plugins[plugin].VERSION)
         result['unpacker'] = ('Additional information provided by the unpacker', True, False)
         return result
 
