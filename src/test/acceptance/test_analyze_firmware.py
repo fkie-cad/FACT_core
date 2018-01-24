@@ -1,9 +1,11 @@
 import os
 import time
+from multiprocessing import Event, Value
 
 from helperFunctions.fileSystem import get_test_data_dir
 from helperFunctions.web_interface import ConnectTo
 from intercom.front_end_binding import InterComFrontEndBinding
+from storage.db_interface_backend import BackEndDbInterface
 from storage.db_interface_frontend import FrontEndDbInterface
 from test.acceptance.base import TestAcceptanceBase
 
@@ -12,11 +14,21 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBase):
 
     def setUp(self):
         super().setUp()
-        self._start_backend()
-        time.sleep(10)  # wait for systems to start
+        self.analysis_finished_event = Event()
+        self.elements_finished_analyzing = Value('i', 0)
+        self.db_backend_service = BackEndDbInterface(config=self.config)
+        self._start_backend(post_analysis=self._analysis_callback)
+        time.sleep(2)  # wait for systems to start
+
+    def _analysis_callback(self, fo):
+        self.db_backend_service.add_object(fo)
+        self.elements_finished_analyzing.value += 1
+        if self.elements_finished_analyzing.value > 3:
+            self.analysis_finished_event.set()
 
     def tearDown(self):
         self._stop_backend()
+        self.db_backend_service.shutdown()
         super().tearDown()
 
     def _upload_firmware_get(self):
@@ -93,7 +105,7 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBase):
     def test_run_from_upload_to_show_analysis(self):
         self._upload_firmware_get()
         self._upload_firmware_post()
-        time.sleep(15)  # wait for analysis to complete
+        self.analysis_finished_event.wait(timeout=15)
         self._show_analysis_page()
         self._show_analysis_details_file_type()
         self._check_ajax_file_tree_routes()

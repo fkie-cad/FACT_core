@@ -2,9 +2,9 @@ import gc
 import logging
 import os
 import unittest
-from unittest.mock import patch
 from concurrent.futures import ThreadPoolExecutor
 from tempfile import TemporaryDirectory
+from unittest.mock import patch
 
 from common_helper_files import create_dir_for_file
 
@@ -32,9 +32,12 @@ class TestAcceptanceBase(unittest.TestCase):
             self.name = name
             self.file_name = os.path.basename(self.path)
 
+    @classmethod
+    def setUpClass(cls):
+        cls._set_config()
+        cls.mongo_server = MongoMgr(config=cls.config)
+
     def setUp(self):
-        self._set_config()
-        self.mongo_server = MongoMgr(config=self.config)
         self.frontend = WebFrontEnd(config=self.config)
         self.frontend.app.config['TESTING'] = True
         self.test_client = self.frontend.app.test_client()
@@ -46,16 +49,20 @@ class TestAcceptanceBase(unittest.TestCase):
 
     def tearDown(self):
         clean_test_database(self.config, get_database_names(self.config))
-        self.mongo_server.shutdown()
         gc.collect()
 
-    def _set_config(self):
-        self.config = load_config('main.cfg')
-        self.config.set('data_storage', 'main_database', TMP_DB_NAME)
-        self.config.set('data_storage', 'intercom_database_prefix', TMP_DB_NAME)
-        self.config.set('data_storage', 'statistic_database', TMP_DB_NAME)
-        self.config.set('data_storage', 'firmware_file_storage_directory', TMP_DIR.name)
-        self.config.set('Logging', 'mongoDbLogFile', os.path.join(TMP_DIR.name, 'mongo.log'))
+    @classmethod
+    def tearDownClass(cls):
+        cls.mongo_server.shutdown()
+
+    @classmethod
+    def _set_config(cls):
+        cls.config = load_config('main.cfg')
+        cls.config.set('data_storage', 'main_database', TMP_DB_NAME)
+        cls.config.set('data_storage', 'intercom_database_prefix', TMP_DB_NAME)
+        cls.config.set('data_storage', 'statistic_database', TMP_DB_NAME)
+        cls.config.set('data_storage', 'firmware_file_storage_directory', TMP_DIR.name)
+        cls.config.set('Logging', 'mongoDbLogFile', os.path.join(TMP_DIR.name, 'mongo.log'))
 
     def _stop_backend(self):
         with ThreadPoolExecutor(max_workers=4) as e:
@@ -64,10 +71,10 @@ class TestAcceptanceBase(unittest.TestCase):
             e.submit(self.unpacking_service.shutdown)
             e.submit(self.analysis_service.shutdown)
 
-    def _start_backend(self):
-        self.analysis_service = AnalysisScheduler(config=self.config)
+    def _start_backend(self, post_analysis=None, compare_callback=None):
+        self.analysis_service = AnalysisScheduler(config=self.config, post_analysis=post_analysis)
         self.unpacking_service = UnpackingScheduler(config=self.config, post_unpack=self.analysis_service.add_task)
-        self.compare_service = CompareScheduler(config=self.config)
+        self.compare_service = CompareScheduler(config=self.config, callback=compare_callback)
         with patch.object(InterComBackEndBinding, 'WAIT_TIME', .5):
             self.intercom = InterComBackEndBinding(config=self.config, analysis_service=self.analysis_service, compare_service=self.compare_service,
                                                    unpacking_service=self.unpacking_service)
