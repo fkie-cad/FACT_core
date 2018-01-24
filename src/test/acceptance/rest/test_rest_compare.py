@@ -4,20 +4,45 @@ import os
 import time
 import urllib.parse
 
+from multiprocessing import Event, Value
+
 from helperFunctions.fileSystem import get_test_data_dir
+from storage.db_interface_backend import BackEndDbInterface
 from test.acceptance.base import TestAcceptanceBase
 
 
-class TestIntegrationRestCompareFirmware(TestAcceptanceBase):
+class TestRestCompareFirmware(TestAcceptanceBase):
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.db_backend_service = BackEndDbInterface(config=cls.config)
+        cls.analysis_finished_event = Event()
+        cls.compare_finished_event = Event()
+        cls.elements_finished_analyzing = Value('i', 0)
 
     def setUp(self):
         super().setUp()
-        self._start_backend()
-        time.sleep(10)  # wait for systems to start
+        self._start_backend(post_analysis=self._analysis_callback, compare_callback=self._compare_callback)
+        time.sleep(2)  # wait for systems to start
 
     def tearDown(self):
         self._stop_backend()
         super().tearDown()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.db_backend_service.shutdown()
+        super().tearDownClass()
+
+    def _analysis_callback(self, fo):
+        self.db_backend_service.add_object(fo)
+        self.elements_finished_analyzing.value += 1
+        if self.elements_finished_analyzing.value > 7:
+            self.analysis_finished_event.set()
+
+    def _compare_callback(self):
+        self.compare_finished_event.set()
 
     def _rest_upload_firmware(self, fw):
         testfile_path = os.path.join(get_test_data_dir(), fw.path)
@@ -57,9 +82,9 @@ class TestIntegrationRestCompareFirmware(TestAcceptanceBase):
     def test_run_from_upload_to_show_analysis(self):
         self._rest_upload_firmware(self.test_fw_a)
         self._rest_upload_firmware(self.test_fw_b)
-        time.sleep(20)  # wait for analysis to complete
+        self.analysis_finished_event.wait(timeout=20)
         self._rest_search(self.test_fw_a)
         self._rest_search(self.test_fw_b)
         self._rest_start_compare()
-        time.sleep(20)  # wait for analysis to complete
+        self.compare_finished_event.wait(timeout=20)
         self._rest_get_compare()

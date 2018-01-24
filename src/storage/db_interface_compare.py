@@ -58,9 +58,11 @@ class CompareDbInterface(MongoInterfaceCommon):
 
     @staticmethod
     def _calculate_compare_result_id(compare_result):
-        general_keys = list(compare_result['general'].keys())
-        uids = list(compare_result['general'][general_keys[0]].keys())
-        comp_id = list_to_unified_string_list(uids)
+        general_dict = compare_result['general']
+        uid_set = set()
+        for key in general_dict:
+            uid_set.update(list(general_dict[key].keys()))
+        comp_id = list_to_unified_string_list(list(uid_set))
         return comp_id
 
     def page_compare_results(self, skip=0, limit=0):

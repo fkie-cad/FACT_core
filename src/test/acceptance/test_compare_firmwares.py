@@ -1,6 +1,9 @@
 import os
 import time
 
+from multiprocessing import Event, Value
+
+from storage.db_interface_backend import BackEndDbInterface
 from test.acceptance.base import TestAcceptanceBase
 from helperFunctions.fileSystem import get_test_data_dir
 
@@ -9,12 +12,26 @@ class TestAcceptanceCompareFirmwares(TestAcceptanceBase):
 
     def setUp(self):
         super().setUp()
-        self._start_backend()
-        time.sleep(10)  # wait for systems to start
+        self.analysis_finished_event = Event()
+        self.compare_finished_event = Event()
+        self.elements_finished_analyzing = Value('i', 0)
+        self.db_backend_service = BackEndDbInterface(config=self.config)
+        self._start_backend(post_analysis=self._analysis_callback, compare_callback=self._compare_callback)
+        time.sleep(2)  # wait for systems to start
 
     def tearDown(self):
         self._stop_backend()
+        self.db_backend_service.shutdown()
         super().tearDown()
+
+    def _analysis_callback(self, fo):
+        self.db_backend_service.add_object(fo)
+        self.elements_finished_analyzing.value += 1
+        if self.elements_finished_analyzing.value > 7:
+            self.analysis_finished_event.set()
+
+    def _compare_callback(self):
+        self.compare_finished_event.set()
 
     def _upload_firmware_get(self):
         rv = self.test_client.get('/upload')
@@ -71,10 +88,10 @@ class TestAcceptanceCompareFirmwares(TestAcceptanceBase):
         self._upload_firmware_get()
         for fw in [self.test_fw_a, self.test_fw_b]:
             self._upload_firmware_put(fw.path, fw.name, fw.uid)
-        time.sleep(20)  # wait for analysis to complete
+        self.analysis_finished_event.wait(timeout=20)
         self._add_firmwares_to_compare()
         self._start_compare()
-        time.sleep(20)  # wait for comparison to complete
+        self.compare_finished_event.wait(timeout=20)
         self._show_comparison_results()
         self._show_home_page()
         self._show_compare_browse()

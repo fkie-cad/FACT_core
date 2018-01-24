@@ -43,7 +43,7 @@
 
     {% elif feature == 'exclusive_files' %}
         <td class="active"> {{ feature | replace_underscore }} </td>
-        {% for firmware_uid in result['plugins'][plugin][feature] %}
+        {% for firmware_uid in uid_list %}
             {% if firmware_uid != "collapse" %}
             <td>
                 <div id="fileTreeAjax_{{ loop.index }}"></div>
