@@ -64,6 +64,11 @@ class TestCompare(unittest.TestCase):
         comp_id = self.db_interface_compare._calculate_compare_result_id(self.compare_dict)
         self.assertEqual(comp_id, '{};{}'.format(self.fw_one.get_uid(), self.fw_two.get_uid()))
 
+    def test_calculate_compare_result_id__incomplete_entries(self):
+        compare_dict = {'general': {'stat_1': {'a': None}, 'stat_2': {'b': None}}}
+        comp_id = self.db_interface_compare._calculate_compare_result_id(compare_dict)
+        self.assertEqual('a;b', comp_id)
+
     def test_object_existence_quick_check(self):
         self.db_interface_backend.add_firmware(self.fw_one)
         self.assertIsNone(self.db_interface_compare.object_existence_quick_check(self.fw_one.get_uid()), 'existing_object not found')

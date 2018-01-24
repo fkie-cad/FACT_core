@@ -16,18 +16,24 @@ BSON_MAX_FILE_SIZE = 16 * 1024**2
 
 class TestInterComListener(unittest.TestCase):
 
+    @classmethod
+    def setUpClass(cls):
+        cls.config = get_config_for_testing(temp_dir=TMP_DIR)
+        cls.mongo_server = MongoMgr(config=cls.config)
+
     def setUp(self):
-        config = get_config_for_testing(temp_dir=TMP_DIR)
-        self.mongo_server = MongoMgr(config=config)
-        self.generic_listener = InterComListener(config=config)
+        self.generic_listener = InterComListener(config=self.config)
 
     def tearDown(self):
         for item in self.generic_listener.connections.keys():
             self.generic_listener.client.drop_database(self.generic_listener.connections[item]['name'])
         self.generic_listener.shutdown()
-        self.mongo_server.shutdown()
-        TMP_DIR.cleanup()
         gc.collect()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.mongo_server.shutdown()
+        TMP_DIR.cleanup()
 
     def check_file(self, binary):
         self.generic_listener.connections[self.generic_listener.CONNECTION_TYPE]['fs'].put(pickle.dumps(binary))

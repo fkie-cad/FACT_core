@@ -21,11 +21,13 @@ from test.unit.helperFunctions_setup_test_data import clean_test_database
 
 
 class TestFileAddition(unittest.TestCase):
+
     @patch('unpacker.unpack.FS_Organizer', MockFSOrganizer)
     def setUp(self):
         self._tmp_dir = TemporaryDirectory()
         self._config = initialize_config(self._tmp_dir)
         self.elements_finished_analyzing = Value('i', 0)
+        self.analysis_finished_event = Event()
         self.compare_finished_event = Event()
 
         self._mongo_server = MongoMgr(config=self._config, auth=False)
@@ -36,8 +38,10 @@ class TestFileAddition(unittest.TestCase):
         self._compare_scheduler = CompareScheduler(config=self._config, callback=self.trigger_compare_finished_event)
 
     def count_analysis_finished_event(self, fw_object):
-        self.elements_finished_analyzing.value += 1
         self.backend_interface.add_object(fw_object)
+        self.elements_finished_analyzing.value += 1
+        if self.elements_finished_analyzing.value > 7:
+            self.analysis_finished_event.set()
 
     def trigger_compare_finished_event(self):
         self.compare_finished_event.set()
@@ -62,9 +66,7 @@ class TestFileAddition(unittest.TestCase):
         self._unpack_scheduler.add_task(test_fw_1)
         self._unpack_scheduler.add_task(test_fw_2)
 
-        while self.elements_finished_analyzing.value < 8:
-            sleep(.5)
-        sleep(1)
+        self.analysis_finished_event.wait(timeout=10)
 
         compare_id = unify_string_list(';'.join([fw.uid for fw in [test_fw_1, test_fw_2]]))
 
