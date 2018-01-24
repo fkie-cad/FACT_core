@@ -8,7 +8,8 @@
 
 The Firmware Analysis and Comparison Tool (formerly known as Fraunhofer's Firmware Analysis Framework (FAF)) is intended to automate most of the firmware analysis process. 
 It unpacks arbitrary firmware files and processes several analysis.
-Additionally it can compare several images or single files. 
+Additionally it can compare several images or single files.
+More information can be found on our [website](https://fkie-cad.github.io/FACT_core/).
 
 Thereby unpacking, analysis and compares are based on plug-ins guaranteeing maximal flexibility and expandability.
 
@@ -106,7 +107,7 @@ The FACT project and the [Malware Analysis and Storage Sytem (MASS) project](htt
 ## License
 ```
     Firmware Analysis and Comparison Tool (FACT)
-    Copyright (C) 2015-2017  Fraunhofer FKIE
+    Copyright (C) 2015-2018  Fraunhofer FKIE
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
