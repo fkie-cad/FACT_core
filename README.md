@@ -8,10 +8,9 @@
 
 The Firmware Analysis and Comparison Tool (formerly known as Fraunhofer's Firmware Analysis Framework (FAF)) is intended to automate most of the firmware analysis process. 
 It unpacks arbitrary firmware files and processes several analysis.
-Additionally it can compare several images or single files.
-More information can be found on our [website](https://fkie-cad.github.io/FACT_core/).
-
-Thereby unpacking, analysis and compares are based on plug-ins guaranteeing maximal flexibility and expandability.
+Additionally, it can compare several images or single files.  
+Furthermore, Unpacking, analysis and compares are based on plug-ins guaranteeing maximal flexibility and expandability.  
+More details and some screenshots can be found on our [project page](https://fkie-cad.github.io/FACT_core/).
 
 ## Requirments
 ### Hardware
@@ -36,7 +35,7 @@ It is possible to install FACT on any Linux distribution but the installer is li
 
 :exclamation: **Caution: FACT is not intended to be used as public internet service. The GUI is not a hardened WEB-application and it may take your server at risk!**
 
-FACT consists of three components: frontend, db and backend. All components can be installed on one machine as well as on different machines. 
+FACT consists of three components: frontend, database and backend. All components can be installed on one machine as well as on different machines. 
 There is an automated installation programm supporting Ubuntu 16.04 host systems.
 
 ### Pre-Install
