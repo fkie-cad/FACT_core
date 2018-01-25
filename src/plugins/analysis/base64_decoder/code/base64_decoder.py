@@ -2,11 +2,11 @@ import logging
 import os
 import re
 from binascii import a2b_base64
-from entropy import shannon_entropy  # pylint: disable=no-name-in-module
 
 from common_helper_files import get_dir_of_file, get_string_list_from_file
+from entropy import shannon_entropy  # pylint: disable=no-name-in-module
 
-from analysis.PluginBase import BasePlugin
+from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.dataConversion import remove_linebreaks_from_byte_string
 from helperFunctions.fileSystem import get_parent_dir, get_file_type_from_binary
 from helperFunctions.strings import find_all_strings
@@ -14,7 +14,7 @@ from helperFunctions.strings import find_all_strings
 LINEBREAK_LENGTH = 1
 
 
-class AnalysisPlugin(BasePlugin):
+class AnalysisPlugin(AnalysisBasePlugin):
     '''
     detect and decode base64 encoded data
 
@@ -23,13 +23,13 @@ class AnalysisPlugin(BasePlugin):
     Refactored and improved by Fraunhofer FKIE
     '''
     NAME = 'base64_decoder'
-    DEPENDENCYS = []
+    DEPENDENCIES = []
     DESCRIPTION = 'Detect and decode base64 sections'
     VERSION = '0.1.2'
 
-    def __init__(self, plugin_adminstrator, config=None, recursive=True, timeout=300):
+    def __init__(self, plugin_administrator, config=None, recursive=True, timeout=300):
         self._word_list = self.load_word_list()
-        super().__init__(plugin_adminstrator, config=config, recursive=recursive, timeout=timeout, plugin_path=__file__)
+        super().__init__(plugin_administrator, config=config, recursive=recursive, timeout=timeout, plugin_path=__file__)
 
     @staticmethod
     def load_word_list():

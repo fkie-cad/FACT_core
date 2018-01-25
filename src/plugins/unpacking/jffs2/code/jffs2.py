@@ -1,10 +1,10 @@
 '''
 This plugin unpacks JFFS2 filesystem images
 '''
-from common_helper_process import execute_shell_command
 import logging
 import os
 
+from common_helper_process import execute_shell_command
 
 name = 'JFFS2'
 mime_patterns = ['filesystem/jffs2', 'filesystem/jffs2-big']

@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
+import logging
+import re
+from os import chdir, getcwd, path, rename, remove
+
 from common_helper_files import get_files_in_dir
 from common_helper_process import execute_shell_command
-import logging
-from os import chdir, getcwd, path, rename, remove
-import re
 
 from helperFunctions.fileSystem import get_src_dir
-
 
 name = 'Ambarella'
 mime_patterns = ['firmware/ambarella']

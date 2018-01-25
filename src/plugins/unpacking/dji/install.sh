@@ -16,4 +16,6 @@ mv amba_romfs.py ../../bin/
 cd ..
 rm -rf phantom-firmware-tools
 
+sudo -EH pip3 install --upgrade pycrypto
+
 exit 0

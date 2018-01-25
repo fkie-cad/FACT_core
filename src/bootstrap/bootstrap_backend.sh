@@ -22,18 +22,23 @@ sudo -E apt-get install -y python-lzma
 
 # install yara
 sudo apt-get install -y bison flex libmagic-dev
-wget https://github.com/VirusTotal/yara/archive/v3.6.3.zip
-unzip v3.6.3.zip
-cd yara-3.*
-#patch --forward -r - libyara/arena.c ../patches/yara.patchfile 
-chmod +x bootstrap.sh
-./bootstrap.sh
-./configure --enable-magic
-make
-sudo make install
-# CAUTION: Yara python binding is installed in bootstrap_common, because it is needed in the frontend as well.
-cd ..
-sudo rm -fr yara* v3.6.3.zip
+if [ $(yara --version) == '3.6.3' ]
+then
+    echo "skipping yara installation (already installed)"
+else
+    wget https://github.com/VirusTotal/yara/archive/v3.6.3.zip
+    unzip v3.6.3.zip
+    cd yara-3.*
+    #patch --forward -r - libyara/arena.c ../patches/yara.patchfile
+    chmod +x bootstrap.sh
+    ./bootstrap.sh
+    ./configure --enable-magic
+    make
+    sudo make install
+    # CAUTION: Yara python binding is installed in bootstrap_common, because it is needed in the frontend as well.
+    cd ..
+    sudo rm -fr yara* v3.6.3.zip
+fi
 
 
 echo "####################################"
@@ -106,8 +111,6 @@ sudo -EH pip3 install --upgrade git+https://github.com/fkie-cad/common_helper_un
 # common_analysis_base
 sudo -EH pip3 install --upgrade git+https://github.com/mass-project/common_analysis_base.git
 
-sudo -EH pip3 install --upgrade lief
-
 echo "####################################"
 echo "#   install plug-in dependencies   #"
 echo "####################################"
@@ -124,7 +127,7 @@ echo "####################################"
 echo "#    compile custom magic file     #"
 echo "####################################"
 cat ../mime/custom_* > ../mime/custommime
-(cd ../mime && file -C -m custommime && mv custommime.mgc ../bin/)
+(cd ../mime && file -C -m custommime && mv -f custommime.mgc ../bin/)
 rm ../mime/custommime
 
 echo "######################################"

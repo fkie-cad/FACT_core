@@ -82,14 +82,6 @@ def get_chroot_path_excluding_extracted_dir(absolute_path, base_path):
     return get_chroot_path(tmp, '/faf_extracted')
 
 
-def delete_file(file_path):
-    '''
-    Delete file in file_path if it exists
-    '''
-    if os.path.exists(file_path):
-        os.unlink(file_path)
-
-
 def check_critical_file_existence(file_path):
     '''
     end the program if a critical file (file_path) is missing
@@ -135,6 +127,9 @@ def _get_type_from_magic_object(path_or_binary, magic_object, function_name, mim
             result = make_unicode_string(getattr(magic_object, function_name)(path_or_binary))
         else:
             result = make_unicode_string(getattr(magic_object, function_name)(path_or_binary, mime=mime))
+    except FileNotFoundError as e:
+        logging.error('File not found: {}'.format(e))
+        result = 'error/file-not-found' if mime else 'Error: File not in storage!'
     except Exception as exception:
         logging.error('Could not determine file type: {} {}'.format(type(exception), str(exception)))
         result = 'application/octet-stream' if mime else 'data'

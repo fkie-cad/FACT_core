@@ -1,6 +1,7 @@
-import unittest
+import gc
 from os import path
 from tempfile import TemporaryDirectory
+import unittest
 
 from helperFunctions.config import get_config_for_testing
 from helperFunctions.fileSystem import get_test_data_dir
@@ -10,31 +11,41 @@ from storage.db_interface_backend import BackEndDbInterface
 from storage.db_interface_frontend import FrontEndDbInterface
 from test.common_helper import create_test_firmware, create_test_file_object
 
+
 TESTS_DIR = get_test_data_dir()
 test_file_one = path.join(TESTS_DIR, 'get_files_test/testfile1')
-TMP_DIR = TemporaryDirectory(prefix='faf_test_')
+TMP_DIR = TemporaryDirectory(prefix='fact_test_')
 
 
 class TestStorageDbInterfaceFrontend(unittest.TestCase):
 
+    @classmethod
+    def setUpClass(cls):
+        cls._config = get_config_for_testing(TMP_DIR)
+        cls.mongo_server = MongoMgr(config=cls._config)
+
     def setUp(self):
-        self._config = get_config_for_testing(TMP_DIR)
-        self.mongo_server = MongoMgr(config=self._config)
         self.db_frontend_interface = FrontEndDbInterface(config=self._config)
         self.db_backend_interface = BackEndDbInterface(config=self._config)
         self.test_firmware = create_test_firmware()
 
     def tearDown(self):
-        self.db_backend_interface.client.drop_database(self._config.get('data_storage', 'main_database'))
         self.db_frontend_interface.shutdown()
+        self.db_backend_interface.client.drop_database(self._config.get('data_storage', 'main_database'))
         self.db_backend_interface.shutdown()
-        self.mongo_server.shutdown()
+        gc.collect()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.mongo_server.shutdown()
+        TMP_DIR.cleanup()
 
     def test_get_meta_list(self):
         self.db_backend_interface.add_firmware(self.test_firmware)
         list_of_firmwares = self.db_frontend_interface.get_meta_list()
         test_output = list_of_firmwares.pop()
         self.assertEqual(test_output[1], 'test_vendor test_router - 0.1 (Router)', 'Firmware not successfully received')
+        self.assertIsInstance(test_output[2], dict, 'tag field is not a dict')
 
     def test_get_hid_firmware(self):
         self.db_backend_interface.add_firmware(self.test_firmware)

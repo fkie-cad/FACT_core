@@ -16,7 +16,7 @@ from web_interface.filter import encode_base64_filter, bytes_to_str_filter
 
 class AjaxRoutes(ComponentBase):
     def _init_component(self):
-        self._app.add_url_rule('/ajax_tree/<uid>', 'ajax_tree/<uid>', self._ajax_get_tree_children)
+        self._app.add_url_rule('/ajax_tree/<uid>/<root_uid>', '/ajax_tree/<uid>/<root_uid>', self._ajax_get_tree_children)
         self._app.add_url_rule('/ajax_root/<uid>', 'ajax_root/<uid>', self._ajax_get_tree_root)
         self._app.add_url_rule('/compare/ajax_tree/<compare_id>/<root_uid>/<uid>', 'compare/ajax_tree/<compare_id>/<root_uid>/<uid>',
                                self._ajax_get_tree_children)
@@ -43,7 +43,7 @@ class AjaxRoutes(ComponentBase):
             child_uids = sc.get_specific_fields_of_db_entry(uid, {'files_included': 1})['files_included']
             for child_uid in child_uids:
                 if not exclusive_files or child_uid in exclusive_files:
-                    for node in sc.generate_file_tree_node(child_uid, uid, whitelist=exclusive_files):
+                    for node in sc.generate_file_tree_node(child_uid, root_uid, whitelist=exclusive_files):
                         root.add_child_node(node)
         for child_node in root.get_list_of_child_nodes():
             child = self._generate_jstree_node(child_node)
@@ -71,13 +71,13 @@ class AjaxRoutes(ComponentBase):
 
     def _get_not_analyzed_jstree_node_contents(self, node):
         return self._get_jstree_node_contents(
-            '{}'.format(node.name), '/analysis/{}'.format(node.uid), '/analysis/{}'.format(node.uid), '/static/file_icons/not_analyzed.png'
+            '{}'.format(node.name), '/analysis/{}/ro/{}'.format(node.uid, node.root_uid), '/analysis/{}/ro/{}'.format(node.uid, node.root_uid), '/static/file_icons/not_analyzed.png'
         )
 
     def _get_analyzed_jstree_node_contents(self, node):
         result = self._get_jstree_node_contents(
             '<b>{}</b> (<span style="color:gray;">{}</span>)'.format(node.name, human_readable_file_size(node.size)),
-            '/analysis/{}'.format(node.uid), '/analysis/{}'.format(node.uid), get_correct_icon_for_mime(node.type)
+            '/analysis/{}/ro/{}'.format(node.uid, node.root_uid), '/analysis/{}/ro/{}'.format(node.uid, node.root_uid), get_correct_icon_for_mime(node.type)
         )
         result['data'] = {'uid': node.uid}
         return result
@@ -114,9 +114,9 @@ class AjaxRoutes(ComponentBase):
             result = sc.get_compare_result(compare_id)
         feature, key = feature_id.split('___')
         uid_list = result['plugins']['File_Coverage'][feature][key]
-        return self._get_nice_uid_list_html(uid_list)
+        return self._get_nice_uid_list_html(uid_list, key)
 
-    def _get_nice_uid_list_html(self, input_data):
+    def _get_nice_uid_list_html(self, input_data, root_uid=None):
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
             included_files = sc.get_data_for_nice_list(input_data, None)
         number_of_unanalyzed_files = len(input_data) - len(included_files)
@@ -124,7 +124,8 @@ class AjaxRoutes(ComponentBase):
             'generic_view/nice_fo_list.html',
             fo_list=included_files,
             number_of_unanalyzed_files=number_of_unanalyzed_files,
-            omit_collapse=True
+            omit_collapse=True,
+            root_uid=root_uid
         )
 
     def _ajax_get_binary(self, mime_type, uid):

@@ -1,22 +1,22 @@
 import logging
 from copy import deepcopy
 
-from compare.PluginBase import ComparePluginBase
+from compare.PluginBase import CompareBasePlugin
 from helperFunctions.compare_sets import intersection_of_list_of_lists, difference_of_lists, difference_of_sets, remove_duplicates_from_list_of_lists, make_pairs_of_sets, collapse_pair_of_sets
 from helperFunctions.dataConversion import list_of_lists_to_list_of_sets, list_of_sets_to_list_of_lists, remove_included_sets_from_list_of_sets, list_to_unified_string_list
 from helperFunctions.hash import get_ssdeep_comparison, check_similarity_of_sets
 
 
-class ComparePlugin(ComparePluginBase):
+class ComparePlugin(CompareBasePlugin):
     """
     Compares file coverage
     """
 
     NAME = 'File_Coverage'
-    DEPENDENCYS = []
+    DEPENDENCIES = []
 
-    def __init__(self, plugin_administrator, config=None, db_interface=None):
-        super().__init__(plugin_administrator, config=config, db_interface=db_interface)
+    def __init__(self, plugin_administrator, config=None, db_interface=None, plugin_path=__file__):
+        super().__init__(plugin_administrator, config=config, db_interface=db_interface, plugin_path=plugin_path)
         self.SSDEEP_IGNORE = int(self.config.get('ExpertSettings', 'ssdeep_ignore'))
 
     def compare_function(self, fo_list):
@@ -88,11 +88,11 @@ class ComparePlugin(ComparePluginBase):
         return remove_duplicates_from_list_of_lists(list_of_sets_to_list_of_lists(similarity_sets)), similarity
 
     def _find_similar_file_for(self, file, parent_id, potential_matches):
-        fo_one = self.database.get_object(uid=file)
+        fo_one = self.database.get_object(uid=file, analysis_filter=['file_hashes'])
         id1 = '{}:{}'.format(parent_id, fo_one.get_uid())
         hash_one = fo_one.processed_analysis['file_hashes']['ssdeep']
         for potential_match in potential_matches.files_included:
-            fo_two = self.database.get_object(uid=potential_match)
+            fo_two = self.database.get_object(uid=potential_match, analysis_filter=['file_hashes'])
             id2 = '{}:{}'.format(potential_matches.get_uid(), fo_two.get_uid())
             hash_two = fo_two.processed_analysis['file_hashes']['ssdeep']
             if get_ssdeep_comparison(hash_one, hash_two) > self.SSDEEP_IGNORE:

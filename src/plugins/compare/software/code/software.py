@@ -1,15 +1,18 @@
 from copy import deepcopy
-from compare.PluginBase import ComparePluginBase
+from compare.PluginBase import CompareBasePlugin
 from helperFunctions.compare_sets import intersection_of_list_of_lists, difference_of_lists, difference_of_sets
 
 
-class ComparePlugin(ComparePluginBase):
+class ComparePlugin(CompareBasePlugin):
     '''
     Compares Software
     '''
 
     NAME = 'Software'
-    DEPENDENCYS = ['software_components']
+    DEPENDENCIES = ['software_components']
+
+    def __init__(self, plugin_administrator, config=None, db_interface=None):
+        super().__init__(plugin_administrator, config=config, db_interface=db_interface, plugin_path=__file__)
 
     def compare_function(self, fo_list):
         """

@@ -1,9 +1,9 @@
+import gc
 import unittest
 
 from helperFunctions.config import get_config_for_testing
-from storage.MongoMgr import MongoMgr
-
 from statistic.update import StatisticUpdater
+from storage.MongoMgr import MongoMgr
 from storage.db_interface_statistic import StatisticDbViewer
 from test.common_helper import get_database_names
 from test.unit.helperFunctions_setup_test_data import clean_test_database
@@ -11,17 +11,24 @@ from test.unit.helperFunctions_setup_test_data import clean_test_database
 
 class TestStatistic(unittest.TestCase):
 
+    @classmethod
+    def setUpClass(cls):
+        cls.config = get_config_for_testing()
+        cls.mongo_server = MongoMgr(config=cls.config)
+
     def setUp(self):
-        self.config = get_config_for_testing()
-        self.mongo_server = MongoMgr(config=self.config)
         self.updater = StatisticUpdater(config=self.config)
         self.frontend_db_interface = StatisticDbViewer(config=self.config)
 
     def tearDown(self):
-        clean_test_database(self.config, get_database_names(self.config))
         self.updater.shutdown()
         self.frontend_db_interface.shutdown()
-        self.mongo_server.shutdown()
+        clean_test_database(self.config, get_database_names(self.config))
+        gc.collect()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.mongo_server.shutdown()
 
     def test_update_and_get_statistic(self):
         self.updater.db.update_statistic('test', {'test1': 1})

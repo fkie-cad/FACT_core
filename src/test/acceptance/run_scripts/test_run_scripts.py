@@ -1,6 +1,7 @@
 from common_helper_process import execute_shell_command_get_return_code
 import pytest
 import os
+import gc
 
 from helperFunctions.fileSystem import get_src_dir
 
@@ -24,6 +25,8 @@ def test_start_script_help_and_version(script):
     assert output[0:5] == 'FACT '
     assert return_code == 0
 
+    gc.collect()
+
 
 @pytest.mark.skip(reason="Not working in CI")
 def test_fact_complete_start():
@@ -32,3 +35,5 @@ def test_fact_complete_start():
     assert 'Analysis System online...' in output
     assert 'Analysis System offline' in output
     assert return_code == 0
+
+    gc.collect()

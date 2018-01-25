@@ -1,20 +1,15 @@
 import logging
-from tempfile import TemporaryDirectory
 import sys
+from tempfile import TemporaryDirectory
 
-from unpacker.unpackBase import UnpackBase
-from storage.fs_organizer import FS_Organizer
-from helperFunctions.fileSystem import file_is_empty, get_chroot_path_excluding_extracted_dir,\
-    get_file_type_from_path
+from common_helper_files import human_readable_file_size
+from common_helper_unpacking_classifier import avg_entropy, get_binary_size_without_padding, is_compressed
+
 from helperFunctions.dataConversion import make_list_from_dict, make_unicode_string
+from helperFunctions.fileSystem import file_is_empty, get_chroot_path_excluding_extracted_dir, get_file_type_from_path
 from objects.file import FileObject
-from helperFunctions.process import complete_shutdown
-
-try:
-    from common_helper_unpacking_classifier import avg_entropy, get_binary_size_without_padding, is_compressed
-    from common_helper_files import human_readable_file_size
-except ImportError:
-    complete_shutdown("Common helper libraries missing: Re-run the install script!")
+from storage.fs_organizer import FS_Organizer
+from unpacker.unpackBase import UnpackBase
 
 
 class Unpacker(UnpackBase):
@@ -29,12 +24,12 @@ class Unpacker(UnpackBase):
         self.file_storage_system = FS_Organizer(config=self.config)
 
     def unpack(self, current_fo):
-        """
+        '''
         Recursively extract all objects included in current_fo and add them to current_fo.files_included
-        """
+        '''
 
-        logging.debug("[worker {}] Extracting {}: Depth: {}".format(self.worker_id, current_fo.get_uid(), current_fo.depth))
-        tmp_dir = TemporaryDirectory(prefix="faf_unpack_")
+        logging.debug('[worker {}] Extracting {}: Depth: {}'.format(self.worker_id, current_fo.get_uid(), current_fo.depth))
+        tmp_dir = TemporaryDirectory(prefix='faf_unpack_')
         extracted_files, meta_data = self.extract_files_from_file(current_fo.file_path, tmp_dir.name, current_fo.depth)
         extracted_files, meta_data = self._do_fallback_if_necessary(extracted_files, meta_data, tmp_dir, current_fo)
         extracted_file_objects = self.generate_and_store_file_objects(extracted_files, tmp_dir.name, current_fo)
@@ -47,10 +42,10 @@ class Unpacker(UnpackBase):
 
     def _do_fallback_if_necessary(self, extracted_files, meta_data, tmp_dir, current_fo):
         if len(extracted_files) < 1 and meta_data['plugin_used'] in self.GENERIC_FS_FALLBACK_CANDIDATES:
-                logging.warning("[worker {}] {} could not extract any files -> generic fs fallback".format(self.worker_id, meta_data['plugin_used']))
+                logging.warning('[worker {}] {} could not extract any files -> generic fs fallback'.format(self.worker_id, meta_data['plugin_used']))
                 extracted_files, meta_data = self.unpacking_fallback(current_fo.file_path, tmp_dir.name, meta_data, 'generic/fs')
         if len(extracted_files) < 1 and meta_data['plugin_used'] not in self.GENERIC_CARVER_FALLBACK_BLACKLIST:
-                logging.warning("[worker {}] {} could not extract any files -> generic carver fallback".format(self.worker_id, meta_data['plugin_used']))
+                logging.warning('[worker {}] {} could not extract any files -> generic carver fallback'.format(self.worker_id, meta_data['plugin_used']))
                 extracted_files, meta_data = self.unpacking_fallback(current_fo.file_path, tmp_dir.name, meta_data, 'generic/carver')
         return extracted_files, meta_data
 
@@ -58,33 +53,33 @@ class Unpacker(UnpackBase):
         try:
             tmp_dir.cleanup()
         except Exception as e:
-            logging.error("[worker {}] Could not CleanUp tmp_dir: {} - {}".format(self.worker_id, sys.exc_info()[0].__name__, e))
+            logging.error('[worker {}] Could not CleanUp tmp_dir: {} - {}'.format(self.worker_id, sys.exc_info()[0].__name__, e))
 
     def get_unpack_status(self, fo, extracted_fos):
         fo.processed_analysis['unpacker']['summary'] = []
         fo_entropy = avg_entropy(fo.binary)
-        fo.processed_analysis["unpacker"]["entropy"] = fo_entropy
+        fo.processed_analysis['unpacker']['entropy'] = fo_entropy
 
         if len(fo.files_included) < 1:
-            if get_file_type_from_path(fo.file_path)["mime"] in self.VALID_COMPRESSED_FILE_TYPES:
-                fo.processed_analysis['unpacker']['summary'] = ["unpacked"]
+            if get_file_type_from_path(fo.file_path)['mime'] in self.VALID_COMPRESSED_FILE_TYPES:
+                fo.processed_analysis['unpacker']['summary'] = ['unpacked']
             else:
-                if is_compressed(fo.binary, compress_entropy_threshold=self.config["ExpertSettings"].getfloat("unpack_threshold", 0.7), classifier=avg_entropy):
-                    fo.processed_analysis['unpacker']['summary'] = ["packed"]
+                if is_compressed(fo.binary, compress_entropy_threshold=self.config['ExpertSettings'].getfloat('unpack_threshold', 0.7), classifier=avg_entropy):
+                    fo.processed_analysis['unpacker']['summary'] = ['packed']
                 else:
-                    fo.processed_analysis['unpacker']['summary'] = ["unpacked"]
+                    fo.processed_analysis['unpacker']['summary'] = ['unpacked']
         else:
             self._detect_unpack_loss(fo, extracted_fos)
 
     def _detect_unpack_loss(self, fo, extracted_fos):
-        decoding_overhead = 1 - fo.processed_analysis['unpacker'].get("encoding_overhead", 0)
+        decoding_overhead = 1 - fo.processed_analysis['unpacker'].get('encoding_overhead', 0)
         cleaned_size = get_binary_size_without_padding(fo.binary) * decoding_overhead - self.HEADER_OVERHEAD
         extracted_fos_size_sum = self._get_extracted_fos_size_sum(extracted_fos)
-        fo.processed_analysis['unpacker']['size packed -> unpacked'] = "{} -> {}".format(human_readable_file_size(cleaned_size), human_readable_file_size(extracted_fos_size_sum))
+        fo.processed_analysis['unpacker']['size packed -> unpacked'] = '{} -> {}'.format(human_readable_file_size(cleaned_size), human_readable_file_size(extracted_fos_size_sum))
         if cleaned_size > extracted_fos_size_sum:
-            fo.processed_analysis['unpacker']['summary'] = ["data lost"]
+            fo.processed_analysis['unpacker']['summary'] = ['data lost']
         else:
-            fo.processed_analysis['unpacker']['summary'] = ["no data lost"]
+            fo.processed_analysis['unpacker']['summary'] = ['no data lost']
 
     def _get_extracted_fos_size_sum(self, extracted_fos):
         result = 0
@@ -101,7 +96,7 @@ class Unpacker(UnpackBase):
         for item in file_paths:
             if not file_is_empty(item):
                 current_file = FileObject(file_path=item)
-                current_virtual_path = "{}|{}|{}".format(
+                current_virtual_path = '{}|{}|{}'.format(
                     parent.get_base_of_virtual_path(parent.get_virtual_file_paths()[parent.get_root_uid()][0]),
                     parent.get_uid(), get_chroot_path_excluding_extracted_dir(make_unicode_string(item), tmp_dir)
                 )

@@ -1,16 +1,14 @@
 import logging
+from concurrent.futures import ThreadPoolExecutor
 from multiprocessing import Queue, Value
 from queue import Empty
-from time import sleep
 from random import shuffle
+from time import sleep
 
-from helperFunctions.process import ExceptionSafeProcess, terminate_process_and_childs
-from helperFunctions.config import load_config
 from helperFunctions.parsing import bcolors
 from helperFunctions.plugin import import_plugins
+from helperFunctions.process import ExceptionSafeProcess, terminate_process_and_childs
 from storage.db_interface_backend import BackEndDbInterface
-
-CONFIG_FILE = 'main.cfg'
 
 
 MANDATORY_PLUGINS = ['file_type', 'file_hashes']
@@ -24,10 +22,7 @@ class AnalysisScheduler(object):
     analysis_plugins = {}
 
     def __init__(self, config=None, post_analysis=None, db_interface=None):
-        if config is None:
-            self.config = load_config(CONFIG_FILE)
-        else:
-            self.config = config
+        self.config = config
         self.load_plugins()
         self.stop_condition = Value('i', 0)
         self.process_queue = Queue()
@@ -44,10 +39,11 @@ class AnalysisScheduler(object):
         '''
         logging.debug('Shutting down...')
         self.stop_condition.value = 1
-        self.schedule_process.join()
-        self.result_collector_process.join()
-        for plugin in self.analysis_plugins:
-            self.analysis_plugins[plugin].shutdown()
+        with ThreadPoolExecutor() as e:
+            e.submit(self.schedule_process.join)
+            e.submit(self.result_collector_process.join)
+            for plugin in self.analysis_plugins:
+                e.submit(self.analysis_plugins[plugin].shutdown)
         if getattr(self.db_backend_service, 'shutdown', False):
             self.db_backend_service.shutdown()
         self.process_queue.close()
@@ -90,7 +86,7 @@ class AnalysisScheduler(object):
     def get_plugin_dict(self):
         '''
         returns a dictionary of plugins with the following form: names as keys and the respective description value
-        {NAME: (DESCRIPTION, MANDATORY_FLAG, DEFAULT_FLAG)}
+        {NAME: (DESCRIPTION, MANDATORY_FLAG, DEFAULT_FLAG, VERSION)}
         - mandatory plug-ins shall not be shown in the analysis selection but always exectued
         - default plug-ins shall be pre-selected in the analysis selection
         '''
@@ -101,7 +97,7 @@ class AnalysisScheduler(object):
         for plugin in plugin_list:
             mandatory_flag = plugin in MANDATORY_PLUGINS
             default_flag = plugin in default_plugins
-            result[plugin] = (self.analysis_plugins[plugin].DESCRIPTION, mandatory_flag, default_flag)
+            result[plugin] = (self.analysis_plugins[plugin].DESCRIPTION, mandatory_flag, default_flag, self.analysis_plugins[plugin].VERSION)
         result['unpacker'] = ('Additional information provided by the unpacker', True, False)
         return result
 

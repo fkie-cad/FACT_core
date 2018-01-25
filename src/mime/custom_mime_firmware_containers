@@ -675,9 +675,20 @@
 
 # Hard Drives
 # Seagate LOD
-0x0e string \x07\x00\x80\x01\x00	Seagate LOD
-!:mime firmware/seagate-lod
+0x0e	string \x07\x00\x80\x01\x00	Seagate LOD
+!:mime	firmware/seagate-lod
 
 # Western Digital ROYL
-0       string ROYL            Western Digital ROYL
-!:mime  firmware/wd-royl
+0       string ROYL            		Western Digital ROYL
+!:mime	firmware/wd-royl
+
+# Western Digital flash ROM
+0	regex 	Z.{2}\x00\x00	
+>0x20   byte	0x01
+>>0x40	byte	0x02			Western Digital Flash ROM
+!:mime	firmware/wd-flash-rom
+
+# Toshiba "CD2" Firmware
+0	string \xD5\xBF\x98\x12\x01	Toshiba CD2
+!:mime	firmware/toshiba-cd2
+

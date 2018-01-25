@@ -1,8 +1,14 @@
+import gc
 import unittest
+
 from unpacker.helper.carving import CarvedArea
 
 
 class TestCarvedArea(unittest.TestCase):
+
+    def tearDown(self):
+        gc.collect()
+
     def test_carved_complete_area(self):
         area_size = 100
         carved_and_expected = [{'carved': (0, area_size), 'expected': []},
@@ -50,7 +56,3 @@ class TestCarvedArea(unittest.TestCase):
             carved_area.carved(test_data['carved'])
 
             self.assertEqual(test_data['expected'], carved_area.non_carved_areas, test_data)
-
-
-if __name__ == "__main__":
-    unittest.main()

@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 '''
     Firmware Analysis and Comparison Tool (FACT)
-    Copyright (C) 2015-2017  Fraunhofer FKIE
+    Copyright (C) 2015-2018  Fraunhofer FKIE
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by

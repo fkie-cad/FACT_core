@@ -8,9 +8,9 @@
 
 The Firmware Analysis and Comparison Tool (formerly known as Fraunhofer's Firmware Analysis Framework (FAF)) is intended to automate most of the firmware analysis process. 
 It unpacks arbitrary firmware files and processes several analysis.
-Additionally it can compare several images or single files. 
-
-Thereby unpacking, analysis and compares are based on plug-ins guaranteeing maximal flexibility and expandability.
+Additionally, it can compare several images or single files.  
+Furthermore, Unpacking, analysis and compares are based on plug-ins guaranteeing maximal flexibility and expandability.  
+More details and some screenshots can be found on our [project page](https://fkie-cad.github.io/FACT_core/).
 
 ## Requirments
 ### Hardware
@@ -35,7 +35,7 @@ It is possible to install FACT on any Linux distribution but the installer is li
 
 :exclamation: **Caution: FACT is not intended to be used as public internet service. The GUI is not a hardened WEB-application and it may take your server at risk!**
 
-FACT consists of three components: frontend, db and backend. All components can be installed on one machine as well as on different machines. 
+FACT consists of three components: frontend, database and backend. All components can be installed on one machine as well as on different machines. 
 There is an automated installation programm supporting Ubuntu 16.04 host systems.
 
 ### Pre-Install
@@ -43,7 +43,7 @@ Modify *src/config/main.cfg* and *src/config/mongod.conf* to suit your needs.
 Especially, you should change the mongo passwords.
 The database is initialized with these passwords on first start.  
 Create the mongo data directory specified in *mongod.conf* and the firmware_file_storage_directory defined in *main.cfg*.
-Make sure that the logging directory exists as well.
+Make sure that the log directory exists as well.
 
 If you have any additional plug-ins, copy/clone them into corresponding *src/plugins/* directory.  
 
@@ -101,12 +101,12 @@ Our Developers Manual can be found [here](https://github.com/fkie-cad/FACT_core/
 
 ## Acknowledgments
 This project is partly financed by [German Federal Office for Information Security (BSI)](https://www.bsi.bund.de) and others.  
-The FACT project and the [Mallware Analysis and Storage Sytem (MASS) project](https://mass-project.github.io/) form a code and plug-in sharing alliance.  
+The FACT project and the [Malware Analysis and Storage Sytem (MASS) project](https://mass-project.github.io/) form a code and plug-in sharing alliance.  
 
 ## License
 ```
     Firmware Analysis and Comparison Tool (FACT)
-    Copyright (C) 2015-2017  Fraunhofer FKIE
+    Copyright (C) 2015-2018  Fraunhofer FKIE
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by

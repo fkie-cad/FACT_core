@@ -1,25 +1,36 @@
+import json
 import os
 import time
-import json
 import urllib.parse
-
 from base64 import standard_b64encode
+from multiprocessing import Event, Value
 
-from test.acceptance.base import TestAcceptanceBase
 from helperFunctions.fileSystem import get_test_data_dir
+from storage.db_interface_backend import BackEndDbInterface
+from test.acceptance.base import TestAcceptanceBase
 
 
 class TestRestFirmware(TestAcceptanceBase):
 
     def setUp(self):
         super().setUp()
-        self._start_backend()
+        self.analysis_finished_event = Event()
+        self.elements_finished_analyzing = Value('i', 0)
+        self.db_backend_service = BackEndDbInterface(config=self.config)
+        self._start_backend(post_analysis=self._analysis_callback)
         self.test_container_uid = '418a54d78550e8584291c96e5d6168133621f352bfc1d43cf84e81187fef4962_787'
-        time.sleep(10)  # wait for systems to start
+        time.sleep(2)  # wait for systems to start
 
     def tearDown(self):
-        super().tearDown()
         self._stop_backend()
+        self.db_backend_service.shutdown()
+        super().tearDown()
+
+    def _analysis_callback(self, fo):
+        self.db_backend_service.add_object(fo)
+        self.elements_finished_analyzing.value += 1
+        if self.elements_finished_analyzing.value > 3:
+            self.analysis_finished_event.set()
 
     def _rest_upload_firmware(self):
         testfile_path = os.path.join(get_test_data_dir(), 'container/test.zip')
@@ -33,6 +44,7 @@ class TestRestFirmware(TestAcceptanceBase):
             'firmware_version': '1.0',
             'vendor': 'test_vendor',
             'release_date': '01.01.1970',
+            'tags': '',
             'requested_analysis_systems': ['software_components']
         }
         rv = self.test_client.put('/rest/firmware', data=json.dumps(data), follow_redirects=True)
@@ -69,13 +81,15 @@ class TestRestFirmware(TestAcceptanceBase):
 
     def test_run_from_upload_to_show_analysis_and_search(self):
         self._rest_upload_firmware()
-        time.sleep(15)  # wait for analysis to complete
+        self.analysis_finished_event.wait(timeout=15)
+        self.elements_finished_analyzing.value = 0
+        self.analysis_finished_event.clear()
         self._rest_get_analysis_result()
         self._rest_search()
         self._rest_search_fw_only()
         self._rest_update_analysis_bad_analysis()
         self._rest_update_analysis_success()
 
-        time.sleep(10)  # wait for analysis to complete
+        self.analysis_finished_event.wait(timeout=10)
 
         self._rest_check_new_analysis_exists()

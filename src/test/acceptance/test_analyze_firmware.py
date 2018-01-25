@@ -1,9 +1,11 @@
 import os
 import time
+from multiprocessing import Event, Value
 
 from helperFunctions.fileSystem import get_test_data_dir
 from helperFunctions.web_interface import ConnectTo
 from intercom.front_end_binding import InterComFrontEndBinding
+from storage.db_interface_backend import BackEndDbInterface
 from storage.db_interface_frontend import FrontEndDbInterface
 from test.acceptance.base import TestAcceptanceBase
 
@@ -12,15 +14,24 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBase):
 
     def setUp(self):
         super().setUp()
-        self._start_backend()
-        time.sleep(10)  # wait for systems to start
+        self.analysis_finished_event = Event()
+        self.elements_finished_analyzing = Value('i', 0)
+        self.db_backend_service = BackEndDbInterface(config=self.config)
+        self._start_backend(post_analysis=self._analysis_callback)
+        time.sleep(2)  # wait for systems to start
+
+    def _analysis_callback(self, fo):
+        self.db_backend_service.add_object(fo)
+        self.elements_finished_analyzing.value += 1
+        if self.elements_finished_analyzing.value > 3:
+            self.analysis_finished_event.set()
 
     def tearDown(self):
-        super().tearDown()
         self._stop_backend()
+        self.db_backend_service.shutdown()
+        super().tearDown()
 
     def _upload_firmware_get(self):
-        print('- upload firmware -> get ...')
         rv = self.test_client.get('/upload')
         self.assertIn(b'<h2>Upload Firmware</h2>', rv.data, 'upload page not displayed correctly')
 
@@ -40,7 +51,6 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBase):
                           'optional plugin {} erroneously checked or not found'.format(optional_plugin))
 
     def _upload_firmware_post(self):
-        print('- upload firmware -> post ...')
         testfile_path = os.path.join(get_test_data_dir(), self.test_fw_a.path)
         with open(testfile_path, 'rb') as fp:
             data = {
@@ -50,6 +60,7 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBase):
                 'firmware_version': '1.0',
                 'vendor': 'test_vendor',
                 'release_date': '1970-01-01',
+                'tags': '',
                 'analysis_systems': []
             }
             rv = self.test_client.post('/upload', content_type='multipart/form-data', data=data, follow_redirects=True)
@@ -57,7 +68,6 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBase):
         self.assertIn(self.test_fw_a.uid.encode(), rv.data, 'uid not found on upload success page')
 
     def _show_analysis_page(self):
-        print('- show analysis ...')
         with ConnectTo(FrontEndDbInterface, self.config) as connection:
             self.assertIsNotNone(connection.firmwares.find_one({'_id': self.test_fw_a.uid}), 'Error: Test firmware not found in DB!')
         rv = self.test_client.get('/analysis/{}'.format(self.test_fw_a.uid))
@@ -68,28 +78,37 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBase):
         self.assertIn(b'unknown', rv.data)
         self.assertIn(self.test_fw_a.file_name.encode(), rv.data, 'file name not found')
 
+    def _check_ajax_file_tree_routes(self):
+        rv = self.test_client.get('/ajax_tree/{}/{}'.format(self.test_fw_a.uid, self.test_fw_a.uid))
+        self.assertIn(b'"children":', rv.data)
+        rv = self.test_client.get('/ajax_root/{}'.format(self.test_fw_a.uid))
+        self.assertIn(b'"children":', rv.data)
+
+    def _check_ajax_on_demand_binary_load(self):
+        rv = self.test_client.get('/ajax_get_binary/text_plain/d558c9339cb967341d701e3184f863d3928973fccdc1d96042583730b5c7b76a_62')
+        self.assertIn(b'test file', rv.data)
+
     def _show_analysis_details_file_type(self):
-        print('- show analysis detail ...')
         rv = self.test_client.get('/analysis/{}/file_type'.format(self.test_fw_a.uid))
         self.assertIn(b'application/zip', rv.data)
         self.assertIn(b'Zip archive data', rv.data)
         self.assertNotIn(b'<pre><code>', rv.data, 'generic template used instead of specific template -> sync view error!')
 
     def _show_home_page(self):
-        print('- check for entry on recent analysis ...')
         rv = self.test_client.get('/')
         self.assertIn(self.test_fw_a.uid.encode(), rv.data, 'test firmware not found under recent analysis on home page')
 
     def _re_do_analysis_get(self):
-        print('- re-do analysis -> get ...')
         rv = self.test_client.get('/admin/re-do_analysis/{}'.format(self.test_fw_a.uid))
         self.assertIn(b'<input type="hidden" name="file_name" id="file_name" value="' + self.test_fw_a.file_name.encode() + b'">', rv.data, 'file name not set in re-do page')
 
     def test_run_from_upload_to_show_analysis(self):
         self._upload_firmware_get()
         self._upload_firmware_post()
-        time.sleep(15)  # wait for analysis to complete
+        self.analysis_finished_event.wait(timeout=15)
         self._show_analysis_page()
         self._show_analysis_details_file_type()
+        self._check_ajax_file_tree_routes()
+        self._check_ajax_on_demand_binary_load()
         self._show_home_page()
         self._re_do_analysis_get()

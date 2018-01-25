@@ -1,13 +1,13 @@
+import gc
+from time import time
 import unittest
 
 from helperFunctions.config import get_config_for_testing
+from statistic.work_load import WorkLoadStatistic
 from storage.MongoMgr import MongoMgr
-
 from storage.db_interface_statistic import StatisticDbViewer
 from test.common_helper import get_database_names
 from test.unit.helperFunctions_setup_test_data import clean_test_database
-from statistic.work_load import WorkLoadStatistic
-from time import time
 
 
 class TestWorkloadStatistic(unittest.TestCase):
@@ -19,10 +19,11 @@ class TestWorkloadStatistic(unittest.TestCase):
         self.frontend_db_interface = StatisticDbViewer(config=self.config)
 
     def tearDown(self):
-        clean_test_database(self.config, get_database_names(self.config))
-        self.workload_stat.shutdown()
         self.frontend_db_interface.shutdown()
+        self.workload_stat.shutdown()
+        clean_test_database(self.config, get_database_names(self.config))
         self.mongo_server.shutdown()
+        gc.collect()
 
     def test_update_workload_statistic(self):
         self.workload_stat.update()
