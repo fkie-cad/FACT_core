@@ -5,7 +5,7 @@ from time import gmtime
 from web_interface.filter import replace_underscore_filter, byte_number_filter, get_all_uids_in_string, nice_list, uids_to_link, \
     list_to_line_break_string, nice_unix_time, nice_number_filter, sort_chart_list_by_value, \
     sort_chart_list_by_name, text_highlighter, generic_nice_representation, list_to_line_break_string_no_sort,\
-    encode_base64_filter
+    encode_base64_filter, render_tags
 
 
 class TestWebInterfaceFilter(unittest.TestCase):
@@ -109,3 +109,12 @@ def test_nice_number(input_data, expected):
 ])
 def test_generic_nice_representation(input_data, expected):
     assert generic_nice_representation(input_data) == expected
+
+
+@pytest.mark.parametrize('tag_dict, output', [
+    ({'a': 'danger'}, '<span class="label label-pill label-danger " style="font-size: 10px;">a</span>\n'),
+    ({'a': 'danger', 'b': 'default'}, '<span class="label label-pill label-danger " style="font-size: 10px;">a</span>\n<span class="label label-pill label-default " style="font-size: 10px;">b</span>\n'),
+    (None, '')
+])
+def test_render_tags(tag_dict, output):
+    assert render_tags(tag_dict) == output

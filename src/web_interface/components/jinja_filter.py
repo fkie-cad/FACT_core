@@ -3,6 +3,7 @@
 import json
 import random
 
+from common_helper_filter.time import time_format
 from flask import render_template
 
 from helperFunctions.dataConversion import none_to_none
@@ -15,8 +16,8 @@ from web_interface.filter import byte_number_filter, encode_base64_filter, \
     uids_to_link, get_all_uids_in_string, list_to_line_break_string, sort_comments, \
     nice_unix_time, infection_color, nice_number_filter, sort_chart_list_by_name, sort_chart_list_by_value, \
     text_highlighter, get_canvas_height, comment_out_regex_meta_chars, \
-    generic_nice_representation, list_to_line_break_string_no_sort, data_to_chart_with_value_percentage_pairs
-from common_helper_filter.time import time_format
+    generic_nice_representation, list_to_line_break_string_no_sort, render_tags, data_to_chart_with_value_percentage_pairs
+
 
 
 class FilterClass:
@@ -110,3 +111,4 @@ class FilterClass:
         self._app.jinja_env.filters['json_dumps'] = json.dumps
         self._app.jinja_env.filters['regex_meta'] = comment_out_regex_meta_chars
         self._app.jinja_env.filters['nice_time'] = time_format
+        self._app.jinja_env.filters['render_tags'] = render_tags

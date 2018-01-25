@@ -1,3 +1,4 @@
+import gc
 import os
 import unittest
 import unittest.mock
@@ -34,6 +35,7 @@ class TestScheduleInitialAnalysis(unittest.TestCase):
         self.enter_patch.stop()
         self.exit_patch.stop()
         self.mocked_interface.shutdown()
+        gc.collect()
 
     def test_plugin_registration(self):
         self.assertIn('dummy_plugin_for_testing_only', self.sched.analysis_plugins, 'Dummy plugin not found')
@@ -48,7 +50,7 @@ class TestScheduleInitialAnalysis(unittest.TestCase):
         for item in MANDATORY_PLUGINS:
             self.assertIn(item, test_fw.scheduled_analysis)
 
-    def test_whole_run_analyis_selected(self):
+    def test_whole_run_analysis_selected(self):
         test_fw = Firmware(file_path=os.path.join(get_test_data_dir(), 'get_files_test/testfile1'))
         test_fw.scheduled_analysis = ['dummy_plugin_for_testing_only']
         self.sched.add_task(test_fw)
@@ -64,9 +66,11 @@ class TestScheduleInitialAnalysis(unittest.TestCase):
         self.assertIn('file_hashes', result.keys(), 'file hashes plugin not found')
         self.assertTrue(result['file_hashes'][1], 'mandatory flag not set')
         self.assertTrue(result['file_hashes'][2], 'default flag not set')
+        self.assertEqual(self.sched.analysis_plugins['file_hashes'].VERSION, result['file_hashes'][3], 'version not correct')
         self.assertIn('file_type', result.keys(), 'file type plugin not found')
         self.assertFalse(result['file_type'][2], 'default flag set but should not')
         self.assertEqual(result['file_type'][0], self.sched.analysis_plugins['file_type'].DESCRIPTION, 'description not correct')
+        self.assertEqual(self.sched.analysis_plugins['file_type'].VERSION, result['file_type'][3], 'version not correct')
         self.assertTrue(result['unpacker'][1], 'unpacker plugin not marked as mandatory')
         self.assertNotIn('dummy_plug_in_for_testing_only', result.keys(), 'dummy plug-in not removed')
 

@@ -1,9 +1,9 @@
-from common_helper_files import get_binary_from_file
 import logging
 import os
 
-from helperFunctions.dataConversion import make_bytes, make_unicode_string, \
-    get_value_of_first_key
+from common_helper_files import get_binary_from_file
+
+from helperFunctions.dataConversion import make_bytes, make_unicode_string, get_value_of_first_key
 from helperFunctions.hash import get_sha256
 from helperFunctions.uid import create_uid
 

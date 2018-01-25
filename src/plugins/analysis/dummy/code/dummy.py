@@ -1,22 +1,22 @@
-from analysis.PluginBase import BasePlugin
+from analysis.PluginBase import AnalysisBasePlugin
 
 
-class AnalysisPlugin(BasePlugin):
+class AnalysisPlugin(AnalysisBasePlugin):
     '''
     This is a mock for testing
     '''
     NAME = "dummy_plugin_for_testing_only"
-    DEPENDENCYS = []
+    DEPENDENCIES = []
     VERSION = "0.0"
     DESCRIPTION = "this is a dummy plugin"
 
-    def __init__(self, plugin_adminstrator, config=None, recursive=True, timeout=300):
+    def __init__(self, plugin_administrator, config=None, recursive=True, timeout=300):
         '''
         recursive flag: If True recursively analyze included files
         propagate flag: If True add analysis result of child to parent object
         default flags should be edited above. Otherwise the scheduler cannot overwrite them.
         '''
-        super().__init__(plugin_adminstrator, config=config, recursive=recursive, timeout=timeout)
+        super().__init__(plugin_administrator, config=config, recursive=recursive, timeout=timeout)
         # additional init stuff can go here
 
     def process_object(self, file_object):

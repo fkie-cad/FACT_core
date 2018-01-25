@@ -4,12 +4,9 @@ from multiprocessing import Queue, Value
 from queue import Empty
 from time import sleep
 
-from helperFunctions.config import load_config
 from helperFunctions.parsing import bcolors
 from helperFunctions.process import ExceptionSafeProcess, terminate_process_and_childs
 from unpacker.unpack import Unpacker
-
-CONFIG_FILE = 'main.cfg'
 
 
 class UnpackingScheduler(object):
@@ -18,10 +15,7 @@ class UnpackingScheduler(object):
     '''
 
     def __init__(self, config=None, post_unpack=None, analysis_workload=None):
-        if config is None:
-            self.config = load_config(CONFIG_FILE)
-        else:
-            self.config = config
+        self.config = config
         self.stop_condition = Value('i', 0)
         self.throttle_condition = Value('i', 0)
         self.get_analysis_workload = analysis_workload

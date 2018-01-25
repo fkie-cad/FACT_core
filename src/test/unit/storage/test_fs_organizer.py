@@ -1,5 +1,6 @@
 from common_helper_files import get_binary_from_file
 from configparser import ConfigParser
+import gc
 import os
 from tempfile import TemporaryDirectory
 import unittest
@@ -19,6 +20,7 @@ class Test_FS_Organizer(unittest.TestCase):
 
     def tearDown(self):
         self.ds_tmp_dir.cleanup()
+        gc.collect()
 
     def check_file_presence_and_content(self, file_path, file_binary):
         self.assertTrue(os.path.exists(file_path), 'file exists')

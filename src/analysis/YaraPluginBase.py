@@ -4,11 +4,11 @@ import re
 import os
 import subprocess
 
-from analysis.PluginBase import BasePlugin
+from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.fileSystem import get_src_dir
 
 
-class YaraBasePlugin(BasePlugin):
+class YaraBasePlugin(AnalysisBasePlugin):
     '''
     This should be the base for all YARA based analysis plugins
     '''
@@ -17,14 +17,14 @@ class YaraBasePlugin(BasePlugin):
     VERSION = "0.0"
     FILE = __file__
 
-    def __init__(self, plugin_adminstrator, config=None, recursive=True, plugin_path=None):
+    def __init__(self, plugin_administrator, config=None, recursive=True, plugin_path=None):
         '''
         recursive flag: If True recursively analyze included files
         propagate flag: If True add analysis result of child to parent object
         '''
         self.config = config
         self._get_signature_file(plugin_path)
-        super().__init__(plugin_adminstrator, config=config, recursive=recursive, plugin_path=plugin_path)
+        super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=plugin_path)
 
     def process_object(self, file_object):
         if self.signature_path is not None:

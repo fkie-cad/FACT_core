@@ -1,6 +1,8 @@
-from analysis.PluginBase import BasePlugin
-from common_helper_process import execute_shell_command
 import re
+
+from common_helper_process import execute_shell_command
+
+from analysis.PluginBase import AnalysisBasePlugin
 
 READELF_FULL = 'readelf -W -l -d -s -h {} '
 
@@ -9,15 +11,15 @@ TODO: check_fortify routine in future update
 '''
 
 
-class AnalysisPlugin(BasePlugin):
+class AnalysisPlugin(AnalysisBasePlugin):
     NAME = "exploit_mitigations"
     DESCRIPTION = "analyses ELF binaries within a firmware for present exploit mitigation techniques"
-    DEPENDENCYS = ['file_type']
+    DEPENDENCIES = ['file_type']
     VERSION = "0.1"
 
-    def __init__(self, plugin_adminstrator, config=None, recursive=True):
+    def __init__(self, plugin_administrator, config=None, recursive=True):
         self.config = config
-        super().__init__(plugin_adminstrator, config=config, recursive=recursive, plugin_path=__file__)
+        super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__)
 
     def process_object(self, file_object):
         try:

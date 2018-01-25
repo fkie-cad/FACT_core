@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 '''
     Firmware Analysis and Comparison Tool (FACT)
-    Copyright (C) 2015-2017  Fraunhofer FKIE
+    Copyright (C) 2015-2018  Fraunhofer FKIE
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,14 +17,15 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import sys
-import os
-import pickle
 import configparser
 import logging
+import os
+import pickle
+import sys
+
+from common_helper_files import create_dir_for_file
 
 from web_interface.frontend_main import WebFrontEnd
-from common_helper_files import get_directory_for_filename, get_version_string_from_git, create_dir_for_file
 
 
 def _get_console_output_level(debug_flag):
@@ -64,16 +65,14 @@ def shutdown(*_):
     web_interface.shutdown()
 
 
-PROGRAM_VERSION = get_version_string_from_git(get_directory_for_filename(__file__))
-
 args_path = sys.argv[-1]
 if os.path.isfile(args_path):
     with open(args_path, "br") as fp:
         args = pickle.loads(fp.read())
     config = _load_config(args)
     _setup_logging(config, args.debug)
-    web_interface = WebFrontEnd(config=config, program_version=PROGRAM_VERSION)
+    web_interface = WebFrontEnd(config=config)
 else:
-    web_interface = WebFrontEnd(program_version=PROGRAM_VERSION)
+    web_interface = WebFrontEnd()
 
 app = web_interface.app

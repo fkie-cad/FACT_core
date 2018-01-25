@@ -5,14 +5,19 @@ Created on Nov 17, 2015
 '''
 import unittest
 
-from helperFunctions.dependency import schedule_dependencys, get_unmatched_dependencys
+from helperFunctions.dependency import schedule_dependencies, get_unmatched_dependencies
 
 
-class Test_helperFunctions_dependency_schedule(unittest.TestCase):
+class MockFileObject:
+    def __init__(self, processed_analysis_list):
+        self.processed_analysis = processed_analysis_list
+
+
+class TestHelperFunctionsDependencySchedule(unittest.TestCase):
 
     def schedule_test(self, schedule_list, dependency_list, myself, out_list):
-        new_schedule = schedule_dependencys(schedule_list, dependency_list, myself)
-        self.assertEqual(new_schedule, out_list, "schedule not correct")
+        new_schedule = schedule_dependencies(schedule_list, dependency_list, myself)
+        self.assertEqual(new_schedule, out_list, 'schedule not correct')
 
     def test_schedule_simple_case(self):
         self.schedule_test(['a', 'b'], ['b'], 'c', ['c', 'a', 'b'])
@@ -24,20 +29,23 @@ class Test_helperFunctions_dependency_schedule(unittest.TestCase):
         self.schedule_test(['a', 'b'], ['b', 'c', 'd', 'a'], 'e', ['e', 'a', 'b', 'c', 'd'])
 
 
-class Test_helperFunctions_dependency_match(unittest.TestCase):
+class TestHelperFunctionsDependencyMatch(unittest.TestCase):
 
-    def unmatched_dependency_test(self, processed_list, dependencys, out_list):
-        unmateched_deps = get_unmatched_dependencys(processed_list, dependencys)
-        self.assertEqual(unmateched_deps, out_list, 'unmatched dependency list not correct')
+    def unmatched_dependency_test(self, processed_list, dependencies, out_list):
+        unmatched_dependencies = get_unmatched_dependencies(processed_list, dependencies)
+        self.assertEqual(unmatched_dependencies, out_list, 'unmatched dependency list not correct')
 
     def test_unmatched_dependency_not_solved(self):
-        self.unmatched_dependency_test([], ['a'], ['a'])
+        self.unmatched_dependency_test([MockFileObject([])], ['a'], ['a'])
 
     def test_unmatched_dependency_solved(self):
-        self.unmatched_dependency_test(['a'], ['a'], [])
+        self.unmatched_dependency_test([MockFileObject(['a'])], ['a'], [])
 
-    def test_unmatched_depecndencys_multiple_solved_unsolved(self):
-        self.unmatched_dependency_test(['a', 'b'], ['a', 'b', 'c', 'd'], ['c', 'd'])
+    def test_unmatched_dependencies_multiple_solved_unsolved(self):
+        self.unmatched_dependency_test([MockFileObject(['a', 'b'])], ['a', 'b', 'c', 'd'], ['c', 'd'])
+
+    def test_unmatched_dependencies_multiple_file_objects(self):
+        self.unmatched_dependency_test([MockFileObject(['b']), MockFileObject(['a'])], ['a', 'b'], ['a', 'b'])
 
 
 if __name__ == "__main__":

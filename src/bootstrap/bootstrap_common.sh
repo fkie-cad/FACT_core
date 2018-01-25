@@ -4,9 +4,11 @@ echo "####################################"
 echo "#     Update Operating System      #"
 echo "####################################"
 
-sudo apt-get update
-sudo apt-get upgrade -y
-sudo apt-get autoremove -y
+sudo apt install -y apt-transport-https
+sudo apt update
+sudo apt upgrade -y
+sudo apt autoremove -y
+sudo apt clean
 
 echo "####################################"
 echo "#  installing general dependencies #"
@@ -31,7 +33,7 @@ export GIT_SSH_COMMAND="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChec
 # install python3 and general build stuff
 sudo apt-get install -y python3 python3-dev build-essential automake autoconf libtool git unzip
 # get a bugfree recent pip version
-sudo apt-get remove -y python3-pip
+sudo apt-get remove -y python3-pip python3-setuptools python3-wheel
 sudo apt-get autoremove -y
 wget https://bootstrap.pypa.io/get-pip.py
 sudo -EH python3 get-pip.py
@@ -47,9 +49,10 @@ rm get-pip.py
 
 
 # install general python dependencys
-sudo apt-get install -y libmagic-dev libffi-dev
+sudo apt-get install -y libmagic-dev libffi-dev libfuzzy-dev
 sudo -EH pip3 install --upgrade pytest pytest-cov pytest-pep8 pylint python-magic psutil xmltodict yara-python==3.6.3 appdirs
-sudo -EH BUILD_LIB=1 pip3 install --upgrade ssdeep
+sudo -EH pip3 install --upgrade ssdeep
+sudo -EH pip3 install --upgrade lief
 
 # install python mongo bindings
 sudo -EH pip3 install --upgrade pymongo pyyaml

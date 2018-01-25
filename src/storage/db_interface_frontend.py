@@ -11,6 +11,7 @@ from helperFunctions.merge_generators import merge_generators, dict_to_sorted_tu
 from objects.file import FileObject
 from objects.firmware import Firmware
 from storage.db_interface_common import MongoInterfaceCommon
+from helperFunctions.tag import TagColor
 
 
 class FrontEndDbInterface(MongoInterfaceCommon):
@@ -23,11 +24,16 @@ class FrontEndDbInterface(MongoInterfaceCommon):
             firmware_list = self.firmwares.find()
         for firmware in firmware_list:
             if firmware:
+                if 'tags' in firmware:
+                    tags = firmware['tags']
+                else:
+                    tags = dict()
                 if firmware['processed_analysis']['unpacker']['file_system_flag']:
                     unpacker = self.retrieve_analysis(deepcopy(firmware['processed_analysis']))['unpacker']['plugin_used']
                 else:
                     unpacker = firmware['processed_analysis']['unpacker']['plugin_used']
-                list_of_firmware_data.append((firmware['_id'], self.get_hid(firmware['_id']), unpacker))
+                tags[unpacker] = TagColor.LIGHT_BLUE
+                list_of_firmware_data.append((firmware['_id'], self.get_hid(firmware['_id']), tags))
         return list_of_firmware_data
 
     def get_hid(self, uid, root_uid=None):
@@ -63,7 +69,7 @@ class FrontEndDbInterface(MongoInterfaceCommon):
         return result
 
     def get_file_name(self, uid):
-        file_object = self.get_object(uid)
+        file_object = self.get_object(uid, analysis_filter=[])
         return file_object.file_name
 
     def get_firmware_attribute_list(self, attribute, restrictions=None):
@@ -170,7 +176,7 @@ class FrontEndDbInterface(MongoInterfaceCommon):
     def get_last_added_firmwares(self, limit_x=10):
         db_entries = self.firmwares.find(
             {'submission_date': {'$gt': 1}},
-            {'_id': 1, 'vendor': 1, 'device_name': 1, 'version': 1, 'device_class': 1, 'submission_date': 1},
+            {'_id': 1, 'vendor': 1, 'device_name': 1, 'version': 1, 'device_class': 1, 'submission_date': 1, 'tags': 1},
             limit=limit_x, sort=[('submission_date', -1)]
         )
         result = []
@@ -216,7 +222,7 @@ class FrontEndDbInterface(MongoInterfaceCommon):
 
     def _create_node_from_virtual_path(self, uid, root_uid, current_virtual_path, fo_data, whitelist=None):
         if len(current_virtual_path) > 1:  # in the middle of a virtual file path
-            node = FileTreeNode(uid=None, virtual=True, name=current_virtual_path.pop(0))
+            node = FileTreeNode(uid=None, root_uid=root_uid, virtual=True, name=current_virtual_path.pop(0))
             for child_node in self.generate_file_tree_node(uid, root_uid, current_virtual_path=current_virtual_path, fo_data=fo_data, whitelist=whitelist):
                 node.add_child_node(child_node)
         else:  # at the end of a virtual path aka a 'real' file
@@ -224,7 +230,7 @@ class FrontEndDbInterface(MongoInterfaceCommon):
                 has_children = any(f in fo_data['files_included'] for f in whitelist)
             else:
                 has_children = fo_data['files_included'] != []
-            node = FileTreeNode(uid, virtual=False, name=fo_data['file_name'], size=fo_data['size'],
+            node = FileTreeNode(uid, root_uid=root_uid, virtual=False, name=fo_data['file_name'], size=fo_data['size'],
                                 mime_type=fo_data['processed_analysis']['file_type']['mime'], has_children=has_children)
         return node
 
@@ -242,7 +248,7 @@ class FrontEndDbInterface(MongoInterfaceCommon):
             else:
                 yield self._create_node_from_virtual_path(uid, root_uid, current_virtual_path, fo_data, whitelist)
         except Exception:  # the requested data is not present in the DB aka the file has not been analyzed yet
-            yield FileTreeNode(uid=uid, not_analyzed=True, name='{} (not analyzed yet)'.format(uid))
+            yield FileTreeNode(uid=uid, root_uid=root_uid, not_analyzed=True, name='{} (not analyzed yet)'.format(uid))
 
     def get_number_of_total_matches(self, query, only_parent_firmwares):
         if not only_parent_firmwares:

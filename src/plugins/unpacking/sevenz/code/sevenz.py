@@ -1,12 +1,12 @@
 '''
 This plugin uses 7z to extract several formats
 '''
-from common_helper_passwords import get_merged_password_set
-from common_helper_process import execute_shell_command
 import os
 
-from helperFunctions.fileSystem import get_src_dir
+from common_helper_passwords import get_merged_password_set
+from common_helper_process import execute_shell_command
 
+from helperFunctions.fileSystem import get_src_dir
 
 name = '7z'
 mime_patterns = ['application/x-lzma', 'application/x-7z-compressed', 'application/x-executable', 'application/x-dosexec', 'application/zip', 'application/x-zip-compressed']

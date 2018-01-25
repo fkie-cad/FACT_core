@@ -1,3 +1,5 @@
+import gc
+
 from helperFunctions.config import get_config_for_testing
 from storage.MongoMgr import MongoMgr
 from storage.db_interface_view_sync import ViewUpdater, ViewReader
@@ -20,3 +22,4 @@ def test_view_sync_interface():
     view_read_service.shutdown()
 
     mongo_server.shutdown()
+    gc.collect()

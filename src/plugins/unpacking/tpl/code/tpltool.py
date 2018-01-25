@@ -1,9 +1,9 @@
-from common_helper_process import execute_shell_command
 import os
 from shutil import copyfile
 
-from helperFunctions.fileSystem import get_faf_bin_dir
+from common_helper_process import execute_shell_command
 
+from helperFunctions.fileSystem import get_faf_bin_dir
 
 name = 'tpl-tool'
 mime_patterns = ['firmware/tp-link']

@@ -1,20 +1,24 @@
-import unittest
+import gc
 from time import time
+import unittest
 
 from helperFunctions.config import get_config_for_testing
 from storage.MongoMgr import MongoMgr
+from storage.db_interface_admin import AdminDbInterface
 from storage.db_interface_backend import BackEndDbInterface
 from storage.db_interface_common import MongoInterfaceCommon
 from storage.db_interface_compare import CompareDbInterface
-from storage.db_interface_admin import AdminDbInterface
 from test.common_helper import create_test_firmware
 
 
 class TestCompare(unittest.TestCase):
 
+    @classmethod
+    def setUpClass(cls):
+        cls._config = get_config_for_testing()
+        cls.mongo_server = MongoMgr(config=cls._config)
+
     def setUp(self):
-        self._config = get_config_for_testing()
-        self.mongo_server = MongoMgr(config=self._config)
         self.db_interface = MongoInterfaceCommon(config=self._config)
         self.db_interface_backend = BackEndDbInterface(config=self._config)
         self.db_interface_compare = CompareDbInterface(config=self._config)
@@ -26,12 +30,16 @@ class TestCompare(unittest.TestCase):
         self.compare_dict = self._create_compare_dict()
 
     def tearDown(self):
-        self.db_interface.client.drop_database(self._config.get('data_storage', 'main_database'))
-        self.db_interface.shutdown()
         self.db_interface_compare.shutdown()
         self.db_interface_admin.shutdown()
         self.db_interface_backend.shutdown()
-        self.mongo_server.shutdown()
+        self.db_interface.client.drop_database(self._config.get('data_storage', 'main_database'))
+        self.db_interface.shutdown()
+        gc.collect()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.mongo_server.shutdown()
 
     def _create_compare_dict(self):
         comp_dict = {'general': {'hid': {self.fw_one.get_uid(): 'foo', self.fw_two.get_uid(): 'bar'}}, 'plugins': {}}
@@ -55,6 +63,11 @@ class TestCompare(unittest.TestCase):
     def test_calculate_compare_result_id(self):
         comp_id = self.db_interface_compare._calculate_compare_result_id(self.compare_dict)
         self.assertEqual(comp_id, '{};{}'.format(self.fw_one.get_uid(), self.fw_two.get_uid()))
+
+    def test_calculate_compare_result_id__incomplete_entries(self):
+        compare_dict = {'general': {'stat_1': {'a': None}, 'stat_2': {'b': None}}}
+        comp_id = self.db_interface_compare._calculate_compare_result_id(compare_dict)
+        self.assertEqual('a;b', comp_id)
 
     def test_object_existence_quick_check(self):
         self.db_interface_backend.add_firmware(self.fw_one)

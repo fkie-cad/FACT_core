@@ -40,8 +40,8 @@ def create_test_file_object(bin_path='get_files_test/testfile1'):
     return fo
 
 
-TEST_FW = create_test_firmware(
-    device_class='test class', device_name='test device', vendor='test vendor')
+TEST_FW = create_test_firmware(device_class='test class', device_name='test device', vendor='test vendor')
+TEST_FW_2 = create_test_firmware(device_class='test_class', device_name='test_firmware_2', vendor='test vendor', bin_path='container/test.7z')
 TEST_TEXT_FILE = create_test_file_object()
 
 
@@ -57,6 +57,7 @@ class MockFileObject(object):
 class DatabaseMock:
     fw_uid = TEST_FW.get_uid()
     fo_uid = TEST_TEXT_FILE.get_uid()
+    fw2_uid = TEST_FW_2.get_uid()
 
     def __init__(self, config=None):
         self.tasks = []
@@ -90,6 +91,12 @@ class DatabaseMock:
                 'file_type': {'mime': 'text/plain', 'full': 'plain text'}
             }
             return result
+        elif uid == self.fw2_uid:
+            result = deepcopy(TEST_FW_2)
+            result.processed_analysis = {
+                'file_type': {'mime': 'application/octet-stream', 'full': 'test text'},
+                'mandatory_plugin': 'mandatory result',
+                'optional_plugin': 'optional result'}
         else:
             return None
 
@@ -116,6 +123,9 @@ class DatabaseMock:
     def get_compare_result(self, compare_id):
         if compare_id == 'valid_uid_list_not_in_db':
             return None
+        elif compare_id == unify_string_list(';'.join([TEST_FW.uid, TEST_FW_2.uid])):
+            return {'this_is': 'a_compare_result',
+                    'general': {'hid': {TEST_FW.uid: 'foo', TEST_TEXT_FILE.uid: 'bar'}}}
         elif compare_id == unify_string_list(';'.join([TEST_FW.uid, TEST_TEXT_FILE.uid])):
             return {'this_is': 'a_compare_result'}
         else:
@@ -131,6 +141,8 @@ class DatabaseMock:
 
     def object_existence_quick_check(self, compare_id):
         if compare_id == 'valid_uid_list_not_in_db' or compare_id == 'valid_uid_list_in_db':
+            return None
+        elif compare_id == unify_string_list(';'.join([TEST_FW_2.uid, TEST_FW.uid])):
             return None
         elif compare_id == unify_string_list(';'.join([TEST_TEXT_FILE.uid, TEST_FW.uid])):
             return None
@@ -277,17 +289,11 @@ class DatabaseMock:
         else:
             return [TEST_TEXT_FILE.uid, ]
 
-    def get_firmware(self, uid):
-        if uid == TEST_FW.uid:
-            return TEST_FW
-        else:
-            return None
+    def get_firmware(self, uid, analysis_filter=None):
+        return self.get_object(uid, analysis_filter)
 
-    def get_file_object(self, uid):
-        if uid == TEST_TEXT_FILE.uid:
-            return TEST_TEXT_FILE
-        else:
-            return None
+    def get_file_object(self, uid, analysis_filter=None):
+        return self.get_object(uid, analysis_filter)
 
     def search_cve_summaries_for(self, keyword):
         return [{'_id': 'CVE-2012-0002'}]
@@ -302,6 +308,12 @@ class DatabaseMock:
 
     def get_other_versions_of_firmware(self, fo):
         return []
+
+    def get_view(self, name):
+        if name == 'plugin_1':
+            return b'<plugin 1 view>'
+        else:
+            return None
 
 
 def fake_exit(self, *args):

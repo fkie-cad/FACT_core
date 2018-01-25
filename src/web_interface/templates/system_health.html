@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% set active_page = "System Health" %}
+{% set active_page = "System" %}
 
 {% block head %}
 	<meta http-equiv="refresh" content="10" />
@@ -86,11 +86,11 @@
 			    				<td class="active" style="text-align: left; padding:5px">main</td>
 			    				<td class="{% if component['analysis']['analysis_main_scheduler'] > 150 %}alert alert-warning{%else%}active{% endif %}" style="text-align: right; padding:5px">{{ component['analysis']['analysis_main_scheduler'] | nice_number }}</td>
 			    			</tr>
-			    			{% for queue in component['analysis'] | sort %}
-				    			{% if queue != "analysis_main_scheduler" %}
+			    			{% for plugin in component['analysis'] | sort %}
+				    			{% if plugin != "analysis_main_scheduler" %}
 				    				<tr>
-				    					<td class="active" style="text-align: left; padding:5px">{{queue}}</td>
-				    					<td class="{% if component['analysis'][queue] > 150 %}alert alert-warning{%else%}active{% endif %}" style="text-align: right; padding:5px">{{ component['analysis'][queue] | nice_number }}</td>
+				    					<td class="active" style="text-align: left; padding:5px">{{ plugin }}{% if plugin in analysis_plugin_info%} {{ analysis_plugin_info[plugin][3] }}{% endif %}</td>
+				    					<td class="{% if component['analysis'][plugin] > 150 %}alert alert-warning{%else%}active{% endif %}" style="text-align: right; padding:5px">{{ component['analysis'][plugin] | nice_number }}</td>
 				    				</tr>
 				    			{%endif%}
 			    			{% endfor %}
