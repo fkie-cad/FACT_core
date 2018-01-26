@@ -121,7 +121,7 @@ def check_distribution():
         else:
             import distro
     codename = distro.codename().lower()
-    supported_ubuntu_xenial_code_names = ['xenial xerus', 'yakkety yak', 'sarah', 'serena', 'sonya']
+    supported_ubuntu_xenial_code_names = ['xenial xerus', 'yakkety yak', 'sarah', 'serena', 'sonya', 'sylvia']
     if codename in supported_ubuntu_xenial_code_names:
         logging.debug('Ubuntu 16.04 detected')
         return 'xenial'
