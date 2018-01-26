@@ -16,13 +16,14 @@ from web_interface.filter import byte_number_filter, encode_base64_filter, \
     uids_to_link, get_all_uids_in_string, list_to_line_break_string, sort_comments, \
     nice_unix_time, infection_color, nice_number_filter, sort_chart_list_by_name, sort_chart_list_by_value, \
     text_highlighter, get_canvas_height, comment_out_regex_meta_chars, \
-    generic_nice_representation, list_to_line_break_string_no_sort, render_tags
+    generic_nice_representation, list_to_line_break_string_no_sort, render_tags, fix_cwe
 
 
 class FilterClass:
     '''
     This is WEB front end main class
     '''
+
     def __init__(self, app, program_version, config):
         self._program_version = program_version
         self._app = app
@@ -59,7 +60,8 @@ class FilterClass:
         uid_list = get_all_uids_in_string(tmp)
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
             for item in uid_list:
-                tmp = tmp.replace(item, '<a href="/analysis/{}/ro/{}">{}</a>'.format(item, root_uid, sc.get_hid(item, root_uid=root_uid)))
+                tmp = tmp.replace(item, '<a href="/analysis/{}/ro/{}">{}</a>'.format(
+                    item, root_uid, sc.get_hid(item, root_uid=root_uid)))
         return tmp
 
     def _filter_nice_uid_list(self, input_data, root_uid=None, selected_analysis=None):
@@ -110,3 +112,4 @@ class FilterClass:
         self._app.jinja_env.filters['regex_meta'] = comment_out_regex_meta_chars
         self._app.jinja_env.filters['nice_time'] = time_format
         self._app.jinja_env.filters['render_tags'] = render_tags
+        self._app.jinja_env.filters['fix_cwe'] = fix_cwe
