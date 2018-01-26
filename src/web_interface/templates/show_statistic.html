@@ -14,9 +14,9 @@
     }
 
 	function get_extended_tooltip_value_percentage_pairs(element, data){
-        var percentage_value = data.datasets[element.datasetIndex].percentage[element.index] * 100;
+        var percentage_value = Number(Math.round(data.datasets[element.datasetIndex].percentage[element.index] * 100 + 'e2') + 'e-2');
         var value = data.datasets[element.datasetIndex].data[element.index];
-        return value + " (" + (Math.round(percentage_value * 10) / 10)  + "%)";
+        return value + " (" + percentage_value + " %)";
     }
 
     var chart_options = {
@@ -28,7 +28,10 @@
 	var chart_options_value_percentage_pairs = {
         legend: {position: "bottom", display: false},
         tooltips: {callbacks: {label: get_extended_tooltip_value_percentage_pairs}},
-        scales: {xAxes: [{display: false, ticks: {beginAtZero: true}}]}
+        scales: {
+            xAxes: [{display: false, ticks: {beginAtZero: true}}]
+        }
+
     };
 
     function create_horizontal_bar_chart(canvas_id, chart_data, link, value_percentage_present_flag) {
@@ -36,6 +39,8 @@
 
         if (value_percentage_present_flag) {
             chart_opt = chart_options_value_percentage_pairs;
+            var max = chart_data["datasets"][0]["data"].slice(0, 2).reduce((a,b) => a + b);
+            chart_opt["scales"]["xAxes"][0]["ticks"]["max"] = max;
         } else {
             chart_opt = chart_options
 		}
