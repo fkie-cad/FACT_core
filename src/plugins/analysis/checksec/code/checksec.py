@@ -1,7 +1,6 @@
 import re
 
 from common_helper_process import execute_shell_command
-
 from analysis.PluginBase import AnalysisBasePlugin
 
 READELF_FULL = 'readelf -W -l -d -s -h {} '
