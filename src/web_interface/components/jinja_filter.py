@@ -19,7 +19,6 @@ from web_interface.filter import byte_number_filter, encode_base64_filter, \
     generic_nice_representation, list_to_line_break_string_no_sort, render_tags, data_to_chart_with_value_percentage_pairs
 
 
-
 class FilterClass:
     '''
     This is WEB front end main class
