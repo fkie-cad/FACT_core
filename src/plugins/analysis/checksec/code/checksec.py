@@ -1,7 +1,6 @@
 import re
 
 from common_helper_process import execute_shell_command
-
 from analysis.PluginBase import AnalysisBasePlugin
 
 READELF_FULL = 'readelf -W -l -d -s -h {} '
@@ -64,8 +63,8 @@ def check_pie(file_path, dict_res, dict_sum, readelf):
             dict_sum.update({'PIE/DSO present': file_path})
             dict_res.update({'PIE': 'DSO'})
     else:
-        dict_sum.update({'PIE - Not a valid ELF file': file_path})
-        dict_res.update({'PIE': 'Not a valid ELF file'})
+        dict_sum.update({'PIE - invalid ELF file': file_path})
+        dict_res.update({'PIE': 'invalid ELF file'})
 
 
 def check_nx_or_canary(file_path, dict_res, dict_sum, readelf, flag):
