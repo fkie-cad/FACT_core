@@ -82,7 +82,6 @@ class StatisticUpdater(object):
         stats['malware'] = self._clean_malware_list(result)
         return stats
 
-
     def _get_exploit_mitigations_stats(self):
         stats = {}
         stats['exploit_mitigations'] = []
@@ -110,7 +109,7 @@ class StatisticUpdater(object):
 
         relro_on = self.extract_mitigation_from_list("RELRO fully enabled", result)
         relro_partial = self.extract_mitigation_from_list("RELRO partially enabled", result)
-        relro_off =self.extract_mitigation_from_list("RELRO disabled", result)
+        relro_off = self.extract_mitigation_from_list("RELRO disabled", result)
         self.set_stats(relro_on, stats, total_amount_of_files)
         self.set_stats(relro_partial, stats, total_amount_of_files)
         self.set_stats(relro_off, stats, total_amount_of_files)
@@ -130,14 +129,13 @@ class StatisticUpdater(object):
         return exploit_mitigation_stat
 
     def set_stats(self, exploit_mitigation, stats, total_amount_of_files):
-         stats['exploit_mitigations'].append((exploit_mitigation[0][0],
-                                              exploit_mitigation[0][1],
-                                              self.round(exploit_mitigation, total_amount_of_files)))
+        stats['exploit_mitigations'].append((exploit_mitigation[0][0],
+                                             exploit_mitigation[0][1],
+                                             self.round(exploit_mitigation, total_amount_of_files)))
 
     def round(self, exploit_mitigation_stat, total_amount_of_files):
         rounded_value = round(exploit_mitigation_stat[0][1] / total_amount_of_files, 5)
         return rounded_value
-
 
     def _get_crypto_material_stats(self):
         stats = {}
