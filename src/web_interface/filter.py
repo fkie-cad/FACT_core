@@ -275,4 +275,8 @@ def render_tags(tag_dict, additional_class='', size=10):
 
 
 def fix_cwe(s):
-    return s.split("]")[0].split("E")[-1]
+    if ("CWE" in s):
+        return s.split("]")[0].split("E")[-1]
+    else:
+        logging.warning("Expected a CWE string.")
+        return ""
