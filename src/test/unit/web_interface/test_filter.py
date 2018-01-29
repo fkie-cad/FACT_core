@@ -5,7 +5,7 @@ from time import gmtime
 from web_interface.filter import replace_underscore_filter, byte_number_filter, get_all_uids_in_string, nice_list, uids_to_link, \
     list_to_line_break_string, nice_unix_time, nice_number_filter, sort_chart_list_by_value, \
     sort_chart_list_by_name, text_highlighter, generic_nice_representation, list_to_line_break_string_no_sort,\
-    encode_base64_filter, render_tags
+    encode_base64_filter, render_tags, fix_cwe
 
 
 class TestWebInterfaceFilter(unittest.TestCase):
@@ -64,6 +64,12 @@ class TestWebInterfaceFilter(unittest.TestCase):
         self.assertEqual(text_highlighter('foo'), 'foo')
         self.assertEqual(text_highlighter('foo', green=['*']), '<span style="color:green;">foo</span>')
         self.assertEqual(text_highlighter('foo', red=['*']), '<span style="color:red;">foo</span>')
+
+    def test_fix_cwe_valid_string(self):
+        self.assertEqual(fix_cwe("[CWE467] (Use of sizeof on a Pointer Type)"), "467")
+
+    def test_fix_cwe_invalid_string(self):
+        self.assertEqual(fix_cwe("something_really_strange"), "")
 
 
 def test_replace_underscore():
