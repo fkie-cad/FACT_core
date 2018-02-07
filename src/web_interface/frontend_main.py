@@ -3,6 +3,7 @@ import os
 
 from flask import Flask
 
+from security_switch import add_flask_security_to_app
 from web_interface.components.ajax_routes import AjaxRoutes
 from web_interface.components.analysis_routes import AnalysisRoutes
 from web_interface.components.compare_routes import CompareRoutes
@@ -28,6 +29,7 @@ class WebFrontEnd(object):
         self.app.config.from_object(__name__)
 
         Flask.secret_key = os.urandom(24)
+        _, _ = add_flask_security_to_app(self.app)
 
         RestBase(app=self.app, config=self.config)
 

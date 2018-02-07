@@ -9,6 +9,7 @@ from helperFunctions.object_conversion import create_meta_dict
 from helperFunctions.rest import get_paging, get_query, success_message, error_message, convert_rest_request, get_update, get_recursive
 from helperFunctions.web_interface import ConnectTo
 from intercom.front_end_binding import InterComFrontEndBinding
+from security_switch import roles_accepted, PRIVILEGES
 from storage.db_interface_frontend import FrontEndDbInterface
 
 
@@ -18,6 +19,7 @@ class RestFirmware(Resource):
     def __init__(self, **kwargs):
         self.config = kwargs.get('config', None)
 
+    @roles_accepted(PRIVILEGES['view_analysis'])
     def get(self, uid=None):
         if not uid:
             paging, success = get_paging(request.args)
@@ -49,6 +51,7 @@ class RestFirmware(Resource):
             fitted_firmware = self._fit_firmware(firmware)
             return success_message(dict(firmware=fitted_firmware), self.URL, request_data=dict(uid=uid))
 
+    @roles_accepted(PRIVILEGES['submit_analysis'])
     def put(self, uid=None):
         if not uid:
             try:
