@@ -36,7 +36,7 @@ class AjaxRoutes(ComponentBase):
             exclusive_files = []
         return exclusive_files
 
-    @roles_accepted(PRIVILEGES['view_analysis'])
+    @roles_accepted(*PRIVILEGES['view_analysis'])
     def _ajax_get_tree_children(self, uid, root_uid=None, compare_id=None):
         exclusive_files = self._get_exclusive_files(compare_id, root_uid)
         children = []
@@ -52,7 +52,7 @@ class AjaxRoutes(ComponentBase):
             children.append(child)
         return jsonify(children)
 
-    @roles_accepted(PRIVILEGES['view_analysis'])
+    @roles_accepted(*PRIVILEGES['view_analysis'])
     def _ajax_get_tree_root(self, uid):
         root = list()
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
@@ -131,7 +131,7 @@ class AjaxRoutes(ComponentBase):
             root_uid=root_uid
         )
 
-    @roles_accepted(PRIVILEGES['view_analysis'])
+    @roles_accepted(*PRIVILEGES['view_analysis'])
     def _ajax_get_binary(self, mime_type, uid):
         mime_type = mime_type.replace('_', '/')
         div = '<div style="display: block; border: 1px solid; border-color: #dddddd; padding: 5px; text-align: center">'

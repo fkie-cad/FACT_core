@@ -16,7 +16,7 @@ class RestBinary(Resource):
     def __init__(self, **kwargs):
         self.config = kwargs.get('config', None)
 
-    @roles_accepted(PRIVILEGES['download'])
+    @roles_accepted(*PRIVILEGES['download'])
     def get(self, uid):
         '''
         The uid of the file_object in question has to be given in the url

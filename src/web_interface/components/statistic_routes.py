@@ -16,7 +16,7 @@ class StatisticRoutes(ComponentBase):
         self._app.add_url_rule("/statistic", "statistic", self._show_statistic, methods=["GET"])
         self._app.add_url_rule("/system_health", "system_health", self._show_system_health, methods=["GET"])
 
-    @roles_accepted(PRIVILEGES['status'])
+    @roles_accepted(*PRIVILEGES['status'])
     def _show_statistic(self):
         filter_query = apply_filters_to_query(request, "{}")
         if filter_query == {}:
@@ -30,7 +30,7 @@ class StatisticRoutes(ComponentBase):
                                vendors=vendors, current_class=str(request.args.get("device_class")),
                                current_vendor=str(request.args.get("vendor")))
 
-    @roles_accepted(PRIVILEGES['status'])
+    @roles_accepted(*PRIVILEGES['status'])
     def _show_system_health(self):
         components = ["frontend", "database", "backend"]
         status = []

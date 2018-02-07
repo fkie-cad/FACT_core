@@ -19,7 +19,7 @@ class RestFirmware(Resource):
     def __init__(self, **kwargs):
         self.config = kwargs.get('config', None)
 
-    @roles_accepted(PRIVILEGES['view_analysis'])
+    @roles_accepted(*PRIVILEGES['view_analysis'])
     def get(self, uid=None):
         if not uid:
             paging, success = get_paging(request.args)
@@ -51,7 +51,7 @@ class RestFirmware(Resource):
             fitted_firmware = self._fit_firmware(firmware)
             return success_message(dict(firmware=fitted_firmware), self.URL, request_data=dict(uid=uid))
 
-    @roles_accepted(PRIVILEGES['submit_analysis'])
+    @roles_accepted(*PRIVILEGES['submit_analysis'])
     def put(self, uid=None):
         if not uid:
             try:
