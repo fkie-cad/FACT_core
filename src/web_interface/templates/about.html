@@ -3,20 +3,22 @@
 {% set active_page = "About" %}
 
 {% block body %}
-<h3>About FACT</h3>
-The Firmware Analysis and Compare Tool (FACT) (formerly known as Fraunhofer's Firmware Analysis Framework (FAF)) is intended to automate Firmware Security Analysis.
+{% include "imprint.html" %}
+
+<h2>Software</h2>
+The <a href="https://fkie-cad.github.io/FACT_core/">Firmware Analysis and Compare Tool (FACT)</a> (formerly known as Fraunhofer's Firmware Analysis Framework (FAF)) is intended to automate Firmware Security Analysis.
 FACT is developed by <a href="http://www.fkie.fraunhofer.de">Fraunhofer FKIE</a>.
 The project is partly financed by <a href="https://www.bsi.bund.de">German Federal Office for Information Security (BSI)</a> and others. 
 
 <h3>License Information</h3>
-<pre>
-    Firmware Analysis and Comparison Tool (FACT)
-    Copyright (C) 2015-2018  Fraunhofer FKIE
-
+<div class="well">
+    Firmware Analysis and Comparison Tool (FACT)<br />
+    Copyright (C) 2015-2018  Fraunhofer FKIE<br />
+	<br />
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    (at your option) any later version.<br />
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -25,9 +27,10 @@ The project is partly financed by <a href="https://www.bsi.bund.de">German Feder
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <a href=http://www.gnu.org/licenses/>www.gnu.org/licenses/</a>.
-    
+	<br />
+	<br />
     Some plug-ins may have different licenses. 
-</pre>
+</div>
 
 <h3>Change Log</h3>
 
