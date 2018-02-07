@@ -9,6 +9,7 @@ from helperFunctions.dataConversion import remove_linebreaks_from_byte_string
 from helperFunctions.mongo_task_conversion import create_analysis_task, check_for_errors, convert_analysis_task_to_fw_obj
 from helperFunctions.web_interface import ConnectTo
 from intercom.front_end_binding import InterComFrontEndBinding
+from security_switch import roles_accepted, PRIVILEGES
 from storage.db_interface_compare import CompareDbInterface
 from storage.db_interface_frontend import FrontEndDbInterface
 from web_interface.components.additional_functions.hex_dump import create_hex_dump
@@ -24,6 +25,7 @@ class IORoutes(ComponentBase):
         self._app.add_url_rule('/base64-download/<uid>/<section>/<expression_id>', '/base64-download/<uid>/<section>/<expression_id>', self._download_base64_decoded_section)
         self._app.add_url_rule('/hex-dump/<uid>', 'hex-dump/<uid>', self._show_hex_dump)
 
+    @roles_accepted(PRIVILEGES['download'])
     def _download_base64_decoded_section(self, uid, section, expression_id):
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
             file_obj = sc.get_object(uid, analysis_filter=['base64_decoder'])
@@ -55,6 +57,7 @@ class IORoutes(ComponentBase):
             return resp
 
     # ---- upload
+    @roles_accepted(PRIVILEGES['submit_analysis'])
     def _app_upload(self):
         error = {}
         if request.method == 'POST':
@@ -78,6 +81,7 @@ class IORoutes(ComponentBase):
 
         # ---- file download
 
+    @roles_accepted(PRIVILEGES['download'])
     def _app_download_binary(self, uid):
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
             object_exists = sc.existence_quick_check(uid)
@@ -94,6 +98,7 @@ class IORoutes(ComponentBase):
                 resp.headers['Content-Disposition'] = 'attachment; filename={}'.format(file_name)
                 return resp
 
+    @roles_accepted(PRIVILEGES['download'])
     def _app_download_tar(self, uid):
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
             object_exists = sc.existence_quick_check(uid)
@@ -110,6 +115,7 @@ class IORoutes(ComponentBase):
                 resp.headers['Content-Disposition'] = 'attachment; filename={}'.format(file_name)
                 return resp
 
+    @roles_accepted(PRIVILEGES['download'])
     def _download_ida_file(self, compare_id):
         with ConnectTo(CompareDbInterface, self._config) as sc:
             result = sc.get_compare_result(compare_id)
@@ -121,6 +127,7 @@ class IORoutes(ComponentBase):
             resp.headers['Content-Disposition'] = 'attachment; filename={}.idb'.format(compare_id[:8])
             return resp
 
+    @roles_accepted(PRIVILEGES['download'])
     def _show_hex_dump(self, uid):
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
             object_exists = sc.existence_quick_check(uid)

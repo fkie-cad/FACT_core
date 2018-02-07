@@ -9,6 +9,7 @@ from flask_paginate import Pagination
 from helperFunctions.dataConversion import string_list_to_list, unify_string_list, list_to_unified_string_list
 from helperFunctions.web_interface import ConnectTo, get_template_as_string
 from intercom.front_end_binding import InterComFrontEndBinding
+from security_switch import roles_accepted, PRIVILEGES
 from storage.db_interface_compare import CompareDbInterface
 from storage.db_interface_view_sync import ViewReader
 from web_interface.components.component_base import ComponentBase
@@ -20,10 +21,10 @@ class CompareRoutes(ComponentBase):
         self._app.add_url_rule('/database/browse_compare', 'database/browse_compare', self._app_show_browse_compare)
         self._app.add_url_rule('/compare/<compare_id>', '/compare/<compare_id>', self._app_show_compare_result)
         self._app.add_url_rule('/comparison/add/<uid>', 'comparison/add/<uid>', self._add_to_compare_basket)
-        self._app.add_url_rule('/comparison/remove/<analysis_uid>/<compare_uid>', 'comparison/remove/<analysis_uid>/<compare_uid>',
-                               self._remove_from_compare_basket)
+        self._app.add_url_rule('/comparison/remove/<analysis_uid>/<compare_uid>', 'comparison/remove/<analysis_uid>/<compare_uid>', self._remove_from_compare_basket)
         self._app.add_url_rule('/comparison/remove_all/<analysis_uid>', 'comparison/remove_all/<analysis_uid>', self._remove_all_from_compare_basket)
 
+    @roles_accepted(PRIVILEGES['compare'])
     def _app_show_compare_result(self, compare_id):
         compare_id = unify_string_list(compare_id)
         with ConnectTo(CompareDbInterface, self._config) as sc:
@@ -90,6 +91,7 @@ class CompareRoutes(ComponentBase):
         else:
             return view[:index] + plugin + view[index:]
 
+    @roles_accepted(PRIVILEGES['submit_analysis'])
     def _app_show_start_compare(self):
         if 'uids_for_comparison' not in session or not isinstance(session['uids_for_comparison'], list) or len(session['uids_for_comparison']) < 2:
             return render_template('compare/error.html', error='No UIDs found for comparison')
@@ -117,6 +119,7 @@ class CompareRoutes(ComponentBase):
             return '/ida-download/{}'.format(compare_id)
         return None
 
+    @roles_accepted(PRIVILEGES['compare'])
     def _app_show_browse_compare(self):
         page, per_page = self._get_page_items()[0:2]
         try:
@@ -150,6 +153,7 @@ class CompareRoutes(ComponentBase):
         return page, per_page, offset
 
     @staticmethod
+    @roles_accepted(PRIVILEGES['submit_analysis'])
     def _add_to_compare_basket(uid):
         compare_uid_list = get_comparison_uid_list_from_session()
         compare_uid_list.append(uid)
@@ -157,6 +161,7 @@ class CompareRoutes(ComponentBase):
         return redirect(url_for('analysis/<uid>', uid=uid))
 
     @staticmethod
+    @roles_accepted(PRIVILEGES['submit_analysis'])
     def _remove_from_compare_basket(analysis_uid, compare_uid):
         compare_uid_list = get_comparison_uid_list_from_session()
         if compare_uid in compare_uid_list:
@@ -165,6 +170,7 @@ class CompareRoutes(ComponentBase):
         return redirect(url_for('analysis/<uid>', uid=analysis_uid))
 
     @staticmethod
+    @roles_accepted(PRIVILEGES['submit_analysis'])
     def _remove_all_from_compare_basket(analysis_uid):
         compare_uid_list = get_comparison_uid_list_from_session()
         compare_uid_list.clear()

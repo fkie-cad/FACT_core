@@ -6,6 +6,7 @@ from helperFunctions.hash import get_sha256
 from helperFunctions.rest import success_message, error_message
 from helperFunctions.web_interface import ConnectTo
 from intercom.front_end_binding import InterComFrontEndBinding
+from security_switch import roles_accepted, PRIVILEGES
 from storage.db_interface_frontend import FrontEndDbInterface
 
 
@@ -15,6 +16,7 @@ class RestBinary(Resource):
     def __init__(self, **kwargs):
         self.config = kwargs.get('config', None)
 
+    @roles_accepted(PRIVILEGES['download'])
     def get(self, uid):
         '''
         The uid of the file_object in question has to be given in the url

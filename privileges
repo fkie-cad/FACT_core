@@ -1,0 +1,84 @@
+## View Analysis
+
+- '/analysis/<uid>'
+- '/analysis/<uid>/ro/<root_uid>'
+- '/analysis/<uid>/<selected_analysis>'
+- '/analysis/<uid>/<selected_analysis>/ro/<root_uid>'
+- '/analysis/<uid>/<selected_analysis>/<root_uid>'
+- '/ajax_tree/<uid>/<root_uid>'
+- '/ajax_root/<uid>'
+- '/rest/firmware/<uid>'
+- '/rest/file_object/<uid>'
+- '/rest/file_object'
+- '/ajax_get_binary/<mime_type>/<uid>'
+- '/ajax_get_binary/<type>/<uid>'
+
+
+## Submit
+
+- '/update-analysis/<uid>'
+- '/compare'
+- '/rest/firmware'
+- '/upload'
+
+
+## Compare
+
+- '/database/browse_compare'
+- '/compare/<compare_id>'
+- '/rest/compare'
+- '/rest/compare/<compare_id>'
+* '/compare/ajax_tree/<compare_id>/<root_uid>/<uid>'
+* '/compare/ajax_common_files/<compare_id>/<feature_id>/'
+- '/comparison/add/<uid>
+- '/comparison/remove/<analysis_uid>/<compare_uid>' 
+- '/comparison/remove_all/<analysis_uid>'
+
+
+## Pattern Search
+
+- '/database/binary_search'
+- '/database/database_binary_search_results.html'
+
+
+## Advanced Search
+
+- '/database/advanced_search'
+
+
+## Basic Search
+
+- '/database/browse'
+- '/database/search'
+- '/database/quick_search'
+
+
+## Download
+
+- '/rest/binary/<uid>'
+- '/download/<uid>'
+- '/tar-download/<uid>'
+- '/ida-download/<compare_id>'
+- '/base64-download/<uid>/<section>/<expression_id>'
+- '/hex-dump/<uid>'
+
+
+## Comment
+
+- '/comment/<uid>'
+
+
+## Delete
+
+- '/admin/delete_comment/<uid>/<timestamp>'
+- '/admin/delete/<uid>'
+- '/admin/re-do_analysis/<uid>'
+
+
+## Status
+
+- '/statistic'
+- '/system_health'
+- '/' 
+- '/about'
+
