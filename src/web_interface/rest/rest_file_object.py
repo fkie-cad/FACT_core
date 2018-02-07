@@ -13,7 +13,7 @@ class RestFileObject(Resource):
     def __init__(self, **kwargs):
         self.config = kwargs.get('config', None)
 
-    @roles_accepted(PRIVILEGES['view_analysis'])
+    @roles_accepted(*PRIVILEGES['view_analysis'])
     def get(self, uid=None):
         if not uid:
             paging, success = get_paging(request.args)

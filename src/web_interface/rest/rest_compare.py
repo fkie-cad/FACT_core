@@ -15,7 +15,7 @@ class RestCompare(Resource):
     def __init__(self, **kwargs):
         self.config = kwargs.get('config', None)
 
-    @roles_accepted(PRIVILEGES['compare'])
+    @roles_accepted(*PRIVILEGES['compare'])
     def put(self):
         '''
         The request data should have the form
@@ -47,7 +47,7 @@ class RestCompare(Resource):
                 return success_message({'message': 'Compare started. Please use GET to get the results.'}, self.URL, request_data=data, return_code=202)
         return error_message('Compare already exists. Use "redo" to force re-compare.', self.URL, request_data=data, return_code=200)
 
-    @roles_accepted(PRIVILEGES['compare'])
+    @roles_accepted(*PRIVILEGES['compare'])
     def get(self, compare_id=None):
         '''
         The request data should have the form

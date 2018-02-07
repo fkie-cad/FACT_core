@@ -58,7 +58,7 @@ class DatabaseRoutes(ComponentBase):
         except:
             return query
 
-    @roles_accepted(PRIVILEGES['basic_search'])
+    @roles_accepted(*PRIVILEGES['basic_search'])
     def _app_show_browse_database(self, query='{}', only_firmwares=False):
         page, per_page = self._get_page_items()[0:2]
         if request.args.get('query'):
@@ -121,7 +121,7 @@ class DatabaseRoutes(ComponentBase):
         hash_query = [{'processed_analysis.file_hashes.{}'.format(hash_type): value} for hash_type in hash_types]
         query.update({'$or': hash_query})
 
-    @roles_accepted(PRIVILEGES['basic_search'])
+    @roles_accepted(*PRIVILEGES['basic_search'])
     def _app_show_search_database(self):
         if request.method == 'POST':
             query = self._build_search_query()
@@ -131,7 +131,7 @@ class DatabaseRoutes(ComponentBase):
             vendors = connection.get_vendor_list()
         return render_template('database/database_search.html', device_classes=device_classes, vendors=vendors)
 
-    @roles_accepted(PRIVILEGES['advanced_search'])
+    @roles_accepted(*PRIVILEGES['advanced_search'])
     def _app_show_advanced_search(self, error=None):
         with ConnectTo(FrontEndDbInterface, self._config) as connection:
             database_structure = connection.create_analysis_structure()
@@ -167,7 +167,7 @@ class DatabaseRoutes(ComponentBase):
                 firmware_dict[rule] = sorted(connection.get_meta_list(firmware_list))
         return firmware_dict
 
-    @roles_accepted(PRIVILEGES['pattern_search'])
+    @roles_accepted(*PRIVILEGES['pattern_search'])
     def _app_start_binary_search(self):
         error = None
         if request.method == 'POST':
@@ -183,7 +183,7 @@ class DatabaseRoutes(ComponentBase):
                 error = 'please select a file or enter rules in the text area'
         return render_template('database/database_binary_search.html', error=error)
 
-    @roles_accepted(PRIVILEGES['pattern_search'])
+    @roles_accepted(*PRIVILEGES['pattern_search'])
     def _app_show_binary_search_results(self):
         firmware_dict, error, yara_rules = None, None, None
         if request.args.get('request_id'):
@@ -201,7 +201,7 @@ class DatabaseRoutes(ComponentBase):
         return render_template('database/database_binary_search_results.html', result=firmware_dict, error=error,
                                request_id=request_id, yara_rules=yara_rules)
 
-    @roles_accepted(PRIVILEGES['basic_search'])
+    @roles_accepted(*PRIVILEGES['basic_search'])
     def _app_start_quick_search(self):
         search_term = filter_out_illegal_characters(request.args.get('search_term'))
         if search_term is None:

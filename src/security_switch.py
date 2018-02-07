@@ -1,14 +1,17 @@
-USE_AUTHENTICATION = False
+USE_AUTHENTICATION = True
 
 if USE_AUTHENTICATION:
     from authenticate_app import add_flask_security_to_app
     from flask_security import login_required, roles_accepted, roles_required
 else:
-    def roles_accepted(function):
-        return function
+    class roles_accepted(object):
+        def __init__(self, *args, **kwargs):
+            pass
 
-    def roles_required(function):
-        return function
+        def __call__(self, function):
+            def wrapped_function(*args, **kwargs):
+                return function(*args, **kwargs)
+            return wrapped_function
 
     def login_required(function):
         return function
@@ -34,7 +37,7 @@ PRIVILEGES = {
 }
 
 for privilege in PRIVILEGES:
-    for role in PRIVILEGES['privilege']:
+    for role in PRIVILEGES[privilege]:
         assert role in ALL_ROLES, 'typo or error in privilege definition'
 
 

@@ -40,7 +40,10 @@ def add_flask_security_to_app(app):
     @app.before_first_request
     def create_user():
         db.create_all()
-        user_datastore.create_user(email='matt@nobien.net', password='password')
+        user_datastore.create_user(email='test', password='test')
+        user_datastore.activate_user(user_datastore.find_user(email='test'))
+        user_datastore.create_role(name='superuser')
+        user_datastore.add_role_to_user(user=user_datastore.find_user(email='test'), role='superuser')
         db.session.commit()
 
     return user_datastore, security
