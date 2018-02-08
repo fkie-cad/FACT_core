@@ -94,7 +94,7 @@ class DatabaseMock:
         elif uid == self.fw2_uid:
             result = deepcopy(TEST_FW_2)
             result.processed_analysis = {
-                'file_type': {'mime': 'application/octet-stream', 'full': 'test text'},
+                'file_type': {'mime': 'filesystem/cramfs', 'full': 'test text'},
                 'mandatory_plugin': 'mandatory result',
                 'optional_plugin': 'optional result'}
         else:
