@@ -97,6 +97,7 @@ class DatabaseMock:
                 'file_type': {'mime': 'filesystem/cramfs', 'full': 'test text'},
                 'mandatory_plugin': 'mandatory result',
                 'optional_plugin': 'optional result'}
+            return result
         else:
             return None
 
