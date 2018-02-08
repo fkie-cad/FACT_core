@@ -65,6 +65,10 @@ class AnalysisRoutes(ComponentBase):
             firmware_including_this_fo = self._get_firmware_ids_including_this_file(file_obj)
             with ConnectTo(InterComFrontEndBinding, self._config) as sc:
                 analysis_plugins = sc.get_available_analysis_plugins()
+
+            # TODO remove
+            print(file_obj.virtual_file_path)
+
             return render_template_string(view,
                                           uid=uid,
                                           firmware=file_obj,
