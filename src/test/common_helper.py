@@ -132,7 +132,7 @@ class DatabaseMock:
             return 'generic error'
 
     def existence_quick_check(self, uid):
-        if uid == self.fw_uid or uid == self.fo_uid:
+        if uid == self.fw_uid or uid == self.fo_uid or uid == self.fw2_uid:
             return True
         elif uid == 'error':
             return True
