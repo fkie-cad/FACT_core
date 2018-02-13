@@ -65,10 +65,6 @@ class AnalysisRoutes(ComponentBase):
             firmware_including_this_fo = self._get_firmware_ids_including_this_file(file_obj)
             with ConnectTo(InterComFrontEndBinding, self._config) as sc:
                 analysis_plugins = sc.get_available_analysis_plugins()
-
-            # TODO remove
-            print(file_obj.virtual_file_path)
-
             return render_template_string(view,
                                           uid=uid,
                                           firmware=file_obj,
@@ -105,29 +101,22 @@ class AnalysisRoutes(ComponentBase):
 
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
             old_firmware = sc.get_firmware(uid=uid, analysis_filter=[])
-        if old_firmware is None:
-            return render_template('uid_not_found.html', uid=uid)
+            if old_firmware is None:
+                return render_template('uid_not_found.html', uid=uid)
 
-        with ConnectTo(FrontEndDbInterface, self._config) as sc:
             device_class_list = sc.get_device_class_list()
-        device_class_list.remove(old_firmware.device_class)
-
-        with ConnectTo(FrontEndDbInterface, self._config) as sc:
             vendor_list = sc.get_vendor_list()
-        vendor_list.remove(old_firmware.vendor)
-
-        with ConnectTo(FrontEndDbInterface, self._config) as sc:
             device_name_dict = sc.get_device_name_dict()
+
+        device_class_list.remove(old_firmware.device_class)
+        vendor_list.remove(old_firmware.vendor)
         device_name_dict[old_firmware.device_class][old_firmware.vendor].remove(old_firmware.device_name)
 
         previously_processed_plugins = list(old_firmware.processed_analysis.keys())
         with ConnectTo(InterComFrontEndBinding, self._config) as sc:
             plugin_dict = overwrite_default_plugins(sc, previously_processed_plugins)
 
-        if re_do:
-            title = 're-do analysis'
-        else:
-            title = 'update analysis'
+        title = 're-do analysis' if re_do else 'update analysis'
 
         return render_template(
             'upload/re-analyze.html',
