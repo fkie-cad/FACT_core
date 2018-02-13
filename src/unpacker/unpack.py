@@ -102,7 +102,7 @@ class Unpacker(UnpackBase):
                     parent.get_base_of_virtual_path(parent.get_virtual_file_paths()[parent.get_root_uid()][0]),
                     parent.get_uid(), get_chroot_path_excluding_extracted_dir(make_unicode_string(item), tmp_dir)
                 )
-                current_file.temporary_data['parent_fo_type'] = (parent.get_uid(), get_file_type_from_path(item)['mime'])
+                current_file.temporary_data['parent_fo_type'] = get_file_type_from_path(parent.file_path)['mime']
                 if current_file.get_uid() in extracted_files:  # the same file is extracted multiple times from one archive
                     extracted_files[current_file.get_uid()].virtual_file_path[parent.get_root_uid()].append(current_virtual_path)
                 else:
