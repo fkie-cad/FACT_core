@@ -25,7 +25,7 @@ import tempfile
 from subprocess import Popen, TimeoutExpired
 from time import sleep
 
-from fact_init import _setup_logging, _setup_argparser, _load_config
+from helperFunctions.fact_init import _setup_logging, _setup_argparser, _load_config
 from helperFunctions.config import get_config_dir
 from helperFunctions.fileSystem import get_src_dir
 from statistic.work_load import WorkLoadStatistic
