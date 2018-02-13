@@ -24,7 +24,7 @@ import sys
 from subprocess import Popen, TimeoutExpired
 from time import sleep
 
-from fact_init import _setup_argparser, _setup_logging, _load_config
+from helperFunctions.fact_init import _setup_argparser, _setup_logging, _load_config
 from helperFunctions.config import get_src_dir
 
 PROGRAM_NAME = 'FACT Starter'

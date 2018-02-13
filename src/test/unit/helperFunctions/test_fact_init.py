@@ -2,7 +2,7 @@ import pytest
 import logging
 
 from helperFunctions.fileSystem import get_test_data_dir
-from fact_init import _get_console_output_level, _load_config, _setup_logging
+from helperFunctions.fact_init import _get_console_output_level, _load_config, _setup_logging
 
 
 class argument_mock():

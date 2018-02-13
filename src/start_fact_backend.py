@@ -21,7 +21,7 @@ import logging
 import signal
 from time import sleep
 
-from fact_init import _setup_argparser, _setup_logging, _load_config
+from helperFunctions.fact_init import _setup_argparser, _setup_logging, _load_config
 from helperFunctions.process import complete_shutdown
 from intercom.back_end_binding import InterComBackEndBinding
 from scheduler.Analysis import AnalysisScheduler
