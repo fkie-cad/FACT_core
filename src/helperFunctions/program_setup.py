@@ -44,7 +44,7 @@ def _setup_argparser(name, description, command_line_options=sys.argv, version=_
     parser.add_argument('-s', '--silent', action='store_true', default=False, help='don\'t log to command line')
     parser.add_argument('-C', '--config_file', help='set path to config File', default='{}/main.cfg'.format(get_config_dir()))
     parser.add_argument('-t', '--testing', default=False, action='store_true', help='shutdown system after one iteration')
-    return parser.parse_args(command_line_options)
+    return parser.parse_args(command_line_options[1:])
 
 
 def _get_console_output_level(debug_flag):

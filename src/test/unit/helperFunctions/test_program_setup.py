@@ -50,7 +50,7 @@ def test_setup_logging():
 def test_program_setup():
     tmp_dir = TemporaryDirectory(prefix='fact_test_')
     log_file_path = tmp_dir.name + '/folder/log_file'
-    args, config = program_setup('test', 'test description', command_line_options=['--config_file', argument_mock.config_file, '--log_file', log_file_path])
+    args, config = program_setup('test', 'test description', command_line_options=['script_name', '--config_file', argument_mock.config_file, '--log_file', log_file_path])
     assert args.debug is False
     assert config['Logging']['logFile'] == log_file_path
     assert os.path.exists(log_file_path)
