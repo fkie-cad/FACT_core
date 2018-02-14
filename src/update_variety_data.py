@@ -25,9 +25,9 @@ from time import time
 from common_helper_filter import time_format
 from common_helper_process import execute_shell_command_get_return_code
 
-from helperFunctions.fact_init import setup_argparser, setup_logging, load_config
 from helperFunctions.fileSystem import get_src_dir
 from storage.MongoMgr import MongoMgr
+from helperFunctions.program_setup import program_setup
 
 PROGRAM_NAME = 'FACT Variety Data Updater'
 PROGRAM_DESCRIPTION = 'Initialize or update database structure information used by the "advanced search" feature.'
@@ -49,9 +49,7 @@ def _create_variety_data(config):
 
 
 if __name__ == '__main__':
-    args = setup_argparser(PROGRAM_NAME, PROGRAM_DESCRIPTION)
-    config = load_config(args)
-    setup_logging(args)
+    args, config = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION)
 
     logging.info('Try to start Mongo Server...')
     mongo_server = MongoMgr(config=config)

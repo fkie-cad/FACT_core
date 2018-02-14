@@ -20,18 +20,16 @@
 import logging
 import sys
 
-from helperFunctions.fact_init import setup_argparser, setup_logging, load_config
 from storage.MongoMgr import MongoMgr
 from statistic.update import StatisticUpdater
+from helperFunctions.program_setup import program_setup
 
 PROGRAM_NAME = 'FACT Statistic Updater'
 PROGRAM_DESCRIPTION = 'Initialize or update FACT statistic'
 
 
 if __name__ == '__main__':
-    args = setup_argparser(PROGRAM_NAME, PROGRAM_DESCRIPTION)
-    config = load_config(args)
-    setup_logging(args)
+    args, config = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION)
 
     logging.info('Try to start Mongo Server...')
     mongo_server = MongoMgr(config=config)

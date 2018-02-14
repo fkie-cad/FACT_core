@@ -22,9 +22,9 @@ import signal
 import sys
 from time import sleep
 
-from helperFunctions.fact_init import setup_argparser, setup_logging, load_config
 from statistic.work_load import WorkLoadStatistic
 from storage.MongoMgr import MongoMgr
+from helperFunctions.program_setup import program_setup
 
 PROGRAM_NAME = 'FACT DB-Service'
 PROGRAM_DESCRIPTION = 'Firmware Analysis and Compare Tool (FACT) DB-Service'
@@ -41,9 +41,7 @@ signal.signal(signal.SIGTERM, shutdown)
 
 
 if __name__ == '__main__':
-    args = setup_argparser(name=PROGRAM_NAME, description=PROGRAM_DESCRIPTION)
-    config = load_config(args)
-    setup_logging(config, args)
+    args, config = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION)
     mongo_server = MongoMgr(config=config)
     work_load_stat = WorkLoadStatistic(config=config, component='database')
 
