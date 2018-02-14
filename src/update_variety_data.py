@@ -30,7 +30,6 @@ from helperFunctions.fileSystem import get_src_dir
 from storage.MongoMgr import MongoMgr
 
 PROGRAM_NAME = 'FACT Variety Data Updater'
-PROGRAM_VERSION = '0.2'
 PROGRAM_DESCRIPTION = 'Initialize or update database structure information used by the "advanced search" feature.'
 
 
@@ -50,7 +49,7 @@ def _create_variety_data(config):
 
 
 if __name__ == '__main__':
-    args = setup_argparser()
+    args = setup_argparser(PROGRAM_NAME, PROGRAM_DESCRIPTION)
     config = load_config(args)
     setup_logging(args)
 
