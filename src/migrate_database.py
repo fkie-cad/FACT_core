@@ -23,7 +23,7 @@ import sys
 from storage.MongoMgr import MongoMgr
 from storage.db_interface_frontend_editing import FrontendEditingDbInterface
 from helperFunctions.dataConversion import convert_str_to_time
-from helperFunctions.fact_init import setup_argparser, setup_logging, load_config
+from helperFunctions.program_setup import program_setup
 
 
 PROGRAM_NAME = 'FACT Database Migration Assistant'
@@ -72,9 +72,7 @@ def convert_comments_to_new_format(db_service):
 
 
 if __name__ == '__main__':
-    args = setup_argparser(PROGRAM_NAME, PROGRAM_DESCRIPTION)
-    config = load_config(args)
-    setup_logging()
+    args, config = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION)
 
     logging.info('Trying to start Mongo Server and initializing users...')
     mongo_manger = MongoMgr(config=config, auth=False)
