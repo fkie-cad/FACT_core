@@ -17,42 +17,18 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import argparse
-import configparser
 import logging
 import sys
 
 from storage.MongoMgr import MongoMgr
 from storage.db_interface_frontend_editing import FrontendEditingDbInterface
-from helperFunctions.config import get_config_dir
 from helperFunctions.dataConversion import convert_str_to_time
+from helperFunctions.fact_init import setup_argparser, setup_logging, load_config
 
 
 PROGRAM_NAME = "FACT Database Migration Assistant"
-PROGRAM_VERSION = "0.1"
+PROGRAM_VERSION = "0.2"
 PROGRAM_DESCRIPTION = "Converts old database entries into the new format"
-
-
-def _setup_argparser():
-    parser = argparse.ArgumentParser(description="{} - {}".format(PROGRAM_NAME, PROGRAM_DESCRIPTION))
-    parser.add_argument('-V', '--version', action='version', version="{} {}".format(PROGRAM_NAME, PROGRAM_VERSION))
-    parser.add_argument("-C", "--config_file", help="set path to config File", default="{}/main.cfg".format(get_config_dir()))
-    return parser.parse_args()
-
-
-def _load_config(args):
-    config = configparser.ConfigParser()
-    config.read(args.config_file)
-    return config
-
-
-def _setup_logging():
-    log_format = logging.Formatter(fmt="[%(asctime)s][%(module)s][%(levelname)s]: %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
-    logger = logging.getLogger('')
-    logger.setLevel(logging.INFO)
-    console_logger = logging.StreamHandler()
-    console_logger.setFormatter(log_format)
-    logger.addHandler(console_logger)
 
 
 def add_parent_firmware_list_to_file_object(db_service):
@@ -97,9 +73,9 @@ def convert_comments_to_new_format(db_service):
 
 
 if __name__ == '__main__':
-    args = _setup_argparser()
-    config = _load_config(args)
-    _setup_logging()
+    args = setup_argparser()
+    config = load_config(args)
+    setup_logging()
 
     logging.info("Trying to start Mongo Server and initializing users...")
     mongo_manger = MongoMgr(config=config, auth=False)
@@ -108,3 +84,5 @@ if __name__ == '__main__':
     convert_comments_to_new_format(db_service_frontend_editing)
     convert_release_dates_to_date_object_format(db_service_frontend_editing)
     add_parent_firmware_list_to_file_object(db_service_frontend_editing)
+
+    sys.exit()
