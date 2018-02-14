@@ -22,7 +22,7 @@ import signal
 import sys
 from time import sleep
 
-from helperFunctions.fact_init import _setup_argparser, _setup_logging, _load_config
+from helperFunctions.fact_init import setup_argparser, setup_logging, load_config
 from statistic.work_load import WorkLoadStatistic
 from storage.MongoMgr import MongoMgr
 
@@ -41,9 +41,9 @@ signal.signal(signal.SIGTERM, shutdown)
 
 
 if __name__ == '__main__':
-    args = _setup_argparser(name=PROGRAM_NAME, description=PROGRAM_DESCRIPTION)
-    config = _load_config(args)
-    _setup_logging(config, args)
+    args = setup_argparser(name=PROGRAM_NAME, description=PROGRAM_DESCRIPTION)
+    config = load_config(args)
+    setup_logging(config, args)
     mongo_server = MongoMgr(config=config)
     work_load_stat = WorkLoadStatistic(config=config, component='database')
 

@@ -27,7 +27,7 @@ from helperFunctions.config import get_config_dir
 from version import __VERSION__
 
 
-def _setup_argparser(name, description):
+def setup_argparser(name, description):
     parser = argparse.ArgumentParser(description='{} - {}'.format(name, description))
     parser.add_argument('-V', '--version', action='version', version='{} {}'.format(name, __VERSION__))
     parser.add_argument('-l', '--log_file', help='path to log file', default=None)
@@ -46,7 +46,7 @@ def _get_console_output_level(debug_flag):
         return logging.INFO
 
 
-def _setup_logging(config, args):
+def setup_logging(config, args):
     log_level = getattr(logging, config['Logging']['logLevel'], None)
     log_format = logging.Formatter(fmt='[%(asctime)s][%(module)s][%(levelname)s]: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
     logger = logging.getLogger('')
@@ -65,7 +65,7 @@ def _setup_logging(config, args):
         logger.addHandler(console_log)
 
 
-def _load_config(args):
+def load_config(args):
     config = configparser.ConfigParser()
     config.read(args.config_file)
     if args.log_file is not None:
