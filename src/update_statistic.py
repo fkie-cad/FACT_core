@@ -25,12 +25,11 @@ from storage.MongoMgr import MongoMgr
 from statistic.update import StatisticUpdater
 
 PROGRAM_NAME = 'FACT Statistic Updater'
-PROGRAM_VERSION = '0.3'
 PROGRAM_DESCRIPTION = 'Initialize or update FACT statistic'
 
 
 if __name__ == '__main__':
-    args = setup_argparser()
+    args = setup_argparser(PROGRAM_NAME, PROGRAM_DESCRIPTION)
     config = load_config(args)
     setup_logging(args)
 

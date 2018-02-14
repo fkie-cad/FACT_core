@@ -24,18 +24,18 @@ from storage.MongoMgr import MongoMgr
 from helperFunctions.fact_init import setup_argparser, load_config, setup_logging
 
 
-PROGRAM_NAME = "FACT Database Initializer"
-PROGRAM_VERSION = "0.2"
-PROGRAM_DESCRIPTION = "Initialize authentication and users for FAF's Database"
+PROGRAM_NAME = 'FACT Database Initializer'
+PROGRAM_DESCRIPTION = 'Initialize authentication and users for FAF\'s Database'
 
 
 if __name__ == '__main__':
-    args = setup_argparser()
+    args = setup_argparser(PROGRAM_NAME, PROGRAM_DESCRIPTION)
     config = load_config(args)
     setup_logging()
 
-    logging.info("Trying to start Mongo Server and initializing users...")
+    logging.info('Trying to start Mongo Server and initializing users...')
     mongo_manger = MongoMgr(config=config, auth=False)
     mongo_manger.init_users()
     mongo_manger.shutdown()
+
     sys.exit()
