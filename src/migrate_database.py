@@ -17,94 +17,69 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import argparse
-import configparser
 import logging
 import sys
 
 from storage.MongoMgr import MongoMgr
 from storage.db_interface_frontend_editing import FrontendEditingDbInterface
-from helperFunctions.config import get_config_dir
 from helperFunctions.dataConversion import convert_str_to_time
+from helperFunctions.program_setup import program_setup
 
 
-PROGRAM_NAME = "FACT Database Migration Assistant"
-PROGRAM_VERSION = "0.1"
-PROGRAM_DESCRIPTION = "Converts old database entries into the new format"
-
-
-def _setup_argparser():
-    parser = argparse.ArgumentParser(description="{} - {}".format(PROGRAM_NAME, PROGRAM_DESCRIPTION))
-    parser.add_argument('-V', '--version', action='version', version="{} {}".format(PROGRAM_NAME, PROGRAM_VERSION))
-    parser.add_argument("-C", "--config_file", help="set path to config File", default="{}/main.cfg".format(get_config_dir()))
-    return parser.parse_args()
-
-
-def _load_config(args):
-    config = configparser.ConfigParser()
-    config.read(args.config_file)
-    return config
-
-
-def _setup_logging():
-    log_format = logging.Formatter(fmt="[%(asctime)s][%(module)s][%(levelname)s]: %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
-    logger = logging.getLogger('')
-    logger.setLevel(logging.INFO)
-    console_logger = logging.StreamHandler()
-    console_logger.setFormatter(log_format)
-    logger.addHandler(console_logger)
+PROGRAM_NAME = 'FACT Database Migration Assistant'
+PROGRAM_DESCRIPTION = 'Converts old database entries into the new format'
 
 
 def add_parent_firmware_list_to_file_object(db_service):
-    query = db_service.file_objects.find({}, {"_id": 1, "virtual_file_path": 1, "parent_firmware_uids": 1})
+    query = db_service.file_objects.find({}, {'_id': 1, 'virtual_file_path': 1, 'parent_firmware_uids': 1})
     for result in query:
-        if "parent_firmware_uids" not in result:
-            parent_firmware_list = [p for p in result["virtual_file_path"]]
-            db_service.update_object_field(uid=result["_id"], field="parent_firmware_uids", value=parent_firmware_list)
-            logging.debug("inserted 'parent_firmware_uids' in {} with value {}".format(result["_id"], parent_firmware_list))
+        if 'parent_firmware_uids' not in result:
+            parent_firmware_list = [p for p in result['virtual_file_path']]
+            db_service.update_object_field(uid=result['_id'], field='parent_firmware_uids', value=parent_firmware_list)
+            logging.debug('inserted \'parent_firmware_uids\' in {} with value {}'.format(result['_id'], parent_firmware_list))
 
 
 def convert_release_dates_to_date_object_format(db_service):
-    query = db_service.firmwares.find({}, {"_id": 1, "release_date": 1})
+    query = db_service.firmwares.find({}, {'_id': 1, 'release_date': 1})
     for entry in query:
-        firmware_id = entry["_id"]
-        date = entry["release_date"]
+        firmware_id = entry['_id']
+        date = entry['release_date']
         if type(date) == str:
-            logging.debug("converting date of {}".format(firmware_id))
+            logging.debug('converting date of {}'.format(firmware_id))
             try:
                 updated_entry = convert_str_to_time(date)
-                db_service.update_object_field(uid=firmware_id, field="release_date", value=updated_entry)
+                db_service.update_object_field(uid=firmware_id, field='release_date', value=updated_entry)
             except Exception as e:
-                logging.error("could not convert release date entry: {} {}".format(sys.exc_info()[0].__name__, e))
+                logging.error('could not convert release date entry: {} {}'.format(sys.exc_info()[0].__name__, e))
 
 
 def convert_comments_to_new_format(db_service):
     for collection in [db_service.firmwares, db_service.file_objects]:
-        comment_query = collection.find({"comments": {"$type": "object"}}, {"_id": 1, "comments": 1})
+        comment_query = collection.find({'comments': {'$type': 'object'}}, {'_id': 1, 'comments': 1})
         for entry in comment_query:
-            firmware_id = entry["_id"]
-            comment_field = entry["comments"]
+            firmware_id = entry['_id']
+            comment_field = entry['comments']
             if type(comment_field) == dict:
-                logging.debug("converting comments of {}".format(firmware_id))
+                logging.debug('converting comments of {}'.format(firmware_id))
                 try:
                     updated_comment_field = [
-                        {"time": time, "author": comment_field[time][0], "comment": comment_field[time][1]}
+                        {'time': time, 'author': comment_field[time][0], 'comment': comment_field[time][1]}
                         for time in comment_field
                     ]
-                    db_service.update_object_field(firmware_id, "comments", updated_comment_field)
+                    db_service.update_object_field(firmware_id, 'comments', updated_comment_field)
                 except Exception as e:
-                    logging.error("could not convert comment entry: {} {}".format(sys.exc_info()[0].__name__, e))
+                    logging.error('could not convert comment entry: {} {}'.format(sys.exc_info()[0].__name__, e))
 
 
 if __name__ == '__main__':
-    args = _setup_argparser()
-    config = _load_config(args)
-    _setup_logging()
+    args, config = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION)
 
-    logging.info("Trying to start Mongo Server and initializing users...")
+    logging.info('Trying to start Mongo Server and initializing users...')
     mongo_manger = MongoMgr(config=config, auth=False)
     db_service_frontend_editing = FrontendEditingDbInterface(config)
 
     convert_comments_to_new_format(db_service_frontend_editing)
     convert_release_dates_to_date_object_format(db_service_frontend_editing)
     add_parent_firmware_list_to_file_object(db_service_frontend_editing)
+
+    sys.exit()
