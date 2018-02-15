@@ -42,6 +42,7 @@ def get_config_for_testing(temp_dir=None):
     config.add_section('ExpertSettings')
     config.set('ExpertSettings', 'block_delay', '1')
     config.set('ExpertSettings', 'ssdeep_ignore', '1')
+    config.set('ExpertSettings', 'authentication', 'false')
     faf_config = load_config('main.cfg')
     config.set('data_storage', 'db_admin_user', faf_config['data_storage']['db_admin_user'])
     config.set('data_storage', 'db_admin_pw', faf_config['data_storage']['db_admin_pw'])
