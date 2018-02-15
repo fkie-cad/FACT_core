@@ -4,11 +4,13 @@ from flask_security import Security, SQLAlchemyUserDatastore, UserMixin, RoleMix
 from flask_sqlalchemy import SQLAlchemy
 
 
-def add_flask_security_to_app(app):
+def add_flask_security_to_app(app, config):
     # Create app
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SECURITY_PASSWORD_SALT'] = os.urandom(24)
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite://'
+    app.config['SECURITY_UNAUTHORIZED_VIEW'] = '/login'
+    app.config['LOGIN_DISABLED'] = not config.getboolean('ExpertSettings', 'authentication')
 
     # Create database connection object
     db = SQLAlchemy(app)
