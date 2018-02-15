@@ -62,7 +62,7 @@ class TestAcceptanceBase(unittest.TestCase):
         cls.config.set('data_storage', 'intercom_database_prefix', TMP_DB_NAME)
         cls.config.set('data_storage', 'statistic_database', TMP_DB_NAME)
         cls.config.set('data_storage', 'firmware_file_storage_directory', TMP_DIR.name)
-        cls.config.set('ExpertStorage', 'authentication', 'false')
+        cls.config.set('ExpertSettings', 'authentication', 'false')
         cls.config.set('Logging', 'mongoDbLogFile', os.path.join(TMP_DIR.name, 'mongo.log'))
 
     def _stop_backend(self):
