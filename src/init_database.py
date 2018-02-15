@@ -25,7 +25,7 @@ from helperFunctions.program_setup import program_setup
 
 
 PROGRAM_NAME = 'FACT Database Initializer'
-PROGRAM_DESCRIPTION = 'Initialize authentication and users for FAF\'s Database'
+PROGRAM_DESCRIPTION = 'Initialize authentication and users for FACT\'s Database'
 
 
 if __name__ == '__main__':
