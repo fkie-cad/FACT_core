@@ -17,8 +17,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import argparse
-import configparser
 import logging
 import os
 import sys
@@ -27,40 +25,12 @@ from time import time
 from common_helper_filter import time_format
 from common_helper_process import execute_shell_command_get_return_code
 
-from helperFunctions.config import get_config_dir
 from helperFunctions.fileSystem import get_src_dir
 from storage.MongoMgr import MongoMgr
+from helperFunctions.program_setup import program_setup
 
 PROGRAM_NAME = 'FACT Variety Data Updater'
-PROGRAM_VERSION = '0.1'
 PROGRAM_DESCRIPTION = 'Initialize or update database structure information used by the "advanced search" feature.'
-
-
-def _setup_argparser():
-    parser = argparse.ArgumentParser(description='{} - {}'.format(PROGRAM_NAME, PROGRAM_DESCRIPTION))
-    parser.add_argument('-V', '--version', action='version', version='{} {}'.format(PROGRAM_NAME, PROGRAM_VERSION))
-    parser.add_argument('-C', '--config_file', help='set path to config file', default='{}/main.cfg'.format(get_config_dir()))
-    parser.add_argument('-s', '--shutdown_db', action='store_true', default=False, help='shutdown mongo server after update')
-    parser.add_argument('-d', '--debug', action='store_true', default=False, help='print debug messages')
-    return parser.parse_args()
-
-
-def _load_config(args):
-    config = configparser.ConfigParser()
-    config.read(args.config_file)
-    return config
-
-
-def _setup_logging(args):
-    log_format = logging.Formatter(fmt='[%(asctime)s][%(module)s][%(levelname)s]: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
-    logger = logging.getLogger('')
-    if args.debug:
-        logger.setLevel(logging.DEBUG)
-    else:
-        logger.setLevel(logging.INFO)
-    console_logger = logging.StreamHandler()
-    console_logger.setFormatter(log_format)
-    logger.addHandler(console_logger)
 
 
 def _create_variety_data(config):
@@ -79,9 +49,7 @@ def _create_variety_data(config):
 
 
 if __name__ == '__main__':
-    args = _setup_argparser()
-    config = _load_config(args)
-    _setup_logging(args)
+    args, config = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION)
 
     logging.info('Try to start Mongo Server...')
     mongo_server = MongoMgr(config=config)
@@ -92,7 +60,7 @@ if __name__ == '__main__':
     process_time = time() - start_time
     logging.info('generation time: {}'.format(time_format(process_time)))
 
-    if args.shutdown_db:
+    if args.testing:
         logging.info('Stopping Mongo Server...')
         mongo_server.shutdown()
 
