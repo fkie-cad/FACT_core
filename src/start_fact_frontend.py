@@ -25,7 +25,7 @@ import tempfile
 from subprocess import Popen, TimeoutExpired
 from time import sleep
 
-from fact_init import _setup_logging, _setup_argparser, _load_config
+from helperFunctions.fact_init import setup_logging, setup_argparser, load_config
 from helperFunctions.config import get_config_dir
 from helperFunctions.fileSystem import get_src_dir
 from statistic.work_load import WorkLoadStatistic
@@ -60,9 +60,9 @@ def start_uwsgi_server(config_path=None):
 
 if __name__ == '__main__':
     run = True
-    args = _setup_argparser(name=PROGRAM_NAME, description=PROGRAM_DESCRIPTION)
-    config = _load_config(args)
-    _setup_logging(config, args)
+    args = setup_argparser(name=PROGRAM_NAME, description=PROGRAM_DESCRIPTION)
+    config = load_config(args)
+    setup_logging(config, args)
     work_load_stat = WorkLoadStatistic(config=config, component='frontend')
 
     with tempfile.NamedTemporaryFile() as fp:
