@@ -5,7 +5,8 @@
     ("Upload", "/upload", '<span class="glyphicon glyphicon-upload"></span>'),
     ("Statistic", "/statistic", '<span class="glyphicon glyphicon-stats"></span>'),
     ("System", "/system_health", '<span class="glyphicon glyphicon-heart"></span>'),
-    ("About", "/about", '<span class="glyphicon glyphicon-globe"></span>')
+    ("About", "/about", '<span class="glyphicon glyphicon-globe"></span>'),
+    ("Login", None, None)
 ] -%}
 {% set active_page = active_page|default('Home') -%}
 
@@ -113,6 +114,14 @@
                                     <li><a href="/database/advanced_search">Advanced Search</a></li>
                                     <li><a href="/database/binary_search">Binary Pattern Search</a></li>
                                 </ul>
+                            </li>
+                        {% elif caption == "Login" %}
+                            <li {% if caption == active_page %} class="active"{% endif  %}>
+                                {% if current_user.is_authenticated %}
+                                    <a href="/logout"><span class="glyphicon glyphicon-log-out"></span> Logout</a>
+                                {% else %}
+                                    <a href="/login"><span class="glyphicon glyphicon-log-in"></span> Login</a>
+                                {% endif %}
                             </li>
                         {% else %}
                         <li {% if caption == active_page %} class="active"{% endif  %}>
