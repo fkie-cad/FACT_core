@@ -152,26 +152,23 @@ class CompareRoutes(ComponentBase):
         offset = (page - 1) * per_page
         return page, per_page, offset
 
-    @staticmethod
     @roles_accepted(*PRIVILEGES['submit_analysis'])
-    def _add_to_compare_basket(uid):
+    def _add_to_compare_basket(self, uid):
         compare_uid_list = get_comparison_uid_list_from_session()
         compare_uid_list.append(uid)
         session.modified = True
         return redirect(url_for('analysis/<uid>', uid=uid))
 
-    @staticmethod
     @roles_accepted(*PRIVILEGES['submit_analysis'])
-    def _remove_from_compare_basket(analysis_uid, compare_uid):
+    def _remove_from_compare_basket(self, analysis_uid, compare_uid):
         compare_uid_list = get_comparison_uid_list_from_session()
         if compare_uid in compare_uid_list:
             session['uids_for_comparison'].remove(compare_uid)
             session.modified = True
         return redirect(url_for('analysis/<uid>', uid=analysis_uid))
 
-    @staticmethod
     @roles_accepted(*PRIVILEGES['submit_analysis'])
-    def _remove_all_from_compare_basket(analysis_uid):
+    def _remove_all_from_compare_basket(self, analysis_uid):
         compare_uid_list = get_comparison_uid_list_from_session()
         compare_uid_list.clear()
         session.modified = True

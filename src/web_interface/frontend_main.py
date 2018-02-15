@@ -3,7 +3,7 @@ import os
 
 from flask import Flask
 
-from security_switch import add_flask_security_to_app
+from authenticate_app import add_flask_security_to_app
 from web_interface.components.ajax_routes import AjaxRoutes
 from web_interface.components.analysis_routes import AnalysisRoutes
 from web_interface.components.compare_routes import CompareRoutes

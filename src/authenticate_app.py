@@ -14,9 +14,7 @@ def add_flask_security_to_app(app):
     db = SQLAlchemy(app)
 
     # Define models
-    roles_users = db.Table('roles_users',
-            db.Column('user_id', db.Integer(), db.ForeignKey('user.id')),
-            db.Column('role_id', db.Integer(), db.ForeignKey('role.id')))
+    roles_users = db.Table('roles_users', db.Column('user_id', db.Integer(), db.ForeignKey('user.id')), db.Column('role_id', db.Integer(), db.ForeignKey('role.id')))
 
     class Role(db.Model, RoleMixin):
         id = db.Column(db.Integer(), primary_key=True)
