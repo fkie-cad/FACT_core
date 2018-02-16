@@ -8,4 +8,4 @@ class PluginRoutes(ComponentBase):
 
     @staticmethod
     def _get_dummy():
-        return 'dummy'
+        return 'dummy', 200
