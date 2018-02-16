@@ -42,6 +42,10 @@ class TestPluginRoutes(TestCase):
         plugin_routes._import_module_routes('dummy', 'analysis')
         assert dummy_endpoint in self._get_app_endpoints(self.app)
 
+        test_client = self.app.test_client()
+        rv = test_client.get('/plugins/dummy')
+        assert rv.data == b'dummy'
+
     @staticmethod
     def _get_app_endpoints(app):
         rules = []
