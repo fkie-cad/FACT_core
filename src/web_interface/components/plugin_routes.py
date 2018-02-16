@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import importlib
+import inspect
+import logging
 import pkgutil
 
 from web_interface.components.component_base import ComponentBase
@@ -26,7 +28,11 @@ class PluginRoutes(ComponentBase):
 
     def _import_module_routes(self, plugin, plugin_type):
         module = importlib.import_module('plugins.{0}.{1}.{2}.{2}'.format(plugin_type, plugin, ROUTES_MODULE_NAME))
-        module.PluginRoutes(self._app, self._config)
+        if hasattr(module, 'PluginRoutes'):
+            module.PluginRoutes(self._app, self._config)
+        for rest_class in [getattr(module, attribute) for attribute in dir(module) if 'Rest' in attribute and inspect.isclass(getattr(module, attribute))]:
+            for endpoint, methods in rest_class.ENDPOINTS:
+                self._api.add_resource(rest_class, endpoint, methods=methods, resource_class_kwargs={'config': self._config})
 
     @staticmethod
     def _get_modules_in_path(path):
