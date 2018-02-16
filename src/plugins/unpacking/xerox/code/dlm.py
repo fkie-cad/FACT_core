@@ -1,8 +1,3 @@
-'''
-This plugin Xerox DLM images
-'''
-
-
 name = 'XeroxDLM'
 mime_patterns = ['firmware/xerox-dlm']
 version = '0.2'

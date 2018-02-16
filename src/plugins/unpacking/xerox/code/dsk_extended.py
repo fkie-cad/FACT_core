@@ -1,7 +1,3 @@
-'''
-plugin extended DSK1.0
-'''
-
 from common_helper_files import write_binary_to_file
 import os
 import sys
