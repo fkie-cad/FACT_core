@@ -30,7 +30,7 @@ class WebFrontEnd(object):
 
         Flask.secret_key = os.urandom(24)
 
-        RestBase(app=self.app, config=self.config)
+        rest_base = RestBase(app=self.app, config=self.config)
 
         AjaxRoutes(self.app, self.config)
         AnalysisRoutes(self.app, self.config)
@@ -38,7 +38,7 @@ class WebFrontEnd(object):
         DatabaseRoutes(self.app, self.config)
         IORoutes(self.app, self.config)
         MiscellaneousRoutes(self.app, self.config)
-        PluginRoutes(self.app, self.config)
+        PluginRoutes(self.app, self.config, api=rest_base.api)
         StatisticRoutes(self.app, self.config)
 
         FilterClass(self.app, self.program_version, self.config)
