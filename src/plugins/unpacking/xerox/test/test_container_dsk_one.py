@@ -31,9 +31,14 @@ class TestContainerDSKone(unittest.TestCase):
         test_obj.payload_size = 1
         test_obj.check_validity()
         meta = test_obj.get_meta_dict()
+        test_obj.log_errors_and_warnings()
 
         self.assertIn('unpack errors', meta, 'errors missing in dict')
         self.assertIn('unpack warnings', meta, 'warnings missing in dict')
+
+        test_obj.payload_size = 1000
+        test_obj.check_validity()
+        self.assertIn(test_obj.errors[-1], 'payload length longer than file: 1000 -> 7')
 
     def test_error_handling_dsk_ext(self):
         test_file = os.path.join(TEST_DATA_DIR, 'invalid_file')
