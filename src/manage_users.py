@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import argparse
 import getpass
 import os
@@ -7,7 +9,7 @@ from flask_security import Security
 from flask_sqlalchemy import SQLAlchemy
 
 from authenticate_app import create_db_interface
-from helperFunctions.config import load_config, get_config_dir
+from helperFunctions.config import load_config
 from version import __VERSION__
 from web_interface.frontend_main import WebFrontEnd
 
@@ -15,7 +17,7 @@ from web_interface.frontend_main import WebFrontEnd
 def setup_argparse():
     parser = argparse.ArgumentParser()
     parser.add_argument('-v', '--version', action='version', version='FACT User Management (FACTUM) {}'.format(__VERSION__))
-    parser.add_argument('-c', '--config_file', help='set path to config File', default='{}/main.cfg'.format(get_config_dir()))
+    parser.add_argument('config_file', help='path to fact config file')
     return parser.parse_args()
 
 
@@ -36,8 +38,8 @@ def get_input(message, expected_type, max_len=0):
 
 
 def choose_action():
-    print('Please choose an action (use "help" for a list of available actions)')
-    chosen_action = input()
+    print('\nPlease choose an action (use "help" for a list of available actions)')
+    chosen_action = input('action: ')
     return chosen_action
 
 
@@ -53,7 +55,7 @@ class Actions:
             '\n\t[remove_role_from_user]\tremove role from user'
             '\n\t[get_apikey_for_user]\tretrieve apikey for existing user'
             '\n\t[help]\t\t\tshow this help'
-            '\n\t[exit]\t\t\tclose application\n'
+            '\n\t[exit]\t\t\tclose application'
         )
 
     @staticmethod
@@ -64,28 +66,28 @@ class Actions:
 
     @staticmethod
     def exit(*_):
-        sys.exit('Bye.')
+        exit('Quitting ..')
 
     @staticmethod
     def create_user(app, interface, db):
-        user = get_input('username:', str, max_len=15)
+        user = get_input('username: ', str, max_len=15)
         assert not Actions._user_exists(app, interface, user), 'user must not exist'
 
-        password = getpass.getpass('password:')
+        password = getpass.getpass('password: ')
         with app.app_context():
             interface.create_user(email=user, password=password)
             db.session.commit()
 
     @staticmethod
     def get_apikey_for_user(app, interface, _):
-        user = get_input('username:', str, max_len=15)
+        user = get_input('username: ', str, max_len=15)
         assert Actions._user_exists(app, interface, user), 'user must exist to retrieve apikey'
 
         with app.app_context():
             user = interface.find_user(email=user)
 
         apikey = user.api_key
-        print(apikey)
+        print('key: {}'.format(apikey))
 
     @staticmethod
     def _role_exists(app, interface, role):
@@ -95,7 +97,7 @@ class Actions:
 
     @staticmethod
     def create_role(app, interface, db):
-        role = get_input('role name:', str, max_len=15)
+        role = get_input('role name: ', str, max_len=15)
         with app.app_context():
             interface.create_role(name=role)
             db.session.commit()
@@ -105,7 +107,7 @@ class Actions:
         user = get_input('username:', str, max_len=15)
         assert Actions._user_exists(app, interface, user), 'user must exists before adding it to role'
 
-        role = get_input('role name:', str, max_len=15)
+        role = get_input('role name: ', str, max_len=15)
         assert Actions._role_exists(app, interface, role), 'role must exists before user can be added'
 
         with app.app_context():
@@ -114,10 +116,10 @@ class Actions:
 
     @staticmethod
     def remove_role_from_user(app, interface, db):
-        user = get_input('username:', str, max_len=15)
+        user = get_input('username: ', str, max_len=15)
         assert Actions._user_exists(app, interface, user), 'user must exists before adding it to role'
 
-        role = get_input('role name:', str, max_len=15)
+        role = get_input('role name: ', str, max_len=15)
         assert Actions._role_exists(app, interface, role), 'role must exists before user can be added'
 
         with app.app_context():
@@ -126,7 +128,7 @@ class Actions:
 
     @staticmethod
     def delete_user(app, interface, db):
-        user = get_input('username:', str, max_len=15)
+        user = get_input('username: ', str, max_len=15)
         assert Actions._user_exists(app, interface, user), 'user must exists before adding it to role'
 
         with app.app_context():
@@ -167,29 +169,30 @@ def prompt_for_actions(app, store, db):
             print('\nQuitting ..')
             break
         if action not in legal_actions:
-            print('Error: please choose a legal action.')
+            print('error: please choose a legal action.')
         else:
             try:
                 f = getattr(Actions, action)
                 f(app, store, db)
             except AttributeError:
-                print('Error: action not found')
+                print('error: action not found')
+
+
+def start_user_management(app):
+    db = SQLAlchemy(app)
+    Security(app)
+    store = create_db_interface(db)
+    prompt_for_actions(app, store, db)
 
 
 def main():
     args = setup_argparse()
     file_name = os.path.basename(args.config_file)
-    print('[Note] Using {}'.format(file_name))
+
     config = load_config(file_name)
-
     frontend = WebFrontEnd(config)
-    db = SQLAlchemy(frontend.app)
-    Security(frontend.app)
-    store = create_db_interface(db)
 
-    assert store, 'setup failed'
-
-    prompt_for_actions(frontend.app, store, db)
+    start_user_management(frontend.app)
 
     return 0
 
