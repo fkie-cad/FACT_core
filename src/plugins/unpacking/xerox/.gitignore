@@ -1,0 +1,13 @@
+*.pyc
+*.idea
+*~
+*.log
+.project
+.pydevproject
+log/
+.coverage
+coverage.xml
+nose2-junit.xml
+*.yc
+.settings/
+
