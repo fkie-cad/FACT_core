@@ -1,6 +1,3 @@
-'''
-plugin Postscript
-'''
 from base64 import a85decode
 from common_helper_files import write_binary_to_file, get_binary_from_file
 import logging
