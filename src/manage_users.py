@@ -21,19 +21,15 @@ def setup_argparse():
     return parser.parse_args()
 
 
-def get_input(message, expected_type, max_len=0):
+def get_input(message, max_len=255):
     correct_input_form = False
     user_input = None
     while not correct_input_form:
         user_input = input(message)
-        try:
-            if max_len and len(user_input) > max_len:
-                print('Error: input too long (max length: {})'.format(max_len))
-            else:
-                user_input = expected_type(user_input)
-                correct_input_form = True
-        except TypeError:
-            print('Error: wrong type. expected type {}'.format(repr(expected_type)))
+        if len(user_input) > max_len:
+            raise ValueError('Error: input too long (max length: {})'.format(max_len))
+        else:
+            correct_input_form = True
     return user_input
 
 
@@ -70,7 +66,7 @@ class Actions:
 
     @staticmethod
     def create_user(app, interface, db):
-        user = get_input('username: ', str, max_len=15)
+        user = get_input('username: ', max_len=15)
         assert not Actions._user_exists(app, interface, user), 'user must not exist'
 
         password = getpass.getpass('password: ')
@@ -80,7 +76,7 @@ class Actions:
 
     @staticmethod
     def get_apikey_for_user(app, interface, _):
-        user = get_input('username: ', str, max_len=15)
+        user = get_input('username: ', max_len=15)
         assert Actions._user_exists(app, interface, user), 'user must exist to retrieve apikey'
 
         with app.app_context():
@@ -97,17 +93,17 @@ class Actions:
 
     @staticmethod
     def create_role(app, interface, db):
-        role = get_input('role name: ', str, max_len=15)
+        role = get_input('role name: ', max_len=15)
         with app.app_context():
             interface.create_role(name=role)
             db.session.commit()
 
     @staticmethod
     def add_role_to_user(app, interface, db):
-        user = get_input('username:', str, max_len=15)
+        user = get_input('username: ', max_len=15)
         assert Actions._user_exists(app, interface, user), 'user must exists before adding it to role'
 
-        role = get_input('role name: ', str, max_len=15)
+        role = get_input('role name: ', max_len=15)
         assert Actions._role_exists(app, interface, role), 'role must exists before user can be added'
 
         with app.app_context():
@@ -116,10 +112,10 @@ class Actions:
 
     @staticmethod
     def remove_role_from_user(app, interface, db):
-        user = get_input('username: ', str, max_len=15)
+        user = get_input('username: ', max_len=15)
         assert Actions._user_exists(app, interface, user), 'user must exists before adding it to role'
 
-        role = get_input('role name: ', str, max_len=15)
+        role = get_input('role name: ', max_len=15)
         assert Actions._role_exists(app, interface, role), 'role must exists before user can be added'
 
         with app.app_context():
@@ -128,7 +124,7 @@ class Actions:
 
     @staticmethod
     def delete_user(app, interface, db):
-        user = get_input('username: ', str, max_len=15)
+        user = get_input('username: ', max_len=15)
         assert Actions._user_exists(app, interface, user), 'user must exists before adding it to role'
 
         with app.app_context():
@@ -136,7 +132,7 @@ class Actions:
             db.session.commit()
 
 
-legal_actions = [action for action in dir(Actions) if not action.startswith('_')]
+LEGAL_ACTIONS = [action for action in dir(Actions) if not action.startswith('_')]
 
 
 def prompt_for_actions(app, store, db):
@@ -168,12 +164,12 @@ def prompt_for_actions(app, store, db):
         except (EOFError, KeyboardInterrupt):
             print('\nQuitting ..')
             break
-        if action not in legal_actions:
+        if action not in LEGAL_ACTIONS:
             print('error: please choose a legal action.')
         else:
             try:
-                f = getattr(Actions, action)
-                f(app, store, db)
+                acting_function = getattr(Actions, action)
+                acting_function(app, store, db)
             except AttributeError:
                 print('error: action not found')
 
