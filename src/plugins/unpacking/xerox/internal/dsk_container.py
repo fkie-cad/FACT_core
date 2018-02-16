@@ -33,7 +33,7 @@ class DskOne(object):
         meta = {}
         if len(self.errors) > 0:
             meta['unpack errors'] = self.errors
-        if len(self.errors) > 0:
+        if len(self.warnings) > 0:
             meta['unpack warnings'] = self.warnings
         if self.payload_size:
             meta['payload size'] = self.payload_size
@@ -44,7 +44,7 @@ class DskOne(object):
         try:
             self.header = unpack('<c6sxxxcxI', self.raw[0:16])
         except Exception as e:
-            self.errors.append("could not parse header".format(sys.exc_info()[0].__name__, e))
+            self.errors.append('could not parse header'.format(sys.exc_info()[0].__name__, e))
             self.header = None
             self.payload_size = None
         else:
@@ -56,21 +56,21 @@ class DskOne(object):
             self.encoded_payload = self.raw[self.HEADERSIZE:self.HEADERSIZE + self.payload_size]
             self.decoded_payload = b64decode(self.encoded_payload)
         else:
-            logging.error("extraction aborted due to errors")
+            logging.error('extraction aborted due to errors')
 
     def check_validity(self):
         if self.header[1] != b'DSK1.0':
-            self.errors.append("DSK magic string missing")
+            self.errors.append('DSK magic string missing')
         if self.payload_size > len(self.raw) - self.HEADERSIZE:
-            self.errors.append("payload length longer than file: {} -> {}".format(self.payload_size, len(self.raw)))
+            self.errors.append('payload length longer than file: {} -> {}'.format(self.payload_size, len(self.raw)))
         if self.payload_size + self.HEADERSIZE < len(self.raw):
-            self.warnings.append("data after payload")
+            self.warnings.append('data after payload')
 
     def log_errors_and_warnings(self):
         if len(self.errors) > 0:
-            logging.error("Errors occured: {}".format("\n".join(self.errors)))
+            logging.error('Errors occured: {}'.format('\n'.join(self.errors)))
         if len(self.warnings) > 0:
-            logging.warning("Warnings occured: {}".format("\n".join(self.warnings)))
+            logging.warning('Warnings occured: {}'.format('\n'.join(self.warnings)))
 
 
 class ExtendedDskOne(object):
@@ -80,7 +80,8 @@ class ExtendedDskOne(object):
     def __init__(self, file_path):
         self.raw = get_binary_from_file(file_path)
         self._get_dsk()
-        self._get_identifier()
+        if self.decoded_payload is not None:
+            self._get_identifier()
 
     def get_meta_dict(self):
         return self.meta
@@ -97,9 +98,9 @@ class ExtendedDskOne(object):
             self.meta = self.dsk_file.get_meta_dict()
             self.decoded_payload = self.dsk_file.decoded_payload
         else:
-            logging.error("Could not find DSK header!")
-            self.meta = {"Extended DSK error": "Could not find DSK header!"}
+            logging.error('Could not find DSK header!')
+            self.meta = {'Extended DSK error': 'Could not find DSK header!'}
             self.decoded_payload = None
 
     def _get_identifier(self):
-        self.meta["Extended DSK Identifier"] = make_unicode_string(self.raw[0:self.dsk_file_postion])
+        self.meta['Extended DSK Identifier'] = make_unicode_string(self.raw[0:self.dsk_file_postion])
