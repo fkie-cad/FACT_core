@@ -54,3 +54,6 @@ class TestXeroxDLM(TestUnpackerBase):
         self.assertEqual(meta_data['dlm_signature'], '90ec11f7b52468378362987a4ed9e56855070915887e6afe567e1c47875b29f9', 'meta: dlm_signature not correct')
         self.assertEqual(meta_data['dlm_name'], '080415_08142013', 'meta: dlm_name not correct')
         self.assertEqual(meta_data['dlm_extraction_criteria'], 'upgradeExtract.sh /tmp/080415_08142013.dnld', 'meta: dlm_criteria not correct')
+
+    def test_str(self):
+        self.assertEqual(self.firmware_container.__str__()[0:3], 'DLM')
