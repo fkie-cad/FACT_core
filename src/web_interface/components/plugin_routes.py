@@ -2,7 +2,6 @@
 
 import importlib
 import inspect
-import logging
 import pkgutil
 
 from web_interface.components.component_base import ComponentBase
