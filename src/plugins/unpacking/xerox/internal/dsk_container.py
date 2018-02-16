@@ -86,9 +86,6 @@ class ExtendedDskOne(object):
     def get_meta_dict(self):
         return self.meta
 
-    def extract_payload(self):
-        return self.dsk_file.extract_payload()
-
     def _get_dsk(self):
         dsk_match = self.DSK_HEADER.search(self.raw)
         if dsk_match:
