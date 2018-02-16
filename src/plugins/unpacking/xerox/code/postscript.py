@@ -15,7 +15,7 @@ version = '0.4'
 
 encoding_overhead = 0.25
 
-META_FIELDS = ["Title", "For", "Product", "Release", "Release ?Date", "Release ?Versions", "TargetDevice"]
+META_FIELDS = ['Title', 'For', 'Product', 'Release', 'Release ?Date', 'Release ?Versions', 'TargetDevice']
 FILE_HEADER = re.compile(b'currentfile \/ASCII85Decode( filter [\/\w]+)*( exec)?\s')
 FILE_FOOTER = re.compile(b'~>')
 
@@ -49,7 +49,7 @@ def _convert_payloads(raw_payloads):
         try:
             payloads.append(a85decode(item, adobe=True))
         except Exception as e:
-            logging.error("Could not decode payload: {} - {}".format(sys.exc_info()[0].__name__, e))
+            logging.error('Could not decode payload: {} - {}'.format(sys.exc_info()[0].__name__, e))
     return payloads
 
 
@@ -73,7 +73,7 @@ def _get_next_payload(raw, start_pos, payload_header_regex=FILE_HEADER, payload_
         if payload_footer:
             return raw[payload_header.end():payload_footer.end()], payload_footer.end()
         else:
-            logging.error("End of Payload could not be found!")
+            logging.error('End of Payload could not be found!')
             return None, len(raw)
     else:
         return None, len(raw)
@@ -82,7 +82,7 @@ def _get_next_payload(raw, start_pos, payload_header_regex=FILE_HEADER, payload_
 def _store_files(payloads, tmp_dir):
     counter = 0
     for item in payloads:
-        write_binary_to_file(item, os.path.join(tmp_dir, "payload_{}.bin".format(counter)))
+        write_binary_to_file(item, os.path.join(tmp_dir, 'payload_{}.bin'.format(counter)))
         counter += 1
 
 # ----> Do not edit below this line <----
