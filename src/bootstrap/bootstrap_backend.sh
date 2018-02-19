@@ -114,6 +114,7 @@ sudo -EH pip3 install --upgrade git+https://github.com/mass-project/common_analy
 echo "####################################"
 echo "#   install plug-in dependencies   #"
 echo "####################################"
+cd $CURRENT_FILE_DIR
 
 set ../plugins/*/*/install.sh
 
@@ -126,6 +127,8 @@ done
 echo "####################################"
 echo "#    compile custom magic file     #"
 echo "####################################"
+cd $CURRENT_FILE_DIR
+
 cat ../mime/custom_* > ../mime/custommime
 (cd ../mime && file -C -m custommime && mv -f custommime.mgc ../bin/)
 rm ../mime/custommime
@@ -170,6 +173,7 @@ cd src/bootstrap
 echo "####################################"
 echo "#    compiling yara signatures     #"
 echo "####################################"
+cd $CURRENT_FILE_DIR
 python3 ../compile_yara_signatures.py
 #compile test signatures
 yarac -d test_flag=false ../test/unit/analysis/test.yara ../analysis/signatures/Yara_Base_Plugin.yc
