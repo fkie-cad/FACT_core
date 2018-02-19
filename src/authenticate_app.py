@@ -18,7 +18,7 @@ def add_flask_security_to_app(app, config):
 
 def _add_apikey_handler(security, user_datastore):
     @security.login_manager.request_loader
-    def load_user_from_request(request):
+    def load_user_from_request(request):  # pylint: disable=unused-variable
         api_key = request.headers.get('Authorization')
         if api_key:
             user = user_datastore.find_user(api_key=api_key)
@@ -39,12 +39,12 @@ def create_db_interface(db):
     roles_users = db.Table('roles_users', db.Column('user_id', db.Integer(), db.ForeignKey('user.id')), db.Column('role_id', db.Integer(), db.ForeignKey('role.id')))
 
     class Role(db.Model, RoleMixin):
-        id = db.Column(db.Integer(), primary_key=True)
+        id = db.Column(db.Integer(), primary_key=True)  # pylint: disable=invalid-name
         name = db.Column(db.String(80), unique=True)
         description = db.Column(db.String(255))
 
     class User(db.Model, UserMixin):
-        id = db.Column(db.Integer, primary_key=True)
+        id = db.Column(db.Integer, primary_key=True)  # pylint: disable=invalid-name
         api_key = db.Column(db.String(255), default=_build_api_key, unique=True)
         email = db.Column(db.String(255), unique=True)
         password = db.Column(db.String(255))

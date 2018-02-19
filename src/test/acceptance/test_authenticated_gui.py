@@ -3,12 +3,6 @@ from test.acceptance.auth_base import TestAuthenticatedAcceptanceBase
 
 class TestAcceptanceNormalSearch(TestAuthenticatedAcceptanceBase):
 
-    def setUp(self):
-        super().setUp()
-
-    def tearDown(self):
-        super().tearDown()
-
     def test_redirection(self):
         response = self.test_client.get('/', follow_redirects=False)
         self.assertIn(b'Redirecting', response.data, 'no redirection taking place')
