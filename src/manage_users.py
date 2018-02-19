@@ -128,7 +128,7 @@ class Actions:
         assert Actions._user_exists(app, interface, user), 'user must exists before adding it to role'
 
         with app.app_context():
-            interface.delete_user(user)
+            interface.delete_user(user=interface.find_user(email=user))
             db.session.commit()
 
 
