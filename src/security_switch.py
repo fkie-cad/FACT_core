@@ -1,5 +1,6 @@
-from flask_security import roles_accepted as original_decorator
 from functools import wraps
+
+from flask_security import roles_accepted as original_decorator
 
 
 def roles_accepted(*roles):
