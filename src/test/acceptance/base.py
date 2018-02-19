@@ -39,7 +39,7 @@ class TestAcceptanceBase(unittest.TestCase):
 
     def setUp(self):
         self.frontend = WebFrontEnd(config=self.config)
-        self.frontend.app.config['TESTING'] = True
+        self.frontend.app.config['TESTING'] = not self.config.getboolean('ExpertSettings', 'authentication')
         self.test_client = self.frontend.app.test_client()
 
         self.test_fw_a = self.TestFW('418a54d78550e8584291c96e5d6168133621f352bfc1d43cf84e81187fef4962_787',
