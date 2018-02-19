@@ -62,7 +62,7 @@ class Actions:
 
     @staticmethod
     def exit(*_):
-        exit('Quitting ..')
+        raise EOFError('Quitting ..')
 
     @staticmethod
     def create_user(app, interface, db):
@@ -162,7 +162,6 @@ def prompt_for_actions(app, store, db):
         try:
             action = choose_action()
         except (EOFError, KeyboardInterrupt):
-            print('\nQuitting ..')
             break
         if action not in LEGAL_ACTIONS:
             print('error: please choose a legal action.')
@@ -170,14 +169,19 @@ def prompt_for_actions(app, store, db):
             try:
                 acting_function = getattr(Actions, action)
                 acting_function(app, store, db)
-            except AttributeError:
-                print('error: action not found')
+            except EOFError:
+                break
+
+    print('\nQuitting ..')
 
 
 def start_user_management(app):
     db = SQLAlchemy(app)
     Security(app)
     store = create_db_interface(db)
+
+    db.create_all()
+
     prompt_for_actions(app, store, db)
 
 
