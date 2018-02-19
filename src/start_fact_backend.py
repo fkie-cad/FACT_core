@@ -21,8 +21,8 @@ import logging
 import signal
 from time import sleep
 
-from fact_init import _setup_argparser, _setup_logging, _load_config
 from helperFunctions.process import complete_shutdown
+from helperFunctions.program_setup import program_setup
 from intercom.back_end_binding import InterComBackEndBinding
 from scheduler.Analysis import AnalysisScheduler
 from scheduler.Compare import CompareScheduler
@@ -44,9 +44,7 @@ signal.signal(signal.SIGTERM, shutdown)
 
 
 if __name__ == '__main__':
-    args = _setup_argparser(name=PROGRAM_NAME, description=PROGRAM_DESCRIPTION)
-    config = _load_config(args)
-    _setup_logging(config, args)
+    args, config = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION)
     analysis_service = AnalysisScheduler(config=config)
     unpacking_service = UnpackingScheduler(config=config, post_unpack=analysis_service.add_task, analysis_workload=analysis_service.get_scheduled_workload)
     compare_service = CompareScheduler(config=config)

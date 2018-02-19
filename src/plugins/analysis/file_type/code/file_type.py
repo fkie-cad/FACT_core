@@ -8,7 +8,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     '''
     NAME = "file_type"
     DESCRIPTION = "identify the file type"
-    VERSION = "0.1.1"
+    VERSION = "1.0"
 
     def __init__(self, plugin_administrator, config=None, recursive=True):
         '''
