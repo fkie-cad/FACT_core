@@ -14,7 +14,7 @@ done
 CURRENT_FILE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd $CURRENT_FILE_DIR
 
-sudo -EH pip3 install --upgrade flask flask_restful flask_security flask-paginate Flask-API uwsgi
+sudo -EH pip3 install --upgrade flask flask_restful flask_security flask_sqlalchemy flask-paginate Flask-API uwsgi
 
 	
 echo "######################################"
