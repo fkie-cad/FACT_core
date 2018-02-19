@@ -27,6 +27,4 @@ def test_app(test_config):
 
 def decode_response(response):
     response_bytes = response.data
-    if b'Redirecting' in response_bytes:
-        raise AssertionError('You seem to not be authenticated (or something else is redirecting you)')
     return json.loads(response_bytes.decode())
