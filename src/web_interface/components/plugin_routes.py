@@ -4,6 +4,7 @@ import importlib
 import inspect
 import pkgutil
 
+from helperFunctions.fileSystem import get_src_dir
 from web_interface.components.component_base import ComponentBase
 
 
@@ -22,7 +23,7 @@ class PluginRoutes(ComponentBase):
                     self._import_module_routes(plugin, plugin_type)
 
     def _module_has_routes(self, plugin, plugin_type):
-        plugin_components = self._get_modules_in_path('plugins/{}/{}'.format(plugin_type, plugin))
+        plugin_components = self._get_modules_in_path('{}/plugins/{}/{}'.format(get_src_dir(), plugin_type, plugin))
         return ROUTES_MODULE_NAME in plugin_components
 
     def _import_module_routes(self, plugin, plugin_type):
