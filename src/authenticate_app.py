@@ -47,7 +47,7 @@ def create_db_interface(db):
 
     class User(db.Model, UserMixin):
         id = db.Column(db.Integer, primary_key=True)
-        api_key = db.Column(db.String(255), default=_build_api_key(), unique=True)
+        api_key = db.Column(db.String(255), default=_build_api_key, unique=True)
         email = db.Column(db.String(255), unique=True)
         password = db.Column(db.String(255))
         active = db.Column(db.Boolean())

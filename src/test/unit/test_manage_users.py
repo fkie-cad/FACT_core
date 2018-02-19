@@ -1,7 +1,7 @@
 import pytest
+from flask import Flask
 
 from manage_users import start_user_management, setup_argparse, prompt_for_actions, choose_action, get_input
-from flask import Flask
 
 
 def test_get_input(monkeypatch):
@@ -38,6 +38,7 @@ def test_prompt_for_actions(monkeypatch):
     ['help', ],
     ['create_role', 'role'],
     ['create_user', 'username'],
+    ['create_user', 'A', 'create_user', 'B'],
     ['create_user', 'username', 'get_apikey_for_user', 'username'],
     ['create_user', 'username', 'delete_user', 'username'],
     ['create_role', 'role', 'create_user', 'username', 'add_role_to_user', 'username', 'role'],
