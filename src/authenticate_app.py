@@ -15,8 +15,6 @@ def add_flask_security_to_app(app, config):
 
     _add_apikey_handler(security, user_datastore)
 
-    return user_datastore, security
-
 
 def _add_apikey_handler(security, user_datastore):
     @security.login_manager.request_loader

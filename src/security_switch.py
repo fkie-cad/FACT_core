@@ -47,6 +47,3 @@ PRIVILEGES = {
 for privilege in PRIVILEGES:
     for role in PRIVILEGES[privilege]:
         assert role in ALL_ROLES, 'typo or error in privilege definition'
-
-
-# compare has to be at least as powerful as view analysis

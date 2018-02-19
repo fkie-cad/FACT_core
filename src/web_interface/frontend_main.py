@@ -29,7 +29,7 @@ class WebFrontEnd(object):
         self.app.config.from_object(__name__)
 
         Flask.secret_key = os.urandom(24)
-        _, _ = add_flask_security_to_app(self.app, self.config)
+        add_flask_security_to_app(self.app, self.config)
 
         RestBase(app=self.app, config=self.config)
 
