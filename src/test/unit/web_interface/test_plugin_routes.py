@@ -1,5 +1,6 @@
 from flask import Flask
 from flask_restful import Api
+from itertools import chain
 import os
 from unittest import TestCase
 
@@ -31,6 +32,15 @@ class TestPluginRoutes(TestCase):
         assert len(plugin_folder_modules) >= 3
         for category in PLUGIN_CATEGORIES:
             assert category in plugin_folder_modules
+
+    def test__find_plugins(self):
+        plugin_routes = PluginRoutesMock(self.app, self.config, api=self.api)
+        result = plugin_routes._find_plugins()
+        categories, plugins = zip(*result)
+        plugins = chain(*plugins)
+        assert all(c in categories for c in PLUGIN_CATEGORIES)
+        assert 'dummy' in plugins
+        assert 'generic_carver' in plugins
 
     def test__module_has_routes(self):
         plugin_routes = PluginRoutes(self.app, self.config, api=self.api)
