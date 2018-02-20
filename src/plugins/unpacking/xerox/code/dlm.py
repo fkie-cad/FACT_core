@@ -81,13 +81,6 @@ class XeroxDLM:
             self.dlm_extraction_criteria = self._get_dlm_field(b'%%OID_ATT_DLM_EXTRACTION_CRITERIA').decode('ascii')
         return self.dlm_extraction_criteria
 
-    def write_header_to_file(self, header_file):
-        with open(self.firmware_file, 'rb') as firmware:
-            header = firmware.read(self.get_header_end_offset())
-
-        with open(header_file, 'wb') as hdr:
-            hdr.write(header)
-
     def write_data_to_file(self, data_file):
         with open(self.firmware_file, 'rb') as firmware:
             offset = self.get_header_end_offset() + 1
