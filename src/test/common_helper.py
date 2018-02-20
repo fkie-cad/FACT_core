@@ -99,6 +99,7 @@ class DatabaseMock:
                 'mandatory_plugin': 'mandatory result',
                 'optional_plugin': 'optional result'
             }
+            result.release_date = '2000-01-01'
             return result
         else:
             return None
