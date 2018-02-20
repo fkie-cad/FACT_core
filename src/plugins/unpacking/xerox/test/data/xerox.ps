@@ -1,0 +1,65 @@
+%!PS-Adobe
+%%Title: Firmware Update
+%%For: Upgrade
+%%TargetDevice: 8580
+%%Release: SER19
+%%ReleaseDate: 2015-01-12
+%%ReleaseVersions: vx=10.80,ps=4.19.0,net=44.38,eng=26.P.1.4.19.0
+%%EndComments
+
+true 0 startjob pop
+/enableWarningPage true def      %% Enable warning page printing
+/print_bc true def               %% Enable backchannel messages
+false 0 startjob pop
+
+
+print_bc { (%%[ Product: ) print product print (, Name: ) print currentsystemparams /PrinterName get =print ( ]%%\n) print flush } if
+
+
+%% If PS/PJL Configuration Password is set, then uncomment the
+%% lines prefixed with the text - '%Uncomment%', by removing the
+%% text '%Uncomment%' and add the password where specified.
+
+%Uncomment%true (INSERT PASSWORD HERE) startjob pop
+%Uncomment%true setglobal
+%Uncomment%globaldict /devicePW (INSERT PASSWORD HERE) put
+%Uncomment%false setglobal
+%Uncomment%false (INSERT PASSWORD HERE) startjob pop
+
+%%% ----- DO NOT EDIT BELOW THIS LINE ----- %%%
+
+/print_ppage true def   %%% Enable printer type check
+/ptype (8580) def
+/prototype (P3) def
+currentfile /ASCII85Decode filter cvx exec
+<~<+oue+DGm>FD,5.Anc:,F<FCgH#.D-A0C~>
+%!PS
+
+globaldict /devicePW known
+{
+    /RRCustomProcs /ProcSet findresource /LOAPassword known
+    {
+	devicePW
+	    /RRCustomProcs /ProcSet findresource /LOAPassword get exec
+    } if
+} if
+
+/print_ppage true def   %%% Enable printer type check
+/ptype (8580) def
+/clopt (None) def
+/prototype (P3) def
+currentfile /ASCII85Decode filter cvx exec
+<~<+oue+DGm>@3BW&@rH6q+Dl72BHV,0DJ*O$+E1b7Ci<`m+EV:*F<GX<Dfol,+Cf>-FCAm$+
+EM+;ATD3q+Dbb0ATJu&DIal2D]it9/hSa~>
+/ptype (8580) def
+%!
+%%For: ColorQube 8570/8870
+%%Title: stepSI.ps
+%%EndComments
+
+currentdict /RRCustomProcs /ProcSet findresource begin begin
+/whatAmIDoing (creating /flash0/Boot1/vxWorks (vxWorks)) def
+%xl: file "/flash0/Boot1/vxWorks", "vxWorks", "sc", 32768, 7152256, 1
+(/flash0/Boot1/vxWorks) (vxWorks) (sc) 16#00008000 7152256 currentfile /ASCII85Decode filter /FlateDecode filter flashLoadFile
+<~@;^"*BOu3kAoD^,@<;~>
+...
