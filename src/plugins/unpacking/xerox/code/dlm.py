@@ -1,6 +1,6 @@
 name = 'XeroxDLM'
 mime_patterns = ['firmware/xerox-dlm']
-version = '0.2'
+version = '0.3'
 
 
 def unpack_function(file_path, tmp_dir):
@@ -10,15 +10,12 @@ def unpack_function(file_path, tmp_dir):
     '''
 
     xdlm = XeroxDLM(file_path)
-    _create_meta_dict(xdlm)
-
-    header_path = '{}/dlm_header.bin'.format(tmp_dir)
-    xdlm.write_header_to_file(header_path)
+    meta_data = _create_meta_dict(xdlm)
 
     binary_path = '{}/dlm_data.bin'.format(tmp_dir)
     xdlm.write_data_to_file(binary_path)
 
-    return _create_meta_dict(xdlm)
+    return meta_data
 
 
 def _create_meta_dict(xeroxdlm):

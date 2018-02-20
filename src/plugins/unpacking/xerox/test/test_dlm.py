@@ -18,11 +18,6 @@ class TestXeroxDLM(TestUnpackerBase):
         self.test_firmware = self.test_file.file_path
         self.firmware_container = XeroxDLM(self.test_firmware)
 
-    def tearDown(self):
-        self.ds_tmp_dir.cleanup()
-        self.tmp_dir.cleanup()
-        super().tearDown()
-
     def test_unpacker_selection(self):
         self.check_unpacker_selection('firmware/xerox-dlm', 'XeroxDLM')
 
@@ -45,9 +40,7 @@ class TestXeroxDLM(TestUnpackerBase):
     def test_header_and_binary(self):
         files, meta_data = self.unpacker.extract_files_from_file(self.test_file.file_path, self.tmp_dir.name)
         files = set(files)
-        self.assertEqual(len(files), 2, 'file number incorrect')
-        header_bin = get_binary_from_file(os.path.join(self.tmp_dir.name, 'dlm_header.bin'))
-        self.assertEqual(get_sha256(header_bin), '96abde0032f3600549bac865964cd9d6e6c3e391f5e009be8b86b012cddc90c0')
+        self.assertEqual(len(files), 1, 'file number incorrect')
         data_bin = get_binary_from_file(os.path.join(self.tmp_dir.name, 'dlm_data.bin'))
         self.assertEqual(get_sha256(data_bin), '701962b0d11f50d9129d5a1655ee054865e90cd1b547d40d590ea96f7dfb64eb')
         self.assertEqual(meta_data['dlm_version'], 'NO_DLM_VERSION_CHECK', 'meta: dlm_version not correct')
