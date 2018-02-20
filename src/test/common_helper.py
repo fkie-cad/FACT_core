@@ -83,7 +83,8 @@ class DatabaseMock:
             result.processed_analysis = {
                 'file_type': {'mime': 'application/octet-stream', 'full': 'test text'},
                 'mandatory_plugin': 'mandatory result',
-                'optional_plugin': 'optional result'}
+                'optional_plugin': 'optional result'
+            }
             return result
         elif uid == TEST_TEXT_FILE.get_uid():
             result = deepcopy(TEST_TEXT_FILE)
@@ -96,7 +97,8 @@ class DatabaseMock:
             result.processed_analysis = {
                 'file_type': {'mime': 'filesystem/cramfs', 'full': 'test text'},
                 'mandatory_plugin': 'mandatory result',
-                'optional_plugin': 'optional result'}
+                'optional_plugin': 'optional result'
+            }
             return result
         else:
             return None
