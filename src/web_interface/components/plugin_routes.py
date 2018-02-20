@@ -18,9 +18,9 @@ class PluginRoutes(ComponentBase):
         plugin_list = self._find_plugins()
         self._register_all_plugin_endpoints(plugin_list)
 
-    def _register_all_plugin_endpoints(self, plugin_list):
-        for plugin_type, plugins in plugin_list:
-            for plugin in plugins:
+    def _register_all_plugin_endpoints(self, plugins_by_category):
+        for plugin_type, plugin_list in plugins_by_category:
+            for plugin in plugin_list:
                 if self._module_has_routes(plugin, plugin_type):
                     self._import_module_routes(plugin, plugin_type)
 
