@@ -38,6 +38,7 @@ def test_prompt_for_actions(monkeypatch):
     ['help', ],
     ['create_role', 'role'],
     ['create_user', 'username'],
+    ['create_user', 'username', 'create_user', 'username'],
     ['create_user', 'A', 'create_user', 'B'],
     ['create_user', 'username', 'get_apikey_for_user', 'username'],
     ['create_user', 'username', 'delete_user', 'username'],

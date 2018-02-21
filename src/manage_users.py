@@ -149,6 +149,8 @@ def prompt_for_actions(app, store, db):
             try:
                 acting_function = getattr(Actions, action)
                 acting_function(app, store, db)
+            except AssertionError as assertion_error:
+                print('error: {}'.format(assertion_error))
             except EOFError:
                 break
 
