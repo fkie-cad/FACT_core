@@ -36,6 +36,7 @@ def get_config_for_testing(temp_dir=None):
     config.set('data_storage', 'view_storage', 'tmp_tests_view')
     config.set('data_storage', 'mongo_port', '27018')
     config.set('data_storage', 'report_threshold', '2048')
+    config.set('data_storage', 'password_salt', '1234')
     config.add_section('unpack')
     config.set('unpack', 'whitelist', '')
     config.set('unpack', 'max_depth', '10')
