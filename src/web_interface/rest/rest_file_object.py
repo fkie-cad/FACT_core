@@ -3,8 +3,9 @@ from flask_restful import Resource, request
 from helperFunctions.object_conversion import create_meta_dict
 from helperFunctions.rest import get_paging, get_query, success_message, error_message
 from helperFunctions.web_interface import ConnectTo
-from security_switch import roles_accepted, PRIVILEGES
 from storage.db_interface_frontend import FrontEndDbInterface
+from web_interface.security.decorator import roles_accepted
+from web_interface.security.privileges import PRIVILEGES
 
 
 class RestFileObject(Resource):

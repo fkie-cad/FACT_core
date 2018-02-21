@@ -5,8 +5,9 @@ from helperFunctions.dataConversion import unify_string_list
 from helperFunctions.rest import success_message, error_message, convert_rest_request
 from helperFunctions.web_interface import ConnectTo
 from intercom.front_end_binding import InterComFrontEndBinding
-from security_switch import roles_accepted, PRIVILEGES
 from storage.db_interface_compare import CompareDbInterface
+from web_interface.security.decorator import roles_accepted
+from web_interface.security.privileges import PRIVILEGES
 
 
 class RestCompare(Resource):

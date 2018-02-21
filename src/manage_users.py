@@ -8,10 +8,11 @@ import sys
 from flask_security import Security
 from flask_sqlalchemy import SQLAlchemy
 
-from authenticate_app import create_db_interface
+from config.ascii import FACT_ASCII_ART
 from helperFunctions.config import load_config
 from version import __VERSION__
 from web_interface.frontend_main import WebFrontEnd
+from web_interface.security.authentication import create_user_interface
 
 
 def setup_argparse():
@@ -21,16 +22,13 @@ def setup_argparse():
     return parser.parse_args()
 
 
-def get_input(message, max_len=255):
-    correct_input_form = False
-    user_input = None
-    while not correct_input_form:
+def get_input(message, max_len=25):
+    while True:
         user_input = input(message)
         if len(user_input) > max_len:
             raise ValueError('Error: input too long (max length: {})'.format(max_len))
         else:
-            correct_input_form = True
-    return user_input
+            return user_input
 
 
 def choose_action():
@@ -66,7 +64,7 @@ class Actions:
 
     @staticmethod
     def create_user(app, interface, db):
-        user = get_input('username: ', max_len=15)
+        user = get_input('username: ')
         assert not Actions._user_exists(app, interface, user), 'user must not exist'
 
         password = getpass.getpass('password: ')
@@ -76,7 +74,7 @@ class Actions:
 
     @staticmethod
     def get_apikey_for_user(app, interface, _):
-        user = get_input('username: ', max_len=15)
+        user = get_input('username: ')
         assert Actions._user_exists(app, interface, user), 'user must exist to retrieve apikey'
 
         with app.app_context():
@@ -93,17 +91,17 @@ class Actions:
 
     @staticmethod
     def create_role(app, interface, db):
-        role = get_input('role name: ', max_len=15)
+        role = get_input('role name: ')
         with app.app_context():
             interface.create_role(name=role)
             db.session.commit()
 
     @staticmethod
     def add_role_to_user(app, interface, db):
-        user = get_input('username: ', max_len=15)
+        user = get_input('username: ')
         assert Actions._user_exists(app, interface, user), 'user must exists before adding it to role'
 
-        role = get_input('role name: ', max_len=15)
+        role = get_input('role name: ')
         assert Actions._role_exists(app, interface, role), 'role must exists before user can be added'
 
         with app.app_context():
@@ -112,10 +110,10 @@ class Actions:
 
     @staticmethod
     def remove_role_from_user(app, interface, db):
-        user = get_input('username: ', max_len=15)
+        user = get_input('username: ')
         assert Actions._user_exists(app, interface, user), 'user must exists before adding it to role'
 
-        role = get_input('role name: ', max_len=15)
+        role = get_input('role name: ')
         assert Actions._role_exists(app, interface, role), 'role must exists before user can be added'
 
         with app.app_context():
@@ -124,7 +122,7 @@ class Actions:
 
     @staticmethod
     def delete_user(app, interface, db):
-        user = get_input('username: ', max_len=15)
+        user = get_input('username: ')
         assert Actions._user_exists(app, interface, user), 'user must exists before adding it to role'
 
         with app.app_context():
@@ -136,25 +134,7 @@ LEGAL_ACTIONS = [action for action in dir(Actions) if not action.startswith('_')
 
 
 def prompt_for_actions(app, store, db):
-    print('''
-                                                      ***********.
-                                                   *******************,
-   *****************. ***********************   ********,       .********   *********************.
-  *****************  ***********************  ,******                ***      *********************
- *****              *****             *****  *****,                                   ,****
-.****              *****             *****  *****                                      *****
-****,              ****              ****  ,****                                        ****
-****              *****             *****  ****                                         *****
-**********.       ***********************  ****                                          ****
-**********.       ***********************  ****                                          ****
-****              *****             *****  ****.                                        *****
-****,              ****              ****  ,****                                        ****
- ****              *****             *****  *****                                      *****
- *****              *****             *****  ******                                   *****
-  *****              *****             *****  .******               .***             *****
-   ******             *****             *****   *********       ,********           *****
-                                                   *******************
-    ''')
+    print(FACT_ASCII_ART)
 
     print('\nWelcome to the FACT User Management (FACTUM)\n')
 
@@ -178,7 +158,7 @@ def prompt_for_actions(app, store, db):
 def start_user_management(app):
     db = SQLAlchemy(app)
     Security(app)
-    store = create_db_interface(db)
+    store = create_user_interface(db)
 
     db.create_all()
 

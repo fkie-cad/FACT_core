@@ -6,13 +6,14 @@ from flask import render_template, request, redirect, url_for
 from flask_security import login_required
 
 from helperFunctions.web_interface import ConnectTo
-from security_switch import roles_accepted, PRIVILEGES
 from statistic.update import StatisticUpdater
 from storage.db_interface_admin import AdminDbInterface
 from storage.db_interface_compare import CompareDbInterface
 from storage.db_interface_frontend import FrontEndDbInterface
 from storage.db_interface_frontend_editing import FrontendEditingDbInterface
 from web_interface.components.component_base import ComponentBase
+from web_interface.security.decorator import roles_accepted
+from web_interface.security.privileges import PRIVILEGES
 
 
 class MiscellaneousRoutes(ComponentBase):
