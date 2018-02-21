@@ -2,8 +2,6 @@ from functools import wraps
 
 from flask_security import roles_accepted as original_decorator
 
-from web_interface.security.privileges import ROLES, PRIVILEGES
-
 
 def roles_accepted(*roles):
     def wrapper(fn):
