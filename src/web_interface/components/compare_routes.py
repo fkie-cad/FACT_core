@@ -9,10 +9,11 @@ from flask_paginate import Pagination
 from helperFunctions.dataConversion import string_list_to_list, unify_string_list, list_to_unified_string_list
 from helperFunctions.web_interface import ConnectTo, get_template_as_string
 from intercom.front_end_binding import InterComFrontEndBinding
-from security_switch import roles_accepted, PRIVILEGES
 from storage.db_interface_compare import CompareDbInterface
 from storage.db_interface_view_sync import ViewReader
 from web_interface.components.component_base import ComponentBase
+from web_interface.security.decorator import roles_accepted
+from web_interface.security.privileges import PRIVILEGES
 
 
 class CompareRoutes(ComponentBase):

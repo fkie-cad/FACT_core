@@ -3,7 +3,7 @@ import os
 
 from flask import Flask
 
-from authenticate_app import add_flask_security_to_app
+from version import __VERSION__
 from web_interface.components.ajax_routes import AjaxRoutes
 from web_interface.components.analysis_routes import AnalysisRoutes
 from web_interface.components.compare_routes import CompareRoutes
@@ -13,7 +13,7 @@ from web_interface.components.jinja_filter import FilterClass
 from web_interface.components.miscellaneous_routes import MiscellaneousRoutes
 from web_interface.components.statistic_routes import StatisticRoutes
 from web_interface.rest.rest_base import RestBase
-from version import __VERSION__
+from web_interface.security.authentication import add_flask_security_to_app
 
 
 class WebFrontEnd(object):

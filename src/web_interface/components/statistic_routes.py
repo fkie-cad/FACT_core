@@ -4,11 +4,12 @@ from flask import render_template, request
 
 from helperFunctions.web_interface import apply_filters_to_query, ConnectTo
 from intercom.front_end_binding import InterComFrontEndBinding
-from security_switch import roles_accepted, PRIVILEGES
 from statistic.update import StatisticUpdater
 from storage.db_interface_frontend import FrontEndDbInterface
 from storage.db_interface_statistic import StatisticDbViewer
 from web_interface.components.component_base import ComponentBase
+from web_interface.security.decorator import roles_accepted
+from web_interface.security.privileges import PRIVILEGES
 
 
 class StatisticRoutes(ComponentBase):

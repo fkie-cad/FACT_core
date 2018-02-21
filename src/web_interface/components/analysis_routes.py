@@ -13,12 +13,13 @@ from helperFunctions.web_interface import ConnectTo, get_template_as_string
 from helperFunctions.web_interface import overwrite_default_plugins
 from intercom.front_end_binding import InterComFrontEndBinding
 from objects.firmware import Firmware
-from security_switch import roles_accepted, PRIVILEGES
 from storage.db_interface_admin import AdminDbInterface
 from storage.db_interface_frontend import FrontEndDbInterface
 from storage.db_interface_view_sync import ViewReader
-from web_interface.components.component_base import ComponentBase
 from web_interface.components.compare_routes import get_comparison_uid_list_from_session
+from web_interface.components.component_base import ComponentBase
+from web_interface.security.decorator import roles_accepted
+from web_interface.security.privileges import PRIVILEGES
 
 
 def get_analysis_view(view_name):

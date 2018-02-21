@@ -8,11 +8,12 @@ from flask import jsonify, render_template
 from helperFunctions.file_tree import get_correct_icon_for_mime, FileTreeNode
 from helperFunctions.web_interface import ConnectTo
 from intercom.front_end_binding import InterComFrontEndBinding
-from security_switch import roles_accepted, PRIVILEGES
 from storage.db_interface_compare import CompareDbInterface
 from storage.db_interface_frontend import FrontEndDbInterface
 from web_interface.components.component_base import ComponentBase
 from web_interface.filter import encode_base64_filter, bytes_to_str_filter
+from web_interface.security.decorator import roles_accepted
+from web_interface.security.privileges import PRIVILEGES
 
 
 class AjaxRoutes(ComponentBase):

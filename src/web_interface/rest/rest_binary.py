@@ -6,8 +6,9 @@ from helperFunctions.hash import get_sha256
 from helperFunctions.rest import success_message, error_message
 from helperFunctions.web_interface import ConnectTo
 from intercom.front_end_binding import InterComFrontEndBinding
-from security_switch import roles_accepted, PRIVILEGES
 from storage.db_interface_frontend import FrontEndDbInterface
+from web_interface.security.decorator import roles_accepted
+from web_interface.security.privileges import PRIVILEGES
 
 
 class RestBinary(Resource):
