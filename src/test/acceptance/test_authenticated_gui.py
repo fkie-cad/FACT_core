@@ -1,3 +1,5 @@
+import pytest
+
 from test.acceptance.auth_base import TestAuthenticatedAcceptanceBase
 
 
@@ -34,3 +36,19 @@ class TestAcceptanceNormalSearch(TestAuthenticatedAcceptanceBase):
         Writing tests for this is postponed for now.
         '''
         pass
+
+    def test_all_endpoints_need_authentication(self):
+        for endpoint_rule in list(self.frontend.app.url_map.iter_rules()):
+            endpoint = endpoint_rule.rule.replace('<>', '')
+
+            with self.subTest(endpoint=endpoint):
+                response = self.test_client.get(endpoint, follow_redirects=True)
+                if b'404 Not Found' in response.data or b'405 Method Not Allowed' in response.data:
+                    response = self.test_client.put(endpoint, follow_redirects=True)
+                    if b'404 Not Found' in response.data or b'405 Method Not Allowed' in response.data:
+                        response = self.test_client.post(endpoint, follow_redirects=True)
+
+                if endpoint.startswith('/static'):
+                    pass  # static routes should be served without auth so that css and logos are shown in login screen
+                else:
+                    self.assertIn(b'Remember Me', response.data, 'no authorization required {}'.format(endpoint))

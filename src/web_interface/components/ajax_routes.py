@@ -112,6 +112,7 @@ class AjaxRoutes(ComponentBase):
             result['children'] = self._get_jstree_child_nodes(node)
         return result
 
+    @roles_accepted(*PRIVILEGES['compare'])
     def _ajax_get_common_files_for_compare(self, compare_id, feature_id):
         with ConnectTo(CompareDbInterface, self._config) as sc:
             result = sc.get_compare_result(compare_id)
