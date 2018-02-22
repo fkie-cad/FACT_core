@@ -98,7 +98,10 @@ class StatisticUpdater(object):
 
         canary_on = self.extract_mitigation_from_list("Canary enabled", result)
         canary_off = self.extract_mitigation_from_list("Canary disabled", result)
-        total_amount_of_files = canary_on[0][1] + canary_off[0][1]
+        if len(canary_on) > 0 or len(canary_off) > 0:
+            total_amount_of_files = canary_on[0][1] + canary_off[0][1]
+        else:
+            total_amount_of_files = 1
         self.set_stats(canary_on, stats, total_amount_of_files)
         self.set_stats(canary_off, stats, total_amount_of_files)
 
@@ -129,9 +132,12 @@ class StatisticUpdater(object):
         return exploit_mitigation_stat
 
     def set_stats(self, exploit_mitigation, stats, total_amount_of_files):
-        stats['exploit_mitigations'].append((exploit_mitigation[0][0],
-                                             exploit_mitigation[0][1],
-                                             self.round(exploit_mitigation, total_amount_of_files)))
+        if len(exploit_mitigation) > 0:
+            stats['exploit_mitigations'].append((exploit_mitigation[0][0],
+                                                 exploit_mitigation[0][1],
+                                                 self.round(exploit_mitigation, total_amount_of_files)))
+        else:
+            stats['exploit_mitigations'].append((0, 0, 0))
 
     def round(self, exploit_mitigation_stat, total_amount_of_files):
         rounded_value = round(exploit_mitigation_stat[0][1] / total_amount_of_files, 5)
