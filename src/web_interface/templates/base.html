@@ -5,9 +5,13 @@
     ("Upload", "/upload", '<span class="glyphicon glyphicon-upload"></span>'),
     ("Statistic", "/statistic", '<span class="glyphicon glyphicon-stats"></span>'),
     ("System", "/system_health", '<span class="glyphicon glyphicon-heart"></span>'),
-    ("About", "/about", '<span class="glyphicon glyphicon-globe"></span>'),
-    ("Login", None, None)
+    ("About", "/about", '<span class="glyphicon glyphicon-globe"></span>')
 ] -%}
+
+{% if auth_enabled %}
+    {% do navigation_bar.append(("Login", None, None)) %}
+{% endif %}
+
 {% set active_page = active_page|default('Home') -%}
 
 <html>
