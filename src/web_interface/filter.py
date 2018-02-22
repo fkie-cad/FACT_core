@@ -111,7 +111,8 @@ def uids_to_link(input_data, root_uid=None):
     tmp = input_data.__str__()
     uid_list = get_all_uids_in_string(tmp)
     for match in uid_list:
-        tmp = tmp.replace(match, '<a href="/analysis/{}/ro/{}">{}</a>'.format(match, root_uid, match))
+        tmp = tmp.replace(
+            match, '<a href="/analysis/{}/ro/{}">{}</a>'.format(match, root_uid, match))
     return tmp
 
 
@@ -133,7 +134,8 @@ def _get_sorted_list(input_data):
         try:
             input_data.sort()
         except Exception as e:
-            logging.warning('could not sort list: {} - {}'.format(sys.exc_info()[0].__name__, e))
+            logging.warning(
+                'could not sort list: {} - {}'.format(sys.exc_info()[0].__name__, e))
     return input_data
 
 
@@ -188,7 +190,8 @@ def sort_chart_list_by_name(input_data):
     try:
         input_data.sort(key=get_first_value)
     except Exception as e:
-        logging.error('could not sort chart list {}: {} - {}'.format(input_data, sys.exc_info()[0].__name__, e))
+        logging.error(
+            'could not sort chart list {}: {} - {}'.format(input_data, sys.exc_info()[0].__name__, e))
         return []
     else:
         return input_data
@@ -198,7 +201,8 @@ def sort_chart_list_by_value(input_data):
     try:
         input_data.sort(key=get_second_value, reverse=True)
     except Exception as e:
-        logging.error('could not sort chart list {}: {} - {}'.format(input_data, sys.exc_info()[0].__name__, e))
+        logging.error(
+            'could not sort chart list {}: {} - {}'.format(input_data, sys.exc_info()[0].__name__, e))
         return []
     else:
         return input_data
@@ -208,7 +212,8 @@ def sort_comments(comment_list):
     try:
         comment_list.sort(key=itemgetter('time'), reverse=True)
     except Exception as e:
-        logging.error('could not sort comment list {}: {} - {}'.format(comment_list, sys.exc_info()[0].__name__, e))
+        logging.error('could not sort comment list {}: {} - {}'.format(
+            comment_list, sys.exc_info()[0].__name__, e))
         return []
     else:
         return comment_list
@@ -282,7 +287,8 @@ def comment_out_regex_meta_chars(input_data):
     '''
     comments out chars used by regular expressions in the input string
     '''
-    meta_chars = ['^', '$', '.', '[', ']', '|', '(', ')', '?', '*', '+', '{', '}']
+    meta_chars = ['^', '$', '.', '[', ']',
+                  '|', '(', ')', '?', '*', '+', '{', '}']
     for c in meta_chars:
         if c in input_data:
             input_data = input_data.replace(c, '\\{}'.format(c))
@@ -293,5 +299,14 @@ def render_tags(tag_dict, additional_class='', size=10):
     output = ''
     if tag_dict:
         for tag in sorted(tag_dict.keys()):
-            output += '<span class="label label-pill label-{} {}" style="font-size: {}px;">{}</span>\n'.format(tag_dict[tag], additional_class, size, tag)
+            output += '<span class="label label-pill label-{} {}" style="font-size: {}px;">{}</span>\n'.format(
+                tag_dict[tag], additional_class, size, tag)
     return output
+
+
+def fix_cwe(s):
+    if ("CWE" in s):
+        return s.split("]")[0].split("E")[-1]
+    else:
+        logging.warning("Expected a CWE string.")
+        return ""

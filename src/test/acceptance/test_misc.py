@@ -9,7 +9,7 @@ from storage.db_interface_backend import BackEndDbInterface
 from test.acceptance.base import TestAcceptanceBase
 
 
-class TestAcceptanceShowStatsAndSystemMonitor(TestAcceptanceBase):
+class TestAcceptanceMisc(TestAcceptanceBase):
 
     @classmethod
     def setUpClass(cls):
@@ -74,6 +74,14 @@ class TestAcceptanceShowStatsAndSystemMonitor(TestAcceptanceBase):
         self.assertIn(b'test_vendor', rv.data)
         self.assertIn(b'Release Date Stats', rv.data)
 
+    def _show_about(self):
+        rv = self.test_client.get('/about')
+        self.assertIn(b'License Information', rv.data)
+
+    def _show_system_monitor(self):
+        rv = self.test_client.get('/system_health')
+        self.assertIn(b'backend workload', rv.data)
+
     def _click_chart(self):
         rv = self.test_client.get('/database/browse?query=%7b%22vendor%22%3A+%7b%22%24eq%22%3A+%22test_vendor%22%7d%7d')
         self.assertIn(self.test_fw_a.uid.encode(), rv.data)
@@ -82,16 +90,12 @@ class TestAcceptanceShowStatsAndSystemMonitor(TestAcceptanceBase):
         rv = self.test_client.get('/database/browse?date="January 2009"')
         self.assertIn(self.test_fw_a.uid.encode(), rv.data)
 
-    def _show_system_monitor(self):
-        rv = self.test_client.get('/system_health')
-        self.assertIn(b'backend workload', rv.data)
-
-    def test_show_stats_and_system_monitor(self):
+    def test_misc(self):
         self._upload_firmware_get()
         for fw in [self.test_fw_a, self.test_fw_b]:
             self._upload_firmware_put(fw.path, fw.name, fw.uid)
-
-        time.sleep(5)
+        self._show_about()
+        time.sleep(4)
         self.workload.update(unpacking_workload=self.unpacking_service.get_scheduled_workload(), analysis_workload=self.analysis_service.get_scheduled_workload())
         self.analysis_finished_event.wait(timeout=10)
         self._show_system_monitor()

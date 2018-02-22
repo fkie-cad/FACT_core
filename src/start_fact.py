@@ -24,7 +24,7 @@ import sys
 from subprocess import Popen, TimeoutExpired
 from time import sleep
 
-from fact_init import _setup_argparser, _setup_logging, _load_config
+from helperFunctions.program_setup import program_setup
 from helperFunctions.config import get_src_dir
 
 PROGRAM_NAME = 'FACT Starter'
@@ -76,9 +76,7 @@ signal.signal(signal.SIGTERM, shutdown)
 if __name__ == '__main__':
     process_list = []
     run = True
-    args = _setup_argparser(name=PROGRAM_NAME, description=PROGRAM_DESCRIPTION)
-    config = _load_config(args)
-    _setup_logging(config, args)
+    args, config = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION)
 
     db_process = _start_component('db', args)
     sleep(2)
