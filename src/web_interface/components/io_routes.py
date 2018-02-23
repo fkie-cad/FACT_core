@@ -48,10 +48,7 @@ class IORoutes(ComponentBase):
             return render_template('error.html', message=str(error))
         else:
             resp = make_response(binary)
-            if not span_in_binary:
-                resp.headers['Content-Disposition'] = 'attachment; filename={}'.format(file_obj.file_name + '_inaccurate_0x%X' % span_in_section[0] + '-0x%X_decoded' % span_in_section[1])
-            else:
-                resp.headers['Content-Disposition'] = 'attachment; filename={}'.format(file_obj.file_name + '_0x%X' % (span_in_binary[0] + span_in_section[0]) + '-0x%X_decoded' % (span_in_binary[1] - span_in_section[2]))
+            resp.headers['Content-Disposition'] = 'attachment; filename={}'.format(file_obj.file_name + '_0x%X' % (span_in_binary[0] + span_in_section[0]) + '-0x%X_decoded' % (span_in_binary[1] - span_in_section[2]))
             return resp
 
     # ---- upload
