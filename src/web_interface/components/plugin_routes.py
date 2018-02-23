@@ -2,7 +2,10 @@
 
 import importlib
 import inspect
+import logging
 import pkgutil
+
+from flask_restful import Resource
 
 from helperFunctions.fileSystem import get_src_dir
 from web_interface.components.component_base import ComponentBase
@@ -38,9 +41,15 @@ class PluginRoutes(ComponentBase):
         module = importlib.import_module('plugins.{0}.{1}.{2}.{2}'.format(plugin_type, plugin, ROUTES_MODULE_NAME))
         if hasattr(module, 'PluginRoutes'):
             module.PluginRoutes(self._app, self._config)
-        for rest_class in [getattr(module, attribute) for attribute in dir(module) if 'Rest' in attribute and inspect.isclass(getattr(module, attribute))]:
-            for endpoint, methods in rest_class.ENDPOINTS:
-                self._api.add_resource(rest_class, endpoint, methods=methods, resource_class_kwargs={'config': self._config})
+        for rest_class in [
+            element for element in [getattr(module, attribute) for attribute in dir(module)]
+            if inspect.isclass(element) and issubclass(element, Resource) and not element == Resource
+        ]:
+            try:
+                for endpoint, methods in rest_class.ENDPOINTS:
+                    self._api.add_resource(rest_class, endpoint, methods=methods, resource_class_kwargs={'config': self._config})
+            except AttributeError as e:
+                logging.warning('encountered error while scanning plugin {} for endpoints'.format(plugin), e)
 
     @staticmethod
     def _get_modules_in_path(path):

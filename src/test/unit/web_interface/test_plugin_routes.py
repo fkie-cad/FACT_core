@@ -1,13 +1,13 @@
+import os
+from itertools import chain
+from unittest import TestCase
+
 from flask import Flask
 from flask_restful import Api
-from itertools import chain
-import os
-from unittest import TestCase
 
 from helperFunctions.config import get_config_for_testing
 from helperFunctions.fileSystem import get_src_dir
 from test.unit.web_interface.rest.conftest import decode_response
-
 from web_interface.components.plugin_routes import PluginRoutes, PLUGIN_CATEGORIES
 
 
@@ -26,14 +26,14 @@ class TestPluginRoutes(TestCase):
         self.api = Api(self.app)
         self.config = get_config_for_testing()
 
-    def test__get_modules_in_path(self):
+    def test_get_modules_in_path(self):
         plugin_dir_path = os.path.join(get_src_dir(), 'plugins')
         plugin_folder_modules = PluginRoutes._get_modules_in_path(plugin_dir_path)
         assert len(plugin_folder_modules) >= 3
         for category in PLUGIN_CATEGORIES:
             assert category in plugin_folder_modules
 
-    def test__find_plugins(self):
+    def test_find_plugins(self):
         plugin_routes = PluginRoutesMock(self.app, self.config, api=self.api)
         result = plugin_routes._find_plugins()
         categories, plugins = zip(*result)
@@ -42,12 +42,12 @@ class TestPluginRoutes(TestCase):
         assert 'dummy' in plugins
         assert 'generic_carver' in plugins
 
-    def test__module_has_routes(self):
+    def test_module_has_routes(self):
         plugin_routes = PluginRoutes(self.app, self.config, api=self.api)
         assert plugin_routes._module_has_routes('dummy', 'analysis') is True
         assert plugin_routes._module_has_routes('file_type', 'analysis') is False
 
-    def test__import_module_routes(self):
+    def test_import_module_routes(self):
         dummy_endpoint = 'plugins/dummy'
         plugin_routes = PluginRoutesMock(self.app, self.config, api=self.api)
 
@@ -57,10 +57,10 @@ class TestPluginRoutes(TestCase):
         assert dummy_endpoint in self._get_app_endpoints(self.app)
 
         test_client = self.app.test_client()
-        result = test_client.get('/plugins/dummy')
+        result = test_client.get(dummy_endpoint)
         assert result.data == b'dummy'
 
-    def test__import_module_routes__rest(self):
+    def test_import_module_routes__rest(self):
         dummy_endpoint = 'plugins/dummy/rest'
         plugin_routes = PluginRoutesMock(self.app, self.config, api=self.api)
 
