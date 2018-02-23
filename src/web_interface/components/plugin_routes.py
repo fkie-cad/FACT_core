@@ -45,11 +45,8 @@ class PluginRoutes(ComponentBase):
             element for element in [getattr(module, attribute) for attribute in dir(module)]
             if inspect.isclass(element) and issubclass(element, Resource) and not element == Resource
         ]:
-            try:
-                for endpoint, methods in rest_class.ENDPOINTS:
-                    self._api.add_resource(rest_class, endpoint, methods=methods, resource_class_kwargs={'config': self._config})
-            except AttributeError as e:
-                logging.warning('encountered error while scanning plugin {} for endpoints'.format(plugin), e)
+            for endpoint, methods in rest_class.ENDPOINTS:
+                self._api.add_resource(rest_class, endpoint, methods=methods, resource_class_kwargs={'config': self._config})
 
     @staticmethod
     def _get_modules_in_path(path):
