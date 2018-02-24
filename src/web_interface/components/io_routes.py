@@ -112,6 +112,8 @@ class IORoutes(ComponentBase):
             result = sc.get_compare_result(compare_id)
         if result is None:
             return render_template('error.html', message='timeout')
+        elif isinstance(result, str):
+            return render_template('error.html', message=result)
         else:
             binary = result['plugins']['Ida_Diff_Highlighting']['idb_binary']
             resp = make_response(binary)
