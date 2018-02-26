@@ -26,8 +26,8 @@ from common_helper_filter import time_format
 from common_helper_process import execute_shell_command_get_return_code
 
 from helperFunctions.fileSystem import get_src_dir
-from storage.MongoMgr import MongoMgr
 from helperFunctions.program_setup import program_setup
+from storage.MongoMgr import MongoMgr
 
 PROGRAM_NAME = 'FACT Variety Data Updater'
 PROGRAM_DESCRIPTION = 'Initialize or update database structure information used by the "advanced search" feature.'
@@ -48,20 +48,26 @@ def _create_variety_data(config):
     return return_code
 
 
-if __name__ == '__main__':
-    args, config = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION)
+def main(command_line_options=sys.argv):
+    args, config = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION, command_line_options=command_line_options)
 
     logging.info('Try to start Mongo Server...')
     mongo_server = MongoMgr(config=config)
 
     logging.info('updating data... this may take several hours depending on the size of your database')
+
     start_time = time()
     return_code = _create_variety_data(config)
     process_time = time() - start_time
+
     logging.info('generation time: {}'.format(time_format(process_time)))
 
     if args.testing:
         logging.info('Stopping Mongo Server...')
         mongo_server.shutdown()
 
-    sys.exit(return_code)
+    return return_code
+
+
+if __name__ == '__main__':
+    sys.exit(main())
