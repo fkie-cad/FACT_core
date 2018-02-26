@@ -72,7 +72,7 @@ def convert_comments_to_new_format(db_service):
 
 
 def main(command_line_options=sys.argv):
-    args, config = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION, command_line_options=command_line_options)
+    _, config = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION, command_line_options=command_line_options)
 
     logging.info('Trying to start Mongo Server and initializing users...')
     mongo_manger = MongoMgr(config=config, auth=False)
