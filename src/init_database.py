@@ -28,12 +28,15 @@ PROGRAM_NAME = 'FACT Database Initializer'
 PROGRAM_DESCRIPTION = 'Initialize authentication and users for FACT\'s Database'
 
 
-if __name__ == '__main__':
-    args, config = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION)
+def main(command_line_options=sys.argv):
+    args, config = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION, command_line_options=command_line_options)
 
     logging.info('Trying to start Mongo Server and initializing users...')
     mongo_manger = MongoMgr(config=config, auth=False)
     mongo_manger.init_users()
     mongo_manger.shutdown()
 
-    sys.exit()
+    return 0
+
+if __name__ == '__main__':
+    sys.exit(main())
