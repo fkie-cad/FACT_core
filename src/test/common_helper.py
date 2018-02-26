@@ -83,7 +83,8 @@ class DatabaseMock:
             result.processed_analysis = {
                 'file_type': {'mime': 'application/octet-stream', 'full': 'test text'},
                 'mandatory_plugin': 'mandatory result',
-                'optional_plugin': 'optional result'}
+                'optional_plugin': 'optional result'
+            }
             return result
         elif uid == TEST_TEXT_FILE.get_uid():
             result = deepcopy(TEST_TEXT_FILE)
@@ -94,9 +95,12 @@ class DatabaseMock:
         elif uid == self.fw2_uid:
             result = deepcopy(TEST_FW_2)
             result.processed_analysis = {
-                'file_type': {'mime': 'application/octet-stream', 'full': 'test text'},
+                'file_type': {'mime': 'filesystem/cramfs', 'full': 'test text'},
                 'mandatory_plugin': 'mandatory result',
-                'optional_plugin': 'optional result'}
+                'optional_plugin': 'optional result'
+            }
+            result.release_date = '2000-01-01'
+            return result
         else:
             return None
 
@@ -132,7 +136,7 @@ class DatabaseMock:
             return 'generic error'
 
     def existence_quick_check(self, uid):
-        if uid == self.fw_uid or uid == self.fo_uid:
+        if uid == self.fw_uid or uid == self.fo_uid or uid == self.fw2_uid:
             return True
         elif uid == 'error':
             return True

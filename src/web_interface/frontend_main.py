@@ -10,6 +10,7 @@ from web_interface.components.database_routes import DatabaseRoutes
 from web_interface.components.io_routes import IORoutes
 from web_interface.components.jinja_filter import FilterClass
 from web_interface.components.miscellaneous_routes import MiscellaneousRoutes
+from web_interface.components.plugin_routes import PluginRoutes
 from web_interface.components.statistic_routes import StatisticRoutes
 from web_interface.rest.rest_base import RestBase
 from version import __VERSION__
@@ -29,7 +30,7 @@ class WebFrontEnd(object):
 
         Flask.secret_key = os.urandom(24)
 
-        RestBase(app=self.app, config=self.config)
+        rest_base = RestBase(app=self.app, config=self.config)
 
         AjaxRoutes(self.app, self.config)
         AnalysisRoutes(self.app, self.config)
@@ -37,6 +38,7 @@ class WebFrontEnd(object):
         DatabaseRoutes(self.app, self.config)
         IORoutes(self.app, self.config)
         MiscellaneousRoutes(self.app, self.config)
+        PluginRoutes(self.app, self.config, api=rest_base.api)
         StatisticRoutes(self.app, self.config)
 
         FilterClass(self.app, self.program_version, self.config)
