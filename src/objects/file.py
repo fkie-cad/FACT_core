@@ -25,6 +25,7 @@ class FileObject(object):
         self.analysis_dependency = set()
         self.comments = []
         self.parent_firmware_uids = set()
+        self.temporary_data = {}
         if binary is not None:
             self.set_binary(binary)
         else:
