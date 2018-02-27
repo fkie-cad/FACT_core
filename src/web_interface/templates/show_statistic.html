@@ -14,9 +14,13 @@
     }
 
 	function get_extended_tooltip_value_percentage_pairs(element, data){
-        var percentage_value = Number(Math.round(data.datasets[element.datasetIndex].percentage[element.index] * 100 + 'e2') + 'e-2');
+        var percent = _round(data.datasets[element.datasetIndex].percentage[element.index], 2);
         var value = data.datasets[element.datasetIndex].data[element.index];
-        return value + " (" + percentage_value + " %)";
+        return value + " (" + percent + " %)";
+    }
+
+    function _round(value, decimals){
+        return Number(Math.round(value*100+'e'+decimals)+'e-'+decimals);
     }
 
     var chart_options = {
@@ -39,7 +43,7 @@
 
         if (value_percentage_present_flag) {
             chart_opt = chart_options_value_percentage_pairs;
-            var max = chart_data["datasets"][0]["data"].slice(0, 2).reduce((a,b) => a + b);
+            var max = chart_data["datasets"][0]["data"].slice(0, 2).reduce((a,b) => a + b)
             chart_opt["scales"]["xAxes"][0]["ticks"]["max"] = max;
         } else {
             chart_opt = chart_options
@@ -126,7 +130,7 @@
     				<td class="active" style="text-align: left; padding:5px">unique included files total size</td>
     				<td class="active" style="text-align: right; padding:5px">{{ stats["general_stats"]["total_file_size"] | number_format }}</td>
     			</tr>
-    			<tr>10
+    			<tr>
     				<td class="active" style="text-align: left; padding:5px">unique included files average size</td>
     				<td class="active" style="text-align: right; padding:5px">{{ stats["general_stats"]["average_file_size"] | number_format }}</td>
     			</tr>
