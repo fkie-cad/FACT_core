@@ -81,13 +81,15 @@ class Unpacker(UnpackBase):
         else:
             fo.processed_analysis['unpacker']['summary'] = ['no data lost']
 
-    def _get_extracted_fos_size_sum(self, extracted_fos):
+    @staticmethod
+    def _get_extracted_fos_size_sum(extracted_fos):
         result = 0
         for item in extracted_fos:
             result += len(item.binary)
         return result
 
-    def add_additional_unpacking_meta(self, current_file, meta_data):
+    @staticmethod
+    def add_additional_unpacking_meta(current_file, meta_data):
         meta_data['number_of_unpacked_files'] = len(current_file.files_included)
         current_file.processed_analysis['unpacker'] = meta_data
 
@@ -100,6 +102,7 @@ class Unpacker(UnpackBase):
                     parent.get_base_of_virtual_path(parent.get_virtual_file_paths()[parent.get_root_uid()][0]),
                     parent.get_uid(), get_chroot_path_excluding_extracted_dir(make_unicode_string(item), tmp_dir)
                 )
+                current_file.temporary_data['parent_fo_type'] = get_file_type_from_path(parent.file_path)['mime']
                 if current_file.get_uid() in extracted_files:  # the same file is extracted multiple times from one archive
                     extracted_files[current_file.get_uid()].virtual_file_path[parent.get_root_uid()].append(current_virtual_path)
                 else:
@@ -109,11 +112,13 @@ class Unpacker(UnpackBase):
                     extracted_files[current_file.get_uid()] = current_file
         return extracted_files
 
-    def remove_duplicates(self, extracted_fo_dict, parent_fo):
+    @staticmethod
+    def remove_duplicates(extracted_fo_dict, parent_fo):
         if parent_fo.get_uid() in extracted_fo_dict:
             del extracted_fo_dict[parent_fo.get_uid()]
         return make_list_from_dict(extracted_fo_dict)
 
-    def add_included_files_to_object(self, included_file_objects, root_file_object):
+    @staticmethod
+    def add_included_files_to_object(included_file_objects, root_file_object):
         for item in included_file_objects:
             root_file_object.add_included_file(item)
