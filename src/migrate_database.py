@@ -71,15 +71,20 @@ def convert_comments_to_new_format(db_service):
                     logging.error('could not convert comment entry: {} {}'.format(sys.exc_info()[0].__name__, e))
 
 
-if __name__ == '__main__':
-    args, config = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION)
+def main(command_line_options=sys.argv):
+    _, config = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION, command_line_options=command_line_options)
 
     logging.info('Trying to start Mongo Server and initializing users...')
     mongo_manger = MongoMgr(config=config, auth=False)
-    db_service_frontend_editing = FrontendEditingDbInterface(config)
 
+    db_service_frontend_editing = FrontendEditingDbInterface(config)
     convert_comments_to_new_format(db_service_frontend_editing)
     convert_release_dates_to_date_object_format(db_service_frontend_editing)
     add_parent_firmware_list_to_file_object(db_service_frontend_editing)
 
-    sys.exit()
+    mongo_manger.shutdown()
+
+    return 0
+
+if __name__ == '__main__':
+    sys.exit(main())

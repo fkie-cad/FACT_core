@@ -1,8 +1,13 @@
-from common_helper_process import execute_shell_command_get_return_code
-import pytest
-import os
 import gc
+import os
 
+import pytest
+from common_helper_process import execute_shell_command_get_return_code
+
+import init_database
+import migrate_database
+import update_statistic
+import update_variety_data
 from helperFunctions.fileSystem import get_src_dir
 
 
@@ -10,11 +15,7 @@ from helperFunctions.fileSystem import get_src_dir
     ('start_fact.py'),
     ('start_fact_backend.py'),
     ('start_fact_frontend.py'),
-    ('start_fact_db.py'),
-    ('update_statistic.py'),
-    ('update_variety_data.py'),
-    ('migrate_database.py'),
-    ('init_database.py')
+    ('start_fact_db.py')
 ])
 def test_start_script_help_and_version(script):
     output, return_code = execute_shell_command_get_return_code('{} -h'.format(os.path.join(get_src_dir(), script)), timeout=5)
@@ -25,6 +26,13 @@ def test_start_script_help_and_version(script):
     assert output[0:5] == 'FACT '
     assert return_code == 0
 
+    gc.collect()
+
+
+@pytest.mark.parametrize('script', [init_database, migrate_database, update_statistic, update_variety_data])
+def test_start_scripts_with_main(script, monkeypatch):
+    monkeypatch.setattr('update_variety_data._create_variety_data', lambda _: 0)
+    assert script.main([script.__name__, '-t']) == 0, 'script did not run successfully'
     gc.collect()
 
 
