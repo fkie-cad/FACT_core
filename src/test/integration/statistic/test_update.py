@@ -85,3 +85,136 @@ class TestStatistic(unittest.TestCase):
         tests_string = 'MIPS (M)'
         result = self.updater._shorten_architecture_string(tests_string)
         self.assertEqual(result, 'MIPS')
+
+    def test_round(self):
+        self.assertEqual(StatisticUpdater._round([('NX enabled', 1696)], 1903), 0.89122)
+
+    def test_get_total_files(self):
+        miti_off = [('mitigation_off', 1234)]
+        miti_on = [('mitigation_on', 9876)]
+        miti_partial = [('mitigation_partial', 3456)]
+        miti_invalid = [('mitigation_partial', 1298)]
+        self.assertEqual(StatisticUpdater.calculate_total_files_for_canary(miti_on, miti_off), 11110)
+        self.assertEqual(StatisticUpdater.calculate_total_files_for_nx(miti_on, miti_off), 11110)
+        self.assertEqual(StatisticUpdater.calculate_total_files_for_pie(miti_on, miti_off, miti_partial, miti_invalid),
+                         15864)
+        self.assertEqual(StatisticUpdater.calculate_total_files_for_relro(miti_on, miti_off, miti_partial), 14566)
+
+    def test_get_mitigation_data(self):
+        result_list = [('PIE enabled', 3), ('Canary enabled', 9), ('RELRO partially enabled', 7),
+                       ('PIE/DSO present', 565), ('PIE disabled', 702), ('NX enabled', 1696),
+                       ('PIE - invalid ELF file', 633), ('Canary disabled', 1894), ('RELRO fully enabled', 40),
+                       ('NX disabled', 207), ('RELRO disabled', 1856)]
+        mitigation_on = StatisticUpdater.extract_mitigation_from_list('NX enabled', result_list)
+        mitigation_off = StatisticUpdater.extract_mitigation_from_list('Canary disabled', result_list)
+        mitigation_partial = StatisticUpdater.extract_mitigation_from_list('RELRO partially enabled', result_list)
+        mitigation_invalid = StatisticUpdater.extract_mitigation_from_list('PIE - invalid ELF file', result_list)
+        self.assertEqual(mitigation_on, [('NX enabled', 1696)])
+        self.assertEqual(mitigation_off, [('Canary disabled', 1894)])
+        self.assertEqual(mitigation_partial, [('RELRO partially enabled', 7)])
+        self.assertEqual(mitigation_invalid, [('PIE - invalid ELF file', 633)])
+
+    def test_set_single_stats(self):
+        result = [('PIE - invalid ELF file', 100), ('NX disabled', 200), ('PIE/DSO present', 300),
+                  ('RELRO fully enabled', 400), ('PIE enabled', 500), ('RELRO partially enabled', 600),
+                  ('Canary disabled', 700), ('NX enabled', 800), ('PIE disabled', 900), ('Canary enabled', 1000),
+                  ('RELRO disabled', 1100)]
+
+        stats = {}
+        stats['exploit_mitigations'] = []
+        self.set_nx_stats_to_dict(result, stats)
+
+        stats = {}
+        stats['exploit_mitigations'] = []
+        self.set_canary_stats_to_dict(result, stats)
+
+        stats = {}
+        stats['exploit_mitigations'] = []
+        self.set_pie_stats_to_dict(result, stats)
+
+        stats = {}
+        stats['exploit_mitigations'] = []
+        self.set_relro_stats_to_dict(result, stats)
+
+    def set_nx_stats_to_dict(self, result, stats):
+        nx_off, nx_on = self.updater.extract_nx_data_from_analysis(result)
+        self.assertEqual(nx_off, [('NX disabled', 200)])
+        self.assertEqual(nx_on, [('NX enabled', 800)])
+        total_amount_of_files = self.updater.calculate_total_files_for_nx(nx_off, nx_on)
+        self.assertEqual(total_amount_of_files, 1000)
+        self.updater.append_nx_stats_to_result_dict(nx_off, nx_on, stats, total_amount_of_files)
+        self.assertEqual(stats, {'exploit_mitigations': [('NX enabled', 800, 0.8),
+                                                         ('NX disabled', 200, 0.2)]})
+
+    def set_canary_stats_to_dict(self, result, stats):
+        canary_off, canary_on = self.updater.extract_canary_data_from_analysis(result)
+        self.assertEqual(canary_off, [('Canary disabled', 700)])
+        self.assertEqual(canary_on, [('Canary enabled', 1000)])
+        total_amount_of_files = self.updater.calculate_total_files_for_canary(canary_off, canary_on)
+        self.assertEqual(total_amount_of_files, 1700)
+        self.updater.append_canary_stats_to_result_dict(canary_off, canary_on, stats, total_amount_of_files)
+        self.assertEqual(stats, {'exploit_mitigations': [('Canary enabled', 1000, 0.58824),
+                                                         ('Canary disabled', 700, 0.41176)]})
+
+    def set_pie_stats_to_dict(self, result, stats):
+        pie_invalid, pie_off, pie_on, pie_partial = self.updater.extract_pie_data_from_analysis(result)
+        self.assertEqual(pie_invalid, [('PIE - invalid ELF file', 100)])
+        self.assertEqual(pie_off, [('PIE disabled', 900)])
+        self.assertEqual(pie_partial, [('PIE/DSO present', 300)])
+        self.assertEqual(pie_on, [('PIE enabled', 500)])
+        total_amount_of_files = self.updater.calculate_total_files_for_pie(pie_on, pie_partial, pie_off, pie_invalid)
+        self.assertEqual(total_amount_of_files, 1800)
+        self.updater.append_pie_stats_to_result_dict(pie_invalid, pie_off, pie_on, pie_partial, stats, total_amount_of_files)
+        self.assertEqual(stats, {'exploit_mitigations': [('PIE enabled', 500, 0.27778),
+                                                         ('PIE/DSO present', 300, 0.16667),
+                                                         ('PIE disabled', 900, 0.5),
+                                                         ('PIE - invalid ELF file', 100, 0.05556)]})
+
+    def set_relro_stats_to_dict(self, result, stats):
+        relro_off, relro_on, relro_partial = self.updater.extract_relro_data_from_analysis(result)
+        self.assertEqual(relro_off, [('RELRO disabled', 1100)])
+        self.assertEqual(relro_on, [('RELRO fully enabled', 400)])
+        self.assertEqual(relro_partial, [('RELRO partially enabled', 600)])
+        total_amount_of_files = self.updater.calculate_total_files_for_relro(relro_off, relro_on, relro_partial)
+        self.assertEqual(total_amount_of_files, 2100)
+        self.updater.append_relro_stats_to_result_dict(relro_off, relro_on, relro_partial, stats, total_amount_of_files)
+        self.assertEqual(stats, {'exploit_mitigations': [('RELRO fully enabled', 400, 0.19048),
+                                                         ('RELRO partially enabled', 600, 0.28571),
+                                                         ('RELRO disabled', 1100, 0.52381)]})
+
+    def test_get_all_stats(self):
+        result = [('PIE - invalid ELF file', 100), ('NX disabled', 200), ('PIE/DSO present', 300),
+                  ('RELRO fully enabled', 400), ('PIE enabled', 500), ('RELRO partially enabled', 600),
+                  ('Canary disabled', 700), ('NX enabled', 800), ('PIE disabled', 900), ('Canary enabled', 1000),
+                  ('RELRO disabled', 1100)]
+        stats = {}
+        stats['exploit_mitigations'] = []
+        self.updater.get_stats_nx(result, stats)
+        self.updater.get_stats_canary(result, stats)
+        self.updater.get_stats_relro(result, stats)
+        self.updater.get_stats_pie(result, stats)
+        self.assertEqual(stats, {'exploit_mitigations': [('NX enabled', 800, 0.8),
+                                                         ('NX disabled', 200, 0.2),
+                                                         ('Canary enabled', 1000, 0.58824),
+                                                         ('Canary disabled', 700, 0.41176),
+                                                         ('RELRO fully enabled', 400, 0.19048),
+                                                         ('RELRO partially enabled', 600, 0.28571),
+                                                         ('RELRO disabled', 1100, 0.52381),
+                                                         ('PIE enabled', 500, 0.27778),
+                                                         ('PIE/DSO present', 300, 0.16667),
+                                                         ('PIE disabled', 900, 0.5),
+                                                         ('PIE - invalid ELF file', 100, 0.05556)]})
+
+    def test_return_zero_total_files(self):
+        self.assertEqual(self.updater.calculate_total_files_for_nx({}, {}), 0)
+        self.assertEqual(self.updater.calculate_total_files_for_pie({}, {}, {}, {}), 0)
+        self.assertEqual(self.updater.calculate_total_files_for_relro({}, {}, {}), 0)
+        self.assertEqual(self.updater.calculate_total_files_for_canary({}, {}), 0)
+
+    def test_return_none_if_no_exploit_mitigations(self):
+        result = []
+        stats = {'exploit_mitigations': []}
+        self.assertEqual(self.updater.get_stats_nx(result, stats), None)
+
+    def test_fetch_mitigations(self):
+        self.assertEqual(self.updater._get_exploit_mitigations_stats(), {'exploit_mitigations': []})

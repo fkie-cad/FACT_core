@@ -5,10 +5,42 @@ from time import gmtime
 from web_interface.filter import replace_underscore_filter, byte_number_filter, get_all_uids_in_string, nice_list, uids_to_link, \
     list_to_line_break_string, nice_unix_time, nice_number_filter, sort_chart_list_by_value, \
     sort_chart_list_by_name, text_highlighter, generic_nice_representation, list_to_line_break_string_no_sort,\
-    encode_base64_filter, render_tags, fix_cwe
+    encode_base64_filter, render_tags, fix_cwe, set_limit_for_data_to_chart, data_to_chart_with_value_percentage_pairs,\
+    data_to_chart_limited
 
 
 class TestWebInterfaceFilter(unittest.TestCase):
+
+    def test_set_limit_for_data_to_chart(self):
+        limit = 5
+        label_list = ['a', 'b', 'c', 'd', 'e', 'f', 'g']
+        value_list = [1, 2, 3, 4, 5, 6, 7]
+        self.assertEqual(set_limit_for_data_to_chart(label_list, limit, value_list),
+                         (['a', 'b', 'c', 'd', 'e', 'rest'], [1, 2, 3, 4, 5, 13]))
+
+    def test_data_to_chart_with_value_percentage_pairs(self):
+        self.maxDiff = None
+        data = [('NX enabled', 1696, 0.89122),
+                ('NX disabled', 207, 0.10878),
+                ('Canary enabled', 9, 0.00473)]
+        self.assertEqual(data_to_chart_with_value_percentage_pairs(data),
+                         {'labels': ['NX enabled', 'NX disabled', 'Canary enabled'],
+                          'datasets': [{'data': [1696, 207, 9],
+                                        'percentage': [0.89122, 0.10878, 0.00473],
+                                        'backgroundColor': ['#2b669a', '#cce0dc', '#2b669a'],
+                                        'borderColor': ['#2b669a', '#cce0dc', '#2b669a'],
+                                        'borderWidth': 1}]})
+
+    def test_data_to_chart_limited(self):
+        data = [('NX enabled', 1696),
+                ('NX disabled', 207),
+                ('Canary enabled', 9)]
+        self.assertEqual(data_to_chart_limited(data),
+                         {'labels': ['NX enabled', 'NX disabled', 'Canary enabled'],
+                          'datasets': [{'data': [1696, 207, 9],
+                                        'backgroundColor': ['#2b669a', '#cce0dc', '#2b669a'],
+                                        'borderColor': ['#2b669a', '#cce0dc', '#2b669a'],
+                                        'borderWidth': 1}]})
 
     def test_get_all_uids_in_string(self):
         test_string = '{\'d41c0f1431b39b9db565b4e32a5437c61c77762a3f4401bac3bafa4887164117_24\', \'f7c927fb0c209035c7e6939bdd00eabdaada429f2ee9aeca41290412c8c79759_25\' , \'deaa23651f0a9cc247a20d0e0a78041a8e40b144e21b82081ecb519dd548eecf_24494080\'}'
