@@ -28,8 +28,8 @@ PROGRAM_NAME = 'FACT Statistic Updater'
 PROGRAM_DESCRIPTION = 'Initialize or update FACT statistic'
 
 
-if __name__ == '__main__':
-    args, config = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION)
+def main(command_line_options=sys.argv):
+    args, config = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION, command_line_options=command_line_options)
 
     logging.info('Try to start Mongo Server...')
     mongo_server = MongoMgr(config=config)
@@ -42,4 +42,7 @@ if __name__ == '__main__':
         logging.info('Stopping Mongo Server...')
         mongo_server.shutdown()
 
-    sys.exit()
+    return 0
+
+if __name__ == '__main__':
+    sys.exit(main())
