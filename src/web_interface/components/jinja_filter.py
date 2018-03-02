@@ -16,7 +16,7 @@ from web_interface.filter import byte_number_filter, encode_base64_filter, \
     uids_to_link, get_all_uids_in_string, list_to_line_break_string, sort_comments, \
     nice_unix_time, infection_color, nice_number_filter, sort_chart_list_by_name, sort_chart_list_by_value, \
     text_highlighter, get_canvas_height, comment_out_regex_meta_chars, \
-    generic_nice_representation, list_to_line_break_string_no_sort, render_tags, fix_cwe
+    generic_nice_representation, list_to_line_break_string_no_sort, render_tags, fix_cwe, data_to_chart_with_value_percentage_pairs
 
 
 class FilterClass:
@@ -106,6 +106,7 @@ class FilterClass:
         self._app.jinja_env.filters['sort_chart_list_by_value'] = sort_chart_list_by_value
         self._app.jinja_env.filters['sort_comments'] = sort_comments
         self._app.jinja_env.filters['data_to_chart_limited'] = data_to_chart_limited
+        self._app.jinja_env.filters['data_to_chart_with_value_percentage_pairs'] = data_to_chart_with_value_percentage_pairs
         self._app.jinja_env.filters['data_to_chart'] = data_to_chart
         self._app.jinja_env.filters['get_canvas_height'] = get_canvas_height
         self._app.jinja_env.filters['text_highlighter'] = text_highlighter
