@@ -67,8 +67,11 @@ class AnalysisPlugin(AnalysisBasePlugin):
     @staticmethod
     def _get_summary(results):
         summary = []
-        for key in ['uris', 'ips_v4', 'ips_v6']:
+        for key in ['uris']:
             summary.extend(results[key])
+        for key in ['ips_v4', 'ips_v6']:
+            for i in range(len(results[key])):
+                summary.extend(results[key][i]["ip"])
         return summary
 
     @staticmethod
