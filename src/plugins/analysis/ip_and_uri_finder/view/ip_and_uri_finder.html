@@ -21,7 +21,7 @@
                                     {{ item['ip'] }}
                                 </td>
                                 <td style="padding:5px">
-                                    {% if not item['geo_uri'] %}
+                                    {% if item['geo_uri'] %}
                                         <a href="https://www.google.de/maps/place/{{ item['geo_uri'] }}">
                                             <img src="/static/location.png" style="width:16px; height:16px" title="White flower" alt="Flower">
                                         </a>
