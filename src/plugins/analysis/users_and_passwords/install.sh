@@ -16,5 +16,6 @@ wget -N https://raw.githubusercontent.com/danielmiessler/SecLists/master/Passwor
 cd ..
 
 python3 update_password_list.py
+cd ..
 
 exit 0
