@@ -7,13 +7,12 @@ from test.unit.compare.compare_plugin_test_class import ComparePluginTest  # pyl
 from ..code.file_header import ComparePlugin
 
 
-class TestComparePluginSoftware(ComparePluginTest):
+class TestComparePluginFileHeader(ComparePluginTest):
     PLUGIN_NAME = 'File_Header'
 
     def setup_plugin(self):
         return ComparePlugin(self, config=self.config, plugin_path=None)
 
-    @patch.object(target=ComparePlugin, attribute="_add_binaries_to_fos", new=lambda s, x: None)
     def test_compare(self):
         result = self.c_plugin.compare_function([self.fw_one, self.fw_two, self.fw_three])
 
@@ -22,13 +21,6 @@ class TestComparePluginSoftware(ComparePluginTest):
 
         assert '>4B<' in result['hexdiff'], 'no bytes in hexdump or bad upper case conversion'
         assert '<br />' in result['hexdiff'], 'no linebreaks found'
-
-    @patch.object(target=BinaryService, attribute="get_binary_and_file_name", new=lambda s, uid: (b'1234', '/my/way/or/the/highway'))
-    def test_add_binaries(self):
-        self.c_plugin._add_binaries_to_fos([self.fw_one, self.fw_two])  # pylint: disable=no-member,protected-access
-
-        assert self.fw_one.binary == self.fw_two.binary
-        assert self.fw_two.binary == b'1234'
 
     def test_at_least_two_are_common(self):
         should_be_true = [3, 2, 1, 2]

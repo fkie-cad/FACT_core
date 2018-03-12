@@ -13,7 +13,7 @@ def convert_binary_to_ascii_with_dots(binary_block):
         if char not in ascii_range:
             bytes_in_ascii += '.'
         else:
-            bytes_in_ascii += binary_block[index:index+1].decode()
+            bytes_in_ascii += binary_block[index:index + 1].decode()
     return bytes_in_ascii
 
 
