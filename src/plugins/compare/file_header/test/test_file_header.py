@@ -33,5 +33,5 @@ class TestComparePluginSoftware(ComparePluginTest):
     def test_at_least_two_are_common(self):
         should_be_true = [3, 2, 1, 2]
         should_be_false = [5, 4, 3, 1, 2, 6]
-        assert self.c_plugin._at_least_two_are_common(should_be_true), 'should find a commonality'
-        assert not self.c_plugin._at_least_two_are_common(should_be_false), 'should not find a commonality'
+        assert self.c_plugin._at_least_two_are_common(should_be_true), 'should find a commonality'  # pylint: disable=no-member,protected-access
+        assert not self.c_plugin._at_least_two_are_common(should_be_false), 'should not find a commonality'  # pylint: disable=no-member,protected-access

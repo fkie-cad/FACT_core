@@ -114,5 +114,6 @@ class ComparePlugin(CompareBasePlugin):
                 return True
         return False
 
-    def _get_number_of_rows(self, lower_bound):
+    @staticmethod
+    def _get_number_of_rows(lower_bound):
         return lower_bound // COLUMN_WIDTH if lower_bound % COLUMN_WIDTH == 0 else lower_bound // COLUMN_WIDTH + 1
