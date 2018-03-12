@@ -73,15 +73,14 @@ class ComparePlugin(CompareBasePlugin):
 
         return Markup(offsets_string + '</p>')
 
-    @staticmethod
-    def _get_byte_mask(binaries, lower_bound):
+    def _get_byte_mask(self, binaries, lower_bound):
         mask = list()
 
         for index in range(lower_bound):
             reference = binaries[0][index]
             if all(binary[index] == reference for binary in binaries[1:]):
                 mask.append(Mask.GREEN)
-            elif any(binary[index] == reference for binary in binaries[1:]):
+            elif self._at_least_two_are_common([binary[index] for binary in binaries]):
                 mask.append(Mask.BLUE)
             else:
                 mask.append(Mask.RED)
@@ -104,3 +103,11 @@ class ComparePlugin(CompareBasePlugin):
     def _replace_forbidden_html_characters(dangerous_string):
         translation = {'&': '&amp;', '<': '&lt;', '>': '&gt;'}
         return dangerous_string.translate(str.maketrans(translation))
+
+    @staticmethod
+    def _at_least_two_are_common(values):
+        while values:
+            value = values.pop()
+            if value in values:
+                return True
+        return False

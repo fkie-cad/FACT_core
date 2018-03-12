@@ -15,7 +15,7 @@ class TestComparePluginSoftware(ComparePluginTest):
 
     @patch.object(target=ComparePlugin, attribute="_add_binaries_to_fos", new=lambda s, x: None)
     def test_compare(self):
-        result = self.c_plugin.compare_function([self.fw_one, self.fw_two])
+        result = self.c_plugin.compare_function([self.fw_one, self.fw_two, self.fw_three])
 
         assert all(key in result for key in ['hexdiff', 'ascii', 'offsets']), 'not all result keys given'
         assert all(isinstance(result[key], Markup) for key in ['hexdiff', 'ascii', 'offsets']), 'partial results should be flask.Markup strings'
@@ -29,3 +29,9 @@ class TestComparePluginSoftware(ComparePluginTest):
 
         assert self.fw_one.binary == self.fw_two.binary
         assert self.fw_two.binary == b'1234'
+
+    def test_at_least_two_are_common(self):
+        should_be_true = [3, 2, 1, 2]
+        should_be_false = [5, 4, 3, 1, 2, 6]
+        assert self.c_plugin._at_least_two_are_common(should_be_true), 'should find a commonality'
+        assert not self.c_plugin._at_least_two_are_common(should_be_false), 'should not find a commonality'
