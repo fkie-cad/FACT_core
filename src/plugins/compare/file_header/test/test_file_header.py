@@ -3,7 +3,7 @@ from unittest.mock import patch
 from flask import Markup
 
 from storage.binary_service import BinaryService
-from test.unit.compare.compare_plugin_test_class import ComparePluginTest
+from test.unit.compare.compare_plugin_test_class import ComparePluginTest  # pylint: disable=wrong-import-order
 from ..code.file_header import ComparePlugin
 
 
@@ -25,7 +25,7 @@ class TestComparePluginSoftware(ComparePluginTest):
 
     @patch.object(target=BinaryService, attribute="get_binary_and_file_name", new=lambda s, uid: (b'1234', '/my/way/or/the/highway'))
     def test_add_binaries(self):
-        self.c_plugin._add_binaries_to_fos([self.fw_one, self.fw_two])
+        self.c_plugin._add_binaries_to_fos([self.fw_one, self.fw_two])  # pylint: disable=no-member,protected-access
 
         assert self.fw_one.binary == self.fw_two.binary
         assert self.fw_two.binary == b'1234'
