@@ -6,6 +6,9 @@ from compare.PluginBase import CompareBasePlugin
 from storage.binary_service import BinaryService
 from web_interface.components.additional_functions.hex_dump import convert_binary_to_ascii_with_dots
 
+COLUMN_WIDTH = 32
+BYTES_TO_SHOW = 512
+
 
 class Mask:
     GREEN = '5bc85b'
@@ -26,7 +29,7 @@ class ComparePlugin(CompareBasePlugin):
     def compare_function(self, fo_list):
         self._add_binaries_to_fos(fo_list)
         binaries = [fo.binary for fo in fo_list]
-        lower_bound = min(min(len(binary) for binary in binaries), 512)
+        lower_bound = min(min(len(binary) for binary in binaries), BYTES_TO_SHOW)
 
         offsets = self._get_offsets(lower_bound)
         hexdiff = self._get_hightlighted_hex_string(binaries, lower_bound)
@@ -39,10 +42,10 @@ class ComparePlugin(CompareBasePlugin):
         bytes_in_ascii = convert_binary_to_ascii_with_dots(part)
         assert len(bytes_in_ascii) == lower_bound
 
-        number_of_rows = lower_bound // 32 if lower_bound % 32 == 0 else lower_bound // 32 + 1
+        number_of_rows = self._get_number_of_rows(lower_bound)
         ascii_string = '<p style="font-family: monospace; color: #eee;"><br />'
         for index in range(number_of_rows):
-            partial = bytes_in_ascii[index * 32:(index + 1) * 32]
+            partial = bytes_in_ascii[index * COLUMN_WIDTH:(index + 1) * COLUMN_WIDTH]
             ascii_string += '| {} |<br />'.format(self._replace_forbidden_html_characters(partial))
 
         return Markup(ascii_string + '</p>')
@@ -55,7 +58,7 @@ class ComparePlugin(CompareBasePlugin):
         highlighted_string = '<p style="font-family: monospace;">'
 
         for index, color in enumerate(mask):
-            if index % 32 == 0:
+            if index % COLUMN_WIDTH == 0:
                 highlighted_string += '<br />'
 
             to_highlight = first_binary_in_hex[2 * index:2 * index + 2]
@@ -63,13 +66,12 @@ class ComparePlugin(CompareBasePlugin):
 
         return Markup(highlighted_string + '</p>')
 
-    @staticmethod
-    def _get_offsets(lower_bound):
-        number_of_rows = lower_bound // 32 if lower_bound % 32 == 0 else lower_bound // 32 + 1
+    def _get_offsets(self, lower_bound):
+        number_of_rows = self._get_number_of_rows(lower_bound)
 
         offsets_string = '<p style="font-family: monospace; color: #eee;"><br />'
         for row in range(number_of_rows):
-            offsets_string += '0x{:03X}<br />'.format(row * 32)
+            offsets_string += '0x{:03X}<br />'.format(row * COLUMN_WIDTH)
 
         return Markup(offsets_string + '</p>')
 
@@ -90,7 +92,7 @@ class ComparePlugin(CompareBasePlugin):
 
     @staticmethod
     def _get_first_512_bytes_in_hex(binary):
-        first_bytes = binary[0:512]
+        first_bytes = binary[0:BYTES_TO_SHOW]
         hex_bytes = binascii.b2a_hex(first_bytes).decode()
         return hex_bytes.upper()
 
@@ -111,3 +113,6 @@ class ComparePlugin(CompareBasePlugin):
             if value in values:
                 return True
         return False
+
+    def _get_number_of_rows(self, lower_bound):
+        return lower_bound // COLUMN_WIDTH if lower_bound % COLUMN_WIDTH == 0 else lower_bound // COLUMN_WIDTH + 1
