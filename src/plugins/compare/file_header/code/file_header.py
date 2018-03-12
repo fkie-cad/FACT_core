@@ -21,7 +21,7 @@ class ComparePlugin(CompareBasePlugin):
     DEPENDENCIES = []
 
     def __init__(self, plugin_administrator, config=None, db_interface=None, plugin_path=__file__):
-        super().__init__(plugin_administrator, config=config, db_interface=db_interface, plugin_path=plugin_path )
+        super().__init__(plugin_administrator, config=config, db_interface=db_interface, plugin_path=plugin_path)
 
     def compare_function(self, fo_list):
         self._add_binaries_to_fos(fo_list)
@@ -35,7 +35,6 @@ class ComparePlugin(CompareBasePlugin):
         return dict(hexdiff=hexdiff, offsets=offsets, ascii=ascii_representation)
 
     def _get_ascii_representation(self, binaries, lower_bound):
-
         part = binaries[0][0:lower_bound]
         bytes_in_ascii = convert_binary_to_ascii_with_dots(part)
         assert len(bytes_in_ascii) == lower_bound
@@ -64,7 +63,8 @@ class ComparePlugin(CompareBasePlugin):
 
         return Markup(highlighted_string + '</p>')
 
-    def _get_offsets(self, lower_bound):
+    @staticmethod
+    def _get_offsets(lower_bound):
         number_of_rows = lower_bound // 32 if lower_bound % 32 == 0 else lower_bound // 32 + 1
 
         offsets_string = '<p style="font-family: monospace; color: #eee;"><br />'
@@ -73,7 +73,8 @@ class ComparePlugin(CompareBasePlugin):
 
         return Markup(offsets_string + '</p>')
 
-    def _get_byte_mask(self, binaries, lower_bound):
+    @staticmethod
+    def _get_byte_mask(binaries, lower_bound):
         mask = list()
 
         for index in range(lower_bound):
@@ -88,7 +89,8 @@ class ComparePlugin(CompareBasePlugin):
         assert len(mask) == lower_bound, 'failure in processing'
         return mask
 
-    def _get_first_512_bytes_in_hex(self, binary):
+    @staticmethod
+    def _get_first_512_bytes_in_hex(binary):
         first_bytes = binary[0:512]
         hex_bytes = binascii.b2a_hex(first_bytes).decode()
         return hex_bytes.upper()
