@@ -27,7 +27,6 @@ class ComparePlugin(CompareBasePlugin):
         super().__init__(plugin_administrator, config=config, db_interface=db_interface, plugin_path=plugin_path)
 
     def compare_function(self, fo_list):
-        self._add_binaries_to_fos(fo_list)
         binaries = [fo.binary for fo in fo_list]
         lower_bound = min(min(len(binary) for binary in binaries), BYTES_TO_SHOW)
 
@@ -95,11 +94,6 @@ class ComparePlugin(CompareBasePlugin):
         first_bytes = binary[0:BYTES_TO_SHOW]
         hex_bytes = binascii.b2a_hex(first_bytes).decode()
         return hex_bytes.upper()
-
-    def _add_binaries_to_fos(self, fo_list):
-        bs = BinaryService(config=self.config)
-        for fo in fo_list:
-            fo.binary = bs.get_binary_and_file_name(fo.uid)[0]
 
     @staticmethod
     def _replace_forbidden_html_characters(dangerous_string):
