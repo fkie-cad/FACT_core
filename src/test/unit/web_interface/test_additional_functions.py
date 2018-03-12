@@ -1,5 +1,5 @@
 import unittest
-from web_interface.components.additional_functions.hex_dump import _structure_hex_dump, _process_hex_bytes, _process_ascii_bytes, _process_one_column
+from web_interface.components.additional_functions.hex_dump import _structure_hex_dump, _process_hex_bytes, _process_one_column, convert_binary_to_ascii_with_dots
 
 
 class TestHexDump(unittest.TestCase):
@@ -14,9 +14,11 @@ class TestHexDump(unittest.TestCase):
         self.assertEqual(_structure_hex_dump(input_data), expected_output, 'structuring not correct')
 
     def test_process_ascii_bytes(self):
-        input_data = 'GoodCharacters\xBA\xDCharacters'
+        input_bytes = b'GoodCharacters\xBA\xDCharacters'
         expected_output = 'GoodCharacters..haracters'
-        self.assertEqual(_process_ascii_bytes(input_data), expected_output, 'ascii byte processing not correct')
+
+        self.assertEqual(len(convert_binary_to_ascii_with_dots(input_bytes)), len(input_bytes), 'length of strings do not match')
+        self.assertEqual(convert_binary_to_ascii_with_dots(input_bytes), expected_output, 'ascii byte processing not correct')
 
     def test_process_one_column(self):
         input_bytes = b'Bytes.Lotso\xFBytes'
@@ -25,3 +27,6 @@ class TestHexDump(unittest.TestCase):
         self.assertEqual(resulting_ascii, expected_ascii, 'ascii didn\'t match')
         self.assertEqual(resulting_hex, expected_hex, 'hex didn\'t match')
         self.assertEqual(offset, 0, 'non zero offset')
+
+    def test_alt_process(self):
+        input_bytes = b'Bytes.Lotso\xFBytes'
