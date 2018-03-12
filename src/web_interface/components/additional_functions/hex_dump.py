@@ -43,7 +43,7 @@ def _process_one_column(binary, i):
 
 def create_hex_dump(binary):
     if len(binary) < NUMBER_OF_COLUMNS * NUMBER_OF_ROWS:
-        return 1
+        return 'binary is too small for preview'
 
     result = list()
     for i in range(NUMBER_OF_ROWS):
