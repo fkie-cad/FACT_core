@@ -8,6 +8,7 @@ import init_database
 import migrate_database
 import update_statistic
 import update_variety_data
+import restart_analysis_and_reload_templates
 from helperFunctions.fileSystem import get_src_dir
 
 
@@ -29,7 +30,7 @@ def test_start_script_help_and_version(script):
     gc.collect()
 
 
-@pytest.mark.parametrize('script', [init_database, migrate_database, update_statistic, update_variety_data])
+@pytest.mark.parametrize('script', [init_database, migrate_database, update_statistic, update_variety_data, restart_analysis_and_reload_templates])
 def test_start_scripts_with_main(script, monkeypatch):
     monkeypatch.setattr('update_variety_data._create_variety_data', lambda _: 0)
     assert script.main([script.__name__, '-t']) == 0, 'script did not run successfully'

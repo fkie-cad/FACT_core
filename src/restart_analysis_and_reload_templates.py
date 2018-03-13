@@ -1,5 +1,6 @@
 import logging
 import signal
+import sys
 
 
 from helperFunctions.program_setup import program_setup
@@ -20,7 +21,7 @@ signal.signal(signal.SIGINT, shutdown)
 signal.signal(signal.SIGTERM, shutdown)
 
 
-if __name__ == '__main__':
+def main():
     args, config = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION)
     analysis_service = AnalysisScheduler(config=config)
     analysis_service.shutdown()
@@ -35,4 +36,8 @@ if __name__ == '__main__':
             break
 
     analysis_service.shutdown()
+    return 0
 
+
+if __name__ == '__main__':
+    sys.exit(main())
