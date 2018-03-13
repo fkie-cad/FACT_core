@@ -6,7 +6,7 @@
 		{% if key not in ['summary', 'plugin_version', 'analysis_date'] %}
 			<tr>
             {% if firmware.processed_analysis[selected_analysis][key] != [] %}
-				<td rowspan="{{ firmware.processed_analysis[selected_analysis][key]|length }}">
+				<td>
                     {% if key == "ips_v4" %}IPs v4:
                     {% elif key == "ips_v6" %}IPs v6:
                     {% elif key == "ips" %}IPs:
@@ -15,26 +15,24 @@
                 <td>
                     <table>
                         {% for item in firmware.processed_analysis[selected_analysis][key] %}
-                            <tr>
-                            {% if key == "ips_v6" or  key == "ips_v6" %}:
-                                <td>
-                                    {{ item['ip'] }}
-                                </td>
-                                <td style="padding:5px">
-                                    {% if item['geo_uri'] %}
-                                        <a href="https://www.google.de/maps/place/{{ item['geo_uri'] }}">
-                                            <img src="/static/location.png" style="width:16px; height:16px" title="White flower" alt="Flower">
-                                        </a>
-                                    {% endif %}
-                                </td>
+                            {% if key == "ips_v6" or  key == "ips_v4" %}:
+                                <tr>
+                                    <td>
+                                        {{ item['ip'] }}
+                                    </td>
+                                    <td style="padding-left:10px">
+                                        {% if item['geo_uri'] %}
+                                            <a href="https://www.google.de/maps/place/{{ item['geo_uri'] }}">
+                                                <span class="glyphicon glyphicon-map-marker"></span>
+                                            </a>
+                                        {% endif %}
+                                    </td>
                                 </tr>
                             {% else %}
-                                <td>
-                                    {{ item }}
-                                </td>
-                                <td>
-                                    {{ firmware.processed_analysis[selected_analysis][key][item] }}
-                                </td>
+                                <tr>
+                                    <td>
+                                        {{ item }}
+                                    </td>
                                 </tr>
                             {% endif %}
                         {% endfor %}
