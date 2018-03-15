@@ -28,6 +28,10 @@ class TestAcceptanceAuthentication(TestAuthenticatedAcceptanceBase):
         self.assertNotIn(self.UNIQUE_LOGIN_STRING, response.data, 'upload should not be accessible for guest')
         self._stop_backend()
 
+    def test_about_doesnt_need_authentication(self):
+        response = self.test_client.get('/about', follow_redirects=True)
+        self.assertNotIn(self.UNIQUE_LOGIN_STRING, response.data, 'authorization required')
+
     def test_login(self):
         '''
         As of now, not working in tests. Can not yet determine the reason. Maybe bad creation of request.
@@ -47,7 +51,7 @@ class TestAcceptanceAuthentication(TestAuthenticatedAcceptanceBase):
                     if b'404 Not Found' in response.data or b'405 Method Not Allowed' in response.data:
                         response = self.test_client.post(endpoint, follow_redirects=True)
 
-                if endpoint.startswith('/static'):
-                    pass  # static routes should be served without auth so that css and logos are shown in login screen
+                if endpoint.startswith('/static') or endpoint.startswith('/about'):
+                    pass  # static and about routes should be served without auth so that css and logos are shown in login screen and imprint can be accessed
                 else:
                     self.assertIn(self.UNIQUE_LOGIN_STRING, response.data, 'no authorization required {}'.format(endpoint))
