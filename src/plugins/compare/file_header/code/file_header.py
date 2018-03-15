@@ -3,7 +3,6 @@ import binascii
 from flask import Markup
 
 from compare.PluginBase import CompareBasePlugin
-from storage.binary_service import BinaryService
 from web_interface.components.additional_functions.hex_dump import convert_binary_to_ascii_with_dots
 
 COLUMN_WIDTH = 32

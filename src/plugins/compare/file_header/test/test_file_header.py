@@ -1,8 +1,5 @@
-from unittest.mock import patch
-
 from flask import Markup
 
-from storage.binary_service import BinaryService
 from test.unit.compare.compare_plugin_test_class import ComparePluginTest  # pylint: disable=wrong-import-order
 from ..code.file_header import ComparePlugin
 
