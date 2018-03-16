@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% set active_page = "Login" %}
+
+{% block body %}
+
+{% from "security/_macros.html" import render_errors %}
+
+    {{ render_errors(login_user_form.email) }}
+    {{ render_errors(login_user_form.password) }}
+
+    <center>
+    <div><h1>Login</h1></div>
+
+    <div class="panel {% if login_user_form.password.errors or login_user_form.email.errors %} panel-danger {% endif %}" style="margin: 20px; max-width: 500px">
+
+        <form action="{{ url_for_security('login') }}" method="POST" name="login_user_form">
+
+            {{ login_user_form.hidden_tag() }}
+
+            <div style="padding: 15px; margin-bottom: -15px" class="input-group">
+                <span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span>
+                <input id="email" type="text" class="form-control" name="email" value="" placeholder="username" autofocus="autofocus" required>
+            </div>
+
+            <div style="padding: 15px; margin-bottom: -15px" class="input-group">
+                <span class="input-group-addon"><i class="glyphicon glyphicon-lock"></i></span>
+                <input id="password" type="password" class="form-control" name="password" placeholder="password" required>
+            </div>
+
+            <div>
+                <input id="next" name="next" type="hidden" value="/">
+            </div>
+
+            <div style="padding: 15px">
+                <input id="submit" name="submit" type="submit" value="Login">
+            </div>
+
+        </form>
+
+    </div>
+    </center>
+
+{% endblock %}

@@ -81,7 +81,12 @@ class FilterClass:
             binary = sc.get_binary_and_filename(uid)[0]
         return binary
 
+    def check_auth(self, _):
+        return self._config.getboolean('ExpertSettings', 'authentication')
+
     def _setup_filters(self):
+        self._app.jinja_env.add_extension('jinja2.ext.do')
+
         self._app.jinja_env.filters['print_program_version'] = self._filter_print_program_version
         self._app.jinja_env.filters['nice_generic'] = generic_nice_representation
         self._app.jinja_env.filters['number_format'] = byte_number_filter
@@ -114,3 +119,4 @@ class FilterClass:
         self._app.jinja_env.filters['nice_time'] = time_format
         self._app.jinja_env.filters['render_tags'] = render_tags
         self._app.jinja_env.filters['fix_cwe'] = fix_cwe
+        self._app.jinja_env.filters['auth_enabled'] = self.check_auth
