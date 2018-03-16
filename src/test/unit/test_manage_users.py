@@ -20,7 +20,7 @@ def test_choose_action(monkeypatch):
 
 
 def test_setup_argparse(monkeypatch):
-    monkeypatch.setattr('sys.argv', ['function_name', '/path/to/some/file'])
+    monkeypatch.setattr('sys.argv', ['function_name', '-C', '/path/to/some/file'])
     args = setup_argparse()
     assert args.config_file == '/path/to/some/file', 'bad propagation of config path'
 
