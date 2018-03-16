@@ -9,7 +9,7 @@ from flask_security import Security
 from flask_sqlalchemy import SQLAlchemy
 
 from config.ascii import FACT_ASCII_ART
-from helperFunctions.config import load_config
+from helperFunctions.config import load_config, get_config_dir
 from version import __VERSION__
 from web_interface.frontend_main import WebFrontEnd
 from web_interface.security.authentication import create_user_interface
@@ -18,7 +18,7 @@ from web_interface.security.authentication import create_user_interface
 def setup_argparse():
     parser = argparse.ArgumentParser()
     parser.add_argument('-v', '--version', action='version', version='FACT User Management (FACTUM) {}'.format(__VERSION__))
-    parser.add_argument('config_file', help='path to fact config file')
+    parser.add_argument('-C', '--config_file', help='set path to config File', default='{}/main.cfg'.format(get_config_dir()))
     return parser.parse_args()
 
 
