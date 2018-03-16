@@ -161,19 +161,14 @@ echo "####################################"
 
 cd ../
 echo "from helperFunctions.config import load_config;config = load_config('main.cfg');print(config.get('data_storage', 'firmware_file_storage_directory'));exit(0)" > get_data_dir_name.py
-echo "from helperFunctions.config import load_config;config = load_config('main.cfg');dburi=config.get('data_storage', 'user_database');print('/'.join(dburi.split('/')[:-1])[10:]);exit(0)" > get_sqlite_dir_name.py
-
 
 cd ..
 factdatadir=$(python3 src/get_data_dir_name.py)
-factauthdir=$(python3 src/get_sqlite_dir_name.py)
 factuser=$(whoami)
 factusergroup=$(id -gn)
 sudo mkdir -p --mode=0744 $factdatadir 2> /dev/null
-sudo chown $factuser:$factusergroup $factdatadir 
-sudo mkdir -p --mode=0744 $factauthdir 2> /dev/null
-sudo chown $factuser:$factusergroup $factauthdir
-rm src/get_data_dir_name.py src/get_sqlite_dir_name.py
+sudo chown $factuser:$factusergroup $factdatadir
+rm src/get_data_dir_name.py
 cd src/bootstrap
 
 echo "####################################"
