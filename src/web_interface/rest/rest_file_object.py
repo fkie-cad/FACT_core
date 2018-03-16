@@ -4,6 +4,8 @@ from helperFunctions.object_conversion import create_meta_dict
 from helperFunctions.rest import get_paging, get_query, success_message, error_message
 from helperFunctions.web_interface import ConnectTo
 from storage.db_interface_frontend import FrontEndDbInterface
+from web_interface.security.decorator import roles_accepted
+from web_interface.security.privileges import PRIVILEGES
 
 
 class RestFileObject(Resource):
@@ -12,6 +14,7 @@ class RestFileObject(Resource):
     def __init__(self, **kwargs):
         self.config = kwargs.get('config', None)
 
+    @roles_accepted(*PRIVILEGES['view_analysis'])
     def get(self, uid=None):
         if not uid:
             paging, success = get_paging(request.args)
