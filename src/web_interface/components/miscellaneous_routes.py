@@ -37,8 +37,6 @@ class MiscellaneousRoutes(ComponentBase):
         stats.shutdown()
         return render_template('home.html', general_stats=general_stats, latest_firmware_submissions=latest_firmware_submissions,
                                latest_comments=latest_comments, latest_comparison_results=latest_comparison_results)
-
-    @roles_accepted(*PRIVILEGES['status'])
     def _app_about(self):
         return render_template('about.html')
 
