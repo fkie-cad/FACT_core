@@ -1,0 +1,9 @@
+[
+  {
+    "name": "Netgear_CGI",
+    "description": "Netgear httpd vulnerable to '/cgi-bin/<shell command>' bug",
+    "reliability": "20",
+    "score": "medium",
+    "sha256": "7579d10e812905e134cf91ad8eef7b08f87f6f8c8e004ebefa441781fea0ec4a"
+  }
+]
