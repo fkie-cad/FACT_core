@@ -8,7 +8,7 @@
     ("About", "/about", '<span class="glyphicon glyphicon-globe"></span>')
 ] -%}
 
-{% if auth_enabled %}
+{% if ("string only here to have input to " | auth_enabled) %}
     {% do navigation_bar.append(("Login", None, None)) %}
 {% endif %}
 
