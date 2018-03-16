@@ -54,6 +54,23 @@ wget -nc https://github.com/chartjs/Chart.js/releases/download/v2.3.0/Chart.js
 cd ../../bootstrap
 
 
+echo "####################################"
+echo "#       create user database       #"
+echo "####################################"
+
+cd ../
+echo "from helperFunctions.config import load_config;config = load_config('main.cfg');dburi=config.get('data_storage', 'user_database');print('/'.join(dburi.split('/')[:-1])[10:]);exit(0)" > get_sqlite_dir_name.py
+
+cd ..
+factauthdir=$(python3 src/get_sqlite_dir_name.py)
+factuser=$(whoami)
+factusergroup=$(id -gn)
+sudo mkdir -p --mode=0744 $factauthdir 2> /dev/null
+sudo chown $factuser:$factusergroup $factauthdir
+rm src/get_sqlite_dir_name.py
+cd src/bootstrap
+
+
 # ---- NGINX ----
 if [ "$NGINX" = "yes" ]
 then
