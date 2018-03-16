@@ -77,7 +77,7 @@ then
 	echo "####################################"
 	echo "# installing and configuring nginx #"
 	echo "####################################"
-	sudo apt-get install -y nginx apache2-utils
+	sudo apt-get install -y nginx
 	echo "generating a new certificate..."
 	openssl genrsa -out faf.key 4096
 	openssl req -new -key faf.key -out faf.csr
@@ -88,10 +88,6 @@ then
 	(cd ../config && sudo ln -s $PWD/nginx.conf /etc/nginx/nginx.conf)
 	sudo mkdir /etc/nginx/error
 	(cd ../web_interface/templates/ && sudo ln -s $PWD/maintenance.html /etc/nginx/error/maintenance.html)
-	echo "Please set a password for the default interface user (fact)"
-	sudo htpasswd -c /etc/nginx/fact_htpasswd fact
-	echo "Please set a password for the admin user (admin)"
-	sudo htpasswd -c /etc/nginx/fact_admin_htpasswd admin
 	sudo nginx -s reload
 fi
 
