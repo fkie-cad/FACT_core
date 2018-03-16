@@ -74,7 +74,7 @@ class AnalysisPlugin(YaraBasePlugin):
     def _check_hash_vulnerabilities(self, sha256_hash):
         vulnerabilities = list()
 
-        for rule in self._hash_rules :
+        for rule in self._hash_rules:
             if sha256_hash == rule['sha256']:
                 rule.pop('sha256')
                 name = rule.pop('name')
