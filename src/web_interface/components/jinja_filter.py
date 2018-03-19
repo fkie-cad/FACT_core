@@ -81,6 +81,15 @@ class FilterClass:
             binary = sc.get_binary_and_filename(uid)[0]
         return binary
 
+    @staticmethod
+    def vulnerability_class(score):
+        if score == 'high':
+            return 'alert'
+        elif score == 'medium':
+            return 'warning'
+        else:
+            return 'active'
+
     def _setup_filters(self):
         self._app.jinja_env.filters['print_program_version'] = self._filter_print_program_version
         self._app.jinja_env.filters['nice_generic'] = generic_nice_representation
@@ -114,3 +123,4 @@ class FilterClass:
         self._app.jinja_env.filters['nice_time'] = time_format
         self._app.jinja_env.filters['render_tags'] = render_tags
         self._app.jinja_env.filters['fix_cwe'] = fix_cwe
+        self._app.jinja_env.filters['vulnerability_class'] = self.vulnerability_class
