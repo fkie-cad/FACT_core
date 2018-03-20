@@ -1,16 +1,19 @@
 import binascii
 import re
-import string
 
 NUMBER_OF_COLUMNS = 16
 NUMBER_OF_ROWS = 8
+ASCII_RANGE = (32, 127)
 
 
-def _process_ascii_bytes(bytes_in_ascii):
-    allowed = string.ascii_letters + string.digits
-    for index, char in enumerate(bytes_in_ascii):
-        if char not in allowed:
-            bytes_in_ascii = bytes_in_ascii[:index] + '.' + bytes_in_ascii[index + 1:]
+def convert_binary_to_ascii_with_dots(binary_block):
+    ascii_range = set(range(*ASCII_RANGE))
+    bytes_in_ascii = ''
+    for index, char in enumerate(binary_block):
+        if char not in ascii_range:
+            bytes_in_ascii += '.'
+        else:
+            bytes_in_ascii += binary_block[index:index + 1].decode()
     return bytes_in_ascii
 
 
@@ -33,15 +36,14 @@ def _process_one_column(binary, i):
     bytes_in_hex = binascii.b2a_hex(part).decode()
     bytes_in_hex = _process_hex_bytes(bytes_in_hex)
 
-    bytes_in_ascii = part.decode(errors='replace')
-    bytes_in_ascii = _process_ascii_bytes(bytes_in_ascii)
+    bytes_in_ascii = convert_binary_to_ascii_with_dots(part)
 
     return bytes_in_ascii, bytes_in_hex, offset
 
 
 def create_hex_dump(binary):
     if len(binary) < NUMBER_OF_COLUMNS * NUMBER_OF_ROWS:
-        return 1
+        return 'binary is too small for preview'
 
     result = list()
     for i in range(NUMBER_OF_ROWS):
