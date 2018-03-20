@@ -14,7 +14,7 @@ done
 CURRENT_FILE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd $CURRENT_FILE_DIR
 
-sudo -EH pip3 install --upgrade flask flask_restful flask-paginate Flask-API uwsgi
+sudo -EH pip3 install --upgrade flask flask_restful flask_security flask_sqlalchemy flask-paginate Flask-API uwsgi bcrypt
 
 	
 echo "######################################"
@@ -54,13 +54,30 @@ wget -nc https://github.com/chartjs/Chart.js/releases/download/v2.3.0/Chart.js
 cd ../../bootstrap
 
 
+echo "####################################"
+echo "#       create user database       #"
+echo "####################################"
+
+cd ../
+echo "from helperFunctions.config import load_config;config = load_config('main.cfg');dburi=config.get('data_storage', 'user_database');print('/'.join(dburi.split('/')[:-1])[10:]);exit(0)" > get_sqlite_dir_name.py
+
+cd ..
+factauthdir=$(python3 src/get_sqlite_dir_name.py)
+factuser=$(whoami)
+factusergroup=$(id -gn)
+sudo mkdir -p --mode=0744 $factauthdir 2> /dev/null
+sudo chown $factuser:$factusergroup $factauthdir
+rm src/get_sqlite_dir_name.py
+cd src/bootstrap
+
+
 # ---- NGINX ----
 if [ "$NGINX" = "yes" ]
 then
 	echo "####################################"
 	echo "# installing and configuring nginx #"
 	echo "####################################"
-	sudo apt-get install -y nginx apache2-utils
+	sudo apt-get install -y nginx
 	echo "generating a new certificate..."
 	openssl genrsa -out faf.key 4096
 	openssl req -new -key faf.key -out faf.csr
@@ -71,10 +88,6 @@ then
 	(cd ../config && sudo ln -s $PWD/nginx.conf /etc/nginx/nginx.conf)
 	sudo mkdir /etc/nginx/error
 	(cd ../web_interface/templates/ && sudo ln -s $PWD/maintenance.html /etc/nginx/error/maintenance.html)
-	echo "Please set a password for the default interface user (fact)"
-	sudo htpasswd -c /etc/nginx/fact_htpasswd fact
-	echo "Please set a password for the admin user (admin)"
-	sudo htpasswd -c /etc/nginx/fact_admin_htpasswd admin
 	sudo nginx -s reload
 fi
 

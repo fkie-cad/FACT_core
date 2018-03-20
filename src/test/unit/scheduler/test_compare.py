@@ -1,5 +1,6 @@
 import gc
 import unittest
+import unittest.mock
 from configparser import ConfigParser
 from time import sleep
 
@@ -52,10 +53,16 @@ class TestSchedulerCompare(unittest.TestCase):
         self.config.add_section('ExpertSettings')
         self.config.set('ExpertSettings', 'block_delay', '2')
         self.config.set('ExpertSettings', 'ssdeep_ignore', '80')
+
+        self.bs_patch = unittest.mock.patch(target='storage.binary_service.BinaryService', new=lambda _: MockDbInterface)
+        self.bs_patch.start()
+
         self.compare_scheduler = CompareScheduler(config=self.config, db_interface=MockDbInterface(config=self.config), testing=True)
 
     def tearDown(self):
         self.compare_scheduler.shutdown()
+        self.bs_patch.stop()
+
         gc.collect()
 
     def test_start_compare(self):

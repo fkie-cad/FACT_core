@@ -3,6 +3,7 @@
 from time import time
 
 from flask import render_template, request, redirect, url_for
+from flask_security import login_required
 
 from helperFunctions.web_interface import ConnectTo
 from statistic.update import StatisticUpdater
@@ -11,6 +12,8 @@ from storage.db_interface_compare import CompareDbInterface
 from storage.db_interface_frontend import FrontEndDbInterface
 from storage.db_interface_frontend_editing import FrontendEditingDbInterface
 from web_interface.components.component_base import ComponentBase
+from web_interface.security.decorator import roles_accepted
+from web_interface.security.privileges import PRIVILEGES
 
 
 class MiscellaneousRoutes(ComponentBase):
@@ -21,6 +24,8 @@ class MiscellaneousRoutes(ComponentBase):
         self._app.add_url_rule('/admin/delete_comment/<uid>/<timestamp>', '/admin/delete_comment/<uid>/<timestamp>', self._app_delete_comment)
         self._app.add_url_rule('/admin/delete/<uid>', '/admin/delete/<uid>', self._app_delete_firmware)
 
+    @login_required
+    @roles_accepted(*PRIVILEGES['status'])
     def _app_home(self):
         stats = StatisticUpdater(config=self._config)
         with ConnectTo(FrontEndDbInterface, config=self._config) as sc:
@@ -33,10 +38,10 @@ class MiscellaneousRoutes(ComponentBase):
         return render_template('home.html', general_stats=general_stats, latest_firmware_submissions=latest_firmware_submissions,
                                latest_comments=latest_comments, latest_comparison_results=latest_comparison_results)
 
-    @staticmethod
-    def _app_about():
+    def _app_about(self):
         return render_template('about.html')
 
+    @roles_accepted(*PRIVILEGES['comment'])
     def _app_add_comment(self, uid):
         error = False
         if request.method == 'POST':
@@ -50,11 +55,13 @@ class MiscellaneousRoutes(ComponentBase):
                 error = True
         return render_template('add_comment.html', uid=uid, error=error)
 
+    @roles_accepted(*PRIVILEGES['delete'])
     def _app_delete_comment(self, uid, timestamp):
         with ConnectTo(FrontendEditingDbInterface, config=self._config) as sc:
             sc.delete_comment(uid, timestamp)
         return redirect(url_for('analysis/<uid>', uid=uid))
 
+    @roles_accepted(*PRIVILEGES['delete'])
     def _app_delete_firmware(self, uid):
         with ConnectTo(FrontEndDbInterface, config=self._config) as sc:
             is_firmware = sc.is_firmware(uid)

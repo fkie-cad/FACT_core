@@ -11,12 +11,12 @@ from helperFunctions.uid import is_list_of_uids
 from helperFunctions.web_interface import ConnectTo
 from intercom.front_end_binding import InterComFrontEndBinding
 from storage.db_interface_frontend import FrontEndDbInterface
-from web_interface.filter import byte_number_filter, encode_base64_filter, \
-    bytes_to_str_filter, replace_underscore_filter, nice_list, data_to_chart_limited, data_to_chart, \
-    uids_to_link, get_all_uids_in_string, list_to_line_break_string, sort_comments, \
-    nice_unix_time, infection_color, nice_number_filter, sort_chart_list_by_name, sort_chart_list_by_value, \
-    text_highlighter, get_canvas_height, comment_out_regex_meta_chars, \
-    generic_nice_representation, list_to_line_break_string_no_sort, render_tags, fix_cwe, data_to_chart_with_value_percentage_pairs, vulnerability_class
+from web_interface.filter import byte_number_filter, encode_base64_filter, bytes_to_str_filter, \
+    replace_underscore_filter, nice_list, data_to_chart_limited, data_to_chart, uids_to_link, get_all_uids_in_string, \
+    list_to_line_break_string, sort_comments, nice_unix_time, infection_color, nice_number_filter, \
+    sort_chart_list_by_name, sort_chart_list_by_value, text_highlighter, get_canvas_height, \
+    comment_out_regex_meta_chars, generic_nice_representation, list_to_line_break_string_no_sort, render_tags, \
+    fix_cwe, data_to_chart_with_value_percentage_pairs, vulnerability_class
 
 
 class FilterClass:
@@ -81,7 +81,12 @@ class FilterClass:
             binary = sc.get_binary_and_filename(uid)[0]
         return binary
 
+    def check_auth(self, _):
+        return self._config.getboolean('ExpertSettings', 'authentication')
+
     def _setup_filters(self):
+        self._app.jinja_env.add_extension('jinja2.ext.do')
+
         self._app.jinja_env.filters['print_program_version'] = self._filter_print_program_version
         self._app.jinja_env.filters['nice_generic'] = generic_nice_representation
         self._app.jinja_env.filters['number_format'] = byte_number_filter
@@ -115,3 +120,4 @@ class FilterClass:
         self._app.jinja_env.filters['render_tags'] = render_tags
         self._app.jinja_env.filters['fix_cwe'] = fix_cwe
         self._app.jinja_env.filters['vulnerability_class'] = vulnerability_class
+        self._app.jinja_env.filters['auth_enabled'] = self.check_auth

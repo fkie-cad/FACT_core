@@ -16,8 +16,10 @@ from objects.firmware import Firmware
 from storage.db_interface_admin import AdminDbInterface
 from storage.db_interface_frontend import FrontEndDbInterface
 from storage.db_interface_view_sync import ViewReader
-from web_interface.components.component_base import ComponentBase
 from web_interface.components.compare_routes import get_comparison_uid_list_from_session
+from web_interface.components.component_base import ComponentBase
+from web_interface.security.decorator import roles_accepted
+from web_interface.security.privileges import PRIVILEGES
 
 
 def get_analysis_view(view_name):
@@ -45,6 +47,7 @@ class AnalysisRoutes(ComponentBase):
         else:
             return list(fo.get_virtual_file_paths().keys())
 
+    @roles_accepted(*PRIVILEGES['view_analysis'])
     def _show_analysis_results(self, uid, selected_analysis=None, root_uid=None):
         root_uid = none_to_none(root_uid)
         other_versions = None
@@ -90,6 +93,7 @@ class AnalysisRoutes(ComponentBase):
             else:
                 return self.analysis_generic_view
 
+    @roles_accepted(*PRIVILEGES['submit_analysis'])
     def _update_analysis(self, uid, re_do=False):
         error = {}
         if request.method == 'POST':
@@ -137,5 +141,6 @@ class AnalysisRoutes(ComponentBase):
         with ConnectTo(InterComFrontEndBinding, self._config) as sc:
             sc.add_re_analyze_task(fw)
 
+    @roles_accepted(*PRIVILEGES['delete'])
     def _re_do_analysis(self, uid):
         return self._update_analysis(uid, re_do=True)
