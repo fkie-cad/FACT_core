@@ -6,7 +6,7 @@ echo "------------------------------------"
 echo "   install additional sqfs tools    "
 echo "------------------------------------"
 
-sudo apt install -y libtool-bin libtool libacl1-dev libcap-dev libc6-dev-i386 lib32ncurses5-dev gcc-multilib lib32stdc++6 gawk pkg-config
+sudo apt-get install -y libtool-bin libtool libacl1-dev libcap-dev libc6-dev-i386 lib32ncurses5-dev gcc-multilib lib32stdc++6 gawk pkg-config
 
 mkdir bin
 cd bin/
