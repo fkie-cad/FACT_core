@@ -1,14 +1,12 @@
-import pytest
+
+import json
+import os
 
 from common_helper_files import get_dir_of_file
-import os
-import json
+
 from objects.file import FileObject
+from plugins.analysis.known_vulnerabilities.code.known_vulnerabilities import AnalysisPlugin
 from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
-
-from ..code.known_vulnerabilities import AnalysisPlugin
-from ..internal.software_rules import SoftwareRule, BadRuleError
-
 
 TEST_DATA_DIR = os.path.join(get_dir_of_file(__file__), 'data')
 
@@ -43,8 +41,8 @@ class TestAnalysisPluginsKnownVulnerabilities(AnalysisPluginTest):
         results = self.analysis_plugin.process_object(test_file).processed_analysis[self.PLUGIN_NAME]
 
         self.assertEqual(len(results), 2, 'incorrect number of software components found (summary + one result)')
-        self.assertTrue('OpenSSL' in results, 'test match not found')
-        self.assertEqual(results['OpenSSL']['score'], 'high', 'incorrect or no score found in meta data')
+        self.assertTrue('Heartbleed' in results, 'test match not found')
+        self.assertEqual(results['Heartbleed']['score'], 'high', 'incorrect or no score found in meta data')
 
     def test_process_object_software_wrong_version(self):
         test_file = FileObject(file_path=os.path.join(TEST_DATA_DIR, 'empty'))
@@ -66,21 +64,3 @@ class TestAnalysisPluginsKnownVulnerabilities(AnalysisPluginTest):
         self.assertEqual(len(results), 2, 'incorrect number of software components found (summary + one result)')
         self.assertTrue('Netgear_CGI' in results, 'test match not found')
         self.assertEqual(results['Netgear_CGI']['score'], 'medium', 'incorrect or no score found in meta data')
-
-
-@pytest.mark.parametrize('reliability', ['no_integer', None, '200'])
-def test_bad_reliability(reliability):
-    with pytest.raises(BadRuleError):
-        SoftwareRule(description='', score='high', reliability=reliability, software='name')
-
-
-@pytest.mark.parametrize('score', ['higher', None, 50])
-def test_bad_score(score):
-    with pytest.raises(BadRuleError):
-        SoftwareRule(description='', score=score, reliability='50', software='name')
-
-
-@pytest.mark.parametrize('description', [None, 12, dict(prefix='any')])
-def test_bad_description(description):
-    with pytest.raises(BadRuleError):
-        SoftwareRule(description=description, score='high', reliability='50', software='name')

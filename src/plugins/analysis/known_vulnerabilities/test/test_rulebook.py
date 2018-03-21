@@ -1,7 +1,7 @@
 import pytest
 
-from ..internal.rulebook import evaluate, _get_value, _get_dotted_path_from_dictionary, SubPathRule, MetaRule, SingleRule, RELATIONS, \
-    _evaluate_single_rule, _evaluate_meta_rule, _evaluate_sub_path_rule
+from ..internal.rulebook import evaluate, _get_value, _get_dotted_path_from_dictionary, SubPathRule, MetaRule, \
+    SingleRule, RELATIONS, _evaluate_single_rule, _evaluate_meta_rule, _evaluate_sub_path_rule
 
 IPS = {
     'ip_and_uri_finder': {
@@ -55,7 +55,7 @@ def test_get_value():
 
 @pytest.mark.parametrize('relation', list(RELATIONS.keys()))
 def test_all_rules_are_booleans(relation):
-    if relation not in ['in', 'reverse_in']:
+    if relation not in ['in', 'reverse_in', 'intersection']:
         assert RELATIONS[relation](1, 2) in [True, False]
 
     assert RELATIONS[relation]('12', '5') in [True, False]
@@ -67,7 +67,8 @@ def test_all_rules_are_booleans(relation):
     ('gt', 100, 99, 101),
     ('lt', 100, 101, 99),
     ('in', '42', 'i like 42', 'more a 1337 guy'),
-    ('reverse_in', [1, 3], 3, 2)
+    ('reverse_in', [1, 3], 3, 2),
+    ('intersection', [1, 2, 3], [2, 3], [4, 5])  # 'exists' can not be tested this way since its never false
 ])
 def test_apply_relation(relation_value_good_bad):
     relation, value, good, bad = relation_value_good_bad
@@ -101,3 +102,8 @@ def test_evaluate_base_rule():
 
     assert _evaluate_sub_path_rule(IPS, sub_path_match)
     assert not _evaluate_sub_path_rule(IPS, sub_path_no_match)
+
+
+def test_evaluate_bad_type():
+    with pytest.raises(TypeError):
+        evaluate(dict(), object())

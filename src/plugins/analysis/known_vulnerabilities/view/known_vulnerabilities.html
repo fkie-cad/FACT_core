@@ -6,7 +6,11 @@
         {% if key not in ['summary', 'plugin_version', 'analysis_date'] %}
             <tr>
                 <td class="{{ firmware.processed_analysis[selected_analysis][key]['score'] | vulnerability_class }}">{{ key }}</td>
-                <td> {{ firmware.processed_analysis[selected_analysis][key]['description'] }}</td>
+                <td> {{ firmware.processed_analysis[selected_analysis][key]['description'] }}
+                    {% if firmware.processed_analysis[selected_analysis][key]['link'] %}
+                        &nbsp;&nbsp;<a href="{{ firmware.processed_analysis[selected_analysis][key]['link'] }}" target="_blank"><span class="glyphicon glyphicon-link"></span></a>
+                    {% endif %}
+                </td>
             </tr>
         {% endif %}
     {% endfor %}
