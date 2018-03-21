@@ -158,7 +158,7 @@ def test_render_tags(tag_dict, output):
     assert render_tags(tag_dict) == output
 
 
-@pytest.mark.parametrize('score_and_class', [('low', 'active'), ('medium', 'warning'), ('high', 'alert')])
+@pytest.mark.parametrize('score_and_class', [('low', 'active'), ('medium', 'warning'), ('high', 'danger')])
 def test_vulnerability_class_success(score_and_class):
     assert vulnerability_class(score_and_class[0]) == score_and_class[1]
 
