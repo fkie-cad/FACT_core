@@ -314,7 +314,7 @@ def fix_cwe(s):
 
 def vulnerability_class(score):
     if score == 'high':
-        return 'alert'
+        return 'danger'
     elif score == 'medium':
         return 'warning'
     elif score == 'low':

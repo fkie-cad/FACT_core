@@ -218,3 +218,6 @@ class TestStatistic(unittest.TestCase):
 
     def test_fetch_mitigations(self):
         self.assertEqual(self.updater._get_exploit_mitigations_stats(), {'exploit_mitigations': []})
+
+    def test_known_vulnerabilities_works(self):
+        self.assertEqual(self.updater._get_known_vulnerabilities_stats(), {'known_vulnerabilities': []})
