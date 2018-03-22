@@ -1,11 +1,10 @@
 import tempfile
+from collections import namedtuple
+from unittest.mock import patch
 
 from objects.file import FileObject
 from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
 from ..code.ip_and_uri_finder import AnalysisPlugin
-from unittest.mock import patch
-from collections import namedtuple
-
 
 MockResponse = namedtuple('MockResponse', ['location'])
 MockLocation = namedtuple('MockLocation', ['latitude', 'longitude'])
@@ -28,6 +27,7 @@ class TestAnalysisPluginIpAndUriFinder(AnalysisPluginTest):
 
     PLUGIN_NAME = "ip_and_uri_finder"
 
+    @patch('geoip2.database.Reader', MockReader)
     def setUp(self):
         super().setUp()
         config = self.init_basic_config()
@@ -50,6 +50,7 @@ class TestAnalysisPluginIpAndUriFinder(AnalysisPluginTest):
         self.assertIn({"ip": "1234:1234:abcd:abcd:1234:1234:abcd:abcd", "geo_location": ""}, results["ips_v6"])
         self.assertIn({"ip": "2001:db8:0:0:8d3::", "geo_location": ""}, results["ips_v6"])
 
+    @patch('geoip2.database.Reader', MockReader)
     def test_process_object_uris(self):
         tmp = tempfile.NamedTemporaryFile()
         with open(tmp.name, "w") as fp:
@@ -64,6 +65,7 @@ class TestAnalysisPluginIpAndUriFinder(AnalysisPluginTest):
         self.assertIn("ftp://ftp.is.co.za/rfc/rfc1808.txt", results["uris"])
         self.assertIn("telnet://192.0.2.16:80/", results["uris"])
 
+    @patch('geoip2.database.Reader', MockReader)
     def test_add_geouri_to_ip(self):
         test_data = {'ips_v4': ['128.101.101.101', '255.255.255.255'],
                      'ips_v6': ["1234:1234:abcd:abcd:1234:1234:abcd:abcd"],

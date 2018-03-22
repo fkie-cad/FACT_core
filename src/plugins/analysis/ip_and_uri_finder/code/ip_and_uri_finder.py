@@ -1,11 +1,12 @@
 import logging
 import os
-import geoip2.database
-from common_analysis_ip_and_uri_finder import CommonAnalysisIPAndURIFinder, ip_and_uri_finder_analysis
 from sys import exc_info
-from analysis.PluginBase import AnalysisBasePlugin
+
+import geoip2.database
 from common_helper_files import get_dir_of_file
 
+from analysis.PluginBase import AnalysisBasePlugin
+from common_analysis_ip_and_uri_finder import CommonAnalysisIPAndURIFinder, ip_and_uri_finder_analysis
 
 geoip_database_path = os.path.join(get_dir_of_file(__file__), '../bin/GeoLite2-City/GeoLite2-City.mmdb')
 
