@@ -15,25 +15,27 @@
                 <td>
                     <table>
                         {% for item in firmware.processed_analysis[selected_analysis][key] %}
-                            {% if key == "ips_v6" or  key == "ips_v4" %}:
-                                <tr>
-                                    <td>
-                                        {{ item['ip'] }}
-                                    </td>
-                                    <td style="padding-left:10px">
-                                        {% if item['geo_uri'] %}
-                                            <a href="https://www.google.de/maps/place/{{ item['geo_uri'] }}">
-                                                <span class="glyphicon glyphicon-map-marker"></span>
-                                            </a>
-                                        {% endif %}
-                                    </td>
-                                </tr>
+                            {% if key == "ips_v6" or  key == "ips_v4" %}
+                                {% for ip, geo_location in item.items() %}
+                                    <tr>
+                                        <td>
+                                            {{ ip }}
+                                        </td>
+                                        <td style="padding-left:10px">
+                                            {% if geo_location %}
+                                                <a href="https://www.google.de/maps/place/{{ geo_location }}">
+                                                    <span class="glyphicon glyphicon-map-marker"></span>
+                                                </a>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
                             {% else %}
                                 <tr>
-                                    <td>
+                                    <td colspan="2">
                                         {{ item }}
                                     </td>
                                 </tr>
+                                {% endfor %}
                             {% endif %}
                         {% endfor %}
                     </table>
