@@ -24,8 +24,8 @@ class test_analysis_plugin_checksec(AnalysisPluginTest):
         resD, sumD = {}, {}
         readelf = ''
         check_pie(FILE_PATH, resD, sumD, readelf)
-        self.assertEqual(resD, {'PIE': 'Not a valid ELF file'})
-        self.assertEqual(sumD, {'PIE - Not a valid ELF file': 'usr/test_dir/path'})
+        self.assertEqual(resD, {'PIE': 'invalid ELF file'})
+        self.assertEqual(sumD, {'PIE - invalid ELF file': 'usr/test_dir/path'})
 
         resD, sumD = {}, {}
         readelf = '0xabcdefghi Type:      EXEC 0x0000000000'
