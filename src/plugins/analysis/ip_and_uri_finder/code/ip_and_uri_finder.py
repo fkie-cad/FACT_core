@@ -28,6 +28,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
         # additional init stuff can go here
         self.IPAndURIFinder = CommonAnalysisIPAndURIFinder()
 
+        self.reader = geoip2.database.Reader(geoip_database_path)
+
         super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__)
 
     def process_object(self, file_object):
@@ -46,9 +48,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return result
 
     def find_geo_location(self, ip_address):
-        reader = geoip2.database.Reader(geoip_database_path)
         try:
-            response = reader.city(ip_address)
+            response = self.reader.city(ip_address)
             latitude = response.location.latitude
             longitude = response.location.longitude
         except Exception as e:
