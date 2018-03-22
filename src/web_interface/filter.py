@@ -246,13 +246,13 @@ def data_to_chart_with_value_percentage_pairs(data, limit=10, color_list=None):
     label_list, value_list = set_limit_for_data_to_chart(label_list, limit, value_list)
     color_list = set_color_list_for_data_to_chart(color_list, value_list)
     result = {
-        "labels": label_list,
-        "datasets": [{
-            "data": value_list,
-            "percentage": percentage_list,
-            "backgroundColor": color_list,
-            "borderColor": color_list,
-            "borderWidth": 1
+        'labels': label_list,
+        'datasets': [{
+            'data': value_list,
+            'percentage': percentage_list,
+            'backgroundColor': color_list,
+            'borderColor': color_list,
+            'borderWidth': 1
         }]
     }
     return result
@@ -267,7 +267,7 @@ def set_color_list_for_data_to_chart(color_list, value_list):
 def set_limit_for_data_to_chart(label_list, limit, value_list):
     if limit and len(label_list) > limit:
         label_list = label_list[:limit]
-        label_list.append("rest")
+        label_list.append('rest')
         rest_sum = sum(value_list[limit:])
         value_list = value_list[:limit]
         value_list.append(rest_sum)
@@ -304,9 +304,20 @@ def render_tags(tag_dict, additional_class='', size=10):
     return output
 
 
+def render_analysis_tags(tags, size=10):
+    output = ''
+    if tags:
+        for plugin_name in tags:
+            for key, tag in tags[plugin_name].items():
+                output += '<span class="label label-pill label-{}" style="font-size: {}px;" data-toggle="tooltip" title="{}: {}">{}</span>\n'.format(
+                    tag['color'], size, replace_underscore_filter(plugin_name), replace_underscore_filter(key), tag['value']
+                )
+    return output
+
+
 def fix_cwe(s):
-    if ("CWE" in s):
-        return s.split("]")[0].split("E")[-1]
+    if 'CWE' in s:
+        return s.split(']')[0].split('E')[-1]
     else:
-        logging.warning("Expected a CWE string.")
-        return ""
+        logging.warning('Expected a CWE string.')
+        return ''
