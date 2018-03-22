@@ -1,41 +1,30 @@
 import logging
-import signal
 import sys
+import time
 
-
+from storage.MongoMgr import MongoMgr
 from helperFunctions.program_setup import program_setup
 from scheduler.Analysis import AnalysisScheduler
-
+from scheduler.Compare import CompareScheduler
 
 PROGRAM_NAME = 'Restart FACT Analysis Component'
 PROGRAM_DESCRIPTION = 'Restart FACT Analysis Component and reload Analysis Templates'
 
 
-def shutdown(signum, frame):
-    global run
-    logging.info('shutting down FACT Analysis Component')
-    run = False
-
-
-signal.signal(signal.SIGINT, shutdown)
-signal.signal(signal.SIGTERM, shutdown)
-
-
-def main():
-    args, config = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION)
+def main(command_line_options=sys.argv):
+    args, config = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION, command_line_options=command_line_options)
+    mongo_server = MongoMgr(config=config)
     analysis_service = AnalysisScheduler(config=config)
+    compare_service = CompareScheduler(config=config)
+    time.sleep(2)
+    compare_service.shutdown()
     analysis_service.shutdown()
     logging.info('Restart Analysis component')
-    analysis_service = AnalysisScheduler(config=config)
 
-    run = True
-    while run:
-        try:
-            pass
-        except KeyboardInterrupt:
-            break
+    if args.testing:
+        logging.info('Stopping Mongo Server...')
+        mongo_server.shutdown()
 
-    analysis_service.shutdown()
     return 0
 
 
