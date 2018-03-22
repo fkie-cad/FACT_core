@@ -61,19 +61,17 @@ class AnalysisPlugin(AnalysisBasePlugin):
     def link_ips_with_geo_location(self, ip_adresses):
         linked_ip_geo_list = []
         for ip in ip_adresses:
-            geo_location = str(self.find_geo_location(ip))
-            link = {"ip": ip, "geo_location": geo_location}
+            link = {ip: str(self.find_geo_location(ip))}
             linked_ip_geo_list.append(link)
         return linked_ip_geo_list
 
-    @staticmethod
-    def _get_summary(results):
+    def _get_summary(self, results):
         summary = []
         for key in ['uris']:
             summary.extend(results[key])
         for key in ['ips_v4', 'ips_v6']:
-            for i in range(len(results[key])):
-                summary.extend(results[key][i]["ip"])
+            for i in results[key]:
+                summary.extend(i)
         return summary
 
     @staticmethod
