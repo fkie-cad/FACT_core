@@ -2,7 +2,10 @@ import logging
 import sys
 from time import time
 
+from pymongo.errors import PyMongoError
+
 from helperFunctions.dataConversion import convert_str_to_time
+from helperFunctions.tag import update_tags
 from objects.file import FileObject
 from objects.firmware import Firmware
 from storage.db_interface_common import MongoInterfaceCommon
@@ -47,6 +50,7 @@ class BackEndDbInterface(MongoInterfaceCommon):
                              'vendor': new_object.vendor,
                              'release_date': convert_str_to_time(new_object.release_date),
                              'tags': new_object.tags,
+                             'analysis_tags': new_object.analysis_tags,
                              'comments': new_object.comments}})
             except Exception as e:
                 logging.error('Could not update firmware: {} - {}'.format(sys.exc_info()[0].__name__, e))
@@ -57,6 +61,7 @@ class BackEndDbInterface(MongoInterfaceCommon):
                     '$set': {'processed_analysis': old_pa,
                              'files_included': old_fi,
                              'virtual_file_path': old_vfp,
+                             'analysis_tags': new_object.analysis_tags,
                              'comments': new_object.comments,
                              'parent_firmware_uids': list(parent_firmware_uids)}})
             except Exception as e:
@@ -99,6 +104,7 @@ class BackEndDbInterface(MongoInterfaceCommon):
             'vendor': firmware.vendor,
             'release_date': convert_str_to_time(firmware.release_date),
             'submission_date': time(),
+            'analysis_tags': firmware.analysis_tags,
             'tags': firmware.tags
         }
         if hasattr(firmware, 'comments'):  # for backwards compatibility
@@ -137,6 +143,7 @@ class BackEndDbInterface(MongoInterfaceCommon):
             'processed_analysis': analysis,
             'files_included': list(file_object.files_included),
             'size': file_object.size,
+            'analysis_tags': file_object.analysis_tags,
             'parent_firmware_uids': list(file_object.parent_firmware_uids)
         }
         for attribute in ['comments']:  # for backwards compatibility
@@ -153,3 +160,24 @@ class BackEndDbInterface(MongoInterfaceCommon):
         file_object = super()._convert_to_file_object(entry, analysis_filter=None)
         file_object.set_file_path(entry['file_path'])
         return file_object
+
+    def update_analysis_tags(self, uid, plugin_name, tag_name, tag):
+        # first handle non-existing analysis_tags field
+        # create new analysis tags entry
+        file_object = self.get_object(uid=uid, analysis_filter=[])
+        try:
+            tags = update_tags(file_object.analysis_tags, plugin_name, tag_name, tag)
+        except ValueError as value_error:
+            logging.error('Plugin {} tried setting a bad tag {}: {}'.format(plugin_name, tag_name, str(value_error)))
+            return None
+
+        if type(file_object) == Firmware:
+            try:
+                self.firmwares.update_one({'_id': uid}, {'$set': {'analysis_tags': tags}})
+            except (TypeError, ValueError, PyMongoError) as exception:
+                logging.error('Could not update firmware: {} - {}'.format(type(exception), str(exception)))
+        else:
+            try:
+                self.file_objects.update_one({'_id': file_object.get_uid()}, {'$set': {'analysis_tags': tags}})
+            except (TypeError, ValueError, PyMongoError) as exception:
+                logging.error('Could not update file: {} - {}'.format(type(exception), str(exception)))
