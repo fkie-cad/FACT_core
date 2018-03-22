@@ -3,6 +3,7 @@ import os
 from sys import exc_info
 
 import geoip2.database
+from geoip2.errors import AddressNotFoundError
 from common_helper_files import get_dir_of_file
 
 from analysis.PluginBase import AnalysisBasePlugin
@@ -53,15 +54,21 @@ class AnalysisPlugin(AnalysisBasePlugin):
             response = self.reader.city(ip_address)
             latitude = response.location.latitude
             longitude = response.location.longitude
-        except Exception as e:
-            logging.error("Geo Location of IP: {} {}".format(exc_info()[0].__name__, e))
+
+        except AddressNotFoundError as e:
+            logging.debug("{} {}".format(type(e), str(e)))
             return ""
-        return (latitude, longitude)
+
+        except AttributeError as e:
+            logging.debug("{} {}".format(type(e), str(e)))
+            return ""
+
+        return "{}, {}".format(latitude, longitude)
 
     def link_ips_with_geo_location(self, ip_adresses):
         linked_ip_geo_list = []
         for ip in ip_adresses:
-            link = {ip: str(self.find_geo_location(ip))}
+            link = {ip: self.find_geo_location(ip)}
             linked_ip_geo_list.append(link)
         return linked_ip_geo_list
 

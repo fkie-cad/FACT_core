@@ -44,8 +44,8 @@ class TestAnalysisPluginIpAndUriFinder(AnalysisPluginTest):
         results = processed_object.processed_analysis[self.PLUGIN_NAME]
         tmp.close()
         self.assertEqual(results["uris"], [])
-        self.assertIn({"1.2.3.4": "(47.913, -122.3042)"}, results["ips_v4"])
-        self.assertIn({"1.1.1.123": "(-37.7, 145.1833)"}, results["ips_v4"])
+        self.assertIn({"1.2.3.4": "47.913, -122.3042"}, results["ips_v4"])
+        self.assertIn({"1.1.1.123": "-37.7, 145.1833"}, results["ips_v4"])
         self.assertIn({"255.255.255.255": ""}, results["ips_v4"])
         self.assertIn({"1234:1234:abcd:abcd:1234:1234:abcd:abcd": ""}, results["ips_v6"])
         self.assertIn({"2001:db8:0:0:8d3::": ""}, results["ips_v6"])
@@ -72,24 +72,24 @@ class TestAnalysisPluginIpAndUriFinder(AnalysisPluginTest):
                      "uris": "http://www.google.de"}
         results = self.analysis_plugin.add_geo_uri_to_ip(test_data)
         self.assertEqual("http://www.google.de", results["uris"])
-        self.assertEqual([{"128.101.101.101": "(44.9759, -93.2166)"},
+        self.assertEqual([{"128.101.101.101": "44.9759, -93.2166"},
                           {"255.255.255.255": ""}], results["ips_v4"])
         self.assertEqual([{"1234:1234:abcd:abcd:1234:1234:abcd:abcd": ""}], results["ips_v6"])
 
     @patch('geoip2.database.Reader', MockReader)
     def test_find_geo_location(self):
-        self.assertEqual(self.analysis_plugin.find_geo_location('128.101.101.101'), (44.9759, -93.2166))
+        self.assertEqual(self.analysis_plugin.find_geo_location('128.101.101.101'), "44.9759, -93.2166")
         self.assertEqual(self.analysis_plugin.find_geo_location('127.101.101.101'), "")
         self.assertEqual(self.analysis_plugin.find_geo_location('255.255.255.255'), "")
 
     @patch('geoip2.database.Reader', MockReader)
     def test_link_ips_with_geo_location(self):
         ip_adresses = ["128.101.101.101", "255.255.255.255"]
-        expected_results = [{"128.101.101.101": "(44.9759, -93.2166)"},
+        expected_results = [{"128.101.101.101": "44.9759, -93.2166"},
                             {"255.255.255.255": ""}]
         self.assertEqual(self.analysis_plugin.link_ips_with_geo_location(ip_adresses), expected_results)
 
     def test_get_summary(self):
-        results = {'uris': ['http://www.google.de'], 'ips_v4': [{'128.101.101.101': '(44.9759, -93.2166)'}], 'ips_v6': [{'1234:1234:abcd:abcd:1234:1234:abcd:abcd': ''}]}
+        results = {'uris': ['http://www.google.de'], 'ips_v4': [{'128.101.101.101': '44.9759, -93.2166'}], 'ips_v6': [{'1234:1234:abcd:abcd:1234:1234:abcd:abcd': ''}]}
         expected_results = ['http://www.google.de', '128.101.101.101', '1234:1234:abcd:abcd:1234:1234:abcd:abcd']
         self.assertEqual(self.analysis_plugin._get_summary(results), expected_results)
