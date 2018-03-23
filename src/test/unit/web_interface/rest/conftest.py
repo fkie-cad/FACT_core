@@ -4,8 +4,8 @@ from tempfile import TemporaryDirectory
 import pytest
 
 from helperFunctions.config import get_config_for_testing
-from web_interface.frontend_main import WebFrontEnd
 from test.common_helper import DatabaseMock, fake_exit
+from web_interface.frontend_main import WebFrontEnd
 
 
 @pytest.fixture(scope='function', autouse=True)

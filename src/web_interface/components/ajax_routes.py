@@ -12,6 +12,8 @@ from storage.db_interface_compare import CompareDbInterface
 from storage.db_interface_frontend import FrontEndDbInterface
 from web_interface.components.component_base import ComponentBase
 from web_interface.filter import encode_base64_filter, bytes_to_str_filter
+from web_interface.security.decorator import roles_accepted
+from web_interface.security.privileges import PRIVILEGES
 
 
 class AjaxRoutes(ComponentBase):
@@ -35,6 +37,7 @@ class AjaxRoutes(ComponentBase):
             exclusive_files = []
         return exclusive_files
 
+    @roles_accepted(*PRIVILEGES['view_analysis'])
     def _ajax_get_tree_children(self, uid, root_uid=None, compare_id=None):
         exclusive_files = self._get_exclusive_files(compare_id, root_uid)
         children = []
@@ -50,6 +53,7 @@ class AjaxRoutes(ComponentBase):
             children.append(child)
         return jsonify(children)
 
+    @roles_accepted(*PRIVILEGES['view_analysis'])
     def _ajax_get_tree_root(self, uid):
         root = list()
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
@@ -109,6 +113,7 @@ class AjaxRoutes(ComponentBase):
             result['children'] = self._get_jstree_child_nodes(node)
         return result
 
+    @roles_accepted(*PRIVILEGES['compare'])
     def _ajax_get_common_files_for_compare(self, compare_id, feature_id):
         with ConnectTo(CompareDbInterface, self._config) as sc:
             result = sc.get_compare_result(compare_id)
@@ -128,6 +133,7 @@ class AjaxRoutes(ComponentBase):
             root_uid=root_uid
         )
 
+    @roles_accepted(*PRIVILEGES['view_analysis'])
     def _ajax_get_binary(self, mime_type, uid):
         mime_type = mime_type.replace('_', '/')
         div = '<div style="display: block; border: 1px solid; border-color: #dddddd; padding: 5px; text-align: center">'

@@ -6,6 +6,8 @@ from helperFunctions.rest import success_message, error_message, convert_rest_re
 from helperFunctions.web_interface import ConnectTo
 from intercom.front_end_binding import InterComFrontEndBinding
 from storage.db_interface_compare import CompareDbInterface
+from web_interface.security.decorator import roles_accepted
+from web_interface.security.privileges import PRIVILEGES
 
 
 class RestCompare(Resource):
@@ -14,6 +16,7 @@ class RestCompare(Resource):
     def __init__(self, **kwargs):
         self.config = kwargs.get('config', None)
 
+    @roles_accepted(*PRIVILEGES['compare'])
     def put(self):
         '''
         The request data should have the form
@@ -45,6 +48,7 @@ class RestCompare(Resource):
                 return success_message({'message': 'Compare started. Please use GET to get the results.'}, self.URL, request_data=data, return_code=202)
         return error_message('Compare already exists. Use "redo" to force re-compare.', self.URL, request_data=data, return_code=200)
 
+    @roles_accepted(*PRIVILEGES['compare'])
     def get(self, compare_id=None):
         '''
         The request data should have the form
