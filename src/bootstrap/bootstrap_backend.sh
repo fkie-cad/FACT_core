@@ -161,12 +161,13 @@ echo "####################################"
 
 cd ../
 echo "from helperFunctions.config import load_config;config = load_config('main.cfg');print(config.get('data_storage', 'firmware_file_storage_directory'));exit(0)" > get_data_dir_name.py
+
 cd ..
-fafdatadir=$(python3 src/get_data_dir_name.py)
-fafuser=$(whoami)
-fafusergroup=$(id -gn)
-sudo mkdir -p --mode=0744 $fafdatadir 2> /dev/null
-sudo chown $fafuser:$fafusergroup $fafdatadir 
+factdatadir=$(python3 src/get_data_dir_name.py)
+factuser=$(whoami)
+factusergroup=$(id -gn)
+sudo mkdir -p --mode=0744 $factdatadir 2> /dev/null
+sudo chown $factuser:$factusergroup $factdatadir
 rm src/get_data_dir_name.py
 cd src/bootstrap
 

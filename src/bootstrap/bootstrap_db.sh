@@ -14,9 +14,9 @@ echo "####################################"
 sudo -E apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 2930ADAE8CAF5059EE73BB4B58712A2291FA4AD5
 sudo rm /etc/apt/sources.list.d/mongodb-org-3.*
 echo "deb https://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.6 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.6.list
-sudo -E apt update
-sudo -E apt install -y mongodb-org
-sudo -E apt upgrade -y
+sudo -E apt-get update
+sudo -E apt-get install -y mongodb-org
+sudo -E apt-get upgrade -y
 
 
 echo "####################################"
