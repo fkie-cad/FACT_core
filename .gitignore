@@ -28,7 +28,7 @@ start_all_installed_fact_components
 update_statistic.cron
 log/
 src/test_unittests/data/arch_detection/
-10k_most_common.txt
+10k-most-common.txt
 .coverage*
 coverage.xml
 nose2-junit.xml
