@@ -21,6 +21,7 @@ def add_tags_to_object(file_object, analysis_name):
         file_object.analysis_tags[analysis_name] = tags
     return file_object
 
+
 def update_tags(old_tags, plugin_name, tag_name, tag):
     tag_is_stable, message = check_tag_integrity(tag)
 
