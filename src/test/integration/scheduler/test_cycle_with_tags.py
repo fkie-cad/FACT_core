@@ -22,8 +22,8 @@ class TestTagPropagation(unittest.TestCase):
     def setUp(self):
         self._tmp_dir = TemporaryDirectory()
         self._config = initialize_config(self._tmp_dir)
-        self.elements_finished_analyzing = Value('i', 0)
         self.analysis_finished_event = Event()
+        self.uid_of_key_file = '530bf2f1203b789bfe054d3118ebd29a04013c587efd22235b3b9677cee21c0e_2048'
 
         self._mongo_server = MongoMgr(config=self._config, auth=False)
         self.backend_interface = BackEndDbInterface(config=self._config)
@@ -34,8 +34,7 @@ class TestTagPropagation(unittest.TestCase):
 
     def count_analysis_finished_event(self, fw_object):
         self.backend_interface.add_object(fw_object)
-        self.elements_finished_analyzing.value += 1
-        if self.elements_finished_analyzing.value > 4:
+        if fw_object.uid == self.uid_of_key_file:
             self.analysis_finished_event.set()
 
     def _wait_for_empty_tag_queue(self):
@@ -58,13 +57,11 @@ class TestTagPropagation(unittest.TestCase):
         test_fw.release_date = '2017-01-01'
         test_fw.scheduled_analysis = ['crypto_material']
 
-        uid_of_key_file = '530bf2f1203b789bfe054d3118ebd29a04013c587efd22235b3b9677cee21c0e_2048'
-
         self._unpack_scheduler.add_task(test_fw)
 
-        self.analysis_finished_event.wait(timeout=10)
+        assert self.analysis_finished_event.wait(timeout=12)
 
-        processed_fo = self.backend_interface.get_object(uid_of_key_file, analysis_filter=['crypto_material'])
+        processed_fo = self.backend_interface.get_object(self.uid_of_key_file, analysis_filter=['crypto_material'])
         assert processed_fo.processed_analysis['crypto_material']['tags'], 'no tags set in analysis'
 
         self._wait_for_empty_tag_queue()
