@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 import pytest
 
 from helperFunctions.tag import TagColor, check_tags, add_tags_to_object, update_tags, check_tag_integrity
@@ -6,7 +8,7 @@ from test.common_helper import TEST_TEXT_FILE
 
 @pytest.fixture(scope='function')
 def test_object():
-    return TEST_TEXT_FILE
+    return deepcopy(TEST_TEXT_FILE)
 
 
 @pytest.mark.parametrize('tag', [
