@@ -2,11 +2,12 @@ import unittest
 import pytest
 from time import gmtime
 
-from web_interface.filter import replace_underscore_filter, byte_number_filter, get_all_uids_in_string, nice_list, uids_to_link, \
+from web_interface.filter import replace_underscore_filter, byte_number_filter, get_all_uids_in_string, nice_list, \
+    uids_to_link, \
     list_to_line_break_string, nice_unix_time, nice_number_filter, sort_chart_list_by_value, \
-    sort_chart_list_by_name, text_highlighter, generic_nice_representation, list_to_line_break_string_no_sort,\
-    encode_base64_filter, render_tags, fix_cwe, set_limit_for_data_to_chart, data_to_chart_with_value_percentage_pairs,\
-    data_to_chart_limited
+    sort_chart_list_by_name, text_highlighter, generic_nice_representation, list_to_line_break_string_no_sort, \
+    encode_base64_filter, render_tags, fix_cwe, set_limit_for_data_to_chart, data_to_chart_with_value_percentage_pairs, \
+    data_to_chart_limited, render_analysis_tags
 
 
 class TestWebInterfaceFilter(unittest.TestCase):
@@ -156,3 +157,20 @@ def test_generic_nice_representation(input_data, expected):
 ])
 def test_render_tags(tag_dict, output):
     assert render_tags(tag_dict) == output
+
+
+def test_empty_analysis_tags():
+    assert render_analysis_tags(dict()) == ''
+
+
+def test_render_analysis_tags_success():
+    tags = {'such plugin': {'tag': {'color': 'very color', 'value': 'wow'}}}
+    output = render_analysis_tags(tags)
+    assert 'label-very color' in output
+    assert '>wow<' in output
+
+
+def test_render_analysis_tags_bad_type():
+    tags = {'such plugin': {42: {'color': 'very color', 'value': 'wow'}}}
+    with pytest.raises(AttributeError):
+        render_analysis_tags(tags)
