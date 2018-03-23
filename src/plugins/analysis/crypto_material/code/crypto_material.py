@@ -1,5 +1,6 @@
 from analysis.YaraPluginBase import YaraBasePlugin
 from helperFunctions.parsing import read_asn1_key, read_pkcs_cert, read_ssl_cert
+from helperFunctions.tag import TagColor
 
 
 class AnalysisPlugin(YaraBasePlugin):
@@ -8,7 +9,7 @@ class AnalysisPlugin(YaraBasePlugin):
     '''
     NAME = 'crypto_material'
     DESCRIPTION = 'detects crypto material like SSH keys and SSL certificates'
-    VERSION = '0.5'
+    VERSION = '0.5.1'
     FILE = __file__
     STARTEND = ['PgpPublicKeyBlock', 'PgpPrivateKeyBlock', 'PgpPublicKeyBlock_GnuPG', 'genericPublicKey',
                 'SshRsaPrivateKeyBlock', 'SSLPrivateKey']
@@ -37,6 +38,7 @@ class AnalysisPlugin(YaraBasePlugin):
                     self.store_current_match_in_result(file_object=file_object, match=match, result=analysis_result, parsing_function=self.get_ssl_cert)
 
         file_object.processed_analysis[self.NAME] = analysis_result
+        self._add_private_key_tag(file_object, analysis_result)
         return file_object
 
     def store_current_match_in_result(self, file_object, match, result, parsing_function):
@@ -98,3 +100,14 @@ class AnalysisPlugin(YaraBasePlugin):
                     end_index = strings[index + 2][0] + len(strings[index + 2][2])
                     pairs.append((strings[index][0], end_index))
         return pairs
+
+    def _add_private_key_tag(self, file_object, result):
+        if any('private' in key.lower() for key in result):
+            file_object.processed_analysis[self.NAME]['tags'] = {
+                'private_key_inside': {
+                    'value': 'Private Key Found',
+                    'color': TagColor.ORANGE,
+                    'propagate': True,
+                },
+                'root_uid': file_object.get_root_uid()
+            }
