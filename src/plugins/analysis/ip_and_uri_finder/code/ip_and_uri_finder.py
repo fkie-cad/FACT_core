@@ -60,10 +60,6 @@ class AnalysisPlugin(AnalysisBasePlugin):
             logging.debug('{} {}'.format(type(e), str(e)))
             return ''
 
-        except AttributeError as e:
-            logging.debug('{} {}'.format(type(e), str(e)))
-            return ''
-
         except FileNotFoundError as e:
             logging.debug('{} {}'.format(type(e), str(e)))
             return ''
