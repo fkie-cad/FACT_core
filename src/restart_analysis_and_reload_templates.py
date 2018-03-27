@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import logging
 import sys
 import time
