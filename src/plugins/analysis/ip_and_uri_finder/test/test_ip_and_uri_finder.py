@@ -23,8 +23,20 @@ class MockReader:
             return MockResponse(location=MockLocation(latitude=47.913, longitude=-122.3042))
         if address == '1.1.1.123':
             return MockResponse(location=MockLocation(latitude=-37.7, longitude=145.1833))
+        if address == '255.255.255.255':
+            return MockResponse(location=MockLocation(latitude=0.0, longitude=0.0))
+        if address == '192.0.2.16':
+            return MockResponse(location=MockLocation(latitude=1.1, longitude=1.1))
+        if address == '1234:1234:abcd:abcd:1234:1234:abcd:abcd':
+            return MockResponse(location=MockLocation(latitude=2.1, longitude=2.1))
+        if address == '2001:db8:0:0:8d3::':
+            return MockResponse(location=MockLocation(latitude=3.1, longitude=3.1))
+        if address == '127.101.101.101':
+            return MockResponse(location=MockLocation(latitude=4.1, longitude=4.1))
         if address == '1.1.2.345':
             raise AddressNotFoundError
+        if address == 'aaa':
+            raise ValueError
 
 
 class TestAnalysisPluginIpAndUriFinder(AnalysisPluginTest):
@@ -49,8 +61,8 @@ class TestAnalysisPluginIpAndUriFinder(AnalysisPluginTest):
         tmp.close()
         self.assertEqual(results['uris'], [])
         self.assertCountEqual([('1.2.3.4', '47.913, -122.3042'), ('1.1.1.123', '-37.7, 145.1833'),
-                               ('255.255.255.255', '')], results['ips_v4'])
-        self.assertCountEqual([('1234:1234:abcd:abcd:1234:1234:abcd:abcd', ''), ('2001:db8:0:0:8d3::', '')],
+                               ('255.255.255.255', '0.0, 0.0')], results['ips_v4'])
+        self.assertCountEqual([('1234:1234:abcd:abcd:1234:1234:abcd:abcd', '2.1, 2.1'), ('2001:db8:0:0:8d3::', '3.1, 3.1')],
                               results['ips_v6'])
 
     @patch('geoip2.database.Reader', MockReader)
@@ -75,24 +87,25 @@ class TestAnalysisPluginIpAndUriFinder(AnalysisPluginTest):
         results = self.analysis_plugin.add_geo_uri_to_ip(test_data)
         self.assertEqual('http://www.google.de', results['uris'])
         self.assertEqual([('128.101.101.101', '44.9759, -93.2166'),
-                          ('255.255.255.255', '')], results['ips_v4'])
-        self.assertEqual([('1234:1234:abcd:abcd:1234:1234:abcd:abcd', '')], results['ips_v6'])
+                          ('255.255.255.255', '0.0, 0.0')], results['ips_v4'])
+        self.assertEqual([('1234:1234:abcd:abcd:1234:1234:abcd:abcd', '2.1, 2.1')], results['ips_v6'])
 
     @patch('geoip2.database.Reader', MockReader)
     def test_find_geo_location(self):
         self.assertEqual(self.analysis_plugin.find_geo_location('128.101.101.101'), '44.9759, -93.2166')
-        self.assertEqual(self.analysis_plugin.find_geo_location('127.101.101.101'), '')
+        self.assertEqual(self.analysis_plugin.find_geo_location('127.101.101.101'), '4.1, 4.1')
         self.assertRaises(Exception, self.analysis_plugin.find_geo_location('1.1.2.345'))
+        self.assertRaises(Exception, self.analysis_plugin.find_geo_location('aaa'))
 
     @patch('geoip2.database.Reader', MockReader)
     def test_link_ips_with_geo_location(self):
         ip_adresses = ['128.101.101.101', '255.255.255.255']
         expected_results = [('128.101.101.101', '44.9759, -93.2166'),
-                            ('255.255.255.255', '')]
+                            ('255.255.255.255', '0.0, 0.0')]
         self.assertEqual(self.analysis_plugin.link_ips_with_geo_location(ip_adresses), expected_results)
 
     def test_get_summary(self):
         results = {'uris': ['http://www.google.de'], 'ips_v4': [('128.101.101.101', '44.9759, -93.2166')],
-                   'ips_v6': [('1234:1234:abcd:abcd:1234:1234:abcd:abcd', '')]}
+                   'ips_v6': [('1234:1234:abcd:abcd:1234:1234:abcd:abcd', '2.1, 2.1')]}
         expected_results = ['http://www.google.de', '128.101.101.101', '1234:1234:abcd:abcd:1234:1234:abcd:abcd']
         self.assertEqual(self.analysis_plugin._get_summary(results), expected_results)
