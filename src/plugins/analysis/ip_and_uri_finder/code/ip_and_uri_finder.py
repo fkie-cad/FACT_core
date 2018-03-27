@@ -57,26 +57,26 @@ class AnalysisPlugin(AnalysisBasePlugin):
             longitude = response.location.longitude
 
         except AddressNotFoundError as e:
-            logging.debug("{} {}".format(type(e), str(e)))
-            return ""
+            logging.debug('{} {}'.format(type(e), str(e)))
+            return ''
 
         except AttributeError as e:
-            logging.debug("{} {}".format(type(e), str(e)))
-            return ""
+            logging.debug('{} {}'.format(type(e), str(e)))
+            return ''
 
         except FileNotFoundError as e:
-            logging.debug("{} {}".format(type(e), str(e)))
-            return ""
+            logging.debug('{} {}'.format(type(e), str(e)))
+            return ''
 
         except ValueError as e:
-            logging.debug("{} {}".format(type(e), str(e)))
-            return ""
+            logging.debug('{} {}'.format(type(e), str(e)))
+            return ''
 
         except InvalidDatabaseError as e:
-            logging.debug("{} {}".format(type(e), str(e)))
-            return ""
+            logging.debug('{} {}'.format(type(e), str(e)))
+            return ''
 
-        return "{}, {}".format(latitude, longitude)
+        return '{}, {}'.format(latitude, longitude)
 
     def link_ips_with_geo_location(self, ip_adresses):
         linked_ip_geo_list = []
