@@ -4,6 +4,7 @@ from sys import exc_info
 
 import geoip2.database
 from geoip2.errors import AddressNotFoundError
+from maxminddb.errors import InvalidDatabaseError
 from common_helper_files import get_dir_of_file
 
 from analysis.PluginBase import AnalysisBasePlugin
@@ -63,13 +64,25 @@ class AnalysisPlugin(AnalysisBasePlugin):
             logging.debug("{} {}".format(type(e), str(e)))
             return ""
 
+        except FileNotFoundError as e:
+            logging.debug("{} {}".format(type(e), str(e)))
+            return ""
+
+        except ValueError as e:
+            logging.debug("{} {}".format(type(e), str(e)))
+            return ""
+
+        except InvalidDatabaseError as e:
+            logging.debug("{} {}".format(type(e), str(e)))
+            return ""
+
         return "{}, {}".format(latitude, longitude)
 
     def link_ips_with_geo_location(self, ip_adresses):
         linked_ip_geo_list = []
         for ip in ip_adresses:
-            link = {ip: self.find_geo_location(ip)}
-            linked_ip_geo_list.append(link)
+            tuple = ip, self.find_geo_location(ip)
+            linked_ip_geo_list.append(tuple)
         return linked_ip_geo_list
 
     def _get_summary(self, results):
@@ -78,7 +91,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             summary.extend(results[key])
         for key in ['ips_v4', 'ips_v6']:
             for i in results[key]:
-                summary.extend(i)
+                summary.append(i[0])
         return summary
 
     @staticmethod
