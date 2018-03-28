@@ -56,7 +56,8 @@ class StatisticRoutes(ComponentBase):
                 "ip_and_uri_stats": stats_db.get_statistic("ips_and_uris"),
                 "architecture_stats": stats_db.get_statistic("architecture"),
                 "release_date_stats": stats_db.get_statistic("release_date"),
-                "exploit_mitigations_stats": stats_db.get_statistic("exploit_mitigations")
+                "exploit_mitigations_stats": stats_db.get_statistic("exploit_mitigations"),
+                "known_vulnerabilities_stats": stats_db.get_statistic("known_vulnerabilities")
             }
         return stats_dict
 
@@ -73,6 +74,7 @@ class StatisticRoutes(ComponentBase):
                 "architecture_stats": stats_updater._get_architecture_stats(),
                 "release_date_stats": stats_updater._get_time_stats(),
                 "general_stats": stats_updater.get_general_stats(),
-                "exploit_mitigations_stats": stats_updater._get_exploit_mitigations_stats()
+                "exploit_mitigations_stats": stats_updater._get_exploit_mitigations_stats(),
+                "known_vulnerabilities_stats": stats_updater._get_known_vulnerabilities_stats()
             }
         return stats_dict
