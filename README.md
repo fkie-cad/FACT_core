@@ -68,7 +68,7 @@ $ ./install.py --help
 
 ### Installation with Nginx
 The installer supports automated installation and configuration of nginx.
-This will enable a ssl and password protected access to the frontend via port 443. 
+This will enable a ssl protected access to the frontend via port 443. 
 Simply add the *-N* option to activate nginx support.
 
 ### Install Statistic Generation Cron Job
@@ -87,8 +87,13 @@ Afterwards FACT can be accesed on <http://localhost:5000> and <https://localhost
 
 You can shutdown the system by pressing *Ctrl + c* or by sending a SIGTERM to the *start_all_installed_faf_components* script.
 
-### Advanced Usage - REST API
+### Advanced Usage
+
+#### REST API
 FACT provides a REST API. More information can be found [here](https://github.com/fkie-cad/FACT_core/wiki/rest-documentation).
+
+#### User Management
+FACT provides an optional basic authentication, role and user management. More information can be found [here](https://github.com/fkie-cad/FACT_core/wiki/Authentication).
 
 ## Update an older Installation
 Checkout the new sources and rerun the installer.
