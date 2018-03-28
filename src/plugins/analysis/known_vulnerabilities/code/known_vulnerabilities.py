@@ -11,7 +11,7 @@ from rulebook import evaluate, vulnerabilities
 class AnalysisPlugin(YaraBasePlugin):
     NAME = 'known_vulnerabilities'
     DESCRIPTION = 'Rule based detection of known vulnerabilities like Heartbleed'
-    DEPENDENCIES = []
+    DEPENDENCIES = ['file_hashes', 'software_components']
     VERSION = '0.2'
     FILE = __file__
 
