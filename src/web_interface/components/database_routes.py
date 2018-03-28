@@ -150,7 +150,7 @@ class DatabaseRoutes(ComponentBase):
     @staticmethod
     def _get_yara_rule_file_from_request(request):
         yara_rule_file = None
-        if request.files['file']:
+        if 'file' in request.files and request.files['file']:
             _, yara_rule_file = get_file_name_and_binary_from_request(request)
         elif request.form['textarea']:
             yara_rule_file = request.form['textarea'].encode()
