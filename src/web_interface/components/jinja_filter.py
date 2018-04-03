@@ -17,7 +17,7 @@ from web_interface.filter import byte_number_filter, encode_base64_filter, \
     nice_unix_time, infection_color, nice_number_filter, sort_chart_list_by_name, sort_chart_list_by_value, \
     text_highlighter, get_canvas_height, comment_out_regex_meta_chars, \
     generic_nice_representation, list_to_line_break_string_no_sort, render_tags, fix_cwe, \
-    data_to_chart_with_value_percentage_pairs, render_analysis_tags
+    data_to_chart_with_value_percentage_pairs, render_analysis_tags, vulnerability_class
 
 
 class FilterClass:
@@ -121,4 +121,5 @@ class FilterClass:
         self._app.jinja_env.filters['render_tags'] = render_tags
         self._app.jinja_env.filters['render_analysis_tags'] = render_analysis_tags
         self._app.jinja_env.filters['fix_cwe'] = fix_cwe
+        self._app.jinja_env.filters['vulnerability_class'] = vulnerability_class
         self._app.jinja_env.filters['auth_enabled'] = self.check_auth

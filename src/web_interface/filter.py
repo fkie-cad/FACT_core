@@ -321,3 +321,13 @@ def fix_cwe(s):
     else:
         logging.warning('Expected a CWE string.')
         return ''
+
+
+def vulnerability_class(score):
+    if score == 'high':
+        return 'danger'
+    elif score == 'medium':
+        return 'warning'
+    elif score == 'low':
+        return 'active'
+    return None
