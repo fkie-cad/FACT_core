@@ -162,22 +162,20 @@ class BackEndDbInterface(MongoInterfaceCommon):
         return file_object
 
     def update_analysis_tags(self, uid, plugin_name, tag_name, tag):
-        # first handle non-existing analysis_tags field
-        # create new analysis tags entry
-        file_object = self.get_object(uid=uid, analysis_filter=[])
+        firmware_object = self.get_object(uid=uid, analysis_filter=[])
         try:
-            tags = update_tags(file_object.analysis_tags, plugin_name, tag_name, tag)
+            tags = update_tags(firmware_object.analysis_tags, plugin_name, tag_name, tag)
         except ValueError as value_error:
             logging.error('Plugin {} tried setting a bad tag {}: {}'.format(plugin_name, tag_name, str(value_error)))
             return None
+        except AttributeError:
+            logging.error('Firmware not in database yet: {}'.format(uid))
+            return None
 
-        if type(file_object) == Firmware:
+        if type(firmware_object) == Firmware:
             try:
                 self.firmwares.update_one({'_id': uid}, {'$set': {'analysis_tags': tags}})
             except (TypeError, ValueError, PyMongoError) as exception:
                 logging.error('Could not update firmware: {} - {}'.format(type(exception), str(exception)))
         else:
-            try:
-                self.file_objects.update_one({'_id': file_object.get_uid()}, {'$set': {'analysis_tags': tags}})
-            except (TypeError, ValueError, PyMongoError) as exception:
-                logging.error('Could not update file: {} - {}'.format(type(exception), str(exception)))
+            logging.warning('Propagating tag only allowed for firmware. Given: {}')
