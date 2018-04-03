@@ -1,5 +1,6 @@
-from helperFunctions.rest import success_message, error_message, get_current_gmt, convert_rest_request
 import pytest
+
+from helperFunctions.rest import success_message, error_message, get_current_gmt, convert_rest_request, get_recursive, get_summary_flag, get_update, get_query, get_paging
 
 
 def test_time_is_int():
@@ -60,3 +61,78 @@ def test_convert_rest_request_fails(data):
 @pytest.mark.parametrize('data', [b'{}', b'{"param": true}', b'{"a": 1, "b": {"c": 3}}'])
 def test_convert_rest_request_succeeds(data):
     assert isinstance(convert_rest_request(data), dict)
+
+
+def test_get_recursive():
+    assert not get_recursive(None)
+
+    with pytest.raises(ValueError):
+        get_recursive(dict(recursive='bad_string'))
+
+    with pytest.raises(ValueError):
+        get_recursive(dict(recursive='2'))
+
+    no_flag = get_recursive(dict())
+    assert not no_flag
+
+    false_result = get_recursive(dict(recursive='false'))
+    assert not false_result
+
+    good_result = get_recursive(dict(recursive='true'))
+    assert good_result
+
+
+def test_get_summary_flag():
+    assert not get_summary_flag(None)
+
+    with pytest.raises(ValueError):
+        get_summary_flag(dict(summary='bad_string'))
+
+    with pytest.raises(ValueError):
+        get_summary_flag(dict(summary='2'))
+
+    no_flag = get_summary_flag(dict())
+    assert not no_flag
+
+    false_result = get_summary_flag(dict(summary='false'))
+    assert not false_result
+
+    good_result = get_summary_flag(dict(summary='true'))
+    assert good_result
+
+
+@pytest.mark.parametrize('arguments', [None, dict(), dict(update='bad_string'), dict(update='[]'), dict(update='{}')])
+def test_get_update_bad(arguments):
+    with pytest.raises(ValueError):
+        get_update(arguments)
+
+
+def test_get_update_success():
+    assert get_update(dict(update='["any_plugin"]')) == ['any_plugin']
+
+
+@pytest.mark.parametrize('arguments', [dict(query='bad_string'), dict(query='[]')])
+def test_get_query_bad(arguments):
+    with pytest.raises(ValueError):
+        get_query(arguments)
+
+
+def test_get_query():
+    assert not get_query(None)
+
+    assert get_query(dict(query='{"a": "b"}')) == {'a': 'b'}
+
+
+@pytest.mark.parametrize('arguments', [(None, None), ('1', None), ('A', 'B')])
+def test_get_paging_bad_arguments(arguments):
+    offset, limit = arguments
+    paging, success = get_paging(dict(offset=offset, limit=limit))
+    assert not success
+
+
+def test_get_paging_success():
+    paging, success = get_paging(dict(offset=0, limit=1))
+    assert success and paging == (0, 1)
+
+    paging, success = get_paging(dict(offset='0', limit='1'))
+    assert success and paging == (0, 1)

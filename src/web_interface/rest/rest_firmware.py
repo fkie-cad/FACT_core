@@ -6,9 +6,10 @@ from flask_restful import Resource
 
 from helperFunctions.mongo_task_conversion import convert_analysis_task_to_fw_obj
 from helperFunctions.object_conversion import create_meta_dict
-from helperFunctions.rest import get_paging, get_query, success_message, error_message, convert_rest_request, get_update, get_recursive
+from helperFunctions.rest import get_paging, get_query, success_message, error_message, convert_rest_request, get_update, get_recursive, get_summary_flag
 from helperFunctions.web_interface import ConnectTo
 from intercom.front_end_binding import InterComFrontEndBinding
+from objects.firmware import Firmware
 from storage.db_interface_frontend import FrontEndDbInterface
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
@@ -44,9 +45,14 @@ class RestFirmware(Resource):
             except Exception:
                 return error_message('Unknown exception on request', self.URL, dict(offset=offset, limit=limit, query=query, recursive=recursive))
         else:
-            with ConnectTo(FrontEndDbInterface, self.config) as connection:
-                firmware = connection.get_firmware(uid)
-            if not firmware:
+            summary = get_summary_flag(request.args)
+            if summary:
+                with ConnectTo(FrontEndDbInterface, self.config) as connection:
+                    firmware = connection.get_complete_object_including_all_summaries(uid)
+            else:
+                with ConnectTo(FrontEndDbInterface, self.config) as connection:
+                    firmware = connection.get_firmware(uid)
+            if not firmware or not isinstance(firmware, Firmware):
                 return error_message('No firmware with UID {} found'.format(uid), self.URL, dict(uid=uid))
 
             fitted_firmware = self._fit_firmware(firmware)

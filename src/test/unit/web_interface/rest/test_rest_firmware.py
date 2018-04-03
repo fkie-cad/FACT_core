@@ -129,3 +129,8 @@ def test_request_with_bad_recursive_flag(test_app):
     query = json.dumps({'processed_analysis.file_type.full': {'$regex': 'arm', '$options': 'si'}})
     result = decode_response(test_app.get('/rest/firmware?recursive=true&query={}'.format(quote(query))))
     assert result['status'] == 0
+
+
+def test_request_with_summary_parameter(test_app):
+    result = decode_response(test_app.get('/rest/firmware/{}?summary=true'.format(TEST_FW.uid)))
+    assert 'firmware' in result
