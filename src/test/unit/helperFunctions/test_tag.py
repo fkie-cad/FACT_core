@@ -1,5 +1,5 @@
 from copy import deepcopy
-
+from unittest.mock import patch
 import pytest
 
 from helperFunctions.tag import TagColor, check_tags, add_tags_to_object, update_tags, check_tag_integrity
@@ -42,3 +42,50 @@ def test_add_tags_to_object_success(test_object):
     file_object = add_tags_to_object(test_object, 'some_analysis')
     assert 'some_analysis' in file_object.analysis_tags
     assert file_object.analysis_tags['some_analysis'] == {'tag': 'any_tag'}
+
+
+def test_check_tags_no_analysis():
+    result = check_tags(TEST_TEXT_FILE, 'non_existing_analysis')
+    assert result['notags']
+
+
+def test_check_tags_no_tags():
+    result = check_tags(TEST_TEXT_FILE, 'dummy')
+    assert result['notags']
+
+
+@patch.object(TEST_TEXT_FILE, 'processed_analysis', {'mock_plugin': {'tags': {'some_stuff': 'anything'}}})
+def test_check_tags_missing_root_uid():
+    result = check_tags(TEST_TEXT_FILE, 'mock_plugin')
+    assert result['notags']
+
+
+@patch.object(TEST_TEXT_FILE, 'processed_analysis', {'mock_plugin': {'tags': None}})
+def test_check_tags_bad_type():
+    result = check_tags(TEST_TEXT_FILE, 'mock_plugin')
+    assert result['notags']
+
+
+@patch.object(TEST_TEXT_FILE, 'processed_analysis', {'mock_plugin': {'tags': {'some_stuff': 'anything', 'root_uid': 'abc_123'}}})
+def test_check_tags_found():
+    result = check_tags(TEST_TEXT_FILE, 'mock_plugin')
+    assert not result['notags']
+    assert result['tags'] == {'some_stuff': 'anything'}
+
+
+def test_update_tags_propagate_exception():
+    bad_tag = {'value': 'good', 'color': 'bad color', 'propagate': True}
+    with pytest.raises(ValueError):
+        update_tags(dict(), 'some_plugin', 'any_tag', bad_tag)
+
+
+def test_update_tags_new_plugin():
+    tag = {'value': 'good', 'color': 'danger', 'propagate': False}
+    result = update_tags(old_tags=dict(), plugin_name='some_plugin', tag_name='any_tag', tag=tag)
+    assert result['some_plugin']['any_tag'] == tag
+
+
+def test_update_tags_overwrite_tag():
+    tag = {'value': 'good', 'color': 'danger', 'propagate': False}
+    result = update_tags(old_tags=dict(some_plugin=dict(any_tag=dict())), plugin_name='some_plugin', tag_name='any_tag', tag=tag)
+    assert result['some_plugin']['any_tag'] == tag

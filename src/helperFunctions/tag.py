@@ -10,7 +10,10 @@ class TagColor:
 def check_tags(file_object, analysis_name):
     tags, root_uid = None, None
     if analysis_name in file_object.processed_analysis and 'tags' in file_object.processed_analysis[analysis_name]:
-        root_uid = file_object.processed_analysis[analysis_name]['tags'].pop('root_uid')
+        try:
+            root_uid = file_object.processed_analysis[analysis_name]['tags'].pop('root_uid')
+        except (KeyError, AttributeError):
+            return dict(notags=True)
         tags = file_object.processed_analysis[analysis_name]['tags']
     return dict(notags=False, tags=tags, plugin=analysis_name, uid=root_uid) if root_uid else dict(notags=True)
 
