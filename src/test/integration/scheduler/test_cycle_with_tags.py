@@ -59,7 +59,7 @@ class TestTagPropagation(unittest.TestCase):
 
         self._unpack_scheduler.add_task(test_fw)
 
-        assert self.analysis_finished_event.wait(timeout=12)
+        assert self.analysis_finished_event.wait(timeout=20)
 
         processed_fo = self.backend_interface.get_object(self.uid_of_key_file, analysis_filter=['crypto_material'])
         assert processed_fo.processed_analysis['crypto_material']['tags'], 'no tags set in analysis'
