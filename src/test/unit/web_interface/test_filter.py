@@ -1,13 +1,13 @@
 import unittest
-import pytest
 from time import gmtime
 
+import pytest
+
 from web_interface.filter import replace_underscore_filter, byte_number_filter, get_all_uids_in_string, nice_list, \
-    uids_to_link, \
-    list_to_line_break_string, nice_unix_time, nice_number_filter, sort_chart_list_by_value, \
+    uids_to_link, list_to_line_break_string, nice_unix_time, nice_number_filter, sort_chart_list_by_value, \
     sort_chart_list_by_name, text_highlighter, generic_nice_representation, list_to_line_break_string_no_sort, \
     encode_base64_filter, render_tags, fix_cwe, set_limit_for_data_to_chart, data_to_chart_with_value_percentage_pairs, \
-    data_to_chart_limited, render_analysis_tags
+    data_to_chart_limited, render_analysis_tags, vulnerability_class
 
 
 class TestWebInterfaceFilter(unittest.TestCase):
@@ -174,3 +174,13 @@ def test_render_analysis_tags_bad_type():
     tags = {'such plugin': {42: {'color': 'very color', 'value': 'wow'}}}
     with pytest.raises(AttributeError):
         render_analysis_tags(tags)
+
+
+@pytest.mark.parametrize('score_and_class', [('low', 'active'), ('medium', 'warning'), ('high', 'danger')])
+def test_vulnerability_class_success(score_and_class):
+    assert vulnerability_class(score_and_class[0]) == score_and_class[1]
+
+
+@pytest.mark.parametrize('score', [None, '', 'bad', 5])
+def test_vulnerability_class_bad(score):
+    assert vulnerability_class(score) is None

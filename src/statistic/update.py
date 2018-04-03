@@ -43,6 +43,7 @@ class StatisticUpdater(object):
         self.db.update_statistic('ips_and_uris', self._get_ip_stats())
         self.db.update_statistic('release_date', self._get_time_stats())
         self.db.update_statistic('exploit_mitigations', self._get_exploit_mitigations_stats())
+        self.db.update_statistic('known_vulnerabilities', self._get_known_vulnerabilities_stats())
         # should always be the last, because of the benchmark
         self.db.update_statistic('general', self.get_general_stats())
 
@@ -214,11 +215,18 @@ class StatisticUpdater(object):
         rounded_value = round(exploit_mitigation_stat[0][1] / total_amount_of_files, 5)
         return rounded_value
 
+    def _get_known_vulnerabilities_stats(self):
+        stats = {}
+        result = self._get_objects_and_count_of_occurrence_firmware_and_file_db(
+            '$processed_analysis.known_vulnerabilities.summary', unwind=True, match=self.match)
+        stats['known_vulnerabilities'] = self._clean_malware_list(result)
+        return stats
+
     def _get_crypto_material_stats(self):
         stats = {}
         result = self._get_objects_and_count_of_occurrence_firmware_and_file_db(
             '$processed_analysis.crypto_material.summary', unwind=True, match=self.match)
-        stats['crypto_material'] = self._clean_malware_list(result)
+        stats['crypto_material'] = result
         return stats
 
     @staticmethod

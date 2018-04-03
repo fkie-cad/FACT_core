@@ -77,9 +77,6 @@ More Details can be found in our [REST API documentation](https://github.com/fki
   </tr>
 </table>
 
-# Latest News
-Follow us on Twitter [@FAndCTool](https://twitter.com/FAandCTool)
-
 # Contribute
 There are many ways to contribute to FACT.
 For instance, you can write an unpacking, compare or analysis plug-in.
@@ -91,6 +88,10 @@ We are going to provide a list of all available plug-ins.
 You are welcome to improve the FACT_core as well.
 Please have a look at our [Coding Guidelines](https://github.com/fkie-cad/FACT_core/wiki/coding-guidelines) before creating a pull request.
 No matter how you would like to contribute: If you have any question, do not hesitate to ask. 
+
+# Latest News and Contact
+Follow us on Twitter [@FAndCTool](https://twitter.com/FAandCTool) to get the latest news about FACT.  
+If you have any further questions, write a [mail](mailto:firmware-security@fkie.fraunhofer.de).
 
 # Authors and Acknowledgment
 FACT is developed by [Fraunhofer FKIE](https://www.fkie.fraunhofer.de).
