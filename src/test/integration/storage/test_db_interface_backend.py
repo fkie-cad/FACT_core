@@ -125,3 +125,34 @@ class TestStorageDbInterfaceBackend(unittest.TestCase):
         self.assertEqual(author, retrieved_comment['author'])
         self.assertEqual(comment, retrieved_comment['comment'])
         self.assertEqual(date, retrieved_comment['time'])
+
+    def test_update_analysis_tag_no_firmware(self):
+        self.db_interface_backend.add_file_object(self.test_fo)
+        tag = {'value': 'yay', 'color': 'default', 'propagate': True}
+
+        self.db_interface_backend.update_analysis_tags(self.test_fo.uid, plugin_name='dummy', tag_name='some_tag', tag=tag)
+        processed_fo = self.db_interface_backend.get_object(self.test_fo.uid)
+
+        assert not processed_fo.analysis_tags
+
+    def test_update_analysis_tag_uid_not_found(self):
+        self.db_interface_backend.update_analysis_tags(self.test_fo.uid, plugin_name='dummy', tag_name='some_tag', tag='should not matter')
+        assert not self.db_interface_backend.get_object(self.test_fo.uid)
+
+    def test_update_analysis_tag_bad_tag(self):
+        self.db_interface_backend.add_firmware(self.test_firmware)
+
+        self.db_interface_backend.update_analysis_tags(self.test_firmware.uid, plugin_name='dummy', tag_name='some_tag', tag='bad_tag')
+        processed_firmware = self.db_interface_backend.get_object(self.test_firmware.uid)
+
+        assert not processed_firmware.analysis_tags
+
+    def test_update_analysis_tag_success(self):
+        self.db_interface_backend.add_firmware(self.test_firmware)
+        tag = {'value': 'yay', 'color': 'default', 'propagate': True}
+
+        self.db_interface_backend.update_analysis_tags(self.test_firmware.uid, plugin_name='dummy', tag_name='some_tag', tag=tag)
+        processed_firmware = self.db_interface_backend.get_object(self.test_firmware.uid)
+
+        assert processed_firmware.analysis_tags
+        assert processed_firmware.analysis_tags['dummy']['some_tag'] == tag
