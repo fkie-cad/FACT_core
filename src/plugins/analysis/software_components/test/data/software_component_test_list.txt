@@ -41,3 +41,8 @@ wpa_supplicant v0.5.9
 xl2tpd-1.1.12
 siproxd-0.5.10
 ChaiVM 7.0
+ro.build.version.name=Fire OS 5.5.0.3
+EFI Shell Version 1.0
+Boot Agent CL v0.1.04
+SSLeay 0.8.2b
+Bash version 4.2.10
