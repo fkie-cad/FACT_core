@@ -56,7 +56,7 @@ Make sure that the log directory exists as well.
 
 If you have any additional plug-ins, copy/clone them into corresponding *src/plugins/* directory.  
 
-:exclamation: **Reboot before executing the ./install.py** :exclamation
+:exclamation: **Reboot before executing the ./install.py** :exclamation:  
 :exclamation: **You have to do the above steps before you do anything else** :exclamation:
 
 ### Simple One System Setup
@@ -67,7 +67,7 @@ After reboot, you can setup an all on one system installation by entering the FA
 ```sh
 $ ./install.py
 ```
-:beer: **Get a drink... Installation of the dependencies might take some time** :tea:
+:beer: **Get a drink... Installation of the dependencies might take some time...** :tea:
 
 For more advanced setups have a look at the help function of the installer:
 
