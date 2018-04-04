@@ -15,7 +15,6 @@ from helperFunctions.mongo_task_conversion import is_sanitized_entry
 from storage.db_interface_statistic import StatisticDbUpdater
 
 
-
 class StatisticUpdater(object):
     '''
     This class handles statistic generation
