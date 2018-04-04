@@ -50,6 +50,18 @@ rule OpenWrt
         $b and no_text_file
 }
 
+rule FireOS
+{
+	meta:
+		software_name = "Fire OS"
+		open_source = true
+		website = "https://developer.amazon.com/android-fireos"
+		description = "Linux (Android) based operating system used on Amazon devices"
+	strings:
+		$a = /ro.build.version.name=Fire OS \d+\.\d+(\.\d+)?(\.\d+)?/ nocase ascii wide
+	condition:
+		$a
+}
 
 rule LinuxKernel
 {
