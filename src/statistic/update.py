@@ -3,7 +3,6 @@ import logging
 import sys
 from datetime import datetime
 from time import time
-from contextlib import suppress
 
 from bson.son import SON
 from common_helper_filter.time import time_format
