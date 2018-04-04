@@ -3,6 +3,7 @@ import logging
 import sys
 from datetime import datetime
 from time import time
+from contextlib import suppress
 
 from bson.son import SON
 from common_helper_filter.time import time_format
@@ -12,6 +13,7 @@ from helperFunctions.dataConversion import build_time_dict
 from helperFunctions.merge_generators import sum_up_lists, avg, merge_dict
 from helperFunctions.mongo_task_conversion import is_sanitized_entry
 from storage.db_interface_statistic import StatisticDbUpdater
+
 
 
 class StatisticUpdater(object):
@@ -172,7 +174,7 @@ class StatisticUpdater(object):
 
     def get_stats_pie(self, result, stats):
         pie_invalid, pie_off, pie_on, pie_partial = self.extract_pie_data_from_analysis(result)
-        total_amount_of_files = self.calculate_total_files_for_pie(pie_off, pie_on, pie_partial, pie_invalid)
+        total_amount_of_files = self.calculate_total_files_for_pie([pie_off, pie_on, pie_partial, pie_invalid])
         self.append_pie_stats_to_result_dict(pie_invalid, pie_off, pie_on, pie_partial, stats, total_amount_of_files)
 
     def extract_pie_data_from_analysis(self, result):
@@ -189,11 +191,11 @@ class StatisticUpdater(object):
         self.update_result_dict(pie_invalid, stats, total_amount_of_files)
 
     @staticmethod
-    def calculate_total_files_for_pie(pie_off, pie_on, pie_partial, pie_invalid):
-        if len(pie_on) > 0 or len(pie_off) > 0 or len(pie_partial) > 0 or len(pie_invalid) > 0:
-            total_amount_of_files = pie_on[0][1] + pie_off[0][1] + pie_partial[0][1] + pie_invalid[0][1]
-        else:
-            total_amount_of_files = 0
+    def calculate_total_files_for_pie(pie_stats):
+        total_amount_of_files = 0
+        for item in pie_stats:
+            with suppress(IndexError):
+                total_amount_of_files += item[0][1]
         return total_amount_of_files
 
     @staticmethod
