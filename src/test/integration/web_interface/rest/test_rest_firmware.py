@@ -130,3 +130,10 @@ class TestRestFirmware(RestTestBase):
         rv = self.test_client.put('/rest/firmware/{}?update=not_a_list'.format(test_firmware.uid), follow_redirects=True)
         assert b'"status": 1' in rv.data
         assert b'has to be a list' in rv.data
+
+    def test_rest_download_with_summary(self):
+        test_firmware = create_test_firmware(device_class='test class', device_name='test device', vendor='test vendor')
+        self.db_backend.add_firmware(test_firmware)
+
+        request_with_summary = self.test_client.get('/rest/firmware/{}?summary=true'.format(test_firmware.uid), follow_redirects=True)
+        assert test_firmware.processed_analysis['dummy']['summary'][0].encode() in request_with_summary.data

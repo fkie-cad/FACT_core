@@ -67,6 +67,8 @@ def get_query(request_parameter):
         return dict()
     except json.JSONDecodeError:
         raise ValueError('Query must be a json document')
+    if not isinstance(query, dict):
+        raise ValueError('Query must be a json document')
     return query if query else dict()
 
 
@@ -97,3 +99,17 @@ def get_update(request_parameter):
     if not update:
         raise ValueError('Update has to be specified')
     return update
+
+
+def get_summary_flag(request_parameter):
+    try:
+        summary = request_parameter.get('summary')
+        summary = json.loads(summary if summary else 'false')
+    except (AttributeError, KeyError):
+        return False
+    except json.JSONDecodeError:
+        raise ValueError('summary must be true or false')
+
+    if summary not in [True, False]:
+        raise ValueError('summary must be true or false')
+    return summary
