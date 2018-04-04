@@ -15,17 +15,17 @@ rule SHORT_NAME_OF_SOFTWARE
 
 */
 
-rule OpenSSL
+rule Bash
 {
 	meta:
-		software_name = "OpenSSL"
+		software_name = "Bash"
 		open_source = true
-		website = "https://www.openssl.org"
-		description ="SSL library"
-    strings:
-        $a = /OpenSSL( \d+\.\d+\.\d+[a-z]?)?/ nocase ascii wide
-    condition:
-        $a and no_text_file
+		website = "https://www.gnu.org/software/bash/"
+		description = "Linux Shell"
+	strings:
+		$a = /Bash version \d+\.\d+(.\d+)?/ nocase ascii wide
+	condition:
+		$a and no_text_file
 }
 
 rule BusyBox
