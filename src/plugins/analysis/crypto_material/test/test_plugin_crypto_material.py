@@ -22,16 +22,16 @@ class CryptoCodeMaterialTest(AbstractSignatureTest):
         self._rule_match('id_rsa.pub', 'SshRsaPublicKeyBlock')
 
     def test_ssh_private(self):
-        self._rule_match('id_rsa', 'SshRsaPrivateKeyBlock')
+        self._rule_match('id_rsa', 'SshRsaPrivateKeyBlock', expected_number_of_rules=2)
 
     def test_PKCS8(self):
-        self._rule_match('pkcs', 'Pkcs8PrivateKey')
+        self._rule_match('pkcs', 'Pkcs8PrivateKey', expected_number_of_rules=2)
 
     def test_PKCS12(self):
         self._rule_match('pkcs12', 'Pkcs12Certificate')
 
     def test_SSL_key(self):
-        self._rule_match('ssl.key', 'SSLPrivateKey')
+        self._rule_match('ssl.key', 'SSLPrivateKey', expected_number_of_rules=2)
 
     def test_SSL_cert(self):
         self._rule_match('ssl.crt', 'SSLCertificate')
