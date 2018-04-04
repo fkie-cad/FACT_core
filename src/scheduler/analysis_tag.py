@@ -15,7 +15,6 @@ class TaggingDaemon:
         logging.info('Tagging daemon online')
 
     def shutdown(self):
-        logging.info('Joining tagging daemon')
         self.stop_condition.value = 1
         self.tagging_process.join()
         logging.info('Tagging daemon offline')
