@@ -5,15 +5,12 @@ import os
 
 from common_helper_files import get_binary_from_file
 from flask import render_template, request, render_template_string
-from flask_security.core import AnonymousUser
 from flask_login.utils import current_user
-import logging
 
 from helperFunctions.dataConversion import none_to_none
 from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.mongo_task_conversion import check_for_errors, convert_analysis_task_to_fw_obj, create_re_analyze_task
-from helperFunctions.web_interface import ConnectTo, get_template_as_string
-from helperFunctions.web_interface import overwrite_default_plugins
+from helperFunctions.web_interface import ConnectTo, get_template_as_string, is_superuser, overwrite_default_plugins
 from intercom.front_end_binding import InterComFrontEndBinding
 from objects.firmware import Firmware
 from storage.db_interface_admin import AdminDbInterface
@@ -50,13 +47,6 @@ class AnalysisRoutes(ComponentBase):
         else:
             return list(fo.get_virtual_file_paths().keys())
 
-    @staticmethod
-    def _is_superuser(user):
-        if isinstance(user._get_current_object(), AnonymousUser):
-            return True
-        else:
-            return user.has_role('superuser')
-
     @roles_accepted(*PRIVILEGES['view_analysis'])
     def _show_analysis_results(self, uid, selected_analysis=None, root_uid=None):
         root_uid = none_to_none(root_uid)
@@ -89,7 +79,7 @@ class AnalysisRoutes(ComponentBase):
                                           analysis_plugin_dict=analysis_plugins,
                                           other_versions=other_versions,
                                           uids_for_comparison=uids_for_comparison,
-                                          show_admin_panal=self._is_superuser(current_user))
+                                          show_admin_panal=is_superuser(current_user))
         else:
             return render_template('uid_not_found.html', uid=uid)
 

@@ -3,6 +3,7 @@ import json
 import os
 import re
 
+from flask_security.core import AnonymousUser
 from common_helper_files import get_binary_from_file
 from itertools import chain
 
@@ -77,3 +78,10 @@ class ConnectTo:
 def get_template_as_string(view_name):
     path = os.path.join(get_template_dir(), view_name)
     return get_binary_from_file(path).decode('utf-8')
+
+
+def is_superuser(user):
+    if isinstance(user._get_current_object(), AnonymousUser):  # auth disabled
+        return True
+    else:
+        return user.has_role('superuser')
