@@ -37,6 +37,6 @@ class normal_user(UserMixin):
     (superuser_user, True),
     (normal_user, False)
 ])
-def test_is_superuser_without_auth(input_data, expected):
+def test_is_superuser(input_data, expected):
     proxied_object = LocalProxy(input_data)
     assert is_superuser(proxied_object) == expected
