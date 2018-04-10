@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 import pytest
 
-from helperFunctions.web_interface import filter_out_illegal_characters, is_superuser
 from flask_security.core import AnonymousUser, UserMixin, RoleMixin
 from werkzeug.local import LocalProxy
+
+from helperFunctions.web_interface import filter_out_illegal_characters, is_superuser
 
 
 @pytest.mark.parametrize('input_data, expected', [
