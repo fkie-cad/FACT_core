@@ -34,9 +34,9 @@ class MockReader:
         if address == '127.101.101.101':
             return MockResponse(location=MockLocation(latitude=4.1, longitude=4.1))
         if address == '1.1.2.345':
-            raise AddressNotFoundError
+            raise AddressNotFoundError()
         if address == 'aaa':
-            raise ValueError
+            raise ValueError()
 
 
 class TestAnalysisPluginIpAndUriFinder(AnalysisPluginTest):
@@ -90,12 +90,15 @@ class TestAnalysisPluginIpAndUriFinder(AnalysisPluginTest):
                           ('255.255.255.255', '0.0, 0.0')], results['ips_v4'])
         self.assertEqual([('1234:1234:abcd:abcd:1234:1234:abcd:abcd', '2.1, 2.1')], results['ips_v6'])
 
-    @patch('geoip2.database.Reader', MockReader)
+    @patch('geoip2.database.Reader', MockReader(None))
     def test_find_geo_location(self):
         self.assertEqual(self.analysis_plugin.find_geo_location('128.101.101.101'), '44.9759, -93.2166')
         self.assertEqual(self.analysis_plugin.find_geo_location('127.101.101.101'), '4.1, 4.1')
-        self.assertRaises(Exception, self.analysis_plugin.find_geo_location('1.1.2.345'))
-        self.assertRaises(Exception, self.analysis_plugin.find_geo_location('aaa'))
+
+        with self.assertRaises(AddressNotFoundError):
+            self.analysis_plugin.find_geo_location('1.1.2.345')
+        with self.assertRaises(ValueError):
+            self.analysis_plugin.find_geo_location('aaa')
 
     @patch('geoip2.database.Reader', MockReader)
     def test_link_ips_with_geo_location(self):
@@ -108,4 +111,4 @@ class TestAnalysisPluginIpAndUriFinder(AnalysisPluginTest):
         results = {'uris': ['http://www.google.de'], 'ips_v4': [('128.101.101.101', '44.9759, -93.2166')],
                    'ips_v6': [('1234:1234:abcd:abcd:1234:1234:abcd:abcd', '2.1, 2.1')]}
         expected_results = ['http://www.google.de', '128.101.101.101', '1234:1234:abcd:abcd:1234:1234:abcd:abcd']
-        self.assertEqual(self.analysis_plugin._get_summary(results), expected_results)
+        self.assertEqual(AnalysisPlugin._get_summary(results), expected_results)
