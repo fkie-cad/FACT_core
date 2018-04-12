@@ -51,37 +51,22 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return result
 
     def find_geo_location(self, ip_address):
-        try:
-            response = self.reader.city(ip_address)
-            latitude = response.location.latitude
-            longitude = response.location.longitude
-
-        except AddressNotFoundError as e:
-            logging.debug('{} {}'.format(type(e), str(e)))
-            return ''
-
-        except FileNotFoundError as e:
-            logging.debug('{} {}'.format(type(e), str(e)))
-            return ''
-
-        except ValueError as e:
-            logging.debug('{} {}'.format(type(e), str(e)))
-            return ''
-
-        except InvalidDatabaseError as e:
-            logging.debug('{} {}'.format(type(e), str(e)))
-            return ''
-
-        return '{}, {}'.format(latitude, longitude)
+        response = self.reader.city(ip_address)
+        return '{}, {}'.format(response.location.latitude, response.location.longitude)
 
     def link_ips_with_geo_location(self, ip_adresses):
         linked_ip_geo_list = []
         for ip in ip_adresses:
-            tuple = ip, self.find_geo_location(ip)
-            linked_ip_geo_list.append(tuple)
+            try:
+                ip_tuple = ip, self.find_geo_location(ip)
+            except (AddressNotFoundError, FileNotFoundError, ValueError, InvalidDatabaseError) as exception:
+                logging.debug('{} {}'.format(type(exception), str(exception)))
+                ip_tuple = ip, ''
+            linked_ip_geo_list.append(ip_tuple)
         return linked_ip_geo_list
 
-    def _get_summary(self, results):
+    @staticmethod
+    def _get_summary(results):
         summary = []
         for key in ['uris']:
             summary.extend(results[key])
