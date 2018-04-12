@@ -8,6 +8,7 @@ from common_helper_files import get_binary_from_file
 from itertools import chain
 
 from helperFunctions.fileSystem import get_template_dir
+from web_interface.security.privileges import PRIVILEGES
 
 
 SPECIAL_CHARACTERS = 'ÄäÀàÁáÂâÃãÅåǍǎĄąĂăÆæĀāÇçĆćĈĉČčĎđĐďðÈèÉéÊêËëĚěĘęĖėĒēĜĝĢģĞğĤĥÌìÍíÎîÏïıĪīĮįĴĵĶķĹĺĻļŁłĽľÑñŃńŇňŅņÖöÒòÓóÔôÕõŐőØøŒœŔŕŘřẞßŚśŜŝŞşŠšȘș' \
@@ -84,5 +85,5 @@ def _auth_is_disabled(user):
     return isinstance(user._get_current_object(), AnonymousUser)
 
 
-def user_has_admin_clearance(user):
-    return _auth_is_disabled(user) or user.has_role('superuser')
+def user_has_privilege(user, privilege='delete'):
+    return _auth_is_disabled(user) or any(user.has_role(role) for role in PRIVILEGES[privilege])
