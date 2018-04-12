@@ -80,8 +80,9 @@ def get_template_as_string(view_name):
     return get_binary_from_file(path).decode('utf-8')
 
 
-def is_superuser(user):
-    if isinstance(user._get_current_object(), AnonymousUser):  # auth disabled
-        return True
-    else:
-        return user.has_role('superuser')
+def _auth_is_disabled(user):
+    return isinstance(user._get_current_object(), AnonymousUser)
+
+
+def user_has_admin_clearance(user):
+    return _auth_is_disabled(user) or user.has_role('superuser')

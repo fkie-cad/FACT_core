@@ -407,7 +407,7 @@
 	    </div>
     </div>
     {# admin buttons #}
-    {% if firmware.vendor and show_admin_panal %}
+    {% if firmware.vendor and user_has_admin_clearance %}
     <div class="col-lg-6 col-md-12">
 	    <div class="alert alert-custom" style="padding:5px;">
     		<strong>admin options:</strong> 
