@@ -4,7 +4,7 @@ import pytest
 from flask_security.core import AnonymousUser, UserMixin, RoleMixin
 from werkzeug.local import LocalProxy
 
-from helperFunctions.web_interface import filter_out_illegal_characters, user_has_admin_clearance
+from helperFunctions.web_interface import filter_out_illegal_characters, user_has_privilege
 
 
 @pytest.mark.parametrize('input_data, expected', [
@@ -39,4 +39,4 @@ class normal_user(UserMixin):
 ])
 def test_is_superuser(input_data, expected):
     proxied_object = LocalProxy(input_data)
-    assert user_has_admin_clearance(proxied_object) == expected
+    assert user_has_privilege(proxied_object) == expected
