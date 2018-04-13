@@ -1,8 +1,10 @@
 import base64
 import os
 
-from flask_security import Security, SQLAlchemyUserDatastore, UserMixin, RoleMixin
+from flask_security import Security, UserMixin, RoleMixin
 from flask_sqlalchemy import SQLAlchemy
+
+from web_interface.security.user_role_db_interface import UserRoleDbInterface
 
 
 def add_flask_security_to_app(app, config):
@@ -14,6 +16,7 @@ def add_flask_security_to_app(app, config):
     security = Security(app, user_interface)
 
     _add_apikey_handler(security, user_interface)
+    return user_interface
 
 
 def create_user_interface(db):
@@ -33,7 +36,7 @@ def create_user_interface(db):
         confirmed_at = db.Column(db.DateTime())
         roles = db.relationship('Role', secondary=roles_users, backref=db.backref('users', lazy='dynamic'))
 
-    return SQLAlchemyUserDatastore(db, User, Role)
+    return UserRoleDbInterface(db, User, Role)
 
 
 def _add_apikey_handler(security, user_datastore):
