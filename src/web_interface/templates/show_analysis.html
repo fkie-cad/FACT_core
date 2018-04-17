@@ -14,7 +14,8 @@
     ("file size", firmware.size|number_format(verbose=True), "", ""),
     ("MD5", firmware.md5, "word-break: break-all;", ""),
     ("SHA256", firmware.sha256, "word-break: break-all;", ""),
-    ("Tags", firmware.tags|render_tags(size=12)|safe, "", "")
+    ("Tags", firmware.tags|render_tags(size=12)|safe, "", ""),
+    ("Analysis Tags", firmware.analysis_tags | render_analysis_tags(size=12) | safe, "", "")
 ] -%}
 
 {% block head %}
@@ -406,7 +407,7 @@
 	    </div>
     </div>
     {# admin buttons #}
-    {% if firmware.vendor %}
+    {% if firmware.vendor and user_has_admin_clearance %}
     <div class="col-lg-6 col-md-12">
 	    <div class="alert alert-custom" style="padding:5px;">
     		<strong>admin options:</strong> 

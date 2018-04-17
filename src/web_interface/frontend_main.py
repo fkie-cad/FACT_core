@@ -3,6 +3,7 @@ import os
 
 from flask import Flask
 
+from version import __VERSION__
 from web_interface.components.ajax_routes import AjaxRoutes
 from web_interface.components.analysis_routes import AnalysisRoutes
 from web_interface.components.compare_routes import CompareRoutes
@@ -13,7 +14,7 @@ from web_interface.components.miscellaneous_routes import MiscellaneousRoutes
 from web_interface.components.plugin_routes import PluginRoutes
 from web_interface.components.statistic_routes import StatisticRoutes
 from web_interface.rest.rest_base import RestBase
-from version import __VERSION__
+from web_interface.security.authentication import add_flask_security_to_app
 
 
 class WebFrontEnd(object):
@@ -29,6 +30,7 @@ class WebFrontEnd(object):
         self.app.config.from_object(__name__)
 
         Flask.secret_key = os.urandom(24)
+        add_flask_security_to_app(self.app, self.config)
 
         rest_base = RestBase(app=self.app, config=self.config)
 
