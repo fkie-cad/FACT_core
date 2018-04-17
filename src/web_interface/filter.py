@@ -331,3 +331,11 @@ def vulnerability_class(score):
     elif score == 'low':
         return 'active'
     return None
+
+
+def sort_users_by_name(user_list):
+    return sorted(user_list, key=lambda u: u.email)
+
+
+def user_has_admin_rights(current_user):
+    return current_user.is_authenticated and current_user.has_role("superuser")

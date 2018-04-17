@@ -31,7 +31,7 @@ class WebFrontEnd(object):
         self.app.config.from_object(__name__)
 
         Flask.secret_key = os.urandom(24)
-        user_db = add_flask_security_to_app(self.app, self.config)
+        user_db, user_interface = add_flask_security_to_app(self.app, self.config)
 
         rest_base = RestBase(app=self.app, config=self.config)
 
@@ -43,6 +43,6 @@ class WebFrontEnd(object):
         MiscellaneousRoutes(self.app, self.config)
         PluginRoutes(self.app, self.config, api=rest_base.api)
         StatisticRoutes(self.app, self.config)
-        UserManagementRoutes(self.app, self.config, user_db_interface=user_db)
+        UserManagementRoutes(self.app, self.config, user_db=user_db, user_db_interface=user_interface)
 
         FilterClass(self.app, self.program_version, self.config)

@@ -16,7 +16,7 @@ def add_flask_security_to_app(app, config):
     security = Security(app, user_interface)
 
     _add_apikey_handler(security, user_interface)
-    return user_interface
+    return db, user_interface
 
 
 def create_user_interface(db):

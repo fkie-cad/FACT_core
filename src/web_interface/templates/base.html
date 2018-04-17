@@ -5,7 +5,8 @@
     ("Upload", "/upload", '<span class="glyphicon glyphicon-upload"></span>'),
     ("Statistic", "/statistic", '<span class="glyphicon glyphicon-stats"></span>'),
     ("System", "/system_health", '<span class="glyphicon glyphicon-heart"></span>'),
-    ("About", "/about", '<span class="glyphicon glyphicon-globe"></span>')
+    ("About", "/about", '<span class="glyphicon glyphicon-globe"></span>'),
+    ("Admin", None, None)
 ] -%}
 
 {% if ("string only here to have input to " | auth_enabled) %}
@@ -100,7 +101,9 @@
                 <div class="navbar-brand hidden-sm hidden-md" style="vertical-align: middle; margin-left: 15px">
                     <span><img height="25px" src="{{ url_for('static', filename='fact_logo_inv.svg') }}"></span>
                 </div>
-                <div class="navbar-brand hidden-sm hidden-md" style="vertical-align: middle">
+                <div class="navbar-brand hidden-sm hidden-md v
+
+                                    <a href="/logout"><span class="glyphicon glyphicon-log-out"></span> Logout</a>isible-xl" style="vertical-align: middle">
                     Firmware Analysis and Comparison Tool
                 </div>
             </div>
@@ -119,18 +122,31 @@
                                     <li><a href="/database/binary_search">Binary Pattern Search</a></li>
                                 </ul>
                             </li>
+                        {% elif caption == "Admin" %}
+                            {% if current_user | user_has_admin_rights %}
+                                <li class="dropdown {% if caption == active_page %}active{% endif  %}">
+                                    <a class="dropdown-toggle" data-toggle="dropdown" href="#"><span class="glyphicon glyphicon-cog"></span>&nbsp;{{ caption }}<span class="caret"></span></a>
+                                    <ul class="dropdown-menu">
+                                        <li><a href="/admin/manage_users">Manage Users</a></li>
+                                    </ul>
+                                </li>
+                            {% endif %}
                         {% elif caption == "Login" %}
                             <li {% if caption == active_page %} class="active"{% endif  %}>
                                 {% if current_user.is_authenticated %}
-                                    <a href="/logout"><span class="glyphicon glyphicon-log-out"></span> Logout</a>
+                                    <a class="dropdown-toggle" data-toggle="dropdown" href="#"><span class="glyphicon glyphicon-user"></span>&nbsp;{{ current_user.email }}<span class="caret"></span></a>
+                                    <ul class="dropdown-menu">
+                                        <li><a href="/user_profile"><span class="glyphicon glyphicon-user"></span> Profile</a></li>
+                                        <li><a href="/logout"><span class="glyphicon glyphicon-log-out"></span> Logout</a></li>
+                                    </ul>
                                 {% else %}
                                     <a href="/login"><span class="glyphicon glyphicon-log-in"></span> Login</a>
                                 {% endif %}
                             </li>
                         {% else %}
-                        <li {% if caption == active_page %} class="active"{% endif  %}>
-                            <a href={{ href }}>{{ icon|safe }} {{ caption }}</a>
-                        </li>
+                            <li {% if caption == active_page %} class="active"{% endif  %}>
+                                <a href={{ href }}>{{ icon|safe }} {{ caption }}</a>
+                            </li>
                         {% endif %}
                     {% endfor %}
                 </ul>
@@ -163,6 +179,25 @@
     </nav>
 
     <div style="width:90%; margin: 0 auto;">
+
+        <!--- flash messages --->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="row" style="padding: 0">
+                <div class="col-xs-12">
+                    {% for category, message in messages %}
+                        <div style="padding: 15px; margin-bottom: -15px">
+                            {% set flash_categories = ['danger', 'warning', 'info', 'success'] %}
+                            <div class="alert alert-{{ category if category in flash_categories else 'danger' }} alert-dismissible" role="alert">
+                                {{ message }}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        {% endwith %}
+
         <div class="container-fluid">
             {% block body %}{% endblock %}
         </div>

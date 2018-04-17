@@ -44,3 +44,11 @@ class TestUserRoleDbInterface(TestCase):
 
             self.db_interface.change_password(user_name, new_password)
             assert self.db_interface.password_is_correct(user_name, new_password)
+
+    def test_user_exists(self):
+        with self.test_app.app_context():
+            assert self.db_interface.user_exists('test_user') is False
+
+            user_name, password, new_password = 'test_user', 'password', 'new_password'
+            self.db_interface.create_user(email=user_name, password=password)
+            assert self.db_interface.user_exists('test_user') is True
