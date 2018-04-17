@@ -1,0 +1,38 @@
+{% if 'hexdiff' in result['plugins'][plugin] | sort %}
+
+    <tr style="background-color: #333;">
+        <td colspan="{{ uid_list | length + 1 }}">
+            <center>
+                <table style="background-color: #333;">
+                    <tr>
+                        <td class="col-md-1"></td>
+                        <td class="col-md-11" colspan="2">
+                            <span style="font-family: monospace; color:#eee;">{{ result['general']['hid'][uid_list[0]] }}</span><br />
+                            <br />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="col-md-1"><span style="font-family: monospace; color:#eee;">Offset</span></td>
+                        <td class="col-md-8"><span style="font-family: monospace; color:#eee;">Bytes</span></td>
+                        <td class="col-md-3"><span style="font-family: monospace; color:#eee;">Ascii</span></td>
+                    </tr>
+                    <tr>
+                        <td class="col-md-1">{{ result['plugins'][plugin]['offsets'] | safe }}</td>
+                        <td class="col-md-8">{{ result['plugins'][plugin]['hexdiff'] | safe }}</td>
+                        <td class="col-md-3">{{ result['plugins'][plugin][ 'ascii' ] | safe }}</td>
+                    </tr>
+                    <tr>
+                        <td class="col-md-1"></td>
+                        <td class="col-md-11" colspan="2">
+                            <br />
+                            <span style="font-family: monospace; color:#fb5151;">FF </span><span style="font-family: monospace; color:#eee;">Different byte in all files</span><br />
+                            <span style="font-family: monospace; color:#7070f1;">FF </span><span style="font-family: monospace; color:#eee;">Common byte in some files</span><br />
+                            <span style="font-family: monospace; color: #5bc85b;">FF </span><span style="font-family: monospace; color:#eee;">Common byte in all files</span>
+                        </td>
+                    </tr>
+                </table>
+            </center>
+        </td>
+    </tr>
+
+{% endif %}

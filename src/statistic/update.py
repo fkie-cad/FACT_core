@@ -12,6 +12,7 @@ from helperFunctions.dataConversion import build_time_dict
 from helperFunctions.merge_generators import sum_up_lists, avg, merge_dict
 from helperFunctions.mongo_task_conversion import is_sanitized_entry
 from storage.db_interface_statistic import StatisticDbUpdater
+from helperFunctions.statistic import calculate_total_files
 
 
 class StatisticUpdater(object):
@@ -23,13 +24,13 @@ class StatisticUpdater(object):
         self._config = config
         self.db = StatisticDbUpdater(config=self._config)
         self.start_time = None
-        self.match = dict()
+        self.match = {}
 
     def shutdown(self):
         self.db.shutdown()
 
     def set_match(self, match):
-        self.match = match if match else dict()
+        self.match = match if match else {}
 
     def update_all_stats(self):
         self.start_time = time()
@@ -43,25 +44,11 @@ class StatisticUpdater(object):
         self.db.update_statistic('ips_and_uris', self._get_ip_stats())
         self.db.update_statistic('release_date', self._get_time_stats())
         self.db.update_statistic('exploit_mitigations', self._get_exploit_mitigations_stats())
+        self.db.update_statistic('known_vulnerabilities', self._get_known_vulnerabilities_stats())
         # should always be the last, because of the benchmark
         self.db.update_statistic('general', self.get_general_stats())
 
 # ---- get statistic functions
-
-    def _get_exploit_mitigations_stats(self):
-        stats = {}
-        aggregation_pipeline = self._get_file_object_filter_aggregation_pipeline(
-            pipeline_group={'_id': '$parent_firmware_uids',
-                            'exploit_mitigations': {'$push': '$processed_analysis.exploit_mitigations.summary'}},
-            pipeline_match={'processed_analysis.exploit_mitigations.summary': {'$exists': True, '$not': {'$size': 0}}},
-            additional_projection={'processed_analysis.exploit_mitigations.summary': 1})
-
-        result_list_of_lists = [list(itertools.chain.from_iterable(d['exploit_mitigations']))
-                                for d in self.db.file_objects.aggregate(aggregation_pipeline)]
-        result_flattened = list(itertools.chain.from_iterable(result_list_of_lists))
-        result = self._count_occurrences(result_flattened)
-        stats['exploit_mitigations'] = result
-        return stats
 
     def get_general_stats(self):
         if self.start_time is None:
@@ -97,11 +84,118 @@ class StatisticUpdater(object):
         stats['malware'] = self._clean_malware_list(result)
         return stats
 
+    def _get_exploit_mitigations_stats(self):
+        stats = {}
+        stats['exploit_mitigations'] = []
+        aggregation_pipeline = self._get_file_object_filter_aggregation_pipeline(
+            pipeline_group={'_id': '$parent_firmware_uids',
+                            'exploit_mitigations': {'$push': '$processed_analysis.exploit_mitigations.summary'}},
+            pipeline_match={'processed_analysis.exploit_mitigations.summary': {'$exists': True, '$not': {'$size': 0}}},
+            additional_projection={'processed_analysis.exploit_mitigations.summary': 1})
+
+        result_list_of_lists = [list(itertools.chain.from_iterable(d['exploit_mitigations']))
+                                for d in self.db.file_objects.aggregate(aggregation_pipeline)]
+        result_flattened = list(itertools.chain.from_iterable(result_list_of_lists))
+        result = self._count_occurrences(result_flattened)
+        self.get_stats_nx(result, stats)
+        self.get_stats_canary(result, stats)
+        self.get_stats_relro(result, stats)
+        self.get_stats_pie(result, stats)
+        return stats
+
+    def get_stats_nx(self, result, stats):
+        nx_off, nx_on = self.extract_nx_data_from_analysis(result)
+        total_amount_of_files = calculate_total_files([nx_off, nx_on])
+        self.append_nx_stats_to_result_dict(nx_off, nx_on, stats, total_amount_of_files)
+
+    def extract_nx_data_from_analysis(self, result):
+        nx_on = self.extract_mitigation_from_list("NX enabled", result)
+        nx_off = self.extract_mitigation_from_list("NX disabled", result)
+        return nx_off, nx_on
+
+    def append_nx_stats_to_result_dict(self, nx_off, nx_on, stats, total_amount_of_files):
+        self.update_result_dict(nx_on, stats, total_amount_of_files)
+        self.update_result_dict(nx_off, stats, total_amount_of_files)
+
+    def get_stats_canary(self, result, stats):
+        canary_off, canary_on = self.extract_canary_data_from_analysis(result)
+        total_amount_of_files = calculate_total_files([canary_off, canary_on])
+        self.append_canary_stats_to_result_dict(canary_off, canary_on, stats, total_amount_of_files)
+
+    def extract_canary_data_from_analysis(self, result):
+        canary_on = self.extract_mitigation_from_list("Canary enabled", result)
+        canary_off = self.extract_mitigation_from_list("Canary disabled", result)
+        return canary_off, canary_on
+
+    def append_canary_stats_to_result_dict(self, canary_off, canary_on, stats, total_amount_of_files):
+        self.update_result_dict(canary_on, stats, total_amount_of_files)
+        self.update_result_dict(canary_off, stats, total_amount_of_files)
+
+    def get_stats_relro(self, result, stats):
+        relro_off, relro_on, relro_partial = self.extract_relro_data_from_analysis(result)
+        total_amount_of_files = calculate_total_files([relro_off, relro_on, relro_partial])
+        self.append_relro_stats_to_result_dict(relro_off, relro_on, relro_partial, stats, total_amount_of_files)
+
+    def extract_relro_data_from_analysis(self, result):
+        relro_on = self.extract_mitigation_from_list("RELRO fully enabled", result)
+        relro_partial = self.extract_mitigation_from_list("RELRO partially enabled", result)
+        relro_off = self.extract_mitigation_from_list("RELRO disabled", result)
+        return relro_off, relro_on, relro_partial
+
+    def append_relro_stats_to_result_dict(self, relro_off, relro_on, relro_partial, stats, total_amount_of_files):
+        self.update_result_dict(relro_on, stats, total_amount_of_files)
+        self.update_result_dict(relro_partial, stats, total_amount_of_files)
+        self.update_result_dict(relro_off, stats, total_amount_of_files)
+
+    def get_stats_pie(self, result, stats):
+        pie_invalid, pie_off, pie_on, pie_partial = self.extract_pie_data_from_analysis(result)
+        total_amount_of_files = calculate_total_files([pie_off, pie_on, pie_partial, pie_invalid])
+        self.append_pie_stats_to_result_dict(pie_invalid, pie_off, pie_on, pie_partial, stats, total_amount_of_files)
+
+    def extract_pie_data_from_analysis(self, result):
+        pie_on = self.extract_mitigation_from_list("PIE enabled", result)
+        pie_partial = self.extract_mitigation_from_list("PIE/DSO present", result)
+        pie_off = self.extract_mitigation_from_list("PIE disabled", result)
+        pie_invalid = self.extract_mitigation_from_list("PIE - invalid ELF file", result)
+        return pie_invalid, pie_off, pie_on, pie_partial
+
+    def append_pie_stats_to_result_dict(self, pie_invalid, pie_off, pie_on, pie_partial, stats, total_amount_of_files):
+        self.update_result_dict(pie_on, stats, total_amount_of_files)
+        self.update_result_dict(pie_partial, stats, total_amount_of_files)
+        self.update_result_dict(pie_off, stats, total_amount_of_files)
+        self.update_result_dict(pie_invalid, stats, total_amount_of_files)
+
+    @staticmethod
+    def extract_mitigation_from_list(string, result):
+        exploit_mitigation_stat = list(filter(lambda x: x.count(string) > 0, result))
+        return exploit_mitigation_stat
+
+    def update_result_dict(self, exploit_mitigation, stats, total_amount_of_files):
+        if len(exploit_mitigation) > 0 and total_amount_of_files > 0:
+            percentage_value = self._round(exploit_mitigation, total_amount_of_files)
+            stats['exploit_mitigations'].append((exploit_mitigation[0][0],
+                                                 exploit_mitigation[0][1],
+                                                 percentage_value))
+        else:
+            pass
+
+    @staticmethod
+    def _round(exploit_mitigation_stat, total_amount_of_files):
+        rounded_value = round(exploit_mitigation_stat[0][1] / total_amount_of_files, 5)
+        return rounded_value
+
+    def _get_known_vulnerabilities_stats(self):
+        stats = {}
+        result = self._get_objects_and_count_of_occurrence_firmware_and_file_db(
+            '$processed_analysis.known_vulnerabilities.summary', unwind=True, match=self.match)
+        stats['known_vulnerabilities'] = self._clean_malware_list(result)
+        return stats
+
     def _get_crypto_material_stats(self):
         stats = {}
         result = self._get_objects_and_count_of_occurrence_firmware_and_file_db(
             '$processed_analysis.crypto_material.summary', unwind=True, match=self.match)
-        stats['crypto_material'] = self._clean_malware_list(result)
+        stats['crypto_material'] = result
         return stats
 
     @staticmethod

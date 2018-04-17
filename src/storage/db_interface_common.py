@@ -110,10 +110,9 @@ class MongoInterfaceCommon(MongoInterface):
         firmware.processed_analysis = self.retrieve_analysis(entry['processed_analysis'], analysis_filter=analysis_filter)
         firmware.files_included = set(entry['files_included'])
         firmware.virtual_file_path = entry['virtual_file_path']
-        if 'tags' in entry:
-            firmware.tags = entry['tags']
-        else:
-            firmware.tags = dict()
+        firmware.tags = entry['tags'] if 'tags' in entry else dict()
+        firmware.analysis_tags = entry['analysis_tags'] if 'analysis_tags' in entry else dict()
+
         if 'comments' in entry:  # for backwards compatibility
             firmware.comments = entry['comments']
         return firmware
@@ -128,6 +127,8 @@ class MongoInterfaceCommon(MongoInterface):
         file_object.processed_analysis = self.retrieve_analysis(entry['processed_analysis'], analysis_filter=analysis_filter)
         file_object.files_included = set(entry['files_included'])
         file_object.parent_firmware_uids = set(entry['parent_firmware_uids'])
+        file_object.analysis_tags = entry['analysis_tags'] if 'analysis_tags' in entry else dict()
+
         for attribute in ['comments']:  # for backwards compatibility
             if attribute in entry:
                 setattr(file_object, attribute, entry[attribute])

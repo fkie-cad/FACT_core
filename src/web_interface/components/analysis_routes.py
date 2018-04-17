@@ -5,19 +5,21 @@ import os
 
 from common_helper_files import get_binary_from_file
 from flask import render_template, request, render_template_string
+from flask_login.utils import current_user
 
 from helperFunctions.dataConversion import none_to_none
 from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.mongo_task_conversion import check_for_errors, convert_analysis_task_to_fw_obj, create_re_analyze_task
-from helperFunctions.web_interface import ConnectTo, get_template_as_string
-from helperFunctions.web_interface import overwrite_default_plugins
+from helperFunctions.web_interface import ConnectTo, get_template_as_string, overwrite_default_plugins, user_has_privilege
 from intercom.front_end_binding import InterComFrontEndBinding
 from objects.firmware import Firmware
 from storage.db_interface_admin import AdminDbInterface
 from storage.db_interface_frontend import FrontEndDbInterface
 from storage.db_interface_view_sync import ViewReader
-from web_interface.components.component_base import ComponentBase
 from web_interface.components.compare_routes import get_comparison_uid_list_from_session
+from web_interface.components.component_base import ComponentBase
+from web_interface.security.decorator import roles_accepted
+from web_interface.security.privileges import PRIVILEGES
 
 
 def get_analysis_view(view_name):
@@ -45,6 +47,7 @@ class AnalysisRoutes(ComponentBase):
         else:
             return list(fo.get_virtual_file_paths().keys())
 
+    @roles_accepted(*PRIVILEGES['view_analysis'])
     def _show_analysis_results(self, uid, selected_analysis=None, root_uid=None):
         root_uid = none_to_none(root_uid)
         other_versions = None
@@ -75,7 +78,8 @@ class AnalysisRoutes(ComponentBase):
                                           firmware_including_this_fo=firmware_including_this_fo,
                                           analysis_plugin_dict=analysis_plugins,
                                           other_versions=other_versions,
-                                          uids_for_comparison=uids_for_comparison)
+                                          uids_for_comparison=uids_for_comparison,
+                                          user_has_admin_clearance=user_has_privilege(current_user, privilege='delete'))
         else:
             return render_template('uid_not_found.html', uid=uid)
 
@@ -90,6 +94,7 @@ class AnalysisRoutes(ComponentBase):
             else:
                 return self.analysis_generic_view
 
+    @roles_accepted(*PRIVILEGES['submit_analysis'])
     def _update_analysis(self, uid, re_do=False):
         error = {}
         if request.method == 'POST':
@@ -137,5 +142,6 @@ class AnalysisRoutes(ComponentBase):
         with ConnectTo(InterComFrontEndBinding, self._config) as sc:
             sc.add_re_analyze_task(fw)
 
+    @roles_accepted(*PRIVILEGES['delete'])
     def _re_do_analysis(self, uid):
         return self._update_analysis(uid, re_do=True)

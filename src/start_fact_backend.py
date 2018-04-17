@@ -27,6 +27,7 @@ from intercom.back_end_binding import InterComBackEndBinding
 from scheduler.Analysis import AnalysisScheduler
 from scheduler.Compare import CompareScheduler
 from scheduler.Unpacking import UnpackingScheduler
+from scheduler.analysis_tag import TaggingDaemon
 from statistic.work_load import WorkLoadStatistic
 
 PROGRAM_NAME = 'FACT Backend'
@@ -46,6 +47,7 @@ signal.signal(signal.SIGTERM, shutdown)
 if __name__ == '__main__':
     args, config = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION)
     analysis_service = AnalysisScheduler(config=config)
+    tagging_service = TaggingDaemon(analysis_scheduler=analysis_service)
     unpacking_service = UnpackingScheduler(config=config, post_unpack=analysis_service.add_task, analysis_workload=analysis_service.get_scheduled_workload)
     compare_service = CompareScheduler(config=config)
     intercom = InterComBackEndBinding(config=config, analysis_service=analysis_service, compare_service=compare_service, unpacking_service=unpacking_service)
@@ -65,6 +67,7 @@ if __name__ == '__main__':
     intercom.shutdown()
     compare_service.shutdown()
     unpacking_service.shutdown()
+    tagging_service.shutdown()
     analysis_service.shutdown()
     if not args.testing:
         complete_shutdown()

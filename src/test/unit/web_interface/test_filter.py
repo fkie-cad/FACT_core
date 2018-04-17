@@ -1,14 +1,47 @@
 import unittest
-import pytest
 from time import gmtime
 
-from web_interface.filter import replace_underscore_filter, byte_number_filter, get_all_uids_in_string, nice_list, uids_to_link, \
-    list_to_line_break_string, nice_unix_time, nice_number_filter, sort_chart_list_by_value, \
-    sort_chart_list_by_name, text_highlighter, generic_nice_representation, list_to_line_break_string_no_sort,\
-    encode_base64_filter, render_tags, fix_cwe
+import pytest
+
+from web_interface.filter import replace_underscore_filter, byte_number_filter, get_all_uids_in_string, nice_list, \
+    uids_to_link, list_to_line_break_string, nice_unix_time, nice_number_filter, sort_chart_list_by_value, \
+    sort_chart_list_by_name, text_highlighter, generic_nice_representation, list_to_line_break_string_no_sort, \
+    encode_base64_filter, render_tags, fix_cwe, set_limit_for_data_to_chart, data_to_chart_with_value_percentage_pairs, \
+    data_to_chart_limited, render_analysis_tags, vulnerability_class
 
 
 class TestWebInterfaceFilter(unittest.TestCase):
+
+    def test_set_limit_for_data_to_chart(self):
+        limit = 5
+        label_list = ['a', 'b', 'c', 'd', 'e', 'f', 'g']
+        value_list = [1, 2, 3, 4, 5, 6, 7]
+        self.assertEqual(set_limit_for_data_to_chart(label_list, limit, value_list),
+                         (['a', 'b', 'c', 'd', 'e', 'rest'], [1, 2, 3, 4, 5, 13]))
+
+    def test_data_to_chart_with_value_percentage_pairs(self):
+        self.maxDiff = None
+        data = [('NX enabled', 1696, 0.89122),
+                ('NX disabled', 207, 0.10878),
+                ('Canary enabled', 9, 0.00473)]
+        self.assertEqual(data_to_chart_with_value_percentage_pairs(data),
+                         {'labels': ['NX enabled', 'NX disabled', 'Canary enabled'],
+                          'datasets': [{'data': [1696, 207, 9],
+                                        'percentage': [0.89122, 0.10878, 0.00473],
+                                        'backgroundColor': ['#2b669a', '#cce0dc', '#2b669a'],
+                                        'borderColor': ['#2b669a', '#cce0dc', '#2b669a'],
+                                        'borderWidth': 1}]})
+
+    def test_data_to_chart_limited(self):
+        data = [('NX enabled', 1696),
+                ('NX disabled', 207),
+                ('Canary enabled', 9)]
+        self.assertEqual(data_to_chart_limited(data),
+                         {'labels': ['NX enabled', 'NX disabled', 'Canary enabled'],
+                          'datasets': [{'data': [1696, 207, 9],
+                                        'backgroundColor': ['#2b669a', '#cce0dc', '#2b669a'],
+                                        'borderColor': ['#2b669a', '#cce0dc', '#2b669a'],
+                                        'borderWidth': 1}]})
 
     def test_get_all_uids_in_string(self):
         test_string = '{\'d41c0f1431b39b9db565b4e32a5437c61c77762a3f4401bac3bafa4887164117_24\', \'f7c927fb0c209035c7e6939bdd00eabdaada429f2ee9aeca41290412c8c79759_25\' , \'deaa23651f0a9cc247a20d0e0a78041a8e40b144e21b82081ecb519dd548eecf_24494080\'}'
@@ -124,3 +157,30 @@ def test_generic_nice_representation(input_data, expected):
 ])
 def test_render_tags(tag_dict, output):
     assert render_tags(tag_dict) == output
+
+
+def test_empty_analysis_tags():
+    assert render_analysis_tags(dict()) == ''
+
+
+def test_render_analysis_tags_success():
+    tags = {'such plugin': {'tag': {'color': 'very color', 'value': 'wow'}}}
+    output = render_analysis_tags(tags)
+    assert 'label-very color' in output
+    assert '>wow<' in output
+
+
+def test_render_analysis_tags_bad_type():
+    tags = {'such plugin': {42: {'color': 'very color', 'value': 'wow'}}}
+    with pytest.raises(AttributeError):
+        render_analysis_tags(tags)
+
+
+@pytest.mark.parametrize('score_and_class', [('low', 'active'), ('medium', 'warning'), ('high', 'danger')])
+def test_vulnerability_class_success(score_and_class):
+    assert vulnerability_class(score_and_class[0]) == score_and_class[1]
+
+
+@pytest.mark.parametrize('score', [None, '', 'bad', 5])
+def test_vulnerability_class_bad(score):
+    assert vulnerability_class(score) is None

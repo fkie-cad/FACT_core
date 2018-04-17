@@ -12,9 +12,10 @@ sudo -EH pip3 install --upgrade git+https://github.com/fkie-cad/common_helper_pa
 sudo apt-get install -y john
 	
 cd internal/passwords
-wget -N https://raw.githubusercontent.com/danielmiessler/SecLists/master/Passwords/10k_most_common.txt
+wget -N https://raw.githubusercontent.com/danielmiessler/SecLists/master/Passwords/Common-Credentials/10k-most-common.txt 
 cd ..
 
 python3 update_password_list.py
+cd ..
 
 exit 0

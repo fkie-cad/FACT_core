@@ -3,6 +3,7 @@ from contextlib import suppress
 
 from helperFunctions.plugin import import_plugins
 from objects.firmware import Firmware
+from storage.binary_service import BinaryService
 
 
 class Compare(object):
@@ -23,12 +24,17 @@ class Compare(object):
 
     def compare(self, uid_list):
         logging.info("Compare in progress: {}".format(uid_list))
+        bs = BinaryService(config=self.config)
+
         fo_list = []
         for uid in uid_list:
             try:
-                fo_list.append(self.db_interface.get_complete_object_including_all_summaries(uid))
-            except Exception as e:
-                return e
+                fo = self.db_interface.get_complete_object_including_all_summaries(uid)
+                fo.binary = bs.get_binary_and_file_name(fo.uid)[0]
+                fo_list.append(fo)
+            except Exception as exception:
+                return exception
+
         return self.compare_objects(fo_list)
 
     def compare_objects(self, fo_list):

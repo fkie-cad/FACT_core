@@ -26,6 +26,7 @@ class FileObject(object):
         self.comments = []
         self.parent_firmware_uids = set()
         self.temporary_data = {}
+        self.analysis_tags = {}
         if binary is not None:
             self.set_binary(binary)
         else:
