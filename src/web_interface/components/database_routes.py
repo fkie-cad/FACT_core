@@ -10,11 +10,13 @@ from flask_paginate import Pagination
 
 from helperFunctions.dataConversion import make_unicode_string
 from helperFunctions.mongo_task_conversion import get_file_name_and_binary_from_request
-from helperFunctions.yara_binary_search import YaraRuleError, is_valid_yara_rule_file, get_yara_error
 from helperFunctions.web_interface import ConnectTo, apply_filters_to_query, filter_out_illegal_characters
+from helperFunctions.yara_binary_search import YaraRuleError, is_valid_yara_rule_file, get_yara_error
 from intercom.front_end_binding import InterComFrontEndBinding
 from storage.db_interface_frontend import FrontEndDbInterface
 from web_interface.components.component_base import ComponentBase
+from web_interface.security.decorator import roles_accepted
+from web_interface.security.privileges import PRIVILEGES
 
 
 class DatabaseRoutes(ComponentBase):
@@ -57,6 +59,7 @@ class DatabaseRoutes(ComponentBase):
         except:
             return query
 
+    @roles_accepted(*PRIVILEGES['basic_search'])
     def _app_show_browse_database(self, query='{}', only_firmwares=False):
         page, per_page = self._get_page_items()[0:2]
         if request.args.get('query'):
@@ -119,6 +122,7 @@ class DatabaseRoutes(ComponentBase):
         hash_query = [{'processed_analysis.file_hashes.{}'.format(hash_type): value} for hash_type in hash_types]
         query.update({'$or': hash_query})
 
+    @roles_accepted(*PRIVILEGES['basic_search'])
     def _app_show_search_database(self):
         if request.method == 'POST':
             query = self._build_search_query()
@@ -128,6 +132,7 @@ class DatabaseRoutes(ComponentBase):
             vendors = connection.get_vendor_list()
         return render_template('database/database_search.html', device_classes=device_classes, vendors=vendors)
 
+    @roles_accepted(*PRIVILEGES['advanced_search'])
     def _app_show_advanced_search(self, error=None):
         with ConnectTo(FrontEndDbInterface, self._config) as connection:
             database_structure = connection.create_analysis_structure()
@@ -145,7 +150,7 @@ class DatabaseRoutes(ComponentBase):
     @staticmethod
     def _get_yara_rule_file_from_request(request):
         yara_rule_file = None
-        if request.files['file']:
+        if 'file' in request.files and request.files['file']:
             _, yara_rule_file = get_file_name_and_binary_from_request(request)
         elif request.form['textarea']:
             yara_rule_file = request.form['textarea'].encode()
@@ -163,6 +168,7 @@ class DatabaseRoutes(ComponentBase):
                 firmware_dict[rule] = sorted(connection.get_meta_list(firmware_list))
         return firmware_dict
 
+    @roles_accepted(*PRIVILEGES['pattern_search'])
     def _app_start_binary_search(self):
         error = None
         if request.method == 'POST':
@@ -178,6 +184,7 @@ class DatabaseRoutes(ComponentBase):
                 error = 'please select a file or enter rules in the text area'
         return render_template('database/database_binary_search.html', error=error)
 
+    @roles_accepted(*PRIVILEGES['pattern_search'])
     def _app_show_binary_search_results(self):
         firmware_dict, error, yara_rules = None, None, None
         if request.args.get('request_id'):
@@ -195,6 +202,7 @@ class DatabaseRoutes(ComponentBase):
         return render_template('database/database_binary_search_results.html', result=firmware_dict, error=error,
                                request_id=request_id, yara_rules=yara_rules)
 
+    @roles_accepted(*PRIVILEGES['basic_search'])
     def _app_start_quick_search(self):
         search_term = filter_out_illegal_characters(request.args.get('search_term'))
         if search_term is None:

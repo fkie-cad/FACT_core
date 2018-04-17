@@ -8,6 +8,7 @@ from time import sleep
 from helperFunctions.parsing import bcolors
 from helperFunctions.plugin import import_plugins
 from helperFunctions.process import ExceptionSafeProcess, terminate_process_and_childs
+from helperFunctions.tag import check_tags, add_tags_to_object
 from storage.db_interface_backend import BackEndDbInterface
 
 
@@ -26,6 +27,7 @@ class AnalysisScheduler(object):
         self.load_plugins()
         self.stop_condition = Value('i', 0)
         self.process_queue = Queue()
+        self.tag_queue = Queue()
         self.db_backend_service = db_interface if db_interface else BackEndDbInterface(config=config)
         self.post_analysis = self.db_backend_service.add_object if post_analysis is None else post_analysis
         self.start_scheduling_process()
@@ -46,6 +48,7 @@ class AnalysisScheduler(object):
                 e.submit(self.analysis_plugins[plugin].shutdown)
         if getattr(self.db_backend_service, 'shutdown', False):
             self.db_backend_service.shutdown()
+        self.tag_queue.close()
         self.process_queue.close()
         logging.info('Analysis System offline')
 
@@ -157,6 +160,7 @@ class AnalysisScheduler(object):
             for plugin in self.analysis_plugins:
                 try:
                     fw = self.analysis_plugins[plugin].out_queue.get_nowait()
+                    fw = self._handle_analysis_tags(fw, plugin)
                 except Empty:
                     pass
                 else:
@@ -164,6 +168,10 @@ class AnalysisScheduler(object):
                     self.check_further_process_or_complete(fw)
             if nop:
                 sleep(int(self.config['ExpertSettings']['block_delay']))
+
+    def _handle_analysis_tags(self, fw, plugin):
+        self.tag_queue.put(check_tags(fw, plugin))
+        return add_tags_to_object(fw, plugin)
 
     def check_further_process_or_complete(self, fw_object):
         if not fw_object.scheduled_analysis:
