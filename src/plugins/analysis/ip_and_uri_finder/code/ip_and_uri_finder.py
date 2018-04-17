@@ -1,6 +1,5 @@
 import logging
 import os
-from sys import exc_info
 
 import geoip2.database
 from geoip2.errors import AddressNotFoundError
