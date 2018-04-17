@@ -15,9 +15,9 @@ from web_interface.filter import byte_number_filter, encode_base64_filter, \
     bytes_to_str_filter, replace_underscore_filter, nice_list, data_to_chart_limited, data_to_chart, \
     uids_to_link, get_all_uids_in_string, list_to_line_break_string, sort_comments, \
     nice_unix_time, infection_color, nice_number_filter, sort_chart_list_by_name, sort_chart_list_by_value, \
-    text_highlighter, get_canvas_height, comment_out_regex_meta_chars, \
+    text_highlighter, get_canvas_height, comment_out_regex_meta_chars, user_has_admin_rights, \
     generic_nice_representation, list_to_line_break_string_no_sort, render_tags, fix_cwe, \
-    data_to_chart_with_value_percentage_pairs, render_analysis_tags, vulnerability_class
+    data_to_chart_with_value_percentage_pairs, render_analysis_tags, vulnerability_class, sort_users_by_name
 
 
 class FilterClass:
@@ -123,3 +123,5 @@ class FilterClass:
         self._app.jinja_env.filters['fix_cwe'] = fix_cwe
         self._app.jinja_env.filters['vulnerability_class'] = vulnerability_class
         self._app.jinja_env.filters['auth_enabled'] = self.check_auth
+        self._app.jinja_env.filters['sort_users'] = sort_users_by_name
+        self._app.jinja_env.filters['user_has_admin_rights'] = user_has_admin_rights

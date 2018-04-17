@@ -16,3 +16,11 @@ class UserRoleDbInterface(SQLAlchemyUserDatastore):
         user = self.find_user(email=user_name)
         user.password = hash_password(password)
         self.put(user)
+
+    def user_exists(self, user_name):
+        user = self.find_user(email=user_name)
+        return True if user else False
+
+    def role_exists(self, role):
+        role = self.find_role(role)
+        return True if role else False
