@@ -123,7 +123,7 @@
                                 </ul>
                             </li>
                         {% elif caption == "Admin" %}
-                            {% if current_user | user_has_admin_rights %}
+                            {% if current_user | user_has_role('manage_users') %}
                                 <li class="dropdown {% if caption == active_page %}active{% endif  %}">
                                     <a class="dropdown-toggle" data-toggle="dropdown" href="#"><span class="glyphicon glyphicon-cog"></span>&nbsp;{{ caption }}<span class="caret"></span></a>
                                     <ul class="dropdown-menu">

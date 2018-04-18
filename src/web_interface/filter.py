@@ -11,7 +11,7 @@ from time import localtime, strftime, struct_time
 from common_helper_files import human_readable_file_size
 
 from helperFunctions.dataConversion import make_unicode_string
-from helperFunctions.web_interface import get_color_list
+from helperFunctions.web_interface import get_color_list, user_has_privilege
 
 
 def generic_nice_representation(i):
@@ -337,5 +337,5 @@ def sort_users_by_name(user_list):
     return sorted(user_list, key=lambda u: u.email)
 
 
-def user_has_admin_rights(current_user):
-    return current_user.is_authenticated and current_user.has_role("superuser")
+def user_has_role(current_user, role):
+    return current_user.is_authenticated and user_has_privilege(current_user, role)
