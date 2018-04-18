@@ -3,7 +3,7 @@ import json
 import os
 import re
 
-from flask_security.core import AnonymousUser
+from flask_security.core import AnonymousUser, UserMixin
 from common_helper_files import get_binary_from_file
 from itertools import chain
 
@@ -82,6 +82,8 @@ def get_template_as_string(view_name):
 
 
 def _auth_is_disabled(user):
+    if isinstance(user, UserMixin):
+        return isinstance(user, AnonymousUser)
     return isinstance(user._get_current_object(), AnonymousUser)
 
 
