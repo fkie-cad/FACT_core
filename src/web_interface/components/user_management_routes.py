@@ -27,7 +27,7 @@ class UserManagementRoutes(ComponentBase):
             yield session
             session.commit()
         except (SQLAlchemyError, TypeError) as exception:
-            logging.error('error while accessing user db', exception)
+            logging.error('error while accessing user db: {}'.format(exception))
             session.rollback()
             if error_message:
                 flash(error_message)
@@ -35,8 +35,7 @@ class UserManagementRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['manage_users'])
     def _app_manage_users(self):
         if request.method == 'POST':
-            if 'username' in request.form:
-                self._add_user()
+            self._add_user()
         user_list = self._user_db_interface.list_users()
         return render_template(
             'user_management/manage_users.html',
@@ -54,6 +53,7 @@ class UserManagementRoutes(ComponentBase):
         else:
             with self.user_db_session('Error while creating user'):
                 self._user_db_interface.create_user(email=name, password=password)
+                flash('Successfully created user', 'success')
                 logging.info('Created user: {}'.format(name))
 
     @roles_accepted(*PRIVILEGES['manage_users'])
@@ -106,7 +106,7 @@ class UserManagementRoutes(ComponentBase):
             for role in added_roles:
                 if not self._user_db_interface.role_exists(role):
                     self._user_db_interface.create_role(name=role)
-                    logging.info('Creating role {}'.format(role))
+                    logging.info('Creating user role "{}"'.format(role))
                 self._user_db_interface.add_role_to_user(user=user, role=role)
 
             for role in removed_roles:
@@ -144,7 +144,7 @@ class UserManagementRoutes(ComponentBase):
         new_password_confirm = request.form['new_password_confirm']
         old_password = request.form['old_password']
         if new_password != new_password_confirm:
-            flash('Error: new passwords did not match', 'warning')
+            flash('Error: new password did not match', 'warning')
         elif not self._user_db_interface.password_is_correct(current_user.email, old_password):
             flash('Error: wrong password', 'warning')
         else:
