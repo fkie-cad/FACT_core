@@ -52,3 +52,9 @@ class TestUserRoleDbInterface(TestCase):
             user_name, password, new_password = 'test_user', 'password', 'new_password'
             self.db_interface.create_user(email=user_name, password=password)
             assert self.db_interface.user_exists('test_user') is True
+
+    def test_role_exists(self):
+        with self.test_app.app_context():
+            assert self.db_interface.role_exists('test_role') is False
+            self.db_interface.create_role(name='test_role')
+            assert self.db_interface.role_exists('test_role') is True
