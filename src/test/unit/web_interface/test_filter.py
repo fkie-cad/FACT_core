@@ -209,9 +209,6 @@ class CurrentUserMock:
     def has_role(self, role):
         return role in self.roles
 
-    def _get_current_object(self):
-        return None
-
 
 @pytest.mark.parametrize('user, role, expected_result', [
     (CurrentUserMock(False, []), 'manage_users', False),
