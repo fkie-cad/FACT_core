@@ -75,7 +75,8 @@ class UserManagementRoutes(ComponentBase):
             'user_management/edit_user.html',
             available_roles=available_roles,
             user=user,
-            role_indexes=role_indexes
+            role_indexes=role_indexes,
+            privileges=PRIVILEGES
         )
 
     def _change_user_password(self, user_id):

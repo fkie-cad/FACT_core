@@ -25,7 +25,7 @@
             value: {{ role_indexes }},
             source: [
                 {% for r in available_roles %}
-                    {value: {{ available_roles.index(r) }}, text: '{{ r }}'},
+                    {value: {{ available_roles.index(r) }}, text: '{{ r | replace_underscore }}'},
                 {% endfor %}
             ]
         });
@@ -88,12 +88,56 @@
             <tr>
                 <td class="active result" style="text-align: right; vertical-align: middle;">
                     Roles:
+                    <button type="button" class="btn btn-default" data-toggle="modal" data-target="#user_role_help_modal" style="width: 100%">
+                        <span class="glyphicon glyphicon-question-sign"></span>
+                    </button>
                 </td>
                 <td class="active result" style="padding-right: 90px">
                     <a href="#" id="roles" data-type="checklist" data-pk="{{ user.email }}" data-url="/admin/edit_user" data-title="Select User Groups"></a>
                 </td>
             </tr>
         </table>
+
+        <!-- role help -->
+        <div id="user_role_help_modal" class="modal" role="dialog" data-backdrop="false" style="position: relative; top: -20px;">
+            <div class="modal-dialog">
+                <div class="modal-content" style="box-shadow: none;">
+
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="modal-title">User Roles</h4>
+                    </div>
+
+                    <div class="modal-body">
+                        <table class="table table-bordered table-striped">
+                            <tr>
+                                <th style="border: 0"></th>
+                                {% for role in available_roles %}
+                                <th style="width: 60px;">
+                                    {{ role | replace_underscore }}
+                                </th>
+                                {% endfor %}
+                            </tr>
+                            {% for privilege, p_roles in privileges.items() %}
+                                <tr>
+                                    <th style="text-align: right">{{ privilege | replace_underscore }}</th>
+                                    {% for role in available_roles %}
+                                        <td style="text-align: center">
+                                            {% if role in p_roles %}
+                                                <span class="glyphicon glyphicon-ok" style="color:DarkGreen"></span>
+                                            {% else %}
+                                                <span class="glyphicon glyphicon-remove" style="color:DarkRed"></span>
+                                            {% endif %}
+                                        </td>
+                                    {% endfor %}
+                                </tr>
+                            {% endfor %}
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
