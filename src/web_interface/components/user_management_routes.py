@@ -13,6 +13,11 @@ from web_interface.security.privileges import PRIVILEGES, ROLES
 
 class UserManagementRoutes(ComponentBase):
 
+    def __init__(self, app, config, api=None, user_db=None, user_db_interface=None):
+        super().__init__(app, config, api=api)
+        self._user_db = user_db
+        self._user_db_interface = user_db_interface
+
     def _init_component(self):
         self._app.add_url_rule('/admin/manage_users', 'admin/manage_users', self._app_manage_users, methods=['GET', 'POST'])
         self._app.add_url_rule('/admin/user/<user_id>', 'admin/user/<user_id>', self._app_edit_user, methods=['GET', 'POST'])
