@@ -7,7 +7,7 @@ from web_interface.filter import replace_underscore_filter, byte_number_filter, 
     uids_to_link, list_to_line_break_string, nice_unix_time, nice_number_filter, sort_chart_list_by_value, \
     sort_chart_list_by_name, text_highlighter, generic_nice_representation, list_to_line_break_string_no_sort, \
     encode_base64_filter, render_tags, fix_cwe, set_limit_for_data_to_chart, data_to_chart_with_value_percentage_pairs, \
-    data_to_chart_limited, render_analysis_tags, vulnerability_class, sort_users_by_name, user_has_role
+    data_to_chart_limited, render_analysis_tags, vulnerability_class, sort_users_by_name, user_has_role, sort_roles_by_number_of_privileges
 
 
 class TestWebInterfaceFilter(unittest.TestCase):
@@ -221,3 +221,15 @@ class CurrentUserMock:
 ])
 def test_user_has_role(user, role, expected_result):
     assert user_has_role(user, role) == expected_result
+
+
+def test_sort_roles_by_number_of_privileges():
+    roles = ['a', 'b', 'c']
+    privileges = {
+        'p_1': ['b'],
+        'p_2': ['a', 'b', 'c'],
+        'p_3': ['b', 'c'],
+        'p_4': [],
+    }
+    result = sort_roles_by_number_of_privileges(roles, privileges)
+    assert result == ['a', 'c', 'b']

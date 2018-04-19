@@ -12,6 +12,7 @@ from common_helper_files import human_readable_file_size
 
 from helperFunctions.dataConversion import make_unicode_string
 from helperFunctions.web_interface import get_color_list, user_has_privilege
+from web_interface.security.privileges import PRIVILEGES
 
 
 def generic_nice_representation(i):
@@ -339,3 +340,11 @@ def sort_users_by_name(user_list):
 
 def user_has_role(current_user, role):
     return current_user.is_authenticated and user_has_privilege(current_user, role)
+
+
+def sort_roles_by_number_of_privileges(roles, privileges=PRIVILEGES):
+    inverted_privileges = {}
+    for key, value_list in privileges.items():
+        for value in value_list:
+            inverted_privileges.setdefault(value, []).append(key)
+    return sorted(roles, key=lambda role: len(inverted_privileges[role]))
