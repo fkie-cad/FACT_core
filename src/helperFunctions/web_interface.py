@@ -2,14 +2,11 @@ import colorsys
 import json
 import os
 import re
-
-from flask_security.core import AnonymousUser
-from common_helper_files import get_binary_from_file
 from itertools import chain
 
-from helperFunctions.fileSystem import get_template_dir
-from web_interface.security.privileges import PRIVILEGES
+from common_helper_files import get_binary_from_file
 
+from helperFunctions.fileSystem import get_template_dir
 
 SPECIAL_CHARACTERS = 'ÄäÀàÁáÂâÃãÅåǍǎĄąĂăÆæĀāÇçĆćĈĉČčĎđĐďðÈèÉéÊêËëĚěĘęĖėĒēĜĝĢģĞğĤĥÌìÍíÎîÏïıĪīĮįĴĵĶķĹĺĻļŁłĽľÑñŃńŇňŅņÖöÒòÓóÔôÕõŐőØøŒœŔŕŘřẞßŚśŜŝŞşŠšȘș' \
                      'ŤťŢţÞþȚțÜüÙùÚúÛûŰűŨũŲųŮůŪūŴŵÝýŸÿŶŷŹźŽžŻż'
@@ -79,11 +76,3 @@ class ConnectTo:
 def get_template_as_string(view_name):
     path = os.path.join(get_template_dir(), view_name)
     return get_binary_from_file(path).decode('utf-8')
-
-
-def _auth_is_disabled(user):
-    return isinstance(user._get_current_object(), AnonymousUser)
-
-
-def user_has_privilege(user, privilege='delete'):
-    return _auth_is_disabled(user) or any(user.has_role(role) for role in PRIVILEGES[privilege])
