@@ -1,8 +1,10 @@
 import base64
 import os
 
-from flask_security import Security, SQLAlchemyUserDatastore, UserMixin, RoleMixin
+from flask_security import Security, SQLAlchemyUserDatastore, UserMixin, RoleMixin, AnonymousUser
 from flask_sqlalchemy import SQLAlchemy
+
+from web_interface.security.privileges import PRIVILEGES
 
 
 def add_flask_security_to_app(app, config):
@@ -58,3 +60,11 @@ def _add_configuration_to_app(app, config):
 def _build_api_key():
     raw_key = os.urandom(32)
     return base64.standard_b64encode(raw_key).decode()
+
+
+def _auth_is_disabled(user):
+    return isinstance(user._get_current_object(), AnonymousUser)
+
+
+def user_has_privilege(user, privilege='delete'):
+    return _auth_is_disabled(user) or any(user.has_role(role) for role in PRIVILEGES[privilege])
