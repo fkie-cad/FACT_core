@@ -5,11 +5,9 @@ import re
 from itertools import chain
 
 from common_helper_files import get_binary_from_file
-from flask_security.core import AnonymousUser
-from werkzeug.local import LocalProxy
 
 from helperFunctions.fileSystem import get_template_dir
-from web_interface.security.privileges import PRIVILEGES
+
 
 SPECIAL_CHARACTERS = 'ÄäÀàÁáÂâÃãÅåǍǎĄąĂăÆæĀāÇçĆćĈĉČčĎđĐďðÈèÉéÊêËëĚěĘęĖėĒēĜĝĢģĞğĤĥÌìÍíÎîÏïıĪīĮįĴĵĶķĹĺĻļŁłĽľÑñŃńŇňŅņÖöÒòÓóÔôÕõŐőØøŒœŔŕŘřẞßŚśŜŝŞşŠšȘș' \
                      'ŤťŢţÞþȚțÜüÙùÚúÛûŰűŨũŲųŮůŪūŴŵÝýŸÿŶŷŹźŽžŻż'
@@ -79,12 +77,3 @@ class ConnectTo:
 def get_template_as_string(view_name):
     path = os.path.join(get_template_dir(), view_name)
     return get_binary_from_file(path).decode('utf-8')
-
-
-def _auth_is_disabled(user):
-    user_object = user._get_current_object() if isinstance(user, LocalProxy) else user
-    return isinstance(user_object, AnonymousUser)
-
-
-def user_has_privilege(user, privilege='delete'):
-    return _auth_is_disabled(user) or any(user.has_role(role) for role in PRIVILEGES[privilege])
