@@ -2,6 +2,7 @@
 
 import json
 import random
+import hashlib
 
 from common_helper_filter.time import time_format
 from flask import render_template
@@ -123,3 +124,5 @@ class FilterClass:
         self._app.jinja_env.filters['fix_cwe'] = fix_cwe
         self._app.jinja_env.filters['vulnerability_class'] = vulnerability_class
         self._app.jinja_env.filters['auth_enabled'] = self.check_auth
+	self._app.jinja_env.filters['hash'] = lambda s: hashlib.md5(s.encode()).hexdigest()
+
