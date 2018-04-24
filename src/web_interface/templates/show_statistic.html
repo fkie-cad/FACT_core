@@ -301,7 +301,7 @@
 			{% for ip in (stats["ip_and_uri_stats"]["ips_v4"] | sort_chart_list_by_value)[:10] %}
 				<tr>
 					<td class="active" style="text-align: left; padding:5px; cursor:pointer;"
-                        {% set query = {"processed_analysis.ip_and_uri_finder.ips_v4": {"$elemMatch": {"$eq": ip[0]}}} %}
+                        {% set query = {"processed_analysis.ip_and_uri_finder.ips_v4": {"$elemMatch": {"$elemMatch": {"$in": [ip[0], ]}}}} %}
 						onclick="location.href='{{ query_url + query | json_dumps | urlencode }}'">
 						{{ ip[0] }}
 					</td>
@@ -320,7 +320,7 @@
 			{% for ip in (stats["ip_and_uri_stats"]["ips_v6"] | sort_chart_list_by_value)[:10] %}
 				<tr>
 					<td class="active" style="text-align: left; padding:5px; cursor:pointer;"
-                        {% set query = {"processed_analysis.ip_and_uri_finder.ips_v6": {"$eq": ip[0]}} %}
+                        {% set query = {"processed_analysis.ip_and_uri_finder.ips_v6": {"$elemMatch": {"$elemMatch": {"$in": [ip[0], ]}}}} %}
 						onclick="location.href='{{ query_url + query | json_dumps | urlencode }}'">
 						{{ ip[0] }}
 					</td>
