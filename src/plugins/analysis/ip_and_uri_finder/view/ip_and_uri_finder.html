@@ -2,29 +2,46 @@
 
 {% block analysis_result_details %}
 
-	{% for key in firmware.processed_analysis[selected_analysis]|sort %}
+	{% for key in firmware.processed_analysis[selected_analysis] %}
 		{% if key not in ['summary', 'plugin_version', 'analysis_date'] %}
 			<tr>
             {% if firmware.processed_analysis[selected_analysis][key] != [] %}
-				<td rowspan="{{ firmware.processed_analysis[selected_analysis][key]|length }}">
+				<td>
                     {% if key == "ips_v4" %}IPs v4:
                     {% elif key == "ips_v6" %}IPs v6:
                     {% elif key == "ips" %}IPs:
                     {% else %}URIs:{% endif %}
                 </td>
-            {% for item in firmware.processed_analysis[selected_analysis][key]|sort %}
-				<td>
-                    {{ item }}
-                </td>
                 <td>
-                    {{ firmware.processed_analysis[selected_analysis][key][item] }}
+                    <table>
+                        {% for item in firmware.processed_analysis[selected_analysis][key] %}
+                            {% if key == "ips_v6" or  key == "ips_v4" %}
+                                <tr>
+                                    <td>
+                                        {{ item[0] }}
+                                    </td>
+                                    <td style="padding-left:10px">
+                                        {% if item[1] %}
+                                            <a href="https://www.google.de/maps/place/{{ item[1] }}">
+                                                <span class="glyphicon glyphicon-map-marker"></span>
+                                            </a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="2">
+                                        {{ item }}
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        {% endfor %}
+                    </table>
                 </td>
-			</tr>
-            <tr>
-            {% endfor %}
+		    {% endif %}
             </tr>
-            {% endif %}
-		{% endif %}
+        {% endif %}
 	{% endfor %}
 
 {% endblock %}
+

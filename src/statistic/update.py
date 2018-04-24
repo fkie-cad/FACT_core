@@ -9,7 +9,7 @@ from common_helper_filter.time import time_format
 from common_helper_mongo import get_field_average, get_field_sum, get_objects_and_count_of_occurrence
 
 from helperFunctions.dataConversion import build_time_dict
-from helperFunctions.merge_generators import sum_up_lists, avg, merge_dict
+from helperFunctions.merge_generators import sum_up_lists, sum_up_nested_lists, avg, merge_dict
 from helperFunctions.mongo_task_conversion import is_sanitized_entry
 from storage.db_interface_statistic import StatisticDbUpdater
 from helperFunctions.statistic import calculate_total_files
@@ -293,8 +293,8 @@ class StatisticUpdater(object):
 
     def _get_ip_stats(self):
         stats = {}
-        stats['ips_v4'] = self._get_objects_and_count_of_occurrence_firmware_and_file_db('$processed_analysis.ip_and_uri_finder.ips_v4', unwind=True)
-        stats['ips_v6'] = self._get_objects_and_count_of_occurrence_firmware_and_file_db('$processed_analysis.ip_and_uri_finder.ips_v6', unwind=True)
+        stats['ips_v4'] = self._get_objects_and_count_of_occurrence_firmware_and_file_db('$processed_analysis.ip_and_uri_finder.ips_v4', unwind=True, sumup_function=sum_up_nested_lists)
+        stats['ips_v6'] = self._get_objects_and_count_of_occurrence_firmware_and_file_db('$processed_analysis.ip_and_uri_finder.ips_v6', unwind=True, sumup_function=sum_up_nested_lists)
         stats['uris'] = self._get_objects_and_count_of_occurrence_firmware_and_file_db('$processed_analysis.ip_and_uri_finder.uris', unwind=True)
         return stats
 
@@ -350,7 +350,7 @@ class StatisticUpdater(object):
         chart_list = self._convert_dict_list_to_list(tmp)
         return self._filter_sanitzized_objects(chart_list)
 
-    def _get_objects_and_count_of_occurrence_firmware_and_file_db(self, object_path, unwind=False, match=None):
+    def _get_objects_and_count_of_occurrence_firmware_and_file_db(self, object_path, unwind=False, match=None, sumup_function=sum_up_lists):
         result_firmwares = self._get_objects_and_count_of_occurrence_single_db(self.db.firmwares, object_path, unwind=unwind, match=match)
         result_files = self._get_objects_and_count_of_occurrence_single_db(self.db.file_objects, object_path, unwind=unwind, match=match)
         combined_result = sum_up_lists(result_firmwares, result_files)
