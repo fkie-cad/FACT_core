@@ -10,7 +10,9 @@ PRIVILEGES = {
     'pattern_search': ['superuser', 'senior_analyst', 'analyst'],
     'submit_analysis': ['superuser', 'senior_analyst'],
     'download': ['superuser', 'senior_analyst'],
-    'delete': ['superuser']
+    'delete': ['superuser'],
+    'manage_users': ['superuser'],
+    'view_profile': ['superuser', 'senior_analyst', 'analyst']
 }
 
 for privilege in PRIVILEGES:
