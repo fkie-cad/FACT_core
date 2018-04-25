@@ -2,7 +2,6 @@
 
 import json
 import random
-import hashlib
 
 from common_helper_filter.time import time_format
 from helperFunctions.hash import get_md5
