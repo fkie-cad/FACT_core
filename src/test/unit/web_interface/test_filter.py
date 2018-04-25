@@ -7,7 +7,7 @@ from web_interface.filter import replace_underscore_filter, byte_number_filter, 
     uids_to_link, list_to_line_break_string, nice_unix_time, nice_number_filter, sort_chart_list_by_value, \
     sort_chart_list_by_name, text_highlighter, generic_nice_representation, list_to_line_break_string_no_sort, \
     encode_base64_filter, render_tags, fix_cwe, set_limit_for_data_to_chart, data_to_chart_with_value_percentage_pairs, \
-    data_to_chart_limited, render_analysis_tags, vulnerability_class
+    data_to_chart_limited, render_analysis_tags, vulnerability_class, sort_users_by_name, user_has_role, sort_roles_by_number_of_privileges
 
 
 class TestWebInterfaceFilter(unittest.TestCase):
@@ -184,3 +184,49 @@ def test_vulnerability_class_success(score_and_class):
 @pytest.mark.parametrize('score', [None, '', 'bad', 5])
 def test_vulnerability_class_bad(score):
     assert vulnerability_class(score) is None
+
+
+def test_sort_users_by_name():
+    class UserMock:
+        def __init__(self, id, name):
+            self.id = id
+            self.email = name
+
+    user_1 = UserMock(1, 'b')
+    user_2 = UserMock(2, 'd')
+    user_3 = UserMock(3, 'a')
+    user_4 = UserMock(4, 'c')
+    user_list = [user_1, user_2, user_3, user_4]
+
+    assert sort_users_by_name(user_list) == [user_3, user_1, user_4, user_2]
+
+
+class CurrentUserMock:
+    def __init__(self, is_authenticated, roles):
+        self.is_authenticated = is_authenticated
+        self.roles = roles
+
+    def has_role(self, role):
+        return role in self.roles
+
+
+@pytest.mark.parametrize('user, role, expected_result', [
+    (CurrentUserMock(False, []), 'manage_users', False),
+    (CurrentUserMock(False, ['superuser']), 'manage_users', False),
+    (CurrentUserMock(True, []), 'manage_users', False),
+    (CurrentUserMock(True, ['superuser']), 'manage_users', True),
+])
+def test_user_has_role(user, role, expected_result):
+    assert user_has_role(user, role) == expected_result
+
+
+def test_sort_roles_by_number_of_privileges():
+    roles = ['a', 'b', 'c']
+    privileges = {
+        'p_1': ['b'],
+        'p_2': ['a', 'b', 'c'],
+        'p_3': ['b', 'c'],
+        'p_4': [],
+    }
+    result = sort_roles_by_number_of_privileges(roles, privileges)
+    assert result == ['a', 'c', 'b']
