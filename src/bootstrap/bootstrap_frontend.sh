@@ -39,6 +39,13 @@ wget -nc https://raw.githubusercontent.com/moment/moment/develop/moment.js
 cd ../css
 wget -nc https://raw.githubusercontent.com/Eonasdan/bootstrap-datetimepicker/master/build/css/bootstrap-datetimepicker.min.css
 cd ../../
+# x-editable
+if [ ! -d "bootstrap3-editable" ]; then
+    wget https://vitalets.github.io/x-editable/assets/zip/bootstrap3-editable-1.5.1.zip
+    unzip -o bootstrap3-editable-1.5.1.zip
+    rm bootstrap3-editable-1.5.1.zip CHANGELOG.txt LICENSE-MIT README.md
+    rm -rf inputs-ext
+fi
 # download jstree
 if [ -d "jstree" ]; then
   rm -r jstree
