@@ -12,20 +12,22 @@
 	</a>
 	{% endif %}
 	{% for fo in fo_list %}
+		<span class="list-group-item">
 		{% if selected_analysis %}
-			<a href="/analysis/{{ fo.uid }}/{{selected_analysis}}/ro/{{ root_uid }}" class="list-group-item">
+			<a href="/analysis/{{ fo.uid }}/{{selected_analysis}}/ro/{{ root_uid }}"  class="list-group-item-heading">
 		{% else %}
-			<a href="/analysis/{{ fo.uid }}/ro/{{ root_uid }}" class="list-group-item">
+			<a href="/analysis/{{ fo.uid }}/ro/{{ root_uid }}"  class="list-group-item-heading">
 		{% endif %}
-				<h5 class="list-group-item-heading">{{ fo.virtual_file_paths | nice_list | replace_uid_with_hid(root_uid=root_uid) | safe }}</h5>
-				<span class="badge">{{ fo.files_included | length }}</span>
-				<p class="list-group-item-text">
-					Size: {{ fo.size | number_format }},
-					{% if fo['mime-type'] %}
-						Type: {{ fo['mime-type'] }}
-					{% endif %}
-				</p>
+				<h5>{{ fo.virtual_file_paths | nice_list | replace_uid_with_hid(root_uid=root_uid) | safe }} </h5>					
 			</a>
+			<p class="list-group-item-text">
+				Size: {{ fo.size | number_format }},
+				{% if fo['mime-type'] %}
+					Type: {{ fo['mime-type'] }}
+				{% endif %}
+				<span class="glyphicon glyphicon-download-alt pull-right clickable" onclick="location.href='/download/{{ fo.uid }}'"></span>
+			</p>
+		</span>	
     {% endfor %}
 	{% if not omit_collapse %}</div>{% endif %}
 </div>
