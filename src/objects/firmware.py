@@ -64,7 +64,7 @@ class Firmware(FileObject):
         if self.part == '':
             part = ''
         else:
-            part =' - {}'.format(self.part) 
+            part =' - {}'.format(self.part)
         return '{} {}{} v. {}'.format(self.vendor, self.device_name, part, self.version)
 
     def __str__(self):

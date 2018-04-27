@@ -5,12 +5,6 @@ from helperFunctions.object_conversion import create_meta_dict
 
 class TestHelperFunctionsObjectConversion(unittest.TestCase):
 
-    def setUp(self):
-        pass
-
-    def tearDown(self):
-        pass
-
     def test_create_meta_dict_fw(self):
         fw = create_test_firmware()
         meta = create_meta_dict(fw)
@@ -19,7 +13,7 @@ class TestHelperFunctionsObjectConversion(unittest.TestCase):
         self.assertEqual(meta['vendor'], "test_vendor")
         self.assertEqual(meta['version'], "0.1")
         self.assertEqual(meta['release_date'], '1970-01-01')
-        self.assertEqual(meta['hid'], "test_vendor test_router - 0.1")
+        self.assertEqual(meta['hid'], "test_vendor test_router v. 0.1")
         self.assertEqual(meta['size'], 787)
         self.assertEqual(len(meta.keys()), 7)
 
@@ -31,6 +25,3 @@ class TestHelperFunctionsObjectConversion(unittest.TestCase):
         self.assertEqual(meta['virtual_file_path'], ['d558c9339cb967341d701e3184f863d3928973fccdc1d96042583730b5c7b76a_62'])
         self.assertEqual(meta['number_of_files'], 0)
         self.assertEqual(len(meta.keys()), 5)
-
-if __name__ == "__main__":
-    unittest.main()
