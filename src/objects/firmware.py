@@ -15,12 +15,19 @@ class Firmware(FileObject):
         self.version = None
         self.device_class = None
         self.vendor = None
+        self.part = ''
         self.release_date = None
         self.tags = dict()
         self._update_root_id_and_virtual_path()
 
     def set_device_name(self, device_name):
         self.device_name = device_name
+        
+    def set_part_name(self, part):
+        if part == 'full':
+            self.part = ''
+        else:
+            self.part = part
 
     def set_firmware_version(self, version):
         self.version = version
@@ -54,7 +61,11 @@ class Firmware(FileObject):
         '''
         return a human readable identifier
         '''
-        return '{} {} - {}'.format(self.vendor, self.device_name, self.version)
+        if self.part == '':
+            part = ''
+        else:
+            part =' - {}'.format(self.part) 
+        return '{} {}{} v. {}'.format(self.vendor, self.device_name, part, self.version)
 
     def __str__(self):
         return 'Device Name: {}\nFW Version: {}\nProcessed Analysis: {}\nScheduled Analysis: {}'.format(self.device_name, self.version, list(self.processed_analysis.keys()), self.scheduled_analysis)
