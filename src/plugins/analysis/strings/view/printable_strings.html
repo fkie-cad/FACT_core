@@ -2,13 +2,39 @@
 
 {% block analysis_result_details %}
 
+	{% set analysis = firmware.processed_analysis[selected_analysis] %}
 	<tr>
 		<td>String count</td>
 		<td>{{ firmware.processed_analysis[selected_analysis]['strings'] | length }}</td>
 	</tr>
 	<tr>
-		<td>Strings</td>
-		<td><pre>{{ firmware.processed_analysis[selected_analysis]['strings'] | list_to_line_break_string }}</pre></td>
+		<td rowspan="4">Strings</td>
+		<td data-toggle="collapse" class="active clickable" data-target="#collapse-offset">
+			<span class="glyphicon glyphicon-collapse-down"></span> By Offset
+		</td>
+	</tr>
+	<tr>
+		<td style="padding: 0">
+			<div class="collapse" id="collapse-offset" style="width: 100%">
+			{% if 'offsets' in analysis %}
+				<pre style="white-space: pre-wrap;">{{ analysis['strings'] | format_string_list_with_offset(analysis['offsets']) }}</pre>
+			{% else %}
+				<pre>None</pre>
+			{% endif %}
+			</div>
+		</td>
+	</tr>
+	<tr>
+		<td data-toggle="collapse" class="active clickable" data-target="#collapse-strings">
+			<span class="glyphicon glyphicon-collapse-down"></span> Alphabetically
+		</td>
+	</tr>
+	<tr>
+		<td style="padding: 0">
+			<div class="collapse" id="collapse-strings" style="width: 100%">
+				<pre style="white-space: pre-wrap;">{{ analysis['strings'] | list_to_line_break_string }}</pre>
+			</div>
+		</td>
 	</tr>
 			
 {% endblock %}

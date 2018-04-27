@@ -21,6 +21,7 @@ class TestAnalysisPlugInPrintableStrings(AnalysisPluginTest):
         self.analysis_plugin = AnalysisPlugin(self, config=config)
 
         self.strings = ['first string', 'second<>_$tring!', 'third:?-+012345/\string']
+        self.offsets = [3, 21, 61]
 
     def tearDown(self):
         super().tearDown()
@@ -29,6 +30,10 @@ class TestAnalysisPlugInPrintableStrings(AnalysisPluginTest):
         fo = FileObject(file_path=os.path.join(TEST_DATA_DIR, 'string_find_test_file2'))
         fo = self.analysis_plugin.process_object(fo)
         results = fo.processed_analysis[self.PLUGIN_NAME]
+        print(results)
         for item in self.strings:
             self.assertIn(item, results['strings'], '{} not found'.format(item))
         self.assertEqual(len(results['strings']), len(self.strings), 'number of found strings not correct')
+        for item in self.offsets:
+            assert item in results['offsets'], 'offset {} not found'.format(item)
+        assert len(results['offsets']) == len(self.offsets), 'number of offsets not correct'

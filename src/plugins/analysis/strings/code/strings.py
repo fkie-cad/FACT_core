@@ -1,6 +1,3 @@
-import os
-import sys
-
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.strings import find_all_strings
 
@@ -11,8 +8,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
     '''
     NAME = 'printable_strings'
     DEPENDENCIES = []
-    DESCRIPTION = 'extracts strings from the files consisting of printable characters'
-    VERSION = '0.2'
+    DESCRIPTION = 'extracts strings and their offsets from the files consisting of printable characters'
+    VERSION = '0.3'
 
     def __init__(self, plugin_administrator, config=None, recursive=True, plugin_path=__file__):
         '''
@@ -21,13 +18,26 @@ class AnalysisPlugin(AnalysisBasePlugin):
         '''
         self.config = config
 
-        super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__)
+        super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=plugin_path)
 
     def process_object(self, file_object):
-        result = {}
-        result['strings'] = find_all_strings(file_object.binary, min_length=self.config[self.NAME]['min_length'])
-        file_object.processed_analysis[self.NAME] = result
+        strings, offsets = self._get_strings_and_offsets(file_object.binary)
+        file_object.processed_analysis[self.NAME] = {
+            'strings': strings,
+            'offsets': offsets
+        }
         return file_object
 
-    def _get_summary(self, match_dict):
+    def _get_strings_and_offsets(self, binary):
+        min_length = self.config[self.NAME]['min_length']
+        strings = find_all_strings(binary, min_length=min_length)
+        offsets = self._find_offsets(strings, binary)
+        return strings, offsets
+
+    @staticmethod
+    def _find_offsets(strings, binary):
+        return [binary.find(s.encode()) for s in strings]
+
+    @staticmethod
+    def _get_summary(match_dict):
         return list(match_dict.keys())

@@ -83,6 +83,14 @@ class FilterClass:
             binary = sc.get_binary_and_filename(uid)[0]
         return binary
 
+    @staticmethod
+    def _filter_format_string_list_with_offset(strings, offsets):
+        lines = [
+            "{0: >{width}}: {1}".format(o, repr(s), width=len(str(max(offsets))))
+            for o, s in sorted(zip(offsets, strings), key=lambda x: x[0])
+        ]
+        return "\n".join(lines)
+
     def check_auth(self, _):
         return self._config.getboolean('ExpertSettings', 'authentication')
 
@@ -128,3 +136,4 @@ class FilterClass:
         self._app.jinja_env.filters['user_has_role'] = user_has_role
         self._app.jinja_env.filters['sort_roles'] = sort_roles_by_number_of_privileges
         self._app.jinja_env.filters['sort_privileges'] = lambda privileges: sorted(privileges, key=lambda role: len(privileges[role]), reverse=True)
+        self._app.jinja_env.filters['format_string_list_with_offset'] = self._filter_format_string_list_with_offset
