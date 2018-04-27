@@ -125,7 +125,7 @@ class FilterClass:
         self._app.jinja_env.filters['fix_cwe'] = fix_cwe
         self._app.jinja_env.filters['vulnerability_class'] = vulnerability_class
         self._app.jinja_env.filters['auth_enabled'] = self.check_auth
-        self._app.jinja_env.filters['md5_hash'] = lambda s: get_md5(s.encode())
+        self._app.jinja_env.filters['md5_hash'] = lambda s: get_md5(s)
         self._app.jinja_env.filters['sort_users'] = sort_users_by_name
         self._app.jinja_env.filters['user_has_role'] = user_has_role
         self._app.jinja_env.filters['sort_roles'] = sort_roles_by_number_of_privileges
