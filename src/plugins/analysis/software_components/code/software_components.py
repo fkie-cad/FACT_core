@@ -1,8 +1,16 @@
+from common_helper_files import get_dir_of_file
+import os
+import sys
+
 import re
 
+from plugins.analysis.software_components.code import OS_LIST
 from analysis.YaraPluginBase import YaraBasePlugin
 from helperFunctions.dataConversion import make_unicode_string
+from helperFunctions.tag import TagColor
 
+
+SIGNATURE_DIR = os.path.join(get_dir_of_file(__file__), '../signatures')
 
 class AnalysisPlugin(YaraBasePlugin):
     '''
@@ -21,6 +29,9 @@ class AnalysisPlugin(YaraBasePlugin):
         if len(file_object.processed_analysis[self.NAME]) > 1:
             file_object.processed_analysis[self.NAME] = self.add_version_information(file_object.processed_analysis[self.NAME])
             file_object.processed_analysis[self.NAME]['summary'] = self._get_summary(file_object.processed_analysis[self.NAME])
+            # Tagger
+            #self._add_os_key_tag(file_object, "OS Tag")
+            self.add_os_key(file_object)
         return file_object
 
     @staticmethod
@@ -57,3 +68,14 @@ class AnalysisPlugin(YaraBasePlugin):
             versions.add(self.get_version(match))
         result['meta']['version'] = list(versions)
         return result
+
+    def add_os_key(self, file_object):
+        for entry in file_object.processed_analysis[self.NAME]['summary']:
+            for os in OS_LIST:
+                if entry.find(os) != -1:
+                    if (os.strip() == entry.strip()):
+                        self.add_os_key_tag(file_object, "OS Version", entry, TagColor.LIGHT_BLUE, True)
+                    else:
+                        self.add_os_key_tag(file_object, "OS", os, TagColor.LIGHT_BLUE, False)
+                        self.add_os_key_tag(file_object, "OS Version", entry, TagColor.LIGHT_BLUE, True)
+
