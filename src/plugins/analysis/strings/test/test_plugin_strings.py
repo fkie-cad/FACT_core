@@ -21,7 +21,7 @@ class TestAnalysisPlugInPrintableStrings(AnalysisPluginTest):
         self.analysis_plugin = AnalysisPlugin(self, config=config)
 
         self.strings = ['first string', 'second<>_$tring!', 'third:?-+012345/\string']
-        self.offsets = [3, 21, 61]
+        self.offsets = [(3, self.strings[0]), (21, self.strings[1]), (61, self.strings[2])]
 
     def tearDown(self):
         super().tearDown()
@@ -37,3 +37,13 @@ class TestAnalysisPlugInPrintableStrings(AnalysisPluginTest):
         for item in self.offsets:
             assert item in results['offsets'], 'offset {} not found'.format(item)
         assert len(results['offsets']) == len(self.offsets), 'number of offsets not correct'
+
+    def test_find_offsets(self):
+        test_binary = b'0abc45def9ghi'
+        test_string_list = ['abc', 'def', 'ghi']
+        assert self.analysis_plugin._find_offsets(test_string_list, test_binary) == [(1, 'abc'), (6, 'def'), (10, 'ghi')]
+
+    def test_find_offsets__multiple_occurrences(self):
+        test_binary = b'abc345abc9abc'
+        test_string_list = ['abc']
+        assert self.analysis_plugin._find_offsets(test_string_list, test_binary) == [(0, 'abc'), (6, 'abc'), (10, 'abc')]

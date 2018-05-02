@@ -35,8 +35,16 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return strings, offsets
 
     @staticmethod
-    def _find_offsets(strings, binary):
-        return [binary.find(s.encode()) for s in strings]
+    def _find_offsets(string_list, binary):
+        result = []
+        for string in string_list:
+            offset = -1
+            while True:
+                offset = binary.find(string.encode(), offset + 1)
+                if offset == -1:
+                    break
+                result.append((offset, string))
+        return result
 
     @staticmethod
     def _get_summary(match_dict):
