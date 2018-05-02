@@ -17,7 +17,7 @@
 		<td style="padding: 0">
 			<div class="collapse" id="collapse-offset" style="width: 100%">
 			{% if 'offsets' in analysis %}
-				<pre style="white-space: pre-wrap;">{{ analysis['strings'] | format_string_list_with_offset(analysis['offsets']) }}</pre>
+				<pre style="white-space: pre-wrap;">{{ analysis['offsets'] | format_string_list_with_offset }}</pre>
 			{% else %}
 				<pre>None</pre>
 			{% endif %}
