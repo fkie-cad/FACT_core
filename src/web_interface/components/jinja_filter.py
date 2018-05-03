@@ -2,11 +2,11 @@
 
 import json
 import random
-import hashlib
 
 from common_helper_filter.time import time_format
 from flask import render_template
 
+from helperFunctions.hash import get_md5
 from helperFunctions.dataConversion import none_to_none
 from helperFunctions.uid import is_list_of_uids
 from helperFunctions.web_interface import ConnectTo
@@ -16,9 +16,10 @@ from web_interface.filter import byte_number_filter, encode_base64_filter, \
     bytes_to_str_filter, replace_underscore_filter, nice_list, data_to_chart_limited, data_to_chart, \
     uids_to_link, get_all_uids_in_string, list_to_line_break_string, sort_comments, \
     nice_unix_time, infection_color, nice_number_filter, sort_chart_list_by_name, sort_chart_list_by_value, \
-    text_highlighter, get_canvas_height, comment_out_regex_meta_chars, \
+    text_highlighter, get_canvas_height, comment_out_regex_meta_chars, user_has_role, \
     generic_nice_representation, list_to_line_break_string_no_sort, render_tags, fix_cwe, \
-    data_to_chart_with_value_percentage_pairs, render_analysis_tags, vulnerability_class
+    data_to_chart_with_value_percentage_pairs, render_analysis_tags, vulnerability_class, sort_users_by_name, \
+    sort_roles_by_number_of_privileges
 
 
 class FilterClass:
@@ -124,5 +125,8 @@ class FilterClass:
         self._app.jinja_env.filters['fix_cwe'] = fix_cwe
         self._app.jinja_env.filters['vulnerability_class'] = vulnerability_class
         self._app.jinja_env.filters['auth_enabled'] = self.check_auth
-	self._app.jinja_env.filters['hash'] = lambda s: hashlib.md5(s.encode()).hexdigest()
-
+        self._app.jinja_env.filters['md5_hash'] = get_md5
+        self._app.jinja_env.filters['sort_users'] = sort_users_by_name
+        self._app.jinja_env.filters['user_has_role'] = user_has_role
+        self._app.jinja_env.filters['sort_roles'] = sort_roles_by_number_of_privileges
+        self._app.jinja_env.filters['sort_privileges'] = lambda privileges: sorted(privileges, key=lambda role: len(privileges[role]), reverse=True)

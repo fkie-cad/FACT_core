@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+
+{% set active_page = "Admin" %}
+
+
+{% block styles %}
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bootstrap3-editable/css/bootstrap-editable.css') }}">
+<script type="text/javascript" src="{{ url_for('static', filename='bootstrap3-editable/js/bootstrap-editable.min.js') }}"></script>
+<style>
+    .editable-container.editable-inline,
+    .editable-container.editable-inline .control-group.form-group,
+    .editable-container.editable-inline .control-group.form-group .editable-input,
+    .editable-container.editable-inline .control-group.form-group .editable-input textarea,
+    .editable-container.editable-inline .control-group.form-group .editable-input select,
+    .editable-container.editable-inline .control-group.form-group .editable-input input:not([type=radio]):not([type=checkbox]):not([type=submit])
+    {
+        width: 100%!important;
+    }
+</style>
+
+<script>
+    $.fn.editable.defaults.mode = 'inline';
+    $(document).ready(function() {
+        $('#roles').editable({
+            value: {{ role_indexes }},
+            source: [
+                {% for r in available_roles %}
+                    {value: {{ available_roles.index(r) }}, text: '{{ r | replace_underscore }}'},
+                {% endfor %}
+            ]
+        });
+    });
+</script>
+{% endblock %}
+
+
+{% block body %}
+
+<div class="row" style="margin-bottom: 20px">
+    <div class="col-sm-12 col-md-8 col-md-offset-2">
+        <h2>
+            Manage User '{{ user.email }}'
+        </h2>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-sm-12 col-md-8 col-md-offset-2">
+        <table class="table table-bordered">
+
+            <tr>
+                <td class="active result" width="120px" style="text-align: right;">
+                    Username:
+                </td>
+                <td class="active result">
+                    {{ user.email }}
+                </td>
+            </tr>
+
+            <tr>
+                <td class="active result" style="text-align: right;">
+                    ID:
+                </td>
+                <td class="active result">
+                    {{ user.id }}
+                </td>
+            </tr>
+
+            <tr>
+                <td class="active result" style="text-align: right;">
+                    API Key:
+                </td>
+                <td class="active result">
+                    {{ user.api_key }}
+                </td>
+            </tr>
+
+            <tr>
+                <td class="active result" style="text-align: right;">
+                    Active:
+                </td>
+                <td class="active result">
+                    {{ user.active }}
+                </td>
+            </tr>
+
+            <!-- user roles -->
+            <tr>
+                <td class="active result" style="text-align: right; vertical-align: middle;">
+                    <a href="#" data-toggle="modal" data-target="#user_role_help_modal" style="width: 100%">
+                        <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip" title="show role definitions"></span>
+                    </a>
+                    Roles:
+                </td>
+                <td class="active result" style="padding-right: 90px">
+                    <a href="#" id="roles" data-type="checklist" data-pk="{{ user.email }}" data-url="/admin/edit_user" data-title="Select User Groups"></a>
+                </td>
+            </tr>
+        </table>
+
+        <!-- role help -->
+        <div id="user_role_help_modal" class="modal" role="dialog" data-backdrop="false">
+            <div class="modal-dialog">
+                <div class="modal-content">
+
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="modal-title">User Roles</h4>
+                    </div>
+
+                    <div class="modal-body">
+                        <table class="table table-bordered table-striped">
+                            <tr>
+                                <th style="border: 0"></th>
+                                {% for role in available_roles | sort_roles %}
+                                <th style="width: 60px;">
+                                    {{ role | replace_underscore }}
+                                </th>
+                                {% endfor %}
+                            </tr>
+                            {% for privilege in privileges | sort_privileges %}
+                                <tr>
+                                    <th style="text-align: right">{{ privilege | replace_underscore }}</th>
+                                    {% for role in available_roles | sort_roles %}
+                                        <td style="text-align: center">
+                                            {% if role in privileges[privilege] %}
+                                                <span class="glyphicon glyphicon-ok" style="color:DarkGreen"></span>
+                                            {% else %}
+                                                <span class="glyphicon glyphicon-remove" style="color:DarkRed"></span>
+                                            {% endif %}
+                                        </td>
+                                    {% endfor %}
+                                </tr>
+                            {% endfor %}
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="row">
+<!-- delete user -->
+    <div class="col-sm-12 col-md-4 col-md-offset-2" style="margin-bottom: 10px;">
+        <button data-toggle="collapse" data-target="#delete-button-div" class="btn btn-default" style="width: 100%">
+            <span class="glyphicon glyphicon-trash"></span> Delete User
+        </button>
+        <div class="collapse" id="delete-button-div">
+            <button class="btn btn-danger" type="button" onclick='window.location.href = "/admin/delete_user/{{ user.email }}";' style="width: 100%">
+                <span class="glyphicon glyphicon-ok"></span> Are you sure?
+            </button>
+        </div>
+    </div>
+
+<!-- admin change user password -->
+    <div class="col-sm-12 col-md-4">
+
+        <button type="button" class="btn btn-default" data-toggle="modal" data-target="#admin_change_password_modal" style="width: 100%">
+            Change Password
+        </button>
+
+        <div id="admin_change_password_modal" class="modal fade" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="modal-title">Change User Password</h4>
+                    </div>
+
+                    <div class="modal-body">
+                        <form method="post">
+
+                            <div style="padding: 15px; margin-bottom: -15px" class="input-group">
+                                <span class="input-group-addon"><i class="glyphicon glyphicon-lock"></i></span>
+                                <input id="admin_change_password" type="password" class="form-control" name="admin_change_password" placeholder="new password" required>
+                            </div>
+
+                            <div style="padding: 15px; margin-bottom: -15px" class="input-group">
+                                <span class="input-group-addon"><i class="glyphicon glyphicon-lock"></i></span>
+                                <input id="admin_confirm_password" type="password" class="form-control" name="admin_confirm_password" placeholder="confirm password" required>
+                            </div>
+
+                            <div style="padding: 15px">
+                                <button type="submit" id="admin_change_password_button" value="admin_change_password">Submit</button>
+                            </div>
+
+                        </form>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}
