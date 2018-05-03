@@ -4,7 +4,6 @@ import json
 import random
 
 from common_helper_filter.time import time_format
-from helperFunctions.hash import get_md5
 from flask import render_template
 
 from helperFunctions.hash import get_md5
