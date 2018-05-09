@@ -9,6 +9,7 @@ from helperFunctions.process import ExceptionSafeProcess, terminate_process_and_
 from helperFunctions.tag import TagColor
 from plugins.base import BasePlugin
 
+
 class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attributes
     '''
     This is the base plugin. All plugins should be subclass of this.
@@ -96,25 +97,18 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         self.in_queue.close()
         self.out_queue.close()
 
-    def add_os_key_tag(self, file_object, tag_name, value, color = TagColor.LIGHT_BLUE, propagate = False):
+    def add_analysis_tag(self, file_object, tag_name, value, color=TagColor.LIGHT_BLUE, propagate=False):
+        new_tag = {
+            tag_name: {
+                'value': value,
+                'color': color,
+                'propagate': propagate,
+            },
+            'root_uid': file_object.get_root_uid()
+        }
         if 'tags' not in file_object.processed_analysis[self.NAME]:
-            file_object.processed_analysis[self.NAME]['tags'] = {
-                tag_name: {
-                    'value': value,
-                    'color': TagColor.LIGHT_BLUE,
-                    'propagate': True,
-                },
-                'root_uid': file_object.get_root_uid()
-            }
+            file_object.processed_analysis[self.NAME]['tags'] = new_tag
         else:
-            new_tag = {
-                tag_name: {
-                    'value': value,
-                    'color': TagColor.LIGHT_BLUE,
-                    'propagate': True,
-                },
-                'root_uid': file_object.get_root_uid()
-            }
             file_object.processed_analysis[self.NAME]['tags'].update(new_tag)
 
 # ---- internal functions ----
@@ -184,7 +178,7 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         return_value = False
         for worker in self.workers:
             if worker.exception:
-                logging.error("{}Analysis worker {} caused exception{}".format(bcolors.FAIL, worker.name, bcolors.ENDC))
+                logging.error('{}Analysis worker {} caused exception{}'.format(bcolors.FAIL, worker.name, bcolors.ENDC))
                 logging.error(worker.exception[1])
                 terminate_process_and_childs(worker)
                 self.workers.remove(worker)
