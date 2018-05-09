@@ -7,6 +7,6 @@ echo "------------------------------------"
 echo "Installation of Software Components"
 echo "------------------------------------"
 
-python ./internal/install.py
+python3 ./internal/install.py
 
 exit 0
