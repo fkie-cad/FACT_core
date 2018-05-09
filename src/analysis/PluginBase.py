@@ -6,8 +6,8 @@ from time import time
 from helperFunctions.dependency import get_unmatched_dependencies, schedule_dependencies
 from helperFunctions.parsing import bcolors
 from helperFunctions.process import ExceptionSafeProcess, terminate_process_and_childs
+from helperFunctions.tag import TagColor
 from plugins.base import BasePlugin
-
 
 class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attributes
     '''
@@ -95,6 +95,27 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
             process.join()
         self.in_queue.close()
         self.out_queue.close()
+
+    def add_os_key_tag(self, file_object, tag_name, value, color = TagColor.LIGHT_BLUE, propagate = False):
+        if 'tags' not in file_object.processed_analysis[self.NAME]:
+            file_object.processed_analysis[self.NAME]['tags'] = {
+                tag_name: {
+                    'value': value,
+                    'color': TagColor.LIGHT_BLUE,
+                    'propagate': True,
+                },
+                'root_uid': file_object.get_root_uid()
+            }
+        else:
+            new_tag = {
+                tag_name: {
+                    'value': value,
+                    'color': TagColor.LIGHT_BLUE,
+                    'propagate': True,
+                },
+                'root_uid': file_object.get_root_uid()
+            }
+            file_object.processed_analysis[self.NAME]['tags'].update(new_tag)
 
 # ---- internal functions ----
 
