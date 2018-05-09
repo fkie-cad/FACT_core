@@ -14,7 +14,7 @@ SIGNATURE_DIR = os.path.join(get_dir_of_file(__file__), '../signatures')
 class AnalysisPlugin(YaraBasePlugin):
     '''
     This plugin identifies software components
-    
+
     Credits:
     OS Tagging functionality created by Roman Konertz during Firmware Bootcamp WT17/18 at University of Bonn
     Maintained by Fraunhofer FKIE
