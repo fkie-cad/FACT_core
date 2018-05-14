@@ -4,6 +4,12 @@ echo "####################################"
 echo "#          installing db           #"
 echo "####################################"
 
+while [ "$1" != '' ]
+  do
+	[ "$1" == "xenial" ] && UBUNTU_XENIAL="yes" && echo "installing on Ubuntu 16.04" && shift
+	[ "$1" == "binoic" ] && UBUNTU_BIONIC="yes" && echo "installing on Ubuntu 18.04" && shift
+done
+
 # change cwd to bootstrap dir
 CURRENT_FILE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd $CURRENT_FILE_DIR
