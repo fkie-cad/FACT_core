@@ -4,6 +4,12 @@ echo "####################################"
 echo "#     Update Operating System      #"
 echo "####################################"
 
+while [ "$1" != '' ]
+  do
+	[ "$1" == "xenial" ] && UBUNTU_XENIAL="yes" && echo "installing on Ubuntu 16.04" && shift
+	[ "$1" == "binoic" ] && UBUNTU_BIONIC="yes" && echo "installing on Ubuntu 18.04" && shift
+done
+
 sudo apt-get install -y apt-transport-https
 sudo apt-get update
 sudo apt-get upgrade -y
