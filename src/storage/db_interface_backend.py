@@ -5,6 +5,7 @@ from time import time
 from pymongo.errors import PyMongoError
 
 from helperFunctions.dataConversion import convert_str_to_time
+from helperFunctions.remote_analysis import parse_task_id, analysis_is_outdated, check_that_result_is_complete
 from helperFunctions.tag import update_tags
 from objects.file import FileObject
 from objects.firmware import Firmware
@@ -179,3 +180,37 @@ class BackEndDbInterface(MongoInterfaceCommon):
                 logging.error('Could not update firmware: {} - {}'.format(type(exception), str(exception)))
         else:
             logging.warning('Propagating tag only allowed for firmware. Given: {}')
+
+    def add_remote_analysis(self, uid: str, result: dict, task_id: str, system: str) -> None:
+        task_uid, task, _ = parse_task_id(task_id)
+        if not uid == task_uid:
+            raise ValueError('Something went real bad. A task was associated with the wrong uid')
+
+        current_object = self.get_object(uid=uid, analysis_filter=[system, ])
+
+        # FIXME What if current object doesn't even exist ....
+
+        if analysis_is_outdated(current_object, system, result['analysis_date']):
+            check_that_result_is_complete(result)
+            # current_object.processed_analysis[system] = result
+
+            print('[Wuhuu] Setting {} of {} to result of remote plugin'.format(system, uid))
+
+            self._update_analysis(current_object, system, result)
+        else:
+            logging.debug('Skipped storage of analysis, since it doesn\'t seem outdated.')
+
+    def _update_analysis(self, file_object: FileObject, analysis_system: str, result: dict):
+        try:
+            if type(file_object) == Firmware:
+                self.firmwares.update_one(
+                    {'_id': file_object.get_uid()},
+                    {'$set': {'processed_analysis.{}'.format(analysis_system): result}}
+                )
+            else:
+                self.file_objects.update_one(
+                    {'_id': file_object.get_uid()},
+                    {'$set': {'processed_analysis.{}'.format(analysis_system): result}}
+                )
+        except Exception as exception:
+            logging.error('Update of analysis failed badly ({})'.format(exception))
