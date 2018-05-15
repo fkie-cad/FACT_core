@@ -9,6 +9,19 @@
 	</tr>
 	<tr>
 		<td rowspan="4">Strings</td>
+		<td data-toggle="collapse" class="active clickable" data-target="#collapse-strings">
+			<span class="glyphicon glyphicon-collapse-down"></span> Alphabetically
+		</td>
+	</tr>
+	<tr>
+		<td style="padding: 0">
+			<div class="collapse" id="collapse-strings" style="width: 100%">
+				<pre style="white-space: pre-wrap;">{{ analysis['strings'] | list_to_line_break_string }}</pre>
+			</div>
+		</td>
+	</tr>
+	{% if 'offsets' in analysis %}  <!-- backwards compatibility -->
+	<tr>
 		<td data-toggle="collapse" class="active clickable" data-target="#collapse-offset">
 			<span class="glyphicon glyphicon-collapse-down"></span> By Offset
 		</td>
@@ -24,17 +37,6 @@
 			</div>
 		</td>
 	</tr>
-	<tr>
-		<td data-toggle="collapse" class="active clickable" data-target="#collapse-strings">
-			<span class="glyphicon glyphicon-collapse-down"></span> Alphabetically
-		</td>
-	</tr>
-	<tr>
-		<td style="padding: 0">
-			<div class="collapse" id="collapse-strings" style="width: 100%">
-				<pre style="white-space: pre-wrap;">{{ analysis['strings'] | list_to_line_break_string }}</pre>
-			</div>
-		</td>
-	</tr>
-			
+	{% endif %}
+
 {% endblock %}
