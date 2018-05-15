@@ -28,12 +28,12 @@ sudo -E apt-get install -y python-lzma
 
 # install yara
 sudo apt-get install -y bison flex libmagic-dev
-if [ $(yara --version) == '3.6.3' ]
+if [ $(yara --version) == '3.7.1' ]
 then
     echo "skipping yara installation (already installed)"
 else
-    wget https://github.com/VirusTotal/yara/archive/v3.6.3.zip
-    unzip v3.6.3.zip
+	wget https://github.com/VirusTotal/yara/archive/v3.7.1.zip
+    unzip v3.7.1.zip
     cd yara-3.*
     #patch --forward -r - libyara/arena.c ../patches/yara.patchfile
     chmod +x bootstrap.sh
@@ -43,7 +43,7 @@ else
     sudo make install
     # CAUTION: Yara python binding is installed in bootstrap_common, because it is needed in the frontend as well.
     cd ..
-    sudo rm -fr yara* v3.6.3.zip
+    sudo rm -fr yara* v3.7.1.zip
 fi
 
 
@@ -78,7 +78,12 @@ sudo cp bin/unstuff /usr/local/bin/
 rm -fr bin doc man
 
 # ---- patch pyqtgraph ----
-sudo patch --forward -r - /usr/local/lib/python3.5/dist-packages/pyqtgraph/exporters/ImageExporter.py patches/qt_patchfile
+if [ "$UBUNTU_XENIAL" == "yes" ]
+then
+	sudo patch --forward -r - /usr/local/lib/python3.5/dist-packages/pyqtgraph/exporters/ImageExporter.py patches/qt_patchfile
+else
+	sudo patch --forward -r - /usr/local/lib/python3.6/dist-packages/pyqtgraph/exporters/ImageExporter.py patches/qt_patchfile
+fi
 
 git clone https://github.com/devttys0/binwalk.git
 (cd binwalk && sudo python3 setup.py install --force)
