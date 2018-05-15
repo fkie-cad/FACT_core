@@ -17,7 +17,7 @@ cd $CURRENT_FILE_DIR
 echo "####################################"
 echo "#       installing MongoDB         #"
 echo "####################################"
-if  UBUNTU_XENIAL
+if [ "$UBUNTU_XENIAL" == "yes" ]
 then
 	sudo -E apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 2930ADAE8CAF5059EE73BB4B58712A2291FA4AD5
 	sudo rm /etc/apt/sources.list.d/mongodb-org-3.*
