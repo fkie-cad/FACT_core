@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% set active_page = "Admin" %}
+
+{% block body %}
+
+
+<div class="row">
+    <div class="col-xs-12 col-sm-8 col-sm-offset-2 col-md-6 col-md-offset-3">
+        <h3>
+            User Management
+        </h3>
+
+        <!-- add user button -->
+        <button type="button" class="btn btn-default" data-toggle="modal" data-target="#add_user_modal" style="width: 100%; margin-bottom: 10px">
+            Add User
+        </button>
+
+        <!-- add user modal -->
+        <div id="add_user_modal" class="modal fade" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="modal-title">Add User</h4>
+                    </div>
+
+                    <div class="modal-body">
+                        <form method="post">
+
+                            <div style="padding: 15px; margin-bottom: -15px" class="input-group">
+                                <span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span>
+                                <input id="username" type="text" class="form-control" name="username" value="" placeholder="username" required>
+                            </div>
+
+                            <div style="padding: 15px; margin-bottom: -15px" class="input-group">
+                                <span class="input-group-addon"><i class="glyphicon glyphicon-lock"></i></span>
+                                <input id="password1" type="password" class="form-control" name="password1" placeholder="password" required>
+                            </div>
+
+                            <div style="padding: 15px; margin-bottom: -15px" class="input-group">
+                                <span class="input-group-addon"><i class="glyphicon glyphicon-lock"></i></span>
+                                <input id="password2" type="password" class="form-control" name="password2" placeholder="confirm password" required>
+                            </div>
+
+                            <div style="padding: 15px">
+                                <button type="submit">Add</button>
+                            </div>
+
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- user list -->
+        <table class="table table-bordered table-hover result">
+        {% for user in users | sort_users %}
+            <tr>
+                <td align="center" class="active result clickable"  onclick="location.href='/admin/user/{{ user.id|safe }}'">
+                    {{ user.email | safe }}
+                </td>
+            </tr>
+        {% endfor %}
+        </table>
+    </div>
+
+</div>
+
+{% endblock %}

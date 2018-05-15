@@ -4,7 +4,8 @@ import pytest
 from flask_security.core import AnonymousUser, UserMixin, RoleMixin
 from werkzeug.local import LocalProxy
 
-from helperFunctions.web_interface import filter_out_illegal_characters, user_has_privilege
+from helperFunctions.web_interface import filter_out_illegal_characters
+from web_interface.security.authentication import user_has_privilege
 
 
 @pytest.mark.parametrize('input_data, expected', [

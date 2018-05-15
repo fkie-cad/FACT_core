@@ -1,8 +1,12 @@
 import base64
 import os
 
-from flask_security import Security, SQLAlchemyUserDatastore, UserMixin, RoleMixin
+from flask_security import Security, UserMixin, RoleMixin, AnonymousUser
 from flask_sqlalchemy import SQLAlchemy
+from werkzeug.local import LocalProxy
+
+from web_interface.security.privileges import PRIVILEGES
+from web_interface.security.user_role_db_interface import UserRoleDbInterface
 
 
 def add_flask_security_to_app(app, config):
@@ -14,6 +18,7 @@ def add_flask_security_to_app(app, config):
     security = Security(app, user_interface)
 
     _add_apikey_handler(security, user_interface)
+    return db, user_interface
 
 
 def create_user_interface(db):
@@ -33,7 +38,7 @@ def create_user_interface(db):
         confirmed_at = db.Column(db.DateTime())
         roles = db.relationship('Role', secondary=roles_users, backref=db.backref('users', lazy='dynamic'))
 
-    return SQLAlchemyUserDatastore(db, User, Role)
+    return UserRoleDbInterface(db, User, Role)
 
 
 def _add_apikey_handler(security, user_datastore):
@@ -58,3 +63,12 @@ def _add_configuration_to_app(app, config):
 def _build_api_key():
     raw_key = os.urandom(32)
     return base64.standard_b64encode(raw_key).decode()
+
+
+def _auth_is_disabled(user):
+    user_object = user._get_current_object() if isinstance(user, LocalProxy) else user
+    return isinstance(user_object, AnonymousUser)
+
+
+def user_has_privilege(user, privilege='delete'):
+    return _auth_is_disabled(user) or any(user.has_role(role) for role in PRIVILEGES[privilege])
