@@ -214,3 +214,10 @@ class BackEndDbInterface(MongoInterfaceCommon):
                 )
         except Exception as exception:
             logging.error('Update of analysis failed badly ({})'.format(exception))
+
+    def add_analysis(self, file_object: FileObject):
+        if isinstance(file_object, (Firmware, FileObject)):
+            for analysis_system in file_object.processed_analysis:
+                self._update_analysis(file_object, analysis_system, file_object.processed_analysis[analysis_system])
+        else:
+            raise RuntimeError('Trying to add from type \'{}\' to database. Only allowed for \'Firmware\' and \'FileObject\'')
