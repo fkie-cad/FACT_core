@@ -26,17 +26,25 @@ class TestAnalysisPlugInPrintableStrings(AnalysisPluginTest):
     def tearDown(self):
         super().tearDown()
 
-    def test_find_strings(self):
+    def test_process_object(self):
         fo = FileObject(file_path=os.path.join(TEST_DATA_DIR, 'string_find_test_file2'))
         fo = self.analysis_plugin.process_object(fo)
         results = fo.processed_analysis[self.PLUGIN_NAME]
-        print(results)
         for item in self.strings:
             self.assertIn(item, results['strings'], '{} not found'.format(item))
         self.assertEqual(len(results['strings']), len(self.strings), 'number of found strings not correct')
         for item in self.offsets:
             assert item in results['offsets'], 'offset {} not found'.format(item)
         assert len(results['offsets']) == len(self.offsets), 'number of offsets not correct'
+
+    def test_process_object__no_strings(self):
+        fo = FileObject(file_path=os.path.join(TEST_DATA_DIR, 'string_find_test_file_no_strings'))
+        fo = self.analysis_plugin.process_object(fo)
+        results = fo.processed_analysis[self.PLUGIN_NAME]
+        self.assertIn('strings', results)
+        self.assertIn('offsets', results)
+        self.assertEqual(len(results['strings']), 0, 'number of found strings not correct')
+        self.assertEqual(len(results['offsets']), 0, 'number of offsets not correct')
 
     def test_find_offsets(self):
         test_binary = b'0abc45def9ghi'
