@@ -1,3 +1,4 @@
+import pytest
 from common_helper_files import get_dir_of_file
 import os
 
@@ -46,12 +47,19 @@ class TestAnalysisPlugInPrintableStrings(AnalysisPluginTest):
         self.assertEqual(len(results['strings']), 0, 'number of found strings not correct')
         self.assertEqual(len(results['offsets']), 0, 'number of offsets not correct')
 
-    def test_extract_strings_and_offsets_from_yara_results__overlap(self):
-        yara_results = {self.analysis_plugin.RULE_NAME: {'strings': [
-            (61, '$re', b'abcde:?-+012345'),
-            (67, '$re', b'?-+012345'),
-            (68, '$re', b'-+012345')
-        ]}}
-        strings, offsets = self.analysis_plugin._extract_strings_and_offsets_from_yara_results(yara_results)
-        assert len(strings) == len(offsets) == 1
-        assert strings == ['abcde:?-+012345']
+
+@pytest.mark.parametrize('test_input, expected_output', [
+    (b'\xffabcdefghij\xff', [(1, 'abcdefghij')]),
+    (b'!"$%&/()=?+*#-.,\t\n\r', [(0, '!"$%&/()=?+*#-.,\t\n\r')]),
+    (b'\xff\xffabcd\xff\xff', []),
+    (b'abcdefghij\xff1234567890', [(0, 'abcdefghij'), (11, '1234567890')]),
+])
+def test_match_with_offset(test_input, expected_output):
+    result = AnalysisPlugin._match_with_offset(AnalysisPlugin.STRING_REGEXES[0].format(8), test_input)
+    assert result == expected_output
+
+
+def test_match_with_offset__16bit():
+    test_input = b'01234a\0b\0c\0d\0e\0f\0g\0h\0i\0j\x0005678'
+    result = AnalysisPlugin._match_with_offset(AnalysisPlugin.STRING_REGEXES[1].format(8), test_input)
+    assert result == [(5, 'a\0b\0c\0d\0e\0f\0g\0h\0i\0j\0')]
