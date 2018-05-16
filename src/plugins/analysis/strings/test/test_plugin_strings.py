@@ -46,12 +46,12 @@ class TestAnalysisPlugInPrintableStrings(AnalysisPluginTest):
         self.assertEqual(len(results['strings']), 0, 'number of found strings not correct')
         self.assertEqual(len(results['offsets']), 0, 'number of offsets not correct')
 
-    def test_find_offsets(self):
-        test_binary = b'0abc45def9ghi'
-        test_string_list = ['abc', 'def', 'ghi']
-        assert self.analysis_plugin._find_offsets(test_string_list, test_binary) == [(1, 'abc'), (6, 'def'), (10, 'ghi')]
-
-    def test_find_offsets__multiple_occurrences(self):
-        test_binary = b'abc345abc9abc'
-        test_string_list = ['abc']
-        assert self.analysis_plugin._find_offsets(test_string_list, test_binary) == [(0, 'abc'), (6, 'abc'), (10, 'abc')]
+    def test_extract_strings_and_offsets_from_yara_results__overlap(self):
+        yara_results = {self.analysis_plugin.RULE_NAME: {'strings': [
+            (61, '$re', b'abcde:?-+012345'),
+            (67, '$re', b'?-+012345'),
+            (68, '$re', b'-+012345')
+        ]}}
+        strings, offsets = self.analysis_plugin._extract_strings_and_offsets_from_yara_results(yara_results)
+        assert len(strings) == len(offsets) == 1
+        assert strings == ['abcde:?-+012345']
