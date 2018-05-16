@@ -47,6 +47,11 @@ class TestAnalysisPlugInPrintableStrings(AnalysisPluginTest):
         self.assertEqual(len(results['strings']), 0, 'number of found strings not correct')
         self.assertEqual(len(results['offsets']), 0, 'number of offsets not correct')
 
+    def test_get_summary(self):
+        analysis_result = {'strings': ['abc', 'def', 'ghi'], 'offsets': [(0, 'abc'), (4, 'def'), (8, 'ghi')]}
+        summary = self.analysis_plugin._get_summary(analysis_result)
+        assert summary == ['strings', 'offsets']
+
 
 @pytest.mark.parametrize('test_input, expected_output', [
     (b'\xffabcdefghij\xff', [(1, 'abcdefghij')]),
