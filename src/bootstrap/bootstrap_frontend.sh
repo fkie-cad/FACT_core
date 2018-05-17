@@ -7,7 +7,7 @@ echo "####################################"
 while [ "$1" != '' ]
   do
 	[ "$1" == "xenial" ] && UBUNTU_XENIAL="yes" && echo "installing on Ubuntu 16.04" && shift
-	[ "$1" == "binoic" ] && UBUNTU_BIONIC="yes" && echo "installing on Ubuntu 18.04" && shift
+	[ "$1" == "bionic" ] && UBUNTU_BIONIC="yes" && echo "installing on Ubuntu 18.04" && shift
     [ "$1" == "nginx" ] && NGINX="yes" && echo "installing nginx" && shift
 done
 
