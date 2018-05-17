@@ -129,7 +129,7 @@ def check_distribution():
         return 'xenial'
     if codename in BIONIC_CODE_NAMES:
         logging.debug('Ubuntu 18.04 detected')
-        return 'binoic'
+        return 'bionic'
     else:
         sys.exit('Your Distribution ({} {}) is not supported. FACT Installer requires Ubuntu 16.04, Ubuntu 18.04 or compatible!'.format(distro.id(), distro.version()))
 
