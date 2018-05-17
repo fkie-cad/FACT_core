@@ -6,6 +6,7 @@ import random
 from common_helper_filter.time import time_format
 from flask import render_template
 
+from helperFunctions.hash import get_md5
 from helperFunctions.dataConversion import none_to_none
 from helperFunctions.uid import is_list_of_uids
 from helperFunctions.web_interface import ConnectTo
@@ -124,6 +125,7 @@ class FilterClass:
         self._app.jinja_env.filters['fix_cwe'] = fix_cwe
         self._app.jinja_env.filters['vulnerability_class'] = vulnerability_class
         self._app.jinja_env.filters['auth_enabled'] = self.check_auth
+        self._app.jinja_env.filters['md5_hash'] = get_md5
         self._app.jinja_env.filters['sort_users'] = sort_users_by_name
         self._app.jinja_env.filters['user_has_role'] = user_has_role
         self._app.jinja_env.filters['sort_roles'] = sort_roles_by_number_of_privileges
