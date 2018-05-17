@@ -39,10 +39,6 @@ class AnalysisPlugin(AnalysisBasePlugin):
         strings, offsets = self._find_all_strings_and_offsets(binary, min_length)
         return strings, offsets
 
-    @staticmethod
-    def _get_summary(match_dict):
-        return list(match_dict.keys())
-
     def _find_all_strings_and_offsets(self, source: bytes, min_length: int) -> Tuple[List[str], List[Tuple[int, str]]]:
         strings_with_offset = []
         for regex in self.STRING_REGEXES:
