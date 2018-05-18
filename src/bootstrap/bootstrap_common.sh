@@ -38,6 +38,10 @@ export GIT_SSH_COMMAND="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChec
 
 # install python3 and general build stuff
 sudo apt-get install -y python3 python3-dev build-essential automake autoconf libtool git unzip
+if [ "$UBUNTU_BIONIC" == "yes" ]
+then
+	sudo -EH pip3 install testresources
+fi
 # get a bugfree recent pip version
 sudo apt-get remove -y python3-pip python3-setuptools python3-wheel
 sudo apt-get autoremove -y
