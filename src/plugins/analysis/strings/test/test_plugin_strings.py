@@ -47,19 +47,19 @@ class TestAnalysisPlugInPrintableStrings(AnalysisPluginTest):
         self.assertEqual(len(results['strings']), 0, 'number of found strings not correct')
         self.assertEqual(len(results['offsets']), 0, 'number of offsets not correct')
 
+    def test_match_with_offset(self):
+        regex = self.analysis_plugin.regexes[0][0]
+        for test_input, expected_output in [
+            (b'\xffabcdefghij\xff', [(1, 'abcdefghij')]),
+            (b'!"$%&/()=?+*#-.,\t\n\r', [(0, '!"$%&/()=?+*#-.,\t\n\r')]),
+            (b'\xff\xffabc\xff\xff', []),
+            (b'abcdefghij\xff1234567890', [(0, 'abcdefghij'), (11, '1234567890')]),
+        ]:
+            result = AnalysisPlugin._match_with_offset(regex, test_input)
+            assert result == expected_output
 
-@pytest.mark.parametrize('test_input, expected_output', [
-    (b'\xffabcdefghij\xff', [(1, 'abcdefghij')]),
-    (b'!"$%&/()=?+*#-.,\t\n\r', [(0, '!"$%&/()=?+*#-.,\t\n\r')]),
-    (b'\xff\xffabcd\xff\xff', []),
-    (b'abcdefghij\xff1234567890', [(0, 'abcdefghij'), (11, '1234567890')]),
-])
-def test_match_with_offset(test_input, expected_output):
-    result = AnalysisPlugin._match_with_offset(AnalysisPlugin.STRING_REGEXES[0].format(8), test_input)
-    assert result == expected_output
-
-
-def test_match_with_offset__16bit():
-    test_input = b'01234a\0b\0c\0d\0e\0f\0g\0h\0i\0j\x0005678'
-    result = AnalysisPlugin._match_with_offset(AnalysisPlugin.STRING_REGEXES[1].format(8), test_input)
-    assert result == [(5, 'a\0b\0c\0d\0e\0f\0g\0h\0i\0j\0')]
+    def test_match_with_offset__16bit(self):
+        regex, encoding = self.analysis_plugin.regexes[1]
+        test_input = b'01234a\0b\0c\0d\0e\0f\0g\0h\0i\0j\x0005678'
+        result = AnalysisPlugin._match_with_offset(regex, test_input, encoding)
+        assert result == [(5, 'abcdefghij')]
