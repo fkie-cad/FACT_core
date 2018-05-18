@@ -93,9 +93,6 @@ sudo rm -fr binwalk
 sudo -EH pip2 install --upgrade patool
 sudo -EH pip3 install --upgrade patool
 
-# ubuntu 14.04
-sudo apt-get install -y openjdk-7-jdk
-# ubuntu 16.04
 sudo apt-get install -y openjdk-8-jdk
 
 sudo apt-get install -y lrzip cpio unadf rpm2cpio lzop lhasa cabextract zpaq archmage arj xdms rzip lzip unalz unrar unzip gzip nomarch flac unace zoo sharutils
