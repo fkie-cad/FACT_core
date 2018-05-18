@@ -3,7 +3,7 @@
 cd "$( dirname "${BASH_SOURCE[0]}" )"
 
 echo "------------------------------------"
-echo "     install binwal dependencies    "
+echo "    install binwalk dependencies    "
 echo "------------------------------------"
 
 sudo -EH apt-get install -y xvfb
