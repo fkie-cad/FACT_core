@@ -63,3 +63,12 @@ class TestAnalysisPlugInPrintableStrings(AnalysisPluginTest):
         test_input = b'01234a\0b\0c\0d\0e\0f\0g\0h\0i\0j\x0005678'
         result = AnalysisPlugin._match_with_offset(regex, test_input, encoding)
         assert result == [(5, 'abcdefghij')]
+
+    def test_get_min_length_from_config(self):
+        assert self.analysis_plugin._get_min_length_from_config() == '4'
+
+        self.analysis_plugin.config[self.PLUGIN_NAME].pop('min_length')
+        assert self.analysis_plugin._get_min_length_from_config() == '8'
+
+        self.analysis_plugin.config.pop(self.PLUGIN_NAME)
+        assert self.analysis_plugin._get_min_length_from_config() == '8'
