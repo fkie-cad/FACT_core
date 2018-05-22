@@ -51,11 +51,13 @@ class AnalysisScheduler(object):
         '''
         logging.debug('Shutting down...')
         self.stop_condition.value = 1
-        self.tear_down_rabbit()
+        if self.config.getboolean('remote_tasks', 'use_rabbit'):
+            self.tear_down_rabbit()
         with ThreadPoolExecutor() as e:
             e.submit(self.schedule_process.join)
             e.submit(self.result_collector_process.join)
-            e.submit(self.remote_collector_process.join)
+            if self.config.getboolean('remote_tasks', 'use_rabbit'):
+                e.submit(self.remote_collector_process.join)
             for plugin in self.analysis_plugins:
                 e.submit(self.analysis_plugins[plugin].shutdown)
         if getattr(self.db_backend_service, 'shutdown', False):
@@ -168,8 +170,9 @@ class AnalysisScheduler(object):
         self.result_collector_process = ExceptionSafeProcess(target=self.result_collector)
         self.result_collector_process.start()
 
-        self.remote_collector_process = ExceptionSafeProcess(target=self.remote_result_collection)
-        self.remote_collector_process.start()
+        if self.config.getboolean('remote_tasks', 'use_rabbit'):
+            self.remote_collector_process = ExceptionSafeProcess(target=self.remote_result_collection)
+            self.remote_collector_process.start()
 
     def result_collector(self):
         while self.stop_condition.value == 0:
@@ -200,14 +203,15 @@ class AnalysisScheduler(object):
 # ---- remote result collection ----
 
     def init_rabbit(self):
-        exchange = self.config.get('remote_tasks', 'write_back_exchange')
-        exchange_host = self.config.get('remote_tasks', 'exchange_host')
+        if self.config.getboolean('remote_tasks', 'use_rabbit'):
+            exchange = self.config.get('remote_tasks', 'write_back_exchange')
+            exchange_host = self.config.get('remote_tasks', 'exchange_host')
 
-        self._rabbit_connection = pika.BlockingConnection(pika.ConnectionParameters(exchange_host))
-        self._rabbit_channel = self._rabbit_connection.channel()
-        self._rabbit_channel.exchange_declare(exchange=exchange, exchange_type='direct')
+            self._rabbit_connection = pika.BlockingConnection(pika.ConnectionParameters(exchange_host))
+            self._rabbit_channel = self._rabbit_connection.channel()
+            self._rabbit_channel.exchange_declare(exchange=exchange, exchange_type='direct')
 
-        self._consumer_tag = hex(random.getrandbits(128))
+            self._consumer_tag = hex(random.getrandbits(128))
 
     def remote_result_collection(self):
         exchange = self.config.get('remote_tasks', 'write_back_exchange')
@@ -267,7 +271,8 @@ class AnalysisScheduler(object):
         for _, plugin in self.analysis_plugins.items():
             if plugin.check_exceptions():
                 return True
-        for process in [self.schedule_process, self.result_collector_process, self.remote_collector_process]:
+        processes = [self.schedule_process, self.result_collector_process, self.remote_collector_process] if self.config.get('remote_tasks', 'use_rabbit') else [self.schedule_process, self.result_collector_process]
+        for process in processes:
             if process.exception:
                 logging.error("{}Exception in scheduler process {}{}".format(bcolors.FAIL, bcolors.ENDC, process.name))
                 logging.error(process.exception[1])
