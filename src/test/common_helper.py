@@ -319,6 +319,9 @@ class DatabaseMock:
         else:
             return None
 
+    def add_object(self, fo_fw):
+        pass
+
 
 def fake_exit(self, *args):
     pass
