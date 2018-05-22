@@ -10,7 +10,7 @@ from helperFunctions.fileSystem import get_faf_bin_dir
 
 name = 'DJI_drones'
 mime_patterns = ['firmware/dji-drone']
-version = '0.3'
+version = '0.3.1'
 
 TOOL_PATH = path.join(get_faf_bin_dir(), 'dji_xv4_fwcon.py')
 
