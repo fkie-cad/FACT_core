@@ -189,8 +189,8 @@ def test_vulnerability_class_bad(score):
 
 def test_sort_users_by_name():
     class UserMock:
-        def __init__(self, id, name):
-            self.id = id
+        def __init__(self, id_, name):
+            self.id = id_
             self.email = name
 
     user_1 = UserMock(1, 'b')
@@ -235,10 +235,10 @@ def test_sort_roles_by_number_of_privileges():
 
 def test_filter_format_string_list_with_offset():
     test_input = [(4, 'abc'), (7, 'abc'), (256, 'def'), (12, 'ghi')]
-    expected_result = '  4: \'abc\'\n' \
-                      '  7: \'abc\'\n' \
-                      ' 12: \'ghi\'\n' \
-                      '256: \'def\''
+    expected_result = '  4: abc\n' \
+                      '  7: abc\n' \
+                      ' 12: ghi\n' \
+                      '256: def'
     result = filter_format_string_list_with_offset(test_input)
     assert result == expected_result
 

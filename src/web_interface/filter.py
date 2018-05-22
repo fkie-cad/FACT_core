@@ -354,7 +354,7 @@ def sort_roles_by_number_of_privileges(roles, privileges=PRIVILEGES):
 def filter_format_string_list_with_offset(offset_tuples):
     max_offset_len = len(str(max(list(zip(*offset_tuples))[0]))) if offset_tuples else 0
     lines = [
-        "{0: >{width}}: {1}".format(offset, repr(string), width=max_offset_len)
+        '{0: >{width}}: {1}'.format(offset, repr(string)[1:-1], width=max_offset_len)
         for offset, string in sorted(offset_tuples)
     ]
-    return "\n".join(lines)
+    return '\n'.join(lines)
