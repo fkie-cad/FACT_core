@@ -181,24 +181,23 @@ class BackEndDbInterface(MongoInterfaceCommon):
         else:
             logging.warning('Propagating tag only allowed for firmware. Given: {}')
 
-    def add_remote_analysis(self, uid: str, result: dict, task_id: str, system: str) -> None:
+    def add_remote_analysis(self, uid: str, result: dict, task_id: str, system: str) -> bool:
         task_uid, task, _ = parse_task_id(task_id)
         if not uid == task_uid:
             raise ValueError('Something went real bad. A task was associated with the wrong uid')
 
         current_object = self.get_object(uid=uid, analysis_filter=[system, ])
 
-        # FIXME What if current object doesn't even exist ....
-
         if analysis_is_outdated(current_object, system, result['analysis_date']):
             check_that_result_is_complete(result)
-            # current_object.processed_analysis[system] = result
 
-            print('[Wuhuu] Setting {} of {} to result of remote plugin'.format(system, uid))
+            logging.debug('Setting remote {} plugin result for {}'.format(system, uid))
 
             self._update_analysis(current_object, system, result)
+            return True
         else:
             logging.debug('Skipped storage of analysis, since it doesn\'t seem outdated.')
+            return False
 
     def _update_analysis(self, file_object: FileObject, analysis_system: str, result: dict):
         try:

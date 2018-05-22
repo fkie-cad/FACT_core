@@ -37,7 +37,7 @@ def analysis_is_outdated(file_object: FileObject, analysis_system: str, timestam
     '''
     if analysis_system not in file_object.processed_analysis:
         logging.warning('Default result has not been written to {}:{}. Real result might be overwritten later.'.format(file_object.get_uid(), analysis_system))
-        return True
+        return False
     if file_object.processed_analysis[analysis_system]['analysis_date'] > timestamp:
         return True
     if is_default_result(file_object.processed_analysis[analysis_system]):

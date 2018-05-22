@@ -1,10 +1,13 @@
-import json
+import base64
 import logging
+import os
+import pickle
 import random
 from concurrent.futures import ThreadPoolExecutor
 from multiprocessing import Queue, Value
 from queue import Empty
 from random import shuffle
+from signal import SIGKILL
 from time import sleep
 
 import pika
@@ -12,6 +15,7 @@ import pika
 from helperFunctions.parsing import bcolors
 from helperFunctions.plugin import import_plugins
 from helperFunctions.process import ExceptionSafeProcess, terminate_process_and_childs
+from helperFunctions.remote_analysis import parse_task_id
 from helperFunctions.tag import check_tags, add_tags_to_object
 from storage.db_interface_backend import BackEndDbInterface
 
@@ -210,13 +214,17 @@ class AnalysisScheduler(object):
         self._rabbit_channel.queue_bind(exchange=exchange, queue=incoming_queue.method.queue, routing_key=routing_key)
 
         def fetch_next_result(ch: pika.adapters.blocking_connection.BlockingChannel, method: pika.spec.Basic.Deliver, properties: pika.BasicProperties, body: bytes):
-            remote_task = json.loads(body.decode())
+            remote_task = self.deserialize(body)
 
             task_id = remote_task['task_id']
-            uid = remote_task['object_uid']
+            uid, _, _ = parse_task_id(task_id)
+
             analysis_system = remote_task['analysis_system']
             analysis_result = remote_task['analysis']
-            self.db_backend_service.add_remote_analysis(uid=uid, result=analysis_result, task_id=task_id, system=analysis_system)
+
+            success = self.db_backend_service.add_remote_analysis(uid=uid, result=analysis_result, task_id=task_id, system=analysis_system)
+            if not success:
+                self.re_publish_result(remote_task, exchange, routing_key)
 
             ch.basic_ack(delivery_tag=method.delivery_tag)
 
@@ -228,9 +236,20 @@ class AnalysisScheduler(object):
             logging.warning('Bad shutdown of rabbit consumer ..')
 
     def tear_down_rabbit(self):
-        self._rabbit_channel.basic_cancel(consumer_tag=self._consumer_tag)
+        os.kill(self.remote_collector_process.pid, SIGKILL)
         self._rabbit_connection.close()
 
+    def re_publish_result(self, message: dict, exchange: str, routing_key: str):
+        logging.debug('Re-publishing task {}:{} because result could not be written'.format(message['uid'], message['analysis_system']))
+        self._rabbit_channel.basic_publish(exchange=exchange, routing_key=routing_key, body=self.serialize(message))
+
+    @staticmethod
+    def deserialize(item: bytes) -> dict:
+        return pickle.loads(base64.standard_b64decode(item))
+
+    @staticmethod
+    def serialize(item: dict) -> str:
+        return base64.standard_b64encode(pickle.dumps(item)).decode()
 
 # ---- miscellaneous functions ----
 
