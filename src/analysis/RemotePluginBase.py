@@ -31,13 +31,14 @@ class RemoteBasePlugin(AnalysisBasePlugin):
         raw_body = {
             'uid': file_object.get_uid(),
             'task_id': create_task_id(file_object.get_uid()),
-            'file_object': file_object
+            'binary': file_object.binary,
+            'dependencies': self._get_dependencies(file_object)
         }
 
         self._channel.basic_publish(
             exchange=self._exchange,
             routing_key=self._get_topic(),
-            body=base64.standard_b64encode(pickle.dumps(raw_body)).decode()
+            body=self._serialize(raw_body)
         )
 
         file_object.processed_analysis[self.NAME] = {
@@ -46,12 +47,19 @@ class RemoteBasePlugin(AnalysisBasePlugin):
 
         return file_object
 
+    def _get_dependencies(self, file_object: FileObject) -> dict:
+        return {dependency: file_object.processed_analysis[dependency] for dependency in self.DEPENDENCIES}
+
     def _get_topic(self) -> str:
         return 'analysis.{}.normal'.format(self.NAME)
 
     @staticmethod
     def _get_placeholder() -> str:
         return 'The analysis is processed on a remote host and can take some time.'
+
+    @staticmethod
+    def _serialize(item: dict) -> str:
+        return base64.standard_b64encode(pickle.dumps(item)).decode()
 
     def __del__(self):
         self._connection.close()
