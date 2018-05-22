@@ -12,14 +12,14 @@ name = 'DJI_drones'
 mime_patterns = ['firmware/dji-drone']
 version = '0.3'
 
-TOOL_PATH = path.join(get_faf_bin_dir(), "dji_fwcon.py")
+TOOL_PATH = path.join(get_faf_bin_dir(), 'dji_xv4_fwcon.py')
 
 
 def unpack_function(file_path, tmp_dir):
     if not path.exists(TOOL_PATH):
-        return {'output': "Error: phantom_firmware_tools not installed! Re-Run the installation script!"}
+        return {'output': 'Error: phantom_firmware_tools not installed! Re-Run the installation script!'}
 
-    output = execute_shell_command('(cd {} && fakeroot {} -x -vv -p {})'.format(tmp_dir, TOOL_PATH, file_path)) + "\n"
+    output = execute_shell_command('(cd {} && fakeroot python3 {} -x -vv -p {})'.format(tmp_dir, TOOL_PATH, file_path)) + '\n'
 
     _rename_files(tmp_dir)
     _remove_ini_files(tmp_dir)
@@ -34,7 +34,7 @@ def _rename_files(tmp_dir):
         module_id = _extract_module_id(bin_file)
         if module_id:
             identifier = _get_identifier_from_ini(ini_file)
-            rename(bin_file, "{}/{}_{}.module".format(tmp_dir, module_id, identifier))
+            rename(bin_file, '{}/{}_{}.module'.format(tmp_dir, module_id, identifier))
 
 
 def _get_list_of_files(tmp_dir):
@@ -45,7 +45,7 @@ def _get_list_of_files(tmp_dir):
 
 
 def _extract_module_id(bin_file):
-    id_match = re.match(r".*(m[0-9]{4})\.bin", bin_file)
+    id_match = re.match(r'.*(m[0-9]{4})\.bin', bin_file)
     if not id_match:
         return None
     module_id = id_match.group(1)
@@ -53,11 +53,11 @@ def _extract_module_id(bin_file):
 
 
 def _get_identifier_from_ini(ini_file):
-    identifier = "default"
+    identifier = 'default'
     with open(ini_file, 'r') as fd:
         lines = fd.readlines()
         for line in lines:
-            match = re.match(r"\#.Stores.firmware.for.([0-9a-zA-Z ]*)", line)
+            match = re.match(r'\#.Stores.firmware.for.([0-9a-zA-Z ]*)', line)
             if match:
                 identifier = match.group(1)
                 identifier = identifier.replace(' ', '_')
