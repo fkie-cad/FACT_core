@@ -353,7 +353,7 @@ class StatisticUpdater(object):
     def _get_objects_and_count_of_occurrence_firmware_and_file_db(self, object_path, unwind=False, match=None, sumup_function=sum_up_lists):
         result_firmwares = self._get_objects_and_count_of_occurrence_single_db(self.db.firmwares, object_path, unwind=unwind, match=match)
         result_files = self._get_objects_and_count_of_occurrence_single_db(self.db.file_objects, object_path, unwind=unwind, match=match)
-        combined_result = sum_up_lists(result_firmwares, result_files)
+        combined_result = sumup_function(result_firmwares, result_files)
         return combined_result
 
     @staticmethod
