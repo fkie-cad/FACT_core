@@ -57,10 +57,6 @@ sudo -EH pip3 install --upgrade lief
 # install python mongo bindings
 sudo -EH pip3 install --upgrade pymongo pyyaml
 
-# install RabbitMQ dependencies
-sudo apt-get install rabbitmq-server
-sudo -EH pip3 install --upgrade pika
-
 # ---- VarietyJS used for advanced search map generation ----
 # is executed by update_statistic.py
 git clone https://github.com/variety/variety.git
