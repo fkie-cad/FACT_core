@@ -20,6 +20,10 @@ sudo -E apt-get remove -y python-lzma
 sudo -EH pip2 uninstall -y pyliblzma
 sudo -E apt-get install -y python-lzma
 
+# install RabbitMQ dependencies
+sudo apt-get install rabbitmq-server
+sudo -EH pip3 install --upgrade pika
+
 # install yara
 sudo apt-get install -y bison flex libmagic-dev
 if [ $(yara --version) == '3.6.3' ]
