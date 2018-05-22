@@ -10,7 +10,7 @@ cd ../../../bootstrap
 
 git clone https://github.com/mefistotelis/phantom-firmware-tools.git
 cd phantom-firmware-tools
-mv dji_fwcon.py ../../bin/
+mv dji_xv4_fwcon.py ../../bin/
 mv amba_fwpak.py ../../bin/
 mv amba_romfs.py ../../bin/
 cd ..
