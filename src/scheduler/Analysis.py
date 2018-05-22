@@ -29,14 +29,15 @@ class AnalysisScheduler(object):
 
     analysis_plugins = {}
 
-    def __init__(self, config=None, post_analysis=None, db_interface=None):
+    def __init__(self, config=None, pre_analysis=None, post_analysis=None, db_interface=None):
         self.config = config
         self.load_plugins()
         self.stop_condition = Value('i', 0)
         self.process_queue = Queue()
         self.tag_queue = Queue()
         self.db_backend_service = db_interface if db_interface else BackEndDbInterface(config=config)
-        self.post_analysis = self.db_backend_service.add_object if post_analysis is None else post_analysis
+        self.pre_analysis = pre_analysis if pre_analysis else self.db_backend_service.add_object
+        self.post_analysis = post_analysis if post_analysis else self.db_backend_service.add_analysis
         self.start_scheduling_process()
 
         self.init_rabbit()
@@ -152,6 +153,8 @@ class AnalysisScheduler(object):
                 self.process_next_analysis(task)
 
     def process_next_analysis(self, fw_object):
+        if not self.db_backend_service.existence_quick_check(fw_object.get_uid()):
+            self.pre_analysis(fw_object)
         analysis_to_do = fw_object.scheduled_analysis.pop()
         if analysis_to_do not in self.analysis_plugins:
             logging.error('Plugin \'{}\' not available'.format(analysis_to_do))
@@ -179,6 +182,7 @@ class AnalysisScheduler(object):
                     pass
                 else:
                     nop = False
+                    self.post_analysis(fw)
                     self.check_further_process_or_complete(fw)
             if nop:
                 sleep(int(self.config['ExpertSettings']['block_delay']))
@@ -190,7 +194,6 @@ class AnalysisScheduler(object):
     def check_further_process_or_complete(self, fw_object):
         if not fw_object.scheduled_analysis:
             logging.info('Analysis Completed:\n{}'.format(fw_object))
-            self.post_analysis(fw_object)
         else:
             self.process_queue.put(fw_object)
 
