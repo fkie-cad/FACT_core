@@ -55,7 +55,9 @@ sudo apt-get install -y fakeroot
 
 
 # ---- sasquatch unpacker ----
-git clone https://github.com/devttys0/sasquatch
+#git clone https://github.com/devttys0/sasquatch
+#Ubuntu 18.04 compatiblity issue in original source. Fixed in this fork:
+git clone https://github.com/kartone/sasquatch
 (cd sasquatch && ./build.sh)
 rm -fr sasquatch
 
