@@ -4,6 +4,12 @@ echo "####################################"
 echo "#     Update Operating System      #"
 echo "####################################"
 
+while [ "$1" != '' ]
+  do
+	[ "$1" == "xenial" ] && UBUNTU_XENIAL="yes" && echo "installing on Ubuntu 16.04" && shift
+	[ "$1" == "bionic" ] && UBUNTU_BIONIC="yes" && echo "installing on Ubuntu 18.04" && shift
+done
+
 sudo apt-get install -y apt-transport-https
 sudo apt-get update
 sudo apt-get upgrade -y
@@ -32,6 +38,10 @@ export GIT_SSH_COMMAND="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChec
 
 # install python3 and general build stuff
 sudo apt-get install -y python3 python3-dev build-essential automake autoconf libtool git unzip
+if [ "$UBUNTU_BIONIC" == "yes" ]
+then
+	sudo -EH pip3 install testresources
+fi
 # get a bugfree recent pip version
 sudo apt-get remove -y python3-pip python3-setuptools python3-wheel
 sudo apt-get autoremove -y
@@ -50,7 +60,7 @@ rm get-pip.py
 
 # install general python dependencys
 sudo apt-get install -y libmagic-dev libffi-dev libfuzzy-dev
-sudo -EH pip3 install --upgrade pytest pytest-cov pytest-pep8 pylint python-magic psutil xmltodict yara-python==3.6.3 appdirs
+sudo -EH pip3 install --upgrade pytest pytest-cov pytest-pep8 pylint python-magic psutil xmltodict yara-python==3.7.0 appdirs
 sudo -EH pip3 install --upgrade ssdeep
 sudo -EH pip3 install --upgrade lief
 
