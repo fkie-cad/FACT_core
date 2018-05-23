@@ -7,6 +7,7 @@ echo "####################################"
 while [ "$1" != '' ]
   do
 	[ "$1" == "xenial" ] && UBUNTU_XENIAL="yes" && echo "installing on Ubuntu 16.04" && shift
+	[ "$1" == "bionic" ] && UBUNTU_BIONIC="yes" && echo "installing on Ubuntu 18.04" && shift
     [ "$1" == "nginx" ] && NGINX="yes" && echo "installing nginx" && shift
 done
 
@@ -86,9 +87,9 @@ then
 	echo "####################################"
 	sudo apt-get install -y nginx
 	echo "generating a new certificate..."
-	openssl genrsa -out faf.key 4096
-	openssl req -new -key faf.key -out faf.csr
-	openssl x509 -req -days 730 -in faf.csr -signkey faf.key -out faf.crt
+	openssl genrsa -out fact.key 4096
+	openssl req -new -key faf.key -out fact.csr
+	openssl x509 -req -days 730 -in fact.csr -signkey fact.key -out fact.crt
 	sudo mv faf.key faf.csr faf.crt /etc/nginx
 	sudo cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak
 	sudo rm /etc/nginx/nginx.conf

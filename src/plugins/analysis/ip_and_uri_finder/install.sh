@@ -13,7 +13,7 @@ echo "------------------------------------"
 echo "           install GeoIP            "
 echo "------------------------------------"
 
-sudo pip3 install geoip2
+sudo -EH pip3 install --upgrade geoip2
 
 if [ -e bin/ ]
 then

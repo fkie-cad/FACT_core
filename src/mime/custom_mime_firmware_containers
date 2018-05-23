@@ -117,7 +117,7 @@
 >6    byte           x             header version: %d,
 >10   ubyte          >12           {invalid} month
 >12   ubyte          >31           {invalid} day
->8    ubyte          >3000         {invalid} year
+>8    ubeshort       >3000         {invalid} year
 #month
 >10   byte           x             created: %d/
 #day    
@@ -141,7 +141,7 @@
 >6      byte            x               header version: %d,
 >10     ubyte           >12             {invalid}invalid month
 >12     ubyte           >31             {invalid}invalid day
->8      ubyte           >3000           {invalid}invalid year
+>8      ubeshort        >3000           {invalid}invalid year
 #month
 >10     byte            x               created: %d/
 #day    

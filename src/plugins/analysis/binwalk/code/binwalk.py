@@ -14,7 +14,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     NAME = 'binwalk'
     DESCRIPTION = 'binwalk signature and entropy analysis'
     DEPENDENCIES = []
-    VERSION = '0.5'
+    VERSION = '0.5.1'
 
     def __init__(self, plugin_administrator, config=None, recursive=True):
         self.config = config
@@ -22,7 +22,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def process_object(self, file_object):
         result = {}
-        tmp_dir = TemporaryDirectory(prefix='faf_analysis_binwalk_')
+        tmp_dir = TemporaryDirectory(prefix='fact_analysis_binwalk_')
         dir_path = tmp_dir.name
 
         signature_analysis_result = execute_shell_command('(cd {} && xvfb-run -a binwalk -BEJ {})'.format(dir_path, file_object.file_path))
