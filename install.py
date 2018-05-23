@@ -29,6 +29,9 @@ PROGRAM_DESCRIPTION = 'Firmware Analysis and Comparison Tool (FACT) installation
 
 INSTALL_CANDIDATES = ['frontend', 'db', 'backend']
 
+BIONIC_CODE_NAMES = ['bionic beaver']
+XENIAL_CODE_NAMES = ['xenial xerus', 'yakkety yak', 'sarah', 'serena', 'sonya', 'sylvia']
+
 
 def _setup_argparser():
     parser = argparse.ArgumentParser(description='{} - {}'.format(PROGRAM_NAME, PROGRAM_DESCRIPTION))
@@ -121,12 +124,14 @@ def check_distribution():
         else:
             import distro
     codename = distro.codename().lower()
-    supported_ubuntu_xenial_code_names = ['xenial xerus', 'yakkety yak', 'sarah', 'serena', 'sonya', 'sylvia']
-    if codename in supported_ubuntu_xenial_code_names:
+    if codename in XENIAL_CODE_NAMES:
         logging.debug('Ubuntu 16.04 detected')
         return 'xenial'
+    if codename in BIONIC_CODE_NAMES:
+        logging.debug('Ubuntu 18.04 detected')
+        return 'bionic'
     else:
-        sys.exit('Your Distribution ({} {}) is not supported. FACT Installer requires Ubuntu 16.04 or compatible!'.format(distro.id(), distro.version()))
+        sys.exit('Your Distribution ({} {}) is not supported. FACT Installer requires Ubuntu 16.04, Ubuntu 18.04 or compatible!'.format(distro.id(), distro.version()))
 
 
 def execute_bootstrap_script(script_name, opts=''):
