@@ -6,7 +6,7 @@ from common_helper_files import get_dir_of_file
 from analysis.YaraPluginBase import YaraBasePlugin
 from helperFunctions.dataConversion import make_unicode_string
 from helperFunctions.tag import TagColor
-from plugins.analysis.software_components.code import OS_LIST
+from plugins.analysis.software_components.bin import OS_LIST
 
 SIGNATURE_DIR = os.path.join(get_dir_of_file(__file__), '../signatures')
 
