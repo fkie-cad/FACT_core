@@ -60,7 +60,7 @@ rm get-pip.py
 
 # install general python dependencys
 sudo apt-get install -y libmagic-dev libffi-dev libfuzzy-dev
-sudo -EH pip3 install --upgrade pytest pytest-cov pytest-pep8 pylint python-magic psutil xmltodict yara-python==3.7.0 appdirs
+sudo -EH pip3 install --upgrade pytest==3.5.1 pytest-cov pytest-pep8 pylint python-magic psutil xmltodict yara-python==3.7.0 appdirs
 sudo -EH pip3 install --upgrade ssdeep
 sudo -EH pip3 install --upgrade lief
 
