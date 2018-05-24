@@ -1,11 +1,23 @@
 import os
 
 from common_helper_files import get_dir_of_file
+from tempfile import NamedTemporaryFile
 
-from ..internal.scan_signatures import get_scanned_software
+from ..internal.extract_os_names import get_software_names, extract_names
 
-TEST_SIGNATURE_DIR = os.path.join(get_dir_of_file(__file__), './data')
+TEST_SIGNATURE_FILE = os.path.join(get_dir_of_file(__file__), './data/test_signature.yara')
 
 
 def test_get_scanned_software():
-    assert get_scanned_software(TEST_SIGNATURE_DIR + '/test_signature.yara') == ['OS1', 'OS2']
+    assert get_software_names(TEST_SIGNATURE_FILE) == ['OS1', 'OS2']
+
+
+def test_extract_names():
+    target_file = NamedTemporaryFile()
+
+    extract_names(TEST_SIGNATURE_FILE, target_file.name)
+
+    with open(target_file.name, 'r') as fd:
+        data = fd.read()
+
+    assert data == 'OS_LIST = ["OS1", "OS2"]\n'
