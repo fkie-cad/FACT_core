@@ -22,7 +22,7 @@ class Firmware(FileObject):
 
     def set_device_name(self, device_name):
         self.device_name = device_name
-        
+
     def set_part_name(self, part):
         if part == 'full':
             self.part = ''
@@ -64,11 +64,11 @@ class Firmware(FileObject):
         if self.part == '':
             part = ''
         else:
-            part =' - {}'.format(self.part)
+            part = ' - {}'.format(self.part)
         return '{} {}{} v. {}'.format(self.vendor, self.device_name, part, self.version)
 
     def __str__(self):
-        return 'Device Name: {}\nFW Version: {}\nProcessed Analysis: {}\nScheduled Analysis: {}'.format(self.device_name, self.version, list(self.processed_analysis.keys()), self.scheduled_analysis)
+        return '{}\nProcessed Analysis: {}\nScheduled Analysis: {}'.format(self.get_hid(), list(self.processed_analysis.keys()), self.scheduled_analysis)
 
     def __repr__(self):
         return self.__str__()
