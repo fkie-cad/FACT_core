@@ -1,12 +1,23 @@
+import os
 import re
+
+from common_helper_files import get_dir_of_file
 
 from analysis.YaraPluginBase import YaraBasePlugin
 from helperFunctions.dataConversion import make_unicode_string
+from helperFunctions.tag import TagColor
+from plugins.analysis.software_components.bin import OS_LIST
+
+SIGNATURE_DIR = os.path.join(get_dir_of_file(__file__), '../signatures')
 
 
 class AnalysisPlugin(YaraBasePlugin):
     '''
     This plugin identifies software components
+
+    Credits:
+    OS Tagging functionality created by Roman Konertz during Firmware Bootcamp WT17/18 at University of Bonn
+    Maintained by Fraunhofer FKIE
     '''
     NAME = 'software_components'
     DESCRIPTION = 'identify software components'
@@ -21,6 +32,8 @@ class AnalysisPlugin(YaraBasePlugin):
         if len(file_object.processed_analysis[self.NAME]) > 1:
             file_object.processed_analysis[self.NAME] = self.add_version_information(file_object.processed_analysis[self.NAME])
             file_object.processed_analysis[self.NAME]['summary'] = self._get_summary(file_object.processed_analysis[self.NAME])
+
+            self.add_os_key(file_object)
         return file_object
 
     @staticmethod
@@ -57,3 +70,17 @@ class AnalysisPlugin(YaraBasePlugin):
             versions.add(self.get_version(match))
         result['meta']['version'] = list(versions)
         return result
+
+    def add_os_key(self, file_object):
+        for entry in file_object.processed_analysis[self.NAME]['summary']:
+            for os in OS_LIST:
+                if entry.find(os) != -1:
+                    if self._entry_has_no_trailing_version(entry, os):
+                        self.add_analysis_tag(file_object, 'OS', entry, TagColor.GREEN, True)
+                    else:
+                        self.add_analysis_tag(file_object, 'OS', os, TagColor.GREEN, False)
+                        self.add_analysis_tag(file_object, 'OS Version', entry, TagColor.GREEN, True)
+
+    @staticmethod
+    def _entry_has_no_trailing_version(entry, os_string):
+        return os_string.strip() == entry.strip()
