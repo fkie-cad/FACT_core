@@ -80,6 +80,6 @@ def test_get_hid(input_data, expected_output):
 
 def test_repr_and_str():
     test_fw = Firmware(scheduled_analysis=['test'])
-    assert 'Device Name: None' in test_fw.__str__()
+    assert 'None None v. None' in test_fw.__str__()
     assert 'test' in test_fw.__str__()
     assert test_fw.__str__() == test_fw.__repr__()
