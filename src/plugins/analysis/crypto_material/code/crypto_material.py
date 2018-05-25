@@ -103,11 +103,10 @@ class AnalysisPlugin(YaraBasePlugin):
 
     def _add_private_key_tag(self, file_object, result):
         if any('private' in key.lower() for key in result):
-            file_object.processed_analysis[self.NAME]['tags'] = {
-                'private_key_inside': {
-                    'value': 'Private Key Found',
-                    'color': TagColor.ORANGE,
-                    'propagate': True,
-                },
-                'root_uid': file_object.get_root_uid()
-            }
+            self.add_analysis_tag(
+                file_object=file_object,
+                tag_name='private_key_inside',
+                value='Private Key Found',
+                color=TagColor.ORANGE,
+                propagate=True
+            )

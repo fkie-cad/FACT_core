@@ -85,3 +85,16 @@ rule LinuxKernel
         $a and not $b 
 */
 }
+
+rule CiscoIOS
+{
+	meta:
+		software_name = "Cisco IOS"
+		open_source = false
+		website = "https://www.cisco.com/c/en/us/products/ios-nx-os-software/ios-technologies/index.html"
+		description = "Cisco Internetwork Operating System"
+	strings:
+		$a = "CW_SYSDESCR$Cisco IOS Software"
+	condition:
+		$a
+}
