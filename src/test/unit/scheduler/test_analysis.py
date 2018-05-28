@@ -100,8 +100,3 @@ class TestScheduleAnalysisWithRemote(TestScheduleBase):
 
     def test_initialization(self):
         assert True  # Exception or timeout if there is something wrong
-
-    def test_serialize(self):
-        item = {'a_dict': ['with', b'a', 'list']}
-        result = self.sched.deserialize(self.sched.serialize(item).encode())
-        assert item == result

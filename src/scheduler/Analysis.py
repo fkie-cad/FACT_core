@@ -1,7 +1,5 @@
-import base64
 import logging
 import os
-import pickle
 import random
 from concurrent.futures import ThreadPoolExecutor
 from multiprocessing import Queue, Value
@@ -15,7 +13,7 @@ import pika
 from helperFunctions.parsing import bcolors
 from helperFunctions.plugin import import_plugins
 from helperFunctions.process import ExceptionSafeProcess, terminate_process_and_childs
-from helperFunctions.remote_analysis import parse_task_id, ResultCollisionError
+from helperFunctions.remote_analysis import parse_task_id, ResultCollisionError, serialize, deserialize
 from helperFunctions.tag import check_tags, add_tags_to_object
 from storage.db_interface_backend import BackEndDbInterface
 
@@ -221,7 +219,7 @@ class AnalysisScheduler(object):
         self._rabbit_channel.queue_bind(exchange=exchange, queue=incoming_queue.method.queue, routing_key=routing_key)
 
         def fetch_next_result(ch: pika.adapters.blocking_connection.BlockingChannel, method: pika.spec.Basic.Deliver, properties: pika.BasicProperties, body: bytes):
-            remote_task = self.deserialize(body)
+            remote_task = deserialize(body)
 
             task_id = remote_task['task_id']
             uid, _, _ = parse_task_id(task_id)
@@ -252,15 +250,7 @@ class AnalysisScheduler(object):
 
     def re_publish_result(self, message: dict, exchange: str, routing_key: str):
         logging.debug('Re-publishing task {}:{} because result could not be written'.format(message['uid'], message['analysis_system']))
-        self._rabbit_channel.basic_publish(exchange=exchange, routing_key=routing_key, body=self.serialize(message))
-
-    @staticmethod
-    def deserialize(item: bytes) -> dict:
-        return pickle.loads(base64.standard_b64decode(item))
-
-    @staticmethod
-    def serialize(item: dict) -> str:
-        return base64.standard_b64encode(pickle.dumps(item)).decode()
+        self._rabbit_channel.basic_publish(exchange=exchange, routing_key=routing_key, body=serialize(message))
 
 # ---- miscellaneous functions ----
 

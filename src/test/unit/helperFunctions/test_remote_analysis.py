@@ -4,7 +4,7 @@ import time
 import pytest
 
 from helperFunctions.remote_analysis import create_task_id, parse_task_id, analysis_is_outdated, is_default_result, \
-    check_that_result_is_complete, ResultCollisionError
+    check_that_result_is_complete, ResultCollisionError, deserialize, serialize
 from objects.file import FileObject
 
 UUID = namedtuple('UUID', ['hex'])
@@ -65,3 +65,9 @@ def test_check_result_is_complete_fails(result):
 def test_check_result_is_complete_success():
     check_that_result_is_complete({'plugin_version': '0.0', 'analysis_date': 12.3})
     assert True, 'not raising means success, function has no return value'
+
+
+def test_serialize():
+    item = {'a_dict': ['with', b'a', 'list']}
+    result = deserialize(serialize(item).encode())
+    assert item == result
