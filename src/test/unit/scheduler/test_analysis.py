@@ -11,7 +11,7 @@ from scheduler.Analysis import AnalysisScheduler, MANDATORY_PLUGINS
 from test.common_helper import DatabaseMock, fake_exit
 
 
-class TestScheduleInitialAnalysis(unittest.TestCase):
+class TestScheduleBase(unittest.TestCase):
 
     def setUp(self):
         self.mocked_interface = DatabaseMock()
@@ -20,22 +20,34 @@ class TestScheduleInitialAnalysis(unittest.TestCase):
         self.exit_patch = unittest.mock.patch(target='helperFunctions.web_interface.ConnectTo.__exit__', new=fake_exit)
         self.exit_patch.start()
 
-        config = get_config_for_testing()
-        config.add_section('ip_and_uri_finder')
-        config.set('ip_and_uri_finder', 'signature_directory', 'analysis/signatures/ip_and_uri_finder/')
-        config.add_section('default_plugins')
-        config.set('default_plugins', 'plugins', 'file_hashes')
+        self.config = get_config_for_testing()
+        self.config.add_section('ip_and_uri_finder')
+        self.config.set('ip_and_uri_finder', 'signature_directory', 'analysis/signatures/ip_and_uri_finder/')
+        self.config.add_section('default_plugins')
+        self.config.set('default_plugins', 'plugins', 'file_hashes')
         self.tmp_queue = Queue()
-        self.sched = AnalysisScheduler(config=config, post_analysis=self.dummy_callback, db_interface=DatabaseMock())
 
     def tearDown(self):
-        self.sched.shutdown()
         self.tmp_queue.close()
 
         self.enter_patch.stop()
         self.exit_patch.stop()
         self.mocked_interface.shutdown()
         gc.collect()
+
+    def dummy_callback(self, fw):
+        self.tmp_queue.put(fw)
+
+
+class TestScheduleInitialAnalysis(TestScheduleBase):
+
+    def setUp(self):
+        super().setUp()
+        self.sched = AnalysisScheduler(config=self.config, post_analysis=self.dummy_callback, db_interface=DatabaseMock())
+
+    def tearDown(self):
+        self.sched.shutdown()
+        super().tearDown()
 
     def test_plugin_registration(self):
         self.assertIn('dummy_plugin_for_testing_only', self.sched.analysis_plugins, 'Dummy plugin not found')
@@ -74,5 +86,22 @@ class TestScheduleInitialAnalysis(unittest.TestCase):
         self.assertTrue(result['unpacker'][1], 'unpacker plugin not marked as mandatory')
         self.assertNotIn('dummy_plug_in_for_testing_only', result.keys(), 'dummy plug-in not removed')
 
-    def dummy_callback(self, fw):
-        self.tmp_queue.put(fw)
+
+class TestScheduleAnalysisWithRemote(TestScheduleBase):
+
+    def setUp(self):
+        super().setUp()
+        self.config.set('remote_tasks', 'use_rabbit', 'true')
+        self.sched = AnalysisScheduler(config=self.config, post_analysis=self.dummy_callback, db_interface=DatabaseMock())
+
+    def tearDown(self):
+        self.sched.shutdown()
+        super().tearDown()
+
+    def test_initialization(self):
+        assert True  # Exception or timeout if there is something wrong
+
+    def test_serialize(self):
+        item = {'a_dict': ['with', b'a', 'list']}
+        result = self.sched.deserialize(self.sched.serialize(item).encode())
+        assert item == result
