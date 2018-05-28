@@ -4,6 +4,12 @@ echo "####################################"
 echo "#       installing backend         #"
 echo "####################################"
 
+while [ "$1" != '' ]
+  do
+	[ "$1" == "xenial" ] && UBUNTU_XENIAL="yes" && echo "installing on Ubuntu 16.04" && shift
+	[ "$1" == "bionic" ] && UBUNTU_BIONIC="yes" && echo "installing on Ubuntu 18.04" && shift
+done
+
 # change cwd to bootstrap dir
 CURRENT_FILE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd $CURRENT_FILE_DIR
@@ -26,12 +32,12 @@ sudo -EH pip3 install --upgrade pika
 
 # install yara
 sudo apt-get install -y bison flex libmagic-dev
-if [ $(yara --version) == '3.6.3' ]
+if [ $(yara --version) == '3.7.1' ]
 then
     echo "skipping yara installation (already installed)"
 else
-    wget https://github.com/VirusTotal/yara/archive/v3.6.3.zip
-    unzip v3.6.3.zip
+	wget https://github.com/VirusTotal/yara/archive/v3.7.1.zip
+    unzip v3.7.1.zip
     cd yara-3.*
     #patch --forward -r - libyara/arena.c ../patches/yara.patchfile
     chmod +x bootstrap.sh
@@ -41,7 +47,7 @@ else
     sudo make install
     # CAUTION: Yara python binding is installed in bootstrap_common, because it is needed in the frontend as well.
     cd ..
-    sudo rm -fr yara* v3.6.3.zip
+    sudo rm -fr yara* v3.7.1.zip
 fi
 
 
@@ -53,7 +59,9 @@ sudo apt-get install -y fakeroot
 
 
 # ---- sasquatch unpacker ----
-git clone https://github.com/devttys0/sasquatch
+#git clone https://github.com/devttys0/sasquatch
+#Ubuntu 18.04 compatiblity issue in original source. Fixed in this fork:
+git clone https://github.com/kartone/sasquatch
 (cd sasquatch && ./build.sh)
 rm -fr sasquatch
 
@@ -76,7 +84,12 @@ sudo cp bin/unstuff /usr/local/bin/
 rm -fr bin doc man
 
 # ---- patch pyqtgraph ----
-sudo patch --forward -r - /usr/local/lib/python3.5/dist-packages/pyqtgraph/exporters/ImageExporter.py patches/qt_patchfile
+if [ "$UBUNTU_XENIAL" == "yes" ]
+then
+	sudo patch --forward -r - /usr/local/lib/python3.5/dist-packages/pyqtgraph/exporters/ImageExporter.py patches/qt_patchfile
+else
+	sudo patch --forward -r - /usr/local/lib/python3.6/dist-packages/pyqtgraph/exporters/ImageExporter.py patches/qt_patchfile
+fi
 
 git clone https://github.com/devttys0/binwalk.git
 (cd binwalk && sudo python3 setup.py install --force)
@@ -86,9 +99,6 @@ sudo rm -fr binwalk
 sudo -EH pip2 install --upgrade patool
 sudo -EH pip3 install --upgrade patool
 
-# ubuntu 14.04
-sudo apt-get install -y openjdk-7-jdk
-# ubuntu 16.04
 sudo apt-get install -y openjdk-8-jdk
 
 sudo apt-get install -y lrzip cpio unadf rpm2cpio lzop lhasa cabextract zpaq archmage arj xdms rzip lzip unalz unrar unzip gzip nomarch flac unace zoo sharutils
