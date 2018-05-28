@@ -2,6 +2,7 @@
 
 FACTUSER=$(whoami)
 
+<<<<<<< bc9901ae20f9c2c15b17577186b8523738bb70e0
 CODENAME=$(lsb_release -cs)
 if [ ${CODENAME} = 'sarah' -o ${CODENAME} = 'serena' -o ${CODENAME} = 'sonya' -o ${CODENAME} = 'sylvia' ]; then
     CODENAME=xenial
@@ -14,6 +15,10 @@ echo "Installing Pre-Install Requirements"
 
 sudo apt-get update
 sudo apt install -y python3-pip git
+=======
+echo "Install Pre-Install Requirements"
+sudo apt-get -y install python3-pip git
+>>>>>>> apt -> apt-get
 
 echo "Installing Docker"
 
