@@ -15,7 +15,7 @@ import pika
 from helperFunctions.parsing import bcolors
 from helperFunctions.plugin import import_plugins
 from helperFunctions.process import ExceptionSafeProcess, terminate_process_and_childs
-from helperFunctions.remote_analysis import parse_task_id
+from helperFunctions.remote_analysis import parse_task_id, ResultCollisionError
 from helperFunctions.tag import check_tags, add_tags_to_object
 from storage.db_interface_backend import BackEndDbInterface
 
@@ -229,9 +229,13 @@ class AnalysisScheduler(object):
             analysis_system = remote_task['analysis_system']
             analysis_result = remote_task['analysis']
 
-            success = self.db_backend_service.add_remote_analysis(uid=uid, result=analysis_result, task_id=task_id, system=analysis_system)
-            if not success:
-                self.re_publish_result(remote_task, exchange, routing_key)
+            try:
+                if not self.db_backend_service.add_remote_analysis(uid=uid, result=analysis_result, task_id=task_id, system=analysis_system):
+                    self.re_publish_result(remote_task, exchange, routing_key)
+            except ResultCollisionError:
+                logging.warning('There was a race condition on {} results for object {}. Latter analysis was dropped.'.format(analysis_system, uid))
+            except ValueError as value_error:
+                logging.error('Remote Result Base Plugin not setting meta data correctly: {}'.format(str(value_error)))
 
             ch.basic_ack(delivery_tag=method.delivery_tag)
 

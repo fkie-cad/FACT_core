@@ -6,6 +6,10 @@ import uuid
 from objects.file import FileObject
 
 
+class ResultCollisionError(RuntimeError):
+    pass
+
+
 def create_task_id(uid: str) -> str:
     '''
     Create unique task id for scheduling
@@ -30,19 +34,20 @@ def parse_task_id(task_id: str) -> tuple:
 
 def analysis_is_outdated(file_object: FileObject, analysis_system: str, timestamp: float) -> bool:
     '''
-    "Existing" analysis is outdated if
-    a) it doesn't even exist (which would probably mean there was an error ..)
-    b) its analysis date is older than the creation time of the new analysis
-    c) it is only a placeholder result
+    Possible cases
+    a) it doesn't even exist (the result generation was faster than the placeholder storage) -> Re-Queue (False)
+    b) stored analysis date is older than the creation time of the new analysis -> Overwrite (True)
+    c) it is only a placeholder result -> Overwrite (True)
+    d) stored analysis date is newer than creation time of "new" analysis -> Runtime condition, drop result (Exception)
     '''
     if analysis_system not in file_object.processed_analysis:
         logging.warning('Default result has not been written to {}:{}. Real result might be overwritten later.'.format(file_object.get_uid(), analysis_system))
         return False
-    if file_object.processed_analysis[analysis_system]['analysis_date'] > timestamp:
+    if file_object.processed_analysis[analysis_system]['analysis_date'] < timestamp:
         return True
     if is_default_result(file_object.processed_analysis[analysis_system]):
         return True
-    return False
+    raise ResultCollisionError('New result already seems outdated and should be dropped')
 
 
 def is_default_result(analysis_result: dict) -> bool:
