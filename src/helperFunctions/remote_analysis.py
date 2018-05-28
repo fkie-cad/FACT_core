@@ -1,5 +1,7 @@
+import base64
 import calendar
 import logging
+import pickle
 import time
 import uuid
 
@@ -68,3 +70,17 @@ def check_that_result_is_complete(result: dict) -> None:
         assert 'plugin_version' in result and isinstance(result['plugin_version'], str), 'No plugin version specified'
     except AssertionError as assertion_error:
         raise ValueError(str(assertion_error))
+
+
+def serialize(item: dict) -> str:
+    '''
+    Convert message dict in string for rabbitMQ transmission
+    '''
+    return base64.standard_b64encode(pickle.dumps(item)).decode()
+
+
+def deserialize(item: bytes) -> dict:
+    '''
+    Convert byte-string rabbitMQ transmission back to message dict
+    '''
+    return pickle.loads(base64.standard_b64decode(item))

@@ -1,9 +1,7 @@
 import pika
-import pickle
-import base64
 
 from analysis.PluginBase import AnalysisBasePlugin
-from helperFunctions.remote_analysis import create_task_id
+from helperFunctions.remote_analysis import create_task_id, serialize
 from objects.file import FileObject
 
 
@@ -38,7 +36,7 @@ class RemoteBasePlugin(AnalysisBasePlugin):
         self._channel.basic_publish(
             exchange=self._exchange,
             routing_key=self._get_topic(),
-            body=self._serialize(raw_body)
+            body=serialize(raw_body)
         )
 
         file_object.processed_analysis[self.NAME] = {
@@ -57,9 +55,6 @@ class RemoteBasePlugin(AnalysisBasePlugin):
     def _get_placeholder() -> str:
         return 'The analysis is processed on a remote host and can take some time.'
 
-    @staticmethod
-    def _serialize(item: dict) -> str:
-        return base64.standard_b64encode(pickle.dumps(item)).decode()
-
-    def __del__(self):
+    def shutdown(self):
         self._connection.close()
+        super().shutdown()
