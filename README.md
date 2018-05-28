@@ -5,9 +5,9 @@
 # The Firmware Analysis and Comparison Tool (FACT)
 
 [![codecov](https://codecov.io/gh/fkie-cad/FACT_core/branch/master/graph/badge.svg)](https://codecov.io/gh/fkie-cad/FACT_core)
-[![Black Hat Arsenal](https://github.com/toolswatch/badges/blob/master/arsenal/asia/2018.svg)](http://www.toolswatch.org/2018/01/black-hat-arsenal-asia-2018-great-lineup/)  
-Ubuntu 16.04: [![Build Status](https://ci.die-weidenbachs.de/job/FACT_core_Xenial/badge/icon)](https://ci.die-weidenbachs.de/job/FACT_core_Xenial)  
-Ubuntu 18.04: [![Build Status](https://ci.die-weidenbachs.de/job/FACT_core_bionic/badge/icon)](https://ci.die-weidenbachs.de/job/FACT_core_bionic)
+[![Black Hat Arsenal](https://github.com/toolswatch/badges/blob/master/arsenal/asia/2018.svg)](http://www.toolswatch.org/2018/01/black-hat-arsenal-asia-2018-great-lineup/)
+[![Build Status](https://ci.die-weidenbachs.de/job/FACT_core_xenial/badge/icon)](https://ci.die-weidenbachs.de/job/FACT_core_xenial)
+[![Build Status](https://ci.die-weidenbachs.de/job/FACT_core_bionic/badge/icon)](https://ci.die-weidenbachs.de/job/FACT_core_bionic)
 
 The Firmware Analysis and Comparison Tool (formerly known as Fraunhofer's Firmware Analysis Framework (FAF)) is intended to automate most of the firmware analysis process. 
 It unpacks arbitrary firmware files and processes several analysis.
