@@ -10,9 +10,6 @@ elif [ ${CODENAME} = 'rebecca' -o ${CODENAME} = 'rafaela' -o ${CODENAME} = 'rosa
     sudo apt-get -y install linux-image-extra-$(uname -r) linux-image-extra-virtual
 fi
 
-echo "Installing Pre-Install Requirements"
-
-sudo apt-get install -y python3-pip git
 echo "Install Pre-Install Requirements"
 sudo apt-get -y install python3-pip git
 
