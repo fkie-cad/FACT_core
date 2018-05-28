@@ -12,6 +12,8 @@ from common_helper_files import human_readable_file_size
 
 from helperFunctions.dataConversion import make_unicode_string
 from helperFunctions.web_interface import get_color_list
+from web_interface.security.authentication import user_has_privilege
+from web_interface.security.privileges import PRIVILEGES
 
 
 def generic_nice_representation(i):
@@ -331,3 +333,28 @@ def vulnerability_class(score):
     elif score == 'low':
         return 'active'
     return None
+
+
+def sort_users_by_name(user_list):
+    return sorted(user_list, key=lambda u: u.email)
+
+
+def user_has_role(current_user, role):
+    return current_user.is_authenticated and user_has_privilege(current_user, role)
+
+
+def sort_roles_by_number_of_privileges(roles, privileges=PRIVILEGES):
+    inverted_privileges = {}
+    for key, value_list in privileges.items():
+        for value in value_list:
+            inverted_privileges.setdefault(value, []).append(key)
+    return sorted(roles, key=lambda role: len(inverted_privileges[role]))
+
+
+def filter_format_string_list_with_offset(offset_tuples):
+    max_offset_len = len(str(max(list(zip(*offset_tuples))[0]))) if offset_tuples else 0
+    lines = [
+        '{0: >{width}}: {1}'.format(offset, repr(string)[1:-1], width=max_offset_len)
+        for offset, string in sorted(offset_tuples)
+    ]
+    return '\n'.join(lines)

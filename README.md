@@ -5,7 +5,7 @@
 # The Firmware Analysis and Comparison Tool (FACT)
 
 [![codecov](https://codecov.io/gh/fkie-cad/FACT_core/branch/master/graph/badge.svg)](https://codecov.io/gh/fkie-cad/FACT_core)
-[![Black Hat Arsenal](https://github.com/toolswatch/badges/blob/master/arsenal/2018.svg)](http://www.toolswatch.org/2018/01/black-hat-arsenal-asia-2018-great-lineup/)
+[![Black Hat Arsenal](https://github.com/toolswatch/badges/blob/master/arsenal/asia/2018.svg)](http://www.toolswatch.org/2018/01/black-hat-arsenal-asia-2018-great-lineup/)
 
 The Firmware Analysis and Comparison Tool (formerly known as Fraunhofer's Firmware Analysis Framework (FAF)) is intended to automate most of the firmware analysis process. 
 It unpacks arbitrary firmware files and processes several analysis.
@@ -25,19 +25,19 @@ FACT is designed as a multiprocess application, the more Cores and RAM, the bett
 * 64GB RAM
 
 ### Software
-* Ubuntu 16.04
+* Ubuntu 16.04 or 18.04
 * Python 3.5 or above
 * PIP
 * git
 
-It is possible to install FACT on any Linux distribution but the installer is limited to Ubuntu 16.04 at the moment.
+It is possible to install FACT on any Linux distribution but the installer is limited to Ubuntu 16.04 and 18.04 at the moment.
 
 ## Installation
 
 :exclamation: **Caution: FACT is not intended to be used as public internet service. The GUI is not a hardened WEB-application and it may take your server at risk!**
 
 FACT consists of three components: frontend, database and backend. All components can be installed on one machine as well as on different machines. 
-There is an automated installation programm supporting Ubuntu 16.04 host systems.
+There is an automated installation program supporting Ubuntu 16.04 and 18.04 host systems.
 
 ### Pre-Install
 
@@ -107,8 +107,11 @@ FACT provides an optional basic authentication, role and user management. More i
 ## Update an older Installation
 Checkout the new sources and rerun the installer.
 
-## List of available community plug-ins
-* [Firmadyne](https://github.com/fkie-cad/FACT_firmadyne_analysis_plugin)
+## List of available community plug-ins and REST scripts
+* Plug-ins
+  * [Firmadyne](https://github.com/fkie-cad/FACT_firmadyne_analysis_plugin)
+* REST
+  * [PDF Report Generator](https://github.com/any333/FACT_analysis_report_pdf_convertor)
 
 ## Contribute
 The easiest way to contribute is writing your own plug-in.

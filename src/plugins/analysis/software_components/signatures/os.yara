@@ -50,6 +50,18 @@ rule OpenWrt
         $b and no_text_file
 }
 
+rule FireOS
+{
+	meta:
+		software_name = "Fire OS"
+		open_source = true
+		website = "https://developer.amazon.com/android-fireos"
+		description = "Linux (Android) based operating system used on Amazon devices"
+	strings:
+		$a = /ro.build.version.name=Fire OS \d+\.\d+(\.\d+)?(\.\d+)?/ nocase ascii wide
+	condition:
+		$a
+}
 
 rule LinuxKernel
 {
@@ -72,4 +84,17 @@ rule LinuxKernel
     condition:
         $a and not $b 
 */
+}
+
+rule CiscoIOS
+{
+	meta:
+		software_name = "Cisco IOS"
+		open_source = false
+		website = "https://www.cisco.com/c/en/us/products/ios-nx-os-software/ios-technologies/index.html"
+		description = "Cisco Internetwork Operating System"
+	strings:
+		$a = "CW_SYSDESCR$Cisco IOS Software"
+	condition:
+		$a
 }

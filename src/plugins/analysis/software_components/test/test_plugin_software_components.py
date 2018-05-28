@@ -1,16 +1,15 @@
-from common_helper_files import get_dir_of_file
 import os
+
+from common_helper_files import get_dir_of_file
 
 from objects.file import FileObject
 from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
-
 from ..code.software_components import AnalysisPlugin
-
 
 TEST_DATA_DIR = os.path.join(get_dir_of_file(__file__), 'data')
 
 
-class Test_analysis_plugins_software_components(AnalysisPluginTest):
+class TestAnalysisPluginsSoftwareComponents(AnalysisPluginTest):
 
     PLUGIN_NAME = 'software_components'
 
@@ -43,3 +42,32 @@ class Test_analysis_plugins_software_components(AnalysisPluginTest):
         self.check_version('Foo 1.0', '1.0')
         self.check_version('Foo 1.1.1b', '1.1.1b')
         self.check_version('Foo', '')
+
+    def test_entry_has_no_trailing_version(self):
+        assert not self.analysis_plugin._entry_has_no_trailing_version('Linux', 'Linux 4.15.0-22')
+        assert self.analysis_plugin._entry_has_no_trailing_version('Linux', 'Linux')
+        assert self.analysis_plugin._entry_has_no_trailing_version(' Linux', 'Linux ')
+
+    def test_add_os_key_fail(self):
+        test_file = FileObject(file_path=os.path.join(TEST_DATA_DIR, 'yara_test_file'))
+        with self.assertRaises(KeyError):
+            self.analysis_plugin.add_os_key(test_file)
+
+        test_file.processed_analysis[self.PLUGIN_NAME] = dict(summary=['OpenSSL'])
+        self.analysis_plugin.add_os_key(test_file)
+        assert 'tags' not in test_file.processed_analysis[self.PLUGIN_NAME]
+
+    def test_add_os_key_success(self):
+        test_file = FileObject(file_path=os.path.join(TEST_DATA_DIR, 'yara_test_file'))
+        test_file.processed_analysis[self.PLUGIN_NAME] = dict(summary=['Linux Kernel'])
+        self.analysis_plugin.add_os_key(test_file)
+        assert 'tags' in test_file.processed_analysis[self.PLUGIN_NAME]
+        assert test_file.processed_analysis[self.PLUGIN_NAME]['tags']['OS']['value'] == 'Linux Kernel'
+
+    def test_update_os_key(self):
+        test_file = FileObject(file_path=os.path.join(TEST_DATA_DIR, 'yara_test_file'))
+        test_file.processed_analysis[self.PLUGIN_NAME] = dict(summary=['Linux Kernel'], tags={'OS': {'value': 'Fire OS'}})
+
+        assert test_file.processed_analysis[self.PLUGIN_NAME]['tags']['OS']['value'] == 'Fire OS'
+        self.analysis_plugin.add_os_key(test_file)
+        assert test_file.processed_analysis[self.PLUGIN_NAME]['tags']['OS']['value'] == 'Linux Kernel'

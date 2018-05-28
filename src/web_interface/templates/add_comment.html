@@ -30,13 +30,16 @@
                 Author:
             </label>
             <div class="col-xs-12 col-sm-10">
-                <input type="text" name="author" class="form-control" id="author" required style="position: relative; z-index: 1;">
+                <input type="text" name="author" class="form-control" id="author" required style="position: relative; z-index: 1;" value="anonymous">
             </div>
         </div>
 
-        <script type="text/javascript">
-        document.getElementById('author').value = 'anonymous';
-        </script>
+        {% if current_user.is_authenticated %}
+            <script type="text/javascript">
+                document.getElementById('author').value = '{{ current_user.email }}';
+                document.getElementById('author').setAttribute("readonly", true);
+            </script>
+        {% endif %}
 
         <div class="row">
             <div class="col-sm-offset-2 col-sm-10">
