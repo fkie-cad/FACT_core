@@ -7,7 +7,8 @@ from web_interface.filter import replace_underscore_filter, byte_number_filter, 
     uids_to_link, list_to_line_break_string, nice_unix_time, nice_number_filter, sort_chart_list_by_value, \
     sort_chart_list_by_name, text_highlighter, generic_nice_representation, list_to_line_break_string_no_sort, \
     encode_base64_filter, render_tags, fix_cwe, set_limit_for_data_to_chart, data_to_chart_with_value_percentage_pairs, \
-    data_to_chart_limited, render_analysis_tags, vulnerability_class, sort_users_by_name, user_has_role, sort_roles_by_number_of_privileges
+    data_to_chart_limited, render_analysis_tags, vulnerability_class, sort_users_by_name, user_has_role, sort_roles_by_number_of_privileges, \
+    filter_format_string_list_with_offset
 
 
 class TestWebInterfaceFilter(unittest.TestCase):
@@ -188,8 +189,8 @@ def test_vulnerability_class_bad(score):
 
 def test_sort_users_by_name():
     class UserMock:
-        def __init__(self, id, name):
-            self.id = id
+        def __init__(self, id_, name):
+            self.id = id_
             self.email = name
 
     user_1 = UserMock(1, 'b')
@@ -230,3 +231,15 @@ def test_sort_roles_by_number_of_privileges():
     }
     result = sort_roles_by_number_of_privileges(roles, privileges)
     assert result == ['a', 'c', 'b']
+
+
+def test_filter_format_string_list_with_offset():
+    test_input = [(4, 'abc'), (7, 'abc'), (256, 'def'), (12, 'ghi')]
+    expected_result = '  4: abc\n' \
+                      '  7: abc\n' \
+                      ' 12: ghi\n' \
+                      '256: def'
+    result = filter_format_string_list_with_offset(test_input)
+    assert result == expected_result
+
+    assert filter_format_string_list_with_offset([]) == ''
