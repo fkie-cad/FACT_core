@@ -2,9 +2,9 @@ import colorsys
 import json
 import os
 import re
+from itertools import chain
 
 from common_helper_files import get_binary_from_file
-from itertools import chain
 
 from helperFunctions.fileSystem import get_template_dir
 

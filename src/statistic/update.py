@@ -9,9 +9,10 @@ from common_helper_filter.time import time_format
 from common_helper_mongo import get_field_average, get_field_sum, get_objects_and_count_of_occurrence
 
 from helperFunctions.dataConversion import build_time_dict
-from helperFunctions.merge_generators import sum_up_lists, avg, merge_dict
+from helperFunctions.merge_generators import sum_up_lists, sum_up_nested_lists, avg, merge_dict
 from helperFunctions.mongo_task_conversion import is_sanitized_entry
 from storage.db_interface_statistic import StatisticDbUpdater
+from helperFunctions.statistic import calculate_total_files
 
 
 class StatisticUpdater(object):
@@ -104,7 +105,7 @@ class StatisticUpdater(object):
 
     def get_stats_nx(self, result, stats):
         nx_off, nx_on = self.extract_nx_data_from_analysis(result)
-        total_amount_of_files = self.calculate_total_files_for_nx(nx_off, nx_on)
+        total_amount_of_files = calculate_total_files([nx_off, nx_on])
         self.append_nx_stats_to_result_dict(nx_off, nx_on, stats, total_amount_of_files)
 
     def extract_nx_data_from_analysis(self, result):
@@ -116,17 +117,9 @@ class StatisticUpdater(object):
         self.update_result_dict(nx_on, stats, total_amount_of_files)
         self.update_result_dict(nx_off, stats, total_amount_of_files)
 
-    @staticmethod
-    def calculate_total_files_for_nx(nx_off, nx_on):
-        if len(nx_on) > 0 or len(nx_off) > 0:
-            total_amount_of_files = nx_on[0][1] + nx_off[0][1]
-        else:
-            total_amount_of_files = 0
-        return total_amount_of_files
-
     def get_stats_canary(self, result, stats):
         canary_off, canary_on = self.extract_canary_data_from_analysis(result)
-        total_amount_of_files = self.calculate_total_files_for_canary(canary_off, canary_on)
+        total_amount_of_files = calculate_total_files([canary_off, canary_on])
         self.append_canary_stats_to_result_dict(canary_off, canary_on, stats, total_amount_of_files)
 
     def extract_canary_data_from_analysis(self, result):
@@ -138,17 +131,9 @@ class StatisticUpdater(object):
         self.update_result_dict(canary_on, stats, total_amount_of_files)
         self.update_result_dict(canary_off, stats, total_amount_of_files)
 
-    @staticmethod
-    def calculate_total_files_for_canary(canary_off, canary_on):
-        if len(canary_on) > 0 or len(canary_off) > 0:
-            total_amount_of_files = canary_on[0][1] + canary_off[0][1]
-        else:
-            total_amount_of_files = 0
-        return total_amount_of_files
-
     def get_stats_relro(self, result, stats):
         relro_off, relro_on, relro_partial = self.extract_relro_data_from_analysis(result)
-        total_amount_of_files = self.calculate_total_files_for_relro(relro_off, relro_on, relro_partial)
+        total_amount_of_files = calculate_total_files([relro_off, relro_on, relro_partial])
         self.append_relro_stats_to_result_dict(relro_off, relro_on, relro_partial, stats, total_amount_of_files)
 
     def extract_relro_data_from_analysis(self, result):
@@ -162,17 +147,9 @@ class StatisticUpdater(object):
         self.update_result_dict(relro_partial, stats, total_amount_of_files)
         self.update_result_dict(relro_off, stats, total_amount_of_files)
 
-    @staticmethod
-    def calculate_total_files_for_relro(relro_off, relro_on, relro_partial):
-        if len(relro_on) > 0 or len(relro_off) > 0 or len(relro_partial) > 0:
-            total_amount_of_files = relro_on[0][1] + relro_off[0][1] + relro_partial[0][1]
-        else:
-            total_amount_of_files = 0
-        return total_amount_of_files
-
     def get_stats_pie(self, result, stats):
         pie_invalid, pie_off, pie_on, pie_partial = self.extract_pie_data_from_analysis(result)
-        total_amount_of_files = self.calculate_total_files_for_pie(pie_off, pie_on, pie_partial, pie_invalid)
+        total_amount_of_files = calculate_total_files([pie_off, pie_on, pie_partial, pie_invalid])
         self.append_pie_stats_to_result_dict(pie_invalid, pie_off, pie_on, pie_partial, stats, total_amount_of_files)
 
     def extract_pie_data_from_analysis(self, result):
@@ -187,14 +164,6 @@ class StatisticUpdater(object):
         self.update_result_dict(pie_partial, stats, total_amount_of_files)
         self.update_result_dict(pie_off, stats, total_amount_of_files)
         self.update_result_dict(pie_invalid, stats, total_amount_of_files)
-
-    @staticmethod
-    def calculate_total_files_for_pie(pie_off, pie_on, pie_partial, pie_invalid):
-        if len(pie_on) > 0 or len(pie_off) > 0 or len(pie_partial) > 0 or len(pie_invalid) > 0:
-            total_amount_of_files = pie_on[0][1] + pie_off[0][1] + pie_partial[0][1] + pie_invalid[0][1]
-        else:
-            total_amount_of_files = 0
-        return total_amount_of_files
 
     @staticmethod
     def extract_mitigation_from_list(string, result):
@@ -324,8 +293,8 @@ class StatisticUpdater(object):
 
     def _get_ip_stats(self):
         stats = {}
-        stats['ips_v4'] = self._get_objects_and_count_of_occurrence_firmware_and_file_db('$processed_analysis.ip_and_uri_finder.ips_v4', unwind=True)
-        stats['ips_v6'] = self._get_objects_and_count_of_occurrence_firmware_and_file_db('$processed_analysis.ip_and_uri_finder.ips_v6', unwind=True)
+        stats['ips_v4'] = self._get_objects_and_count_of_occurrence_firmware_and_file_db('$processed_analysis.ip_and_uri_finder.ips_v4', unwind=True, sumup_function=sum_up_nested_lists)
+        stats['ips_v6'] = self._get_objects_and_count_of_occurrence_firmware_and_file_db('$processed_analysis.ip_and_uri_finder.ips_v6', unwind=True, sumup_function=sum_up_nested_lists)
         stats['uris'] = self._get_objects_and_count_of_occurrence_firmware_and_file_db('$processed_analysis.ip_and_uri_finder.uris', unwind=True)
         return stats
 
@@ -381,10 +350,10 @@ class StatisticUpdater(object):
         chart_list = self._convert_dict_list_to_list(tmp)
         return self._filter_sanitzized_objects(chart_list)
 
-    def _get_objects_and_count_of_occurrence_firmware_and_file_db(self, object_path, unwind=False, match=None):
+    def _get_objects_and_count_of_occurrence_firmware_and_file_db(self, object_path, unwind=False, match=None, sumup_function=sum_up_lists):
         result_firmwares = self._get_objects_and_count_of_occurrence_single_db(self.db.firmwares, object_path, unwind=unwind, match=match)
         result_files = self._get_objects_and_count_of_occurrence_single_db(self.db.file_objects, object_path, unwind=unwind, match=match)
-        combined_result = sum_up_lists(result_firmwares, result_files)
+        combined_result = sumup_function(result_firmwares, result_files)
         return combined_result
 
     @staticmethod

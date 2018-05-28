@@ -22,6 +22,15 @@ def _add_list_to_dict(input_list, input_dict):
     return input_dict
 
 
+def _add_nested_list_to_dict(input_list, input_dict):
+    for item in input_list:
+        if item[0][0] in input_dict.keys():
+            input_dict[item[0][0]] += item[1]
+        else:
+            input_dict[item[0][0]] = item[1]
+    return input_dict
+
+
 def _convert_dict_to_chart_list(input_dict):
     tmp = []
     for item in input_dict.keys():
@@ -36,6 +45,16 @@ def sum_up_lists(list_a, list_b):
     tmp = {}
     _add_list_to_dict(list_a, tmp)
     _add_list_to_dict(list_b, tmp)
+    return _convert_dict_to_chart_list(tmp)
+
+
+def sum_up_nested_lists(list_a, nested_list_b):
+    '''
+    This function sums up the entries of two nested chart lists
+    '''
+    tmp = {}
+    _add_nested_list_to_dict(list_a, tmp)
+    _add_nested_list_to_dict(nested_list_b, tmp)
     return _convert_dict_to_chart_list(tmp)
 
 
