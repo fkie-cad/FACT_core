@@ -9,7 +9,7 @@ from helperFunctions.uid import create_uid
 from objects.firmware import Firmware
 
 
-OPTIONAL_FIELDS = ['tags']
+OPTIONAL_FIELDS = ['tags', 'device_part']
 DROPDOWN_FIELDS = ['device_class', 'vendor', 'device_name', 'device_part']
 
 

@@ -55,6 +55,7 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBase):
         with open(testfile_path, 'rb') as fp:
             data = {
                 'file': (fp, self.test_fw_a.file_name),
+                'device_part': 'full',
                 'device_name': 'test_device',
                 'device_class': 'test_class',
                 'firmware_version': '1.0',

@@ -20,7 +20,7 @@ def test_add_tag(input_data, expected_count):
 
 
 @pytest.mark.parametrize('input_data, expected_output', [
-    ('full', ''),
+    ('complete', ''),
     ('some_part', 'some_part')
 ])
 def test_set_part_name(input_data, expected_output):
@@ -66,7 +66,7 @@ def test_set_binary():
 
 
 @pytest.mark.parametrize('input_data, expected_output', [
-    ('full', 'foo test_device v. 1.0'),
+    ('complete', 'foo test_device v. 1.0'),
     ('some_part', 'foo test_device - some_part v. 1.0')
 ])
 def test_get_hid(input_data, expected_output):

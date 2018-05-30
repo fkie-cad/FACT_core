@@ -5,6 +5,7 @@
 {% set query_url = "/database/browse?query=" %}
 {% set general_analysis_elements = [
     ("device name", firmware.device_name, "", '{"device_name": {"$eq": "PLACEHOLDER"}}'),
+    ("device_part", firmware.part, "", '{"device_part": {"$eq": "PLACEHOLDER"}}'),
     ("vendor", firmware.vendor, "", '{"vendor": {"$eq": "PLACEHOLDER"}}'),
     ("device_class", firmware.device_class, "", '{"device_class": {"$eq": "PLACEHOLDER"}}'),
     ("version", firmware.version, "", ""),

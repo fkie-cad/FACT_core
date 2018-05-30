@@ -40,6 +40,7 @@ class TestRestFirmware(TestAcceptanceBase):
             'binary': standard_b64encode(file_content).decode(),
             'file_name': 'test.zip',
             'device_name': 'test_device',
+            'device_part': 'full',
             'device_class': 'test_class',
             'firmware_version': '1.0',
             'vendor': 'test_vendor',
