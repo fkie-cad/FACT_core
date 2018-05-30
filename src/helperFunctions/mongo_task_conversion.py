@@ -10,7 +10,7 @@ from objects.firmware import Firmware
 
 
 OPTIONAL_FIELDS = ['tags']
-DROPDOWN_FIELDS = ['device_class', 'vendor', 'device_name']
+DROPDOWN_FIELDS = ['device_class', 'vendor', 'device_name', 'device_part']
 
 
 def create_analysis_task(request):
@@ -45,6 +45,7 @@ def create_re_analyze_task(request, uid):
 def _get_meta_from_request(request):
     meta = {}
     meta['device_name'] = request.form['device_name']
+    meta['device_part'] = request.form['device_part']
     meta['device_class'] = request.form['device_class']
     meta['vendor'] = request.form['vendor']
     meta['firmware_version'] = request.form['firmware_version']
@@ -83,6 +84,7 @@ def convert_analysis_task_to_fw_obj(analysis_task):
             fw.file_name = analysis_task['file_name']
         fw.overwrite_uid(analysis_task['uid'])
     fw.set_device_name(analysis_task['device_name'])
+    fw.set_part_name(analysis_task['device_part'])
     fw.set_firmware_version(analysis_task['firmware_version'])
     fw.set_device_class(analysis_task['device_class'])
     fw.set_vendor(analysis_task['vendor'])
@@ -95,6 +97,7 @@ def convert_analysis_task_to_fw_obj(analysis_task):
 def convert_fw_obj_to_analysis_task(fw):
     analysis_task = {'binary': fw.binary,
                      'file_name': fw.file_name,
+                     'device_part': fw.part,
                      'device_name': fw.device_name,
                      'device_class': fw.device_class,
                      'vendor': fw.vendor,
