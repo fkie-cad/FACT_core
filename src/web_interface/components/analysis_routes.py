@@ -2,6 +2,7 @@
 
 import json
 import os
+import logging
 
 from common_helper_files import get_binary_from_file
 from flask import render_template, request, render_template_string

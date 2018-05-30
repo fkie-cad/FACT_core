@@ -82,6 +82,7 @@ def test_submit_success(test_app):
     request_data = {
         'binary': standard_b64encode(b'\x01\x23\x45\x67\x89').decode(),
         'file_name': 'no_real_file',
+        'device_part': 'kernel',
         'device_name': 'no real device',
         'device_class': 'no real class',
         'firmware_version': 'no.real.version',

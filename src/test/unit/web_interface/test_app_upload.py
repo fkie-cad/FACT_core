@@ -16,6 +16,7 @@ class TestAppUpload(WebInterfaceTest):
         rv = self.test_client.post('/upload', content_type='multipart/form-data', data={
             'file': (BytesIO(b'test_file_content'), 'test_file.txt'),
             'device_name': 'test_device',
+            'device_part': 'kernel',
             'device_class': 'test_class',
             'firmware_version': '',
             'vendor': 'test_vendor',
@@ -29,6 +30,7 @@ class TestAppUpload(WebInterfaceTest):
         rv = self.test_client.post('/upload', content_type='multipart/form-data', data={
             'file': (BytesIO(b'test_file_content'), 'test_file.txt'),
             'device_name': 'test_device',
+            'device_part': 'complete',
             'device_class': 'test_class',
             'firmware_version': '1.0',
             'vendor': 'test_vendor',

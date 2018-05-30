@@ -24,7 +24,7 @@ class Firmware(FileObject):
         self.device_name = device_name
 
     def set_part_name(self, part):
-        if part == 'full':
+        if part == 'complete':
             self.part = ''
         else:
             self.part = part
