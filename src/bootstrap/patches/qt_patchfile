@@ -1,4 +1,0 @@
-70c70
-<         bg = np.empty((self.params['width'], self.params['height'], 4), dtype=np.ubyte)
----
->         bg = np.empty((int(self.params['width']), int(self.params['height']), 4), dtype=np.ubyte)
