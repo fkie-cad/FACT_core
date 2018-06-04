@@ -118,6 +118,20 @@
                         </div>
                 </div>
 
+                <div class="form-group">
+                    <label class="control-label col-xs-3" for="device_part_dropdown">Device Part:</label>
+                        <div class="col-xs-9 {% if 'device_name' in error.keys() %}has-error{% endif %}">
+                            <select class="form-control" id="device_part_dropdown" name='device_part_dropdown' size="2" required onchange="update_text_input(this, document.getElementById('device_part_text'));">
+                                <option value='{{ firmware.part }}' selected>{{ firmware.part }}</option>
+                                <option value='new entry'>new entry</option>
+                            </select>
+                            <input type="text" name="device_part" class="form-control" id="device_part_text" placeholder="New Device Part" style="display: none;">
+                            {% if 'vendor' in error.keys() %}
+                                <span class="help-block">{{ error['vendor'] }}</span>
+                            {% endif %}
+                        </div>
+                </div>
+
                 {% set input_form_text = [
                     ("Version", "firmware_version", firmware.version)
                 ] -%}
