@@ -106,10 +106,15 @@ class FrontEndDbInterface(MongoInterfaceCommon):
         return FileObject.get_top_of_virtual_path(fo_dict['virtual_file_path'][root_uid][0])
 
     def _get_hid_firmware(self, uid):
-        firmware = self.firmwares.find_one({'_id': uid}, {'vendor': 1, 'device_name': 1, 'version': 1, 'device_class': 1})
+        firmware = self.firmwares.find_one({'_id': uid}, {'vendor': 1, 'device_name': 1, 'device_part': 1, 'version': 1, 'device_class': 1})
         if firmware is not None:
-            return '{} {} - {} ({})'.format(firmware['vendor'], firmware['device_name'], firmware['version'], firmware['device_class'])
-        return None
+            if 'device_part' not in firmware:  # for compatibility reasons
+                part = ''
+            else:
+                part = ' - {}'.format(firmware['device_part'])
+            return '{} {}{} {} ({})'.format(firmware['vendor'], firmware['device_name'], part, firmware['version'], firmware['device_class'])
+        else:
+            return None
 
     def _get_hid_fo(self, uid, root_uid):
         file_object = self.file_objects.find_one({'_id': uid}, {'virtual_file_path': 1})
@@ -176,7 +181,7 @@ class FrontEndDbInterface(MongoInterfaceCommon):
     def get_last_added_firmwares(self, limit_x=10):
         db_entries = self.firmwares.find(
             {'submission_date': {'$gt': 1}},
-            {'_id': 1, 'vendor': 1, 'device_name': 1, 'version': 1, 'device_class': 1, 'submission_date': 1, 'tags': 1},
+            {'_id': 1, 'vendor': 1, 'device_name': 1, 'device_part': 1, 'version': 1, 'device_class': 1, 'submission_date': 1, 'tags': 1},
             limit=limit_x, sort=[('submission_date', -1)]
         )
         result = []
