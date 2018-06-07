@@ -35,6 +35,7 @@ class TestTagPropagation(unittest.TestCase):
     def count_analysis_finished_event(self, fw_object):
         self.backend_interface.add_analysis(fw_object)
         if fw_object.uid == self.uid_of_key_file and 'crypto_material' in fw_object.processed_analysis:
+            sleep(1)
             self.analysis_finished_event.set()
 
     def _wait_for_empty_tag_queue(self):
