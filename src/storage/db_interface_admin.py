@@ -55,8 +55,8 @@ class AdminDbInterface(MongoInterfaceCommon):
                             sanitize_id = fo_entry['processed_analysis'][key][analysis_key]
                             entry = self.sanitize_fs.find_one({"filename": sanitize_id})
                             self.sanitize_fs.delete(entry._id)
-            except KeyError as e:
-                logging.warning("key error while deleting analysis for {}:".format(fo_entry["_id"]), e)
+            except KeyError:
+                logging.warning("key error while deleting analysis for {}:{}".format(fo_entry["_id"], key))
 
     def _remove_virtual_path_entries(self, root_uid, fo_uid):
         """
