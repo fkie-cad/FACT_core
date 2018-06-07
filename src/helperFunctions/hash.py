@@ -5,7 +5,7 @@ import lief
 import ssdeep
 
 from helperFunctions.dataConversion import make_bytes
-from helperFunctions.debug import pipe_stdout_to_debug
+from helperFunctions.debug import suppress_stdout
 
 
 def get_hash(hash_function, binary):
@@ -53,7 +53,7 @@ def get_imphash(file_object):
     imphash = None
     if _is_elf_file(file_object):
         try:
-            with pipe_stdout_to_debug():
+            with suppress_stdout():
                 elf = lief.parse(file_object.file_path)
             imphash = md5(
                 ','.join(sorted(elf.imported_functions)).encode()).hexdigest()
