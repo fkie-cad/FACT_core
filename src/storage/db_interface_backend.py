@@ -202,3 +202,4 @@ class BackEndDbInterface(MongoInterfaceCommon):
                 )
         except Exception as exception:
             logging.error('Update of analysis failed badly ({})'.format(exception))
+            raise exception
