@@ -1,15 +1,10 @@
 import contextlib
 import sys
-import logging
 
 
 class StandardOutWriter:
-    def __init__(self, debug=False):
-        self._debug = debug
-
     def write(self, x):
-        if self._debug:
-            logging.debug('[Suppressed stdout] {}'.format(x))
+        pass
 
 
 class TerminalTextFormatting:
@@ -66,22 +61,11 @@ def debug_print(message, color=TerminalTextFormatting.Color.LIGHT_RED):
 
 @contextlib.contextmanager
 def suppress_stdout():
-    stderr = sys.stderr
-    stdout = sys.stdout
+    writer = StandardOutWriter()
 
-    sys.stdout = StandardOutWriter(debug=False)
-    sys.stderr = StandardOutWriter(debug=False)
+    stdout, stderr = sys.stdout, sys.stderr
+    sys.stdout, sys.stderr = writer, writer
+
     yield
-    sys.stderr = stderr
-    sys.stdout = stdout
 
-
-@contextlib.contextmanager
-def pipe_stdout_to_debug():
-    stderr = sys.stderr
-    stdout = sys.stdout
-    sys.stdout = StandardOutWriter(debug=True)
-    sys.stderr = StandardOutWriter(debug=False)
-    yield
-    sys.stderr = stderr
-    sys.stdout = stdout
+    sys.stdout, sys.stderr = stdout, stderr
