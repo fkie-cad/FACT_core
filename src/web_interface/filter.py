@@ -4,9 +4,11 @@ Jinja2 template filter
 import logging
 import re
 import sys
+import zlib
 from base64 import standard_b64encode
 from operator import itemgetter
 from time import localtime, strftime, struct_time
+from typing import AnyStr
 
 from common_helper_files import human_readable_file_size
 
@@ -358,3 +360,12 @@ def filter_format_string_list_with_offset(offset_tuples):
         for offset, string in sorted(offset_tuples)
     ]
     return '\n'.join(lines)
+
+
+def decompress(s: AnyStr) -> str:
+    if isinstance(s, bytes):
+        try:
+            return zlib.decompress(s).decode()
+        except zlib.error:
+            return s.decode()
+    return s
