@@ -1,3 +1,17 @@
+import contextlib
+import sys
+import logging
+
+
+class StandardOutWriter:
+    def __init__(self, debug=False):
+        self._debug = debug
+
+    def write(self, x):
+        if self._debug:
+            logging.debug('[Suppressed stdout] {}'.format(x))
+
+
 class TerminalTextFormatting:
     class Format:
         BOLD = '\033[1m'
@@ -48,3 +62,26 @@ class TerminalTextFormatting:
 
 def debug_print(message, color=TerminalTextFormatting.Color.LIGHT_RED):
     print('{}\n'.format(color), message, '{}\n'.format(TerminalTextFormatting.Color.DEFAULT))
+
+
+@contextlib.contextmanager
+def suppress_stdout():
+    stderr = sys.stderr
+    stdout = sys.stdout
+
+    sys.stdout = StandardOutWriter(debug=False)
+    sys.stderr = StandardOutWriter(debug=False)
+    yield
+    sys.stderr = stderr
+    sys.stdout = stdout
+
+
+@contextlib.contextmanager
+def pipe_stdout_to_debug():
+    stderr = sys.stderr
+    stdout = sys.stdout
+    sys.stdout = StandardOutWriter(debug=True)
+    sys.stderr = StandardOutWriter(debug=False)
+    yield
+    sys.stderr = stderr
+    sys.stdout = stdout
