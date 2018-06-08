@@ -26,7 +26,7 @@ class TestScheduleInitialAnalysis(unittest.TestCase):
         config.add_section('default_plugins')
         config.set('default_plugins', 'plugins', 'file_hashes')
         self.tmp_queue = Queue()
-        self.sched = AnalysisScheduler(config=config, post_analysis=self.dummy_callback, db_interface=DatabaseMock())
+        self.sched = AnalysisScheduler(config=config, pre_analysis=lambda *_: None, post_analysis=self.dummy_callback, db_interface=DatabaseMock())
 
     def tearDown(self):
         self.sched.shutdown()
@@ -54,7 +54,8 @@ class TestScheduleInitialAnalysis(unittest.TestCase):
         test_fw = Firmware(file_path=os.path.join(get_test_data_dir(), 'get_files_test/testfile1'))
         test_fw.scheduled_analysis = ['dummy_plugin_for_testing_only']
         self.sched.add_task(test_fw)
-        test_fw = self.tmp_queue.get(timeout=10)
+        for _ in range(4):
+            test_fw = self.tmp_queue.get(timeout=10)
         self.assertEqual(len(test_fw.processed_analysis), 3, 'analysis not done')
         self.assertEqual(test_fw.processed_analysis['dummy_plugin_for_testing_only']['1'], 'first result', 'result not correct')
         self.assertEqual(test_fw.processed_analysis['dummy_plugin_for_testing_only']['summary'], ['first result', 'second result'])
