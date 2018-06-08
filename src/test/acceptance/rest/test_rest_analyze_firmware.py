@@ -27,9 +27,9 @@ class TestRestFirmware(TestAcceptanceBase):
         super().tearDown()
 
     def _analysis_callback(self, fo):
-        self.db_backend_service.add_object(fo)
+        self.db_backend_service.add_analysis(fo)
         self.elements_finished_analyzing.value += 1
-        if self.elements_finished_analyzing.value > 3:
+        if self.elements_finished_analyzing.value > 5:
             self.analysis_finished_event.set()
 
     def _rest_upload_firmware(self):

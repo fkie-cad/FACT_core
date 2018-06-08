@@ -63,7 +63,7 @@ class FrontEndDbInterface(MongoInterfaceCommon):
                     'uid': db_entry['_id'],
                     'files_included': db_entry['files_included'],
                     'size': db_entry['size'],
-                    'mime-type': db_entry['processed_analysis']['file_type']['mime'],
+                    'mime-type': db_entry['processed_analysis']['file_type']['mime'] if 'file_type' in db_entry['processed_analysis'] else 'file-type-plugin/not-run-yet',
                     'virtual_file_paths': virtual_file_path[root_uid] if root_uid in virtual_file_path else get_value_of_first_key(virtual_file_path)
                 })
         return result
@@ -204,20 +204,6 @@ class FrontEndDbInterface(MongoInterfaceCommon):
     def get_number_of_firmwares_in_db(self):
         return self.firmwares.count()
 
-    def get_file_type_statistics(self):
-        file_type_dict = {}
-        for firmware_object in merge_generators(
-                self.firmwares.find({}, {'processed_analysis.file_type.mime': 1, 'virtual_file_path': 1}),
-                self.file_objects.find({}, {'processed_analysis.file_type.mime': 1, 'virtual_file_path': 1})
-        ):
-            file_type = firmware_object['processed_analysis']['file_type']['mime']
-            if file_type in file_type_dict:
-                # one file can appear multiple times in the same firmware or in different firmwares
-                file_type_dict[file_type] += len(firmware_object['virtual_file_path'])
-            else:
-                file_type_dict[file_type] = len(firmware_object['virtual_file_path'])
-        return dict_to_sorted_tuples(file_type_dict)
-
     # --- file tree
 
     def _create_node_from_virtual_path(self, uid, root_uid, current_virtual_path, fo_data, whitelist=None):
@@ -230,8 +216,8 @@ class FrontEndDbInterface(MongoInterfaceCommon):
                 has_children = any(f in fo_data['files_included'] for f in whitelist)
             else:
                 has_children = fo_data['files_included'] != []
-            node = FileTreeNode(uid, root_uid=root_uid, virtual=False, name=fo_data['file_name'], size=fo_data['size'],
-                                mime_type=fo_data['processed_analysis']['file_type']['mime'], has_children=has_children)
+            mime_type = fo_data['processed_analysis']['file_type']['mime'] if 'file_type' in fo_data['processed_analysis'] else 'file-type-plugin/not-run-yet'
+            node = FileTreeNode(uid, root_uid=root_uid, virtual=False, name=fo_data['file_name'], size=fo_data['size'], mime_type=mime_type, has_children=has_children)
         return node
 
     def generate_file_tree_node(self, uid, root_uid, current_virtual_path=None, fo_data=None, whitelist=None):

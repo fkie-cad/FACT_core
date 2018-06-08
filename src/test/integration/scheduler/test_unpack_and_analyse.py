@@ -23,7 +23,7 @@ class TestFileAddition(unittest.TestCase):
         self._config = initialize_config(None)
         self._tmp_queue = Queue()
 
-        self._analysis_scheduler = AnalysisScheduler(config=self._config, post_analysis=self._dummy_callback, db_interface=MockDbInterface(None))
+        self._analysis_scheduler = AnalysisScheduler(config=self._config, pre_analysis=lambda *_: None, post_analysis=self._dummy_callback, db_interface=MockDbInterface(None))
         self._unpack_scheduler = UnpackingScheduler(config=self._config, post_unpack=self._analysis_scheduler.add_task)
 
     def tearDown(self):
@@ -41,7 +41,8 @@ class TestFileAddition(unittest.TestCase):
 
         self._unpack_scheduler.add_task(test_fw)
 
-        processed_container = self._tmp_queue.get(timeout=10)
+        for _ in range(12):  # magic to make tests pass. after switch of post analysis, each analysis gets the post call
+            processed_container = self._tmp_queue.get(timeout=10)
 
         self.assertGreaterEqual(len(processed_container.processed_analysis), 3, 'at least one analysis not done')
 
