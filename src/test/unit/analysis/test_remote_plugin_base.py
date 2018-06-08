@@ -11,8 +11,21 @@ DEFAULT_NAME = 'Remote_Base_Plugin'
 Admin = namedtuple('Admin', ['register_plugin'])
 
 
+class MockChannel:
+    def exchange_declare(self, *_, **__):
+        pass
+
+    def basic_publish(self, *_, **__):
+        pass
+
+
 @pytest.fixture(scope='function')
-def plugin_base():
+def plugin_base(monkeypatch):
+    monkeypatch.setattr('pika.ConnectionParameters.__init__', lambda *_, **__: None)
+    monkeypatch.setattr('pika.BlockingConnection.__init__', lambda *_, **__: None)
+    monkeypatch.setattr('pika.BlockingConnection.channel', lambda *_, **__: MockChannel())
+    monkeypatch.setattr('pika.BlockingConnection.close', lambda *_, **__: None)
+
     plugin = RemoteBasePlugin(plugin_administrator=Admin(register_plugin=lambda *_: None), config=get_config_for_testing())
     yield plugin
     plugin.shutdown()
