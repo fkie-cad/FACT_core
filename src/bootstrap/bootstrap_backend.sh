@@ -79,14 +79,6 @@ wget -O - http://my.smithmicro.com/downloads/files/stuffit520.611linux-i386.tar.
 sudo cp bin/unstuff /usr/local/bin/
 rm -fr bin doc man
 
-# ---- patch pyqtgraph ----
-if [ "$UBUNTU_XENIAL" == "yes" ]
-then
-	sudo patch --forward -r - /usr/local/lib/python3.5/dist-packages/pyqtgraph/exporters/ImageExporter.py patches/qt_patchfile
-else
-	sudo patch --forward -r - /usr/local/lib/python3.6/dist-packages/pyqtgraph/exporters/ImageExporter.py patches/qt_patchfile
-fi
-
 git clone https://github.com/devttys0/binwalk.git
 (cd binwalk && sudo python3 setup.py install --force)
 sudo rm -fr binwalk
