@@ -66,8 +66,8 @@ class TestScheduleInitialAnalysis(TestScheduleBase):
         test_fw = Firmware(file_path=os.path.join(get_test_data_dir(), 'get_files_test/testfile1'))
         test_fw.scheduled_analysis = ['dummy_plugin_for_testing_only']
         self.sched.add_task(test_fw)
-        for _ in range(4):
-            test_fw = self.tmp_queue.get(timeout=10)
+        test_fw = self.tmp_queue.get(timeout=10)
+        self.assertEqual(len(test_fw.processed_analysis), 3, 'analysis not done')
         self.assertEqual(test_fw.processed_analysis['dummy_plugin_for_testing_only']['1'], 'first result', 'result not correct')
         self.assertEqual(test_fw.processed_analysis['dummy_plugin_for_testing_only']['summary'], ['first result', 'second result'])
         self.assertIn('file_hashes', test_fw.processed_analysis.keys(), 'Mandatory plug-in not executed')

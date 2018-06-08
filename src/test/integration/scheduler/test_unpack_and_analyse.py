@@ -41,8 +41,7 @@ class TestFileAddition(unittest.TestCase):
 
         self._unpack_scheduler.add_task(test_fw)
 
-        for _ in range(12):  # magic to make tests pass. after switch of post analysis, each analysis gets the post call
-            processed_container = self._tmp_queue.get(timeout=10)
+        processed_container = self._tmp_queue.get(timeout=10)
 
         self.assertGreaterEqual(len(processed_container.processed_analysis), 3, 'at least one analysis not done')
 

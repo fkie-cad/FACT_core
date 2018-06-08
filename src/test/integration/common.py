@@ -13,9 +13,6 @@ class MockDbInterface:
     def __init__(self, config):
         self._objects = dict()
 
-    def existence_quick_check(self, uid):
-        return True
-
     def add_object(self, fo_fw):
         self._objects[fo_fw.uid] = fo_fw
 
