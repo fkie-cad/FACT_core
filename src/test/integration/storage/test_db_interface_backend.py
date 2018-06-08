@@ -156,3 +156,33 @@ class TestStorageDbInterfaceBackend(unittest.TestCase):
 
         assert processed_firmware.analysis_tags
         assert processed_firmware.analysis_tags['dummy']['some_tag'] == tag
+
+    def test_add_analysis_firmware(self):
+        self.db_interface_backend.add_object(self.test_firmware)
+        before = self.db_interface_backend.get_object(self.test_firmware.uid).processed_analysis
+
+        self.test_firmware.processed_analysis['foo'] = {'bar': 5}
+        self.db_interface_backend.add_analysis(self.test_firmware)
+        after = self.db_interface_backend.get_object(self.test_firmware.uid).processed_analysis
+
+        assert before != after
+        assert 'foo' not in before
+        assert 'foo' in after
+        assert after['foo'] == {'bar': 5}
+
+    def test_add_analysis_file_object(self):
+        self.db_interface_backend.add_object(self.test_fo)
+
+        self.test_fo.processed_analysis['foo'] = {'bar': 5}
+        self.db_interface_backend.add_analysis(self.test_fo)
+        analysis = self.db_interface_backend.get_object(self.test_fo.uid).processed_analysis
+
+        assert 'foo' in analysis
+        assert analysis['foo'] == {'bar': 5}
+
+    def test_crash_add_analysis(self):
+        with self.assertRaises(RuntimeError):
+            self.db_interface_backend.add_analysis(dict())
+
+        with self.assertRaises(AttributeError):
+            self.db_interface_backend._update_analysis(dict(), 'dummy', dict())

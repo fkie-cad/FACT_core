@@ -43,7 +43,7 @@ class TestScheduleInitialAnalysis(TestScheduleBase):
 
     def setUp(self):
         super().setUp()
-        self.sched = AnalysisScheduler(config=self.config, post_analysis=self.dummy_callback, db_interface=DatabaseMock())
+        self.sched = AnalysisScheduler(config=self.config, pre_analysis=lambda *_: None, post_analysis=self.dummy_callback, db_interface=DatabaseMock())
 
     def tearDown(self):
         self.sched.shutdown()
@@ -66,7 +66,8 @@ class TestScheduleInitialAnalysis(TestScheduleBase):
         test_fw = Firmware(file_path=os.path.join(get_test_data_dir(), 'get_files_test/testfile1'))
         test_fw.scheduled_analysis = ['dummy_plugin_for_testing_only']
         self.sched.add_task(test_fw)
-        test_fw = self.tmp_queue.get(timeout=10)
+        for _ in range(4):
+            test_fw = self.tmp_queue.get(timeout=10)
         self.assertEqual(len(test_fw.processed_analysis), 3, 'analysis not done')
         self.assertEqual(test_fw.processed_analysis['dummy_plugin_for_testing_only']['1'], 'first result', 'result not correct')
         self.assertEqual(test_fw.processed_analysis['dummy_plugin_for_testing_only']['summary'], ['first result', 'second result'])
@@ -92,7 +93,7 @@ class TestScheduleAnalysisWithRemote(TestScheduleBase):
     def setUp(self):
         super().setUp()
         self.config.set('remote_tasks', 'use_rabbit', 'true')
-        self.sched = AnalysisScheduler(config=self.config, post_analysis=self.dummy_callback, db_interface=DatabaseMock())
+        self.sched = AnalysisScheduler(config=self.config, pre_analysis=lambda *_: None, post_analysis=self.dummy_callback, db_interface=DatabaseMock())
 
     def tearDown(self):
         self.sched.shutdown()

@@ -198,3 +198,27 @@ class BackEndDbInterface(MongoInterfaceCommon):
         else:
             logging.debug('Skipped storage of analysis, since it doesn\'t seem outdated.')
             return False
+
+    def add_analysis(self, file_object: FileObject):
+        if isinstance(file_object, (Firmware, FileObject)):
+            processed_analysis = self.sanitize_analysis(file_object.processed_analysis)
+            for analysis_system in processed_analysis:
+                self._update_analysis(file_object, analysis_system, processed_analysis[analysis_system])
+        else:
+            raise RuntimeError('Trying to add from type \'{}\' to database. Only allowed for \'Firmware\' and \'FileObject\'')
+
+    def _update_analysis(self, file_object: FileObject, analysis_system: str, result: dict):
+        try:
+            if type(file_object) == Firmware:
+                self.firmwares.update_one(
+                    {'_id': file_object.get_uid()},
+                    {'$set': {'processed_analysis.{}'.format(analysis_system): result}}
+                )
+            else:
+                self.file_objects.update_one(
+                    {'_id': file_object.get_uid()},
+                    {'$set': {'processed_analysis.{}'.format(analysis_system): result}}
+                )
+        except Exception as exception:
+            logging.error('Update of analysis failed badly ({})'.format(exception))
+            raise exception

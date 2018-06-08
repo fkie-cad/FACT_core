@@ -1,3 +1,12 @@
+import contextlib
+import sys
+
+
+class StandardOutWriter:
+    def write(self, x):
+        pass
+
+
 class TerminalTextFormatting:
     class Format:
         BOLD = '\033[1m'
@@ -48,3 +57,15 @@ class TerminalTextFormatting:
 
 def debug_print(message, color=TerminalTextFormatting.Color.LIGHT_RED):
     print('{}\n'.format(color), message, '{}\n'.format(TerminalTextFormatting.Color.DEFAULT))
+
+
+@contextlib.contextmanager
+def suppress_stdout():
+    writer = StandardOutWriter()
+
+    stdout, stderr = sys.stdout, sys.stderr
+    sys.stdout, sys.stderr = writer, writer
+
+    yield
+
+    sys.stdout, sys.stderr = stdout, stderr

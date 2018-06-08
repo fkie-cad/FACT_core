@@ -1,5 +1,6 @@
 import unittest
 from time import gmtime
+from zlib import compress
 
 import pytest
 
@@ -8,7 +9,7 @@ from web_interface.filter import replace_underscore_filter, byte_number_filter, 
     sort_chart_list_by_name, text_highlighter, generic_nice_representation, list_to_line_break_string_no_sort, \
     encode_base64_filter, render_tags, fix_cwe, set_limit_for_data_to_chart, data_to_chart_with_value_percentage_pairs, \
     data_to_chart_limited, render_analysis_tags, vulnerability_class, sort_users_by_name, user_has_role, sort_roles_by_number_of_privileges, \
-    filter_format_string_list_with_offset
+    filter_format_string_list_with_offset, decompress
 
 
 class TestWebInterfaceFilter(unittest.TestCase):
@@ -243,3 +244,11 @@ def test_filter_format_string_list_with_offset():
     assert result == expected_result
 
     assert filter_format_string_list_with_offset([]) == ''
+
+
+def test_filter_decompress():
+    test_string = "test123"
+    assert decompress(compress(test_string.encode())) == test_string
+    assert decompress(test_string.encode()) == test_string
+    assert decompress(test_string) == test_string
+    assert decompress(None) is None
