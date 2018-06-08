@@ -180,7 +180,6 @@ class AnalysisScheduler(object):
     def check_further_process_or_complete(self, fw_object):
         if not fw_object.scheduled_analysis:
             logging.info('Analysis Completed:\n{}'.format(fw_object))
-            self.post_analysis(fw_object)
         else:
             self.process_queue.put(fw_object)
 
