@@ -109,9 +109,12 @@ class FrontEndDbInterface(MongoInterfaceCommon):
         firmware = self.firmwares.find_one({'_id': uid}, {'vendor': 1, 'device_name': 1, 'device_part': 1, 'version': 1, 'device_class': 1})
         if firmware is not None:
             if 'device_part' not in firmware:  # for compatibility reasons
-                part = ''
+                part = ' -'
             else:
-                part = ' - {}'.format(firmware['device_part'])
+                if firmware['device_part'] != '':
+                    part = ' - {}'.format(firmware['device_part'])
+                else:
+                    part = ' -'
             return '{} {}{} {} ({})'.format(firmware['vendor'], firmware['device_name'], part, firmware['version'], firmware['device_class'])
         else:
             return None
