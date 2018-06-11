@@ -27,7 +27,7 @@ sudo -EH pip2 uninstall -y pyliblzma
 sudo -E apt-get install -y python-lzma
 
 # install RabbitMQ dependencies
-sudo apt-get install rabbitmq-server
+sudo apt-get install -y rabbitmq-server
 sudo -EH pip3 install --upgrade pika
 
 # install yara
