@@ -43,7 +43,7 @@ class TestFileAddition(unittest.TestCase):
 
         remote_analysis.process_task(TEST_FW.uid)
 
-        time.sleep(2)
+        time.sleep(10)
 
         new_object = self._backend_interface.get_object(TEST_FW.uid)
 
