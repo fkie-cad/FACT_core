@@ -193,7 +193,8 @@ class BackEndDbInterface(MongoInterfaceCommon):
 
             logging.debug('Setting remote {} plugin result for {}'.format(system, uid))
 
-            self._update_analysis(current_object, system, result)
+            sanitized_analysis = self.sanitize_analysis({system: result})
+            self._update_analysis(current_object, system, sanitized_analysis[system])
             return True
         else:
             logging.debug('Skipped storage of analysis, since it doesn\'t seem outdated.')
