@@ -113,3 +113,14 @@ def get_summary_flag(request_parameter):
     if summary not in [True, False]:
         raise ValueError('summary must be true or false')
     return summary
+
+
+def get_tar_flag(request_parameter):
+    tar_arg = request_parameter['tar'] if 'tar' in request_parameter else 'false'
+    try:
+        tar_flag = json.loads(tar_arg)
+        assert isinstance(tar_flag, bool)
+    except (AssertionError, json.JSONDecodeError, TypeError):
+        raise ValueError('Malformed tar parameter. Must be in {true, false}')
+
+    return tar_flag
