@@ -190,8 +190,6 @@
                                 } else {
                                     plugin_checkbox.firstElementChild.firstElementChild.checked = false;
                                 }
-                            } else {
-                                console.log("No checkbox???");
                             }
                         }
                     }
@@ -206,6 +204,7 @@
                             <option value="{{ option }}">{{ option }}</option>
                             {% endfor %}
                         </select>
+                        <br>
                     {% for system in analysis_plugin_dict.keys() | sort %}
                 	    {% if not analysis_plugin_dict[system][1] %}
                 	    {# show if plug-in is not mandatory #}
