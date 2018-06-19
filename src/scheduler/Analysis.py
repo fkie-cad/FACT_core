@@ -83,10 +83,6 @@ class AnalysisScheduler(object):
     def get_default_plugins_from_config(self):
         try:
             result = {}
-            '''
-            result['default'] = self.config['default_plugins']['default'].split(', ')
-            result['test'] = self.config['default_plugins']['test'].split(', ')
-            '''
             for plugin_set in self.config['default_plugins']:
                 result[plugin_set] = self.config['default_plugins'][plugin_set].split(', ')
             return result
