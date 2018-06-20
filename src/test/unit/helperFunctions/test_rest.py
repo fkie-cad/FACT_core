@@ -1,6 +1,6 @@
 import pytest
 
-from helperFunctions.rest import success_message, error_message, get_current_gmt, convert_rest_request, get_recursive, get_summary_flag, get_update, get_query, get_paging
+from helperFunctions.rest import success_message, error_message, get_current_gmt, convert_rest_request, get_recursive, get_summary_flag, get_update, get_query, get_paging, get_tar_flag
 
 
 def test_time_is_int():
@@ -136,3 +136,16 @@ def test_get_paging_success():
 
     paging, success = get_paging(dict(offset='0', limit='1'))
     assert success and paging == (0, 1)
+
+
+def test_get_tar_flag_success():
+    assert get_tar_flag(dict()) is False
+
+    assert get_tar_flag(dict(tar='false')) is False
+    assert get_tar_flag(dict(tar='true')) is True
+
+
+@pytest.mark.parametrize('parameter', [None, '12', 'False'])
+def test_get_tar_flag_raises(parameter):
+    with pytest.raises(ValueError):
+        get_tar_flag(dict(tar=parameter))
