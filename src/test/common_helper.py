@@ -244,7 +244,7 @@ class DatabaseMock:
 
     def get_repacked_binary_and_file_name(self, uid):
         if uid == TEST_FW.get_uid():
-            return TEST_FW.binary, TEST_FW.file_name
+            return TEST_FW.binary, '{}.tar.gz'.format(TEST_FW.file_name)
         else:
             return None
 
