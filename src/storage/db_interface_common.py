@@ -2,6 +2,7 @@ import json
 import logging
 import pickle
 import sys
+from typing import Set
 
 import gridfs
 from common_helper_files import get_safe_name
@@ -237,6 +238,12 @@ class MongoInterfaceCommon(MongoInterface):
             return files
         else:
             return set()
+
+    def get_uids_of_all_included_files(self, uid: str) -> Set[str]:
+        return {
+            match['_id']
+            for match in self.file_objects.find({'parent_firmware_uids': uid}, {'_id': 1})
+        }
 
     def get_summary(self, fo, selected_analysis):
         if selected_analysis in fo.processed_analysis:
