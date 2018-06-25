@@ -147,42 +147,37 @@ class DatabaseRoutes(ComponentBase):
                 error = e
         return render_template('database/database_advanced_search.html', error=error, database_structure=database_structure)
 
-    @staticmethod
-    def _get_yara_rule_file_from_request(request):
-        yara_rule_file = None
-        if 'file' in request.files and request.files['file']:
-            _, yara_rule_file = get_file_name_and_binary_from_request(request)
-        elif request.form['textarea']:
-            yara_rule_file = request.form['textarea'].encode()
-        return yara_rule_file
-
-    def _build_firmware_dict_for_binary_search(self, uid_dict):
-        firmware_dict = {}
-        for rule in uid_dict:
-            with ConnectTo(FrontEndDbInterface, self._config) as connection:
-                firmware_list = [
-                    connection.firmwares.find_one(uid) or
-                    connection.file_objects.find_one(uid)
-                    for uid in uid_dict[rule]
-                ]
-                firmware_dict[rule] = sorted(connection.get_meta_list(firmware_list))
-        return firmware_dict
-
     @roles_accepted(*PRIVILEGES['pattern_search'])
     def _app_start_binary_search(self):
         error = None
         if request.method == 'POST':
-            yara_rule_file = self._get_yara_rule_file_from_request(request)
-            if yara_rule_file is not None:
+            yara_rule_file, firmware_uid = self._get_items_from_binary_search_request(request)
+            if firmware_uid and not self._firmware_is_in_db(firmware_uid):
+                error = 'Error: Firmware with UID {} not found in database'.format(repr(firmware_uid))
+            elif yara_rule_file is not None:
                 if is_valid_yara_rule_file(yara_rule_file):
                     with ConnectTo(InterComFrontEndBinding, self._config) as connection:
-                        request_id = connection.add_binary_search_request(yara_rule_file)
+                        request_id = connection.add_binary_search_request(yara_rule_file, firmware_uid)
                     return redirect(url_for('database/database_binary_search_results.html', request_id=request_id))
                 else:
                     error = 'Error in YARA rules: {}'.format(get_yara_error(yara_rule_file))
             else:
                 error = 'please select a file or enter rules in the text area'
         return render_template('database/database_binary_search.html', error=error)
+
+    @staticmethod
+    def _get_items_from_binary_search_request(request):
+        yara_rule_file = None
+        if 'file' in request.files and request.files['file']:
+            _, yara_rule_file = get_file_name_and_binary_from_request(request)
+        elif request.form['textarea']:
+            yara_rule_file = request.form['textarea'].encode()
+        firmware_uid = request.form.get('firmware_uid') if request.form.get('firmware_uid') else None
+        return yara_rule_file, firmware_uid
+
+    def _firmware_is_in_db(self, firmware_uid: str) -> bool:
+        with ConnectTo(FrontEndDbInterface, self._config) as connection:
+            return connection.is_firmware(firmware_uid)
 
     @roles_accepted(*PRIVILEGES['pattern_search'])
     def _app_show_binary_search_results(self):
@@ -201,6 +196,18 @@ class DatabaseRoutes(ComponentBase):
             request_id = None
         return render_template('database/database_binary_search_results.html', result=firmware_dict, error=error,
                                request_id=request_id, yara_rules=yara_rules)
+
+    def _build_firmware_dict_for_binary_search(self, uid_dict):
+        firmware_dict = {}
+        for rule in uid_dict:
+            with ConnectTo(FrontEndDbInterface, self._config) as connection:
+                firmware_list = [
+                    connection.firmwares.find_one(uid) or
+                    connection.file_objects.find_one(uid)
+                    for uid in uid_dict[rule]
+                ]
+                firmware_dict[rule] = sorted(connection.get_meta_list(firmware_list))
+        return firmware_dict
 
     @roles_accepted(*PRIVILEGES['basic_search'])
     def _app_start_quick_search(self):

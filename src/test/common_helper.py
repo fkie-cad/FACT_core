@@ -248,7 +248,7 @@ class DatabaseMock:
         else:
             return None
 
-    def add_binary_search_request(self, yara_rule_binary):
+    def add_binary_search_request(self, yara_rule_binary, firmware_uid=None):
         if yara_rule_binary == b'invalid_rule':
             return YaraRuleError('error: invalid rule')
         else:
@@ -318,6 +318,9 @@ class DatabaseMock:
             return b'<plugin 1 view>'
         else:
             return None
+
+    def is_firmware(self, uid):
+        return uid == 'uid_in_db'
 
 
 def fake_exit(self, *args):
