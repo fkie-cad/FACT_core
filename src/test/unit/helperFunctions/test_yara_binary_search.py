@@ -1,4 +1,7 @@
 import unittest
+from subprocess import CalledProcessError
+
+from mock import patch
 
 from helperFunctions import yara_binary_search, fileSystem
 from os import path
@@ -30,6 +33,10 @@ def mock_connect_to_enter(_, config=None):
     return yara_binary_search.YaraBinarySearchScannerDbInterface(config)
 
 
+def mock_check_output(call, shell=True, stderr=None):
+    raise CalledProcessError(1, call, b'', stderr)
+
+
 class TestHelperFunctionsYaraBinarySearch(unittest.TestCase):
 
     def setUp(self):
@@ -53,8 +60,13 @@ class TestHelperFunctionsYaraBinarySearch(unittest.TestCase):
         result = self.yara_binary_scanner.get_binary_search_result((yara_rule, 'foobar'))
         assert result == {}
 
-    def test_get_binary_search_result_error(self):
-        result = self.yara_binary_scanner.get_binary_search_result((b'}{', 'foobar'))
+    def test_get_binary_search_rule_error(self):
+        result = self.yara_binary_scanner.get_binary_search_result((b'no valid rule', 'foobar'))
+        assert isinstance(result, YaraRuleError)
+
+    @patch('helperFunctions.yara_binary_search.check_output', side_effect=mock_check_output)
+    def test_get_binary_search_yara_error(self, _):
+        result = self.yara_binary_scanner.get_binary_search_result((self.yara_rule, None))
         assert isinstance(result, YaraRuleError)
 
     def test_eliminate_duplicates(self):
