@@ -18,8 +18,10 @@ class MockCommonDbInterface:
         self.config['data_storage']['firmware_file_storage_directory'] = path.join(fileSystem.get_test_data_dir(), TEST_FILE_1)
 
     @staticmethod
-    def get_uids_of_all_included_files(_):
-        return [TEST_FILE_2, TEST_FILE_3]
+    def get_uids_of_all_included_files(uid):
+        if uid == 'single_firmware':
+            return [TEST_FILE_2, TEST_FILE_3]
+        return []
 
 
 def mock_connect_to_enter(_, config=None):
@@ -43,14 +45,17 @@ class TestHelperFunctionsYaraBinarySearch(unittest.TestCase):
         result = self.yara_binary_scanner.get_binary_search_result((self.yara_rule, None))
         self.assertEqual(result, {'test_rule': [TEST_FILE_1]})
 
-    def test_get_binary_search_result_error(self):
-        result = self.yara_binary_scanner.get_binary_search_result((b'invalid yara rule {}', None))
-        assert isinstance(result, YaraRuleError)
-
     def test_get_binary_search_result_for_single_firmware(self):
         yara_rule = b'rule test_rule_2 {strings: $a = "TEST_STRING!" condition: $a}'
         result = self.yara_binary_scanner.get_binary_search_result((yara_rule, 'single_firmware'))
-        self.assertEqual(result, {'test_rule_2': [TEST_FILE_2]})
+        assert result == {'test_rule_2': [TEST_FILE_2]}
+
+        result = self.yara_binary_scanner.get_binary_search_result((yara_rule, 'foobar'))
+        assert result == {}
+
+    def test_get_binary_search_result_error(self):
+        result = self.yara_binary_scanner.get_binary_search_result((b'}{', 'foobar'))
+        assert isinstance(result, YaraRuleError)
 
     def test_eliminate_duplicates(self):
         test_dict = {1: [1, 2, 3, 3], 2: [1, 1, 2, 3]}
@@ -86,7 +91,7 @@ class TestYaraBinarySearchScannerDbInterface(unittest.TestCase):
         assert not hasattr(self.db_interface, 'get_object')
 
     def test_get_file_paths_of_files_included_in_fo(self):
-        result = self.db_interface.get_file_paths_of_files_included_in_fo('foo')
+        result = self.db_interface.get_file_paths_of_files_included_in_fo('single_firmware')
         assert len(result) == 2
         assert path.basename(result[0]) == TEST_FILE_2
         assert path.basename(result[1]) == TEST_FILE_3

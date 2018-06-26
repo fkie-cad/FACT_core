@@ -37,7 +37,7 @@ class YaraBinarySearchScanner:
     def _execute_yara_search_for_single_firmware(self, rule_file_path, firmware_uid):
         with ConnectTo(YaraBinarySearchScannerDbInterface, self.config) as connection:
             file_paths = connection.get_file_paths_of_files_included_in_fo(firmware_uid)
-        result = [self._execute_yara_search(rule_file_path, path) for path in file_paths]
+        result = (self._execute_yara_search(rule_file_path, path) for path in file_paths)
         return b'\n'.join(result)
 
     @staticmethod
@@ -70,8 +70,13 @@ class YaraBinarySearchScanner:
         '''
         with NamedTemporaryFile() as temp_rule_file:
             yara_rules, firmware_uid = task
-            temp_rule_file.write(yara_rules)
+            try:
+                compiled_rules = yara.compile(source=yara_rules.decode())
+            except yara.SyntaxError as e:
+                return YaraRuleError('There seems to be an error in the rule file:\n{}'.format(e))
+            compiled_rules.save(file=temp_rule_file)
             temp_rule_file.flush()
+
             try:
                 if firmware_uid is None:
                     raw_result = self._execute_yara_search(temp_rule_file.name)
