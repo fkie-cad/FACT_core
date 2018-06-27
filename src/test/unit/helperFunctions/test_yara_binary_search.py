@@ -1,7 +1,7 @@
 import unittest
 from subprocess import CalledProcessError
 
-from mock import patch
+from unittest.mock import patch
 
 from helperFunctions import yara_binary_search, fileSystem
 from os import path
