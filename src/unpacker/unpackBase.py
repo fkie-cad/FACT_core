@@ -86,13 +86,12 @@ class UnpackBase(object):
         meta_data['analysis_date'] = time()
         return get_files_in_dir(tmp_dir), meta_data
 
-    def change_owner_back_to_me(self, directory=None):
-        uid = getuid()
-        gid = getgid()
-        with Popen('sudo chown -R {}:{} {}'.format(uid, gid, directory), shell=True, stdout=PIPE, stderr=PIPE) as pl:
+    def change_owner_back_to_me(self, directory=None, permissions='u+r'):
+        with Popen('sudo chown -R {}:{} {}'.format(getuid(), getgid(), directory), shell=True, stdout=PIPE, stderr=PIPE) as pl:
             pl.communicate()[0].decode()
-        self.grant_read_permission(directory)
+        self.grant_read_permission(directory, permissions)
 
-    def grant_read_permission(self, directory=None):
-        with Popen('chmod --recursive u+r {}'.format(directory), shell=True, stdout=PIPE, stderr=PIPE) as pl:
+    @staticmethod
+    def grant_read_permission(directory, permissions):
+        with Popen('chmod --recursive {} {}'.format(permissions, directory), shell=True, stdout=PIPE, stderr=PIPE) as pl:
             pl.communicate()[0].decode()
