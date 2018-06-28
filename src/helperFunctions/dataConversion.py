@@ -1,7 +1,7 @@
-import json
 import re
 from datetime import datetime
 from pickle import dumps
+from typing import List, Set
 
 
 def make_bytes(code):
@@ -17,39 +17,24 @@ def make_unicode_string(code):
     if isinstance(code, str):
         return code.encode(errors='replace').decode()
     elif isinstance(code, bytes):
-        try:
-            tmp = code.decode('utf-8')
-        except:
-            try:
-                tmp = code.decode('iso-8859-1')
-            except:
-                tmp = code.decode('utf-8', 'replace')
-        return tmp
+        return code.decode(errors='replace')
     else:
         return code.__str__()
 
 
 def make_dict_from_list(list_object):
-    d = {}
-    for i in range(len(list_object)):
-        d['{}'.format(i)] = list_object[i]
-    return d
+    return {
+        str(i): item
+        for i, item in enumerate(list_object)
+    }
 
 
 def make_list_from_dict(dict_object):
-    l = []
-    for item in dict_object.keys():
-        l.append(dict_object[item])
-    return l
+    return [v for v in dict_object.values()]
 
 
-def printable_dictionary(dict_object):
-    return json.dumps(dict_object, indent=4)
-
-
-def dict_size(dict_object):
-    pobj = dumps(dict_object)
-    return len(pobj)
+def get_dict_size(dict_object):
+    return len(dumps(dict_object))
 
 
 def list_of_lists_to_list_of_sets(list_of_lists):
@@ -59,20 +44,14 @@ def list_of_lists_to_list_of_sets(list_of_lists):
     return tmp
 
 
-def list_of_sets_to_list_of_lists(list_of_sets):
-    tmp = []
+def list_of_sets_to_list_of_lists(list_of_sets: List[Set]) -> List[List]:
     if not list_of_sets:
         return []
-    for item in list_of_sets:
-        tmp_item = list(item)
-        tmp_item.sort()
-        tmp.append(tmp_item)
-    return tmp
+    return [sorted(item) for item in list_of_sets]
 
 
-def list_to_unified_string_list(uids):
-    uids.sort()
-    return ';'.join(uids)
+def list_to_unified_string_list(uid_list: List[str]) -> str:
+    return ';'.join(sorted(uid_list))
 
 
 def string_list_to_list(string_list):
