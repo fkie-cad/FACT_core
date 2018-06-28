@@ -7,7 +7,6 @@ from helperFunctions import yara_binary_search, fileSystem
 from os import path
 
 from helperFunctions.config import get_config_for_testing
-from helperFunctions.yara_binary_search import YaraRuleError
 
 
 TEST_FILE_1 = 'binary_search_test'
@@ -62,12 +61,14 @@ class TestHelperFunctionsYaraBinarySearch(unittest.TestCase):
 
     def test_get_binary_search_rule_error(self):
         result = self.yara_binary_scanner.get_binary_search_result((b'no valid rule', 'foobar'))
-        assert isinstance(result, YaraRuleError)
+        assert isinstance(result, str)
+        assert 'There seems to be an error in the rule file' in result
 
     @patch('helperFunctions.yara_binary_search.check_output', side_effect=mock_check_output)
     def test_get_binary_search_yara_error(self, _):
         result = self.yara_binary_scanner.get_binary_search_result((self.yara_rule, None))
-        assert isinstance(result, YaraRuleError)
+        assert isinstance(result, str)
+        assert 'Error when calling YARA' in result
 
     def test_eliminate_duplicates(self):
         test_dict = {1: [1, 2, 3, 3], 2: [1, 1, 2, 3]}

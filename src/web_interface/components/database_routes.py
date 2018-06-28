@@ -11,7 +11,7 @@ from flask_paginate import Pagination
 from helperFunctions.dataConversion import make_unicode_string
 from helperFunctions.mongo_task_conversion import get_file_name_and_binary_from_request
 from helperFunctions.web_interface import ConnectTo, apply_filters_to_query, filter_out_illegal_characters
-from helperFunctions.yara_binary_search import YaraRuleError, is_valid_yara_rule_file, get_yara_error
+from helperFunctions.yara_binary_search import is_valid_yara_rule_file, get_yara_error
 from intercom.front_end_binding import InterComFrontEndBinding
 from storage.db_interface_frontend import FrontEndDbInterface
 from web_interface.components.component_base import ComponentBase
@@ -186,8 +186,8 @@ class DatabaseRoutes(ComponentBase):
             request_id = request.args.get('request_id')
             with ConnectTo(InterComFrontEndBinding, self._config) as connection:
                 result, yara_rules = connection.get_binary_search_result(request_id)
-            if type(result) == YaraRuleError:
-                error = '{}'.format(result)
+            if type(result) == str:
+                error = result
             elif result is not None:
                 yara_rules = make_unicode_string(yara_rules)
                 firmware_dict = self._build_firmware_dict_for_binary_search(result)
