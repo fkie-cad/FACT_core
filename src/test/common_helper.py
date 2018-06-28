@@ -8,6 +8,7 @@ from helperFunctions.yara_binary_search import YaraRuleError
 from intercom.common_mongo_binding import InterComMongoInterface
 from objects.file import FileObject
 from objects.firmware import Firmware
+from storage.mongo_interface import MongoInterface
 
 
 def create_test_firmware(device_class='Router', device_name='test_router', vendor='test_vendor', bin_path='container/test.zip', all_files_included_set=False, version='0.1'):
@@ -330,3 +331,13 @@ def get_database_names(config):
     databases.extend([config.get('data_storage', 'main_database'), config.get(
         'data_storage', 'view_storage'), config.get('data_storage', 'statistic_database')])
     return databases
+
+
+def clean_test_database(config, list_of_test_databases):
+    db = MongoInterface(config=config)
+    try:
+        for database_name in list_of_test_databases:
+            db.client.drop_database(database_name)
+    except Exception:
+        pass
+    db.shutdown()
