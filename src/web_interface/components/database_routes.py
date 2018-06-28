@@ -186,7 +186,7 @@ class DatabaseRoutes(ComponentBase):
             request_id = request.args.get('request_id')
             with ConnectTo(InterComFrontEndBinding, self._config) as connection:
                 result, yara_rules = connection.get_binary_search_result(request_id)
-            if type(result) == str:
+            if isinstance(result, str):
                 error = result
             elif result is not None:
                 yara_rules = make_unicode_string(yara_rules)
