@@ -12,9 +12,8 @@ from scheduler.Unpacking import UnpackingScheduler
 from scheduler.analysis_tag import TaggingDaemon
 from storage.MongoMgr import MongoMgr
 from storage.db_interface_backend import BackEndDbInterface
-from test.common_helper import get_database_names
+from test.common_helper import get_database_names, clean_test_database
 from test.integration.common import initialize_config, MockFSOrganizer
-from test.unit.helperFunctions_setup_test_data import clean_test_database
 
 
 class TestTagPropagation(unittest.TestCase):

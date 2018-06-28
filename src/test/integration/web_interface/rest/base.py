@@ -4,8 +4,7 @@ from tempfile import TemporaryDirectory
 
 from helperFunctions.config import get_config_for_testing
 from storage.MongoMgr import MongoMgr
-from test.common_helper import get_database_names
-from test.unit.helperFunctions_setup_test_data import clean_test_database
+from test.common_helper import get_database_names, clean_test_database
 from web_interface.frontend_main import WebFrontEnd
 
 TMP_DIR = TemporaryDirectory(prefix='fact_test_')

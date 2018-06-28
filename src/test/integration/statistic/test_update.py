@@ -5,8 +5,7 @@ from helperFunctions.config import get_config_for_testing
 from statistic.update import StatisticUpdater
 from storage.MongoMgr import MongoMgr
 from storage.db_interface_statistic import StatisticDbViewer
-from test.common_helper import get_database_names
-from test.unit.helperFunctions_setup_test_data import clean_test_database
+from test.common_helper import get_database_names, clean_test_database
 from helperFunctions.statistic import calculate_total_files
 
 
