@@ -1,30 +1,23 @@
 from pathlib import Path
-from common_helper_process import execute_shell_command
 
-name = 'ELF'
+from plugins.unpacking.sevenz.code.sevenz import unpack_function as sevenz
+
+name = 'SFX'
 mime_patterns = ['application/x-executable']
-unpacker_program = '7z'
 version = '0.1'
 
 
 def unpack_function(file_path, tmp_dir):
-    meta = {}
-
-    execution_string = 'fakeroot {} x -y -o{} {}'.format(unpacker_program, tmp_dir, file_path)
-    output = execute_shell_command(execution_string)
+    meta = sevenz(file_path, tmp_dir)
 
     extraction_dir = Path(tmp_dir)
-    normal_executable = False
+
     for child_path in extraction_dir.iterdir():
         if child_path.name == '.data':
-            normal_executable = True
+            clean_directory(extraction_dir)
+            meta['output'] = 'Normal executable file.\nWill not be extracted.\n\nPlease report if it\'s a self extracting archive'
             break
 
-    if normal_executable:
-        clean_directory(extraction_dir)
-        meta['output'] = 'Normal ELF file.\nWill not be extracted.\n\nPlease report if it\'s a self extracting archive'
-    else:
-        meta['output'] = output
     return meta
 
 
