@@ -88,10 +88,10 @@ class UnpackBase(object):
 
     def change_owner_back_to_me(self, directory=None, permissions='u+r'):
         with Popen('sudo chown -R {}:{} {}'.format(getuid(), getgid(), directory), shell=True, stdout=PIPE, stderr=PIPE) as pl:
-            pl.communicate()[0].decode()
+            pl.communicate()
         self.grant_read_permission(directory, permissions)
 
     @staticmethod
     def grant_read_permission(directory, permissions):
         with Popen('chmod --recursive {} {}'.format(permissions, directory), shell=True, stdout=PIPE, stderr=PIPE) as pl:
-            pl.communicate()[0].decode()
+            pl.communicate()
