@@ -4,7 +4,6 @@ from copy import deepcopy
 
 from helperFunctions.dataConversion import unify_string_list
 from helperFunctions.fileSystem import get_test_data_dir
-from helperFunctions.yara_binary_search import YaraRuleError
 from intercom.common_mongo_binding import InterComMongoInterface
 from objects.file import FileObject
 from objects.firmware import Firmware
@@ -250,7 +249,7 @@ class DatabaseMock:
 
     def add_binary_search_request(self, yara_rule_binary, firmware_uid=None):
         if yara_rule_binary == b'invalid_rule':
-            return YaraRuleError('error: invalid rule')
+            return 'error: invalid rule'
         else:
             return 'some_id'
 

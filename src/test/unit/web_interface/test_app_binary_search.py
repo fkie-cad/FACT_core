@@ -15,6 +15,7 @@ class TestAppBinarySearch(WebInterfaceTest):
             data={'file': (BytesIO(b'rule rulename {strings: $a = { 0123456789abcdef } condition: $a }'), 'test_file.txt'), 'textarea': ''},
             follow_redirects=True
         )
+        print(rv.data.decode())
         assert b'test firmware' in rv.data
         assert b'Results for signature' in rv.data
 

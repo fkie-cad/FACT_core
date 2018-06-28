@@ -3,15 +3,11 @@ from subprocess import check_output, CalledProcessError, STDOUT
 from tempfile import NamedTemporaryFile
 
 import yara
-from typing import Tuple, List, Optional
+from typing import Tuple, List, Optional, Dict
 
 from helperFunctions.web_interface import ConnectTo
 from storage.db_interface_common import MongoInterfaceCommon
 from storage.fs_organizer import FS_Organizer
-
-
-class YaraRuleError(Exception):
-    pass
 
 
 class YaraBinarySearchScanner:
@@ -28,11 +24,11 @@ class YaraBinarySearchScanner:
         :param rule_file_path: file path to yara rule file
         :return: output from yara scan
         '''
-        try:
-            scan_result = check_output('yara -r {} {}'.format(rule_file_path, self.db_path if target_path is None else target_path), shell=True, stderr=STDOUT)
-        except CalledProcessError as e:
-            raise YaraRuleError('There seems to be an error in the rule file:\n{}'.format(e.output.decode()))
-        return scan_result
+        return check_output(
+            'yara -r {} {}'.format(rule_file_path, self.db_path if target_path is None else target_path),
+            shell=True,
+            stderr=STDOUT
+        )
 
     def _execute_yara_search_for_single_firmware(self, rule_file_path, firmware_uid):
         with ConnectTo(YaraBinarySearchScannerDbInterface, self.config) as connection:
@@ -41,7 +37,7 @@ class YaraBinarySearchScanner:
         return b'\n'.join(result)
 
     @staticmethod
-    def _parse_raw_result(raw_result):
+    def _parse_raw_result(raw_result: bytes) -> Dict[str, List[str]]:
         '''
         :param raw_result: raw yara scan result
         :return: dict of matching rules with lists of matched UIDs as values
@@ -71,23 +67,28 @@ class YaraBinarySearchScanner:
         with NamedTemporaryFile() as temp_rule_file:
             yara_rules, firmware_uid = task
             try:
-                compiled_rules = yara.compile(source=yara_rules.decode())
-            except yara.SyntaxError as e:
-                return YaraRuleError('There seems to be an error in the rule file:\n{}'.format(e))
-            compiled_rules.save(file=temp_rule_file)
-            temp_rule_file.flush()
-
-            try:
-                if firmware_uid is None:
-                    raw_result = self._execute_yara_search(temp_rule_file.name)
-                else:
-                    raw_result = self._execute_yara_search_for_single_firmware(temp_rule_file.name, firmware_uid)
-            except YaraRuleError as e:
-                return e
-            results = self._parse_raw_result(raw_result)
-            if results:
+                self._prepare_temp_rule_file(temp_rule_file, yara_rules)
+                raw_result = self._get_raw_result(firmware_uid, temp_rule_file)
+                results = self._parse_raw_result(raw_result)
                 self._eliminate_duplicates(results)
-            return results
+                return results
+            except yara.SyntaxError as e:
+                return 'There seems to be an error in the rule file:\n{}'.format(e)
+            except CalledProcessError as e:
+                return 'Error when calling YARA:\n{}'.format(e.output.decode())
+
+    def _get_raw_result(self, firmware_uid, temp_rule_file):
+        if firmware_uid is None:
+            raw_result = self._execute_yara_search(temp_rule_file.name)
+        else:
+            raw_result = self._execute_yara_search_for_single_firmware(temp_rule_file.name, firmware_uid)
+        return raw_result
+
+    @staticmethod
+    def _prepare_temp_rule_file(temp_rule_file, yara_rules):
+        compiled_rules = yara.compile(source=yara_rules.decode())
+        compiled_rules.save(file=temp_rule_file)
+        temp_rule_file.flush()
 
 
 def is_valid_yara_rule_file(rules_file):
