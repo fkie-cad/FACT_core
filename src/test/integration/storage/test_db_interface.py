@@ -250,6 +250,13 @@ class TestSummary(unittest.TestCase):
         self.assertIn(self.test_fo.get_uid(), result_sum['file exclusive sum b'], 'origin of file exclusive missing')
         self.assertNotIn(self.test_fw.get_uid(), result_sum['file exclusive sum b'], 'parent as origin but should not be')
 
+    def test_collect_summary(self):
+        self.create_and_add_test_fimrware_and_file_object()
+        fo_list = [self.test_fo.uid]
+        result_sum = self.db_interface._collect_summary(fo_list, 'dummy')
+        assert all(item in result_sum for item in self.test_fo.processed_analysis['dummy']['summary'])
+        assert all(value == [self.test_fo.uid] for value in result_sum.values())
+
     def test_get_summary_of_one_error_handling(self):
         result_sum = self.db_interface._get_summary_of_one(None, 'foo')
         self.assertEqual(result_sum, {}, 'None object should result in empty dict')
