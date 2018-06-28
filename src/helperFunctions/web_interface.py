@@ -13,12 +13,13 @@ SPECIAL_CHARACTERS = 'ÄäÀàÁáÂâÃãÅåǍǎĄąĂăÆæĀāÇçĆćĈĉČ
                      'ŤťŢţÞþȚțÜüÙùÚúÛûŰűŨũŲųŮůŪūŴŵÝýŸÿŶŷŹźŽžŻż'
 
 
-def _get_rgba(hue, saturation):
-    return 'rgba({}, {}, {}, {})'.format(*[int(i * 255) for i in colorsys.hsv_to_rgb(hue, 0.8, 0.75)], saturation)
+def _get_rgba(hue, alpha=1.0, saturation=0.8, value=0.75):
+    r, g, b = [round(i * 255) for i in colorsys.hsv_to_rgb(hue, saturation, value)]
+    return 'rgba({}, {}, {}, {})'.format(r, g, b, round(alpha * 255))
 
 
 def get_js_list_of_n_uniques_colors(n, saturation=0.7, shuffle=True):
-    result = [_get_rgba(i / n, saturation) for i in range(1, n + 1)]
+    result = [_get_rgba(i / n, saturation=saturation) for i in range(1, n + 1)]
     if shuffle:
         result = list(chain(*[result[i::2] for i in range(2)]))
     return result
@@ -26,9 +27,7 @@ def get_js_list_of_n_uniques_colors(n, saturation=0.7, shuffle=True):
 
 def get_color_list(n, limit=10):
     compliant_colors = ['#2b669a', '#cce0dc', '#2b669a', '#cce0dc', '#2b669a', '#cce0dc', '#2b669a', '#cce0dc', '#2b669a', '#cce0dc', '#2b669a', '#cce0dc']
-    if n > limit:
-        n = limit
-    return compliant_colors[:n]
+    return compliant_colors[:n if n <= limit else limit]
 
 
 def overwrite_default_plugins(intercom, checked_plugin_list):
