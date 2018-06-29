@@ -1,7 +1,8 @@
+from flask import render_template_string
+
 from test.common_helper import TEST_FW
 from test.unit.web_interface.base import WebInterfaceTest
 from web_interface.components.jinja_filter import FilterClass
-from flask import render_template_string
 
 
 class TestAppShowAnalysis(WebInterfaceTest):
