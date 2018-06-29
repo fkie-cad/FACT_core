@@ -15,7 +15,8 @@ def unpack_function(file_path, tmp_dir):
     for child_path in extraction_dir.iterdir():
         if child_path.name in ['.text', '.data']:
             clean_directory(extraction_dir)
-            meta['output'] = 'Normal executable file.\nWill not be extracted.\n\nPlease report if it\'s a self extracting archive'
+            meta['output'] = 'Normal executable files will not be extracted.' \
+                             '\n\nPlease report if it\'s a self extracting archive'
             break
 
     return meta
