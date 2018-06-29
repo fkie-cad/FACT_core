@@ -302,6 +302,10 @@ class DatabaseMock:
     def is_firmware(self, uid):
         return uid == 'uid_in_db'
 
+    def get_file_name(self, uid):
+        if uid == 'deadbeef00000000000000000000000000000000000000000000000000000000_123':
+            return 'test_name'
+
 
 def fake_exit(self, *args):
     pass
