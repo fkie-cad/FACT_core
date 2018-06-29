@@ -9,7 +9,7 @@ from common_helper_process import execute_shell_command
 from helperFunctions.fileSystem import get_src_dir
 
 name = '7z'
-mime_patterns = ['application/x-lzma', 'application/x-7z-compressed', 'application/x-dosexec', 'application/zip', 'application/x-zip-compressed']
+mime_patterns = ['application/x-lzma', 'application/x-7z-compressed', 'application/zip', 'application/x-zip-compressed']
 unpacker_program = '7z'
 version = '0.7'
 
