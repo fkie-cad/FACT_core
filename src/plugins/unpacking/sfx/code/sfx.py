@@ -3,7 +3,7 @@ from pathlib import Path
 from plugins.unpacking.sevenz.code.sevenz import unpack_function as sevenz
 
 name = 'SFX'
-mime_patterns = ['application/x-executable']
+mime_patterns = ['application/x-executable', 'application/x-dosexec']
 version = '0.1'
 
 
@@ -13,7 +13,7 @@ def unpack_function(file_path, tmp_dir):
     extraction_dir = Path(tmp_dir)
 
     for child_path in extraction_dir.iterdir():
-        if child_path.name == '.data':
+        if child_path.name in ['.text', '.data']:
             clean_directory(extraction_dir)
             meta['output'] = 'Normal executable file.\nWill not be extracted.\n\nPlease report if it\'s a self extracting archive'
             break
