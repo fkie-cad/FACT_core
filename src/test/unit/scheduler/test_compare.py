@@ -7,7 +7,6 @@ from time import sleep
 import pytest
 
 from compare.PluginBase import CompareBasePlugin
-from objects.file import FileObject
 from scheduler.Compare import CompareScheduler
 from test.common_helper import create_test_file_object
 
