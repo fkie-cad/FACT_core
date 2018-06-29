@@ -30,7 +30,7 @@ def make_dict_from_list(list_object):
 
 
 def make_list_from_dict(dict_object):
-    return [v for v in dict_object.values()]
+    return list(dict_object.values())
 
 
 def get_dict_size(dict_object):
