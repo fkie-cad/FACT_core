@@ -4,7 +4,7 @@ import pytest
 from flask_security.core import AnonymousUser, UserMixin, RoleMixin
 from werkzeug.local import LocalProxy
 
-from helperFunctions.web_interface import filter_out_illegal_characters, _get_rgba, get_js_list_of_n_uniques_colors
+from helperFunctions.web_interface import filter_out_illegal_characters
 from web_interface.security.authentication import user_has_privilege
 
 
