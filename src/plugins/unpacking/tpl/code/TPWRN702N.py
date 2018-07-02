@@ -129,12 +129,6 @@ class TPWR702N:
     def _read_img0(self):
         self.img0 = TPIMG0(self.firmware_filepath, self.IMG0_OFFSET)
 
-    def get_container_format(self):
-        return self.container_format
-
-    def get_checksum(self):
-        return self.md5_checksum
-
     def get_tpimg0_header(self):
         return self.carver.extract_data(self.IMG0_OFFSET, self.IMG0_OFFSET + self.IMG0_HEADER_SIZE)
 
@@ -177,14 +171,6 @@ class TPWR702N:
     def _find_fs_magic_string(os_and_fs):
         search_pattern = b'owowowowowowowowowowowowowowowow'
         return os_and_fs.find(search_pattern)
-
-    def check_container_validity(self):
-        self._check_img0_information()
-        self._check_boot_and_os_blocks()
-
-        if not self._check_md5():
-            raise MD5Exception
-        return True
 
     def _check_img0_information(self):
         if self.img0 is None:
@@ -296,15 +282,6 @@ class TPIMG0:
         else:
             sub_header_offset = sub_header_offset + self.HEADER_SIZE + self.offset
             return TPIMG0(self.firmware_filepath, sub_header_offset)
-
-    def get_container_size(self):
-        return self.container_size
-
-    def get_device_id(self):
-        return self.device_id
-
-    def get_language(self):
-        return self.language
 
     def check_header(self):
         if self.container_size <= 0:

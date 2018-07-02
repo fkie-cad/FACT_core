@@ -165,11 +165,9 @@ class FrontEndDbInterface(MongoInterfaceCommon):
 
     def get_specific_fields_for_multiple_entries(self, uid_list, field_dict):
         query = self._build_search_query_for_uid_list(uid_list)
-        return self.file_objects.find(query, field_dict)
-
-    @staticmethod
-    def _convert_result_list_to_dict(search_results):
-        return {entry['_id']: entry for entry in search_results}
+        file_object_iterator = self.file_objects.find(query, field_dict)
+        firmware_iterator = self.firmwares.find(query, field_dict)
+        return merge_generators(firmware_iterator, file_object_iterator)
 
     # --- statistics
 

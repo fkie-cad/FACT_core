@@ -135,21 +135,6 @@ class MongoInterfaceCommon(MongoInterface):
                 setattr(file_object, attribute, entry[attribute])
         return file_object
 
-    def _reconstruct_database_structure_as_dict(self):
-        database_level = {}
-        for database in self.client.database_names():
-            if database != 'local':
-                collection_level = {}
-                for collection in self.client[database].collection_names():
-                    if collection != 'system.indexes':
-                        entry_level = []
-                        for first_entry in self.client[database][collection].find(limit=1):
-                            for key in first_entry:
-                                entry_level.append(key)
-                        collection_level[collection] = entry_level
-                database_level[database] = collection_level
-        return database_level
-
     def sanitize_analysis(self, analysis_dict=None, uid=None):
         sanitized_dict = {}
         for key in analysis_dict.keys():
