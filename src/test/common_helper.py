@@ -117,17 +117,13 @@ class DatabaseMock:
         return {'test class': {'test vendor': ['test device']}}
 
     def compare_result_is_in_db(self, uid_list):
-        if uid_list == 'valid_uid_list_in_db':
-            return True
-        elif uid_list == unify_string_list(';'.join([TEST_FW.uid, TEST_TEXT_FILE.uid])):
+        if uid_list == unify_string_list(';'.join([TEST_FW.uid, TEST_TEXT_FILE.uid])):
             return True
         else:
             return False
 
     def get_compare_result(self, compare_id):
-        if compare_id == 'valid_uid_list_not_in_db':
-            return None
-        elif compare_id == unify_string_list(';'.join([TEST_FW.uid, TEST_FW_2.uid])):
+        if compare_id == unify_string_list(';'.join([TEST_FW.uid, TEST_FW_2.uid])):
             return {'this_is': 'a_compare_result',
                     'general': {'hid': {TEST_FW.uid: 'foo', TEST_TEXT_FILE.uid: 'bar'}}}
         elif compare_id == unify_string_list(';'.join([TEST_FW.uid, TEST_TEXT_FILE.uid])):
@@ -144,9 +140,7 @@ class DatabaseMock:
             return False
 
     def object_existence_quick_check(self, compare_id):
-        if compare_id == 'valid_uid_list_not_in_db' or compare_id == 'valid_uid_list_in_db':
-            return None
-        elif compare_id == unify_string_list(';'.join([TEST_FW_2.uid, TEST_FW.uid])):
+        if compare_id == unify_string_list(';'.join([TEST_FW_2.uid, TEST_FW.uid])):
             return None
         elif compare_id == unify_string_list(';'.join([TEST_TEXT_FILE.uid, TEST_FW.uid])):
             return None
@@ -180,8 +174,6 @@ class DatabaseMock:
         def find_one(uid):
             if uid == TEST_TEXT_FILE.get_uid():
                 return TEST_TEXT_FILE.get_uid()
-            else:
-                return None
 
         @staticmethod
         def find(query, filter):
@@ -207,16 +199,6 @@ class DatabaseMock:
                 if self.fw_uid not in result:
                     result.append(self.fw_uid)
         return result
-
-    def get_number_of_total_matches(self, query, firmware_only):
-        if self.fw_uid in query and self.fo_uid in query:
-            return 1 if firmware_only else 2
-        elif self.fw_uid in query or self.fo_uid in query:
-            return 1
-        elif query == '{}':
-            return 2
-        else:
-            return 0
 
     def add_analysis_task(self, task):
         self.tasks.append(task)
@@ -245,8 +227,6 @@ class DatabaseMock:
     def get_repacked_binary_and_file_name(self, uid):
         if uid == TEST_FW.get_uid():
             return TEST_FW.binary, '{}.tar.gz'.format(TEST_FW.file_name)
-        else:
-            return None
 
     def add_binary_search_request(self, yara_rule_binary, firmware_uid=None):
         if yara_rule_binary == b'invalid_rule':
@@ -321,6 +301,10 @@ class DatabaseMock:
 
     def is_firmware(self, uid):
         return uid == 'uid_in_db'
+
+    def get_file_name(self, uid):
+        if uid == 'deadbeef00000000000000000000000000000000000000000000000000000000_123':
+            return 'test_name'
 
 
 def fake_exit(self, *args):
