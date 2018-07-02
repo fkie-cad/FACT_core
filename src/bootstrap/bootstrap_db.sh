@@ -44,12 +44,6 @@ echo "#  initializing DB authentication  #"
 echo "####################################"
 python3 ../init_database.py
 
-
-echo "####################################"
-echo "#           DB migration           #"
-echo "####################################"
-python3 ../migrate_database.py
-
 cd ../../
 rm start_fact_db
 ln -s src/start_fact_db.py start_fact_db
