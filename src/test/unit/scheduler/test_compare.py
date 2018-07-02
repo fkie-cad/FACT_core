@@ -7,7 +7,6 @@ from time import sleep
 import pytest
 
 from compare.PluginBase import CompareBasePlugin
-from objects.file import FileObject
 from scheduler.Compare import CompareScheduler
 from test.common_helper import create_test_file_object
 
@@ -31,19 +30,6 @@ class MockDbInterface(object):
     def get_complete_object_including_all_summaries(self, uid):
         if uid == self.test_object.get_uid():
             return self.test_object
-        else:
-            return None
-
-    def add_compare_result(self, result):
-        pass
-
-    def get_summary(self, fo, selected_analysis):
-        return {}
-
-    def get_object(self, uid, analysis_filter=None):
-        test_object = FileObject()
-        test_object.processed_analysis = {'unpacker': {'entropy': 0.9}}
-        return test_object
 
 
 class TestSchedulerCompare(unittest.TestCase):
