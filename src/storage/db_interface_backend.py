@@ -182,7 +182,7 @@ class BackEndDbInterface(MongoInterfaceCommon):
 
     def add_analysis(self, file_object: FileObject):
         if isinstance(file_object, (Firmware, FileObject)):
-            processed_analysis = self.sanitize_analysis(file_object.processed_analysis)
+            processed_analysis = self.sanitize_analysis(file_object.processed_analysis, file_object.get_uid())
             for analysis_system in processed_analysis:
                 self._update_analysis(file_object, analysis_system, processed_analysis[analysis_system])
         else:
