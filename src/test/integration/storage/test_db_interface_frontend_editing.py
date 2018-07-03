@@ -92,8 +92,7 @@ class TestStorageDbInterfaceFrontendEditing(unittest.TestCase):
         return test_fw
 
     def test_update_object_field(self):
-        test_fw = create_test_firmware()
-        test_fw.vendor = 'foo'
+        test_fw = create_test_firmware(vendor='foo')
         self.db_backend_interface.add_object(test_fw)
 
         result = self.db_frontend_editing.get_object(test_fw.uid)
