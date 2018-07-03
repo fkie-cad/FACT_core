@@ -170,3 +170,31 @@ class TestStorageDbInterfaceFrontend(unittest.TestCase):
 
         other_versions = self.db_frontend_interface.get_other_versions_of_firmware(parent_fw2)
         self.assertIn({'_id': parent_fw3.get_uid(), 'version': '3'}, other_versions)
+
+    def test_get_specific_fields_for_multiple_entries(self):
+        test_fw_1 = create_test_firmware(device_name='fw_one', vendor='test_vendor_one')
+        self.db_backend_interface.add_firmware(test_fw_1)
+        test_fw_2 = create_test_firmware(device_name='fw_two', vendor='test_vendor_two', bin_path='container/test.7z')
+        self.db_backend_interface.add_firmware(test_fw_2)
+        test_fo = create_test_file_object()
+        self.db_backend_interface.add_file_object(test_fo)
+
+        test_uid_list = [test_fw_1.get_uid(), test_fw_2.get_uid()]
+        result = list(self.db_frontend_interface.get_specific_fields_for_multiple_entries(
+            uid_list=test_uid_list,
+            field_dict={'vendor': 1, 'device_name': 1}
+        ))
+        assert len(result) == 2
+        assert all(set(entry.keys()) == {'_id', 'vendor', 'device_name'} for entry in result)
+        result_uids = [entry['_id'] for entry in result]
+        assert all(uid in result_uids for uid in test_uid_list)
+
+        test_uid_list = [test_fw_1.get_uid(), test_fo.get_uid()]
+        result = list(self.db_frontend_interface.get_specific_fields_for_multiple_entries(
+            uid_list=test_uid_list,
+            field_dict={'virtual_file_path': 1}
+        ))
+        assert len(result) == 2
+        assert all(set(entry.keys()) == {'_id', 'virtual_file_path'} for entry in result)
+        result_uids = [entry['_id'] for entry in result]
+        assert all(uid in result_uids for uid in test_uid_list)

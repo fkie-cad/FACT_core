@@ -22,9 +22,19 @@
                     for (i = 0; i < tablinks.length; i++) {
                         tablinks[i].className = tablinks[i].className.replace(" active", "");
                     }
-                    document.getElementById(tabname).style.display = "block";
+                    document.getElementById(tabname).style.display = "inline";
                     evt.currentTarget.className += " active";
-                }
+                };
+
+                function clickCheckbox(box) {
+                    var fw_input =  document.getElementById("firmware_uid_input");
+                    if (box.checked) {
+                        fw_input.style.display = "inline";
+                    } else {
+                        fw_input.style.display = "none";
+                        fw_input.value = "";
+                    }
+                };
             </script>
 
 
@@ -41,38 +51,69 @@
                 </li>
             </ul>
 
-            <div class="form-group tab-content" id="fromFile">
-                <label class="control-label col-md-3" for="selectFile">
-                    Yara Rule File:
-                </label>
-                <div class="col-md-9">
-                    <input id="selectFile" type="file" name="file">
+            <div class="col-md-offset-2 col-md-8 col-xs-12">
+                <div class="form-group tab-content" id="fromFile">
+                    <div class="col-xs-12">
+                        <label class="control-label" for="selectFile">
+                            Yara Rule File:
+                        </label>
+                    </div>
+                    <div class="col-xs-12">
+                        <input id="selectFile" type="file" name="file">
+                    </div>
                 </div>
             </div>
 
-            <div class="form-group tab-content" id="fromText" style="display: none;">
-                <label class="control-label col-md-3" for="textarea">
-                    Yara Rule:
-                </label>
-                <div class="col-md-9 clear">
-                    <textarea name="textarea" rows="5" style="resize: vertical; position: relative; z-index: 1;"
-                    class="form-control" id="textarea"></textarea>
-                    <p style="font-family: monospace; color: gray">
-                        Example: <br>
-                        rule rulename {strings: $a = { 0123456789abcdef } condition: $a }
-                    </p>
+            <div class="col-md-offset-2 col-md-8 col-xs-12">
+                <div class="form-group tab-content" id="fromText" style="display: none;">
+                    <div class="col-xs-12">
+                        <label class="control-label" for="textarea">
+                            Yara Rule:
+                        </label>
+                    </div>
+                    <div class="col-xs-12 clear">
+                        <textarea name="textarea" rows="5" style="resize: vertical; position: relative; z-index: 1;"
+                        class="form-control" id="textarea"></textarea>
+                        <p style="font-family: monospace; color: gray">
+                            Example: <br>
+                            rule rulename {strings: $a = { 0123456789abcdef } condition: $a }
+                        </p>
+                    </div>
                 </div>
+            </div>
+
+            <div class="col-md-offset-2 col-md-8 col-xs-12" style="padding-bottom: 15px">
+                <label><input type='checkbox' name="firmware_checkbox" id="firmware_checkbox" onclick='clickCheckbox(this);'> Scan Single Firmware</label>
+                <input name="firmware_uid" type="text" class="form-control" id="firmware_uid_input" placeholder="Firmware UID" style="display: none;">
             </div>
 
             {% if error %}
             <h5 style="color: red;">{{ error }}</h5>
             {% endif %}
 
-            <button type="submit" value=submit class="btn btn-default" id="input_submit" onclick='showImg()'>
-                <span class="glyphicon glyphicon-search"></span> Search
-            </button>
+            <div class="col-md-offset-2 col-md-8 col-xs-12">
+                <button type="submit" value=submit class="btn btn-default" id="input_submit" onclick='showImg()'>
+                    <span class="glyphicon glyphicon-search"></span> Search
+                </button>
+            </div>
         </form>
     </div>
+
+    <script>
+        function set_uid(){
+            var url = window.location.href;
+            if( url.search( 'firmware_uid' ) > 0 ) {
+                var url_object = new URL(url);
+                var uid = url_object.searchParams.get("firmware_uid");
+                var cb = document.getElementById("firmware_checkbox");
+                var input = document.getElementById("firmware_uid_input");
+                cb.checked = true;
+                input.value = uid;
+                input.style.display = "inline";
+            }
+        };
+        set_uid();
+    </script>
 
 </div>
 
