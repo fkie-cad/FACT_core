@@ -65,6 +65,7 @@ class TestTagPropagation(unittest.TestCase):
         assert processed_fo.processed_analysis['crypto_material']['tags'], 'no tags set in analysis'
 
         self._wait_for_empty_tag_queue()
+        sleep(1)
 
         processed_fw = self.backend_interface.get_object(test_fw.uid, analysis_filter=['crypto_material'])
         assert processed_fw.analysis_tags, 'tags not propagated properly'
