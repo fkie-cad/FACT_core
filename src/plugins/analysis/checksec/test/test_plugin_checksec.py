@@ -9,7 +9,7 @@ from ..code.checksec import AnalysisPlugin
 FILE_PATH = 'usr/test_dir/path'
 
 
-class test_analysis_plugin_checksec(AnalysisPluginTest):
+class TestAnalysisPluginChecksec(AnalysisPluginTest):
     PLUGIN_NAME = "exploit_mitigations"
 
     def setUp(self):
