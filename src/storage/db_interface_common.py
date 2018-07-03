@@ -149,7 +149,7 @@ class MongoInterfaceCommon(MongoInterface):
                 database_level[database] = collection_level
         return database_level
 
-    def sanitize_analysis(self, analysis_dict=None, uid=None):
+    def sanitize_analysis(self, analysis_dict, uid):
         sanitized_dict = {}
         for key in analysis_dict.keys():
             if dict_size(analysis_dict[key]) > self.report_threshold:
