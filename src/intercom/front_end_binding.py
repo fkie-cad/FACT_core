@@ -39,8 +39,8 @@ class InterComFrontEndBinding(InterComMongoInterface):
     def get_repacked_binary_and_file_name(self, uid):
         return self._request_response_listener(uid, 'tar_repack_task', 'tar_repack_task_resp')
 
-    def add_binary_search_request(self, yara_rule_binary):
-        serialized_request = pickle.dumps(yara_rule_binary)
+    def add_binary_search_request(self, yara_rule_binary, firmware_uid=None):
+        serialized_request = pickle.dumps((yara_rule_binary, firmware_uid))
         request_id = generate_task_id(yara_rule_binary)
         self.connections["binary_search_task"]['fs'].put(serialized_request, filename="{}".format(request_id))
         return request_id

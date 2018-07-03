@@ -4,8 +4,8 @@ from pymongo import MongoClient, errors
 
 from helperFunctions.process import complete_shutdown
 
-warnings.filterwarnings("ignore", module="pymongo.topology")
-CONFIG_FILE = "main.cfg"
+
+warnings.filterwarnings('ignore', module='pymongo.topology')
 
 
 class MongoInterface(object):
@@ -39,4 +39,4 @@ class MongoInterface(object):
         try:
             self.client.admin.authenticate(user, pw, mechanism='SCRAM-SHA-1')
         except errors.OperationFailure as e:  # Authentication not successful
-            complete_shutdown("Error: Authentication not successful: {}".format(e))
+            complete_shutdown('Error: Authentication not successful: {}'.format(e))
