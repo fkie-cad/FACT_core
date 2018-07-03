@@ -1,16 +1,12 @@
 import binascii
-import hashlib
 from struct import unpack
 
 from unpacker.helper.carving import Carver
 
-'''
-This plugin TPLink WR702n
-'''
 
-
-class InvalidImg0InformationException(Exception):
-    pass
+'''
+This plugin unpacks TPLink WR702n firmware images
+'''
 
 
 name = 'TP-WR702N'
@@ -18,19 +14,15 @@ mime_patterns = ['firmware/tp-wr702n']
 version = '0.1'
 
 
+class InvalidImg0InformationException(Exception):
+    pass
+
+
 class Img0MissingException(Exception):
     pass
 
 
 class NotLZMAException(Exception):
-    pass
-
-
-class InvalidContainerInformationException(Exception):
-    pass
-
-
-class MD5Exception(Exception):
     pass
 
 
@@ -129,12 +121,6 @@ class TPWR702N:
     def _read_img0(self):
         self.img0 = TPIMG0(self.firmware_filepath, self.IMG0_OFFSET)
 
-    def get_container_format(self):
-        return self.container_format
-
-    def get_checksum(self):
-        return self.md5_checksum
-
     def get_tpimg0_header(self):
         return self.carver.extract_data(self.IMG0_OFFSET, self.IMG0_OFFSET + self.IMG0_HEADER_SIZE)
 
@@ -177,64 +163,6 @@ class TPWR702N:
     def _find_fs_magic_string(os_and_fs):
         search_pattern = b'owowowowowowowowowowowowowowowow'
         return os_and_fs.find(search_pattern)
-
-    def check_container_validity(self):
-        self._check_img0_information()
-        self._check_boot_and_os_blocks()
-
-        if not self._check_md5():
-            raise MD5Exception
-        return True
-
-    def _check_img0_information(self):
-        if self.img0 is None:
-            raise InvalidContainerInformationException('IMG0 header is missing')
-        if self.img0.sub_header is None:
-            raise InvalidContainerInformationException('IMG0 sub header is missing')
-
-        self.img0.check_header()
-        self.img0.sub_header.check_header()
-
-        expected_device = b'\x07\x02'
-
-        if self.img0.device_id != expected_device:
-            raise InvalidContainerInformationException('Wrong device id {}'.format(self.img0.device_id))
-
-    def _check_boot_and_os_blocks(self):
-        with open(self.firmware_filepath, 'rb') as firmware:
-            self._check_blocks(firmware, self.BOOTLOADER_OFFSET)
-            self._check_blocks(firmware, self.OS_OFFSET)
-
-    def _check_blocks(self, firmware_file, offset):
-        firmware_file.seek(offset)
-        first_byte = firmware_file.read(1)
-        self._check_expected_lzma_property(first_byte)
-
-    def _check_md5(self):
-        with open(self.firmware_filepath, 'rb') as firmware:
-            image = firmware.read()
-            image = bytearray(image)
-            image[4] = int('cc', 16)
-            image[5] = int('96', 16)
-            image[6] = int('28', 16)
-            image[7] = int('ee', 16)
-            image[8] = int('8d', 16)
-            image[9] = int('fb', 16)
-            image[10] = int('21', 16)
-            image[11] = int('bb', 16)
-            image[12] = int('3d', 16)
-            image[13] = int('ef', 16)
-            image[14] = int('6c', 16)
-            image[15] = int('b5', 16)
-            image[16] = int('9f', 16)
-            image[17] = int('77', 16)
-            image[18] = int('4c', 16)
-            image[19] = int('7c', 16)
-            image = bytes(image)
-            m = hashlib.md5()
-            m.update(image)
-
-            return m.digest() == self.md5_checksum
 
 
 class TPIMG0:
@@ -296,15 +224,6 @@ class TPIMG0:
         else:
             sub_header_offset = sub_header_offset + self.HEADER_SIZE + self.offset
             return TPIMG0(self.firmware_filepath, sub_header_offset)
-
-    def get_container_size(self):
-        return self.container_size
-
-    def get_device_id(self):
-        return self.device_id
-
-    def get_language(self):
-        return self.language
 
     def check_header(self):
         if self.container_size <= 0:

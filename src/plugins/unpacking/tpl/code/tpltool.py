@@ -5,11 +5,11 @@ from common_helper_process import execute_shell_command
 
 from helperFunctions.fileSystem import get_faf_bin_dir
 
+
 name = 'tpl-tool'
 mime_patterns = ['firmware/tp-link']
 version = '0.3'
 path_to_unpacker = os.path.join(get_faf_bin_dir(), 'tpl-tool')
-CONFIG_FILE = 'main.cfg'
 
 
 def unpack_function(file_path, tmp_dir):

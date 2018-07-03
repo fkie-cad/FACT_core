@@ -5,7 +5,7 @@ from objects.file import FileObject
 from helperFunctions.fileSystem import get_test_data_dir
 
 
-class test_analysis_plugin_mime_detection(AnalysisPluginTest):
+class TestAnalysisPluginFileType(AnalysisPluginTest):
 
     PLUGIN_NAME = 'file_type'
 
