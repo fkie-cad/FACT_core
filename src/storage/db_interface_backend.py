@@ -5,6 +5,7 @@ from time import time
 from pymongo.errors import PyMongoError
 
 from helperFunctions.dataConversion import convert_str_to_time
+from helperFunctions.object_storage import update_virtual_file_path, update_included_files, update_analysis_tags
 from helperFunctions.tag import update_tags
 from objects.file import FileObject
 from objects.firmware import Firmware
@@ -22,50 +23,39 @@ class BackEndDbInterface(MongoInterfaceCommon):
             logging.error('invalid object type: {} -> {}'.format(type(fo_fw), fo_fw))
 
     def update_object(self, new_object=None, old_object=None):
-        old_pa = self.retrieve_analysis(old_object['processed_analysis'])
-        new_pa = new_object.processed_analysis
-        for key in new_pa.keys():
-            old_pa[key] = new_pa[key]
-        old_pa = self.sanitize_analysis(analysis_dict=old_pa, uid=new_object.get_uid())
-
-        old_vfp = old_object['virtual_file_path']
-        new_vfp = new_object.virtual_file_path
-        for key in new_vfp.keys():
-            old_vfp[key] = new_vfp[key]
-
-        old_fi = old_object['files_included']
-        new_fi = new_object.files_included
-        old_fi.extend(new_fi)
-        old_fi = list(set(old_fi))
+        update_dictionary = {
+            'processed_analysis': self._update_processed_analysis(new_object, old_object),
+            'files_included': update_included_files(new_object, old_object),
+            'virtual_file_path': update_virtual_file_path(new_object, old_object),
+            'analysis_tags': update_analysis_tags(new_object, old_object),
+        }
 
         if type(new_object) == Firmware:
-            try:
-                self.firmwares.update_one({'_id': new_object.get_uid()}, {
-                    '$set': {'processed_analysis': old_pa,
-                             'files_included': old_fi,
-                             'virtual_file_path': old_vfp,
-                             'version': new_object.version,
-                             'device_name': new_object.device_name,
-                             'device_class': new_object.device_class,
-                             'vendor': new_object.vendor,
-                             'release_date': convert_str_to_time(new_object.release_date),
-                             'tags': new_object.tags,
-                             'analysis_tags': new_object.analysis_tags,
-                             'comments': new_object.comments}})
-            except Exception as e:
-                logging.error('Could not update firmware: {} - {}'.format(sys.exc_info()[0].__name__, e))
+            update_dictionary.update({
+                'version': new_object.version,
+                'device_name': new_object.device_name,
+                'device_class': new_object.device_class,
+                'vendor': new_object.vendor,
+                'release_date': convert_str_to_time(new_object.release_date),
+                'tags': new_object.tags,
+            })
+            collection = self.firmwares
         else:
-            parent_firmware_uids = set.union(set(old_object['parent_firmware_uids']), new_object.parent_firmware_uids)
-            try:
-                self.file_objects.update_one({'_id': new_object.get_uid()}, {
-                    '$set': {'processed_analysis': old_pa,
-                             'files_included': old_fi,
-                             'virtual_file_path': old_vfp,
-                             'analysis_tags': new_object.analysis_tags,
-                             'comments': new_object.comments,
-                             'parent_firmware_uids': list(parent_firmware_uids)}})
-            except Exception as e:
-                logging.error('Could not update file: {} - {}'.format(sys.exc_info()[0].__name__, e))
+            update_dictionary.update({
+                'parent_firmware_uids': list(set.union(set(old_object['parent_firmware_uids']), new_object.parent_firmware_uids))
+            })
+            collection = self.file_objects
+
+        try:
+            collection.update_one({'_id': new_object.get_uid()}, {'$set': update_dictionary})
+        except Exception as e:
+            logging.error('[{}] Could not update object: {}'.format(type(e), e))
+
+    def _update_processed_analysis(self, new_object: FileObject, old_object: dict) -> dict:
+        old_pa = self.retrieve_analysis(old_object['processed_analysis'])
+        for key in new_object.processed_analysis.keys():
+            old_pa[key] = new_object.processed_analysis[key]
+        return self.sanitize_analysis(analysis_dict=old_pa, uid=new_object.get_uid())
 
     def add_firmware(self, firmware):
         old_object = self.firmwares.find_one({'_id': firmware.get_uid()})
