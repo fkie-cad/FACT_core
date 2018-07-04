@@ -2,7 +2,7 @@ from objects.file import FileObject
 
 
 def update_analysis_tags(new_object: FileObject, old_object: dict) -> dict:
-    old_tags = old_object['analysis_tags'] if 'analysis_tags' else {}
+    old_tags = old_object['analysis_tags'] if 'analysis_tags' in old_object else {}
     new_tags = new_object.analysis_tags
     for key in new_tags.keys():
         old_tags[key] = new_tags[key]
