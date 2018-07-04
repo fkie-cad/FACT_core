@@ -46,10 +46,7 @@ class BackEndDbInterface(MongoInterfaceCommon):
             })
             collection = self.file_objects
 
-        try:
-            collection.update_one({'_id': new_object.get_uid()}, {'$set': update_dictionary})
-        except Exception as e:
-            logging.error('[{}] Could not update object: {}'.format(type(e), e))
+        collection.update_one({'_id': new_object.get_uid()}, {'$set': update_dictionary})
 
     def _update_processed_analysis(self, new_object: FileObject, old_object: dict) -> dict:
         old_pa = self.retrieve_analysis(old_object['processed_analysis'])
@@ -64,7 +61,7 @@ class BackEndDbInterface(MongoInterfaceCommon):
             try:
                 self.update_object(new_object=firmware, old_object=old_object)
             except Exception as e:
-                logging.error('Could not update firmware: {} - {}'.format(sys.exc_info()[0].__name__, e))
+                logging.error('[{}] Could not update firmware: {}'.format(type(e), e))
                 return None
         else:
             logging.debug('Detected new firmware!')
@@ -108,7 +105,7 @@ class BackEndDbInterface(MongoInterfaceCommon):
             try:
                 self.update_object(new_object=file_object, old_object=old_object)
             except Exception as e:
-                logging.error('Could not update firmware: {} - {}'.format(sys.exc_info()[0].__name__, e))
+                logging.error('[{}] Could not update file object: {}'.format(type(e), e))
                 return None
         else:
             logging.debug('Detected new file_object!')
