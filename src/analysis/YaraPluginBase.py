@@ -15,7 +15,6 @@ class YaraBasePlugin(AnalysisBasePlugin):
     NAME = "Yara_Base_Plugin"
     DESCRIPTION = "this is a Yara plugin"
     VERSION = "0.0"
-    FILE = __file__
 
     def __init__(self, plugin_administrator, config=None, recursive=True, plugin_path=None):
         '''

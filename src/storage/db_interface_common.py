@@ -2,12 +2,13 @@ import json
 import logging
 import pickle
 import sys
+from typing import Set
 
 import gridfs
 from common_helper_files import get_safe_name
 from common_helper_mongo.aggregate import get_list_of_all_values, get_list_of_all_values_and_collect_information_of_additional_field
 
-from helperFunctions.dataConversion import dict_size, convert_time_to_str
+from helperFunctions.dataConversion import get_dict_size, convert_time_to_str
 from objects.file import FileObject
 from objects.firmware import Firmware
 from storage.mongo_interface import MongoInterface
@@ -139,26 +140,11 @@ class MongoInterfaceCommon(MongoInterface):
                 setattr(file_object, attribute, entry[attribute])
         return file_object
 
-    def _reconstruct_database_structure_as_dict(self):
-        database_level = {}
-        for database in self.client.database_names():
-            if database != 'local':
-                collection_level = {}
-                for collection in self.client[database].collection_names():
-                    if collection != 'system.indexes':
-                        entry_level = []
-                        for first_entry in self.client[database][collection].find(limit=1):
-                            for key in first_entry:
-                                entry_level.append(key)
-                        collection_level[collection] = entry_level
-                database_level[database] = collection_level
-        return database_level
-
-    def sanitize_analysis(self, analysis_dict=None, uid=None):
+    def sanitize_analysis(self, analysis_dict, uid):
         sanitized_dict = {}
         for key in analysis_dict.keys():
-            if dict_size(analysis_dict[key]) > self.report_threshold:
-                logging.debug('Extracting analysis {} to file (Size: {})'.format(key, dict_size(analysis_dict[key])))
+            if get_dict_size(analysis_dict[key]) > self.report_threshold:
+                logging.debug('Extracting analysis {} to file (Size: {})'.format(key, get_dict_size(analysis_dict[key])))
                 sanitized_dict[key] = self._extract_binaries(analysis_dict, key, uid)
                 sanitized_dict[key]['file_system_flag'] = True
             else:
@@ -242,6 +228,12 @@ class MongoInterfaceCommon(MongoInterface):
             return files
         else:
             return set()
+
+    def get_uids_of_all_included_files(self, uid: str) -> Set[str]:
+        return {
+            match['_id']
+            for match in self.file_objects.find({'parent_firmware_uids': uid}, {'_id': 1})
+        }
 
     def get_summary(self, fo, selected_analysis):
         if selected_analysis in fo.processed_analysis:

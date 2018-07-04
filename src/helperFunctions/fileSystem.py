@@ -82,14 +82,6 @@ def get_chroot_path_excluding_extracted_dir(absolute_path, base_path):
     return get_chroot_path(tmp, '/faf_extracted')
 
 
-def check_critical_file_existence(file_path):
-    '''
-    end the program if a critical file (file_path) is missing
-    '''
-    if not os.path.exists(file_path):
-        complete_shutdown('Required file not found: {}'.format(file_path))
-
-
 def get_file_type_from_path(file_path):
     '''
     This functions returns a dict with the file's mime- and full-type.
