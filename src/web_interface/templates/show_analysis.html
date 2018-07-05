@@ -235,7 +235,7 @@
         {% block analysis_result %}
         {% endblock %}
     </div>
-        
+
     {% if summary_of_included_files %}
     <div class="col-lg-12">
     	<table class="table table-bordered result">
@@ -271,7 +271,7 @@
 	    {% if firmware.processed_analysis["file_type"]['mime'] in previewable_mime_types
 	    or firmware.processed_analysis["file_type"]['mime'][0:5] == "text/"
 	    or firmware.processed_analysis["file_type"]['mime'][0:6] == "image/" %}
-		
+
 		    <div class="col-lg-12">
 		        <button id="preview_button" data-toggle="collapse" data-target="#preview-div" class="list-group-item list-group-item-info">
 		            <b style="color:#f8f8f8;">Show Preview</b>
@@ -294,10 +294,10 @@
 		            document.getElementById("preview_button").onclick = load_preview;
 		        </script>
 		    </div>
-	    
+
 	    {% endif %}
 	{% endif %}
-    
+
 
     {# comment section #}
 
@@ -404,13 +404,19 @@
                     </button>
                 </form>
 			{% endif %}
+			{# Start Binary Search Button #}
+			{% if firmware.vendor %}
+                <button class="btn btn-default" onclick='window.location.href = "/database/binary_search?firmware_uid={{ firmware.get_uid() }}";'>
+                    <span class="glyphicon glyphicon-search"></span> YARA search
+                </button>
+			{% endif %}
 	    </div>
     </div>
     {# admin buttons #}
     {% if firmware.vendor and user_has_admin_clearance %}
     <div class="col-lg-6 col-md-12">
 	    <div class="alert alert-custom" style="padding:5px;">
-    		<strong>admin options:</strong> 
+            <strong>admin options:</strong>
     		{# Update Analysis Buttons #}
 		    <button data-toggle="collapse" data-target="#re-do-button-div" class="btn btn-default">
 	            <span class="glyphicon glyphicon-repeat"></span> re-do analysis
