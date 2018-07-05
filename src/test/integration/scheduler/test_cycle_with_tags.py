@@ -1,9 +1,8 @@
 import gc
 import unittest
-from multiprocessing import Event, Value
+from multiprocessing import Event
 from tempfile import TemporaryDirectory
 from time import sleep
-from unittest.mock import patch
 
 from helperFunctions.fileSystem import get_test_data_dir
 from objects.firmware import Firmware
@@ -13,7 +12,7 @@ from scheduler.analysis_tag import TaggingDaemon
 from storage.MongoMgr import MongoMgr
 from storage.db_interface_backend import BackEndDbInterface
 from test.common_helper import get_database_names, clean_test_database
-from test.integration.common import initialize_config, MockFSOrganizer
+from test.integration.common import initialize_config
 
 
 class TestTagPropagation(unittest.TestCase):
