@@ -39,10 +39,10 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBase):
             plugins = connection.get_available_analysis_plugins()
 
         mandatory_plugins = [p for p in plugins if plugins[p][1]]
-        default_plugins = [p for p in plugins if plugins[p][2]]
+        default_plugins = [p for p in plugins if p != 'unpacker' and plugins[p][2]['default']]
         optional_plugins = [p for p in plugins if not (plugins[p][1] or plugins[p][2])]
         for mandatory_plugin in mandatory_plugins:
-            self.assertNotIn(mandatory_plugin.encode(), rv.data, 'mandatory plugin {} found erroneously'.format(mandatory_plugin))
+            self.assertNotIn('id="{}"'.format(mandatory_plugin).encode(), rv.data, 'mandatory plugin {} found erroneously'.format(mandatory_plugin))
         for default_plugin in default_plugins:
             self.assertIn('value="{}" checked'.format(default_plugin).encode(), rv.data,
                           'default plugin {} erroneously unchecked or not found'.format(default_plugin))
