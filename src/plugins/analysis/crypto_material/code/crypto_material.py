@@ -10,7 +10,6 @@ class AnalysisPlugin(YaraBasePlugin):
     NAME = 'crypto_material'
     DESCRIPTION = 'detects crypto material like SSH keys and SSL certificates'
     VERSION = '0.5.1'
-    FILE = __file__
     STARTEND = ['PgpPublicKeyBlock', 'PgpPrivateKeyBlock', 'PgpPublicKeyBlock_GnuPG', 'genericPublicKey',
                 'SshRsaPrivateKeyBlock', 'SSLPrivateKey']
     STARTONLY = ['SshRsaPublicKeyBlock']
