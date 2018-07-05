@@ -118,7 +118,8 @@ class FileObject(object):
                 return get_value_of_first_key(file_paths)
             else:
                 return file_paths[req_root_uid]
-        except:
+        except Exception:
+            logging.error('Error on virtual file path retrieval. This should be fixed')
             return ["insufficient information: firmware analysis not complete"]
 
     def get_virtual_file_paths(self):
