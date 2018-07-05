@@ -132,4 +132,4 @@ class FilterClass:
         self._app.jinja_env.filters['sort_privileges'] = lambda privileges: sorted(privileges, key=lambda role: len(privileges[role]), reverse=True)
         self._app.jinja_env.filters['format_string_list_with_offset'] = filter_format_string_list_with_offset
         self._app.jinja_env.filters['decompress'] = decompress
-        self._app.jinja_env.filters['dict_to_json'] = lambda x: json.dumps(x)
+        self._app.jinja_env.filters['dict_to_json'] = json.dumps
