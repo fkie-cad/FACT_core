@@ -56,7 +56,7 @@ class DatabaseRoutes(ComponentBase):
             else:
                 query = {'$and': [query, date_query]}
             return query
-        except:
+        except Exception:
             return query
 
     @roles_accepted(*PRIVILEGES['basic_search'])

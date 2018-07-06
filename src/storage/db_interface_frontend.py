@@ -7,7 +7,7 @@ from helperFunctions.compare_sets import remove_duplicates_from_list
 from helperFunctions.dataConversion import get_value_of_first_key
 from helperFunctions.database_structure import visualize_complete_tree
 from helperFunctions.file_tree import get_partial_virtual_path, FileTreeNode
-from helperFunctions.merge_generators import merge_generators, dict_to_sorted_tuples
+from helperFunctions.merge_generators import merge_generators
 from objects.file import FileObject
 from objects.firmware import Firmware
 from storage.db_interface_common import MongoInterfaceCommon
@@ -33,7 +33,11 @@ class FrontEndDbInterface(MongoInterfaceCommon):
                 else:
                     unpacker = firmware['processed_analysis']['unpacker']['plugin_used']
                 tags[unpacker] = TagColor.LIGHT_BLUE
-                list_of_firmware_data.append((firmware['_id'], self.get_hid(firmware['_id']), tags))
+                if 'submission_date' in firmware:
+                    submission_date = firmware['submission_date']
+                else:
+                    submission_date = 0
+                list_of_firmware_data.append((firmware['_id'], self.get_hid(firmware['_id']), tags, submission_date))
         return list_of_firmware_data
 
     def get_hid(self, uid, root_uid=None):
@@ -180,15 +184,10 @@ class FrontEndDbInterface(MongoInterfaceCommon):
     # --- statistics
 
     def get_last_added_firmwares(self, limit_x=10):
-        db_entries = self.firmwares.find(
-            {'submission_date': {'$gt': 1}},
-            {'_id': 1, 'vendor': 1, 'device_name': 1, 'device_part': 1, 'version': 1, 'device_class': 1, 'submission_date': 1, 'tags': 1},
-            limit=limit_x, sort=[('submission_date', -1)]
+        latest_firmwares = self.firmwares.find(
+            {'submission_date': {'$gt': 1}}, limit=limit_x, sort=[('submission_date', -1)]
         )
-        result = []
-        for item in db_entries:
-            result.append(item)
-        return result
+        return self.get_meta_list(latest_firmwares)
 
     def get_latest_comments(self, limit=10):
         comments = []
