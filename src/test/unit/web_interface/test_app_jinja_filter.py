@@ -13,11 +13,11 @@ class TestAppShowAnalysis(WebInterfaceTest):
     def _get_template_filter_output(self, data, filter_name):
         with self.frontend.app.test_request_context():
             return render_template_string(
-                '<html><body><div>{{{{ "{data}" | {filter_name} | safe }}}}</div></body></html>'.format(data=data, filter_name=filter_name)
+                '<html><body><div>{{{{ {data} | {filter_name} | safe }}}}</div></body></html>'.format(data=data, filter_name=filter_name)
             )
 
     def test_filter_replace_uid_with_file_name(self):
-        test_string = 'abcdefghijk>deadbeef00000000000000000000000000000000000000000000000000000000_123<abcdefghijk'
+        test_string = '"abcdefghijk>deadbeef00000000000000000000000000000000000000000000000000000000_123<abcdefghijk"'
         result = self.filter._filter_replace_uid_with_file_name(test_string)
         assert '>test_name<' in result
 
@@ -27,5 +27,5 @@ class TestAppShowAnalysis(WebInterfaceTest):
     def test_filter_firmware_detail_tabular_field(self):
         test_firmware_meta_data = ('UID', 'HID', {'tag1': 'danger', 'tag2': 'default'}, 0)
         result = self._get_template_filter_output(test_firmware_meta_data, 'firmware_detail_tabular_field')
-        for expected_part in ['/analysis/UID', '>HID<', '>tag1<', '>tag2<']:
+        for expected_part in ['/analysis/UID', 'HID', '>tag1<', '>tag2<']:
             assert expected_part in result
