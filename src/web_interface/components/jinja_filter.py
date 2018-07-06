@@ -129,3 +129,4 @@ class FilterClass:
         self._app.jinja_env.filters['format_string_list_with_offset'] = filter_format_string_list_with_offset
         self._app.jinja_env.filters['decompress'] = decompress
         self._app.jinja_env.filters['firmware_detail_tabular_field'] = self._filter_firmware_detail_tabular_field
+        self._app.jinja_env.filters['dict_to_json'] = json.dumps

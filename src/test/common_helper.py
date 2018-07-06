@@ -214,10 +214,10 @@ class DatabaseMock:
 
     def get_available_analysis_plugins(self):
         return {
-            'default_plugin': ('default plugin description', False, True),
-            'mandatory_plugin': ('mandatory plugin description', True, False),
-            'optional_plugin': ('optional plugin description', False, False),
-            'file_type': ('file_type plugin', False, False)}
+            'default_plugin': ('default plugin description', False, {'default': True}),
+            'mandatory_plugin': ('mandatory plugin description', True, {'default': False}),
+            'optional_plugin': ('optional plugin description', False, {'default': False}),
+            'file_type': ('file_type plugin', False, {'default': False})}
 
     def get_binary_and_filename(self, uid):
         if uid == TEST_FW.get_uid():
