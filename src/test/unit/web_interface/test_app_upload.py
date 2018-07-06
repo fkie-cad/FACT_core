@@ -9,7 +9,7 @@ class TestAppUpload(WebInterfaceTest):
         rv = self.test_client.get('/upload')
         assert b'<h2>Upload Firmware</h2>' in rv.data
         assert b'value="default_plugin" checked' in rv.data
-        assert b'mandatory_plugin' not in rv.data
+        assert b'value="mandatory_plugin"' not in rv.data
         assert b'value="optional_plugin" unchecked' in rv.data
 
     def test_app_upload_invalid_firmware(self):

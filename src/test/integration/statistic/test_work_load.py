@@ -6,8 +6,7 @@ from helperFunctions.config import get_config_for_testing
 from statistic.work_load import WorkLoadStatistic
 from storage.MongoMgr import MongoMgr
 from storage.db_interface_statistic import StatisticDbViewer
-from test.common_helper import get_database_names
-from test.unit.helperFunctions_setup_test_data import clean_test_database
+from test.common_helper import get_database_names, clean_test_database
 
 
 class TestWorkloadStatistic(unittest.TestCase):

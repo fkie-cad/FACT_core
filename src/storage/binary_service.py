@@ -3,7 +3,7 @@ import logging
 from common_helper_files.fail_safe_file_operations import get_binary_from_file
 
 from storage.db_interface_common import MongoInterfaceCommon
-from unpacker.tar_repack import tarRepack
+from unpacker.tar_repack import TarRepack
 
 
 class BinaryService(object):
@@ -28,7 +28,7 @@ class BinaryService(object):
         if tmp is None:
             return None, None
         else:
-            repack_service = tarRepack(config=self.config)
+            repack_service = TarRepack(config=self.config)
             tar = repack_service.tar_repack(tmp['file_path'])
             name = "{}.tar.gz".format(tmp['file_name'])
             return (tar, name)

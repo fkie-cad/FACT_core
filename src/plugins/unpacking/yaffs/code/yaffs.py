@@ -4,14 +4,13 @@ from common_helper_process import execute_shell_command
 
 from helperFunctions.fileSystem import get_faf_bin_dir
 
+
 name = 'YAFFS'
 mime_patterns = ['filesystem/yaffs']
 version = '0.4'
 
 path_to_unyaffs = '/usr/bin/unyaffs'
 path_to_unyaffs2 = path.join(get_faf_bin_dir(), 'unyaffs2')
-
-CONFIG_FILE = 'main.cfg'
 
 
 def unpack_function(file_path, tmp_dir):
