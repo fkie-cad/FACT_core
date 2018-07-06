@@ -25,7 +25,7 @@ class TestAppShowAnalysis(WebInterfaceTest):
         assert '>test_name<' in result
 
     def test_filter_firmware_detail_tabular_field(self):
-        test_firmware_meta_data = ('UID', 'HID', ['tag1', 'tag2'], 0)
+        test_firmware_meta_data = ('UID', 'HID', {'tag1': 'danger', 'tag2': 'default'}, 0)
         result = self._get_template_filter_output(test_firmware_meta_data, 'firmware_detail_tabular_field')
         for expected_part in ['/analysis/UID', '>HID<', '>tag1<', '>tag2<']:
             assert expected_part in result
