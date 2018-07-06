@@ -13,7 +13,6 @@ class AnalysisPlugin(YaraBasePlugin):
     DESCRIPTION = 'Rule based detection of known vulnerabilities like Heartbleed'
     DEPENDENCIES = ['file_hashes', 'software_components']
     VERSION = '0.2'
-    FILE = __file__
 
     def __init__(self, plugin_administrator, config=None, recursive=True):
         self._rule_base_vulnerabilities = vulnerabilities()

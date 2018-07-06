@@ -147,8 +147,7 @@ class AnalysisScheduler(object):
                 self.process_next_analysis(task)
 
     def process_next_analysis(self, fw_object):
-        if not self.db_backend_service.existence_quick_check(fw_object.get_uid()):
-            self.pre_analysis(fw_object)
+        self.pre_analysis(fw_object)
         analysis_to_do = fw_object.scheduled_analysis.pop()
         if analysis_to_do not in self.analysis_plugins:
             logging.error('Plugin \'{}\' not available'.format(analysis_to_do))
