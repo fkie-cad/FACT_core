@@ -24,7 +24,7 @@ class TestScheduleInitialAnalysis(unittest.TestCase):
         config.add_section('ip_and_uri_finder')
         config.set('ip_and_uri_finder', 'signature_directory', 'analysis/signatures/ip_and_uri_finder/')
         config.add_section('default_plugins')
-        config.set('default_plugins', 'plugins', 'file_hashes')
+        config.set('default_plugins', 'default', 'file_hashes')
         self.tmp_queue = Queue()
         self.sched = AnalysisScheduler(config=config, pre_analysis=lambda *_: None, post_analysis=self.dummy_callback, db_interface=DatabaseMock())
 
@@ -62,18 +62,31 @@ class TestScheduleInitialAnalysis(unittest.TestCase):
         self.assertIn('file_hashes', test_fw.processed_analysis.keys(), 'Mandatory plug-in not executed')
         self.assertIn('file_type', test_fw.processed_analysis.keys(), 'Mandatory plug-in not executed')
 
-    def test_get_plugin_dict(self):
+    def test_expected_plugins_are_found(self):
         result = self.sched.get_plugin_dict()
+
         self.assertIn('file_hashes', result.keys(), 'file hashes plugin not found')
-        self.assertTrue(result['file_hashes'][1], 'mandatory flag not set')
-        self.assertTrue(result['file_hashes'][2], 'default flag not set')
-        self.assertEqual(self.sched.analysis_plugins['file_hashes'].VERSION, result['file_hashes'][3], 'version not correct')
         self.assertIn('file_type', result.keys(), 'file type plugin not found')
-        self.assertFalse(result['file_type'][2], 'default flag set but should not')
-        self.assertEqual(result['file_type'][0], self.sched.analysis_plugins['file_type'].DESCRIPTION, 'description not correct')
-        self.assertEqual(self.sched.analysis_plugins['file_type'].VERSION, result['file_type'][3], 'version not correct')
-        self.assertTrue(result['unpacker'][1], 'unpacker plugin not marked as mandatory')
+
         self.assertNotIn('dummy_plug_in_for_testing_only', result.keys(), 'dummy plug-in not removed')
+
+    def test_get_plugin_dict_description(self):
+        result = self.sched.get_plugin_dict()
+        self.assertEqual(result['file_type'][0], self.sched.analysis_plugins['file_type'].DESCRIPTION, 'description not correct')
+
+    def test_get_plugin_dict_flags(self):
+        result = self.sched.get_plugin_dict()
+
+        self.assertTrue(result['file_hashes'][1], 'mandatory flag not set')
+        self.assertTrue(result['unpacker'][1], 'unpacker plugin not marked as mandatory')
+
+        self.assertTrue(result['file_hashes'][2]['default'], 'default flag not set')
+        self.assertFalse(result['file_type'][2]['default'], 'default flag set but should not')
+
+    def test_get_plugin_dict_version(self):
+        result = self.sched.get_plugin_dict()
+        self.assertEqual(self.sched.analysis_plugins['file_type'].VERSION, result['file_type'][3], 'version not correct')
+        self.assertEqual(self.sched.analysis_plugins['file_hashes'].VERSION, result['file_hashes'][3], 'version not correct')
 
     def dummy_callback(self, fw):
         self.tmp_queue.put(fw)
