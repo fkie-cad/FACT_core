@@ -78,7 +78,8 @@ class FilterClass:
                                number_of_unanalyzed_files=number_of_unanalyzed_files,
                                root_uid=root_uid, selected_analysis=selected_analysis)
 
-    def _filter_firmware_detail_tabular_field(self, firmware_meta_data):
+    @staticmethod
+    def _render_firmware_detail_tabular_field(firmware_meta_data):
         return render_template('generic_view/firmware_detail_tabular_field.html', firmware=firmware_meta_data)
 
     def check_auth(self, _):
@@ -128,5 +129,5 @@ class FilterClass:
         self._app.jinja_env.filters['sort_privileges'] = lambda privileges: sorted(privileges, key=lambda role: len(privileges[role]), reverse=True)
         self._app.jinja_env.filters['format_string_list_with_offset'] = filter_format_string_list_with_offset
         self._app.jinja_env.filters['decompress'] = decompress
-        self._app.jinja_env.filters['firmware_detail_tabular_field'] = self._filter_firmware_detail_tabular_field
+        self._app.jinja_env.filters['firmware_detail_tabular_field'] = self._render_firmware_detail_tabular_field
         self._app.jinja_env.filters['dict_to_json'] = json.dumps
