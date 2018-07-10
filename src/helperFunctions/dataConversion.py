@@ -2,7 +2,6 @@ import re
 from datetime import datetime
 from pickle import dumps
 from typing import List, Set
-from _datetime import date
 
 
 def make_bytes(code):
