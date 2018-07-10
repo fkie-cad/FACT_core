@@ -20,10 +20,10 @@ class Compare(object):
         self.config = config
         self.db_interface = db_interface
         self._setup_plugins()
-        logging.info("Plug-ins available: {}".format(list(self.compare_plugins.keys())))
+        logging.info('Plug-ins available: {}'.format(list(self.compare_plugins.keys())))
 
     def compare(self, uid_list):
-        logging.info("Compare in progress: {}".format(uid_list))
+        logging.info('Compare in progress: {}'.format(uid_list))
         bs = BinaryService(config=self.config)
 
         fo_list = []
@@ -40,7 +40,7 @@ class Compare(object):
     def compare_objects(self, fo_list):
         tmp = {}
         tmp['general'] = self._create_general_section_dict(fo_list)
-        tmp['plugins'] = self._execute_compare_plugins(fo_list, tmp)
+        tmp['plugins'] = self._execute_compare_plugins(fo_list)
         return tmp
 
     def _create_general_section_dict(self, object_list):
@@ -82,7 +82,7 @@ class Compare(object):
     def register_plugin(self, name, c_plugin_instance):
         self.compare_plugins[name] = c_plugin_instance
 
-    def _execute_compare_plugins(self, fo_list, base_dict):
+    def _execute_compare_plugins(self, fo_list):
         plugin_results = {}
         for plugin in self.compare_plugins:
             plugin_results[plugin] = self.compare_plugins[plugin].compare(fo_list)

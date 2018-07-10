@@ -15,7 +15,7 @@ from unpacker.unpackBase import UnpackBase
 class Unpacker(UnpackBase):
 
     GENERIC_FS_FALLBACK_CANDIDATES = ['SquashFS']
-    GENERIC_CARVER_FALLBACK_BLACKLIST = ['generic_carver', 'NOP', 'PaTool']
+    GENERIC_CARVER_FALLBACK_BLACKLIST = ['generic_carver', 'NOP', 'PaTool', 'SFX']
     VALID_COMPRESSED_FILE_TYPES = ['application/x-shockwave-flash', 'audio/mpeg', 'audio/ogg', 'image/png', 'image/jpeg', 'image/gif', 'video/mp4', 'video/ogg']
     HEADER_OVERHEAD = 256
 

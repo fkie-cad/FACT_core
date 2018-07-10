@@ -1,9 +1,8 @@
 import gc
 import unittest
-from multiprocessing import Event, Value
+from multiprocessing import Event
 from tempfile import TemporaryDirectory
 from time import sleep
-from unittest.mock import patch
 
 from helperFunctions.fileSystem import get_test_data_dir
 from objects.firmware import Firmware
@@ -12,9 +11,8 @@ from scheduler.Unpacking import UnpackingScheduler
 from scheduler.analysis_tag import TaggingDaemon
 from storage.MongoMgr import MongoMgr
 from storage.db_interface_backend import BackEndDbInterface
-from test.common_helper import get_database_names
-from test.integration.common import initialize_config, MockFSOrganizer
-from test.unit.helperFunctions_setup_test_data import clean_test_database
+from test.common_helper import get_database_names, clean_test_database
+from test.integration.common import initialize_config
 
 
 class TestTagPropagation(unittest.TestCase):
@@ -28,13 +26,14 @@ class TestTagPropagation(unittest.TestCase):
         self._mongo_server = MongoMgr(config=self._config, auth=False)
         self.backend_interface = BackEndDbInterface(config=self._config)
 
-        self._analysis_scheduler = AnalysisScheduler(config=self._config, post_analysis=self.count_analysis_finished_event)
+        self._analysis_scheduler = AnalysisScheduler(config=self._config, pre_analysis=self.backend_interface.add_object, post_analysis=self.count_analysis_finished_event)
         self._tagging_scheduler = TaggingDaemon(analysis_scheduler=self._analysis_scheduler)
         self._unpack_scheduler = UnpackingScheduler(config=self._config, post_unpack=self._analysis_scheduler.add_task)
 
     def count_analysis_finished_event(self, fw_object):
-        self.backend_interface.add_object(fw_object)
-        if fw_object.uid == self.uid_of_key_file:
+        self.backend_interface.add_analysis(fw_object)
+        if fw_object.uid == self.uid_of_key_file and 'crypto_material' in fw_object.processed_analysis:
+            sleep(1)
             self.analysis_finished_event.set()
 
     def _wait_for_empty_tag_queue(self):

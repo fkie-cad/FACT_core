@@ -4,7 +4,7 @@ import os
 import unittest
 
 from helperFunctions.fileSystem import get_test_data_dir
-from unpacker.tar_repack import tarRepack
+from unpacker.tar_repack import TarRepack
 from helperFunctions.config import get_config_for_testing
 
 
@@ -12,7 +12,7 @@ class Test_unpacker_tar_repack(unittest.TestCase):
 
     def setUp(self):
         self.config = get_config_for_testing()
-        self.repack_service = tarRepack(config=self.config)
+        self.repack_service = TarRepack(config=self.config)
 
     def tearDown(self):
         gc.collect()
