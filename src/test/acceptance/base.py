@@ -14,8 +14,7 @@ from scheduler.Analysis import AnalysisScheduler
 from scheduler.Compare import CompareScheduler
 from scheduler.Unpacking import UnpackingScheduler
 from storage.MongoMgr import MongoMgr
-from test.common_helper import get_database_names
-from test.unit.helperFunctions_setup_test_data import clean_test_database
+from test.common_helper import get_database_names, clean_test_database
 from web_interface.frontend_main import WebFrontEnd
 
 

@@ -23,7 +23,7 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBase):
     def _analysis_callback(self, fo):
         self.db_backend_service.add_object(fo)
         self.elements_finished_analyzing.value += 1
-        if self.elements_finished_analyzing.value > 3:
+        if self.elements_finished_analyzing.value > 5:
             self.analysis_finished_event.set()
 
     def tearDown(self):
@@ -39,10 +39,10 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBase):
             plugins = connection.get_available_analysis_plugins()
 
         mandatory_plugins = [p for p in plugins if plugins[p][1]]
-        default_plugins = [p for p in plugins if plugins[p][2]]
+        default_plugins = [p for p in plugins if p != 'unpacker' and plugins[p][2]['default']]
         optional_plugins = [p for p in plugins if not (plugins[p][1] or plugins[p][2])]
         for mandatory_plugin in mandatory_plugins:
-            self.assertNotIn(mandatory_plugin.encode(), rv.data, 'mandatory plugin {} found erroneously'.format(mandatory_plugin))
+            self.assertNotIn('id="{}"'.format(mandatory_plugin).encode(), rv.data, 'mandatory plugin {} found erroneously'.format(mandatory_plugin))
         for default_plugin in default_plugins:
             self.assertIn('value="{}" checked'.format(default_plugin).encode(), rv.data,
                           'default plugin {} erroneously unchecked or not found'.format(default_plugin))

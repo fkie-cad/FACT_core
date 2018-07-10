@@ -18,9 +18,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     '''
     NAME = 'ip_and_uri_finder'
     DEPENDENCIES = []
-    VERSION = '0.3'
     DESCRIPTION = 'search for IPs and URIs'
-    FILE = __file__
     VERSION = ip_and_uri_finder_analysis.system_version
 
     def __init__(self, plugin_administrator, config=None, recursive=True):
