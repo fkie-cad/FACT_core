@@ -168,7 +168,7 @@ class FrontEndDbInterface(MongoInterfaceCommon):
     def get_other_versions_of_firmware(self, firmware_object):
         if not isinstance(firmware_object, Firmware):
             return []
-        query = {'vendor': firmware_object.vendor, 'device_name': firmware_object.device_name}
+        query = {'vendor': firmware_object.vendor, 'device_name': firmware_object.device_name, 'device_part': firmware_object.part}
         results = self.firmwares.find(query, {'_id': 1, 'version': 1})
         return [r for r in results if r['_id'] != firmware_object.get_uid()]
 
