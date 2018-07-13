@@ -3,7 +3,9 @@
 FACTUSER=$(whoami)
 
 CODENAME=$(lsb_release -cs)
-if [ ${CODENAME} = 'sarah' -o ${CODENAME} = 'serena' -o ${CODENAME} = 'sonya' -o ${CODENAME} = 'sylvia' ]; then
+if [ ${CODENAME} = 'tara']; then
+    CODENAME=bionic
+elif [ ${CODENAME} = 'sarah' -o ${CODENAME} = 'serena' -o ${CODENAME} = 'sonya' -o ${CODENAME} = 'sylvia' ]; then
     CODENAME=xenial
 elif [ ${CODENAME} = 'rebecca' -o ${CODENAME} = 'rafaela' -o ${CODENAME} = 'rosa' ]; then
     CODENAME=trusty
