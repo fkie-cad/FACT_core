@@ -96,7 +96,7 @@ def is_valid_yara_rule_file(rules_file):
 
 
 def get_yara_error(rules_file):
-    if type(rules_file) == bytes:
+    if isinstance(rules_file, bytes):
         rules_file = rules_file.decode()
     try:
         yara.compile(source=rules_file)

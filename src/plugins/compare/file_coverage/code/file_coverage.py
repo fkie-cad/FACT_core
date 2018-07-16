@@ -66,7 +66,7 @@ class ComparePlugin(CompareBasePlugin):
     @staticmethod
     def _get_files_in_more_than_one_but_not_in_all(fo_list, result_dict):
         result = {}
-        for i, current_element in enumerate(fo_list):
+        for _, current_element in enumerate(fo_list):
             result[current_element.get_uid()] = list(difference_of_sets(set(current_element.list_of_all_included_files), [result_dict['files_in_common']['all'], result_dict['exclusive_files'][current_element.get_uid()]]))
         return result
 

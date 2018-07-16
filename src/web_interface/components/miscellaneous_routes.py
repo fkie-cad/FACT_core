@@ -38,7 +38,8 @@ class MiscellaneousRoutes(ComponentBase):
         return render_template('home.html', general_stats=general_stats, latest_firmware_submissions=latest_firmware_submissions,
                                latest_comments=latest_comments, latest_comparison_results=latest_comparison_results)
 
-    def _app_about(self):
+    @staticmethod
+    def _app_about():
         return render_template('about.html')
 
     @roles_accepted(*PRIVILEGES['comment'])

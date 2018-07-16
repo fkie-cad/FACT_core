@@ -276,12 +276,12 @@ class MongoInterfaceCommon(MongoInterface):
         return original_dict
 
     def get_firmware_number(self, query=None):
-        if query is not None and type(query) == str:
+        if query is not None and isinstance(query, str):
             query = json.loads(query)
         return self.firmwares.count(query)
 
     def get_file_object_number(self, query=None, zero_on_empty_query=True):
-        if type(query) == str:
+        if isinstance(query, str):
             query = json.loads(query)
         if zero_on_empty_query and query == {}:
             return 0
