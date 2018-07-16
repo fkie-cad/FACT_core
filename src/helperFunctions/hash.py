@@ -59,5 +59,5 @@ def get_imphash(file_object):
                 ','.join(sorted(elf.imported_functions)).encode()).hexdigest()
         except Exception as e:
             logging.error('Could not compute imphash for ELF {}: {} {}'.format(
-                file_object.file_path, type(e)))
+                file_object.file_path, type(e), e))
     return imphash
