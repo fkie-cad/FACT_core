@@ -52,7 +52,8 @@ class UnpackBase(object):
             else:
                 return self.unpacker_plugins['generic/carver']
 
-    def _get_unpacker_version(self, unpacker_tupple):
+    @staticmethod
+    def _get_unpacker_version(unpacker_tupple):
         if len(unpacker_tupple) == 3:
             return unpacker_tupple[2]
         else:

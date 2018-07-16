@@ -11,7 +11,7 @@ cd ../../../bootstrap
 # get ros_pack source
 git clone https://github.com/iam-TJ/ros_pack.git
 # compile ros_pack
-(cd ros_pack && make && cp ros_unpack ../../bin/)
+(cd ros_pack && make -j$(nproc) && cp ros_unpack ../../bin/)
 rm -rf ros_pack
 
 exit 0
