@@ -36,9 +36,9 @@ class TestAcceptanceMisc(TestAcceptanceBase):
         super().tearDownClass()
 
     def _analysis_callback(self, fo):
-        self.db_backend_service.add_object(fo)
+        self.db_backend_service.add_analysis(fo)
         self.elements_finished_analyzing.value += 1
-        if self.elements_finished_analyzing.value > 7:
+        if self.elements_finished_analyzing.value == 4 * 2 * 2:  # two firmware container with 3 included files each times two mandatory plugins
             self.analysis_finished_event.set()
 
     def _upload_firmware_get(self):
@@ -92,7 +92,7 @@ class TestAcceptanceMisc(TestAcceptanceBase):
 
     def test_misc(self):
         self._upload_firmware_get()
-        for fw in [self.test_fw_a, self.test_fw_b]:
+        for fw in [self.test_fw_a, self.test_fw_c]:
             self._upload_firmware_put(fw.path, fw.name, fw.uid)
         self._show_about()
         time.sleep(4)
