@@ -96,7 +96,7 @@ class DatabaseRoutes(ComponentBase):
         sorted_meta_list = list()
         with ConnectTo(FrontEndDbInterface, self._config) as connection:
             result = connection.generic_search(query, skip, limit, only_fo_parent_firmware=only_firmwares)
-            if not type(result) == list:
+            if not isinstance(result, list):
                 raise Exception(result)
             if not (query == '{}' or query == {}):
                 firmware_list = [connection.firmwares.find_one(uid) or connection.file_objects.find_one(uid) for uid in result]

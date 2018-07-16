@@ -30,8 +30,7 @@ class BackEndDbInterface(MongoInterfaceCommon):
             'analysis_tags': update_analysis_tags(new_object, old_object),
         }
 
-        if type(new_object) == Firmware:
-
+        if isinstance(new_object, Firmware):
             update_dictionary.update({
                 'version': new_object.version,
                 'device_name': new_object.device_name,
@@ -162,7 +161,7 @@ class BackEndDbInterface(MongoInterfaceCommon):
             logging.error('Firmware not in database yet: {}'.format(uid))
             return None
 
-        if type(firmware_object) == Firmware:
+        if isinstance(firmware_object, Firmware):
             try:
                 self.firmwares.update_one({'_id': uid}, {'$set': {'analysis_tags': tags}})
             except (TypeError, ValueError, PyMongoError) as exception:
@@ -180,7 +179,7 @@ class BackEndDbInterface(MongoInterfaceCommon):
 
     def _update_analysis(self, file_object: FileObject, analysis_system: str, result: dict):
         try:
-            if type(file_object) == Firmware:
+            if isinstance(file_object, Firmware):
                 self.firmwares.update_one(
                     {'_id': file_object.get_uid()},
                     {'$set': {'processed_analysis.{}'.format(analysis_system): result}}

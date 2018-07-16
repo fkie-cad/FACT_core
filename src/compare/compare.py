@@ -62,7 +62,8 @@ class Compare(object):
             self._add_content_to_general_dict(general, 'number_of_files', fo.get_uid(), len(fo.list_of_all_included_files))
         return general
 
-    def _add_content_to_general_dict(self, general_dict, feature, uid, content):
+    @staticmethod
+    def _add_content_to_general_dict(general_dict, feature, uid, content):
         with suppress(Exception):
             if feature not in general_dict:
                 general_dict[feature] = {}
