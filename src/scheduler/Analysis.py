@@ -172,7 +172,8 @@ class AnalysisScheduler(object):
                     pass
                 else:
                     nop = False
-                    self.post_analysis(fw)
+                    if plugin in fw.processed_analysis:
+                        self.post_analysis(fw)
                     self.check_further_process_or_complete(fw)
             if nop:
                 sleep(int(self.config['ExpertSettings']['block_delay']))
