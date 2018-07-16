@@ -109,9 +109,9 @@ def convert_str_to_time(s):
 
 
 def convert_time_to_str(time_obj):
-    if type(time_obj) == datetime:
+    if isinstance(time_obj, datetime):
         return time_obj.strftime('%Y-%m-%d')
-    elif type(time_obj) == str:
+    elif isinstance(time_obj, str):
         return time_obj
     else:
         return '1970-01-01'

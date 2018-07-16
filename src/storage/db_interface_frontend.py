@@ -7,7 +7,7 @@ from helperFunctions.compare_sets import remove_duplicates_from_list
 from helperFunctions.dataConversion import get_value_of_first_key
 from helperFunctions.database_structure import visualize_complete_tree
 from helperFunctions.file_tree import get_partial_virtual_path, FileTreeNode
-from helperFunctions.merge_generators import merge_generators, dict_to_sorted_tuples
+from helperFunctions.merge_generators import merge_generators
 from objects.file import FileObject
 from objects.firmware import Firmware
 from storage.db_interface_common import MongoInterfaceCommon
