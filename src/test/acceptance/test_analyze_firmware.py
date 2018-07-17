@@ -55,7 +55,7 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBase):
         with open(testfile_path, 'rb') as fp:
             data = {
                 'file': (fp, self.test_fw_a.file_name),
-                'device_part': 'full',
+                'device_part': 'test_part',
                 'device_name': 'test_device',
                 'device_class': 'test_class',
                 'firmware_version': '1.0',
@@ -76,6 +76,7 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBase):
         self.assertIn(b'test_device', rv.data)
         self.assertIn(b'test_class', rv.data)
         self.assertIn(b'test_vendor', rv.data)
+        self.assertIn(b'test_part', rv.data)
         self.assertIn(b'unknown', rv.data)
         self.assertIn(self.test_fw_a.file_name.encode(), rv.data, 'file name not found')
         self.assertIn(b'admin options:', rv.data, 'admin options not shown with disabled auth')

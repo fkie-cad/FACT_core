@@ -112,13 +112,7 @@ class FrontEndDbInterface(MongoInterfaceCommon):
     def _get_hid_firmware(self, uid):
         firmware = self.firmwares.find_one({'_id': uid}, {'vendor': 1, 'device_name': 1, 'device_part': 1, 'version': 1, 'device_class': 1})
         if firmware is not None:
-            if 'device_part' not in firmware:  # for compatibility reasons
-                part = ' -'
-            else:
-                if firmware['device_part'] != '':
-                    part = ' - {}'.format(firmware['device_part'])
-                else:
-                    part = ' -'
+            part = ' -' if 'device_part' not in firmware or firmware['device_part'] == '' else ' - {}'.format(firmware['device_part'])
             return '{} {}{} {} ({})'.format(firmware['vendor'], firmware['device_name'], part, firmware['version'], firmware['device_class'])
         else:
             return None
