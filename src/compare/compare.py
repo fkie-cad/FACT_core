@@ -49,6 +49,7 @@ class Compare(object):
             if isinstance(fo, Firmware):
                 fo.root_uid = fo.get_uid()
                 self._add_content_to_general_dict(general, 'device_name', fo.get_uid(), fo.device_name)
+                self._add_content_to_general_dict(general, 'device_part', fo.get_uid(), fo.part)
                 self._add_content_to_general_dict(general, 'device_class', fo.get_uid(), fo.device_class)
                 self._add_content_to_general_dict(general, 'vendor', fo.get_uid(), fo.vendor)
                 self._add_content_to_general_dict(general, 'version', fo.get_uid(), fo.version)

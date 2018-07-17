@@ -8,6 +8,16 @@ from intercom.common_mongo_binding import InterComMongoInterface
 from objects.file import FileObject
 from objects.firmware import Firmware
 from storage.mongo_interface import MongoInterface
+from storage.db_interface_common import MongoInterfaceCommon
+
+
+class CommonDbInterfaceMock(MongoInterfaceCommon):
+
+    def __init__(self):
+        pass
+
+    def retrieve_analysis(self, sanitized_dict, analysis_filter=None):
+        return {}
 
 
 def create_test_firmware(device_class='Router', device_name='test_router', vendor='test_vendor', bin_path='container/test.zip', all_files_included_set=False, version='0.1'):
@@ -33,8 +43,11 @@ def create_test_firmware(device_class='Router', device_name='test_router', vendo
 
 def create_test_file_object(bin_path='get_files_test/testfile1'):
     fo = FileObject(file_path=os.path.join(get_test_data_dir(), bin_path))
-    processed_analysis = {'dummy': {'summary': [
-        'sum a', 'file exclusive sum b'], 'content': 'file abcd'}, 'file_type': {'full': 'Not a PE file'}}
+    processed_analysis = {
+        'dummy': {'summary': ['sum a', 'file exclusive sum b'], 'content': 'file abcd'},
+        'file_type': {'full': 'Not a PE file'},
+        'unpacker': {'file_system_flag': False, 'plugin_used': 'unpacker_name'}
+    }
     fo.processed_analysis.update(processed_analysis)
     fo.virtual_file_path = fo.get_virtual_file_paths()
     return fo

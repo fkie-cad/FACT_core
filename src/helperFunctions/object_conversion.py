@@ -6,6 +6,7 @@ def _add_firmware_exclusive_information(fo, meta):
         fo.root_uid = fo.get_uid()
         meta['device_name'] = fo.device_name
         meta['device_class'] = fo.device_class
+        meta['device_part'] = fo.part
         meta['vendor'] = fo.vendor
         meta['version'] = fo.version
         meta['release_date'] = fo.release_date

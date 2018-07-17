@@ -83,6 +83,7 @@ class TestMongoInterface(unittest.TestCase):
         fobject = self.db_interface.get_firmware(self.test_firmware.get_uid())
         self.assertEqual(fobject.vendor, 'test_vendor')
         self.assertEqual(fobject.device_name, 'test_router')
+        self.assertEqual(fobject.part, '')
 
     def test_get_object(self):
         fo = self.db_interface.get_object(self.test_firmware.get_uid())

@@ -40,6 +40,7 @@ class TestRestFirmware(TestAcceptanceBase):
             'binary': standard_b64encode(file_content).decode(),
             'file_name': 'test.zip',
             'device_name': 'test_device',
+            'device_part': 'test_part',
             'device_class': 'test_class',
             'firmware_version': '1.0',
             'vendor': 'test_vendor',
@@ -55,6 +56,7 @@ class TestRestFirmware(TestAcceptanceBase):
         rv = self.test_client.get('/rest/firmware/{}'.format(self.test_container_uid), follow_redirects=True)
         self.assertIn(b'analysis_date', rv.data, 'rest analysis download not successful')
         self.assertIn(b'software_components', rv.data, 'rest analysis not successful')
+        self.assertIn(b'"device_part": "test_part"', rv.data, 'device part not present')
 
     def _rest_search(self):
         rv = self.test_client.get('/rest/firmware?query={}'.format(urllib.parse.quote('{"device_class": "test_class"}')), follow_redirects=True)
