@@ -8,14 +8,15 @@ class TestHelperFunctionsObjectConversion(unittest.TestCase):
     def test_create_meta_dict_fw(self):
         fw = create_test_firmware()
         meta = create_meta_dict(fw)
-        self.assertEqual(meta['device_name'], "test_router")
-        self.assertEqual(meta['device_class'], "Router")
-        self.assertEqual(meta['vendor'], "test_vendor")
-        self.assertEqual(meta['version'], "0.1")
+        self.assertEqual(meta['device_name'], 'test_router')
+        self.assertEqual(meta['device_class'], 'Router')
+        self.assertEqual(meta['vendor'], 'test_vendor')
+        self.assertEqual(meta['device_part'], '')
+        self.assertEqual(meta['version'], '0.1')
         self.assertEqual(meta['release_date'], '1970-01-01')
-        self.assertEqual(meta['hid'], "test_vendor test_router v. 0.1")
+        self.assertEqual(meta['hid'], 'test_vendor test_router v. 0.1')
         self.assertEqual(meta['size'], 787)
-        self.assertEqual(len(meta.keys()), 7)
+        self.assertEqual(len(meta.keys()), 8)
 
     def test_create_meta_dict_fo(self):
         fo = create_test_file_object()
