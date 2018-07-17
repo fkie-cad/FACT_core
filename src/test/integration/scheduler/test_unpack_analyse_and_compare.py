@@ -39,7 +39,7 @@ class TestFileAddition(unittest.TestCase):
     def count_analysis_finished_event(self, fw_object):
         self.backend_interface.add_object(fw_object)
         self.elements_finished_analyzing.value += 1
-        if self.elements_finished_analyzing.value > 7:
+        if self.elements_finished_analyzing.value == 4 * 2 * 2:  # 2 container with 3 files each and 2 plugins
             self.analysis_finished_event.set()
 
     def trigger_compare_finished_event(self):
@@ -59,7 +59,7 @@ class TestFileAddition(unittest.TestCase):
     def test_unpack_analyse_and_compare(self):
         test_fw_1 = Firmware(file_path='{}/container/test.zip'.format(get_test_data_dir()))
         test_fw_1.release_date = '2017-01-01'
-        test_fw_2 = Firmware(file_path='{}/container/test.7z'.format(get_test_data_dir()))
+        test_fw_2 = Firmware(file_path='{}/regression_one'.format(get_test_data_dir()))
         test_fw_2.release_date = '2017-01-01'
 
         self._unpack_scheduler.add_task(test_fw_1)
@@ -78,26 +78,16 @@ class TestFileAddition(unittest.TestCase):
 
         self.assertFalse(isinstance(result, str), 'compare result should exist')
         self.assertEqual(result['plugins']['Software'], self._expected_result()['Software'])
-        self.assertCountEqual(result['plugins']['File_Coverage']['exclusive_files'], self._expected_result()['File_Coverage']['exclusive_files'])
+        self.assertCountEqual(result['plugins']['File_Coverage']['files_in_common'], self._expected_result()['File_Coverage']['files_in_common'])
 
     @staticmethod
     def _expected_result():
         return {
             'File_Coverage': {
-                'exclusive_files': {
-                    '418a54d78550e8584291c96e5d6168133621f352bfc1d43cf84e81187fef4962_787': [],
-                    'd38970f8c5153d1041810d0908292bc8df21e7fd88aab211a8fb96c54afe6b01_319': [],
-                    'collapse': False
-                },
                 'files_in_common': {
-                    'all': [
-                        'faa11db49f32a90b51dfc3f0254f9fd7a7b46d0b570abd47e1943b86d554447a_28',
-                        '289b5a050a83837f192d7129e4c4e02570b94b4924e50159fad5ed1067cfbfeb_20',
-                        'd558c9339cb967341d701e3184f863d3928973fccdc1d96042583730b5c7b76a_62'
-                    ],
+                    'all': [],
                     'collapse': False
-                },
-                'similar_files': {}
+                }
             },
             'Software': {
                 'Compare Skipped': {

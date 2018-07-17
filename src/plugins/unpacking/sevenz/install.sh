@@ -16,7 +16,7 @@ cd /tmp/fact_build
 
 wget -O 7zip.tar.bz2 https://sourceforge.net/projects/p7zip/files/latest/download
 tar xvjf 7zip.tar.bz2
-(cd p7zip* && cp makefile.linux_amd64_asm makefile.linux && make all_test && sudo ./install.sh)
+(cd p7zip* && cp makefile.linux_amd64_asm makefile.linux && make -j$(nproc) all3 && sudo ./install.sh)
 rm -fr p7zip* 7zip.tar.bz2
 
 exit 0
