@@ -5,7 +5,6 @@ import sys
 import magic
 
 from helperFunctions.dataConversion import make_unicode_string
-from helperFunctions.process import complete_shutdown
 
 
 def get_src_dir():

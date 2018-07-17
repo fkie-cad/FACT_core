@@ -38,7 +38,7 @@ class TestRestCompareFirmware(TestAcceptanceBase):
     def _analysis_callback(self, fo):
         self.db_backend_service.add_object(fo)
         self.elements_finished_analyzing.value += 1
-        if self.elements_finished_analyzing.value > 7:
+        if self.elements_finished_analyzing.value == 4 * 2 * 3:  # two firmware container with 3 included files each times three plugins
             self.analysis_finished_event.set()
 
     def _compare_callback(self):
@@ -68,11 +68,11 @@ class TestRestCompareFirmware(TestAcceptanceBase):
         self.assertIn(fw.uid.encode(), rv.data, 'test firmware not found in REST search')
 
     def _rest_start_compare(self):
-        rv = self.test_client.put('/rest/compare', data=json.dumps({'uid_list': [self.test_fw_a.uid, self.test_fw_b.uid]}), follow_redirects=True)
+        rv = self.test_client.put('/rest/compare', data=json.dumps({'uid_list': [self.test_fw_a.uid, self.test_fw_c.uid]}), follow_redirects=True)
         self.assertIn(b'Compare started', rv.data, 'could not start REST compare')
 
     def _rest_get_compare(self):
-        rv = self.test_client.get('/rest/compare/{};{}'.format(self.test_fw_a.uid, self.test_fw_b.uid), follow_redirects=True)
+        rv = self.test_client.get('/rest/compare/{};{}'.format(self.test_fw_a.uid, self.test_fw_c.uid), follow_redirects=True)
         self.assertNotIn(b'Compare not found in database.', rv.data, 'compare not found in database')
         self.assertIn(
             b'"files_in_common": {"',
@@ -81,10 +81,10 @@ class TestRestCompareFirmware(TestAcceptanceBase):
 
     def test_run_from_upload_to_show_analysis(self):
         self._rest_upload_firmware(self.test_fw_a)
-        self._rest_upload_firmware(self.test_fw_b)
+        self._rest_upload_firmware(self.test_fw_c)
         self.analysis_finished_event.wait(timeout=20)
         self._rest_search(self.test_fw_a)
-        self._rest_search(self.test_fw_b)
+        self._rest_search(self.test_fw_c)
         self._rest_start_compare()
         self.compare_finished_event.wait(timeout=20)
         self._rest_get_compare()

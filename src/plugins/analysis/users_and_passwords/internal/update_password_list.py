@@ -4,7 +4,6 @@ This script updates the password list
 '''
 
 import argparse
-import configparser
 import logging
 import os
 import sys

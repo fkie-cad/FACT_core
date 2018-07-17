@@ -44,7 +44,7 @@ class DskOne(object):
         try:
             self.header = unpack('<c6sxxxcxI', self.raw[0:16])
         except Exception as e:
-            self.errors.append('could not parse header'.format(sys.exc_info()[0].__name__, e))
+            self.errors.append('could not parse header: {} - {}'.format(sys.exc_info()[0].__name__, e))
             self.header = None
             self.payload_size = None
         else:

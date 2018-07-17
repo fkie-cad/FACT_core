@@ -13,7 +13,7 @@ cd bin/
 umask 0022
 git clone https://github.com/Freetz/freetz.git
 cd freetz
-make tools
+make -j$(nproc) tools
 cp tools/unsquashfs4-avm-be tools/unsquashfs4-avm-le tools/unsquashfs3-multi ../
 cd ..
 rm -rf freetz

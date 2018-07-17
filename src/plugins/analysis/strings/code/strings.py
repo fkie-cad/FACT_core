@@ -1,7 +1,7 @@
+import re
 from typing import List, Tuple, Pattern
 
 from analysis.PluginBase import AnalysisBasePlugin
-from re import compile
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
@@ -31,7 +31,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     def _compile_regexes(self) -> List[Tuple[Pattern[bytes], str]]:
         min_length = self._get_min_length_from_config()
         return [
-            (compile(regex.replace(b'$len', min_length.encode())), encoding)
+            (re.compile(regex.replace(b'$len', min_length.encode())), encoding)
             for regex, encoding in self.STRING_REGEXES
         ]
 
