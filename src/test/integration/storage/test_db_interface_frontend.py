@@ -47,6 +47,14 @@ class TestStorageDbInterfaceFrontend(unittest.TestCase):
         self.assertEqual(test_output[1], 'test_vendor test_router - 0.1 (Router)', 'Firmware not successfully received')
         self.assertIsInstance(test_output[2], dict, 'tag field is not a dict')
 
+    def test_get_meta_list_of_fo(self):
+        test_fo = create_test_file_object()
+        self.db_backend_interface.add_file_object(test_fo)
+        files = self.db_frontend_interface.file_objects.find()
+        meta_list = self.db_frontend_interface.get_meta_list(files)
+        self.assertEqual(meta_list[0][0], test_fo.get_uid(), 'uid of object not correct')
+        self.assertEqual(meta_list[0][3], 0, 'non existing submission date should lead to 0')
+
     def test_get_hid_firmware(self):
         self.db_backend_interface.add_firmware(self.test_firmware)
         result = self.db_frontend_interface.get_hid(self.test_firmware.get_uid())
@@ -119,8 +127,8 @@ class TestStorageDbInterfaceFrontend(unittest.TestCase):
         self.db_backend_interface.add_firmware(test_fw_three)
         result = self.db_frontend_interface.get_last_added_firmwares(limit_x=2)
         self.assertEqual(len(result), 2, 'Number of results should be 2')
-        self.assertEqual(result[0]['device_name'], 'fw_three', 'last firmware is not first entry')
-        self.assertEqual(result[1]['device_name'], 'fw_two', 'second last firmware is not the second entry')
+        self.assertEqual(result[0][0], test_fw_three.get_uid(), 'last firmware is not first entry')
+        self.assertEqual(result[1][0], test_fw_two.get_uid(), 'second last firmware is not the second entry')
 
     def test_generate_file_tree_node(self):
         parent_fw = create_test_firmware()

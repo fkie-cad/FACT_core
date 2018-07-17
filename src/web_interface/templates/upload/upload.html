@@ -121,7 +121,11 @@
                     <label class="control-label col-xs-3" for="device_name_dropdown">Device Name:</label>
                         <div class="col-xs-9 {% if 'device_name' in error.keys() %}has-error{% endif %}">
                             <select class="form-control" id="device_name_dropdown" name='device_name_dropdown' size="4" required disabled
-                                    onchange="update_text_input(this, document.getElementById('device_name_text'));">
+                                    onchange="update_text_input(this, document.getElementById('device_name_text'));
+                                    		  if (device_name_dropdown.selectedIndex != -1){
+                                    		  	  document.getElementById('device_part_dropdown').disabled = false;
+                            				  }
+                                    ">
                                 <option value='new entry'>Please select device class and vendor</option>
                             </select>
                             <input type="text" name="device_name" class="form-control" id="device_name_text" placeholder="New Device Name" style="display: none;">
@@ -130,6 +134,25 @@
                             {% endif %}
                         </div>
                 </div>
+
+                <div class="form-group">
+                    <label class="control-label col-xs-3" for="device_part_dropdown">Device Part:</label>
+                        <div class="col-xs-9 {% if 'device_name' in error.keys() %}has-error{% endif %}">
+                            <select class="form-control" id="device_part_dropdown" name='device_part_dropdown' size="4" required disabled
+                                    onchange="update_text_input(this, document.getElementById('device_part_text'));">
+                                <option value='complete' selected='selected'>complete</option>
+                                <option value='kernel'>kernel</option>
+                                <option value='bootloader'>bootloader</option>
+                                <option value='root-fs'>root-fs</option>
+                                <option value='new entry'>new entry</option>
+                            </select>
+                            <input type="text" name="device_part" class="form-control" id="device_part_text" placeholder="New Device Part" style="display: none;">
+                            {% if 'vendor' in error.keys() %}
+                                <span class="help-block">{{ error['vendor'] }}</span>
+                            {% endif %}
+                        </div>
+                </div>
+
 
                 {% set input_form_text = [
                     ("Version", "firmware_version")

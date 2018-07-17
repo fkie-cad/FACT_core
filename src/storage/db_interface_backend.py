@@ -34,6 +34,7 @@ class BackEndDbInterface(MongoInterfaceCommon):
             update_dictionary.update({
                 'version': new_object.version,
                 'device_name': new_object.device_name,
+                'device_part': new_object.part,
                 'device_class': new_object.device_class,
                 'vendor': new_object.vendor,
                 'release_date': convert_str_to_time(new_object.release_date),
@@ -79,6 +80,7 @@ class BackEndDbInterface(MongoInterfaceCommon):
             '_id': firmware.get_uid(),
             'file_path': firmware.file_path,
             'file_name': firmware.file_name,
+            'device_part': firmware.part,
             'virtual_file_path': firmware.virtual_file_path,
             'version': firmware.version,
             'md5': firmware.md5,
