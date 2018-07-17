@@ -8,6 +8,16 @@ from intercom.common_mongo_binding import InterComMongoInterface
 from objects.file import FileObject
 from objects.firmware import Firmware
 from storage.mongo_interface import MongoInterface
+from storage.db_interface_common import MongoInterfaceCommon
+
+
+class CommonDbInterfaceMock(MongoInterfaceCommon):
+
+    def __init__(self):
+        pass
+
+    def retrieve_analysis(self, sanitized_dict, analysis_filter=None):
+        return {}
 
 
 def create_test_firmware(device_class='Router', device_name='test_router', vendor='test_vendor', bin_path='container/test.zip', all_files_included_set=False, version='0.1'):

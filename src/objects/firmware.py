@@ -61,10 +61,7 @@ class Firmware(FileObject):
         '''
         return a human readable identifier
         '''
-        if self.part == '':
-            part = ''
-        else:
-            part = ' - {}'.format(self.part)
+        part = ' - {}'.format(self.part) if self.part else ''
         return '{} {}{} v. {}'.format(self.vendor, self.device_name, part, self.version)
 
     def __str__(self):

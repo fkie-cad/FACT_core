@@ -1,16 +1,6 @@
 import pytest
 
-from storage.db_interface_common import MongoInterfaceCommon
-
-
-class CommonInterfaceMock(MongoInterfaceCommon):
-
-    def __init__(self):
-        pass
-
-    def retrieve_analysis(self, sanitized_dict, analysis_filter=None):
-        return {}
-
+from test.common_helper import CommonDbInterfaceMock
 
 current_data_format = {
     '_id': 'some_UID',
@@ -50,6 +40,6 @@ old_data_format = {
     (old_data_format, '')
 ])
 def test_convert_to_firmware(input_data, expected):
-    test_interface = CommonInterfaceMock()
+    test_interface = CommonDbInterfaceMock()
     result = test_interface._convert_to_firmware(input_data, analysis_filter=None)
     assert result.part == expected
