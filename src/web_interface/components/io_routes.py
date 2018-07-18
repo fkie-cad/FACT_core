@@ -2,8 +2,10 @@
 
 import binascii
 import json
+from time import sleep
 
-from flask import request, render_template, make_response
+import requests
+from flask import request, render_template, make_response, redirect
 
 from helperFunctions.dataConversion import remove_linebreaks_from_byte_string
 from helperFunctions.mongo_task_conversion import create_analysis_task, check_for_errors, convert_analysis_task_to_fw_obj
@@ -25,6 +27,7 @@ class IORoutes(ComponentBase):
         self._app.add_url_rule('/ida-download/<compare_id>', 'ida-download/<compare_id>', self._download_ida_file)
         self._app.add_url_rule('/base64-download/<uid>/<section>/<expression_id>', '/base64-download/<uid>/<section>/<expression_id>', self._download_base64_decoded_section)
         self._app.add_url_rule('/hex-dump/<uid>', 'hex-dump/<uid>', self._show_hex_dump)
+        self._app.add_url_rule('/radare/<uid>', 'radare/<uid>', self._show_radare)
 
     @roles_accepted(*PRIVILEGES['download'])
     def _download_base64_decoded_section(self, uid, section, expression_id):
@@ -143,5 +146,30 @@ class IORoutes(ComponentBase):
                 try:
                     hex_dump = create_hex_dump(binary)
                     return render_template('generic_view/hex_dump_popup.html', uid=uid, hex_dump=hex_dump)
+                except Exception as exception:
+                    return render_template('error.html', message=str(exception))
+
+    @roles_accepted(*PRIVILEGES['download'])
+    def _show_radare(self, uid):
+        HOST, ENDPOINT = 'http://localhost/radare', '/v1/retrieve'
+        with ConnectTo(FrontEndDbInterface, self._config) as sc:
+            object_exists = sc.existence_quick_check(uid)
+        if not object_exists:
+            return render_template('uid_not_found.html', uid=uid)
+        else:
+            with ConnectTo(InterComFrontEndBinding, self._config) as sc:
+                result = sc.get_binary_and_filename(uid)
+            if result is None:
+                return render_template('error.html', message='timeout')
+            else:
+                binary, _ = result
+                try:
+                    response = requests.post('{}{}'.format(HOST, ENDPOINT), data=binary)
+                    if response.status_code == 200:
+                        target_link = '{}{}enyo/'.format(HOST, response.json()['endpoint'])
+                        sleep(1)
+                        return redirect(target_link)
+                    else:
+                        raise TimeoutError(response.text)
                 except Exception as exception:
                     return render_template('error.html', message=str(exception))
