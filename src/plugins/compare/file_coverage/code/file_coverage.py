@@ -90,13 +90,18 @@ class ComparePlugin(CompareBasePlugin):
     def _find_similar_file_for(self, file, parent_id, potential_matches):
         fo_one = self.database.get_object(uid=file, analysis_filter=['file_hashes'])
         id1 = '{}:{}'.format(parent_id, fo_one.get_uid())
-        hash_one = fo_one.processed_analysis['file_hashes']['ssdeep']
-        for potential_match in potential_matches.files_included:
-            fo_two = self.database.get_object(uid=potential_match, analysis_filter=['file_hashes'])
-            id2 = '{}:{}'.format(potential_matches.get_uid(), fo_two.get_uid())
-            hash_two = fo_two.processed_analysis['file_hashes']['ssdeep']
-            if get_ssdeep_comparison(hash_one, hash_two) > self.SSDEEP_IGNORE:
-                yield [id1, id2], get_ssdeep_comparison(hash_one, hash_two)
+
+        hash_one = self.database.get_ssdeep_hash(fo_one.get_uid())
+
+        if hash_one:
+            for potential_match in potential_matches.files_included:
+                fo_two = self.database.get_object(uid=potential_match, analysis_filter=['file_hashes'])
+                id2 = '{}:{}'.format(potential_matches.get_uid(), fo_two.get_uid())
+
+                hash_two = self.database.get_ssdeep_hash(fo_two.get_uid())
+
+                if hash_two and get_ssdeep_comparison(hash_one, hash_two) > self.SSDEEP_IGNORE:
+                    yield [id1, id2], get_ssdeep_comparison(hash_one, hash_two)
 
     @staticmethod
     def produce_similarity_sets(list_of_lists):

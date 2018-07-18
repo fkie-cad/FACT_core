@@ -9,8 +9,11 @@ class DbMock:
 
     def get_object(self, uid, analysis_filter=None):
         fo = FileObject(binary=b'abc', file_name='any_file', file_path='/tmp/any_file', scheduled_analysis=[])
-        fo.processed_analysis = {'unpacker': {'entropy': 0.2}, 'file_hashes': {'ssdeep': '42'}}
+        fo.processed_analysis = {'unpacker': {'entropy': 0.2}}
         return fo
+
+    def get_ssdeep_hash(self, uid):
+        return '42'
 
 
 class TestComparePluginFileCoverage(ComparePluginTest):
