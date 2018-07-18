@@ -152,10 +152,7 @@ class ComparePlugin(CompareBasePlugin):
     def _evaluate_entropy_for_list_of_uids(self, list_of_uids, new_result, firmware_uid):
         non_zero_file_ids = list()
         for uid in list_of_uids:
-            try:
-                if self.database.get_entropy(uid) > 0.1:
-                    non_zero_file_ids.append(uid)
-            except KeyError:
-                logging.debug('Compared file {} has not been unpacked with entropy calculation yet.'.format(uid))
+            if self.database.get_entropy(uid) > 0.1:
+                non_zero_file_ids.append(uid)
         if non_zero_file_ids:
             new_result[firmware_uid] = non_zero_file_ids
