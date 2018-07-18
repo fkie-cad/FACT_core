@@ -77,3 +77,7 @@ class CompareDbInterface(MongoInterfaceCommon):
     def get_ssdeep_hash(self, uid):
         file_object_entry = self.file_objects.find_one({'_id': uid}, {'processed_analysis.file_hashes.ssdeep': 1})
         return file_object_entry['processed_analysis']['file_hashes']['ssdeep'] if 'file_hashes' in file_object_entry['processed_analysis'] else ''
+
+    def get_entropy(self, uid):
+        file_object_entry = self.file_objects.find_one({'_id': uid}, {'processed_analysis.unpacker.entropy': 1})
+        return file_object_entry['processed_analysis']['unpacker']['entropy'] if 'unpacker' in file_object_entry['processed_analysis'] else 0.0
