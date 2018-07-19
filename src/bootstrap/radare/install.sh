@@ -16,6 +16,7 @@ make root
 make material
 sudo -EH npm install -g bower
 cd www/m
+bower update --force-latest --allow-root
 cd ../../
 
 make material
@@ -39,14 +40,9 @@ mv dist/t/app.js              ../radare2/shlr/www/t/app.js
 cd ..
 
 ## Install Server
-# git clone https://git-sdn.caad.fkie.fraunhofer.de/dorp/radare-forwarding.git
 cd radare-forwarding
-git checkout initial-code
 sudo -EH pip3 install -r requirements.txt
-sudo cp bin/nginx.conf /etc/nginx/nginx.conf
 cd ..
-
-sudo service nginx restart
 
 
 exit 0
