@@ -32,6 +32,9 @@ class MockDbInterface(object):
         else:
             return self.fo
 
+    def get_ssdeep_hash(self, uid):
+        return ''
+
 
 class TestCompare(unittest.TestCase):
 
