@@ -73,3 +73,11 @@ class CompareDbInterface(MongoInterfaceCommon):
     def get_total_number_of_results(self):
         db_entries = self.compare_results.find({'submission_date': {'$gt': 1}}, {'_id': 1})
         return sum(1 for entry in db_entries if not self.object_existence_quick_check(entry['_id']))  # sum(1 for... calculates length of generator
+
+    def get_ssdeep_hash(self, uid):
+        file_object_entry = self.file_objects.find_one({'_id': uid}, {'processed_analysis.file_hashes.ssdeep': 1})
+        return file_object_entry['processed_analysis']['file_hashes']['ssdeep'] if 'file_hashes' in file_object_entry['processed_analysis'] else None
+
+    def get_entropy(self, uid):
+        file_object_entry = self.file_objects.find_one({'_id': uid}, {'processed_analysis.unpacker.entropy': 1})
+        return file_object_entry['processed_analysis']['unpacker']['entropy'] if 'unpacker' in file_object_entry['processed_analysis'] else 0.0
