@@ -6,6 +6,7 @@ from flask import render_template, request, flash, redirect, url_for
 from flask_security import current_user
 from sqlalchemy.exc import SQLAlchemyError
 
+from helperFunctions.web_interface import password_is_legal
 from web_interface.components.component_base import ComponentBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES, ROLES
@@ -84,6 +85,8 @@ class UserManagementRoutes(ComponentBase):
         retype_password = request.form['admin_confirm_password']
         if not new_password == retype_password:
             flash('Error: passwords do not match')
+        elif not password_is_legal(new_password):
+            flash('Error: password is not legal. Please choose another password.')
         else:
             user = self._user_db_interface.find_user(id=user_id)
             with self.user_db_session('Error: could not change password'):
@@ -153,6 +156,8 @@ class UserManagementRoutes(ComponentBase):
             flash('Error: new password did not match', 'warning')
         elif not self._user_db_interface.password_is_correct(current_user.email, old_password):
             flash('Error: wrong password', 'warning')
+        elif not password_is_legal(new_password):
+            flash('Error: password is not legal. Please choose another password.')
         else:
             with self.user_db_session('Error: could not change password'):
                 self._user_db_interface.change_password(current_user.email, new_password)

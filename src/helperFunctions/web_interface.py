@@ -5,6 +5,8 @@ import re
 from common_helper_files import get_binary_from_file
 
 from helperFunctions.fileSystem import get_template_dir
+from passlib.context import CryptContext
+
 
 SPECIAL_CHARACTERS = 'ÄäÀàÁáÂâÃãÅåǍǎĄąĂăÆæĀāÇçĆćĈĉČčĎđĐďðÈèÉéÊêËëĚěĘęĖėĒēĜĝĢģĞğĤĥÌìÍíÎîÏïıĪīĮįĴĵĶķĹĺĻļŁłĽľÑñŃńŇňŅņÖöÒòÓóÔôÕõŐőØøŒœŔŕŘřẞßŚśŜŝŞşŠšȘș' \
                      'ŤťŢţÞþȚțÜüÙùÚúÛûŰűŨũŲųŮůŪūŴŵÝýŸÿŶŷŹźŽžŻż'
@@ -61,3 +63,11 @@ class ConnectTo:
 def get_template_as_string(view_name):
     path = os.path.join(get_template_dir(), view_name)
     return get_binary_from_file(path).decode('utf-8')
+
+
+def password_is_legal(pw: str) -> bool:
+    if not pw:
+        return False
+    schemes = ['bcrypt', 'des_crypt', 'pbkdf2_sha256', 'pbkdf2_sha512', 'sha256_crypt', 'sha512_crypt', 'plaintext']
+    ctx = CryptContext(schemes=schemes)
+    return ctx.identify(pw) == 'plaintext'

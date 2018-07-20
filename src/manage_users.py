@@ -10,6 +10,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 from config.ascii import FACT_ASCII_ART
 from helperFunctions.config import load_config, get_config_dir
+from helperFunctions.web_interface import password_is_legal
 from version import __VERSION__
 from web_interface.frontend_main import WebFrontEnd
 from web_interface.security.authentication import create_user_interface
@@ -68,6 +69,7 @@ class Actions:
         assert not Actions._user_exists(app, interface, user), 'user must not exist'
 
         password = getpass.getpass('password: ')
+        assert password_is_legal(password), 'password is illegal'
         with app.app_context():
             interface.create_user(email=user, password=password)
             db.session.commit()
