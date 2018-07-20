@@ -180,14 +180,14 @@ class InterComBackEndDeleteFile(InterComListener):
         self.fs_organizer = FS_Organizer(config=config)
 
     def post_processing(self, task, task_id):
-        if self._file_removed_from_db(task['_id']):
+        if self._entry_was_removed_from_db(task['_id']):
             logging.info('remove file: {}'.format(task['_id']))
             self.fs_organizer.delete_file(task['_id'])
         else:
             logging.warning('file not removed, because database entry exists: {}'.format(task['_id']))
         return None
 
-    def _file_removed_from_db(self, uid):
+    def _entry_was_removed_from_db(self, uid):
         with ConnectTo(MongoInterfaceCommon, self.config) as db:
             entry_is_in_database = db.existence_quick_check(uid)
         return not entry_is_in_database
