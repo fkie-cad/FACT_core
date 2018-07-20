@@ -1,3 +1,4 @@
 exclude_paths:
  - '**/test/**'
  - '**/web_interface/static/**'
+ - '**/manage_users.py'
