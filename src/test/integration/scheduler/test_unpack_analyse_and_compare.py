@@ -37,7 +37,7 @@ class TestFileAddition(unittest.TestCase):
         self._compare_scheduler = CompareScheduler(config=self._config, callback=self.trigger_compare_finished_event)
 
     def count_analysis_finished_event(self, fw_object):
-        self.backend_interface.add_object(fw_object)
+        self.backend_interface.add_analysis(fw_object)
         self.elements_finished_analyzing.value += 1
         if self.elements_finished_analyzing.value == 4 * 2 * 2:  # 2 container with 3 files each and 2 plugins
             self.analysis_finished_event.set()
@@ -65,7 +65,7 @@ class TestFileAddition(unittest.TestCase):
         self._unpack_scheduler.add_task(test_fw_1)
         self._unpack_scheduler.add_task(test_fw_2)
 
-        self.analysis_finished_event.wait(timeout=10)
+        self.analysis_finished_event.wait(timeout=20)
 
         compare_id = unify_string_list(';'.join([fw.uid for fw in [test_fw_1, test_fw_2]]))
 
