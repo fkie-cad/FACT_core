@@ -24,8 +24,8 @@ class FS_Organizer(object):
             write_binary_to_file(file_object.binary, destination_path, overwrite=False)
             file_object.set_file_path(destination_path)
 
-    def delete_file(self, file_object):
-        local_file_path = self.generate_path(file_object)
+    def delete_file(self, uid):
+        local_file_path = self.generate_path_from_uid(uid)
         delete_file(local_file_path)
 
     def generate_path(self, file_object):
