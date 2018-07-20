@@ -19,13 +19,12 @@ class InterComBackEndBinding(object):
     Internal Communication Backend Binding
     '''
 
-    WAIT_TIME = 15
-
     def __init__(self, config=None, analysis_service=None, compare_service=None, unpacking_service=None, testing=False):
         self.config = config
         self.analysis_service = analysis_service
         self.compare_service = compare_service
         self.unpacking_service = unpacking_service
+        self.poll_delay = self.config['ExpertSettings'].getfloat('intercom_poll_delay')
 
         self.stop_condition = Value('i', 0)
         self.process_list = []
@@ -85,7 +84,7 @@ class InterComBackEndBinding(object):
         while self.stop_condition.value == 0:
             task = interface.get_next_task()
             if task is None:
-                sleep(self.WAIT_TIME)
+                sleep(self.poll_delay)
             else:
                 do_after_function(task)
         interface.shutdown()

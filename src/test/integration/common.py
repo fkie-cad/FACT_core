@@ -41,7 +41,7 @@ def initialize_config(tmp_dir):
 
     # Compare
     config.set('ExpertSettings', 'ssdeep_ignore', '80')
-    config.set('ExpertSettings', 'block_delay', '3')
+    config.set('ExpertSettings', 'block_delay', '1')
     config.set('ExpertSettings', 'throw_exceptions', 'true')
 
     return config
