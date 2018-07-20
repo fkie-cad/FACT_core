@@ -54,7 +54,7 @@ class InterComFrontEndBinding(InterComMongoInterface):
         request_id = generate_task_id(input_data)
         self.connections[request_connection]['fs'].put(serialized_request, filename="{}".format(request_id))
         logging.debug('Request sent: {} -> {}'.format(request_connection, request_id))
-        sleep(0.5)
+        sleep(1)
         return self._response_listener(response_connection, request_id)
 
     def _response_listener(self, response_connection, request_id, timeout=None, delete=True):
@@ -71,5 +71,5 @@ class InterComFrontEndBinding(InterComMongoInterface):
                 break
             else:
                 logging.debug('No response yet: {} -> {}'.format(response_connection, request_id))
-                sleep(0.5)
+                sleep(1)
         return output_data
