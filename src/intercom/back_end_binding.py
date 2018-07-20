@@ -7,9 +7,11 @@ from common_helper_mongo.gridfs import overwrite_file
 
 from helperFunctions.process import no_operation
 from helperFunctions.yara_binary_search import YaraBinarySearchScanner
+from helperFunctions.web_interface import ConnectTo
 from intercom.common_mongo_binding import InterComListener, InterComMongoInterface, InterComListenerAndResponder
 from storage.binary_service import BinaryService
 from storage.fs_organizer import FS_Organizer
+from storage.db_interface_common import MongoInterfaceCommon
 
 
 class InterComBackEndBinding(object):
@@ -40,6 +42,7 @@ class InterComBackEndBinding(object):
         self.start_tar_repack_listener()
         self.start_binary_search_listener()
         self.start_update_listener()
+        self.start_delete_file_listener()
 
     def shutdown(self):
         self.stop_condition.value = 1
@@ -67,6 +70,9 @@ class InterComBackEndBinding(object):
 
     def start_binary_search_listener(self):
         self._start_listener(InterComBackEndBinarySearchTask, no_operation)
+
+    def start_delete_file_listener(self):
+        self._start_listener(InterComBackEndDeleteFile, no_operation)
 
     def _start_listener(self, communication_backend, do_after_function):
         p = Process(target=self._backend_worker, args=(communication_backend, do_after_function))
@@ -174,5 +180,14 @@ class InterComBackEndDeleteFile(InterComListener):
         self.fs_organizer = FS_Organizer(config=config)
 
     def post_processing(self, task, task_id):
-        self.fs_organizer.delete_file(task)
+        if self._entry_was_removed_from_db(task['_id']):
+            logging.info('remove file: {}'.format(task['_id']))
+            self.fs_organizer.delete_file(task['_id'])
+        else:
+            logging.warning('file not removed, because database entry exists: {}'.format(task['_id']))
         return None
+
+    def _entry_was_removed_from_db(self, uid):
+        with ConnectTo(MongoInterfaceCommon, self.config) as db:
+            entry_is_in_database = db.existence_quick_check(uid)
+        return not entry_is_in_database
