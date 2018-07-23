@@ -9,7 +9,7 @@ from flask import request, render_template, make_response, redirect
 
 from helperFunctions.dataConversion import remove_linebreaks_from_byte_string
 from helperFunctions.mongo_task_conversion import create_analysis_task, check_for_errors, convert_analysis_task_to_fw_obj
-from helperFunctions.web_interface import ConnectTo
+from helperFunctions.web_interface import ConnectTo, get_radare_endpoint
 from intercom.front_end_binding import InterComFrontEndBinding
 from storage.db_interface_compare import CompareDbInterface
 from storage.db_interface_frontend import FrontEndDbInterface
@@ -151,7 +151,7 @@ class IORoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['download'])
     def _show_radare(self, uid):
-        HOST, ENDPOINT = 'http://localhost/radare', '/v1/retrieve'
+        host, post_path = get_radare_endpoint(self._config), '/v1/retrieve'
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
             object_exists = sc.existence_quick_check(uid)
         if not object_exists:
@@ -164,9 +164,9 @@ class IORoutes(ComponentBase):
             else:
                 binary, _ = result
                 try:
-                    response = requests.post('{}{}'.format(HOST, ENDPOINT), data=binary)
+                    response = requests.post('{}{}'.format(host, post_path), data=binary)
                     if response.status_code == 200:
-                        target_link = '{}{}enyo/'.format(HOST, response.json()['endpoint'])
+                        target_link = '{}{}enyo/'.format(host, response.json()['endpoint'])
                         sleep(1)
                         return redirect(target_link)
                     else:
