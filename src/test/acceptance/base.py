@@ -4,7 +4,6 @@ import os
 import unittest
 from concurrent.futures import ThreadPoolExecutor
 from tempfile import TemporaryDirectory
-from unittest.mock import patch
 
 from common_helper_files import create_dir_for_file
 
@@ -77,9 +76,7 @@ class TestAcceptanceBase(unittest.TestCase):
         self.analysis_service = AnalysisScheduler(config=self.config, post_analysis=post_analysis)
         self.unpacking_service = UnpackingScheduler(config=self.config, post_unpack=self.analysis_service.add_task)
         self.compare_service = CompareScheduler(config=self.config, callback=compare_callback)
-        with patch.object(InterComBackEndBinding, 'WAIT_TIME', .5):
-            self.intercom = InterComBackEndBinding(config=self.config, analysis_service=self.analysis_service, compare_service=self.compare_service,
-                                                   unpacking_service=self.unpacking_service)
+        self.intercom = InterComBackEndBinding(config=self.config, analysis_service=self.analysis_service, compare_service=self.compare_service, unpacking_service=self.unpacking_service)
 
     def _setup_debugging_logging(self):
         # for debugging purposes only
