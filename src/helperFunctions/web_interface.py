@@ -5,6 +5,8 @@ import re
 from common_helper_files import get_binary_from_file
 
 from helperFunctions.fileSystem import get_template_dir
+from passlib.context import CryptContext
+
 
 SPECIAL_CHARACTERS = 'ÄäÀàÁáÂâÃãÅåǍǎĄąĂăÆæĀāÇçĆćĈĉČčĎđĐďðÈèÉéÊêËëĚěĘęĖėĒēĜĝĢģĞğĤĥÌìÍíÎîÏïıĪīĮįĴĵĶķĹĺĻļŁłĽľÑñŃńŇňŅņÖöÒòÓóÔôÕõŐőØøŒœŔŕŘřẞßŚśŜŝŞşŠšȘș' \
                      'ŤťŢţÞþȚțÜüÙùÚúÛûŰűŨũŲųŮůŪūŴŵÝýŸÿŶŷŹźŽžŻż'
@@ -67,3 +69,11 @@ def get_radare_endpoint(config):
     if config.getboolean('ExpertSettings', 'nginx'):
         return 'https://localhost/radare'
     return 'http://localhost:8000'
+
+
+def password_is_legal(pw: str) -> bool:
+    if not pw:
+        return False
+    schemes = ['bcrypt', 'des_crypt', 'pbkdf2_sha256', 'pbkdf2_sha512', 'sha256_crypt', 'sha512_crypt', 'plaintext']
+    ctx = CryptContext(schemes=schemes)
+    return ctx.identify(pw) == 'plaintext'
