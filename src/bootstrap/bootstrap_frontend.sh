@@ -6,9 +6,10 @@ echo "####################################"
 
 while [ "$1" != '' ]
   do
-	[ "$1" == "xenial" ] && UBUNTU_XENIAL="yes" && echo "installing on Ubuntu 16.04" && shift
-	[ "$1" == "bionic" ] && UBUNTU_BIONIC="yes" && echo "installing on Ubuntu 18.04" && shift
+    [ "$1" == "xenial" ] && UBUNTU_XENIAL="yes" && echo "installing on Ubuntu 16.04" && shift
+    [ "$1" == "bionic" ] && UBUNTU_BIONIC="yes" && echo "installing on Ubuntu 18.04" && shift
     [ "$1" == "nginx" ] && NGINX="yes" && echo "installing nginx" && shift
+    [ "$1" == "radare" ] && RADARE="yes" && echo "installing radare binding" && shift
 done
 
 # change cwd to bootstrap dir
@@ -98,6 +99,24 @@ then
 	(cd ../web_interface/templates/ && sudo ln -s $PWD/maintenance.html /etc/nginx/error/maintenance.html)
 	sudo nginx -s reload
 fi
+
+
+# ---- RADARE ----
+if [ "$RADARE" = "yes" ]
+then
+	echo "####################################"
+	echo "# installing and configuring nginx #"
+	echo "####################################"
+    if [ ! -d "docker-compose" ]; then
+        echo "\n [ERROR] docker-compose is not installed. Please (re-)run pre_install.sh !\n"
+    else
+        echo "Initiializing docker container for radare"
+        cd radare
+        docker-compose up -d
+        cd ..
+    fi
+fi
+
 
 cd ../../
 rm start_fact_frontend
