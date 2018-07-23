@@ -40,6 +40,7 @@ def _setup_argparser():
     for item in INSTALL_CANDIDATES:
         install_options.add_argument('-{}'.format(item[0].upper()), '--{}'.format(item), action='store_true', default=False, help='install {}'.format(item))
     install_options.add_argument('-N', '--nginx', action='store_true', default=False, help='install and configure nginx')
+    install_options.add_argument('-R', '--radare', action='store_true', default=True, help='install radare view container')
     install_options.add_argument('-U', '--statistic_cronjob', action='store_true', default=False, help='install cronjob to update statistics hourly and variety data once a week.')
     logging_options = parser.add_argument_group('Logging and Output Options')
     logging_options.add_argument('-l', '--log_file', help='path to log file', default='./install.log')
@@ -152,6 +153,8 @@ def install_common_dependencys(args, distribution):
 
 def install_frontend(args, distribution):
     opts = distribution
+    if args.radare:
+        opts += ' radare'
     if args.nginx:
         opts += ' nginx'
     execute_bootstrap_script('frontend', opts)

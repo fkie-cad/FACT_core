@@ -33,7 +33,7 @@ fi
 
 # install docker
 sudo apt-get update
-sudo apt-get -y install docker-ce
+sudo apt-get -y install docker-ce docker-compose
 sudo systemctl enable docker
 
 # add fact-user to docker group
