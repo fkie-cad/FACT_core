@@ -107,13 +107,13 @@ then
 	echo "####################################"
 	echo "# installing and configuring nginx #"
 	echo "####################################"
-    if [ ! -d "docker-compose" ]; then
-        echo "\n [ERROR] docker-compose is not installed. Please (re-)run pre_install.sh !\n"
-    else
+    if [ -x "$(command -v docker-compose)" ]; then 
         echo "Initiializing docker container for radare"
         cd radare
         docker-compose up -d
         cd ..
+    else
+        echo "\n [ERROR] docker-compose is not installed. Please (re-)run pre_install.sh !\n"
     fi
 fi
 
