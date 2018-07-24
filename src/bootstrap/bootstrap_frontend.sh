@@ -110,7 +110,7 @@ then
     if [ -x "$(command -v docker-compose)" ]; then 
         echo "Initiializing docker container for radare"
         cd radare
-        docker-compose up -d
+        docker-compose build
         cd ..
     else
         printf "\n [ERROR] docker-compose is not installed. Please (re-)run pre_install.sh !\n"

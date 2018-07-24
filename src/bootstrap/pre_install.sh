@@ -49,3 +49,5 @@ echo "Installing Python Libraries"
 sudo -EH pip3 install --upgrade distro
 
 echo -e "Pre-Install-Routine complete! \033[31mPlease reboot before running install.py\033[0m"
+
+exit 0
