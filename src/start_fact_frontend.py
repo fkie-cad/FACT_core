@@ -22,7 +22,7 @@ import pickle
 import signal
 import sys
 import tempfile
-from subprocess import Popen, TimeoutExpired
+from subprocess import Popen, TimeoutExpired, PIPE
 from time import sleep
 
 from helperFunctions.config import get_config_dir
@@ -58,9 +58,22 @@ def start_uwsgi_server(config_path=None):
     return p
 
 
+def start_docker():
+    command = 'docker-compose -f {}/bootstrap/radare/docker-compose.yml up -d'.format(get_src_dir())
+    _ = Popen(command, shell=True, stdout=PIPE, stderr=PIPE)
+
+
+def stop_docker():
+    command = 'docker-compose -f {}/bootstrap/radare/docker-compose.yml down'.format(get_src_dir())
+    _ = Popen(command, shell=True, stdout=PIPE, stderr=PIPE)
+
+
 if __name__ == '__main__':
     run = True
     args, config = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION)
+
+    start_docker()
+
     work_load_stat = WorkLoadStatistic(config=config, component='frontend')
 
     with tempfile.NamedTemporaryFile() as fp:
@@ -74,6 +87,10 @@ if __name__ == '__main__':
             if args.testing:
                 break
 
+
         work_load_stat.shutdown()
         _shutdown_uwsgi_server(uwsgi_process)
+
+    stop_docker()
+
     sys.exit()
