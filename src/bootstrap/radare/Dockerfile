@@ -1,6 +1,13 @@
 FROM ubuntu:bionic
 MAINTAINER Johannes vom Dorp <johannes.vom.dorp@fkie.fraunhofer.de>
 
+ARG HTTP_PROXY
+ARG HTTPS_PROXY
+ARG http_proxy
+ARG https_proxy
+ARG NO_PROXY
+ARG no_proxy
+
 RUN apt-get update && apt-get install -y \
     make gcc npm \
     python3-pip git sudo \
