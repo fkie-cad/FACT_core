@@ -44,6 +44,14 @@ FACT consists of three components: frontend, database and backend. All component
 There is an automated installation program supporting Ubuntu 16.04 and 18.04 host systems.
 
 ### Pre-Install
+
+```sh
+$ sudo apt-get install git
+$ git clone https://github.com/fkie-cad/FACT_core.git
+$ cd FACT_core
+$ src/bootstrap/pre_install.sh
+```
+
 Modify *src/config/main.cfg* and *src/config/mongod.conf* to suit your needs.
 Especially, you should change the mongo passwords.
 The database is initialized with these passwords on first start.  
@@ -52,17 +60,18 @@ Make sure that the log directory exists as well.
 
 If you have any additional plug-ins, copy/clone them into corresponding *src/plugins/* directory.  
 
+:exclamation: **Reboot before executing the ./install.py** :exclamation:  
 :exclamation: **You have to do the above steps before you do anything else** :exclamation:
 
 ### Simple One System Setup
 :customs: **The installation script installs a lot of dependencies that may have different licenses**
   
-To initialize a one system setup simply run:
+After reboot, you can setup an all on one system installation by entering the FACT_core directory and executing:  
 
 ```sh
-$ sudo apt install python3-pip git
 $ ./install.py
 ```
+:beer: **Get a drink... Installation of the dependencies might take some time...** :tea:
 
 For more advanced setups have a look at the help function of the installer:
 
@@ -87,7 +96,7 @@ The script detects all installed components automatically.
 $ ./start_all_installed_fact_components
 ```
 
-Afterwards FACT can be accesed on <http://localhost:5000> and <https://localhost> (nginx), repspectively.  
+Afterwards FACT can be accessed on <http://localhost:5000> and <https://localhost> (nginx), respectively.  
 
 You can shutdown the system by pressing *Ctrl + c* or by sending a SIGTERM to the *start_all_installed_faf_components* script.
 
@@ -114,7 +123,7 @@ Our Developers Manual can be found [here](https://github.com/fkie-cad/FACT_core/
 
 ## Acknowledgments
 This project is partly financed by [German Federal Office for Information Security (BSI)](https://www.bsi.bund.de) and others.  
-The FACT project and the [Malware Analysis and Storage Sytem (MASS) project](https://mass-project.github.io/) form a code and plug-in sharing alliance.  
+The FACT project and the [Malware Analysis and Storage System (MASS) project](https://mass-project.github.io/) form a code and plug-in sharing alliance.  
 
 ## License
 ```
