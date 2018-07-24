@@ -13,6 +13,7 @@ TEST_TASK = {
     'binary': b'this is a test',
     'file_name': 'test_file_name',
     'device_name': 'test device',
+    'device_part': 'kernel',
     'device_class': 'test class',
     'firmware_version': '1.0',
     'vendor': 'test vendor',
@@ -54,6 +55,7 @@ class TestMongoTask(unittest.TestCase):
         self.assertEqual(fw_obj.get_uid(), '2e99758548972a8e8822ad47fa1017ff72f06f3ff6a016851f45c398732bc50c_14', 'uid not correct -> binary not correct')
         self.assertEqual(fw_obj.file_name, 'test_file_name')
         self.assertEqual(fw_obj.device_name, 'test device')
+        self.assertEqual(fw_obj.part, 'kernel')
         self.assertEqual(fw_obj.device_class, 'test class')
         self.assertEqual(fw_obj.version, '1.0')
         self.assertEqual(fw_obj.vendor, 'test vendor')

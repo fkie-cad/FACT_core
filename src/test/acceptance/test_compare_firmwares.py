@@ -43,6 +43,7 @@ class TestAcceptanceCompareFirmwares(TestAcceptanceBase):
             data = {
                 'file': fp,
                 'device_name': device_name,
+                'device_part': 'full',
                 'device_class': 'test_class',
                 'firmware_version': '1.0',
                 'vendor': 'test_vendor',
