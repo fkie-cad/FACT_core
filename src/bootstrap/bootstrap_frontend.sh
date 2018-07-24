@@ -113,7 +113,7 @@ then
         docker-compose up -d
         cd ..
     else
-        echo "\n [ERROR] docker-compose is not installed. Please (re-)run pre_install.sh !\n"
+        printf "\n [ERROR] docker-compose is not installed. Please (re-)run pre_install.sh !\n"
     fi
 fi
 
