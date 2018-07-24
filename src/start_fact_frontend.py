@@ -87,7 +87,6 @@ if __name__ == '__main__':
             if args.testing:
                 break
 
-
         work_load_stat.shutdown()
         _shutdown_uwsgi_server(uwsgi_process)
 
