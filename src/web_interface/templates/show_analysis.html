@@ -384,7 +384,7 @@
                 </button>
             </form>
             {# Radare Button #}
-            <form action="/radare/{{ firmware.get_uid() }}" style="display: inline" onsubmit="window.open('', 'formpopup', 'width=800,height=400,resizeable,scrollbars');this.target = 'formpopup';">
+            <form action="/radare/{{ firmware.get_uid() }}" style="display: inline" target="_blank">
                 <button class="btn btn-default" type="submit">
                     <span class="glyphicon glyphicon-console"></span> view in radare
                 </button>
