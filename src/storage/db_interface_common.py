@@ -114,6 +114,11 @@ class MongoInterfaceCommon(MongoInterface):
         firmware.tags = entry['tags'] if 'tags' in entry else dict()
         firmware.analysis_tags = entry['analysis_tags'] if 'analysis_tags' in entry else dict()
 
+        try:  # for backwards compatibility
+            firmware.set_part_name(entry['device_part'])
+        except KeyError:
+            firmware.set_part_name('complete')
+
         if 'comments' in entry:  # for backwards compatibility
             firmware.comments = entry['comments']
         return firmware

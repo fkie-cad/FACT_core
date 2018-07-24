@@ -173,6 +173,13 @@ class UserManagementRoutesTest(unittest.TestCase):
         })
         assert b'Error: passwords do not match' in response.data
 
+    def test_change_user_password__illegal_password(self):
+        response = self.test_client.post('/admin/user/0', follow_redirects=True, data={
+            'admin_change_password': '1234567890abc',
+            'admin_confirm_password': '1234567890abc'
+        })
+        assert b'password is not legal' in response.data
+
     @pytest.mark.usefixtures('current_user_fixture')
     def test_app_show_profile(self):
         response = self.test_client.get('/user_profile', follow_redirects=True)
@@ -197,6 +204,15 @@ class UserManagementRoutesTest(unittest.TestCase):
             'old_password': 'wrong password'
         })
         assert b'Error: wrong password' in response.data
+
+    @pytest.mark.usefixtures('current_user_fixture')
+    def test_change_own_password__illegal_password(self):
+        response = self.test_client.post('/user_profile', follow_redirects=True, data={
+            'new_password': '1234567890abc',
+            'new_password_confirm': '1234567890abc',
+            'old_password': 'correct password'
+        })
+        assert b'password is not legal' in response.data
 
     @pytest.mark.usefixtures('current_user_fixture')
     def test_change_own_password__passwords_do_not_match(self):
