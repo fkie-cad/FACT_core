@@ -40,7 +40,8 @@ mv dist/t/app.js              ../radare2/shlr/www/t/app.js
 cd ..
 
 ## Install Server
-cd radare-forwarding
+https://github.com/fkie-cad/fact_radare_viewer.git
+cd fact_radare_viewer
 sudo -EH pip3 install -r requirements.txt
 cd ..
 

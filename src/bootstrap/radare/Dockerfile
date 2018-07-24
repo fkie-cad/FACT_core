@@ -7,10 +7,9 @@ RUN apt-get install -y make gcc npm python3-pip git sudo
 WORKDIR /opt/app
 
 ADD install.sh /opt/app
-ADD radare-forwarding /opt/app/radare-forwarding
 
 RUN /opt/app/install.sh
 
-WORKDIR /opt/app/radare-forwarding
+WORKDIR /opt/app/fact_radare_viewer
 
 CMD ["python3", "src/serve.py"]
