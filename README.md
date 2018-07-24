@@ -96,7 +96,7 @@ The script detects all installed components automatically.
 $ ./start_all_installed_fact_components
 ```
 
-Afterwards FACT can be accesed on <http://localhost:5000> and <https://localhost> (nginx), repspectively.  
+Afterwards FACT can be accessed on <http://localhost:5000> and <https://localhost> (nginx), respectively.  
 
 You can shutdown the system by pressing *Ctrl + c* or by sending a SIGTERM to the *start_all_installed_faf_components* script.
 
@@ -123,7 +123,7 @@ Our Developers Manual can be found [here](https://github.com/fkie-cad/FACT_core/
 
 ## Acknowledgments
 This project is partly financed by [German Federal Office for Information Security (BSI)](https://www.bsi.bund.de) and others.  
-The FACT project and the [Malware Analysis and Storage Sytem (MASS) project](https://mass-project.github.io/) form a code and plug-in sharing alliance.  
+The FACT project and the [Malware Analysis and Storage System (MASS) project](https://mass-project.github.io/) form a code and plug-in sharing alliance.  
 
 ## License
 ```
