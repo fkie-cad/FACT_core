@@ -383,6 +383,12 @@
                     <span class="glyphicon glyphicon-eye-open"></span> show header in hex
                 </button>
             </form>
+            {# Radare Button #}
+            <form action="/radare-view/{{ firmware.get_uid() }}" style="display: inline" target="_blank">
+                <button class="btn btn-default" type="submit">
+                    <span class="glyphicon glyphicon-console"></span> view in radare
+                </button>
+            </form>
             {# Binary Download Button #}
             <form action="/download/{{ firmware.get_uid() }}" style="display:inline">
                 <button class="btn btn-default" type="submit">

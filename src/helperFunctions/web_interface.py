@@ -65,6 +65,12 @@ def get_template_as_string(view_name):
     return get_binary_from_file(path).decode('utf-8')
 
 
+def get_radare_endpoint(config):
+    if config.getboolean('ExpertSettings', 'nginx'):
+        return 'https://localhost/radare'
+    return 'http://localhost:8000'
+
+
 def password_is_legal(pw: str) -> bool:
     if not pw:
         return False
