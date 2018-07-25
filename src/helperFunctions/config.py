@@ -45,6 +45,7 @@ def get_config_for_testing(temp_dir=None):
     config.set('ExpertSettings', 'ssdeep_ignore', '1')
     config.set('ExpertSettings', 'authentication', 'false')
     config.set('ExpertSettings', 'intercom_poll_delay', '0.5')
+    config.set('ExpertSettings', 'nginx', 'false')
     fact_config = load_config('main.cfg')
     config.set('data_storage', 'db_admin_user', fact_config['data_storage']['db_admin_user'])
     config.set('data_storage', 'db_admin_pw', fact_config['data_storage']['db_admin_pw'])
