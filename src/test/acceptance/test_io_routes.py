@@ -76,11 +76,27 @@ class TestAcceptanceIoRoutes(TestAcceptanceBase):
         self.assertIn(b'Incorrect padding', response.data, 'base64 did not break')
 
     def test_hex_dump_button(self):
+        response = self.test_client.get('/hex-dump/{uid}'.format(uid=self.test_fw.uid))
+        self.assertIn('200', response.status, 'hex dump link failed')
+        self.assertIn(b'File not found in database', response.data, 'hex dump should fail on missing uid')
+
         self.db_backend_interface.add_firmware(self.test_fw)
 
         response = self.test_client.get('/hex-dump/{uid}'.format(uid=self.test_fw.uid))
         self.assertIn('200', response.status, 'hex dump link failed')
         self.assertIn(b'0x0', response.data, 'no hex dump is shown')
+
+    def test_radare_button(self):
+        response = self.test_client.get('/radare-view/{uid}'.format(uid=self.test_fw.uid))
+        self.assertIn('200', response.status, 'radare view link failed')
+        self.assertIn(b'File not found in database', response.data, 'radare view should fail on missing uid')
+
+        self.db_backend_interface.add_firmware(self.test_fw)
+
+        response = self.test_client.get('/radare-view/{uid}'.format(uid=self.test_fw.uid))
+        self.assertIn('200', response.status, 'radare view link failed')
+        self.assertIn(b'with url: /v1/retrieve', response.data, 'error coming from wrong request')
+        self.assertIn(b'Failed to establish a new connection', response.data, 'connection shall fail')
 
     def test_hex_dump_bad_uid(self):
         response = self.test_client.get('/hex-dump/{uid}'.format(uid=self.test_fw.uid))
