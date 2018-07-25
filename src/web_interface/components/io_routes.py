@@ -27,7 +27,7 @@ class IORoutes(ComponentBase):
         self._app.add_url_rule('/ida-download/<compare_id>', 'ida-download/<compare_id>', self._download_ida_file)
         self._app.add_url_rule('/base64-download/<uid>/<section>/<expression_id>', '/base64-download/<uid>/<section>/<expression_id>', self._download_base64_decoded_section)
         self._app.add_url_rule('/hex-dump/<uid>', 'hex-dump/<uid>', self._show_hex_dump)
-        self._app.add_url_rule('/radare/<uid>', 'radare/<uid>', self._show_radare)
+        self._app.add_url_rule('/radare-view/<uid>', 'radare-view/<uid>', self._show_radare)
 
     @roles_accepted(*PRIVILEGES['download'])
     def _download_base64_decoded_section(self, uid, section, expression_id):
@@ -164,9 +164,9 @@ class IORoutes(ComponentBase):
             else:
                 binary, _ = result
                 try:
-                    response = requests.post('{}{}'.format(host, post_path), data=binary)
+                    response = requests.post('{}{}'.format(host, post_path), data=binary, verify=False)
                     if response.status_code == 200:
-                        target_link = '{}{}enyo/'.format(host, response.json()['endpoint'])
+                        target_link = '{}{}m/'.format(host, response.json()['endpoint'])
                         sleep(1)
                         return redirect(target_link)
                     else:
