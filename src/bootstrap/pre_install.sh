@@ -33,7 +33,7 @@ fi
 
 # install docker
 sudo apt-get update
-sudo apt-get -y install docker-ce
+sudo apt-get -y install docker-ce 
 sudo systemctl enable docker
 
 # add fact-user to docker group
@@ -43,7 +43,11 @@ then
 fi
 sudo usermod -aG docker $FACTUSER
 
+sudo -EH pip3 install --upgrade docker-compose
+
 echo "Installing Python Libraries"
-sudo -EH pip3 install distro
+sudo -EH pip3 install --upgrade distro
 
 echo -e "Pre-Install-Routine complete! \033[31mPlease reboot before running install.py\033[0m"
+
+exit 0
