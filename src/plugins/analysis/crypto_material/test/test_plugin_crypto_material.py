@@ -41,3 +41,12 @@ class CryptoCodeMaterialTest(AbstractSignatureTest):
 
     def test_no_false_positives(self):
         self._rule_match('FP_test', None, 0)
+
+    def test_der_error(self):
+        self._rule_match('error.der', None, 0)
+
+    def test_false_positive_ssl_cert(self):
+        self._rule_match('ssl_fp.file', None, 0)
+
+    def test_false_positive_pkcs_cert(self):
+        self._rule_match('pkcs_fp.file', None, 0)
