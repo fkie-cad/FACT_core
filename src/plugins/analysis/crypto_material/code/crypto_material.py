@@ -61,10 +61,7 @@ class AnalysisPlugin(YaraBasePlugin):
         keys = []
         for string in strings:
             index, _, _ = string
-            try:
-                key = read_asn1_key(binary=binary, offset=index)
-            except TypeError:
-                key = None
+            key = read_asn1_key(binary=binary, offset=index)
             if key is not None:
                 keys.append(key)
         return keys
@@ -74,10 +71,7 @@ class AnalysisPlugin(YaraBasePlugin):
         keys = []
         for string in strings:
             index, _, _ = string
-            try:
-                text_cert = read_pkcs_cert(binary=binary, offset=index)
-            except TypeError:
-                text_cert = None
+            text_cert = read_pkcs_cert(binary=binary, offset=index)
             if text_cert is not None:
                 keys.append(text_cert)
         return keys
@@ -86,10 +80,7 @@ class AnalysisPlugin(YaraBasePlugin):
         contents = []
         for pair in self.get_offset_pairs(strings=strings):
             start_index, end_index = pair
-            try:
-                text_cert = read_ssl_cert(binary=binary, start=start_index, end=end_index)
-            except TypeError:
-                text_cert = None
+            text_cert = read_ssl_cert(binary=binary, start=start_index, end=end_index)
             if text_cert is not None:
                 contents.append(text_cert)
         return contents
