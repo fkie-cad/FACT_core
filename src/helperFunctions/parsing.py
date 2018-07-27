@@ -32,10 +32,12 @@ def read_asn1_key(binary=None, offset=None):
     start, size = _get_start_and_size_of_der_field(binary=binary, offset=offset)
     try:
         key = OpenSSL.crypto.load_privatekey(OpenSSL.crypto.FILETYPE_ASN1, binary[offset:start + size])
-        text_key = make_unicode_string(OpenSSL.crypto.dump_privatekey(OpenSSL.crypto.FILETYPE_TEXT, key))
-        return text_key
+        return make_unicode_string(OpenSSL.crypto.dump_privatekey(OpenSSL.crypto.FILETYPE_TEXT, key))
     except OpenSSL.crypto.Error:
         logging.debug('Found PKCS#8 key signature, but looks false positive')
+        return None
+    except TypeError:
+        logging.warning('Found PKCS#8 key signature but openssl binding could not decode it.')
         return None
 
 
@@ -44,10 +46,8 @@ def read_pkcs_cert(binary=None, offset=None):
         return None
     start, size = _get_start_and_size_of_der_field(binary=binary, offset=offset)
     try:
-        asn1_cert = OpenSSL.crypto.load_pkcs12(buffer=binary[offset:start + size])
-        x509_cert = asn1_cert.get_certificate()
-        text_cert = make_unicode_string(OpenSSL.crypto.dump_certificate(type=OpenSSL.crypto.FILETYPE_TEXT, cert=x509_cert))
-        return text_cert
+        x509_cert = OpenSSL.crypto.load_pkcs12(buffer=binary[offset:start + size]).get_certificate()
+        return make_unicode_string(OpenSSL.crypto.dump_certificate(type=OpenSSL.crypto.FILETYPE_TEXT, cert=x509_cert))
     except OpenSSL.crypto.Error:
         logging.debug('Found PKCS#12 certificate, but passphrase is missing or false positive.')
         return None
@@ -56,11 +56,9 @@ def read_pkcs_cert(binary=None, offset=None):
 def read_ssl_cert(binary=None, start=None, end=None):
     try:
         cert = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, binary[start:end + 25])
-        cert_text = make_unicode_string(OpenSSL.crypto.dump_certificate(OpenSSL.crypto.FILETYPE_TEXT, cert))
-        return cert_text
+        return make_unicode_string(OpenSSL.crypto.dump_certificate(OpenSSL.crypto.FILETYPE_TEXT, cert))
     except OpenSSL.crypto.Error:
         logging.debug('Found SSL certificate signature, but looks false positive')
-        print(bcolors.FAIL, 'Error', bcolors.ENDC)
         return None
 
 
