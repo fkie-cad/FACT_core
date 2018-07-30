@@ -32,7 +32,7 @@ rule nginx
 		website = "https://www.nginx.com/"
 		description = "Web-Server"
 	strings:
-		$a = /nginx version: nginx\/\d+.\d+.\d+/ nocase ascii wide
+		$a = /nginx version: nginx\/\d+\.\d+\.\d+/ nocase ascii wide
 	condition:
 		$a and no_text_file
 }
