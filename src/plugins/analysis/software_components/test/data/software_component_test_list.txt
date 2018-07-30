@@ -46,3 +46,4 @@ EFI Shell Version 1.0
 Boot Agent CL v0.1.04
 SSLeay 0.8.2b
 Bash version 4.2.10
+nginx version: nginx/1.13.3
