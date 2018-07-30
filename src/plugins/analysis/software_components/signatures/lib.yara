@@ -36,3 +36,16 @@ rule libVorbis
     condition:
         $a and no_text_file
 }
+
+rule PH7
+{
+	meta:
+		software_name = "PH7"
+		open_source = true
+		website = "http://ph7.symisc.net/"
+		description = "Byte code compiler and virtual machine for PHP"
+    strings:
+        $a = /PH7\/\d+\.\d+\.\d+/ nocase ascii wide
+    condition:
+        $a and no_text_file
+}
