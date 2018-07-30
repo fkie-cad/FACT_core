@@ -9,26 +9,19 @@ cd ..
 
 
 ## Build WebUI
-git clone https://github.com/radare/radare2-webui.git
+git clone https://github.com/dorpvom/radare2-webui.git
 cd radare2-webui
 make root
-
-make material
-sudo -EH npm install -g bower
-cd www/m
-bower update --force-latest --allow-root
-cd ../../
 
 make material
 make panel
 make enyo
 make tiles
 
-sudo -EH npm uninstall -g bower
-
 
 ## Patch WebUI
 mv dist/enyo/r2core.js        ../radare2/shlr/www/enyo/r2core.js
+mv dist/enyo/r2app.js         ../radare2/shlr/www/enyo/r2app.js
 mv dist/r2.js                 ../radare2/shlr/www/f/r2.js
 mv dev/m/disasmNavProvider.js ../radare2/shlr/www/m/disasmNavProvider.js
 mv dev/m/disasmProvider.js    ../radare2/shlr/www/m/disasmProvider.js

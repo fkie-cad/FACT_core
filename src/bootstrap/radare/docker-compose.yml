@@ -12,11 +12,11 @@ services:
             - https_proxy=$https_proxy
             - NO_PROXY=$NO_PROXY
             - no_proxy=$no_proxy
-        restart: always
+        restart: on-failure
     server:
         build:
             context: ./nginx
             dockerfile: Dockerfile
-        restart: always
+        restart: on-failure
         ports:
         - 8000:8000
