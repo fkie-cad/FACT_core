@@ -2,7 +2,8 @@
 This plugin unpacks debian packages
 '''
 import logging
-from subprocess import Popen, PIPE, STDOUT
+
+from common_helper_process import execute_shell_command
 
 from helperFunctions.process import program_is_callable
 
@@ -17,9 +18,7 @@ def unpack_function(file_path, tmp_dir):
     elif not program_is_callable("dpkg-deb"):
         logging.error("dpkg-deb not working!")
     else:
-        with Popen('fakeroot dpkg-deb -v -x {} {}'.format(file_path, tmp_dir), shell=True, stdout=PIPE, stderr=STDOUT) as dpkg_process:
-            output = dpkg_process.communicate()[0].decode(encoding='utf_8', errors='replace')
-        return {'output': output}
+        return {'output': execute_shell_command('fakeroot dpkg-deb -v -x {} {}'.format(file_path, tmp_dir))}
 
 
 # ----> Do not edit below this line <----
