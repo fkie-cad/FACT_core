@@ -208,6 +208,19 @@ rule OpenSSH
         $a and no_text_file
 }
 
+rule pptpClient
+{
+	meta:
+		software_name = "pptp-client"
+		open_source = true
+		website = "http://pptpclient.sourceforge.net/"
+		description = "PPTP Client is a Linux, FreeBSD, NetBSD and OpenBSD client for the proprietary Microsoft Point-to-Point Tunneling Protocol, PPTP."
+    strings:
+        $a = /pptp version \d+\.\d+\.\d/ nocase ascii wide
+    condition:
+        $a and no_text_file
+}
+
 rule ProFTPD
 {
 	meta:
