@@ -1,5 +1,6 @@
 import json
 import os
+from base64 import standard_b64encode
 from copy import deepcopy
 
 from helperFunctions.dataConversion import unify_string_list
@@ -340,3 +341,22 @@ def clean_test_database(config, list_of_test_databases):
     except Exception:
         pass
     db.shutdown()
+
+
+def get_firmware_for_rest_upload_test():
+    testfile_path = os.path.join(get_test_data_dir(), 'container/test.zip')
+    with open(testfile_path, 'rb') as fp:
+        file_content = fp.read()
+    data = {
+        'binary': standard_b64encode(file_content).decode(),
+        'file_name': 'test.zip',
+        'device_name': 'test_device',
+        'device_part': 'test_part',
+        'device_class': 'test_class',
+        'firmware_version': '1.0',
+        'vendor': 'test_vendor',
+        'release_date': '01.01.1970',
+        'tags': '',
+        'requested_analysis_systems': ['software_components']
+    }
+    return data

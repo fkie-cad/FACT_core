@@ -1,13 +1,12 @@
 import json
-import os
-import time
 import urllib.parse
-from base64 import standard_b64encode
 from multiprocessing import Event, Value
 
-from helperFunctions.fileSystem import get_test_data_dir
+import time
+
 from storage.db_interface_backend import BackEndDbInterface
 from test.acceptance.base import TestAcceptanceBase
+from test.common_helper import get_firmware_for_rest_upload_test
 
 
 class TestRestFirmware(TestAcceptanceBase):
@@ -33,21 +32,7 @@ class TestRestFirmware(TestAcceptanceBase):
             self.analysis_finished_event.set()
 
     def _rest_upload_firmware(self):
-        testfile_path = os.path.join(get_test_data_dir(), 'container/test.zip')
-        with open(testfile_path, 'rb') as fp:
-            file_content = fp.read()
-        data = {
-            'binary': standard_b64encode(file_content).decode(),
-            'file_name': 'test.zip',
-            'device_name': 'test_device',
-            'device_part': 'test_part',
-            'device_class': 'test_class',
-            'firmware_version': '1.0',
-            'vendor': 'test_vendor',
-            'release_date': '01.01.1970',
-            'tags': '',
-            'requested_analysis_systems': ['software_components']
-        }
+        data = get_firmware_for_rest_upload_test()
         rv = self.test_client.put('/rest/firmware', data=json.dumps(data), follow_redirects=True)
         self.assertIn(b'"status": 0', rv.data, 'rest upload not successful')
         self.assertIn(self.test_container_uid.encode(), rv.data, 'uid not found in rest upload reply')
