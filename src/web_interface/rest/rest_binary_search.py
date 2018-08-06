@@ -29,18 +29,24 @@ class RestBinarySearch(Resource):
         if 'rule_file' not in data:
             return error_message('rule_file could not be found in the request data', self.URL)
 
+        if isinstance(data['rule_file'], str):
+            data['rule_file'] = data['rule_file'].encode()
+
         if not is_valid_yara_rule_file(data['rule_file']):
             return error_message('Error in YARA rule file', self.URL, request_data=request.data)
 
-        if data['uid'] and not self._firmware_is_in_db(data['uid']):
-            error_str = 'Firmware with UID {uid} not found in database'.format(uid=data['uid'])
-            return error_message(error_str, self.URL)
+        uid = None
+        if 'uid' in data:
+            if not self._firmware_is_in_db(data['uid']):
+                error_str = 'Firmware with UID {uid} not found in database'.format(uid=data['uid'])
+                return error_message(error_str, self.URL)
+            uid = data['uid']
 
         with ConnectTo(InterComFrontEndBinding, self.config) as intercom:
-            search_id = intercom.add_binary_search_request(data['rule_file'], data['uid'])
+            search_id = intercom.add_binary_search_request(data['rule_file'], uid)
 
         return success_message(
-            'Started binary search. Please use GET and the search_id to get the results',
+            {'message': 'Started binary search. Please use GET and the search_id to get the results'},
             self.URL,
             request_data={'search_id': search_id}
         )
@@ -50,15 +56,17 @@ class RestBinarySearch(Resource):
         '''
         The search_id is needed to fetch the corresponding search result.
         The result of the search request can only be fetched once. After this the search needs to be started again.
+        The results have the form:
+        {'binary_search_results': {'<rule_name_1>': ['<matching_uid_1>', ...], '<rule_name_2>': [...], ...}
         '''
 
         if search_id is None:
             return error_message('The search_id is needed to fetch the search result', self.URL)
 
         with ConnectTo(InterComFrontEndBinding, self.config) as intercom:
-            result, _ = intercom.get_binary_search_result(search_id)
+            result, rule = intercom.get_binary_search_result(search_id)
 
-        if not isinstance(result, str):
+        if result is None:
             return error_message('The result is not ready yet or it has already been fetched', self.URL)
 
-        return success_message(result, self.URL)
+        return success_message({'binary_search_results': result}, self.URL)
