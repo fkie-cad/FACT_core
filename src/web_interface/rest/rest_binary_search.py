@@ -4,6 +4,7 @@ from helperFunctions.rest import success_message, error_message, convert_rest_re
 from helperFunctions.web_interface import ConnectTo
 from helperFunctions.yara_binary_search import is_valid_yara_rule_file
 from intercom.front_end_binding import InterComFrontEndBinding
+from storage.db_interface_frontend import FrontEndDbInterface
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
@@ -18,8 +19,9 @@ class RestBinarySearch(Resource):
     def post(self):
         '''
         The request data should have the form
-        {"rule_file": rule_file, 'uid': firmware_uid}
+        {"rule_file": rule_string, 'uid': firmware_uid}
         The uid parameter is optional and can be specified if the user want's to search in the files of a single firmware.
+        rule_string can be something like "rule rule_name {strings: $a = \"foobar\" condition: $a}"
         '''
         try:
             data = convert_rest_request(request.data)
@@ -37,9 +39,11 @@ class RestBinarySearch(Resource):
 
         uid = None
         if 'uid' in data:
-            if not self._firmware_is_in_db(data['uid']):
-                error_str = 'Firmware with UID {uid} not found in database'.format(uid=data['uid'])
-                return error_message(error_str, self.URL)
+            with ConnectTo(FrontEndDbInterface, self.config) as db_interface:
+                print("type(db_interface):", type(db_interface), db_interface.is_firmware)
+                if not db_interface.is_firmware(data['uid']):
+                    error_str = 'Firmware with UID {uid} not found in database'.format(uid=data['uid'])
+                    return error_message(error_str, self.URL)
             uid = data['uid']
 
         with ConnectTo(InterComFrontEndBinding, self.config) as intercom:
@@ -61,7 +65,7 @@ class RestBinarySearch(Resource):
         '''
 
         if search_id is None:
-            return error_message('The search_id is needed to fetch the search result', self.URL)
+            return error_message('The search_id was not found. It is needed to fetch the search result', self.URL)
 
         with ConnectTo(InterComFrontEndBinding, self.config) as intercom:
             result, rule = intercom.get_binary_search_result(search_id)
