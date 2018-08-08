@@ -9,6 +9,11 @@ from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
 
+class RestBinarySearchException(Exception):
+    def get_message(self):
+        return ", ".join(self.args)
+
+
 class RestBinarySearch(Resource):
     URL = '/rest/binary_search'
 
@@ -25,29 +30,15 @@ class RestBinarySearch(Resource):
         '''
         try:
             data = convert_rest_request(request.data)
+            yara_rules = self._get_yara_rules(data)
+            uid = self._get_firmware_uid(data)
         except TypeError as type_error:
             return error_message(str(type_error), self.URL, request_data=request.data)
-
-        if 'rule_file' not in data:
-            return error_message('rule_file could not be found in the request data', self.URL)
-
-        if isinstance(data['rule_file'], str):
-            data['rule_file'] = data['rule_file'].encode()
-
-        if not is_valid_yara_rule_file(data['rule_file']):
-            return error_message('Error in YARA rule file', self.URL, request_data=request.data)
-
-        uid = None
-        if 'uid' in data:
-            with ConnectTo(FrontEndDbInterface, self.config) as db_interface:
-                print("type(db_interface):", type(db_interface), db_interface.is_firmware)
-                if not db_interface.is_firmware(data['uid']):
-                    error_str = 'Firmware with UID {uid} not found in database'.format(uid=data['uid'])
-                    return error_message(error_str, self.URL)
-            uid = data['uid']
+        except RestBinarySearchException as e:
+            return error_message(e.get_message(), self.URL, request_data=request.data)
 
         with ConnectTo(InterComFrontEndBinding, self.config) as intercom:
-            search_id = intercom.add_binary_search_request(data['rule_file'], uid)
+            search_id = intercom.add_binary_search_request(yara_rules, uid)
 
         return success_message(
             {'message': 'Started binary search. Please use GET and the search_id to get the results'},
@@ -65,12 +56,37 @@ class RestBinarySearch(Resource):
         '''
 
         if search_id is None:
-            return error_message('The search_id was not found. It is needed to fetch the search result', self.URL)
+            return error_message('The request is missing a search_id (which is needed to fetch the search result).', self.URL)
 
         with ConnectTo(InterComFrontEndBinding, self.config) as intercom:
-            result, rule = intercom.get_binary_search_result(search_id)
+            result, _ = intercom.get_binary_search_result(search_id)
 
         if result is None:
             return error_message('The result is not ready yet or it has already been fetched', self.URL)
 
         return success_message({'binary_search_results': result}, self.URL)
+
+    @staticmethod
+    def _get_yara_rules(request_data):
+        if 'rule_file' not in request_data:
+            raise RestBinarySearchException('rule_file could not be found in the request data')
+        yara_rules = request_data['rule_file']
+
+        if isinstance(yara_rules, str):
+            yara_rules = yara_rules.encode()
+
+        if not is_valid_yara_rule_file(yara_rules):
+            raise RestBinarySearchException('Error in YARA rule file')
+
+        return yara_rules
+
+    def _get_firmware_uid(self, request_data):
+        if 'uid' not in request_data:
+            return None
+
+        with ConnectTo(FrontEndDbInterface, self.config) as db_interface:
+            if not db_interface.is_firmware(request_data['uid']):
+                raise RestBinarySearchException('Firmware with UID {uid} not found in database'.format(uid=request_data['uid']))
+
+        return request_data['uid']
+
