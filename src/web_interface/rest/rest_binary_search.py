@@ -34,8 +34,8 @@ class RestBinarySearch(Resource):
             uid = self._get_firmware_uid(data)
         except TypeError as type_error:
             return error_message(str(type_error), self.URL, request_data=request.data)
-        except RestBinarySearchException as e:
-            return error_message(e.get_message(), self.URL, request_data=request.data)
+        except RestBinarySearchException as exception:
+            return error_message(exception.get_message(), self.URL, request_data=request.data)
 
         with ConnectTo(InterComFrontEndBinding, self.config) as intercom:
             search_id = intercom.add_binary_search_request(yara_rules, uid)
@@ -56,7 +56,7 @@ class RestBinarySearch(Resource):
         '''
 
         if search_id is None:
-            return error_message('The request is missing a search_id (which is needed to fetch the search result).', self.URL)
+            return error_message('The request is missing a search_id (.../binary_search/<search_id>).', self.URL)
 
         with ConnectTo(InterComFrontEndBinding, self.config) as intercom:
             result, _ = intercom.get_binary_search_result(search_id)
@@ -89,4 +89,3 @@ class RestBinarySearch(Resource):
                 raise RestBinarySearchException('Firmware with UID {uid} not found in database'.format(uid=request_data['uid']))
 
         return request_data['uid']
-
