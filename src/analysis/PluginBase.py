@@ -15,7 +15,6 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
     This is the base plugin. All plugins should be subclass of this.
     recursive flag: If True (default) recursively analyze included files
     '''
-    CONFIG_FILE = 'main.cfg'
     VERSION = 'not set'
 
     timeout = None

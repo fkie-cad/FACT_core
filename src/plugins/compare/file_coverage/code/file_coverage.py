@@ -1,16 +1,17 @@
-import logging
 from copy import deepcopy
 
 from compare.PluginBase import CompareBasePlugin
-from helperFunctions.compare_sets import intersection_of_list_of_lists, difference_of_lists, difference_of_sets, remove_duplicates_from_list_of_lists, make_pairs_of_sets, collapse_pair_of_sets
-from helperFunctions.dataConversion import list_of_lists_to_list_of_sets, list_of_sets_to_list_of_lists, remove_included_sets_from_list_of_sets, list_to_unified_string_list
+from helperFunctions.compare_sets import intersection_of_list_of_lists, difference_of_lists, difference_of_sets, \
+    remove_duplicates_from_list_of_lists, make_pairs_of_sets, collapse_pair_of_sets
+from helperFunctions.dataConversion import list_of_lists_to_list_of_sets, list_of_sets_to_list_of_lists, \
+    remove_included_sets_from_list_of_sets, list_to_unified_string_list
 from helperFunctions.hash import get_ssdeep_comparison, check_similarity_of_sets
 
 
 class ComparePlugin(CompareBasePlugin):
-    """
+    '''
     Compares file coverage
-    """
+    '''
 
     NAME = 'File_Coverage'
     DEPENDENCIES = []
@@ -66,7 +67,7 @@ class ComparePlugin(CompareBasePlugin):
     @staticmethod
     def _get_files_in_more_than_one_but_not_in_all(fo_list, result_dict):
         result = {}
-        for i, current_element in enumerate(fo_list):
+        for _, current_element in enumerate(fo_list):
             result[current_element.get_uid()] = list(difference_of_sets(set(current_element.list_of_all_included_files), [result_dict['files_in_common']['all'], result_dict['exclusive_files'][current_element.get_uid()]]))
         return result
 
@@ -88,15 +89,15 @@ class ComparePlugin(CompareBasePlugin):
         return remove_duplicates_from_list_of_lists(list_of_sets_to_list_of_lists(similarity_sets)), similarity
 
     def _find_similar_file_for(self, file, parent_id, potential_matches):
-        fo_one = self.database.get_object(uid=file, analysis_filter=['file_hashes'])
-        id1 = '{}:{}'.format(parent_id, fo_one.get_uid())
-        hash_one = fo_one.processed_analysis['file_hashes']['ssdeep']
-        for potential_match in potential_matches.files_included:
-            fo_two = self.database.get_object(uid=potential_match, analysis_filter=['file_hashes'])
-            id2 = '{}:{}'.format(potential_matches.get_uid(), fo_two.get_uid())
-            hash_two = fo_two.processed_analysis['file_hashes']['ssdeep']
-            if get_ssdeep_comparison(hash_one, hash_two) > self.SSDEEP_IGNORE:
-                yield [id1, id2], get_ssdeep_comparison(hash_one, hash_two)
+        hash_one = self.database.get_ssdeep_hash(file)
+        if hash_one:
+            id1 = '{}:{}'.format(parent_id, file)
+            for potential_match in potential_matches.files_included:
+                id2 = '{}:{}'.format(potential_matches.get_uid(), potential_match)
+                hash_two = self.database.get_ssdeep_hash(potential_match)
+
+                if hash_two and get_ssdeep_comparison(hash_one, hash_two) > self.SSDEEP_IGNORE:
+                    yield [id1, id2], get_ssdeep_comparison(hash_one, hash_two)
 
     @staticmethod
     def produce_similarity_sets(list_of_lists):
@@ -150,11 +151,7 @@ class ComparePlugin(CompareBasePlugin):
     def _evaluate_entropy_for_list_of_uids(self, list_of_uids, new_result, firmware_uid):
         non_zero_file_ids = list()
         for uid in list_of_uids:
-            file_object = self.database.get_object(uid, analysis_filter=['unpacker'])
-            try:
-                if file_object.processed_analysis['unpacker']['entropy'] > 0.1:
-                    non_zero_file_ids.append(uid)
-            except KeyError:
-                logging.debug('Compared file {} has not been unpacked with entropy calculation yet.'.format(file_object.uid))
+            if self.database.get_entropy(uid) > 0.1:
+                non_zero_file_ids.append(uid)
         if non_zero_file_ids:
             new_result[firmware_uid] = non_zero_file_ids

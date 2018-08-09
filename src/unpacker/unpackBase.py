@@ -52,7 +52,8 @@ class UnpackBase(object):
             else:
                 return self.unpacker_plugins['generic/carver']
 
-    def _get_unpacker_version(self, unpacker_tupple):
+    @staticmethod
+    def _get_unpacker_version(unpacker_tupple):
         if len(unpacker_tupple) == 3:
             return unpacker_tupple[2]
         else:
@@ -86,13 +87,12 @@ class UnpackBase(object):
         meta_data['analysis_date'] = time()
         return get_files_in_dir(tmp_dir), meta_data
 
-    def change_owner_back_to_me(self, directory=None):
-        uid = getuid()
-        gid = getgid()
-        with Popen('sudo chown -R {}:{} {}'.format(uid, gid, directory), shell=True, stdout=PIPE, stderr=PIPE) as pl:
-            pl.communicate()[0].decode()
-        self.grant_read_permission(directory)
+    def change_owner_back_to_me(self, directory=None, permissions='u+r'):
+        with Popen('sudo chown -R {}:{} {}'.format(getuid(), getgid(), directory), shell=True, stdout=PIPE, stderr=PIPE) as pl:
+            pl.communicate()
+        self.grant_read_permission(directory, permissions)
 
-    def grant_read_permission(self, directory=None):
-        with Popen('chmod --recursive u+r {}'.format(directory), shell=True, stdout=PIPE, stderr=PIPE) as pl:
-            pl.communicate()[0].decode()
+    @staticmethod
+    def grant_read_permission(directory, permissions):
+        with Popen('chmod --recursive {} {}'.format(permissions, directory), shell=True, stdout=PIPE, stderr=PIPE) as pl:
+            pl.communicate()

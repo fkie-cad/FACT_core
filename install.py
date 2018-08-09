@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 '''
     FACT Installer
-    Copyright (C) 2015-2017  Fraunhofer FKIE
+    Copyright (C) 2015-2018  Fraunhofer FKIE
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -24,12 +24,12 @@ import logging
 import subprocess
 
 PROGRAM_NAME = 'FACT Installer'
-PROGRAM_VERSION = '0.8'
+PROGRAM_VERSION = '0.9'
 PROGRAM_DESCRIPTION = 'Firmware Analysis and Comparison Tool (FACT) installation script'
 
 INSTALL_CANDIDATES = ['frontend', 'db', 'backend']
 
-BIONIC_CODE_NAMES = ['bionic beaver']
+BIONIC_CODE_NAMES = ['bionic beaver', 'tara']
 XENIAL_CODE_NAMES = ['xenial xerus', 'yakkety yak', 'sarah', 'serena', 'sonya', 'sylvia']
 
 
@@ -40,6 +40,7 @@ def _setup_argparser():
     for item in INSTALL_CANDIDATES:
         install_options.add_argument('-{}'.format(item[0].upper()), '--{}'.format(item), action='store_true', default=False, help='install {}'.format(item))
     install_options.add_argument('-N', '--nginx', action='store_true', default=False, help='install and configure nginx')
+    install_options.add_argument('-R', '--no_radare', action='store_true', default=False, help='do not install radare view container')
     install_options.add_argument('-U', '--statistic_cronjob', action='store_true', default=False, help='install cronjob to update statistics hourly and variety data once a week.')
     logging_options = parser.add_argument_group('Logging and Output Options')
     logging_options.add_argument('-l', '--log_file', help='path to log file', default='./install.log')
@@ -152,6 +153,8 @@ def install_common_dependencys(args, distribution):
 
 def install_frontend(args, distribution):
     opts = distribution
+    if not args.no_radare:
+        opts += ' radare'
     if args.nginx:
         opts += ' nginx'
     execute_bootstrap_script('frontend', opts)

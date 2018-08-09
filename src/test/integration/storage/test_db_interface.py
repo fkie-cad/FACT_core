@@ -4,6 +4,7 @@ from os import path
 import pickle
 from tempfile import TemporaryDirectory
 import unittest
+from typing import Set
 
 from helperFunctions.config import get_config_for_testing
 from helperFunctions.fileSystem import get_test_data_dir
@@ -82,6 +83,7 @@ class TestMongoInterface(unittest.TestCase):
         fobject = self.db_interface.get_firmware(self.test_firmware.get_uid())
         self.assertEqual(fobject.vendor, 'test_vendor')
         self.assertEqual(fobject.device_name, 'test_router')
+        self.assertEqual(fobject.part, '')
 
     def test_get_object(self):
         fo = self.db_interface.get_object(self.test_firmware.get_uid())
@@ -227,7 +229,7 @@ class TestSummary(unittest.TestCase):
         self.db_interface_backend.add_object(self.test_fw)
         self.db_interface_backend.add_object(self.test_fo)
 
-    def get_set_of_all_included_files(self):
+    def test_get_set_of_all_included_files(self):
         self.create_and_add_test_fimrware_and_file_object()
         result_set_fo = self.db_interface.get_set_of_all_included_files(self.test_fo)
         self.assertIsInstance(result_set_fo, set, 'result is not a set')
@@ -237,6 +239,20 @@ class TestSummary(unittest.TestCase):
         self.assertEqual(len(result_set_fw), 2, 'number of files not correct')
         self.assertIn(self.test_fo.get_uid(), result_set_fw, 'test file not in result set firmware')
         self.assertIn(self.test_fw.get_uid(), result_set_fw, 'fw not in result set firmware')
+
+    def test_get_uids_of_all_included_files(self):
+        def add_test_file_to_db_with_parent_uids(uid, parent_uids: Set[str]):
+            test_fo = create_test_file_object()
+            test_fo.parent_firmware_uids = parent_uids
+            test_fo.uid = uid
+            self.db_interface_backend.add_object(test_fo)
+        add_test_file_to_db_with_parent_uids('uid1', {'foo'})
+        add_test_file_to_db_with_parent_uids('uid2', {'foo', 'bar'})
+        add_test_file_to_db_with_parent_uids('uid3', {'bar'})
+        result = self.db_interface.get_uids_of_all_included_files('foo')
+        assert result == {'uid1', 'uid2'}
+
+        assert self.db_interface.get_uids_of_all_included_files('uid not in db') == set()
 
     def test_get_summary(self):
         self.create_and_add_test_fimrware_and_file_object()
@@ -249,6 +265,13 @@ class TestSummary(unittest.TestCase):
         self.assertIn('file exclusive sum b', result_sum, 'file exclusive summary missing')
         self.assertIn(self.test_fo.get_uid(), result_sum['file exclusive sum b'], 'origin of file exclusive missing')
         self.assertNotIn(self.test_fw.get_uid(), result_sum['file exclusive sum b'], 'parent as origin but should not be')
+
+    def test_collect_summary(self):
+        self.create_and_add_test_fimrware_and_file_object()
+        fo_list = [self.test_fo.uid]
+        result_sum = self.db_interface._collect_summary(fo_list, 'dummy')
+        assert all(item in result_sum for item in self.test_fo.processed_analysis['dummy']['summary'])
+        assert all(value == [self.test_fo.uid] for value in result_sum.values())
 
     def test_get_summary_of_one_error_handling(self):
         result_sum = self.db_interface._get_summary_of_one(None, 'foo')

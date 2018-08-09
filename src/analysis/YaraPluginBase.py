@@ -15,7 +15,6 @@ class YaraBasePlugin(AnalysisBasePlugin):
     NAME = "Yara_Base_Plugin"
     DESCRIPTION = "this is a Yara plugin"
     VERSION = "0.0"
-    FILE = __file__
 
     def __init__(self, plugin_administrator, config=None, recursive=True, plugin_path=None):
         '''
@@ -40,7 +39,8 @@ class YaraBasePlugin(AnalysisBasePlugin):
             file_object.processed_analysis[self.NAME] = {'ERROR': 'Signature path not set'}
         return file_object
 
-    def _get_signature_file_name(self, plugin_path):
+    @staticmethod
+    def _get_signature_file_name(plugin_path):
         return plugin_path.split('/')[-3] + '.yc'
 
     def _get_signature_file(self, plugin_path):

@@ -46,3 +46,10 @@ EFI Shell Version 1.0
 Boot Agent CL v0.1.04
 SSLeay 0.8.2b
 Bash version 4.2.10
+nginx version: nginx/1.13.3
+Netgear Smart Wizard 3.0
+libogg-1.1.4
+libVorbis 1.2.3
+pptp version 1.7.0
+libFLAC 1.2.1
+PH7/2.1.4

@@ -47,12 +47,8 @@ def get_config_for_testing(temp_dir=None):
     config.set('ExpertSettings', 'block_delay', '1')
     config.set('ExpertSettings', 'ssdeep_ignore', '1')
     config.set('ExpertSettings', 'authentication', 'false')
-
-    faf_config = load_config('main.cfg')
-    config.set('data_storage', 'db_admin_user', faf_config['data_storage']['db_admin_user'])
-    config.set('data_storage', 'db_admin_pw', faf_config['data_storage']['db_admin_pw'])
-    config.set('data_storage', 'db_readonly_user', faf_config['data_storage']['db_readonly_user'])
-    config.set('data_storage', 'db_readonly_pw', faf_config['data_storage']['db_readonly_pw'])
+    config.set('ExpertSettings', 'intercom_poll_delay', '0.5')
+    config.set('ExpertSettings', 'nginx', 'false')
 
     config.add_section('remote_tasks')
     config.set('remote_tasks', 'use_rabbit', 'false')
@@ -61,6 +57,11 @@ def get_config_for_testing(temp_dir=None):
     config.set('remote_tasks', 'write_back_exchange', 'in')
     config.set('remote_tasks', 'write_back_key', 'tasks')
 
+    fact_config = load_config('main.cfg')
+    config.set('data_storage', 'db_admin_user', fact_config['data_storage']['db_admin_user'])
+    config.set('data_storage', 'db_admin_pw', fact_config['data_storage']['db_admin_pw'])
+    config.set('data_storage', 'db_readonly_user', fact_config['data_storage']['db_readonly_user'])
+    config.set('data_storage', 'db_readonly_pw', fact_config['data_storage']['db_readonly_pw'])
     config.add_section('Logging')
     if temp_dir is not None:
         config.set('data_storage', 'firmware_file_storage_directory', temp_dir.name)

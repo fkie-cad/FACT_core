@@ -20,7 +20,7 @@ def convert_binary_to_ascii_with_dots(binary_block):
 def _process_hex_bytes(bytes_in_hex):
     result = ''
     odd = False
-    for index, char in enumerate(bytes_in_hex):
+    for _, char in enumerate(bytes_in_hex):
         if odd:
             result += char + ' '
         else:

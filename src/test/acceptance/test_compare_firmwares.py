@@ -27,7 +27,7 @@ class TestAcceptanceCompareFirmwares(TestAcceptanceBase):
     def _analysis_callback(self, fo):
         self.db_backend_service.add_object(fo)
         self.elements_finished_analyzing.value += 1
-        if self.elements_finished_analyzing.value > 7:
+        if self.elements_finished_analyzing.value == 4 * 2 * 2:  # two firmware container with 3 included files each times two plugins
             self.analysis_finished_event.set()
 
     def _compare_callback(self):
@@ -43,6 +43,7 @@ class TestAcceptanceCompareFirmwares(TestAcceptanceBase):
             data = {
                 'file': fp,
                 'device_name': device_name,
+                'device_part': 'full',
                 'device_class': 'test_class',
                 'firmware_version': '1.0',
                 'vendor': 'test_vendor',
@@ -60,10 +61,10 @@ class TestAcceptanceCompareFirmwares(TestAcceptanceBase):
         rv = self.test_client.get('/comparison/add/{}'.format(self.test_fw_a.uid), follow_redirects=True)
         self.assertIn('Firmwares Selected for Comparison', rv.data.decode())
 
-        rv = self.test_client.get('/analysis/{}'.format(self.test_fw_b.uid))
-        self.assertIn(self.test_fw_b.uid, rv.data.decode())
-        self.assertIn(self.test_fw_a.name, rv.data.decode())
-        rv = self.test_client.get('/comparison/add/{}'.format(self.test_fw_b.uid), follow_redirects=True)
+        rv = self.test_client.get('/analysis/{}'.format(self.test_fw_c.uid))
+        self.assertIn(self.test_fw_c.uid, rv.data.decode())
+        self.assertIn(self.test_fw_c.name, rv.data.decode())
+        rv = self.test_client.get('/comparison/add/{}'.format(self.test_fw_c.uid), follow_redirects=True)
         self.assertIn('Remove All', rv.data.decode())
 
     def _start_compare(self):
@@ -71,9 +72,9 @@ class TestAcceptanceCompareFirmwares(TestAcceptanceBase):
         self.assertIn(b'Your compare task is in progress.', rv.data, 'compare wait page not displayed correctly')
 
     def _show_comparison_results(self):
-        rv = self.test_client.get('/compare/{};{}'.format(self.test_fw_a.uid, self.test_fw_b.uid))
+        rv = self.test_client.get('/compare/{};{}'.format(self.test_fw_a.uid, self.test_fw_c.uid))
         self.assertIn(self.test_fw_a.name.encode(), rv.data, 'test firmware a comparison not displayed correctly')
-        self.assertIn(self.test_fw_b.name.encode(), rv.data, 'test firmware b comparison not displayed correctly')
+        self.assertIn(self.test_fw_c.name.encode(), rv.data, 'test firmware b comparison not displayed correctly')
         self.assertIn(b'File Coverage', rv.data, 'comparison page not displayed correctly')
 
     def _show_home_page(self):
@@ -86,7 +87,7 @@ class TestAcceptanceCompareFirmwares(TestAcceptanceBase):
 
     def test_compare_firmwares(self):
         self._upload_firmware_get()
-        for fw in [self.test_fw_a, self.test_fw_b]:
+        for fw in [self.test_fw_a, self.test_fw_c]:
             self._upload_firmware_put(fw.path, fw.name, fw.uid)
         self.analysis_finished_event.wait(timeout=20)
         self._add_firmwares_to_compare()

@@ -19,8 +19,10 @@ class TestAppReAnalyze(WebInterfaceTest):
 
     def test_app_re_analyze_post_valid(self):
         form_data = {
-            'device_name': "",
+            'device_name': '',
             'device_name_dropdown': TEST_FW.device_name,
+            'device_part': '',
+            'device_part_dropdown': TEST_FW.part,
             'device_class': TEST_FW.device_class,
             'firmware_version': TEST_FW.version,
             'vendor': TEST_FW.vendor,

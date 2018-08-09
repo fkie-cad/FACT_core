@@ -19,6 +19,16 @@ def test_add_tag(input_data, expected_count):
     assert len(test_object.tags.keys()) == expected_count
 
 
+@pytest.mark.parametrize('input_data, expected_output', [
+    ('complete', ''),
+    ('some_part', 'some_part')
+])
+def test_set_part_name(input_data, expected_output):
+    test_object = Firmware()
+    test_object.set_part_name(input_data)
+    assert test_object.part == expected_output
+
+
 @pytest.mark.parametrize('tag_set, remove_items, expected_count', [
     ({'a': TagColor.GRAY, 'b': TagColor.GREEN}, ['a'], 1),
     ({'a': TagColor.GRAY, 'b': TagColor.BLUE}, ['a', 'b', 'a'], 0)
@@ -55,16 +65,21 @@ def test_set_binary():
     assert firmware.md5 == md5
 
 
-def test_get_hid():
+@pytest.mark.parametrize('input_data, expected_output', [
+    ('complete', 'foo test_device v. 1.0'),
+    ('some_part', 'foo test_device - some_part v. 1.0')
+])
+def test_get_hid(input_data, expected_output):
     test_fw = Firmware(binary=b'foo')
     test_fw.set_device_name('test_device')
     test_fw.set_vendor('foo')
     test_fw.set_firmware_version('1.0')
-    assert test_fw.get_hid() == 'foo test_device - 1.0'
+    test_fw.set_part_name(input_data)
+    assert test_fw.get_hid() == expected_output
 
 
 def test_repr_and_str():
     test_fw = Firmware(scheduled_analysis=['test'])
-    assert 'Device Name: None' in test_fw.__str__()
+    assert 'None None v. None' in test_fw.__str__()
     assert 'test' in test_fw.__str__()
     assert test_fw.__str__() == test_fw.__repr__()

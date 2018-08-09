@@ -6,9 +6,10 @@ echo "####################################"
 
 while [ "$1" != '' ]
   do
-	[ "$1" == "xenial" ] && UBUNTU_XENIAL="yes" && echo "installing on Ubuntu 16.04" && shift
-	[ "$1" == "bionic" ] && UBUNTU_BIONIC="yes" && echo "installing on Ubuntu 18.04" && shift
+    [ "$1" == "xenial" ] && UBUNTU_XENIAL="yes" && echo "installing on Ubuntu 16.04" && shift
+    [ "$1" == "bionic" ] && UBUNTU_BIONIC="yes" && echo "installing on Ubuntu 18.04" && shift
     [ "$1" == "nginx" ] && NGINX="yes" && echo "installing nginx" && shift
+    [ "$1" == "radare" ] && RADARE="yes" && echo "installing radare binding" && shift
 done
 
 # change cwd to bootstrap dir
@@ -88,9 +89,9 @@ then
 	sudo apt-get install -y nginx
 	echo "generating a new certificate..."
 	openssl genrsa -out fact.key 4096
-	openssl req -new -key faf.key -out fact.csr
+	openssl req -new -key fact.key -out fact.csr
 	openssl x509 -req -days 730 -in fact.csr -signkey fact.key -out fact.crt
-	sudo mv faf.key faf.csr faf.crt /etc/nginx
+	sudo mv fact.key fact.csr fact.crt /etc/nginx
 	sudo cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak
 	sudo rm /etc/nginx/nginx.conf
 	(cd ../config && sudo ln -s $PWD/nginx.conf /etc/nginx/nginx.conf)
@@ -98,6 +99,24 @@ then
 	(cd ../web_interface/templates/ && sudo ln -s $PWD/maintenance.html /etc/nginx/error/maintenance.html)
 	sudo nginx -s reload
 fi
+
+
+# ---- RADARE ----
+if [ "$RADARE" = "yes" ]
+then
+	echo "####################################"
+	echo "# installing and configuring nginx #"
+	echo "####################################"
+    if [ -x "$(command -v docker-compose)" ]; then 
+        echo "Initiializing docker container for radare"
+        cd radare
+        docker-compose build
+        cd ..
+    else
+        printf "\n [ERROR] docker-compose is not installed. Please (re-)run pre_install.sh !\n"
+    fi
+fi
+
 
 cd ../../
 rm start_fact_frontend

@@ -43,7 +43,7 @@ else
     chmod +x bootstrap.sh
     ./bootstrap.sh
     ./configure --enable-magic
-    make
+    make -j$(nproc)
     sudo make install
     # CAUTION: Yara python binding is installed in bootstrap_common, because it is needed in the frontend as well.
     cd ..

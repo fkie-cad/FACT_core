@@ -61,6 +61,7 @@ class TestRestFirmware(RestTestBase):
                 'binary': standard_b64encode(b'test_file_content').decode(),
                 'file_name': 'test_file.txt',
                 'device_name': 'test_device',
+                'device_part': 'full',
                 'device_class': 'test_class',
                 'firmware_version': '1',
                 'vendor': 'test_vendor',

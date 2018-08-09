@@ -1,34 +1,20 @@
-import colorsys
 import json
 import os
 import re
-from itertools import chain
 
 from common_helper_files import get_binary_from_file
 
 from helperFunctions.fileSystem import get_template_dir
+from passlib.context import CryptContext
 
 
 SPECIAL_CHARACTERS = 'ÄäÀàÁáÂâÃãÅåǍǎĄąĂăÆæĀāÇçĆćĈĉČčĎđĐďðÈèÉéÊêËëĚěĘęĖėĒēĜĝĢģĞğĤĥÌìÍíÎîÏïıĪīĮįĴĵĶķĹĺĻļŁłĽľÑñŃńŇňŅņÖöÒòÓóÔôÕõŐőØøŒœŔŕŘřẞßŚśŜŝŞşŠšȘș' \
                      'ŤťŢţÞþȚțÜüÙùÚúÛûŰűŨũŲųŮůŪūŴŵÝýŸÿŶŷŹźŽžŻż'
 
 
-def _get_rgba(hue, saturation):
-    return 'rgba({}, {}, {}, {})'.format(*[int(i * 255) for i in colorsys.hsv_to_rgb(hue, 0.8, 0.75)], saturation)
-
-
-def get_js_list_of_n_uniques_colors(n, saturation=0.7, shuffle=True):
-    result = [_get_rgba(i / n, saturation) for i in range(1, n + 1)]
-    if shuffle:
-        result = list(chain(*[result[i::2] for i in range(2)]))
-    return result
-
-
 def get_color_list(n, limit=10):
     compliant_colors = ['#2b669a', '#cce0dc', '#2b669a', '#cce0dc', '#2b669a', '#cce0dc', '#2b669a', '#cce0dc', '#2b669a', '#cce0dc', '#2b669a', '#cce0dc']
-    if n > limit:
-        n = limit
-    return compliant_colors[:n]
+    return compliant_colors[:n if n <= limit else limit]
 
 
 def overwrite_default_plugins(intercom, checked_plugin_list):
@@ -77,3 +63,17 @@ class ConnectTo:
 def get_template_as_string(view_name):
     path = os.path.join(get_template_dir(), view_name)
     return get_binary_from_file(path).decode('utf-8')
+
+
+def get_radare_endpoint(config):
+    if config.getboolean('ExpertSettings', 'nginx'):
+        return 'https://localhost/radare'
+    return 'http://localhost:8000'
+
+
+def password_is_legal(pw: str) -> bool:
+    if not pw:
+        return False
+    schemes = ['bcrypt', 'des_crypt', 'pbkdf2_sha256', 'pbkdf2_sha512', 'sha256_crypt', 'sha512_crypt', 'plaintext']
+    ctx = CryptContext(schemes=schemes)
+    return ctx.identify(pw) == 'plaintext'
