@@ -7,7 +7,7 @@ from helperFunctions.compare_sets import remove_duplicates_from_list
 from helperFunctions.dataConversion import get_value_of_first_key
 from helperFunctions.database_structure import visualize_complete_tree
 from helperFunctions.file_tree import get_partial_virtual_path, FileTreeNode
-from helperFunctions.merge_generators import merge_generators, dict_to_sorted_tuples
+from helperFunctions.merge_generators import merge_generators
 from objects.file import FileObject
 from objects.firmware import Firmware
 from storage.db_interface_common import MongoInterfaceCommon
@@ -33,7 +33,11 @@ class FrontEndDbInterface(MongoInterfaceCommon):
                 else:
                     unpacker = firmware['processed_analysis']['unpacker']['plugin_used']
                 tags[unpacker] = TagColor.LIGHT_BLUE
-                list_of_firmware_data.append((firmware['_id'], self.get_hid(firmware['_id']), tags))
+                if 'submission_date' in firmware:
+                    submission_date = firmware['submission_date']
+                else:
+                    submission_date = 0
+                list_of_firmware_data.append((firmware['_id'], self.get_hid(firmware['_id']), tags, submission_date))
         return list_of_firmware_data
 
     def get_hid(self, uid, root_uid=None):
@@ -106,10 +110,12 @@ class FrontEndDbInterface(MongoInterfaceCommon):
         return FileObject.get_top_of_virtual_path(fo_dict['virtual_file_path'][root_uid][0])
 
     def _get_hid_firmware(self, uid):
-        firmware = self.firmwares.find_one({'_id': uid}, {'vendor': 1, 'device_name': 1, 'version': 1, 'device_class': 1})
+        firmware = self.firmwares.find_one({'_id': uid}, {'vendor': 1, 'device_name': 1, 'device_part': 1, 'version': 1, 'device_class': 1})
         if firmware is not None:
-            return '{} {} - {} ({})'.format(firmware['vendor'], firmware['device_name'], firmware['version'], firmware['device_class'])
-        return None
+            part = ' -' if 'device_part' not in firmware or firmware['device_part'] == '' else ' - {}'.format(firmware['device_part'])
+            return '{} {}{} {} ({})'.format(firmware['vendor'], firmware['device_name'], part, firmware['version'], firmware['device_class'])
+        else:
+            return None
 
     def _get_hid_fo(self, uid, root_uid):
         file_object = self.file_objects.find_one({'_id': uid}, {'virtual_file_path': 1})
@@ -156,7 +162,7 @@ class FrontEndDbInterface(MongoInterfaceCommon):
     def get_other_versions_of_firmware(self, firmware_object):
         if not isinstance(firmware_object, Firmware):
             return []
-        query = {'vendor': firmware_object.vendor, 'device_name': firmware_object.device_name}
+        query = {'vendor': firmware_object.vendor, 'device_name': firmware_object.device_name, 'device_part': firmware_object.part}
         results = self.firmwares.find(query, {'_id': 1, 'version': 1})
         return [r for r in results if r['_id'] != firmware_object.get_uid()]
 
@@ -165,24 +171,17 @@ class FrontEndDbInterface(MongoInterfaceCommon):
 
     def get_specific_fields_for_multiple_entries(self, uid_list, field_dict):
         query = self._build_search_query_for_uid_list(uid_list)
-        return self.file_objects.find(query, field_dict)
-
-    @staticmethod
-    def _convert_result_list_to_dict(search_results):
-        return {entry['_id']: entry for entry in search_results}
+        file_object_iterator = self.file_objects.find(query, field_dict)
+        firmware_iterator = self.firmwares.find(query, field_dict)
+        return merge_generators(firmware_iterator, file_object_iterator)
 
     # --- statistics
 
     def get_last_added_firmwares(self, limit_x=10):
-        db_entries = self.firmwares.find(
-            {'submission_date': {'$gt': 1}},
-            {'_id': 1, 'vendor': 1, 'device_name': 1, 'version': 1, 'device_class': 1, 'submission_date': 1, 'tags': 1},
-            limit=limit_x, sort=[('submission_date', -1)]
+        latest_firmwares = self.firmwares.find(
+            {'submission_date': {'$gt': 1}}, limit=limit_x, sort=[('submission_date', -1)]
         )
-        result = []
-        for item in db_entries:
-            result.append(item)
-        return result
+        return self.get_meta_list(latest_firmwares)
 
     def get_latest_comments(self, limit=10):
         comments = []

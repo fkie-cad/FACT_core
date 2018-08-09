@@ -4,10 +4,20 @@ from copy import deepcopy
 
 from helperFunctions.dataConversion import unify_string_list
 from helperFunctions.fileSystem import get_test_data_dir
-from helperFunctions.yara_binary_search import YaraRuleError
 from intercom.common_mongo_binding import InterComMongoInterface
 from objects.file import FileObject
 from objects.firmware import Firmware
+from storage.mongo_interface import MongoInterface
+from storage.db_interface_common import MongoInterfaceCommon
+
+
+class CommonDbInterfaceMock(MongoInterfaceCommon):
+
+    def __init__(self):
+        pass
+
+    def retrieve_analysis(self, sanitized_dict, analysis_filter=None):
+        return {}
 
 
 def create_test_firmware(device_class='Router', device_name='test_router', vendor='test_vendor', bin_path='container/test.zip', all_files_included_set=False, version='0.1'):
@@ -33,8 +43,11 @@ def create_test_firmware(device_class='Router', device_name='test_router', vendo
 
 def create_test_file_object(bin_path='get_files_test/testfile1'):
     fo = FileObject(file_path=os.path.join(get_test_data_dir(), bin_path))
-    processed_analysis = {'dummy': {'summary': [
-        'sum a', 'file exclusive sum b'], 'content': 'file abcd'}, 'file_type': {'full': 'Not a PE file'}}
+    processed_analysis = {
+        'dummy': {'summary': ['sum a', 'file exclusive sum b'], 'content': 'file abcd'},
+        'file_type': {'full': 'Not a PE file'},
+        'unpacker': {'file_system_flag': False, 'plugin_used': 'unpacker_name'}
+    }
     fo.processed_analysis.update(processed_analysis)
     fo.virtual_file_path = fo.get_virtual_file_paths()
     return fo
@@ -117,17 +130,13 @@ class DatabaseMock:
         return {'test class': {'test vendor': ['test device']}}
 
     def compare_result_is_in_db(self, uid_list):
-        if uid_list == 'valid_uid_list_in_db':
-            return True
-        elif uid_list == unify_string_list(';'.join([TEST_FW.uid, TEST_TEXT_FILE.uid])):
+        if uid_list == unify_string_list(';'.join([TEST_FW.uid, TEST_TEXT_FILE.uid])):
             return True
         else:
             return False
 
     def get_compare_result(self, compare_id):
-        if compare_id == 'valid_uid_list_not_in_db':
-            return None
-        elif compare_id == unify_string_list(';'.join([TEST_FW.uid, TEST_FW_2.uid])):
+        if compare_id == unify_string_list(';'.join([TEST_FW.uid, TEST_FW_2.uid])):
             return {'this_is': 'a_compare_result',
                     'general': {'hid': {TEST_FW.uid: 'foo', TEST_TEXT_FILE.uid: 'bar'}}}
         elif compare_id == unify_string_list(';'.join([TEST_FW.uid, TEST_TEXT_FILE.uid])):
@@ -144,9 +153,7 @@ class DatabaseMock:
             return False
 
     def object_existence_quick_check(self, compare_id):
-        if compare_id == 'valid_uid_list_not_in_db' or compare_id == 'valid_uid_list_in_db':
-            return None
-        elif compare_id == unify_string_list(';'.join([TEST_FW_2.uid, TEST_FW.uid])):
+        if compare_id == unify_string_list(';'.join([TEST_FW_2.uid, TEST_FW.uid])):
             return None
         elif compare_id == unify_string_list(';'.join([TEST_TEXT_FILE.uid, TEST_FW.uid])):
             return None
@@ -180,8 +187,6 @@ class DatabaseMock:
         def find_one(uid):
             if uid == TEST_TEXT_FILE.get_uid():
                 return TEST_TEXT_FILE.get_uid()
-            else:
-                return None
 
         @staticmethod
         def find(query, filter):
@@ -208,16 +213,6 @@ class DatabaseMock:
                     result.append(self.fw_uid)
         return result
 
-    def get_number_of_total_matches(self, query, firmware_only):
-        if self.fw_uid in query and self.fo_uid in query:
-            return 1 if firmware_only else 2
-        elif self.fw_uid in query or self.fo_uid in query:
-            return 1
-        elif query == '{}':
-            return 2
-        else:
-            return 0
-
     def add_analysis_task(self, task):
         self.tasks.append(task)
 
@@ -229,10 +224,10 @@ class DatabaseMock:
 
     def get_available_analysis_plugins(self):
         return {
-            'default_plugin': ('default plugin description', False, True),
-            'mandatory_plugin': ('mandatory plugin description', True, False),
-            'optional_plugin': ('optional plugin description', False, False),
-            'file_type': ('file_type plugin', False, False)}
+            'default_plugin': ('default plugin description', False, {'default': True}),
+            'mandatory_plugin': ('mandatory plugin description', True, {'default': False}),
+            'optional_plugin': ('optional plugin description', False, {'default': False}),
+            'file_type': ('file_type plugin', False, {'default': False})}
 
     def get_binary_and_filename(self, uid):
         if uid == TEST_FW.get_uid():
@@ -244,13 +239,11 @@ class DatabaseMock:
 
     def get_repacked_binary_and_file_name(self, uid):
         if uid == TEST_FW.get_uid():
-            return TEST_FW.binary, TEST_FW.file_name
-        else:
-            return None
+            return TEST_FW.binary, '{}.tar.gz'.format(TEST_FW.file_name)
 
-    def add_binary_search_request(self, yara_rule_binary):
+    def add_binary_search_request(self, yara_rule_binary, firmware_uid=None):
         if yara_rule_binary == b'invalid_rule':
-            return YaraRuleError('error: invalid rule')
+            return 'error: invalid rule'
         else:
             return 'some_id'
 
@@ -319,6 +312,13 @@ class DatabaseMock:
         else:
             return None
 
+    def is_firmware(self, uid):
+        return uid == 'uid_in_db'
+
+    def get_file_name(self, uid):
+        if uid == 'deadbeef00000000000000000000000000000000000000000000000000000000_123':
+            return 'test_name'
+
 
 def fake_exit(self, *args):
     pass
@@ -330,3 +330,13 @@ def get_database_names(config):
     databases.extend([config.get('data_storage', 'main_database'), config.get(
         'data_storage', 'view_storage'), config.get('data_storage', 'statistic_database')])
     return databases
+
+
+def clean_test_database(config, list_of_test_databases):
+    db = MongoInterface(config=config)
+    try:
+        for database_name in list_of_test_databases:
+            db.client.drop_database(database_name)
+    except Exception:
+        pass
+    db.shutdown()

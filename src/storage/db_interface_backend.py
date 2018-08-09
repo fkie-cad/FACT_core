@@ -6,6 +6,7 @@ from pymongo.errors import PyMongoError
 
 from helperFunctions.dataConversion import convert_str_to_time
 from helperFunctions.remote_analysis import parse_task_id, analysis_is_outdated, check_that_result_is_complete
+from helperFunctions.object_storage import update_virtual_file_path, update_included_files, update_analysis_tags
 from helperFunctions.tag import update_tags
 from objects.file import FileObject
 from objects.firmware import Firmware
@@ -23,50 +24,37 @@ class BackEndDbInterface(MongoInterfaceCommon):
             logging.error('invalid object type: {} -> {}'.format(type(fo_fw), fo_fw))
 
     def update_object(self, new_object=None, old_object=None):
-        old_pa = self.retrieve_analysis(old_object['processed_analysis'])
-        new_pa = new_object.processed_analysis
-        for key in new_pa.keys():
-            old_pa[key] = new_pa[key]
-        old_pa = self.sanitize_analysis(analysis_dict=old_pa, uid=new_object.get_uid())
+        update_dictionary = {
+            'processed_analysis': self._update_processed_analysis(new_object, old_object),
+            'files_included': update_included_files(new_object, old_object),
+            'virtual_file_path': update_virtual_file_path(new_object, old_object),
+            'analysis_tags': update_analysis_tags(new_object, old_object),
+        }
 
-        old_vfp = old_object['virtual_file_path']
-        new_vfp = new_object.virtual_file_path
-        for key in new_vfp.keys():
-            old_vfp[key] = new_vfp[key]
-
-        old_fi = old_object['files_included']
-        new_fi = new_object.files_included
-        old_fi.extend(new_fi)
-        old_fi = list(set(old_fi))
-
-        if type(new_object) == Firmware:
-            try:
-                self.firmwares.update_one({'_id': new_object.get_uid()}, {
-                    '$set': {'processed_analysis': old_pa,
-                             'files_included': old_fi,
-                             'virtual_file_path': old_vfp,
-                             'version': new_object.version,
-                             'device_name': new_object.device_name,
-                             'device_class': new_object.device_class,
-                             'vendor': new_object.vendor,
-                             'release_date': convert_str_to_time(new_object.release_date),
-                             'tags': new_object.tags,
-                             'analysis_tags': new_object.analysis_tags,
-                             'comments': new_object.comments}})
-            except Exception as e:
-                logging.error('Could not update firmware: {} - {}'.format(sys.exc_info()[0].__name__, e))
+        if isinstance(new_object, Firmware):
+            update_dictionary.update({
+                'version': new_object.version,
+                'device_name': new_object.device_name,
+                'device_part': new_object.part,
+                'device_class': new_object.device_class,
+                'vendor': new_object.vendor,
+                'release_date': convert_str_to_time(new_object.release_date),
+                'tags': new_object.tags,
+            })
+            collection = self.firmwares
         else:
-            parent_firmware_uids = set.union(set(old_object['parent_firmware_uids']), new_object.parent_firmware_uids)
-            try:
-                self.file_objects.update_one({'_id': new_object.get_uid()}, {
-                    '$set': {'processed_analysis': old_pa,
-                             'files_included': old_fi,
-                             'virtual_file_path': old_vfp,
-                             'analysis_tags': new_object.analysis_tags,
-                             'comments': new_object.comments,
-                             'parent_firmware_uids': list(parent_firmware_uids)}})
-            except Exception as e:
-                logging.error('Could not update file: {} - {}'.format(sys.exc_info()[0].__name__, e))
+            update_dictionary.update({
+                'parent_firmware_uids': list(set.union(set(old_object['parent_firmware_uids']), new_object.parent_firmware_uids))
+            })
+            collection = self.file_objects
+
+        collection.update_one({'_id': new_object.get_uid()}, {'$set': update_dictionary})
+
+    def _update_processed_analysis(self, new_object: FileObject, old_object: dict) -> dict:
+        old_pa = self.retrieve_analysis(old_object['processed_analysis'])
+        for key in new_object.processed_analysis.keys():
+            old_pa[key] = new_object.processed_analysis[key]
+        return self.sanitize_analysis(analysis_dict=old_pa, uid=new_object.get_uid())
 
     def add_firmware(self, firmware):
         old_object = self.firmwares.find_one({'_id': firmware.get_uid()})
@@ -75,7 +63,7 @@ class BackEndDbInterface(MongoInterfaceCommon):
             try:
                 self.update_object(new_object=firmware, old_object=old_object)
             except Exception as e:
-                logging.error('Could not update firmware: {} - {}'.format(sys.exc_info()[0].__name__, e))
+                logging.error('[{}] Could not update firmware: {}'.format(type(e), e))
                 return None
         else:
             logging.debug('Detected new firmware!')
@@ -93,6 +81,7 @@ class BackEndDbInterface(MongoInterfaceCommon):
             '_id': firmware.get_uid(),
             'file_path': firmware.file_path,
             'file_name': firmware.file_name,
+            'device_part': firmware.part,
             'virtual_file_path': firmware.virtual_file_path,
             'version': firmware.version,
             'md5': firmware.md5,
@@ -119,7 +108,7 @@ class BackEndDbInterface(MongoInterfaceCommon):
             try:
                 self.update_object(new_object=file_object, old_object=old_object)
             except Exception as e:
-                logging.error('Could not update firmware: {} - {}'.format(sys.exc_info()[0].__name__, e))
+                logging.error('[{}] Could not update file object: {}'.format(type(e), e))
                 return None
         else:
             logging.debug('Detected new file_object!')
@@ -173,7 +162,7 @@ class BackEndDbInterface(MongoInterfaceCommon):
             logging.error('Firmware not in database yet: {}'.format(uid))
             return None
 
-        if type(firmware_object) == Firmware:
+        if isinstance(firmware_object, Firmware):
             try:
                 self.firmwares.update_one({'_id': uid}, {'$set': {'analysis_tags': tags}})
             except (TypeError, ValueError, PyMongoError) as exception:
@@ -202,7 +191,7 @@ class BackEndDbInterface(MongoInterfaceCommon):
 
     def add_analysis(self, file_object: FileObject):
         if isinstance(file_object, (Firmware, FileObject)):
-            processed_analysis = self.sanitize_analysis(file_object.processed_analysis)
+            processed_analysis = self.sanitize_analysis(file_object.processed_analysis, file_object.get_uid())
             for analysis_system in processed_analysis:
                 self._update_analysis(file_object, analysis_system, processed_analysis[analysis_system])
         else:
@@ -210,7 +199,7 @@ class BackEndDbInterface(MongoInterfaceCommon):
 
     def _update_analysis(self, file_object: FileObject, analysis_system: str, result: dict):
         try:
-            if type(file_object) == Firmware:
+            if isinstance(file_object, Firmware):
                 self.firmwares.update_one(
                     {'_id': file_object.get_uid()},
                     {'$set': {'processed_analysis.{}'.format(analysis_system): result}}

@@ -29,7 +29,7 @@ class TestRestFirmware(TestAcceptanceBase):
     def _analysis_callback(self, fo):
         self.db_backend_service.add_analysis(fo)
         self.elements_finished_analyzing.value += 1
-        if self.elements_finished_analyzing.value > 5:
+        if self.elements_finished_analyzing.value == 4 * 3:  # container including 3 files times 3 plugins
             self.analysis_finished_event.set()
 
     def _rest_upload_firmware(self):
@@ -40,6 +40,7 @@ class TestRestFirmware(TestAcceptanceBase):
             'binary': standard_b64encode(file_content).decode(),
             'file_name': 'test.zip',
             'device_name': 'test_device',
+            'device_part': 'test_part',
             'device_class': 'test_class',
             'firmware_version': '1.0',
             'vendor': 'test_vendor',
@@ -55,6 +56,7 @@ class TestRestFirmware(TestAcceptanceBase):
         rv = self.test_client.get('/rest/firmware/{}'.format(self.test_container_uid), follow_redirects=True)
         self.assertIn(b'analysis_date', rv.data, 'rest analysis download not successful')
         self.assertIn(b'software_components', rv.data, 'rest analysis not successful')
+        self.assertIn(b'"device_part": "test_part"', rv.data, 'device part not present')
 
     def _rest_search(self):
         rv = self.test_client.get('/rest/firmware?query={}'.format(urllib.parse.quote('{"device_class": "test_class"}')), follow_redirects=True)
@@ -82,7 +84,7 @@ class TestRestFirmware(TestAcceptanceBase):
     def test_run_from_upload_to_show_analysis_and_search(self):
         self._rest_upload_firmware()
         self.analysis_finished_event.wait(timeout=15)
-        self.elements_finished_analyzing.value = 0
+        self.elements_finished_analyzing.value = 4 * 2  # only one plugin to update so we offset with 4 times 2 plugins
         self.analysis_finished_event.clear()
         self._rest_get_analysis_result()
         self._rest_search()

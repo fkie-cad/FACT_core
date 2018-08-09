@@ -20,10 +20,10 @@ class Compare(object):
         self.config = config
         self.db_interface = db_interface
         self._setup_plugins()
-        logging.info("Plug-ins available: {}".format(list(self.compare_plugins.keys())))
+        logging.info('Plug-ins available: {}'.format(list(self.compare_plugins.keys())))
 
     def compare(self, uid_list):
-        logging.info("Compare in progress: {}".format(uid_list))
+        logging.info('Compare in progress: {}'.format(uid_list))
         bs = BinaryService(config=self.config)
 
         fo_list = []
@@ -40,7 +40,7 @@ class Compare(object):
     def compare_objects(self, fo_list):
         tmp = {}
         tmp['general'] = self._create_general_section_dict(fo_list)
-        tmp['plugins'] = self._execute_compare_plugins(fo_list, tmp)
+        tmp['plugins'] = self._execute_compare_plugins(fo_list)
         return tmp
 
     def _create_general_section_dict(self, object_list):
@@ -49,6 +49,7 @@ class Compare(object):
             if isinstance(fo, Firmware):
                 fo.root_uid = fo.get_uid()
                 self._add_content_to_general_dict(general, 'device_name', fo.get_uid(), fo.device_name)
+                self._add_content_to_general_dict(general, 'device_part', fo.get_uid(), fo.part)
                 self._add_content_to_general_dict(general, 'device_class', fo.get_uid(), fo.device_class)
                 self._add_content_to_general_dict(general, 'vendor', fo.get_uid(), fo.vendor)
                 self._add_content_to_general_dict(general, 'version', fo.get_uid(), fo.version)
@@ -61,7 +62,8 @@ class Compare(object):
             self._add_content_to_general_dict(general, 'number_of_files', fo.get_uid(), len(fo.list_of_all_included_files))
         return general
 
-    def _add_content_to_general_dict(self, general_dict, feature, uid, content):
+    @staticmethod
+    def _add_content_to_general_dict(general_dict, feature, uid, content):
         with suppress(Exception):
             if feature not in general_dict:
                 general_dict[feature] = {}
@@ -82,7 +84,7 @@ class Compare(object):
     def register_plugin(self, name, c_plugin_instance):
         self.compare_plugins[name] = c_plugin_instance
 
-    def _execute_compare_plugins(self, fo_list, base_dict):
+    def _execute_compare_plugins(self, fo_list):
         plugin_results = {}
         for plugin in self.compare_plugins:
             plugin_results[plugin] = self.compare_plugins[plugin].compare(fo_list)

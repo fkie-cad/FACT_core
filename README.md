@@ -4,10 +4,12 @@
 
 # The Firmware Analysis and Comparison Tool (FACT)
 
-[![codecov](https://codecov.io/gh/fkie-cad/FACT_core/branch/master/graph/badge.svg)](https://codecov.io/gh/fkie-cad/FACT_core)
-[![Black Hat Arsenal](https://github.com/toolswatch/badges/blob/master/arsenal/asia/2018.svg)](http://www.toolswatch.org/2018/01/black-hat-arsenal-asia-2018-great-lineup/)
 [![Build Status](https://ci.die-weidenbachs.de/job/FACT_core_xenial/badge/icon)](https://ci.die-weidenbachs.de/job/FACT_core_xenial)
 [![Build Status](https://ci.die-weidenbachs.de/job/FACT_core_bionic/badge/icon)](https://ci.die-weidenbachs.de/job/FACT_core_bionic)
+[![codecov](https://codecov.io/gh/fkie-cad/FACT_core/branch/master/graph/badge.svg)](https://codecov.io/gh/fkie-cad/FACT_core)
+[![BCH compliance](https://bettercodehub.com/edge/badge/fkie-cad/FACT_core?branch=master)](https://bettercodehub.com/)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/8101a5fc388848e89ec705e06a5ad734)](https://www.codacy.com/app/johannes.vom.dorp/FACT_core?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=fkie-cad/FACT_core&amp;utm_campaign=Badge_Grade)
+[![Black Hat Arsenal](https://github.com/toolswatch/badges/blob/master/arsenal/asia/2018.svg)](http://www.toolswatch.org/2018/01/black-hat-arsenal-asia-2018-great-lineup/)
 
 The Firmware Analysis and Comparison Tool (formerly known as Fraunhofer's Firmware Analysis Framework (FAF)) is intended to automate most of the firmware analysis process. 
 It unpacks arbitrary firmware files and processes several analysis.
@@ -42,6 +44,14 @@ FACT consists of three components: frontend, database and backend. All component
 There is an automated installation program supporting Ubuntu 16.04 and 18.04 host systems.
 
 ### Pre-Install
+
+```sh
+$ sudo apt-get install git
+$ git clone https://github.com/fkie-cad/FACT_core.git
+$ cd FACT_core
+$ src/bootstrap/pre_install.sh
+```
+
 Modify *src/config/main.cfg* and *src/config/mongod.conf* to suit your needs.
 Especially, you should change the mongo passwords.
 The database is initialized with these passwords on first start.  
@@ -50,17 +60,18 @@ Make sure that the log directory exists as well.
 
 If you have any additional plug-ins, copy/clone them into corresponding *src/plugins/* directory.  
 
+:exclamation: **Reboot before executing the ./install.py** :exclamation:  
 :exclamation: **You have to do the above steps before you do anything else** :exclamation:
 
 ### Simple One System Setup
 :customs: **The installation script installs a lot of dependencies that may have different licenses**
   
-To initialize a one system setup simply run:
+After reboot, you can setup an all on one system installation by entering the FACT_core directory and executing:  
 
 ```sh
-$ sudo apt install python3-pip git
 $ ./install.py
 ```
+:beer: **Get a drink... Installation of the dependencies might take some time...** :tea:
 
 For more advanced setups have a look at the help function of the installer:
 
@@ -85,7 +96,7 @@ The script detects all installed components automatically.
 $ ./start_all_installed_fact_components
 ```
 
-Afterwards FACT can be accesed on <http://localhost:5000> and <https://localhost> (nginx), repspectively.  
+Afterwards FACT can be accessed on <http://localhost:5000> and <https://localhost> (nginx), respectively.  
 
 You can shutdown the system by pressing *Ctrl + c* or by sending a SIGTERM to the *start_all_installed_faf_components* script.
 
@@ -112,7 +123,7 @@ Our Developers Manual can be found [here](https://github.com/fkie-cad/FACT_core/
 
 ## Acknowledgments
 This project is partly financed by [German Federal Office for Information Security (BSI)](https://www.bsi.bund.de) and others.  
-The FACT project and the [Malware Analysis and Storage Sytem (MASS) project](https://mass-project.github.io/) form a code and plug-in sharing alliance.  
+The FACT project and the [Malware Analysis and Storage System (MASS) project](https://mass-project.github.io/) form a code and plug-in sharing alliance.  
 
 ## License
 ```

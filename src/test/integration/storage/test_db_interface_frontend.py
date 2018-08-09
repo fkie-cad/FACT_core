@@ -47,6 +47,14 @@ class TestStorageDbInterfaceFrontend(unittest.TestCase):
         self.assertEqual(test_output[1], 'test_vendor test_router - 0.1 (Router)', 'Firmware not successfully received')
         self.assertIsInstance(test_output[2], dict, 'tag field is not a dict')
 
+    def test_get_meta_list_of_fo(self):
+        test_fo = create_test_file_object()
+        self.db_backend_interface.add_file_object(test_fo)
+        files = self.db_frontend_interface.file_objects.find()
+        meta_list = self.db_frontend_interface.get_meta_list(files)
+        self.assertEqual(meta_list[0][0], test_fo.get_uid(), 'uid of object not correct')
+        self.assertEqual(meta_list[0][3], 0, 'non existing submission date should lead to 0')
+
     def test_get_hid_firmware(self):
         self.db_backend_interface.add_firmware(self.test_firmware)
         result = self.db_frontend_interface.get_hid(self.test_firmware.get_uid())
@@ -119,8 +127,8 @@ class TestStorageDbInterfaceFrontend(unittest.TestCase):
         self.db_backend_interface.add_firmware(test_fw_three)
         result = self.db_frontend_interface.get_last_added_firmwares(limit_x=2)
         self.assertEqual(len(result), 2, 'Number of results should be 2')
-        self.assertEqual(result[0]['device_name'], 'fw_three', 'last firmware is not first entry')
-        self.assertEqual(result[1]['device_name'], 'fw_two', 'second last firmware is not the second entry')
+        self.assertEqual(result[0][0], test_fw_three.get_uid(), 'last firmware is not first entry')
+        self.assertEqual(result[1][0], test_fw_two.get_uid(), 'second last firmware is not the second entry')
 
     def test_generate_file_tree_node(self):
         parent_fw = create_test_firmware()
@@ -170,3 +178,31 @@ class TestStorageDbInterfaceFrontend(unittest.TestCase):
 
         other_versions = self.db_frontend_interface.get_other_versions_of_firmware(parent_fw2)
         self.assertIn({'_id': parent_fw3.get_uid(), 'version': '3'}, other_versions)
+
+    def test_get_specific_fields_for_multiple_entries(self):
+        test_fw_1 = create_test_firmware(device_name='fw_one', vendor='test_vendor_one')
+        self.db_backend_interface.add_firmware(test_fw_1)
+        test_fw_2 = create_test_firmware(device_name='fw_two', vendor='test_vendor_two', bin_path='container/test.7z')
+        self.db_backend_interface.add_firmware(test_fw_2)
+        test_fo = create_test_file_object()
+        self.db_backend_interface.add_file_object(test_fo)
+
+        test_uid_list = [test_fw_1.get_uid(), test_fw_2.get_uid()]
+        result = list(self.db_frontend_interface.get_specific_fields_for_multiple_entries(
+            uid_list=test_uid_list,
+            field_dict={'vendor': 1, 'device_name': 1}
+        ))
+        assert len(result) == 2
+        assert all(set(entry.keys()) == {'_id', 'vendor', 'device_name'} for entry in result)
+        result_uids = [entry['_id'] for entry in result]
+        assert all(uid in result_uids for uid in test_uid_list)
+
+        test_uid_list = [test_fw_1.get_uid(), test_fo.get_uid()]
+        result = list(self.db_frontend_interface.get_specific_fields_for_multiple_entries(
+            uid_list=test_uid_list,
+            field_dict={'virtual_file_path': 1}
+        ))
+        assert len(result) == 2
+        assert all(set(entry.keys()) == {'_id', 'virtual_file_path'} for entry in result)
+        result_uids = [entry['_id'] for entry in result]
+        assert all(uid in result_uids for uid in test_uid_list)

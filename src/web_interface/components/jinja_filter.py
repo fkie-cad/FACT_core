@@ -6,11 +6,10 @@ import random
 from common_helper_filter.time import time_format
 from flask import render_template
 
-from helperFunctions.hash import get_md5
 from helperFunctions.dataConversion import none_to_none
+from helperFunctions.hash import get_md5
 from helperFunctions.uid import is_list_of_uids
 from helperFunctions.web_interface import ConnectTo
-from intercom.front_end_binding import InterComFrontEndBinding
 from storage.db_interface_frontend import FrontEndDbInterface
 from web_interface.filter import byte_number_filter, encode_base64_filter, \
     bytes_to_str_filter, replace_underscore_filter, nice_list, data_to_chart_limited, data_to_chart, \
@@ -79,10 +78,9 @@ class FilterClass:
                                number_of_unanalyzed_files=number_of_unanalyzed_files,
                                root_uid=root_uid, selected_analysis=selected_analysis)
 
-    def _filter_get_object_binary(self, uid):
-        with ConnectTo(InterComFrontEndBinding, self._config) as sc:
-            binary = sc.get_binary_and_filename(uid)[0]
-        return binary
+    @staticmethod
+    def _render_firmware_detail_tabular_field(firmware_meta_data):
+        return render_template('generic_view/firmware_detail_tabular_field.html', firmware=firmware_meta_data)
 
     def check_auth(self, _):
         return self._config.getboolean('ExpertSettings', 'authentication')
@@ -107,7 +105,6 @@ class FilterClass:
         self._app.jinja_env.filters['list_to_line_break_string_no_sort'] = list_to_line_break_string_no_sort
         self._app.jinja_env.filters['nice_unix_time'] = nice_unix_time
         self._app.jinja_env.filters['infection_color'] = infection_color
-        self._app.jinja_env.filters['get_object_binary'] = self._filter_get_object_binary
         self._app.jinja_env.filters['sort_chart_list_by_name'] = sort_chart_list_by_name
         self._app.jinja_env.filters['sort_chart_list_by_value'] = sort_chart_list_by_value
         self._app.jinja_env.filters['sort_comments'] = sort_comments
@@ -132,3 +129,5 @@ class FilterClass:
         self._app.jinja_env.filters['sort_privileges'] = lambda privileges: sorted(privileges, key=lambda role: len(privileges[role]), reverse=True)
         self._app.jinja_env.filters['format_string_list_with_offset'] = filter_format_string_list_with_offset
         self._app.jinja_env.filters['decompress'] = decompress
+        self._app.jinja_env.filters['firmware_detail_tabular_field'] = self._render_firmware_detail_tabular_field
+        self._app.jinja_env.filters['dict_to_json'] = json.dumps

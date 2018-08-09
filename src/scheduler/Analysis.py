@@ -93,7 +93,10 @@ class AnalysisScheduler(object):
 
     def get_default_plugins_from_config(self):
         try:
-            return self.config['default_plugins']['plugins'].split(', ')
+            result = {}
+            for plugin_set in self.config['default_plugins']:
+                result[plugin_set] = self.config['default_plugins'][plugin_set].split(', ')
+            return result
         except (TypeError, KeyError, AttributeError):
             logging.warning('default plug-ins not set in config')
             return []
@@ -108,11 +111,13 @@ class AnalysisScheduler(object):
         plugin_list = self.get_list_of_available_plugins()
         plugin_list = self._remove_unwanted_plugins(plugin_list)
         default_plugins = self.get_default_plugins_from_config()
+        default_flag_dict = {}
         result = {}
         for plugin in plugin_list:
             mandatory_flag = plugin in MANDATORY_PLUGINS
-            default_flag = plugin in default_plugins
-            result[plugin] = (self.analysis_plugins[plugin].DESCRIPTION, mandatory_flag, default_flag, self.analysis_plugins[plugin].VERSION)
+            for key in default_plugins.keys():
+                default_flag_dict[key] = plugin in default_plugins[key]
+            result[plugin] = (self.analysis_plugins[plugin].DESCRIPTION, mandatory_flag, dict(default_flag_dict), self.analysis_plugins[plugin].VERSION)
         result['unpacker'] = ('Additional information provided by the unpacker', True, False)
         return result
 
@@ -153,8 +158,7 @@ class AnalysisScheduler(object):
                 self.process_next_analysis(task)
 
     def process_next_analysis(self, fw_object):
-        if not self.db_backend_service.existence_quick_check(fw_object.get_uid()):
-            self.pre_analysis(fw_object)
+        self.pre_analysis(fw_object)
         analysis_to_do = fw_object.scheduled_analysis.pop()
         if analysis_to_do not in self.analysis_plugins:
             logging.error('Plugin \'{}\' not available'.format(analysis_to_do))
@@ -183,7 +187,8 @@ class AnalysisScheduler(object):
                     pass
                 else:
                     nop = False
-                    self.post_analysis(fw)
+                    if plugin in fw.processed_analysis:
+                        self.post_analysis(fw)
                     self.check_further_process_or_complete(fw)
             if nop:
                 sleep(int(self.config['ExpertSettings']['block_delay']))
