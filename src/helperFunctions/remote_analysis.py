@@ -65,13 +65,12 @@ def check_that_result_is_complete(result: dict) -> None:
     '''
     Raise an error if date and version were not set by the remote system or the result is not a dictionary
     '''
-    for assertion, error in [
-        isinstance(result, dict), 'Result must be of type dict',
-        'analysis_date' in result and isinstance(result['analysis_date'], float), 'No analysis date specified',
-        'plugin_version' in result and isinstance(result['plugin_version'], str), 'No plugin version specified'
-    ]:
-        if not assertion:
-            raise ValueError(error)
+    if not isinstance(result, dict):
+        raise ValueError('Result must be of type dict')
+    if not ('analysis_date' in result and isinstance(result['analysis_date'], float)):
+        raise ValueError('No analysis date specified')
+    if not ('plugin_version' in result and isinstance(result['plugin_version'], str)):
+        raise ValueError('No plugin version specified')
 
 
 def serialize(item: dict) -> str:
