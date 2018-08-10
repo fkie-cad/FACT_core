@@ -38,7 +38,8 @@ class ComparePlugin(CompareBasePlugin):
     def _get_ascii_representation(self, binaries, lower_bound):
         part = binaries[0][0:lower_bound]
         bytes_in_ascii = convert_binary_to_ascii_with_dots(part)
-        assert len(bytes_in_ascii) == lower_bound
+        if not len(bytes_in_ascii) == lower_bound:
+            raise RuntimeError('Converting binary to ascii failed')
 
         number_of_rows = self._get_number_of_rows(lower_bound)
         ascii_string = '<p style="font-family: monospace; color: #eee;"><br />'
@@ -50,8 +51,12 @@ class ComparePlugin(CompareBasePlugin):
 
     def _get_hightlighted_hex_string(self, binaries, lower_bound):
         mask = self._get_byte_mask(binaries, lower_bound)
+        if not len(mask) == lower_bound:
+            raise RuntimeError('Failure in processing bytes for hex mask')
+
         first_binary_in_hex = self._get_first_512_bytes_in_hex(binaries[0])
-        assert len(first_binary_in_hex) >= len(mask) * 2
+        if not len(first_binary_in_hex) >= len(mask) * 2:
+            raise RuntimeError('First binary is too small for depiction')
 
         highlighted_string = '<p style="font-family: monospace;">'
 
@@ -85,7 +90,6 @@ class ComparePlugin(CompareBasePlugin):
             else:
                 mask.append(Mask.RED)
 
-        assert len(mask) == lower_bound, 'failure in processing'
         return mask
 
     @staticmethod
