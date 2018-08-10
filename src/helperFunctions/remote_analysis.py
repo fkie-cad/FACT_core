@@ -28,7 +28,8 @@ def parse_task_id(task_id: str) -> tuple:
     Get uid, task and timestamp from task id
     '''
     items = task_id.split('|')
-    assert len(items) == 3, 'task id has bad format'
+    if not len(items) == 3:
+        raise ValueError('task id has bad format. should be timestamp|task|uid.')
     timestamp, task, uid = items
 
     return uid, task, timestamp
@@ -64,12 +65,13 @@ def check_that_result_is_complete(result: dict) -> None:
     '''
     Raise an error if date and version were not set by the remote system or the result is not a dictionary
     '''
-    try:
-        assert isinstance(result, dict), 'Result must be of type dict'
-        assert 'analysis_date' in result and isinstance(result['analysis_date'], float), 'No analysis date specified'
-        assert 'plugin_version' in result and isinstance(result['plugin_version'], str), 'No plugin version specified'
-    except AssertionError as assertion_error:
-        raise ValueError(str(assertion_error))
+    for assertion, error in [
+        isinstance(result, dict), 'Result must be of type dict',
+        'analysis_date' in result and isinstance(result['analysis_date'], float), 'No analysis date specified',
+        'plugin_version' in result and isinstance(result['plugin_version'], str), 'No plugin version specified'
+    ]:
+        if not assertion:
+            raise ValueError(error)
 
 
 def serialize(item: dict) -> str:
