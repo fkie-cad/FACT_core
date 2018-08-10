@@ -9,9 +9,8 @@ from helperFunctions.remote_analysis import serialize, create_task_id
 from scheduler.Analysis import AnalysisScheduler
 from storage.MongoMgr import MongoMgr
 from storage.db_interface_backend import BackEndDbInterface
-from test.common_helper import get_database_names, TEST_FW
+from test.common_helper import get_database_names, TEST_FW, clean_test_database
 from test.integration.common import initialize_config
-from test.unit.helperFunctions_setup_test_data import clean_test_database
 
 
 class TestFileAddition(unittest.TestCase):
