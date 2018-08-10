@@ -182,7 +182,7 @@ class BackEndDbInterface(MongoInterfaceCommon):
 
             logging.debug('Setting remote {} plugin result for {}'.format(system, uid))
 
-            sanitized_analysis = self.sanitize_analysis({system: result})
+            sanitized_analysis = self.sanitize_analysis({system: result}, uid)
             self._update_analysis(current_object, system, sanitized_analysis[system])
             return True
         else:
