@@ -35,8 +35,8 @@ class TestAcceptanceMisc(TestAcceptanceBase):
         cls.db_backend_service.shutdown()
         super().tearDownClass()
 
-    def _analysis_callback(self, fo):
-        self.db_backend_service.add_analysis(fo)
+    def _analysis_callback(self, fo, system):
+        self.db_backend_service.add_analysis(fo, system)
         self.elements_finished_analyzing.value += 1
         if self.elements_finished_analyzing.value == 4 * 2 * 2:  # two firmware container with 3 included files each times two mandatory plugins
             self.analysis_finished_event.set()
