@@ -19,27 +19,28 @@ class BadRuleError(ValueError):
 class Vulnerability:
     def __init__(self, rule, description, reliability, score, link, short_name):
         try:
-            self.reliability = int(reliability)
-            assert self.reliability in range(0, 101), 'reliability must be between 0 and 100'
-            self.reliability = str(reliability)
-
+            self.reliability = str(int(reliability))
             self.score = score
-            assert self.score in ['low', 'medium', 'high'], ''
-
             self.description = description
-            assert isinstance(self.description, str), 'description must be a string'
-
-            assert isinstance(rule, (SingleRule, MetaRule, SubPathRule)), 'rule must be of type in [SingleRule, MetaRule, SubPathRule]. Has type {}'.format(type(rule))
             self.rule = rule
-
-            assert isinstance(link, str) or not link, 'if link is set it has to be a string'
             self.link = link
-
-            assert isinstance(short_name, str), 'short_name has to be a string'
             self.short_name = short_name
 
-        except (AssertionError, ValueError, TypeError) as exception:
+            self._make_type_assertions(link, rule)
+        except (ValueError, TypeError) as exception:
             raise BadRuleError(str(exception))
+
+    def _make_type_assertions(self, link, rule):
+        for type_assertion, error_message in [
+            (int(self.reliability) in range(0, 101), 'reliability must be between 0 and 100'),
+            (self.score in ['low', 'medium', 'high'], 'score has to be one of low, medium or high'),
+            (isinstance(self.description, str), 'description must be a string'),
+            (isinstance(self.rule, (SingleRule, MetaRule, SubPathRule)), 'rule must be of type in [SingleRule, MetaRule, SubPathRule]. Has type {}'.format(type(rule))),
+            (isinstance(self.link, str) or not link, 'if link is set it has to be a string'),
+            (isinstance(self.short_name, str), 'short_name has to be a string')
+        ]:
+            if not type_assertion:
+                raise ValueError(error_message)
 
     def get_dict(self):
         return dict(description=self.description, score=self.score, reliability=self.reliability, link=self.link, short_name=self.short_name)
@@ -47,26 +48,41 @@ class Vulnerability:
 
 class SingleRule:
     def __init__(self, value_path, relation, comparison):
-        assert isinstance(value_path, list), 'value_path must be list of dot seperated access strings'
+        for assertion, error_message in [
+            (isinstance(value_path, list), 'value_path must be list of dot seperated access strings'),
+            (relation in RELATIONS, 'relation must be one of {}'.format(list(RELATIONS.keys())))
+        ]:
+            if not assertion:
+                raise BadRuleError(error_message)
+
         self.value_path = value_path
-        assert relation in RELATIONS, 'relation must be one of {}'.format(list(RELATIONS.keys()))
         self.relation = relation
         self.comparison = comparison
 
 
 class MetaRule:
     def __init__(self, rules, relation):
-        assert relation in [any, all], 'only any or all are allowed in MetaRule'
+        for assertion, error_message in [
+            (relation in [any, all], 'only any or all are allowed in MetaRule'),
+            (all(isinstance(rule, SingleRule) for rule in rules), 'all rules in MetaRule must be of type Rule')
+        ]:
+            if not assertion:
+                raise BadRuleError(error_message)
+
         self.relation = relation
-        assert all(isinstance(rule, SingleRule) for rule in rules), 'all rules in MetaRule must be of type Rule'
         self.rules = rules
 
 
 class SubPathRule:
     def __init__(self, base_path, meta_rule):
-        assert isinstance(base_path, list), 'base_path must be list of dot seperated access strings'
+        for assertion, error_message in [
+            (isinstance(base_path, list), 'base_path must be list of dot seperated access strings'),
+            (isinstance(meta_rule, MetaRule), 'rules must be a MetaRule')
+        ]:
+            if not assertion:
+                raise BadRuleError(error_message)
+
         self.base_path = base_path
-        assert isinstance(meta_rule, MetaRule), 'rules must be a MetaRule'
         self.meta_rule = meta_rule
 
 
