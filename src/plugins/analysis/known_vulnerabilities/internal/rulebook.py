@@ -26,19 +26,21 @@ class Vulnerability:
             self.link = link
             self.short_name = short_name
 
-            for type_assertion, error_message in [
-                (int(self.reliability) in range(0, 101), 'reliability must be between 0 and 100'),
-                (self.score in ['low', 'medium', 'high'], 'score has to be one of low, medium or high'),
-                (isinstance(self.description, str), 'description must be a string'),
-                (isinstance(self.rule, (SingleRule, MetaRule, SubPathRule)), 'rule must be of type in [SingleRule, MetaRule, SubPathRule]. Has type {}'.format(type(rule))),
-                (isinstance(self.link, str) or not link, 'if link is set it has to be a string'),
-                (isinstance(self.short_name, str), 'short_name has to be a string')
-            ]:
-                if not type_assertion:
-                    raise ValueError(error_message)
-
+            self._make_type_assertions(link, rule)
         except (ValueError, TypeError) as exception:
             raise BadRuleError(str(exception))
+
+    def _make_type_assertions(self, link, rule):
+        for type_assertion, error_message in [
+            (int(self.reliability) in range(0, 101), 'reliability must be between 0 and 100'),
+            (self.score in ['low', 'medium', 'high'], 'score has to be one of low, medium or high'),
+            (isinstance(self.description, str), 'description must be a string'),
+            (isinstance(self.rule, (SingleRule, MetaRule, SubPathRule)), 'rule must be of type in [SingleRule, MetaRule, SubPathRule]. Has type {}'.format(type(rule))),
+            (isinstance(self.link, str) or not link, 'if link is set it has to be a string'),
+            (isinstance(self.short_name, str), 'short_name has to be a string')
+        ]:
+            if not type_assertion:
+                raise ValueError(error_message)
 
     def get_dict(self):
         return dict(description=self.description, score=self.score, reliability=self.reliability, link=self.link, short_name=self.short_name)
