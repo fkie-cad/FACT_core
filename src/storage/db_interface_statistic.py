@@ -1,5 +1,9 @@
 import logging
 import sys
+
+from pymongo.collection import Collection
+from pymongo.database import Database
+
 from storage.mongo_interface import MongoInterface
 
 
@@ -12,9 +16,9 @@ class StatisticDb(MongoInterface):
         super().__init__(config=config)
 
     def _setup_database_mapping(self):
-        self.main_collection = self.client[self.config['data_storage']['main_database']]
-        self.firmwares = self.main_collection.firmwares
-        self.file_objects = self.main_collection.file_objects
+        self.main_collection = self.client[self.config['data_storage']['main_database']]  # type: Database
+        self.firmwares = self.main_collection.firmwares                                   # type: Collection
+        self.file_objects = self.main_collection.file_objects                             # type: Collection
         self.statistic_collection = self.client[self.config['data_storage']['statistic_database']]
         self.statistic = self.statistic_collection.statistic
 
