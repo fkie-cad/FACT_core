@@ -1,6 +1,6 @@
 import gc
-import time
 import unittest
+from multiprocessing import Event
 from tempfile import TemporaryDirectory
 
 import pika
@@ -22,6 +22,11 @@ class TestFileAddition(unittest.TestCase):
         self._mongo_server = MongoMgr(config=self._config, auth=False)
         self._backend_interface = BackEndDbInterface(config=self._config)
 
+        self._database_finished_event = Event()
+
+        self._orignial_database_method = self._backend_interface.add_remote_analysis
+        self._backend_interface.add_remote_analysis = self.analysis_callback
+
         self._analysis_scheduler = AnalysisScheduler(config=self._config, db_interface=self._backend_interface)
 
     def tearDown(self):
@@ -34,6 +39,10 @@ class TestFileAddition(unittest.TestCase):
 
         gc.collect()
 
+    def analysis_callback(self, *args, **kwargs):
+        self._orignial_database_method(*args, **kwargs)
+        self._database_finished_event.set()
+
     def test_catch_remote_analysis(self):
         remote_analysis = StubRemoteAnalysis(self._config)
 
@@ -42,14 +51,14 @@ class TestFileAddition(unittest.TestCase):
 
         remote_analysis.process_task(TEST_FW.uid)
 
-        time.sleep(10)
+        self._database_finished_event.wait(timeout=30)
 
         new_object = self._backend_interface.get_object(TEST_FW.uid)
 
+        remote_analysis.shutdown()
+
         self.assertNotIn('placeholder', new_object.processed_analysis['remote_stub_plugin'], 'remote analysis not added')
         self.assertEqual(new_object.processed_analysis['remote_stub_plugin']['bar'], 'anything')
-
-        remote_analysis.shutdown()
 
 
 class StubRemoteAnalysis:
