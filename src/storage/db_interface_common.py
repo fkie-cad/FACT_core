@@ -140,7 +140,7 @@ class MongoInterfaceCommon(MongoInterface):
                 setattr(file_object, attribute, entry[attribute])
         return file_object
 
-    def sanitize_nalysis(self, analysis_dict: dict, uid: str, analysis_filter: List[str]=None) -> dict:
+    def sanitize_analysis(self, analysis_dict: dict, uid: str, analysis_filter: List[str]=None) -> dict:
         sanitized_dict = {}
         systems_to_sanitize = analysis_dict.keys() if not analysis_filter else [key for key in analysis_dict.keys() if key in analysis_filter]
         for key in systems_to_sanitize:
