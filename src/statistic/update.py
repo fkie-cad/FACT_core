@@ -46,8 +46,7 @@ class StatisticUpdater(object):
         self.db.update_statistic('release_date', self._get_time_stats())
         self.db.update_statistic('exploit_mitigations', self._get_exploit_mitigations_stats())
         self.db.update_statistic('known_vulnerabilities', self._get_known_vulnerabilities_stats())
-        # self.db.update_statistic('software_components',
-        self._get_software_components_stats()#)
+        self.db.update_statistic('software_components', self._get_software_components_stats())
         # should always be the last, because of the benchmark
         self.db.update_statistic('general', self.get_general_stats())
 
@@ -324,30 +323,18 @@ class StatisticUpdater(object):
         return datetime(1900, month_int, 1).strftime('%B')
 
     def _get_software_components_stats(self):
-        map_code = Code(
-            'function() {'
-            '    var key_blacklist = ["file_system_flag", "plugin_version", "analysis_date", "summary"];'
-            '    if ("software_components" in this.processed_analysis)'
-            '        for (var key in this.processed_analysis.software_components) {'
-            '            if (key_blacklist.indexOf(key) < 0)'
-            '                emit(key, 1);'
-            '    }'
-            '}'
-        )
-        reduce_code = Code(
-            'function(key, values) {'
-            '    var total = 0;'
-            '    for (var i = 0; i < values.length; i++) {'
-            '        total += values[i];'
-            '    }'
-            '    return total;'
-            '}'
-        )
-        software_components_collection = self.db.file_objects.map_reduce(map_code, reduce_code, "software_components")
-        result = {entry['_id']: int(entry['value']) for entry in software_components_collection.find()}
-        self.db.main_collection.software_components.drop()
-        print(result)  # TODO
-        # return result
+        query_result = self.db.file_objects.aggregate([
+            {"$project": {"sc": {"$objectToArray": "$processed_analysis.software_components"}}},
+            {"$match": {"sc.4": {"$exists": True}}},  # match only analyses with actual results (more keys than the 4 standard keys)
+            {"$unwind": "$sc"},
+            {"$group": {"_id": "$sc.k", "count": {"$sum": 1}}}
+        ])
+
+        return {'software_stats': [
+            (entry['_id'], int(entry['count']))
+            for entry in query_result
+            if entry['_id'] not in ['summary', 'analysis_data', 'file_system_flag', 'plugin_version']
+        ]}
 
 
 # ---- internal stuff
