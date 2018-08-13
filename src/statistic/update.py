@@ -1,18 +1,19 @@
-import itertools
 import logging
 import sys
-from datetime import datetime
-from time import time
 
+import itertools
+from bson.code import Code
 from bson.son import SON
 from common_helper_filter.time import time_format
 from common_helper_mongo import get_field_average, get_field_sum, get_objects_and_count_of_occurrence
+from datetime import datetime
+from time import time
 
 from helperFunctions.dataConversion import build_time_dict
 from helperFunctions.merge_generators import sum_up_lists, sum_up_nested_lists, avg, merge_dict
 from helperFunctions.mongo_task_conversion import is_sanitized_entry
-from storage.db_interface_statistic import StatisticDbUpdater
 from helperFunctions.statistic import calculate_total_files
+from storage.db_interface_statistic import StatisticDbUpdater
 
 
 class StatisticUpdater(object):
@@ -45,6 +46,8 @@ class StatisticUpdater(object):
         self.db.update_statistic('release_date', self._get_time_stats())
         self.db.update_statistic('exploit_mitigations', self._get_exploit_mitigations_stats())
         self.db.update_statistic('known_vulnerabilities', self._get_known_vulnerabilities_stats())
+        # self.db.update_statistic('software_components',
+        self._get_software_components_stats()#)
         # should always be the last, because of the benchmark
         self.db.update_statistic('general', self.get_general_stats())
 
@@ -320,6 +323,35 @@ class StatisticUpdater(object):
     def _get_month_name(month_int):
         return datetime(1900, month_int, 1).strftime('%B')
 
+    def _get_software_components_stats(self):
+        map_code = Code(
+            'function() {'
+            '    var key_blacklist = ["file_system_flag", "plugin_version", "analysis_date", "summary"];'
+            '    if ("software_components" in this.processed_analysis)'
+            '        for (var key in this.processed_analysis.software_components) {'
+            '            if (key_blacklist.indexOf(key) < 0)'
+            '                emit(key, 1);'
+            '    }'
+            '}'
+        )
+        reduce_code = Code(
+            'function(key, values) {'
+            '    var total = 0;'
+            '    for (var i = 0; i < values.length; i++) {'
+            '        total += values[i];'
+            '    }'
+            '    return total;'
+            '}'
+        )
+        software_components_collection = self.db.file_objects.map_reduce(map_code, reduce_code, "software_components")
+        result = {entry['_id']: int(entry['value']) for entry in software_components_collection.find()}
+        self.db.main_collection.software_components.drop()
+        print(result)  # TODO
+        # return result
+
+
+# ---- internal stuff
+
     def _build_stats_entry_from_date_query(self, date_query):
         time_dict = build_time_dict(date_query)
         result = []
@@ -327,8 +359,6 @@ class StatisticUpdater(object):
             for month in sorted(time_dict[year].keys()):
                 result.append(('{} {}'.format(self._get_month_name(month), year), time_dict[year][month]))
         return result
-
-# ---- internal stuff
 
     @staticmethod
     def _convert_dict_list_to_list(input_list):
