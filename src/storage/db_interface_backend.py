@@ -189,11 +189,15 @@ class BackEndDbInterface(MongoInterfaceCommon):
             logging.debug('Skipped storage of analysis, since it doesn\'t seem outdated.')
             return False
 
-    def add_analysis(self, file_object: FileObject):
+    def add_analysis(self, file_object: FileObject, system: str=None):
         if isinstance(file_object, (Firmware, FileObject)):
-            processed_analysis = self.sanitize_analysis(file_object.processed_analysis, file_object.get_uid())
-            for analysis_system in processed_analysis:
-                self._update_analysis(file_object, analysis_system, processed_analysis[analysis_system])
+            if not system:
+                processed_analysis = self.sanitize_analysis(file_object.processed_analysis, file_object.get_uid())
+                for analysis_system in processed_analysis:
+                    self._update_analysis(file_object, analysis_system, processed_analysis[analysis_system])
+            else:
+                processed_analysis = self.sanitize_analysis(file_object.processed_analysis, file_object.get_uid(), analysis_filter=[system, ])
+                self._update_analysis(file_object, system, processed_analysis[system])
         else:
             raise RuntimeError('Trying to add from type \'{}\' to database. Only allowed for \'Firmware\' and \'FileObject\'')
 

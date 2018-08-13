@@ -30,9 +30,9 @@ class TestTagPropagation(unittest.TestCase):
         self._tagging_scheduler = TaggingDaemon(analysis_scheduler=self._analysis_scheduler)
         self._unpack_scheduler = UnpackingScheduler(config=self._config, post_unpack=self._analysis_scheduler.add_task)
 
-    def count_analysis_finished_event(self, fw_object):
-        self.backend_interface.add_analysis(fw_object)
-        if fw_object.uid == self.uid_of_key_file and 'crypto_material' in fw_object.processed_analysis:
+    def count_analysis_finished_event(self, fw_object, system):
+        self.backend_interface.add_analysis(fw_object, system)
+        if fw_object.uid == self.uid_of_key_file and system == 'crypto_material':
             sleep(1)
             self.analysis_finished_event.set()
 
