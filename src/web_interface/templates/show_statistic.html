@@ -220,7 +220,7 @@
     ["Data Lost File Types", "data_loss_file_types", stats["unpacker_stats"],
         {"processed_analysis.unpacker.summary": "data lost","processed_analysis.file_type.mime": {"$eq": "PLACEHOLDER"}}],
 	["Architectures", "cpu_architecture", stats["architecture_stats"], {"processed_analysis.cpu_architecture.summary": {"$regex": "PLACEHOLDER"}}],
-	["Software Components", "software_stats", stats["software_stats"], {"processed_analysis.software_components.PLACEHOLDER": {"$exists": "true"}}],
+	["Software Components", "software_components", stats["software_stats"], {"processed_analysis.software_components.PLACEHOLDER": {"$exists": "true"}}],
 ]%}
 
 {% for title, key, data_set, query in chart_list %}

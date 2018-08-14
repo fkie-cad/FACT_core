@@ -37,4 +37,4 @@ nose2-junit.xml
 *.yc
 .settings/
 .pytest_cache
-
+wget-lo*
