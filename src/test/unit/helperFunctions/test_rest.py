@@ -8,10 +8,10 @@ def test_time_is_int():
 
 
 def test_success_message_bad_type():
-    with pytest.raises(AssertionError):
+    with pytest.raises(TypeError):
         success_message(None, '/any/url')
 
-    with pytest.raises(AssertionError):
+    with pytest.raises(TypeError):
         success_message('Done some stuff. Didn\'t look for standards.', '/any/url')
 
 
@@ -26,10 +26,10 @@ def test_success_message_succeeds():
 
 
 def test_error_message_bad_type():
-    with pytest.raises(AssertionError):
+    with pytest.raises(TypeError):
         error_message(None, '/any/url')
 
-    with pytest.raises(AssertionError):
+    with pytest.raises(TypeError):
         error_message({'Done some stuff': 'Didn\'t look for standards.'}, '/any/url')
 
 
