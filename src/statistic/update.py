@@ -110,8 +110,8 @@ class StatisticUpdater(object):
         self.append_nx_stats_to_result_dict(nx_off, nx_on, stats, total_amount_of_files)
 
     def extract_nx_data_from_analysis(self, result):
-        nx_on = self.extract_mitigation_from_list("NX enabled", result)
-        nx_off = self.extract_mitigation_from_list("NX disabled", result)
+        nx_on = self.extract_mitigation_from_list('NX enabled', result)
+        nx_off = self.extract_mitigation_from_list('NX disabled', result)
         return nx_off, nx_on
 
     def append_nx_stats_to_result_dict(self, nx_off, nx_on, stats, total_amount_of_files):
@@ -124,8 +124,8 @@ class StatisticUpdater(object):
         self.append_canary_stats_to_result_dict(canary_off, canary_on, stats, total_amount_of_files)
 
     def extract_canary_data_from_analysis(self, result):
-        canary_on = self.extract_mitigation_from_list("Canary enabled", result)
-        canary_off = self.extract_mitigation_from_list("Canary disabled", result)
+        canary_on = self.extract_mitigation_from_list('Canary enabled', result)
+        canary_off = self.extract_mitigation_from_list('Canary disabled', result)
         return canary_off, canary_on
 
     def append_canary_stats_to_result_dict(self, canary_off, canary_on, stats, total_amount_of_files):
@@ -138,9 +138,9 @@ class StatisticUpdater(object):
         self.append_relro_stats_to_result_dict(relro_off, relro_on, relro_partial, stats, total_amount_of_files)
 
     def extract_relro_data_from_analysis(self, result):
-        relro_on = self.extract_mitigation_from_list("RELRO fully enabled", result)
-        relro_partial = self.extract_mitigation_from_list("RELRO partially enabled", result)
-        relro_off = self.extract_mitigation_from_list("RELRO disabled", result)
+        relro_on = self.extract_mitigation_from_list('RELRO fully enabled', result)
+        relro_partial = self.extract_mitigation_from_list('RELRO partially enabled', result)
+        relro_off = self.extract_mitigation_from_list('RELRO disabled', result)
         return relro_off, relro_on, relro_partial
 
     def append_relro_stats_to_result_dict(self, relro_off, relro_on, relro_partial, stats, total_amount_of_files):
@@ -154,10 +154,10 @@ class StatisticUpdater(object):
         self.append_pie_stats_to_result_dict(pie_invalid, pie_off, pie_on, pie_partial, stats, total_amount_of_files)
 
     def extract_pie_data_from_analysis(self, result):
-        pie_on = self.extract_mitigation_from_list("PIE enabled", result)
-        pie_partial = self.extract_mitigation_from_list("PIE/DSO present", result)
-        pie_off = self.extract_mitigation_from_list("PIE disabled", result)
-        pie_invalid = self.extract_mitigation_from_list("PIE - invalid ELF file", result)
+        pie_on = self.extract_mitigation_from_list('PIE enabled', result)
+        pie_partial = self.extract_mitigation_from_list('PIE/DSO present', result)
+        pie_off = self.extract_mitigation_from_list('PIE disabled', result)
+        pie_invalid = self.extract_mitigation_from_list('PIE - invalid ELF file', result)
         return pie_invalid, pie_off, pie_on, pie_partial
 
     def append_pie_stats_to_result_dict(self, pie_invalid, pie_off, pie_on, pie_partial, stats, total_amount_of_files):
@@ -323,16 +323,16 @@ class StatisticUpdater(object):
 
     def _get_software_components_stats(self):
         query_result = self.db.file_objects.aggregate([
-            {"$project": {"sc": {"$objectToArray": "$processed_analysis.software_components"}}},
-            {"$match": {"sc.4": {"$exists": True}}},  # match only analyses with actual results (more keys than the 4 standard keys)
-            {"$unwind": "$sc"},
-            {"$group": {"_id": "$sc.k", "count": {"$sum": 1}}}
+            {'$project': {'sc': {'$objectToArray': '$processed_analysis.software_components'}}},
+            {'$match': {'sc.4': {'$exists': True}}},  # match only analyses with actual results (more keys than the 4 standard keys)
+            {'$unwind': '$sc'},
+            {'$group': {'_id': '$sc.k', 'count': {'$sum': 1}}}
         ])
 
-        return {'software_stats': [
+        return {'software_components': [
             (entry['_id'], int(entry['count']))
             for entry in query_result
-            if entry['_id'] not in ['summary', 'analysis_data', 'file_system_flag', 'plugin_version']
+            if entry['_id'] not in ['summary', 'analysis_date', 'file_system_flag', 'plugin_version', 'tags']
         ]}
 
 
