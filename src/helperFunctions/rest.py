@@ -10,7 +10,8 @@ def get_current_gmt():
 
 
 def success_message(data, targeted_url, request_data=None, return_code=200):
-    assert isinstance(data, dict), 'data must be of type dict'
+    if not isinstance(data, dict):
+        raise TypeError('data must be of type dict')
     message = deepcopy(data)
 
     message['timestamp'] = get_current_gmt()
@@ -22,7 +23,8 @@ def success_message(data, targeted_url, request_data=None, return_code=200):
 
 
 def error_message(error, targeted_url, request_data=None, return_code=400):
-    assert isinstance(error, str), 'error must be of type str'
+    if not isinstance(error, str):
+        raise TypeError('error must be of type str')
     message = dict(error_message=error)
 
     message['timestamp'] = get_current_gmt()
@@ -119,8 +121,9 @@ def get_tar_flag(request_parameter):
     tar_arg = request_parameter['tar'] if 'tar' in request_parameter else 'false'
     try:
         tar_flag = json.loads(tar_arg)
-        assert isinstance(tar_flag, bool)
-    except (AssertionError, json.JSONDecodeError, TypeError):
+        if not isinstance(tar_flag, bool):
+            raise TypeError()
+    except (json.JSONDecodeError, TypeError):
         raise ValueError('Malformed tar parameter. Must be in {true, false}')
 
     return tar_flag

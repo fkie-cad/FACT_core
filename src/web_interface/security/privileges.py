@@ -17,4 +17,5 @@ PRIVILEGES = {
 
 for privilege in PRIVILEGES:
     for role in PRIVILEGES[privilege]:
-        assert role in ROLES, 'typo or error in privilege definition'
+        if role not in ROLES:
+            raise RuntimeError('typo or error in privilege definition')
