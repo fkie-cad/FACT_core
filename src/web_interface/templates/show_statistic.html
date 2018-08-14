@@ -60,9 +60,9 @@
 
         return BarChart;
     }
-    
+
 </script>
-        
+
 {% endblock %}
 
 
@@ -104,7 +104,7 @@
 <div class="row">
 
 {# ------ General Stats ------ #}
- 	
+
  	{% if stats["general_stats"] %}
     	<div class="col-sm-6 col-md-4 col-lg-3">
     		<h3><span class="glyphicon glyphicon-stats"></span> General</h3>
@@ -112,7 +112,7 @@
     			<tr>
     				<td class="active" style="text-align: left; padding:5px">firmware samples</td>
     				<td class="active" style="text-align: right; padding:5px">{{ stats["general_stats"]["number_of_firmwares"] | nice_number }}</td>
-    			</tr>    			
+    			</tr>
     			<tr>
     				<td class="active" style="text-align: left; padding:5px">firmware total size</td>
     				<td class="active" style="text-align: right; padding:5px">{{ stats["general_stats"]["total_firmware_size"] | number_format }}</td>
@@ -212,14 +212,15 @@
     ["Vendors", "vendor", stats["firmware_meta_stats"], {"vendor": {"$eq": "PLACEHOLDER"}}],
     ["Device Classes", "device_class", stats["firmware_meta_stats"], {"device_class": {"$eq": "PLACEHOLDER"}}],
     ["Firmware Container", "firmware_container", stats["file_type_stats"],
-     {"$and": [{"processed_analysis.file_type.mime": {"$eq": "PLACEHOLDER"}}, {"vendor": {"$exists": True}}]}],
+        {"$and": [{"processed_analysis.file_type.mime": {"$eq": "PLACEHOLDER"}}, {"vendor": {"$exists": True}}]}],
     ["File Types", "file_types", stats["file_type_stats"], {"processed_analysis.file_type.mime": {"$eq": "PLACEHOLDER"}}],
     ["Unpacker Usage", "used_unpackers", stats["unpacker_stats"], {"processed_analysis.unpacker.plugin_used": {"$eq": "PLACEHOLDER"}}],
     ["Unpacking Fail File Types", "packed_file_types", stats["unpacker_stats"],
-     {"processed_analysis.unpacker.summary": "packed","processed_analysis.file_type.mime": {"$eq": "PLACEHOLDER"}}],
+        {"processed_analysis.unpacker.summary": "packed","processed_analysis.file_type.mime": {"$eq": "PLACEHOLDER"}}],
     ["Data Lost File Types", "data_loss_file_types", stats["unpacker_stats"],
-    {"processed_analysis.unpacker.summary": "data lost","processed_analysis.file_type.mime": {"$eq": "PLACEHOLDER"}}],
+        {"processed_analysis.unpacker.summary": "data lost","processed_analysis.file_type.mime": {"$eq": "PLACEHOLDER"}}],
 	["Architectures", "cpu_architecture", stats["architecture_stats"], {"processed_analysis.cpu_architecture.summary": {"$regex": "PLACEHOLDER"}}],
+	["Software Components", "software_components", stats["software_stats"], {"processed_analysis.software_components.PLACEHOLDER": {"$exists": "true"}}],
 ]%}
 
 {% for title, key, data_set, query in chart_list %}
@@ -271,7 +272,7 @@
 
 
 {# ------ Malware Stats ------ #}
- 
+
 	{% if (stats["malware_stats"]["malware"] | length) > 0 %}
 		<div class="col-sm-6 col-md-4 col-lg-3">
 			<h3><span class="glyphicon glyphicon-alert"></span> Malware</h3>
@@ -405,6 +406,6 @@
 </div>
 
 {% endif %}
- 
+
 
 {% endblock %}
