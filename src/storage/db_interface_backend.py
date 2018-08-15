@@ -186,7 +186,7 @@ class BackEndDbInterface(MongoInterfaceCommon):
             self._update_analysis(current_object, system, sanitized_analysis[system])
             return True
         else:
-            logging.debug('Skipped storage of analysis, since it doesn\'t seem outdated.')
+            logging.debug('No placeholder stored yet. Result should be re-queue to avoid the placeholder to overwrite real results.')
             return False
 
     def add_analysis(self, file_object: FileObject, system: str=None):
