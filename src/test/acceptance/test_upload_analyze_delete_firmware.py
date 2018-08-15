@@ -22,8 +22,8 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBase):
         self._start_backend(post_analysis=self._analysis_callback)
         time.sleep(2)  # wait for systems to start
 
-    def _analysis_callback(self, fo):
-        self.db_backend_service.add_object(fo)
+    def _analysis_callback(self, fo, system):
+        self.db_backend_service.add_analysis(fo, system)
         self.elements_finished_analyzing.value += 1
         if self.elements_finished_analyzing.value == 4 * 2:  # container including 3 files times 2 plugins
             self.analysis_finished_event.set()

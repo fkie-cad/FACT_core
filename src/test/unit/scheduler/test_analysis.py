@@ -30,6 +30,7 @@ class TestScheduleInitialAnalysis(unittest.TestCase):
 
     def tearDown(self):
         self.sched.shutdown()
+
         self.tmp_queue.close()
 
         self.enter_patch.stop()
@@ -88,5 +89,5 @@ class TestScheduleInitialAnalysis(unittest.TestCase):
         self.assertEqual(self.sched.analysis_plugins['file_type'].VERSION, result['file_type'][3], 'version not correct')
         self.assertEqual(self.sched.analysis_plugins['file_hashes'].VERSION, result['file_hashes'][3], 'version not correct')
 
-    def dummy_callback(self, fw):
+    def dummy_callback(self, fw, _):
         self.tmp_queue.put(fw)

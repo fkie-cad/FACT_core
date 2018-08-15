@@ -46,5 +46,5 @@ class TestFileAddition(unittest.TestCase):
 
         self.assertGreaterEqual(len(processed_container.processed_analysis), 3, 'at least one analysis not done')
 
-    def _dummy_callback(self, fw):
+    def _dummy_callback(self, fw, _):
         self._tmp_queue.put(fw)

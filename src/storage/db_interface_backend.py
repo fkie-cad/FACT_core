@@ -5,6 +5,7 @@ from time import time
 from pymongo.errors import PyMongoError
 
 from helperFunctions.dataConversion import convert_str_to_time
+from helperFunctions.remote_analysis import parse_task_id, analysis_is_outdated, check_that_result_is_complete
 from helperFunctions.object_storage import update_virtual_file_path, update_included_files, update_analysis_tags
 from helperFunctions.tag import update_tags
 from objects.file import FileObject
@@ -169,11 +170,34 @@ class BackEndDbInterface(MongoInterfaceCommon):
         else:
             logging.warning('Propagating tag only allowed for firmware. Given: {}')
 
-    def add_analysis(self, file_object: FileObject):
+    def add_remote_analysis(self, uid: str, result: dict, task_id: str, system: str) -> bool:
+        task_uid, task, _ = parse_task_id(task_id)
+        if not uid == task_uid:
+            raise ValueError('Something went real bad. A task was associated with the wrong uid')
+
+        current_object = self.get_object(uid=uid, analysis_filter=[system, ])
+
+        if analysis_is_outdated(current_object, system, result['analysis_date']):
+            check_that_result_is_complete(result)
+
+            logging.debug('Setting remote {} plugin result for {}'.format(system, uid))
+
+            sanitized_analysis = self.sanitize_analysis({system: result}, uid)
+            self._update_analysis(current_object, system, sanitized_analysis[system])
+            return True
+        else:
+            logging.debug('No placeholder stored yet. Result should be re-queue to avoid the placeholder to overwrite real results.')
+            return False
+
+    def add_analysis(self, file_object: FileObject, system: str=None):
         if isinstance(file_object, (Firmware, FileObject)):
-            processed_analysis = self.sanitize_analysis(file_object.processed_analysis, file_object.get_uid())
-            for analysis_system in processed_analysis:
-                self._update_analysis(file_object, analysis_system, processed_analysis[analysis_system])
+            if not system:
+                processed_analysis = self.sanitize_analysis(file_object.processed_analysis, file_object.get_uid())
+                for analysis_system in processed_analysis:
+                    self._update_analysis(file_object, analysis_system, processed_analysis[analysis_system])
+            else:
+                processed_analysis = self.sanitize_analysis(file_object.processed_analysis, file_object.get_uid(), analysis_filter=[system, ])
+                self._update_analysis(file_object, system, processed_analysis[system])
         else:
             raise RuntimeError('Trying to add from type \'{}\' to database. Only allowed for \'Firmware\' and \'FileObject\'')
 

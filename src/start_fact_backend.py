@@ -46,6 +46,7 @@ signal.signal(signal.SIGTERM, shutdown)
 
 if __name__ == '__main__':
     args, config = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION)
+    logging.getLogger("pika").setLevel(logging.WARNING)
     analysis_service = AnalysisScheduler(config=config)
     tagging_service = TaggingDaemon(analysis_scheduler=analysis_service)
     unpacking_service = UnpackingScheduler(config=config, post_unpack=analysis_service.add_task, analysis_workload=analysis_service.get_scheduled_workload)

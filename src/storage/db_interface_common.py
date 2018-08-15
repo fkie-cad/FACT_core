@@ -2,7 +2,7 @@ import json
 import logging
 import pickle
 import sys
-from typing import Set
+from typing import List, Set
 
 import gridfs
 from common_helper_files import get_safe_name
@@ -140,9 +140,10 @@ class MongoInterfaceCommon(MongoInterface):
                 setattr(file_object, attribute, entry[attribute])
         return file_object
 
-    def sanitize_analysis(self, analysis_dict, uid):
+    def sanitize_analysis(self, analysis_dict: dict, uid: str, analysis_filter: List[str]=None) -> dict:
         sanitized_dict = {}
-        for key in analysis_dict.keys():
+        systems_to_sanitize = analysis_dict.keys() if not analysis_filter else [key for key in analysis_dict.keys() if key in analysis_filter]
+        for key in systems_to_sanitize:
             if get_dict_size(analysis_dict[key]) > self.report_threshold:
                 logging.debug('Extracting analysis {} to file (Size: {})'.format(key, get_dict_size(analysis_dict[key])))
                 sanitized_dict[key] = self._extract_binaries(analysis_dict, key, uid)

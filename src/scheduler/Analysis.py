@@ -1,16 +1,21 @@
 import logging
+import os
+import random
 from concurrent.futures import ThreadPoolExecutor
 from multiprocessing import Queue, Value
 from queue import Empty
 from random import shuffle
+from signal import SIGKILL
 from time import sleep
+
+import pika
 
 from helperFunctions.parsing import bcolors
 from helperFunctions.plugin import import_plugins
 from helperFunctions.process import ExceptionSafeProcess, terminate_process_and_childs
+from helperFunctions.remote_analysis import parse_task_id, ResultCollisionError, serialize, deserialize
 from helperFunctions.tag import check_tags, add_tags_to_object
 from storage.db_interface_backend import BackEndDbInterface
-
 
 MANDATORY_PLUGINS = ['file_type', 'file_hashes']
 
@@ -32,6 +37,8 @@ class AnalysisScheduler(object):
         self.pre_analysis = pre_analysis if pre_analysis else self.db_backend_service.add_object
         self.post_analysis = post_analysis if post_analysis else self.db_backend_service.add_analysis
         self.start_scheduling_process()
+
+        self.init_rabbit()
         self.start_result_collector()
         logging.info('Analysis System online...')
         logging.info('Plugins available: {}'.format(self.get_list_of_available_plugins()))
@@ -42,9 +49,13 @@ class AnalysisScheduler(object):
         '''
         logging.debug('Shutting down...')
         self.stop_condition.value = 1
+        if self.config.getboolean('remote_tasks', 'use_rabbit'):
+            self.tear_down_rabbit()
         with ThreadPoolExecutor() as e:
             e.submit(self.schedule_process.join)
             e.submit(self.result_collector_process.join)
+            if self.config.getboolean('remote_tasks', 'use_rabbit'):
+                e.submit(self.remote_collector_process.join)
             for plugin in self.analysis_plugins:
                 e.submit(self.analysis_plugins[plugin].shutdown)
         if getattr(self.db_backend_service, 'shutdown', False):
@@ -161,6 +172,10 @@ class AnalysisScheduler(object):
         self.result_collector_process = ExceptionSafeProcess(target=self.result_collector)
         self.result_collector_process.start()
 
+        if self.config.getboolean('remote_tasks', 'use_rabbit'):
+            self.remote_collector_process = ExceptionSafeProcess(target=self.remote_result_collection)
+            self.remote_collector_process.start()
+
     def result_collector(self):
         while self.stop_condition.value == 0:
             nop = True
@@ -173,7 +188,7 @@ class AnalysisScheduler(object):
                 else:
                     nop = False
                     if plugin in fw.processed_analysis:
-                        self.post_analysis(fw)
+                        self.post_analysis(fw, plugin)
                     self.check_further_process_or_complete(fw)
             if nop:
                 sleep(int(self.config['ExpertSettings']['block_delay']))
@@ -188,6 +203,59 @@ class AnalysisScheduler(object):
         else:
             self.process_queue.put(fw_object)
 
+# ---- remote result collection ----
+
+    def init_rabbit(self):
+        if self.config.getboolean('remote_tasks', 'use_rabbit'):
+            exchange = self.config.get('remote_tasks', 'write_back_exchange')
+            exchange_host = self.config.get('remote_tasks', 'exchange_host')
+
+            self._rabbit_connection = pika.BlockingConnection(pika.ConnectionParameters(exchange_host))
+            self._rabbit_channel = self._rabbit_connection.channel()
+            self._rabbit_channel.exchange_declare(exchange=exchange, exchange_type='direct')
+
+            self._consumer_tag = hex(random.getrandbits(128))
+
+    def remote_result_collection(self):
+        exchange = self.config.get('remote_tasks', 'write_back_exchange')
+        routing_key = self.config.get('remote_tasks', 'write_back_key')
+
+        incoming_queue = self._rabbit_channel.queue_declare(queue=self.config.get('remote_tasks', 'result_queue'))
+        self._rabbit_channel.queue_bind(exchange=exchange, queue=incoming_queue.method.queue, routing_key=routing_key)
+
+        def fetch_next_result(ch: pika.adapters.blocking_connection.BlockingChannel, method: pika.spec.Basic.Deliver, properties: pika.BasicProperties, body: bytes):
+            remote_task = deserialize(body)
+
+            task_id = remote_task['task_id']
+            uid, _, _ = parse_task_id(task_id)
+
+            analysis_system = remote_task['analysis_system']
+            analysis_result = remote_task['analysis']
+
+            success = True
+            try:
+                success = self.db_backend_service.add_remote_analysis(uid=uid, result=analysis_result, task_id=task_id, system=analysis_system)
+            except ResultCollisionError:
+                logging.warning('There was a race condition on {} results for object {}. Latter analysis was dropped.'.format(analysis_system, uid))
+            except ValueError as value_error:
+                logging.error('Remote Result Base Plugin not setting meta data correctly: {}'.format(str(value_error)))
+
+            if success:
+                ch.basic_ack(delivery_tag=method.delivery_tag)
+            else:
+                ch.basic_nack(delivery_tag=method.delivery_tag, requeue=True)
+
+        self._rabbit_channel.basic_consume(fetch_next_result, queue=incoming_queue.method.queue, consumer_tag=self._consumer_tag)
+
+        try:
+            self._rabbit_channel.start_consuming()
+        except FileNotFoundError:
+            logging.warning('Bad shutdown of rabbit consumer ..')
+
+    def tear_down_rabbit(self):
+        os.kill(self.remote_collector_process.pid, SIGKILL)
+        self._rabbit_connection.close()
+
 # ---- miscellaneous functions ----
 
     @staticmethod
@@ -201,7 +269,8 @@ class AnalysisScheduler(object):
         for _, plugin in self.analysis_plugins.items():
             if plugin.check_exceptions():
                 return True
-        for process in [self.schedule_process, self.result_collector_process]:
+        processes = [self.schedule_process, self.result_collector_process, self.remote_collector_process] if self.config.get('remote_tasks', 'use_rabbit') else [self.schedule_process, self.result_collector_process]
+        for process in processes:
             if process.exception:
                 logging.error("{}Exception in scheduler process {}{}".format(bcolors.FAIL, bcolors.ENDC, process.name))
                 logging.error(process.exception[1])
