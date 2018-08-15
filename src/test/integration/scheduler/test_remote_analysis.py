@@ -51,7 +51,7 @@ class TestFileAddition(unittest.TestCase):
 
         remote_analysis.process_task(TEST_FW.uid)
 
-        self._database_finished_event.wait(timeout=30)
+        self._database_finished_event.wait(timeout=60)
 
         new_object = self._backend_interface.get_object(TEST_FW.uid)
 
