@@ -52,7 +52,7 @@ def get_config_for_testing(temp_dir=None):
 
     config.add_section('remote_tasks')
     config.set('remote_tasks', 'use_rabbit', 'false')
-    config.set('remote_tasks', 'exchange_host', 'localhost')
+    config.set('remote_tasks', 'exchange_host', '127.0.0.1')
     config.set('remote_tasks', 'task_out_exchange', 'out')
     config.set('remote_tasks', 'write_back_exchange', 'in')
     config.set('remote_tasks', 'write_back_key', 'tasks')
