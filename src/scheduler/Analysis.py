@@ -220,7 +220,7 @@ class AnalysisScheduler(object):
         exchange = self.config.get('remote_tasks', 'write_back_exchange')
         routing_key = self.config.get('remote_tasks', 'write_back_key')
 
-        incoming_queue = self._rabbit_channel.queue_declare()
+        incoming_queue = self._rabbit_channel.queue_declare(queue=self.config.get('remote_tasks', 'result_queue'))
         self._rabbit_channel.queue_bind(exchange=exchange, queue=incoming_queue.method.queue, routing_key=routing_key)
 
         def fetch_next_result(ch: pika.adapters.blocking_connection.BlockingChannel, method: pika.spec.Basic.Deliver, properties: pika.BasicProperties, body: bytes):
@@ -232,15 +232,18 @@ class AnalysisScheduler(object):
             analysis_system = remote_task['analysis_system']
             analysis_result = remote_task['analysis']
 
+            success = True
             try:
-                if not self.db_backend_service.add_remote_analysis(uid=uid, result=analysis_result, task_id=task_id, system=analysis_system):
-                    self.re_publish_result(remote_task, exchange, routing_key)
+                success = self.db_backend_service.add_remote_analysis(uid=uid, result=analysis_result, task_id=task_id, system=analysis_system)
             except ResultCollisionError:
                 logging.warning('There was a race condition on {} results for object {}. Latter analysis was dropped.'.format(analysis_system, uid))
             except ValueError as value_error:
                 logging.error('Remote Result Base Plugin not setting meta data correctly: {}'.format(str(value_error)))
 
-            ch.basic_ack(delivery_tag=method.delivery_tag)
+            if success:
+                ch.basic_ack(delivery_tag=method.delivery_tag)
+            else:
+                ch.basic_nack(delivery_tag=method.delivery_tag, requeue=True)
 
         self._rabbit_channel.basic_consume(fetch_next_result, queue=incoming_queue.method.queue, consumer_tag=self._consumer_tag)
 
@@ -252,10 +255,6 @@ class AnalysisScheduler(object):
     def tear_down_rabbit(self):
         os.kill(self.remote_collector_process.pid, SIGKILL)
         self._rabbit_connection.close()
-
-    def re_publish_result(self, message: dict, exchange: str, routing_key: str):
-        logging.debug('Re-publishing task {}:{} because result could not be written'.format(message['uid'], message['analysis_system']))
-        self._rabbit_channel.basic_publish(exchange=exchange, routing_key=routing_key, body=serialize(message))
 
 # ---- miscellaneous functions ----
 
