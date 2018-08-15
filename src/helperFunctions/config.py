@@ -56,6 +56,7 @@ def get_config_for_testing(temp_dir=None):
     config.set('remote_tasks', 'task_out_exchange', 'out')
     config.set('remote_tasks', 'write_back_exchange', 'in')
     config.set('remote_tasks', 'write_back_key', 'tasks')
+    config.set('remote_tasks', 'result_queue', 'tmp_queue')
 
     fact_config = load_config('main.cfg')
     config.set('data_storage', 'db_admin_user', fact_config['data_storage']['db_admin_user'])
