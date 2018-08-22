@@ -19,6 +19,20 @@ def apt_upgrade_system():
     return output
 
 
+def apt_autoremove_packages():
+    output, return_code = execute_shell_command_get_return_code('sudo apt-get autoremove -y')
+    if return_code != 0:
+        raise InstallationError('Automatic removal of packages failed:\n{}'.format(output))
+    return output
+
+
+def apt_clean_system():
+    output, return_code = execute_shell_command_get_return_code('sudo apt-get clean')
+    if return_code != 0:
+        raise InstallationError('Cleaning of package files failed:\n{}'.format(output))
+    return output
+
+
 def apt_install_packages(*args):
     output, return_code = execute_shell_command_get_return_code('sudo apt-get install -y {}'.format(' '.join(args)))
     if return_code != 0:
