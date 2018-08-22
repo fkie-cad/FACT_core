@@ -20,11 +20,17 @@ def apt_upgrade_system():
 
 
 def apt_install_packages(*args):
-    pass
+    output, return_code = execute_shell_command_get_return_code('sudo apt-get install -y {}'.format(' '.join(args)))
+    if return_code != 0:
+        raise InstallationError('Error in installation of package(s) {}\n{}'.format(' '.join(args), output))
+    return output
 
 
 def apt_remove_packages(*args):
-    pass
+    output, return_code = execute_shell_command_get_return_code('sudo apt-get remove -y {}'.format(' '.join(args)))
+    if return_code != 0:
+        raise InstallationError('Error in removal of package(s) {}\n{}'.format(' '.join(args), output))
+    return output
 
 
 def pip_install_packages(*args):

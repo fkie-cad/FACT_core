@@ -29,3 +29,29 @@ def test_apt_upgrade_system_fails(monkeypatch):
     _patch_shell_command(monkeypatch, 'upgrade failed\n', 255)
     with pytest.raises(InstallationError):
         apt_upgrade_system()
+
+
+def test_apt_install_packages(monkeypatch):
+    _patch_shell_command(monkeypatch, 'mockpackage successfully installed\n', 0)
+    assert 'mockpackage success' in apt_install_packages('mockpackage')
+
+    assert 'mockpackage success' in apt_install_packages('mockpackage', 'another_package')
+
+
+def test_apt_install_package_fails(monkeypatch):
+    _patch_shell_command(monkeypatch, 'something went wrong\n', 255)
+    with pytest.raises(InstallationError):
+        apt_install_packages('mockpackage')
+
+
+def test_apt_remove_packages(monkeypatch):
+    _patch_shell_command(monkeypatch, 'mockpackage successfully removed\n', 0)
+    assert 'mockpackage success' in apt_remove_packages('mockpackage')
+
+    assert 'mockpackage success' in apt_remove_packages('mockpackage', 'another_package')
+
+
+def test_apt_remove_package_fails(monkeypatch):
+    _patch_shell_command(monkeypatch, 'something went wrong\n', 255)
+    with pytest.raises(InstallationError):
+        apt_remove_packages('mockpackage')
