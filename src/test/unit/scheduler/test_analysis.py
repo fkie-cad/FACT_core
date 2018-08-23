@@ -182,6 +182,16 @@ class TestAnalysisSchedulerBlacklist(AnalysisSchedulerTest):
         assert 'file_type' in self.fo.analysis_dependency
         assert self.fo.scheduled_analysis == [self.test_plugin, 'file_type']
 
+    def test_start_or_skip_analysis(self):
+        self.sched.config.set('dummy_plugin_for_testing_only', 'mime_whitelist', 'foo, bar')
+        test_fw = Firmware(file_path=os.path.join(get_test_data_dir(), 'get_files_test/testfile1'))
+        test_fw.scheduled_analysis = ['file_hashes']
+        test_fw.processed_analysis['file_type'] = {'mime': 'text/plain'}
+        self.sched._start_or_skip_analysis('dummy_plugin_for_testing_only', test_fw)
+        test_fw = self.tmp_queue.get(timeout=10)
+        assert 'dummy_plugin_for_testing_only' in test_fw.processed_analysis
+        assert 'skipped' in test_fw.processed_analysis['dummy_plugin_for_testing_only']
+
     def _add_test_plugin_to_config(self):
         self.sched.config.add_section('test_plugin')
         self.sched.config.set('test_plugin', 'mime_blacklist', 'type1, type2')
