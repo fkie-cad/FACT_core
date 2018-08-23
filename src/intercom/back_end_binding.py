@@ -99,8 +99,8 @@ class InterComBackEndAnalysisPlugInsPublisher(InterComMongoInterface):
         self.client.close()
 
     def publish_available_analysis_plugins(self, analysis_service):
-        available_plugins_dictonary = analysis_service.get_plugin_dict()
-        overwrite_file(self.connections['analysis_plugins']['fs'], "plugin_dictonary", pickle.dumps(available_plugins_dictonary))
+        available_plugin_dictionary = analysis_service.get_plugin_dict()
+        overwrite_file(self.connections['analysis_plugins']['fs'], "plugin_dictonary", pickle.dumps(available_plugin_dictionary))
 
 
 class InterComBackEndAnalysisTask(InterComListener):
