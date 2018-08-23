@@ -5,9 +5,10 @@ from multiprocessing import Queue, Value
 from random import shuffle
 
 from queue import Empty
-from time import sleep
+from time import sleep, time
 from typing import Tuple, List, Optional
 
+from helperFunctions.compare_sets import substring_is_in_list
 from helperFunctions.parsing import bcolors
 from helperFunctions.plugin import import_plugins
 from helperFunctions.process import ExceptionSafeProcess, terminate_process_and_childs
@@ -153,15 +154,27 @@ class AnalysisScheduler(object):
         analysis_to_do = fw_object.scheduled_analysis.pop()
         if analysis_to_do not in self.analysis_plugins:
             logging.error('Plugin \'{}\' not available'.format(analysis_to_do))
+            self.check_further_process_or_complete(fw_object)
         else:
-            if analysis_to_do in MANDATORY_PLUGINS or self._next_analysis_is_not_blacklisted(analysis_to_do, fw_object):
-                self.analysis_plugins[analysis_to_do].add_job(fw_object)
-                return
-            else:
-                logging.debug('skipping analysis "{}" for {} (blacklisted file type)'.format(analysis_to_do, fw_object.get_uid()))
-        self.check_further_process_or_complete(fw_object)
+            self._start_or_skip_analysis(analysis_to_do, fw_object)
 
-# ---- blacklist and whitelist ----
+    def _start_or_skip_analysis(self, analysis_to_do, fw_object):
+        if analysis_to_do in MANDATORY_PLUGINS or self._next_analysis_is_not_blacklisted(analysis_to_do, fw_object):
+            self.analysis_plugins[analysis_to_do].add_job(fw_object)
+        else:
+            logging.debug('skipping analysis "{}" for {} (blacklisted file type)'.format(analysis_to_do, fw_object.get_uid()))
+            fw_object.processed_analysis[analysis_to_do] = self._get_skipped_analysis_result(analysis_to_do)
+            self.check_further_process_or_complete(fw_object)
+
+    def _get_skipped_analysis_result(self, analysis_to_do):
+        return {
+            'skipped': True,
+            'summary': [],
+            'analysis_date': time(),
+            'plugin_version': self.analysis_plugins[analysis_to_do].VERSION
+        }
+
+    # ---- blacklist and whitelist ----
 
     def _next_analysis_is_not_blacklisted(self, next_analysis, fw_object: FileObject):
         blacklist, whitelist = self._get_blacklist_and_whitelist(next_analysis)
@@ -173,14 +186,14 @@ class AnalysisScheduler(object):
 
         try:
             file_type = fw_object.processed_analysis['file_type']['mime'].lower()
-        except KeyError:  # file_type analysis is missing (probably due to analysis caching) -> re-schedule
+        except KeyError:  # FIXME file_type analysis is missing (probably due to problem with analysis caching) -> re-schedule
             fw_object.scheduled_analysis.extend([next_analysis, 'file_type'])
             fw_object.analysis_dependency.add('file_type')
             return False
 
         if whitelist:
-            return file_type in whitelist
-        return file_type not in blacklist
+            return substring_is_in_list(file_type, whitelist)
+        return not substring_is_in_list(file_type, blacklist)
 
     def _get_blacklist_and_whitelist(self, next_analysis):
         blacklist, whitelist = self._get_blacklist_and_whitelist_from_config(next_analysis)

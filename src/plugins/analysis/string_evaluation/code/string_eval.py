@@ -20,8 +20,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
     '''
     NAME = 'string_evaluator'
     DEPENDENCIES = ['printable_strings']
+    MIME_BLACKLIST = ['application/gzip', 'application/gzip', 'application/x-7z-compressed', 'application/x-tar', 'application/x-xz', 'application/zip']
     DESCRIPTION = 'Tries to sort strings based on usefulness'
-    VERSION = '0.2'
+    VERSION = '0.2.1'
 
     def __init__(self, plugin_administrator, config=None, recursive=True, timeout=300):
         super().__init__(plugin_administrator, config=config, recursive=recursive, timeout=timeout, plugin_path=__file__)

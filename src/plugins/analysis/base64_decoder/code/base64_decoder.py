@@ -24,8 +24,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
     '''
     NAME = 'base64_decoder'
     DEPENDENCIES = []
+    MIME_BLACKLIST = ['audio', 'image', 'video']
     DESCRIPTION = 'Detect and decode base64 sections'
-    VERSION = '0.1.2'
+    VERSION = '0.1.3'
 
     def __init__(self, plugin_administrator, config=None, recursive=True, timeout=300):
         self._word_list = self.load_word_list()

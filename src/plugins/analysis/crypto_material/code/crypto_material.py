@@ -9,13 +9,14 @@ class AnalysisPlugin(YaraBasePlugin):
     '''
     NAME = 'crypto_material'
     DESCRIPTION = 'detects crypto material like SSH keys and SSL certificates'
-    VERSION = '0.5.1'
     STARTEND = ['PgpPublicKeyBlock', 'PgpPrivateKeyBlock', 'PgpPublicKeyBlock_GnuPG', 'genericPublicKey',
                 'SshRsaPrivateKeyBlock', 'SSLPrivateKey']
     STARTONLY = ['SshRsaPublicKeyBlock']
+    MIME_BLACKLIST = ['filesystem']
     PKCS8 = 'Pkcs8PrivateKey'
     PKCS12 = 'Pkcs12Certificate'
     SSLCERT = 'SSLCertificate'
+    VERSION = '0.5.2'
 
     def __init__(self, plugin_administrator, config=None, recursive=True):
         super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__)
