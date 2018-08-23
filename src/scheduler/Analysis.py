@@ -168,7 +168,7 @@ class AnalysisScheduler(object):
 
     def _get_skipped_analysis_result(self, analysis_to_do):
         return {
-            'skipped': True,
+            'skipped': 'blacklisted file type',
             'summary': [],
             'analysis_date': time(),
             'plugin_version': self.analysis_plugins[analysis_to_do].VERSION
