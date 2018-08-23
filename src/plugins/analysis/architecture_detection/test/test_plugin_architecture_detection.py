@@ -20,7 +20,7 @@ class TestArchDetection(AnalysisPluginTest):
         config.set(self.PLUGIN_NAME, 'mime_ignore', '')
         self.analysis_plugin = AnalysisPlugin(self, config=config)
 
-    def start_process_object_meta_for_architechture(self, architecture, bitness, endianness, full_file_type):
+    def start_process_object_meta_for_architecture(self, architecture, bitness, endianness, full_file_type):
         test_file = FileObject()
         test_file.processed_analysis['file_type'] = {'mime': 'x-executable', 'full': full_file_type}
         self.analysis_plugin.process_object(test_file)
@@ -79,12 +79,4 @@ class TestArchDetection(AnalysisPluginTest):
              'ld-linux.so.2, for GNU/Linux 3.2.0, BuildID[sha1]=8604fb8d006884a3305eeb6127b281692ee2e57c, stripped')
         ]
         for data_set in architecture_test_data:
-            self.start_process_object_meta_for_architechture(*data_set)
-
-    def test_process_object_ignore_mime(self):
-        self.analysis_plugin.MIME_IGNORE.append('application/x-executable')
-        test_file = FileObject()
-        test_file.set_file_path(os.path.join(TEST_DATA_DIR, 'x86_executable'))
-        test_file.processed_analysis['file_type'] = {'mime': 'application/x-executable'}
-        self.analysis_plugin.process_object(test_file)
-        self.assertEqual(test_file.processed_analysis[self.PLUGIN_NAME], {'summary': []}, 'file not ignored')
+            self.start_process_object_meta_for_architecture(*data_set)
