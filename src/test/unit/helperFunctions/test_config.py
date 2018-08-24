@@ -30,3 +30,18 @@ def test_read_list_from_config(monkeypatch, input_data, expected):
     test_config.set('test_section', 'test_option', input_data)
     result = read_list_from_config(test_config, 'test_section', 'test_option')
     assert result == expected
+
+
+def test_read_list_from_config__key_not_in_config(monkeypatch):
+    monkeypatch.setattr('helperFunctions.config.get_config_dir', lambda: '{}/helperFunctions'.format(get_test_data_dir()))
+    test_config = load_config('test.cfg')
+    result = read_list_from_config(test_config, 'foo', 'bar')
+    assert result == []
+
+    result = read_list_from_config(test_config, 'test', 'bar')
+    assert result == []
+
+
+def test_read_list_from_config__no_config(monkeypatch):
+    result = read_list_from_config(None, 'foo', 'bar')
+    assert result == []
