@@ -1,5 +1,6 @@
 import configparser
 import os
+from configparser import ConfigParser
 
 from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.process import complete_shutdown
@@ -56,3 +57,12 @@ def get_config_for_testing(temp_dir=None):
         config.set('data_storage', 'firmware_file_storage_directory', temp_dir.name)
         config.set('Logging', 'mongoDbLogFile', os.path.join(temp_dir.name, 'mongo.log'))
     return config
+
+
+def read_list_from_config(config_file: ConfigParser, section: str, key: str, default=[]):
+    if not config_file:
+        return default
+    config_entry = config_file.get(section, key)
+    if not config_entry:
+        return default
+    return [item.strip() for item in config_entry.split(',') if item]

@@ -1,6 +1,6 @@
 import logging
 from concurrent.futures import ThreadPoolExecutor
-from configparser import RawConfigParser
+from configparser import ConfigParser
 from multiprocessing import Queue, Value
 from random import shuffle
 
@@ -9,6 +9,7 @@ from time import sleep, time
 from typing import Tuple, List, Optional
 
 from helperFunctions.compare_sets import substring_is_in_list
+from helperFunctions.config import read_list_from_config
 from helperFunctions.parsing import bcolors
 from helperFunctions.plugin import import_plugins
 from helperFunctions.process import ExceptionSafeProcess, terminate_process_and_childs
@@ -24,7 +25,7 @@ class AnalysisScheduler(object):
     This Scheduler performs analysis of firmware objects
     '''
 
-    def __init__(self, config: Optional[RawConfigParser]=None, pre_analysis=None, post_analysis=None, db_interface=None):
+    def __init__(self, config: Optional[ConfigParser]=None, pre_analysis=None, post_analysis=None, db_interface=None):
         self.config = config
         self.analysis_plugins = {}
         self.load_plugins()
@@ -87,7 +88,7 @@ class AnalysisScheduler(object):
         try:
             result = {}
             for plugin_set in self.config['default_plugins']:
-                result[plugin_set] = self.config['default_plugins'][plugin_set].split(', ')
+                result[plugin_set] = read_list_from_config(self.config, 'default_plugins', plugin_set)
             return result
         except (TypeError, KeyError, AttributeError):
             logging.warning('default plug-ins not set in config')
@@ -202,11 +203,8 @@ class AnalysisScheduler(object):
         return blacklist, whitelist
 
     def _get_blacklist_and_whitelist_from_config(self, analysis_plugin: str) -> Tuple[List, List]:
-        blacklist = self.config.get(analysis_plugin, 'mime_blacklist', fallback='').split(', ')
-        whitelist = self.config.get(analysis_plugin, 'mime_whitelist', fallback='').split(', ')
-        for l in [blacklist, whitelist]:
-            while '' in l:
-                l.remove('')
+        blacklist = read_list_from_config(self.config, analysis_plugin, 'mime_blacklist')
+        whitelist = read_list_from_config(self.config, analysis_plugin, 'mime_whitelist')
         return blacklist, whitelist
 
     def _get_blacklist_and_whitelist_from_plugin(self, analysis_plugin: str) -> Tuple[List, List]:
