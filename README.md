@@ -115,6 +115,7 @@ Checkout the new sources and rerun the installer.
 * Plug-ins
   * [Firmadyne](https://github.com/fkie-cad/FACT_firmadyne_analysis_plugin)
 * REST
+  * [FACT Search and Download](https://github.com/fkie-cad/FACT_Search_and_Download)
   * [PDF Report Generator](https://github.com/any333/FACT_analysis_report_pdf_convertor)
 
 ## Contribute
