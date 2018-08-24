@@ -59,7 +59,10 @@ def get_config_for_testing(temp_dir=None):
     return config
 
 
-def read_list_from_config(config_file: ConfigParser, section: str, key: str, default=[]):
+def read_list_from_config(config_file: ConfigParser, section: str, key: str, default=None):
+    if default is None:
+        default = []
+
     if not config_file:
         return default
 
