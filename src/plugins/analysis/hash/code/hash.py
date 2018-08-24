@@ -1,5 +1,7 @@
 from hashlib import algorithms_available
 import logging
+
+from helperFunctions.config import read_list_from_config
 from helperFunctions.hash import get_hash, get_ssdeep, get_imphash
 from analysis.PluginBase import AnalysisBasePlugin
 
@@ -43,7 +45,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def _get_hash_list_from_config(self):
         try:
-            return self.config[self.NAME].get('hashes', 'sha256').split(', ')
+            return read_list_from_config(self.config, self.NAME, 'hashes', default=['sha256'])
         except Exception:
             logging.warning("'file_hashes' -> 'hashes' not set in config")
             return ['sha256']
