@@ -14,7 +14,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
     NAME = "exploit_mitigations"
     DESCRIPTION = "analyses ELF binaries within a firmware for present exploit mitigation techniques"
     DEPENDENCIES = ['file_type']
-    VERSION = "0.1.1"
+    MIME_WHITELIST = ['application/x-executable', 'application/x-object', 'application/x-sharedlib']
+    VERSION = "0.1.2"
 
     def __init__(self, plugin_administrator, config=None, recursive=True):
         self.config = config

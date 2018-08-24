@@ -11,7 +11,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
     '''
     NAME = "malware_scanner"
     DEPENDENCIES = []
-    VERSION = "0.3"
+    MIME_BLACKLIST = ['filesystem']
+    VERSION = "0.3.1"
     DESCRIPTION = "scan for known malware"
 
     def __init__(self, plugin_administrator, config=None, recursive=True):
