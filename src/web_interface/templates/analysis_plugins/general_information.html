@@ -13,7 +13,7 @@
         {% if firmware.processed_analysis[selected_analysis]['skipped'] %}
         <tr>
             <td class="warning">Analysis was skipped</td>
-            <td class="active">Reason: {{ firmware.processed_analysis[selected_analysis]['skipped'] }}</td>
+            <td class="active">{{ firmware.processed_analysis[selected_analysis]['skipped'] }}</td>
         </tr>
         {% endif %}
         {% if firmware.processed_analysis[selected_analysis]['analysis_date'] %}
