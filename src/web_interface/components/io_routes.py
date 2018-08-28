@@ -76,9 +76,12 @@ class IORoutes(ComponentBase):
             device_name_dict = sc.get_device_name_dict()
         with ConnectTo(InterComFrontEndBinding, self._config) as sc:
             analysis_plugins = sc.get_available_analysis_plugins()
+        option_list = list(self._config['default_plugins'])
         return render_template('upload/upload.html', device_classes=device_class_list, vendors=vendor_list, error=error,
                                device_names=json.dumps(device_name_dict, sort_keys=True),
-                               analysis_plugin_dict=analysis_plugins)
+                               analysis_plugin_dict=analysis_plugins,
+                               preset_option_list=option_list
+                               )
 
         # ---- file download
 
