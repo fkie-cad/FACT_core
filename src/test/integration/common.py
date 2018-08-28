@@ -32,7 +32,6 @@ def initialize_config(tmp_dir):
     # Analysis
     config.add_section('ip_and_uri_finder')
     config.set('ip_and_uri_finder', 'signature_directory', 'analysis/signatures/ip_and_uri_finder/')
-    config.add_section('default_plugins')
     config.set('default_plugins', 'plugins', 'file_hashes')
 
     # Unpacker
