@@ -25,6 +25,11 @@
     <script src="{{ url_for('static', filename='jstree/dist/jstree.min.js') }}"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='jstree/dist/themes/default/style.min.css') }}" />
 
+
+	{# highlight.js import #}
+    <script src="{{ url_for('static', filename='highlight.js/highlight.pack.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='highlight.js/styles/github.css') }}" />
+
 {% endblock %}
 
 {% block body %}
@@ -284,13 +289,21 @@
 		        </div>
 		        <script>
 		            var loading_gif = document.getElementById("preview-loading-gif");
+		            function init_preview() {
+		                hide_gif();
+		                highlight_code();
+		            };
 		            function hide_gif() {
 		                loading_gif.style.display = "none";
+		            };
+		            function highlight_code() {
+		                var block = $('div#preview-div pre')[0];
+                        hljs.highlightBlock(block);
 		            };
 		            function load_preview(){
 		                loading_gif.style.display = "block";
 		                document.getElementById("preview_button").onclick = function() {return false;};
-		                $("#preview-div").load("/ajax_get_binary/{{ firmware.processed_analysis["file_type"]["mime"].replace("/", "_") }}/{{ uid|safe }}", hide_gif);
+		                $("#preview-div").load("/ajax_get_binary/{{ firmware.processed_analysis["file_type"]["mime"].replace("/", "_") }}/{{ uid|safe }}", init_preview);
 		            };
 		            document.getElementById("preview_button").onclick = load_preview;
 		        </script>
