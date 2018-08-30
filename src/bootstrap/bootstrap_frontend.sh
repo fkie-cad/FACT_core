@@ -56,11 +56,24 @@ wget -nc https://github.com/vakata/jstree/zipball/3.3.2
 unzip 3.3.2
 rm 3.3.2
 mv vakata* jstree
+# download highlight.js
+highlight_js_url=https://highlightjs.org/download/
+highlight_js_dir=highlight.js
+highlight_js_zip=highlight.js.zip
+if [ -d "${highlight_js_dir}" ]; then
+  rm -r ${highlight_js_dir}
+fi
+csrftoken=$(curl --silent -c - ${highlight_js_url} | grep csrftoken | awk {'print $7'})
+wget ${highlight_js_url} --header="Host: highlightjs.org" --header="User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:61.0) Gecko/20100101 Firefox/61.0" --header="Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8" --header="Accept-Language: en-GB,en;q=0.5" --header="Accept-Encoding: gzip, deflate, br" --header="Referer: https://highlightjs.org/download/" --header="Content-Type: application/x-www-form-urlencoded" --header="Cookie: csrftoken=${csrftoken}" --header="DNT: 1" --header="Connection: keep-alive" --header="Upgrade-Insecure-Requests: 1" --post-data="apache.js=on&bash.js=on&coffeescript.js=on&cpp.js=on&cs.js=on&csrfmiddlewaretoken=${csrftoken}&css.js=on&diff.js=on&http.js=on&ini.js=on&java.js=on&javascript.js=on&json.js=on&makefile.js=on&markdown.js=on&nginx.js=on&objectivec.js=on&perl.js=on&php.js=on&python.js=on&ruby.js=on&shell.js=on&sql.js=on&xml.js=on" -O ${highlight_js_zip}
+unzip ${highlight_js_zip} -d ${highlight_js_dir}
+rm ${highlight_js_zip}
 # download angularJS
 wget -nc https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js
 # download charts.js
 wget -nc https://github.com/chartjs/Chart.js/releases/download/v2.3.0/Chart.js
 cd ../../bootstrap
+
+
 
 
 echo "####################################"
