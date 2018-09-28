@@ -48,7 +48,10 @@ def apt_remove_packages(*args):
 
 
 def pip_install_packages(*args):
-    pass
+    output, return_code = execute_shell_command_get_return_code('sudo -EH pip3 install --upgrade {}'.format(' '.join(args)))
+    if return_code != 0:
+        raise InstallationError('Error in installation of python package(s) {}\n{}'.format(' '.join(args), output))
+    return output
 
 
 def pip_remove_packages(*args):
