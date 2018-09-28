@@ -75,3 +75,16 @@ def test_apt_remove_package_fails(monkeypatch):
     _patch_shell_command(monkeypatch, 'something went wrong\n', 255)
     with pytest.raises(InstallationError):
         apt_remove_packages('mockpackage')
+
+
+def test_pip_install_packages(monkeypatch):
+    _patch_shell_command(monkeypatch, 'mockpackage successfully installed\n', 0)
+    assert 'mockpackage success' in pip_install_packages('mockpackage')
+
+    assert 'mockpackage success' in pip_install_packages('mockpackage', 'another_package')
+
+
+def test_pip_install_package_fails(monkeypatch):
+    _patch_shell_command(monkeypatch, 'something went wrong\n', 255)
+    with pytest.raises(InstallationError):
+        pip_install_packages('mockpackage')
