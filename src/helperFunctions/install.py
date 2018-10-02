@@ -1,3 +1,7 @@
+import os
+from pathlib import Path
+from typing import List
+
 from common_helper_process import execute_shell_command_get_return_code
 
 
@@ -64,3 +68,31 @@ def check_if_command_in_path(command_with_parameters):
 
 def check_if_executable_in_bin_folder(executable_name):
     pass
+
+
+def install_github_project(project_path: str, commands: List[str]):
+    folder_name = Path(project_path).name
+    _checkout_github_project(project_path, folder_name)
+    for command in commands:
+        output, return_code = execute_shell_command_get_return_code(command)
+        if return_code != 0:
+            raise InstallationError('Error while processing github project {}!\n{}'.format(project_path, output))
+    _remove_repo_folder(project_path)
+
+
+def _checkout_github_project(github_path, folder_name):
+    clone_url = 'https://www.github.com/{}'.format(github_path)
+    output, return_code = execute_shell_command_get_return_code('git clone {}'.format(clone_url))
+    if return_code != 0:
+        raise InstallationError('Cloning from github failed for project {}\n {}'.format(github_path, clone_url))
+    if not Path('.', folder_name).exists():
+        raise InstallationError('Repository creation failed on folder {}\n {}'.format(folder_name, clone_url))
+    os.chdir(folder_name)
+
+
+def _remove_repo_folder(folder_name):
+    try:
+        os.chdir('..')
+        Path(folder_name).unlink()
+    except Exception as exception:
+        raise InstallationError(exception)
