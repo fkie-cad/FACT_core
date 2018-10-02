@@ -1,7 +1,8 @@
 import os
 from contextlib import suppress
 
-from helperFunctions.install import apt_remove_packages, apt_install_packages, apt_upgrade_system, apt_update_sources, apt_autoremove_packages, apt_clean_system, InstallationError, pip_install_packages
+from helperFunctions.install import apt_remove_packages, apt_install_packages, apt_upgrade_system, apt_update_sources, \
+    apt_autoremove_packages, apt_clean_system, InstallationError, pip_install_packages, install_github_project
 
 
 def main(distribution):
@@ -35,7 +36,7 @@ def main(distribution):
     # export GIT_SSH_COMMAND="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
 
     # install python3 and general build stuff
-    # sudo apt-get install -y python3 python3-dev build-essential automake autoconf libtool git unzip
+    apt_install_packages('python3', 'python3-dev', 'build-essential', 'automake', 'autoconf', 'libtool', 'git', 'unzip')
     if not xenial:
         pip_install_packages('testresources')
 
@@ -68,13 +69,7 @@ def main(distribution):
 
     # ---- VarietyJS used for advanced search map generation ----
     # is executed by update_statistic.py
-    # git clone https://github.com/variety/variety.git
-    # cd variety/
-    # git checkout 2f4d815
-    # mv -f variety.js ../../bin
-    # mv -f spec ../../bin/
-    # cd ..
-    # rm -rf variety
+    install_github_project('variety/variety', ['git checkout 2f4d815', 'mv -f variety.js ../../bin', 'mv -f spec ../../bin/'])
 
     # echo "####################################"
     # echo "#  installing common code modules  #"
