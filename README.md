@@ -17,13 +17,13 @@ Additionally, it can compare several images or single files.
 Furthermore, Unpacking, analysis and compares are based on plug-ins guaranteeing maximal flexibility and expandability.  
 More details and some screenshots can be found on our [project page](https://fkie-cad.github.io/FACT_core/).
 
-## Requirments
+## Requirements
 
 FACT is designed as a multiprocess application, the more Cores and RAM, the better.
 
 Minimal | Recommended | Software
 ------- | ----------- | --------
-4 Cores<br>8GB RAM | 16 Cores<br>64GB RAM | Ubuntu (16.04 or 18.04)<br>Python 3.5 or above<br>PIP<br>git
+4 Cores<br>8GB RAM | 16 Cores<br>64GB RAM | Ubuntu (16.04 or 18.04)<br>Python 3.5 or above
 
 It is possible to install FACT on any Linux distribution but the installer is limited to Ubuntu 16.04 and 18.04 at the moment.
 
