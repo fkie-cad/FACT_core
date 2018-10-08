@@ -1,8 +1,19 @@
+import logging
 import os
 from contextlib import suppress
 
+from common_helper_process import execute_shell_command_get_return_code
+
 from helperFunctions.install import apt_remove_packages, apt_install_packages, apt_upgrade_system, apt_update_sources, \
     apt_autoremove_packages, apt_clean_system, InstallationError, pip_install_packages, install_github_project
+
+
+def install_pip(python_command):
+    logging.info('Installing {} pip'.format(python_command))
+    for command in ['wget https://bootstrap.pypa.io/get-pip.py', 'sudo -EH {} get-pip.py'.format(python_command), 'rm get-pip.py']:
+        output, return_code = execute_shell_command_get_return_code(command)
+        if return_code != 0:
+            raise InstallationError('Error in pip installation for {}:\n{}'.format(python_command, output))
 
 
 def main(distribution):
@@ -43,17 +54,13 @@ def main(distribution):
     # get a bugfree recent pip version
     apt_remove_packages('python3-pip', 'python3-setuptools', 'python3-wheel')
     apt_autoremove_packages()
-    # wget https://bootstrap.pypa.io/get-pip.py
-    # sudo -EH python3 get-pip.py
-    # rm get-pip.py
+    install_pip('python3')
 
     # install python2
     apt_install_packages('python', 'python-dev')
     apt_remove_packages('python-pip')
     apt_autoremove_packages()
-    # wget https://bootstrap.pypa.io/get-pip.py
-    # sudo -EH python2 get-pip.py
-    # rm get-pip.py
+    install_pip('python2')
 
     # install general python dependencys
     apt_install_packages('libmagic-dev')
@@ -69,7 +76,12 @@ def main(distribution):
 
     # ---- VarietyJS used for advanced search map generation ----
     # is executed by update_statistic.py
-    install_github_project('variety/variety', ['git checkout 2f4d815', 'mv -f variety.js ../../bin', 'mv -f spec ../../bin/'])
+    try:
+        install_github_project('variety/variety', ['git checkout 2f4d815', 'mv -f variety.js ../../bin', 'mv -f spec ../../bin'])
+    except InstallationError as installation_error:
+        if not 'Directory not empty' in str(installation_error):
+            raise installation_error
+        logging.warning('variety spec not overwritten')
 
     # echo "####################################"
     # echo "#  installing common code modules  #"
