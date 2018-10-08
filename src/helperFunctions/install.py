@@ -1,4 +1,6 @@
+import logging
 import os
+import shutil
 from pathlib import Path
 from typing import List
 
@@ -7,6 +9,11 @@ from common_helper_process import execute_shell_command_get_return_code
 
 class InstallationError(Exception):
     pass
+
+
+def log_current_packages(packages, install=True):
+    action = 'Installing' if install else 'Removing'
+    logging.info('{} {}'.format(action, ' '.join(packages)))
 
 
 def apt_update_sources():
@@ -38,6 +45,7 @@ def apt_clean_system():
 
 
 def apt_install_packages(*args):
+    log_current_packages(args)
     output, return_code = execute_shell_command_get_return_code('sudo apt-get install -y {}'.format(' '.join(args)))
     if return_code != 0:
         raise InstallationError('Error in installation of package(s) {}\n{}'.format(' '.join(args), output))
@@ -45,6 +53,7 @@ def apt_install_packages(*args):
 
 
 def apt_remove_packages(*args):
+    log_current_packages(args, install=False)
     output, return_code = execute_shell_command_get_return_code('sudo apt-get remove -y {}'.format(' '.join(args)))
     if return_code != 0:
         raise InstallationError('Error in removal of package(s) {}\n{}'.format(' '.join(args), output))
@@ -52,6 +61,7 @@ def apt_remove_packages(*args):
 
 
 def pip_install_packages(*args):
+    log_current_packages(args)
     output, return_code = execute_shell_command_get_return_code('sudo -EH pip3 install --upgrade {}'.format(' '.join(args)))
     if return_code != 0:
         raise InstallationError('Error in installation of python package(s) {}\n{}'.format(' '.join(args), output))
@@ -59,6 +69,7 @@ def pip_install_packages(*args):
 
 
 def pip_remove_packages(*args):
+    log_current_packages(args, install=False)
     pass
 
 
@@ -71,13 +82,20 @@ def check_if_executable_in_bin_folder(executable_name):
 
 
 def install_github_project(project_path: str, commands: List[str]):
+    log_current_packages([project_path, ])
     folder_name = Path(project_path).name
     _checkout_github_project(project_path, folder_name)
+
+    error = None
     for command in commands:
         output, return_code = execute_shell_command_get_return_code(command)
         if return_code != 0:
-            raise InstallationError('Error while processing github project {}!\n{}'.format(project_path, output))
-    _remove_repo_folder(project_path)
+            error = InstallationError('Error while processing github project {}!\n{}'.format(project_path, output))
+            break
+
+    _remove_repo_folder(folder_name)
+    if error:
+        raise error
 
 
 def _checkout_github_project(github_path, folder_name):
@@ -93,6 +111,6 @@ def _checkout_github_project(github_path, folder_name):
 def _remove_repo_folder(folder_name):
     try:
         os.chdir('..')
-        Path(folder_name).unlink()
+        shutil.rmtree(folder_name)
     except Exception as exception:
         raise InstallationError(exception)
