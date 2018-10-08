@@ -30,7 +30,7 @@ It is possible to install FACT on any Linux distribution but the installer is li
 ## Installation
 
 The installation is generally wrapped in a single script. Some features can be selected specifically though.
-See [INSTALL.md](https://github.com/fkie-cad/FACT_core/blob/master/INSTALL.md) or [wiki page](https://github.com/fkie-cad/FACT_core/wiki/installation) for details.
+See [INSTALL.md](https://github.com/fkie-cad/FACT_core/blob/master/INSTALL.md) for details.
 
 ## Usage
 You can start FACT by executing the *start_all_installed_fact_components* scripts.
