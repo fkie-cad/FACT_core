@@ -70,7 +70,26 @@ def pip_install_packages(*args):
 
 def pip_remove_packages(*args):
     log_current_packages(args, install=False)
-    pass
+    output, return_code = execute_shell_command_get_return_code('sudo -EH pip3 uninstall {}'.format(' '.join(args)))
+    if return_code != 0:
+        raise InstallationError('Error in removal of python package(s) {}\n{}'.format(' '.join(args), output))
+    return output
+
+
+def pip2_install_packages(*args):
+    log_current_packages(args)
+    output, return_code = execute_shell_command_get_return_code('sudo -EH pip2 install --upgrade {}'.format(' '.join(args)))
+    if return_code != 0:
+        raise InstallationError('Error in installation of python package(s) {}\n{}'.format(' '.join(args), output))
+    return output
+
+
+def pip2_remove_packages(*args):
+    log_current_packages(args, install=False)
+    output, return_code = execute_shell_command_get_return_code('sudo -EH pip2 uninstall {}'.format(' '.join(args)))
+    if return_code != 0:
+        raise InstallationError('Error in removal of python package(s) {}\n{}'.format(' '.join(args), output))
+    return output
 
 
 def check_if_command_in_path(command_with_parameters):
