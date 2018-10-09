@@ -100,6 +100,13 @@ def check_if_executable_in_bin_folder(executable_name):
     pass
 
 
+def check_string_in_command(command, target_string):
+    output, return_code = execute_shell_command_get_return_code(command)
+    if return_code != 0 or not target_string in output:
+        return False
+    return True
+
+
 def install_github_project(project_path: str, commands: List[str]):
     log_current_packages([project_path, ])
     folder_name = Path(project_path).name

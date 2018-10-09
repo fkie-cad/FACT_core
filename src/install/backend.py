@@ -1,8 +1,15 @@
+import logging
 import os
+import shutil
 from contextlib import suppress
+from pathlib import Path
 
+from common_helper_process import execute_shell_command_get_return_code
+
+from helperFunctions.config import load_config
 from helperFunctions.install import apt_remove_packages, apt_install_packages, apt_upgrade_system, apt_update_sources, \
-    apt_autoremove_packages, apt_clean_system, InstallationError, pip_install_packages, pip_remove_packages, install_github_project
+    apt_autoremove_packages, apt_clean_system, InstallationError, pip_install_packages, pip_remove_packages, \
+    install_github_project, pip2_install_packages, pip2_remove_packages, check_string_in_command
 
 
 def main(distribution):
@@ -33,13 +40,12 @@ def main(distribution):
     pip2_remove_packages('pyliblzma')
     apt_install_packages('python-lzma')
 
-    '''
     # install yara
-    sudo apt-get install -y bison flex libmagic-dev
-    if [ $(yara --version) == '3.7.1' ]
-    then
-        echo "skipping yara installation (already installed)"
-    else
+    apt_install_packages('bison', 'flex', 'libmagic-dev')
+    if check_string_in_command('yara --version', '3.7.1'):
+        logging.info('skipping yara installation (already installed)')
+    else:
+        '''
         wget https://github.com/VirusTotal/yara/archive/v3.7.1.zip
         unzip v3.7.1.zip
         cd yara-3.*
@@ -52,8 +58,8 @@ def main(distribution):
         # CAUTION: Yara python binding is installed in bootstrap_common, because it is needed in the frontend as well.
         cd ..
         sudo rm -fr yara* v3.7.1.zip
-    fi
-    '''
+        '''
+        pass
 
     ####################################
     #       installing unpacker        #
@@ -107,23 +113,22 @@ def main(distribution):
     # common_analysis_base
     pip_install_packages('git+https://github.com/mass-project/common_analysis_base.git')
 
-    '''
-    echo "####################################"
-    echo "#   install plug-in dependencies   #"
-    echo "####################################"
-    cd $CURRENT_FILE_DIR
-    
-    set ../plugins/*/*/install.sh
-    
-    while [ "$1" != '' ]
-      do
-        ( exec $1 ) && shift    
-    done
-    
-    
-    echo "####################################"
-    echo "#    compile custom magic file     #"
-    echo "####################################"
+    ####################################
+    #   install plug-in dependencies   #
+    ####################################
+
+    output, return_code = execute_shell_command_get_return_code('find ../plugins -iname "install.sh"')
+    if return_code != 0:
+        raise InstallationError('Error retrieving plugin installation scripts')
+    for install_script in output.splitlines(keepends=False):
+        output, return_code = execute_shell_command_get_return_code(install_script)
+        if return_code != 0:
+            raise InstallationError('Error in installation of {} plugin'.format(Path(install_script).parent.name))
+
+    ####################################
+    #    compile custom magic file     #
+    ####################################
+    '''    
     cd $CURRENT_FILE_DIR
     
     cat ../mime/custom_* > ../mime/custommime
@@ -151,26 +156,23 @@ def main(distribution):
     sudo cp -f fact_env.sh /etc/profile.d/
     sudo chmod 755 /etc/profile.d/fact_env.sh
     source /etc/profile
-    
-    echo "####################################"
-    echo "#       create directories         #"
-    echo "####################################"
-    
-    cd ../
-    echo "from helperFunctions.config import load_config;config = load_config('main.cfg');print(config.get('data_storage', 'firmware_file_storage_directory'));exit(0)" > get_data_dir_name.py
-    
-    cd ..
-    factdatadir=$(python3 src/get_data_dir_name.py)
-    factuser=$(whoami)
-    factusergroup=$(id -gn)
-    sudo mkdir -p --mode=0744 $factdatadir 2> /dev/null
-    sudo chown $factuser:$factusergroup $factdatadir
-    rm src/get_data_dir_name.py
-    cd src/bootstrap
-    
-    echo "####################################"
-    echo "#    compiling yara signatures     #"
-    echo "####################################"
+    '''
+
+    ####################################
+    #       create directories         #
+    ####################################
+
+    config = load_config('main.cfg')
+    data_dir_name = config.get('data_storage', 'firmware_file_storage_directory')
+    Path(data_dir_name).mkdir(parents=True, exist_ok=True)
+    os.chmod(data_dir_name, 0o744)
+    os.chown(data_dir_name, os.getuid(), os.getgid())
+
+    ####################################
+    #    compiling yara signatures     #
+    ####################################
+
+    '''
     cd $CURRENT_FILE_DIR
     python3 ../compile_yara_signatures.py
     #compile test signatures
@@ -184,4 +186,5 @@ def main(distribution):
     rm start_fact_backend
     ln -s src/start_fact_backend.py start_fact_backend
     '''
+
     return 0

@@ -27,6 +27,8 @@ def main(distribution):
         raise InstallationError('Unsupported distribution {}'.format(distribution))
 
     apt_install_packages('apt-transport-https')
+
+    logging.info('Updating system')
     apt_update_sources()
     apt_upgrade_system()
     apt_autoremove_packages()
