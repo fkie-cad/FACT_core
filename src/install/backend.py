@@ -105,13 +105,13 @@ def main(distribution):
     ####################################
     #    compile custom magic file     #
     ####################################
-    '''    
+    '''
     cd $CURRENT_FILE_DIR
-    
+
     cat ../mime/custom_* > ../mime/custommime
     (cd ../mime && file -C -m custommime && mv -f custommime.mgc ../bin/)
     rm ../mime/custommime
-    
+
     echo "######################################"
     echo "#       configure environment        #"
     echo "######################################"
@@ -128,7 +128,7 @@ def main(distribution):
     $CURUSER\tALL=NOPASSWD: /bin/chown\n" > /tmp/faf_overrides
     sudo chown root:root /tmp/faf_overrides
     sudo mv /tmp/faf_overrides /etc/sudoers.d/faf_overrides
-    
+
     echo "set environment variables..."
     sudo cp -f fact_env.sh /etc/profile.d/
     sudo chmod 755 /etc/profile.d/fact_env.sh
@@ -224,4 +224,3 @@ def _install_stuffit():
     rm_output, rm_code = execute_shell_command_get_return_code('rm -fr bin doc man')
     if not all(code == 0 for code in (wget_code, cp_code, rm_code)):
         raise InstallationError('Error in installation of unstuff')
-

@@ -17,14 +17,7 @@ def install_pip(python_command):
 
 
 def main(distribution):
-    if distribution == 'xenial':
-        xenial=True
-        print('Installing on Ubuntu 16.04')
-    elif distribution == 'bionic':
-        xenial=False
-        print('Installing on Ubuntu 18.04')
-    else:
-        raise InstallationError('Unsupported distribution {}'.format(distribution))
+    xenial = distribution == 'xenial'
 
     apt_install_packages('apt-transport-https')
 
@@ -75,13 +68,12 @@ def main(distribution):
     # install python mongo bindings
     pip_install_packages('pymongo', 'pyyaml')
 
-
     # ---- VarietyJS used for advanced search map generation ----
     # is executed by update_statistic.py
     try:
         install_github_project('variety/variety', ['git checkout 2f4d815', 'mv -f variety.js ../../bin', 'mv -f spec ../../bin'])
     except InstallationError as installation_error:
-        if not 'Directory not empty' in str(installation_error):
+        if 'Directory not empty' not in str(installation_error):
             raise installation_error
         logging.warning('variety spec not overwritten')
 
@@ -98,7 +90,6 @@ def main(distribution):
     pip_install_packages('git+https://github.com/mass-project/common_helper_encoder.git')
     # common_helper_filter
     pip_install_packages('git+https://github.com/fkie-cad/common_helper_filter.git')
-
 
     # echo "####################################"
     # echo "#       install start script       #"

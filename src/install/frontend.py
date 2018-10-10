@@ -89,15 +89,15 @@ def main(distribution, radare, nginx):
         (cd ../web_interface/templates/ && sudo ln -s $PWD/maintenance.html /etc/nginx/error/maintenance.html)
         sudo nginx -s reload
     fi
-    
-    
+
+
     # ---- RADARE ----
     if [ "$RADARE" = "yes" ]
     then
         echo "####################################"
         echo "# installing and configuring nginx #"
         echo "####################################"
-        if [ -x "$(command -v docker-compose)" ]; then 
+        if [ -x "$(command -v docker-compose)" ]; then
             echo "Initiializing docker container for radare"
             cd radare
             docker-compose build
