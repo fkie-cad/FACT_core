@@ -1,26 +1,18 @@
 import logging
 import os
 import shutil
-from contextlib import suppress
 from pathlib import Path
 
 from common_helper_process import execute_shell_command_get_return_code
 
+from compile_yara_signatures import main as compile_signatures
 from helperFunctions.config import load_config
-from helperFunctions.install import apt_remove_packages, apt_install_packages, apt_upgrade_system, apt_update_sources, \
-    apt_autoremove_packages, apt_clean_system, InstallationError, pip_install_packages, pip_remove_packages, \
+from helperFunctions.install import apt_remove_packages, apt_install_packages, InstallationError, pip_install_packages, \
     install_github_project, pip2_install_packages, pip2_remove_packages, check_string_in_command
 
 
 def main(distribution):
-    if distribution == 'xenial':
-        xenial=True
-        print('Installing on Ubuntu 16.04')
-    elif distribution == 'bionic':
-        xenial=False
-        print('Installing on Ubuntu 18.04')
-    else:
-        raise InstallationError('Unsupported distribution {}'.format(distribution))
+    xenial = distribution == 'xenial'
 
     '''
     # change cwd to bootstrap dir
@@ -153,20 +145,18 @@ def main(distribution):
     #    compiling yara signatures     #
     ####################################
 
-    '''
-    cd $CURRENT_FILE_DIR
-    python3 ../compile_yara_signatures.py
-    #compile test signatures
-    yarac -d test_flag=false ../test/unit/analysis/test.yara ../analysis/signatures/Yara_Base_Plugin.yc
-    
-    
-    echo "####################################"
-    echo "# populating backend installation  #"
-    echo "####################################"
-    cd ../../
-    rm start_fact_backend
-    ln -s src/start_fact_backend.py start_fact_backend
-    '''
+    compile_signatures()
+    yarac_output, yarac_return = execute_shell_command_get_return_code('yarac -d test_flag=false ../test/unit/analysis/test.yara ../analysis/signatures/Yara_Base_Plugin.yc')
+    if yarac_return != 0:
+        raise InstallationError('Failed to compile yara test signatures')
+
+    ####################################
+    # populating backend installation  #
+    ####################################
+
+    # cd ../../
+    # rm start_fact_backend
+    # ln -s src/start_fact_backend.py start_fact_backend
 
     return 0
 
