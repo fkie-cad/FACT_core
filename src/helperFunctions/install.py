@@ -138,5 +138,8 @@ def _remove_repo_folder(folder_name):
     try:
         os.chdir('..')
         shutil.rmtree(folder_name)
+    except PermissionError:
+        logging.debug('Falling back on root permission for deleting {}'.format(folder_name))
+        execute_shell_command_get_return_code('sudo rm -rf {}'.format(folder_name))
     except Exception as exception:
         raise InstallationError(exception)

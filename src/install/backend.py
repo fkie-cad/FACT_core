@@ -41,25 +41,7 @@ def main(distribution):
     apt_install_packages('python-lzma')
 
     # install yara
-    apt_install_packages('bison', 'flex', 'libmagic-dev')
-    if check_string_in_command('yara --version', '3.7.1'):
-        logging.info('skipping yara installation (already installed)')
-    else:
-        '''
-        wget https://github.com/VirusTotal/yara/archive/v3.7.1.zip
-        unzip v3.7.1.zip
-        cd yara-3.*
-        #patch --forward -r - libyara/arena.c ../patches/yara.patchfile
-        chmod +x bootstrap.sh
-        ./bootstrap.sh
-        ./configure --enable-magic
-        make -j$(nproc)
-        sudo make install
-        # CAUTION: Yara python binding is installed in bootstrap_common, because it is needed in the frontend as well.
-        cd ..
-        sudo rm -fr yara* v3.7.1.zip
-        '''
-        pass
+    _install_yara()
 
     ####################################
     #       installing unpacker        #
@@ -77,14 +59,20 @@ def main(distribution):
     install_github_project('jrspruitt/ubi_reader', ['sudo python2 setup.py install --force'])
 
     # ---- binwalk ----
-    apt_install_packages('libqt4-opengl', 'python3-opengl', 'python3-pyqt4', 'python3-pyqt4.qtopengl', 'mtd-utils', 'gzip', 'bzip2', 'tar', 'arj', 'lhasa', 'p7zip', 'cabextract', 'cramfsprogs', 'cramfsswap', 'squashfs-tools', 'zlib1g-dev', 'liblzma-dev', 'liblzo2-dev', 'liblzo2-dev', 'xvfb')
+    if xenial:
+        # Replace by
+        # wget -O - https://sourceforge.net/projects/cramfs/files/cramfs/1.1/cramfs-1.1.tar.gz/download | tar -zxv
+        # cd cramfs-1.1
+        # sudo install cramfsck mkcramfs /usr/local/bin
+        # cd ..
+        # rm -rf cramfs-1.1
+        apt_install_packages('cramfsprogs')
+    apt_install_packages('libqt4-opengl', 'python3-opengl', 'python3-pyqt4', 'python3-pyqt4.qtopengl', 'mtd-utils', 'gzip', 'bzip2', 'tar', 'arj', 'lhasa', 'cabextract', 'cramfsswap', 'squashfs-tools', 'zlib1g-dev', 'liblzma-dev', 'liblzo2-dev', 'liblzo2-dev', 'xvfb')
     apt_install_packages('libcapstone3', 'libcapstone-dev')
     pip_install_packages('pyqtgraph', 'capstone', 'cstruct', 'python-lzo', 'numpy', 'scipy')
     install_github_project('sviehb/jefferson', ['sudo python3 setup.py install'])
 
-    # wget -O - http://my.smithmicro.com/downloads/files/stuffit520.611linux-i386.tar.gz | tar -zxv
-    # sudo cp bin/unstuff /usr/local/bin/
-    # rm -fr bin doc man
+    _install_stuffit()
 
     install_github_project('devttys0/binwalk', ['sudo python3 setup.py install --force'])
 
@@ -94,7 +82,10 @@ def main(distribution):
 
     apt_install_packages('openjdk-8-jdk')
 
-    apt_install_packages('lrzip', 'cpio', 'unadf', 'rpm2cpio', 'lzop', 'lhasa', 'cabextract', 'zpaq', 'archmage', 'arj', 'xdms', 'rzip', 'lzip', 'unalz', 'unrar', 'unzip', 'gzip', 'nomarch', 'flac', 'unace', 'zoo', 'sharutils')
+    if xenial:
+        apt_install_packages('zoo')
+
+    apt_install_packages('lrzip', 'cpio', 'unadf', 'rpm2cpio', 'lzop', 'lhasa', 'cabextract', 'zpaq', 'archmage', 'arj', 'xdms', 'rzip', 'lzip', 'unalz', 'unrar', 'unzip', 'gzip', 'nomarch', 'flac', 'unace', 'sharutils')
     apt_install_packages('unar')
 
     # ---- firmware-mod-kit ----
@@ -117,13 +108,7 @@ def main(distribution):
     #   install plug-in dependencies   #
     ####################################
 
-    output, return_code = execute_shell_command_get_return_code('find ../plugins -iname "install.sh"')
-    if return_code != 0:
-        raise InstallationError('Error retrieving plugin installation scripts')
-    for install_script in output.splitlines(keepends=False):
-        output, return_code = execute_shell_command_get_return_code(install_script)
-        if return_code != 0:
-            raise InstallationError('Error in installation of {} plugin'.format(Path(install_script).parent.name))
+    _install_plugins()
 
     ####################################
     #    compile custom magic file     #
@@ -162,11 +147,7 @@ def main(distribution):
     #       create directories         #
     ####################################
 
-    config = load_config('main.cfg')
-    data_dir_name = config.get('data_storage', 'firmware_file_storage_directory')
-    Path(data_dir_name).mkdir(parents=True, exist_ok=True)
-    os.chmod(data_dir_name, 0o744)
-    os.chown(data_dir_name, os.getuid(), os.getgid())
+    _create_firmware_directory()
 
     ####################################
     #    compiling yara signatures     #
@@ -188,3 +169,69 @@ def main(distribution):
     '''
 
     return 0
+
+
+def _create_firmware_directory():
+    logging.info('Creating firmware directory')
+
+    config = load_config('main.cfg')
+    data_dir_name = config.get('data_storage', 'firmware_file_storage_directory')
+    Path(data_dir_name).mkdir(parents=True, exist_ok=True)
+    os.chmod(data_dir_name, 0o744)
+    os.chown(data_dir_name, os.getuid(), os.getgid())
+
+
+def _install_plugins():
+    logging.info('Installing plugins')
+    output, return_code = execute_shell_command_get_return_code('find ../plugins -iname "install.sh"')
+    if return_code != 0:
+        raise InstallationError('Error retrieving plugin installation scripts')
+    for install_script in output.splitlines(keepends=False):
+        logging.info('Running {}'.format(install_script))
+        output, return_code = execute_shell_command_get_return_code(install_script)
+        if return_code != 0:
+            raise InstallationError('Error in installation of {} plugin'.format(Path(install_script).parent.name))
+
+
+def _install_yara():
+    logging.info('Installing yara')
+    # CAUTION: Yara python binding is installed in bootstrap_common, because it is needed in the frontend as well.
+    apt_install_packages('bison', 'flex', 'libmagic-dev')
+    if check_string_in_command('yara --version', '3.7.1'):
+        logging.info('skipping yara installation (already installed)')
+    else:
+        broken, output = False, ''
+
+        wget_output, wget_code = execute_shell_command_get_return_code('wget https://github.com/VirusTotal/yara/archive/v3.7.1.zip')
+        if wget_code != 0:
+            raise InstallationError('Error on yara download.\n{}'.format(wget_output))
+        zip_output, zip_code = execute_shell_command_get_return_code('unzip v3.7.1.zip')
+        if zip_code == 0:
+            yara_folder = [child for child in Path('.').iterdir() if 'yara-3.' in child.name][0]
+            os.chdir(yara_folder.name)
+            os.chmod('bootstrap.sh', 0o775)
+            for command in ['./bootstrap.sh', './configure --enable-magic', 'make -j$(nproc)', 'sudo make install']:
+                output, return_code = execute_shell_command_get_return_code(command)
+                if return_code != 0:
+                    broken = True
+                    break
+            os.chdir('..')
+            shutil.rmtree(yara_folder.name)
+        else:
+            raise InstallationError('Error on yara extraction.\n{}'.format(zip_output))
+        Path('v3.7.1.zip').unlink()
+        if broken:
+            raise InstallationError('Error in yara installation.\n{}'.format(output))
+
+
+def _install_stuffit():
+    logging.info('Installing stuffit')
+    wget_output, wget_code = execute_shell_command_get_return_code('wget -O - http://my.smithmicro.com/downloads/files/stuffit520.611linux-i386.tar.gz | tar -zxv')
+    if wget_code == 0:
+        cp_output, cp_code = execute_shell_command_get_return_code('sudo cp bin/unstuff /usr/local/bin/')
+    else:
+        cp_code = 255
+    rm_output, rm_code = execute_shell_command_get_return_code('rm -fr bin doc man')
+    if not all(code == 0 for code in (wget_code, cp_code, rm_code)):
+        raise InstallationError('Error in installation of unstuff')
+
