@@ -1,6 +1,3 @@
-import os
-
-from common_helper_files import get_dir_of_file
 from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
 from ..code.cwe_checker import AnalysisPlugin, CweWarningParser
 
@@ -21,7 +18,8 @@ class TestCweCheckerFunctions(AnalysisPluginTest):
         super().setUp()
         config = self.init_basic_config()
         # TODO: Mock calls to BAP
-        self.analysis_plugin = AnalysisPlugin(self, config=config)
+        AnalysisPlugin._get_module_versions = lambda self: {}
+        self.analysis_plugin = AnalysisPlugin(self, config=config, docker=False)
 
     def test_cwe_warning_parser_can_parse_warning(self):
         data = '2018-02-16 13:27:35.552 WARN : [CWE476] {0.1} (NULL Pointer Dereference) There is no check if the return value is NULL at 0x104A0:32u/00000108 (malloc).'
@@ -29,6 +27,7 @@ class TestCweCheckerFunctions(AnalysisPluginTest):
         res = p.parse(data)
         self.assertEqual(res.name, '[CWE476] (NULL Pointer Dereference)')
         self.assertEqual(res.plugin_version, '0.1')
+        self.assertEqual(res.warning.strip(), 'There is no check if the return value is NULL at 0x104A0/00000108 (malloc)')
 
     def test_cwe_warning_parser_does_not_parse_empty_warning(self):
         p = CweWarningParser()

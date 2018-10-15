@@ -61,8 +61,8 @@ class CweWarningParser(object):
             cwe_message = cwe_message.replace('.', '').replace('32u', '')
 
             return CweWarning(cwe_name, plugin_version, cwe_message)
-        except Exception as e:
-            logging.error('[CweWarningParser] Error while parsing CWE warning: %s.' % str(e))
+        except IndexError as e:
+            logging.error('IndexError while parsing CWE warning: {}.'.format(str(e)))
             return None
 
 
@@ -78,15 +78,15 @@ class AnalysisPlugin(AnalysisBasePlugin):
     DEPENDENCIES = ['cpu_architecture', 'file_type']
     VERSION = '0.3.3'
     SUPPORTED_ARCHS = ['arm', 'x86', 'x64', 'mips', 'ppc']
-    DOCKER = True
 
-    def __init__(self, plugin_adminstrator, config=None, recursive=True):
+    def __init__(self, plugin_adminstrator, config=None, recursive=True, docker=True):
         self.config = config
-        if self.DOCKER:
+        self.docker = docker
+        if self.docker:
             if not self._check_docker_installed():
-                raise Exception('[%s] Docker support is turned on but Docker is not installed.' % self.NAME)
+                raise Exception('Docker support is turned on but Docker is not installed.')
         self._module_versions = self._get_module_versions()
-        logging.info('[%s] Module versions are %s' % (self.NAME, str(self._module_versions)))
+        logging.info('Module versions are {}'.format(str(self._module_versions)))
         super().__init__(plugin_adminstrator, config=config,
                          plugin_path=__file__, recursive=recursive)
 
@@ -99,8 +99,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
         bap_command = self._build_bap_command_for_modules_versions()
         output, return_code = execute_shell_command_get_return_code(bap_command)
         if return_code != 0:
-            logging.error('[%s] Could not get module versions from Bap plugin: %i (%s). I tried the following command %s',
-                          self.NAME, return_code, output, bap_command)
+            logging.error('Could not get module versions from Bap plugin: {} ({}). I tried the following command %s'.format(
+                          return_code, output, bap_command))
             return {}
         else:
             return self._parse_module_versions(output)
@@ -116,14 +116,14 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def _build_bap_command_for_modules_versions(self):
         # unfortunately, there must be a dummy file passed to BAP, I chose /bin/true because it is damn small
-        if self.DOCKER:
+        if self.docker:
             bap_command = 'docker run  cwe-checker:latest bap /bin/true --pass=cwe-checker --cwe-checker-module_versions=true'
         else:
             bap_command = '{} {} --pass=cwe-checker --cwe-checker-module_versions=true'.format(PATH_TO_BAP, '/bin/true')
         return bap_command
 
     def _build_bap_command(self, file_object):
-        if self.DOCKER:
+        if self.docker:
             bap_command = 'timeout --signal=SIGKILL {}m docker run -v {}:/tmp/input cwe-checker:latest bap /tmp/input '\
                           '--pass=cwe-checker --cwe-checker-config=/home/bap/cwe_checker/src/config.json'.format(
                               BAP_TIMEOUT,
@@ -161,10 +161,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def _is_supported_arch(self, file_object):
         arch_type = file_object.processed_analysis['file_type']['full'].lower()
-        for supported_arch in self.SUPPORTED_ARCHS:
-            if supported_arch in arch_type:
-                return True
-        return False
+        return any(supported_arch in arch_type for supported_arch in self.SUPPORTED_ARCHS)
 
     @staticmethod
     def _is_supported_file_type(file_object):
@@ -176,8 +173,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
         output, return_code = execute_shell_command_get_return_code(
             bap_command)
         if return_code != 0:
-            logging.error('[%s] Could not communicate with Bap plugin: %i (%s).',
-                          self.NAME, return_code, output)
+            logging.error('Could not communicate with Bap plugin: {} ({}).'.format(
+                          return_code, output))
             file_object.processed_analysis[self.NAME] = {'summary': []}
         else:
             cwe_messages = self._parse_bap_output(output)
@@ -191,13 +188,13 @@ class AnalysisPlugin(AnalysisBasePlugin):
         It calls the external BAP plugin cwe_checker.
         '''
         if not self._is_supported_file_type(file_object):
-            logging.debug('[%s] %s is not an ELF executable.',
-                          self.NAME, file_object.file_path)
+            logging.debug('{} is not an ELF executable.'.format(
+                          file_object.file_path))
             file_object.processed_analysis[self.NAME] = {'summary': []}
         elif not self._is_supported_arch(file_object):
-            logging.debug('[%s] %s\'s arch is not supported (%s)',
-                          self.NAME, file_object.file_path,
-                          file_object.processed_analysis['cpu_architecture']['summary'])
+            logging.debug('{}\'s arch is not supported ({})'.format(
+                          file_object.file_path,
+                          file_object.processed_analysis['cpu_architecture']['summary']))
             file_object.processed_analysis[self.NAME] = {'summary': []}
         else:
             file_object = self._do_full_analysis(file_object)
