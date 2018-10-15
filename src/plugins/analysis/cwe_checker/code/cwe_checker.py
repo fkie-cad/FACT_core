@@ -99,7 +99,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         bap_command = self._build_bap_command_for_modules_versions()
         output, return_code = execute_shell_command_get_return_code(bap_command)
         if return_code != 0:
-            logging.error('Could not get module versions from Bap plugin: {} ({}). I tried the following command %s'.format(
+            logging.error('Could not get module versions from Bap plugin: {} ({}). I tried the following command: {}'.format(
                           return_code, output, bap_command))
             return {}
         else:
