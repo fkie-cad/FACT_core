@@ -12,20 +12,24 @@ from helperFunctions.install import OperateInDirectory, pip_install_packages, In
 def wget_static_web_content(url, target_folder, additional_actions, resource_logging_name=None):
     logging.info('Install static {} content'.format(resource_logging_name if resource_logging_name else url))
     with OperateInDirectory(target_folder):
-        execute_shell_command_get_return_code('wget -nc {}'.format(url))
+        wget_output, wget_code = execute_shell_command_get_return_code('wget -nc {}'.format(url))
+        if wget_code != 0:
+            raise InstallationError('Failed to fetch resource at {}\n{}'.format(url, wget_output))
         for action in additional_actions:
-            execute_shell_command_get_return_code(action)
+            action_output, action_code = execute_shell_command_get_return_code(action)
+            if action_code != 0:
+                raise InstallationError('Problem in processing resource at {}\n{}'.format(url, action_output))
 
 
 def _patch_bootstrap():
     with OperateInDirectory('bootstrap/css'):
-        for file_name in ['bootstrap.min.css', 'bootstrap.min.css.map', 'bootstrap-theme.min.css',
-                          'bootstrap-theme.min.css.map', 'bootstrap.css.map', 'bootstrap-theme.css.map']:
+        for file_name in ['bootstrap.min.css', 'bootstrap.min.css.map', 'bootstrap-theme.min.css', 'bootstrap-theme.min.css.map', 'bootstrap.css.map', 'bootstrap-theme.css.map']:
             Path(file_name).unlink()
-            execute_shell_command_get_return_code(
-                'patch --forward -r - bootstrap.css ../../../../bootstrap/patches/bootstrap.patch')
-            execute_shell_command_get_return_code(
-                'patch --forward -r - bootstrap-theme.css ../../../../bootstrap/patches/bootstrap-theme.patch')
+
+        _, first_code = execute_shell_command_get_return_code('patch --forward -r - bootstrap.css ../../../../bootstrap/patches/bootstrap.patch')
+        _, second_code = execute_shell_command_get_return_code('patch --forward -r - bootstrap-theme.css ../../../../bootstrap/patches/bootstrap-theme.patch')
+        if not first_code == second_code == 0:
+            raise InstallationError('Failed to patch bootstrap files')
 
 
 def _create_directory_for_authentication():
@@ -57,7 +61,7 @@ def main(distribution, radare, nginx):
         wget_static_web_content('https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js', 'bootstrap/js', [], 'jquery')
         wget_static_web_content('https://raw.githubusercontent.com/Eonasdan/bootstrap-datetimepicker/master/build/js/bootstrap-datetimepicker.min.js', 'bootstrap/js', [], 'datetimepicker js')
         wget_static_web_content('https://raw.githubusercontent.com/Eonasdan/bootstrap-datetimepicker/master/build/css/bootstrap-datetimepicker.min.css', 'bootstrap/css', [], 'datetimepicker css')
-        wget_static_web_content('wget -nc https://raw.githubusercontent.com/moment/moment/develop/moment.js', 'bootstrap/js', [], 'moment.js')
+        wget_static_web_content('https://raw.githubusercontent.com/moment/moment/develop/moment.js', 'bootstrap/js', [], 'moment.js')
 
         if not Path('bootstrap3-editable').exists():
             wget_static_web_content('https://vitalets.github.io/x-editable/assets/zip/bootstrap3-editable-1.5.1.zip', '.', ['unzip -o bootstrap3-editable-1.5.1.zip', 'rm bootstrap3-editable-1.5.1.zip CHANGELOG.txt LICENSE-MIT README.md', 'rm -rf inputs-ext'], 'x-editable')
