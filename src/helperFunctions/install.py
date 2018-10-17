@@ -11,6 +11,23 @@ class InstallationError(Exception):
     pass
 
 
+class OperateInDirectory():
+    def __init__(self, target_directory, remove=False):
+        self._current_working_dir = None
+        self._target_directory = target_directory
+        self._remove = remove
+
+    def __enter__(self):
+        self._current_working_dir = os.getcwd()
+        os.chdir(self._target_directory)
+
+    def __exit__(self, *args):
+        os.chdir(self._current_working_dir)
+        if self._remove:
+            shutil.rmtree(self._target_directory)
+
+
+
 def log_current_packages(packages, install=True):
     action = 'Installing' if install else 'Removing'
     logging.info('{} {}'.format(action, ' '.join(packages)))
@@ -92,8 +109,11 @@ def pip2_remove_packages(*args):
     return output
 
 
-def check_if_command_in_path(command_with_parameters):
-    pass
+def check_if_command_in_path(command):
+    output, return_code = execute_shell_command_get_return_code('command -v {}'.format(command))
+    if return_code != 0:
+        return False
+    return True
 
 
 def check_if_executable_in_bin_folder(executable_name):
@@ -134,6 +154,7 @@ def _checkout_github_project(github_path, folder_name):
     os.chdir(folder_name)
 
 
+# TODO Combine with OperateInDirectory
 def _remove_repo_folder(folder_name):
     try:
         os.chdir('..')
