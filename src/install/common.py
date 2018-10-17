@@ -27,10 +27,6 @@ def main(distribution):
     apt_autoremove_packages()
     apt_clean_system()
 
-    # change cwd to bootstrap dir
-    # CURRENT_FILE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-    # cd $CURRENT_FILE_DIR
-
     # update submodules
     # (cd.. /../ & & git submodule foreach 'git pull')
 
@@ -68,8 +64,7 @@ def main(distribution):
     # install python mongo bindings
     pip_install_packages('pymongo', 'pyyaml')
 
-    # ---- VarietyJS used for advanced search map generation ----
-    # is executed by update_statistic.py
+    # VarietyJS (is executed by update_statistic.py)
     try:
         install_github_project('variety/variety', ['git checkout 2f4d815', 'mv -f variety.js ../../bin', 'mv -f spec ../../bin'])
     except InstallationError as installation_error:
@@ -77,23 +72,13 @@ def main(distribution):
             raise installation_error
         logging.warning('variety spec not overwritten')
 
-    # echo "####################################"
-    # echo "#  installing common code modules  #"
-    # echo "####################################"
-
-    # common_helper_files
+    #  installing common code modules
     pip_install_packages('hurry.filesize')
     pip_install_packages('git+https://github.com/fkie-cad/common_helper_files.git')
-    # common_helper_mongo
     pip_install_packages('git+https://github.com/fkie-cad/common_helper_mongo.git')
-    # common_helper_encoder
     pip_install_packages('git+https://github.com/mass-project/common_helper_encoder.git')
-    # common_helper_filter
     pip_install_packages('git+https://github.com/fkie-cad/common_helper_filter.git')
 
-    # echo "####################################"
-    # echo "#       install start script       #"
-    # echo "####################################"
     # cd ../../
     # rm start_all_installed_fact_components
     # ln -s src/start_fact.py start_all_installed_fact_components
