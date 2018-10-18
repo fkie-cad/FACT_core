@@ -172,5 +172,5 @@ def load_main_config():
     config_path = Path('..', 'config', 'main.cfg')
     if not config_path.is_file():
         raise InstallationError('Could not load config at path {}'.format(config_path))
-    config.read(config_path)
+    config.read(str(config_path))
     return config
