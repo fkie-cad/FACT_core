@@ -62,9 +62,9 @@ def main(distribution):
     if yarac_return != 0:
         raise InstallationError('Failed to compile yara test signatures')
 
-    # cd ../../
-    # rm start_fact_backend
-    # ln -s src/start_fact_backend.py start_fact_backend
+    with OperateInDirectory('../../'):
+        Path('start_fact_backend').unlink()
+        Path('start_fact_backend').symlink_to('src/start_fact_backend.py')
 
     return 0
 

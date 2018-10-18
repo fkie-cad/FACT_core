@@ -1,10 +1,20 @@
+import configparser
 import logging
 import os
+from pathlib import Path
 
 from common_helper_process import execute_shell_command_get_return_code
 
-from helperFunctions.install import apt_install_packages, InstallationError, apt_update_sources
-from init_database import main as init_database
+from helperFunctions.config import get_config_dir
+from helperFunctions.install import apt_install_packages, InstallationError, apt_update_sources, OperateInDirectory
+from storage.MongoMgr import MongoMgr
+
+
+def _init_database(config):
+    logging.info('Trying to start Mongo Server and initializing users...')
+    mongo_manger = MongoMgr(config=config, auth=False)
+    mongo_manger.init_users()
+    mongo_manger.shutdown()
 
 
 def _get_db_directory():
@@ -43,10 +53,12 @@ def main(distribution):
         raise InstallationError('Failed to set up database directory. Check if parent folder exists\n{}'.format('\n'.join((mkdir_output, chown_output))))
 
     # initializing DB authentication
-    init_database()
+    config = configparser.ConfigParser()
+    config.read('{}/main.cfg'.format(get_config_dir()))
+    _init_database(config)
 
-    # cd ../../
-    # rm start_fact_db
-    # ln -s src/start_fact_db.py start_fact_db
+    with OperateInDirectory('../../'):
+        Path('start_fact_db').unlink()
+        Path('start_fact_db').symlink_to('src/start_fact_db.py')
 
     return 0
