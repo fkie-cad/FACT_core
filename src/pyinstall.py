@@ -26,7 +26,7 @@ import subprocess
 from install.common import main as common
 from install.frontend import main as frontend
 from install.backend import main as backend
-# from install.db import main as db
+from install.db import main as db
 
 PROGRAM_NAME = 'FACT Installer'
 PROGRAM_VERSION = '1.0'
@@ -156,8 +156,7 @@ if __name__ == '__main__':
     if args.frontend or all:
         frontend(distribution, not args.no_radare, args.nginx)
     if args.db or all:
-        # db(distribution)
-        pass
+        db(distribution)
     if args.backend or all:
         backend(distribution)
 
