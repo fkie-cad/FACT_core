@@ -17,8 +17,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
     '''
     NAME = 'users_and_passwords'
     DEPENDENCIES = []
+    MIME_BLACKLIST = ['audio', 'filesystem', 'image', 'video']
     DESCRIPTION = 'search for UNIX and httpd password files, parse them and try to crack the passwords'
-    VERSION = '0.4'
+    VERSION = '0.4.1'
 
     wordlist_path = os.path.join(get_src_dir(), 'bin/passwords.txt')
 

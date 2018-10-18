@@ -1,4 +1,5 @@
 from copy import deepcopy
+from typing import List
 
 from helperFunctions.dataConversion import list_of_lists_to_list_of_sets
 
@@ -79,3 +80,7 @@ def safely_remove_pair_of_sets(list_of_sets, pair_of_sets):
 
 def remove_duplicates_from_list(l):
     return list(set(l))
+
+
+def substring_is_in_list(s: str, substring_list: List[str]) -> bool:
+    return any(substring in s for substring in substring_list)

@@ -10,7 +10,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     NAME = 'cpu_architecture'
     DEPENDENCIES = ['file_type']
     DESCRIPTION = 'identify CPU architecture'
-    VERSION = '0.3.1'
+    VERSION = '0.3.2'
 
     def __init__(self, plugin_administrator, config=None, recursive=True):
         '''
@@ -19,7 +19,18 @@ class AnalysisPlugin(AnalysisBasePlugin):
         default flags should be edited above. Otherwise the scheduler cannot overwrite them.
         '''
         self.config = config
-        self.MIME_IGNORE = self._get_ignored_file_types()
+        self.MIME_BLACKLIST = [
+            'application/msword',
+            'application/pdf',
+            'application/postscript',
+            'application/x-dvi',
+            'application/x-httpd-php',
+            'application/xhtml+xml',
+            'application/xml',
+            'image',
+            'text',
+            'video',
+        ]
         self.DETECTORS = [MetaDataDetector()]
         super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__)
 
@@ -28,12 +39,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
         This function must be implemented by the plugin.
         Analysis result must be a list stored in file_object.processed_analysis[self.NAME]
         '''
-        if file_object.processed_analysis['file_type']['mime'] not in self.MIME_IGNORE:
-            arch_dict = self._get_device_architectures(file_object)
-            file_object.processed_analysis[self.NAME] = arch_dict
-            file_object.processed_analysis[self.NAME]['summary'] = list(arch_dict.keys())
-        else:
-            file_object.processed_analysis[self.NAME] = {'summary': []}
+        arch_dict = self._get_device_architectures(file_object)
+        file_object.processed_analysis[self.NAME] = arch_dict
+        file_object.processed_analysis[self.NAME]['summary'] = list(arch_dict.keys())
         return file_object
 
     def _get_device_architectures(self, file_object):
@@ -43,13 +51,6 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 return arch_dict
         logging.debug('Arch Detection Failed: {}'.format(file_object.get_uid()))
         return {}
-
-    def _get_ignored_file_types(self):
-        try:
-            return self.config.get(self.NAME, 'mime_ignore').split(', ')
-        except Exception:
-            logging.warning('\'{}\' -> \'mime_ignore\' not set in config'.format(self.NAME))
-            return []
 
 
 class MetaDataDetector:

@@ -1,5 +1,6 @@
 import unittest
-from helperFunctions.compare_sets import intersection_of_list_of_sets, difference_of_sets, collapse_pair_of_sets, remove_duplicates_from_list_of_lists, index_of_other_list_including_item, safely_remove_pair_of_sets, make_pairs_of_sets
+from helperFunctions.compare_sets import intersection_of_list_of_sets, difference_of_sets, collapse_pair_of_sets, remove_duplicates_from_list_of_lists, \
+    index_of_other_list_including_item, safely_remove_pair_of_sets, make_pairs_of_sets, substring_is_in_list
 
 
 class TestHelperFunctionsCompareSets(unittest.TestCase):
@@ -47,3 +48,10 @@ class TestHelperFunctionsCompareSets(unittest.TestCase):
         self.assertEqual(len(pairs), 12, 'Not all pairs found - ordering is duplicated')
         self.assertIsInstance(pairs[0], tuple, 'pair is not a tuple')
         self.assertIn(({1}, {3}), pairs, 'Not all pairs found')
+
+    def test_substring_is_in_list(self):
+        test_list = ['audio', 'video']
+        super_string = 'audio/mp3'
+        assert substring_is_in_list(super_string, test_list) is True
+        unrelated_string = 'foobar'
+        assert substring_is_in_list(unrelated_string, test_list) is False

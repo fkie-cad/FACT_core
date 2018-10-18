@@ -8,6 +8,7 @@ from dateutil.relativedelta import relativedelta
 from flask import render_template, request, redirect, url_for
 from flask_paginate import Pagination
 
+from helperFunctions.config import read_list_from_config
 from helperFunctions.dataConversion import make_unicode_string
 from helperFunctions.mongo_task_conversion import get_file_name_and_binary_from_request
 from helperFunctions.web_interface import ConnectTo, apply_filters_to_query, filter_out_illegal_characters
@@ -118,7 +119,7 @@ class DatabaseRoutes(ComponentBase):
         return json.dumps(query)
 
     def _add_hash_query_to_query(self, query, value):
-        hash_types = self._config['file_hashes']['hashes'].split(', ')
+        hash_types = read_list_from_config(self._config, 'file_hashes', 'hashes')
         hash_query = [{'processed_analysis.file_hashes.{}'.format(hash_type): value} for hash_type in hash_types]
         query.update({'$or': hash_query})
 

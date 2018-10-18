@@ -11,7 +11,7 @@ name = 'UEFI'
 mime_patterns = ['firmware/uefi']
 version = '0.5'
 
-TOOL_PATH = os.path.join(get_faf_bin_dir(), 'fv_parser.py')
+TOOL_PATH = os.path.join(get_faf_bin_dir(), 'uefi-firmware-parser')
 
 
 def unpack_function(file_path, tmp_dir):

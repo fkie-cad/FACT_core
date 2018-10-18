@@ -18,6 +18,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     '''
     NAME = 'ip_and_uri_finder'
     DEPENDENCIES = []
+    MIME_BLACKLIST = ['filesystem']
     DESCRIPTION = 'search for IPs and URIs'
     VERSION = ip_and_uri_finder_analysis.system_version
 
