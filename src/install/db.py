@@ -1,4 +1,3 @@
-import configparser
 import logging
 import os
 from contextlib import suppress
@@ -6,9 +5,7 @@ from pathlib import Path
 
 from common_helper_process import execute_shell_command_get_return_code
 
-from helperFunctions.config import get_config_dir
 from helperFunctions.install import apt_install_packages, InstallationError, apt_update_sources, OperateInDirectory
-from storage.MongoMgr import MongoMgr
 
 
 def _init_database(config):
@@ -54,9 +51,11 @@ def main(distribution):
         raise InstallationError('Failed to set up database directory. Check if parent folder exists\n{}'.format('\n'.join((mkdir_output, chown_output))))
 
     # initializing DB authentication
-    config = configparser.ConfigParser()
-    config.read('{}/main.cfg'.format(get_config_dir()))
-    _init_database(config)
+    logging.info('Initialize database')
+    with OperateInDirectory('..'):
+        init_output, init_code = execute_shell_command_get_return_code('python3 init_database.py')
+    if init_code != 0:
+        raise InstallationError('Unable to initialize database\n{}'.format(init_output))
 
     with OperateInDirectory('../../'):
         with suppress(FileNotFoundError):
