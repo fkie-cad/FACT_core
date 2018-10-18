@@ -106,8 +106,8 @@ def main(distribution, radare, nginx):
         else:
             raise InstallationError('docker-compose is not installed. Please (re-)run pre_install.sh')
 
-    # cd ../../
-    # rm start_fact_frontend
-    # ln -s src/start_fact_frontend.py start_fact_frontend
+    with OperateInDirectory('../../'):
+        Path('start_fact_frontend').unlink()
+        Path('start_fact_frontend').symlink_to('src/start_fact_frontend.py')
 
     return 0
