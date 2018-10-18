@@ -12,7 +12,7 @@ from helperFunctions.install import OperateInDirectory, pip_install_packages, In
 
 def _load_main_config():
     config = configparser.ConfigParser()
-    config_path = Path('config', 'main.cfg')
+    config_path = Path('..', 'config', 'main.cfg')
     if not config_path.is_file():
         raise InstallationError('Could not load config at path {}'.format(config_path))
     config.read(config_path)
