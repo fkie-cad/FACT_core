@@ -40,35 +40,18 @@ def main(distribution):
     _install_plugins()
 
     # compile custom magic file
-    '''
-    cd $CURRENT_FILE_DIR
+    with OperateInDirectory('../mime'):
+        cat_output, cat_code = execute_shell_command_get_return_code('cat custom_* > custommime')
+        file_output, file_code = execute_shell_command_get_return_code('file -C -m custommime')
+        mv_output, mv_code = execute_shell_command_get_return_code('mv -f custommime.mgc ../bin/')
+        if any(code != 0 for code in (cat_code, file_code, mv_code)):
+            raise InstallationError('Failed to properly compile magic file\n{}'.format('\n'.join((cat_output, file_output, mv_output))))
+        Path('custommime').unlink()
 
-    cat ../mime/custom_* > ../mime/custommime
-    (cd ../mime && file -C -m custommime && mv -f custommime.mgc ../bin/)
-    rm ../mime/custommime
+    # configure environment
+    _edit_sudoers()
 
-    echo "######################################"
-    echo "#       configure environment        #"
-    echo "######################################"
-    echo "add rules to sudo..."
-    # Insert additional changes to the sudoers file by applying the syntax used below
-    CURUSER=$(whoami 2>&1)
-    printf "$CURUSER\tALL=NOPASSWD: /bin/mount \n\
-    $CURUSER\tALL=NOPASSWD: /bin/umount \n\
-    $CURUSER\tALL=NOPASSWD: /usr/local/bin/sasquatch \n\
-    $CURUSER\tALL=NOPASSWD: /bin/rm \n\
-    $CURUSER\tALL=NOPASSWD: /bin/cp \n\
-    $CURUSER\tALL=NOPASSWD: /bin/mknod \n\
-    $CURUSER\tALL=NOPASSWD: /bin/dd \n\
-    $CURUSER\tALL=NOPASSWD: /bin/chown\n" > /tmp/faf_overrides
-    sudo chown root:root /tmp/faf_overrides
-    sudo mv /tmp/faf_overrides /etc/sudoers.d/faf_overrides
-
-    echo "set environment variables..."
-    sudo cp -f fact_env.sh /etc/profile.d/
-    sudo chmod 755 /etc/profile.d/fact_env.sh
-    source /etc/profile
-    '''
+    _edit_environment()
 
     # create directories
     _create_firmware_directory()
@@ -84,6 +67,25 @@ def main(distribution):
     # ln -s src/start_fact_backend.py start_fact_backend
 
     return 0
+
+
+def _edit_environment():
+    logging.info('set environment variables...')
+    for command in ['sudo cp -f fact_env.sh /etc/profile.d/', 'sudo chmod 755 /etc/profile.d/fact_env.sh', 'source /etc/profile']:
+        output, return_code = execute_shell_command_get_return_code(command)
+        if return_code != 0:
+            raise InstallationError('Failed to add environment changes\n{}'.format(output))
+
+
+def _edit_sudoers():
+    logging.info('add rules to sudo...')
+    username = os.environ['USER']
+    sudoers_content = '\n'.join(('{}\tALL=NOPASSWD: {}'.format(username, command) for command in ('/bin/mount', '/bin/umount', '/bin/mknod', '/usr/local/bin/sasquatch', '/bin/rm', '/bin/cp', '/bin/dd', '/bin/chown')))
+    Path('/tmp/faf_overrides').write_text('{}\n'.format(sudoers_content))
+    chown_output, chown_code = execute_shell_command_get_return_code('sudo chown root:root /tmp/faf_overrides')
+    mv_output, mv_code = execute_shell_command_get_return_code('sudo mv /tmp/faf_overrides /etc/sudoers.d/faf_overrides')
+    if not chown_code == mv_code == 0:
+        raise InstallationError('Editing sudoers file did not succeed\n{}\n{}'.format(chown_output, mv_output))
 
 
 def _install_unpacker(xenial):
@@ -139,14 +141,14 @@ def _create_firmware_directory():
 
 def _install_plugins():
     logging.info('Installing plugins')
-    output, return_code = execute_shell_command_get_return_code('find ../plugins -iname "install.sh"')
+    find_output, return_code = execute_shell_command_get_return_code('find ../plugins -iname "install.sh"')
     if return_code != 0:
         raise InstallationError('Error retrieving plugin installation scripts')
-    for install_script in output.splitlines(keepends=False):
+    for install_script in find_output.splitlines(keepends=False):
         logging.info('Running {}'.format(install_script))
-        output, return_code = execute_shell_command_get_return_code(install_script)
+        shell_output, return_code = execute_shell_command_get_return_code(install_script)
         if return_code != 0:
-            raise InstallationError('Error in installation of {} plugin'.format(Path(install_script).parent.name))
+            raise InstallationError('Error in installation of {} plugin\n{}'.format(Path(install_script).parent.name, shell_output))
 
 
 def _install_yara():
