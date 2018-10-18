@@ -1,3 +1,4 @@
+import configparser
 import logging
 import os
 import shutil
@@ -164,3 +165,12 @@ def _remove_repo_folder(folder_name):
         execute_shell_command_get_return_code('sudo rm -rf {}'.format(folder_name))
     except Exception as exception:
         raise InstallationError(exception)
+
+
+def load_main_config():
+    config = configparser.ConfigParser()
+    config_path = Path('..', 'config', 'main.cfg')
+    if not config_path.is_file():
+        raise InstallationError('Could not load config at path {}'.format(config_path))
+    config.read(config_path)
+    return config

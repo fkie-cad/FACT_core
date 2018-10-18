@@ -1,4 +1,3 @@
-import configparser
 import logging
 import os
 import shutil
@@ -7,16 +6,8 @@ from pathlib import Path
 
 from common_helper_process import execute_shell_command_get_return_code
 
-from helperFunctions.install import OperateInDirectory, pip_install_packages, InstallationError, check_if_command_in_path
-
-
-def _load_main_config():
-    config = configparser.ConfigParser()
-    config_path = Path('..', 'config', 'main.cfg')
-    if not config_path.is_file():
-        raise InstallationError('Could not load config at path {}'.format(config_path))
-    config.read(config_path)
-    return config
+from helperFunctions.install import OperateInDirectory, pip_install_packages, InstallationError, \
+    check_if_command_in_path, load_main_config
 
 
 def wget_static_web_content(url, target_folder, additional_actions, resource_logging_name=None):
@@ -45,7 +36,7 @@ def _patch_bootstrap():
 def _create_directory_for_authentication():
     logging.info('Creating directory for authentication')
 
-    config = _load_main_config()
+    config = load_main_config()
     dburi = config.get('data_storage', 'user_database')
     factauthdir = '/'.join(dburi.split('/')[:-1])[10:]  # FIXME this should be beautified with pathlib
 

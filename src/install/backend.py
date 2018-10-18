@@ -1,15 +1,13 @@
 import logging
 import os
-import shutil
 from contextlib import suppress
 from pathlib import Path
 
 from common_helper_process import execute_shell_command_get_return_code
 
 from compile_yara_signatures import main as compile_signatures
-from helperFunctions.config import load_config
 from helperFunctions.install import apt_remove_packages, apt_install_packages, InstallationError, pip_install_packages, \
-    install_github_project, pip2_install_packages, pip2_remove_packages, check_string_in_command, OperateInDirectory
+    install_github_project, pip2_install_packages, pip2_remove_packages, check_string_in_command, OperateInDirectory, load_main_config
 
 
 def main(distribution):
@@ -134,7 +132,7 @@ def _install_unpacker(xenial):
 def _create_firmware_directory():
     logging.info('Creating firmware directory')
 
-    config = load_config('main.cfg')
+    config = load_main_config()
     data_dir_name = config.get('data_storage', 'firmware_file_storage_directory')
     Path(data_dir_name).mkdir(parents=True, exist_ok=True)
     os.chmod(data_dir_name, 0o744)
