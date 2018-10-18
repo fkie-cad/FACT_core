@@ -1,6 +1,7 @@
 import logging
 import os
 import shutil
+from contextlib import suppress
 from pathlib import Path
 
 from common_helper_process import execute_shell_command_get_return_code
@@ -63,7 +64,8 @@ def main(distribution):
         raise InstallationError('Failed to compile yara test signatures')
 
     with OperateInDirectory('../../'):
-        Path('start_fact_backend').unlink()
+        with suppress(FileNotFoundError):
+            Path('start_fact_backend').unlink()
         Path('start_fact_backend').symlink_to('src/start_fact_backend.py')
 
     return 0

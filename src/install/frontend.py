@@ -1,6 +1,7 @@
 import logging
 import os
 import shutil
+from contextlib import suppress
 from pathlib import Path
 
 from common_helper_process import execute_shell_command_get_return_code
@@ -107,7 +108,8 @@ def main(distribution, radare, nginx):
             raise InstallationError('docker-compose is not installed. Please (re-)run pre_install.sh')
 
     with OperateInDirectory('../../'):
-        Path('start_fact_frontend').unlink()
+        with suppress(FileNotFoundError):
+            Path('start_fact_frontend').unlink()
         Path('start_fact_frontend').symlink_to('src/start_fact_frontend.py')
 
     return 0

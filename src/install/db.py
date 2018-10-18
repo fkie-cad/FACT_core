@@ -1,6 +1,7 @@
 import configparser
 import logging
 import os
+from contextlib import suppress
 from pathlib import Path
 
 from common_helper_process import execute_shell_command_get_return_code
@@ -58,7 +59,8 @@ def main(distribution):
     _init_database(config)
 
     with OperateInDirectory('../../'):
-        Path('start_fact_db').unlink()
+        with suppress(FileNotFoundError):
+            Path('start_fact_db').unlink()
         Path('start_fact_db').symlink_to('src/start_fact_db.py')
 
     return 0

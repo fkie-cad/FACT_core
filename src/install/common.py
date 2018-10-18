@@ -1,11 +1,13 @@
 import logging
 import os
 from contextlib import suppress
+from pathlib import Path
 
 from common_helper_process import execute_shell_command_get_return_code
 
 from helperFunctions.install import apt_remove_packages, apt_install_packages, apt_upgrade_system, apt_update_sources, \
-    apt_autoremove_packages, apt_clean_system, InstallationError, pip_install_packages, install_github_project
+    apt_autoremove_packages, apt_clean_system, InstallationError, pip_install_packages, install_github_project, \
+    OperateInDirectory
 
 
 def install_pip(python_command):
@@ -79,8 +81,9 @@ def main(distribution):
     pip_install_packages('git+https://github.com/mass-project/common_helper_encoder.git')
     pip_install_packages('git+https://github.com/fkie-cad/common_helper_filter.git')
 
-    # cd ../../
-    # rm start_all_installed_fact_components
-    # ln -s src/start_fact.py start_all_installed_fact_components
+    with OperateInDirectory('../../'):
+        with suppress(FileNotFoundError):
+            Path('start_all_installed_fact_components').unlink()
+        Path('start_all_installed_fact_components').symlink_to('src/start_fact.py')
 
     return 0
