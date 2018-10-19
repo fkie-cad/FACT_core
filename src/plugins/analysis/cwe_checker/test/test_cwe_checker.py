@@ -61,3 +61,9 @@ class TestCweCheckerFunctions(AnalysisPluginTest):
         output = ''
         result = self.analysis_plugin._parse_bap_output(output)
         assert isinstance(result, dict)
+
+    def test_is_supported_arch(self):
+        fo = FileObject()
+        test_data = 'ELF 64-bit LSB shared object, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, for GNU/Linux 2.6.32, BuildID[sha1]=8e756708f62592be105b5e8b423080d38ddc8391, stripped'
+        fo.processed_analysis = {'file_type': {'full': test_data}}
+        assert self.analysis_plugin._is_supported_arch(fo)
