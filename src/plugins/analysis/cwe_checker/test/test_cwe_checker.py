@@ -1,13 +1,8 @@
+import os
+
+from objects.file import FileObject
 from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
-from ..code.cwe_checker import AnalysisPlugin, CweWarningParser
-
-
-class MockFileObject(object):
-
-    def __init__(self, file_path):
-        self.file_path = file_path
-        self.binary = open(file_path, 'rb').read()
-        self.processed_analysis = {'file_type': {'full': 'ELFarm'}}
+from ..code.cwe_checker import AnalysisPlugin, CweWarningParser, BAP_TIMEOUT, PATH_TO_BAP
 
 
 class TestCweCheckerFunctions(AnalysisPluginTest):
@@ -47,3 +42,22 @@ class TestCweCheckerFunctions(AnalysisPluginTest):
                            'CWE676': '0.1'}
         res = self.analysis_plugin._parse_module_versions(data)
         self.assertEqual(res, expected_result)
+
+    def test_build_bap_command(self):
+        self.analysis_plugin.docker = True
+        fo = FileObject(file_path='/foo')
+        assert self.analysis_plugin._build_bap_command(fo) == 'timeout --signal=SIGKILL {}m docker run -v {}:/tmp/input cwe-checker:latest bap /tmp/input --pass=cwe-checker --cwe-checker-config=/home/bap/cwe_checker/src/config.json'.format(BAP_TIMEOUT, fo.file_path)
+
+    def test_build_bap_command_no_docker(self):
+        self.analysis_plugin.docker = False
+        fo = FileObject(file_path='/foo')
+        assert self.analysis_plugin._build_bap_command(fo) == 'timeout --signal=SIGKILL {}m {} {} --pass=cwe-checker --cwe-checker-config={}/code/../internal/src/config.json'.format(
+            BAP_TIMEOUT,
+            PATH_TO_BAP,
+            fo.file_path,
+            os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
+    def test_parse_bap_output(self):
+        output = ''
+        result = self.analysis_plugin._parse_bap_output(output)
+        assert isinstance(result, dict)
