@@ -27,8 +27,8 @@ def _patch_bootstrap():
         for file_name in ['bootstrap.min.css', 'bootstrap.min.css.map', 'bootstrap-theme.min.css', 'bootstrap-theme.min.css.map', 'bootstrap.css.map', 'bootstrap-theme.css.map']:
             Path(file_name).unlink()
 
-        _, first_code = execute_shell_command_get_return_code('patch --forward -r - bootstrap.css ../../../../bootstrap/patches/bootstrap.patch')
-        _, second_code = execute_shell_command_get_return_code('patch --forward -r - bootstrap-theme.css ../../../../bootstrap/patches/bootstrap-theme.patch')
+        _, first_code = execute_shell_command_get_return_code('patch --forward -r - bootstrap.css ../../../../install/patches/bootstrap.patch')
+        _, second_code = execute_shell_command_get_return_code('patch --forward -r - bootstrap-theme.css ../../../../install/patches/bootstrap-theme.patch')
         if not first_code == second_code == 0:
             raise InstallationError('Failed to patch bootstrap files')
 
