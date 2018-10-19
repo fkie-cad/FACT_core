@@ -28,7 +28,6 @@ class OperateInDirectory():
             shutil.rmtree(self._target_directory)
 
 
-
 def log_current_packages(packages, install=True):
     action = 'Installing' if install else 'Removing'
     logging.info('{} {}'.format(action, ' '.join(packages)))

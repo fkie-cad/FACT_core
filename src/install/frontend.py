@@ -95,8 +95,8 @@ def main(distribution, radare, nginx):
         pass
 
     if radare:
+        logging.info('Initializing docker container for radare')
         if check_if_command_in_path('docker-compose'):
-            logging.info('Initiializing docker container for radare')
             with OperateInDirectory('radare'):
                 output, return_code = execute_shell_command_get_return_code('docker-compose build')
                 if return_code != 0:

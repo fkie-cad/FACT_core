@@ -49,7 +49,6 @@ def main(distribution):
 
     # configure environment
     _edit_sudoers()
-
     _edit_environment()
 
     # create directories
@@ -71,10 +70,10 @@ def main(distribution):
 
 def _edit_environment():
     logging.info('set environment variables...')
-    for command in ['sudo cp -f fact_env.sh /etc/profile.d/', 'sudo chmod 755 /etc/profile.d/fact_env.sh', 'source /etc/profile']:
+    for command in ['sudo cp -f fact_env.sh /etc/profile.d/', 'sudo chmod 755 /etc/profile.d/fact_env.sh', '. /etc/profile']:
         output, return_code = execute_shell_command_get_return_code(command)
         if return_code != 0:
-            raise InstallationError('Failed to add environment changes\n{}'.format(output))
+            raise InstallationError('Failed to add environment changes [{}]\n{}'.format(command, output))
 
 
 def _edit_sudoers():
