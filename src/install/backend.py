@@ -133,9 +133,10 @@ def _create_firmware_directory():
 
     config = load_main_config()
     data_dir_name = config.get('data_storage', 'firmware_file_storage_directory')
-    Path(data_dir_name).mkdir(parents=True, exist_ok=True)
-    os.chmod(data_dir_name, 0o744)
-    os.chown(data_dir_name, os.getuid(), os.getgid())
+    mkdir_output, mkdir_code = execute_shell_command_get_return_code('sudo mkdir -p --mode=0744 {}'.format(data_dir_name))
+    chown_output, chown_code = execute_shell_command_get_return_code('sudo chown {}:{} {}'.format(data_dir_name, os.getuid(), os.getgid()))
+    if not all(code == 0 for code in (mkdir_code, chown_code)):
+        raise InstallationError('Failed to create directories for binary storage\n{}\n{}'.format(mkdir_output, chown_output))
 
 
 def _install_plugins():
