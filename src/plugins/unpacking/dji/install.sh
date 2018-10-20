@@ -6,7 +6,7 @@ echo "------------------------------------"
 echo "     install phantom fw tools       "
 echo "------------------------------------"
 
-cd ../../../bootstrap
+cd ../../../install.sh
 
 git clone https://github.com/mefistotelis/phantom-firmware-tools.git
 cd phantom-firmware-tools
