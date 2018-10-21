@@ -8,13 +8,6 @@ from common_helper_process import execute_shell_command_get_return_code
 from helperFunctions.install import apt_install_packages, InstallationError, apt_update_sources, OperateInDirectory
 
 
-def _init_database(config):
-    logging.info('Trying to start Mongo Server and initializing users...')
-    mongo_manger = MongoMgr(config=config, auth=False)
-    mongo_manger.init_users()
-    mongo_manger.shutdown()
-
-
 def _get_db_directory():
     output, return_code = execute_shell_command_get_return_code('grep -oP "dbPath:[\s]*\K[^\s]+" ../config/mongod.conf')
     if return_code != 0:

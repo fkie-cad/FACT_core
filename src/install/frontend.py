@@ -4,10 +4,18 @@ import shutil
 from contextlib import suppress
 from pathlib import Path
 
-from common_helper_process import execute_shell_command_get_return_code
+from common_helper_process import execute_shell_command_get_return_code, execute_interactive_shell_command
 
 from helperFunctions.install import OperateInDirectory, pip_install_packages, InstallationError, \
-    check_if_command_in_path, load_main_config
+    check_if_command_in_path, load_main_config, apt_install_packages
+
+
+def execute_commands_and_raise_on_return_code(commands, error):
+    for command in commands:
+        bad_return = error if error else 'execute {}'.format(command)
+        output, return_code = execute_interactive_shell_command(command)
+        if return_code != 0:
+            raise InstallationError('Failed to {}\n{}'.format(bad_return, output))
 
 
 def wget_static_web_content(url, target_folder, additional_actions, resource_logging_name=None):
@@ -47,10 +55,31 @@ def _create_directory_for_authentication():
         raise InstallationError('Error in creating directory for authentication database.\n{}'.format('\n'.join((mkdir_output, chown_output))))
 
 
-def main(distribution, radare, nginx):
+def generate_and_install_certificate():
+    logging.info("Generating self-signed certificate")
+    execute_commands_and_raise_on_return_code([
+        'openssl genrsa -out fact.key 4096',
+        'openssl req -new -key fact.key -out fact.csr',
+        'openssl x509 -req -days 730 -in fact.csr -signkey fact.key -out fact.crt',  # FIXME Needs interactive
+        'sudo mv fact.key fact.csr fact.crt /etc/nginx'
+    ], error='generate SSL certificate')
+
+
+def configure_nginx():
+    logging.info("Configuring nginx")
+    execute_commands_and_raise_on_return_code([
+        'sudo cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak',
+        'sudo rm /etc/nginx/nginx.conf',
+        '(cd ../config && sudo ln -s $PWD/nginx.conf /etc/nginx/nginx.conf)',
+        'sudo mkdir /etc/nginx/error',
+        '(cd ../web_interface/templates/ && sudo ln -s $PWD/maintenance.html /etc/nginx/error/maintenance.html)'
+    ], error='configuring nginx')
+
+
+def main(radare, nginx):
     pip_install_packages('flask', 'flask_restful', 'flask_security', 'flask_sqlalchemy', 'flask-paginate', 'Flask-API', 'uwsgi', 'bcrypt')
 
-    # installing web/js-frameworks    #
+    # installing web/js-frameworks
     with OperateInDirectory('../web_interface/static'):
         wget_static_web_content('https://github.com/twbs/bootstrap/releases/download/v3.3.7/bootstrap-3.3.7-dist.zip', '.', ['unzip -o bootstrap-3.3.7-dist.zip', 'rm bootstrap-3.3.7-dist.zip', 'rm -rf bootstrap', 'mv bootstrap-3.3.7-dist bootstrap'], 'bootstrap')
 
@@ -75,24 +104,12 @@ def main(distribution, radare, nginx):
     _create_directory_for_authentication()
 
     if nginx:
-        '''
-        echo "####################################"
-        echo "# installing and configuring nginx #"
-        echo "####################################"
-        sudo apt-get install -y nginx
-        echo "generating a new certificate..."
-        openssl genrsa -out fact.key 4096
-        openssl req -new -key fact.key -out fact.csr
-        openssl x509 -req -days 730 -in fact.csr -signkey fact.key -out fact.crt
-        sudo mv fact.key fact.csr fact.crt /etc/nginx
-        sudo cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak
-        sudo rm /etc/nginx/nginx.conf
-        (cd ../config && sudo ln -s $PWD/nginx.conf /etc/nginx/nginx.conf)
-        sudo mkdir /etc/nginx/error
-        (cd ../web_interface/templates/ && sudo ln -s $PWD/maintenance.html /etc/nginx/error/maintenance.html)
-        sudo nginx -s reload
-        '''
-        pass
+        apt_install_packages('nginx')
+        generate_and_install_certificate()
+        configure_nginx()
+        nginx_output, nginx_code = execute_shell_command_get_return_code('sudo nginx -s reload')
+        if not nginx_code:
+            raise InstallationError('Failed to start nginx\n{}'.format(nginx_output))
 
     if radare:
         logging.info('Initializing docker container for radare')

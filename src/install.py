@@ -154,7 +154,7 @@ if __name__ == '__main__':
     common(distribution)
 
     if args.frontend or all:
-        frontend(distribution, not args.no_radare, args.nginx)
+        frontend(not args.no_radare, args.nginx)
     if args.db or all:
         db(distribution)
     if args.backend or all:
