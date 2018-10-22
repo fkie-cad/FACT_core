@@ -58,9 +58,12 @@ class TestCweCheckerFunctions(AnalysisPluginTest):
             os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
     def test_parse_bap_output(self):
-        output = ''
-        result = self.analysis_plugin._parse_bap_output(output)
+        test_data = '2018-10-19 11:41:20.030 [33mWARN [0m: [CWE215] {0.1} (Information Exposure Through Debug Information) CU: cwe_332.c:\n2018-10-19 11:41:20.030 [33mWARN [0m: [CWE332] {0.1} (Insufficient Entropy in PRNG) program uses rand without calling srand before'
+        result = self.analysis_plugin._parse_bap_output(test_data)
+        print(result)
         assert isinstance(result, dict)
+        assert len(result.keys()) == 2
+        assert isinstance(result['[CWE215] (Information Exposure Through Debug Information)'], dict)
 
     def test_is_supported_arch(self):
         fo = FileObject()
