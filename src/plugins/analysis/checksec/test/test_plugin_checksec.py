@@ -2,7 +2,7 @@
 
 
 from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
-from ..code.checksec import check_pie, check_relro, check_mitigations, check_nx_or_canary
+from ..code.checksec import check_pie, check_relro, check_mitigations, check_nx_or_canary, check_fortify
 from ..code.checksec import AnalysisPlugin
 
 
@@ -90,6 +90,19 @@ class TestAnalysisPluginChecksec(AnalysisPluginTest):
         check_nx_or_canary(FILE_PATH, resD, sumD, readelf, 'Canary')
         self.assertEqual(resD, {'Canary': 'enabled'})
         self.assertEqual(sumD, {'Canary enabled': 'usr/test_dir/path'})
+
+    def test_fortify_source(self):
+        resD, sumD = {}, {}
+        readelf = ' 00000021fc70  000500000007 R_X86_64_JUMP_SLO 0000000000000000 __snprintf_chk@GLIBC_2.3.4 + 0'
+        check_fortify(FILE_PATH, resD, sumD, readelf)
+        self.assertEqual(resD, {'_FORTIFY_SOURCE': 'enabled'})
+        self.assertEqual(sumD, {'_FORTIFY_SOURCE enabled': 'usr/test_dir/path'})
+
+        resD, sumD = {}, {}
+        readelf = ' 00000021ff68  006900000007 R_X86_64_JUMP_SLO 0000000000000000 gethostname@GLIBC_2.2.5 + 0'
+        check_fortify(FILE_PATH, resD, sumD, readelf)
+        self.assertEqual(resD, {'_FORTIFY_SOURCE': 'disabled'})
+        self.assertEqual(sumD, {'_FORTIFY_SOURCE disabled': 'usr/test_dir/path'})
 
     def test_check_mitigations(self):
         results = check_mitigations(FILE_PATH)
