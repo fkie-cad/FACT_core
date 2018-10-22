@@ -77,6 +77,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     Due to the nature of static analysis, this plugin may run for a long time.'
     DEPENDENCIES = ['cpu_architecture', 'file_type']
     VERSION = '0.3.3'
+    MIME_WHITELIST = ['application/x-executable', 'application/x-object', 'application/x-sharedlib']
     SUPPORTED_ARCHS = ['arm', 'x86', 'x64', 'mips', 'ppc']
 
     def __init__(self, plugin_adminstrator, config=None, recursive=True, docker=True):
@@ -163,11 +164,6 @@ class AnalysisPlugin(AnalysisBasePlugin):
         arch_type = file_object.processed_analysis['file_type']['full'].lower()
         return any(supported_arch in arch_type for supported_arch in self.SUPPORTED_ARCHS)
 
-    @staticmethod
-    def _is_supported_file_type(file_object):
-        file_type = file_object.processed_analysis['file_type']['full'].lower()
-        return 'elf' in file_type
-
     def _do_full_analysis(self, file_object):
         bap_command = self._build_bap_command(file_object)
         output, return_code = execute_shell_command_get_return_code(
@@ -187,11 +183,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         This function handles only ELF executable. Otherwise it returns an empty dictionary.
         It calls the external BAP plugin cwe_checker.
         '''
-        if not self._is_supported_file_type(file_object):
-            logging.debug('{} is not an ELF executable.'.format(
-                          file_object.file_path))
-            file_object.processed_analysis[self.NAME] = {'summary': []}
-        elif not self._is_supported_arch(file_object):
+        if not self._is_supported_arch(file_object):
             logging.debug('{}\'s arch is not supported ({})'.format(
                           file_object.file_path,
                           file_object.processed_analysis['cpu_architecture']['summary']))
