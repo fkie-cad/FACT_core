@@ -79,6 +79,7 @@ class TestRestFirmware(RestTestBase):
                 'binary': standard_b64encode(b'test_file_content').decode(),
                 'file_name': 'test_file.txt',
                 'device_name': 'test_device',
+                'device_part': 'test_part',
                 'device_class': 'test_class',
                 'vendor': 'test_vendor',
                 'release_date': '01.01.1970',
