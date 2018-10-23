@@ -25,8 +25,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 file_object.processed_analysis[self.NAME]['summary'] = list(mitigation_dict_summary.keys())
             else:
                 file_object.processed_analysis[self.NAME]['summary'] = []
-        except:
-            file_object.processed_analysis[self.NAME]['summary'] = ['Error - Firmware could not be processed properly']
+        except Exception as e:
+            file_object.processed_analysis[self.NAME]['summary'] = ['Error - Firmware could not be processed properly: {}'.format(e)]
         return file_object
 
 
