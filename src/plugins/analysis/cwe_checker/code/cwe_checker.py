@@ -169,8 +169,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
         output, return_code = execute_shell_command_get_return_code(
             bap_command)
         if return_code != 0:
-            logging.error('Could not communicate with Bap plugin: {} ({}).'.format(
-                          return_code, output))
+            logging.error('Could not communicate with Bap plugin: {} ({})\nUID: {}'.format(
+                          return_code, output, file_object.get_uid()))
             file_object.processed_analysis[self.NAME] = {'summary': []}
         else:
             cwe_messages = self._parse_bap_output(output)

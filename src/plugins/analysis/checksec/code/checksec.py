@@ -5,10 +5,6 @@ from analysis.PluginBase import AnalysisBasePlugin
 
 READELF_FULL = 'readelf -W -l -d -s -h {} '
 
-'''
-TODO: check_fortify routine in future update
-'''
-
 
 class AnalysisPlugin(AnalysisBasePlugin):
     NAME = "exploit_mitigations"
@@ -29,8 +25,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 file_object.processed_analysis[self.NAME]['summary'] = list(mitigation_dict_summary.keys())
             else:
                 file_object.processed_analysis[self.NAME]['summary'] = []
-        except:
-            file_object.processed_analysis[self.NAME]['summary'] = ['Error - Firmware could not be processed properly']
+        except Exception as e:
+            file_object.processed_analysis[self.NAME]['summary'] = ['Error - Firmware could not be processed properly: {}'.format(e)]
         return file_object
 
 
@@ -50,6 +46,15 @@ def check_relro(file_path, dict_res, dict_sum, readelf):
     else:
         dict_sum.update({'RELRO disabled': file_path})
         dict_res.update({'RELRO': 'disabled'})
+
+
+def check_fortify(file_path, dict_res, dict_sum, readelf):
+    if re.search(r'_chk', readelf):
+        dict_sum.update({'_FORTIFY_SOURCE enabled': file_path})
+        dict_res.update({'_FORTIFY_SOURCE': 'enabled'})
+    else:
+        dict_sum.update({'_FORTIFY_SOURCE disabled': file_path})
+        dict_res.update({'_FORTIFY_SOURCE': 'disabled'})
 
 
 def check_pie(file_path, dict_res, dict_sum, readelf):
@@ -98,4 +103,5 @@ def check_mitigations(file_path):
     check_nx_or_canary(file_path, dict_res, dict_sum, readelf_results, 'NX')
     check_nx_or_canary(file_path, dict_res, dict_sum, readelf_results, 'Canary')
     check_pie(file_path, dict_res, dict_sum, readelf_results)
+    check_fortify(file_path, dict_res, dict_sum, readelf_results)
     return dict_res, dict_sum
