@@ -9,10 +9,10 @@ from common_helper_process import execute_shell_command_get_return_code
 from helperFunctions.install import OperateInDirectory, pip_install_packages, InstallationError, \
     check_if_command_in_path, load_main_config, apt_install_packages
 
-DEFAULT_CERT = 'DE\nANY\nATLANTIS\nUMBRELLA\nIMPORT\n\n\n\n\n'
+DEFAULT_CERT = 'DE\nANY\nATLANTIS\nUMBRELLA\nIMPORT\n.\n.\n.\n.\n'
 
 
-def execute_commands_and_raise_on_return_code(commands, error):
+def execute_commands_and_raise_on_return_code(commands, error=None):
     for command in commands:
         bad_return = error if error else 'execute {}'.format(command)
         output, return_code = execute_shell_command_get_return_code(command)
@@ -61,7 +61,7 @@ def generate_and_install_certificate():
     logging.info("Generating self-signed certificate")
     execute_commands_and_raise_on_return_code([
         'openssl genrsa -out fact.key 4096',
-        'echo -e "{}" | openssl req -new -key fact.key -out fact.csr'.format(DEFAULT_CERT),
+        'echo "{}" | openssl req -new -key fact.key -out fact.csr'.format(DEFAULT_CERT),
         'openssl x509 -req -days 730 -in fact.csr -signkey fact.key -out fact.crt',
         'sudo mv fact.key fact.csr fact.crt /etc/nginx'
     ], error='generate SSL certificate')
@@ -73,8 +73,8 @@ def configure_nginx():
         'sudo cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak',
         'sudo rm /etc/nginx/nginx.conf',
         '(cd ../config && sudo ln -s $PWD/nginx.conf /etc/nginx/nginx.conf)',
-        'sudo mkdir /etc/nginx/error',
-        '(cd ../web_interface/templates/ && sudo ln -s $PWD/maintenance.html /etc/nginx/error/maintenance.html)'
+        '(sudo mkdir /etc/nginx/error || true)',
+        '(cd ../web_interface/templates/ && sudo ln -s $PWD/maintenance.html /etc/nginx/error/maintenance.html) || true'
     ], error='configuring nginx')
 
 
@@ -110,7 +110,7 @@ def main(radare, nginx):
         generate_and_install_certificate()
         configure_nginx()
         nginx_output, nginx_code = execute_shell_command_get_return_code('sudo nginx -s reload')
-        if not nginx_code:
+        if nginx_code != 0:
             raise InstallationError('Failed to start nginx\n{}'.format(nginx_output))
 
     if radare:
