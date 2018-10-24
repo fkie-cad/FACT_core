@@ -4,16 +4,18 @@ import shutil
 from contextlib import suppress
 from pathlib import Path
 
-from common_helper_process import execute_shell_command_get_return_code, execute_interactive_shell_command
+from common_helper_process import execute_shell_command_get_return_code
 
 from helperFunctions.install import OperateInDirectory, pip_install_packages, InstallationError, \
     check_if_command_in_path, load_main_config, apt_install_packages
+
+DEFAULT_CERT = 'DE\nANY\nATLANTIS\nUMBRELLA\nIMPORT\n\n\n\n\n'
 
 
 def execute_commands_and_raise_on_return_code(commands, error):
     for command in commands:
         bad_return = error if error else 'execute {}'.format(command)
-        output, return_code = execute_interactive_shell_command(command)
+        output, return_code = execute_shell_command_get_return_code(command)
         if return_code != 0:
             raise InstallationError('Failed to {}\n{}'.format(bad_return, output))
 
@@ -59,8 +61,8 @@ def generate_and_install_certificate():
     logging.info("Generating self-signed certificate")
     execute_commands_and_raise_on_return_code([
         'openssl genrsa -out fact.key 4096',
-        'openssl req -new -key fact.key -out fact.csr',
-        'openssl x509 -req -days 730 -in fact.csr -signkey fact.key -out fact.crt',  # FIXME Needs interactive
+        'echo -e "{}" | openssl req -new -key fact.key -out fact.csr'.format(DEFAULT_CERT),
+        'openssl x509 -req -days 730 -in fact.csr -signkey fact.key -out fact.crt',
         'sudo mv fact.key fact.csr fact.crt /etc/nginx'
     ], error='generate SSL certificate')
 
