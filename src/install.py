@@ -21,12 +21,18 @@ import sys
 import os
 import argparse
 import logging
-import subprocess
 
-from install.common import main as common
-from install.frontend import main as frontend
-from install.backend import main as backend
-from install.db import main as db
+try:
+    import distro
+
+    from common_helper_process import execute_shell_command_get_return_code
+
+    from install.common import main as common
+    from install.frontend import main as frontend
+    from install.backend import main as backend
+    from install.db import main as db
+except ImportError:
+    sys.exit('Could not import install dependencies. Please (re-)run install/pre_install.sh')
 
 PROGRAM_NAME = 'FACT Installer'
 PROGRAM_VERSION = '1.0'
@@ -105,14 +111,6 @@ def check_python_version():
 
 
 def check_distribution():
-    try:
-        import distro
-    except ImportError:
-        errors = subprocess.run('sudo -EH pip3 install distro', shell=True).stderr
-        if errors:
-            sys.exit('Could not determine the system´s Linux distribution')
-        else:
-            import distro
     codename = distro.codename().lower()
     if codename in XENIAL_CODE_NAMES:
         logging.debug('Ubuntu 16.04 detected')
@@ -133,9 +131,9 @@ def install_statistic_cronjob():
     cron_content += '30    0    *    *    0    {} > /dev/null 2>&1\n'.format(variety_update_script_path)
     with open(crontab_file_path, 'w') as f:
         f.write(cron_content)
-    errors = subprocess.run('crontab {}'.format(crontab_file_path), shell=True).stderr
-    if errors:
-        logging.error(errors)
+    output, return_code = execute_shell_command_get_return_code('crontab {}'.format(crontab_file_path))
+    if return_code != 0:
+        logging.error(output)
     else:
         logging.info('done')
 
@@ -149,15 +147,15 @@ if __name__ == '__main__':
 
     os.chdir('install')
 
-    all = not (args.frontend or args.db or args.backend)
+    none_chosen = not (args.frontend or args.db or args.backend)
 
     common(distribution)
 
-    if args.frontend or all:
+    if args.frontend or none_chosen:
         frontend(not args.no_radare, args.nginx)
-    if args.db or all:
+    if args.db or none_chosen:
         db(distribution)
-    if args.backend or all:
+    if args.backend or none_chosen:
         backend(distribution)
 
     os.chdir('..')

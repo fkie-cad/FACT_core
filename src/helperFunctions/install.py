@@ -110,7 +110,7 @@ def pip2_remove_packages(*args):
 
 
 def check_if_command_in_path(command):
-    output, return_code = execute_shell_command_get_return_code('command -v {}'.format(command))
+    _, return_code = execute_shell_command_get_return_code('command -v {}'.format(command))
     if return_code != 0:
         return False
     return True
@@ -136,17 +136,17 @@ def install_github_project(project_path: str, commands: List[str]):
     for command in commands:
         output, return_code = execute_shell_command_get_return_code(command)
         if return_code != 0:
-            error = InstallationError('Error while processing github project {}!\n{}'.format(project_path, output))
+            error = 'Error while processing github project {}!\n{}'.format(project_path, output)
             break
 
     _remove_repo_folder(folder_name)
     if error:
-        raise error
+        raise InstallationError(error)
 
 
 def _checkout_github_project(github_path, folder_name):
     clone_url = 'https://www.github.com/{}'.format(github_path)
-    output, return_code = execute_shell_command_get_return_code('git clone {}'.format(clone_url))
+    _, return_code = execute_shell_command_get_return_code('git clone {}'.format(clone_url))
     if return_code != 0:
         raise InstallationError('Cloning from github failed for project {}\n {}'.format(github_path, clone_url))
     if not Path('.', folder_name).exists():

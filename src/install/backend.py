@@ -56,7 +56,7 @@ def main(distribution):
 
     # compiling yara signatures
     compile_signatures()
-    yarac_output, yarac_return = execute_shell_command_get_return_code('yarac -d test_flag=false ../test/unit/analysis/test.yara ../analysis/signatures/Yara_Base_Plugin.yc')
+    _, yarac_return = execute_shell_command_get_return_code('yarac -d test_flag=false ../test/unit/analysis/test.yara ../analysis/signatures/Yara_Base_Plugin.yc')
     if yarac_return != 0:
         raise InstallationError('Failed to compile yara test signatures')
 
@@ -80,7 +80,7 @@ def _edit_sudoers():
     logging.info('add rules to sudo...')
     username = os.environ['USER']
     sudoers_content = '\n'.join(('{}\tALL=NOPASSWD: {}'.format(username, command) for command in ('/bin/mount', '/bin/umount', '/bin/mknod', '/usr/local/bin/sasquatch', '/bin/rm', '/bin/cp', '/bin/dd', '/bin/chown')))
-    Path('/tmp/faf_overrides').write_text('{}\n'.format(sudoers_content))
+    Path('/tmp/fact_overrides').write_text('{}\n'.format(sudoers_content))
     chown_output, chown_code = execute_shell_command_get_return_code('sudo chown root:root /tmp/faf_overrides')
     mv_output, mv_code = execute_shell_command_get_return_code('sudo mv /tmp/faf_overrides /etc/sudoers.d/faf_overrides')
     if not chown_code == mv_code == 0:
@@ -182,11 +182,11 @@ def _install_yara():
 
 def _install_stuffit():
     logging.info('Installing stuffit')
-    wget_output, wget_code = execute_shell_command_get_return_code('wget -O - http://my.smithmicro.com/downloads/files/stuffit520.611linux-i386.tar.gz | tar -zxv')
+    _, wget_code = execute_shell_command_get_return_code('wget -O - http://my.smithmicro.com/downloads/files/stuffit520.611linux-i386.tar.gz | tar -zxv')
     if wget_code == 0:
-        cp_output, cp_code = execute_shell_command_get_return_code('sudo cp bin/unstuff /usr/local/bin/')
+        _, cp_code = execute_shell_command_get_return_code('sudo cp bin/unstuff /usr/local/bin/')
     else:
         cp_code = 255
-    rm_output, rm_code = execute_shell_command_get_return_code('rm -fr bin doc man')
+    _, rm_code = execute_shell_command_get_return_code('rm -fr bin doc man')
     if not all(code == 0 for code in (wget_code, cp_code, rm_code)):
         raise InstallationError('Error in installation of unstuff')

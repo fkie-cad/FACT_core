@@ -9,7 +9,7 @@ from common_helper_process import execute_shell_command_get_return_code
 from helperFunctions.install import OperateInDirectory, pip_install_packages, InstallationError, \
     check_if_command_in_path, load_main_config, apt_install_packages
 
-DEFAULT_CERT = 'DE\nANY\nATLANTIS\nUMBRELLA\nIMPORT\n.\n.\n.\n.\n'
+DEFAULT_CERT = '.\n.\n.\n.\n.\nexample.com\n.\n\n\n'
 
 
 def execute_commands_and_raise_on_return_code(commands, error=None):
