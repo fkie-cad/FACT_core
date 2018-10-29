@@ -81,8 +81,8 @@ def _edit_sudoers():
     username = os.environ['USER']
     sudoers_content = '\n'.join(('{}\tALL=NOPASSWD: {}'.format(username, command) for command in ('/bin/mount', '/bin/umount', '/bin/mknod', '/usr/local/bin/sasquatch', '/bin/rm', '/bin/cp', '/bin/dd', '/bin/chown')))
     Path('/tmp/fact_overrides').write_text('{}\n'.format(sudoers_content))
-    chown_output, chown_code = execute_shell_command_get_return_code('sudo chown root:root /tmp/faf_overrides')
-    mv_output, mv_code = execute_shell_command_get_return_code('sudo mv /tmp/faf_overrides /etc/sudoers.d/faf_overrides')
+    chown_output, chown_code = execute_shell_command_get_return_code('sudo chown root:root /tmp/fact_overrides')
+    mv_output, mv_code = execute_shell_command_get_return_code('sudo mv /tmp/fact_overrides /etc/sudoers.d/fact_overrides')
     if not chown_code == mv_code == 0:
         raise InstallationError('Editing sudoers file did not succeed\n{}\n{}'.format(chown_output, mv_output))
 
