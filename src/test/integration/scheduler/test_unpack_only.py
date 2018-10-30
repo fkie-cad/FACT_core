@@ -7,6 +7,7 @@ from helperFunctions.fileSystem import get_test_data_dir
 from objects.firmware import Firmware
 from scheduler.Unpacking import UnpackingScheduler
 from test.integration.common import initialize_config, MockFSOrganizer
+from test.common_helper import DatabaseMock
 
 
 class TestFileAddition(unittest.TestCase):
@@ -14,7 +15,7 @@ class TestFileAddition(unittest.TestCase):
     def setUp(self):
         self._config = initialize_config(tmp_dir=None)
         self._tmp_queue = Queue()
-        self._unpack_scheduler = UnpackingScheduler(config=self._config, post_unpack=self._dummy_callback)
+        self._unpack_scheduler = UnpackingScheduler(config=self._config, post_unpack=self._dummy_callback, db_interface=DatabaseMock())
 
     def tearDown(self):
         self._unpack_scheduler.shutdown()

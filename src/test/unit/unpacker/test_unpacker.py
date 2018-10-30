@@ -7,7 +7,7 @@ import unittest
 from helperFunctions.dataConversion import make_list_from_dict
 from helperFunctions.fileSystem import get_test_data_dir
 from objects.file import FileObject
-from test.common_helper import create_test_file_object
+from test.common_helper import create_test_file_object, DatabaseMock
 from unpacker.unpack import Unpacker
 
 
@@ -21,7 +21,7 @@ class TestUnpackerBase(unittest.TestCase):
         config.set('unpack', 'max_depth', '3')
         config.set('unpack', 'whitelist', 'text/plain, image/png')
         config.add_section('ExpertSettings')
-        self.unpacker = Unpacker(config=config)
+        self.unpacker = Unpacker(config=config, db_interface=DatabaseMock())
         self.tmp_dir = TemporaryDirectory(prefix='faf_tests_')
         self.test_fo = create_test_file_object()
 

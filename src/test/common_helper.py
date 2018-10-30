@@ -320,6 +320,15 @@ class DatabaseMock:
         if uid == 'deadbeef00000000000000000000000000000000000000000000000000000000_123':
             return 'test_name'
 
+    def set_unpacking_lock(self, uid):
+        pass
+
+    def check_unpacking_lock(self, uid):
+        return False
+
+    def release_unpacking_lock(self, uid):
+        pass
+
 
 def fake_exit(self, *args):
     pass
