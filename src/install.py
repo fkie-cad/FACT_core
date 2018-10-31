@@ -21,12 +21,14 @@ import sys
 import os
 import argparse
 import logging
+from pathlib import Path
 
 try:
     import distro
 
     from common_helper_process import execute_shell_command_get_return_code
 
+    from helperFunctions.install import OperateInDirectory
     from install.common import main as common
     from install.frontend import main as frontend
     from install.backend import main as backend
@@ -144,21 +146,19 @@ if __name__ == '__main__':
     _setup_logging(args, debug_flag=args.debug)
     welcome()
     distribution = check_distribution()
-
-    os.chdir('install')
-
     none_chosen = not (args.frontend or args.db or args.backend)
 
-    common(distribution)
+    installation_directory = str(Path(Path(__file__).parent, 'install').absolute())
 
-    if args.frontend or none_chosen:
-        frontend(not args.no_radare, args.nginx)
-    if args.db or none_chosen:
-        db(distribution)
-    if args.backend or none_chosen:
-        backend(distribution)
+    with OperateInDirectory(installation_directory):
+        common(distribution)
 
-    os.chdir('..')
+        if args.frontend or none_chosen:
+            frontend(not args.no_radare, args.nginx)
+        if args.db or none_chosen:
+            db(distribution)
+        if args.backend or none_chosen:
+            backend(distribution)
 
     if args.statistic_cronjob:
         install_statistic_cronjob()
