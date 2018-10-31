@@ -75,6 +75,7 @@ class DatabaseMock:
 
     def __init__(self, config=None):
         self.tasks = []
+        self.locks = []
 
     def shutdown(self):
         pass
@@ -319,6 +320,15 @@ class DatabaseMock:
     def get_file_name(self, uid):
         if uid == 'deadbeef00000000000000000000000000000000000000000000000000000000_123':
             return 'test_name'
+
+    def set_unpacking_lock(self, uid):
+        self.locks.append(uid)
+
+    def check_unpacking_lock(self, uid):
+        return uid in self.locks
+
+    def drop_unpacking_locks(self):
+        self.locks = []
 
 
 def fake_exit(self, *args):

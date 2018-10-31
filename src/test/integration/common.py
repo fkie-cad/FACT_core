@@ -8,6 +8,9 @@ class MockFSOrganizer:
     def store_file(self, file_object):
         pass
 
+    def delete_file(self, uid):
+        pass
+
 
 class MockDbInterface:
     def __init__(self, config):
