@@ -300,4 +300,7 @@ class MongoInterfaceCommon(MongoInterface):
         return self.locks.count({'uid': uid}) > 0
 
     def release_unpacking_lock(self, uid):
-        self.locks.delete_many({'uid': uid})
+        self.locks.delete_one({'uid': uid})
+
+    def drop_unpacking_locks(self):
+        self.main.drop_collection('locks')

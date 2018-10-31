@@ -25,9 +25,13 @@ class UnpackingScheduler(object):
         self.workers = []
         self.post_unpack = post_unpack
         self.db_interface = MongoInterfaceCommon(config) if not db_interface else db_interface
+        self.drop_cached_locks()
         self.start_unpack_workers()
         self.start_work_load_monitor()
         logging.info('Unpacker Module online')
+
+    def drop_cached_locks(self):
+        self.db_interface.drop_unpacking_locks()
 
     def add_task(self, fo):
         '''
