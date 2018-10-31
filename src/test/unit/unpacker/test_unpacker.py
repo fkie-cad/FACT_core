@@ -137,8 +137,8 @@ class TestUnpackerCore(TestUnpackerBase):
 
     def test_file_is_locked(self):
         assert not self.unpacker.db_interface.check_unpacking_lock(self.test_fo.uid)
-        file_pathes = ['{}/get_files_test/testfile1'.format(get_test_data_dir())]
-        self.unpacker.generate_and_store_file_objects(file_pathes, get_test_data_dir(), self.test_fo)
+        file_paths = ['{}/get_files_test/testfile1'.format(get_test_data_dir())]
+        self.unpacker.generate_and_store_file_objects(file_paths, get_test_data_dir(), self.test_fo)
         assert self.unpacker.db_interface.check_unpacking_lock(self.test_fo.uid)
 
 

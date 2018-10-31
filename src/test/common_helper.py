@@ -327,9 +327,6 @@ class DatabaseMock:
     def check_unpacking_lock(self, uid):
         return uid in self.locks
 
-    def release_unpacking_lock(self, uid):
-        self.locks.remove(uid)
-
     def drop_unpacking_locks(self):
         self.locks = []
 
