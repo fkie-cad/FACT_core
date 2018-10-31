@@ -79,7 +79,7 @@ def configure_nginx():
 
 
 def main(radare, nginx):
-    pip_install_packages('flask', 'flask_restful', 'flask_security', 'flask_sqlalchemy', 'flask-paginate', 'Flask-API', 'uwsgi', 'bcrypt')
+    pip_install_packages('flask', 'flask_restful', 'flask_security', 'flask_sqlalchemy', 'flask-paginate', 'Flask-API', 'uwsgi', 'bcrypt', 'python-dateutil')
 
     # installing web/js-frameworks
     with OperateInDirectory('../web_interface/static'):
