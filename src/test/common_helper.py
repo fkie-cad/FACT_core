@@ -75,6 +75,7 @@ class DatabaseMock:
 
     def __init__(self, config=None):
         self.tasks = []
+        self.locks = []
 
     def shutdown(self):
         pass
@@ -321,13 +322,16 @@ class DatabaseMock:
             return 'test_name'
 
     def set_unpacking_lock(self, uid):
-        pass
+        self.locks.append(uid)
 
     def check_unpacking_lock(self, uid):
-        return False
+        return uid in self.locks
 
     def release_unpacking_lock(self, uid):
-        pass
+        self.locks.remove(uid)
+
+    def drop_unpacking_locks(self):
+        self.locks = []
 
 
 def fake_exit(self, *args):
