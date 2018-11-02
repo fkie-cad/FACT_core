@@ -78,12 +78,12 @@ def apt_remove_packages(*args):
     return run_shell_command_raise_on_return_code('sudo apt-get remove -y {}'.format(' '.join(args)), 'Error in removal of package(s) {}'.format(' '.join(args)), True)
 
 
-def _pip_install_packages(version, *args):
+def _pip_install_packages(version, args):
     log_current_packages(args)
     return run_shell_command_raise_on_return_code('sudo -EH pip{} install --upgrade {}'.format(version, ' '.join(args)), 'Error in installation of python package(s) {}'.format(' '.join(args)), True)
 
 
-def _pip_remove_packages(version, *args):
+def _pip_remove_packages(version, args):
     log_current_packages(args, install=False)
     return run_shell_command_raise_on_return_code('sudo -EH pip{} uninstall {}'.format(version, ' '.join(args)), 'Error in removal of python package(s) {}'.format(' '.join(args)), True)
 
