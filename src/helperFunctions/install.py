@@ -146,7 +146,7 @@ def _checkout_github_project(github_path, folder_name):
 
 def load_main_config():
     config = configparser.ConfigParser()
-    config_path = Path(__file__, '..', 'config', 'main.cfg')
+    config_path = Path(Path(__file__).parent.parent, 'config', 'main.cfg')
     if not config_path.is_file():
         raise InstallationError('Could not load config at path {}'.format(config_path))
     config.read(str(config_path))
