@@ -21,6 +21,7 @@ class MongoInterfaceCommon(MongoInterface):
         self.main = self.client[main_database]
         self.firmwares = self.main.firmwares
         self.file_objects = self.main.file_objects
+        self.locks = self.main.locks
         # sanitize stuff
         self.report_threshold = int(self.config['data_storage']['report_threshold'])
         sanitize_db = self.config['data_storage'].get('sanitize_database', 'faf_sanitize')
@@ -292,3 +293,15 @@ class MongoInterfaceCommon(MongoInterface):
         if zero_on_empty_query and query == {}:
             return 0
         return self.file_objects.count(query)
+
+    def set_unpacking_lock(self, uid):
+        self.locks.insert_one({'uid': uid})
+
+    def check_unpacking_lock(self, uid):
+        return self.locks.count({'uid': uid}) > 0
+
+    def release_unpacking_lock(self, uid):
+        self.locks.delete_one({'uid': uid})
+
+    def drop_unpacking_locks(self):
+        self.main.drop_collection('locks')

@@ -692,3 +692,7 @@
 0	string \xD5\xBF\x98\x12\x01	Toshiba CD2
 !:mime	firmware/toshiba-cd2
 
+# Intel HEX
+0	regex	\^:[A-F0-9]{8,}$	Intel HEX
+!:mime	firmware/intel-hex
+

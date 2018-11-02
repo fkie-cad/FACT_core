@@ -22,6 +22,8 @@ class BackEndDbInterface(MongoInterfaceCommon):
             self.add_file_object(fo_fw)
         else:
             logging.error('invalid object type: {} -> {}'.format(type(fo_fw), fo_fw))
+            return
+        self.release_unpacking_lock(fo_fw.uid)
 
     def update_object(self, new_object=None, old_object=None):
         update_dictionary = {

@@ -33,7 +33,7 @@ class YaraBasePlugin(AnalysisBasePlugin):
                 result = self._parse_yara_output(output)
                 file_object.processed_analysis[self.NAME] = result
                 file_object.processed_analysis[self.NAME]['summary'] = list(result.keys())
-            except AssertionError:
+            except ValueError:
                 file_object.processed_analysis[self.NAME] = {'ERROR': 'Processing corrupted. Likely bad call to yara.'}
         else:
             file_object.processed_analysis[self.NAME] = {'ERROR': 'Signature path not set'}
@@ -73,13 +73,16 @@ class YaraBasePlugin(AnalysisBasePlugin):
         rule_regex = re.compile(r'(.*)\s\[(.*)\]\s([\.\.\/]|[\/]|[\.\/])(.+)')
         rules = rule_regex.findall(output)
 
-        assert len(match_blocks) == len(rules)
+        if not len(match_blocks) == len(rules):
+            raise ValueError()
         return match_blocks, rules
 
     def _append_match_to_result(self, match, resulting_matches, rule):
-        assert len(rule) == 4
+        if not len(rule) == 4:
+            raise ValueError()
         rule_name, meta_string, _, _ = rule
-        assert len(match) == 4
+        if not len(match) == 4:
+            raise ValueError()
         _, offset, matched_tag, matched_string = match
 
         meta_dict = self._parse_meta_data(meta_string)

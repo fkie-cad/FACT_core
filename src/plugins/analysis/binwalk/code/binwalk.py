@@ -14,7 +14,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
     NAME = 'binwalk'
     DESCRIPTION = 'binwalk signature and entropy analysis'
     DEPENDENCIES = []
-    VERSION = '0.5.1'
+    MIME_BLACKLIST = ['audio', 'image', 'video']
+    VERSION = '0.5.2'
 
     def __init__(self, plugin_administrator, config=None, recursive=True):
         self.config = config

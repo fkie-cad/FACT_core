@@ -15,7 +15,7 @@
                     <th>Download</th>
                 </tr>
                 {% for key in firmware.processed_analysis[selected_analysis] | sort %}
-                    {% if key not in ['summary', 'plugin_version', 'analysis_date'] %}
+                    {% if key not in ['summary', 'plugin_version', 'analysis_date', 'skipped'] %}
                         {% for expression_result in firmware.processed_analysis[selected_analysis][key] %}
                             {% set expression_id = expression_result['id'] %}
                             <tr>

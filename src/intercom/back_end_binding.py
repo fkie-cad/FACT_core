@@ -99,8 +99,8 @@ class InterComBackEndAnalysisPlugInsPublisher(InterComMongoInterface):
         self.client.close()
 
     def publish_available_analysis_plugins(self, analysis_service):
-        available_plugins_dictonary = analysis_service.get_plugin_dict()
-        overwrite_file(self.connections['analysis_plugins']['fs'], "plugin_dictonary", pickle.dumps(available_plugins_dictonary))
+        available_plugin_dictionary = analysis_service.get_plugin_dict()
+        overwrite_file(self.connections['analysis_plugins']['fs'], "plugin_dictonary", pickle.dumps(available_plugin_dictionary))
 
 
 class InterComBackEndAnalysisTask(InterComListener):
@@ -182,11 +182,14 @@ class InterComBackEndDeleteFile(InterComListener):
         if self._entry_was_removed_from_db(task['_id']):
             logging.info('remove file: {}'.format(task['_id']))
             self.fs_organizer.delete_file(task['_id'])
-        else:
-            logging.warning('file not removed, because database entry exists: {}'.format(task['_id']))
         return None
 
     def _entry_was_removed_from_db(self, uid):
         with ConnectTo(MongoInterfaceCommon, self.config) as db:
-            entry_is_in_database = db.existence_quick_check(uid)
-        return not entry_is_in_database
+            if db.existence_quick_check(uid):
+                logging.debug('file not removed, because database entry exists: {}'.format(uid))
+                return False
+            elif db.check_unpacking_lock(uid):
+                logging.debug('file not removed, because it is processed by unpacker: {}'.format(uid))
+                return False
+        return True

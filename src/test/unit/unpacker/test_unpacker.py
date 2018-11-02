@@ -7,7 +7,7 @@ import unittest
 from helperFunctions.dataConversion import make_list_from_dict
 from helperFunctions.fileSystem import get_test_data_dir
 from objects.file import FileObject
-from test.common_helper import create_test_file_object
+from test.common_helper import create_test_file_object, DatabaseMock
 from unpacker.unpack import Unpacker
 
 
@@ -21,7 +21,7 @@ class TestUnpackerBase(unittest.TestCase):
         config.set('unpack', 'max_depth', '3')
         config.set('unpack', 'whitelist', 'text/plain, image/png')
         config.add_section('ExpertSettings')
-        self.unpacker = Unpacker(config=config)
+        self.unpacker = Unpacker(config=config, db_interface=DatabaseMock())
         self.tmp_dir = TemporaryDirectory(prefix='faf_tests_')
         self.test_fo = create_test_file_object()
 
@@ -134,6 +134,12 @@ class TestUnpackerCore(TestUnpackerBase):
         self.unpacker._detect_unpack_loss(container, [included_file])
         self.assertIn('no data lost', container.processed_analysis['unpacker']['summary'])
         self.assertNotIn('data loss', container.processed_analysis['unpacker'])
+
+    def test_file_is_locked(self):
+        assert not self.unpacker.db_interface.check_unpacking_lock(self.test_fo.uid)
+        file_paths = ['{}/get_files_test/testfile1'.format(get_test_data_dir())]
+        self.unpacker.generate_and_store_file_objects(file_paths, get_test_data_dir(), self.test_fo)
+        assert self.unpacker.db_interface.check_unpacking_lock(self.test_fo.uid)
 
 
 class TestUnpackerCoreMain(TestUnpackerBase):
