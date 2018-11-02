@@ -6,7 +6,7 @@ from pathlib import Path
 from common_helper_process import execute_shell_command_get_return_code
 
 from compile_yara_signatures import main as compile_signatures
-from helperFunctions.install import apt_remove_packages, apt_install_packages, InstallationError, pip_install_packages, \
+from helperFunctions.install import apt_remove_packages, apt_install_packages, InstallationError, pip3_install_packages, \
     install_github_project, pip2_install_packages, pip2_remove_packages, check_string_in_command, OperateInDirectory, load_main_config
 
 
@@ -15,7 +15,7 @@ def main(distribution):
     apt_install_packages('python-dev', 'python-setuptools')
     apt_install_packages('libjpeg-dev', 'liblzma-dev', 'liblzo2-dev', 'zlib1g-dev')
     apt_install_packages('libssl-dev python3-tk')
-    pip_install_packages('pluginbase', 'Pillow', 'cryptography', 'pyopenssl', 'entropy', 'matplotlib')
+    pip3_install_packages('pluginbase', 'Pillow', 'cryptography', 'pyopenssl', 'entropy', 'matplotlib')
 
     apt_install_packages('python-pip')
     # removes due to compatibilty reasons
@@ -30,10 +30,10 @@ def main(distribution):
     _install_unpacker(distribution == 'xenial')
 
     # installing common code modules
-    pip_install_packages('git+https://github.com/fkie-cad/common_helper_process.git')
-    pip_install_packages('git+https://github.com/fkie-cad/common_helper_yara.git')
-    pip_install_packages('git+https://github.com/fkie-cad/common_helper_unpacking_classifier.git')
-    pip_install_packages('git+https://github.com/mass-project/common_analysis_base.git')
+    pip3_install_packages('git+https://github.com/fkie-cad/common_helper_process.git')
+    pip3_install_packages('git+https://github.com/fkie-cad/common_helper_yara.git')
+    pip3_install_packages('git+https://github.com/fkie-cad/common_helper_unpacking_classifier.git')
+    pip3_install_packages('git+https://github.com/mass-project/common_analysis_base.git')
 
     # install plug-in dependencies
     _install_plugins()
@@ -109,13 +109,13 @@ def _install_unpacker(xenial):
                          'gzip', 'bzip2', 'tar', 'arj', 'lhasa', 'cabextract', 'cramfsswap', 'squashfs-tools',
                          'zlib1g-dev', 'liblzma-dev', 'liblzo2-dev', 'liblzo2-dev', 'xvfb')
     apt_install_packages('libcapstone3', 'libcapstone-dev')
-    pip_install_packages('pyqtgraph', 'capstone', 'cstruct', 'python-lzo', 'numpy', 'scipy')
+    pip3_install_packages('pyqtgraph', 'capstone', 'cstruct', 'python-lzo', 'numpy', 'scipy')
     install_github_project('sviehb/jefferson', ['sudo python3 setup.py install'])
     _install_stuffit()
     install_github_project('devttys0/binwalk', ['sudo python3 setup.py install --force'])
     # patool and unpacking backends
     pip2_install_packages('patool')
-    pip_install_packages('patool')
+    pip3_install_packages('patool')
     apt_install_packages('openjdk-8-jdk')
     if xenial:
         apt_install_packages('zoo')

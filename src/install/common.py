@@ -6,7 +6,7 @@ from pathlib import Path
 from common_helper_process import execute_shell_command_get_return_code
 
 from helperFunctions.install import apt_remove_packages, apt_install_packages, apt_upgrade_system, apt_update_sources, \
-    apt_autoremove_packages, apt_clean_system, InstallationError, pip_install_packages, install_github_project, \
+    apt_autoremove_packages, apt_clean_system, InstallationError, pip3_install_packages, install_github_project, \
     OperateInDirectory
 
 
@@ -41,7 +41,7 @@ def main(distribution):
     # install python3 and general build stuff
     apt_install_packages('python3', 'python3-dev', 'build-essential', 'automake', 'autoconf', 'libtool', 'git', 'unzip')
     if not xenial:
-        pip_install_packages('testresources')
+        pip3_install_packages('testresources')
 
     # get a bugfree recent pip version
     apt_remove_packages('python3-pip', 'python3-setuptools', 'python3-wheel')
@@ -57,13 +57,13 @@ def main(distribution):
     # install general python dependencys
     apt_install_packages('libmagic-dev')
     apt_install_packages('libffi-dev', 'libfuzzy-dev')
-    pip_install_packages('psutil')
-    pip_install_packages('pytest==3.5.1', 'pytest-cov', 'pytest-pep8', 'pylint', 'python-magic', 'xmltodict', 'yara-python==3.7.0', 'appdirs')
-    pip_install_packages('ssdeep')
-    pip_install_packages('lief')
+    pip3_install_packages('psutil')
+    pip3_install_packages('pytest==3.5.1', 'pytest-cov', 'pytest-pep8', 'pylint', 'python-magic', 'xmltodict', 'yara-python==3.7.0', 'appdirs')
+    pip3_install_packages('ssdeep')
+    pip3_install_packages('lief')
 
     # install python mongo bindings
-    pip_install_packages('pymongo', 'pyyaml')
+    pip3_install_packages('pymongo', 'pyyaml')
 
     # VarietyJS (is executed by update_statistic.py)
     try:
@@ -74,11 +74,11 @@ def main(distribution):
         logging.warning('variety spec not overwritten')
 
     #  installing common code modules
-    pip_install_packages('hurry.filesize')
-    pip_install_packages('git+https://github.com/fkie-cad/common_helper_files.git')
-    pip_install_packages('git+https://github.com/fkie-cad/common_helper_mongo.git')
-    pip_install_packages('git+https://github.com/mass-project/common_helper_encoder.git')
-    pip_install_packages('git+https://github.com/fkie-cad/common_helper_filter.git')
+    pip3_install_packages('hurry.filesize')
+    pip3_install_packages('git+https://github.com/fkie-cad/common_helper_files.git')
+    pip3_install_packages('git+https://github.com/fkie-cad/common_helper_mongo.git')
+    pip3_install_packages('git+https://github.com/mass-project/common_helper_encoder.git')
+    pip3_install_packages('git+https://github.com/fkie-cad/common_helper_filter.git')
 
     with OperateInDirectory('../../'):
         with suppress(FileNotFoundError):

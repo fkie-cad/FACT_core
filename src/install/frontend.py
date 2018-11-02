@@ -6,7 +6,7 @@ from pathlib import Path
 
 from common_helper_process import execute_shell_command_get_return_code
 
-from helperFunctions.install import OperateInDirectory, pip_install_packages, InstallationError, \
+from helperFunctions.install import OperateInDirectory, pip3_install_packages, InstallationError, \
     check_if_command_in_path, load_main_config, apt_install_packages
 
 DEFAULT_CERT = '.\n.\n.\n.\n.\nexample.com\n.\n\n\n'
@@ -79,7 +79,7 @@ def configure_nginx():
 
 
 def main(radare, nginx):
-    pip_install_packages('flask', 'flask_restful', 'flask_security', 'flask_sqlalchemy', 'flask-paginate', 'Flask-API', 'uwsgi', 'bcrypt', 'python-dateutil')
+    pip3_install_packages('flask', 'flask_restful', 'flask_security', 'flask_sqlalchemy', 'flask-paginate', 'Flask-API', 'uwsgi', 'bcrypt', 'python-dateutil')
 
     # installing web/js-frameworks
     with OperateInDirectory('../web_interface/static'):
