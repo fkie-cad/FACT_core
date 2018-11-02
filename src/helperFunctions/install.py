@@ -25,7 +25,17 @@ class OperateInDirectory():
     def __exit__(self, *args):
         os.chdir(self._current_working_dir)
         if self._remove:
-            shutil.rmtree(self._target_directory)
+            self._remove_folder(self._target_directory)
+
+    @staticmethod
+    def _remove_folder(folder_name):
+        try:
+            shutil.rmtree(folder_name)
+        except PermissionError:
+            logging.debug('Falling back on root permission for deleting {}'.format(folder_name))
+            execute_shell_command_get_return_code('sudo rm -rf {}'.format(folder_name))
+        except Exception as exception:
+            raise InstallationError(exception)
 
 
 def log_current_packages(packages, install=True):
@@ -33,80 +43,65 @@ def log_current_packages(packages, install=True):
     logging.info('{} {}'.format(action, ' '.join(packages)))
 
 
-def apt_update_sources():
-    output, return_code = execute_shell_command_get_return_code('sudo apt-get update')
+def run_shell_command_raise_on_return_code(command: str, error: str, add_output_on_error=False) -> str:
+    output, return_code = execute_shell_command_get_return_code(command)
     if return_code != 0:
-        raise InstallationError('Unable to update repository sources. Check network.')
+        if add_output_on_error:
+            error = '{}\n{}'.format(error, output)
+        raise InstallationError(error)
     return output
+
+
+def apt_update_sources():
+    return run_shell_command_raise_on_return_code('sudo apt-get update', 'Unable to update repository sources. Check network.')
 
 
 def apt_upgrade_system():
-    output, return_code = execute_shell_command_get_return_code('sudo apt-get upgrade -y')
-    if return_code != 0:
-        raise InstallationError('Unable to upgrade packages: \n{}'.format(output))
-    return output
+    return run_shell_command_raise_on_return_code('sudo apt-get upgrade -y', 'Unable to upgrade packages:', True)
 
 
 def apt_autoremove_packages():
-    output, return_code = execute_shell_command_get_return_code('sudo apt-get autoremove -y')
-    if return_code != 0:
-        raise InstallationError('Automatic removal of packages failed:\n{}'.format(output))
-    return output
+    return run_shell_command_raise_on_return_code('sudo apt-get autoremove -y', 'Automatic removal of packages failed:', True)
 
 
 def apt_clean_system():
-    output, return_code = execute_shell_command_get_return_code('sudo apt-get clean')
-    if return_code != 0:
-        raise InstallationError('Cleaning of package files failed:\n{}'.format(output))
-    return output
+    return run_shell_command_raise_on_return_code('sudo apt-get clean', 'Cleaning of package files failed:', True)
 
 
 def apt_install_packages(*args):
     log_current_packages(args)
-    output, return_code = execute_shell_command_get_return_code('sudo apt-get install -y {}'.format(' '.join(args)))
-    if return_code != 0:
-        raise InstallationError('Error in installation of package(s) {}\n{}'.format(' '.join(args), output))
-    return output
+    return run_shell_command_raise_on_return_code('sudo apt-get install -y {}'.format(' '.join(args)), 'Error in installation of package(s) {}'.format(' '.join(args)), True)
 
 
 def apt_remove_packages(*args):
     log_current_packages(args, install=False)
-    output, return_code = execute_shell_command_get_return_code('sudo apt-get remove -y {}'.format(' '.join(args)))
-    if return_code != 0:
-        raise InstallationError('Error in removal of package(s) {}\n{}'.format(' '.join(args), output))
-    return output
+    return run_shell_command_raise_on_return_code('sudo apt-get remove -y {}'.format(' '.join(args)), 'Error in removal of package(s) {}'.format(' '.join(args)), True)
 
 
-def pip_install_packages(*args):
+def _pip_install_packages(version, *args):
     log_current_packages(args)
-    output, return_code = execute_shell_command_get_return_code('sudo -EH pip3 install --upgrade {}'.format(' '.join(args)))
-    if return_code != 0:
-        raise InstallationError('Error in installation of python package(s) {}\n{}'.format(' '.join(args), output))
-    return output
+    return run_shell_command_raise_on_return_code('sudo -EH pip{} install --upgrade {}'.format(version, ' '.join(args)), 'Error in installation of python package(s) {}'.format(' '.join(args)), True)
 
 
-def pip_remove_packages(*args):
+def _pip_remove_packages(version, *args):
     log_current_packages(args, install=False)
-    output, return_code = execute_shell_command_get_return_code('sudo -EH pip3 uninstall {}'.format(' '.join(args)))
-    if return_code != 0:
-        raise InstallationError('Error in removal of python package(s) {}\n{}'.format(' '.join(args), output))
-    return output
+    return run_shell_command_raise_on_return_code('sudo -EH pip{} uninstall {}'.format(version, ' '.join(args)), 'Error in removal of python package(s) {}'.format(' '.join(args)), True)
+
+
+def pip3_install_packages(*args):
+    return _pip_install_packages(3, args)
+
+
+def pip3_remove_packages(*args):
+    return _pip_remove_packages(3, args)
 
 
 def pip2_install_packages(*args):
-    log_current_packages(args)
-    output, return_code = execute_shell_command_get_return_code('sudo -EH pip2 install --upgrade {}'.format(' '.join(args)))
-    if return_code != 0:
-        raise InstallationError('Error in installation of python package(s) {}\n{}'.format(' '.join(args), output))
-    return output
+    return _pip_install_packages(2, args)
 
 
 def pip2_remove_packages(*args):
-    log_current_packages(args, install=False)
-    output, return_code = execute_shell_command_get_return_code('sudo -EH pip2 uninstall {}'.format(' '.join(args)))
-    if return_code != 0:
-        raise InstallationError('Error in removal of python package(s) {}\n{}'.format(' '.join(args), output))
-    return output
+    return _pip_remove_packages(2, args)
 
 
 def check_if_command_in_path(command):
@@ -114,10 +109,6 @@ def check_if_command_in_path(command):
     if return_code != 0:
         return False
     return True
-
-
-def check_if_executable_in_bin_folder(executable_name):
-    pass
 
 
 def check_string_in_command(command, target_string):
@@ -132,14 +123,14 @@ def install_github_project(project_path: str, commands: List[str]):
     folder_name = Path(project_path).name
     _checkout_github_project(project_path, folder_name)
 
-    error = None
-    for command in commands:
-        output, return_code = execute_shell_command_get_return_code(command)
-        if return_code != 0:
-            error = 'Error while processing github project {}!\n{}'.format(project_path, output)
-            break
+    with OperateInDirectory(folder_name, remove=True):
+        error = None
+        for command in commands:
+            output, return_code = execute_shell_command_get_return_code(command)
+            if return_code != 0:
+                error = 'Error while processing github project {}!\n{}'.format(project_path, output)
+                break
 
-    _remove_repo_folder(folder_name)
     if error:
         raise InstallationError(error)
 
@@ -151,24 +142,11 @@ def _checkout_github_project(github_path, folder_name):
         raise InstallationError('Cloning from github failed for project {}\n {}'.format(github_path, clone_url))
     if not Path('.', folder_name).exists():
         raise InstallationError('Repository creation failed on folder {}\n {}'.format(folder_name, clone_url))
-    os.chdir(folder_name)
-
-
-# TODO Combine with OperateInDirectory
-def _remove_repo_folder(folder_name):
-    try:
-        os.chdir('..')
-        shutil.rmtree(folder_name)
-    except PermissionError:
-        logging.debug('Falling back on root permission for deleting {}'.format(folder_name))
-        execute_shell_command_get_return_code('sudo rm -rf {}'.format(folder_name))
-    except Exception as exception:
-        raise InstallationError(exception)
 
 
 def load_main_config():
     config = configparser.ConfigParser()
-    config_path = Path('..', 'config', 'main.cfg')
+    config_path = Path(__file__, '..', 'config', 'main.cfg')
     if not config_path.is_file():
         raise InstallationError('Could not load config at path {}'.format(config_path))
     config.read(str(config_path))
