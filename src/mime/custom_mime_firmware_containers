@@ -1,5 +1,9 @@
 # ====================== firmware container ======================
 
+# ---- Dahua Container ----
+0	string DH\003\004				dahua firmware image
+!:mime	firmware/dahua
+
 # ---- ROS Container ----
 24	string	\x50\x41\x43\x4b	ROS Container
 !:mime	firmware/ros
