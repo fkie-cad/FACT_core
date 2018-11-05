@@ -6,7 +6,7 @@ echo "------------------------------------"
 echo "        install uefi parser         "
 echo "------------------------------------"
 
-cd ../../../bootstrap
+cd ../../../install
 
 git clone https://github.com/theopolis/uefi-firmware-parser.git
 cd uefi-firmware-parser
