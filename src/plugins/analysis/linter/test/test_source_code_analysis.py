@@ -57,11 +57,16 @@ def test_determine_script_type_shebang(shebang_and_type, stub_plugin, test_objec
     ('.py', 'python'),
     ('.sh', 'shell')
 ])
-def test_determine_script_type_shebang(ending_and_type, stub_plugin, test_object):
+def test_determine_script_type_ending(ending_and_type, stub_plugin, test_object):
     ending, script_type = ending_and_type
     test_object.file_name = test_object.file_name + ending
 
     assert stub_plugin._determine_script_type(test_object) == script_type
+
+
+def test_determine_script_type_raises(stub_plugin, test_object):
+    with pytest.raises(NotImplementedError):
+        stub_plugin._determine_script_type(test_object)
 
 
 # script_file = NamedTemporaryFile()
