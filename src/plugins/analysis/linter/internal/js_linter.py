@@ -14,34 +14,30 @@ class JavaScriptLinter:
         linter_output = execute_shell_command('jshint --config={} --verbose {}'.format(CONFIG_FILE_PATH, file_path))
         return self._parse_linter_output(linter_output)
 
-    def _parse_linter_output(self, output):
-        res = {}
-        for line in output.splitlines()[:-2]:
-            extract_error_code = line[-6:].strip()
-            line = line[:-6].rstrip()
-            extract_message = line.split('. ')[0].split(':')[1].split(',')[2].strip()
-            extract_line = line.split('. ')[0].split(':')[1].split(',')[0].split()[1].strip()
-            extract_message = self._remove_noise_from_message(extract_message).strip()
-            temp_res = '@{}: {} {}'.format(extract_line, extract_message, extract_error_code)
-            if extract_message in res:
-                res[extract_message] = res[extract_message] + [temp_res]
-            else:
-                res[extract_message] = [temp_res]
-        return {'full': res, 'summary': list(res.keys())}
+    def _parse_linter_output(self, output):  # throws TypeError on bad line
+        issues = []
+        for message in output.splitlines()[:-2]:
+            remaining_line, issue_code = self._strip_file_path_and_extract_code(message)
 
-    def _remove_noise_from_message(self, extract_message):
-        extract_message = self._replace_noise(extract_message, r'\s\'.{0,3}\'.$', replacement='.')
-        extract_message = self._replace_noise(extract_message, r'\s"\b[a-zA-Z\s_0-9]*\b"')
-        extract_message = self._replace_noise(extract_message, r'\s\'\b[a-zA-Z\s_0-9]*\b\'')
-        extract_message = self._replace_noise(extract_message, r'"\b[a-zA-Z\s_0-9]*\b"')
-        extract_message = self._replace_noise(extract_message, r'\'\b[a-zA-Z\s_0-9]*\b\'')
-        extract_message = self._replace_noise(extract_message, r'on line', group_expression=r'\son\sline\s[0-9]*')
-        extract_message = self._replace_noise(extract_message, r'\'\$?[a-zA-Z0-9]*\'')
-        return extract_message
+            remaining_line, line_number, column = self._extract_line_and_column(remaining_line)
+
+            issues.append(dict(line=line_number, column=column, symbol=issue_code, message=remaining_line))
+
+        return {'full': issues, 'summary': list(set(issue['symbol'] for issue in issues))}
 
     @staticmethod
-    def _replace_noise(extract_message, search_expression, group_expression=None, replacement=''):
-        if re.search(search_expression, extract_message):
-            remove_var_name = re.search(group_expression if group_expression else search_expression, extract_message).group(0)
-            extract_message = extract_message.replace(remove_var_name, replacement)
-        return extract_message
+    def _strip_file_path_and_extract_code(line):
+        colon_separated = line.split(':')
+        line_without_path = ':'.join(colon_separated[1:])
+
+        split_by_message_end = line_without_path.split('. ')
+        line_without_path_and_code = '. '.join(split_by_message_end[:-1])
+
+        return line_without_path_and_code, split_by_message_end[-1].strip('() ')
+
+    @staticmethod
+    def _extract_line_and_column(line):
+        comma_separated = line.split(',')
+        line_number = comma_separated[0].strip()[5:]
+        column = comma_separated[1].strip()[4:]
+        return ','.join(comma_separated[2:]).strip(), int(line_number), int(column)

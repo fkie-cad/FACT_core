@@ -1,5 +1,5 @@
-from pathlib import Path
 import re
+from pathlib import Path
 
 from common_helper_process import execute_shell_command
 
@@ -26,11 +26,11 @@ class LuaLinter:
             line = splitter[1]
             error_code = splitter[3].split(')')[0].lstrip(' ') + ')'
             message = splitter[3].split(')')[1]
-            if re.search(r"\s'.*'", message) is not None:
-                remove_var_name = re.search(r"\s'.*'", message).group(0)
+            if re.search(r'\s\'.*\'', message) is not None:
+                remove_var_name = re.search(r'\s\'.*\'', message).group(0)
                 message = message.replace(remove_var_name, '')
-            if re.search(r"on line", message) is not None:
-                remove_line_in_msg = re.search(r"\son\sline\s[0-9]*", message).group(0)
+            if re.search(r'on line', message) is not None:
+                remove_line_in_msg = re.search(r'\son\sline\s[0-9]*', message).group(0)
                 message = message.replace(remove_line_in_msg, '')
             temp_res = '@{}: {} {}'.format(line, message, error_code)
             if message in res:

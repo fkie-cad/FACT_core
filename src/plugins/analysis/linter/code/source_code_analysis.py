@@ -23,6 +23,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
     This class implements the FACT wrapper for multiple linters including
     - shellcheck (shell)
     - pylint (python)
+    - jshint (javascript)
+    - lua (luacheck)
     '''
     NAME = 'source_code_analysis'
     DESCRIPTION = 'This plugin implements static code analysis for multiple scripting languages'
