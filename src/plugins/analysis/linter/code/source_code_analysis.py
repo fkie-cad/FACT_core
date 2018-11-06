@@ -5,13 +5,17 @@
 # TODO implement additional linters (ruby, perl, php)
 
 import logging
+import sys
+from pathlib import Path
 
 from analysis.PluginBase import AnalysisBasePlugin
 from objects.file import FileObject
-from ..interal.python_linter import PythonLinter
-from ..interal.shell_linter import ShellLinter
-from ..interal.js_linter import JavaScriptLinter
-from ..interal.lua_linter import LuaLinter
+
+sys.path.append(str(Path(Path(__file__).parent.parent, 'internal')))
+from python_linter import PythonLinter
+from shell_linter import ShellLinter
+from js_linter import JavaScriptLinter
+from lua_linter import LuaLinter
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
@@ -23,8 +27,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
     NAME = 'source_code_analysis'
     DESCRIPTION = 'This plugin implements static code analysis for multiple scripting languages'
     DEPENDENCIES = ['file_type']
-    VERSION = '0.2'
-    MIME_WHITELIST = ['text/*']
+    VERSION = '0.3'
+    MIME_WHITELIST = ['text/']
     SCRIPT_TYPES = {
         'shell': {'mime': 'shell', 'shebang': 'sh', 'ending': '.sh', 'linter': ShellLinter},
         'lua': {'mime': 'luascript', 'shebang': 'lua', 'ending': '.lua', 'linter': LuaLinter},

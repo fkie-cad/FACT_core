@@ -48,9 +48,10 @@ class ShellLinter:
                 level = warning['level']
                 message = warning['message']
                 temp_res = '@{}: {} {} ({})'.format(line, level, message, code)
-                if code not in result:
-                    result[code] = []
-                result[code] = result[code].append(temp_res)
+                if code in result and isinstance(result[code], list):
+                    result[code].append(temp_res)
+                else:
+                    result[code] = [temp_res, ]
         return result
 
     @staticmethod
