@@ -1,79 +1,17 @@
-# TODO: implement more linters!
-# TODO: Implement proper view
+# TODO Implement proper view
 # - group messages (+/-)
 # - colors (error in red, warnings in yellow)
-# FIXME: implement proper language detection of lua, python, js, ...
-# TODO/FIXME: implement proper language detection in the first place
-# abort shellcheck in case we encountered something strange aka lua, js, or something different
-# -> Fix any mentioned problems and try again. (1072)
-# -> Couldn't parse this function. (1073)
-# -> This { is literal. Check expression (missing ;/\\n?) or quote it. (1083)
-# -> Parsing stopped here. Is this keyword correctly matched up? (1089)
+# TODO implement proper language detection
+# TODO implement additional linters (ruby, perl, php)
 
-import json
 import logging
-
-from common_helper_process import execute_shell_command_get_return_code
 
 from analysis.PluginBase import AnalysisBasePlugin
 from objects.file import FileObject
-
-
-class ShellLinter:
-    '''
-    Wrapper for shellcheck shell linter
-    '''
-    def do_analysis(self, file_path):
-        shellcheck_command = 'shellcheck --format=json {}'.format(file_path)
-        linter_output, return_code = execute_shell_command_get_return_code(shellcheck_command)
-
-        if return_code == 2:
-            logging.debug('Could not communicate with shellcheck:\n{}'.format(linter_output))
-            return {'summary': []}
-        else:
-            shellcheck_warnings = self._parse_shellcheck_output(linter_output)
-            return {'full': shellcheck_warnings, 'summary': list(shellcheck_warnings.keys())}
-
-    def _parse_shellcheck_output(self, linter_output):
-        try:
-            shellcheck_json = json.loads(linter_output)
-        except json.JSONDecodeError:
-            return {'summary': [], 'failure': 'shellcheck output could not be parsed', 'output': linter_output}
-
-        result = self._extract_relevant_warnings(shellcheck_json)
-
-        if self._detect_filetype_mismatch:
-            return {}
-
-        return result
-
-    @staticmethod
-    def _extract_relevant_warnings(shellcheck_json):
-        result = {}
-        for warning in shellcheck_json:
-            # we do not care about style and code warnings
-            if warning['level'] == 'warning' or warning['level'] == 'error':
-                line = warning['line']
-                code = str(warning['code'])
-                level = warning['level']
-                message = warning['message']
-                temp_res = '@{}: {} {} ({})'.format(line, level, message, code)
-                if code not in result:
-                    result[code] = []
-                result[code] = result[code].append(temp_res)
-        return result
-
-    @staticmethod
-    def _detect_filetype_mismatch(result):
-        return ('1072' in result and '1073' in result) or ('1083' in result and '1089' in result)
-
-
-class PythonLinter:
-    '''
-    Wrapper for pylint python linter
-    '''
-    def do_analysis(self, file_path):
-        return {'summary': []}
+from ..interal.python_linter import PythonLinter
+from ..interal.shell_linter import ShellLinter
+from ..interal.js_linter import JavaScriptLinter
+from ..interal.lua_linter import LuaLinter
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
@@ -89,7 +27,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
     MIME_WHITELIST = ['text/*']
     SCRIPT_TYPES = {
         'shell': {'mime': 'shell', 'shebang': 'sh', 'ending': '.sh', 'linter': ShellLinter},
-        'python': {'mime': 'python', 'shebang': 'python', 'ending': '.py'}
+        'lua': {'mime': 'luascript', 'shebang': 'lua', 'ending': '.lua', 'linter': LuaLinter},
+        'javascript': {'mime': 'java', 'shebang': 'java', 'ending': '.js', 'linter': JavaScriptLinter},
+        'python': {'mime': 'python', 'shebang': 'python', 'ending': '.py', 'linter': PythonLinter}
     }
 
     def __init__(self, plugin_adminstrator, config=None, recursive=True, offline_testing=False):
@@ -120,8 +60,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def process_object(self, file_object):
         '''
-        This function handles only shell scripts. Otherwise it returns an empty dictionary.
-        It calls the external linter shellcheck.
+        After only receiving text files thanks to the whitelist, we try to detect the correct scripting language
+        and then call a linter if a supported language is detected
         '''
         try:
             script_type = self._determine_script_type(file_object)

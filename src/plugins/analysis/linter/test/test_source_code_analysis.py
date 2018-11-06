@@ -1,11 +1,8 @@
-from pathlib import Path
-
 import pytest
 
-from tempfile import NamedTemporaryFile
 from helperFunctions.config import get_config_for_testing
 from test.common_helper import create_test_file_object
-from ..code.source_code_analysis import AnalysisPlugin, ShellLinter, PythonLinter
+from ..code.source_code_analysis import AnalysisPlugin
 
 
 class MockAdmin:
@@ -24,7 +21,8 @@ def test_object():
 
 
 @pytest.fixture(scope='function')
-def stub_plugin(test_config):
+def stub_plugin(test_config, monkeypatch):
+    monkeypatch.setattr('plugins.base.BasePlugin._sync_view', lambda self, plugin_path: None)
     return AnalysisPlugin(MockAdmin(), test_config, offline_testing=True)
 
 
@@ -69,6 +67,14 @@ def test_determine_script_type_raises(stub_plugin, test_object):
         stub_plugin._determine_script_type(test_object)
 
 
-# script_file = NamedTemporaryFile()
-# script_path = Path(script_file.name)
-# script_path.write_text('import sys\nprint(\'Hello World\')sys.exit(0)')
+def test_process_object_not_supported(stub_plugin, test_object):
+    result = stub_plugin.process_object(test_object)
+    assert result.processed_analysis[stub_plugin.NAME] == {'summary': []}
+
+
+def test_process_object_this_file(stub_plugin):
+    test_file = create_test_file_object(bin_path=__file__)
+    stub_plugin.process_object(test_file)
+    result = test_file.processed_analysis[stub_plugin.NAME]
+    assert result['full']
+    assert result['full'][0]['type'] == 'warning'
