@@ -50,11 +50,11 @@ def check_relro(file_path, dict_res, dict_sum, readelf):
 
 def check_fortify(file_path, dict_res, dict_sum, readelf):
     if re.search(r'_chk', readelf):
-        dict_sum.update({'_FORTIFY_SOURCE enabled': file_path})
-        dict_res.update({'_FORTIFY_SOURCE': 'enabled'})
+        dict_sum.update({'FORTIFY_SOURCE enabled': file_path})
+        dict_res.update({'FORTIFY_SOURCE': 'enabled'})
     else:
-        dict_sum.update({'_FORTIFY_SOURCE disabled': file_path})
-        dict_res.update({'_FORTIFY_SOURCE': 'disabled'})
+        dict_sum.update({'FORTIFY_SOURCE disabled': file_path})
+        dict_res.update({'FORTIFY_SOURCE': 'disabled'})
 
 
 def check_pie(file_path, dict_res, dict_sum, readelf):

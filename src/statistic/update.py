@@ -111,8 +111,8 @@ class StatisticUpdater(object):
         self.append_nx_stats_to_result_dict(fortify_off, fortify_on, stats, total_amount_of_files)
 
     def extract_fortify_data_from_analysis(self, result):
-        fortify_on = self.extract_mitigation_from_list('_FORTIFY_SOURCE enabled', result)
-        fortify_off = self.extract_mitigation_from_list('_FORTIFY_SOURCE disabled', result)
+        fortify_on = self.extract_mitigation_from_list('FORTIFY_SOURCE enabled', result)
+        fortify_off = self.extract_mitigation_from_list('FORTIFY_SOURCE disabled', result)
         return fortify_off, fortify_on
 
     def get_stats_nx(self, result, stats):
