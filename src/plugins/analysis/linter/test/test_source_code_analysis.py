@@ -78,3 +78,11 @@ def test_process_object_this_file(stub_plugin):
     result = test_file.processed_analysis[stub_plugin.NAME]
     assert result['full']
     assert result['full'][0]['type'] == 'warning'
+
+
+def test_process_object_no_issues(stub_plugin, test_object, monkeypatch):
+    test_object.processed_analysis['file_type'] = {'full': 'anything containing python'}
+    monkeypatch.setattr('plugins.analysis.linter.code.source_code_analysis.PythonLinter.do_analysis', lambda self, file_path: list())
+    stub_plugin.process_object(test_object)
+    result = test_object.processed_analysis[stub_plugin.NAME]
+    assert 'full' not in result
