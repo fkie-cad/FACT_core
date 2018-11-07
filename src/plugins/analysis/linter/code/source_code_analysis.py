@@ -2,6 +2,7 @@
 # FIXME Add tests for other linter
 # TODO implement proper language detection
 # TODO implement additional linters (ruby, perl, php)
+# TODO Exceptions in linters are not necessarily handled yet
 
 import logging
 import sys
@@ -28,7 +29,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     NAME = 'source_code_analysis'
     DESCRIPTION = 'This plugin implements static code analysis for multiple scripting languages'
     DEPENDENCIES = ['file_type']
-    VERSION = '0.3'
+    VERSION = '0.4'
     MIME_WHITELIST = ['text/']
     SCRIPT_TYPES = {
         'shell': {'mime': 'shell', 'shebang': 'sh', 'ending': '.sh', 'linter': ShellLinter},

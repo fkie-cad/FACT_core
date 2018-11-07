@@ -1,3 +1,4 @@
+import logging
 import re
 from pathlib import Path
 
@@ -17,11 +18,12 @@ class JavaScriptLinter:
     def _parse_linter_output(self, output):  # throws TypeError on bad line
         issues = []
         for message in output.splitlines()[:-2]:
-            remaining_line, issue_code = self._strip_file_path_and_extract_code(message)
-
-            remaining_line, line_number, column = self._extract_line_and_column(remaining_line)
-
-            issues.append(dict(line=line_number, column=column, symbol=issue_code, message=remaining_line))
+            try:
+                remaining_line, issue_code = self._strip_file_path_and_extract_code(message)
+                remaining_line, line_number, column = self._extract_line_and_column(remaining_line)
+                issues.append(dict(line=line_number, column=column, symbol=issue_code, message=remaining_line))
+            except IndexError:
+                logging.debug('js linter caused error on line: {}'.format(message))
 
         return {'full': issues, 'summary': list(set(issue['symbol'] for issue in issues))}
 
