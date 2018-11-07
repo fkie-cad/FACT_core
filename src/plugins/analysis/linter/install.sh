@@ -8,6 +8,8 @@ sudo -EH apt-get install -y shellcheck
 
 echo " Installing lua linter ..."
 sudo apt-get install -y luarocks
+sudo luarocks install luafilesystem
+sudo luarocks install argparse
 sudo luarocks install luacheck
 
 echo " Installing python linter..."

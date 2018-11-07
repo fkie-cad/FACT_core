@@ -78,5 +78,6 @@ class AnalysisPlugin(AnalysisBasePlugin):
             if not issues:
                 file_object.processed_analysis[self.NAME] = {'summary': []}
             else:
-                file_object.processed_analysis[self.NAME] = {'full': issues, 'summary': ['Warnings in {} script'.format(script_type)]}
+                file_object.processed_analysis[self.NAME] = {'full': sorted(issues, key=lambda k: k['symbol']),
+                                                             'summary': ['Warnings in {} script'.format(script_type)]}
         return file_object
