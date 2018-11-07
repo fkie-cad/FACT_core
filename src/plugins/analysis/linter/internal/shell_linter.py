@@ -15,45 +15,31 @@ class ShellLinter:
     Wrapper for shellcheck shell linter
     '''
     def do_analysis(self, file_path):
-        shellcheck_command = 'shellcheck --format=json {}'.format(file_path)
-        linter_output, return_code = execute_shell_command_get_return_code(shellcheck_command)
+        linter_output, return_code = execute_shell_command_get_return_code('shellcheck --format=json {}'.format(file_path))
 
         if return_code == 2:
             logging.debug('Failed to execute shellcheck:\n{}'.format(linter_output))
             return {'summary': []}
 
-        return self._parse_shellcheck_output(linter_output)
-
-    def _parse_shellcheck_output(self, linter_output):
         try:
             shellcheck_json = json.loads(linter_output)
         except json.JSONDecodeError:
             return {'summary': [], 'failure': 'shellcheck output could not be parsed', 'output': linter_output}
 
-        result = self._extract_relevant_warnings(shellcheck_json)
+        issues = self._extract_relevant_warnings(shellcheck_json)
 
-        if self._detect_filetype_mismatch:
-            return {}
-
-        return {'full': result, 'summary': list(result.keys())}
+        return {'summary': list(set(issue['symbol'] for issue in issues)), 'full': issues}
 
     @staticmethod
     def _extract_relevant_warnings(shellcheck_json):
-        result = {}
-        for warning in shellcheck_json:
-            # we do not care about style and code warnings
-            if warning['level'] == 'warning' or warning['level'] == 'error':
-                line = warning['line']
-                code = str(warning['code'])
-                level = warning['level']
-                message = warning['message']
-                temp_res = '@{}: {} {} ({})'.format(line, level, message, code)
-                if code in result and isinstance(result[code], list):
-                    result[code].append(temp_res)
-                else:
-                    result[code] = [temp_res, ]
-        return result
-
-    @staticmethod
-    def _detect_filetype_mismatch(result):
-        return ('1072' in result and '1073' in result) or ('1083' in result and '1089' in result)
+        issues = list()
+        for issue in shellcheck_json:
+            if issue['level'] in ['warning', 'error']:
+                issues.append({
+                    'type': issue['level'],
+                    'line': issue['line'],
+                    'column': issue['column'],
+                    'symbol': str(issue['code']),
+                    'message': issue['message']
+                })
+        return issues

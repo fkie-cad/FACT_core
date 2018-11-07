@@ -1,6 +1,5 @@
-# TODO Implement proper view
-# - group messages (+/-)
-# - colors (error in red, warnings in yellow)
+# FIXME Implement proper view
+# FIXME Add tests for other linter
 # TODO implement proper language detection
 # TODO implement additional linters (ruby, perl, php)
 

@@ -14,27 +14,34 @@ class LuaLinter:
         linter_output = execute_shell_command("luacheck -q --ranges --config  {} {}".format(CONFIG_FILE_PATH, file_path))
         return self._parse_linter_output(linter_output)
 
-    @staticmethod
-    def _parse_linter_output(output):
+    def _parse_linter_output(self, output):
         '''
         https://luacheck.readthedocs.io/en/stable/warnings.html
         ignore_cases = ['(W611)', '(W612)', '(W613)', '(W614)', '(W621)', '(W631)']
         '''
-        res = {}
+        issues = list()
         for line in output.splitlines():
-            splitter = line.split(':')
-            line = splitter[1]
-            error_code = splitter[3].split(')')[0].lstrip(' ') + ')'
-            message = splitter[3].split(')')[1]
-            if re.search(r'\s\'.*\'', message) is not None:
-                remove_var_name = re.search(r'\s\'.*\'', message).group(0)
-                message = message.replace(remove_var_name, '')
-            if re.search(r'on line', message) is not None:
-                remove_line_in_msg = re.search(r'\son\sline\s[0-9]*', message).group(0)
-                message = message.replace(remove_line_in_msg, '')
-            temp_res = '@{}: {} {}'.format(line, message, error_code)
-            if message in res:
-                res[message] = res[message] + [temp_res]
-            else:
-                res[message] = [temp_res]
-        return {'full': res, 'summary': list(res.keys())}
+            line_number, columns, code_and_message = self._split_issue_line(line)
+            code, message = self._separate_message_and_code(code_and_message)
+
+            issues.append({
+                'line': int(line_number),
+                'column': self._get_first_column(columns),
+                'symbol': code,
+                'message': message
+            })
+
+        return {'summary': list(set(issue['symbol'] for issue in issues)), 'full': issues}
+
+    @staticmethod
+    def _split_issue_line(line):
+        split_by_colon = line.split(':')
+        return split_by_colon[1], split_by_colon[2], ':'.join(split_by_colon[3:]).strip()
+
+    @staticmethod
+    def _separate_message_and_code(message_string):
+        return message_string[1:5], message_string[6:].strip()
+
+    @staticmethod
+    def _get_first_column(columns):
+        return int(columns.split('-')[0])
