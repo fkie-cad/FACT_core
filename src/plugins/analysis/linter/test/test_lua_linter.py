@@ -3,7 +3,7 @@ import pytest
 from ..internal.lua_linter import LuaLinter
 
 MOCK_RESPONSE = '''/usr/share/nmap/nse_main.lua:88:7-12: (W211) unused variable 'select'
-/usr/share/nmap/nse_main.lua:140:11-14: (W431) shadowing upvalue 'type' on line 92
+/usr/share/nmap/nse_main.lua:140:11-14 (W431) shadowing upvalue 'type' on line 92
 /usr/share/nmap/nse_main.lua:204:9-14: (W421) shadowing definition of variable 'resume' on line 96
 /usr/share/nmap/nse_main.lua:285:44-44: (W432) shadowing upvalue argument 'a' on line 284
 /usr/share/nmap/nse_main.lua:476:16-21: (W113) accessing undefined variable 'action'
@@ -31,3 +31,19 @@ def test_do_analysis(stub_linter, monkeypatch):
         'column': 7,
         'symbol': 'W211'
     }
+
+
+def test_bad_lines(stub_linter, monkeypatch):
+    bad_lines = MOCK_RESPONSE[0:2].replace(':', ' ')
+    monkeypatch.setattr('plugins.analysis.linter.internal.lua_linter.execute_shell_command', lambda command: bad_lines)
+    result = stub_linter.do_analysis('any/path')
+    assert 'full' in result
+    assert len(result['full']) == 0
+
+
+def test_skip_w6xy(stub_linter, monkeypatch):
+    w6xy = MOCK_RESPONSE[0:1].replace('W211', 'W631')
+    monkeypatch.setattr('plugins.analysis.linter.internal.lua_linter.execute_shell_command', lambda command: w6xy)
+    result = stub_linter.do_analysis('any/path')
+    assert 'full' in result
+    assert len(result['full']) == 0

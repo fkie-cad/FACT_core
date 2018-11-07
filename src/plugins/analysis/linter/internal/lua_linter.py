@@ -1,6 +1,5 @@
-import re
 from pathlib import Path
-
+import logging
 from common_helper_process import execute_shell_command
 
 CONFIG_FILE_PATH = Path(Path(__file__).parent, 'config', '.luacheckrc')
@@ -21,17 +20,22 @@ class LuaLinter:
         '''
         issues = list()
         for line in output.splitlines():
-            line_number, columns, code_and_message = self._split_issue_line(line)
-            code, message = self._separate_message_and_code(code_and_message)
+            try:
+                line_number, columns, code_and_message = self._split_issue_line(line)
+                code, message = self._separate_message_and_code(code_and_message)
+                if not code.startswith('(W6'):
+                    issues.append({
+                        'line': int(line_number),
+                        'column': self._get_first_column(columns),
+                        'symbol': code,
+                        'message': message
+                    })
+                else:
+                    pass
+            except (IndexError, ValueError) as e:
+                logging.warning('Lualinter failed to parse line: {}\n{}'.format(line, e))
 
-            issues.append({
-                'line': int(line_number),
-                'column': self._get_first_column(columns),
-                'symbol': code,
-                'message': message
-            })
-
-        return {'summary': list(set(issue['symbol'] for issue in issues)), 'full': issues}
+        return issues
 
     @staticmethod
     def _split_issue_line(line):
