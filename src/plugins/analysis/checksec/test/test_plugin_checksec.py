@@ -95,14 +95,14 @@ class TestAnalysisPluginChecksec(AnalysisPluginTest):
         resD, sumD = {}, {}
         readelf = ' 00000021fc70  000500000007 R_X86_64_JUMP_SLO 0000000000000000 __snprintf_chk@GLIBC_2.3.4 + 0'
         check_fortify(FILE_PATH, resD, sumD, readelf)
-        self.assertEqual(resD, {'_FORTIFY_SOURCE': 'enabled'})
-        self.assertEqual(sumD, {'_FORTIFY_SOURCE enabled': 'usr/test_dir/path'})
+        self.assertEqual(resD, {'FORTIFY_SOURCE': 'enabled'})
+        self.assertEqual(sumD, {'FORTIFY_SOURCE enabled': 'usr/test_dir/path'})
 
         resD, sumD = {}, {}
         readelf = ' 00000021ff68  006900000007 R_X86_64_JUMP_SLO 0000000000000000 gethostname@GLIBC_2.2.5 + 0'
         check_fortify(FILE_PATH, resD, sumD, readelf)
-        self.assertEqual(resD, {'_FORTIFY_SOURCE': 'disabled'})
-        self.assertEqual(sumD, {'_FORTIFY_SOURCE disabled': 'usr/test_dir/path'})
+        self.assertEqual(resD, {'FORTIFY_SOURCE': 'disabled'})
+        self.assertEqual(sumD, {'FORTIFY_SOURCE disabled': 'usr/test_dir/path'})
 
     def test_check_mitigations(self):
         results = check_mitigations(FILE_PATH)
