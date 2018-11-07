@@ -80,12 +80,27 @@ def apt_remove_packages(*args):
 
 def _pip_install_packages(version, args):
     log_current_packages(args)
-    return run_shell_command_raise_on_return_code('sudo -EH pip{} install --upgrade {}'.format(version, ' '.join(args)), 'Error in installation of python package(s) {}'.format(' '.join(args)), True)
+    for packet in args:
+        try:
+            run_shell_command_raise_on_return_code('sudo -EH pip{} install --upgrade {}'.format(version, packet), 'Error in installation of python package {}'.format(packet), True)
+        except InstallationError as installation_error:
+            if 'is a distutils installed project' in str(installation_error):
+                logging.warning('Could not update python packet {}. Was not installed using pip originally'.format(packet))
+            else:
+                raise installation_error
 
 
 def _pip_remove_packages(version, args):
     log_current_packages(args, install=False)
-    return run_shell_command_raise_on_return_code('sudo -EH pip{} uninstall {}'.format(version, ' '.join(args)), 'Error in removal of python package(s) {}'.format(' '.join(args)), True)
+    for packet in args:
+        try:
+            run_shell_command_raise_on_return_code('sudo -EH pip{} uninstall {}'.format(version, packet),
+                                                   'Error in removal of python package {}'.format(packet), True)
+        except InstallationError as installation_error:
+            if 'is a distutils installed project' in str(installation_error):
+                logging.warning('Could not remove python packet {}. Was not installed using pip originally'.format(packet))
+            else:
+                raise installation_error
 
 
 def pip3_install_packages(*args):
