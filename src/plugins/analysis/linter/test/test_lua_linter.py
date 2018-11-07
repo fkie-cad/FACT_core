@@ -23,9 +23,9 @@ def stub_linter():
 def test_do_analysis(stub_linter, monkeypatch):
     monkeypatch.setattr('plugins.analysis.linter.internal.lua_linter.execute_shell_command', lambda command: MOCK_RESPONSE)
     result = stub_linter.do_analysis('any/path')
-    assert 'full' in result
-    assert len(result['full']) == 10
-    assert result['full'][0] == {
+    assert result
+    assert len(result) == 10
+    assert result[0] == {
         'message': 'unused variable \'select\'',
         'line': 88,
         'column': 7,
@@ -37,13 +37,11 @@ def test_bad_lines(stub_linter, monkeypatch):
     bad_lines = MOCK_RESPONSE[0:2].replace(':', ' ')
     monkeypatch.setattr('plugins.analysis.linter.internal.lua_linter.execute_shell_command', lambda command: bad_lines)
     result = stub_linter.do_analysis('any/path')
-    assert 'full' in result
-    assert len(result['full']) == 0
+    assert not result
 
 
 def test_skip_w6xy(stub_linter, monkeypatch):
     w6xy = MOCK_RESPONSE[0:1].replace('W211', 'W631')
     monkeypatch.setattr('plugins.analysis.linter.internal.lua_linter.execute_shell_command', lambda command: w6xy)
     result = stub_linter.do_analysis('any/path')
-    assert 'full' in result
-    assert len(result['full']) == 0
+    assert not result
