@@ -1,4 +1,0 @@
-1049c1049
-<   assert(page->size < 0x80000000);  // 2GB
----
->   assert(page->size < 0x90000000);  // Locally patched to allow > 2GB

@@ -206,6 +206,29 @@ class TestMongoInterface(unittest.TestCase):
         result = self.db_interface.get_file_object_number(query={'_id': self.test_fo.uid})
         self.assertEqual(result, 1)
 
+    def test_unpacking_lock(self):
+        first_uid, second_uid = 'id1', 'id2'
+        assert not self.db_interface.check_unpacking_lock(first_uid) and not self.db_interface.check_unpacking_lock(second_uid), 'locks should not be set at start'
+
+        self.db_interface.set_unpacking_lock(first_uid)
+        assert self.db_interface.check_unpacking_lock(first_uid), 'locks should have been set'
+
+        self.db_interface.set_unpacking_lock(second_uid)
+        assert self.db_interface.check_unpacking_lock(first_uid) and self.db_interface.check_unpacking_lock(second_uid), 'both locks should be set'
+
+        self.db_interface.release_unpacking_lock(first_uid)
+        assert not self.db_interface.check_unpacking_lock(first_uid) and self.db_interface.check_unpacking_lock(second_uid), 'lock 1 should be released, lock 2 not'
+
+        self.db_interface.drop_unpacking_locks()
+        assert not self.db_interface.check_unpacking_lock(second_uid), 'all locks should be dropped'
+
+    def test_lock_is_released(self):
+        self.db_interface.set_unpacking_lock(self.test_fo.uid)
+        assert self.db_interface.check_unpacking_lock(self.test_fo.uid), 'setting lock did not work'
+
+        self.db_interface_backend.add_object(self.test_fo)
+        assert not self.db_interface.check_unpacking_lock(self.test_fo.uid), 'add_object should release lock'
+
 
 class TestSummary(unittest.TestCase):
 
