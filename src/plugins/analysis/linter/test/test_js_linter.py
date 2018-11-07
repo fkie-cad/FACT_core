@@ -40,3 +40,10 @@ def test_do_analysis(stub_linter, monkeypatch):
         'column': 29,
         'symbol': 'W083'
     }
+
+
+def test_parse_linter_output_bad_line(stub_linter, monkeypatch):
+    bad_line = '/any/path: line1, col 37, Empty block. W035\n\n1 error\n'
+    monkeypatch.setattr('plugins.analysis.linter.internal.js_linter.execute_shell_command', lambda command: bad_line)
+    result = stub_linter.do_analysis('any/path')
+    assert not result

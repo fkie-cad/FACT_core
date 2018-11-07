@@ -1,8 +1,3 @@
-# TODO Implement proper view
-# TODO implement proper language detection
-# TODO implement additional linters (ruby, perl, php)
-# TODO Exceptions in linters are not necessarily handled yet
-
 import logging
 import sys
 from pathlib import Path
@@ -24,6 +19,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
     - pylint (python)
     - jshint (javascript)
     - lua (luacheck)
+    TODO Implement proper view
+    TODO implement proper language detection
+    TODO implement additional linters (ruby, perl, php)
     '''
     NAME = 'source_code_analysis'
     DESCRIPTION = 'This plugin implements static code analysis for multiple scripting languages'
