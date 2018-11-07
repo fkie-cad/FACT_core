@@ -1,5 +1,4 @@
-# FIXME Implement proper view
-# FIXME Add tests for other linter
+# TODO Implement proper view
 # TODO implement proper language detection
 # TODO implement additional linters (ruby, perl, php)
 # TODO Exceptions in linters are not necessarily handled yet
@@ -71,11 +70,13 @@ class AnalysisPlugin(AnalysisBasePlugin):
         '''
         try:
             script_type = self._determine_script_type(file_object)
-        except NotImplementedError:
-            logging.debug('[{}] {} is not a shell script.'.format(self.NAME, file_object.file_path))
+        except (NotImplementedError, UnicodeDecodeError):
+            logging.debug('[{}] {} is not a supported script.'.format(self.NAME, file_object.file_name))
             file_object.processed_analysis[self.NAME] = {'summary': []}
         else:
-            linter = self.SCRIPT_TYPES[script_type]['linter']()
-            report = linter.do_analysis(file_object.file_path)
-            file_object.processed_analysis[self.NAME] = report
+            issues = self.SCRIPT_TYPES[script_type]['linter']().do_analysis(file_object.file_path)
+            if not issues:
+                file_object.processed_analysis[self.NAME] = {'summary': []}
+            else:
+                file_object.processed_analysis[self.NAME] = {'full': issues, 'summary': ['Warnings in {} script'.format(script_type)]}
         return file_object

@@ -49,13 +49,11 @@ def test_do_analysis(stub_linter, monkeypatch):
     monkeypatch.setattr('plugins.analysis.linter.internal.shell_linter.execute_shell_command_get_return_code', lambda command: (MOCK_RESPONSE, 0))
     result = stub_linter.do_analysis('any/path')
 
-    assert 'full' in result
-    assert len(result['full']) == 2, 'info issue should be discarded'
+    assert result
+    assert len(result) == 2, 'info issue should be discarded'
 
-    issue = result['full'][0]
-
-    assert len(issue.keys()) == 5
-    assert issue['type'] == 'warning'
+    assert len(result[0].keys()) == 5
+    assert result[0]['type'] == 'warning'
 
 
 def test_do_analysis_bad_invokation(stub_linter, monkeypatch):

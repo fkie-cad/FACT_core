@@ -19,16 +19,14 @@ class ShellLinter:
 
         if return_code == 2:
             logging.debug('Failed to execute shellcheck:\n{}'.format(linter_output))
-            return {'summary': []}
+            return list()
 
         try:
             shellcheck_json = json.loads(linter_output)
         except json.JSONDecodeError:
-            return {'summary': [], 'failure': 'shellcheck output could not be parsed', 'output': linter_output}
+            return list()
 
-        issues = self._extract_relevant_warnings(shellcheck_json)
-
-        return {'summary': list(set(issue['symbol'] for issue in issues)), 'full': issues}
+        return self._extract_relevant_warnings(shellcheck_json)
 
     @staticmethod
     def _extract_relevant_warnings(shellcheck_json):

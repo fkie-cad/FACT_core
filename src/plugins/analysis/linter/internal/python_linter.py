@@ -14,11 +14,9 @@ class PythonLinter:
             pylint_json = json.loads(pylint_output)
         except json.JSONDecodeError:
             logging.warning('Failed to execute pylint:\n{}'.format(pylint_output))
-            return {'summary': []}
+            return list()
 
-        issues = self._extract_relevant_warnings(pylint_json)
-
-        return {'summary': list(set(issue['symbol'] for issue in issues)), 'full': issues}
+        return self._extract_relevant_warnings(pylint_json)
 
     @staticmethod
     def _extract_relevant_warnings(pylint_json):
