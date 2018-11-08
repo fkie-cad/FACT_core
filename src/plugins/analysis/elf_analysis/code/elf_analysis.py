@@ -64,9 +64,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
             print("Bad File, UID: ", file_object.get_uid())
             return elf_dict
 
+        # TODO make this an extra function
         for key in binary_json_dict:
             if key in ("header", "segments", "sections", "dynamic_entries", "exported_functions", "imported_functions"):
                 elf_dict[key] = binary_json_dict[key]
 
-        print(elf_dict)
         return elf_dict
