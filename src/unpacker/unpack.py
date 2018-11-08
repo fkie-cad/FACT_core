@@ -19,9 +19,10 @@ class Unpacker(UnpackBase):
     VALID_COMPRESSED_FILE_TYPES = ['application/x-shockwave-flash', 'audio/mpeg', 'audio/ogg', 'image/png', 'image/jpeg', 'image/gif', 'video/mp4', 'video/ogg']
     HEADER_OVERHEAD = 256
 
-    def __init__(self, config=None, worker_id=None):
+    def __init__(self, config=None, worker_id=None, db_interface=None):
         super().__init__(config=config, worker_id=worker_id)
         self.file_storage_system = FS_Organizer(config=self.config)
+        self.db_interface = db_interface
 
     def unpack(self, current_fo):
         '''
@@ -106,6 +107,7 @@ class Unpacker(UnpackBase):
                 if current_file.get_uid() in extracted_files:  # the same file is extracted multiple times from one archive
                     extracted_files[current_file.get_uid()].virtual_file_path[parent.get_root_uid()].append(current_virtual_path)
                 else:
+                    self.db_interface.set_unpacking_lock(current_file.uid)
                     self.file_storage_system.store_file(current_file)
                     current_file.virtual_file_path = {parent.get_root_uid(): [current_virtual_path]}
                     current_file.parent_firmware_uids.add(parent.get_root_uid())

@@ -24,7 +24,7 @@ class TestFileAddition(unittest.TestCase):
         self._tmp_queue = Queue()
 
         self._analysis_scheduler = AnalysisScheduler(config=self._config, pre_analysis=lambda *_: None, post_analysis=self._dummy_callback, db_interface=MockDbInterface(None))
-        self._unpack_scheduler = UnpackingScheduler(config=self._config, post_unpack=self._analysis_scheduler.add_task)
+        self._unpack_scheduler = UnpackingScheduler(config=self._config, post_unpack=self._analysis_scheduler.add_task, db_interface=self.mocked_interface)
 
     def tearDown(self):
         self._unpack_scheduler.shutdown()
