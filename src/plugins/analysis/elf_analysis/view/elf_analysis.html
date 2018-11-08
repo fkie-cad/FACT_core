@@ -6,12 +6,47 @@
 		<td>Summary:</td>
 		<td>{{ firmware.processed_analysis[selected_analysis]['summary'] }}</td>
 	</tr>
-	{% for key in firmware.processed_analysis[selected_analysis]['Output'].keys() | sort %}
-		<tr>
-			<td>{{ key }}:</td>
-			<td>{{ firmware.processed_analysis[selected_analysis]['Output'][key] }}</td>
-		</tr>
-    {% endfor %}
+  {% for key in firmware.processed_analysis[selected_analysis]['Output'].keys() | sort %}
+    <tr>
+        <td>
+            {{ key }}
+        </td>
+        <td data-toggle="collapse" class="active clickable" data-target="#{{ key }}">
+                <span class="glyphicon glyphicon-collapse-down"></span>
 
+                <div class="collapse" id="{{ key }}" style="width: 100%">
+                    <table class="table table-bordered result" style="border-bottom-width: 0px">
+                        {% if firmware.processed_analysis[selected_analysis]['Output'][key] | is_list %}
+                            <tr>
+                                {% for unique_key in firmware.processed_analysis[selected_analysis]['Output'][key] | get_unique_keys_from_list_of_dicts | sort %}
+                                    <td>{{ unique_key }}</td>
+                                {% endfor %}
+                            </tr>
+                            {% for dictionary in firmware.processed_analysis[selected_analysis]['Output'][key] %}
+                                <tr>
+                                    {% for unique_key in firmware.processed_analysis[selected_analysis]['Output'][key] | get_unique_keys_from_list_of_dicts | sort %}
+                                        {% if unique_key in dictionary.keys() %}
+                                            <td>{{ dictionary[unique_key] }}</td>
+                                        {% else %}
+                                            <td></td>
+                                        {% endif %}
+                                    {% endfor %}
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            {% for k, v in firmware.processed_analysis[selected_analysis]['Output'][key].items() %}
+                                <tr>
+                                    <td>{{ k }}</td>
+                                    <td>{{ v }}</td>
+                                </tr>
+                            {% endfor %}
+                        {% endif %}
+
+                    </table>
+                </div>
+
+        </td>
+    </tr>
+    {% endfor %}
 
 {% endblock %}
