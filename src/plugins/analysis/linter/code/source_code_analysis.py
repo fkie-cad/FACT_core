@@ -42,9 +42,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
     def _determine_script_type(self, file_object: FileObject):
         '''
         Indicators:
-        1. file_type full includes shell, python
-        2. shebang #!/bin/sh, #!/usr/bin/env python
-        3. file ending *.sh, *.py
+        1. file_type full includes shell, python etc.
+        2. shebang #!/bin/sh, #!/usr/bin/env python etc.
+        3. file ending *.sh, *.py etc.
         '''
         full_file_type = file_object.processed_analysis['file_type']['full'].lower()
         for script_type in self.SCRIPT_TYPES:

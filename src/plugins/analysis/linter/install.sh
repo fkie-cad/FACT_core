@@ -4,7 +4,7 @@
 cd "$( dirname "${BASH_SOURCE[0]}" )" 
 
 echo "Installing shell linter..."
-sudo -EH apt-get install -y shellcheck
+sudo apt-get install -y shellcheck
 
 echo " Installing lua linter ..."
 sudo apt-get install -y luarocks
