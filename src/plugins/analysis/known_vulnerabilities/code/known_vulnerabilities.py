@@ -46,7 +46,7 @@ class AnalysisPlugin(YaraBasePlugin):
             else:
                 propagate = False
                 tag_color = TagColor.ORANGE
-            self.add_analysis_tag(file_object, 'vulnerability', name, color=tag_color, propagate=propagate)
+            self.add_analysis_tag(file_object, name, name, color=tag_color, propagate=propagate)
 
     @staticmethod
     def _post_process_yara_results(yara_results):
