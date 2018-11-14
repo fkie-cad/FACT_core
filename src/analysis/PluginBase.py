@@ -36,10 +36,7 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
             self.start_worker()
 
     def add_job(self, fw_object):
-        if self._job_is_already_done(fw_object):
-            logging.debug('{} analysis already done -> skip: {}\n Analysis Dependencies: {}'.format(
-                self.NAME, fw_object.get_uid(), fw_object.analysis_dependency))
-        elif self._recursive_condition_is_set(fw_object):
+        if self._analysis_depth_not_reached_yet(fw_object):
             if self._dependencies_are_fulfilled(fw_object):
                 self.history.add(fw_object.get_uid())
                 self.in_queue.put(fw_object)
@@ -55,10 +52,7 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         logging.debug('new schedule for {}:\n {}\nAnalysis Dependencies: {}'.format(
             fw_object.get_virtual_file_paths(), fw_object.scheduled_analysis, fw_object.analysis_dependency))
 
-    def _job_is_already_done(self, fw_object):
-        return (fw_object.get_uid() in self.history) and (self.NAME not in fw_object.analysis_dependency)
-
-    def _recursive_condition_is_set(self, fo):
+    def _analysis_depth_not_reached_yet(self, fo):
         return self.recursive or fo.depth == 0
 
     def _dependencies_are_fulfilled(self, fo):
