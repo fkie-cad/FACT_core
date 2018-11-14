@@ -1,6 +1,7 @@
 import logging
 from concurrent.futures import ThreadPoolExecutor
 from configparser import ConfigParser
+from distutils.version import LooseVersion
 from multiprocessing import Queue, Value
 from random import shuffle
 
@@ -159,13 +160,41 @@ class AnalysisScheduler(object):
         else:
             self._start_or_skip_analysis(analysis_to_do, fw_object)
 
-    def _start_or_skip_analysis(self, analysis_to_do, fw_object):
-        if analysis_to_do in MANDATORY_PLUGINS or self._next_analysis_is_not_blacklisted(analysis_to_do, fw_object):
-            self.analysis_plugins[analysis_to_do].add_job(fw_object)
-        else:
+    def _start_or_skip_analysis(self, analysis_to_do: str, fw_object: FileObject):
+        if analysis_to_do not in MANDATORY_PLUGINS and self._next_analysis_is_blacklisted(analysis_to_do, fw_object):
             logging.debug('skipping analysis "{}" for {} (blacklisted file type)'.format(analysis_to_do, fw_object.get_uid()))
             fw_object.processed_analysis[analysis_to_do] = self._get_skipped_analysis_result(analysis_to_do)
             self.check_further_process_or_complete(fw_object)
+        elif self._analysis_is_already_in_db_and_up_to_date(analysis_to_do, fw_object):
+            logging.debug('skipping analysis "{}" for {} (analysis already in DB)'.format(analysis_to_do, fw_object.get_uid()))
+            self.check_further_process_or_complete(fw_object)
+        else:
+            self.analysis_plugins[analysis_to_do].add_job(fw_object)
+
+    def _analysis_is_already_in_db_and_up_to_date(self, analysis_to_do: str, fw_object: FileObject):
+        db_entry = self.db_backend_service.get_specific_fields_of_db_entry(
+            fw_object.get_uid(),
+            {
+                'processed_analysis.{}.plugin_version'.format(analysis_to_do): 1,
+                'processed_analysis.{}.system_version'.format(analysis_to_do): 1
+            }
+        )
+        if not db_entry or analysis_to_do not in db_entry['processed_analysis']:
+            return False
+        elif 'plugin_version' not in db_entry['processed_analysis'][analysis_to_do]:
+            logging.error('Plugin Version missing: UID: {}, Plugin: {}'.format(fw_object.get_uid(), analysis_to_do))
+
+        analysis_plugin_version = db_entry['processed_analysis'][analysis_to_do]['plugin_version']
+        analysis_system_version = db_entry['processed_analysis'][analysis_to_do]['system_version'] \
+            if 'system_version' in db_entry['processed_analysis'][analysis_to_do] else None
+        plugin_version = self.analysis_plugins[analysis_to_do].VERSION
+        system_version = self.analysis_plugins[analysis_to_do].SYSTEM_VERSION \
+            if hasattr(self.analysis_plugins[analysis_to_do], 'SYSTEM_VERSION') else None
+
+        if LooseVersion(analysis_plugin_version) < LooseVersion(plugin_version) or \
+                LooseVersion(analysis_system_version or '0') < LooseVersion(system_version or '0'):
+            return False
+        return True
 
     def _get_skipped_analysis_result(self, analysis_to_do):
         return {
@@ -177,10 +206,10 @@ class AnalysisScheduler(object):
 
     # ---- blacklist and whitelist ----
 
-    def _next_analysis_is_not_blacklisted(self, next_analysis, fw_object: FileObject):
+    def _next_analysis_is_blacklisted(self, next_analysis: str, fw_object: FileObject):
         blacklist, whitelist = self._get_blacklist_and_whitelist(next_analysis)
         if not (blacklist or whitelist):
-            return True
+            return False
         if blacklist and whitelist:
             logging.error('{}Configuration of plugin "{}" erroneous{}: found blacklist and whitelist. Ignoring blacklist.'.format(
                 bcolors.FAIL, next_analysis, bcolors.ENDC))
@@ -190,13 +219,13 @@ class AnalysisScheduler(object):
         except KeyError:  # FIXME file_type analysis is missing (probably due to problem with analysis caching) -> re-schedule
             fw_object.scheduled_analysis.extend([next_analysis, 'file_type'])
             fw_object.analysis_dependency.add('file_type')
-            return False
+            return True
 
         if whitelist:
-            return substring_is_in_list(file_type, whitelist)
-        return not substring_is_in_list(file_type, blacklist)
+            return not substring_is_in_list(file_type, whitelist)
+        return substring_is_in_list(file_type, blacklist)
 
-    def _get_blacklist_and_whitelist(self, next_analysis):
+    def _get_blacklist_and_whitelist(self, next_analysis: str) -> Tuple[List, List]:
         blacklist, whitelist = self._get_blacklist_and_whitelist_from_config(next_analysis)
         if not (blacklist or whitelist):
             blacklist, whitelist = self._get_blacklist_and_whitelist_from_plugin(next_analysis)

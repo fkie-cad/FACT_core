@@ -137,48 +137,48 @@ class TestAnalysisSchedulerBlacklist(AnalysisSchedulerTest):
         blacklist, whitelist = self.sched._get_blacklist_and_whitelist('test_plugin')
         assert (blacklist, whitelist) == (['foo'], ['bar'])
 
-    def test_next_analysis_is_not_blacklisted__blacklisted(self):
+    def test_next_analysis_is_blacklisted__blacklisted(self):
         self.sched.analysis_plugins[self.test_plugin] = self.PluginMock(blacklist=['blacklisted_type'])
         self.fo.processed_analysis['file_type']['mime'] = 'blacklisted_type'
-        not_blacklisted = self.sched._next_analysis_is_not_blacklisted(self.test_plugin, self.fo)
-        assert not_blacklisted is False
+        blacklisted = self.sched._next_analysis_is_blacklisted(self.test_plugin, self.fo)
+        assert blacklisted is True
 
-    def test_next_analysis_is_not_blacklisted__not_blacklisted(self):
+    def test_next_analysis_is_blacklisted__not_blacklisted(self):
         self.sched.analysis_plugins[self.test_plugin] = self.PluginMock(blacklist=[])
         self.fo.processed_analysis['file_type']['mime'] = 'not_blacklisted_type'
-        not_blacklisted = self.sched._next_analysis_is_not_blacklisted(self.test_plugin, self.fo)
-        assert not_blacklisted is True
+        blacklisted = self.sched._next_analysis_is_blacklisted(self.test_plugin, self.fo)
+        assert blacklisted is False
 
-    def test_next_analysis_is_not_blacklisted__whitelisted(self):
+    def test_next_analysis_is_blacklisted__whitelisted(self):
         self.sched.analysis_plugins[self.test_plugin] = self.PluginMock(whitelist=['whitelisted_type'])
         self.fo.processed_analysis['file_type']['mime'] = 'whitelisted_type'
-        not_blacklisted = self.sched._next_analysis_is_not_blacklisted(self.test_plugin, self.fo)
-        assert not_blacklisted is True
+        blacklisted = self.sched._next_analysis_is_blacklisted(self.test_plugin, self.fo)
+        assert blacklisted is False
 
-    def test_next_analysis_is_not_blacklisted__not_whitelisted(self):
+    def test_next_analysis_is_blacklisted__not_whitelisted(self):
         self.sched.analysis_plugins[self.test_plugin] = self.PluginMock(whitelist=['some_other_type'])
         self.fo.processed_analysis['file_type']['mime'] = 'not_whitelisted_type'
-        not_blacklisted = self.sched._next_analysis_is_not_blacklisted(self.test_plugin, self.fo)
-        assert not_blacklisted is False
+        blacklisted = self.sched._next_analysis_is_blacklisted(self.test_plugin, self.fo)
+        assert blacklisted is True
 
-    def test_next_analysis_is_not_blacklisted__whitelist_precedes_blacklist(self):
+    def test_next_analysis_is_blacklisted__whitelist_precedes_blacklist(self):
         self.sched.analysis_plugins[self.test_plugin] = self.PluginMock(blacklist=['test_type'], whitelist=['test_type'])
         self.fo.processed_analysis['file_type']['mime'] = 'test_type'
-        not_blacklisted = self.sched._next_analysis_is_not_blacklisted(self.test_plugin, self.fo)
-        assert not_blacklisted is True
+        blacklisted = self.sched._next_analysis_is_blacklisted(self.test_plugin, self.fo)
+        assert blacklisted is False
 
         self.sched.analysis_plugins[self.test_plugin] = self.PluginMock(blacklist=[], whitelist=['some_other_type'])
         self.fo.processed_analysis['file_type']['mime'] = 'test_type'
-        not_blacklisted = self.sched._next_analysis_is_not_blacklisted(self.test_plugin, self.fo)
-        assert not_blacklisted is False
+        blacklisted = self.sched._next_analysis_is_blacklisted(self.test_plugin, self.fo)
+        assert blacklisted is True
 
-    def test_next_analysis_is_not_blacklisted__mime_missing(self):
+    def test_next_analysis_is_blacklisted__mime_missing(self):
         self.sched.analysis_plugins[self.test_plugin] = self.PluginMock(blacklist=['test_type'], whitelist=['test_type'])
         self.fo.processed_analysis['file_type'].pop('mime')
         self.fo.scheduled_analysis = []
         self.fo.analysis_dependency = set()
-        not_blacklisted = self.sched._next_analysis_is_not_blacklisted(self.test_plugin, self.fo)
-        assert not_blacklisted is False
+        blacklisted = self.sched._next_analysis_is_blacklisted(self.test_plugin, self.fo)
+        assert blacklisted is True
         assert 'file_type' in self.fo.analysis_dependency
         assert self.fo.scheduled_analysis == [self.test_plugin, 'file_type']
 

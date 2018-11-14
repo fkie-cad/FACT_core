@@ -82,23 +82,24 @@ class TestPluginBaseAddJob(TestPluginBase):
         fo.processed_analysis.update({'foo': []})
         self.assertTrue(self.pBase._dependencies_are_fulfilled(fo), 'Fals but deps matched')
 
-    def test_recursive_condition_is_set(self):
+    def test_analysis_depth_not_reached_yet(self):
         fo = FileObject(binary='test', scheduled_analysis=[])
 
         fo.depth = 1
         self.pBase.recursive = False
-        self.assertFalse(self.pBase._recursive_condition_is_set(fo), 'positive but not root object')
+        self.assertFalse(self.pBase._analysis_depth_not_reached_yet(fo), 'positive but not root object')
 
         fo.depth = 0
         self.pBase.recursive = False
-        self.assertTrue(self.pBase._recursive_condition_is_set(fo))
+        self.assertTrue(self.pBase._analysis_depth_not_reached_yet(fo))
+
         fo.depth = 1
         self.pBase.recursive = True
-        self.assertTrue(self.pBase._recursive_condition_is_set(fo))
+        self.assertTrue(self.pBase._analysis_depth_not_reached_yet(fo))
 
         fo.depth = 0
         self.pBase.recursive = True
-        self.assertTrue(self.pBase._recursive_condition_is_set(fo))
+        self.assertTrue(self.pBase._analysis_depth_not_reached_yet(fo))
 
     def test__add_job__recursive_is_set(self):
         fo = FileObject(binary='test', scheduled_analysis=[])
@@ -108,7 +109,7 @@ class TestPluginBaseAddJob(TestPluginBase):
         out_fo = self.pBase.out_queue.get(timeout=5)
         self.assertIsInstance(out_fo, FileObject, 'not added to out_queue')
         self.pBase.recursive = True
-        self.assertTrue(self.pBase._recursive_condition_is_set(fo), 'not positvie but recursive')
+        self.assertTrue(self.pBase._analysis_depth_not_reached_yet(fo), 'not positvie but recursive')
 
     def test_add_job_dependency_not_matched(self):
         self.pBase.DEPENDENCIES = ['foo']
