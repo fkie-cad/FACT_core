@@ -16,6 +16,7 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
     recursive flag: If True (default) recursively analyze included files
     '''
     VERSION = 'not set'
+    SYSTEM_VERSION = None
 
     timeout = None
 
@@ -113,15 +114,15 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
 # ---- internal functions ----
 
     def init_dict(self):
-        results = {}
-        results['analysis_date'] = time()
-        results['plugin_version'] = self.VERSION
-        return results
+        result_update = {'analysis_date': time(), 'plugin_version': self.VERSION}
+        if self.SYSTEM_VERSION:
+            result_update.update({'system_version': self.SYSTEM_VERSION})
+        return result_update
 
-    def check_config(self, no_multihread):
+    def check_config(self, no_multithread):
         if self.NAME not in self.config:
             self.config.add_section(self.NAME)
-        if 'threads' not in self.config[self.NAME] or no_multihread:
+        if 'threads' not in self.config[self.NAME] or no_multithread:
             self.config.set(self.NAME, 'threads', '1')
 
     def start_worker(self):
