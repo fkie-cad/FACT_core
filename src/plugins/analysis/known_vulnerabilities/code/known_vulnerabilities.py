@@ -2,6 +2,7 @@ import os
 import sys
 
 from analysis.YaraPluginBase import YaraBasePlugin
+from helperFunctions.tag import TagColor
 
 THIS_FILE = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(THIS_FILE, '..', 'internal'))
@@ -26,14 +27,33 @@ class AnalysisPlugin(YaraBasePlugin):
         file_object.processed_analysis[self.NAME] = dict()
 
         binary_vulnerabilities, _ = self._post_process_yara_results(yara_results)
-        matched_vulnerabilies = self._check_vulnerabilities(file_object.processed_analysis)
+        matched_vulnerabilities = self._check_vulnerabilities(file_object.processed_analysis)
 
-        for name, vulnerability in binary_vulnerabilities + matched_vulnerabilies:
+        for name, vulnerability in binary_vulnerabilities + matched_vulnerabilities:
             file_object.processed_analysis[self.NAME][name] = vulnerability
 
-        file_object.processed_analysis[self.NAME]['summary'] = [name for name, _ in binary_vulnerabilities + matched_vulnerabilies]
+        file_object.processed_analysis[self.NAME]['summary'] = [name for name, _ in binary_vulnerabilities + matched_vulnerabilities]
+
+        self.add_tags(file_object, binary_vulnerabilities + matched_vulnerabilities)
 
         return file_object
+
+    def add_tags(self, file_object, vulnerabilities):
+        for name, details in vulnerabilities:
+            if details['score'] == 'high':
+                propagate = True
+                tag_color = TagColor.RED
+            else:
+                propagate = False
+                tag_color = TagColor.ORANGE
+
+            self.add_analysis_tag(
+                file_object=file_object,
+                tag_name=name,
+                value=name.replace('_', ' '),
+                color=tag_color,
+                propagate=propagate
+            )
 
     @staticmethod
     def _post_process_yara_results(yara_results):
