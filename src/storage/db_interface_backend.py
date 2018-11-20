@@ -181,16 +181,17 @@ class BackEndDbInterface(MongoInterfaceCommon):
 
     def _update_analysis(self, file_object: FileObject, analysis_system: str, result: dict):
         try:
-            if isinstance(file_object, Firmware):
-                self.firmwares.update_one(
-                    {'_id': file_object.get_uid()},
-                    {'$set': {'processed_analysis.{}'.format(analysis_system): result}}
-                )
-            else:
-                self.file_objects.update_one(
-                    {'_id': file_object.get_uid()},
-                    {'$set': {'processed_analysis.{}'.format(analysis_system): result}}
-                )
+            collection = self.firmwares if isinstance(file_object, Firmware) else self.file_objects
+
+            entry_with_tags = collection.find_one({'_id': file_object.uid}, {'analysis_tags': 1})
+
+            collection.update_one(
+                {'_id': file_object.get_uid()},
+                {'$set': {
+                    'processed_analysis.{}'.format(analysis_system): result,
+                    'analysis_tags': update_analysis_tags(file_object, entry_with_tags)
+                }}
+            )
         except Exception as exception:
             logging.error('Update of analysis failed badly ({})'.format(exception))
             raise exception

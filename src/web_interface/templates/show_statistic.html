@@ -259,7 +259,7 @@
 				<script>
 					create_horizontal_bar_chart(
 						canvas_id="exploit_mitigations_canvas",
-						chart_data={{ stats['exploit_mitigations_stats']['exploit_mitigations'] | data_to_chart_with_value_percentage_pairs(limit=11) | safe }},
+						chart_data={{ stats['exploit_mitigations_stats']['exploit_mitigations'] | data_to_chart_with_value_percentage_pairs(limit=13) | safe }},
 						link="{{ query_url + {'processed_analysis.exploit_mitigations.summary': {'$regex': 'PLACEHOLDER'}} | json_dumps | urlencode }}",
 						expl_mit_flag=true
 					);

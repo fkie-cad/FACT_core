@@ -5,111 +5,116 @@
 {% block body %}
 <div class="row">
 
-	<div class="col-md-6 col-sm-12">
-		<h2>Software</h2>
-		The <a href="https://fkie-cad.github.io/FACT_core/">Firmware Analysis and Compare Tool (FACT)</a> (formerly known as Fraunhofer's Firmware Analysis Framework (FAF)) is intended to automate Firmware Security Analysis.
-		FACT is developed by <a href="http://www.fkie.fraunhofer.de">Fraunhofer FKIE</a>.
-		The project is partly financed by <a href="https://www.bsi.bund.de">German Federal Office for Information Security (BSI)</a> and others.
+    <div class="col-md-6 col-sm-12">
+        <h2>Software</h2>
+        The <a href="https://fkie-cad.github.io/FACT_core/">Firmware Analysis and Compare Tool (FACT)</a> (formerly known as Fraunhofer's Firmware Analysis Framework (FAF)) is intended to automate Firmware Security Analysis.
+        FACT is developed by <a href="http://www.fkie.fraunhofer.de">Fraunhofer FKIE</a>.
+        The project is partly financed by <a href="https://www.bsi.bund.de">German Federal Office for Information Security (BSI)</a> and others.
 
-		<h2>License Information</h2>
-		<div class="well">
-		    Firmware Analysis and Comparison Tool (FACT)<br />
-		    Copyright (C) 2015-2018  Fraunhofer FKIE<br />
-			<br />
-		    This program is free software: you can redistribute it and/or modify
-		    it under the terms of the GNU General Public License as published by
-		    the Free Software Foundation, either version 3 of the License, or
-		    (at your option) any later version.<br />
+        <h2>License Information</h2>
+        <div class="well">
+            Firmware Analysis and Comparison Tool (FACT)<br />
+            Copyright (C) 2015-2018  Fraunhofer FKIE<br />
+            <br />
+            This program is free software: you can redistribute it and/or modify
+            it under the terms of the GNU General Public License as published by
+            the Free Software Foundation, either version 3 of the License, or
+            (at your option) any later version.<br />
 
-		    This program is distributed in the hope that it will be useful,
-		    but WITHOUT ANY WARRANTY; without even the implied warranty of
-		    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-		    GNU General Public License for more details.
+            This program is distributed in the hope that it will be useful,
+            but WITHOUT ANY WARRANTY; without even the implied warranty of
+            MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+            GNU General Public License for more details.
 
-		    You should have received a copy of the GNU General Public License
-		    along with this program.  If not, see <a href="http://www.gnu.org/licenses/">www.gnu.org/licenses/</a>.
-			<br />
-			<br />
-		    Some plug-ins may have different licenses.
-		</div>
-	</div>
-	<div class="col-md-6 col-sm-12">
-		{% include "imprint.html" %}
-	</div>
+            You should have received a copy of the GNU General Public License
+            along with this program.  If not, see <a href="http://www.gnu.org/licenses/">www.gnu.org/licenses/</a>.
+            <br />
+            <br />
+            Some plug-ins may have different licenses.
+        </div>
+    </div>
+    <div class="col-md-6 col-sm-12">
+        {% include "imprint.html" %}
+    </div>
 
 </div>
 
 <h2>Change Log</h2>
 <div style="width:100%;column-count:2;column-rule:grey 1px dotted;column-gap:50px">
-	<h4>FACT 2.6-dev</h4>
-	<ul>
-		<li>New or Improved Unpacking
-			<ul>
-				<li>dahua firmware image unpacker added</li>
-				<li>intel hex unpacker added</li>
-			</ul>
-		</li>
+    <h4>FACT 2.6-dev</h4>
+    <ul>
+        <li>New or Improved Analysis
+            <ul>
+                <li>Linter plugin for source code analysis (js, lua, python, sh)</li>
+            </ul>
+        </li>
+        <li>New or Improved Unpacking
+            <ul>
+                <li>dahua firmware image unpacker added</li>
+                <li>intel hex unpacker added</li>
+            </ul>
+        </li>
         <li><b>Changed installation!</b> Path to install.py has changed and installation is now wrapped in python for better overview and failure tracking.</li>
         <li>New INSTALL.md for better documentation of installation options</li>
-		<li>Added software components statistics</li>
-		<li>Added REST endpoint for binary search (YARA)</li>
-		<li>Added unified mime-type-based analysis blacklist feature</li>
-		<li>Added syntax highlighting for code preview</li>
+        <li>Added software components statistics</li>
+        <li>Added REST endpoint for binary search (YARA)</li>
+        <li>Added unified mime-type-based analysis blacklist feature</li>
+        <li>Added syntax highlighting for code preview</li>
+        <li>Bug fixes</li>
+    </ul>
+
+    <h4>FACT 2.5 (2018-08-01)</h4>
+    <ul>
+        <li>New or Improved Analysis
+            <ul>
+                <li>Known vulnerabilities plug-in added</li>
+                <li>IP and URI finder Geo IP support</li>
+                <li>Printable strings: Offsets are shown</li>
+                <li>More software signatures added</li>
+            </ul>
+        </li>
+        <li>New or Improved Unpacking
+            <ul>
+                <li>Debian package unpacking plug-in added</li>
+            </ul>
+        </li>
+        <li><a href="https://github.com/fkie-cad/FACT_core/wiki/radare-integration">Radare view allows opening objects in radare2-webui</a></li>
+        <li><b>Warning:</b> Hex view is deprecated and is going to be removed in 2.6</li>
+        <li>Device part meta data support</li>
+        <li>Quick download buttons added</li>
+        <li><a href="https://github.com/fkie-cad/FACT_core/wiki/analysis-plugin-presets">Analysis preset support</a></li>
+        <li>Interim result publishing</li>
+        <li>Intercom speedup</li>
+        <li>Ubuntu 18.04 support</li>
+        <li>YARA backend upgraded</li>
+        <li><b>Warning:</b> Default MongoDB path changed!</li>
+        <li>Code clean ups</li>
         <li>Bug fixes</li>
 	</ul>
 
-	<h4>FACT 2.5 (2018-08-01)</h4>
-	<ul>
-	    <li>New or Improved Analysis
-			<ul>
-				<li>Known vulnerabilities plug-in added</li>
-				<li>IP and URI finder Geo IP support</li>
-				<li>Printable strings: Offsets are shown</li>
-				<li>More software signatures added</li>
-			</ul>
-		</li>
-		<li>New or Improved Unpacking
-			<ul>
-				<li>Debian package unpacking plug-in added</li>
-			</ul>
-		</li>
-		<li><a href="https://github.com/fkie-cad/FACT_core/wiki/radare-integration">Radare view allows opening objects in radare2-webui</a></li>
-		<li><b>Warning:</b> Hex view is deprecated and is going to be removed in 2.6</li>
-		<li>Device part meta data support</li>
-		<li>Quick download buttons added</li>
-		<li><a href="https://github.com/fkie-cad/FACT_core/wiki/analysis-plugin-presets">Analysis preset support</a></li>
-		<li>Interim result publishing</li>
-		<li>Intercom speedup</li>
-		<li>Ubuntu 18.04 support</li>
-		<li>YARA backend upgraded</li>
-		<li><b>Warning:</b> Default MongoDB path changed!</li>
-		<li>Code clean ups</li>
-		<li>Bug fixes</li>
-	</ul>
-
-	<h4>FACT 2.4 (2018-03-16)</h4>
-	<ul>
-		<li>New or Improved Unpacker
-			<ul>
-				<li>Xerox</li>
-			</ul>
-		</li>
-	    <li>New or Improved Analysis
-			<ul>
-				<li>file header compare plug-in</li>
-			</ul>
-		</li>
-	    <li>Full fledged user <a href="https://github.com/fkie-cad/FACT_core/wiki/Authentication">authentication system</a></li>
-	    <li>Supporting custom routes for plug-ins</li>
-		<li>Compare view definition moved to plug-in</li>
-		<li>Firmware tagging feature</li>
-		<li>Imprint feature</li>
-		<li>Improved usability</li>
-		<li>Compare speedup</li>
-		<li>Acceptance test speedup</li>
-		<li>Code clean ups</li>
-		<li>Bug fixes</li>
-	</ul>
+    <h4>FACT 2.4 (2018-03-16)</h4>
+    <ul>
+        <li>New or Improved Unpacker
+            <ul>
+                <li>Xerox</li>
+            </ul>
+        </li>
+        <li>New or Improved Analysis
+            <ul>
+                <li>file header compare plug-in</li>
+            </ul>
+        </li>
+        <li>Full fledged user <a href="https://github.com/fkie-cad/FACT_core/wiki/Authentication">authentication system</a></li>
+        <li>Supporting custom routes for plug-ins</li>
+        <li>Compare view definition moved to plug-in</li>
+        <li>Firmware tagging feature</li>
+        <li>Imprint feature</li>
+        <li>Improved usability</li>
+        <li>Compare speedup</li>
+        <li>Acceptance test speedup</li>
+        <li>Code clean ups</li>
+        <li>Bug fixes</li>
+    </ul>
 
 	<h4>FACT 2.3 (2017-12-24)</h4>
 	<ul>

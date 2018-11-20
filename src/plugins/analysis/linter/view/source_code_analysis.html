@@ -1,0 +1,11 @@
+{% extends "analysis_plugins/general_information.html" %}
+
+{% block analysis_result_details %}
+    {% set result = firmware.processed_analysis[selected_analysis]['full'] %}
+    {% for issue in result %}
+        <tr>
+            <td class="result"> {{issue['symbol']}} </td>
+            <td class="result"><pre><code>{{ issue['line'] }}:{{ issue['column'] }} {{ issue['message'] | safe}}</code></pre></td>
+        </tr>
+    {% endfor %}
+{% endblock %}
