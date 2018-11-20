@@ -11,33 +11,45 @@
         <td>
             {{ key }}
         </td>
-        <td data-toggle="collapse" class="active clickable" data-target="#{{ key }}">
+        <td data-toggle="collapse" class="active clickable" data-target="#{{ key }}" style="padding: 2px">
                 <span class="glyphicon glyphicon-collapse-down"></span>
 
                 <div class="collapse" id="{{ key }}" style="width: 100%">
-                    <table class="table table-bordered result" style="border-bottom-width: 0px">
+                    <table class="table table-bordered result" style="border-bottom-width: 0px; margin: 0">
                         {% if firmware.processed_analysis[selected_analysis]['Output'][key] | is_list %}
-                            <tr>
-                                {% for unique_key in firmware.processed_analysis[selected_analysis]['Output'][key] | get_unique_keys_from_list_of_dicts | sort %}
-                                    <td>{{ unique_key }}</td>
-                                {% endfor %}
-                            </tr>
-                            {% for dictionary in firmware.processed_analysis[selected_analysis]['Output'][key] %}
+                            {% if not firmware.processed_analysis[selected_analysis]['Output'][key] %}
+                                <tr>
+                                    <td style="padding: 5px">None</td>
+                                </tr>
+                            {% elif firmware.processed_analysis[selected_analysis]['Output'][key][0] is string %}
+                                    {% for element in firmware.processed_analysis[selected_analysis]['Output'][key] %}
+                                        <tr>
+                                            <td style="padding: 5px">{{ element }}</td>
+                                        </tr>
+                                    {% endfor %}
+                            {% else %}
                                 <tr>
                                     {% for unique_key in firmware.processed_analysis[selected_analysis]['Output'][key] | get_unique_keys_from_list_of_dicts | sort %}
-                                        {% if unique_key in dictionary.keys() %}
-                                            <td>{{ dictionary[unique_key] }}</td>
-                                        {% else %}
-                                            <td></td>
-                                        {% endif %}
+                                        <th style="padding: 5px">{{ unique_key }}</th>
                                     {% endfor %}
                                 </tr>
-                            {% endfor %}
+                                {% for dictionary in firmware.processed_analysis[selected_analysis]['Output'][key] %}
+                                    <tr>
+                                        {% for unique_key in firmware.processed_analysis[selected_analysis]['Output'][key] | get_unique_keys_from_list_of_dicts | sort %}
+                                            {% if unique_key in dictionary.keys() %}
+                                                <td style="padding: 5px">{{ dictionary[unique_key] }}</td>
+                                            {% else %}
+                                                <td></td>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </tr>
+                                {% endfor %}
+                            {% endif %}
                         {% else %}
                             {% for k, v in firmware.processed_analysis[selected_analysis]['Output'][key].items() %}
                                 <tr>
-                                    <td>{{ k }}</td>
-                                    <td>{{ v }}</td>
+                                    <td style="padding: 5px">{{ k }}</td>
+                                    <td style="padding: 5px">{{ v }}</td>
                                 </tr>
                             {% endfor %}
                         {% endif %}

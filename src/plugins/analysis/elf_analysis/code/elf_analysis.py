@@ -57,16 +57,20 @@ class AnalysisPlugin(AnalysisBasePlugin):
         try:
             parsed_binary = lief.parse(raw=file_object.binary)
             binary_json_dict = json.loads(lief.to_json_from_abstract(parsed_binary))
+            if parsed_binary.exported_functions:
+                binary_json_dict['exported_functions'] = parsed_binary.exported_functions
+            if parsed_binary.imported_functions:
+                binary_json_dict['imported_functions'] = parsed_binary.imported_functions
         except TypeError:
-            print("Type Error")
+            print('Type Error')
             return elf_dict
         except lief.bad_file:
-            print("Bad File, UID: ", file_object.get_uid())
+            print('Bad File, UID: ', file_object.get_uid())
             return elf_dict
 
         # TODO make this an extra function
         for key in binary_json_dict:
-            if key in ("header", "segments", "sections", "dynamic_entries", "exported_functions", "imported_functions"):
+            if key in ('header', 'segments', 'sections', 'dynamic_entries', 'exported_functions', 'imported_functions'):
                 elf_dict[key] = binary_json_dict[key]
 
         return elf_dict
