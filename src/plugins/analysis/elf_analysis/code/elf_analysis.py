@@ -55,12 +55,20 @@ class AnalysisPlugin(AnalysisBasePlugin):
         elf_dict = {}
 
         try:
+            # TODO make this an extra function?
             parsed_binary = lief.parse(raw=file_object.binary)
             binary_json_dict = json.loads(lief.to_json_from_abstract(parsed_binary))
             if parsed_binary.exported_functions:
                 binary_json_dict['exported_functions'] = parsed_binary.exported_functions
             if parsed_binary.imported_functions:
                 binary_json_dict['imported_functions'] = parsed_binary.imported_functions
+            if parsed_binary.libraries:
+                binary_json_dict['libraries'] = parsed_binary.libraries
+            # TODO fix this
+            # if parsed_binary.symbols_version:
+                # binary_json_dict['symbols_version'] = parsed_binary.symbols_version
+                # throws error: "bson.errors.InvalidDocument: Cannot encode object", also crashes the backend
+                # couldn't yet figure out why
         except TypeError:
             print('Type Error')
             return elf_dict
@@ -70,7 +78,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
         # TODO make this an extra function
         for key in binary_json_dict:
-            if key in ('header', 'segments', 'sections', 'dynamic_entries', 'exported_functions', 'imported_functions'):
+            if key in ('header', 'segments', 'sections', 'dynamic_entries', 'exported_functions',
+                       'imported_functions', 'libraries', 'symbols_version'):
                 elf_dict[key] = binary_json_dict[key]
 
         return elf_dict
