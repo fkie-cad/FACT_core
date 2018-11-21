@@ -36,15 +36,15 @@ class MockUnpacker:
 
 
 @pytest.fixture
-def check_output_fails(monkeypatch):
-    def mock_execute_shell(call):
+def execute_shell_fails(monkeypatch):
+    def mock_execute_shell(call, timeout=0):
         return '', 1
     monkeypatch.setattr(qemu_exec, 'execute_shell_command_get_return_code', mock_execute_shell)
 
 
 @pytest.fixture
-def check_output_timeout(monkeypatch):
-    def mock_execute_shell(call, shell=False, stderr=2, timeout=0):
+def execute_shell_timeout(monkeypatch):
+    def mock_execute_shell(call, timeout=0):
         if call == 'pgrep dockerd':
             return '', 0
         return 'timed out', 1
@@ -104,7 +104,7 @@ class TestPluginQemuExec(AnalysisPluginTest):
         result = qemu_exec.get_docker_output('i386', '/test_mips_static', TEST_DATA_DIR)
         assert 'Invalid ELF image' in result
 
-    @pytest.mark.usefixtures('check_output_timeout')
+    @pytest.mark.usefixtures('execute_shell_timeout')
     def test_get_docker_output__timeout(self):
         result = qemu_exec.get_docker_output('mips', '/test_mips_static', TEST_DATA_DIR)
         assert result is None
@@ -179,7 +179,7 @@ class TestPluginQemuExec(AnalysisPluginTest):
         assert all(result['files'][uid]['results']['mips']['--help']['stderr'] == '/lib/ld.so.1: No such file or directory' for uid in result['files'])
         assert all(result['files'][uid]['results']['mips']['--help']['stdout'] == '' for uid in result['files'])
 
-    @pytest.mark.usefixtures('check_output_timeout')
+    @pytest.mark.usefixtures('execute_shell_timeout')
     def test_process_object__timeout(self):
         self.analysis_plugin._docker_is_running = lambda: True
         test_fw = self._set_up_fw_for_process_object()
@@ -207,7 +207,7 @@ class TestPluginQemuExec(AnalysisPluginTest):
         assert 'parent_flag' in test_fw.processed_analysis[self.analysis_plugin.NAME]
         assert test_fw.processed_analysis[self.analysis_plugin.NAME]['parent_flag'] is True
 
-    @pytest.mark.usefixtures('check_output_fails')
+    @pytest.mark.usefixtures('execute_shell_fails')
     def test_process_object__docker_not_running(self):
         test_fw = create_test_firmware()
         test_fw.files_included = ['foo', 'bar']
@@ -217,7 +217,7 @@ class TestPluginQemuExec(AnalysisPluginTest):
     def test_docker_is_running(self):
         assert qemu_exec.docker_is_running() is True, 'Docker is not running'
 
-    @pytest.mark.usefixtures('check_output_fails')
+    @pytest.mark.usefixtures('execute_shell_fails')
     def test_docker_is_running__not_running(self):
         assert qemu_exec.docker_is_running() is False
 
