@@ -64,7 +64,7 @@ class TestPluginQemuExec(AnalysisPluginTest):
                          '§#§return_code§#§0§#§\n' \
                          '§#§strace§#§\n' \
                          '§#§stdout§#§Hello World§#§\n' \
-                         '§#§stderr§#§38 uname(0x7ffffb38) = 0 38 brk(NULL) = 0x004a2000 38 brk(0x004a2cc8) = 0x004a2cc8§#§'
+                         '§#§stderr§#§38 uname(0x7ffffb38) = 0\n38 brk(NULL) = 0x004a2000\n38 brk(0x004a2cc8) = 0x004a2cc8§#§'
 
     def setUp(self):
         super().setUp()
@@ -113,10 +113,11 @@ class TestPluginQemuExec(AnalysisPluginTest):
         self.analysis_plugin.OPTIONS = ['-h']
 
         result = qemu_exec.test_qemu_executability('/test_mips_static', 'mips', TEST_DATA_DIR)
-        assert '--help' in result
-        assert result['--help']['stdout'] == 'Hello World'
-        assert result['--help']['stderr'] == ''
-        assert result['--help']['return_code'] == '0'
+        assert any('--help' in option for option in result)
+        option = [option for option in result if '--help' in option][0]
+        assert result[option]['stdout'] == 'Hello World'
+        assert result[option]['stderr'] == ''
+        assert result[option]['return_code'] == '0'
 
         result = qemu_exec.test_qemu_executability('/test_mips_static', 'i386', TEST_DATA_DIR)
         assert result == {}
@@ -176,8 +177,11 @@ class TestPluginQemuExec(AnalysisPluginTest):
 
         assert 'files' in result
         assert any(result['files'][uid]['executable'] for uid in result['files']) is False
-        assert all(result['files'][uid]['results']['mips']['--help']['stderr'] == '/lib/ld.so.1: No such file or directory' for uid in result['files'])
-        assert all(result['files'][uid]['results']['mips']['--help']['stdout'] == '' for uid in result['files'])
+        assert all(
+            result['files'][uid]['results']['mips'][option]['stderr'] == '/lib/ld.so.1: No such file or directory'
+            for uid in result['files']
+            for option in result['files'][uid]['results']['mips'] if '--help' in option
+        )
 
     @pytest.mark.usefixtures('execute_shell_timeout')
     def test_process_object__timeout(self):
@@ -251,7 +255,7 @@ class TestPluginQemuExec(AnalysisPluginTest):
     def test_parse_docker_output_options__multiple_options(self):
         result = qemu_exec.parse_docker_output_options(self.docker_test_output)
         assert len(result) == 2
-        assert all(option in result for option in [' ', '--version'])
+        assert all(option in result for option in [qemu_exec.EMPTY, '--version'])
 
     def test_parse_docker_output_options__invalid(self):
         result = qemu_exec.parse_docker_output_options('')
@@ -261,7 +265,7 @@ class TestPluginQemuExec(AnalysisPluginTest):
         result = qemu_exec.parse_docker_output_strace(self.docker_test_output)
         assert 'strace' in result
         result['strace'] = decompress(result['strace']).decode()
-        assert result == {'strace': '38 uname(0x7ffffb38) = 0 \n38 brk(NULL) = 0x004a2000 \n38 brk(0x004a2cc8) = 0x004a2cc8'}
+        assert result == {'strace': '38 uname(0x7ffffb38) = 0\n38 brk(NULL) = 0x004a2000\n38 brk(0x004a2cc8) = 0x004a2cc8'}
 
     def test_parse_docker_output_strace__invalid(self):
         result = qemu_exec.parse_docker_output_strace('')
@@ -270,7 +274,7 @@ class TestPluginQemuExec(AnalysisPluginTest):
     def test_parse_docker_output__valid(self):
         result = qemu_exec.parse_docker_output(self.docker_test_output)
         assert len(result) == 3
-        assert all(k in result for k in [' ', '--version', 'strace'])
+        assert all(k in result for k in [qemu_exec.EMPTY, '--version', 'strace'])
 
     def test_parse_docker_output__invalid(self):
         result = qemu_exec.parse_docker_output('')
@@ -297,16 +301,6 @@ class TestPluginQemuExec(AnalysisPluginTest):
 
         qemu_exec.test_qemu_executability = tmp
 
-    def test_format_strace(self):
-        strace = '37 readlink("/proc/self/exe",0x7fffec88,4096) = 35 37 brk(0x004c3cc8) = 0x004c3cc8 37 brk(0x004c4000) = 0x004c4000 ' \
-                 '37 access("/etc/ld.so.nohwcap",F_OK) = -1 errno=2 (No such file or directory) 37 fstat64(1,0x7ffffb88) = 0 ' \
-                 '37 write(1,0x4a36d0,12) = 12 37 exit_group(0)'
-        result = qemu_exec.format_strace(strace)
-        assert result.count('\n') == 6
-        assert '\n37 access("/etc/ld.so.nohwcap",F_OK) = -1 errno=2 (No such file or directory) \n' in result
-
-        assert qemu_exec.format_strace('') == ''
-
     def test_get_summary(self):
         analysis_result = {}
         result = self.analysis_plugin._get_summary(analysis_result)
@@ -319,6 +313,18 @@ class TestPluginQemuExec(AnalysisPluginTest):
         analysis_result.update({'bar': {'executable': True}})
         result = self.analysis_plugin._get_summary(analysis_result)
         assert result == ['executable']
+
+    def test_merge_similar_entries(self):
+        test_dict = {
+            'option_1': {'a': 'x', 'b': 'x', 'c': 'x'},
+            'option_2': {'a': 'x', 'b': 'x', 'c': 'x'},
+            'option_3': {'a': 'x', 'b': 'x'},
+            'option_4': {'a': 'y', 'b': 'y', 'c': 'y'},
+            'option_5': {'a': 'x', 'b': 'x', 'c': 'x'},
+        }
+        qemu_exec.merge_similar_entries(test_dict)
+        assert len(test_dict) == 3
+        assert any(all(option in k for option in ['option_1', 'option_2', 'option_5']) for k in test_dict)
 
 
 class TestQemuExecUnpacker(TestCase):

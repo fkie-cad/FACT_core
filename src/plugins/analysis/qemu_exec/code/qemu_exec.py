@@ -1,9 +1,11 @@
+import itertools
 import logging
 import os
 from collections import OrderedDict
 from multiprocessing import Pool, Manager
 from re import findall, finditer
 from tempfile import TemporaryDirectory
+from typing import Dict
 from zlib import compress
 
 from common_helper_files import get_binary_from_file
@@ -19,6 +21,7 @@ from unpacker.unpackBase import UnpackBase
 
 TIMEOUT = 5
 EXECUTABLE = 'executable'
+EMPTY = '(no parameter)'
 
 
 class Unpacker(UnpackBase):
@@ -239,20 +242,32 @@ def get_docker_output(arch_suffix, file_path, root_path):
     return response
 
 
+def merge_similar_entries(results_dict: Dict[str, Dict[str, str]]):
+    for option_1, option_2 in itertools.combinations(results_dict, 2):
+        if results_dict[option_1] == results_dict[option_2]:
+            combined_key = '{}, {}'.format(option_1, option_2)
+            results_dict[combined_key] = results_dict[option_1]
+            results_dict.pop(option_1)
+            results_dict.pop(option_2)
+            merge_similar_entries(results_dict)
+            break
+
+
 def parse_docker_output(docker_output):
     result = parse_docker_output_options(docker_output)
+    merge_similar_entries(result)
     result.update(parse_docker_output_strace(docker_output))
     return result
 
 
 def parse_docker_output_options(docker_output):
-    options_regex = '§#§option§#§((?:(?!§#§).)+)§#§\n' \
+    options_regex = '(?s)§#§option§#§((?:(?!§#§).)+)§#§\n' \
                     '§#§stdout§#§((?:(?!§#§).)*)§#§\n' \
                     '§#§stderr§#§((?:(?!§#§).)*)§#§\n' \
                     '§#§return_code§#§((?:(?!§#§).)*)§#§'
 
     result = {
-        option: {
+        option if option != ' ' else EMPTY: {
             'stdout': stdout,
             'stderr': stderr,
             'return_code': return_code,
@@ -265,30 +280,19 @@ def parse_docker_output_options(docker_output):
 
 
 def parse_docker_output_strace(docker_output):
-    strace_regex = '§#§strace§#§\n' \
+    strace_regex = '(?s)§#§strace§#§\n' \
                    '§#§stdout§#§((?:(?!§#§).)*)§#§\n' \
                    '§#§stderr§#§((?:(?!§#§).)*)§#§'
 
     return {
-        'strace': compress(format_strace(output).encode())
+        'strace': compress(output.encode())
         for _, output in findall(strace_regex, docker_output)
         if not contains_docker_error(output) and not output == ''
     }
 
 
-def format_strace(strace_output):
-    indexes = [i.start() for i in finditer("\d+ [a-zA-Z][\w]+\(", strace_output)]
-    result = []
-    for j, index in enumerate(indexes):
-        try:
-            result.append(strace_output[index:indexes[j + 1]])
-        except IndexError:
-            result.append(strace_output[index:])
-    return "\n".join(result)
-
-
 def contains_docker_error(docker_output):
-    error_messages = ['Unsupported syscall', 'Invalid ELF']
+    error_messages = ['Unsupported syscall', 'Invalid ELF', 'uncaught target signal']
     return any(e in docker_output for e in error_messages)
 
 
