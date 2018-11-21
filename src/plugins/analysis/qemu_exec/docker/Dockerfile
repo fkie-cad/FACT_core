@@ -1,4 +1,4 @@
-FROM phusion/baseimage:0.10.0
+FROM phusion/baseimage:0.11
 
 RUN apt-get update -y && apt-get install -y gcc cmake make libtool-bin wget python automake bison libglib2.0 git \
     libssl-dev nettle-dev flex python3 build-essential python3-setuptools python3-dev screen gdb libpixman-1-dev \
