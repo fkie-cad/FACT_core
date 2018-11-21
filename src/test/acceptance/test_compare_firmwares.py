@@ -45,7 +45,7 @@ class TestAcceptanceCompareFirmwares(TestAcceptanceBase):
                 'device_name': device_name,
                 'device_part': 'full',
                 'device_class': 'test_class',
-                'firmware_version': '1.0',
+                'version': '1.0',
                 'vendor': 'test_vendor',
                 'release_date': '01.01.1970',
                 'tags': '',

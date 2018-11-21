@@ -63,7 +63,7 @@ class TestRestFirmware(RestTestBase):
                 'device_name': 'test_device',
                 'device_part': 'full',
                 'device_class': 'test_class',
-                'firmware_version': '1',
+                'version': '1',
                 'vendor': 'test_vendor',
                 'release_date': '01.01.1970',
                 'tags': '',
@@ -87,7 +87,7 @@ class TestRestFirmware(RestTestBase):
                 'requested_analysis_systems': ['dummy']
             }
         ), follow_redirects=True)
-        assert b'"error_message": "firmware_version not found"' in rv.data
+        assert b'"error_message": "version not found"' in rv.data
         assert b'"status": 1' in rv.data
 
     def test_rest_download_valid(self):
