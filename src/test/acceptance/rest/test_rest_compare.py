@@ -54,7 +54,7 @@ class TestRestCompareFirmware(TestAcceptanceBase):
             'device_name': 'test_device',
             'device_part': 'full',
             'device_class': 'test_class',
-            'firmware_version': '1.0',
+            'version': '1.0',
             'vendor': 'test_vendor',
             'release_date': '01.01.1970',
             'tags': '',
