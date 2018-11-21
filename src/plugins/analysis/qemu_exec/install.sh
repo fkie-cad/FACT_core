@@ -3,7 +3,7 @@
 cd "$( dirname "${BASH_SOURCE[0]}" )"
 
 # build docker container
-if [[ `pgrep dockerd` ]]; then
+if [[ $(pgrep dockerd) ]]; then
     cd docker
     docker build --build-arg http_proxy=${http_proxy} --build-arg https_proxy=${https_proxy} --build-arg HTTP_PROXY=${http_proxy} --build-arg HTTPS_PROXY=${https_proxy} -t fact/firmware-qemu-exec:latest .
     cd ..

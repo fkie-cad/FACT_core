@@ -3,11 +3,11 @@ import os
 from collections import OrderedDict
 from multiprocessing import Pool, Manager
 from re import findall, finditer
-from subprocess import check_output, CalledProcessError, STDOUT, TimeoutExpired
 from tempfile import TemporaryDirectory
 from zlib import compress
 
 from common_helper_files import get_binary_from_file
+from common_helper_process import execute_shell_command_get_return_code
 
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.fileSystem import get_file_type_from_path
@@ -227,15 +227,15 @@ def test_qemu_executability(file_path, arch_suffix, root_path):
 
 
 def get_docker_output(arch_suffix, file_path, root_path):
-    response = None
     call = 'docker run --rm --net=none --mount src={},target=/opt/firmware_root,type=bind ' \
            'fact/firmware-qemu-exec {} {}'.format(root_path, arch_suffix, file_path)
-    try:
-        response = check_output(call, shell=True, stderr=STDOUT, timeout=TIMEOUT).decode(errors='replace')
-    except CalledProcessError as err:
-        logging.warning('encountered process error while trying to run docker container: {}'.format(err))
-    except (TimeoutError, TimeoutExpired) as e:
-        logging.warning('encountered timeout while trying to run docker container: {}'.format(e))
+    response, return_code = execute_shell_command_get_return_code(call, timeout=TIMEOUT)
+    if return_code != 0:
+        if 'timed out' in response:
+            logging.warning('encountered timeout while trying to run docker container')
+        else:
+            logging.warning('encountered process error while trying to run docker container')
+        return None
     return response
 
 
@@ -279,11 +279,11 @@ def parse_docker_output_strace(docker_output):
 def format_strace(strace_output):
     indexes = [i.start() for i in finditer("\d+ [a-zA-Z][\w]+\(", strace_output)]
     result = []
-    for i in range(len(indexes)):
+    for j, index in enumerate(indexes):
         try:
-            result.append(strace_output[indexes[i]:indexes[i + 1]])
+            result.append(strace_output[index:indexes[j + 1]])
         except IndexError:
-            result.append(strace_output[indexes[i]:])
+            result.append(strace_output[index:])
     return "\n".join(result)
 
 
@@ -293,8 +293,5 @@ def contains_docker_error(docker_output):
 
 
 def docker_is_running():
-    try:
-        check_output('pgrep dockerd', shell=True)
-        return True
-    except CalledProcessError:
-        return False
+    _, return_code = execute_shell_command_get_return_code('pgrep dockerd')
+    return return_code == 0

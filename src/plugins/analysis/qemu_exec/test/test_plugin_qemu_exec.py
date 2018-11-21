@@ -1,6 +1,5 @@
 import os
 from contextlib import suppress
-from subprocess import CalledProcessError
 
 import pytest
 from common_helper_files import get_dir_of_file
@@ -38,18 +37,18 @@ class MockUnpacker:
 
 @pytest.fixture
 def check_output_fails(monkeypatch):
-    def mock_check_output(call, shell=False, stderr=2, timeout=0):
-        raise CalledProcessError(1, call)
-    monkeypatch.setattr(qemu_exec, 'check_output', mock_check_output)
+    def mock_execute_shell(call):
+        return '', 1
+    monkeypatch.setattr(qemu_exec, 'execute_shell_command_get_return_code', mock_execute_shell)
 
 
 @pytest.fixture
 def check_output_timeout(monkeypatch):
-    def mock_check_output(call, shell=False, stderr=2, timeout=0):
+    def mock_execute_shell(call, shell=False, stderr=2, timeout=0):
         if call == 'pgrep dockerd':
-            return True
-        raise TimeoutError()
-    monkeypatch.setattr(qemu_exec, 'check_output', mock_check_output)
+            return '', 0
+        return 'timed out', 1
+    monkeypatch.setattr(qemu_exec, 'execute_shell_command_get_return_code', mock_execute_shell)
 
 
 class TestPluginQemuExec(AnalysisPluginTest):
