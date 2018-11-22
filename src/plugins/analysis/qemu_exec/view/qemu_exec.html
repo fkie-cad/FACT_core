@@ -62,7 +62,11 @@
                                     <table class="table table-bordered" style="margin: 0; width: 100%">
                                     {% for arch in result['results'] %}
                                         <tr>
+                                            {% if "strace" in result['results'][arch] %}
                                             <td width="1px" rowspan="{{ (result['results'][arch] | length - 1) * 3  + 1 }}">
+                                            {% else %}
+                                            <td width="1px" rowspan="{{ (result['results'][arch] | length) * 3 }}">
+                                            {% endif %}
                                                 {{ arch }}
                                             </td>
                                             {% for option in result['results'][arch] %}
@@ -72,14 +76,15 @@
                                                     <td>stdout</td>
                                                     <td class="qemu-td" style="padding: 5px;">
                                                         {% if option_result['stdout'] %}
-                                                        <pre class="qemu-pre"
-                                                            >{{ '$ .' + result['path'] + ' ' + option + '\n' + option_result['stdout'] }}</pre>
+                                                        <pre class="qemu-pre">{{ '$ .' + result['path'] + ' ' + option + '\n' + option_result['stdout'] }}</pre>
                                                         {% else %}Empty{% endif %}
                                                     </td>
                                                     </tr><tr>
                                                         <td>stderr</td>
                                                         <td>
-                                                            {% if option_result['stderr'] %}{{ option_result['stderr'] }}{% else %}Empty{% endif %}
+                                                            {% if option_result['stderr'] %}
+                                                            <pre class="qemu-pre">{{ '$ .' + result['path'] + ' ' + option + '\n' + option_result['stderr'] }}</pre>
+                                                            {% else %}Empty{% endif %}
                                                         </td>
                                                     </tr><tr>
                                                         <td>return code</td>
