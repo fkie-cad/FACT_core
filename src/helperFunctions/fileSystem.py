@@ -1,6 +1,8 @@
 import logging
 import os
 import sys
+from pathlib import Path
+from typing import Union
 
 import magic
 
@@ -81,13 +83,14 @@ def get_chroot_path_excluding_extracted_dir(absolute_path, base_path):
     return get_chroot_path(tmp, '/faf_extracted')
 
 
-def get_file_type_from_path(file_path):
+def get_file_type_from_path(file_path: Union[str, Path]):
     '''
     This functions returns a dict with the file's mime- and full-type.
     It uses the custom mime database found in src/bin/custommime.mgc
     If no match was found, it uses the standard system magic file.
     '''
-    return _get_file_type(file_path, 'from_file')
+    path_string = file_path if isinstance(file_path, str) else str(file_path)
+    return _get_file_type(path_string, 'from_file')
 
 
 def get_file_type_from_binary(binary):

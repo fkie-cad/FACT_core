@@ -1,11 +1,11 @@
 import itertools
 import logging
-import os
 from collections import OrderedDict
 from multiprocessing import Pool, Manager
-from re import findall, finditer
+from pathlib import Path
+from re import findall
 from tempfile import TemporaryDirectory
-from typing import Dict
+from typing import Dict, Optional, List, Tuple
 from zlib import compress
 
 from common_helper_files import get_binary_from_file
@@ -15,6 +15,7 @@ from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.fileSystem import get_file_type_from_path
 from helperFunctions.tag import TagColor
 from helperFunctions.uid import create_uid
+from objects.file import FileObject
 from storage.binary_service import BinaryServiceDbInterface
 from unpacker.unpackBase import UnpackBase
 
@@ -25,9 +26,9 @@ EMPTY = '(no parameter)'
 
 
 class Unpacker(UnpackBase):
-    def unpack_fo(self, file_object):
+    def unpack_fo(self, file_object: FileObject) -> Optional[TemporaryDirectory]:
         file_path = file_object.file_path if file_object.file_path else self._get_file_path_from_db(file_object.get_uid())
-        if not file_path or not os.path.isfile(file_path):
+        if not file_path or not Path(file_path).is_file():
             logging.error('could not unpack {}: file path not found'.format(file_object.get_uid()))
             return None
 
@@ -83,11 +84,13 @@ class AnalysisPlugin(AnalysisBasePlugin):
         ('68020', ['m68k']),
     ])
 
+    root_path = None
+
     def __init__(self, plugin_administrator, config=None, recursive=True, unpacker=None):
         self.unpacker = Unpacker(config) if unpacker is None else unpacker
         super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__, timeout=600)
 
-    def process_object(self, file_object):
+    def process_object(self, file_object: FileObject) -> FileObject:
         if not docker_is_running():
             logging.error('could not process object: docker daemon not running')
             return file_object
@@ -101,12 +104,12 @@ class AnalysisPlugin(AnalysisBasePlugin):
         else:
             return self._process_container(file_object)
 
-    def _process_included_binary(self, file_object):
+    def _process_included_binary(self, file_object: FileObject) -> FileObject:
         # File will get analyzed in the parent container
         file_object.processed_analysis[self.NAME]['parent_flag'] = True
         return file_object
 
-    def _process_container(self, file_object):
+    def _process_container(self, file_object: FileObject) -> FileObject:
         if len(file_object.files_included) == 0:
             return file_object
 
@@ -114,57 +117,61 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
         if tmp_dir:
             try:
-                self.root_path = tmp_dir.name
+                self.root_path = self._find_root_path(tmp_dir)
                 file_list = self._find_relevant_files(tmp_dir)
                 if file_list:
                     file_object.processed_analysis[self.NAME]['files'] = {}
-                    self._process_included_files(file_list, file_object, self.root_path)
+                    self._process_included_files(file_list, file_object)
             finally:
                 tmp_dir.cleanup()
 
         return file_object
 
-    def _find_relevant_files(self, tmp_dir):
-        if self.FACT_EXTRACTION_FOLDER_NAME in os.listdir(tmp_dir.name):
-            # if there a 'fact_extracted' folder in the tmp dir: reset root path to that folder
-            self.root_path = os.path.join(self.root_path, self.FACT_EXTRACTION_FOLDER_NAME)
-
+    def _find_relevant_files(self, tmp_dir: TemporaryDirectory):
         result = []
-        for dir_path, _, file_list in os.walk(tmp_dir.name):
-            for f in file_list:
-                file_path = os.path.join(dir_path, f)
-                if os.path.isfile(file_path) and not os.path.islink(file_path):
-                    file_type = get_file_type_from_path(file_path)
-                    if self._has_relevant_type(file_type):
-                        rel_path = os.path.relpath(file_path, self.root_path)
-                        result.append(('/{}'.format(rel_path), file_type['full']))
+        for f in Path(tmp_dir.name).glob('**/*'):
+            if f.is_file() and not f.is_symlink():
+                file_type = get_file_type_from_path(f.absolute())
+                if self._has_relevant_type(file_type):
+                    result.append(('/{}'.format(f.relative_to(Path(self.root_path))), file_type['full']))
         return result
 
-    def _has_relevant_type(self, file_type):
+    def _find_root_path(self, tmp_dir: TemporaryDirectory) -> Path:
+        root_path = Path(tmp_dir.name)
+        if (root_path / self.FACT_EXTRACTION_FOLDER_NAME).is_dir():
+            # if there a 'fact_extracted' folder in the tmp dir: reset root path to that folder
+            root_path /= self.FACT_EXTRACTION_FOLDER_NAME
+        return root_path
+
+    def _has_relevant_type(self, file_type: dict):
         if file_type is not None and file_type['mime'] in self.FILE_TYPES:
             return True
         return False
 
-    def _process_included_files(self, file_list, file_object, root_path):
+    def _process_included_files(self, file_list, file_object):
         manager = Manager()
         pool = Pool(processes=8)
         results_dict = manager.dict()
-        jobs = []
 
+        jobs = self._create_analysis_jobs(file_list, file_object, results_dict)
+        pool.starmap(process_qemu_job, jobs, chunksize=1)
+        self._enter_results(dict(results_dict), file_object)
+        self._add_tag(file_object)
+
+    def _create_analysis_jobs(self, file_list: List[Tuple[str, str]], file_object: FileObject, results_dict: dict) -> List[tuple]:
+        jobs = []
         for file_path, full_type in file_list:
-            uid = self._get_uid(file_path, root_path)
+            uid = self._get_uid(file_path, self.root_path)
             if uid not in file_object.processed_analysis[self.NAME]['files']:
                 # file could be contained in the fo multiple times (but should be tested only once)
                 qemu_arch_suffixes = self._find_arch_suffixes(full_type)
-                jobs.extend([(file_path, arch_suffix, root_path, results_dict, uid) for arch_suffix in qemu_arch_suffixes])
-
-        pool.starmap(process_qemu_job, jobs, chunksize=1)
-        self._enter_results(results_dict, file_object)
-        self._add_tag(file_object)
+                jobs.extend(
+                    [(file_path, arch_suffix, self.root_path, results_dict, uid) for arch_suffix in qemu_arch_suffixes])
+        return jobs
 
     @staticmethod
-    def _get_uid(file_path, root_path):
-        return create_uid(get_binary_from_file(os.path.join(root_path, file_path[1:])))
+    def _get_uid(file_path, root_path: Path):
+        return create_uid(get_binary_from_file(str(root_path / file_path[1:])))
 
     def _find_arch_suffixes(self, full_type):
         for arch_string in self.arch_to_bin_dict:
@@ -173,13 +180,13 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return []
 
     def _enter_results(self, results, file_object):
-        tmp = file_object.processed_analysis[self.NAME]['files'] = dict(results)
+        tmp = file_object.processed_analysis[self.NAME]['files'] = results
         for uid in tmp:
             tmp[uid]['executable'] = self._valid_execution_in_results(tmp[uid]['results'])
         file_object.processed_analysis['qemu_exec']['summary'] = self._get_summary(tmp)
 
     @staticmethod
-    def _valid_execution_in_results(results):
+    def _valid_execution_in_results(results: dict):
         return any(
             results[arch][option]['stdout'] != '' and (results[arch][option]['return_code'] == '0' or results[arch][option]['stderr'] == '')
             for arch in results
@@ -187,7 +194,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             if option != 'strace'
         )
 
-    def _add_tag(self, file_object):
+    def _add_tag(self, file_object: FileObject):
         result = file_object.processed_analysis[self.NAME]['files']
         if any(result[uid]['executable'] for uid in result):
             self.add_analysis_tag(
@@ -199,13 +206,13 @@ class AnalysisPlugin(AnalysisBasePlugin):
             )
 
     @staticmethod
-    def _get_summary(results):
+    def _get_summary(results: dict):
         if any(results[uid][EXECUTABLE] for uid in results):
             return [EXECUTABLE]
         return []
 
 
-def process_qemu_job(file_path, arch_suffix, root_path, results_dict, uid):
+def process_qemu_job(file_path: str, arch_suffix: str, root_path: Path, results_dict: dict, uid: str):
     result = test_qemu_executability(file_path, arch_suffix, root_path)
     if result:
         if uid in results_dict:
@@ -219,7 +226,7 @@ def process_qemu_job(file_path, arch_suffix, root_path, results_dict, uid):
         }
 
 
-def test_qemu_executability(file_path, arch_suffix, root_path):
+def test_qemu_executability(file_path: str, arch_suffix: str, root_path: Path) -> dict:
     result = {}
 
     response = get_docker_output(arch_suffix, file_path, root_path)
@@ -229,7 +236,7 @@ def test_qemu_executability(file_path, arch_suffix, root_path):
     return result
 
 
-def get_docker_output(arch_suffix, file_path, root_path):
+def get_docker_output(arch_suffix: str, file_path: str, root_path: Path) -> Optional[str]:
     call = 'docker run --rm --net=none --mount src={},target=/opt/firmware_root,type=bind ' \
            'fact/firmware-qemu-exec {} {}'.format(root_path, arch_suffix, file_path)
     response, return_code = execute_shell_command_get_return_code(call, timeout=TIMEOUT)
@@ -240,6 +247,13 @@ def get_docker_output(arch_suffix, file_path, root_path):
             logging.warning('encountered process error while trying to run docker container')
         return None
     return response
+
+
+def parse_docker_output(docker_output: str) -> dict:
+    result = parse_docker_output_options(docker_output)
+    merge_similar_entries(result)
+    result.update(parse_docker_output_strace(docker_output))
+    return result
 
 
 def merge_similar_entries(results_dict: Dict[str, Dict[str, str]]):
@@ -253,14 +267,7 @@ def merge_similar_entries(results_dict: Dict[str, Dict[str, str]]):
             break
 
 
-def parse_docker_output(docker_output):
-    result = parse_docker_output_options(docker_output)
-    merge_similar_entries(result)
-    result.update(parse_docker_output_strace(docker_output))
-    return result
-
-
-def parse_docker_output_options(docker_output):
+def parse_docker_output_options(docker_output: str) -> Dict[str, Dict[str, str]]:
     options_regex = '(?s)§#§option§#§((?:(?!§#§).)+)§#§\n' \
                     '§#§stdout§#§((?:(?!§#§).)*)§#§\n' \
                     '§#§stderr§#§((?:(?!§#§).)*)§#§\n' \
@@ -279,7 +286,7 @@ def parse_docker_output_options(docker_output):
     return result
 
 
-def parse_docker_output_strace(docker_output):
+def parse_docker_output_strace(docker_output: str) -> dict:
     strace_regex = '(?s)§#§strace§#§\n' \
                    '§#§stdout§#§((?:(?!§#§).)*)§#§\n' \
                    '§#§stderr§#§((?:(?!§#§).)*)§#§'
@@ -291,11 +298,11 @@ def parse_docker_output_strace(docker_output):
     }
 
 
-def contains_docker_error(docker_output):
+def contains_docker_error(docker_output: str) -> bool:
     error_messages = ['Unsupported syscall', 'Invalid ELF', 'uncaught target signal']
     return any(e in docker_output for e in error_messages)
 
 
-def docker_is_running():
+def docker_is_running() -> bool:
     _, return_code = execute_shell_command_get_return_code('pgrep dockerd')
     return return_code == 0

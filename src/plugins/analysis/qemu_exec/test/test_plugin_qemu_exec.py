@@ -1,5 +1,6 @@
 import os
 from contextlib import suppress
+from pathlib import Path
 
 import pytest
 from common_helper_files import get_dir_of_file
@@ -142,7 +143,8 @@ class TestPluginQemuExec(AnalysisPluginTest):
         test_fw.processed_analysis[self.analysis_plugin.NAME] = result = {'files': {}}
         file_list = [('/test_mips_static', '-MIPS32-')]
 
-        self.analysis_plugin._process_included_files(file_list, test_fw, TEST_DATA_DIR)
+        self.analysis_plugin.root_path = Path(TEST_DATA_DIR)
+        self.analysis_plugin._process_included_files(file_list, test_fw)
         assert result is not None
         assert 'files' in result
         assert test_uid in result['files']
