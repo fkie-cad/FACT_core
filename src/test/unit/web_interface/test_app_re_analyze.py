@@ -24,7 +24,7 @@ class TestAppReAnalyze(WebInterfaceTest):
             'device_part': '',
             'device_part_dropdown': TEST_FW.part,
             'device_class': TEST_FW.device_class,
-            'firmware_version': TEST_FW.version,
+            'version': TEST_FW.version,
             'vendor': TEST_FW.vendor,
             'release_date': TEST_FW.release_date,
             'tags': '',

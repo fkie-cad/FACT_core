@@ -1,0 +1,135 @@
+{% extends "analysis_plugins/general_information.html" %}
+
+
+{% block styles %}
+<style>
+    .qemu-pre {
+        padding: 5px;
+        width: 100%;
+        white-space: pre-wrap;
+        overflow-y: scroll;
+        overflow-x: hidden;
+        display: block;
+        font-family: monospace;
+        margin: 0 0;
+        color: #f8f8f8;
+        background-color: #333;
+        max-height: 500px;
+    }
+    .qemu-td {
+        width: 100%;
+        max-width: 0;
+    }
+</style>
+{% endblock %}
+
+
+{% block analysis_result_details %}
+
+    {% if 'files' in firmware.processed_analysis[selected_analysis] %}
+
+        <th class="success" colspan="2">
+            Results for Included Files
+        </th>
+
+        {% for uid, result in firmware.processed_analysis[selected_analysis]['files'].items() %}
+
+            <tr data-toggle="collapse" data-target="#collapse-{{ uid }}">
+                <td class="active clickable" colspan=2>
+                    <span class="glyphicon glyphicon-chevron-down"></span> {{ result['path'] }}
+                    {% if result['executable'] %}
+                        <span class="glyphicon glyphicon-ok" style="color:DarkGreen"></span>
+                    {% else %}
+                        <span class="glyphicon glyphicon-remove" style="color:DarkRed"></span>
+                    {% endif %}
+                </td>
+            </tr>
+
+            <tr>
+                <td colspan="2" class="qemu-td" style="padding: 0;">
+                    <div class="collapse" id="collapse-{{ uid }}">
+
+                        <table class="table table-bordered" style="margin: 0; width: 100%">
+                            <tr>
+                                <td width="175px">Executable in QEMU:</td>
+                                <td>{{ result['executable'] }}</td>
+                            </tr>
+
+                            {% if result['results'] %}
+                            <tr>
+                                <td>Individual Results:</td>
+                                <td style="padding: 0">
+                                    <table class="table table-bordered" style="margin: 0; width: 100%">
+                                    {% for arch in result['results'] %}
+                                        <tr>
+                                            {% if "strace" in result['results'][arch] %}
+                                            <td width="1px" rowspan="{{ (result['results'][arch] | length - 1) * 3  + 1 }}">
+                                            {% else %}
+                                            <td width="1px" rowspan="{{ (result['results'][arch] | length) * 3 }}">
+                                            {% endif %}
+                                                {{ arch }}
+                                            </td>
+                                            {% for option in result['results'][arch] %}
+                                                {% if option != 'strace' %}
+                                                    {% set option_result = result['results'][arch][option] %}
+                                                    <td width="1px" rowspan="3">{{ option }}</td>
+                                                    <td>stdout</td>
+                                                    <td class="qemu-td" style="padding: 5px;">
+                                                        {% if option_result['stdout'] %}
+                                                        <pre class="qemu-pre">{{ '$ .' + result['path'] + ' ' + option + '\n' + option_result['stdout'] }}</pre>
+                                                        {% else %}Empty{% endif %}
+                                                    </td>
+                                                    </tr><tr>
+                                                        <td>stderr</td>
+                                                        <td>
+                                                            {% if option_result['stderr'] %}
+                                                            <pre class="qemu-pre">{{ '$ .' + result['path'] + ' ' + option + '\n' + option_result['stderr'] }}</pre>
+                                                            {% else %}Empty{% endif %}
+                                                        </td>
+                                                    </tr><tr>
+                                                        <td>return code</td>
+                                                        <td>{{ option_result['return_code'] }}</td>
+                                                    </tr><tr>
+                                                {% endif %}
+                                            {% endfor %}
+                                            {% if 'strace' in result['results'][arch] %}
+                                                    <td width="1px">strace</td>
+                                                    <td colspan="2">
+                                                        {% if result['results'][arch]['strace'] %}
+                                                            <pre class="qemu-pre">{{ result['results'][arch]['strace'] | decompress }}</pre>
+                                                        {% else %}Empty{% endif %}
+                                                    </td>
+                                                </tr>
+                                            {% else %}
+                                                </tr>
+                                            {% endif %}
+                                    {% endfor %}
+                                    </table>
+                                </td>
+                            </tr>
+                            {% endif %}
+                        </table>
+
+                    </div>
+                </td>
+            </tr>
+
+        {% endfor %}
+    {% endif %}
+
+{% endblock %}
+
+
+{% block ajax %}
+    {% set analysis = firmware.processed_analysis[selected_analysis] %}
+
+    {% if 'parent_flag' in analysis and analysis.parent_flag == True %}
+        <div id="file_results"></div>
+        <script>
+            $(document).ready(function() {
+                $('#file_results').load('/plugins/qemu_exec/ajax/{{ firmware.uid }}');
+            });
+        </script>
+    {% endif %}
+
+{% endblock %}

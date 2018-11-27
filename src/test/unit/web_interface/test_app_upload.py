@@ -18,12 +18,12 @@ class TestAppUpload(WebInterfaceTest):
             'device_name': 'test_device',
             'device_part': 'kernel',
             'device_class': 'test_class',
-            'firmware_version': '',
+            'version': '',
             'vendor': 'test_vendor',
             'release_date': '01.01.1970',
             'tags': '',
             'analysis_systems': ['dummy']}, follow_redirects=True)
-        assert b'Please specify the firmware version' in rv.data
+        assert b'Please specify the version' in rv.data
         self.assertEqual(len(self.mocked_interface.tasks), 0, 'task added to intercom but should not')
 
     def test_app_upload_valid_firmware(self):
@@ -32,7 +32,7 @@ class TestAppUpload(WebInterfaceTest):
             'device_name': 'test_device',
             'device_part': 'complete',
             'device_class': 'test_class',
-            'firmware_version': '1.0',
+            'version': '1.0',
             'vendor': 'test_vendor',
             'release_date': '01.01.1970',
             'tags': 'tag1,tag2',
