@@ -25,3 +25,14 @@ rule DLink_Bug {
         $a = "xmlset_roodkcableoj28840ybtide"
     condition: $a
 }
+
+rule WPA_Key_Hardcoded {
+    meta:
+        description = "WiFi Access Point with hardcoded WPA key"
+        reliability = "80"
+        score = "high"
+        link = ""
+    strings:
+        $a = /\swpa_passphrase=\S+/ nocase ascii wide
+    condition: $a
+} 

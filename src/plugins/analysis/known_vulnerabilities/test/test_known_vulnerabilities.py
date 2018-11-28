@@ -29,9 +29,12 @@ class TestAnalysisPluginsKnownVulnerabilities(AnalysisPluginTest):
 
         results = self.analysis_plugin.process_object(test_file).processed_analysis[self.PLUGIN_NAME]
 
-        self.assertEqual(len(results), 2, 'incorrect number of software components found (summary + one result)')
+        self.assertEqual(len(results), 3, 'incorrect number of software components found (summary + tag + one result)')
         self.assertTrue('DLink_Bug' in results, 'test match not found')
         self.assertEqual(results['DLink_Bug']['score'], 'high', 'incorrect or no score found in meta data')
+
+        self.assertIn('DLink_Bug', results['tags'])
+        self.assertTrue(results['tags']['DLink_Bug']['propagate'])
 
     def test_process_object_software(self):
         test_file = FileObject(file_path=os.path.join(TEST_DATA_DIR, 'empty'))
@@ -40,7 +43,7 @@ class TestAnalysisPluginsKnownVulnerabilities(AnalysisPluginTest):
 
         results = self.analysis_plugin.process_object(test_file).processed_analysis[self.PLUGIN_NAME]
 
-        self.assertEqual(len(results), 2, 'incorrect number of software components found (summary + one result)')
+        self.assertEqual(len(results), 3, 'incorrect number of software components found (summary + tag + one result)')
         self.assertTrue('Heartbleed' in results, 'test match not found')
         self.assertEqual(results['Heartbleed']['score'], 'high', 'incorrect or no score found in meta data')
 
@@ -61,6 +64,9 @@ class TestAnalysisPluginsKnownVulnerabilities(AnalysisPluginTest):
 
         results = self.analysis_plugin.process_object(test_file).processed_analysis[self.PLUGIN_NAME]
 
-        self.assertEqual(len(results), 2, 'incorrect number of software components found (summary + one result)')
+        self.assertEqual(len(results), 3, 'incorrect number of software components found (summary + tag + one result)')
         self.assertTrue('Netgear_CGI' in results, 'test match not found')
         self.assertEqual(results['Netgear_CGI']['score'], 'medium', 'incorrect or no score found in meta data')
+
+        self.assertIn('Netgear_CGI', results['tags'])
+        self.assertFalse(results['tags']['Netgear_CGI']['propagate'])

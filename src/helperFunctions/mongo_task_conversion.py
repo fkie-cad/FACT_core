@@ -1,13 +1,11 @@
+import logging
 import os
 import re
-import logging
 import sys
-
 from tempfile import TemporaryDirectory
 
 from helperFunctions.uid import create_uid
 from objects.firmware import Firmware
-
 
 OPTIONAL_FIELDS = ['tags', 'device_part']
 DROPDOWN_FIELDS = ['device_class', 'vendor', 'device_name', 'device_part']
@@ -43,16 +41,18 @@ def create_re_analyze_task(request, uid):
 
 
 def _get_meta_from_request(request):
-    meta = {}
-    meta['device_name'] = request.form['device_name']
-    meta['device_part'] = request.form['device_part']
-    meta['device_class'] = request.form['device_class']
-    meta['vendor'] = request.form['vendor']
-    meta['firmware_version'] = request.form['firmware_version']
-    meta['release_date'] = request.form['release_date']
-    meta['requested_analysis_systems'] = request.form.getlist('analysis_systems')
-    meta['tags'] = request.form['tags']
-    meta = _get_meta_from_dropdowns(meta, request)
+    meta = {
+        'device_name': request.form['device_name'],
+        'device_part': request.form['device_part'],
+        'device_class': request.form['device_class'],
+        'vendor': request.form['vendor'],
+        'version': request.form['version'],
+        'release_date': request.form['release_date'],
+        'requested_analysis_systems': request.form.getlist('analysis_systems'),
+        'tags': request.form['tags']
+    }
+    _get_meta_from_dropdowns(meta, request)
+
     if 'file_name' in request.form.keys():
         meta['file_name'] = request.form['file_name']
     return meta
@@ -64,7 +64,6 @@ def _get_meta_from_dropdowns(meta, request):
             dd = request.form['{}_dropdown'.format(item)]
             if dd != 'new entry':
                 meta[item] = dd
-    return meta
 
 
 def _get_tag_list(tag_string):
@@ -85,28 +84,13 @@ def convert_analysis_task_to_fw_obj(analysis_task):
         fw.overwrite_uid(analysis_task['uid'])
     fw.set_device_name(analysis_task['device_name'])
     fw.set_part_name(analysis_task['device_part'])
-    fw.set_firmware_version(analysis_task['firmware_version'])
+    fw.set_firmware_version(analysis_task['version'])
     fw.set_device_class(analysis_task['device_class'])
     fw.set_vendor(analysis_task['vendor'])
     fw.set_release_date(analysis_task['release_date'])
     for tag in _get_tag_list(analysis_task['tags']):
         fw.set_tag(tag)
     return fw
-
-
-def convert_fw_obj_to_analysis_task(fw):
-    analysis_task = {'binary': fw.binary,
-                     'file_name': fw.file_name,
-                     'device_part': fw.part,
-                     'device_name': fw.device_name,
-                     'device_class': fw.device_class,
-                     'vendor': fw.vendor,
-                     'firmware_version': fw.version,
-                     'release_date': fw.release_date,
-                     'requested_analysis_systems': fw.scheduled_analysis,
-                     'tags': ','.join(sorted(fw.tags.keys())),
-                     'uid': fw.get_uid()}
-    return analysis_task
 
 
 def get_uid_of_analysis_task(analysis_task):
@@ -137,7 +121,7 @@ def check_for_errors(analysis_task):
     error = {}
     for key in analysis_task:
         if analysis_task[key] in [None, '', b''] and key not in OPTIONAL_FIELDS:
-            error.update({key: 'Please specify the {}'.format(' '.join(key.split('_')))})
+            error.update({key: 'Please specify the {}'.format(key.replace('_', ' '))})
     return error
 
 
