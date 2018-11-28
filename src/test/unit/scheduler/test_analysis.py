@@ -195,3 +195,32 @@ class TestAnalysisSchedulerBlacklist(AnalysisSchedulerTest):
     def _add_test_plugin_to_config(self):
         self.sched.config.add_section('test_plugin')
         self.sched.config.set('test_plugin', 'mime_blacklist', 'type1, type2')
+
+
+class TestUtilityFunctions(AnalysisSchedulerTest):
+
+    class PluginMock:
+        def __init__(self, dependencies):
+            self.DEPENDENCIES = dependencies
+
+        def shutdown(self):
+            pass
+
+    def setUp(self):
+        super().setUp()
+        self.plugin_list = ['no_deps', 'foo', 'bar']
+        self.sched.analysis_plugins['no_deps'] = self.PluginMock(dependencies=[])
+        self.sched.analysis_plugins['foo'] = self.PluginMock(dependencies=['no_deps'])
+        self.sched.analysis_plugins['bar'] = self.PluginMock(dependencies=['no_deps', 'foo'])
+
+    def test_get_plugins_without_unmet_dependencies(self):
+        assert self.sched._get_plugins_without_unmet_dependencies(set(self.plugin_list), []) == ['no_deps']
+        assert self.sched._get_plugins_without_unmet_dependencies({'foo', 'bar'}, ['no_deps']) == ['foo']
+        assert self.sched._get_plugins_without_unmet_dependencies({'bar'}, ['no_deps', 'foo']) == ['bar']
+
+    def test_smart_shuffle(self):
+        assert self.sched._smart_shuffle(self.plugin_list) == ['bar', 'foo', 'no_deps']
+
+    def test_smart_shuffle__impossible_dependency(self):
+        self.sched.analysis_plugins['impossible'] = self.PluginMock(dependencies=['impossible to meet'])
+        assert self.sched._smart_shuffle(self.plugin_list + ['impossible']) == ['bar', 'foo', 'no_deps']
