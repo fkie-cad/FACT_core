@@ -11,6 +11,7 @@ from typing import Tuple, List, Optional, Set
 
 from helperFunctions.compare_sets import substring_is_in_list
 from helperFunctions.config import read_list_from_config
+from helperFunctions.mongo_task_conversion import is_sanitized_entry
 from helperFunctions.parsing import bcolors
 from helperFunctions.plugin import import_plugins
 from helperFunctions.process import ExceptionSafeProcess, terminate_process_and_childs
@@ -196,17 +197,18 @@ class AnalysisScheduler(object):
     # ---- blacklist and whitelist ----
 
     def _get_cumulative_remaining_dependencies(self, fw_object: FileObject) -> Set[str]:
-        result = set()
-        for plugin in fw_object.scheduled_analysis:
-            result.update(self.analysis_plugins[plugin].DEPENDENCIES)
-        return result
+        return {
+            dependency
+            for plugin in fw_object.scheduled_analysis
+            for dependency in self.analysis_plugins[plugin].DEPENDENCIES
+        }
 
     def _add_completed_analysis_results_to_file_object(self, analysis_to_do: str, fw_object: FileObject):
         db_entry = self.db_backend_service.get_specific_fields_of_db_entry(
             fw_object.get_uid(), {'processed_analysis.{}'.format(analysis_to_do): 1}
         )
-        # FIXME unsanitize sanitized analysis -> is_sanitized_entry
-        fw_object.processed_analysis[analysis_to_do] = db_entry['processed_analysis'][analysis_to_do]
+        desanitized_analysis = self.db_backend_service.retrieve_analysis(db_entry['processed_analysis'])
+        fw_object.processed_analysis[analysis_to_do] = desanitized_analysis[analysis_to_do]
 
     def _analysis_is_already_in_db_and_up_to_date(self, analysis_to_do: str, fw_object: FileObject):
         db_entry = self.db_backend_service.get_specific_fields_of_db_entry(
