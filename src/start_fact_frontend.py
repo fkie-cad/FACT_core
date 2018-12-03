@@ -59,13 +59,13 @@ def start_uwsgi_server(config_path=None):
 
 
 def start_docker():
-    command = 'docker-compose -f {}/bootstrap/radare/docker-compose.yml up -d'.format(get_src_dir())
+    command = 'docker-compose -f {}/install/radare/docker-compose.yml up -d'.format(get_src_dir())
     with Popen(command, shell=True, stdout=PIPE, stderr=PIPE) as docker_process:
         docker_process.communicate()
 
 
 def stop_docker():
-    command = 'docker-compose -f {}/bootstrap/radare/docker-compose.yml down'.format(get_src_dir())
+    command = 'docker-compose -f {}/install/radare/docker-compose.yml down'.format(get_src_dir())
     with Popen(command, shell=True, stdout=PIPE, stderr=PIPE) as docker_process:
         docker_process.communicate()
 
