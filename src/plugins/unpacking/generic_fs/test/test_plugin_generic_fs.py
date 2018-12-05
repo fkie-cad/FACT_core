@@ -1,7 +1,7 @@
 import os
 
 from test.unit.unpacker.test_unpacker import TestUnpackerBase
-
+from ..code.generic_fs import _extract_loop_devices
 
 TEST_DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
 
@@ -80,3 +80,14 @@ class TestGenericFsUnpacker(TestUnpackerBase):
     def test_extraction_xfs(self):
         self.check_unpacking_of_standard_unpack_set(os.path.join(TEST_DATA_DIR, 'xfs.img'),
                                                     additional_prefix_folder='get_files_test')
+
+KPARTX_OUTPUT = '''
+add map loop7p1 (253:0): 0 7953 linear 7:7 2048
+add map loop7p2 (253:1): 0 10207 linear 7:7 10240
+'''
+
+
+def test_extract_loop_devices():
+    loop_devices = _extract_loop_devices(KPARTX_OUTPUT)
+    assert loop_devices
+    assert loop_devices == ['loop7p1', 'loop7p2']
