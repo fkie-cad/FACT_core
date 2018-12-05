@@ -61,6 +61,7 @@ def main(distribution):
     pip3_install_packages('pytest==3.5.1', 'pytest-cov', 'pytest-pep8', 'pylint', 'python-magic', 'xmltodict', 'yara-python==3.7.0', 'appdirs')
     pip3_install_packages('ssdeep')
     pip3_install_packages('lief')
+    pip3_install_packages('requests')
 
     # install python mongo bindings
     pip3_install_packages('pymongo', 'pyyaml')
