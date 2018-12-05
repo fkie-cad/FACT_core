@@ -22,7 +22,6 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
 
     def __init__(self, plugin_administrator, config=None, recursive=True, no_multithread=False, timeout=300, offline_testing=False, plugin_path=None):  # pylint: disable=too-many-arguments
         super().__init__(plugin_administrator, config=config, plugin_path=plugin_path)
-        self.history = set()
         self.check_config(no_multithread)
         self.recursive = recursive
         self.in_queue = Queue()
@@ -39,7 +38,6 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
     def add_job(self, fw_object):
         if self._analysis_depth_not_reached_yet(fw_object):
             if self._dependencies_are_fulfilled(fw_object):
-                self.history.add(fw_object.get_uid())
                 self.in_queue.put(fw_object)
                 return
             self._reschedule_job(fw_object)

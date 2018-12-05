@@ -132,10 +132,6 @@ class TestPluginBaseOffline(TestPluginBase):
         self.base_plugin.in_queue.get(timeout=5)
         self.assertTrue(self.base_plugin.out_queue.empty(), 'added to out-queue but not in history')
 
-        self.base_plugin.add_job(test_fo)
-        self.base_plugin.out_queue.get(timeout=5)
-        self.assertTrue(self.base_plugin.in_queue.empty(), 'added to in-queue but already in history')
-
         # required dependency check
         test_fo.analysis_dependency.add(self.base_plugin.NAME)
         self.base_plugin.add_job(test_fo)
