@@ -93,6 +93,14 @@ class TestScheduleInitialAnalysis(AnalysisSchedulerTest):
         self.assertEqual(self.sched.analysis_plugins['file_type'].VERSION, result['file_type'][3], 'version not correct')
         self.assertEqual(self.sched.analysis_plugins['file_hashes'].VERSION, result['file_hashes'][3], 'version not correct')
 
+    def test_process_next_analysis_unknown_plugin(self):
+        test_fw = Firmware(file_path=os.path.join(get_test_data_dir(), 'get_files_test/testfile1'))
+        test_fw.scheduled_analysis = ['unknown_plugin']
+
+        with mock.patch.object(self.sched, 'check_further_process_or_complete') as spy:
+            self.sched.process_next_analysis(test_fw)
+            spy.assert_called()
+
 
 class TestAnalysisSchedulerBlacklist(AnalysisSchedulerTest):
 
