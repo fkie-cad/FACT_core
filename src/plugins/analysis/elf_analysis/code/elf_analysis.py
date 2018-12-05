@@ -28,7 +28,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         result = {}
         elf_dict = self._analyze_elf(file_object)
         result['Output'] = elf_dict
-        file_object.processed_analysis[self.NAME] = result
+        file_object.processed_analysis[self.NAME].update(result)
         file_object.processed_analysis[self.NAME]['summary'] = list(elf_dict.keys())
         return file_object
 
@@ -99,8 +99,13 @@ class AnalysisPlugin(AnalysisBasePlugin):
         all_libs.extend(parsed_bin.libraries)
         all_funcs = self._get_relevant_imp_functions(parsed_bin.imported_functions)
         for entry in self._get_tags(all_libs, all_funcs):
-            self.add_analysis_tag(file_object=file_object, tag_name=entry,
-                                  value=entry, color=self._get_color_codes(entry))
+            self.add_analysis_tag(
+                file_object=file_object,
+                tag_name=entry,
+                value=entry,
+                color=self._get_color_codes(entry),
+                propagate=False
+            )
 
     @staticmethod
     def get_final_analysis_dict(binary_json_dict, elf_dict):
