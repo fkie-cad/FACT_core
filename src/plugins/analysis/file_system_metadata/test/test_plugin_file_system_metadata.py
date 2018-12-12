@@ -1,4 +1,5 @@
 from base64 import b64encode
+from pathlib import Path
 
 from common_helper_files.fail_safe_file_operations import get_dir_of_file
 import os
@@ -188,6 +189,14 @@ class TestFileSystemMetadata(AnalysisPluginTest):
         result = self.analysis_plugin.result
         assert result == {}
 
+    def test_extract_metadata_from_tar__eof_error(self):
+        test_file_tar_gz = os.path.join(TEST_DATA_DIR, 'broken.tar.gz')
+        fo = FoMock(test_file_tar_gz, 'application/gzip')
+        self.analysis_plugin._extract_metadata_from_tar(fo)
+        result = self.analysis_plugin.result
+        assert len(result) < 5
+        assert len(result) > 0
+
     def test_get_extended_file_permissions(self):
         assert self.analysis_plugin._get_extended_file_permissions("777") == [False, False, False]
         assert self.analysis_plugin._get_extended_file_permissions("0777") == [False, False, False]
@@ -281,14 +290,6 @@ class TestFileSystemMetadata(AnalysisPluginTest):
         assert 'file_system_metadata' in result.processed_analysis
         assert result.processed_analysis['file_system_metadata']['contained_in_file_system'] is False
         assert len(result.processed_analysis['file_system_metadata'].keys()) == 1
-
-    def test_enter_results_for_mounted_file__malformed_path(self):
-        file_name = './foo/bar'
-        self.analysis_plugin._enter_results_for_mounted_file(file_name, self.test_file_fs)
-        result = self.analysis_plugin.result
-        assert result != {}
-        assert b64_encode(file_name) not in result
-        assert b64_encode('foo/bar') in result
 
     def test_enter_results_for_tar_file__malformed_path(self):
         file_name = './foo/bar'

@@ -6,8 +6,10 @@ import logging
 import os
 import stat
 import tarfile
+from pathlib import Path
 from tempfile import TemporaryDirectory
 import zlib
+from typing import List
 
 from analysis.PluginBase import AnalysisBasePlugin
 from common_helper_process import execute_shell_command
@@ -27,7 +29,7 @@ def mount(file_path, fs_type=''):
     try:
         mount_rv = execute_shell_command('sudo mount {} -v -o ro,loop {} {}'.format(fs_type, file_path, mount_dir.name))
         if 'mounted on' in mount_rv:
-            yield mount_dir.name
+            yield Path(mount_dir.name)
         else:
             logging.error('could not mount {}'.format(file_path))
             raise MountingError('error while mounting fs')
@@ -69,25 +71,25 @@ class AnalysisPlugin(AnalysisBasePlugin):
         self.result = {}
         super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__)
 
-    def process_object(self, file_object):
+    def process_object(self, file_object: FileObject) -> FileObject:
         self.result = {}
         self._extract_metadata(file_object)
         self._set_result_propagation_flag(file_object)
         return file_object
 
-    def _set_result_propagation_flag(self, file_object):
+    def _set_result_propagation_flag(self, file_object: FileObject):
         if 'file_system_metadata' not in file_object.processed_analysis:
             file_object.processed_analysis['file_system_metadata'] = {}
         file_object.processed_analysis['file_system_metadata']['contained_in_file_system'] = self._parent_has_file_system_metadata(file_object)
 
-    def _parent_has_file_system_metadata(self, file_object):
+    def _parent_has_file_system_metadata(self, file_object: FileObject) -> bool:
         if hasattr(file_object, 'temporary_data') and 'parent_fo_type' in file_object.temporary_data:
             mime_type = file_object.temporary_data['parent_fo_type']
             return mime_type in self.ARCHIVE_MIME_TYPES + self.FS_MIME_TYPES
         with ConnectTo(FsMetadataDbInterface, self.config) as db_interface:
             return db_interface.parent_fo_has_fs_metadata_analysis_results(file_object)
 
-    def _extract_metadata(self, file_object):
+    def _extract_metadata(self, file_object: FileObject):
         file_type = file_object.processed_analysis['file_type']['mime']
         if file_type in self.FS_MIME_TYPES:
             self._extract_metadata_from_file_system(file_object, file_type)
@@ -97,7 +99,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             file_object.processed_analysis['file_system_metadata'] = {'files': self.result}
             self._add_tag(file_object, self.result)
 
-    def _extract_metadata_from_file_system(self, file_object, file_type):
+    def _extract_metadata_from_file_system(self, file_object: FileObject, file_type: str):
         type_parameter = '-t {}'.format(file_type.split('/')[1])
         try:
             with mount(file_object.file_path, type_parameter) as mounted_path:
@@ -105,22 +107,18 @@ class AnalysisPlugin(AnalysisBasePlugin):
         except MountingError:
             pass
 
-    def _analyze_metadata_of_mounted_dir(self, mounted_dir):
-        for dir_path, _, file_name_list in os.walk(mounted_dir):
-            for file_name in file_name_list:
-                full_path = os.path.join(dir_path, file_name)
-                if os.path.isfile(full_path):
-                    self._enter_results_for_mounted_file(file_name, full_path)
+    def _analyze_metadata_of_mounted_dir(self, mounted_dir: Path):
+        for file_ in mounted_dir.rglob("*"):
+            if file_.is_file() and not file_.is_symlink():
+                self._enter_results_for_mounted_file(file_)
 
-    def _enter_results_for_mounted_file(self, filename, full_path):
-        if filename[:2] == './':
-            filename = filename[2:]
-        result = self.result[b64encode(filename.encode()).decode()] = {}
-        stats = os.lstat(full_path)
+    def _enter_results_for_mounted_file(self, file_: Path):
+        result = self.result[b64encode(file_.name.encode()).decode()] = {}
+        stats = os.lstat(str(file_))
         result[FsKeys.MODE] = self._get_mounted_file_mode(stats)
         result[FsKeys.MODE_HR] = stat.filemode(stats.st_mode)
-        result[FsKeys.NAME] = os.path.basename(filename)
-        result[FsKeys.PATH] = filename
+        result[FsKeys.NAME] = file_.name
+        result[FsKeys.PATH] = str(file_)
         result[FsKeys.UID] = stats.st_uid
         result[FsKeys.GID] = stats.st_gid
         if stats.st_uid == 0:
@@ -132,23 +130,23 @@ class AnalysisPlugin(AnalysisBasePlugin):
         result[FsKeys.C_TIME] = stats.st_ctime
         result[FsKeys.SUID], result[FsKeys.SGID], result[FsKeys.STICKY] = self._get_extended_file_permissions(result[FsKeys.MODE])
 
-    def _extract_metadata_from_tar(self, file_object):
+    def _extract_metadata_from_tar(self, file_object: FileObject):
         try:
             for file_info in tarfile.open(file_object.file_path):
                 if file_info.isfile():
                     self._enter_results_for_tar_file(file_info)
-        except tarfile.ReadError:
+        except tarfile.TarError:
             logging.warning('could not open tar archive {}'.format(file_object.file_name))
-        except zlib.error:
-            logging.warning('could not open compressed tar archive: {}'.format(file_object.file_name))
+        except EOFError:
+            logging.warning('could not open archive: unexpected EOF {}'.format(file_object.file_name))
 
-    def _enter_results_for_tar_file(self, file_info):
+    def _enter_results_for_tar_file(self, file_info: tarfile.TarInfo):
         file_path = file_info.name
         if file_path[:2] == './':
             file_path = file_path[2:]
         result = self.result[b64encode(file_path.encode()).decode()] = {}
-        result[FsKeys.MODE] = self._get_tar_file_mode(file_info)
-        result[FsKeys.NAME] = os.path.basename(file_path)
+        result[FsKeys.MODE] = self._get_tar_file_mode_str(file_info)
+        result[FsKeys.NAME] = Path(file_path).name
         result[FsKeys.PATH] = file_path
         result[FsKeys.USER] = file_info.uname
         result[FsKeys.GROUP] = file_info.gname
@@ -158,12 +156,12 @@ class AnalysisPlugin(AnalysisBasePlugin):
         result[FsKeys.SUID], result[FsKeys.SGID], result[FsKeys.STICKY] = self._get_extended_file_permissions(result[FsKeys.MODE])
 
     @staticmethod
-    def _get_extended_file_permissions(file_mode):
+    def _get_extended_file_permissions(file_mode: str) -> List[bool]:
         extended_file_permission_bits = "{0:03b}".format(int(file_mode[-4])) if len(file_mode) > 3 else '000'
         return [b == '1' for b in extended_file_permission_bits]
 
     @staticmethod
-    def _get_tar_file_mode(file_info):
+    def _get_tar_file_mode_str(file_info: tarfile.TarInfo) -> str:
         return oct(file_info.mode)[2:]
 
     @staticmethod
@@ -210,7 +208,7 @@ class FsMetadataDbInterface(MongoInterfaceCommon):
     READ_ONLY = True
     RELEVANT_FILE_TYPES = AnalysisPlugin.ARCHIVE_MIME_TYPES + AnalysisPlugin.FS_MIME_TYPES
 
-    def parent_fo_has_fs_metadata_analysis_results(self, file_object):
+    def parent_fo_has_fs_metadata_analysis_results(self, file_object: FileObject):
         for parent_uid in self.get_parent_uids_from_virtual_path(file_object):
             if self.existence_quick_check(parent_uid):
                 parent_fo = self.get_object(parent_uid)
@@ -220,7 +218,7 @@ class FsMetadataDbInterface(MongoInterfaceCommon):
         return False
 
     @staticmethod
-    def get_parent_uids_from_virtual_path(file_object):
+    def get_parent_uids_from_virtual_path(file_object: FileObject):
         result = set()
         for path_list in file_object.virtual_file_path.values():
             for virtual_path in path_list:
