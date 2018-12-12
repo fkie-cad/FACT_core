@@ -54,24 +54,31 @@ def _mount_from_boot_record(file_path, tmp_dir):
     loop_devices = _extract_loop_devices(output)
 
     mount_dir = TemporaryDirectory()
-    for loop_device in loop_devices:
-        output += _mount_loop_device(loop_device, mount_dir.name, tmp_dir)
+    for index, loop_device in enumerate(loop_devices):
+        output += _mount_loop_device(loop_device, mount_dir.name, tmp_dir, index)
     mount_dir.cleanup()
 
-    k_output, return_code = execute_shell_command_get_return_code('sudo kpartx -d -v {}'.format(file_path))
+    if loop_devices:
+        # Bug in kpartx doesn't allow -d to work on long file names (as in /storage/path/<prefix>/<sha_hash>_<length>)
+        # thus "host" loop device is used instead of filename
+        k_output, return_code = execute_shell_command_get_return_code('sudo kpartx -d -v {}'.format(_get_host_loop(loop_devices)))
+        return output + k_output
 
-    return output + k_output
+    return output
 
 
-def _mount_loop_device(loop_device, mount_point, target_directory):
-    output = execute_shell_command('sudo mount -v {} {}'.format(loop_device, mount_point))
-    output += execute_shell_command('sudo cp -av {}/* {}/'.format(mount_point, target_directory))
+def _mount_loop_device(loop_device, mount_point, target_directory, index):
+    output = execute_shell_command('sudo mount -v /dev/mapper/{} {}'.format(loop_device, mount_point))
+    output += execute_shell_command('sudo cp -av {}/ {}/partition_{}/'.format(mount_point, target_directory, index))
     return output + execute_shell_command('sudo umount -v {}'.format(mount_point))
 
 
 def _extract_loop_devices(kpartx_output):
-    kpartx_regex = r'.*(loop\d{1,2}p\d{1,2})\s.*'
-    return re.findall(kpartx_regex, kpartx_output)
+    return re.findall(r'.*(loop\d{1,2}p\d{1,2})\s.*', kpartx_output)
+
+
+def _get_host_loop(devices):
+    return '/dev/{}'.format(re.findall(r'(loop\d{1,2})', devices[0])[0])
 
 
 # ----> Do not edit below this line <----
