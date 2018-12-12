@@ -7,7 +7,7 @@ from helperFunctions.config import get_config_for_testing
 from helperFunctions.fileSystem import get_test_data_dir
 from objects.firmware import Firmware
 from scheduler.Analysis import AnalysisScheduler, MANDATORY_PLUGINS
-from test.common_helper import DatabaseMock, fake_exit, MockFileObject
+from test.common_helper import DatabaseMock, fake_exit, MockFileObject, mock_spy
 
 
 class AnalysisSchedulerTest(TestCase):
@@ -97,9 +97,9 @@ class TestScheduleInitialAnalysis(AnalysisSchedulerTest):
         test_fw = Firmware(file_path=os.path.join(get_test_data_dir(), 'get_files_test/testfile1'))
         test_fw.scheduled_analysis = ['unknown_plugin']
 
-        with mock.patch.object(self.sched, 'check_further_process_or_complete') as spy:
+        with mock_spy(self.sched, 'check_further_process_or_complete') as spy:
             self.sched.process_next_analysis(test_fw)
-            spy.assert_called()
+            assert spy.was_called()
 
 
 class TestAnalysisSchedulerBlacklist(AnalysisSchedulerTest):
