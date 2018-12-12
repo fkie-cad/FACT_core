@@ -137,6 +137,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
                     self._enter_results_for_tar_file(file_info)
         except tarfile.TarError:
             logging.warning('could not open tar archive {}'.format(file_object.file_name))
+        except zlib.error:
+            logging.warning('could not open compressed tar archive: {}'.format(file_object.file_name))
         except EOFError:
             logging.warning('could not open archive: unexpected EOF {}'.format(file_object.file_name))
 
