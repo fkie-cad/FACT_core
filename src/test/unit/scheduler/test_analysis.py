@@ -3,6 +3,8 @@ import os
 from multiprocessing import Queue
 from unittest import TestCase, mock
 
+import pytest
+
 from helperFunctions.config import get_config_for_testing
 from helperFunctions.fileSystem import get_test_data_dir
 from objects.firmware import Firmware
@@ -205,30 +207,124 @@ class TestAnalysisSchedulerBlacklist(AnalysisSchedulerTest):
         self.sched.config.set('test_plugin', 'mime_blacklist', 'type1, type2')
 
 
-class TestUtilityFunctions(AnalysisSchedulerTest):
+class TestUtilityFunctions:
 
     class PluginMock:
         def __init__(self, dependencies):
             self.DEPENDENCIES = dependencies
 
-        def shutdown(self):
-            pass
+    @classmethod
+    def setup_class(cls):
+        cls.init_patch = mock.patch(target='scheduler.Analysis.AnalysisScheduler.__init__', new=lambda *_: None)
+        cls.init_patch.start()
+        cls.scheduler = AnalysisScheduler()
+        cls.plugin_list = ['no_deps', 'foo', 'bar']
+        cls.init_patch.stop()
 
-    def setUp(self):
-        super().setUp()
-        self.plugin_list = ['no_deps', 'foo', 'bar']
-        self.sched.analysis_plugins['no_deps'] = self.PluginMock(dependencies=[])
-        self.sched.analysis_plugins['foo'] = self.PluginMock(dependencies=['no_deps'])
-        self.sched.analysis_plugins['bar'] = self.PluginMock(dependencies=['no_deps', 'foo'])
+    def _add_plugins(self):
+        self.scheduler.analysis_plugins = {
+            'no_deps': self.PluginMock(dependencies=[]),
+            'foo': self.PluginMock(dependencies=['no_deps']),
+            'bar': self.PluginMock(dependencies=['no_deps', 'foo'])
+        }
+
+    def _add_plugins_with_recursive_dependencies(self):
+        self.scheduler.analysis_plugins = {
+            'p1': self.PluginMock(['p2', 'p3']),
+            'p2': self.PluginMock(['p3']),
+            'p3': self.PluginMock([]),
+            'p4': self.PluginMock(['p5']),
+            'p5': self.PluginMock(['p6']),
+            'p6': self.PluginMock([])
+        }
+
+    @pytest.mark.parametrize('input_data, expected_output', [
+        ([], set()),
+        (['p1'], {'p2', 'p3'}),
+        (['p3'], set()),
+        (['p1', 'p2', 'p3', 'p4'], {'p2', 'p3', 'p5'}),
+    ])
+    def test_get_cumulative_remaining_dependencies(self, input_data, expected_output):
+        self._add_plugins_with_recursive_dependencies()
+        result = self.scheduler._get_cumulative_remaining_dependencies(input_data)
+        assert result == expected_output
+
+    @pytest.mark.parametrize('input_data, expected_output', [
+        ([], set()),
+        (['p3'], {'p3'}),
+        (['p1'], {'p1', 'p2', 'p3'}),
+        (['p4'], {'p4', 'p5', 'p6'}),
+    ])
+    def test_add_dependencies_recursively(self, input_data, expected_output):
+        self._add_plugins_with_recursive_dependencies()
+        result = self.scheduler._add_dependencies_recursively(input_data)
+        assert set(result) == expected_output
 
     def test_get_plugins_without_unmet_dependencies(self):
-        assert self.sched._get_plugins_without_unmet_dependencies(set(self.plugin_list), []) == ['no_deps']
-        assert self.sched._get_plugins_without_unmet_dependencies({'foo', 'bar'}, ['no_deps']) == ['foo']
-        assert self.sched._get_plugins_without_unmet_dependencies({'bar'}, ['no_deps', 'foo']) == ['bar']
+        self._add_plugins()
+        assert self.scheduler._get_plugins_without_unmet_dependencies(set(self.plugin_list), []) == ['no_deps']
+        assert self.scheduler._get_plugins_without_unmet_dependencies({'foo', 'bar'}, ['no_deps']) == ['foo']
+        assert self.scheduler._get_plugins_without_unmet_dependencies({'bar'}, ['no_deps', 'foo']) == ['bar']
 
     def test_smart_shuffle(self):
-        assert self.sched._smart_shuffle(self.plugin_list) == ['bar', 'foo', 'no_deps']
+        self._add_plugins()
+        result = self.scheduler._smart_shuffle(self.plugin_list)
+        assert all(mp in result for mp in MANDATORY_PLUGINS)
+        assert result[:len(MANDATORY_PLUGINS) + 1] == ['bar', 'foo', 'no_deps']
 
     def test_smart_shuffle__impossible_dependency(self):
-        self.sched.analysis_plugins['impossible'] = self.PluginMock(dependencies=['impossible to meet'])
-        assert self.sched._smart_shuffle(self.plugin_list + ['impossible']) == ['bar', 'foo', 'no_deps']
+        self._add_plugins()
+        self.scheduler.analysis_plugins['impossible'] = self.PluginMock(dependencies=['impossible to meet'])
+        result = self.scheduler._smart_shuffle(self.plugin_list + ['impossible'])
+        assert 'impossible' not in result
+        assert result[:len(MANDATORY_PLUGINS) + 1] == ['bar', 'foo', 'no_deps']
+
+
+class TestAnalysisSkipping:
+
+    class PluginMock:
+        def __init__(self, version, system_version):
+            self.VERSION = version
+            if system_version:
+                self.SYSTEM_VERSION = system_version
+
+    class BackendMock:
+        def __init__(self, version, system_version, analysis):
+            self.version = version
+            self.system_version = system_version
+            self.analysis = analysis
+
+        def get_specific_fields_of_db_entry(self, *_):
+            return {'processed_analysis': {self.analysis: {
+                'plugin_version': self.version, 'system_version': self.system_version
+            }}}
+
+    @classmethod
+    def setup_class(cls):
+        cls.init_patch = mock.patch(target='scheduler.Analysis.AnalysisScheduler.__init__', new=lambda *_: None)
+        cls.init_patch.start()
+
+        cls.scheduler = AnalysisScheduler()
+        cls.scheduler.analysis_plugins = {}
+
+        cls.init_patch.stop()
+
+    @pytest.mark.parametrize(
+        'plugin_version, plugin_system_version, analysis_plugin_version, '
+        'analysis_system_version, expected_output', [
+            ('1.0', None, '1.0', None, True),
+            ('1.1', None, '1.0', None, False),
+            ('1.0', None, '1.1', None, True),
+            ('1.0', '2.0', '1.0', '2.0', True),
+            ('1.0', '2.0', '1.0', '2.1', True),
+            ('1.0', '2.1', '1.0', '2.0', False),
+            ('1.0', '2.0', '1.0', None, False),
+        ]
+    )
+    def test_analysis_is_already_in_db_and_up_to_date(
+            self, plugin_version, plugin_system_version, analysis_plugin_version, analysis_system_version, expected_output):
+        plugin = 'foo'
+        self.scheduler.db_backend_service = self.BackendMock(analysis_plugin_version, analysis_system_version, plugin)
+        self.scheduler.analysis_plugins[plugin] = self.PluginMock(
+            version=plugin_version, system_version=plugin_system_version)
+        assert self.scheduler._analysis_is_already_in_db_and_up_to_date(plugin, '') == expected_output

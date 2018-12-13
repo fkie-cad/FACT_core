@@ -3,7 +3,6 @@ from multiprocessing import Queue, Value, Manager
 from queue import Empty
 from time import time
 
-from helperFunctions.dependency import get_unmatched_dependencies, schedule_dependencies
 from helperFunctions.parsing import bcolors
 from helperFunctions.process import ExceptionSafeProcess, terminate_process_and_childs
 from helperFunctions.tag import TagColor
@@ -37,25 +36,12 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
 
     def add_job(self, fw_object):
         if self._analysis_depth_not_reached_yet(fw_object):
-            if self._dependencies_are_fulfilled(fw_object):
-                self.in_queue.put(fw_object)
-                return
-            self._reschedule_job(fw_object)
-        self.out_queue.put(fw_object)
-
-    def _reschedule_job(self, fw_object):
-        unmatched_dependencies = get_unmatched_dependencies([fw_object], self.DEPENDENCIES)
-        logging.debug('{} rescheduled due to unmatched dependencies:\n {}'.format(fw_object.get_virtual_file_paths(), unmatched_dependencies))
-        fw_object.scheduled_analysis = schedule_dependencies(fw_object.scheduled_analysis, unmatched_dependencies, self.NAME)
-        fw_object.analysis_dependency = fw_object.analysis_dependency.union(set(unmatched_dependencies))
-        logging.debug('new schedule for {}:\n {}\nAnalysis Dependencies: {}'.format(
-            fw_object.get_virtual_file_paths(), fw_object.scheduled_analysis, fw_object.analysis_dependency))
+            self.in_queue.put(fw_object)
+        else:
+            self.out_queue.put(fw_object)
 
     def _analysis_depth_not_reached_yet(self, fo):
         return self.recursive or fo.depth == 0
-
-    def _dependencies_are_fulfilled(self, fo):
-        return get_unmatched_dependencies([fo], self.DEPENDENCIES) == []
 
     def process_object(self, file_object):  # pylint: disable=no-self-use
         '''

@@ -3,15 +3,14 @@ from concurrent.futures import ThreadPoolExecutor
 from configparser import ConfigParser
 from distutils.version import LooseVersion
 from multiprocessing import Queue, Value
-from random import shuffle
 
 from queue import Empty
 from time import sleep, time
-from typing import Tuple, List, Optional, Set
+from typing import Tuple, List, Optional, Set, Iterable
 
 from helperFunctions.compare_sets import substring_is_in_list
 from helperFunctions.config import read_list_from_config
-from helperFunctions.mongo_task_conversion import is_sanitized_entry
+from helperFunctions.merge_generators import shuffled
 from helperFunctions.parsing import bcolors
 from helperFunctions.plugin import import_plugins
 from helperFunctions.process import ExceptionSafeProcess, terminate_process_and_childs
@@ -62,8 +61,7 @@ class AnalysisScheduler(object):
     def add_update_task(self, fo):
         for included_file in self.db_backend_service.get_list_of_all_included_files(fo):
             child = self.db_backend_service.get_object(included_file)
-            child.scheduled_analysis = fo.scheduled_analysis
-            shuffle(child.scheduled_analysis)
+            child.scheduled_analysis = self._smart_shuffle(fo.scheduled_analysis)
             self.check_further_process_or_complete(child)
         self.check_further_process_or_complete(fo)
 
@@ -74,19 +72,19 @@ class AnalysisScheduler(object):
         if fo.scheduled_analysis is None:
             fo.scheduled_analysis = MANDATORY_PLUGINS
         else:
-            fo.scheduled_analysis = self._smart_shuffle(fo.scheduled_analysis + MANDATORY_PLUGINS)
+            fo.scheduled_analysis = self._add_dependencies_recursively(fo.scheduled_analysis)
+            fo.scheduled_analysis = self._smart_shuffle(fo.scheduled_analysis)
         self.check_further_process_or_complete(fo)
 
     def _smart_shuffle(self, plugin_list: List[str]) -> List[str]:
-        scheduled_plugins = []
+        scheduled_plugins = shuffled(MANDATORY_PLUGINS)
         remaining_plugins = set(plugin_list)
         while len(remaining_plugins) > 0:
             next_plugins = self._get_plugins_without_unmet_dependencies(remaining_plugins, scheduled_plugins)
             if not next_plugins:
                 logging.error('Error: Could not schedule plugins because dependencies cannot be fulfilled: {}'.format(remaining_plugins))
                 return scheduled_plugins
-            shuffle(next_plugins)
-            scheduled_plugins[:0] = next_plugins
+            scheduled_plugins[:0] = shuffled(next_plugins)
             remaining_plugins.difference_update(next_plugins)
         return scheduled_plugins
 
@@ -181,27 +179,20 @@ class AnalysisScheduler(object):
         else:
             self._start_or_skip_analysis(analysis_to_do, fw_object)
 
+    # ---- analysis skipping ----
+
     def _start_or_skip_analysis(self, analysis_to_do: str, fw_object: FileObject):
         if analysis_to_do not in MANDATORY_PLUGINS and self._next_analysis_is_blacklisted(analysis_to_do, fw_object):
             logging.debug('skipping analysis "{}" for {} (blacklisted file type)'.format(analysis_to_do, fw_object.get_uid()))
             fw_object.processed_analysis[analysis_to_do] = self._get_skipped_analysis_result(analysis_to_do)
             self.check_further_process_or_complete(fw_object)
-        elif self._analysis_is_already_in_db_and_up_to_date(analysis_to_do, fw_object):
+        elif self._analysis_is_already_in_db_and_up_to_date(analysis_to_do, fw_object.get_uid()):
             logging.debug('skipping analysis "{}" for {} (analysis already in DB)'.format(analysis_to_do, fw_object.get_uid()))
-            if analysis_to_do in self._get_cumulative_remaining_dependencies(fw_object):
+            if analysis_to_do in self._get_cumulative_remaining_dependencies(fw_object.scheduled_analysis):
                 self._add_completed_analysis_results_to_file_object(analysis_to_do, fw_object)
             self.check_further_process_or_complete(fw_object)
         else:
             self.analysis_plugins[analysis_to_do].add_job(fw_object)
-
-    # ---- blacklist and whitelist ----
-
-    def _get_cumulative_remaining_dependencies(self, fw_object: FileObject) -> Set[str]:
-        return {
-            dependency
-            for plugin in fw_object.scheduled_analysis
-            for dependency in self.analysis_plugins[plugin].DEPENDENCIES
-        }
 
     def _add_completed_analysis_results_to_file_object(self, analysis_to_do: str, fw_object: FileObject):
         db_entry = self.db_backend_service.get_specific_fields_of_db_entry(
@@ -210,9 +201,9 @@ class AnalysisScheduler(object):
         desanitized_analysis = self.db_backend_service.retrieve_analysis(db_entry['processed_analysis'])
         fw_object.processed_analysis[analysis_to_do] = desanitized_analysis[analysis_to_do]
 
-    def _analysis_is_already_in_db_and_up_to_date(self, analysis_to_do: str, fw_object: FileObject):
+    def _analysis_is_already_in_db_and_up_to_date(self, analysis_to_do: str, uid: str):
         db_entry = self.db_backend_service.get_specific_fields_of_db_entry(
-            fw_object.get_uid(),
+            uid,
             {
                 'processed_analysis.{}.plugin_version'.format(analysis_to_do): 1,
                 'processed_analysis.{}.system_version'.format(analysis_to_do): 1
@@ -221,7 +212,7 @@ class AnalysisScheduler(object):
         if not db_entry or analysis_to_do not in db_entry['processed_analysis']:
             return False
         elif 'plugin_version' not in db_entry['processed_analysis'][analysis_to_do]:
-            logging.error('Plugin Version missing: UID: {}, Plugin: {}'.format(fw_object.get_uid(), analysis_to_do))
+            logging.error('Plugin Version missing: UID: {}, Plugin: {}'.format(uid, analysis_to_do))
 
         analysis_plugin_version = db_entry['processed_analysis'][analysis_to_do]['plugin_version']
         analysis_system_version = db_entry['processed_analysis'][analysis_to_do]['system_version'] \
@@ -243,7 +234,7 @@ class AnalysisScheduler(object):
             'plugin_version': self.analysis_plugins[analysis_to_do].VERSION
         }
 
-# ---- result collector functions ----
+# ---- blacklist and whitelist ----
 
     def _next_analysis_is_blacklisted(self, next_analysis: str, fw_object: FileObject):
         blacklist, whitelist = self._get_blacklist_and_whitelist(next_analysis)
@@ -255,7 +246,7 @@ class AnalysisScheduler(object):
 
         try:
             file_type = fw_object.processed_analysis['file_type']['mime'].lower()
-        except KeyError:  # FIXME file_type analysis is missing (probably due to problem with analysis caching) -> re-schedule
+        except KeyError:
             fw_object.scheduled_analysis.extend([next_analysis, 'file_type'])
             fw_object.analysis_dependency.add('file_type')
             return True
@@ -275,12 +266,12 @@ class AnalysisScheduler(object):
         whitelist = read_list_from_config(self.config, analysis_plugin, 'mime_whitelist')
         return blacklist, whitelist
 
-# ---- miscellaneous functions ----
-
     def _get_blacklist_and_whitelist_from_plugin(self, analysis_plugin: str) -> Tuple[List, List]:
         blacklist = self.analysis_plugins[analysis_plugin].MIME_BLACKLIST if hasattr(self.analysis_plugins[analysis_plugin], 'MIME_BLACKLIST') else []
         whitelist = self.analysis_plugins[analysis_plugin].MIME_WHITELIST if hasattr(self.analysis_plugins[analysis_plugin], 'MIME_WHITELIST') else []
         return blacklist, whitelist
+
+# ---- result collector functions ----
 
     def start_result_collector(self):
         logging.debug('Starting result collector')
@@ -303,6 +294,8 @@ class AnalysisScheduler(object):
                     self.check_further_process_or_complete(fw)
             if nop:
                 sleep(int(self.config['ExpertSettings']['block_delay']))
+
+# ---- miscellaneous functions ----
 
     def _handle_analysis_tags(self, fw, plugin):
         self.tag_queue.put(check_tags(fw, plugin))
@@ -327,8 +320,23 @@ class AnalysisScheduler(object):
                 return True
         for process in [self.schedule_process, self.result_collector_process]:
             if process.exception:
-                logging.error("{}Exception in scheduler process {}{}".format(bcolors.FAIL, bcolors.ENDC, process.name))
+                logging.error('{}Exception in scheduler process {}{}'.format(bcolors.FAIL, bcolors.ENDC, process.name))
                 logging.error(process.exception[1])
                 terminate_process_and_childs(process)
                 return True  # Error here means nothing will ever get scheduled again. Thing should just break !
         return False
+
+    def _get_cumulative_remaining_dependencies(self, scheduled_analyses: Iterable[str]) -> Set[str]:
+        return {
+            dependency
+            for plugin in scheduled_analyses
+            for dependency in self.analysis_plugins[plugin].DEPENDENCIES
+        }
+
+    def _add_dependencies_recursively(self, scheduled_analyses: List[str]) -> List[str]:
+        scheduled_analyses = set(scheduled_analyses)
+        old_len = 0
+        while len(scheduled_analyses) != old_len:
+            old_len = len(scheduled_analyses)
+            scheduled_analyses.update(self._get_cumulative_remaining_dependencies(scheduled_analyses))
+        return list(scheduled_analyses)
