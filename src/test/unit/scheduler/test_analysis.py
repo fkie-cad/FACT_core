@@ -182,15 +182,27 @@ class TestAnalysisSchedulerBlacklist(AnalysisSchedulerTest):
         blacklisted = self.sched._next_analysis_is_blacklisted(self.test_plugin, self.fo)
         assert blacklisted is True
 
-    def test_next_analysis_is_blacklisted__mime_missing(self):
-        self.sched.analysis_plugins[self.test_plugin] = self.PluginMock(blacklist=['test_type'], whitelist=['test_type'])
+    def test_next_analysis_is_blacklisted__mime_missing__binary(self):
         self.fo.processed_analysis['file_type'].pop('mime')
         self.fo.scheduled_analysis = []
-        self.fo.analysis_dependency = set()
+        self.fo.binary = 'foo'
+
+        self.sched.analysis_plugins[self.test_plugin] = self.PluginMock(blacklist=['not blacklisted'])
+        blacklisted = self.sched._next_analysis_is_blacklisted(self.test_plugin, self.fo)
+        assert blacklisted is False
+
+        self.sched.analysis_plugins[self.test_plugin] = self.PluginMock(blacklist=['text/plain'])
         blacklisted = self.sched._next_analysis_is_blacklisted(self.test_plugin, self.fo)
         assert blacklisted is True
-        assert 'file_type' in self.fo.analysis_dependency
-        assert self.fo.scheduled_analysis == [self.test_plugin, 'file_type']
+
+    def test_next_analysis_is_blacklisted__mime_missing__no_binary(self):
+        self.sched.analysis_plugins[self.test_plugin] = self.PluginMock(blacklist=['foo'])
+        self.fo.processed_analysis.pop('file_type')
+        self.fo.scheduled_analysis = ['foo', 'file_type']
+        self.fo.binary = None
+        blacklisted = self.sched._next_analysis_is_blacklisted(self.test_plugin, self.fo)
+        assert blacklisted is True
+        assert self.fo.scheduled_analysis == ['foo', self.test_plugin, 'file_type']
 
     def test_start_or_skip_analysis(self):
         self.sched.config.set('dummy_plugin_for_testing_only', 'mime_whitelist', 'foo, bar')
@@ -260,24 +272,44 @@ class TestUtilityFunctions:
         result = self.scheduler._add_dependencies_recursively(input_data)
         assert set(result) == expected_output
 
-    def test_get_plugins_without_unmet_dependencies(self):
+    @pytest.mark.parametrize('remaining, scheduled, expected_output', [
+        ({}, [], []),
+        ({'no_deps', 'foo', 'bar'}, [], ['no_deps']),
+        ({'foo', 'bar'}, ['no_deps'], ['foo']),
+        ({'bar'}, ['no_deps', 'foo'], ['bar']),
+    ])
+    def test_get_plugins_with_met_dependencies(self, remaining, scheduled, expected_output):
         self._add_plugins()
-        assert self.scheduler._get_plugins_without_unmet_dependencies(set(self.plugin_list), []) == ['no_deps']
-        assert self.scheduler._get_plugins_without_unmet_dependencies({'foo', 'bar'}, ['no_deps']) == ['foo']
-        assert self.scheduler._get_plugins_without_unmet_dependencies({'bar'}, ['no_deps', 'foo']) == ['bar']
+        assert self.scheduler._get_plugins_with_met_dependencies(remaining, scheduled, []) == expected_output
+
+    @pytest.mark.parametrize('remaining, scheduled, completed_analyses, expected_output', [
+        ({'bar'}, ['no_deps'], ['foo'], {'bar'}),
+        ({'foo', 'bar'}, ['no_deps'], ['foo'], {'foo', 'bar'}),
+    ])
+    def test_get_plugins_with_met_dependencies__completed_analyses(self, remaining, scheduled, completed_analyses, expected_output):
+        self._add_plugins()
+        assert set(self.scheduler._get_plugins_with_met_dependencies(remaining, scheduled, completed_analyses)) == expected_output
 
     def test_smart_shuffle(self):
         self._add_plugins()
         result = self.scheduler._smart_shuffle(self.plugin_list)
-        assert all(mp in result for mp in MANDATORY_PLUGINS)
-        assert result[:len(MANDATORY_PLUGINS) + 1] == ['bar', 'foo', 'no_deps']
+        assert result == ['bar', 'foo', 'no_deps']
 
     def test_smart_shuffle__impossible_dependency(self):
         self._add_plugins()
         self.scheduler.analysis_plugins['impossible'] = self.PluginMock(dependencies=['impossible to meet'])
         result = self.scheduler._smart_shuffle(self.plugin_list + ['impossible'])
         assert 'impossible' not in result
-        assert result[:len(MANDATORY_PLUGINS) + 1] == ['bar', 'foo', 'no_deps']
+        assert result == ['bar', 'foo', 'no_deps']
+
+    def test_smart_shuffle__circle_dependency(self):
+        self.scheduler.analysis_plugins = {
+            'p1': self.PluginMock(['p2']),
+            'p2': self.PluginMock(['p3']),
+            'p3': self.PluginMock(['p1']),
+        }
+        result = self.scheduler._smart_shuffle(['p1', 'p2', 'p3'])
+        assert result == []
 
 
 class TestAnalysisSkipping:

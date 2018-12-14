@@ -22,7 +22,6 @@ class FileObject(object):
         self.depth = 0
         self.processed_analysis = {}
         self.scheduled_analysis = scheduled_analysis
-        self.analysis_dependency = set()
         self.comments = []
         self.parent_firmware_uids = set()
         self.temporary_data = {}

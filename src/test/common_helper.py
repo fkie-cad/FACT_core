@@ -65,8 +65,7 @@ class MockFileObject(object):
     def __init__(self, binary=b'test string', file_path='/bin/ls'):
         self.binary = binary
         self.file_path = file_path
-        self.processed_analysis = {'file_type': {
-            'mime': 'application/x-executable'}}
+        self.processed_analysis = {'file_type': {'mime': 'application/x-executable'}}
 
 
 class DatabaseMock:

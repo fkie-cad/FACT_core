@@ -67,21 +67,6 @@ class TestPluginBaseCore(TestPluginBase):
 
 class TestPluginBaseAddJob(TestPluginBase):
 
-    def test_dependency_condition_check_no_deps(self):
-        fo = FileObject(binary='test', scheduled_analysis=[])
-        self.assertTrue(self.base_plugin._dependencies_are_fulfilled(fo), 'no deps specified')
-
-    def test_dependency_condition_check_unmatched_deps(self):
-        self.base_plugin.DEPENDENCIES = ['foo']
-        fo = FileObject(binary='test', scheduled_analysis=[])
-        self.assertFalse(self.base_plugin._dependencies_are_fulfilled(fo), 'deps specified and unmatched')
-
-    def test_dependency_condition_check_matched_deps(self):
-        self.base_plugin.DEPENDENCIES = ['foo']
-        fo = FileObject(binary='test', scheduled_analysis=[])
-        fo.processed_analysis.update({'foo': []})
-        self.assertTrue(self.base_plugin._dependencies_are_fulfilled(fo), 'Fals but deps matched')
-
     def test_analysis_depth_not_reached_yet(self):
         fo = FileObject(binary='test', scheduled_analysis=[])
 
@@ -109,34 +94,13 @@ class TestPluginBaseAddJob(TestPluginBase):
         out_fo = self.base_plugin.out_queue.get(timeout=5)
         self.assertIsInstance(out_fo, FileObject, 'not added to out_queue')
         self.base_plugin.recursive = True
-        self.assertTrue(self.base_plugin._analysis_depth_not_reached_yet(fo), 'not positvie but recursive')
-
-    def test_add_job_dependency_not_matched(self):
-        self.base_plugin.DEPENDENCIES = ['foo']
-        fo = FileObject(binary='test', scheduled_analysis=[])
-        self.base_plugin.add_job(fo)
-        fo = self.base_plugin.out_queue.get(timeout=5)
-        self.assertEqual(fo.scheduled_analysis, ['base', 'foo'], 'analysis not scheduled')
-        self.assertNotIn('base', fo.processed_analysis, 'base added to processed analysis, but is not processed')
+        self.assertTrue(self.base_plugin._analysis_depth_not_reached_yet(fo), 'not positive but recursive')
 
 
 class TestPluginBaseOffline(TestPluginBase):
 
     def setUp(self):
         self.base_plugin = AnalysisBasePlugin(self, config=self.set_up_base_config(), offline_testing=True)
-
-    def test_object_history(self):
-        test_fo = create_test_file_object()
-
-        self.base_plugin.add_job(test_fo)
-        self.base_plugin.in_queue.get(timeout=5)
-        self.assertTrue(self.base_plugin.out_queue.empty(), 'added to out-queue but not in history')
-
-        # required dependency check
-        test_fo.analysis_dependency.add(self.base_plugin.NAME)
-        self.base_plugin.add_job(test_fo)
-        self.base_plugin.in_queue.get(timeout=5)
-        self.assertTrue(self.base_plugin.out_queue.empty(), 'added to out queue but should be reanalyzed because of dependency request')
 
     def test_get_view_file_path(self):
         plugin_path = os.path.join(get_src_dir(), 'plugins/analysis/file_type/')

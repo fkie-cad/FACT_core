@@ -10,6 +10,7 @@ from typing import Tuple, List, Optional, Set, Iterable
 
 from helperFunctions.compare_sets import substring_is_in_list
 from helperFunctions.config import read_list_from_config
+from helperFunctions.fileSystem import get_file_type_from_binary
 from helperFunctions.merge_generators import shuffled
 from helperFunctions.parsing import bcolors
 from helperFunctions.plugin import import_plugins
@@ -58,43 +59,53 @@ class AnalysisScheduler(object):
         self.process_queue.close()
         logging.info('Analysis System offline')
 
-    def add_update_task(self, fo):
+    def add_update_task(self, fo: FileObject):
+        self._add_dependencies_for_update_task(fo)
         for included_file in self.db_backend_service.get_list_of_all_included_files(fo):
             child = self.db_backend_service.get_object(included_file)
             child.scheduled_analysis = self._smart_shuffle(fo.scheduled_analysis)
             self.check_further_process_or_complete(child)
         self.check_further_process_or_complete(fo)
 
+    def _add_dependencies_for_update_task(self, fo: FileObject):
+        dependencies = self._add_dependencies_recursively(fo.scheduled_analysis)
+        for d in dependencies:
+            if d not in fo.processed_analysis:
+                fo.scheduled_analysis.append(d)
+
     def add_task(self, fo: FileObject):
         '''
         This function should be used to add a new firmware object to the scheduler
         '''
-        if fo.scheduled_analysis is None:
-            fo.scheduled_analysis = MANDATORY_PLUGINS
-        else:
-            fo.scheduled_analysis = self._add_dependencies_recursively(fo.scheduled_analysis)
-            fo.scheduled_analysis = self._smart_shuffle(fo.scheduled_analysis)
+        scheduled_plugins = self._add_dependencies_recursively(fo.scheduled_analysis or [])
+        fo.scheduled_analysis = self._smart_shuffle(scheduled_plugins + MANDATORY_PLUGINS)
         self.check_further_process_or_complete(fo)
 
-    def _smart_shuffle(self, plugin_list: List[str]) -> List[str]:
-        scheduled_plugins = shuffled(MANDATORY_PLUGINS)
+    def _smart_shuffle(self, plugin_list: List[str], completed_analyses: Optional[List[str]]=None) -> List[str]:
+        scheduled_plugins = []
         remaining_plugins = set(plugin_list)
+
         while len(remaining_plugins) > 0:
-            next_plugins = self._get_plugins_without_unmet_dependencies(remaining_plugins, scheduled_plugins)
+            next_plugins = self._get_plugins_with_met_dependencies(remaining_plugins, scheduled_plugins, completed_analyses or [])
             if not next_plugins:
                 logging.error('Error: Could not schedule plugins because dependencies cannot be fulfilled: {}'.format(remaining_plugins))
-                return scheduled_plugins
+                break
             scheduled_plugins[:0] = shuffled(next_plugins)
             remaining_plugins.difference_update(next_plugins)
+
+        # assure file type is first for blacklist functionality
+        if 'file_type' in scheduled_plugins and scheduled_plugins[-1] != 'file_type':
+            scheduled_plugins.remove('file_type')
+            scheduled_plugins.append('file_type')
         return scheduled_plugins
 
-    def _get_plugins_without_unmet_dependencies(self, remaining_plugins: Set[str], scheduled_plugins: List[str]) -> List[str]:
-        result = []
-        for plugin in remaining_plugins:
-            dependencies = self.analysis_plugins[plugin].DEPENDENCIES
-            if not dependencies or all(d in scheduled_plugins for d in dependencies):
-                result.append(plugin)
-        return result
+    def _get_plugins_with_met_dependencies(self, remaining_plugins: Set[str], scheduled_plugins: List[str], completed_analyses: List[str]) -> List[str]:
+        met_dependencies = scheduled_plugins + completed_analyses
+        return [
+            plugin
+            for plugin in remaining_plugins
+            if all(dependency in met_dependencies for dependency in self.analysis_plugins[plugin].DEPENDENCIES)
+        ]
 
     def get_list_of_available_plugins(self):
         '''
@@ -103,6 +114,8 @@ class AnalysisScheduler(object):
         plugin_list = list(self.analysis_plugins.keys())
         plugin_list.sort(key=str.lower)
         return plugin_list
+
+# ---- internal functions ----
 
     def get_default_plugins_from_config(self):
         try:
@@ -113,8 +126,6 @@ class AnalysisScheduler(object):
         except (TypeError, KeyError, AttributeError):
             logging.warning('default plug-ins not set in config')
             return []
-
-# ---- internal functions ----
 
     def get_plugin_dict(self):
         '''
@@ -136,13 +147,13 @@ class AnalysisScheduler(object):
         result['unpacker'] = ('Additional information provided by the unpacker', True, False)
         return result
 
+# ---- scheduling functions ----
+
     def get_scheduled_workload(self):
         workload = {'analysis_main_scheduler': self.process_queue.qsize()}
         for plugin in self.analysis_plugins:
             workload[plugin] = self.analysis_plugins[plugin].in_queue.qsize()
         return workload
-
-# ---- scheduling functions ----
 
     def register_plugin(self, name, plugin_instance):
         '''
@@ -170,6 +181,8 @@ class AnalysisScheduler(object):
             else:
                 self.process_next_analysis(task)
 
+    # ---- analysis skipping ----
+
     def process_next_analysis(self, fw_object: FileObject):
         self.pre_analysis(fw_object)
         analysis_to_do = fw_object.scheduled_analysis.pop()
@@ -179,17 +192,15 @@ class AnalysisScheduler(object):
         else:
             self._start_or_skip_analysis(analysis_to_do, fw_object)
 
-    # ---- analysis skipping ----
-
     def _start_or_skip_analysis(self, analysis_to_do: str, fw_object: FileObject):
-        if analysis_to_do not in MANDATORY_PLUGINS and self._next_analysis_is_blacklisted(analysis_to_do, fw_object):
-            logging.debug('skipping analysis "{}" for {} (blacklisted file type)'.format(analysis_to_do, fw_object.get_uid()))
-            fw_object.processed_analysis[analysis_to_do] = self._get_skipped_analysis_result(analysis_to_do)
-            self.check_further_process_or_complete(fw_object)
-        elif self._analysis_is_already_in_db_and_up_to_date(analysis_to_do, fw_object.get_uid()):
+        if self._analysis_is_already_in_db_and_up_to_date(analysis_to_do, fw_object.get_uid()):
             logging.debug('skipping analysis "{}" for {} (analysis already in DB)'.format(analysis_to_do, fw_object.get_uid()))
             if analysis_to_do in self._get_cumulative_remaining_dependencies(fw_object.scheduled_analysis):
                 self._add_completed_analysis_results_to_file_object(analysis_to_do, fw_object)
+            self.check_further_process_or_complete(fw_object)
+        elif analysis_to_do not in MANDATORY_PLUGINS and self._next_analysis_is_blacklisted(analysis_to_do, fw_object):
+            logging.debug('skipping analysis "{}" for {} (blacklisted file type)'.format(analysis_to_do, fw_object.get_uid()))
+            fw_object.processed_analysis[analysis_to_do] = self._get_skipped_analysis_result(analysis_to_do)
             self.check_further_process_or_complete(fw_object)
         else:
             self.analysis_plugins[analysis_to_do].add_job(fw_object)
@@ -226,6 +237,8 @@ class AnalysisScheduler(object):
             return False
         return True
 
+# ---- blacklist and whitelist ----
+
     def _get_skipped_analysis_result(self, analysis_to_do):
         return {
             'skipped': 'blacklisted file type',
@@ -233,8 +246,6 @@ class AnalysisScheduler(object):
             'analysis_date': time(),
             'plugin_version': self.analysis_plugins[analysis_to_do].VERSION
         }
-
-# ---- blacklist and whitelist ----
 
     def _next_analysis_is_blacklisted(self, next_analysis: str, fw_object: FileObject):
         blacklist, whitelist = self._get_blacklist_and_whitelist(next_analysis)
@@ -244,16 +255,26 @@ class AnalysisScheduler(object):
             logging.error('{}Configuration of plugin "{}" erroneous{}: found blacklist and whitelist. Ignoring blacklist.'.format(
                 bcolors.FAIL, next_analysis, bcolors.ENDC))
 
-        try:
-            file_type = fw_object.processed_analysis['file_type']['mime'].lower()
-        except KeyError:
-            fw_object.scheduled_analysis.extend([next_analysis, 'file_type'])
-            fw_object.analysis_dependency.add('file_type')
+        file_type = self._get_file_type_or_reschedule(fw_object, next_analysis)
+        if not file_type:
             return True
 
         if whitelist:
             return not substring_is_in_list(file_type, whitelist)
         return substring_is_in_list(file_type, blacklist)
+
+    @staticmethod
+    def _get_file_type_or_reschedule(fw_object: FileObject, next_analysis: str) -> Optional[str]:
+        try:
+            return fw_object.processed_analysis['file_type']['mime'].lower()
+        except KeyError:
+            if fw_object.binary:
+                return get_file_type_from_binary(fw_object.binary)['mime'].lower()
+        if next_analysis != 'file_type':
+            if 'file_type' in fw_object.scheduled_analysis:
+                fw_object.scheduled_analysis.remove('file_type')
+            fw_object.scheduled_analysis.extend([next_analysis, 'file_type'])
+        return None
 
     def _get_blacklist_and_whitelist(self, next_analysis: str) -> Tuple[List, List]:
         blacklist, whitelist = self._get_blacklist_and_whitelist_from_config(next_analysis)
@@ -266,17 +287,19 @@ class AnalysisScheduler(object):
         whitelist = read_list_from_config(self.config, analysis_plugin, 'mime_whitelist')
         return blacklist, whitelist
 
+# ---- result collector functions ----
+
     def _get_blacklist_and_whitelist_from_plugin(self, analysis_plugin: str) -> Tuple[List, List]:
         blacklist = self.analysis_plugins[analysis_plugin].MIME_BLACKLIST if hasattr(self.analysis_plugins[analysis_plugin], 'MIME_BLACKLIST') else []
         whitelist = self.analysis_plugins[analysis_plugin].MIME_WHITELIST if hasattr(self.analysis_plugins[analysis_plugin], 'MIME_WHITELIST') else []
         return blacklist, whitelist
 
-# ---- result collector functions ----
-
     def start_result_collector(self):
         logging.debug('Starting result collector')
         self.result_collector_process = ExceptionSafeProcess(target=self.result_collector)
         self.result_collector_process.start()
+
+# ---- miscellaneous functions ----
 
     def result_collector(self):
         while self.stop_condition.value == 0:
@@ -294,8 +317,6 @@ class AnalysisScheduler(object):
                     self.check_further_process_or_complete(fw)
             if nop:
                 sleep(int(self.config['ExpertSettings']['block_delay']))
-
-# ---- miscellaneous functions ----
 
     def _handle_analysis_tags(self, fw, plugin):
         self.tag_queue.put(check_tags(fw, plugin))

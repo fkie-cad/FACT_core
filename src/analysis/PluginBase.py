@@ -6,6 +6,7 @@ from time import time
 from helperFunctions.parsing import bcolors
 from helperFunctions.process import ExceptionSafeProcess, terminate_process_and_childs
 from helperFunctions.tag import TagColor
+from objects.file import FileObject
 from plugins.base import BasePlugin
 
 
@@ -34,11 +35,16 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         if not offline_testing:
             self.start_worker()
 
-    def add_job(self, fw_object):
+    def add_job(self, fw_object: FileObject):
         if self._analysis_depth_not_reached_yet(fw_object):
             self.in_queue.put(fw_object)
-        else:
-            self.out_queue.put(fw_object)
+            return
+        elif self._dependencies_unfulfilled(fw_object):
+            logging.error('{}: dependencies of plugin {} not fulfilled'.format(fw_object.get_uid(), self.NAME))
+        self.out_queue.put(fw_object)
+
+    def _dependencies_unfulfilled(self, fw_object: FileObject):
+        return any(dep not in fw_object.processed_analysis for dep in self.DEPENDENCIES)
 
     def _analysis_depth_not_reached_yet(self, fo):
         return self.recursive or fo.depth == 0
@@ -75,6 +81,8 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         self.in_queue.close()
         self.out_queue.close()
 
+# ---- internal functions ----
+
     def add_analysis_tag(self, file_object, tag_name, value, color=TagColor.LIGHT_BLUE, propagate=False):
         new_tag = {
             tag_name: {
@@ -88,8 +96,6 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
             file_object.processed_analysis[self.NAME]['tags'] = new_tag
         else:
             file_object.processed_analysis[self.NAME]['tags'].update(new_tag)
-
-# ---- internal functions ----
 
     def init_dict(self):
         result_update = {'analysis_date': time(), 'plugin_version': self.VERSION}
