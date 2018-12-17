@@ -7,6 +7,7 @@ from common_helper_files.fail_safe_file_operations import get_dir_of_file
 
 from helperFunctions.rest import success_message, error_message
 from helperFunctions.web_interface import ConnectTo
+from objects.file import FileObject
 from web_interface.components.component_base import ComponentBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
@@ -16,7 +17,7 @@ from ..code.file_system_metadata import FsMetadataDbInterface, AnalysisPlugin
 
 class FsMetadataRoutesDbInterface(FsMetadataDbInterface):
 
-    def get_analysis_results_for_included_uid(self, uid):
+    def get_analysis_results_for_included_uid(self, uid: str):
         results = {}
         this_fo = self.get_object(uid)
         if this_fo is not None:
@@ -26,13 +27,12 @@ class FsMetadataRoutesDbInterface(FsMetadataDbInterface):
                 self.get_results_from_parent_fos(parent_fo, this_fo, results)
         return results
 
-    @staticmethod
-    def get_results_from_parent_fos(parent_fo, this_fo, results):
+    def get_results_from_parent_fos(self, parent_fo: FileObject, this_fo: FileObject, results: dict):
         if parent_fo is None:
             return None
 
         file_names = [
-            virtual_file_path.split('|')[-1][1:]
+            self._get_file_name_from_virtual_path(virtual_file_path)
             for virtual_path_list in this_fo.virtual_file_path.values()
             for virtual_file_path in virtual_path_list
             if parent_fo.get_uid() in virtual_file_path
@@ -45,6 +45,10 @@ class FsMetadataRoutesDbInterface(FsMetadataDbInterface):
                 if encoded_name in parent_analysis:
                     results[file_name] = parent_analysis[encoded_name]
                     results[file_name]['parent_uid'] = parent_fo.get_uid()
+
+    @staticmethod
+    def _get_file_name_from_virtual_path(virtual_file_path: str):
+        return virtual_file_path.split('|')[-1][1:]
 
 
 class PluginRoutes(ComponentBase):
