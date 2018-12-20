@@ -34,9 +34,9 @@ def difference_of_sets(base_set, list_of_other_sets):
 def remove_duplicates_from_list_of_lists(main_list):
     for item in main_list:
         item.sort()
-    for primary_pointer, _ in enumerate(main_list):
-        for secondary_pointer, _ in enumerate(main_list):
-            if main_list[primary_pointer] == main_list[secondary_pointer] and not primary_pointer == secondary_pointer:
+    for primary_pointer, primary_element in enumerate(main_list):
+        for secondary_pointer, secondary_element in enumerate(main_list):
+            if primary_element == secondary_element and not primary_pointer == secondary_pointer:
                 main_list[secondary_pointer] = None
     main_list = remove_all(main_list, None)
     return main_list

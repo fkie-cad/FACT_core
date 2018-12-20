@@ -9,7 +9,8 @@ ARG no_proxy
 
 RUN apt-get update && install_clean \
     make gcc npm \
-    python3-pip git sudo
+    python3-pip git sudo \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /opt/app
 
