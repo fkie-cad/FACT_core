@@ -1,0 +1,34 @@
+{% if results %}
+<table class="table table-bordered table-hover" style="margin-top: -20px">
+    <tr>
+        <th class="success" colspan="2">
+            Results for this File
+        </th>
+    </tr>
+    {% for file in results %}
+        <tr>
+            <td class="active" onclick="location.href='/analysis/{{ results[file]['parent_uid'] }}'">
+                {{ results[file]["parent_uid"] | replace_uid_with_hid | safe }} | {{ file }}
+            </td>
+            <td style="padding: 0;">
+                <table class="table table-bordered" style="margin-bottom: 0;">
+                    {% for key in results[file] | sort %}
+                        {% if key != "parent_uid" %}
+                            <tr>
+                                <td>{{ key }}</td>
+                                <td>
+                                    {% if 'time' in key %}
+                                        {{ results[file][key] | nice_unix_time | safe }}
+                                    {% else %}
+                                        {{ results[file][key] | safe }}
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
+                </table>
+            </td>
+        </tr>
+    {% endfor %}
+</table>
+{% endif %}
