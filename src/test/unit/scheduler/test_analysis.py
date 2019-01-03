@@ -333,15 +333,11 @@ class TestAnalysisSkipping:
                 self.SYSTEM_VERSION = system_version
 
     class BackendMock:
-        def __init__(self, version, system_version, analysis):
-            self.version = version
-            self.system_version = system_version
-            self.analysis = analysis
+        def __init__(self, analysis_entry=None):
+            self.analysis_entry = analysis_entry if analysis_entry else {}
 
         def get_specific_fields_of_db_entry(self, *_):
-            return {'processed_analysis': {self.analysis: {
-                'plugin_version': self.version, 'system_version': self.system_version
-            }}}
+            return self.analysis_entry
 
     @classmethod
     def setup_class(cls):
@@ -368,7 +364,17 @@ class TestAnalysisSkipping:
     def test_analysis_is_already_in_db_and_up_to_date(
             self, plugin_version, plugin_system_version, analysis_plugin_version, analysis_system_version, expected_output):
         plugin = 'foo'
-        self.scheduler.db_backend_service = self.BackendMock(analysis_plugin_version, analysis_system_version, plugin)
+        analysis_entry = {'processed_analysis': {plugin: {
+            'plugin_version': analysis_plugin_version, 'system_version': analysis_system_version
+        }}}
+        self.scheduler.db_backend_service = self.BackendMock(analysis_entry)
         self.scheduler.analysis_plugins[plugin] = self.PluginMock(
             version=plugin_version, system_version=plugin_system_version)
         assert self.scheduler._analysis_is_already_in_db_and_up_to_date(plugin, '') == expected_output
+
+    def test_analysis_is_already_in_db_and_up_to_date__missing_version(self):
+        plugin = 'foo'
+        analysis_entry = {'processed_analysis': {plugin: {}}}
+        self.scheduler.db_backend_service = self.BackendMock(analysis_entry)
+        self.scheduler.analysis_plugins[plugin] = self.PluginMock(version='1.0', system_version='1.0')
+        assert self.scheduler._analysis_is_already_in_db_and_up_to_date(plugin, '') is False

@@ -224,6 +224,7 @@ class AnalysisScheduler(object):
             return False
         elif 'plugin_version' not in db_entry['processed_analysis'][analysis_to_do]:
             logging.error('Plugin Version missing: UID: {}, Plugin: {}'.format(uid, analysis_to_do))
+            return False
 
         analysis_plugin_version = db_entry['processed_analysis'][analysis_to_do]['plugin_version']
         analysis_system_version = db_entry['processed_analysis'][analysis_to_do]['system_version'] \
