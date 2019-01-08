@@ -55,11 +55,11 @@ class StatisticUpdater(object):
         if self.start_time is None:
             self.start_time = time()
         stats = {}
-        stats['number_of_firmwares'] = self.db.firmwares.count(self.match)
+        stats['number_of_firmwares'] = self.db.firmwares.count_documents(self.match)
         stats['total_firmware_size'] = get_field_sum(self.db.firmwares, '$size', match=self.match)
         stats['average_firmware_size'] = get_field_average(self.db.firmwares, '$size', match=self.match)
         if not self.match:
-            stats['number_of_unique_files'] = self.db.file_objects.count()
+            stats['number_of_unique_files'] = self.db.file_objects.count_documents({})
             stats['total_file_size'] = get_field_sum(self.db.file_objects, '$size')
             stats['average_file_size'] = get_field_average(self.db.file_objects, '$size')
         else:

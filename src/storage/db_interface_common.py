@@ -5,6 +5,7 @@ import sys
 from typing import Set
 
 import gridfs
+import pymongo
 from common_helper_files import get_safe_name
 from common_helper_mongo.aggregate import get_list_of_all_values, get_list_of_all_values_and_collect_information_of_additional_field
 
@@ -19,9 +20,9 @@ class MongoInterfaceCommon(MongoInterface):
     def _setup_database_mapping(self):
         main_database = self.config['data_storage']['main_database']
         self.main = self.client[main_database]
-        self.firmwares = self.main.firmwares
-        self.file_objects = self.main.file_objects
-        self.locks = self.main.locks
+        self.firmwares = self.main.firmwares  # type: pymongo.collection.Collection
+        self.file_objects = self.main.file_objects  # type: pymongo.collection.Collection
+        self.locks = self.main.locks  # type: pymongo.collection.Collection
         # sanitize stuff
         self.report_threshold = int(self.config['data_storage']['report_threshold'])
         sanitize_db = self.config['data_storage'].get('sanitize_database', 'faf_sanitize')
@@ -37,10 +38,10 @@ class MongoInterfaceCommon(MongoInterface):
             return False
 
     def is_firmware(self, uid):
-        return self.firmwares.count({'_id': uid}) > 0
+        return self.firmwares.count_documents({'_id': uid}) > 0
 
     def is_file_object(self, uid):
-        return self.file_objects.count({'_id': uid}) > 0
+        return self.file_objects.count_documents({'_id': uid}) > 0
 
     def get_object(self, uid, analysis_filter=None):
         '''
@@ -284,20 +285,20 @@ class MongoInterfaceCommon(MongoInterface):
     def get_firmware_number(self, query=None):
         if query is not None and isinstance(query, str):
             query = json.loads(query)
-        return self.firmwares.count(query)
+        return self.firmwares.count_documents(query or {})
 
     def get_file_object_number(self, query=None, zero_on_empty_query=True):
         if isinstance(query, str):
             query = json.loads(query)
         if zero_on_empty_query and query == {}:
             return 0
-        return self.file_objects.count(query)
+        return self.file_objects.count_documents(query or {})
 
     def set_unpacking_lock(self, uid):
         self.locks.insert_one({'uid': uid})
 
     def check_unpacking_lock(self, uid):
-        return self.locks.count({'uid': uid}) > 0
+        return self.locks.count_documents({'uid': uid}) > 0
 
     def release_unpacking_lock(self, uid):
         self.locks.delete_one({'uid': uid})
