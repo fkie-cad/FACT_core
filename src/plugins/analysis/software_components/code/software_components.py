@@ -38,7 +38,7 @@ class AnalysisPlugin(YaraBasePlugin):
 
     @staticmethod
     def get_version(input_string):
-        regex = '\d+.\d+(.\d+)?(\w)?'
+        regex = '\\d+.\\d+(.\\d+)?(\\w)?'
         pattern = re.compile(regex)
         version = pattern.search(input_string)
         if version is not None:
