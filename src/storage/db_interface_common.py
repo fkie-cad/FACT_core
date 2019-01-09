@@ -20,9 +20,9 @@ class MongoInterfaceCommon(MongoInterface):
     def _setup_database_mapping(self):
         main_database = self.config['data_storage']['main_database']
         self.main = self.client[main_database]
-        self.firmwares = self.main.firmwares  # type: pymongo.collection.Collection
-        self.file_objects = self.main.file_objects  # type: pymongo.collection.Collection
-        self.locks = self.main.locks  # type: pymongo.collection.Collection
+        self.firmwares: pymongo.collection.Collection = self.main.firmwares
+        self.file_objects: pymongo.collection.Collection = self.main.file_objects
+        self.locks: pymongo.collection.Collection = self.main.locks
         # sanitize stuff
         self.report_threshold = int(self.config['data_storage']['report_threshold'])
         sanitize_db = self.config['data_storage'].get('sanitize_database', 'faf_sanitize')
