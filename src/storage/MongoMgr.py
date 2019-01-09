@@ -77,10 +77,21 @@ class MongoMgr(object):
         mongo_port = self.config['data_storage']['mongo_port']
         try:
             client = MongoClient('mongodb://{}:{}'.format(mongo_server, mongo_port, connect=False))
-            client.admin.add_user(self.config['data_storage']['db_admin_user'], self.config['data_storage']['db_admin_pw'],
-                                  roles=[{'role': 'dbOwner', 'db': 'admin'}, {'role': 'readWriteAnyDatabase', 'db': 'admin'},
-                                         {'role': "root", 'db': "admin"}])
-            client.admin.add_user(self.config['data_storage']['db_readonly_user'], self.config['data_storage']['db_readonly_pw'],
-                                  roles=[{'role': 'readAnyDatabase', 'db': 'admin'}])
+            client.admin.command(
+                "createUser",
+                self.config['data_storage']['db_admin_user'],
+                pwd=self.config['data_storage']['db_admin_pw'],
+                roles=[
+                    {'role': 'dbOwner', 'db': 'admin'},
+                    {'role': 'readWriteAnyDatabase', 'db': 'admin'},
+                    {'role': 'root', 'db': "admin"}
+                ]
+            )
+            client.admin.command(
+                "createUser",
+                self.config['data_storage']['db_readonly_user'],
+                pwd=self.config['data_storage']['db_readonly_pw'],
+                roles=[{'role': 'readAnyDatabase', 'db': 'admin'}]
+            )
         except Exception as e:
             logging.error('Could not create users:\n{}'.format(e))
