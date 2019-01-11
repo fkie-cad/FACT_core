@@ -36,14 +36,16 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
             self.start_worker()
 
     def add_job(self, fw_object: FileObject):
-        if self._analysis_depth_not_reached_yet(fw_object):
+        if self._dependencies_are_unfulfilled(fw_object):
+            logging.error('{}: dependencies of plugin {} not fulfilled'.format(fw_object.get_uid(), self.NAME))
+        elif self._analysis_depth_not_reached_yet(fw_object):
             self.in_queue.put(fw_object)
             return
-        elif self._dependencies_unfulfilled(fw_object):
-            logging.error('{}: dependencies of plugin {} not fulfilled'.format(fw_object.get_uid(), self.NAME))
         self.out_queue.put(fw_object)
 
-    def _dependencies_unfulfilled(self, fw_object: FileObject):
+    def _dependencies_are_unfulfilled(self, fw_object: FileObject):
+        # FIXME plugins can be in processed_analysis and could still be skipped, etc. -> need a way to verify that
+        # FIXME the analysis ran successfully
         return any(dep not in fw_object.processed_analysis for dep in self.DEPENDENCIES)
 
     def _analysis_depth_not_reached_yet(self, fo):
