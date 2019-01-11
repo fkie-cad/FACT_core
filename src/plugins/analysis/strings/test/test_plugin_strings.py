@@ -1,4 +1,3 @@
-import pytest
 from common_helper_files import get_dir_of_file
 import os
 
@@ -21,11 +20,8 @@ class TestAnalysisPlugInPrintableStrings(AnalysisPluginTest):
         config.set(self.PLUGIN_NAME, 'min_length', '4')
         self.analysis_plugin = AnalysisPlugin(self, config=config)
 
-        self.strings = ['first string', 'second<>_$tring!', 'third:?-+012345/\string']
+        self.strings = ['first string', 'second<>_$tring!', 'third:?-+012345/\\string']
         self.offsets = [(3, self.strings[0]), (21, self.strings[1]), (61, self.strings[2])]
-
-    def tearDown(self):
-        super().tearDown()
 
     def test_process_object(self):
         fo = FileObject(file_path=os.path.join(TEST_DATA_DIR, 'string_find_test_file2'))
