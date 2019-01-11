@@ -348,17 +348,18 @@ class AnalysisScheduler(object):
                 return True  # Error here means nothing will ever get scheduled again. Thing should just break !
         return False
 
-    def _get_cumulative_remaining_dependencies(self, scheduled_analyses: Iterable[str]) -> Set[str]:
+    def _add_dependencies_recursively(self, scheduled_analyses: List[str]) -> List[str]:
+        scheduled_analyses_set = set(scheduled_analyses)
+        while True:
+            new_dependencies = self._get_cumulative_remaining_dependencies(scheduled_analyses_set)
+            if not new_dependencies:
+                break
+            scheduled_analyses_set.update(new_dependencies)
+        return list(scheduled_analyses_set)
+
+    def _get_cumulative_remaining_dependencies(self, scheduled_analyses: Set[str]) -> Set[str]:
         return {
             dependency
             for plugin in scheduled_analyses
             for dependency in self.analysis_plugins[plugin].DEPENDENCIES
-        }
-
-    def _add_dependencies_recursively(self, scheduled_analyses: List[str]) -> List[str]:
-        scheduled_analyses = set(scheduled_analyses)
-        old_len = 0
-        while len(scheduled_analyses) != old_len:
-            old_len = len(scheduled_analyses)
-            scheduled_analyses.update(self._get_cumulative_remaining_dependencies(scheduled_analyses))
-        return list(scheduled_analyses)
+        }.difference(scheduled_analyses)

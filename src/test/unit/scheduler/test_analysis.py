@@ -263,10 +263,10 @@ class TestUtilityFunctions:
         }
 
     @pytest.mark.parametrize('input_data, expected_output', [
-        ([], set()),
-        (['p1'], {'p2', 'p3'}),
-        (['p3'], set()),
-        (['p1', 'p2', 'p3', 'p4'], {'p2', 'p3', 'p5'}),
+        (set(), set()),
+        ({'p1'}, {'p2', 'p3'}),
+        ({'p3'}, set()),
+        ({'p1', 'p2', 'p3', 'p4'}, {'p5'}),
     ])
     def test_get_cumulative_remaining_dependencies(self, input_data, expected_output):
         self._add_plugins_with_recursive_dependencies()
