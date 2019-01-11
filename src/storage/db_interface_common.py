@@ -37,10 +37,10 @@ class MongoInterfaceCommon(MongoInterface):
             return False
 
     def is_firmware(self, uid):
-        return self.firmwares.count({'_id': uid}) > 0
+        return self.firmwares.count_documents({'_id': uid}) > 0
 
     def is_file_object(self, uid):
-        return self.file_objects.count({'_id': uid}) > 0
+        return self.file_objects.count_documents({'_id': uid}) > 0
 
     def get_object(self, uid, analysis_filter=None):
         '''
@@ -287,20 +287,20 @@ class MongoInterfaceCommon(MongoInterface):
     def get_firmware_number(self, query=None):
         if query is not None and isinstance(query, str):
             query = json.loads(query)
-        return self.firmwares.count(query)
+        return self.firmwares.count_documents(query or {})
 
     def get_file_object_number(self, query=None, zero_on_empty_query=True):
         if isinstance(query, str):
             query = json.loads(query)
         if zero_on_empty_query and query == {}:
             return 0
-        return self.file_objects.count(query)
+        return self.file_objects.count_documents(query or {})
 
     def set_unpacking_lock(self, uid):
         self.locks.insert_one({'uid': uid})
 
     def check_unpacking_lock(self, uid):
-        return self.locks.count({'uid': uid}) > 0
+        return self.locks.count_documents({'uid': uid}) > 0
 
     def release_unpacking_lock(self, uid):
         self.locks.delete_one({'uid': uid})

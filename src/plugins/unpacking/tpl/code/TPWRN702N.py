@@ -4,11 +4,6 @@ from struct import unpack
 from unpacker.helper.carving import Carver
 
 
-'''
-This plugin unpacks TPLink WR702n firmware images
-'''
-
-
 name = 'TP-WR702N'
 mime_patterns = ['firmware/tp-wr702n']
 version = '0.1'

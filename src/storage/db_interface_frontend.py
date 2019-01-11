@@ -127,7 +127,7 @@ class FrontEndDbInterface(MongoInterfaceCommon):
         if not uid_list:
             return True
         query = self._build_search_query_for_uid_list(uid_list)
-        number_of_results = self.firmwares.find(query).count() + self.file_objects.find(query).count()
+        number_of_results = self.get_firmware_number(query) + self.get_file_object_number(query)
         return len(uid_list) == number_of_results
 
     def generic_search(self, search_dict, skip=0, limit=0, only_fo_parent_firmware=False):
@@ -197,9 +197,6 @@ class FrontEndDbInterface(MongoInterfaceCommon):
         comments.sort(key=lambda x: x['time'], reverse=True)
         return comments
 
-    def get_number_of_firmwares_in_db(self):
-        return self.firmwares.count()
-
     # --- file tree
 
     def _create_node_from_virtual_path(self, uid, root_uid, current_virtual_path, fo_data, whitelist=None):
@@ -244,7 +241,7 @@ class FrontEndDbInterface(MongoInterfaceCommon):
             return len(fw_matches.union(fo_matches))
 
     def create_analysis_structure(self):
-        if self.client.varietyResults.file_objectsKeys.count() == 0:
+        if self.client.varietyResults.file_objectsKeys.count_documents({}) == 0:
             return 'Database statistics do not seem to be created yet.'
 
         file_object_keys = self.client.varietyResults.file_objectsKeys.find()

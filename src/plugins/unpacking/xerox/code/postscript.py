@@ -16,7 +16,7 @@ version = '0.4'
 encoding_overhead = 0.25
 
 META_FIELDS = ['Title', 'For', 'Product', 'Release', 'Release ?Date', 'Release ?Versions', 'TargetDevice']
-FILE_HEADER = re.compile(b'currentfile \/ASCII85Decode( filter [\/\w]+)*( exec)?\s')
+FILE_HEADER = re.compile(b'currentfile /ASCII85Decode( filter [/\\w]+)*( exec)?\\s')
 FILE_FOOTER = re.compile(b'~>')
 
 
@@ -32,7 +32,7 @@ def unpack_function(file_path, tmp_dir):
 def _get_meta_data(raw):
     meta = {}
     for item in META_FIELDS:
-        tmp = re.search(b'%%%? ?(' + make_bytes(item) + b'):([\w\-=., ]+)', raw)
+        tmp = re.search(b'%%%? ?(' + make_bytes(item) + b'):([\\w=., -]+)', raw)
         if tmp:
             meta[make_unicode_string(tmp.group(1))] = remove_uneccessary_spaces(make_unicode_string(tmp.group(2)))
     return meta

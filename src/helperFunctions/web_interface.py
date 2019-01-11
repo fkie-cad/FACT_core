@@ -46,7 +46,7 @@ def apply_filters_to_query(request, query):
 def filter_out_illegal_characters(string):
     if string is None:
         return string
-    return re.sub('[^\w {}!.-]'.format(SPECIAL_CHARACTERS), '', string)
+    return re.sub('[^\\w {}!.-]'.format(SPECIAL_CHARACTERS), '', string)
 
 
 class ConnectTo:
