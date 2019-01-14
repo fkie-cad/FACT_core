@@ -44,8 +44,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
         file_object.processed_analysis[self.NAME]['summary'] = []
 
         for passwd_regex in [
-            b'[a-zA-Z][a-zA-Z0-9_-]{2,15}:[^:]?:\d+:\d*:[^:]*:[^:]*:[^\n ]*',
-            b'[a-zA-Z][a-zA-Z0-9_-]{2,15}:\$[^\$]+\$[^\$]+\$[a-zA-Z0-9\./]{16,128}'
+            b'[a-zA-Z][a-zA-Z0-9_-]{2,15}:[^:]?:\\d+:\\d*:[^:]*:[^:]*:[^\n ]*',
+            b'[a-zA-Z][a-zA-Z0-9_-]{2,15}:\\$[^\\$]+\\$[^\\$]+\\$[a-zA-Z0-9\\./]{16,128}'
         ]:
             passwd_entries = re.findall(passwd_regex, file_object.binary)
             if passwd_entries:
