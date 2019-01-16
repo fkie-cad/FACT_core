@@ -250,13 +250,13 @@ class AnalysisScheduler(object):
             logging.error('{}Configuration of plugin "{}" erroneous{}: found blacklist and whitelist. Ignoring blacklist.'.format(
                 bcolors.FAIL, next_analysis, bcolors.ENDC))
 
-        file_type = self._get_file_type_or_reschedule(fw_object)
+        file_type = self._get_file_type_from_object_or_db(fw_object)
 
         if whitelist:
             return not substring_is_in_list(file_type, whitelist)
         return substring_is_in_list(file_type, blacklist)
 
-    def _get_file_type_or_reschedule(self, fw_object: FileObject) -> Optional[str]:
+    def _get_file_type_from_object_or_db(self, fw_object: FileObject) -> Optional[str]:
         if 'file_type' not in fw_object.processed_analysis:
             self._add_completed_analysis_results_to_file_object('file_type', fw_object)
 

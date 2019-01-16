@@ -1,7 +1,6 @@
 import json
 import os
 from base64 import standard_b64encode
-from contextlib import contextmanager
 from copy import deepcopy
 
 from helperFunctions.dataConversion import unify_string_list
@@ -373,28 +372,3 @@ def get_firmware_for_rest_upload_test():
         'requested_analysis_systems': ['software_components']
     }
     return data
-
-
-class MockSpy:
-    _called = False
-    _args = None
-
-    def spy_function(self, *args):
-        self._called = True
-        self._args = args
-
-    def was_called(self):
-        return self._called
-
-
-@contextmanager
-def mock_spy(o: object, method: str):
-    spy = MockSpy()
-    if not hasattr(o, method):
-        raise AttributeError('{} has no method {}'.format(o.__class__, method))
-    tmp = o.__getattribute__(method)
-    try:
-        o.__setattr__(method, spy.spy_function)
-        yield spy
-    finally:
-        o.__setattr__(method, tmp)
