@@ -207,7 +207,14 @@ class TestAnalysisSchedulerBlacklist:
         assert blacklisted is True
 
     def test_get_blacklist_file_type_from_database(self):
-        pass  # TODO Add a test for this
+        def add_file_type_mock(_, fo):
+            fo.processed_analysis['file_type'] = {'mime': 'foo_type'}
+
+        file_object = MockFileObject()
+        file_object.processed_analysis.pop('file_type')
+        with mock_patch(self.sched, '_add_completed_analysis_results_to_file_object', add_file_type_mock):
+            result = self.sched._get_file_type_from_object_or_db(file_object)
+            assert result == 'foo_type'
 
     def _add_test_plugin_to_config(self):
         self.sched.config.add_section('test_plugin')
