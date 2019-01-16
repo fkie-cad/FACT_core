@@ -60,18 +60,12 @@ class AnalysisScheduler(object):
         logging.info('Analysis System offline')
 
     def add_update_task(self, fo: FileObject):
-        self._add_dependencies_for_update_task(fo)
         for included_file in self.db_backend_service.get_list_of_all_included_files(fo):
             child = self.db_backend_service.get_object(included_file)
-            child.scheduled_analysis = self._smart_shuffle(fo.scheduled_analysis)
+            child.scheduled_analysis = self._add_dependencies_recursively(fo.scheduled_analysis or [])
+            child.scheduled_analysis = self._smart_shuffle(child.scheduled_analysis)
             self.check_further_process_or_complete(child)
         self.check_further_process_or_complete(fo)
-
-    def _add_dependencies_for_update_task(self, fo: FileObject):
-        dependencies = self._add_dependencies_recursively(fo.scheduled_analysis)
-        for d in dependencies:
-            if d not in fo.processed_analysis:
-                fo.scheduled_analysis.append(d)
 
     def add_task(self, fo: FileObject):
         '''
@@ -81,12 +75,12 @@ class AnalysisScheduler(object):
         fo.scheduled_analysis = self._smart_shuffle(scheduled_plugins + MANDATORY_PLUGINS)
         self.check_further_process_or_complete(fo)
 
-    def _smart_shuffle(self, plugin_list: List[str], completed_analyses: Optional[List[str]]=None) -> List[str]:
+    def _smart_shuffle(self, plugin_list: List[str]) -> List[str]:
         scheduled_plugins = []
         remaining_plugins = set(plugin_list)
 
         while len(remaining_plugins) > 0:
-            next_plugins = self._get_plugins_with_met_dependencies(remaining_plugins, scheduled_plugins, completed_analyses or [])
+            next_plugins = self._get_plugins_with_met_dependencies(remaining_plugins, scheduled_plugins)
             if not next_plugins:
                 logging.error('Error: Could not schedule plugins because dependencies cannot be fulfilled: {}'.format(remaining_plugins))
                 break
@@ -99,8 +93,8 @@ class AnalysisScheduler(object):
             scheduled_plugins.append('file_type')
         return scheduled_plugins
 
-    def _get_plugins_with_met_dependencies(self, remaining_plugins: Set[str], scheduled_plugins: List[str], completed_analyses: List[str]) -> List[str]:
-        met_dependencies = scheduled_plugins + completed_analyses
+    def _get_plugins_with_met_dependencies(self, remaining_plugins: Set[str], scheduled_plugins: List[str]) -> List[str]:
+        met_dependencies = scheduled_plugins
         return [
             plugin
             for plugin in remaining_plugins
@@ -256,26 +250,17 @@ class AnalysisScheduler(object):
             logging.error('{}Configuration of plugin "{}" erroneous{}: found blacklist and whitelist. Ignoring blacklist.'.format(
                 bcolors.FAIL, next_analysis, bcolors.ENDC))
 
-        file_type = self._get_file_type_or_reschedule(fw_object, next_analysis)
-        if not file_type:
-            return True
+        file_type = self._get_file_type_or_reschedule(fw_object)
 
         if whitelist:
             return not substring_is_in_list(file_type, whitelist)
         return substring_is_in_list(file_type, blacklist)
 
-    @staticmethod
-    def _get_file_type_or_reschedule(fw_object: FileObject, next_analysis: str) -> Optional[str]:
-        try:
-            return fw_object.processed_analysis['file_type']['mime'].lower()
-        except KeyError:
-            if fw_object.binary:
-                return get_file_type_from_binary(fw_object.binary)['mime'].lower()
-        if next_analysis != 'file_type':
-            if 'file_type' in fw_object.scheduled_analysis:
-                fw_object.scheduled_analysis.remove('file_type')
-            fw_object.scheduled_analysis.extend([next_analysis, 'file_type'])
-        return None
+    def _get_file_type_or_reschedule(self, fw_object: FileObject) -> Optional[str]:
+        if 'file_type' not in fw_object.processed_analysis:
+            self._add_completed_analysis_results_to_file_object('file_type', fw_object)
+
+        return fw_object.processed_analysis['file_type']['mime'].lower()
 
     def _get_blacklist_and_whitelist(self, next_analysis: str) -> Tuple[List, List]:
         blacklist, whitelist = self._get_blacklist_and_whitelist_from_config(next_analysis)
