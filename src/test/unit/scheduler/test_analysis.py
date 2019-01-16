@@ -1,5 +1,6 @@
 import gc
 import os
+from contextlib import suppress
 from multiprocessing import Queue
 from unittest import TestCase, mock
 
@@ -9,7 +10,8 @@ from helperFunctions.config import get_config_for_testing
 from helperFunctions.fileSystem import get_test_data_dir
 from objects.firmware import Firmware
 from scheduler.Analysis import AnalysisScheduler, MANDATORY_PLUGINS
-from test.common_helper import DatabaseMock, fake_exit, MockFileObject, mock_spy
+from test.common_helper import DatabaseMock, fake_exit, MockFileObject
+from test.mock import mock_spy, mock_patch
 
 
 class AnalysisSchedulerTest(TestCase):
@@ -207,6 +209,10 @@ class TestAnalysisSchedulerBlacklist:
     def test_get_blacklist_file_type_from_database(self):
         pass  # TODO Add a test for this
 
+    def _add_test_plugin_to_config(self):
+        self.sched.config.add_section('test_plugin')
+        self.sched.config.set('test_plugin', 'mime_blacklist', 'type1, type2')
+
 
 class TestUtilityFunctions:
 
@@ -269,7 +275,7 @@ class TestUtilityFunctions:
     ])
     def test_get_plugins_with_met_dependencies(self, remaining, scheduled, expected_output):
         self._add_plugins()
-        assert self.scheduler._get_plugins_with_met_dependencies(remaining, scheduled, []) == expected_output
+        assert self.scheduler._get_plugins_with_met_dependencies(remaining, scheduled) == expected_output
 
     @pytest.mark.parametrize('remaining, scheduled, expected_output', [
         ({'bar'}, ['no_deps', 'foo'], {'bar'}),
