@@ -204,6 +204,9 @@ class MongoInterfaceCommon(MongoInterface):
                 tmp_dict[analysis_key] = report
         return tmp_dict
 
+    def get_specific_fields_of_db_entry(self, uid, field_dict):
+        return self.file_objects.find_one(uid, field_dict) or self.firmwares.find_one(uid, field_dict)
+
     # --- summary recreation
 
     def get_list_of_all_included_files(self, fo):

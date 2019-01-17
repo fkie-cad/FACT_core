@@ -166,9 +166,6 @@ class FrontEndDbInterface(MongoInterfaceCommon):
         results = self.firmwares.find(query, {'_id': 1, 'version': 1})
         return [r for r in results if r['_id'] != firmware_object.get_uid()]
 
-    def get_specific_fields_of_db_entry(self, uid, field_dict):
-        return self.file_objects.find_one(uid, field_dict) or self.firmwares.find_one(uid, field_dict)
-
     def get_specific_fields_for_multiple_entries(self, uid_list, field_dict):
         query = self._build_search_query_for_uid_list(uid_list)
         file_object_iterator = self.file_objects.find(query, field_dict)
