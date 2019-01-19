@@ -64,8 +64,7 @@ class MockFileObject(object):
     def __init__(self, binary=b'test string', file_path='/bin/ls'):
         self.binary = binary
         self.file_path = file_path
-        self.processed_analysis = {'file_type': {
-            'mime': 'application/x-executable'}}
+        self.processed_analysis = {'file_type': {'mime': 'application/x-executable'}}
 
 
 class DatabaseMock:
@@ -329,6 +328,9 @@ class DatabaseMock:
 
     def drop_unpacking_locks(self):
         self.locks = []
+
+    def get_specific_fields_of_db_entry(self, uid, field_dict):
+        return None  # TODO
 
 
 def fake_exit(self, *args):
