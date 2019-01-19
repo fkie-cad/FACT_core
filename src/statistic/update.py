@@ -343,7 +343,7 @@ class StatisticUpdater(object):
         return {'software_components': [
             (entry['_id'], int(entry['count']))
             for entry in query_result
-            if entry['_id'] not in ['summary', 'analysis_date', 'file_system_flag', 'plugin_version', 'tags', 'skipped']
+            if entry['_id'] not in ['summary', 'analysis_date', 'file_system_flag', 'plugin_version', 'tags', 'skipped', 'system_version']
         ]}
 
 
