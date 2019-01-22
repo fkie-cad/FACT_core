@@ -46,7 +46,7 @@ class TestCweCheckerFunctions(AnalysisPluginTest):
     def test_build_bap_command(self):
         self.analysis_plugin.docker = True
         fo = FileObject(file_path='/foo')
-        assert self.analysis_plugin._build_bap_command(fo) == 'timeout --signal=SIGKILL {}m docker run -v {}:/tmp/input cwe-checker:latest bap /tmp/input --pass=cwe-checker --cwe-checker-config=/home/bap/cwe_checker/src/config.json'.format(BAP_TIMEOUT, fo.file_path)
+        assert self.analysis_plugin._build_bap_command(fo) == 'timeout --signal=SIGKILL {}m docker run --rm -v {}:/tmp/input cwe-checker:latest bap /tmp/input --pass=cwe-checker --cwe-checker-config=/home/bap/cwe_checker/src/config.json'.format(BAP_TIMEOUT, fo.file_path)
 
     def test_build_bap_command_no_docker(self):
         self.analysis_plugin.docker = False

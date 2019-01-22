@@ -291,7 +291,7 @@
 
 # Firmware header used by some VxWorks-based Cisco products
 0      string        CI032.00       Cisco VxWorks firmware header,
-!:mime firmware/vxworks-cisco
+!:mime firmware/ros
 >8     lelong        >1024          {invalid}
 >8     lelong        <0             {invalid}
 >8     lelong        x              header size: %d bytes,

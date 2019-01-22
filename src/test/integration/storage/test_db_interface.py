@@ -167,7 +167,7 @@ class TestMongoInterface(unittest.TestCase):
         self.assertEqual(test_data['dummy']['test_key'], 'test_value', 'value not recoverd')
 
     def test_get_firmware_number(self):
-        result = self.db_interface.get_firmware_number(query={})
+        result = self.db_interface.get_firmware_number()
         self.assertEqual(result, 0)
 
         self.db_interface_backend.add_firmware(self.test_firmware)
@@ -184,7 +184,7 @@ class TestMongoInterface(unittest.TestCase):
         self.assertEqual(result, 1)
 
     def test_get_file_object_number(self):
-        result = self.db_interface.get_file_object_number(query={})
+        result = self.db_interface.get_file_object_number()
         self.assertEqual(result, 0)
 
         self.db_interface_backend.add_file_object(self.test_fo)
@@ -228,6 +228,18 @@ class TestMongoInterface(unittest.TestCase):
 
         self.db_interface_backend.add_object(self.test_fo)
         assert not self.db_interface.check_unpacking_lock(self.test_fo.uid), 'add_object should release lock'
+
+    def test_is_firmware(self):
+        assert self.db_interface.is_firmware(self.test_firmware.get_uid()) is False
+
+        self.db_interface_backend.add_firmware(self.test_firmware)
+        assert self.db_interface.is_firmware(self.test_firmware.get_uid()) is True
+
+    def test_is_file_object(self):
+        assert self.db_interface.is_file_object(self.test_fo.get_uid()) is False
+
+        self.db_interface_backend.add_file_object(self.test_fo)
+        assert self.db_interface.is_file_object(self.test_fo.get_uid()) is True
 
 
 class TestSummary(unittest.TestCase):

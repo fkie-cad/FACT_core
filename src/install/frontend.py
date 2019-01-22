@@ -4,6 +4,7 @@ import shutil
 from contextlib import suppress
 from pathlib import Path
 
+import requests
 from common_helper_process import execute_shell_command_get_return_code
 
 from helperFunctions.install import OperateInDirectory, pip3_install_packages, InstallationError, \
@@ -30,6 +31,27 @@ def wget_static_web_content(url, target_folder, additional_actions, resource_log
             action_output, action_code = execute_shell_command_get_return_code(action)
             if action_code != 0:
                 raise InstallationError('Problem in processing resource at {}\n{}'.format(url, action_output))
+
+
+def _build_highlight_js():
+    logging.info('Installing highlight js')
+
+    highlight_js_url = 'https://highlightjs.org/download/'
+    highlight_js_dir = 'highlight.js'
+    highlight_js_zip = 'highlight.js.zip'
+    if Path(highlight_js_dir).is_dir():
+        OperateInDirectory._remove_folder(highlight_js_dir)
+
+    req = requests.get('https://highlightjs.org/download/')
+    crsf_cookie = req.headers['Set-Cookie']
+    csrf_token = crsf_cookie.split(';')[0].split('=')[1]
+
+    commands = [
+        'wget {} --header="Host: highlightjs.org" --header="User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:61.0) Gecko/20100101 Firefox/61.0" --header="Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8" --header="Accept-Language: en-GB,en;q=0.5" --header="Accept-Encoding: gzip, deflate, br" --header="Referer: https://highlightjs.org/download/" --header="Content-Type: application/x-www-form-urlencoded" --header="Cookie: csrftoken={}" --header="DNT: 1" --header="Connection: keep-alive" --header="Upgrade-Insecure-Requests: 1" --post-data="apache.js=on&bash.js=on&coffeescript.js=on&cpp.js=on&cs.js=on&csrfmiddlewaretoken={}&css.js=on&diff.js=on&http.js=on&ini.js=on&java.js=on&javascript.js=on&json.js=on&makefile.js=on&markdown.js=on&nginx.js=on&objectivec.js=on&perl.js=on&php.js=on&python.js=on&ruby.js=on&shell.js=on&sql.js=on&xml.js=on" -O {}'.format(highlight_js_url, csrf_token, csrf_token, highlight_js_zip),
+        'unzip {} -d {}'.format(highlight_js_zip, highlight_js_dir)
+    ]
+    execute_commands_and_raise_on_return_code(commands, error='Failed to set up highlight.js')
+    Path(highlight_js_zip).unlink()
 
 
 def _patch_bootstrap():
@@ -101,6 +123,8 @@ def main(radare, nginx):
 
         wget_static_web_content('https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js', '.', [], 'angularJS')
         wget_static_web_content('https://github.com/chartjs/Chart.js/releases/download/v2.3.0/Chart.js', '.', [], 'charts.js')
+
+        _build_highlight_js()
 
     # create user database
     _create_directory_for_authentication()

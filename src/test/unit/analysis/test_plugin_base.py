@@ -15,7 +15,7 @@ class TestPluginBase(unittest.TestCase):
 
     def setUp(self):
         config = self.set_up_base_config()
-        self.pBase = AnalysisBasePlugin(self, config)
+        self.base_plugin = AnalysisBasePlugin(self, config)
 
     @staticmethod
     def set_up_base_config():
@@ -27,7 +27,7 @@ class TestPluginBase(unittest.TestCase):
         return config
 
     def tearDown(self):
-        self.pBase.shutdown()
+        self.base_plugin.shutdown()
         gc.collect()
 
     def register_plugin(self, name, plugin_object):
@@ -45,8 +45,8 @@ class TestPluginBaseCore(TestPluginBase):
 
     def test_object_processing_no_childs(self):
         root_object = FileObject(binary=b'root_file')
-        self.pBase.in_queue.put(root_object)
-        processed_object = self.pBase.out_queue.get()
+        self.base_plugin.in_queue.put(root_object)
+        processed_object = self.base_plugin.out_queue.get()
         self.assertEqual(processed_object.get_uid(), root_object.get_uid(), 'uid changed')
         self.assertTrue('base' in processed_object.processed_analysis, 'object not processed')
         self.assertEqual(processed_object.processed_analysis['base']['plugin_version'], 'not set', 'plugin version missing in results')
@@ -56,97 +56,61 @@ class TestPluginBaseCore(TestPluginBase):
         root_object = FileObject(binary=b'root_file')
         child_object = FileObject(binary=b'first_child_object')
         root_object.add_included_file(child_object)
-        self.pBase.in_queue.put(root_object)
-        processed_object = self.pBase.out_queue.get()
+        self.base_plugin.in_queue.put(root_object)
+        processed_object = self.base_plugin.out_queue.get()
         self.assertEqual(processed_object.get_uid(), root_object.get_uid(), 'uid changed')
         self.assertTrue(child_object.get_uid() in root_object.get_included_files_uids(), 'child object not in processed file')
 
     def test_get_workload(self):
-        assert self.pBase.get_workload() == 0
+        assert self.base_plugin.get_workload() == 0
 
 
 class TestPluginBaseAddJob(TestPluginBase):
 
-    def test_dependency_condition_check_no_deps(self):
-        fo = FileObject(binary='test', scheduled_analysis=[])
-        self.assertTrue(self.pBase._dependencies_are_fulfilled(fo), 'no deps specified')
-
-    def test_dependency_condition_check_unmatched_deps(self):
-        self.pBase.DEPENDENCIES = ['foo']
-        fo = FileObject(binary='test', scheduled_analysis=[])
-        self.assertFalse(self.pBase._dependencies_are_fulfilled(fo), 'deps specified and unmatched')
-
-    def test_dependency_condition_check_matched_deps(self):
-        self.pBase.DEPENDENCIES = ['foo']
-        fo = FileObject(binary='test', scheduled_analysis=[])
-        fo.processed_analysis.update({'foo': []})
-        self.assertTrue(self.pBase._dependencies_are_fulfilled(fo), 'Fals but deps matched')
-
-    def test_recursive_condition_is_set(self):
+    def test_analysis_depth_not_reached_yet(self):
         fo = FileObject(binary='test', scheduled_analysis=[])
 
         fo.depth = 1
-        self.pBase.recursive = False
-        self.assertFalse(self.pBase._recursive_condition_is_set(fo), 'positive but not root object')
+        self.base_plugin.recursive = False
+        self.assertFalse(self.base_plugin._analysis_depth_not_reached_yet(fo), 'positive but not root object')
 
         fo.depth = 0
-        self.pBase.recursive = False
-        self.assertTrue(self.pBase._recursive_condition_is_set(fo))
+        self.base_plugin.recursive = False
+        self.assertTrue(self.base_plugin._analysis_depth_not_reached_yet(fo))
+
         fo.depth = 1
-        self.pBase.recursive = True
-        self.assertTrue(self.pBase._recursive_condition_is_set(fo))
+        self.base_plugin.recursive = True
+        self.assertTrue(self.base_plugin._analysis_depth_not_reached_yet(fo))
 
         fo.depth = 0
-        self.pBase.recursive = True
-        self.assertTrue(self.pBase._recursive_condition_is_set(fo))
+        self.base_plugin.recursive = True
+        self.assertTrue(self.base_plugin._analysis_depth_not_reached_yet(fo))
 
     def test__add_job__recursive_is_set(self):
         fo = FileObject(binary='test', scheduled_analysis=[])
         fo.depth = 1
-        self.pBase.recursive = False
-        self.pBase.add_job(fo)
-        out_fo = self.pBase.out_queue.get(timeout=5)
+        self.base_plugin.recursive = False
+        self.base_plugin.add_job(fo)
+        out_fo = self.base_plugin.out_queue.get(timeout=5)
         self.assertIsInstance(out_fo, FileObject, 'not added to out_queue')
-        self.pBase.recursive = True
-        self.assertTrue(self.pBase._recursive_condition_is_set(fo), 'not positvie but recursive')
-
-    def test_add_job_dependency_not_matched(self):
-        self.pBase.DEPENDENCIES = ['foo']
-        fo = FileObject(binary='test', scheduled_analysis=[])
-        self.pBase.add_job(fo)
-        fo = self.pBase.out_queue.get(timeout=5)
-        self.assertEqual(fo.scheduled_analysis, ['base', 'foo'], 'analysis not scheduled')
-        self.assertNotIn('base', fo.processed_analysis, 'base added to processed analysis, but is not processed')
+        self.base_plugin.recursive = True
+        self.assertTrue(self.base_plugin._analysis_depth_not_reached_yet(fo), 'not positive but recursive')
 
 
 class TestPluginBaseOffline(TestPluginBase):
 
     def setUp(self):
-        self.pBase = AnalysisBasePlugin(self, config=self.set_up_base_config(), offline_testing=True)
-
-    def test_object_history(self):
-        test_fo = create_test_file_object()
-        self.pBase.add_job(test_fo)
-        result = self.pBase.in_queue.get(timeout=5)
-        self.assertTrue(self.pBase.out_queue.empty(), 'added to outque but not in history')
-        self.pBase.add_job(test_fo)
-        result = self.pBase.out_queue.get(timeout=5)
-        self.assertTrue(self.pBase.in_queue.empty(), 'added to inque but already in history')
-        # required dependency check
-        test_fo.analysis_dependency.add(self.pBase.NAME)
-        self.pBase.add_job(test_fo)
-        result = self.pBase.in_queue.get(timeout=5)
-        self.assertTrue(self.pBase.out_queue.empty(), 'added to out queue but should be reanalyzed because of dependency request')
+        self.base_plugin = AnalysisBasePlugin(self, config=self.set_up_base_config(), offline_testing=True)
 
     def test_get_view_file_path(self):
         plugin_path = os.path.join(get_src_dir(), 'plugins/analysis/file_type/')
         code_path = os.path.join(plugin_path, 'code/file_type.py')
         estimated_view_path = os.path.join(plugin_path, 'view/file_type.html')
 
-        assert self.pBase._get_view_file_path(code_path) == estimated_view_path
+        assert self.base_plugin._get_view_file_path(code_path) == estimated_view_path
 
         plugin_path_without_view = os.path.join(get_src_dir(), 'plugins/analysis/dummy/code/dummy.py')
-        assert self.pBase._get_view_file_path(plugin_path_without_view) is None
+        assert self.base_plugin._get_view_file_path(plugin_path_without_view) is None
 
 
 class TestPluginNotRunning(TestPluginBase):

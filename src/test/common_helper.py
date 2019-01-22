@@ -64,8 +64,7 @@ class MockFileObject(object):
     def __init__(self, binary=b'test string', file_path='/bin/ls'):
         self.binary = binary
         self.file_path = file_path
-        self.processed_analysis = {'file_type': {
-            'mime': 'application/x-executable'}}
+        self.processed_analysis = {'file_type': {'mime': 'application/x-executable'}}
 
 
 class DatabaseMock:
@@ -330,6 +329,9 @@ class DatabaseMock:
     def drop_unpacking_locks(self):
         self.locks = []
 
+    def get_specific_fields_of_db_entry(self, uid, field_dict):
+        return None  # TODO
+
 
 def fake_exit(self, *args):
     pass
@@ -363,7 +365,7 @@ def get_firmware_for_rest_upload_test():
         'device_name': 'test_device',
         'device_part': 'test_part',
         'device_class': 'test_class',
-        'firmware_version': '1.0',
+        'version': '1.0',
         'vendor': 'test_vendor',
         'release_date': '01.01.1970',
         'tags': '',

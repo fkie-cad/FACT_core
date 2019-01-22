@@ -1,5 +1,9 @@
 from itertools import zip_longest
 from copy import deepcopy
+from random import sample, seed
+
+
+seed()
 
 
 def merge_generators(*generators):
@@ -70,3 +74,7 @@ def avg(l):
     if len(l) == 0:
         return 0
     return sum(l) / len(l)
+
+
+def shuffled(sequence):
+    return sample(sequence, len(sequence))
