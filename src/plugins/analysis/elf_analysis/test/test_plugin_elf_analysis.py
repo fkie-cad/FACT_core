@@ -38,8 +38,9 @@ def test_process_analysis(stub_plugin, stub_object):
     stub_object.processed_analysis['file_type'] = {'mime': 'application/x-executable'}
     stub_plugin.process_object(stub_object)
 
-    assert stub_object.processed_analysis[stub_plugin.PLUGIN_NAME]['Output'] != {}
-    assert sorted(stub_object.processed_analysis[stub_plugin.PLUGIN_NAME]['summary']) == ['dynamic_entries', 'exported_functions', 'header', 'imported_functions', 'sections', 'segments']
+    assert stub_object.processed_analysis[stub_plugin.NAME]['Output'] != {}
+    result_summary = sorted(stub_object.processed_analysis[stub_plugin.NAME]['summary'])
+    assert result_summary == ['dynamic_entries', 'exported_functions', 'header', 'imported_functions', 'libraries', 'sections', 'segments', 'symbols_version']
 
 
 @pytest.mark.parametrize('tag, tag_color', [
