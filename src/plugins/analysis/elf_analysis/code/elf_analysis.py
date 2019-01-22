@@ -20,9 +20,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
     VERSION = '0.2'
     MIME_WHITELIST = ['application/x-executable', 'application/x-object', 'application/x-sharedlib']
 
-    def __init__(self, plugin_adminstrator, config=None, recursive=True):
+    def __init__(self, plugin_adminstrator, config=None, recursive=True, offline_testing=False):
         self.config = config
-        super().__init__(plugin_adminstrator, config=config, recursive=recursive, plugin_path=__file__)
+        super().__init__(plugin_adminstrator, config=config, recursive=recursive, plugin_path=__file__, offline_testing=offline_testing)
 
     def process_object(self, file_object):
         elf_dict, parsed_binary = self._analyze_elf(file_object)
