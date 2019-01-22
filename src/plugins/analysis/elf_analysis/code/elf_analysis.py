@@ -48,11 +48,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     @staticmethod
     def _get_tags_from_function_list(function_list, json_items, key, tag_list):
-        for func, i in [(func, i) for func in function_list for i in json_items]:
+        for func, i in ((func, i) for func in function_list for i in json_items):
             if i.lower() in func.lower() and SequenceMatcher(None, i, func).ratio() >= 0.85:
                 tag_list.append(key)
-            else:
-                continue
         return tag_list
 
     def _get_tags(self, library_list, function_list):

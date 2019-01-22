@@ -51,3 +51,18 @@ def test_process_analysis(stub_plugin, stub_object):
     ('other', TagColor.GRAY)])
 def test_get_color_code(stub_plugin, tag, tag_color):
     assert stub_plugin._get_color_codes(tag) == tag_color
+
+
+function_list_test_data = [
+    ([], [], '', [], []),
+    (['a'], ['b'], 'c', [], []),
+    (['a'], ['b'], 'c', ['d'], ['d']),
+    (['a', 'b'], ['b'], 'c', ['d'], ['d', 'c']),
+    (['a', 'b', 'x', 'y'], ['o', 'p', 'y'], 'c', [], ['c']),
+    (['a', 'b'], ['b'], 'c', ['d', 'e'], ['d', 'e', 'c'])
+]
+
+
+@pytest.mark.parametrize('function_list, json_items, key, tag_list, expected_result', function_list_test_data)
+def test_get_tags_from_function_list(stub_plugin, function_list, json_items, key, tag_list, expected_result):
+    assert stub_plugin._get_tags_from_function_list(function_list, json_items, key, tag_list) == expected_result
