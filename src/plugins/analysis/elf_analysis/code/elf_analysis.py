@@ -25,10 +25,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
         super().__init__(plugin_adminstrator, config=config, recursive=recursive, plugin_path=__file__)
 
     def process_object(self, file_object):
-        result = {}
-        elf_dict = self._analyze_elf(file_object)
-        result['Output'] = elf_dict
-        file_object.processed_analysis[self.NAME].update(result)
+        elf_dict, parsed_binary = self._analyze_elf(file_object)
+        file_object.processed_analysis[self.NAME] = {'Output': elf_dict}
+        self.create_tags(parsed_binary, file_object)
         file_object.processed_analysis[self.NAME]['summary'] = list(elf_dict.keys())
         return file_object
 
@@ -125,7 +124,6 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 binary_json_dict['imported_functions'] = parsed_binary.imported_functions
             if parsed_binary.libraries:
                 binary_json_dict['libraries'] = parsed_binary.libraries
-            self.create_tags(parsed_binary, file_object)
         except TypeError:
             print('Type Error')
             return elf_dict
@@ -134,4 +132,4 @@ class AnalysisPlugin(AnalysisBasePlugin):
             return elf_dict
 
         self.get_final_analysis_dict(binary_json_dict, elf_dict)
-        return elf_dict
+        return elf_dict, parsed_binary

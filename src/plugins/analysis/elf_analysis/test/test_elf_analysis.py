@@ -35,4 +35,7 @@ class TestAnalysisPluginElfAnalysis(AnalysisPluginTest):
         self.analysis_plugin.process_object(test_object)
 
         self.assertNotEqual(test_object.processed_analysis[self.PLUGIN_NAME]['Output'], {})
-        self.assertEqual(sorted(test_object.processed_analysis[self.PLUGIN_NAME]['summary']), ['dynamic_entries', 'exported_functions', 'header', 'imported_functions', 'sections', 'segments'])
+        self.assertEqual(sorted(test_object.processed_analysis[self.PLUGIN_NAME]['summary']), ['dynamic_entries',
+                                                                                               'exported_functions', 'header',
+                                                                                               'imported_functions', 'libraries',
+                                                                                               'sections', 'segments', 'symbols_version'])
