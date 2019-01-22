@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import re
 from difflib import SequenceMatcher
@@ -122,11 +123,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 binary_json_dict['imported_functions'] = parsed_binary.imported_functions
             if parsed_binary.libraries:
                 binary_json_dict['libraries'] = parsed_binary.libraries
-        except TypeError:
-            print('Type Error')
-            return elf_dict
-        except lief.bad_file:
-            print('Bad File, UID: ', file_object.get_uid())
+        except (TypeError, lief.bad_file) as error:
+            logging.error('Bad file for lief/elf analysis {}. {}'.format(file_object.get_uid(), error))
             return elf_dict
 
         self.get_final_analysis_dict(binary_json_dict, elf_dict)

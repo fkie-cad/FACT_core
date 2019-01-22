@@ -1,3 +1,4 @@
+from collections import namedtuple
 from pathlib import Path
 
 import pytest
@@ -13,6 +14,9 @@ TEST_DATA_DIR = Path(Path(__file__).parent, 'data')
 class MockAdmin:
     def register_plugin(self, name, administrator):
         pass
+
+
+LiefResult = namedtuple('LiefResult', ['symbols_version', 'libraries', 'imported_functions', 'exported_functions'])
 
 
 @pytest.fixture(scope='function')
@@ -38,8 +42,9 @@ def test_process_analysis(stub_plugin, stub_object):
     stub_object.processed_analysis['file_type'] = {'mime': 'application/x-executable'}
     stub_plugin.process_object(stub_object)
 
-    assert stub_object.processed_analysis[stub_plugin.PLUGIN_NAME]['Output'] != {}
-    assert sorted(stub_object.processed_analysis[stub_plugin.PLUGIN_NAME]['summary']) == ['dynamic_entries', 'exported_functions', 'header', 'imported_functions', 'sections', 'segments']
+    assert stub_object.processed_analysis[stub_plugin.NAME]['Output'] != {}
+    result_summary = sorted(stub_object.processed_analysis[stub_plugin.NAME]['summary'])
+    assert result_summary == ['dynamic_entries', 'exported_functions', 'header', 'imported_functions', 'libraries', 'sections', 'segments', 'symbols_version']
 
 
 @pytest.mark.parametrize('tag, tag_color', [
@@ -66,3 +71,20 @@ function_list_test_data = [
 @pytest.mark.parametrize('function_list, json_items, key, tag_list, expected_result', function_list_test_data)
 def test_get_tags_from_function_list(stub_plugin, function_list, json_items, key, tag_list, expected_result):
     assert stub_plugin._get_tags_from_function_list(function_list, json_items, key, tag_list) == expected_result
+
+
+def test_create_tags(stub_plugin, stub_object):
+    stub_object.processed_analysis[stub_plugin.NAME] = {}
+    stub_result = LiefResult(libraries=['libz', 'unknown'], imported_functions=list(), symbols_version=list(), exported_functions=list())
+    stub_plugin.create_tags(stub_result, stub_object)
+
+    assert 'compression' in stub_object.processed_analysis[stub_plugin.NAME]['tags']
+
+
+def test_analyze_elf_bad_file(stub_plugin, stub_object, tmpdir):
+    random_file = Path(tmpdir, 'random')
+    random_file.write_bytes(b'ABCDEFGHIJKLMNOPQRSTUVWXYZ')
+    stub_object.file_path = str(random_file.absolute())
+
+    result = stub_plugin._analyze_elf(stub_object)
+    assert result == {}
