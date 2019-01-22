@@ -1,3 +1,4 @@
+from collections import namedtuple
 from pathlib import Path
 
 import pytest
@@ -13,6 +14,9 @@ TEST_DATA_DIR = Path(Path(__file__).parent, 'data')
 class MockAdmin:
     def register_plugin(self, name, administrator):
         pass
+
+
+LiefResult = namedtuple('LiefResult', ['symbols_version', 'libraries', 'imported_functions', 'exported_functions'])
 
 
 @pytest.fixture(scope='function')
@@ -52,3 +56,20 @@ def test_process_analysis(stub_plugin, stub_object):
     ('other', TagColor.GRAY)])
 def test_get_color_code(stub_plugin, tag, tag_color):
     assert stub_plugin._get_color_codes(tag) == tag_color
+
+
+def test_create_tags(stub_plugin, stub_object):
+    stub_object.processed_analysis[stub_plugin.NAME] = {}
+    stub_result = LiefResult(libraries=['libz', 'unknown'], imported_functions=list(), symbols_version=list(), exported_functions=list())
+    stub_plugin.create_tags(stub_result, stub_object)
+
+    assert 'compression' in stub_object.processed_analysis[stub_plugin.NAME]['tags']
+
+
+def test_analyze_elf_bad_file(stub_plugin, stub_object, tmpdir):
+    random_file = Path(tmpdir, 'random')
+    random_file.write_bytes(b'ABCDEFGHIJKLMNOPQRSTUVWXYZ')
+    stub_object.file_path = str(random_file.absolute())
+
+    result = stub_plugin._analyze_elf(stub_object)
+    assert result == {}
