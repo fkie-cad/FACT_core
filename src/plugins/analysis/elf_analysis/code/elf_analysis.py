@@ -3,6 +3,7 @@ import logging
 import os
 import re
 from difflib import SequenceMatcher
+from typing import NoReturn
 
 import lief
 from common_helper_files import get_dir_of_file
@@ -33,34 +34,32 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return file_object
 
     @staticmethod
-    def _load_template_file_as_json_obj(path):
+    def _load_template_file_as_json_obj(path: str) -> dict:
         with open(path, 'r') as f:
             data = json.load(f)
         return data
 
     @staticmethod
-    def _get_tags_from_library_list(json_items, key, library_list, tag_list):
-        for lib, json_item in ((lib, json_item) for lib in library_list for json_item in json_items):
-            if re.search(json_item, lib):
-                tag_list.append(key)
-        return tag_list
+    def _get_tags_from_library_list(libraries: list, behaviour_class: str, indicators: list, tags: list) -> NoReturn:
+        for library, indicator in ((l, i) for l in libraries for i in indicators):
+            if re.search(indicator, library):
+                tags.append(behaviour_class)
 
     @staticmethod
-    def _get_tags_from_function_list(function_list, json_items, key, tag_list):
-        for func, json_item in ((func, json_item) for func in function_list for json_item in json_items):
-            if json_item.lower() in func.lower() and SequenceMatcher(None, json_item, func).ratio() >= 0.85:
-                tag_list.append(key)
-        return tag_list
+    def _get_tags_from_function_list(functions: list, behaviour_class: str, indicators: list, tags: list) -> NoReturn:
+        for function, indicator in ((f, i) for f in functions for i in indicators):
+            if indicator.lower() in function.lower() and SequenceMatcher(None, indicator, function).ratio() >= 0.85:
+                tags.append(behaviour_class)
 
-    def _get_tags(self, library_list, function_list):
-        json_template = self._load_template_file_as_json_obj(TEMPLATE_FILE_PATH)
-        tag_list = []
-        for key in json_template:
-            if key not in tag_list:
-                json_items = json_template[key]
-                self._get_tags_from_function_list(function_list, json_items, key, tag_list)
-                self._get_tags_from_library_list(json_items, key, library_list, tag_list)
-        return list(set(tag_list))
+    def _get_tags(self, libraries: list, functions: list) -> list:
+        behaviour_classes = self._load_template_file_as_json_obj(TEMPLATE_FILE_PATH)
+        tags = list()
+        for behaviour_class in behaviour_classes:
+            if behaviour_class not in tags:
+                behaviour_indicators = behaviour_classes[behaviour_class]
+                self._get_tags_from_function_list(functions, behaviour_class, behaviour_indicators, tags)
+                self._get_tags_from_library_list(libraries, behaviour_class, behaviour_indicators, tags)
+        return list(set(tags))
 
     @staticmethod
     def _get_symbols_version_entries(symbol_versions):
