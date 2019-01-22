@@ -19,7 +19,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     NAME = 'elf_analysis'
     DESCRIPTION = 'Analyzes and tags ELF executables and libraries'
     DEPENDENCIES = ['file_type']
-    VERSION = '0.2'
+    VERSION = '0.3'
     MIME_WHITELIST = ['application/x-executable', 'application/x-object', 'application/x-sharedlib']
 
     def __init__(self, plugin_adminstrator, config=None, recursive=True, offline_testing=False):
@@ -76,15 +76,15 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     @staticmethod
     def _get_color_codes(tag):
-        if tag is 'crypto':
+        if tag == 'crypto':
             return TagColor.RED
-        elif tag is 'file_system':
+        elif tag == 'file_system':
             return TagColor.BLUE
-        elif tag is 'network':
+        elif tag == 'network':
             return TagColor.ORANGE
-        elif tag is 'memory_operations':
+        elif tag == 'memory_operations':
             return TagColor.GREEN
-        elif tag is 'randomize':
+        elif tag == 'randomize':
             return TagColor.LIGHT_BLUE
         else:
             return TagColor.GRAY
