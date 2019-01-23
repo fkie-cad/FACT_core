@@ -58,7 +58,7 @@ def test_get_color_code(stub_plugin, tag, tag_color):
     assert stub_plugin._get_color_codes(tag) == tag_color
 
 
-testdata = [
+library_list_test_data = [
     (['a'], 'b', ['c'], [], []),
     (['a', 'b', 'c'], 'b', ['c'], [], ['b']),
     (['a', 'b', 'c'], 'b', ['c'], ['b'], ['b', 'b']),
@@ -68,19 +68,19 @@ testdata = [
 ]
 
 
-@pytest.mark.parametrize('json_items, key, library_list, tag_list, expected', testdata)
+@pytest.mark.parametrize('json_items, key, library_list, tag_list, expected', library_list_test_data)
 def test_get_tags_from_library_list(stub_plugin, json_items, key, library_list, tag_list, expected):
     assert stub_plugin._get_tags_from_library_list(json_items, key, library_list, tag_list) == expected
 
 
-testdata = [
+symbols_version_test_data = [
     (['GLIBC_2.3.4(4)', '* Local *', 'GLIBC_2.2.5(3)', '* Global *', 'GLIBC_2.2.5(3)'],
      ['GLIBC_2.3.4', 'GLIBC_2.2.5'])
 
 ]
 
 
-@pytest.mark.parametrize('symbol_versions, expected', testdata)
+@pytest.mark.parametrize('symbol_versions, expected', symbols_version_test_data)
 def test_get_symbols_version_entries(stub_plugin, symbol_versions, expected):
     assert sorted(stub_plugin._get_symbols_version_entries(symbol_versions)) == sorted(expected)
 
@@ -115,3 +115,15 @@ def test_analyze_elf_bad_file(stub_plugin, stub_object, tmpdir):
 
     result = stub_plugin._analyze_elf(stub_object)
     assert result == {}
+
+
+final_analysis_test_data = [
+    ({}, {}, 0),
+    ({'header': [], 'segments': [1, 2], 'a': []}, {}, 1)
+]
+
+
+@pytest.mark.parametrize('binary_json_dict, elf_dict, expected', final_analysis_test_data)
+def test_get_final_analysis_dict(stub_plugin, binary_json_dict, elf_dict, expected):
+    stub_plugin.get_final_analysis_dict(binary_json_dict, elf_dict)
+    assert len(elf_dict) == expected

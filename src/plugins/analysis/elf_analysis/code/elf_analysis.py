@@ -107,7 +107,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
     def get_final_analysis_dict(binary_json_dict, elf_dict):
         for key in binary_json_dict:
             if key in ('header', 'segments', 'sections', 'dynamic_entries', 'exported_functions',
-                       'imported_functions', 'libraries', 'symbols_version') and binary_json_dict[key]:
+                       'imported_functions', 'libraries', 'symbols_version')\
+                    and binary_json_dict[key]:
                 elf_dict[key] = binary_json_dict[key]
 
     def _analyze_elf(self, file_object):
