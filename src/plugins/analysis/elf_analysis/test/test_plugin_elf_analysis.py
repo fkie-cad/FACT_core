@@ -68,9 +68,9 @@ testdata = [
 ]
 
 
-@pytest.mark.parametrize('json_items,  key, library_list, tag_list, expected', testdata)
-def test_get_tags_from_library_list(stub_plugin, json_items,  key, library_list, tag_list, expected):
-    assert stub_plugin._get_tags_from_library_list(json_items,  key, library_list, tag_list) == expected
+@pytest.mark.parametrize('json_items, key, library_list, tag_list, expected', testdata)
+def test_get_tags_from_library_list(stub_plugin, json_items, key, library_list, tag_list, expected):
+    assert stub_plugin._get_tags_from_library_list(json_items, key, library_list, tag_list) == expected
 
 
 testdata = [
