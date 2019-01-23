@@ -288,19 +288,18 @@
 >0x64	beshort		^0x2004		v1 dirs)
 >0x64	beshort		&0x2004		v2 dirs)
 
-# DOS/MBR boot sector updated by Joerg Jenderek at Sep 2007,May 2011,2013
-# for any allowed sector sizes
-30		search/481	\x55\xAA
-# to display DOS/MBR boot sector (40) before old one (strength=50+21),Syslinux bootloader (71),SYSLINUX MBR (37+36),NetBSD mbr (110),AdvanceMAME mbr (111)
-# DOS BPB information (70) and after DOS floppy (120) like in previous file version
-!:strength +65
-# for sector sizes < 512 Bytes
->11		uleshort	<512
->>(11.s-2)	uleshort	0xAA55		DOS/MBR boot sector
-!:mime	filesystem/dosmbr
-# for sector sizes with 512 or more Bytes
->0x1FE		leshort		0xAA55		DOS/MBR boot sector
-!:mime	filesystem/dosmbr
+# FAT and NTFS magic
+0x36      string   FAT          FAT filesystem
+!:mime  filesystem/fat
+
+# FAT and NTFS magic
+0x3      string   NTFS          NTFS filesystem
+!:mime  filesystem/ntfs
+
+# DOS/MBR signifier (55AA)
+0x1FE      string   \x55\xAA     DOS-like boot sector
+!:mime filesystem/dosmbr
+
 
 9564	lelong		0x00011954	Unix Fast File system [v1] (little-endian),
 !:mime	filesystem/ffs

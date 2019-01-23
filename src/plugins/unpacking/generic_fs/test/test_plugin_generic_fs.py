@@ -49,10 +49,6 @@ class TestGenericFsUnpacker(TestUnpackerBase):
         self.check_unpacking_of_standard_unpack_set(os.path.join(TEST_DATA_DIR, 'fat.img'),
                                                     additional_prefix_folder='get_files_test')
 
-    def test_extraction_msdos(self):
-        self.check_unpacking_of_standard_unpack_set(os.path.join(TEST_DATA_DIR, 'msdos.img'),
-                                                    additional_prefix_folder='get_files_test')
-
     def test_extraction_ntfs(self):
         self.check_unpacking_of_standard_unpack_set(os.path.join(TEST_DATA_DIR, 'ntfs.img'),
                                                     additional_prefix_folder='get_files_test')
