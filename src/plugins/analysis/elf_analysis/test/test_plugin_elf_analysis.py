@@ -51,3 +51,30 @@ def test_process_analysis(stub_plugin, stub_object):
     ('other', TagColor.GRAY)])
 def test_get_color_code(stub_plugin, tag, tag_color):
     assert stub_plugin._get_color_codes(tag) == tag_color
+
+
+testdata = [
+    (['a'], 'b', ['c'], [], []),
+    (['a', 'b', 'c'], 'b', ['c'], [], ['b']),
+    (['a', 'b', 'c'], 'b', ['c'], ['b'], ['b', 'b']),
+    (['a', 'b', 'c'], 'b', ['c', 'a'], [], ['b', 'b']),
+    (['a', 'b', 'c'], 'b', ['d', 'e'], [], []),
+    (['a', 'b', 'c'], 'b', ['d', 'e'], ['x'], ['x'])
+]
+
+
+@pytest.mark.parametrize('json_items,  key, library_list, tag_list, expected', testdata)
+def test_get_tags_from_library_list(stub_plugin, json_items,  key, library_list, tag_list, expected):
+    assert stub_plugin._get_tags_from_library_list(json_items,  key, library_list, tag_list) == expected
+
+
+testdata = [
+    (['GLIBC_2.3.4(4)', '* Local *', 'GLIBC_2.2.5(3)', '* Global *', 'GLIBC_2.2.5(3)'],
+     ['GLIBC_2.3.4', 'GLIBC_2.2.5'])
+
+]
+
+
+@pytest.mark.parametrize('symbol_versions, expected', testdata)
+def test_get_symbols_version_entries(stub_plugin, symbol_versions, expected):
+    assert sorted(stub_plugin._get_symbols_version_entries(symbol_versions)) == sorted(expected)
