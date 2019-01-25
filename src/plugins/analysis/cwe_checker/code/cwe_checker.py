@@ -23,6 +23,7 @@ from analysis.PluginBase import AnalysisBasePlugin
 
 PATH_TO_BAP = '~/.opam/4.05.0/bin/bap'
 BAP_TIMEOUT = 10
+DOCKER_IMAGE = 'fkiecad/cwe_checker:latest'
 
 
 class CweWarning(object):
@@ -118,17 +119,18 @@ class AnalysisPlugin(AnalysisBasePlugin):
     def _build_bap_command_for_modules_versions(self):
         # unfortunately, there must be a dummy file passed to BAP, I chose /bin/true because it is damn small
         if self.docker:
-            bap_command = 'docker run --rm cwe-checker:latest bap /bin/true --pass=cwe-checker --cwe-checker-module_versions=true'
+            bap_command = 'docker run --rm {} bap /bin/true --pass=cwe-checker --cwe-checker-module_versions=true'.format(DOCKER_IMAGE)
         else:
             bap_command = '{} {} --pass=cwe-checker --cwe-checker-module_versions=true'.format(PATH_TO_BAP, '/bin/true')
         return bap_command
 
     def _build_bap_command(self, file_object):
         if self.docker:
-            bap_command = 'timeout --signal=SIGKILL {}m docker run --rm -v {}:/tmp/input cwe-checker:latest bap /tmp/input '\
+            bap_command = 'timeout --signal=SIGKILL {}m docker run --rm -v {}:/tmp/input {} bap /tmp/input '\
                           '--pass=cwe-checker --cwe-checker-config=/home/bap/cwe_checker/src/config.json'.format(
                               BAP_TIMEOUT,
-                              file_object.file_path)
+                              file_object.file_path,
+                              DOCKER_IMAGE)
         else:
             bap_command = 'timeout --signal=SIGKILL {}m {} {} --pass=cwe-checker --cwe-checker-config={}/../internal/src/config.json'.format(
                 BAP_TIMEOUT,
