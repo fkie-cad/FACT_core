@@ -182,7 +182,7 @@ def _install_yara():
 
 def _install_stuffit():
     logging.info('Installing stuffit')
-    _, wget_code = execute_shell_command_get_return_code('wget -O - http://my.smithmicro.com/downloads/files/stuffit520.611linux-i386.tar.gz | tar -zxv')
+    _, wget_code = execute_shell_command_get_return_code('wget -O - http://web.archive.org/web/20060205025441/http://www.stuffit.com/downloads/files/stuffit520.611linux-i386.tar.gz | tar -zxv')
     if wget_code == 0:
         _, cp_code = execute_shell_command_get_return_code('sudo cp bin/unstuff /usr/local/bin/')
     else:
