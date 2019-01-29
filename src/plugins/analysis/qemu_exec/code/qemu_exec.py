@@ -23,6 +23,7 @@ from unpacker.unpackBase import UnpackBase
 TIMEOUT = 5
 EXECUTABLE = 'executable'
 EMPTY = '(no parameter)'
+DOCKER_IMAGE = 'fact/qemu:latest'
 
 
 class Unpacker(UnpackBase):
@@ -51,15 +52,13 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     NAME = 'qemu_exec'
     DESCRIPTION = 'test binaries for executability in QEMU and display help if available'
-    VERSION = '0.3.0'
+    VERSION = '0.4.1'
     DEPENDENCIES = ['file_type']
     FILE_TYPES = ['application/x-executable']
 
     FACT_EXTRACTION_FOLDER_NAME = 'fact_extracted'
 
     arch_to_bin_dict = OrderedDict([
-        ('Alpha', ['alpha']),
-
         ('aarch64', ['aarch64']),
         ('ARM', ['aarch64', 'arm', 'armeb']),
 
@@ -67,21 +66,14 @@ class AnalysisPlugin(AnalysisBasePlugin):
         ('MIPS64', ['mips64', 'mips64el']),
         ('MIPS', ['mipsel', 'mips', 'mips64', 'mips64el', 'mipsn32', 'mipsn32el']),
 
-        ('S/390', ['s390x']),
-
         ('80386', ['i386']),
         ('80486', ['x86_64', 'i386']),
         ('x86', ['x86_64', 'i386']),
-
-        ('SPARC', ['sparc', 'sparc32plus', 'sparc64']),
 
         ('PowerPC', ['ppc', 'ppc64', 'ppc64abi32', 'ppc64le']),
         ('PPC', ['ppc', 'ppc64', 'ppc64abi32', 'ppc64le']),
 
         ('Renesas SH', ['sh4', 'sh4eb']),
-
-        ('m68k', ['m68k']),
-        ('68020', ['m68k']),
     ])
 
     root_path = None
@@ -237,8 +229,8 @@ def test_qemu_executability(file_path: str, arch_suffix: str, root_path: Path) -
 
 
 def get_docker_output(arch_suffix: str, file_path: str, root_path: Path) -> Optional[str]:
-    call = 'docker run --rm --net=none --mount src={},target=/opt/firmware_root,type=bind ' \
-           'fact/firmware-qemu-exec {} {}'.format(root_path, arch_suffix, file_path)
+    call = 'docker run --rm --net=none -v {}:/opt/firmware_root {} {} {}'.format(
+        root_path, DOCKER_IMAGE, arch_suffix, file_path)
     response, return_code = execute_shell_command_get_return_code(call, timeout=TIMEOUT)
     if return_code != 0:
         if 'timed out' in response:

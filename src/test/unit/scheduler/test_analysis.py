@@ -1,13 +1,17 @@
 import gc
 import os
+from contextlib import suppress
 from multiprocessing import Queue
 from unittest import TestCase, mock
+
+import pytest
 
 from helperFunctions.config import get_config_for_testing
 from helperFunctions.fileSystem import get_test_data_dir
 from objects.firmware import Firmware
 from scheduler.Analysis import AnalysisScheduler, MANDATORY_PLUGINS
 from test.common_helper import DatabaseMock, fake_exit, MockFileObject
+from test.mock import mock_spy, mock_patch
 
 
 class AnalysisSchedulerTest(TestCase):
@@ -93,8 +97,26 @@ class TestScheduleInitialAnalysis(AnalysisSchedulerTest):
         self.assertEqual(self.sched.analysis_plugins['file_type'].VERSION, result['file_type'][3], 'version not correct')
         self.assertEqual(self.sched.analysis_plugins['file_hashes'].VERSION, result['file_hashes'][3], 'version not correct')
 
+    def test_process_next_analysis_unknown_plugin(self):
+        test_fw = Firmware(file_path=os.path.join(get_test_data_dir(), 'get_files_test/testfile1'))
+        test_fw.scheduled_analysis = ['unknown_plugin']
 
-class TestAnalysisSchedulerBlacklist(AnalysisSchedulerTest):
+        with mock_spy(self.sched, '_start_or_skip_analysis') as spy:
+            self.sched.process_next_analysis(test_fw)
+            assert not spy.was_called(), 'unknown plugin should simply be skipped'
+
+    def test_skip_analysis_because_whitelist(self):
+        self.sched.config.set('dummy_plugin_for_testing_only', 'mime_whitelist', 'foo, bar')
+        test_fw = Firmware(file_path=os.path.join(get_test_data_dir(), 'get_files_test/testfile1'))
+        test_fw.scheduled_analysis = ['file_hashes']
+        test_fw.processed_analysis['file_type'] = {'mime': 'text/plain'}
+        self.sched._start_or_skip_analysis('dummy_plugin_for_testing_only', test_fw)
+        test_fw = self.tmp_queue.get(timeout=10)
+        assert 'dummy_plugin_for_testing_only' in test_fw.processed_analysis
+        assert 'skipped' in test_fw.processed_analysis['dummy_plugin_for_testing_only']
+
+
+class TestAnalysisSchedulerBlacklist:
 
     test_plugin = 'test_plugin'
     fo = MockFileObject()
@@ -108,6 +130,18 @@ class TestAnalysisSchedulerBlacklist(AnalysisSchedulerTest):
 
         def shutdown(self):
             pass
+
+    @classmethod
+    def setup_class(cls):
+        cls.init_patch = mock.patch(target='scheduler.Analysis.AnalysisScheduler.__init__', new=lambda *_: None)
+        cls.init_patch.start()
+        cls.sched = AnalysisScheduler()
+        cls.sched.analysis_plugins = {}
+        cls.plugin_list = ['no_deps', 'foo', 'bar']
+        cls.init_patch.stop()
+
+    def setup(self):
+        self.sched.config = get_config_for_testing()
 
     def test_get_blacklist_and_whitelist_from_plugin(self):
         self.sched.analysis_plugins['test_plugin'] = self.PluginMock(['foo'], ['bar'])
@@ -137,61 +171,200 @@ class TestAnalysisSchedulerBlacklist(AnalysisSchedulerTest):
         blacklist, whitelist = self.sched._get_blacklist_and_whitelist('test_plugin')
         assert (blacklist, whitelist) == (['foo'], ['bar'])
 
-    def test_next_analysis_is_not_blacklisted__blacklisted(self):
+    def test_next_analysis_is_blacklisted__blacklisted(self):
         self.sched.analysis_plugins[self.test_plugin] = self.PluginMock(blacklist=['blacklisted_type'])
         self.fo.processed_analysis['file_type']['mime'] = 'blacklisted_type'
-        not_blacklisted = self.sched._next_analysis_is_not_blacklisted(self.test_plugin, self.fo)
-        assert not_blacklisted is False
+        blacklisted = self.sched._next_analysis_is_blacklisted(self.test_plugin, self.fo)
+        assert blacklisted is True
 
-    def test_next_analysis_is_not_blacklisted__not_blacklisted(self):
+    def test_next_analysis_is_blacklisted__not_blacklisted(self):
         self.sched.analysis_plugins[self.test_plugin] = self.PluginMock(blacklist=[])
         self.fo.processed_analysis['file_type']['mime'] = 'not_blacklisted_type'
-        not_blacklisted = self.sched._next_analysis_is_not_blacklisted(self.test_plugin, self.fo)
-        assert not_blacklisted is True
+        blacklisted = self.sched._next_analysis_is_blacklisted(self.test_plugin, self.fo)
+        assert blacklisted is False
 
-    def test_next_analysis_is_not_blacklisted__whitelisted(self):
+    def test_next_analysis_is_blacklisted__whitelisted(self):
         self.sched.analysis_plugins[self.test_plugin] = self.PluginMock(whitelist=['whitelisted_type'])
         self.fo.processed_analysis['file_type']['mime'] = 'whitelisted_type'
-        not_blacklisted = self.sched._next_analysis_is_not_blacklisted(self.test_plugin, self.fo)
-        assert not_blacklisted is True
+        blacklisted = self.sched._next_analysis_is_blacklisted(self.test_plugin, self.fo)
+        assert blacklisted is False
 
-    def test_next_analysis_is_not_blacklisted__not_whitelisted(self):
+    def test_next_analysis_is_blacklisted__not_whitelisted(self):
         self.sched.analysis_plugins[self.test_plugin] = self.PluginMock(whitelist=['some_other_type'])
         self.fo.processed_analysis['file_type']['mime'] = 'not_whitelisted_type'
-        not_blacklisted = self.sched._next_analysis_is_not_blacklisted(self.test_plugin, self.fo)
-        assert not_blacklisted is False
+        blacklisted = self.sched._next_analysis_is_blacklisted(self.test_plugin, self.fo)
+        assert blacklisted is True
 
-    def test_next_analysis_is_not_blacklisted__whitelist_precedes_blacklist(self):
+    def test_next_analysis_is_blacklisted__whitelist_precedes_blacklist(self):
         self.sched.analysis_plugins[self.test_plugin] = self.PluginMock(blacklist=['test_type'], whitelist=['test_type'])
         self.fo.processed_analysis['file_type']['mime'] = 'test_type'
-        not_blacklisted = self.sched._next_analysis_is_not_blacklisted(self.test_plugin, self.fo)
-        assert not_blacklisted is True
+        blacklisted = self.sched._next_analysis_is_blacklisted(self.test_plugin, self.fo)
+        assert blacklisted is False
 
         self.sched.analysis_plugins[self.test_plugin] = self.PluginMock(blacklist=[], whitelist=['some_other_type'])
         self.fo.processed_analysis['file_type']['mime'] = 'test_type'
-        not_blacklisted = self.sched._next_analysis_is_not_blacklisted(self.test_plugin, self.fo)
-        assert not_blacklisted is False
+        blacklisted = self.sched._next_analysis_is_blacklisted(self.test_plugin, self.fo)
+        assert blacklisted is True
 
-    def test_next_analysis_is_not_blacklisted__mime_missing(self):
-        self.sched.analysis_plugins[self.test_plugin] = self.PluginMock(blacklist=['test_type'], whitelist=['test_type'])
-        self.fo.processed_analysis['file_type'].pop('mime')
-        self.fo.scheduled_analysis = []
-        self.fo.analysis_dependency = set()
-        not_blacklisted = self.sched._next_analysis_is_not_blacklisted(self.test_plugin, self.fo)
-        assert not_blacklisted is False
-        assert 'file_type' in self.fo.analysis_dependency
-        assert self.fo.scheduled_analysis == [self.test_plugin, 'file_type']
+    def test_get_blacklist_file_type_from_database(self):
+        def add_file_type_mock(_, fo):
+            fo.processed_analysis['file_type'] = {'mime': 'foo_type'}
 
-    def test_start_or_skip_analysis(self):
-        self.sched.config.set('dummy_plugin_for_testing_only', 'mime_whitelist', 'foo, bar')
-        test_fw = Firmware(file_path=os.path.join(get_test_data_dir(), 'get_files_test/testfile1'))
-        test_fw.scheduled_analysis = ['file_hashes']
-        test_fw.processed_analysis['file_type'] = {'mime': 'text/plain'}
-        self.sched._start_or_skip_analysis('dummy_plugin_for_testing_only', test_fw)
-        test_fw = self.tmp_queue.get(timeout=10)
-        assert 'dummy_plugin_for_testing_only' in test_fw.processed_analysis
-        assert 'skipped' in test_fw.processed_analysis['dummy_plugin_for_testing_only']
+        file_object = MockFileObject()
+        file_object.processed_analysis.pop('file_type')
+        with mock_patch(self.sched, '_add_completed_analysis_results_to_file_object', add_file_type_mock):
+            result = self.sched._get_file_type_from_object_or_db(file_object)
+            assert result == 'foo_type'
 
     def _add_test_plugin_to_config(self):
         self.sched.config.add_section('test_plugin')
         self.sched.config.set('test_plugin', 'mime_blacklist', 'type1, type2')
+
+
+class TestUtilityFunctions:
+
+    class PluginMock:
+        def __init__(self, dependencies):
+            self.DEPENDENCIES = dependencies
+
+    @classmethod
+    def setup_class(cls):
+        cls.init_patch = mock.patch(target='scheduler.Analysis.AnalysisScheduler.__init__', new=lambda *_: None)
+        cls.init_patch.start()
+        cls.scheduler = AnalysisScheduler()
+        cls.plugin_list = ['no_deps', 'foo', 'bar']
+        cls.init_patch.stop()
+
+    def _add_plugins(self):
+        self.scheduler.analysis_plugins = {
+            'no_deps': self.PluginMock(dependencies=[]),
+            'foo': self.PluginMock(dependencies=['no_deps']),
+            'bar': self.PluginMock(dependencies=['no_deps', 'foo'])
+        }
+
+    def _add_plugins_with_recursive_dependencies(self):
+        self.scheduler.analysis_plugins = {
+            'p1': self.PluginMock(['p2', 'p3']),
+            'p2': self.PluginMock(['p3']),
+            'p3': self.PluginMock([]),
+            'p4': self.PluginMock(['p5']),
+            'p5': self.PluginMock(['p6']),
+            'p6': self.PluginMock([])
+        }
+
+    @pytest.mark.parametrize('input_data, expected_output', [
+        (set(), set()),
+        ({'p1'}, {'p2', 'p3'}),
+        ({'p3'}, set()),
+        ({'p1', 'p2', 'p3', 'p4'}, {'p5'}),
+    ])
+    def test_get_cumulative_remaining_dependencies(self, input_data, expected_output):
+        self._add_plugins_with_recursive_dependencies()
+        result = self.scheduler._get_cumulative_remaining_dependencies(input_data)
+        assert result == expected_output
+
+    @pytest.mark.parametrize('input_data, expected_output', [
+        ([], set()),
+        (['p3'], {'p3'}),
+        (['p1'], {'p1', 'p2', 'p3'}),
+        (['p4'], {'p4', 'p5', 'p6'}),
+    ])
+    def test_add_dependencies_recursively(self, input_data, expected_output):
+        self._add_plugins_with_recursive_dependencies()
+        result = self.scheduler._add_dependencies_recursively(input_data)
+        assert set(result) == expected_output
+
+    @pytest.mark.parametrize('remaining, scheduled, expected_output', [
+        ({}, [], []),
+        ({'no_deps', 'foo', 'bar'}, [], ['no_deps']),
+        ({'foo', 'bar'}, ['no_deps'], ['foo']),
+        ({'bar'}, ['no_deps', 'foo'], ['bar']),
+    ])
+    def test_get_plugins_with_met_dependencies(self, remaining, scheduled, expected_output):
+        self._add_plugins()
+        assert self.scheduler._get_plugins_with_met_dependencies(remaining, scheduled) == expected_output
+
+    @pytest.mark.parametrize('remaining, scheduled, expected_output', [
+        ({'bar'}, ['no_deps', 'foo'], {'bar'}),
+        ({'foo', 'bar'}, ['no_deps', 'foo'], {'foo', 'bar'}),
+    ])
+    def test_get_plugins_with_met_dependencies__completed_analyses(self, remaining, scheduled, expected_output):
+        self._add_plugins()
+        assert set(self.scheduler._get_plugins_with_met_dependencies(remaining, scheduled)) == expected_output
+
+    def test_smart_shuffle(self):
+        self._add_plugins()
+        result = self.scheduler._smart_shuffle(self.plugin_list)
+        assert result == ['bar', 'foo', 'no_deps']
+
+    def test_smart_shuffle__impossible_dependency(self):
+        self._add_plugins()
+        self.scheduler.analysis_plugins['impossible'] = self.PluginMock(dependencies=['impossible to meet'])
+        result = self.scheduler._smart_shuffle(self.plugin_list + ['impossible'])
+        assert 'impossible' not in result
+        assert result == ['bar', 'foo', 'no_deps']
+
+    def test_smart_shuffle__circle_dependency(self):
+        self.scheduler.analysis_plugins = {
+            'p1': self.PluginMock(['p2']),
+            'p2': self.PluginMock(['p3']),
+            'p3': self.PluginMock(['p1']),
+        }
+        result = self.scheduler._smart_shuffle(['p1', 'p2', 'p3'])
+        assert result == []
+
+
+class TestAnalysisSkipping:
+
+    class PluginMock:
+        def __init__(self, version, system_version):
+            self.VERSION = version
+            if system_version:
+                self.SYSTEM_VERSION = system_version
+
+    class BackendMock:
+        def __init__(self, analysis_entry=None):
+            self.analysis_entry = analysis_entry if analysis_entry else {}
+
+        def get_specific_fields_of_db_entry(self, *_):
+            return self.analysis_entry
+
+    @classmethod
+    def setup_class(cls):
+        cls.init_patch = mock.patch(target='scheduler.Analysis.AnalysisScheduler.__init__', new=lambda *_: None)
+        cls.init_patch.start()
+
+        cls.scheduler = AnalysisScheduler()
+        cls.scheduler.analysis_plugins = {}
+
+        cls.init_patch.stop()
+
+    @pytest.mark.parametrize(
+        'plugin_version, plugin_system_version, analysis_plugin_version, '
+        'analysis_system_version, expected_output', [
+            ('1.0', None, '1.0', None, True),
+            ('1.1', None, '1.0', None, False),
+            ('1.0', None, '1.1', None, True),
+            ('1.0', '2.0', '1.0', '2.0', True),
+            ('1.0', '2.0', '1.0', '2.1', True),
+            ('1.0', '2.1', '1.0', '2.0', False),
+            ('1.0', '2.0', '1.0', None, False),
+        ]
+    )
+    def test_analysis_is_already_in_db_and_up_to_date(
+            self, plugin_version, plugin_system_version, analysis_plugin_version, analysis_system_version, expected_output):
+        plugin = 'foo'
+        analysis_entry = {'processed_analysis': {plugin: {
+            'plugin_version': analysis_plugin_version, 'system_version': analysis_system_version
+        }}}
+        self.scheduler.db_backend_service = self.BackendMock(analysis_entry)
+        self.scheduler.analysis_plugins[plugin] = self.PluginMock(
+            version=plugin_version, system_version=plugin_system_version)
+        assert self.scheduler._analysis_is_already_in_db_and_up_to_date(plugin, '') == expected_output
+
+    def test_analysis_is_already_in_db_and_up_to_date__missing_version(self):
+        plugin = 'foo'
+        analysis_entry = {'processed_analysis': {plugin: {}}}
+        self.scheduler.db_backend_service = self.BackendMock(analysis_entry)
+        self.scheduler.analysis_plugins[plugin] = self.PluginMock(version='1.0', system_version='1.0')
+        assert self.scheduler._analysis_is_already_in_db_and_up_to_date(plugin, '') is False

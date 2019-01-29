@@ -11,6 +11,12 @@
 >>5	lequad		=0xffffffffffffffff	streamed
 >>5	lequad		!0xffffffffffffffff	non-streamed, size %lld
 
+# HP_LZMA
+0	string	\x39\x00\x00\x00\x02	LZMA compressed data,
+!:mime	application/x-lzma
+>5	lequad		=0xffffffffffffffff	streamed
+>5	lequad		!0xffffffffffffffff	non-streamed, size %lld
+
 
 # Zlib - Original Code from binwalk
 0    beshort        0x789c        Zlib compressed data, default compression

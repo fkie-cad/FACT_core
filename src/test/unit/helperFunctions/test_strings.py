@@ -6,7 +6,7 @@ from helperFunctions.strings import find_all_utf16_patterns, decode_strings, fin
 class TestHelperFunctionsStrings(unittest.TestCase):
 
     def setUp(self):
-        self.strings = ['first string', 'second<>_$tring!', 'third:?-+012345/\string']
+        self.strings = ['first string', 'second<>_$tring!', 'third:?-+012345/\\string']
 
     def test_find_utf16_strings(self):
         test_input = b'\xaa\xbb'.join([s.encode('utf-16') for s in self.strings])

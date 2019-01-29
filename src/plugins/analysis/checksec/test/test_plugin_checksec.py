@@ -106,4 +106,4 @@ class TestAnalysisPluginChecksec(AnalysisPluginTest):
 
     def test_check_mitigations(self):
         results = check_mitigations(FILE_PATH)
-        self.assertEquals(2, len(results))
+        self.assertEqual(2, len(results))

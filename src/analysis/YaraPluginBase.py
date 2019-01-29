@@ -3,6 +3,7 @@ import logging
 import re
 import os
 import subprocess
+from pathlib import Path
 
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.fileSystem import get_src_dir
@@ -12,9 +13,9 @@ class YaraBasePlugin(AnalysisBasePlugin):
     '''
     This should be the base for all YARA based analysis plugins
     '''
-    NAME = "Yara_Base_Plugin"
-    DESCRIPTION = "this is a Yara plugin"
-    VERSION = "0.0"
+    NAME = 'Yara_Base_Plugin'
+    DESCRIPTION = 'this is a Yara plugin'
+    VERSION = '0.0'
 
     def __init__(self, plugin_administrator, config=None, recursive=True, plugin_path=None):
         '''
@@ -23,7 +24,15 @@ class YaraBasePlugin(AnalysisBasePlugin):
         '''
         self.config = config
         self._get_signature_file(plugin_path)
+        self.SYSTEM_VERSION = self.get_yara_system_version()
         super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=plugin_path)
+
+    def get_yara_system_version(self):
+        with subprocess.Popen(['yara', '--version'], stdout=subprocess.PIPE) as process:
+            yara_version = process.stdout.readline().decode().strip()
+
+        access_time = int(Path(self.signature_path).stat().st_mtime)
+        return '{}_{}'.format(yara_version, access_time)
 
     def process_object(self, file_object):
         if self.signature_path is not None:
@@ -101,7 +110,7 @@ class YaraBasePlugin(AnalysisBasePlugin):
         for item in meta_data_string.split(','):
             if '=' in item:
                 key, value = item.split('=', maxsplit=1)
-                value = json.loads(value) if value in ['true', 'false'] else value.strip('\"')
+                value = json.loads(value) if value in ['true', 'false'] else value.strip('"')
                 meta_data[key] = value
             else:
                 logging.warning('Malformed meta string \'{}\''.format(meta_data_string))

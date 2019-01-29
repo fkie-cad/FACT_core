@@ -1,5 +1,4 @@
-FROM ubuntu:bionic
-MAINTAINER Johannes vom Dorp <johannes.vom.dorp@fkie.fraunhofer.de>
+FROM phusion/baseimage:0.11
 
 ARG HTTP_PROXY
 ARG HTTPS_PROXY
@@ -8,10 +7,9 @@ ARG https_proxy
 ARG NO_PROXY
 ARG no_proxy
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && install_clean \
     make gcc npm \
-    python3-pip git sudo \
-    && rm -rf /var/lib/apt/lists/*
+    python3-pip git sudo
 
 WORKDIR /opt/app
 
