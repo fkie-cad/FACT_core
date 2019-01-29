@@ -3,7 +3,6 @@ import logging
 import os
 import re
 from difflib import SequenceMatcher
-from typing import NoReturn
 
 import lief
 from common_helper_files import get_dir_of_file
@@ -40,13 +39,13 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return data
 
     @staticmethod
-    def _get_tags_from_library_list(libraries: list, behaviour_class: str, indicators: list, tags: list) -> NoReturn:
+    def _get_tags_from_library_list(libraries: list, behaviour_class: str, indicators: list, tags: list):
         for library, indicator in ((l, i) for l in libraries for i in indicators):
             if re.search(indicator, library):
                 tags.append(behaviour_class)
 
     @staticmethod
-    def _get_tags_from_function_list(functions: list, behaviour_class: str, indicators: list, tags: list) -> NoReturn:
+    def _get_tags_from_function_list(functions: list, behaviour_class: str, indicators: list, tags: list):
         for function, indicator in ((f, i) for f in functions for i in indicators):
             if indicator.lower() in function.lower() and SequenceMatcher(None, indicator, function).ratio() >= 0.85:
                 tags.append(behaviour_class)

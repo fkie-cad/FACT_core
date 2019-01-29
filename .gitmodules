@@ -1,3 +1,0 @@
-[submodule "src/plugins/analysis/elf"]
-	path = src/plugins/analysis/elf
-	url = git@git-sdn.caad.fkie.fraunhofer.de:FACT/analysis_plugin/elf.git

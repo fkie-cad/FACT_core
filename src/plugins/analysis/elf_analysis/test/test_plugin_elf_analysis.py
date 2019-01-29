@@ -4,11 +4,12 @@ from pathlib import Path
 import pytest
 
 from helperFunctions.config import get_config_for_testing
+from helperFunctions.fileSystem import get_test_data_dir
 from helperFunctions.tag import TagColor
 from objects.file import FileObject
 from ..code.elf_analysis import AnalysisPlugin
 
-TEST_DATA_DIR = Path(Path(__file__).parent, 'data')
+TEST_DATA = Path(get_test_data_dir(), 'test_data_file.bin')
 
 
 class MockAdmin:
@@ -38,7 +39,7 @@ def test_config():
 
 @pytest.fixture(scope='function')
 def stub_object():
-    test_object = FileObject(file_path=str(Path(TEST_DATA_DIR, 'test_binary')))
+    test_object = FileObject(file_path=str(TEST_DATA))
     test_object.processed_analysis['file_type'] = {'mime': 'application/x-executable'}
     return test_object
 
@@ -116,7 +117,7 @@ def test_create_tags(stub_plugin, stub_object):
 
 
 def test_analyze_elf_bad_file(stub_plugin, stub_object, tmpdir):
-    random_file = Path(tmpdir, 'random')
+    random_file = Path(tmpdir.dirname, 'random')
     random_file.write_bytes(b'ABCDEFGHIJKLMNOPQRSTUVWXYZ')
     stub_object.file_path = str(random_file.absolute())
 
