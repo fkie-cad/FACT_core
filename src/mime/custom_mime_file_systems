@@ -288,16 +288,16 @@
 >0x64	beshort		^0x2004		v1 dirs)
 >0x64	beshort		&0x2004		v2 dirs)
 
+
 # FAT and NTFS magic
 0x36      string   FAT          FAT filesystem
 !:mime  filesystem/fat
 
-# FAT and NTFS magic
 0x3      string   NTFS          NTFS filesystem
 !:mime  filesystem/ntfs
 
 # DOS/MBR signifier (55AA)
-0x1FE      string   \x55\xAA     DOS-like boot sector
+0x1FE      string   \x55\xAA     DOS boot sector
 !:mime filesystem/dosmbr
 
 
