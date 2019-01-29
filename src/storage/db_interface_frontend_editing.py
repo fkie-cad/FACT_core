@@ -19,14 +19,14 @@ class FrontendEditingDbInterface(MongoInterfaceCommon):
 
     def add_element_to_array_in_field(self, uid, field, element):
         current_db = self.firmwares if self.is_firmware(uid) else self.file_objects
-        current_db.update(
+        current_db.update_one(
             {'_id': uid},
             {'$push': {field: element}}
         )
 
     def remove_element_from_array_in_field(self, uid, field, condition):
         current_db = self.firmwares if self.is_firmware(uid) else self.file_objects
-        current_db.update(
+        current_db.update_one(
             {'_id': uid},
             {'$pull': {field: condition}}
         )

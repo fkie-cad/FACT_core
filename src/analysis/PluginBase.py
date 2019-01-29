@@ -3,10 +3,10 @@ from multiprocessing import Queue, Value, Manager
 from queue import Empty
 from time import time
 
-from helperFunctions.dependency import get_unmatched_dependencies, schedule_dependencies
 from helperFunctions.parsing import bcolors
 from helperFunctions.process import ExceptionSafeProcess, terminate_process_and_childs
 from helperFunctions.tag import TagColor
+from objects.file import FileObject
 from plugins.base import BasePlugin
 
 
@@ -16,12 +16,12 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
     recursive flag: If True (default) recursively analyze included files
     '''
     VERSION = 'not set'
+    SYSTEM_VERSION = None
 
     timeout = None
 
     def __init__(self, plugin_administrator, config=None, recursive=True, no_multithread=False, timeout=300, offline_testing=False, plugin_path=None):  # pylint: disable=too-many-arguments
         super().__init__(plugin_administrator, config=config, plugin_path=plugin_path)
-        self.history = set()
         self.check_config(no_multithread)
         self.recursive = recursive
         self.in_queue = Queue()
@@ -35,34 +35,21 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         if not offline_testing:
             self.start_worker()
 
-    def add_job(self, fw_object):
-        if self._job_is_already_done(fw_object):
-            logging.debug('{} analysis already done -> skip: {}\n Analysis Dependencies: {}'.format(
-                self.NAME, fw_object.get_uid(), fw_object.analysis_dependency))
-        elif self._recursive_condition_is_set(fw_object):
-            if self._dependencies_are_fulfilled(fw_object):
-                self.history.add(fw_object.get_uid())
-                self.in_queue.put(fw_object)
-                return
-            self._reschedule_job(fw_object)
+    def add_job(self, fw_object: FileObject):
+        if self._dependencies_are_unfulfilled(fw_object):
+            logging.error('{}: dependencies of plugin {} not fulfilled'.format(fw_object.get_uid(), self.NAME))
+        elif self._analysis_depth_not_reached_yet(fw_object):
+            self.in_queue.put(fw_object)
+            return
         self.out_queue.put(fw_object)
 
-    def _reschedule_job(self, fw_object):
-        unmatched_dependencies = get_unmatched_dependencies([fw_object], self.DEPENDENCIES)
-        logging.debug('{} rescheduled due to unmatched dependencies:\n {}'.format(fw_object.get_virtual_file_paths(), unmatched_dependencies))
-        fw_object.scheduled_analysis = schedule_dependencies(fw_object.scheduled_analysis, unmatched_dependencies, self.NAME)
-        fw_object.analysis_dependency = fw_object.analysis_dependency.union(set(unmatched_dependencies))
-        logging.debug('new schedule for {}:\n {}\nAnalysis Dependencies: {}'.format(
-            fw_object.get_virtual_file_paths(), fw_object.scheduled_analysis, fw_object.analysis_dependency))
+    def _dependencies_are_unfulfilled(self, fw_object: FileObject):
+        # FIXME plugins can be in processed_analysis and could still be skipped, etc. -> need a way to verify that
+        # FIXME the analysis ran successfully
+        return any(dep not in fw_object.processed_analysis for dep in self.DEPENDENCIES)
 
-    def _job_is_already_done(self, fw_object):
-        return (fw_object.get_uid() in self.history) and (self.NAME not in fw_object.analysis_dependency)
-
-    def _recursive_condition_is_set(self, fo):
+    def _analysis_depth_not_reached_yet(self, fo):
         return self.recursive or fo.depth == 0
-
-    def _dependencies_are_fulfilled(self, fo):
-        return get_unmatched_dependencies([fo], self.DEPENDENCIES) == []
 
     def process_object(self, file_object):  # pylint: disable=no-self-use
         '''
@@ -96,6 +83,8 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         self.in_queue.close()
         self.out_queue.close()
 
+# ---- internal functions ----
+
     def add_analysis_tag(self, file_object, tag_name, value, color=TagColor.LIGHT_BLUE, propagate=False):
         new_tag = {
             tag_name: {
@@ -110,18 +99,16 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         else:
             file_object.processed_analysis[self.NAME]['tags'].update(new_tag)
 
-# ---- internal functions ----
-
     def init_dict(self):
-        results = {}
-        results['analysis_date'] = time()
-        results['plugin_version'] = self.VERSION
-        return results
+        result_update = {'analysis_date': time(), 'plugin_version': self.VERSION}
+        if self.SYSTEM_VERSION:
+            result_update.update({'system_version': self.SYSTEM_VERSION})
+        return result_update
 
-    def check_config(self, no_multihread):
+    def check_config(self, no_multithread):
         if self.NAME not in self.config:
             self.config.add_section(self.NAME)
-        if 'threads' not in self.config[self.NAME] or no_multihread:
+        if 'threads' not in self.config[self.NAME] or no_multithread:
             self.config.set(self.NAME, 'threads', '1')
 
     def start_worker(self):

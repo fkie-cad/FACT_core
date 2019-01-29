@@ -22,6 +22,9 @@ class MockDbInterface:
     def add_object(self, fo_fw):
         self._objects[fo_fw.uid] = fo_fw
 
+    def get_specific_fields_of_db_entry(self, uid, field_dict):
+        pass
+
 
 def initialize_config(tmp_dir):
     config = get_config_for_testing(temp_dir=tmp_dir)

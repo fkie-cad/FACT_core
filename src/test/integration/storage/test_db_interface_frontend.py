@@ -93,7 +93,7 @@ class TestStorageDbInterfaceFrontend(unittest.TestCase):
         uid_list = [self.test_firmware.get_uid()]
         self.db_backend_interface.add_firmware(self.test_firmware)
         nice_list_data = self.db_frontend_interface.get_data_for_nice_list(uid_list, uid_list[0])
-        self.assertEquals(sorted(['size', 'virtual_file_paths', 'uid', 'mime-type', 'files_included']), sorted(nice_list_data[0].keys()))
+        self.assertEqual(sorted(['size', 'virtual_file_paths', 'uid', 'mime-type', 'files_included']), sorted(nice_list_data[0].keys()))
         self.assertEqual(nice_list_data[0]['uid'], self.test_firmware.get_uid())
 
     def test_generic_search(self):
@@ -111,11 +111,6 @@ class TestStorageDbInterfaceFrontend(unittest.TestCase):
         self.assertFalse(self.db_frontend_interface.all_uids_found_in_database(uid_list))
         self.db_backend_interface.add_firmware(self.test_firmware)
         self.assertTrue(self.db_frontend_interface.all_uids_found_in_database([self.test_firmware.get_uid()]))
-
-    def test_get_number_of_firmwares_in_db(self):
-        self.assertEqual(self.db_frontend_interface.get_number_of_firmwares_in_db(), 0)
-        self.db_backend_interface.add_firmware(self.test_firmware)
-        self.assertEqual(self.db_frontend_interface.get_number_of_firmwares_in_db(), 1)
 
     def test_get_x_last_added_firmwares(self):
         self.assertEqual(self.db_frontend_interface.get_last_added_firmwares(), [], 'empty db should result in empty list')

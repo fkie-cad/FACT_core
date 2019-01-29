@@ -1,5 +1,6 @@
 from helperFunctions.dependency import get_unmatched_dependencies
 from plugins.base import BasePlugin
+from abc import abstractmethod
 
 
 class CompareBasePlugin(BasePlugin):
@@ -12,6 +13,7 @@ class CompareBasePlugin(BasePlugin):
         self.database = db_interface
         self.register_plugin()
 
+    @abstractmethod
     def compare_function(self, fo_list):
         '''
         This function must be implemented by the plug-in.
