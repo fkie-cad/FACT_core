@@ -14,6 +14,13 @@
 #>15	string		\ ENTER\ LANGUAGE\ =
 #>31	string		PostScript		PostScript
 
+# HP Update Streams
+3	string	\x00\x00\x11\x00\x00\x00\x00\x00\x00\xbe\xac	HP Update Stream 1
+!:mime firmware/hp-us
+
+3	string	\x00\x00\x10\x00\x00	HP Update Stream 2
+!:mime firmware/hp-us
+
 
 # DSK 1.0
 # Reversed by Fraunhofer FKIE
