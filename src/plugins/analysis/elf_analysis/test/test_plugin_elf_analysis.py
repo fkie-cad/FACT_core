@@ -18,6 +18,18 @@ class MockAdmin:
 
 LiefResult = namedtuple('LiefResult', ['symbols_version', 'libraries', 'imported_functions', 'exported_functions'])
 
+MOCK_DATA = '{"header": {"entrypoint": 109724, "file_type": "DYNAMIC", "header_size": 52, "identity_class": "CLASS32", "identity_data": "LSB", "identity_os_abi": "SYSTEMV"},' \
+            '"dynamic_entries": [{"library": "libdl.so.2", "tag": "NEEDED", "value": 1}, {"library": "libc.so.6", "tag": "NEEDED", "value": 137}, {"tag": "INIT", "value": 99064}],' \
+            '"sections": [{"alignment": 0, "entry_size": 0, "flags": [], "information": 0, "link": 0, "name": "", "offset": 0, "size": 0, "type": "NULL", "virtual_address": 0}],' \
+            '"segments": [{"alignment": 4, "file_offset": 2269, "flags": 4, "physical_address": 2269, "physical_size": 8, "sections": [".ARM.exidx"], "type": "ARM_EXIDX", "virtual_address": 2269, "virtual_size": 8}],' \
+            '"symbols_version": [{"value": 0}, {"symbol_version_auxiliary": "GLIBC_2.4", "value": 2}, {"symbol_version_auxiliary": "GLIBC_2.4", "value": 2}]}'
+
+MOCK_LIEF_RESULT = LiefResult(
+    libraries=['libdl.so.2', 'libc.so.6'],
+    imported_functions=['fdopen', 'calloc', 'strstr', 'raise', 'gmtime_r', 'strcmp'],
+    symbols_version=list(),
+    exported_functions=['SHA256_Transform', 'GENERAL_NAMES_free', 'i2d_RSAPrivateKey', 'd2i_OCSP_REQUEST'])
+
 
 @pytest.fixture(scope='function')
 def test_config():
@@ -28,7 +40,6 @@ def test_config():
 def stub_object():
     test_object = FileObject(file_path=str(Path(TEST_DATA_DIR, 'test_binary')))
     test_object.processed_analysis['file_type'] = {'mime': 'application/x-executable'}
-
     return test_object
 
 
@@ -36,15 +47,6 @@ def stub_object():
 def stub_plugin(test_config, monkeypatch):
     monkeypatch.setattr('plugins.base.BasePlugin._sync_view', lambda self, plugin_path: None)
     return AnalysisPlugin(MockAdmin(), test_config, offline_testing=True)
-
-
-def test_process_analysis(stub_plugin, stub_object):
-    stub_object.processed_analysis['file_type'] = {'mime': 'application/x-executable'}
-    stub_plugin.process_object(stub_object)
-
-    assert stub_object.processed_analysis[stub_plugin.NAME]['Output'] != {}
-    result_summary = sorted(stub_object.processed_analysis[stub_plugin.NAME]['summary'])
-    assert result_summary == ['dynamic_entries', 'exported_functions', 'header', 'imported_functions', 'libraries', 'sections', 'segments', 'symbols_version']
 
 
 @pytest.mark.parametrize('tag, tag_color', [
@@ -132,3 +134,15 @@ final_analysis_test_data = [
 def test_get_final_analysis_dict(stub_plugin, binary_json_dict, elf_dict, expected):
     stub_plugin.get_final_analysis_dict(binary_json_dict, elf_dict)
     assert len(elf_dict) == expected
+
+
+def test_plugin(stub_plugin, stub_object, monkeypatch):
+    monkeypatch.setattr('lief.parse', lambda _: MOCK_LIEF_RESULT)
+    monkeypatch.setattr('lief.to_json_from_abstract', lambda _: MOCK_DATA)
+
+    stub_object.processed_analysis['file_type'] = {'mime': 'application/x-executable'}
+    stub_plugin.process_object(stub_object)
+
+    assert stub_object.processed_analysis[stub_plugin.NAME]['Output'] != {}
+    result_summary = sorted(stub_object.processed_analysis[stub_plugin.NAME]['summary'])
+    assert result_summary == ['dynamic_entries', 'exported_functions', 'header', 'imported_functions', 'libraries', 'sections', 'segments', 'symbols_version']
