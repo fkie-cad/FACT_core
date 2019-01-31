@@ -226,9 +226,12 @@ class AnalysisScheduler(object):
         plugin_version = self.analysis_plugins[analysis_to_do].VERSION
         system_version = self.analysis_plugins[analysis_to_do].SYSTEM_VERSION \
             if hasattr(self.analysis_plugins[analysis_to_do], 'SYSTEM_VERSION') else None
-
-        if LooseVersion(analysis_plugin_version) < LooseVersion(plugin_version) or \
-                LooseVersion(analysis_system_version or '0') < LooseVersion(system_version or '0'):
+        try:
+            if LooseVersion(analysis_plugin_version) < LooseVersion(plugin_version) or \
+                    LooseVersion(analysis_system_version or '0') < LooseVersion(system_version or '0'):
+                return False
+        except TypeError:
+            logging.error('Bad version compare. Defaulting to outdated.')
             return False
         return True
 
