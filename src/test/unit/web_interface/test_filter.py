@@ -8,8 +8,9 @@ from web_interface.filter import replace_underscore_filter, byte_number_filter, 
     uids_to_link, list_to_line_break_string, nice_unix_time, nice_number_filter, sort_chart_list_by_value, \
     sort_chart_list_by_name, text_highlighter, generic_nice_representation, list_to_line_break_string_no_sort, \
     encode_base64_filter, render_tags, fix_cwe, set_limit_for_data_to_chart, data_to_chart_with_value_percentage_pairs, \
-    data_to_chart_limited, render_analysis_tags, vulnerability_class, sort_users_by_name, user_has_role, sort_roles_by_number_of_privileges, \
-    filter_format_string_list_with_offset, decompress, infection_color
+    data_to_chart_limited, render_analysis_tags, vulnerability_class, sort_users_by_name, user_has_role, \
+    sort_roles_by_number_of_privileges, \
+    filter_format_string_list_with_offset, decompress, infection_color, get_unique_keys_from_list_of_dicts
 
 
 class TestWebInterfaceFilter(unittest.TestCase):
@@ -259,3 +260,12 @@ def test_filter_decompress():
     assert decompress(test_string.encode()) == test_string
     assert decompress(test_string) == test_string
     assert decompress(None) is None
+
+
+@pytest.mark.parametrize('list_of_dicts, expected_result', [
+    ([], set()),
+    ([{'1': ''}], {'1'}),
+    ([{'1': ''}, {'1': '', '2': ''}, {'1': '', '2': '', '3': ''}], {'1', '2', '3'})
+])
+def test_get_unique_keys_from_list_of_dicts(list_of_dicts, expected_result):
+    assert get_unique_keys_from_list_of_dicts(list_of_dicts) == expected_result
