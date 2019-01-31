@@ -329,6 +329,9 @@ class TestAnalysisSkipping:
         def get_specific_fields_of_db_entry(self, *_):
             return self.analysis_entry
 
+        def retrieve_analysis(self, sanitized_dict, **_):
+            return sanitized_dict
+
     @classmethod
     def setup_class(cls):
         cls.init_patch = mock.patch(target='scheduler.Analysis.AnalysisScheduler.__init__', new=lambda *_: None)
@@ -355,7 +358,7 @@ class TestAnalysisSkipping:
             self, plugin_version, plugin_system_version, analysis_plugin_version, analysis_system_version, expected_output):
         plugin = 'foo'
         analysis_entry = {'processed_analysis': {plugin: {
-            'plugin_version': analysis_plugin_version, 'system_version': analysis_system_version
+            'plugin_version': analysis_plugin_version, 'system_version': analysis_system_version, 'file_system_flag': False
         }}}
         self.scheduler.db_backend_service = self.BackendMock(analysis_entry)
         self.scheduler.analysis_plugins[plugin] = self.PluginMock(
