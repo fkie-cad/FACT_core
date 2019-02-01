@@ -38,7 +38,4 @@ cd fact_radare_viewer
 sudo -EH pip3 install -r requirements.txt
 cd ..
 
-apt-get remove -y build-essential npm python3-pip git
-install_clean
-
 exit 0
