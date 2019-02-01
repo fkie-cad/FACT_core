@@ -210,6 +210,7 @@ class AnalysisScheduler(object):
         db_entry = self.db_backend_service.get_specific_fields_of_db_entry(
             uid,
             {
+                'processed_analysis.{}.file_system_flag'.format(analysis_to_do): 1,
                 'processed_analysis.{}.plugin_version'.format(analysis_to_do): 1,
                 'processed_analysis.{}.system_version'.format(analysis_to_do): 1
             }
@@ -220,19 +221,23 @@ class AnalysisScheduler(object):
             logging.error('Plugin Version missing: UID: {}, Plugin: {}'.format(uid, analysis_to_do))
             return False
 
+        if db_entry['processed_analysis'][analysis_to_do]['file_system_flag']:
+            db_entry['processed_analysis'] = self.db_backend_service.retrieve_analysis(db_entry['processed_analysis'], analysis_filter=[analysis_to_do, ])
+            if 'file_system_flag' in db_entry['processed_analysis'][analysis_to_do]:
+                logging.warning('Desanitization of version string failed')
+                return False
+
         analysis_plugin_version = db_entry['processed_analysis'][analysis_to_do]['plugin_version']
         analysis_system_version = db_entry['processed_analysis'][analysis_to_do]['system_version'] \
             if 'system_version' in db_entry['processed_analysis'][analysis_to_do] else None
         plugin_version = self.analysis_plugins[analysis_to_do].VERSION
         system_version = self.analysis_plugins[analysis_to_do].SYSTEM_VERSION \
             if hasattr(self.analysis_plugins[analysis_to_do], 'SYSTEM_VERSION') else None
-        try:
-            if LooseVersion(analysis_plugin_version) < LooseVersion(plugin_version) or \
-                    LooseVersion(analysis_system_version or '0') < LooseVersion(system_version or '0'):
-                return False
-        except TypeError:
-            logging.error('Bad version compare. Defaulting to outdated.')
+
+        if LooseVersion(analysis_plugin_version) < LooseVersion(plugin_version) or \
+                LooseVersion(analysis_system_version or '0') < LooseVersion(system_version or '0'):
             return False
+
         return True
 
 # ---- blacklist and whitelist ----

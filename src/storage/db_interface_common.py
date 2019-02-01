@@ -1,7 +1,6 @@
 import json
 import logging
 import pickle
-import sys
 from typing import Set
 
 import gridfs
@@ -174,7 +173,7 @@ class MongoInterfaceCommon(MongoInterface):
                 else:
                     sanitized_dict[key].pop('file_system_flag')
             except Exception as e:
-                logging.debug('Could not retrieve information: {} {}'.format(sys.exc_info()[0].__name__, e))
+                logging.debug('Could not retrieve information: {} {}'.format(type(e), e))
         return sanitized_dict
 
     def _extract_binaries(self, analysis_dict, key, uid):
@@ -265,7 +264,7 @@ class MongoInterfaceCommon(MongoInterface):
                 for item in file_object.processed_analysis[selected_analysis]['summary']:
                     summary[item] = [file_object.get_uid()]
         except Exception as e:
-            logging.warning('Could not get summary: {} {}'.format(sys.exc_info()[0].__name__, e))
+            logging.warning('Could not get summary: {} {}'.format(type(e), e))
         return summary
 
     def _collect_summary(self, uid_list, selected_analysis):
