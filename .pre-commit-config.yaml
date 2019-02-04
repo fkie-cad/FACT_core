@@ -2,7 +2,29 @@ repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v2.1.0
     hooks:
+    -   id: end-of-file-fixer
+        exclude: ^src/bin/
+        types: [python]
+        stages: [commit]
+
+    -   id: check-json
+        exclude: ^src/bin/
+        types: [json]
+        stages: [commit]
+
+    -   id: check-yaml
+        exclude: ^src/bin/
+        types: [yaml]
+        stages: [commit]
+
     -   id: trailing-whitespace
         exclude: ^src/bin/
         types: [python]
         stages: [commit]
+
+    -   id: flake8
+        exclude: ^src/bin/
+        types: [python]
+        stages: [commit]
+        args: [--ignore=E501]
+
