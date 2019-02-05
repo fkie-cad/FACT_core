@@ -2,6 +2,7 @@
 
 import json
 import os
+import logging
 
 from common_helper_files import get_binary_from_file
 from flask import render_template, request, render_template_string
@@ -21,6 +22,9 @@ from web_interface.components.compare_routes import get_comparison_uid_list_from
 from web_interface.components.component_base import ComponentBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
+
+
+from storage.db_interface_compare import CompareDbInterface
 
 
 def get_analysis_view(view_name):
@@ -52,9 +56,10 @@ class AnalysisRoutes(ComponentBase):
     def _show_analysis_results(self, uid, selected_analysis=None, root_uid=None):
         root_uid = none_to_none(root_uid)
         other_versions = None
-
         uids_for_comparison = get_comparison_uid_list_from_session()
-
+        with ConnectTo(CompareDbInterface, self._config) as db_service:
+            all_comparisons = db_service.page_compare_results()
+            known_comparisons = [comparison for comparison in all_comparisons if uid in comparison[0]]
         analysis_filter = [selected_analysis] if selected_analysis else []
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
             file_obj = sc.get_object(uid, analysis_filter=analysis_filter)
@@ -80,7 +85,8 @@ class AnalysisRoutes(ComponentBase):
                                           analysis_plugin_dict=analysis_plugins,
                                           other_versions=other_versions,
                                           uids_for_comparison=uids_for_comparison,
-                                          user_has_admin_clearance=user_has_privilege(current_user, privilege='delete'))
+                                          user_has_admin_clearance=user_has_privilege(current_user, privilege='delete'),
+                                          known_comparisons=known_comparisons)
         else:
             return render_template('uid_not_found.html', uid=uid)
 
