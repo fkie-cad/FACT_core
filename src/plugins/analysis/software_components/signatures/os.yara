@@ -98,3 +98,16 @@ rule CiscoIOS
 	condition:
 		$a
 }
+
+rule ThreadX
+{
+	meta:
+		software_name = "ThreadX"
+		open_source = false
+		website = "https://rtos.com/solutions/threadx/real-time-operating-system/"
+		description = "Real Time Operating System"
+	strings:
+		$a = /ThreadX [a-z\/ 1-9]+ [a-z]?\d+\.\d+(\.\d+)?(\.\d+)?/ nocase ascii wide
+	condition:
+		$a
+}
