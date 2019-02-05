@@ -8,6 +8,7 @@ import unittest
 from helperFunctions.fileSystem import get_test_data_dir
 from objects.firmware import Firmware
 from scheduler.Unpacking import UnpackingScheduler
+from test.common_helper import DatabaseMock
 
 
 class TestUnpackScheduler(unittest.TestCase):
@@ -61,7 +62,7 @@ class TestUnpackScheduler(unittest.TestCase):
         self.assertEqual(self.sched.throttle_condition.value, 1, 'throttle not functional')
 
     def _start_scheduler(self):
-        self.sched = UnpackingScheduler(config=self.config, post_unpack=self._mock_callback, analysis_workload=self._mock_get_analysis_workload)
+        self.sched = UnpackingScheduler(config=self.config, post_unpack=self._mock_callback, analysis_workload=self._mock_get_analysis_workload, db_interface=DatabaseMock())
 
     def _mock_callback(self, fw):
         self.tmp_queue.put(fw)

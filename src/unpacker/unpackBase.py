@@ -6,6 +6,7 @@ from time import time
 
 from common_helper_files import get_files_in_dir
 
+from helperFunctions.config import read_list_from_config
 from helperFunctions.fileSystem import get_file_type_from_path
 from helperFunctions.plugin import import_plugins
 
@@ -33,9 +34,8 @@ class UnpackBase(object):
             plugin.setup(self)
 
     def _set_whitelist(self):
-        whitelist = self.config['unpack']['whitelist']
-        self.whitelist = whitelist.split(', ')
-        logging.debug('[worker {}] Ignore (Whitelist): {}'.format(self.worker_id, whitelist))
+        self.whitelist = read_list_from_config(self.config, 'unpack', 'whitelist')
+        logging.debug('[worker {}] Ignore (Whitelist): {}'.format(self.worker_id, ', '.join(self.whitelist)))
         for item in self.whitelist:
             self.register_plugin(item, self.unpacker_plugins['generic/nop'])
 

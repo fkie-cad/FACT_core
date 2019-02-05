@@ -1,7 +1,6 @@
 import json
 import logging
 import pickle
-import sys
 from typing import Set
 
 import gridfs
@@ -21,6 +20,7 @@ class MongoInterfaceCommon(MongoInterface):
         self.main = self.client[main_database]
         self.firmwares = self.main.firmwares
         self.file_objects = self.main.file_objects
+        self.locks = self.main.locks
         # sanitize stuff
         self.report_threshold = int(self.config['data_storage']['report_threshold'])
         sanitize_db = self.config['data_storage'].get('sanitize_database', 'faf_sanitize')
@@ -36,10 +36,10 @@ class MongoInterfaceCommon(MongoInterface):
             return False
 
     def is_firmware(self, uid):
-        return self.firmwares.count({'_id': uid}) > 0
+        return self.firmwares.count_documents({'_id': uid}) > 0
 
     def is_file_object(self, uid):
-        return self.file_objects.count({'_id': uid}) > 0
+        return self.file_objects.count_documents({'_id': uid}) > 0
 
     def get_object(self, uid, analysis_filter=None):
         '''
@@ -173,7 +173,7 @@ class MongoInterfaceCommon(MongoInterface):
                 else:
                     sanitized_dict[key].pop('file_system_flag')
             except Exception as e:
-                logging.debug('Could not retrieve information: {} {}'.format(sys.exc_info()[0].__name__, e))
+                logging.debug('Could not retrieve information: {} {}'.format(type(e), e))
         return sanitized_dict
 
     def _extract_binaries(self, analysis_dict, key, uid):
@@ -202,6 +202,9 @@ class MongoInterfaceCommon(MongoInterface):
                     report = {}
                 tmp_dict[analysis_key] = report
         return tmp_dict
+
+    def get_specific_fields_of_db_entry(self, uid, field_dict):
+        return self.file_objects.find_one(uid, field_dict) or self.firmwares.find_one(uid, field_dict)
 
     # --- summary recreation
 
@@ -261,7 +264,7 @@ class MongoInterfaceCommon(MongoInterface):
                 for item in file_object.processed_analysis[selected_analysis]['summary']:
                     summary[item] = [file_object.get_uid()]
         except Exception as e:
-            logging.warning('Could not get summary: {} {}'.format(sys.exc_info()[0].__name__, e))
+            logging.warning('Could not get summary: {} {}'.format(type(e), e))
         return summary
 
     def _collect_summary(self, uid_list, selected_analysis):
@@ -283,11 +286,23 @@ class MongoInterfaceCommon(MongoInterface):
     def get_firmware_number(self, query=None):
         if query is not None and isinstance(query, str):
             query = json.loads(query)
-        return self.firmwares.count(query)
+        return self.firmwares.count_documents(query or {})
 
     def get_file_object_number(self, query=None, zero_on_empty_query=True):
         if isinstance(query, str):
             query = json.loads(query)
         if zero_on_empty_query and query == {}:
             return 0
-        return self.file_objects.count(query)
+        return self.file_objects.count_documents(query or {})
+
+    def set_unpacking_lock(self, uid):
+        self.locks.insert_one({'uid': uid})
+
+    def check_unpacking_lock(self, uid):
+        return self.locks.count_documents({'uid': uid}) > 0
+
+    def release_unpacking_lock(self, uid):
+        self.locks.delete_one({'uid': uid})
+
+    def drop_unpacking_locks(self):
+        self.main.drop_collection('locks')

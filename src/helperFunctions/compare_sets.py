@@ -1,4 +1,5 @@
 from copy import deepcopy
+from typing import List
 
 from helperFunctions.dataConversion import list_of_lists_to_list_of_sets
 
@@ -33,10 +34,10 @@ def difference_of_sets(base_set, list_of_other_sets):
 def remove_duplicates_from_list_of_lists(main_list):
     for item in main_list:
         item.sort()
-    for first in range(len(main_list)):
-        for second in range(len(main_list)):
-            if main_list[first] == main_list[second] and not first == second:
-                main_list[second] = None
+    for primary_pointer, primary_element in enumerate(main_list):
+        for secondary_pointer, secondary_element in enumerate(main_list):
+            if primary_element == secondary_element and not primary_pointer == secondary_pointer:
+                main_list[secondary_pointer] = None
     main_list = remove_all(main_list, None)
     return main_list
 
@@ -79,3 +80,7 @@ def safely_remove_pair_of_sets(list_of_sets, pair_of_sets):
 
 def remove_duplicates_from_list(l):
     return list(set(l))
+
+
+def substring_is_in_list(s: str, substring_list: List[str]) -> bool:
+    return any(substring in s for substring in substring_list)

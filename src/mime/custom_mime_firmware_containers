@@ -1,5 +1,9 @@
 # ====================== firmware container ======================
 
+# ---- Dahua Container ----
+0	string DH\003\004			dahua firmware image
+!:mime	firmware/dahua
+
 # ---- ROS Container ----
 24	string	\x50\x41\x43\x4b	ROS Container
 !:mime	firmware/ros
@@ -287,7 +291,7 @@
 
 # Firmware header used by some VxWorks-based Cisco products
 0      string        CI032.00       Cisco VxWorks firmware header,
-!:mime firmware/vxworks-cisco
+!:mime firmware/ros
 >8     lelong        >1024          {invalid}
 >8     lelong        <0             {invalid}
 >8     lelong        x              header size: %d bytes,
@@ -691,4 +695,8 @@
 # Toshiba "CD2" Firmware
 0	string \xD5\xBF\x98\x12\x01	Toshiba CD2
 !:mime	firmware/toshiba-cd2
+
+# Intel HEX
+0	regex	\^:[A-F0-9]{8,}$	Intel HEX
+!:mime	firmware/intel-hex
 

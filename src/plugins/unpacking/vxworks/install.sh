@@ -6,7 +6,7 @@ echo "------------------------------------"
 echo "          install ros_pack          "
 echo "------------------------------------"
 
-cd ../../../bootstrap
+cd ../../../install
 
 # get ros_pack source
 git clone https://github.com/iam-TJ/ros_pack.git

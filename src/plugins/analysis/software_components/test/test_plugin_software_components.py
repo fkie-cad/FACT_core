@@ -35,13 +35,21 @@ class TestAnalysisPluginsSoftwareComponents(AnalysisPluginTest):
         self.assertIn('Test Software 0.1.3', results['summary'])
 
     def check_version(self, input_string, version):
-        self.assertEqual(self.analysis_plugin.get_version(input_string), version, '{} not found correctly'.format(version))
+        self.assertEqual(self.analysis_plugin.get_version(input_string, {}), version, '{} not found correctly'.format(version))
 
     def test_get_version(self):
         self.check_version('Foo 15.14.13', '15.14.13')
         self.check_version('Foo 1.0', '1.0')
         self.check_version('Foo 1.1.1b', '1.1.1b')
         self.check_version('Foo', '')
+
+    def test_get_version_from_meta(self):
+        version = 'v15.14.1a'
+        self.assertEqual(
+            self.analysis_plugin.get_version('Foo {}'.format(version), {'version_regex': 'v\\d\\d\\.\\d\\d\\.\\d[a-z]'}),
+            version,
+            'version not found correctly'
+        )
 
     def test_entry_has_no_trailing_version(self):
         assert not self.analysis_plugin._entry_has_no_trailing_version('Linux', 'Linux 4.15.0-22')

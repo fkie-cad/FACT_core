@@ -10,6 +10,7 @@ src/web_interface/static/entropy
 src/web_interface/static/bootstrap
 src/web_interface/static/jstree*
 src/web_interface/static/google_charts
+src/web_interface/static/highlight.js
 src/web_interface/static/bootstrap3-editable
 src/web_interface/static/angular.min.js
 src/web_interface/static/Chart.js
@@ -18,6 +19,7 @@ src/bootstrap/doc
 src/bootstrap/man
 src/bin
 src/plugins/*/*/bin
+src/plugins/analysis/qemu_exec/**/lib
 start_faf_backend
 start_fact_backend
 start_faf_db
@@ -37,4 +39,4 @@ nose2-junit.xml
 *.yc
 .settings/
 .pytest_cache
-
+wget-lo*

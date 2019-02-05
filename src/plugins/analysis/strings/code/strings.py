@@ -10,8 +10,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
     '''
     NAME = 'printable_strings'
     DEPENDENCIES = []
+    MIME_BLACKLIST = ['application/gzip', 'application/gzip', 'application/x-7z-compressed', 'application/x-tar', 'application/x-xz', 'application/zip']
     DESCRIPTION = 'extracts strings and their offsets from the files consisting of printable characters'
-    VERSION = '0.3.3'
+    VERSION = '0.3.4'
 
     STRING_REGEXES = [
         (b'[\x09-\x0d\x20-\x7e]{$len,}', 'utf-8'),

@@ -1,5 +1,6 @@
 import json
 import os
+from base64 import standard_b64encode
 from copy import deepcopy
 
 from helperFunctions.dataConversion import unify_string_list
@@ -63,8 +64,7 @@ class MockFileObject(object):
     def __init__(self, binary=b'test string', file_path='/bin/ls'):
         self.binary = binary
         self.file_path = file_path
-        self.processed_analysis = {'file_type': {
-            'mime': 'application/x-executable'}}
+        self.processed_analysis = {'file_type': {'mime': 'application/x-executable'}}
 
 
 class DatabaseMock:
@@ -74,6 +74,7 @@ class DatabaseMock:
 
     def __init__(self, config=None):
         self.tasks = []
+        self.locks = []
 
     def shutdown(self):
         pass
@@ -319,6 +320,18 @@ class DatabaseMock:
         if uid == 'deadbeef00000000000000000000000000000000000000000000000000000000_123':
             return 'test_name'
 
+    def set_unpacking_lock(self, uid):
+        self.locks.append(uid)
+
+    def check_unpacking_lock(self, uid):
+        return uid in self.locks
+
+    def drop_unpacking_locks(self):
+        self.locks = []
+
+    def get_specific_fields_of_db_entry(self, uid, field_dict):
+        return None  # TODO
+
 
 def fake_exit(self, *args):
     pass
@@ -340,3 +353,22 @@ def clean_test_database(config, list_of_test_databases):
     except Exception:
         pass
     db.shutdown()
+
+
+def get_firmware_for_rest_upload_test():
+    testfile_path = os.path.join(get_test_data_dir(), 'container/test.zip')
+    with open(testfile_path, 'rb') as fp:
+        file_content = fp.read()
+    data = {
+        'binary': standard_b64encode(file_content).decode(),
+        'file_name': 'test.zip',
+        'device_name': 'test_device',
+        'device_part': 'test_part',
+        'device_class': 'test_class',
+        'version': '1.0',
+        'vendor': 'test_vendor',
+        'release_date': '01.01.1970',
+        'tags': '',
+        'requested_analysis_systems': ['software_components']
+    }
+    return data

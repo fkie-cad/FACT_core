@@ -43,25 +43,25 @@ class TestAcceptanceMisc(TestAcceptanceBase):
 
     def _upload_firmware_get(self):
         rv = self.test_client.get('/upload')
-        self.assertIn(b'<h2>Upload Firmware</h2>', rv.data, "upload page not displayed correctly")
+        self.assertIn(b'<h2>Upload Firmware</h2>', rv.data, 'upload page not displayed correctly')
 
     def _upload_firmware_put(self, path, device_name, uid):
         testfile_path = os.path.join(get_test_data_dir(), path)
-        with open(testfile_path, "rb") as fp:
+        with open(testfile_path, 'rb') as fp:
             data = {
                 'file': fp,
                 'device_name': device_name,
                 'device_part': 'full',
-                'device_class': "test_class",
-                'firmware_version': "1.0",
-                'vendor': "test_vendor",
-                'release_date': "2009-01-01",
+                'device_class': 'test_class',
+                'version': '1.0',
+                'vendor': 'test_vendor',
+                'release_date': '2009-01-01',
                 'tags': '',
                 'analysis_systems': []
             }
             rv = self.test_client.post('/upload', content_type='multipart/form-data', data=data, follow_redirects=True)
-        self.assertIn(b'Upload Successful', rv.data, "upload not successful")
-        self.assertIn(uid.encode(), rv.data, "uid not found on upload success page")
+        self.assertIn(b'Upload Successful', rv.data, 'upload not successful')
+        self.assertIn(uid.encode(), rv.data, 'uid not found on upload success page')
 
     def _show_stats(self):
         rv = self.test_client.get('/statistic')

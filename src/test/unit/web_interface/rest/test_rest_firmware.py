@@ -70,7 +70,7 @@ def test_submit_missing_item(test_app):
         'file_name': 'no_real_file',
         'device_name': 'no real device',
         'device_class': 'no real class',
-        'firmware_version': 'no.real.version',
+        'version': 'no.real.version',
         'release_date': '01.01.1970',
         'requested_analysis_systems': ['file_type']
     }  # vendor missing
@@ -85,7 +85,7 @@ def test_submit_success(test_app):
         'device_part': 'kernel',
         'device_name': 'no real device',
         'device_class': 'no real class',
-        'firmware_version': 'no.real.version',
+        'version': 'no.real.version',
         'release_date': '01.01.1970',
         'vendor': 'no real vendor',
         'tags': 'tag1,tag2',

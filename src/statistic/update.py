@@ -1,18 +1,18 @@
-import itertools
 import logging
 import sys
-from datetime import datetime
-from time import time
 
+import itertools
 from bson.son import SON
 from common_helper_filter.time import time_format
 from common_helper_mongo import get_field_average, get_field_sum, get_objects_and_count_of_occurrence
+from datetime import datetime
+from time import time
 
 from helperFunctions.dataConversion import build_time_dict
 from helperFunctions.merge_generators import sum_up_lists, sum_up_nested_lists, avg, merge_dict
 from helperFunctions.mongo_task_conversion import is_sanitized_entry
-from storage.db_interface_statistic import StatisticDbUpdater
 from helperFunctions.statistic import calculate_total_files
+from storage.db_interface_statistic import StatisticDbUpdater
 
 
 class StatisticUpdater(object):
@@ -45,6 +45,7 @@ class StatisticUpdater(object):
         self.db.update_statistic('release_date', self._get_time_stats())
         self.db.update_statistic('exploit_mitigations', self._get_exploit_mitigations_stats())
         self.db.update_statistic('known_vulnerabilities', self._get_known_vulnerabilities_stats())
+        self.db.update_statistic('software_components', self._get_software_components_stats())
         # should always be the last, because of the benchmark
         self.db.update_statistic('general', self.get_general_stats())
 
@@ -54,11 +55,11 @@ class StatisticUpdater(object):
         if self.start_time is None:
             self.start_time = time()
         stats = {}
-        stats['number_of_firmwares'] = self.db.firmwares.count(self.match)
+        stats['number_of_firmwares'] = self.db.firmwares.count_documents(self.match)
         stats['total_firmware_size'] = get_field_sum(self.db.firmwares, '$size', match=self.match)
         stats['average_firmware_size'] = get_field_average(self.db.firmwares, '$size', match=self.match)
         if not self.match:
-            stats['number_of_unique_files'] = self.db.file_objects.count()
+            stats['number_of_unique_files'] = self.db.file_objects.count_documents({})
             stats['total_file_size'] = get_field_sum(self.db.file_objects, '$size')
             stats['average_file_size'] = get_field_average(self.db.file_objects, '$size')
         else:
@@ -85,7 +86,7 @@ class StatisticUpdater(object):
         return stats
 
     def _get_exploit_mitigations_stats(self):
-        stats = {}
+        stats = dict()
         stats['exploit_mitigations'] = []
         aggregation_pipeline = self._get_file_object_filter_aggregation_pipeline(
             pipeline_group={'_id': '$parent_firmware_uids',
@@ -101,7 +102,18 @@ class StatisticUpdater(object):
         self.get_stats_canary(result, stats)
         self.get_stats_relro(result, stats)
         self.get_stats_pie(result, stats)
+        self.get_stats_fortify(result, stats)
         return stats
+
+    def get_stats_fortify(self, result, stats):
+        fortify_off, fortify_on = self.extract_fortify_data_from_analysis(result)
+        total_amount_of_files = calculate_total_files([fortify_off, fortify_on])
+        self.append_nx_stats_to_result_dict(fortify_off, fortify_on, stats, total_amount_of_files)
+
+    def extract_fortify_data_from_analysis(self, result):
+        fortify_on = self.extract_mitigation_from_list('FORTIFY_SOURCE enabled', result)
+        fortify_off = self.extract_mitigation_from_list('FORTIFY_SOURCE disabled', result)
+        return fortify_off, fortify_on
 
     def get_stats_nx(self, result, stats):
         nx_off, nx_on = self.extract_nx_data_from_analysis(result)
@@ -109,8 +121,8 @@ class StatisticUpdater(object):
         self.append_nx_stats_to_result_dict(nx_off, nx_on, stats, total_amount_of_files)
 
     def extract_nx_data_from_analysis(self, result):
-        nx_on = self.extract_mitigation_from_list("NX enabled", result)
-        nx_off = self.extract_mitigation_from_list("NX disabled", result)
+        nx_on = self.extract_mitigation_from_list('NX enabled', result)
+        nx_off = self.extract_mitigation_from_list('NX disabled', result)
         return nx_off, nx_on
 
     def append_nx_stats_to_result_dict(self, nx_off, nx_on, stats, total_amount_of_files):
@@ -123,8 +135,8 @@ class StatisticUpdater(object):
         self.append_canary_stats_to_result_dict(canary_off, canary_on, stats, total_amount_of_files)
 
     def extract_canary_data_from_analysis(self, result):
-        canary_on = self.extract_mitigation_from_list("Canary enabled", result)
-        canary_off = self.extract_mitigation_from_list("Canary disabled", result)
+        canary_on = self.extract_mitigation_from_list('Canary enabled', result)
+        canary_off = self.extract_mitigation_from_list('Canary disabled', result)
         return canary_off, canary_on
 
     def append_canary_stats_to_result_dict(self, canary_off, canary_on, stats, total_amount_of_files):
@@ -137,9 +149,9 @@ class StatisticUpdater(object):
         self.append_relro_stats_to_result_dict(relro_off, relro_on, relro_partial, stats, total_amount_of_files)
 
     def extract_relro_data_from_analysis(self, result):
-        relro_on = self.extract_mitigation_from_list("RELRO fully enabled", result)
-        relro_partial = self.extract_mitigation_from_list("RELRO partially enabled", result)
-        relro_off = self.extract_mitigation_from_list("RELRO disabled", result)
+        relro_on = self.extract_mitigation_from_list('RELRO fully enabled', result)
+        relro_partial = self.extract_mitigation_from_list('RELRO partially enabled', result)
+        relro_off = self.extract_mitigation_from_list('RELRO disabled', result)
         return relro_off, relro_on, relro_partial
 
     def append_relro_stats_to_result_dict(self, relro_off, relro_on, relro_partial, stats, total_amount_of_files):
@@ -153,10 +165,10 @@ class StatisticUpdater(object):
         self.append_pie_stats_to_result_dict(pie_invalid, pie_off, pie_on, pie_partial, stats, total_amount_of_files)
 
     def extract_pie_data_from_analysis(self, result):
-        pie_on = self.extract_mitigation_from_list("PIE enabled", result)
-        pie_partial = self.extract_mitigation_from_list("PIE/DSO present", result)
-        pie_off = self.extract_mitigation_from_list("PIE disabled", result)
-        pie_invalid = self.extract_mitigation_from_list("PIE - invalid ELF file", result)
+        pie_on = self.extract_mitigation_from_list('PIE enabled', result)
+        pie_partial = self.extract_mitigation_from_list('PIE/DSO present', result)
+        pie_off = self.extract_mitigation_from_list('PIE disabled', result)
+        pie_invalid = self.extract_mitigation_from_list('PIE - invalid ELF file', result)
         return pie_invalid, pie_off, pie_on, pie_partial
 
     def append_pie_stats_to_result_dict(self, pie_invalid, pie_off, pie_on, pie_partial, stats, total_amount_of_files):
@@ -320,6 +332,23 @@ class StatisticUpdater(object):
     def _get_month_name(month_int):
         return datetime(1900, month_int, 1).strftime('%B')
 
+    def _get_software_components_stats(self):
+        query_result = self.db.file_objects.aggregate([
+            {'$project': {'sc': {'$objectToArray': '$processed_analysis.software_components'}}},
+            {'$match': {'sc.4': {'$exists': True}}},  # match only analyses with actual results (more keys than the 4 standard keys)
+            {'$unwind': '$sc'},
+            {'$group': {'_id': '$sc.k', 'count': {'$sum': 1}}}
+        ])
+
+        return {'software_components': [
+            (entry['_id'], int(entry['count']))
+            for entry in query_result
+            if entry['_id'] not in ['summary', 'analysis_date', 'file_system_flag', 'plugin_version', 'tags', 'skipped', 'system_version']
+        ]}
+
+
+# ---- internal stuff
+
     def _build_stats_entry_from_date_query(self, date_query):
         time_dict = build_time_dict(date_query)
         result = []
@@ -327,8 +356,6 @@ class StatisticUpdater(object):
             for month in sorted(time_dict[year].keys()):
                 result.append(('{} {}'.format(self._get_month_name(month), year), time_dict[year][month]))
         return result
-
-# ---- internal stuff
 
     @staticmethod
     def _convert_dict_list_to_list(input_list):

@@ -10,7 +10,7 @@
 			<col width="600">
 		</colgroup>
 		{% for key in firmware.processed_analysis[selected_analysis] %}
-			{% if key not in ['summary', 'plugin_version', 'analysis_date', 'tags'] %}
+			{% if key not in ['summary', 'system_version', 'plugin_version', 'analysis_date', 'tags', 'skipped'] %}
 				<tr>
 					<td class="active" rowspan=5> {{loop.index - 1}} </td>
 					<td class="active"> Software Name:</td>
