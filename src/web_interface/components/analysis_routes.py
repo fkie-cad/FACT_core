@@ -11,19 +11,17 @@ from helperFunctions.dataConversion import none_to_none
 from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.mongo_task_conversion import check_for_errors, convert_analysis_task_to_fw_obj, create_re_analyze_task
 from helperFunctions.web_interface import ConnectTo, get_template_as_string, overwrite_default_plugins
-from web_interface.security.authentication import user_has_privilege
 from intercom.front_end_binding import InterComFrontEndBinding
 from objects.firmware import Firmware
 from storage.db_interface_admin import AdminDbInterface
+from storage.db_interface_compare import CompareDbInterface
 from storage.db_interface_frontend import FrontEndDbInterface
 from storage.db_interface_view_sync import ViewReader
 from web_interface.components.compare_routes import get_comparison_uid_list_from_session
 from web_interface.components.component_base import ComponentBase
+from web_interface.security.authentication import user_has_privilege
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
-
-
-from storage.db_interface_compare import CompareDbInterface
 
 
 def get_analysis_view(view_name):

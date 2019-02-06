@@ -46,7 +46,7 @@ class FilterClass:
         return tmp
 
     def _filter_replace_uid_with_hid(self, input_data, root_uid=None):
-        tmp = input_data.__str__()
+        tmp = str(input_data)
         if tmp == 'None':
             return ' '
         uid_list = get_all_uids_in_string(tmp)
@@ -56,13 +56,7 @@ class FilterClass:
         return tmp
 
     def _filter_replace_comparison_uid_with_hid(self, input_data, root_uid=None):
-        tmp = input_data.__str__()
-        if tmp == 'None':
-            return ' '
-        uid_list = get_all_uids_in_string(tmp)
-        with ConnectTo(FrontEndDbInterface, self._config) as sc:
-            for item in uid_list:
-                tmp = tmp.replace(item, sc.get_hid(item, root_uid=root_uid))
+        tmp = self._filter_replace_uid_with_hid(input_data, root_uid)
         res = tmp.split(';')
         return '  ||  '.join(res)
 
