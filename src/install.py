@@ -42,8 +42,8 @@ PROGRAM_DESCRIPTION = 'Firmware Analysis and Comparison Tool (FACT) installation
 
 INSTALL_CANDIDATES = ['frontend', 'db', 'backend']
 
-BIONIC_CODE_NAMES = ['bionic beaver', 'tara']
-XENIAL_CODE_NAMES = ['xenial xerus', 'yakkety yak', 'sarah', 'serena', 'sonya', 'sylvia']
+BIONIC_CODE_NAMES = ['bionic', 'tara']
+XENIAL_CODE_NAMES = ['xenial', 'yakkety', 'sarah', 'serena', 'sonya', 'sylvia']
 
 
 def _setup_argparser():

@@ -18,7 +18,8 @@ from web_interface.filter import byte_number_filter, encode_base64_filter, \
     text_highlighter, get_canvas_height, comment_out_regex_meta_chars, user_has_role, \
     generic_nice_representation, list_to_line_break_string_no_sort, render_tags, fix_cwe, \
     data_to_chart_with_value_percentage_pairs, render_analysis_tags, vulnerability_class, sort_users_by_name, \
-    sort_roles_by_number_of_privileges, filter_format_string_list_with_offset, decompress
+    sort_roles_by_number_of_privileges, filter_format_string_list_with_offset, decompress, \
+    get_unique_keys_from_list_of_dicts
 
 
 class FilterClass:
@@ -131,3 +132,5 @@ class FilterClass:
         self._app.jinja_env.filters['decompress'] = decompress
         self._app.jinja_env.filters['firmware_detail_tabular_field'] = self._render_firmware_detail_tabular_field
         self._app.jinja_env.filters['dict_to_json'] = json.dumps
+        self._app.jinja_env.filters['is_list'] = lambda item: isinstance(item, list)
+        self._app.jinja_env.filters['get_unique_keys_from_list_of_dicts'] = get_unique_keys_from_list_of_dicts

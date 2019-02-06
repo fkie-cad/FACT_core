@@ -7,15 +7,17 @@ ARG https_proxy
 ARG NO_PROXY
 ARG no_proxy
 
-RUN apt-get update && install_clean \
-    make gcc npm \
-    python3-pip git sudo
-
 WORKDIR /opt/app
 
 COPY install.sh /opt/app/install.sh
 
+RUN apt-get update && install_clean \
+    build-essential npm \
+    python3-pip git sudo
+
 RUN /opt/app/install.sh
+
+RUN apt-get remove -y build-essential npm python3-pip git && install_clean
 
 WORKDIR /opt/app/fact_radare_viewer
 
