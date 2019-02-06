@@ -38,5 +38,4 @@ cd fact_radare_viewer
 sudo -EH pip3 install -r requirements.txt
 cd ..
 
-
 exit 0

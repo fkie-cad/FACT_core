@@ -49,3 +49,16 @@ rule PH7
     condition:
         $a and no_text_file
 }
+
+rule FileX
+{
+	meta:
+		software_name = "FileX"
+		open_source = false
+		website = "https://rtos.com/solutions/threadx/real-time-operating-system/"
+		description = "FAT filesystem implementation for ThreadX RTOS"
+	strings:
+		$a = /FileX [a-z\/ 1-9]+ [a-z]?\d+\.\d+(\.\d+)?(\.\d+)?/ nocase ascii wide
+	condition:
+		$a
+}

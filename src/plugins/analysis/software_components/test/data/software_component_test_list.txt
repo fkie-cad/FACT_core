@@ -53,3 +53,6 @@ libVorbis 1.2.3
 pptp version 1.7.0
 libFLAC 1.2.1
 PH7/2.1.4
+ThreadX ARM11/Green Hills Version G5.0.5.0
+FileX ARM9/Green Hills Version G5.1.5.1
+Hewlett-Packard FTP Print Server Version 3.0

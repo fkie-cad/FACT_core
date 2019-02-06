@@ -8,7 +8,7 @@ import zlib
 from base64 import standard_b64encode
 from operator import itemgetter
 from time import localtime, strftime, struct_time
-from typing import AnyStr
+from typing import AnyStr, List
 
 from common_helper_files import human_readable_file_size
 
@@ -361,3 +361,11 @@ def decompress(s: AnyStr) -> str:
         except zlib.error:
             return s.decode()
     return s
+
+
+def get_unique_keys_from_list_of_dicts(list_of_dicts: List[dict]):
+    unique_keys = set()
+    for dictionary in list_of_dicts:
+        for key in dictionary:
+            unique_keys.add(key)
+    return unique_keys
