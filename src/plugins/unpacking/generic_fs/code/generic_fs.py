@@ -62,6 +62,7 @@ def _mount_from_boot_record(file_path, tmp_dir):
         # Bug in kpartx doesn't allow -d to work on long file names (as in /storage/path/<prefix>/<sha_hash>_<length>)
         # thus "host" loop device is used instead of filename
         k_output, return_code = execute_shell_command_get_return_code('sudo kpartx -d -v {}'.format(_get_host_loop(loop_devices)))
+        execute_shell_command('sudo losetup -d {}'.format(_get_host_loop(loop_devices)))
         return output + k_output
 
     return output
