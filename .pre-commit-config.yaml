@@ -4,23 +4,36 @@ repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v2.1.0
     hooks:
+    -   id: check-added-large-files
+        args: [--maxkb=10000]
+
+    -   id: check-json
+
+    -   id: check-merge-conflict
+
+    -   id: check-yaml
+
     -   id: end-of-file-fixer
         types: [python]
 
-    -   id: check-json
-        types: [json]
+    -   id: fix-encoding-pragma
+        args: [--remove]
 
-    -   id: check-yaml
-        types: [yaml]
+    -   id: file-contents-sorter
+        files: src/unpacker/passwords|.gitignore|_list.txt
+
+    -   id: flake8
+
+    -   id: forbid-new-submodules
+
+    -   id: no-commit-to-branch
+
+    -   id: pretty-format-json
+        args: [--autofix]
 
     -   id: trailing-whitespace
         types: [python]
-
-    -   id: flake8
-        types: [python]
         args: [--ignore=E501]
-
-    -   id: check-merge-conflict
 
 
 -   repo: https://github.com/pre-commit/mirrors-pylint
