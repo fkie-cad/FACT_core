@@ -124,7 +124,7 @@ def _install_unpacker(xenial):
                          'sharutils')
     apt_install_packages('unar')
     # firmware-mod-kit
-    install_github_project('rampageX/firmware-mod-kit', ['(cd src && autoconf && sh configure && make)',
+    install_github_project('rampageX/firmware-mod-kit', ['git checkout 5e74fe9dd', '(cd src && sh configure && make)',
                                                          'cp src/yaffs2utils/unyaffs2 src/untrx src/tpl-tool/src/tpl-tool ../../bin/'])
 
 
