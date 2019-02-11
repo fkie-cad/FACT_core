@@ -6,11 +6,11 @@ from time import time
 
 from common_helper_files import get_files_in_dir
 
-from helperFunctions.config import read_list_from_config
 from helperFunctions.fileSystem import get_file_type_from_path
 from helperFunctions.plugin import import_plugins
 
 
+# FIXME This is broken. It should be replaced by wrapper for docker. Extraction runs without it.
 class UnpackBase(object):
     '''
     The unpacker module unpacks all files included in a file
@@ -25,19 +25,12 @@ class UnpackBase(object):
         self.unpacker_plugins = {}
         self.load_plugins()
         logging.info('[worker {}] Plug-ins available: {}'.format(self.worker_id, self.source.list_plugins()))
-        self._set_whitelist()
 
     def load_plugins(self):
         self.source = import_plugins('unpacker.plugins', 'plugins/unpacking')
         for plugin_name in self.source.list_plugins():
             plugin = self.source.load_plugin(plugin_name)
             plugin.setup(self)
-
-    def _set_whitelist(self):
-        self.whitelist = read_list_from_config(self.config, 'unpack', 'whitelist')
-        logging.debug('[worker {}] Ignore (Whitelist): {}'.format(self.worker_id, ', '.join(self.whitelist)))
-        for item in self.whitelist:
-            self.register_plugin(item, self.unpacker_plugins['generic/nop'])
 
     def register_plugin(self, mime_type, unpacker_name_and_function):
         self.unpacker_plugins[mime_type] = unpacker_name_and_function

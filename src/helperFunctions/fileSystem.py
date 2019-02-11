@@ -66,6 +66,7 @@ def get_chroot_path(absolute_path, base_path):
     input: absolute_path=/foo/bar/abc, base_path=/foo/
     output: /bar/abc
     '''
+    # TODO Should be replaced by some use of Path.relative_to
     if absolute_path[0:len(base_path)] == base_path:
         new_path = absolute_path[len(base_path):len(absolute_path)]
         if new_path[0] != '/':

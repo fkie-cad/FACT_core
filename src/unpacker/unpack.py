@@ -1,100 +1,77 @@
+import json
 import logging
-import sys
+from pathlib import Path
 from tempfile import TemporaryDirectory
+from typing import List
+import os
 
-from common_helper_files import human_readable_file_size
-from common_helper_unpacking_classifier import avg_entropy, get_binary_size_without_padding, is_compressed
+from common_helper_process import execute_shell_command_get_return_code
 
-from helperFunctions.dataConversion import make_list_from_dict, make_unicode_string
-from helperFunctions.fileSystem import file_is_empty, get_chroot_path_excluding_extracted_dir, get_file_type_from_path
+from helperFunctions.dataConversion import make_unicode_string, make_list_from_dict
+from helperFunctions.fileSystem import get_chroot_path_excluding_extracted_dir, get_file_type_from_path, file_is_empty
 from objects.file import FileObject
 from storage.fs_organizer import FS_Organizer
 from unpacker.unpackBase import UnpackBase
 
 
 class Unpacker(UnpackBase):
-
-    GENERIC_FS_FALLBACK_CANDIDATES = ['SquashFS']
-    GENERIC_CARVER_FALLBACK_BLACKLIST = ['generic_carver', 'NOP', 'PaTool', 'SFX']
-    VALID_COMPRESSED_FILE_TYPES = ['application/x-shockwave-flash', 'audio/mpeg', 'audio/ogg', 'image/png', 'image/jpeg', 'image/gif', 'video/mp4', 'video/ogg']
-    HEADER_OVERHEAD = 256
-
     def __init__(self, config=None, worker_id=None, db_interface=None):
         super().__init__(config=config, worker_id=worker_id)
         self.file_storage_system = FS_Organizer(config=self.config)
         self.db_interface = db_interface
 
-    def unpack(self, current_fo):
+    def unpack(self, current_fo: FileObject):
         '''
         Recursively extract all objects included in current_fo and add them to current_fo.files_included
         '''
 
         logging.debug('[worker {}] Extracting {}: Depth: {}'.format(self.worker_id, current_fo.get_uid(), current_fo.depth))
+
+        if current_fo.depth >= self.config.getint('unpack', 'max_depth'):
+            logging.warning('{} is not extracted since depth limit ({}) is reached'.format(current_fo.get_uid(), self.config.get('unpack', 'max_depth')))
+            return []
+
         tmp_dir = TemporaryDirectory(prefix='faf_unpack_')
-        extracted_files, meta_data = self.extract_files_from_file(current_fo.file_path, tmp_dir.name, current_fo.depth)
-        extracted_files, meta_data = self._do_fallback_if_necessary(extracted_files, meta_data, tmp_dir, current_fo)
+        self._initialize_shared_folder(tmp_dir)
+
+        # Call docker container
+        Path(tmp_dir.name, 'input', current_fo.file_name).write_bytes(current_fo.binary)
+        output, return_code = execute_shell_command_get_return_code('docker run -v {}:/tmp/extractor --rm fact_extractor'.format(tmp_dir.name))
+        if return_code != 0:
+            error = 'Failed to execute docker extractor with code {}:\n{}'.format(return_code, output)
+            logging.error(error)
+            raise RuntimeError(error)
+
+        # store extracted files in data storage
+        all_items = list(Path(tmp_dir.name, 'files').glob('**/*'))
+        extracted_files = [item for item in all_items if not item.is_dir()]
         extracted_file_objects = self.generate_and_store_file_objects(extracted_files, tmp_dir.name, current_fo)
         extracted_file_objects = self.remove_duplicates(extracted_file_objects, current_fo)
         self.add_included_files_to_object(extracted_file_objects, current_fo)
-        self.add_additional_unpacking_meta(current_fo, meta_data)
-        self.get_unpack_status(current_fo, extracted_file_objects)
+
+        # set meta data
+        current_fo.processed_analysis['unpacker'] = json.loads(Path(tmp_dir.name, 'reports', 'meta.json').read_text())
+
         self.cleanup(tmp_dir)
         return extracted_file_objects
-
-    def _do_fallback_if_necessary(self, extracted_files, meta_data, tmp_dir, current_fo):
-        if len(extracted_files) < 1 and meta_data['plugin_used'] in self.GENERIC_FS_FALLBACK_CANDIDATES:
-                logging.warning('[worker {}] {} could not extract any files -> generic fs fallback'.format(self.worker_id, meta_data['plugin_used']))
-                extracted_files, meta_data = self.unpacking_fallback(current_fo.file_path, tmp_dir.name, meta_data, 'generic/fs')
-        if len(extracted_files) < 1 and meta_data['plugin_used'] not in self.GENERIC_CARVER_FALLBACK_BLACKLIST:
-                logging.warning('[worker {}] {} could not extract any files -> generic carver fallback'.format(self.worker_id, meta_data['plugin_used']))
-                extracted_files, meta_data = self.unpacking_fallback(current_fo.file_path, tmp_dir.name, meta_data, 'generic/carver')
-        return extracted_files, meta_data
 
     def cleanup(self, tmp_dir):
         try:
             tmp_dir.cleanup()
         except Exception as e:
-            logging.error('[worker {}] Could not CleanUp tmp_dir: {} - {}'.format(self.worker_id, sys.exc_info()[0].__name__, e))
-
-    def get_unpack_status(self, fo, extracted_fos):
-        fo.processed_analysis['unpacker']['summary'] = []
-        fo_entropy = avg_entropy(fo.binary)
-        fo.processed_analysis['unpacker']['entropy'] = fo_entropy
-
-        if len(fo.files_included) < 1:
-            if get_file_type_from_path(fo.file_path)['mime'] in self.VALID_COMPRESSED_FILE_TYPES:
-                fo.processed_analysis['unpacker']['summary'] = ['unpacked']
-            else:
-                if is_compressed(fo.binary, compress_entropy_threshold=self.config['ExpertSettings'].getfloat('unpack_threshold', 0.7), classifier=avg_entropy):
-                    fo.processed_analysis['unpacker']['summary'] = ['packed']
-                else:
-                    fo.processed_analysis['unpacker']['summary'] = ['unpacked']
-        else:
-            self._detect_unpack_loss(fo, extracted_fos)
-
-    def _detect_unpack_loss(self, fo, extracted_fos):
-        decoding_overhead = 1 - fo.processed_analysis['unpacker'].get('encoding_overhead', 0)
-        cleaned_size = get_binary_size_without_padding(fo.binary) * decoding_overhead - self.HEADER_OVERHEAD
-        extracted_fos_size_sum = self._get_extracted_fos_size_sum(extracted_fos)
-        fo.processed_analysis['unpacker']['size packed -> unpacked'] = '{} -> {}'.format(human_readable_file_size(cleaned_size), human_readable_file_size(extracted_fos_size_sum))
-        if cleaned_size > extracted_fos_size_sum:
-            fo.processed_analysis['unpacker']['summary'] = ['data lost']
-        else:
-            fo.processed_analysis['unpacker']['summary'] = ['no data lost']
+            logging.error('[worker {}] Could not CleanUp tmp_dir: {} - {}'.format(self.worker_id, type(e), str(e)))
 
     @staticmethod
-    def _get_extracted_fos_size_sum(extracted_fos):
-        result = 0
-        for item in extracted_fos:
-            result += len(item.binary)
-        return result
+    def add_included_files_to_object(included_file_objects, root_file_object):
+        for item in included_file_objects:
+            root_file_object.add_included_file(item)
 
     @staticmethod
-    def add_additional_unpacking_meta(current_file, meta_data):
-        meta_data['number_of_unpacked_files'] = len(current_file.files_included)
-        current_file.processed_analysis['unpacker'] = meta_data
+    def _initialize_shared_folder(tmp_dir):
+        for subpath in ['files', 'reports', 'input']:
+            os.makedirs(str(Path(tmp_dir.name, subpath)), exist_ok=True)
 
-    def generate_and_store_file_objects(self, file_paths, tmp_dir, parent):
+    def generate_and_store_file_objects(self, file_paths: List[Path], tmp_dir, parent: FileObject):
         extracted_files = {}
         for item in file_paths:
             if not file_is_empty(item):
@@ -119,8 +96,3 @@ class Unpacker(UnpackBase):
         if parent_fo.get_uid() in extracted_fo_dict:
             del extracted_fo_dict[parent_fo.get_uid()]
         return make_list_from_dict(extracted_fo_dict)
-
-    @staticmethod
-    def add_included_files_to_object(included_file_objects, root_file_object):
-        for item in included_file_objects:
-            root_file_object.add_included_file(item)

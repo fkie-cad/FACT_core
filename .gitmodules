@@ -1,0 +1,3 @@
+[submodule "src/fact_extractor"]
+	path = src/fact_extractor
+	url = https://github.com/fkie-cad/fact_extractor
