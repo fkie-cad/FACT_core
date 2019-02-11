@@ -6,7 +6,7 @@ from common_helper_files.fail_safe_file_operations import get_binary_from_file
 TEST_DATA_DIR = Path(Path(__file__).parent, 'data')
 
 
-class TestHpStreamUnpacker(TestUnpackerBase):
+class TestRawUnpacker(TestUnpackerBase):
 
     def test_unpacker_selection(self):
         self.check_unpacker_selection('data/raw', 'RAW')
