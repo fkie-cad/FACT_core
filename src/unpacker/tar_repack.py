@@ -1,11 +1,10 @@
 import logging
 import os
-from subprocess import Popen, PIPE
+from subprocess import PIPE, Popen
 from tempfile import TemporaryDirectory
 
 from common_helper_files import get_binary_from_file
-
-from unpacker.unpackBase import UnpackBase
+from unpacker.unpack_base import UnpackBase
 
 
 class TarRepack(UnpackBase):

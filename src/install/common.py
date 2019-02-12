@@ -4,10 +4,12 @@ from contextlib import suppress
 from pathlib import Path
 
 from common_helper_process import execute_shell_command_get_return_code
-
-from helperFunctions.install import apt_remove_packages, apt_install_packages, apt_upgrade_system, apt_update_sources, \
-    apt_autoremove_packages, apt_clean_system, InstallationError, pip3_install_packages, install_github_project, \
-    OperateInDirectory
+from helperFunctions.install import (
+    InstallationError, OperateInDirectory, apt_autoremove_packages,
+    apt_clean_system, apt_install_packages, apt_remove_packages,
+    apt_update_sources, apt_upgrade_system, install_github_project,
+    pip3_install_packages
+)
 
 
 def install_pip(python_command):
@@ -19,8 +21,6 @@ def install_pip(python_command):
 
 
 def main(distribution):
-    xenial = distribution == 'xenial'
-
     apt_install_packages('apt-transport-https')
 
     logging.info('Updating system')
@@ -40,7 +40,7 @@ def main(distribution):
 
     # install python3 and general build stuff
     apt_install_packages('python3', 'python3-dev', 'build-essential', 'automake', 'autoconf', 'libtool', 'git', 'unzip')
-    if not xenial:
+    if not distribution == 'xenial':
         pip3_install_packages('testresources')
 
     # get a bugfree recent pip version

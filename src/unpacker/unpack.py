@@ -3,15 +3,17 @@ import logging
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import List
-import os
 
-from common_helper_process import execute_shell_command_get_return_code
-
-from helperFunctions.dataConversion import make_unicode_string, make_list_from_dict
-from helperFunctions.fileSystem import get_chroot_path_excluding_extracted_dir, get_file_type_from_path, file_is_empty
+from helperFunctions.dataConversion import (
+    make_list_from_dict, make_unicode_string
+)
+from helperFunctions.fileSystem import (
+    file_is_empty, get_chroot_path_excluding_extracted_dir,
+    get_file_type_from_path
+)
 from objects.file import FileObject
 from storage.fs_organizer import FS_Organizer
-from unpacker.unpackBase import UnpackBase
+from unpacker.unpack_base import UnpackBase
 
 
 class Unpacker(UnpackBase):
@@ -32,19 +34,8 @@ class Unpacker(UnpackBase):
             return []
 
         tmp_dir = TemporaryDirectory(prefix='faf_unpack_')
-        self._initialize_shared_folder(tmp_dir)
+        extracted_files = self.extract_files_from_file(current_fo.file_path, tmp_dir.name)
 
-        # Call docker container
-        Path(tmp_dir.name, 'input', current_fo.file_name).write_bytes(current_fo.binary)
-        output, return_code = execute_shell_command_get_return_code('docker run -v {}:/tmp/extractor --rm fact_extractor'.format(tmp_dir.name))
-        if return_code != 0:
-            error = 'Failed to execute docker extractor with code {}:\n{}'.format(return_code, output)
-            logging.error(error)
-            raise RuntimeError(error)
-
-        # store extracted files in data storage
-        all_items = list(Path(tmp_dir.name, 'files').glob('**/*'))
-        extracted_files = [item for item in all_items if not item.is_dir()]
         extracted_file_objects = self.generate_and_store_file_objects(extracted_files, tmp_dir.name, current_fo)
         extracted_file_objects = self.remove_duplicates(extracted_file_objects, current_fo)
         self.add_included_files_to_object(extracted_file_objects, current_fo)
@@ -58,18 +49,13 @@ class Unpacker(UnpackBase):
     def cleanup(self, tmp_dir):
         try:
             tmp_dir.cleanup()
-        except Exception as e:
-            logging.error('[worker {}] Could not CleanUp tmp_dir: {} - {}'.format(self.worker_id, type(e), str(e)))
+        except OSError as error:
+            logging.error('[worker {}] Could not CleanUp tmp_dir: {} - {}'.format(self.worker_id, type(error), str(error)))
 
     @staticmethod
     def add_included_files_to_object(included_file_objects, root_file_object):
         for item in included_file_objects:
             root_file_object.add_included_file(item)
-
-    @staticmethod
-    def _initialize_shared_folder(tmp_dir):
-        for subpath in ['files', 'reports', 'input']:
-            os.makedirs(str(Path(tmp_dir.name, subpath)), exist_ok=True)
 
     def generate_and_store_file_objects(self, file_paths: List[Path], tmp_dir, parent: FileObject):
         extracted_files = {}
