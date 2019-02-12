@@ -1,0 +1,60 @@
+default_stages: [commit, push]
+exclude: ^src/bin/
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v2.1.0
+    hooks:
+    -   id: check-added-large-files
+        args: [--maxkb=10000]
+
+    -   id: check-json
+
+    -   id: check-merge-conflict
+
+    -   id: check-yaml
+
+    -   id: end-of-file-fixer
+        types: [python]
+
+    -   id: fix-encoding-pragma
+        args: [--remove]
+
+    -   id: file-contents-sorter
+        files: src/unpacker/passwords|.gitignore|_list.txt
+
+    -   id: flake8
+        args: [--ignore=E501]
+
+    -   id: forbid-new-submodules
+
+    -   id: no-commit-to-branch
+
+    -   id: pretty-format-json
+        args: [--autofix]
+
+    -   id: trailing-whitespace
+        types: [python]
+
+
+-   repo: https://github.com/pre-commit/mirrors-pylint
+    rev: v2.2.2
+    hooks:
+    -   id: pylint
+        language: system
+        args: [--rcfile=.pylintrc]
+
+-   repo: https://github.com/jumanjihouse/pre-commit-hooks
+    rev: 1.11.0
+    hooks:
+    -   id: shellcheck
+
+-   repo: https://github.com/pre-commit/mirrors-isort
+    rev: v4.3.4
+    hooks:
+    -   id: isort
+        args: ["-m 5"]
+
+-   repo: https://github.com/pryorda/dockerfilelint-precommit-hooks
+    rev: v0.1.0
+    hooks:
+    -   id: dockerfilelint
