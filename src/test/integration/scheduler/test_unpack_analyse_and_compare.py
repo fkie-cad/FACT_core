@@ -3,7 +3,7 @@ from multiprocessing import Event, Value
 from tempfile import TemporaryDirectory
 from test.common_helper import clean_test_database, get_database_names
 from test.integration.common import MockFSOrganizer, initialize_config
-from unittest import mock, skip, TestCase
+from unittest import TestCase, mock, skip
 
 from helperFunctions.dataConversion import unify_string_list
 from helperFunctions.fileSystem import get_test_data_dir
