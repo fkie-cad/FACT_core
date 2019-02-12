@@ -42,10 +42,9 @@ def main(distribution):
     _install_plugins()
 
     # compile custom magic file
-    with OperateInDirectory('..'):
-        mime_output, mime_rc = execute_shell_command_get_return_code('./compile_custom_magic.py')
-        if mime_rc != 0:
-            raise InstallationError(mime_output)
+    mime_output, mime_rc = execute_shell_command_get_return_code('../compile_custom_magic.py')
+    if mime_rc != 0:
+        raise InstallationError(mime_output)
 
     # configure environment
     _edit_sudoers()
