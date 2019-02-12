@@ -15,10 +15,13 @@ TEST_DATA_UPGRADE_RAW = b'\x40\x50\x4A\x4C\x20\x55\x50\x47\x52\x41\x44\x45\x20\x
 TEST_COMMAND = {'raw': b'@PJL UPGRADE SIZE=112', 'begin_offset': 0, 'end_offset': 21, 'type': b'UPGRADE', 'value': b'SIZE=112'}
 
 
-def test_get_end_position_of_first_pjl():
-    test_data = b'abcde...\x25\x2d12345X\x0ablah\x25\x2d12345X\x0ablub'
-    end_position = _get_end_postion_of_first_preamble(test_data)
-    assert test_data[end_position:] == b'blah\x25\x2d12345X\x0ablub'
+@pytest.mark.parametrize('input_data, payload', [
+    (b'abcde...\x25\x2d12345X\x0ablah\x25\x2d12345X\x0ablub', b'blah'),
+    (b'no_preamble', b'no_p')
+])
+def test_get_end_position_of_first_pjl(input_data, payload):
+    end_position = _get_end_postion_of_first_preamble(input_data)
+    assert input_data[end_position:end_position + 4] == payload
 
 
 def test_get_pjl_commands():
