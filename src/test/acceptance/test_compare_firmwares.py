@@ -85,14 +85,24 @@ class TestAcceptanceCompareFirmwares(TestAcceptanceBase):
         rv = self.test_client.get('/database/browse_compare')
         self.assertIn(self.test_fw_a.name.encode(), rv.data, 'no compare result shown in browse')
 
+    def _show_analysis_without_compare_list(self):
+        rv = self.test_client.get('/analysis/{}'.format(self.test_fw_a.uid))
+        assert b'Show List of Known Comparisons' not in rv.data
+
+    def _show_analysis_with_compare_list(self):
+        rv = self.test_client.get('/analysis/{}'.format(self.test_fw_a.uid))
+        assert b'Show List of Known Comparisons' in rv.data
+
     def test_compare_firmwares(self):
         self._upload_firmware_get()
         for fw in [self.test_fw_a, self.test_fw_c]:
             self._upload_firmware_put(fw.path, fw.name, fw.uid)
         self.analysis_finished_event.wait(timeout=20)
+        self._show_analysis_without_compare_list()
         self._add_firmwares_to_compare()
         self._start_compare()
         self.compare_finished_event.wait(timeout=20)
         self._show_comparison_results()
         self._show_home_page()
         self._show_compare_browse()
+        self._show_analysis_with_compare_list()

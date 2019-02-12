@@ -59,7 +59,7 @@ def string_list_to_list(string_list):
 
 
 def unify_string_list(string_list):
-        uids = string_list.split(';')
+        uids = string_list_to_list(string_list)
         return list_to_unified_string_list(uids)
 
 
