@@ -5,7 +5,6 @@ from pathlib import Path
 
 from common_helper_process import execute_shell_command_get_return_code
 from compile_yara_signatures import main as compile_signatures
-from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.install import (
     InstallationError, OperateInDirectory, apt_install_packages,
     check_string_in_command, load_main_config, pip3_install_packages
@@ -24,10 +23,10 @@ def main():
 
     # build extraction docker container
     logging.info('Building fact extraction container')
-    with OperateInDirectory(Path(get_src_dir(), 'fact_extractor')):
-        output, return_code = execute_shell_command_get_return_code('docker build --build-arg USER=root -t fact_extractor .')
-        if return_code != 0:
-            raise InstallationError('Failed to build extraction container:\n{}'.format(output))
+
+    output, return_code = execute_shell_command_get_return_code('docker pull fkiecad/fact_extractor')
+    if return_code != 0:
+        raise InstallationError('Failed to pull extraction container:\n{}'.format(output))
 
     # installing common code modules
     pip3_install_packages('git+https://github.com/fkie-cad/common_helper_process.git')
