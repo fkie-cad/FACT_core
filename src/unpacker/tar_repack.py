@@ -1,5 +1,6 @@
 import logging
 import os
+from pathlib import Path
 from subprocess import PIPE, Popen
 from tempfile import TemporaryDirectory
 
@@ -15,15 +16,15 @@ class TarRepack(UnpackBase):
 
         archive_directory = TemporaryDirectory(prefix='FAF_tar_repack')
         archive_path = os.path.join(archive_directory.name, 'download.tar.gz')
-        tar_binary = self._repack_extracted_files(extraction_directory, archive_path)
+        tar_binary = self._repack_extracted_files(Path(extraction_directory.name, 'files'), archive_path)
 
         self._cleanup_directories(archive_directory, extraction_directory)
 
         return tar_binary
 
     @staticmethod
-    def _repack_extracted_files(extraction_dir, out_file_path):
-        with Popen('tar -C {} -cvzf {} .'.format(extraction_dir.name, out_file_path), shell=True, stdout=PIPE) as process:
+    def _repack_extracted_files(extraction_dir: Path, out_file_path: str) -> bytes:
+        with Popen('tar -C {} -cvzf {} .'.format(extraction_dir, out_file_path), shell=True, stdout=PIPE) as process:
             output = process.stdout.read().decode()
             logging.debug('tar -cvzf:\n {}'.format(output))
 

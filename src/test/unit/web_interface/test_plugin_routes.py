@@ -1,14 +1,15 @@
 import os
 from itertools import chain
+from test.unit.web_interface.rest.conftest import decode_response
 from unittest import TestCase
 
 from flask import Flask
 from flask_restful import Api
-
 from helperFunctions.config import get_config_for_testing
 from helperFunctions.fileSystem import get_src_dir
-from test.unit.web_interface.rest.conftest import decode_response
-from web_interface.components.plugin_routes import PluginRoutes, PLUGIN_CATEGORIES
+from web_interface.components.plugin_routes import (
+    PLUGIN_CATEGORIES, PluginRoutes
+)
 
 
 class PluginRoutesMock(PluginRoutes):
@@ -40,7 +41,7 @@ class TestPluginRoutes(TestCase):
         plugins = chain(*plugins)
         assert all(c in categories for c in PLUGIN_CATEGORIES)
         assert 'dummy' in plugins
-        assert 'generic_carver' in plugins
+        assert 'file_coverage' in plugins
 
     def test_module_has_routes(self):
         plugin_routes = PluginRoutes(self.app, self.config, api=self.api)
