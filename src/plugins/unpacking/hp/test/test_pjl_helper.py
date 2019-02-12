@@ -72,7 +72,7 @@ def test_extract_file_from_upgrade():
 
     assert expected_path_of_dumped_file.exists()
 
-    dumped_file_binary = get_binary_from_file(expected_path_of_dumped_file)
+    dumped_file_binary = get_binary_from_file(str(expected_path_of_dumped_file))
     assert dumped_file_binary == b'\x00Test File 1'
 
     tmp_dir.cleanup()

@@ -24,7 +24,7 @@ def extract_fingerprint(input_data, tmp_dir):
     fingerprint = _get_file_fingerprint(input_data)
     if fingerprint:
         store_path = Path(tmp_dir, 'fingerprint.txt')
-        write_binary_to_file(fingerprint, store_path, overwrite=False, file_copy=True)
+        write_binary_to_file(fingerprint, str(store_path), overwrite=False, file_copy=True)
 
 
 def _get_end_postion_of_first_preamble(raw_binary):
@@ -89,7 +89,7 @@ def _extract_file_from_upgrade(binary_data, upgrade_command, extraction_dir):
     else:
         file_name = '{}.bin'.format(upgrade_command['begin_offset'])
     file_path = Path(extraction_dir, file_name)
-    write_binary_to_file(file_binary, file_path, overwrite=False, file_copy=True)
+    write_binary_to_file(file_binary, str(file_path), overwrite=False, file_copy=True)
 
 
 def _get_binary_of_upgrade(binary_data, upgrade_command, file_name):
