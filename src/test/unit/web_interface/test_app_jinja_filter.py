@@ -29,3 +29,11 @@ class TestAppShowAnalysis(WebInterfaceTest):
         result = self._get_template_filter_output(test_firmware_meta_data, 'firmware_detail_tabular_field')
         for expected_part in ['/analysis/UID', 'HID', '>tag1<', '>tag2<']:
             assert expected_part in result
+
+    def test_filter_replace_uid_with_hid(self):
+        one_uid = '{}_1234'.format('a' * 64)
+        assert 'TEST_FW_HID_TEST_FW_HID' == self.filter._filter_replace_uid_with_hid('{}_{}'.format(one_uid, one_uid))
+
+    def test_filter_replace_comparison_uid_with_hid(self):
+        one_uid = '{}_1234'.format('a' * 64)
+        assert 'TEST_FW_HID  ||  TEST_FW_HID' == self.filter._filter_replace_comparison_uid_with_hid('{};{}'.format(one_uid, one_uid))

@@ -11,14 +11,15 @@ from helperFunctions.dataConversion import none_to_none
 from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.mongo_task_conversion import check_for_errors, convert_analysis_task_to_fw_obj, create_re_analyze_task
 from helperFunctions.web_interface import ConnectTo, get_template_as_string, overwrite_default_plugins
-from web_interface.security.authentication import user_has_privilege
 from intercom.front_end_binding import InterComFrontEndBinding
 from objects.firmware import Firmware
 from storage.db_interface_admin import AdminDbInterface
+from storage.db_interface_compare import CompareDbInterface
 from storage.db_interface_frontend import FrontEndDbInterface
 from storage.db_interface_view_sync import ViewReader
 from web_interface.components.compare_routes import get_comparison_uid_list_from_session
 from web_interface.components.component_base import ComponentBase
+from web_interface.security.authentication import user_has_privilege
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
@@ -52,9 +53,10 @@ class AnalysisRoutes(ComponentBase):
     def _show_analysis_results(self, uid, selected_analysis=None, root_uid=None):
         root_uid = none_to_none(root_uid)
         other_versions = None
-
         uids_for_comparison = get_comparison_uid_list_from_session()
-
+        with ConnectTo(CompareDbInterface, self._config) as db_service:
+            all_comparisons = db_service.page_compare_results()
+            known_comparisons = [comparison for comparison in all_comparisons if uid in comparison[0]]
         analysis_filter = [selected_analysis] if selected_analysis else []
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
             file_obj = sc.get_object(uid, analysis_filter=analysis_filter)
@@ -80,7 +82,8 @@ class AnalysisRoutes(ComponentBase):
                                           analysis_plugin_dict=analysis_plugins,
                                           other_versions=other_versions,
                                           uids_for_comparison=uids_for_comparison,
-                                          user_has_admin_clearance=user_has_privilege(current_user, privilege='delete'))
+                                          user_has_admin_clearance=user_has_privilege(current_user, privilege='delete'),
+                                          known_comparisons=known_comparisons)
         else:
             return render_template('uid_not_found.html', uid=uid)
 

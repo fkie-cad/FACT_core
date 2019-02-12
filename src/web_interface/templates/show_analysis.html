@@ -37,6 +37,11 @@
 {# firmware comparison from analysis #}
 
 <div class="row" style="padding-right: 15px">
+    {%if known_comparisons %}
+        <div class="pull-right">
+            <span class="glyphicon glyphicon-hdd" data-toggle="collapse" data-target="#old_comparisons" style="padding: 5px; margin-right: 5px;" title="Show List of Known Comparisons"></span>
+        </div>
+    {% endif %}
     {% if not uids_for_comparison or uid not in uids_for_comparison %}
         <div class="pull-right">
             <span class="glyphicon glyphicon-plus" onclick="location.href='/comparison/add/{{ uid }}'" style="padding: 5px; margin-right: 5px;" title="Add to Comparison"></span>
@@ -48,10 +53,24 @@
             <span class="glyphicon glyphicon-list" data-toggle="collapse" data-target="#comparison-list" style="padding: 5px; margin-right: 5px;" title="Show Selected Firmwares for Comparison"></span>
         </div>
     {% endif %}
-
-
     <div class="pull-right">
-        <h5 style="margin-top: 4px; margin-bottom: 0; margin-right: 5px">Compare</h5>
+        <h5 style="margin-top: 4px; margin-bottom: 0; margin-right: 5px">Comparisons</h5>
+    </div>
+</div>
+
+<div class="collapse" id="old_comparisons">
+    <div class="jumbotron pull-right" style="float: left; padding: 10px; margin-bottom: 0; margin-left: 15px; margin-right: 15px; width: auto; max-width: 650px; border: 1px solid #ddd; background-color: #f8f8f8;">
+        <h4 style="margin-top: 0; text-align: center;">List of Comparisons Containing the Displayed Firmware</h4>
+            <hr style="margin: 12px">
+                <div class="card card-body">
+                    {% for comparison in known_comparisons%}
+                            <div class="col-xs-12" style="padding: 0;">
+                                <span style="padding: 2px; margin: 0; display: -webkit-inline-box; display: ">
+                                    <span button type="button" class="btn btn-primary btn-sm" style="margin-left: 3px" onclick="location.href='/compare/{{ comparison[0]}}'">{{ comparison[0] | replace_comparison_uid_with_hid | safe  }}</span>
+                                </span>
+                            </div>
+                        {% endfor %}
+                </div>
     </div>
 </div>
 
