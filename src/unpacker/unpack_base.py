@@ -12,6 +12,10 @@ class UnpackBase:
         self.config = config
         self.worker_id = worker_id
 
+    @staticmethod
+    def get_extracted_files_dir(base_dir):
+        return Path(base_dir, 'files')
+
     def extract_files_from_file(self, file_path, tmp_dir):
         self._initialize_shared_folder(tmp_dir)
         shutil.copy2(file_path, Path(tmp_dir, 'input', Path(file_path).name))
@@ -22,10 +26,11 @@ class UnpackBase:
             logging.error(error)
             raise RuntimeError(error)
 
+        self.change_owner_back_to_me(tmp_dir)
         all_items = list(Path(tmp_dir, 'files').glob('**/*'))
         return [item for item in all_items if not item.is_dir()]
 
-    def change_owner_back_to_me(self, directory=None, permissions='u+r'):
+    def change_owner_back_to_me(self, directory: str = None, permissions='u+r'):
         with Popen('sudo chown -R {}:{} {}'.format(getuid(), getgid(), directory), shell=True, stdout=PIPE, stderr=PIPE) as pl:
             pl.communicate()
         self._grant_read_permission(directory, permissions)

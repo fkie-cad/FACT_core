@@ -104,11 +104,12 @@ class AnalysisPlugin(AnalysisBasePlugin):
             return file_object
 
         tmp_dir = self.unpacker.unpack_fo(file_object)
+        extracted_files_dir = self.unpacker.get_extracted_files_dir(tmp_dir.name)
 
-        if tmp_dir:
+        if extracted_files_dir.is_dir():
             try:
-                self.root_path = self._find_root_path(tmp_dir)
-                file_list = self._find_relevant_files(tmp_dir)
+                self.root_path = self._find_root_path(extracted_files_dir)
+                file_list = self._find_relevant_files(extracted_files_dir)
                 if file_list:
                     file_object.processed_analysis[self.NAME]['files'] = {}
                     self._process_included_files(file_list, file_object)
@@ -117,17 +118,17 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
         return file_object
 
-    def _find_relevant_files(self, tmp_dir: TemporaryDirectory):
+    def _find_relevant_files(self, extracted_files_dir: Path):
         result = []
-        for f in Path(tmp_dir.name).glob('**/*'):
+        for f in extracted_files_dir.glob('**/*'):
             if f.is_file() and not f.is_symlink():
                 file_type = get_file_type_from_path(f.absolute())
                 if self._has_relevant_type(file_type):
                     result.append(('/{}'.format(f.relative_to(Path(self.root_path))), file_type['full']))
         return result
 
-    def _find_root_path(self, tmp_dir: TemporaryDirectory) -> Path:
-        root_path = Path(tmp_dir.name)
+    def _find_root_path(self, extracted_files_dir: Path) -> Path:
+        root_path = extracted_files_dir
         if (root_path / self.FACT_EXTRACTION_FOLDER_NAME).is_dir():
             # if there a 'fact_extracted' folder in the tmp dir: reset root path to that folder
             root_path /= self.FACT_EXTRACTION_FOLDER_NAME

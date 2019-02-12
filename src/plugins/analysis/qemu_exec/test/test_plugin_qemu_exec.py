@@ -1,21 +1,19 @@
 import os
-from contextlib import suppress
 from pathlib import Path
+from test.common_helper import create_test_firmware
+from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
+from unittest import TestCase
+from zlib import decompress
 
 import pytest
 from common_helper_files import get_dir_of_file
-from unittest import TestCase
-
 from helperFunctions.config import get_config_for_testing
 from helperFunctions.fileSystem import get_test_data_dir
-from test.common_helper import create_test_firmware
-from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
+
 from ..code import qemu_exec
-from zlib import decompress
 
-
-TEST_DATA_DIR = os.path.join(get_dir_of_file(__file__), 'data/test_tmp_dir')
-TEST_DATA_DIR_2 = os.path.join(get_dir_of_file(__file__), 'data/test_tmp_dir_2')
+TEST_DATA_DIR = Path(get_dir_of_file(__file__), 'data/test_tmp_dir')
+TEST_DATA_DIR_2 = Path(get_dir_of_file(__file__), 'data/test_tmp_dir_2')
 
 
 class MockTmpDir:
@@ -34,6 +32,10 @@ class MockUnpacker:
 
     def set_tmp_dir(self, tmp_dir):
         self.tmp_dir = tmp_dir
+
+    @staticmethod
+    def get_extracted_files_dir(base_dir):
+        return Path(base_dir)
 
 
 @pytest.fixture
@@ -79,10 +81,11 @@ class TestPluginQemuExec(AnalysisPluginTest):
         assert self.analysis_plugin._has_relevant_type({'mime': 'application/x-executable'}) is True
 
     def test_find_relevant_files(self):
-        tmp_dir = MockTmpDir(TEST_DATA_DIR)
+        tmp_dir = MockTmpDir(str(TEST_DATA_DIR))
+
         self.analysis_plugin.root_path = tmp_dir.name
         self.analysis_plugin.unpacker.set_tmp_dir(tmp_dir)
-        result = sorted(self.analysis_plugin._find_relevant_files(tmp_dir))
+        result = sorted(self.analysis_plugin._find_relevant_files(Path(tmp_dir.name)))
         assert len(result) == 2
 
         path, mime = result[0]
@@ -172,7 +175,7 @@ class TestPluginQemuExec(AnalysisPluginTest):
         assert result['files'][test_file_uid]['executable'] is True
 
     def test_process_object__error(self):
-        test_fw = self._set_up_fw_for_process_object(path=os.path.join(TEST_DATA_DIR, 'usr'))
+        test_fw = self._set_up_fw_for_process_object(path=Path(TEST_DATA_DIR, 'usr'))
 
         self.analysis_plugin.process_object(test_fw)
         result = test_fw.processed_analysis[self.analysis_plugin.NAME]
@@ -230,7 +233,7 @@ class TestPluginQemuExec(AnalysisPluginTest):
     def _set_up_fw_for_process_object(self, path=TEST_DATA_DIR):
         test_fw = create_test_firmware()
         test_fw.files_included = ['foo', 'bar']
-        self.analysis_plugin.unpacker.set_tmp_dir(MockTmpDir(path))
+        self.analysis_plugin.unpacker.set_tmp_dir(MockTmpDir(str(path)))
         return test_fw
 
     def test_valid_execution_in_results(self):
@@ -343,7 +346,7 @@ class TestQemuExecUnpacker(TestCase):
 
         try:
             assert self.name_prefix in tmp_dir.name
-            content = os.listdir(tmp_dir.name)
+            content = os.listdir(str(Path(tmp_dir.name, 'files')))
             assert content != []
             assert 'get_files_test' in content
         finally:
@@ -357,7 +360,7 @@ class TestQemuExecUnpacker(TestCase):
 
         try:
             assert self.name_prefix in tmp_dir.name
-            content = os.listdir(tmp_dir.name)
+            content = os.listdir(str(Path(tmp_dir.name, 'files')))
             assert content != []
             assert 'get_files_test' in content
         finally:
@@ -369,8 +372,6 @@ class TestQemuExecUnpacker(TestCase):
         tmp_dir = self.unpacker.unpack_fo(test_fw)
 
         assert tmp_dir is None
-        with suppress(AttributeError):
-            tmp_dir.cleanup()
 
     def test_unpack_fo__binary_not_found(self):
         test_fw = create_test_firmware()
@@ -379,8 +380,6 @@ class TestQemuExecUnpacker(TestCase):
         tmp_dir = self.unpacker.unpack_fo(test_fw)
 
         assert tmp_dir is None
-        with suppress(AttributeError):
-            tmp_dir.cleanup()
 
 
 class MockBinaryService:

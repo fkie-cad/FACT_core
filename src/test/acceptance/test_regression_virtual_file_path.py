@@ -1,13 +1,12 @@
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from test.common_helper import clean_test_database, get_database_names
+from test.integration.common import initialize_config
 from time import sleep
 
 import pytest
-
-from intercom.back_end_binding import InterComBackEndBinding
-from test.common_helper import clean_test_database, get_database_names
-from test.integration.common import initialize_config
 from helperFunctions.fileSystem import get_test_data_dir
+from intercom.back_end_binding import InterComBackEndBinding
 from objects.firmware import Firmware
 from scheduler.Analysis import AnalysisScheduler
 from scheduler.Unpacking import UnpackingScheduler
@@ -67,6 +66,7 @@ def add_test_file_and_wait(test_scheduler, path_in_test_dir):
     sleep(5)
 
 
+@pytest.mark.skip(reason='does not terminate')
 def test_check_collision(test_app, test_scheduler):
     add_test_file_and_wait(test_scheduler, 'regression_one')
     add_test_file_and_wait(test_scheduler, 'regression_two')
