@@ -11,6 +11,9 @@ class MockFSOrganizer:
     def delete_file(self, uid):
         pass
 
+    def generate_path(self, uid):
+        return uid
+
 
 class MockDbInterface:
     def __init__(self, config):
