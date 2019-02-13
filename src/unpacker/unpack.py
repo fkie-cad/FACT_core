@@ -34,7 +34,10 @@ class Unpacker(UnpackBase):
             return []
 
         tmp_dir = TemporaryDirectory(prefix='faf_unpack_')
-        extracted_files = self.extract_files_from_file(current_fo.file_path, tmp_dir.name)
+
+        file_path = self._generate_local_file_path(current_fo)
+
+        extracted_files = self.extract_files_from_file(file_path, tmp_dir.name)
 
         extracted_file_objects = self.generate_and_store_file_objects(extracted_files, tmp_dir.name, current_fo)
         extracted_file_objects = self.remove_duplicates(extracted_file_objects, current_fo)
@@ -82,3 +85,9 @@ class Unpacker(UnpackBase):
         if parent_fo.get_uid() in extracted_fo_dict:
             del extracted_fo_dict[parent_fo.get_uid()]
         return make_list_from_dict(extracted_fo_dict)
+
+    def _generate_local_file_path(self, file_object: FileObject):
+        if not Path(file_object.file_path).exists():
+            local_path = self.file_storage_system.generate_path(file_object)
+            return local_path
+        return file_object.file_path
