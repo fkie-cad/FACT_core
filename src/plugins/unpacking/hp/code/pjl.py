@@ -6,8 +6,9 @@ from pathlib import Path
 
 from common_helper_files import get_binary_from_file
 
-INTERNAL_DIR = Path(Path(__file__).parent.parent, 'internal')
+INTERNAL_DIR = Path(__file__).parent.parent / 'internal'
 sys.path.append(str(INTERNAL_DIR))
+
 from pjl_helper import (
     extract_all_upgrades, extract_fingerprint, get_pjl_commands
 )

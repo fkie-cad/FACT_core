@@ -8,7 +8,7 @@ NAME_FIELD_MAX = 102
 
 def get_pjl_commands(input_data):
     pjl_instructions = []
-    tmp = list(re.finditer(b'@PJL [ =.!,?\w]+', input_data))
+    tmp = list(re.finditer(rb'@PJL [ =.!,?\w]+', input_data))
     for item in tmp:
         pjl_instructions.append(_match_to_pjl_dict(item))
     return pjl_instructions
@@ -28,14 +28,14 @@ def extract_fingerprint(input_data, tmp_dir):
 
 
 def _get_end_postion_of_first_preamble(raw_binary):
-    tmp = re.search(b'\x25\x2d12345X\x0a?', raw_binary)
+    tmp = re.search(rb'\x25\x2d12345X\x0a?', raw_binary)
     if tmp:
         return tmp.end()
     return 0
 
 
 def _get_name_of_upgrade(raw_binary, upgrade_command):
-    tmp = re.search(b'\xa8\x01([\w ]+)  [\w ]+', raw_binary[upgrade_command['end_offset']:upgrade_command['end_offset'] + NAME_FIELD_MAX])
+    tmp = re.search(rb'\xa8\x01([\w ]+)  [\w ]+', raw_binary[upgrade_command['end_offset']:upgrade_command['end_offset'] + NAME_FIELD_MAX])
     if tmp is not None:
         tmp = tmp.group(1).decode('utf-8', 'ignore')
         tmp = _remove_uneccessary_spaces(tmp)
@@ -43,13 +43,13 @@ def _get_name_of_upgrade(raw_binary, upgrade_command):
 
 
 def _get_size_of_upgrade(upgrade_command):
-    tmp = re.match(b'SIZE=([0-9]+)', upgrade_command['value'])
+    tmp = re.match(rb'SIZE=([0-9]+)', upgrade_command['value'])
     tmp = int(tmp.group(1))
     return tmp
 
 
 def _get_type_and_value(raw_command):
-    tmp = re.search(b'@PJL ([=\w]+) ?([ =.!,?\w]+)?', raw_command)
+    tmp = re.search(rb'@PJL ([=\w]+) ?([ =.!,?\w]+)?', raw_command)
     tmp_type = tmp.group(1)
     tmp_value = tmp.group(2)
     return tmp_type, tmp_value
@@ -66,9 +66,9 @@ def _remove_uneccessary_spaces(input_string):
 
 
 def _get_file_fingerprint(input_data):
-    prefix = re.search(b'\-\-\=\<\/Begin HP Signed File Fingerprint\\\>\=\-\-', input_data)
+    prefix = re.search(rb'\-\-\=\<\/Begin HP Signed File Fingerprint\\\>\=\-\-', input_data)
     if prefix:
-        suffix = re.search(b'\-\-\=\<\/End HP Signed File Fingerprint\\\>\=\-\-', input_data)
+        suffix = re.search(rb'\-\-\=\<\/End HP Signed File Fingerprint\\\>\=\-\-', input_data)
         if suffix:
             return input_data[prefix.start():suffix.end()]
     return None
