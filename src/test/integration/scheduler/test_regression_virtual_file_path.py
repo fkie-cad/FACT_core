@@ -1,8 +1,8 @@
+from multiprocessing import Event, Value
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from test.common_helper import clean_test_database, get_database_names
 from test.integration.common import initialize_config
-from time import sleep
 
 import pytest
 from helperFunctions.fileSystem import get_test_data_dir
@@ -10,6 +10,7 @@ from intercom.back_end_binding import InterComBackEndBinding
 from objects.firmware import Firmware
 from scheduler.Analysis import AnalysisScheduler
 from scheduler.Unpacking import UnpackingScheduler
+from storage.db_interface_backend import BackEndDbInterface
 from storage.MongoMgr import MongoMgr
 from web_interface.frontend_main import WebFrontEnd
 
@@ -25,6 +26,16 @@ class MockScheduler:
 
     def add_task(self, task):
         pass
+
+
+@pytest.fixture(scope='module')
+def finished_event():
+    return Event()
+
+
+@pytest.fixture(scope='module')
+def intermediate_event():
+    return Event()
 
 
 @pytest.fixture(scope='module')
@@ -49,8 +60,19 @@ def test_app(test_config):
 
 
 @pytest.fixture(scope='module')
-def test_scheduler(test_config):
-    analyzer = AnalysisScheduler(test_config)
+def test_scheduler(test_config, finished_event, intermediate_event):
+    interface = BackEndDbInterface(config=test_config)
+    elements_finished = Value('i', 0)
+
+    def count_pre_analysis(file_object):
+        interface.add_object(file_object)
+        elements_finished.value += 1
+        if elements_finished.value == 16:
+            finished_event.set()
+        elif elements_finished.value == 8:
+            intermediate_event.set()
+
+    analyzer = AnalysisScheduler(test_config, pre_analysis=count_pre_analysis, db_interface=interface)
     unpacker = UnpackingScheduler(config=test_config, post_unpack=analyzer.add_task)
     intercom = InterComBackEndBinding(config=test_config, analysis_service=analyzer, unpacking_service=unpacker, compare_service=MockScheduler())
     yield unpacker
@@ -63,13 +85,16 @@ def add_test_file_and_wait(test_scheduler, path_in_test_dir):
     firmware = Firmware(file_path=str(Path(get_test_data_dir(), path_in_test_dir)))
     firmware.set_release_date('1990-01-16')
     test_scheduler.add_task(firmware)
-    sleep(5)
 
 
-@pytest.mark.skip(reason='does not terminate')
-def test_check_collision(test_app, test_scheduler):
+def test_check_collision(test_app, test_scheduler, finished_event, intermediate_event):
     add_test_file_and_wait(test_scheduler, 'regression_one')
+
+    intermediate_event.wait(timeout=30)
+
     add_test_file_and_wait(test_scheduler, 'regression_two')
+
+    finished_event.wait(timeout=30)
 
     first_response = test_app.get('/analysis/{}/ro/{}'.format(target_uid, first_root_id))
     assert b'insufficient information' not in first_response.data
