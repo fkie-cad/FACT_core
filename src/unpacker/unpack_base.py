@@ -18,7 +18,7 @@ class UnpackBase:
 
     def extract_files_from_file(self, file_path, tmp_dir):
         self._initialize_shared_folder(tmp_dir)
-        shutil.copy2(file_path, Path(tmp_dir, 'input', Path(file_path).name))
+        shutil.copy2(file_path, str(Path(tmp_dir, 'input', Path(file_path).name)))
 
         output, return_code = execute_shell_command_get_return_code('docker run --privileged -v /dev:/dev -v {}:/tmp/extractor --rm fkiecad/fact_extractor'.format(tmp_dir))
         if return_code != 0:
