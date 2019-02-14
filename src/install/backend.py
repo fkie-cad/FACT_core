@@ -36,7 +36,13 @@ def main():
     # install plug-in dependencies
     _install_plugins()
 
+    # compile custom magic file
+    mime_output, mime_rc = execute_shell_command_get_return_code('../compile_custom_magic.py')
+    if mime_rc != 0:
+        raise InstallationError(mime_output)
+
     # configure environment
+    _edit_sudoers()
     _edit_environment()
 
     # create directories
@@ -62,6 +68,19 @@ def _edit_environment():
         output, return_code = execute_shell_command_get_return_code(command)
         if return_code != 0:
             raise InstallationError('Failed to add environment changes [{}]\n{}'.format(command, output))
+
+
+def _edit_sudoers():
+    logging.info('add rules to sudo...')
+    username = os.environ['USER']
+    sudoers_content = '\n'.join(('{}\tALL=NOPASSWD: {}'.format(username, command) for command in (
+        '/bin/mount', '/bin/umount', '/bin/chown'
+    )))
+    Path('/tmp/fact_overrides').write_text('{}\n'.format(sudoers_content))
+    chown_output, chown_code = execute_shell_command_get_return_code('sudo chown root:root /tmp/fact_overrides')
+    mv_output, mv_code = execute_shell_command_get_return_code('sudo mv /tmp/fact_overrides /etc/sudoers.d/fact_overrides')
+    if not chown_code == mv_code == 0:
+        raise InstallationError('Editing sudoers file did not succeed\n{}\n{}'.format(chown_output, mv_output))
 
 
 def _create_firmware_directory():

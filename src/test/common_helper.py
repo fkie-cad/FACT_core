@@ -124,6 +124,9 @@ class DatabaseMock:
     def get_device_class_list(self):
         return ['test class']
 
+    def page_compare_results(self):
+        return list()
+
     def get_vendor_list(self):
         return ['test vendor']
 

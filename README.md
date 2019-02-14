@@ -70,12 +70,11 @@ Our Developers Manual can be found [here](https://github.com/fkie-cad/FACT_core/
 
 ## Acknowledgments
 This project is partly financed by [German Federal Office for Information Security (BSI)](https://www.bsi.bund.de) and others.  
-The FACT project and the [Malware Analysis and Storage System (MASS) project](https://mass-project.github.io/) form a code and plug-in sharing alliance.  
 
 ## License
 ```
     Firmware Analysis and Comparison Tool (FACT)
-    Copyright (C) 2015-2018  Fraunhofer FKIE
+    Copyright (C) 2015-2019  Fraunhofer FKIE
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by

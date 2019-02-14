@@ -182,17 +182,9 @@ def text_highlighter(input_data, green=['clean', 'online', 0], red=['offline']):
         return input_data
 
 
-def get_first_value(data):
-    return data[0]
-
-
-def get_second_value(data):
-    return data[1]
-
-
 def sort_chart_list_by_name(input_data):
     try:
-        input_data.sort(key=get_first_value)
+        input_data.sort(key=lambda x: x[0])
     except Exception as e:
         logging.error(
             'could not sort chart list {}: {} - {}'.format(input_data, sys.exc_info()[0].__name__, e))
@@ -203,7 +195,7 @@ def sort_chart_list_by_name(input_data):
 
 def sort_chart_list_by_value(input_data):
     try:
-        input_data.sort(key=get_second_value, reverse=True)
+        input_data.sort(key=lambda x: x[1], reverse=True)
     except Exception as e:
         logging.error(
             'could not sort chart list {}: {} - {}'.format(input_data, sys.exc_info()[0].__name__, e))
