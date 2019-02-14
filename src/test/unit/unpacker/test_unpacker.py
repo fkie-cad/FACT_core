@@ -30,23 +30,6 @@ class TestUnpackerBase(unittest.TestCase):
         self.tmp_dir.cleanup()
         gc.collect()
 
-    def check_unpacker_selection(self, mime_type, plugin_name, depth=0):
-        name = self.unpacker.get_unpacker(mime_type, depth)[1]
-        self.assertEqual(name, plugin_name, 'wrong unpacker plugin selected')
-
-    def check_unpacking_of_standard_unpack_set(self, in_file, additional_prefix_folder='', output=True):
-        files, meta_data = self.unpacker.extract_files_from_file(in_file, self.tmp_dir.name)
-        files = set(files)
-        self.assertEqual(len(files), 3, 'file number incorrect')
-        self.assertEqual(files, {
-            os.path.join(self.tmp_dir.name, additional_prefix_folder, 'testfile1'),
-            os.path.join(self.tmp_dir.name, additional_prefix_folder, 'testfile2'),
-            os.path.join(self.tmp_dir.name, additional_prefix_folder, 'generic folder/test file 3_.txt')
-        }, 'not all files found')
-        if output:
-            self.assertIn('output', meta_data)
-        return meta_data
-
 
 class TestUnpackerCore(TestUnpackerBase):
 
