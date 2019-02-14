@@ -1,11 +1,9 @@
 import logging
 import os
-import sys
 from pathlib import Path
 from typing import Union
 
 import magic
-
 from helperFunctions.dataConversion import make_unicode_string
 
 
@@ -137,11 +135,11 @@ def file_is_empty(file_path):
     Returns False otherwise
     '''
     try:
-        if os.path.getsize(file_path) == 0:
+        if os.path.getsize(str(file_path)) == 0:
             return True
     except (FileNotFoundError, PermissionError, OSError):
         return False
-    except Exception as e:
-        logging.error('Unexpected Exception: {} {}'.format(sys.exc_info()[0].__name__, e))
+    except Exception as exception:
+        logging.error('Unexpected Exception: {} {}'.format(type(exception), str(exception)))
     else:
         return False

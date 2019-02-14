@@ -3,7 +3,7 @@ from multiprocessing import Event, Value
 from tempfile import TemporaryDirectory
 from test.common_helper import clean_test_database, get_database_names
 from test.integration.common import MockFSOrganizer, initialize_config
-from unittest import TestCase, mock, skip
+from unittest import TestCase, mock
 
 from helperFunctions.dataConversion import unify_string_list
 from helperFunctions.fileSystem import get_test_data_dir
@@ -54,7 +54,6 @@ class TestFileAddition(TestCase):
         self._tmp_dir.cleanup()
         gc.collect()
 
-    @skip(reason='does not terminate')
     def test_unpack_analyse_and_compare(self):
         test_fw_1 = Firmware(file_path='{}/container/test.zip'.format(get_test_data_dir()))
         test_fw_1.release_date = '2017-01-01'

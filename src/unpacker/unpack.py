@@ -64,10 +64,10 @@ class Unpacker(UnpackBase):
         extracted_files = {}
         for item in file_paths:
             if not file_is_empty(item):
-                current_file = FileObject(file_path=item)
+                current_file = FileObject(file_path=str(item))
                 current_virtual_path = '{}|{}|{}'.format(
                     parent.get_base_of_virtual_path(parent.get_virtual_file_paths()[parent.get_root_uid()][0]),
-                    parent.get_uid(), get_chroot_path_excluding_extracted_dir(make_unicode_string(item), tmp_dir)
+                    parent.get_uid(), get_chroot_path_excluding_extracted_dir(make_unicode_string(str(item)), tmp_dir)
                 )
                 current_file.temporary_data['parent_fo_type'] = get_file_type_from_path(parent.file_path)['mime']
                 if current_file.get_uid() in extracted_files:  # the same file is extracted multiple times from one archive
