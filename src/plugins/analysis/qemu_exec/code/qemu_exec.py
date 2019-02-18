@@ -1,24 +1,22 @@
 import itertools
 import logging
 from collections import OrderedDict
-from multiprocessing import Pool, Manager
+from multiprocessing import Manager, Pool
 from pathlib import Path
 from re import findall
 from tempfile import TemporaryDirectory
-from typing import Dict, Optional, List, Tuple
+from typing import Dict, List, Optional, Tuple
 from zlib import compress
 
+from analysis.PluginBase import AnalysisBasePlugin
 from common_helper_files import get_binary_from_file
 from common_helper_process import execute_shell_command_get_return_code
-
-from analysis.PluginBase import AnalysisBasePlugin
-from helperFunctions.fileSystem import get_file_type_from_path
+from fact_helper_file import get_file_type_from_path
 from helperFunctions.tag import TagColor
 from helperFunctions.uid import create_uid
 from objects.file import FileObject
 from storage.binary_service import BinaryServiceDbInterface
 from unpacker.unpackBase import UnpackBase
-
 
 TIMEOUT = 5
 EXECUTABLE = 'executable'
