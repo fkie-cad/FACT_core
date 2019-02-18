@@ -43,7 +43,7 @@ class TestFileSystemHelpers(unittest.TestCase):
         files_in_bin_dir = [os.path.basename(f) for f in get_files_in_dir(bin_dir)]
         self.assertTrue(os.path.isdir(bin_dir))
         self.assertIn('src/bin', bin_dir)
-        self.assertIn('custommime.mgc', files_in_bin_dir)
+        self.assertIn('passwords.txt', files_in_bin_dir)
 
     def test_get_absolute_path(self):
         abs_path = '/foo/bar'
