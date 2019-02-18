@@ -57,6 +57,7 @@ def main(distribution):
     # install general python dependencys
     apt_install_packages('libmagic-dev')
     apt_install_packages('libffi-dev', 'libfuzzy-dev')
+    pip3_install_packages('git+https://github.com/fkie-cad/fact_helper_file.git')
     pip3_install_packages('psutil')
     pip3_install_packages('pytest==3.5.1', 'pytest-cov', 'pytest-pep8', 'pylint', 'python-magic', 'xmltodict', 'yara-python==3.7.0', 'appdirs')
     pip3_install_packages('ssdeep')

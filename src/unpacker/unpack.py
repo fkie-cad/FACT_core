@@ -4,12 +4,13 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import List
 
+from fact_helper_file import get_file_type_from_path
+
 from helperFunctions.dataConversion import (
     make_list_from_dict, make_unicode_string
 )
 from helperFunctions.fileSystem import (
-    file_is_empty, get_chroot_path_excluding_extracted_dir,
-    get_file_type_from_path
+    file_is_empty, get_chroot_path_excluding_extracted_dir
 )
 from objects.file import FileObject
 from storage.fs_organizer import FS_Organizer
