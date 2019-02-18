@@ -4,10 +4,12 @@ from contextlib import suppress
 from pathlib import Path
 
 from common_helper_process import execute_shell_command_get_return_code
-
-from helperFunctions.install import apt_remove_packages, apt_install_packages, apt_upgrade_system, apt_update_sources, \
-    apt_autoremove_packages, apt_clean_system, InstallationError, pip3_install_packages, install_github_project, \
-    OperateInDirectory
+from helperFunctions.install import (
+    InstallationError, OperateInDirectory, apt_autoremove_packages,
+    apt_clean_system, apt_install_packages, apt_remove_packages,
+    apt_update_sources, apt_upgrade_system, install_github_project,
+    pip3_install_packages
+)
 
 
 def install_pip(python_command):
@@ -57,6 +59,7 @@ def main(distribution):
     # install general python dependencys
     apt_install_packages('libmagic-dev')
     apt_install_packages('libffi-dev', 'libfuzzy-dev')
+    pip3_install_packages('git+https://github.com/fkie-cad/fact_helper_file.git')
     pip3_install_packages('psutil')
     pip3_install_packages('pytest==3.5.1', 'pytest-cov', 'pytest-pep8', 'pylint', 'python-magic', 'xmltodict', 'yara-python==3.7.0', 'appdirs')
     pip3_install_packages('ssdeep')

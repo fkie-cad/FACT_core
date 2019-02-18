@@ -3,31 +3,31 @@ from concurrent.futures import ThreadPoolExecutor
 from configparser import ConfigParser
 from distutils.version import LooseVersion
 from multiprocessing import Queue, Value
-
 from queue import Empty
 from time import sleep, time
-from typing import Tuple, List, Optional, Set, Iterable
+from typing import List, Optional, Set, Tuple
 
 from helperFunctions.compare_sets import substring_is_in_list
 from helperFunctions.config import read_list_from_config
-from helperFunctions.fileSystem import get_file_type_from_binary
 from helperFunctions.merge_generators import shuffled
 from helperFunctions.parsing import bcolors
 from helperFunctions.plugin import import_plugins
-from helperFunctions.process import ExceptionSafeProcess, terminate_process_and_childs
-from helperFunctions.tag import check_tags, add_tags_to_object
+from helperFunctions.process import (
+    ExceptionSafeProcess, terminate_process_and_childs
+)
+from helperFunctions.tag import add_tags_to_object, check_tags
 from objects.file import FileObject
 from storage.db_interface_backend import BackEndDbInterface
 
 MANDATORY_PLUGINS = ['file_type', 'file_hashes']
 
 
-class AnalysisScheduler(object):
+class AnalysisScheduler:
     '''
     This Scheduler performs analysis of firmware objects
     '''
 
-    def __init__(self, config: Optional[ConfigParser]=None, pre_analysis=None, post_analysis=None, db_interface=None):
+    def __init__(self, config: Optional[ConfigParser] = None, pre_analysis=None, post_analysis=None, db_interface=None):
         self.config = config
         self.analysis_plugins = {}
         self.load_plugins()

@@ -1,6 +1,0 @@
-# ====================== faf internal ======================
-
-# ---- faf internal link representation ----
-0		string  symbolic\ link\ ->	 symbolic link
->17		string 	x		to '%s'
-!:mime  inode/symlink
