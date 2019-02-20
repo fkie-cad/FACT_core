@@ -1,24 +1,29 @@
-# -*- coding: utf-8 -*-
 
 import json
 import os
 
 from common_helper_files import get_binary_from_file
-from flask import render_template, request, render_template_string
+from flask import render_template, render_template_string, request
 from flask_login.utils import current_user
-
 from helperFunctions.dataConversion import none_to_none
 from helperFunctions.fileSystem import get_src_dir
-from helperFunctions.mongo_task_conversion import check_for_errors, convert_analysis_task_to_fw_obj, create_re_analyze_task
-from helperFunctions.web_interface import ConnectTo, get_template_as_string, overwrite_default_plugins
-from web_interface.security.authentication import user_has_privilege
+from helperFunctions.mongo_task_conversion import (
+    check_for_errors, convert_analysis_task_to_fw_obj, create_re_analyze_task
+)
+from helperFunctions.web_interface import (
+    ConnectTo, get_template_as_string, overwrite_default_plugins
+)
 from intercom.front_end_binding import InterComFrontEndBinding
 from objects.firmware import Firmware
 from storage.db_interface_admin import AdminDbInterface
+from storage.db_interface_compare import CompareDbInterface
 from storage.db_interface_frontend import FrontEndDbInterface
 from storage.db_interface_view_sync import ViewReader
-from web_interface.components.compare_routes import get_comparison_uid_list_from_session
+from web_interface.components.compare_routes import (
+    get_comparison_uid_list_from_session
+)
 from web_interface.components.component_base import ComponentBase
+from web_interface.security.authentication import user_has_privilege
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
@@ -45,55 +50,50 @@ class AnalysisRoutes(ComponentBase):
     def _get_firmware_ids_including_this_file(fo):
         if isinstance(fo, Firmware):
             return None
-        else:
-            return list(fo.get_virtual_file_paths().keys())
+        return list(fo.get_virtual_file_paths().keys())
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
     def _show_analysis_results(self, uid, selected_analysis=None, root_uid=None):
         root_uid = none_to_none(root_uid)
         other_versions = None
-
-        uids_for_comparison = get_comparison_uid_list_from_session()
-
+        with ConnectTo(CompareDbInterface, self._config) as db_service:
+            all_comparisons = db_service.page_compare_results()
+            known_comparisons = [comparison for comparison in all_comparisons if uid in comparison[0]]
         analysis_filter = [selected_analysis] if selected_analysis else []
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
             file_obj = sc.get_object(uid, analysis_filter=analysis_filter)
-        if isinstance(file_obj, Firmware):
-            root_uid = file_obj.get_uid()
-            other_versions = sc.get_other_versions_of_firmware(file_obj)
-        if file_obj:
-            view = self._get_analysis_view(selected_analysis) if selected_analysis else get_template_as_string('show_analysis.html')
-            with ConnectTo(FrontEndDbInterface, self._config) as sc:
-                summary_of_included_files = sc.get_summary(file_obj, selected_analysis) if selected_analysis else None
-                analysis_of_included_files_complete = not sc.all_uids_found_in_database(list(file_obj.files_included))
-            firmware_including_this_fo = self._get_firmware_ids_including_this_file(file_obj)
-            with ConnectTo(InterComFrontEndBinding, self._config) as sc:
-                analysis_plugins = sc.get_available_analysis_plugins()
-            return render_template_string(view,
-                                          uid=uid,
-                                          firmware=file_obj,
-                                          selected_analysis=selected_analysis,
-                                          all_analyzed_flag=analysis_of_included_files_complete,
-                                          summary_of_included_files=summary_of_included_files,
-                                          root_uid=root_uid,
-                                          firmware_including_this_fo=firmware_including_this_fo,
-                                          analysis_plugin_dict=analysis_plugins,
-                                          other_versions=other_versions,
-                                          uids_for_comparison=uids_for_comparison,
-                                          user_has_admin_clearance=user_has_privilege(current_user, privilege='delete'))
-        else:
-            return render_template('uid_not_found.html', uid=uid)
+            if not file_obj:
+                return render_template('uid_not_found.html', uid=uid)
+            if isinstance(file_obj, Firmware):
+                root_uid = file_obj.get_uid()
+                other_versions = sc.get_other_versions_of_firmware(file_obj)
+            summary_of_included_files = sc.get_summary(file_obj, selected_analysis) if selected_analysis else None
+            included_fo_analysis_complete = not sc.all_uids_found_in_database(list(file_obj.files_included))
+        view = self._get_analysis_view(selected_analysis) if selected_analysis else get_template_as_string('show_analysis.html')
+        with ConnectTo(InterComFrontEndBinding, self._config) as sc:
+            analysis_plugins = sc.get_available_analysis_plugins()
+        return render_template_string(view,
+                                      uid=uid,
+                                      firmware=file_obj,
+                                      selected_analysis=selected_analysis,
+                                      all_analyzed_flag=included_fo_analysis_complete,
+                                      summary_of_included_files=summary_of_included_files,
+                                      root_uid=root_uid,
+                                      firmware_including_this_fo=self._get_firmware_ids_including_this_file(file_obj),
+                                      analysis_plugin_dict=analysis_plugins,
+                                      other_versions=other_versions,
+                                      uids_for_comparison=get_comparison_uid_list_from_session(),
+                                      user_has_admin_clearance=user_has_privilege(current_user, privilege='delete'),
+                                      known_comparisons=known_comparisons)
 
     def _get_analysis_view(self, selected_analysis):
         if selected_analysis == 'unpacker':
             return self.analysis_unpacker_view
-        else:
-            with ConnectTo(ViewReader, self._config) as vr:
-                view = vr.get_view(selected_analysis)
-            if view:
-                return view.decode('utf-8')
-            else:
-                return self.analysis_generic_view
+        with ConnectTo(ViewReader, self._config) as vr:
+            view = vr.get_view(selected_analysis)
+        if view:
+            return view.decode('utf-8')
+        return self.analysis_generic_view
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     def _update_analysis(self, uid, re_do=False):

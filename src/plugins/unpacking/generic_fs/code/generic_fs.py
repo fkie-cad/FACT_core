@@ -5,8 +5,7 @@ from tempfile import TemporaryDirectory
 import re
 
 from common_helper_process import execute_shell_command, execute_shell_command_get_return_code
-
-from helperFunctions.fileSystem import get_file_type_from_path
+from fact_helper_file import get_file_type_from_path
 
 name = 'genericFS'
 mime_patterns = ['generic/fs', 'filesystem/cramfs', 'filesystem/romfs', 'filesystem/btrfs', 'filesystem/ext2',

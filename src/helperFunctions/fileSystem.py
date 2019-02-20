@@ -1,12 +1,6 @@
 import logging
 import os
 import sys
-from pathlib import Path
-from typing import Union
-
-import magic
-
-from helperFunctions.dataConversion import make_unicode_string
 
 
 def get_src_dir():
@@ -81,53 +75,6 @@ def get_chroot_path_excluding_extracted_dir(absolute_path, base_path):
     '''
     tmp = get_chroot_path(absolute_path, base_path)
     return get_chroot_path(tmp, '/faf_extracted')
-
-
-def get_file_type_from_path(file_path: Union[str, Path]):
-    '''
-    This functions returns a dict with the file's mime- and full-type.
-    It uses the custom mime database found in src/bin/custommime.mgc
-    If no match was found, it uses the standard system magic file.
-    '''
-    path_string = file_path if isinstance(file_path, str) else str(file_path)
-    return _get_file_type(path_string, 'from_file')
-
-
-def get_file_type_from_binary(binary):
-    '''
-    Works like get_file_type with the distinction of using a byte object instead of a file path
-    '''
-    return _get_file_type(binary, 'from_buffer')
-
-
-def _get_file_type(path_or_binary, function_name):
-    magic_path = os.path.join(get_src_dir(), 'bin/custommime.mgc')
-
-    magic_wrapper = magic.Magic(magic_file=magic_path, mime=True)
-    mime = _get_type_from_magic_object(path_or_binary, magic_wrapper, function_name, mime=True)
-
-    magic_wrapper = magic.Magic(magic_file=magic_path, mime=False)
-    full = _get_type_from_magic_object(path_or_binary, magic_wrapper, function_name, mime=False)
-
-    if mime == 'application/octet-stream':
-        mime = _get_type_from_magic_object(path_or_binary, magic, function_name, mime=True)
-        full = _get_type_from_magic_object(path_or_binary, magic, function_name, mime=False)
-    return {'mime': mime, 'full': full}
-
-
-def _get_type_from_magic_object(path_or_binary, magic_object, function_name, mime=True):
-    try:
-        if isinstance(magic_object, magic.Magic):
-            result = make_unicode_string(getattr(magic_object, function_name)(path_or_binary))
-        else:
-            result = make_unicode_string(getattr(magic_object, function_name)(path_or_binary, mime=mime))
-    except FileNotFoundError as e:
-        logging.error('File not found: {}'.format(e))
-        result = 'error/file-not-found' if mime else 'Error: File not in storage!'
-    except Exception as exception:
-        logging.error('Could not determine file type: {} {}'.format(type(exception), str(exception)))
-        result = 'application/octet-stream' if mime else 'data'
-    return result
 
 
 def file_is_empty(file_path):

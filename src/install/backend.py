@@ -4,10 +4,13 @@ from contextlib import suppress
 from pathlib import Path
 
 from common_helper_process import execute_shell_command_get_return_code
-
 from compile_yara_signatures import main as compile_signatures
-from helperFunctions.install import apt_remove_packages, apt_install_packages, InstallationError, pip3_install_packages, \
-    install_github_project, pip2_install_packages, pip2_remove_packages, check_string_in_command, OperateInDirectory, load_main_config
+from helperFunctions.install import (
+    InstallationError, OperateInDirectory, apt_install_packages,
+    apt_remove_packages, check_string_in_command, install_github_project,
+    load_main_config, pip2_install_packages, pip2_remove_packages,
+    pip3_install_packages
+)
 
 
 def main(distribution):
@@ -37,15 +40,6 @@ def main(distribution):
 
     # install plug-in dependencies
     _install_plugins()
-
-    # compile custom magic file
-    with OperateInDirectory('../mime'):
-        cat_output, cat_code = execute_shell_command_get_return_code('cat custom_* > custommime')
-        file_output, file_code = execute_shell_command_get_return_code('file -C -m custommime')
-        mv_output, mv_code = execute_shell_command_get_return_code('mv -f custommime.mgc ../bin/')
-        if any(code != 0 for code in (cat_code, file_code, mv_code)):
-            raise InstallationError('Failed to properly compile magic file\n{}'.format('\n'.join((cat_output, file_output, mv_output))))
-        Path('custommime').unlink()
 
     # configure environment
     _edit_sudoers()
@@ -79,7 +73,9 @@ def _edit_environment():
 def _edit_sudoers():
     logging.info('add rules to sudo...')
     username = os.environ['USER']
-    sudoers_content = '\n'.join(('{}\tALL=NOPASSWD: {}'.format(username, command) for command in ('/bin/mount', '/bin/umount', '/bin/mknod', '/usr/local/bin/sasquatch', '/bin/rm', '/bin/cp', '/bin/dd', '/bin/chown')))
+    sudoers_content = '\n'.join(('{}\tALL=NOPASSWD: {}'.format(username, command) for command in (
+        '/bin/mount', '/bin/umount', '/bin/mknod', '/usr/local/bin/sasquatch', '/bin/rm', '/bin/cp', '/bin/dd', '/bin/chown'
+    )))
     Path('/tmp/fact_overrides').write_text('{}\n'.format(sudoers_content))
     chown_output, chown_code = execute_shell_command_get_return_code('sudo chown root:root /tmp/fact_overrides')
     mv_output, mv_code = execute_shell_command_get_return_code('sudo mv /tmp/fact_overrides /etc/sudoers.d/fact_overrides')
@@ -124,7 +120,7 @@ def _install_unpacker(xenial):
                          'sharutils')
     apt_install_packages('unar')
     # firmware-mod-kit
-    install_github_project('rampageX/firmware-mod-kit', ['(cd src && sh configure && make)',
+    install_github_project('rampageX/firmware-mod-kit', ['git checkout 5e74fe9dd', '(cd src && sh configure && make)',
                                                          'cp src/yaffs2utils/unyaffs2 src/untrx src/tpl-tool/src/tpl-tool ../../bin/'])
 
 

@@ -1,5 +1,6 @@
+from fact_helper_file import get_file_type_from_path
+
 from analysis.PluginBase import AnalysisBasePlugin
-from helperFunctions.fileSystem import get_file_type_from_path
 
 
 class AnalysisPlugin(AnalysisBasePlugin):

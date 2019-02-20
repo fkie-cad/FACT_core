@@ -3,10 +3,16 @@ import sys
 from tempfile import TemporaryDirectory
 
 from common_helper_files import human_readable_file_size
-from common_helper_unpacking_classifier import avg_entropy, get_binary_size_without_padding, is_compressed
-
-from helperFunctions.dataConversion import make_list_from_dict, make_unicode_string
-from helperFunctions.fileSystem import file_is_empty, get_chroot_path_excluding_extracted_dir, get_file_type_from_path
+from common_helper_unpacking_classifier import (
+    avg_entropy, get_binary_size_without_padding, is_compressed
+)
+from fact_helper_file import get_file_type_from_path
+from helperFunctions.dataConversion import (
+    make_list_from_dict, make_unicode_string
+)
+from helperFunctions.fileSystem import (
+    file_is_empty, get_chroot_path_excluding_extracted_dir
+)
 from objects.file import FileObject
 from storage.fs_organizer import FS_Organizer
 from unpacker.unpackBase import UnpackBase
@@ -43,11 +49,11 @@ class Unpacker(UnpackBase):
 
     def _do_fallback_if_necessary(self, extracted_files, meta_data, tmp_dir, current_fo):
         if len(extracted_files) < 1 and meta_data['plugin_used'] in self.GENERIC_FS_FALLBACK_CANDIDATES:
-                logging.warning('[worker {}] {} could not extract any files -> generic fs fallback'.format(self.worker_id, meta_data['plugin_used']))
-                extracted_files, meta_data = self.unpacking_fallback(current_fo.file_path, tmp_dir.name, meta_data, 'generic/fs')
+            logging.warning('[worker {}] {} could not extract any files -> generic fs fallback'.format(self.worker_id, meta_data['plugin_used']))
+            extracted_files, meta_data = self.unpacking_fallback(current_fo.file_path, tmp_dir.name, meta_data, 'generic/fs')
         if len(extracted_files) < 1 and meta_data['plugin_used'] not in self.GENERIC_CARVER_FALLBACK_BLACKLIST:
-                logging.warning('[worker {}] {} could not extract any files -> generic carver fallback'.format(self.worker_id, meta_data['plugin_used']))
-                extracted_files, meta_data = self.unpacking_fallback(current_fo.file_path, tmp_dir.name, meta_data, 'generic/carver')
+            logging.warning('[worker {}] {} could not extract any files -> generic carver fallback'.format(self.worker_id, meta_data['plugin_used']))
+            extracted_files, meta_data = self.unpacking_fallback(current_fo.file_path, tmp_dir.name, meta_data, 'generic/carver')
         return extracted_files, meta_data
 
     def cleanup(self, tmp_dir):
