@@ -3,6 +3,7 @@ This plugin unpacks SquashFS filesystem images
 '''
 import re
 from tempfile import TemporaryDirectory
+from time import sleep
 
 from common_helper_process import (
     execute_shell_command, execute_shell_command_get_return_code
@@ -49,6 +50,7 @@ def _mount_single_filesystem(file_path, mime_type, tmp_dir):
 
 def _mount_from_boot_record(file_path, tmp_dir):
     output, return_code = execute_shell_command_get_return_code('sudo kpartx -a -v {}'.format(file_path))
+    sleep(1)  # Necessary since initialization of special devices seem to take some time
     if not return_code == 0:
         return 'Failed to mount master boot record image:\n{}'.format(output)
 
