@@ -1,18 +1,20 @@
 '''
 This plugin unpacks SquashFS filesystem images
 '''
-from tempfile import TemporaryDirectory
 import re
+from tempfile import TemporaryDirectory
 
-from common_helper_process import execute_shell_command, execute_shell_command_get_return_code
+from common_helper_process import (
+    execute_shell_command, execute_shell_command_get_return_code
+)
 from fact_helper_file import get_file_type_from_path
 
-name = 'genericFS'
-mime_patterns = ['generic/fs', 'filesystem/cramfs', 'filesystem/romfs', 'filesystem/btrfs', 'filesystem/ext2',
+NAME = 'genericFS'
+MIME_PATTERNS = ['generic/fs', 'filesystem/cramfs', 'filesystem/romfs', 'filesystem/btrfs', 'filesystem/ext2',
                  'filesystem/ext3', 'filesystem/ext4', 'filesystem/dosmbr', 'filesystem/hfs',
                  'filesystem/jfs', 'filesystem/minix', 'filesystem/reiserfs', 'filesystem/udf', 'filesystem/xfs', 'filesystem/fat', 'filesystem/ntfs']
-version = '0.4'
-type_dict = {
+VERSION = '0.4'
+TYPES = {
     'filesystem/cramfs': 'cramfs', 'filesystem/romfs': 'romfs', 'filesystem/btrfs': 'btrfs',
     'filesystem/minix': 'minix', 'filesystem/reiserfs': 'reiserfs', 'filesystem/jfs': 'jfs',
     'filesystem/udf': 'udf', 'filesystem/xfs': 'xfs'
@@ -35,7 +37,7 @@ def unpack_function(file_path, tmp_dir):
 
 
 def _mount_single_filesystem(file_path, mime_type, tmp_dir):
-    type_parameter = '-t {}'.format(type_dict[mime_type]) if mime_type in type_dict else ''
+    type_parameter = '-t {}'.format(TYPES[mime_type]) if mime_type in TYPES else ''
     mount_dir = TemporaryDirectory()
     output = execute_shell_command(
         'sudo mount {} -v -o ro,loop {} {}'.format(type_parameter, file_path, mount_dir.name))
@@ -68,7 +70,7 @@ def _mount_from_boot_record(file_path, tmp_dir):
 
 
 def _mount_loop_device(loop_device, mount_point, target_directory, index):
-    output = execute_shell_command('sudo mount -v /dev/mapper/{} {}'.format(loop_device, mount_point))
+    output = execute_shell_command('sudo mount -o ro -v /dev/mapper/{} {}'.format(loop_device, mount_point))
     output += execute_shell_command('sudo cp -av {}/ {}/partition_{}/'.format(mount_point, target_directory, index))
     return output + execute_shell_command('sudo umount -v {}'.format(mount_point))
 
@@ -83,5 +85,5 @@ def _get_host_loop(devices):
 
 # ----> Do not edit below this line <----
 def setup(unpack_tool):
-    for item in mime_patterns:
-        unpack_tool.register_plugin(item, (unpack_function, name, version))
+    for item in MIME_PATTERNS:
+        unpack_tool.register_plugin(item, (unpack_function, NAME, VERSION))
