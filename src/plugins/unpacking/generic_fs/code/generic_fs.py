@@ -1,6 +1,7 @@
 '''
-This plugin unpacks SquashFS filesystem images
+This plugin mounts filesystem images and extracts their content
 '''
+
 import re
 from tempfile import TemporaryDirectory
 from time import sleep
@@ -23,12 +24,8 @@ TYPES = {
 
 
 def unpack_function(file_path, tmp_dir):
-    '''
-    file_path specifies the input file.
-    tmp_dir should be used to store the extracted files.
-    '''
-
     mime_type = get_file_type_from_path(file_path)['mime']
+
     if mime_type == 'filesystem/dosmbr':
         output = _mount_from_boot_record(file_path, tmp_dir)
     else:
@@ -56,10 +53,9 @@ def _mount_from_boot_record(file_path, tmp_dir):
 
     loop_devices = _extract_loop_devices(output)
 
-    mount_dir = TemporaryDirectory()
-    for index, loop_device in enumerate(loop_devices):
-        output += _mount_loop_device(loop_device, mount_dir.name, tmp_dir, index)
-    mount_dir.cleanup()
+    with TemporaryDirectory() as mount_dir:
+        for index, loop_device in enumerate(loop_devices):
+            output += _process_loop_device(loop_device, mount_dir, tmp_dir, index)
 
     if loop_devices:
         # Bug in kpartx doesn't allow -d to work on long file names (as in /storage/path/<prefix>/<sha_hash>_<length>)
@@ -71,7 +67,7 @@ def _mount_from_boot_record(file_path, tmp_dir):
     return output
 
 
-def _mount_loop_device(loop_device, mount_point, target_directory, index):
+def _process_loop_device(loop_device, mount_point, target_directory, index):
     output = execute_shell_command('sudo mount -o ro -v /dev/mapper/{} {}'.format(loop_device, mount_point))
     output += execute_shell_command('sudo cp -av {}/ {}/partition_{}/'.format(mount_point, target_directory, index))
     return output + execute_shell_command('sudo umount -v {}'.format(mount_point))
