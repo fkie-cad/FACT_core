@@ -60,7 +60,7 @@ class TestFileSystemHelpers(unittest.TestCase):
         self.assertEqual(c, '/foo/bar/com', 'none matching root')
 
     def test_get_chroot_excluding_extracted_prefix_dir(self):
-        d = get_chroot_path_excluding_extracted_dir('/foo/faf_extracted/bar/com', '/foo')
+        d = get_chroot_path_excluding_extracted_dir('/foo/fact_extracted/bar/com', '/foo')
         self.assertEqual(d, '/bar/com', 'including extracted')
 
     def test_file_is_zero(self):
