@@ -8,10 +8,11 @@ from tempfile import TemporaryDirectory
 from typing import Dict, List, Optional, Tuple
 from zlib import compress
 
-from analysis.PluginBase import AnalysisBasePlugin
 from common_helper_files import get_binary_from_file
 from common_helper_process import execute_shell_command_get_return_code
 from fact_helper_file import get_file_type_from_path
+
+from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.tag import TagColor
 from helperFunctions.uid import create_uid
 from objects.file import FileObject
@@ -50,9 +51,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     NAME = 'qemu_exec'
     DESCRIPTION = 'test binaries for executability in QEMU and display help if available'
-    VERSION = '0.4.1'
+    VERSION = '0.4.2'
     DEPENDENCIES = ['file_type']
-    FILE_TYPES = ['application/x-executable']
+    FILE_TYPES = ['application/x-executable', 'application/x-sharedlib']
 
     FACT_EXTRACTION_FOLDER_NAME = 'fact_extracted'
 
@@ -91,8 +92,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
         if file_object.processed_analysis['file_type']['mime'] in self.FILE_TYPES:
             return self._process_included_binary(file_object)
-        else:
-            return self._process_container(file_object)
+        return self._process_container(file_object)
 
     def _process_included_binary(self, file_object: FileObject) -> FileObject:
         # File will get analyzed in the parent container
@@ -100,7 +100,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return file_object
 
     def _process_container(self, file_object: FileObject) -> FileObject:
-        if len(file_object.files_included) == 0:
+        if not file_object.files_included:
             return file_object
 
         tmp_dir = self.unpacker.unpack_fo(file_object)
@@ -119,11 +119,11 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def _find_relevant_files(self, tmp_dir: TemporaryDirectory):
         result = []
-        for f in Path(tmp_dir.name).glob('**/*'):
-            if f.is_file() and not f.is_symlink():
-                file_type = get_file_type_from_path(f.absolute())
+        for path in Path(tmp_dir.name).glob('**/*'):
+            if path.is_file() and not path.is_symlink():
+                file_type = get_file_type_from_path(path.absolute())
                 if self._has_relevant_type(file_type):
-                    result.append(('/{}'.format(f.relative_to(Path(self.root_path))), file_type['full']))
+                    result.append(('/{}'.format(path.relative_to(Path(self.root_path))), file_type['full']))
         return result
 
     def _find_root_path(self, tmp_dir: TemporaryDirectory) -> Path:
