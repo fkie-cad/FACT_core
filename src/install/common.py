@@ -23,6 +23,15 @@ def install_pip(python_command):
 def main(distribution):
     xenial = distribution == 'xenial'
 
+    _, is_repository = execute_shell_command_get_return_code('git status')
+    if is_repository == 128:
+        raise InstallationError(
+            '\nSorry, but FACT installation currently only supports git based projects\n'
+            'Please check out project with git:\n\n'
+            'git clone https://github.com/fkie-cad/FACT_core.git [--branch <version>]\n\n'
+            'Use the branch parameter with a specific version (e.g. 2.5) if desired'
+        )
+
     apt_install_packages('apt-transport-https')
 
     logging.info('Updating system')
