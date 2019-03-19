@@ -23,15 +23,6 @@ def install_pip(python_command):
 def main(distribution):
     xenial = distribution == 'xenial'
 
-    _, is_repository = execute_shell_command_get_return_code('git status')
-    if is_repository == 128:
-        raise InstallationError(
-            '\nSorry, but FACT installation currently only supports git based projects\n'
-            'Please check out project with git:\n\n'
-            'git clone https://github.com/fkie-cad/FACT_core.git [--branch <version>]\n\n'
-            'Use the branch parameter with a specific version (e.g. 2.5) if desired'
-        )
-
     apt_install_packages('apt-transport-https')
 
     logging.info('Updating system')
@@ -40,10 +31,14 @@ def main(distribution):
     apt_autoremove_packages()
     apt_clean_system()
 
-    # update submodules
-    git_output, git_code = execute_shell_command_get_return_code('(cd ../../ && git submodule foreach "git pull")')
-    if git_code != 0:
-        raise InstallationError('Failed to update submodules\n{}'.format(git_output))
+    _, is_repository = execute_shell_command_get_return_code('git status')
+    if is_repository == 0:
+        # update submodules
+        git_output, git_code = execute_shell_command_get_return_code('(cd ../../ && git submodule foreach "git pull")')
+        if git_code != 0:
+            raise InstallationError('Failed to update submodules\n{}'.format(git_output))
+    else:
+        logging.warning('FACT is not set up using git. Note that *adding submodules* won\'t work!!')
 
     # make bin dir
     with suppress(FileExistsError):
