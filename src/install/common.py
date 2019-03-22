@@ -31,10 +31,14 @@ def main(distribution):
     apt_autoremove_packages()
     apt_clean_system()
 
-    # update submodules
-    git_output, git_code = execute_shell_command_get_return_code('(cd ../../ && git submodule foreach "git pull")')
-    if git_code != 0:
-        raise InstallationError('Failed to update submodules\n{}'.format(git_output))
+    _, is_repository = execute_shell_command_get_return_code('git status')
+    if is_repository == 0:
+        # update submodules
+        git_output, git_code = execute_shell_command_get_return_code('(cd ../../ && git submodule foreach "git pull")')
+        if git_code != 0:
+            raise InstallationError('Failed to update submodules\n{}'.format(git_output))
+    else:
+        logging.warning('FACT is not set up using git. Note that *adding submodules* won\'t work!!')
 
     # make bin dir
     with suppress(FileExistsError):
