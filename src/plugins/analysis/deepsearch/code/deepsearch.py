@@ -6,7 +6,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     Hello World Plug-in
     '''
     NAME = 'DeepSearch'
-    DESCRIPTION = 'Hello World Plug-in'
+    DESCRIPTION = 'DeepSearch Plug-in'
     DEPENDENCIES = []
     VERSION = '0.1'
 

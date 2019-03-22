@@ -4,7 +4,7 @@ from objects.file import FileObject
 from ..code.deepsearch import AnalysisPlugin
 
 
-class test_analysis_plugin_Hello_World(AnalysisPluginTest):
+class test_analysis_plugin_deepsearch(AnalysisPluginTest):
 
     PLUGIN_NAME = 'DeepSearch'
 
