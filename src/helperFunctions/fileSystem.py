@@ -52,7 +52,18 @@ def get_absolute_path(path, base_dir=os.getcwd()):
         return os.path.join(base_dir, path)
 
 
-def get_chroot_path(absolute_path, base_path):
+def get_object_path_excluding_fact_dirs(absolute_path: str, offset_path: str):
+    '''
+    FACT extraction drops files into a temporary directory. These have to be offset to get the path a file has on the
+    firmware filesystem.
+    Additionally, some filesystem extractors create an intermediate directory 'fact_extracted' that has to be removed
+    as well.
+    '''
+    tmp = _get_relative_path(absolute_path, offset_path)
+    return _get_relative_path(tmp, '/fact_extracted')
+
+
+def _get_relative_path(absolute_path, base_path):
     '''
     set new root for path
     example:
@@ -67,14 +78,6 @@ def get_chroot_path(absolute_path, base_path):
         return new_path
     else:
         return absolute_path
-
-
-def get_chroot_path_excluding_extracted_dir(absolute_path, base_path):
-    '''
-    like get_chroot_path but removing 'fact_extracted' dir as well
-    '''
-    tmp = get_chroot_path(absolute_path, base_path)
-    return get_chroot_path(tmp, '/fact_extracted')
 
 
 def file_is_empty(file_path):
