@@ -1,10 +1,9 @@
 import os
 import unittest
 
-from common_helper_files import get_files_in_dir
 from helperFunctions.fileSystem import (
     file_is_empty, get_absolute_path, _get_relative_path,
-    get_object_path_excluding_fact_dirs, get_faf_bin_dir, get_parent_dir,
+    get_object_path_excluding_fact_dirs, get_parent_dir,
     get_src_dir, get_template_dir, get_test_data_dir
 )
 
@@ -37,13 +36,6 @@ class TestFileSystemHelpers(unittest.TestCase):
         self.assertTrue(os.path.isdir(template_dir), 'template dir not found')
         file_suffixes_in_template_dir = [os.path.basename(f).split('.')[-1] for f in os.listdir(template_dir)]
         self.assertTrue('html' in file_suffixes_in_template_dir)
-
-    def test_get_faf_bin_dir(self):
-        bin_dir = get_faf_bin_dir()
-        files_in_bin_dir = [os.path.basename(f) for f in get_files_in_dir(bin_dir)]
-        self.assertTrue(os.path.isdir(bin_dir))
-        self.assertIn('src/bin', bin_dir)
-        self.assertIn('passwords.txt', files_in_bin_dir)
 
     def test_get_absolute_path(self):
         abs_path = '/foo/bar'

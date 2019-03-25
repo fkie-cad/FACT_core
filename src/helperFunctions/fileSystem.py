@@ -16,13 +16,6 @@ def get_test_data_dir():
     return os.path.join(get_src_dir(), 'test/data')
 
 
-def get_faf_bin_dir():
-    '''
-    Returns the absolute path of the bin directory
-    '''
-    return os.path.join(get_src_dir(), 'bin')
-
-
 def get_template_dir():
     '''
     Returns the absolute path of the template directory

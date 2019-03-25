@@ -1,10 +1,11 @@
 import logging
 import os
 from pathlib import Path
-from subprocess import PIPE, Popen
 from tempfile import TemporaryDirectory
 
 from common_helper_files import get_binary_from_file
+from common_helper_process import execute_shell_command
+
 from unpacker.unpack_base import UnpackBase
 
 
@@ -24,10 +25,8 @@ class TarRepack(UnpackBase):
 
     @staticmethod
     def _repack_extracted_files(extraction_dir: Path, out_file_path: str) -> bytes:
-        with Popen('tar -C {} -cvzf {} .'.format(extraction_dir, out_file_path), shell=True, stdout=PIPE) as process:
-            output = process.stdout.read().decode()
-            logging.debug('tar -cvzf:\n {}'.format(output))
-
+        output = execute_shell_command('tar -C {} -cvzf {} .'.format(extraction_dir, out_file_path))
+        logging.debug('tar -cvzf:\n {}'.format(output))
         return get_binary_from_file(out_file_path)
 
     def _cleanup_directories(self, archive_directory, extraction_directory):
