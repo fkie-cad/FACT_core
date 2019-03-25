@@ -71,10 +71,10 @@ def get_chroot_path(absolute_path, base_path):
 
 def get_chroot_path_excluding_extracted_dir(absolute_path, base_path):
     '''
-    like get_chroot_path but removing 'faf_extracted' dir as well
+    like get_chroot_path but removing 'fact_extracted' dir as well
     '''
     tmp = get_chroot_path(absolute_path, base_path)
-    return get_chroot_path(tmp, '/faf_extracted')
+    return get_chroot_path(tmp, '/fact_extracted')
 
 
 def file_is_empty(file_path):

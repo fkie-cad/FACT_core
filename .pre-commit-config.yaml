@@ -48,12 +48,6 @@ repos:
     hooks:
     -   id: shellcheck
 
--   repo: https://github.com/pre-commit/mirrors-isort
-    rev: v4.3.4
-    hooks:
-    -   id: isort
-        args: ["-m 5"]
-
 -   repo: https://github.com/pryorda/dockerfilelint-precommit-hooks
     rev: v0.1.0
     hooks:

@@ -1,3 +1,4 @@
+# pylint: disable=protected-access, no-self-use
 import os
 from pathlib import Path
 from test.common_helper import create_test_firmware
@@ -40,14 +41,14 @@ class MockUnpacker:
 
 @pytest.fixture
 def execute_shell_fails(monkeypatch):
-    def mock_execute_shell(call, timeout=0):
+    def mock_execute_shell(*_, **__):
         return '', 1
     monkeypatch.setattr(qemu_exec, 'execute_shell_command_get_return_code', mock_execute_shell)
 
 
 @pytest.fixture
 def execute_shell_timeout(monkeypatch):
-    def mock_execute_shell(call, timeout=0):
+    def mock_execute_shell(call, **_):
         if call == 'pgrep dockerd':
             return '', 0
         return 'timed out', 1
@@ -86,15 +87,12 @@ class TestPluginQemuExec(AnalysisPluginTest):
         self.analysis_plugin.root_path = tmp_dir.name
         self.analysis_plugin.unpacker.set_tmp_dir(tmp_dir)
         result = sorted(self.analysis_plugin._find_relevant_files(Path(tmp_dir.name)))
-        assert len(result) == 2
+        assert len(result) == 4
 
-        path, mime = result[0]
-        assert path == '/test_mips_static'
-        assert 'MIPS' in mime
-
-        path, mime = result[1]
-        assert path == '/usr/bin/test_mips'
-        assert 'MIPS' in mime
+        path_list, mime_types = list(zip(*result))
+        for path in ['/lib/ld.so.1', '/lib/libc.so.6', '/test_mips_static', '/usr/bin/test_mips']:
+            assert path in path_list
+        assert all('MIPS' in mime for mime in mime_types)
 
     def test_get_docker_output__static(self):
         result = qemu_exec.get_docker_output('mips', '/test_mips_static', TEST_DATA_DIR)
@@ -160,7 +158,7 @@ class TestPluginQemuExec(AnalysisPluginTest):
         self.analysis_plugin.process_object(test_fw)
         result = test_fw.processed_analysis[self.analysis_plugin.NAME]
         assert 'files' in result
-        assert len(result['files']) == 2
+        assert len(result['files']) == 4
         assert any(result['files'][uid]['executable'] for uid in result['files'])
 
     def test_process_object__with_extracted_folder(self):
@@ -171,7 +169,7 @@ class TestPluginQemuExec(AnalysisPluginTest):
         self.analysis_plugin.process_object(test_fw)
         result = test_fw.processed_analysis[self.analysis_plugin.NAME]
         assert 'files' in result
-        assert len(result['files']) == 1
+        assert len(result['files']) == 3
         assert result['files'][test_file_uid]['executable'] is True
 
     def test_process_object__error(self):
