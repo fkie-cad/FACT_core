@@ -34,7 +34,7 @@ class RestCompare(Resource):
             uid_string = ';'.join(data['uid_list'])
             compare_id = normalize_compare_id(uid_string)
             redo = data.get('redo', False)
-        except (AttributeError, TypeError):
+        except (AttributeError, TypeError, KeyError):
             return error_message('Request should be of the form {"uid_list": uid_list, "redo": boolean}', self.URL, request_data=data)
 
         with ConnectTo(CompareDbInterface, self.config) as db_compare_service:
