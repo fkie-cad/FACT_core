@@ -36,6 +36,7 @@ def test_get_success(test_app):
 def test_put_unknown_objects(test_app):
     data = {'uid_list': ['someid_size', 'anotherid_size']}
     result = decode_response(test_app.put('/rest/compare', data=json.dumps(data)))
+    print(f"\n\nresult: {result}")
     assert result['status'] == 1
     assert result['error_message'] == 'bla'
 

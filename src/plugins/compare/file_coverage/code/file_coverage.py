@@ -1,11 +1,18 @@
 from copy import deepcopy
 
 from compare.PluginBase import CompareBasePlugin
-from helperFunctions.compare_sets import intersection_of_list_of_lists, difference_of_lists, difference_of_sets, \
-    remove_duplicates_from_list_of_lists, make_pairs_of_sets, collapse_pair_of_sets
-from helperFunctions.dataConversion import list_of_lists_to_list_of_sets, list_of_sets_to_list_of_lists, \
-    remove_included_sets_from_list_of_sets, list_to_unified_string_list
-from helperFunctions.hash import get_ssdeep_comparison, check_similarity_of_sets
+from helperFunctions.compare_sets import (
+    collapse_pair_of_sets, difference_of_lists, difference_of_sets,
+    intersection_of_list_of_lists, make_pairs_of_sets,
+    remove_duplicates_from_list_of_lists
+)
+from helperFunctions.dataConversion import (
+    convert_uid_list_to_compare_id, list_of_lists_to_list_of_sets,
+    list_of_sets_to_list_of_lists, remove_included_sets_from_list_of_sets
+)
+from helperFunctions.hash import (
+    check_similarity_of_sets, get_ssdeep_comparison
+)
 
 
 class ComparePlugin(CompareBasePlugin):
@@ -18,7 +25,7 @@ class ComparePlugin(CompareBasePlugin):
 
     def __init__(self, plugin_administrator, config=None, db_interface=None, plugin_path=__file__):
         super().__init__(plugin_administrator, config=config, db_interface=db_interface, plugin_path=plugin_path)
-        self.SSDEEP_IGNORE = int(self.config.get('ExpertSettings', 'ssdeep_ignore'))
+        self.ssdeep_ignore_threshold = int(self.config.get('ExpertSettings', 'ssdeep_ignore'))
 
     def compare_function(self, fo_list):
         compare_result = dict()
@@ -27,7 +34,7 @@ class ComparePlugin(CompareBasePlugin):
 
         self._handle_partially_common_files(compare_result, fo_list)
 
-        for key in compare_result.keys():
+        for key in compare_result:
             if isinstance(compare_result[key], dict):
                 compare_result[key]['collapse'] = False
 
@@ -68,7 +75,10 @@ class ComparePlugin(CompareBasePlugin):
     def _get_files_in_more_than_one_but_not_in_all(fo_list, result_dict):
         result = {}
         for _, current_element in enumerate(fo_list):
-            result[current_element.get_uid()] = list(difference_of_sets(set(current_element.list_of_all_included_files), [result_dict['files_in_common']['all'], result_dict['exclusive_files'][current_element.get_uid()]]))
+            result[current_element.get_uid()] = list(difference_of_sets(
+                set(current_element.list_of_all_included_files),
+                [result_dict['files_in_common']['all'], result_dict['exclusive_files'][current_element.get_uid()]]
+            ))
         return result
 
     # ---- SSDEEP similarity ---- #
@@ -83,7 +93,7 @@ class ComparePlugin(CompareBasePlugin):
                 for file_one in exclusive_files[parent_one.get_uid()]:
                     for item, value in self._find_similar_file_for(file=file_one, parent_id=parent_one.get_uid(), potential_matches=parent_two):
                         similars.append(item)
-                        similarity[list_to_unified_string_list(item)] = value
+                        similarity[convert_uid_list_to_compare_id(item)] = value
         similarity_sets = self.produce_similarity_sets(remove_duplicates_from_list_of_lists(similars))
         remove_included_sets_from_list_of_sets(similarity_sets)
         return remove_duplicates_from_list_of_lists(list_of_sets_to_list_of_lists(similarity_sets)), similarity
@@ -96,7 +106,7 @@ class ComparePlugin(CompareBasePlugin):
                 id2 = '{}:{}'.format(potential_matches.get_uid(), potential_match)
                 hash_two = self.database.get_ssdeep_hash(potential_match)
 
-                if hash_two and get_ssdeep_comparison(hash_one, hash_two) > self.SSDEEP_IGNORE:
+                if hash_two and get_ssdeep_comparison(hash_one, hash_two) > self.ssdeep_ignore_threshold:
                     yield [id1, id2], get_ssdeep_comparison(hash_one, hash_two)
 
     @staticmethod
@@ -115,8 +125,8 @@ class ComparePlugin(CompareBasePlugin):
             for file in match:
                 firm, sub = file.split(':')
                 match_dict[firm] = sub
-            if list_to_unified_string_list(match) in similarity.keys():
-                match_dict['similarity'] = similarity[list_to_unified_string_list(match)]
+            if convert_uid_list_to_compare_id(match) in similarity.keys():
+                match_dict['similarity'] = similarity[convert_uid_list_to_compare_id(match)]
             else:
                 match_dict['similarity'] = ''
             result_dict[self._match_id(match)] = match_dict

@@ -23,7 +23,7 @@ repos:
         files: src/unpacker/passwords|.gitignore|_list.txt
 
     -   id: flake8
-        args: [--ignore=E501]
+        args: [--ignore="E501,W503", --select=W504]
 
     -   id: forbid-new-submodules
 
@@ -47,12 +47,6 @@ repos:
     rev: 1.11.0
     hooks:
     -   id: shellcheck
-
--   repo: https://github.com/pre-commit/mirrors-isort
-    rev: v4.3.4
-    hooks:
-    -   id: isort
-        args: ["-m 5"]
 
 -   repo: https://github.com/pryorda/dockerfilelint-precommit-hooks
     rev: v0.1.0
