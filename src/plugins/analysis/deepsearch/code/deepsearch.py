@@ -5,9 +5,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
     '''
     Deep Search Plug-in
     '''
-    NAME = 'DeepSearch'
+    NAME = 'deepsearch'
     DESCRIPTION = 'DeepSearch Plug-in'
-    DEPENDENCIES = ['strings', 'elf_analysis', 'unpacker']
+    DEPENDENCIES = []
     VERSION = '0.1'
 
     def __init__(self, plugin_adminstrator, config=None, recursive=True):
@@ -36,7 +36,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
         # do some fancy stuff
         result_a = 'hello world'
-        result_b = file_object.processed_analysis['strings']
+        result_b = "new value"
 
         file_object.processed_analysis[self.NAME] = dict()
         file_object.processed_analysis[self.NAME]['analysis_result_a'] = result_a
