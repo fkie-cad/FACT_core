@@ -7,7 +7,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     '''
     NAME = 'deepsearch'
     DESCRIPTION = 'DeepSearch Plug-in'
-    DEPENDENCIES = ["elf_analysis", "printable_strings"]
+    DEPENDENCIES = ["elf_analysis", "printable_strings", "file_type"]
     VERSION = '0.1'
 
     def __init__(self, plugin_adminstrator, config=None, recursive=True):
