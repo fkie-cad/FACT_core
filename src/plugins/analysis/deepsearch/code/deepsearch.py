@@ -3,11 +3,11 @@ from analysis.PluginBase import AnalysisBasePlugin
 
 class AnalysisPlugin(AnalysisBasePlugin):
     '''
-    Hello World Plug-in
+    Deep Search Plug-in
     '''
     NAME = 'DeepSearch'
     DESCRIPTION = 'DeepSearch Plug-in'
-    DEPENDENCIES = []
+    DEPENDENCIES = ['strings', 'elf_analysis', 'unpacker']
     VERSION = '0.1'
 
     def __init__(self, plugin_adminstrator, config=None, recursive=True):
@@ -36,14 +36,27 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
         # do some fancy stuff
         result_a = 'hello world'
-        result_b = 1337
+        result_b = file_object.processed_analysis['strings']
 
-        # store the results
+        file_object.processed_analysis[self.NAME] = dict()
+        file_object.processed_analysis[self.NAME]['analysis_result_a'] = result_a
+        file_object.processed_analysis[self.NAME]['analysis_result_b'] = result_b        
+
+        file_object.processed_analysis[self.NAME]['summary'] = ['{} - {}'.format(result_a, result_b)]
+
+        # not working with three outputs
+        """
+        result_a = 'hello world'
+        result_b = 1337
+        #result_c = file_object.processed_analysis['strings']
+        result_c = "test c"
+
         file_object.processed_analysis[self.NAME] = dict()
         file_object.processed_analysis[self.NAME]['analysis_result_a'] = result_a
         file_object.processed_analysis[self.NAME]['analysis_result_b'] = result_b
+        file_object.processed_analysis[self.NAME]['analysis_result_c'] = result_c
 
-        # propagate some summary to parent objects
-        file_object.processed_analysis[self.NAME]['summary'] = ['{} - {}'.format(result_a, result_b)]
+        file_object.processed_analysis[self.NAME]['summary'] = ['{} - {} - {}'.format(result_a, result_b, result_c)]
+        """
 
         return file_object
