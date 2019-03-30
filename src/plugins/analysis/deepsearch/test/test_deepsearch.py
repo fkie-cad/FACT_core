@@ -6,7 +6,7 @@ from ..code.deepsearch import AnalysisPlugin
 
 class test_analysis_plugin_deepsearch(AnalysisPluginTest):
 
-    PLUGIN_NAME = 'DeepSearch'
+    PLUGIN_NAME = 'deepsearch'
 
     def setUp(self):
         super().setUp()

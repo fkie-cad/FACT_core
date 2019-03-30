@@ -40,7 +40,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
         file_object.processed_analysis[self.NAME] = dict()
         file_object.processed_analysis[self.NAME]['analysis_result_a'] = result_a
-        file_object.processed_analysis[self.NAME]['analysis_result_b'] = result_b        
+        file_object.processed_analysis[self.NAME]['analysis_result_b'] = result_b
+        file_object.processed_analysis[self.NAME]['value'] = 'new key'
 
         file_object.processed_analysis[self.NAME]['summary'] = ['{} - {}'.format(result_a, result_b)]
 
