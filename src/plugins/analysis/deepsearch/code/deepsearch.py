@@ -38,12 +38,16 @@ class AnalysisPlugin(AnalysisBasePlugin):
         # do some fancy stuff
         result_a = 'hello world'
         result_b = "new value"
-        result_c = file_object.processed_analysis['printable_strings']
+        result_object = file_object
+        result_strings = file_object.processed_analysis['printable_strings']
+        result_file_type = file_object.processed_analysis['file_type']
 
         file_object.processed_analysis[self.NAME] = dict()
         file_object.processed_analysis[self.NAME]['analysis_result_a'] = result_a
         file_object.processed_analysis[self.NAME]['analysis_result_b'] = result_b
-        file_object.processed_analysis[self.NAME]['object'] = str(file_object)
+        file_object.processed_analysis[self.NAME]['object'] = str(result_object)
+        file_object.processed_analysis[self.NAME]['file_type'] = str(result_file_type)
+        file_object.processed_analysis[self.NAME]['strings'] = str(result_strings)
 
 
 
