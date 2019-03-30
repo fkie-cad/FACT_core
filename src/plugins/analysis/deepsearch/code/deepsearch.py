@@ -19,6 +19,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         # additional init stuff can go here
 
         super().__init__(plugin_adminstrator, config=config, recursive=recursive, plugin_path=__file__)
+    
 
     def process_object(self, file_object):
         '''
@@ -37,11 +38,14 @@ class AnalysisPlugin(AnalysisBasePlugin):
         # do some fancy stuff
         result_a = 'hello world'
         result_b = "new value"
+        result_c = file_object.processed_analysis['printable_strings']
 
         file_object.processed_analysis[self.NAME] = dict()
         file_object.processed_analysis[self.NAME]['analysis_result_a'] = result_a
         file_object.processed_analysis[self.NAME]['analysis_result_b'] = result_b
-        file_object.processed_analysis[self.NAME]['value'] = 'rebootet'
+        file_object.processed_analysis[self.NAME]['object'] = str(file_object)
+
+
 
         file_object.processed_analysis[self.NAME]['summary'] = ['{} - {}'.format(result_a, result_b)]
 
