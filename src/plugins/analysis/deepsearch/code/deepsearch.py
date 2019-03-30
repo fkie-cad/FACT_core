@@ -35,6 +35,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
         Do not forget to add these plug-ins to "DEPENDENCIES".
         '''
 
+        #db.getCollection('file_objects').find({ "processed_analysis.file_type.mime": "application/x-executable"  })
+
         # do some fancy stuff
         result_a = 'hello world'
         result_b = "new value"
