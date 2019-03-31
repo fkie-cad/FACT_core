@@ -3,8 +3,12 @@ import pymongo
 
 class PPyMongoDB:
 
-    def __init__(self):
-        pass
+    def __init__(self, url, port, user, password):
+        self.connection = pymongo.MongoClient( \ 
+            "mongodb://" + user + ":" + password \
+            + "@" + url + ":" + port)
+        
+        return
 
 
 
