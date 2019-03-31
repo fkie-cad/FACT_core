@@ -6,27 +6,10 @@ class PFile:
     def __init__(self):
         self.name = str()
         self.uid = str()
-        self.files = list()
-
-        return
-
-class PFolder:
-
-    def __init__(self):
-        self.name = str()
-        self.folders = list()
-        self.files = list()
-
-        return
-
-
-class PFirmware:
-
-    def __init__(self):
-        self.root = PFolder()
-        self.root.name = "/"
+        self.path = str()
         
-        return 
+
+        return
 
 
 class PPyMongoDB:
@@ -42,8 +25,18 @@ class PPyMongoDB:
 
         self.collection = self.admin_db["file_objects"]
 
-        print(self.collection.find({"processed_analysis.file_type.mime": "application/x-executable"}).count())
+        
+
+        #print(self.collection.find({"processed_analysis.file_type.mime": "application/x-executable"}).count())
              
+        for ele in self.collection.find({"parent_firmware_uids" : "bab8d95fc42176abc9126393b6035e4012ebccc82c91e521b91d3bcba4832756_3801088"}):
+            
+            path = ele["virtual_file_path"]
+            path_str = list(path.values())[0]
+            path_str = path_str[0]
+            path_str = path_str[path_str.index("/"):]
+            print(path_str)
+            
         
         
             
