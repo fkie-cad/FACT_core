@@ -1,6 +1,34 @@
 import pymongo
 
 
+class PFile:
+
+    def __init__(self):
+        self.name = str()
+        self.uid = str()
+        self.files = list()
+
+        return
+
+class PFolder:
+
+    def __init__(self):
+        self.name = str()
+        self.folders = list()
+        self.files = list()
+
+        return
+
+
+class PFirmware:
+
+    def __init__(self):
+        self.root = PFolder()
+        self.root.name = "/"
+        
+        return 
+
+
 class PPyMongoDB:
 
     def __init__(self, url, port, user, password):
