@@ -25,7 +25,7 @@ class ComparePlugin(CompareBasePlugin):
 
     def __init__(self, plugin_administrator, config=None, db_interface=None, plugin_path=__file__):
         super().__init__(plugin_administrator, config=config, db_interface=db_interface, plugin_path=plugin_path)
-        self.ssdeep_ignore_threshold = int(self.config.get('ExpertSettings', 'ssdeep_ignore'))
+        self.ssdeep_ignore_threshold = self.config.getint('ExpertSettings', 'ssdeep_ignore')
 
     def compare_function(self, fo_list):
         compare_result = dict()
@@ -38,8 +38,8 @@ class ComparePlugin(CompareBasePlugin):
             if isinstance(compare_result[key], dict):
                 compare_result[key]['collapse'] = False
 
-        similars, similiarity = self._get_similar_files(fo_list, compare_result['exclusive_files'])
-        compare_result['similar_files'] = self.beautify_similar_files(similars, fo_list, similiarity)
+        similar_files, similarity = self._get_similar_files(fo_list, compare_result['exclusive_files'])
+        compare_result['similar_files'] = self.beautify_similar_files(similar_files, fo_list, similarity)
 
         return compare_result
 

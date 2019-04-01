@@ -1,5 +1,4 @@
 import logging
-import sys
 from time import time
 from typing import Optional
 
@@ -58,7 +57,7 @@ class CompareDbInterface(MongoInterfaceCommon):
             self.compare_results.remove({'_id': normalize_compare_id(compare_id)})
             logging.debug('old compare result deleted: {}'.format(compare_id))
         except Exception as exception:
-            logging.warning('Could not delete old compare result: {} {}'.format(sys.exc_info()[0].__name__, exception))
+            logging.warning('Could not delete old compare result: {} {}'.format(type(exception).__name__, exception))
 
     @staticmethod
     def _calculate_compare_result_id(compare_result):

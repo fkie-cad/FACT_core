@@ -57,9 +57,8 @@ class IORoutes(ComponentBase):
         except binascii.Error as error:
             return render_template('error.html', message=str(error))
         response = make_response(binary)
-        file_name = (file_obj.file_name
-                     + '_0x{:X}'.format(span_in_binary[0] + span_in_section[0])
-                     + '-0x{:X}_decoded'.format(span_in_binary[1] - span_in_section[2]))
+        file_name = '{}_0x{:X}-0x{:X}_decoded'.format(
+            file_obj.file_name, span_in_binary[0] + span_in_section[0], span_in_binary[1] - span_in_section[2])
         response.headers['Content-Disposition'] = 'attachment; filename={}'.format(file_name)
         return response
 
