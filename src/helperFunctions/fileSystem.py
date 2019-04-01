@@ -1,6 +1,8 @@
 import logging
 import os
 import sys
+from pathlib import Path
+from typing import Iterable
 
 
 def get_src_dir():
@@ -91,3 +93,20 @@ def file_is_empty(file_path):
         logging.error('Unexpected Exception: {} {}'.format(sys.exc_info()[0].__name__, e))
     else:
         return False
+
+
+def iter_files_recursively(path: Path) -> Iterable[Path]:
+    '''
+    alternative to pathlib.rglob which crashes with broken symlinks
+    '''
+    try:
+        if path.is_symlink():
+            yield from []
+        elif path.is_file():
+            yield path
+        elif path.is_dir():
+            for child_path in path.iterdir():
+                yield from iter_files_recursively(child_path)
+    except PermissionError:  # FIXME find solution for permission error
+        logging.error("Permission Error: could not access path {path}".format(path=path.absolute()))
+        yield from []

@@ -12,6 +12,7 @@ from typing import List
 from common_helper_process import execute_shell_command
 
 from analysis.PluginBase import AnalysisBasePlugin
+from helperFunctions.fileSystem import iter_files_recursively
 from helperFunctions.tag import TagColor
 from helperFunctions.web_interface import ConnectTo
 from objects.file import FileObject
@@ -107,7 +108,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             pass
 
     def _analyze_metadata_of_mounted_dir(self, mounted_dir: Path):
-        for file_ in mounted_dir.rglob("*"):
+        for file_ in iter_files_recursively(mounted_dir):
             if file_.is_file() and not file_.is_symlink():
                 self._enter_results_for_mounted_file(file_)
 
