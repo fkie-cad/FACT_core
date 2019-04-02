@@ -1,15 +1,17 @@
+# pylint: disable=no-self-use,unused-argument
 import json
 import os
 from base64 import standard_b64encode
 from copy import deepcopy
 
-from helperFunctions.dataConversion import unify_string_list
+from helperFunctions.dataConversion import normalize_compare_id
 from helperFunctions.fileSystem import get_test_data_dir
 from intercom.common_mongo_binding import InterComMongoInterface
 from objects.file import FileObject
 from objects.firmware import Firmware
-from storage.mongo_interface import MongoInterface
 from storage.db_interface_common import MongoInterfaceCommon
+from storage.db_interface_compare import FactCompareException
+from storage.mongo_interface import MongoInterface
 
 
 class CommonDbInterfaceMock(MongoInterfaceCommon):
@@ -134,16 +136,16 @@ class DatabaseMock:
         return {'test class': {'test vendor': ['test device']}}
 
     def compare_result_is_in_db(self, uid_list):
-        if uid_list == unify_string_list(';'.join([TEST_FW.uid, TEST_TEXT_FILE.uid])):
+        if uid_list == normalize_compare_id(';'.join([TEST_FW.uid, TEST_TEXT_FILE.uid])):
             return True
         else:
             return False
 
     def get_compare_result(self, compare_id):
-        if compare_id == unify_string_list(';'.join([TEST_FW.uid, TEST_FW_2.uid])):
+        if compare_id == normalize_compare_id(';'.join([TEST_FW.uid, TEST_FW_2.uid])):
             return {'this_is': 'a_compare_result',
                     'general': {'hid': {TEST_FW.uid: 'foo', TEST_TEXT_FILE.uid: 'bar'}}}
-        elif compare_id == unify_string_list(';'.join([TEST_FW.uid, TEST_TEXT_FILE.uid])):
+        elif compare_id == normalize_compare_id(';'.join([TEST_FW.uid, TEST_TEXT_FILE.uid])):
             return {'this_is': 'a_compare_result'}
         else:
             return 'generic error'
@@ -156,13 +158,13 @@ class DatabaseMock:
         else:
             return False
 
-    def object_existence_quick_check(self, compare_id):
-        if compare_id == unify_string_list(';'.join([TEST_FW_2.uid, TEST_FW.uid])):
+    def check_objects_exist(self, compare_id):
+        if compare_id == normalize_compare_id(';'.join([TEST_FW_2.uid, TEST_FW.uid])):
             return None
-        elif compare_id == unify_string_list(';'.join([TEST_TEXT_FILE.uid, TEST_FW.uid])):
+        elif compare_id == normalize_compare_id(';'.join([TEST_TEXT_FILE.uid, TEST_FW.uid])):
             return None
         else:
-            return 'bla'
+            raise FactCompareException('bla')
 
     def all_uids_found_in_database(self, uid_list):
         return True
