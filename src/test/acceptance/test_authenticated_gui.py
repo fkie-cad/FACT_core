@@ -18,15 +18,17 @@ class TestAcceptanceAuthentication(TestAuthenticatedAcceptanceBase):
 
     def test_role_based_access(self):
         self._start_backend()
-        response = self.test_client.get('/upload', headers={'Authorization': self.guest.key}, follow_redirects=True)
-        self.assertIn(self.UNIQUE_LOGIN_STRING, response.data, 'upload should not be accessible for guest')
+        try:
+            response = self.test_client.get('/upload', headers={'Authorization': self.guest.key}, follow_redirects=True)
+            self.assertIn(self.UNIQUE_LOGIN_STRING, response.data, 'upload should not be accessible for guest')
 
-        response = self.test_client.get('/upload', headers={'Authorization': self.guest_analyst.key}, follow_redirects=True)
-        self.assertIn(self.UNIQUE_LOGIN_STRING, response.data, 'upload should not be accessible for guest_analyst')
+            response = self.test_client.get('/upload', headers={'Authorization': self.guest_analyst.key}, follow_redirects=True)
+            self.assertIn(self.UNIQUE_LOGIN_STRING, response.data, 'upload should not be accessible for guest_analyst')
 
-        response = self.test_client.get('/upload', headers={'Authorization': self.superuser.key}, follow_redirects=True)
-        self.assertNotIn(self.UNIQUE_LOGIN_STRING, response.data, 'upload should not be accessible for guest')
-        self._stop_backend()
+            response = self.test_client.get('/upload', headers={'Authorization': self.superuser.key}, follow_redirects=True)
+            self.assertNotIn(self.UNIQUE_LOGIN_STRING, response.data, 'upload should not be accessible for guest')
+        finally:
+            self._stop_backend()
 
     def test_about_doesnt_need_authentication(self):
         response = self.test_client.get('/about', follow_redirects=True)
