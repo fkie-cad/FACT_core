@@ -8,6 +8,7 @@ import pytest
 
 from compare.PluginBase import CompareBasePlugin
 from scheduler.Compare import CompareScheduler
+from storage.db_interface_compare import FactCompareException
 from test.common_helper import create_test_file_object
 
 
@@ -16,16 +17,14 @@ def no_compare_views(monkeypatch):
     monkeypatch.setattr(CompareBasePlugin, '_sync_view', value=lambda s, p: None)
 
 
-class MockDbInterface(object):
+class MockDbInterface:
     def __init__(self, config=None):
         self.test_object = create_test_file_object()
         self.test_object.list_of_all_included_files = [self.test_object.get_uid()]
 
-    def object_existence_quick_check(self, compare_id):
-        if compare_id == 'existing_id':
-            return None
-        else:
-            return '{} not found in database'.format(compare_id)
+    def check_objects_exist(self, compare_id):
+        if not compare_id == 'existing_id':
+            raise FactCompareException('{} not found in database'.format(compare_id))
 
     def get_complete_object_including_all_summaries(self, uid):
         if uid == self.test_object.get_uid():

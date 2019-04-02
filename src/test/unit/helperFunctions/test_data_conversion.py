@@ -1,9 +1,15 @@
-import pytest
 from datetime import datetime
 
-from helperFunctions.dataConversion import make_bytes, make_unicode_string, make_dict_from_list, make_list_from_dict, list_of_lists_to_list_of_sets, \
-    unify_string_list, string_list_to_list, get_value_of_first_key, none_to_none, list_of_sets_to_list_of_lists, remove_included_sets_from_list_of_sets, \
-    build_time_dict, _fill_in_time_gaps, remove_uneccessary_spaces, convert_time_to_str
+import pytest
+
+from helperFunctions.dataConversion import (
+    _fill_in_time_gaps, build_time_dict, convert_compare_id_to_list,
+    convert_time_to_str, get_value_of_first_key, list_of_lists_to_list_of_sets,
+    list_of_sets_to_list_of_lists, make_bytes, make_dict_from_list,
+    make_list_from_dict, make_unicode_string, none_to_none,
+    normalize_compare_id, remove_included_sets_from_list_of_sets,
+    remove_uneccessary_spaces
+)
 
 
 @pytest.mark.parametrize('input_data', [
@@ -64,15 +70,19 @@ def test_list_of_sets_to_list_of_lists():
     assert list_of_sets_to_list_of_lists(None) == []
 
 
-def test_unify_string_list():
+def test_normalize_compare_id():
     ids_a = 'a;b'
     ids_b = 'b;a'
-    assert unify_string_list(ids_a) == 'a;b', 'compare id not correct'
-    assert unify_string_list(ids_a) == unify_string_list(ids_b), 'compare ids not the same'
+    assert normalize_compare_id(ids_a) == 'a;b', 'compare id not correct'
+    assert normalize_compare_id(ids_a) == normalize_compare_id(ids_b), 'compare ids not the same'
 
 
-def test_string_list_to_list():
-    assert string_list_to_list('a;b') == ['a', 'b']
+@pytest.mark.parametrize('input_data, expected', [
+    ('a', ['a']),
+    ('a;b;c', ['a', 'b', 'c']),
+])
+def test_convert_compare_id_to_list(input_data, expected):
+    assert convert_compare_id_to_list(input_data) == expected
 
 
 @pytest.mark.parametrize('input_data, expected', [
