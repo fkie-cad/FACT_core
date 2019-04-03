@@ -12,21 +12,19 @@ lifts to the following architectures:
 - PowerPC
 - Mips
 '''
-from collections import defaultdict
 import logging
-import os
+from collections import defaultdict
 
 import sexpdata
-
 from common_helper_process import execute_shell_command_get_return_code
+
 from analysis.PluginBase import AnalysisBasePlugin
 
-PATH_TO_BAP = '~/.opam/4.05.0/bin/bap'
-BAP_TIMEOUT = 10
+BAP_TIMEOUT = 10  # in minutes
 DOCKER_IMAGE = 'fkiecad/cwe_checker:latest'
 
 
-class CweWarning(object):
+class CweWarning:
 
     def __init__(self, name, plugin_version, warning):
         self.name = name
@@ -34,18 +32,18 @@ class CweWarning(object):
         self.warning = warning
 
 
-class CweWarningParser(object):
+class CweWarningParser:
     '''
     Parses a CWE warning emitted by the BAP plugin CweChecker
     '''
 
     @staticmethod
-    def _remove_color(s):
+    def _remove_color(string):
         '''
         Removes 'color' from string
         See https://stackoverflow.com/questions/287871/print-in-terminal-with-colors/293633#293633
         '''
-        return s.replace('\x1b[0m', '').strip()
+        return string.replace('\x1b[0m', '').strip()
 
     def parse(self, warning):
         try:
@@ -62,8 +60,8 @@ class CweWarningParser(object):
             cwe_message = cwe_message.replace('.', '').replace('32u', '')
 
             return CweWarning(cwe_name, plugin_version, cwe_message)
-        except IndexError as e:
-            logging.error('IndexError while parsing CWE warning: {}.'.format(str(e)))
+        except IndexError as error:
+            logging.error('IndexError while parsing CWE warning: {}.'.format(str(error)))
             return None
 
 
@@ -72,25 +70,22 @@ class AnalysisPlugin(AnalysisBasePlugin):
     This class implements the FACT Python wrapper for the BAP plugin cwe_checker.
     '''
     NAME = 'cwe_checker'
-    DESCRIPTION = 'This plugin checks ELF binaries for several CWEs (Common Weakness Enumeration) like \
-    CWE-243 (Creation of chroot Jail Without Changing Working Directory) and \
-    CWE-676 (Use of Potentially Dangerous Function). Internally it uses BAP 1.5, which currently supports ARM, x86/x64, PPC and MIPS. \
-    Due to the nature of static analysis, this plugin may run for a long time.'
+    DESCRIPTION = 'This plugin checks ELF binaries for several CWEs (Common Weakness Enumeration) like'\
+                  'CWE-243 (Creation of chroot Jail Without Changing Working Directory) and'\
+                  'CWE-676 (Use of Potentially Dangerous Function). Internally it uses BAP 1.5, which currently supports ARM, x86/x64, PPC and MIPS.'\
+                  'Due to the nature of static analysis, this plugin may run for a long time.'
     DEPENDENCIES = ['cpu_architecture', 'file_type']
-    VERSION = '0.3.3'
+    VERSION = '0.3.4'
     MIME_WHITELIST = ['application/x-executable', 'application/x-object', 'application/x-sharedlib']
     SUPPORTED_ARCHS = ['arm', 'x86', 'x64', 'mips', 'ppc']
 
-    def __init__(self, plugin_adminstrator, config=None, recursive=True, docker=True):
+    def __init__(self, plugin_adminstrator, config=None, recursive=True, timeout=BAP_TIMEOUT * 60 + 10):
         self.config = config
-        self.docker = docker
-        if self.docker:
-            if not self._check_docker_installed():
-                raise Exception('Docker support is turned on but Docker is not installed.')
+        if not self._check_docker_installed():
+            raise RuntimeError('Docker is not installed.')
         self._module_versions = self._get_module_versions()
         logging.info('Module versions are {}'.format(str(self._module_versions)))
-        super().__init__(plugin_adminstrator, config=config,
-                         plugin_path=__file__, recursive=recursive)
+        super().__init__(plugin_adminstrator, config=config, plugin_path=__file__, recursive=recursive, timeout=timeout)
 
     @staticmethod
     def _check_docker_installed():
@@ -102,10 +97,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
         output, return_code = execute_shell_command_get_return_code(bap_command)
         if return_code != 0:
             logging.error('Could not get module versions from Bap plugin: {} ({}). I tried the following command: {}'.format(
-                          return_code, output, bap_command))
+                return_code, output, bap_command))
             return {}
-        else:
-            return self._parse_module_versions(output)
+        return self._parse_module_versions(output)
 
     @staticmethod
     def _parse_module_versions(bap_output):
@@ -116,28 +110,15 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 module_versions = dict(sexpdata.loads(version_sexp))
         return module_versions
 
-    def _build_bap_command_for_modules_versions(self):
+    @staticmethod
+    def _build_bap_command_for_modules_versions():
         # unfortunately, there must be a dummy file passed to BAP, I chose /bin/true because it is damn small
-        if self.docker:
-            bap_command = 'docker run --rm {} bap /bin/true --pass=cwe-checker --cwe-checker-module_versions=true'.format(DOCKER_IMAGE)
-        else:
-            bap_command = '{} {} --pass=cwe-checker --cwe-checker-module_versions=true'.format(PATH_TO_BAP, '/bin/true')
-        return bap_command
+        return 'docker run --rm {} bap /bin/true --pass=cwe-checker --cwe-checker-module_versions=true'.format(DOCKER_IMAGE)
 
-    def _build_bap_command(self, file_object):
-        if self.docker:
-            bap_command = 'timeout --signal=SIGKILL {}m docker run --rm -v {}:/tmp/input {} bap /tmp/input '\
-                          '--pass=cwe-checker --cwe-checker-config=/home/bap/cwe_checker/src/config.json'.format(
-                              BAP_TIMEOUT,
-                              file_object.file_path,
-                              DOCKER_IMAGE)
-        else:
-            bap_command = 'timeout --signal=SIGKILL {}m {} {} --pass=cwe-checker --cwe-checker-config={}/../internal/src/config.json'.format(
-                BAP_TIMEOUT,
-                PATH_TO_BAP,
-                file_object.file_path,
-                os.path.join(os.path.dirname(os.path.abspath(__file__))))
-        return bap_command
+    @staticmethod
+    def _build_bap_command(file_object):
+        return 'timeout --signal=SIGKILL {}m docker run --rm -v {}:/tmp/input {} bap /tmp/input '\
+               '--pass=cwe-checker --cwe-checker-config=/home/bap/cwe_checker/src/config.json'.format(BAP_TIMEOUT, file_object.file_path, DOCKER_IMAGE)
 
     @staticmethod
     def _parse_bap_output(output):
@@ -170,14 +151,15 @@ class AnalysisPlugin(AnalysisBasePlugin):
         bap_command = self._build_bap_command(file_object)
         output, return_code = execute_shell_command_get_return_code(
             bap_command)
-        if return_code != 0:
-            logging.error('Could not communicate with Bap plugin: {} ({})\nUID: {}'.format(
-                          return_code, output, file_object.get_uid()))
-            file_object.processed_analysis[self.NAME] = {'summary': []}
-        else:
+        if return_code in [0, 124, 128 + 9]:
             cwe_messages = self._parse_bap_output(output)
-            file_object.processed_analysis[self.NAME] = {'full': cwe_messages,
-                                                         'summary': list(cwe_messages.keys())}
+            file_object.processed_analysis[self.NAME] = {'full': cwe_messages, 'summary': list(cwe_messages.keys())}
+            if return_code in [124, 128 + 9]:
+                logging.warning('CWE-Checker timed out on {}. Warnings might not be complete.'.format(file_object.get_uid()))
+                file_object.processed_analysis[self.NAME]['warning'] = 'Analysis timed out. Warnings might not be complete.'
+        else:
+            logging.error('Could not communicate with Bap plugin: {} ({})\nUID: {}'.format(return_code, output, file_object.get_uid()))
+            file_object.processed_analysis[self.NAME] = {'summary': []}
         return file_object
 
     def process_object(self, file_object):
@@ -187,8 +169,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
         '''
         if not self._is_supported_arch(file_object):
             logging.debug('{}\'s arch is not supported ({})'.format(
-                          file_object.file_path,
-                          file_object.processed_analysis['cpu_architecture']['summary']))
+                file_object.file_path,
+                file_object.processed_analysis['cpu_architecture']['summary']))
             file_object.processed_analysis[self.NAME] = {'summary': []}
         else:
             file_object = self._do_full_analysis(file_object)
