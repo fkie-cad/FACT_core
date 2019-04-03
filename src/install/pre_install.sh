@@ -3,17 +3,17 @@
 FACTUSER=$(whoami)
 
 CODENAME=$(lsb_release -cs)
-if [ ${CODENAME} = 'tara' -o ${CODENAME} = 'tessa' ]; then
+if [ "${CODENAME}" = "tara" ] || [ "${CODENAME}" = "tessa" ]; then
     CODENAME=bionic
-elif [ ${CODENAME} = 'sarah' -o ${CODENAME} = 'serena' -o ${CODENAME} = 'sonya' -o ${CODENAME} = 'sylvia' ]; then
+elif [ "${CODENAME}" = "sarah" ] || [ "${CODENAME}" = "serena" ] || [ "${CODENAME}" = "sonya" ] || [ "${CODENAME}" = "sylvia" ]; then
     CODENAME=xenial
-elif [ ${CODENAME} = 'rebecca' -o ${CODENAME} = 'rafaela' -o ${CODENAME} = 'rosa' ]; then
+elif [ "${CODENAME}" = "rebecca" ] || [ "${CODENAME}" = "rafaela" ] || [ "${CODENAME}" = "rosa" ]; then
     CODENAME=trusty
-    sudo apt-get -y install linux-image-extra-$(uname -r) linux-image-extra-virtual
+    sudo apt-get -y install "linux-image-extra-$(uname -r)" linux-image-extra-virtual
 fi
 
 echo "Install Pre-Install Requirements"
-sudo apt-get -y install python3-pip git
+sudo apt-get -y install python3-pip git libffi-dev
 
 echo "Installing Docker"
 
@@ -37,11 +37,11 @@ sudo apt-get -y install docker-ce
 sudo systemctl enable docker
 
 # add fact-user to docker group
-if [ ! $(getent group "docker") ]
+if [ ! "$(getent group docker)" ]
 then
     sudo groupadd docker
 fi
-sudo usermod -aG docker $FACTUSER
+sudo usermod -aG docker "$FACTUSER"
 
 sudo -EH pip3 install --upgrade docker-compose
 
