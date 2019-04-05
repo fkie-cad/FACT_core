@@ -20,14 +20,10 @@ class AnalysisPlugin(AnalysisBasePlugin):
     ]
     FALLBACK_MIN_LENGTH = '8'
 
-    def __init__(self, plugin_administrator, config=None, recursive=True, plugin_path=__file__):
-        '''
-        recursive flag: If True recursively analyze included files
-        default flags should be edited above. Otherwise the scheduler cannot overwrite them.
-        '''
+    def __init__(self, config=None, plugin_path=__file__):
         self.config = config
         self.regexes = self._compile_regexes()
-        super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=plugin_path)
+        super().__init__(config=self.config, plugin_path=plugin_path)
 
     def _compile_regexes(self) -> List[Tuple[Pattern[bytes], str]]:
         min_length = self._get_min_length_from_config()
@@ -58,7 +54,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return self._get_list_of_unique_strings(strings_with_offset), strings_with_offset
 
     @staticmethod
-    def _match_with_offset(regex: Pattern[bytes], source: bytes, encoding: str='utf-8') -> List[Tuple[int, str]]:
+    def _match_with_offset(regex: Pattern[bytes], source: bytes, encoding: str = 'utf-8') -> List[Tuple[int, str]]:
         return [
             (match.start(), match.group().decode(encoding))
             for match in regex.finditer(source)

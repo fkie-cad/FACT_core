@@ -24,8 +24,8 @@ class AnalysisPlugin(YaraBasePlugin):
     MIME_BLACKLIST = ['audio', 'filesystem', 'image', 'video']
     VERSION = '0.3.2'
 
-    def __init__(self, plugin_administrator, config=None, recursive=True):
-        super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__)
+    def __init__(self, config=None):
+        super().__init__(config=config, plugin_path=__file__)
 
     def process_object(self, file_object):
         file_object = super().process_object(file_object)
@@ -45,10 +45,7 @@ class AnalysisPlugin(YaraBasePlugin):
             regex = '\\d+.\\d+(.\\d+)?(\\w)?'
         pattern = re.compile(regex)
         version = pattern.search(input_string)
-        if version is not None:
-            return version.group(0)
-        else:
-            return ''
+        return version.group(0) if version is not None else ''
 
     @staticmethod
     def _get_summary(results):

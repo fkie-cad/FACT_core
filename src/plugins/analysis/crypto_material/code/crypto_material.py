@@ -18,8 +18,8 @@ class AnalysisPlugin(YaraBasePlugin):
     SSLCERT = 'SSLCertificate'
     VERSION = '0.5.2'
 
-    def __init__(self, plugin_administrator, config=None, recursive=True):
-        super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__)
+    def __init__(self, config=None):
+        super().__init__(config=config, plugin_path=__file__)
 
     def process_object(self, file_object):
         file_object = super().process_object(file_object)

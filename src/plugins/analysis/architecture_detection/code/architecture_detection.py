@@ -11,28 +11,28 @@ class AnalysisPlugin(AnalysisBasePlugin):
     DEPENDENCIES = ['file_type']
     DESCRIPTION = 'identify CPU architecture'
     VERSION = '0.3.2'
+    MIME_BLACKLIST = [
+        'application/msword',
+        'application/pdf',
+        'application/postscript',
+        'application/x-dvi',
+        'application/x-httpd-php',
+        'application/xhtml+xml',
+        'application/xml',
+        'image',
+        'text',
+        'video',
+    ]
 
-    def __init__(self, plugin_administrator, config=None, recursive=True):
+    def __init__(self, config=None):
         '''
         recursive flag: If True recursively analyze included files
         propagate flag: If True add analysis result of child to parent object
         default flags should be edited above. Otherwise the scheduler cannot overwrite them.
         '''
         self.config = config
-        self.MIME_BLACKLIST = [
-            'application/msword',
-            'application/pdf',
-            'application/postscript',
-            'application/x-dvi',
-            'application/x-httpd-php',
-            'application/xhtml+xml',
-            'application/xml',
-            'image',
-            'text',
-            'video',
-        ]
-        self.DETECTORS = [MetaDataDetector()]
-        super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__)
+        self.detectors = [MetaDataDetector(), ]
+        super().__init__(config=config, plugin_path=__file__)
 
     def process_object(self, file_object):
         '''
@@ -45,7 +45,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return file_object
 
     def _get_device_architectures(self, file_object):
-        for detector in self.DETECTORS:
+        for detector in self.detectors:
             arch_dict = detector.get_device_architecture(file_object)
             if arch_dict:
                 return arch_dict
@@ -86,10 +86,9 @@ class MetaDataDetector:
         end_result = self._search_for_arch_keys(type_of_file, self.architectures, delimiter='')
         if not end_result:
             return arch_dict
-        else:
-            end_result += self._search_for_arch_keys(type_of_file, self.bitness) + self._search_for_arch_keys(type_of_file, self.endianness) + ' (M)'
-            arch_dict.update({end_result: 'Detection based on metadata'})
-            return arch_dict
+        end_result += self._search_for_arch_keys(type_of_file, self.bitness) + self._search_for_arch_keys(type_of_file, self.endianness) + ' (M)'
+        arch_dict.update({end_result: 'Detection based on metadata'})
+        return arch_dict
 
     @staticmethod
     def _search_for_arch_keys(file_type_output, arch_dict, delimiter=', '):

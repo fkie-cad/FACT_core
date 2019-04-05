@@ -6,12 +6,15 @@ from multiprocessing import Queue, Value
 from queue import Empty
 from time import sleep, time
 from typing import List, Optional, Set, Tuple
+from celery.states import REVOKED
+from analysis.task import run_job_async
+
 
 from helperFunctions.compare_sets import substring_is_in_list
 from helperFunctions.config import read_list_from_config
 from helperFunctions.merge_generators import shuffled
 from helperFunctions.parsing import bcolors
-from helperFunctions.plugin import import_plugins
+from helperFunctions.plugin import import_all
 from helperFunctions.process import (
     ExceptionSafeProcess, terminate_process_and_childs
 )
@@ -29,8 +32,8 @@ class AnalysisScheduler:
 
     def __init__(self, config: Optional[ConfigParser] = None, pre_analysis=None, post_analysis=None, db_interface=None):
         self.config = config
-        self.analysis_plugins = {}
-        self.load_plugins()
+        self.analysis_plugins = {plugin.AnalysisPlugin.NAME: plugin.AnalysisPlugin for plugin in import_all()}
+        self._pending_jobs = list()
         self.stop_condition = Value('i', 0)
         self.process_queue = Queue()
         self.tag_queue = Queue()
@@ -40,7 +43,7 @@ class AnalysisScheduler:
         self.start_scheduling_process()
         self.start_result_collector()
         logging.info('Analysis System online...')
-        logging.info('Plugins available: {}'.format(self.get_list_of_available_plugins()))
+        logging.info('Plugins available: {}'.format(sorted(list(self.analysis_plugins.keys()))))
 
     def shutdown(self):
         '''
@@ -51,8 +54,6 @@ class AnalysisScheduler:
         with ThreadPoolExecutor() as e:
             e.submit(self.schedule_process.join)
             e.submit(self.result_collector_process.join)
-            for plugin in self.analysis_plugins:
-                e.submit(self.analysis_plugins[plugin].shutdown)
         if getattr(self.db_backend_service, 'shutdown', False):
             self.db_backend_service.shutdown()
         self.tag_queue.close()
@@ -101,14 +102,6 @@ class AnalysisScheduler:
             if all(dependency in met_dependencies for dependency in self.analysis_plugins[plugin].DEPENDENCIES)
         ]
 
-    def get_list_of_available_plugins(self):
-        '''
-        returns a list of all loaded plugins
-        '''
-        plugin_list = list(self.analysis_plugins.keys())
-        plugin_list.sort(key=str.lower)
-        return plugin_list
-
 # ---- internal functions ----
 
     def get_default_plugins_from_config(self):
@@ -128,7 +121,7 @@ class AnalysisScheduler:
         - mandatory plug-ins shall not be shown in the analysis selection but always exectued
         - default plug-ins shall be pre-selected in the analysis selection
         '''
-        plugin_list = self.get_list_of_available_plugins()
+        plugin_list = sorted(list(self.analysis_plugins.keys()))
         plugin_list = self._remove_unwanted_plugins(plugin_list)
         default_plugins = self.get_default_plugins_from_config()
         default_flag_dict = {}
@@ -145,21 +138,7 @@ class AnalysisScheduler:
 
     def get_scheduled_workload(self):
         workload = {'analysis_main_scheduler': self.process_queue.qsize()}
-        for plugin in self.analysis_plugins:
-            workload[plugin] = self.analysis_plugins[plugin].in_queue.qsize()
         return workload
-
-    def register_plugin(self, name, plugin_instance):
-        '''
-        This function is called upon plugin init to announce its presence
-        '''
-        self.analysis_plugins[name] = plugin_instance
-
-    def load_plugins(self):
-        source = import_plugins('analysis.plugins', 'plugins/analysis')
-        for plugin_name in source.list_plugins():
-            plugin = source.load_plugin(plugin_name)
-            plugin.AnalysisPlugin(self, config=self.config)
 
     def start_scheduling_process(self):
         logging.debug('Starting scheduler...')
@@ -179,12 +158,19 @@ class AnalysisScheduler:
 
     def process_next_analysis(self, fw_object: FileObject):
         self.pre_analysis(fw_object)
+        # FIXME double pop() see check_further_process_or_complete! Join methods.
         analysis_to_do = fw_object.scheduled_analysis.pop()
         if analysis_to_do not in self.analysis_plugins:
             logging.error('Plugin \'{}\' not available'.format(analysis_to_do))
             self.check_further_process_or_complete(fw_object)
         else:
             self._start_or_skip_analysis(analysis_to_do, fw_object)
+
+    def check_further_process_or_complete(self, fw_object):
+        if not fw_object.scheduled_analysis:
+            logging.info('Analysis Completed:\n{}'.format(fw_object))
+        else:
+            self.process_queue.put(fw_object)
 
     def _start_or_skip_analysis(self, analysis_to_do: str, fw_object: FileObject):
         if self._analysis_is_already_in_db_and_up_to_date(analysis_to_do, fw_object.get_uid()):
@@ -197,7 +183,7 @@ class AnalysisScheduler:
             fw_object.processed_analysis[analysis_to_do] = self._get_skipped_analysis_result(analysis_to_do)
             self.check_further_process_or_complete(fw_object)
         else:
-            self.analysis_plugins[analysis_to_do].add_job(fw_object)
+            run_job_async(fw_object, analysis_to_do, self.config)
 
     def _add_completed_analysis_results_to_file_object(self, analysis_to_do: str, fw_object: FileObject):
         db_entry = self.db_backend_service.get_specific_fields_of_db_entry(
@@ -298,29 +284,30 @@ class AnalysisScheduler:
     def result_collector(self):
         while self.stop_condition.value == 0:
             nop = True
-            for plugin in self.analysis_plugins:
-                try:
-                    fw = self.analysis_plugins[plugin].out_queue.get_nowait()
-                    fw = self._handle_analysis_tags(fw, plugin)
-                except Empty:
-                    pass
+            still_pending = []
+
+            for uid, plugin, async_result in self._pending_jobs:
+                nop = False
+                if async_result.ready():
+                    if async_result.state == REVOKED:
+                        logging.warning('Revoked Job {} on {}'.format(uid, plugin))
+                    else:
+                        fw = async_result.get()
+                        fw = self._handle_analysis_tags(fw, plugin)
+                        if plugin in fw.processed_analysis:
+                            self.post_analysis(fw)
+                        self.check_further_process_or_complete(fw)
                 else:
-                    nop = False
-                    if plugin in fw.processed_analysis:
-                        self.post_analysis(fw)
-                    self.check_further_process_or_complete(fw)
+                    still_pending.append((uid, plugin, async_result))
+
+            self._pending_jobs = still_pending
+
             if nop:
                 sleep(int(self.config['ExpertSettings']['block_delay']))
 
     def _handle_analysis_tags(self, fw, plugin):
         self.tag_queue.put(check_tags(fw, plugin))
         return add_tags_to_object(fw, plugin)
-
-    def check_further_process_or_complete(self, fw_object):
-        if not fw_object.scheduled_analysis:
-            logging.info('Analysis Completed:\n{}'.format(fw_object))
-        else:
-            self.process_queue.put(fw_object)
 
     @staticmethod
     def _remove_unwanted_plugins(list_of_plugins):
@@ -330,9 +317,6 @@ class AnalysisScheduler:
         return list_of_plugins
 
     def check_exceptions(self):
-        for _, plugin in self.analysis_plugins.items():
-            if plugin.check_exceptions():
-                return True
         for process in [self.schedule_process, self.result_collector_process]:
             if process.exception:
                 logging.error('{}Exception in scheduler process {}{}'.format(bcolors.FAIL, bcolors.ENDC, process.name))

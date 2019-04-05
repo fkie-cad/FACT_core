@@ -17,7 +17,7 @@ class YaraBasePlugin(AnalysisBasePlugin):
     DESCRIPTION = 'this is a Yara plugin'
     VERSION = '0.0'
 
-    def __init__(self, plugin_administrator, config=None, recursive=True, plugin_path=None):
+    def __init__(self, config=None, plugin_path=None):
         '''
         recursive flag: If True recursively analyze included files
         propagate flag: If True add analysis result of child to parent object
@@ -25,7 +25,7 @@ class YaraBasePlugin(AnalysisBasePlugin):
         self.config = config
         self._get_signature_file(plugin_path)
         self.SYSTEM_VERSION = self.get_yara_system_version()
-        super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=plugin_path)
+        super().__init__(config=config, plugin_path=plugin_path)
 
     def get_yara_system_version(self):
         with subprocess.Popen(['yara', '--version'], stdout=subprocess.PIPE) as process:
