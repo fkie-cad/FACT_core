@@ -1,5 +1,6 @@
 from analysis.PluginBase import AnalysisBasePlugin
 
+import pymongo
 
 class AnalysisPlugin(AnalysisBasePlugin):
     '''
@@ -22,18 +23,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     
 
     def process_object(self, file_object):
-        '''
-        This function must be implemented by the plug-in.
-        Analysis result must be a dict stored in "file_object.processed_analysis[self.NAME]"
-        CAUTION: Dict keys must be strings!
-        If you want to propagate results to parent objects store a list of strings in
-        "file_object.processed_analysis[self.NAME]['summary']".
 
-        File's binary is available via "file_object.binary".
-        File's local storage path is available via "file_object.file_path".
-        Results of other plug-ins can be accesd via "file_object.processed_analysis['PLUGIN_NAME']".
-        Do not forget to add these plug-ins to "DEPENDENCIES".
-        '''
 
         #db.getCollection('file_objects').find({ "processed_analysis.file_type.mime": "application/x-executable"  })
 
@@ -55,19 +45,26 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
         file_object.processed_analysis[self.NAME]['summary'] = ['{} - {}'.format(result_a, result_b)]
 
-        # not working with three outputs
-        """
-        result_a = 'hello world'
-        result_b = 1337
-        #result_c = file_object.processed_analysis['strings']
-        result_c = "test c"
+        user_ro = "fact_readonly"
+        password_ro = "RFaoFSr8b6BMSbzt"
+        user_write = 'fact_admin'
+        password_write = '6fJEb5LkV2hRtWq0'
+        url = "localhost"
+        port = "27018"
 
-        file_object.processed_analysis[self.NAME] = dict()
-        file_object.processed_analysis[self.NAME]['analysis_result_a'] = result_a
-        file_object.processed_analysis[self.NAME]['analysis_result_b'] = result_b
-        file_object.processed_analysis[self.NAME]['analysis_result_c'] = result_c
+        connection = pymongo.MongoClient(
+            "mongodb://" + user_write + ":" + password_write
+            + "@" + url + ":" + port + "/?authSource=admin&authMechanism=SCRAM-SHA-1")
 
-        file_object.processed_analysis[self.NAME]['summary'] = ['{} - {} - {}'.format(result_a, result_b, result_c)]
-        """
+        admin_db = connection["fact_main"]
+
+        collection = admin_db["file_objects"]
+        fileid = file_object.uid
+
+        firmware_id = ""
+        for element in collection.find({"_id": fileid}):
+            firmware_id = element["parent_firmware_uids"][0]
+
+
 
         return file_object
