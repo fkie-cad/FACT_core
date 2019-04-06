@@ -27,23 +27,23 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
         #db.getCollection('file_objects').find({ "processed_analysis.file_type.mime": "application/x-executable"  })
 
-        # do some fancy stuff
-        result_a = 'hello world'
-        result_b = "new value"
+
+
         result_object = file_object
         result_strings = file_object.processed_analysis['printable_strings']
         result_file_type = file_object.processed_analysis['file_type']
 
         file_object.processed_analysis[self.NAME] = dict()
-        file_object.processed_analysis[self.NAME]['analysis_result_a'] = result_a
-        file_object.processed_analysis[self.NAME]['analysis_result_b'] = result_b
-        file_object.processed_analysis[self.NAME]['object'] = str(result_object)
-        file_object.processed_analysis[self.NAME]['file_type'] = str(result_file_type)
-        file_object.processed_analysis[self.NAME]['strings'] = str(result_strings)
 
+        #file_object.processed_analysis[self.NAME]['object'] = str(result_object)
+        #file_object.processed_analysis[self.NAME]['file_type'] = str(result_file_type)
+        #file_object.processed_analysis[self.NAME]['strings'] = str(result_strings)
 
-
-        file_object.processed_analysis[self.NAME]['summary'] = ['{} - {}'.format(result_a, result_b)]
+        # result_a = 'hello world'
+        # result_b = "new value"
+        #file_object.processed_analysis[self.NAME]['analysis_result_a'] = result_a
+        #file_object.processed_analysis[self.NAME]['analysis_result_b'] = result_b
+        #file_object.processed_analysis[self.NAME]['summary'] = ['{} - {}'.format(result_a, result_b)]
 
         user_ro = "fact_readonly"
         password_ro = "RFaoFSr8b6BMSbzt"
@@ -65,6 +65,38 @@ class AnalysisPlugin(AnalysisBasePlugin):
         for element in collection.find({"_id": fileid}):
             firmware_id = element["parent_firmware_uids"][0]
 
+
+        executables = list()
+
+        for ele in collection.find({"processed_analysis.file_type.mime": {"$regex": "executable"}}):
+
+            if firmware_id in ele["parent_firmware_uids"]:
+                tmp = dict()
+                path = ele["virtual_file_path"]
+                path_str = list(path.values())[0]
+                path_str = path_str[0]
+                path_str = path_str[path_str.index("/"):]
+                print(path_str)
+
+                tmp["path"] = path_str
+                tmp["name"] = ele["file_name"]
+
+                executables.append(tmp)
+
+            else:
+                continue
+
+        file_object.processed_analysis[self.NAME]['contained_binaries'] = list()
+
+        for printstring in file_object.processed_analysis['printable_strings']:
+
+            for i in executables:
+
+                if i["name"] in printstring:
+                    file_object.processed_analysis[self.NAME]['contained_binaries'].append(i)
+                    pass
+
+            pass
 
 
         return file_object
