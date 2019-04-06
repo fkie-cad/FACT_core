@@ -76,7 +76,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 path_str = list(path.values())[0]
                 path_str = path_str[0]
                 path_str = path_str[path_str.index("/"):]
-                print(path_str)
+                #print(path_str)
 
                 tmp["path"] = path_str
                 tmp["name"] = ele["file_name"]
@@ -86,9 +86,10 @@ class AnalysisPlugin(AnalysisBasePlugin):
             else:
                 continue
 
+        #db.getCollection('file_objects').find({"processed_analysis.deepsearch.contained_binaries": {"$gt": 1} })
         file_object.processed_analysis[self.NAME]['contained_binaries'] = list()
 
-        for printstring in file_object.processed_analysis['printable_strings']:
+        for printstring in file_object.processed_analysis['printable_strings']["offsets"]:
 
             for i in executables:
 
