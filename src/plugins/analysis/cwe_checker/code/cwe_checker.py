@@ -79,13 +79,13 @@ class AnalysisPlugin(AnalysisBasePlugin):
     MIME_WHITELIST = ['application/x-executable', 'application/x-object', 'application/x-sharedlib']
     SUPPORTED_ARCHS = ['arm', 'x86', 'x64', 'mips', 'ppc']
 
-    def __init__(self, plugin_adminstrator, config=None, recursive=True, timeout=BAP_TIMEOUT * 60 + 10):
+    def __init__(self, config=None):
         self.config = config
         if not self._check_docker_installed():
             raise RuntimeError('Docker is not installed.')
         self._module_versions = self._get_module_versions()
         logging.info('Module versions are {}'.format(str(self._module_versions)))
-        super().__init__(plugin_adminstrator, config=config, plugin_path=__file__, recursive=recursive, timeout=timeout)
+        super().__init__(config=config, plugin_path=__file__)
 
     @staticmethod
     def _check_docker_installed():

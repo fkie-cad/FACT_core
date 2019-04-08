@@ -67,9 +67,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
         'filesystem/squashfs'
     ]
 
-    def __init__(self, plugin_administrator, config=None, recursive=True):
+    def __init__(self, config=None):
         self.result = {}
-        super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__)
+        super().__init__(config=config, plugin_path=__file__)
 
     def process_object(self, file_object: FileObject) -> FileObject:
         self.result = {}

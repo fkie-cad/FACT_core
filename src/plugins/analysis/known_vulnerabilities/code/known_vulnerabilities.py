@@ -15,10 +15,10 @@ class AnalysisPlugin(YaraBasePlugin):
     DEPENDENCIES = ['file_hashes', 'software_components']
     VERSION = '0.2'
 
-    def __init__(self, plugin_administrator, config=None, recursive=True):
+    def __init__(self, config=None):
         self._rule_base_vulnerabilities = vulnerabilities()
 
-        super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__)
+        super().__init__(config=config, plugin_path=__file__)
 
     def process_object(self, file_object):
         file_object = super().process_object(file_object)
@@ -38,8 +38,8 @@ class AnalysisPlugin(YaraBasePlugin):
 
         return file_object
 
-    def add_tags(self, file_object, vulnerabilities):
-        for name, details in vulnerabilities:
+    def add_tags(self, file_object, found_vulnerabilities):
+        for name, details in found_vulnerabilities:
             if details['score'] == 'high':
                 propagate = True
                 tag_color = TagColor.RED

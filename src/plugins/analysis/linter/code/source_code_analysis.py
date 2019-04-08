@@ -35,9 +35,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
         'python': {'mime': 'python', 'shebang': 'python', 'ending': '.py', 'linter': PythonLinter}
     }
 
-    def __init__(self, plugin_adminstrator, config=None, recursive=True, offline_testing=False):
+    def __init__(self, config=None):
         self.config = config
-        super().__init__(plugin_adminstrator, config=config, plugin_path=__file__, recursive=recursive, offline_testing=offline_testing)
+        super().__init__(config=config, plugin_path=__file__)
 
     def _determine_script_type(self, file_object: FileObject):
         '''

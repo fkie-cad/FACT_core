@@ -1,7 +1,6 @@
 import logging
 import os
 import re
-import sys
 from contextlib import suppress
 from tempfile import NamedTemporaryFile
 
@@ -23,7 +22,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     wordlist_path = os.path.join(get_src_dir(), 'bin/passwords.txt')
 
-    def __init__(self, plugin_administrator, config=None, recursive=True):
+    def __init__(self, config=None):
         '''
         recursive flag: If True recursively analyze included files
         default flags should be edited above. Otherwise the scheduler cannot overwrite them.
@@ -31,7 +30,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         self.config = config
 
         # additional init stuff can go here
-        super().__init__(plugin_administrator, config=config, recursive=recursive, no_multithread=True, plugin_path=__file__)
+        super().__init__(config=config, plugin_path=__file__)
 
     def process_object(self, file_object):
         '''
@@ -44,8 +43,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
         file_object.processed_analysis[self.NAME]['summary'] = []
 
         for passwd_regex in [
-            b'[a-zA-Z][a-zA-Z0-9_-]{2,15}:[^:]?:\\d+:\\d*:[^:]*:[^:]*:[^\n ]*',
-            b'[a-zA-Z][a-zA-Z0-9_-]{2,15}:\\$[^\\$]+\\$[^\\$]+\\$[a-zA-Z0-9\\./]{16,128}'
+                b'[a-zA-Z][a-zA-Z0-9_-]{2,15}:[^:]?:\\d+:\\d*:[^:]*:[^:]*:[^\n ]*',
+                b'[a-zA-Z][a-zA-Z0-9_-]{2,15}:\\$[^\\$]+\\$[^\\$]+\\$[a-zA-Z0-9\\./]{16,128}'
         ]:
             passwd_entries = re.findall(passwd_regex, file_object.binary)
             if passwd_entries:
@@ -63,9 +62,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 if entry[1][0] == ord('$'):
                     result[key]['password-hash'] = entry[1].decode(encoding='utf_8', errors='replace')
                     cracked_pw = self._crack_hash(entry, result, key)
-                    result[key]['cracked'] = True if cracked_pw else False
-            except Exception as e:
-                logging.error('Invalid Format: {} - {}'.format(sys.exc_info()[0].__name__, e))
+                    result[key]['cracked'] = bool(cracked_pw)
+            except Exception as exc:
+                logging.error('Invalid Format: {} - {}'.format(type(exc), str(exc)))
         return result
 
     def _crack_hash(self, passwd_entry, result_dict, key):

@@ -15,7 +15,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     VERSION = "0.3.1"
     DESCRIPTION = "scan for known malware"
 
-    def __init__(self, plugin_administrator, config=None, recursive=True):
+    def __init__(self, config=None):
         '''
         recursive flag: If True recursively analyze included files
         default flags should be edited above. Otherwise the scheduler cannot overwrite them.
@@ -25,7 +25,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         # additional init stuff can go here
         self.oms = CommonAnalysisOMS()
 
-        super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__)
+        super().__init__(config=config, plugin_path=__file__)
 
     def process_object(self, file_object):
         '''

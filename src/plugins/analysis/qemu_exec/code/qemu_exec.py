@@ -77,9 +77,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     root_path = None
 
-    def __init__(self, plugin_administrator, config=None, recursive=True, unpacker=None):
+    def __init__(self, config=None, unpacker=None):
         self.unpacker = Unpacker(config) if unpacker is None else unpacker
-        super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__, timeout=600)
+        super().__init__(config=config, plugin_path=__file__)
 
     def process_object(self, file_object: FileObject) -> FileObject:
         if not docker_is_running():
