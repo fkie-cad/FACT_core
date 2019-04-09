@@ -1,15 +1,17 @@
+# pylint: disable=no-self-use,unused-argument
 import json
 import os
 from base64 import standard_b64encode
 from copy import deepcopy
 
-from helperFunctions.dataConversion import unify_string_list
+from helperFunctions.dataConversion import normalize_compare_id
 from helperFunctions.fileSystem import get_test_data_dir
 from intercom.common_mongo_binding import InterComMongoInterface
 from objects.file import FileObject
 from objects.firmware import Firmware
-from storage.mongo_interface import MongoInterface
 from storage.db_interface_common import MongoInterfaceCommon
+from storage.db_interface_compare import FactCompareException
+from storage.mongo_interface import MongoInterface
 
 
 class CommonDbInterfaceMock(MongoInterfaceCommon):
@@ -64,8 +66,7 @@ class MockFileObject(object):
     def __init__(self, binary=b'test string', file_path='/bin/ls'):
         self.binary = binary
         self.file_path = file_path
-        self.processed_analysis = {'file_type': {
-            'mime': 'application/x-executable'}}
+        self.processed_analysis = {'file_type': {'mime': 'application/x-executable'}}
 
 
 class DatabaseMock:
@@ -75,6 +76,7 @@ class DatabaseMock:
 
     def __init__(self, config=None):
         self.tasks = []
+        self.locks = []
 
     def shutdown(self):
         pass
@@ -124,6 +126,9 @@ class DatabaseMock:
     def get_device_class_list(self):
         return ['test class']
 
+    def page_compare_results(self):
+        return list()
+
     def get_vendor_list(self):
         return ['test vendor']
 
@@ -131,16 +136,16 @@ class DatabaseMock:
         return {'test class': {'test vendor': ['test device']}}
 
     def compare_result_is_in_db(self, uid_list):
-        if uid_list == unify_string_list(';'.join([TEST_FW.uid, TEST_TEXT_FILE.uid])):
+        if uid_list == normalize_compare_id(';'.join([TEST_FW.uid, TEST_TEXT_FILE.uid])):
             return True
         else:
             return False
 
     def get_compare_result(self, compare_id):
-        if compare_id == unify_string_list(';'.join([TEST_FW.uid, TEST_FW_2.uid])):
+        if compare_id == normalize_compare_id(';'.join([TEST_FW.uid, TEST_FW_2.uid])):
             return {'this_is': 'a_compare_result',
                     'general': {'hid': {TEST_FW.uid: 'foo', TEST_TEXT_FILE.uid: 'bar'}}}
-        elif compare_id == unify_string_list(';'.join([TEST_FW.uid, TEST_TEXT_FILE.uid])):
+        elif compare_id == normalize_compare_id(';'.join([TEST_FW.uid, TEST_TEXT_FILE.uid])):
             return {'this_is': 'a_compare_result'}
         else:
             return 'generic error'
@@ -153,13 +158,13 @@ class DatabaseMock:
         else:
             return False
 
-    def object_existence_quick_check(self, compare_id):
-        if compare_id == unify_string_list(';'.join([TEST_FW_2.uid, TEST_FW.uid])):
+    def check_objects_exist(self, compare_id):
+        if compare_id == normalize_compare_id(';'.join([TEST_FW_2.uid, TEST_FW.uid])):
             return None
-        elif compare_id == unify_string_list(';'.join([TEST_TEXT_FILE.uid, TEST_FW.uid])):
+        elif compare_id == normalize_compare_id(';'.join([TEST_TEXT_FILE.uid, TEST_FW.uid])):
             return None
         else:
-            return 'bla'
+            raise FactCompareException('bla')
 
     def all_uids_found_in_database(self, uid_list):
         return True
@@ -320,6 +325,18 @@ class DatabaseMock:
         if uid == 'deadbeef00000000000000000000000000000000000000000000000000000000_123':
             return 'test_name'
 
+    def set_unpacking_lock(self, uid):
+        self.locks.append(uid)
+
+    def check_unpacking_lock(self, uid):
+        return uid in self.locks
+
+    def drop_unpacking_locks(self):
+        self.locks = []
+
+    def get_specific_fields_of_db_entry(self, uid, field_dict):
+        return None  # TODO
+
 
 def fake_exit(self, *args):
     pass
@@ -353,7 +370,7 @@ def get_firmware_for_rest_upload_test():
         'device_name': 'test_device',
         'device_part': 'test_part',
         'device_class': 'test_class',
-        'firmware_version': '1.0',
+        'version': '1.0',
         'vendor': 'test_vendor',
         'release_date': '01.01.1970',
         'tags': '',

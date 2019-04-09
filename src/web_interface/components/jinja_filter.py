@@ -18,7 +18,8 @@ from web_interface.filter import byte_number_filter, encode_base64_filter, \
     text_highlighter, get_canvas_height, comment_out_regex_meta_chars, user_has_role, \
     generic_nice_representation, list_to_line_break_string_no_sort, render_tags, fix_cwe, \
     data_to_chart_with_value_percentage_pairs, render_analysis_tags, vulnerability_class, sort_users_by_name, \
-    sort_roles_by_number_of_privileges, filter_format_string_list_with_offset, decompress
+    sort_roles_by_number_of_privileges, filter_format_string_list_with_offset, decompress, \
+    get_unique_keys_from_list_of_dicts
 
 
 class FilterClass:
@@ -46,7 +47,7 @@ class FilterClass:
         return tmp
 
     def _filter_replace_uid_with_hid(self, input_data, root_uid=None):
-        tmp = input_data.__str__()
+        tmp = str(input_data)
         if tmp == 'None':
             return ' '
         uid_list = get_all_uids_in_string(tmp)
@@ -54,6 +55,11 @@ class FilterClass:
             for item in uid_list:
                 tmp = tmp.replace(item, sc.get_hid(item, root_uid=root_uid))
         return tmp
+
+    def _filter_replace_comparison_uid_with_hid(self, input_data, root_uid=None):
+        tmp = self._filter_replace_uid_with_hid(input_data, root_uid)
+        res = tmp.split(';')
+        return '  ||  '.join(res)
 
     def _filter_replace_uid_with_hid_link(self, input_data, root_uid=None):
         tmp = input_data.__str__()
@@ -131,3 +137,6 @@ class FilterClass:
         self._app.jinja_env.filters['decompress'] = decompress
         self._app.jinja_env.filters['firmware_detail_tabular_field'] = self._render_firmware_detail_tabular_field
         self._app.jinja_env.filters['dict_to_json'] = json.dumps
+        self._app.jinja_env.filters['replace_comparison_uid_with_hid'] = self._filter_replace_comparison_uid_with_hid
+        self._app.jinja_env.filters['is_list'] = lambda item: isinstance(item, list)
+        self._app.jinja_env.filters['get_unique_keys_from_list_of_dicts'] = get_unique_keys_from_list_of_dicts

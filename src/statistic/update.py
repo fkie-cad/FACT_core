@@ -55,11 +55,11 @@ class StatisticUpdater(object):
         if self.start_time is None:
             self.start_time = time()
         stats = {}
-        stats['number_of_firmwares'] = self.db.firmwares.count(self.match)
+        stats['number_of_firmwares'] = self.db.firmwares.count_documents(self.match)
         stats['total_firmware_size'] = get_field_sum(self.db.firmwares, '$size', match=self.match)
         stats['average_firmware_size'] = get_field_average(self.db.firmwares, '$size', match=self.match)
         if not self.match:
-            stats['number_of_unique_files'] = self.db.file_objects.count()
+            stats['number_of_unique_files'] = self.db.file_objects.count_documents({})
             stats['total_file_size'] = get_field_sum(self.db.file_objects, '$size')
             stats['average_file_size'] = get_field_average(self.db.file_objects, '$size')
         else:
@@ -86,7 +86,7 @@ class StatisticUpdater(object):
         return stats
 
     def _get_exploit_mitigations_stats(self):
-        stats = {}
+        stats = dict()
         stats['exploit_mitigations'] = []
         aggregation_pipeline = self._get_file_object_filter_aggregation_pipeline(
             pipeline_group={'_id': '$parent_firmware_uids',
@@ -102,7 +102,18 @@ class StatisticUpdater(object):
         self.get_stats_canary(result, stats)
         self.get_stats_relro(result, stats)
         self.get_stats_pie(result, stats)
+        self.get_stats_fortify(result, stats)
         return stats
+
+    def get_stats_fortify(self, result, stats):
+        fortify_off, fortify_on = self.extract_fortify_data_from_analysis(result)
+        total_amount_of_files = calculate_total_files([fortify_off, fortify_on])
+        self.append_nx_stats_to_result_dict(fortify_off, fortify_on, stats, total_amount_of_files)
+
+    def extract_fortify_data_from_analysis(self, result):
+        fortify_on = self.extract_mitigation_from_list('FORTIFY_SOURCE enabled', result)
+        fortify_off = self.extract_mitigation_from_list('FORTIFY_SOURCE disabled', result)
+        return fortify_off, fortify_on
 
     def get_stats_nx(self, result, stats):
         nx_off, nx_on = self.extract_nx_data_from_analysis(result)
@@ -332,7 +343,7 @@ class StatisticUpdater(object):
         return {'software_components': [
             (entry['_id'], int(entry['count']))
             for entry in query_result
-            if entry['_id'] not in ['summary', 'analysis_date', 'file_system_flag', 'plugin_version', 'tags', 'skipped']
+            if entry['_id'] not in ['summary', 'analysis_date', 'file_system_flag', 'plugin_version', 'tags', 'skipped', 'system_version']
         ]}
 
 

@@ -12,8 +12,10 @@ SPECIAL_CHARACTERS = 'ÄäÀàÁáÂâÃãÅåǍǎĄąĂăÆæĀāÇçĆćĈĉČ
                      'ŤťŢţÞþȚțÜüÙùÚúÛûŰűŨũŲųŮůŪūŴŵÝýŸÿŶŷŹźŽžŻż'
 
 
-def get_color_list(n, limit=10):
-    compliant_colors = ['#2b669a', '#cce0dc', '#2b669a', '#cce0dc', '#2b669a', '#cce0dc', '#2b669a', '#cce0dc', '#2b669a', '#cce0dc', '#2b669a', '#cce0dc']
+def get_color_list(n, limit=15):
+    compliant_colors = ['#2b669a', '#cce0dc', '#2b669a', '#cce0dc', '#2b669a', '#cce0dc',
+                        '#2b669a', '#cce0dc', '#2b669a', '#cce0dc', '#2b669a', '#cce0dc',
+                        '#2b669a', '#cce0dc', '#2b669a', '#cce0dc', '#2b669a', '#cce0dc']
     return compliant_colors[:n if n <= limit else limit]
 
 
@@ -44,7 +46,7 @@ def apply_filters_to_query(request, query):
 def filter_out_illegal_characters(string):
     if string is None:
         return string
-    return re.sub('[^\w {}!.-]'.format(SPECIAL_CHARACTERS), '', string)
+    return re.sub('[^\\w {}!.-]'.format(SPECIAL_CHARACTERS), '', string)
 
 
 class ConnectTo:

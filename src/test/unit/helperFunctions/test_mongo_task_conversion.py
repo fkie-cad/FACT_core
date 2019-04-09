@@ -1,13 +1,11 @@
 import unittest
+
 import pytest
 
 from helperFunctions.mongo_task_conversion import check_for_errors, \
-    get_uid_of_analysis_task, get_uploaded_file_binary,\
-    convert_analysis_task_to_fw_obj, convert_fw_obj_to_analysis_task, \
-    is_sanitized_entry, _get_tag_list
+    get_uid_of_analysis_task, get_uploaded_file_binary, \
+    convert_analysis_task_to_fw_obj, is_sanitized_entry, _get_tag_list
 from objects.firmware import Firmware
-from test.common_helper import create_test_firmware
-
 
 TEST_TASK = {
     'binary': b'this is a test',
@@ -15,7 +13,7 @@ TEST_TASK = {
     'device_name': 'test device',
     'device_part': 'kernel',
     'device_class': 'test class',
-    'firmware_version': '1.0',
+    'version': '1.0',
     'vendor': 'test vendor',
     'release_date': '01.01.1970',
     'requested_analysis_systems': ['file_type', 'dummy'],
@@ -63,24 +61,6 @@ class TestMongoTask(unittest.TestCase):
         self.assertEqual(len(fw_obj.scheduled_analysis), 2)
         self.assertIn('dummy', fw_obj.scheduled_analysis)
         self.assertIsInstance(fw_obj.tags, dict, 'tag type not correct')
-
-    def test_convert_fw_obj_to_analysis_task(self):
-        fw = create_test_firmware()
-        result = convert_fw_obj_to_analysis_task(fw)
-        self.assertEqual(result['binary'], fw.binary)
-        self.assertEqual(result['file_name'], fw.file_name)
-        self.assertEqual(result['device_class'], fw.device_class)
-        self.assertEqual(result['vendor'], fw.vendor)
-        self.assertEqual(result['firmware_version'], fw.version)
-        self.assertEqual(result['release_date'], fw.release_date)
-        self.assertEqual(result['requested_analysis_systems'], fw.scheduled_analysis)
-        self.assertEqual(result['uid'], fw.get_uid())
-        self.assertEqual(result['tags'], ','.join(fw.tags))
-
-    def test_convert_fw_analysis_task_both_directions(self):
-        fw = convert_analysis_task_to_fw_obj(TEST_TASK)
-        result = convert_fw_obj_to_analysis_task(fw)
-        self.assertEqual(result, TEST_TASK)
 
     def test_is_sanitized_entry(self):
         sanitized_example = 'crypto_material_summary_81abfc7a79c8c1ed85f6b9fc2c5d9a3edc4456c4aecb9f95b4d7a2bf9bf652da_76415'

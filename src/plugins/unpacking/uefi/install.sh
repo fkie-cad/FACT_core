@@ -6,11 +6,14 @@ echo "------------------------------------"
 echo "        install uefi parser         "
 echo "------------------------------------"
 
-cd ../../../bootstrap
+cd ../../../install
 
 git clone https://github.com/theopolis/uefi-firmware-parser.git
-#(cd uefi-firmware-parser && git checkout db3230c41e9b1f1d1945788f047ba39a4b8daf2a) # - known stable commit
-(cd uefi-firmware-parser && sudo -E python2 setup.py install --force && cp scripts/fv_parser.py ../../bin/)
+cd uefi-firmware-parser
+git checkout d48d6b9627ed559f14b703f4146fb92315ed5a92 # known stable commit
+sudo -E python2 setup.py install --force
+cp bin/uefi-firmware-parser ../../bin
+cd ..
 sudo rm -rf uefi-firmware-parser
 
 exit 0

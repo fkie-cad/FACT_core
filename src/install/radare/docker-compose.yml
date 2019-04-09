@@ -1,0 +1,13 @@
+version: '2'
+
+services:
+    app:
+        image: fkiecad/radare-web-gui:latest
+        restart: on-failure
+    server:
+        build:
+            context: ./nginx
+            dockerfile: Dockerfile
+        restart: on-failure
+        ports:
+        - 8000:8000

@@ -8,7 +8,7 @@ import zlib
 from base64 import standard_b64encode
 from operator import itemgetter
 from time import localtime, strftime, struct_time
-from typing import AnyStr
+from typing import AnyStr, List
 
 from common_helper_files import human_readable_file_size
 
@@ -182,17 +182,9 @@ def text_highlighter(input_data, green=['clean', 'online', 0], red=['offline']):
         return input_data
 
 
-def get_first_value(data):
-    return data[0]
-
-
-def get_second_value(data):
-    return data[1]
-
-
 def sort_chart_list_by_name(input_data):
     try:
-        input_data.sort(key=get_first_value)
+        input_data.sort(key=lambda x: x[0])
     except Exception as e:
         logging.error(
             'could not sort chart list {}: {} - {}'.format(input_data, sys.exc_info()[0].__name__, e))
@@ -203,7 +195,7 @@ def sort_chart_list_by_name(input_data):
 
 def sort_chart_list_by_value(input_data):
     try:
-        input_data.sort(key=get_second_value, reverse=True)
+        input_data.sort(key=lambda x: x[1], reverse=True)
     except Exception as e:
         logging.error(
             'could not sort chart list {}: {} - {}'.format(input_data, sys.exc_info()[0].__name__, e))
@@ -369,3 +361,11 @@ def decompress(s: AnyStr) -> str:
         except zlib.error:
             return s.decode()
     return s
+
+
+def get_unique_keys_from_list_of_dicts(list_of_dicts: List[dict]):
+    unique_keys = set()
+    for dictionary in list_of_dicts:
+        for key in dictionary:
+            unique_keys.add(key)
+    return unique_keys

@@ -1,19 +1,23 @@
-# -*- coding: utf-8 -*-
-
 import binascii
 import json
 from time import sleep
 
 import requests
-from flask import request, render_template, make_response, redirect
+from flask import make_response, redirect, render_template, request
 
 from helperFunctions.dataConversion import remove_linebreaks_from_byte_string
-from helperFunctions.mongo_task_conversion import create_analysis_task, check_for_errors, convert_analysis_task_to_fw_obj
+from helperFunctions.mongo_task_conversion import (
+    check_for_errors, convert_analysis_task_to_fw_obj, create_analysis_task
+)
 from helperFunctions.web_interface import ConnectTo, get_radare_endpoint
 from intercom.front_end_binding import InterComFrontEndBinding
-from storage.db_interface_compare import CompareDbInterface
+from storage.db_interface_compare import (
+    CompareDbInterface, FactCompareException
+)
 from storage.db_interface_frontend import FrontEndDbInterface
-from web_interface.components.additional_functions.hex_dump import create_hex_dump
+from web_interface.components.additional_functions.hex_dump import (
+    create_hex_dump
+)
 from web_interface.components.component_base import ComponentBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
@@ -52,10 +56,11 @@ class IORoutes(ComponentBase):
             binary = binascii.a2b_base64(binary[span_in_section[0]:span_in_section[1]])
         except binascii.Error as error:
             return render_template('error.html', message=str(error))
-        else:
-            resp = make_response(binary)
-            resp.headers['Content-Disposition'] = 'attachment; filename={}'.format(file_obj.file_name + '_0x%X' % (span_in_binary[0] + span_in_section[0]) + '-0x%X_decoded' % (span_in_binary[1] - span_in_section[2]))
-            return resp
+        response = make_response(binary)
+        file_name = '{}_0x{:X}-0x{:X}_decoded'.format(
+            file_obj.file_name, span_in_binary[0] + span_in_section[0], span_in_binary[1] - span_in_section[2])
+        response.headers['Content-Disposition'] = 'attachment; filename={}'.format(file_name)
+        return response
 
     # ---- upload
     @roles_accepted(*PRIVILEGES['submit_analysis'])
@@ -87,51 +92,42 @@ class IORoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['download'])
     def _app_download_binary(self, uid):
-        with ConnectTo(FrontEndDbInterface, self._config) as sc:
-            object_exists = sc.existence_quick_check(uid)
-        if not object_exists:
-            return render_template('uid_not_found.html', uid=uid)
-        else:
-            with ConnectTo(InterComFrontEndBinding, self._config) as sc:
-                result = sc.get_binary_and_filename(uid)
-            if result is None:
-                return render_template('error.html', message='timeout')
-            else:
-                binary, file_name = result
-                resp = make_response(binary)
-                resp.headers['Content-Disposition'] = 'attachment; filename={}'.format(file_name)
-                return resp
+        return self._prepare_file_download(uid, packed=False)
 
     @roles_accepted(*PRIVILEGES['download'])
     def _app_download_tar(self, uid):
+        return self._prepare_file_download(uid, packed=True)
+
+    def _prepare_file_download(self, uid, packed=False):
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
             object_exists = sc.existence_quick_check(uid)
         if not object_exists:
             return render_template('uid_not_found.html', uid=uid)
-        else:
-            with ConnectTo(InterComFrontEndBinding, self._config) as sc:
+        with ConnectTo(InterComFrontEndBinding, self._config) as sc:
+            if packed:
                 result = sc.get_repacked_binary_and_file_name(uid)
-            if result is None:
-                return render_template('error.html', message='timeout')
             else:
-                binary, file_name = result
-                resp = make_response(binary)
-                resp.headers['Content-Disposition'] = 'attachment; filename={}'.format(file_name)
-                return resp
+                result = sc.get_binary_and_filename(uid)
+        if result is None:
+            return render_template('error.html', message='timeout')
+        binary, file_name = result
+        response = make_response(binary)
+        response.headers['Content-Disposition'] = 'attachment; filename={}'.format(file_name)
+        return response
 
     @roles_accepted(*PRIVILEGES['download'])
     def _download_ida_file(self, compare_id):
-        with ConnectTo(CompareDbInterface, self._config) as sc:
-            result = sc.get_compare_result(compare_id)
+        try:
+            with ConnectTo(CompareDbInterface, self._config) as sc:
+                result = sc.get_compare_result(compare_id)
+        except FactCompareException as exception:
+            return render_template('error.html', message=exception.get_message())
         if result is None:
             return render_template('error.html', message='timeout')
-        elif isinstance(result, str):
-            return render_template('error.html', message=result)
-        else:
-            binary = result['plugins']['Ida_Diff_Highlighting']['idb_binary']
-            resp = make_response(binary)
-            resp.headers['Content-Disposition'] = 'attachment; filename={}.idb'.format(compare_id[:8])
-            return resp
+        binary = result['plugins']['Ida_Diff_Highlighting']['idb_binary']
+        response = make_response(binary)
+        response.headers['Content-Disposition'] = 'attachment; filename={}.idb'.format(compare_id[:8])
+        return response
 
     @roles_accepted(*PRIVILEGES['download'])
     def _show_hex_dump(self, uid):
@@ -139,18 +135,16 @@ class IORoutes(ComponentBase):
             object_exists = sc.existence_quick_check(uid)
         if not object_exists:
             return render_template('uid_not_found.html', uid=uid)
-        else:
-            with ConnectTo(InterComFrontEndBinding, self._config) as sc:
-                result = sc.get_binary_and_filename(uid)
-            if result is None:
-                return render_template('error.html', message='timeout')
-            else:
-                binary, _ = result
-                try:
-                    hex_dump = create_hex_dump(binary)
-                    return render_template('generic_view/hex_dump_popup.html', uid=uid, hex_dump=hex_dump)
-                except Exception as exception:
-                    return render_template('error.html', message=str(exception))
+        with ConnectTo(InterComFrontEndBinding, self._config) as sc:
+            result = sc.get_binary_and_filename(uid)
+        if result is None:
+            return render_template('error.html', message='timeout')
+        binary, _ = result
+        try:
+            hex_dump = create_hex_dump(binary)
+            return render_template('generic_view/hex_dump_popup.html', uid=uid, hex_dump=hex_dump)
+        except Exception as exception:
+            return render_template('error.html', message=str(exception))
 
     @roles_accepted(*PRIVILEGES['download'])
     def _show_radare(self, uid):
@@ -159,20 +153,17 @@ class IORoutes(ComponentBase):
             object_exists = sc.existence_quick_check(uid)
         if not object_exists:
             return render_template('uid_not_found.html', uid=uid)
-        else:
-            with ConnectTo(InterComFrontEndBinding, self._config) as sc:
-                result = sc.get_binary_and_filename(uid)
-            if result is None:
-                return render_template('error.html', message='timeout')
-            else:
-                binary, _ = result
-                try:
-                    response = requests.post('{}{}'.format(host, post_path), data=binary, verify=False)
-                    if response.status_code == 200:
-                        target_link = '{}{}m/'.format(host, response.json()['endpoint'])
-                        sleep(1)
-                        return redirect(target_link)
-                    else:
-                        raise TimeoutError(response.text)
-                except Exception as exception:
-                    return render_template('error.html', message=str(exception))
+        with ConnectTo(InterComFrontEndBinding, self._config) as sc:
+            result = sc.get_binary_and_filename(uid)
+        if result is None:
+            return render_template('error.html', message='timeout')
+        binary, _ = result
+        try:
+            response = requests.post('{}{}'.format(host, post_path), data=binary, verify=False)
+            if response.status_code != 200:
+                raise TimeoutError(response.text)
+            target_link = '{}{}m/'.format(host, response.json()['endpoint'])
+            sleep(1)
+            return redirect(target_link)
+        except Exception as exception:
+            return render_template('error.html', message=str(exception))
