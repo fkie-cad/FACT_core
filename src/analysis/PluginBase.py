@@ -150,7 +150,7 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
     def worker(self, worker_id):
         while self.stop_condition.value == 0:
             try:
-                next_task = self.in_queue.get(timeout=int(self.config['ExpertSettings']['block_delay']))
+                next_task = self.in_queue.get(timeout=float(self.config['ExpertSettings']['block_delay']))
                 logging.debug('Worker {}: Begin {} analysis on {}'.format(worker_id, self.NAME, next_task.get_uid()))
             except Empty:
                 pass
