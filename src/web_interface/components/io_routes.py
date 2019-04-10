@@ -81,7 +81,7 @@ class IORoutes(ComponentBase):
             device_name_dict = sc.get_device_name_dict()
         with ConnectTo(InterComFrontEndBinding, self._config) as sc:
             analysis_plugins = sc.get_available_analysis_plugins()
-        analysis_presets = list(self._config['default_plugins'])
+        analysis_presets = [key for key in self._config['default_plugins']]
         return render_template(
             'upload/upload.html',
             device_classes=device_class_list, vendors=vendor_list, error=error, analysis_presets=analysis_presets,
