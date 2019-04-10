@@ -26,10 +26,10 @@ from web_interface.security.privileges import PRIVILEGES
 class IORoutes(ComponentBase):
     def _init_component(self):
         self._app.add_url_rule('/upload', 'upload', self._app_upload, methods=['GET', 'POST'])
-        self._app.add_url_rule('/download/<uid>', '/download/<uid>', self._app_download_binary)
-        self._app.add_url_rule('/tar-download/<uid>', '/tar-download/<uid>', self._app_download_tar)
+        self._app.add_url_rule('/download/<uid>', 'download/<uid>', self._app_download_binary)
+        self._app.add_url_rule('/tar-download/<uid>', 'tar-download/<uid>', self._app_download_tar)
         self._app.add_url_rule('/ida-download/<compare_id>', 'ida-download/<compare_id>', self._download_ida_file)
-        self._app.add_url_rule('/base64-download/<uid>/<section>/<expression_id>', '/base64-download/<uid>/<section>/<expression_id>', self._download_base64_decoded_section)
+        self._app.add_url_rule('/base64-download/<uid>/<section>/<expression_id>', 'base64-download/<uid>/<section>/<expression_id>', self._download_base64_decoded_section)
         self._app.add_url_rule('/hex-dump/<uid>', 'hex-dump/<uid>', self._show_hex_dump)
         self._app.add_url_rule('/radare-view/<uid>', 'radare-view/<uid>', self._show_radare)
 
@@ -81,12 +81,12 @@ class IORoutes(ComponentBase):
             device_name_dict = sc.get_device_name_dict()
         with ConnectTo(InterComFrontEndBinding, self._config) as sc:
             analysis_plugins = sc.get_available_analysis_plugins()
-        option_list = list(self._config['default_plugins'])
-        return render_template('upload/upload.html', device_classes=device_class_list, vendors=vendor_list, error=error,
-                               device_names=json.dumps(device_name_dict, sort_keys=True),
-                               analysis_plugin_dict=analysis_plugins,
-                               preset_option_list=option_list
-                               )
+        analysis_presets = list(self._config['default_plugins'])
+        return render_template(
+            'upload/upload.html',
+            device_classes=device_class_list, vendors=vendor_list, error=error, analysis_presets=analysis_presets,
+            device_names=json.dumps(device_name_dict, sort_keys=True), analysis_plugin_dict=analysis_plugins
+        )
 
         # ---- file download
 
