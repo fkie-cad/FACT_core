@@ -8,7 +8,7 @@ from tempfile import TemporaryDirectory
 from typing import Dict, List, Optional, Tuple
 from zlib import compress
 
-from common_helper_files import get_binary_from_file
+from common_helper_files import get_binary_from_file, safe_rglob
 from common_helper_process import execute_shell_command_get_return_code
 from fact_helper_file import get_file_type_from_path
 
@@ -119,7 +119,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def _find_relevant_files(self, tmp_dir: TemporaryDirectory):
         result = []
-        for path in Path(tmp_dir.name).glob('**/*'):
+        for path in safe_rglob(Path(tmp_dir.name)):
             if path.is_file() and not path.is_symlink():
                 file_type = get_file_type_from_path(path.absolute())
                 if self._has_relevant_type(file_type):
