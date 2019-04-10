@@ -5,7 +5,7 @@ from analysis import task
 
 if __name__ == '__main__':
     with ProcessPoolExecutor() as p:
-        for index in range(16):
+        for index in range(1):
             # argv append worker id
             p.submit(task.CELERY_APP.worker_main)
         while True:
