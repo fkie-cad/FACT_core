@@ -41,6 +41,7 @@ def get_config_for_testing(temp_dir=None):
     config.add_section('unpack')
     config.set('unpack', 'whitelist', '')
     config.set('unpack', 'max_depth', '10')
+    config.add_section('default_plugins')
     config.add_section('ExpertSettings')
     config.set('ExpertSettings', 'block_delay', '1')
     config.set('ExpertSettings', 'ssdeep_ignore', '1')

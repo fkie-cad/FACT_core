@@ -5,7 +5,7 @@ from helperFunctions.config import get_config_for_testing
 
 
 class MockFSOrganizer:
-    def __init__(self, config):
+    def __init__(self, *_, **__):
         self._data_folder = TemporaryDirectory()
 
     def store_file(self, file_object):
@@ -24,7 +24,7 @@ class MockFSOrganizer:
 
 
 class MockDbInterface:
-    def __init__(self, config):
+    def __init__(self, *_, **__):
         self._objects = dict()
 
     def existence_quick_check(self, uid):
@@ -49,7 +49,6 @@ def initialize_config(tmp_dir):
     # Analysis
     config.add_section('ip_and_uri_finder')
     config.set('ip_and_uri_finder', 'signature_directory', 'analysis/signatures/ip_and_uri_finder/')
-    config.add_section('default_plugins')
     config.set('default_plugins', 'plugins', 'file_hashes')
 
     # Unpacker

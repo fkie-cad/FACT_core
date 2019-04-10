@@ -20,7 +20,7 @@ def install_pip(python_command):
             raise InstallationError('Error in pip installation for {}:\n{}'.format(python_command, output))
 
 
-def main(distribution):
+def main(distribution):  # pylint: disable=too-many-statements
     apt_install_packages('apt-transport-https')
 
     logging.info('Updating system')
@@ -60,7 +60,7 @@ def main(distribution):
 
     # install general python dependencys
     apt_install_packages('libmagic-dev')
-    apt_install_packages('libffi-dev', 'libfuzzy-dev')
+    apt_install_packages('libfuzzy-dev')
     pip3_install_packages('git+https://github.com/fkie-cad/fact_helper_file.git')
     pip3_install_packages('psutil')
     pip3_install_packages('pytest==3.5.1', 'pytest-cov', 'pytest-pep8', 'pylint', 'python-magic', 'xmltodict', 'yara-python==3.7.0', 'appdirs')
