@@ -29,7 +29,7 @@ class TaggingDaemon:
 
     def _fetch_next_tag(self):
         try:
-            tags = self.parent.tag_queue.get(timeout=int(self.config['ExpertSettings']['block_delay']))
+            tags = self.parent.tag_queue.get(timeout=float(self.config['ExpertSettings']['block_delay']))
         except Empty:
             return
 

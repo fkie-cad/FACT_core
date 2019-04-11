@@ -43,7 +43,7 @@ def get_config_for_testing(temp_dir=None):
     config.set('unpack', 'max_depth', '10')
     config.add_section('default_plugins')
     config.add_section('ExpertSettings')
-    config.set('ExpertSettings', 'block_delay', '1')
+    config.set('ExpertSettings', 'block_delay', '0.1')
     config.set('ExpertSettings', 'ssdeep_ignore', '1')
     config.set('ExpertSettings', 'authentication', 'false')
     config.set('ExpertSettings', 'intercom_poll_delay', '0.5')
