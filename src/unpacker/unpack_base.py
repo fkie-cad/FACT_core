@@ -5,6 +5,7 @@ from pathlib import Path
 from subprocess import PIPE, Popen
 
 from common_helper_process import execute_shell_command_get_return_code
+from common_helper_files import safe_rglob
 
 
 class UnpackBase:
@@ -27,8 +28,7 @@ class UnpackBase:
             raise RuntimeError(error)
 
         self.change_owner_back_to_me(tmp_dir)
-        all_items = list(Path(tmp_dir, 'files').glob('**/*'))
-        return [item for item in all_items if not item.is_dir()]
+        return [item for item in safe_rglob(Path(tmp_dir, 'files')) if not item.is_dir()]
 
     def change_owner_back_to_me(self, directory: str = None, permissions='u+r'):
         with Popen('sudo chown -R {}:{} {}'.format(getuid(), getgid(), directory), shell=True, stdout=PIPE, stderr=PIPE) as pl:
