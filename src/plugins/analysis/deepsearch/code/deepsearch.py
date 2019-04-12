@@ -4,6 +4,8 @@ from helperFunctions.web_interface import ConnectTo
 
 from storage.db_interface_common import MongoInterfaceCommon
 
+import time
+
 
 class AnalysisPlugin(AnalysisBasePlugin):
     '''
@@ -69,13 +71,15 @@ class AnalysisPlugin(AnalysisBasePlugin):
         fileid = file_object.uid
         firmware_id = ""
 
+        #time.sleep(5)
+
         with ConnectTo(BinaryInterface, self.config) as interface:
             for element in interface.firmwareIDofFileID(fileid):
                 firmware_id = element['parent_firmware_uids'][0]
 
             analysisdictionary['contained_binaries'] = list()
 
-            for printstring in file_object.processed_analysis['printable_strings']['offsets']:
+            for printstring in file_object.processed_analysis['printable_strings']['strings']:
                 for executablefile in interface.executableFiles(firmware_id):
                     if executablefile['parent_firmware_uids'] == firmware_id:
                         if executablefile['file_name'] in printstring:
@@ -100,4 +104,7 @@ class BinaryInterface(MongoInterfaceCommon):
         return self.file_objects.find({"processed_analysis._uid": file_id})
 
     def executableFiles(self, firmware_id):
-        return self.file_objects.find({"processed_analysis.file_type.mime": {"$regex": "executable"}, "parent_firmware_uids": firmware_id})
+        #return self.file_objects.find({"processed_analysis.file_type.mime": {"$regex": "executable"}, "parent_firmware_uids": firmware_id})
+        return self.file_objects.find(
+            {"$or": [{"processed_analysis.file_type.mime": {"$regex": "executable"}, "parent_firmware_uids": firmware_id},
+                     {"processed_analysis.file_type.mime": {"$regex": "application"}, "parent_firmware_uids": firmware_id}]})
