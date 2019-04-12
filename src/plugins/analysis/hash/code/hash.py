@@ -2,7 +2,7 @@ from hashlib import algorithms_available
 import logging
 
 from helperFunctions.config import read_list_from_config
-from helperFunctions.hash import get_hash, get_ssdeep, get_tlsh, get_imphash
+from helperFunctions.hash import get_hash, get_ssdeep, get_imphash, get_tlsh
 from analysis.PluginBase import AnalysisBasePlugin
 
 
@@ -40,8 +40,12 @@ class AnalysisPlugin(AnalysisBasePlugin):
             else:
                 logging.debug('algorithm {} not available'.format(h))
         file_object.processed_analysis[self.NAME]['ssdeep'] = get_ssdeep(file_object.binary)
-        file_object.processed_analysis[self.NAME]['tlsh'] = get_tlsh(file_object.binary)
         file_object.processed_analysis[self.NAME]['imphash'] = get_imphash(file_object)
+
+        tlsh_hash = get_tlsh(file_object.binary)
+        if tlsh_hash:
+            file_object.processed_analysis[self.NAME]['tlsh'] = get_tlsh(file_object.binary)
+
         return file_object
 
     def _get_hash_list_from_config(self):

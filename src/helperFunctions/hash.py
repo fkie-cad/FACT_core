@@ -37,10 +37,13 @@ def get_ssdeep_comparison(first, second):
     return diff
 
 
+
 def get_tlsh(code):
     binary = make_bytes(code)
-    raw_hash = tlsh.hash(code)
-    return raw_hash
+    return tlsh.hash(binary)
+    
+def get_tlsh_compairson(first, second):
+    return tlsh.diff(first, second)
 
 
 def check_similarity_of_sets(pair_of_sets, all_sets):
