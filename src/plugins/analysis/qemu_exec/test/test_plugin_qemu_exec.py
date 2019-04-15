@@ -1,21 +1,22 @@
 # pylint: disable=protected-access, no-self-use
 import os
+import subprocess
 from contextlib import suppress
 from pathlib import Path
-from test.common_helper import create_test_firmware
-from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
 from unittest import TestCase
-from zlib import decompress
 
 import pytest
 from common_helper_files import get_dir_of_file
+
 from helperFunctions.config import get_config_for_testing
 from helperFunctions.fileSystem import get_test_data_dir
-
+from test.common_helper import create_test_firmware
+from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
 from ..code import qemu_exec
 
-TEST_DATA_DIR = os.path.join(get_dir_of_file(__file__), 'data/test_tmp_dir')
-TEST_DATA_DIR_2 = os.path.join(get_dir_of_file(__file__), 'data/test_tmp_dir_2')
+TEST_DATA_DIR = Path(get_dir_of_file(__file__)) / 'data/test_tmp_dir'
+TEST_DATA_DIR_2 = Path(get_dir_of_file(__file__)) / 'data/test_tmp_dir_2'
+CLI_PARAMETERS = ['-h', '--help', '-help', '--version', ' ']
 
 
 class MockTmpDir:
@@ -48,24 +49,13 @@ def execute_shell_timeout(monkeypatch):
     def mock_execute_shell(call, **_):
         if call == 'pgrep dockerd':
             return '', 0
-        return 'timed out', 1
-    monkeypatch.setattr(qemu_exec, 'execute_shell_command_get_return_code', mock_execute_shell)
+        raise subprocess.TimeoutExpired('', 0.1)
+    monkeypatch.setattr(qemu_exec, 'check_output', mock_execute_shell)
 
 
 class TestPluginQemuExec(AnalysisPluginTest):
 
     PLUGIN_NAME = 'qemu_exec'
-    docker_test_output = '§#§option§#§--version§#§\n' \
-                         '§#§stdout§#§Unknown option. Usage: ./hello_world --help§#§\n' \
-                         '§#§stderr§#§§#§\n' \
-                         '§#§return_code§#§1§#§\n' \
-                         '§#§option§#§ §#§\n' \
-                         '§#§stdout§#§Hello World§#§\n' \
-                         '§#§stderr§#§§#§\n' \
-                         '§#§return_code§#§0§#§\n' \
-                         '§#§strace§#§\n' \
-                         '§#§stdout§#§Hello World§#§\n' \
-                         '§#§stderr§#§38 uname(0x7ffffb38) = 0\n38 brk(NULL) = 0x004a2000\n38 brk(0x004a2cc8) = 0x004a2cc8§#§'
 
     def setUp(self):
         super().setUp()
@@ -92,20 +82,32 @@ class TestPluginQemuExec(AnalysisPluginTest):
 
     def test_get_docker_output__static(self):
         result = qemu_exec.get_docker_output('mips', '/test_mips_static', TEST_DATA_DIR)
-        assert 'Hello World' in result
+        for parameter in CLI_PARAMETERS:
+            assert parameter in result
+            assert 'error' not in result[parameter]
+            assert b'Hello World' in result[parameter]['stdout']
+        assert 'strace' in result
 
     def test_get_docker_output__dynamic(self):
         result = qemu_exec.get_docker_output('mips', '/usr/bin/test_mips', TEST_DATA_DIR)
-        assert 'Hello World' in result
+        for parameter in CLI_PARAMETERS:
+            assert parameter in result
+            assert 'error' not in result[parameter]
+            assert b'Hello World' in result[parameter]['stdout']
+        assert 'strace' in result
 
     def test_get_docker_output__wrong_arch(self):
         result = qemu_exec.get_docker_output('i386', '/test_mips_static', TEST_DATA_DIR)
-        assert 'Invalid ELF image' in result
+        for parameter in CLI_PARAMETERS:
+            assert parameter in result
+            assert 'error' not in result[parameter]
+            assert b'Invalid ELF image' in result[parameter]['stderr']
 
     @pytest.mark.usefixtures('execute_shell_timeout')
     def test_get_docker_output__timeout(self):
         result = qemu_exec.get_docker_output('mips', '/test_mips_static', TEST_DATA_DIR)
-        assert result is None
+        assert 'error' in result
+        assert result['error'] == 'timeout'
 
     def test_test_qemu_executability(self):
         self.analysis_plugin.OPTIONS = ['-h']
@@ -113,7 +115,7 @@ class TestPluginQemuExec(AnalysisPluginTest):
         result = qemu_exec.test_qemu_executability('/test_mips_static', 'mips', TEST_DATA_DIR)
         assert any('--help' in option for option in result)
         option = [option for option in result if '--help' in option][0]
-        assert result[option]['stdout'] == 'Hello World'
+        assert result[option]['stdout'] == 'Hello World\n'
         assert result[option]['stderr'] == ''
         assert result[option]['return_code'] == '0'
 
@@ -177,9 +179,9 @@ class TestPluginQemuExec(AnalysisPluginTest):
         assert 'files' in result
         assert any(result['files'][uid]['executable'] for uid in result['files']) is False
         assert all(
-            result['files'][uid]['results']['mips'][option]['stderr'] == '/lib/ld.so.1: No such file or directory'
+            result['files'][uid]['results']['mips'][option]['stderr'] == '/lib/ld.so.1: No such file or directory\n'
             for uid in result['files']
-            for option in result['files'][uid]['results']['mips'] if '--help' in option
+            for option in result['files'][uid]['results']['mips']
         )
 
     @pytest.mark.usefixtures('execute_shell_timeout')
@@ -191,7 +193,15 @@ class TestPluginQemuExec(AnalysisPluginTest):
         result = test_fw.processed_analysis[self.analysis_plugin.NAME]
 
         assert 'files' in result
-        assert any(result['files'][uid]['executable'] for uid in result['files']) is False
+        assert all(
+            arch_results['error'] == 'timeout'
+            for uid in result['files']
+            for arch_results in result['files'][uid]['results'].values()
+        )
+        assert all(
+            result['files'][uid]['executable'] is False
+            for uid in result['files']
+        )
 
     def test_process_object__no_files(self):
         test_fw = create_test_firmware()
@@ -241,49 +251,6 @@ class TestPluginQemuExec(AnalysisPluginTest):
         assert self.analysis_plugin._valid_execution_in_results(_get_results(return_code='0', stdout='something', stderr='error')) is True
         assert self.analysis_plugin._valid_execution_in_results(_get_results(return_code='1', stdout='something', stderr='error')) is False
 
-    def test_parse_docker_output_options__valid(self):
-        docker_output = '§#§option§#§--help§#§\n' \
-                        '§#§stdout§#§standard out§#§\n' \
-                        '§#§stderr§#§error§#§\n' \
-                        '§#§return_code§#§123§#§'
-
-        result = qemu_exec.parse_docker_output_options(docker_output)
-        assert '--help' in result
-        assert result == {'--help': {'stdout': 'standard out', 'return_code': '123', 'stderr': 'error'}}
-
-    def test_parse_docker_output_options__multiple_options(self):
-        result = qemu_exec.parse_docker_output_options(self.docker_test_output)
-        assert len(result) == 2
-        assert all(option in result for option in [qemu_exec.EMPTY, '--version'])
-
-    def test_parse_docker_output_options__invalid(self):
-        result = qemu_exec.parse_docker_output_options('')
-        assert result == {}
-
-    def test_parse_docker_output_strace__valid(self):
-        result = qemu_exec.parse_docker_output_strace(self.docker_test_output)
-        assert 'strace' in result
-        result['strace'] = decompress(result['strace']).decode()
-        assert result == {'strace': '38 uname(0x7ffffb38) = 0\n38 brk(NULL) = 0x004a2000\n38 brk(0x004a2cc8) = 0x004a2cc8'}
-
-    def test_parse_docker_output_strace__invalid(self):
-        result = qemu_exec.parse_docker_output_strace('')
-        assert result == {}
-
-    def test_parse_docker_output__valid(self):
-        result = qemu_exec.parse_docker_output(self.docker_test_output)
-        assert len(result) == 3
-        assert all(k in result for k in [qemu_exec.EMPTY, '--version', 'strace'])
-
-    def test_parse_docker_output__invalid(self):
-        result = qemu_exec.parse_docker_output('')
-        assert result == {}
-
-    def test_contains_docker_error(self):
-        assert qemu_exec.contains_docker_error('§#§stderr§#§Unknown syscall 4001 qemu: Unsupported syscall: 4001§#§\n') is True
-        assert qemu_exec.contains_docker_error('') is False
-        assert qemu_exec.contains_docker_error(self.docker_test_output) is False
-
     def test_process_qemu_job(self):
         tmp = qemu_exec.test_qemu_executability
         qemu_exec.test_qemu_executability = lambda file_path, arch_suffix, root_path: {'--option': {'stdout': 'test', 'stderr': '', 'return_code': '0'}}
@@ -313,17 +280,76 @@ class TestPluginQemuExec(AnalysisPluginTest):
         result = self.analysis_plugin._get_summary(analysis_result)
         assert result == ['executable']
 
-    def test_merge_similar_entries(self):
-        test_dict = {
-            'option_1': {'a': 'x', 'b': 'x', 'c': 'x'},
-            'option_2': {'a': 'x', 'b': 'x', 'c': 'x'},
-            'option_3': {'a': 'x', 'b': 'x'},
-            'option_4': {'a': 'y', 'b': 'y', 'c': 'y'},
-            'option_5': {'a': 'x', 'b': 'x', 'c': 'x'},
-        }
-        qemu_exec.merge_similar_entries(test_dict)
-        assert len(test_dict) == 3
-        assert any(all(option in k for option in ['option_1', 'option_2', 'option_5']) for k in test_dict)
+
+def test_merge_similar_entries():
+    test_dict = {
+        'option_1': {'a': 'x', 'b': 'x', 'c': 'x'},
+        'option_2': {'a': 'x', 'b': 'x', 'c': 'x'},
+        'option_3': {'a': 'x', 'b': 'x'},
+        'option_4': {'a': 'y', 'b': 'y', 'c': 'y'},
+        'option_5': {'a': 'x', 'b': 'x', 'c': 'x'},
+    }
+    qemu_exec.merge_similar_entries(test_dict)
+    assert len(test_dict) == 3
+    assert any(all(option in k for option in ['option_1', 'option_2', 'option_5']) for k in test_dict)
+
+
+@pytest.mark.parametrize('input_data, expected_output', [
+    ({b'parameter': {b'std_out': b'foo Invalid ELF bar'}}, True),
+    ({b'parameter': {b'std_out': b'no errors'}}, False),
+])
+def test_result_contains_qemu_errors(input_data, expected_output):
+    assert qemu_exec.result_contains_qemu_errors(input_data) == expected_output
+
+
+@pytest.mark.parametrize('input_data, expected_output', [
+    (b'Unknown syscall 4001 qemu: Unsupported syscall: 4001\n', True),
+    (b'foobar', False),
+    (b'', False),
+])
+def test_contains_docker_error(input_data, expected_output):
+    assert qemu_exec.contains_docker_error(input_data) == expected_output
+
+
+def test_replace_empty_strings():
+    test_input = {'-h': {'std_out': '', 'std_err': '', 'return_code': '0'},
+                  ' ': {'std_out': '', 'std_err': '', 'return_code': '0'}}
+    qemu_exec.replace_empty_strings(test_input)
+    assert ' ' not in test_input
+    assert qemu_exec.EMPTY in test_input
+    assert '-h' in test_input
+
+
+def test_convert_to_strings():
+    test_input = {'-h': {'std_out': b'', 'std_err': b'', 'return_code': 0}}
+    result = qemu_exec.convert_output_to_strings(test_input)
+    assert all(
+        isinstance(value, str)
+        for parameter in result
+        for value in result[parameter].values()
+    )
+
+
+@pytest.mark.parametrize('input_data', [
+    {},
+    {'strace': {}},
+    {'strace': {'error': 'foo'}},
+    {'strace': {'stdout': ''}},
+])
+def test_process_strace_output__no_strace(input_data):
+    try:
+        qemu_exec.process_strace_output(input_data)
+        assert input_data['strace'] == {}
+    except Exception:
+        pytest.fail('there should be no exception here...')
+
+
+def test_process_strace_output():
+    input_data = {'strace': {'stdout': 'foobar'}}
+    qemu_exec.process_strace_output(input_data)
+    result = input_data['strace']['stdout']
+    assert isinstance(result, bytes)
+    assert result[:2].hex() == '789c'  # magic string for zlib compressed data
 
 
 class TestQemuExecUnpacker(TestCase):

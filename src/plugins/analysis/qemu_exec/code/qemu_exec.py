@@ -1,12 +1,13 @@
 import itertools
 import logging
+import zlib
 from collections import OrderedDict
 from multiprocessing import Manager, Pool
 from pathlib import Path
-from re import findall
+from pickle import loads, UnpicklingError
+from subprocess import TimeoutExpired, check_output, CalledProcessError
 from tempfile import TemporaryDirectory
-from typing import Dict, List, Optional, Tuple
-from zlib import compress
+from typing import Dict, List, Optional, Tuple, Union
 
 from common_helper_files import get_binary_from_file, safe_rglob
 from common_helper_process import execute_shell_command_get_return_code
@@ -19,10 +20,11 @@ from objects.file import FileObject
 from storage.binary_service import BinaryServiceDbInterface
 from unpacker.unpackBase import UnpackBase
 
-TIMEOUT = 5
+TIMEOUT = 10
 EXECUTABLE = 'executable'
 EMPTY = '(no parameter)'
 DOCKER_IMAGE = 'fact/qemu:latest'
+QEMU_ERRORS = [b'Unsupported syscall', b'Invalid ELF', b'uncaught target signal']
 
 
 class Unpacker(UnpackBase):
@@ -51,7 +53,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     NAME = 'qemu_exec'
     DESCRIPTION = 'test binaries for executability in QEMU and display help if available'
-    VERSION = '0.4.2'
+    VERSION = '0.5.0'
     DEPENDENCIES = ['file_type']
     FILE_TYPES = ['application/x-executable', 'application/x-sharedlib']
 
@@ -178,8 +180,10 @@ class AnalysisPlugin(AnalysisBasePlugin):
     @staticmethod
     def _valid_execution_in_results(results: dict):
         return any(
-            results[arch][option]['stdout'] != '' and (results[arch][option]['return_code'] == '0' or results[arch][option]['stderr'] == '')
+            (results[arch][option]['stdout'] != ''
+             and (results[arch][option]['return_code'] == '0' or results[arch][option]['stderr'] == ''))
             for arch in results
+            if 'error' not in results[arch]
             for option in results[arch]
             if option != 'strace'
         )
@@ -217,33 +221,83 @@ def process_qemu_job(file_path: str, arch_suffix: str, root_path: Path, results_
 
 
 def test_qemu_executability(file_path: str, arch_suffix: str, root_path: Path) -> dict:
-    result = {}
-
-    response = get_docker_output(arch_suffix, file_path, root_path)
-    if response:
-        result = parse_docker_output(response)
-
+    result = get_docker_output(arch_suffix, file_path, root_path)
+    if result and 'error' not in result:
+        result = process_docker_output(result)
     return result
 
 
-def get_docker_output(arch_suffix: str, file_path: str, root_path: Path) -> Optional[str]:
-    call = 'docker run --rm --net=none -v {}:/opt/firmware_root {} {} {}'.format(
+def get_docker_output(arch_suffix: str, file_path: str, root_path: Path) -> dict:
+    '''
+    :return: in the case of no error, the output will have the form
+    {
+        'parameter 1': {'stdout': b'...', 'stderr': b'...', 'return_code': <int>},
+        'parameter 2': {...},
+        '...',
+        'strace': {'stdout': b'...', 'stderr': b'...', 'return_code': <int>},
+    }
+    in case of an error, there will be an entry 'error' instead of the entries stdout/stderr/return_code
+    '''
+    command = 'docker run --rm --net=none -v {}:/opt/firmware_root {} {} {}'.format(
         root_path, DOCKER_IMAGE, arch_suffix, file_path)
-    response, return_code = execute_shell_command_get_return_code(call, timeout=TIMEOUT)
-    if return_code != 0:
-        if 'timed out' in response:
-            logging.warning('encountered timeout while trying to run docker container')
-        else:
-            logging.warning('encountered process error while trying to run docker container')
-        return None
-    return response
+    try:
+        output = check_output(command, timeout=TIMEOUT, shell=True)
+        return loads(output)
+    except TimeoutExpired:
+        logging.warning('encountered timeout while trying to run docker container')
+        return {'error': 'timeout'}
+    except (CalledProcessError, UnpicklingError, TypeError):
+        logging.warning('encountered error while trying to run docker container')
+        return {'error': 'process error'}
 
 
-def parse_docker_output(docker_output: str) -> dict:
-    result = parse_docker_output_options(docker_output)
-    merge_similar_entries(result)
-    result.update(parse_docker_output_strace(docker_output))
+def process_docker_output(docker_output: Dict[bytes, Dict[bytes, bytes]]) -> Optional[Dict[str, Dict[str, str]]]:
+    if result_contains_qemu_errors(docker_output):
+        return {}  # wrong architecture -> empty output
+    docker_output = convert_output_to_strings(docker_output)
+    process_strace_output(docker_output)
+    replace_empty_strings(docker_output)
+    merge_similar_entries(docker_output)
+    return docker_output
+
+
+def convert_output_to_strings(bytes_dict: Dict[str, Dict[str, Union[bytes, int]]]) -> Dict[str, Dict[str, str]]:
+    result = {}
+    for parameter in bytes_dict:
+        for key, value in bytes_dict[parameter].items():
+            str_value = value.decode(errors='replace') if isinstance(value, bytes) else str(value)
+            result.setdefault(parameter, {})[key] = str_value
     return result
+
+
+def process_strace_output(docker_output: dict):
+    if (
+            'strace' in docker_output
+            and 'stdout' in docker_output['strace']
+            and bool(docker_output['strace']['stdout'])
+    ):
+        docker_output['strace'] = zlib.compress(docker_output['strace']['stdout'].encode())
+    else:
+        docker_output['strace'] = {}
+
+
+def result_contains_qemu_errors(docker_output: Dict[bytes, Dict[bytes, bytes]]) -> bool:
+    return any(
+        contains_docker_error(value)
+        for parameter in docker_output
+        for value in docker_output[parameter].values()
+        if isinstance(value, bytes)
+    )
+
+
+def contains_docker_error(docker_output: bytes) -> bool:
+    return any(error in docker_output for error in QEMU_ERRORS)
+
+
+def replace_empty_strings(docker_output: Dict[str, object]):
+    for key in list(docker_output):
+        if key == ' ':
+            docker_output[EMPTY] = docker_output.pop(key)
 
 
 def merge_similar_entries(results_dict: Dict[str, Dict[str, str]]):
@@ -255,42 +309,6 @@ def merge_similar_entries(results_dict: Dict[str, Dict[str, str]]):
             results_dict.pop(option_2)
             merge_similar_entries(results_dict)
             break
-
-
-def parse_docker_output_options(docker_output: str) -> Dict[str, Dict[str, str]]:
-    options_regex = '(?s)§#§option§#§((?:(?!§#§).)+)§#§\n' \
-                    '§#§stdout§#§((?:(?!§#§).)*)§#§\n' \
-                    '§#§stderr§#§((?:(?!§#§).)*)§#§\n' \
-                    '§#§return_code§#§((?:(?!§#§).)*)§#§'
-
-    result = {
-        option if option != ' ' else EMPTY: {
-            'stdout': stdout,
-            'stderr': stderr,
-            'return_code': return_code,
-        }
-        for option, stdout, stderr, return_code in findall(options_regex, docker_output)
-        if not contains_docker_error(stderr) and not stderr == stdout == ''
-    }
-
-    return result
-
-
-def parse_docker_output_strace(docker_output: str) -> dict:
-    strace_regex = '(?s)§#§strace§#§\n' \
-                   '§#§stdout§#§((?:(?!§#§).)*)§#§\n' \
-                   '§#§stderr§#§((?:(?!§#§).)*)§#§'
-
-    return {
-        'strace': compress(output.encode())
-        for _, output in findall(strace_regex, docker_output)
-        if not contains_docker_error(output) and not output == ''
-    }
-
-
-def contains_docker_error(docker_output: str) -> bool:
-    error_messages = ['Unsupported syscall', 'Invalid ELF', 'uncaught target signal']
-    return any(e in docker_output for e in error_messages)
 
 
 def docker_is_running() -> bool:

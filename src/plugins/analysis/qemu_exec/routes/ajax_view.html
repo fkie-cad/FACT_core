@@ -35,45 +35,56 @@
                             <td>Individual Results:</td>
                             <td style="padding: 0">
                                 <table class="table table-bordered" style="margin: 0; width: 100%">
-                                {% for arch in result['results'] %}
-                                    <tr>
-                                        <td width="1px" rowspan="{{ (result['results'][arch] | length - 1) * 3 + 1 }}">
-                                            {{ arch }}
-                                        </td>
-                                        {% for option in result['results'][arch] %}
-                                            {% if option != 'strace' %}
-                                                {% set option_result = result['results'][arch][option] %}
-                                                <td width="1px" rowspan="3">{{ option }}</td>
-                                                <td>stdout</td>
-                                                <td class="qemu-td" style="padding: 5px;">
-                                                    {% if option_result['stdout'] %}
-                                                    <pre class="qemu-pre"
-                                                        >{{ '$ .' + result['path'] + ' ' + option + '\n' + option_result['stdout'] }}</pre>
-                                                    {% else %}Empty{% endif %}
+                                    {% if 'error' in result['results'] %}
+                                        <!-- error outside docker container -->
+                                        <tr><td><b style="color:red">Error</b>: {{ result['results']['error'] }}</td></tr>
+                                    {% else %}
+                                        {% for arch in result['results'] %}
+                                            <tr>
+                                                <td width="1px" rowspan="{{ (result['results'][arch] | length - 1) * 3 + 1 }}">
+                                                    {{ arch }}
                                                 </td>
-                                                </tr><tr>
-                                                    <td>stderr</td>
-                                                    <td>
-                                                        {% if option_result['stderr'] %}{{ option_result['stderr'] }}{% else %}Empty{% endif %}
-                                                    </td>
-                                                </tr><tr>
-                                                    <td>return code</td>
-                                                    <td>{{ option_result['return_code'] }}</td>
-                                                </tr><tr>
+                                            {% if 'error' in result['results'][arch] %}
+                                                <!-- error in docker container case -->
+                                                <td><b style="color:red">Error</b>: {{ result['results'][arch]['error'] }}</td>
+                                            {% else %}
+                                                <!-- no error case -->
+                                                {% for option in result['results'][arch] %}
+                                                    {% if option != 'strace' %}
+                                                        {% set option_result = result['results'][arch][option] %}
+                                                        <td width="1px" rowspan="3">{{ option }}</td>
+                                                        <td>stdout</td>
+                                                        <td class="qemu-td" style="padding: 5px;">
+                                                            {% if option_result['stdout'] %}
+                                                            <pre class="qemu-pre"
+                                                                >{{ '$ .' + result['path'] + ' ' + option + '\n' + option_result['stdout'] }}</pre>
+                                                            {% else %}Empty{% endif %}
+                                                        </td>
+                                                        </tr><tr>
+                                                        <td>stderr</td>
+                                                        <td>
+                                                            {% if option_result['stderr'] %}{{ option_result['stderr'] }}{% else %}Empty{% endif %}
+                                                        </td>
+                                                        </tr><tr>
+                                                        <td>return code</td>
+                                                        <td>{{ option_result['return_code'] }}</td>
+                                                        </tr><tr>
+                                                    {% endif %}
+                                                {% endfor %}
                                             {% endif %}
-                                        {% endfor %}
-                                        {% if 'strace' in result['results'][arch] %}
+                                            {% if 'strace' in result['results'][arch] %}
                                                 <td width="1px">strace</td>
                                                 <td colspan="2">
                                                     {% if result['results'][arch]['strace'] %}
-                                                        <pre class="qemu-pre">{{ result['results'][arch]['strace'] }}</pre>
+                                                        <pre class="qemu-pre">{{ result['results'][arch]['strace'] | decompress }}</pre>
                                                     {% else %}Empty{% endif %}
                                                 </td>
                                             </tr>
-                                        {% else %}
-                                            </tr>
-                                        {% endif %}
-                                    {% endfor %}
+                                            {% else %}
+                                                </tr>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% endif %}
                                 </table>
                             </td>
                         </tr>
@@ -83,9 +94,6 @@
                 </div>
             </td>
         </tr>
-
     {% endfor %}
-
-
 </table>
 {% endif %}
