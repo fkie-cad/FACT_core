@@ -45,10 +45,12 @@ def execute_shell_fails(monkeypatch):
 
 
 @pytest.fixture
-def execute_shell_timeout(monkeypatch):
+def execute_docker_error(monkeypatch):
     def mock_execute_shell(call, **_):
         if call == 'pgrep dockerd':
             return '', 0
+        if 'file-with-error' in call:
+            raise subprocess.CalledProcessError(1, 'foo')
         raise subprocess.TimeoutExpired('', 0.1)
     monkeypatch.setattr(qemu_exec, 'check_output', mock_execute_shell)
 
@@ -103,11 +105,17 @@ class TestPluginQemuExec(AnalysisPluginTest):
             assert 'error' not in result[parameter]
             assert b'Invalid ELF image' in result[parameter]['stderr']
 
-    @pytest.mark.usefixtures('execute_shell_timeout')
+    @pytest.mark.usefixtures('execute_docker_error')
     def test_get_docker_output__timeout(self):
         result = qemu_exec.get_docker_output('mips', '/test_mips_static', TEST_DATA_DIR)
         assert 'error' in result
         assert result['error'] == 'timeout'
+
+    @pytest.mark.usefixtures('execute_docker_error')
+    def test_get_docker_output__error(self):
+        result = qemu_exec.get_docker_output('mips', '/file-with-error', TEST_DATA_DIR)
+        assert 'error' in result
+        assert result['error'] == 'process error'
 
     def test_test_qemu_executability(self):
         self.analysis_plugin.OPTIONS = ['-h']
@@ -182,9 +190,10 @@ class TestPluginQemuExec(AnalysisPluginTest):
             result['files'][uid]['results']['mips'][option]['stderr'] == '/lib/ld.so.1: No such file or directory\n'
             for uid in result['files']
             for option in result['files'][uid]['results']['mips']
+            if option != 'strace'
         )
 
-    @pytest.mark.usefixtures('execute_shell_timeout')
+    @pytest.mark.usefixtures('execute_docker_error')
     def test_process_object__timeout(self):
         self.analysis_plugin._docker_is_running = lambda: True
         test_fw = self._set_up_fw_for_process_object()
@@ -347,7 +356,7 @@ def test_process_strace_output__no_strace(input_data):
 def test_process_strace_output():
     input_data = {'strace': {'stdout': 'foobar'}}
     qemu_exec.process_strace_output(input_data)
-    result = input_data['strace']['stdout']
+    result = input_data['strace']
     assert isinstance(result, bytes)
     assert result[:2].hex() == '789c'  # magic string for zlib compressed data
 
