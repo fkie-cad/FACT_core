@@ -1,0 +1,29 @@
+.plugin_div{
+    margin-bottom: 10px;
+    margin-left: 1%;
+    margin-right: 1%;
+
+    width: 30%;
+    float: left;
+}
+
+.plugin_header{
+    background-color: #cce0dc;
+    text-align: center;
+    font-weight: bold;
+}
+
+.plugin_div > span{
+    font-weight: bold;
+}
+
+.plugin_description{
+    background-color: #f8f8f8;
+    border: 1px solid #ddd;
+    text-align: left;
+    padding: 5px;
+}
+
+.plugin_description > span{
+    text-decoration: underline;   
+}

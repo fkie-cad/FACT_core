@@ -33,6 +33,14 @@ class InterComFrontEndBinding(InterComMongoInterface):
         else:
             raise Exception("No available plug-ins found. FAF backend might be down!")
 
+    def get_analysis_plugins_for_catalog(self):
+        plugin_file = self.connections['plugins_catalog']['fs'].find_one({'filename': 'plugin_dictonary_bw'})
+        if plugin_file is not None:
+            plugin_catalog_dict = pickle.loads(plugin_file.read())
+            return plugin_catalog_dict
+        else:
+            raise Exception("No available plug-ins found. FAF backend might be down!")
+
     def get_binary_and_filename(self, uid):
         return self._request_response_listener(uid, 'raw_download_task', 'raw_download_task_resp')
 

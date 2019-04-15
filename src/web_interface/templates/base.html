@@ -5,6 +5,7 @@
     ("Upload", "/upload", '<span class="glyphicon glyphicon-upload"></span>'),
     ("Statistic", "/statistic", '<span class="glyphicon glyphicon-stats"></span>'),
     ("System", "/system_health", '<span class="glyphicon glyphicon-heart"></span>'),
+    ("Plugins", "/plugins", '<span class="glyphicon glyphicon-book"></span>'),
     ("About", "/about", '<span class="glyphicon glyphicon-globe"></span>'),
     ("Admin", None, None)
 ] -%}
@@ -20,6 +21,7 @@
         <meta charset="UTF-8">
         <title>FACT</title>
         <link rel="shortcut icon" href="{{ url_for('static', filename='fact_icon.ico') }}">
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/plugin.css') }}">
         <!-- Bootstrap -->
         <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bootstrap/css/bootstrap.css') }}">
         <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bootstrap/css/bootstrap-theme.css') }}">
@@ -28,6 +30,7 @@
 
         <script type="text/javascript" src="{{ url_for('static', filename='bootstrap/js/moment.js') }}"></script>
         <script type="text/javascript" src="{{ url_for('static', filename='bootstrap/js/bootstrap-datetimepicker.min.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/toggle_plugins.js') }}"></script>
         <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bootstrap/css/bootstrap-datetimepicker.min.css') }}">
 
         <script>

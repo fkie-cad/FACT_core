@@ -8,6 +8,8 @@ from common_helper_mongo.gridfs import overwrite_file
 from helperFunctions.process import no_operation
 from helperFunctions.yara_binary_search import YaraBinarySearchScanner
 from helperFunctions.web_interface import ConnectTo
+from helperFunctions.get_config_of_plugins import load_plugin_conf
+
 from intercom.common_mongo_binding import InterComListener, InterComMongoInterface, InterComListenerAndResponder
 from storage.binary_service import BinaryService
 from storage.fs_organizer import FS_Organizer
@@ -96,11 +98,35 @@ class InterComBackEndAnalysisPlugInsPublisher(InterComMongoInterface):
     def __init__(self, config=None, analysis_service=None):
         super().__init__(config=config)
         self.publish_available_analysis_plugins(analysis_service)
+        self.publish_analysis_plugins_for_catalog(analysis_service)
         self.client.close()
 
     def publish_available_analysis_plugins(self, analysis_service):
         available_plugin_dictionary = analysis_service.get_plugin_dict()
         overwrite_file(self.connections['analysis_plugins']['fs'], "plugin_dictonary", pickle.dumps(available_plugin_dictionary))
+
+    def publish_analysis_plugins_for_catalog(self, analysis_service):
+        available_plugin_dictionary_bw = analysis_service.get_plugin_catalog()
+        thread_info = load_plugin_conf(available_plugin_dictionary_bw)
+
+        for plugin in available_plugin_dictionary_bw:
+            try:
+                blacklist, whitelist = analysis_service._get_blacklist_and_whitelist_from_plugin(plugin)
+                available_plugin_dictionary_bw.update(
+                    {plugin : available_plugin_dictionary_bw[plugin] + (blacklist,) + (whitelist,)})
+            except:
+                available_plugin_dictionary_bw.update(
+                    {plugin: available_plugin_dictionary_bw[plugin] + ("unkown",) + ("unkown",)})
+                print("back_end_binding: error of plugin: %s could not find blacklist/whitelist" % plugin)
+
+            if plugin in thread_info:
+                available_plugin_dictionary_bw.update(
+                    {plugin: available_plugin_dictionary_bw[plugin] + (thread_info[plugin],)})
+            else:
+                available_plugin_dictionary_bw.update(
+                    {plugin: available_plugin_dictionary_bw[plugin] + ("unkown",)})
+
+        overwrite_file(self.connections['plugins_catalog']['fs'], "plugin_dictonary_bw", pickle.dumps(available_plugin_dictionary_bw))
 
 
 class InterComBackEndAnalysisTask(InterComListener):

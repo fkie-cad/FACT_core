@@ -14,12 +14,14 @@ from storage.db_interface_frontend_editing import FrontendEditingDbInterface
 from web_interface.components.component_base import ComponentBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
+from intercom.front_end_binding import InterComFrontEndBinding
 
 
 class MiscellaneousRoutes(ComponentBase):
     def _init_component(self):
         self._app.add_url_rule('/', 'home', self._app_home)
         self._app.add_url_rule('/about', 'about', self._app_about)
+        self._app.add_url_rule('/plugins', 'plugins', self._app_plugins) 
         self._app.add_url_rule('/comment/<uid>', 'comment/<uid>', self._app_add_comment, methods=['GET', 'POST'])
         self._app.add_url_rule('/admin/delete_comment/<uid>/<timestamp>', '/admin/delete_comment/<uid>/<timestamp>', self._app_delete_comment)
         self._app.add_url_rule('/admin/delete/<uid>', '/admin/delete/<uid>', self._app_delete_firmware)
@@ -37,6 +39,12 @@ class MiscellaneousRoutes(ComponentBase):
         stats.shutdown()
         return render_template('home.html', general_stats=general_stats, latest_firmware_submissions=latest_firmware_submissions,
                                latest_comments=latest_comments, latest_comparison_results=latest_comparison_results)
+    
+    def _app_plugins(self):
+        with ConnectTo(InterComFrontEndBinding, config=self._config) as sc:
+            list_of_plugins = sc.get_analysis_plugins_for_catalog()
+        return render_template('plugins.html', list_of_plugins=list_of_plugins)
+
 
     @staticmethod
     def _app_about():

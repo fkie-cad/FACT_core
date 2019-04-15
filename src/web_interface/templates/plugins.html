@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% set active_page = "Plugins" %}
+
+{% block body %}
+<h3>Plugins</h3>
+{% if (list_of_plugins | length) > 0 %}
+        {% for key, value in list_of_plugins.items() %}
+            {% set name = key %}
+            {% set description = value[0] %}
+            {% set version = value[1] %}
+
+            {% set dependencies = ', '.join(value[2]) %}
+            {% set blacklist = ', '.join(value[3]) %}
+            {% set whitelist = ', '.join(value[4]) %}
+            {% set threads = value[5] %}
+
+            {% if (dependencies == '') %} {% set dependencies = 'none'%} {% endif %}
+            {% if (blacklist == '') %}    {% set blacklist = 'none'%}    {% endif %}
+            {% if (whitelist == '') %}    {% set whitelist = 'none'%}    {% endif %}
+
+            <div class="plugin_div"> 
+                <div class="plugin_header" id="{{name}}">
+                    <span> {{ name }} </span>
+                </div>
+
+                <div class="plugin_description {{name}}" style="display: none">
+                    <span> Description:</span> {{ description }} <br>
+                    <span> Version:</span> {{ version }} <br>
+                    <span> Dependencies:</span> {{ dependencies }} <br>
+                    <span> Blacklist:</span> {{ blacklist }} <br>
+                    <span> Whitelist:</span> {{ whitelist }} <br>
+                    <span> Threads:</span> {{ threads }}
+                </div>
+            </div> 
+        {% endfor %}
+{% endif %}
+{% endblock %}

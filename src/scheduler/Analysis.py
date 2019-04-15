@@ -137,9 +137,20 @@ class AnalysisScheduler:
             mandatory_flag = plugin in MANDATORY_PLUGINS
             for key in default_plugins.keys():
                 default_flag_dict[key] = plugin in default_plugins[key]
-            result[plugin] = (self.analysis_plugins[plugin].DESCRIPTION, mandatory_flag, dict(default_flag_dict), self.analysis_plugins[plugin].VERSION)
+                result[plugin] = (self.analysis_plugins[plugin].DESCRIPTION, mandatory_flag, dict(default_flag_dict), self.analysis_plugins[plugin].VERSION, self.analysis_plugins[plugin].DEPENDENCIES)
         result['unpacker'] = ('Additional information provided by the unpacker', True, False)
         return result
+
+    def get_plugin_catalog(self):
+        plugin_list = self.get_list_of_available_plugins()
+        result = {}
+        for plugin in plugin_list:
+            result[plugin] = (self.analysis_plugins[plugin].DESCRIPTION,
+                              self.analysis_plugins[plugin].VERSION,
+                              self.analysis_plugins[plugin].DEPENDENCIES)
+
+        return result
+
 
 # ---- scheduling functions ----
 
@@ -169,7 +180,7 @@ class AnalysisScheduler:
     def scheduler(self):
         while self.stop_condition.value == 0:
             try:
-                task = self.process_queue.get(timeout=float(self.config['ExpertSettings']['block_delay']))
+                task = self.process_queue.get(timeout=int(self.config['ExpertSettings']['block_delay']))
             except Empty:
                 pass
             else:
@@ -310,7 +321,7 @@ class AnalysisScheduler:
                         self.post_analysis(fw)
                     self.check_further_process_or_complete(fw)
             if nop:
-                sleep(float(self.config['ExpertSettings']['block_delay']))
+                sleep(int(self.config['ExpertSettings']['block_delay']))
 
     def _handle_analysis_tags(self, fw, plugin):
         self.tag_queue.put(check_tags(fw, plugin))

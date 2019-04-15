@@ -24,6 +24,7 @@ class InterComMongoInterface(MongoInterface):
         'test',
         'analysis_task',
         'analysis_plugins',
+        'plugins_catalog',
         're_analyze_task',
         'update_task',
         'compare_task',
