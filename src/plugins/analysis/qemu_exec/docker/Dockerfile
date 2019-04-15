@@ -1,4 +1,4 @@
-FROM fkiecad/qemu_user:qemu-3.1.0
+FROM fkiecad/qemu_user:qemu-3.0.1
 
 
 ENV QEMU_LD_PREFIX="/opt/firmware_root/"
