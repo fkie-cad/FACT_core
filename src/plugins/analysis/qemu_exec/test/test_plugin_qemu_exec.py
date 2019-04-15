@@ -16,6 +16,7 @@ from ..code import qemu_exec
 
 TEST_DATA_DIR = Path(get_dir_of_file(__file__)) / 'data/test_tmp_dir'
 TEST_DATA_DIR_2 = Path(get_dir_of_file(__file__)) / 'data/test_tmp_dir_2'
+TEST_DATA_DIR_3 = Path(get_dir_of_file(__file__)) / 'data/other_architectures'
 CLI_PARAMETERS = ['-h', '--help', '-help', '--version', ' ']
 
 
@@ -84,14 +85,21 @@ class TestPluginQemuExec(AnalysisPluginTest):
 
     def test_get_docker_output__static(self):
         result = qemu_exec.get_docker_output('mips', '/test_mips_static', TEST_DATA_DIR)
-        for parameter in CLI_PARAMETERS:
-            assert parameter in result
-            assert 'error' not in result[parameter]
-            assert b'Hello World' in result[parameter]['stdout']
-        assert 'strace' in result
+        self._check_result(result)
 
     def test_get_docker_output__dynamic(self):
         result = qemu_exec.get_docker_output('mips', '/usr/bin/test_mips', TEST_DATA_DIR)
+        self._check_result(result)
+
+    def test_get_docker_output__arm(self):
+        result = qemu_exec.get_docker_output('arm', '/test_arm_static', TEST_DATA_DIR_3)
+        self._check_result(result)
+
+    def test_get_docker_output__ppc(self):
+        result = qemu_exec.get_docker_output('ppc', '/test_ppc_static', TEST_DATA_DIR_3)
+        self._check_result(result)
+
+    def _check_result(self, result):
         for parameter in CLI_PARAMETERS:
             assert parameter in result
             assert 'error' not in result[parameter]
