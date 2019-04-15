@@ -64,7 +64,7 @@ class UnpackingScheduler(object):
         unpacker = Unpacker(self.config, worker_id=worker_id, db_interface=self.db_interface)
         while self.stop_condition.value == 0:
             with suppress(Empty):
-                fo = self.in_queue.get(timeout=int(self.config['ExpertSettings']['block_delay']))
+                fo = self.in_queue.get(timeout=float(self.config['ExpertSettings']['block_delay']))
                 extracted_objects = unpacker.unpack(fo)
                 logging.debug('[worker {}] unpacking of {} complete: {} files extracted'.format(worker_id, fo.get_uid(), len(extracted_objects)))
                 self.post_unpack(fo)
