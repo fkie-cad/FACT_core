@@ -304,16 +304,33 @@ def test_get_summary(input_data, expected_output):
     assert result == expected_output
 
 
-def test_valid_execution_in_results():
-    def _get_results(return_code: str, stdout: str, stderr: str):
-        return {'arch': {'option': {'return_code': return_code, 'stdout': stdout, 'stderr': stderr}}}
+@pytest.mark.parametrize('input_data, expected_output', [
+    ({}, False),
+    ({'arch': {}}, False),
+    ({'arch': {'option': {}}}, False),
+    ({'arch': {'error': 'foo'}}, False),
+    ({'arch': {'option': {'error': 'foo'}}}, False),
+    ({'arch': {'option': {'stdout': 'foo', 'stderr': '', 'return_code': '0'}}}, True),
+])
+def test_valid_execution_in_results(input_data, expected_output):
+    assert qemu_exec._valid_execution_in_results(input_data) == expected_output
 
-    assert qemu_exec._valid_execution_in_results(_get_results(return_code='0', stdout='', stderr='')) is False
-    assert qemu_exec._valid_execution_in_results(_get_results(return_code='1', stdout='', stderr='')) is False
-    assert qemu_exec._valid_execution_in_results(_get_results(return_code='0', stdout='something', stderr='')) is True
-    assert qemu_exec._valid_execution_in_results(_get_results(return_code='1', stdout='something', stderr='')) is True
-    assert qemu_exec._valid_execution_in_results(_get_results(return_code='0', stdout='something', stderr='error')) is True
-    assert qemu_exec._valid_execution_in_results(_get_results(return_code='1', stdout='something', stderr='error')) is False
+
+def _get_results(return_code: str, stdout: str, stderr: str):
+    return {'return_code': return_code, 'stdout': stdout, 'stderr': stderr}
+
+
+@pytest.mark.parametrize('input_data, expected_output', [
+    ({}, False),
+    (_get_results(return_code='0', stdout='', stderr=''), False),
+    (_get_results(return_code='1', stdout='', stderr=''), False),
+    (_get_results(return_code='0', stdout='something', stderr=''), True),
+    (_get_results(return_code='1', stdout='something', stderr=''), True),
+    (_get_results(return_code='0', stdout='something', stderr='error'), True),
+    (_get_results(return_code='1', stdout='something', stderr='error'), False),
+])
+def test_output_without_error_exists(input_data, expected_output):
+    assert qemu_exec._output_without_error_exists(input_data) == expected_output
 
 
 def test_merge_similar_entries():

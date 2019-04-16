@@ -1,5 +1,6 @@
 import itertools
 import logging
+import shlex
 import zlib
 from collections import OrderedDict
 from multiprocessing import Manager, Pool
@@ -228,10 +229,13 @@ def _valid_execution_in_results(results: dict):
 
 
 def _output_without_error_exists(docker_output: Dict[str, str]) -> bool:
-    return (
-        docker_output['stdout'] != ''
-        and (docker_output['return_code'] == '0' or docker_output['stderr'] == '')
-    )
+    try:
+        return (
+            docker_output['stdout'] != ''
+            and (docker_output['return_code'] == '0' or docker_output['stderr'] == '')
+        )
+    except KeyError:
+        return False
 
 
 def test_qemu_executability(file_path: str, arch_suffix: str, root_path: Path) -> dict:
@@ -252,10 +256,10 @@ def get_docker_output(arch_suffix: str, file_path: str, root_path: Path) -> dict
     }
     in case of an error, there will be an entry 'error' instead of the entries stdout/stderr/return_code
     '''
-    command = 'docker run --rm --net=none -v {root_path}:/opt/firmware_root {image} {arch_suffix} {target}'.format(
+    command = 'docker run --rm --net=none -v {root_path}:/opt/firmware_root:ro {image} {arch_suffix} {target}'.format(
         root_path=root_path, image=DOCKER_IMAGE, arch_suffix=arch_suffix, target=file_path)
     try:
-        docker_output = loads(check_output(command, timeout=TIMEOUT_IN_SECONDS, shell=True))
+        docker_output = loads(check_output(shlex.split(command), timeout=TIMEOUT_IN_SECONDS))
         if result_contains_qemu_errors(docker_output):
             return {}
         return docker_output

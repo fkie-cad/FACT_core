@@ -25,10 +25,10 @@ def get_output(command: str) -> dict:
 def main():
     result = {}
     for parameter in ['-h', '--help', '-help', '--version', ' ']:
-        command = f'timeout 1s qemu-{ARCH} {FILE_PATH} {parameter}'
+        command = f'timeout --signal=SIGKILL 1s qemu-{ARCH} {FILE_PATH} {parameter}'
         result[parameter] = get_output(command)
 
-    command = f'timeout 2s qemu-{ARCH} -strace {FILE_PATH}'
+    command = f'timeout --signal=SIGKILL 2s qemu-{ARCH} -strace {FILE_PATH}'
     result['strace'] = get_output(command)
     sys.stdout.buffer.write(dumps(result))
 
