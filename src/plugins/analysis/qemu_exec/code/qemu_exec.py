@@ -20,7 +20,7 @@ from objects.file import FileObject
 from storage.binary_service import BinaryServiceDbInterface
 from unpacker.unpackBase import UnpackBase
 
-TIMEOUT_IN_SECONDS = 10
+TIMEOUT_IN_SECONDS = 15
 EXECUTABLE = 'executable'
 EMPTY = '(no parameter)'
 DOCKER_IMAGE = 'fact/qemu:latest'
@@ -84,7 +84,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def __init__(self, plugin_administrator, config=None, recursive=True, unpacker=None):
         self.unpacker = Unpacker(config) if unpacker is None else unpacker
-        super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__, timeout=600)
+        super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__, timeout=900)
 
     def process_object(self, file_object: FileObject) -> FileObject:
         if not docker_is_running():
@@ -223,7 +223,7 @@ def _valid_execution_in_results(results: dict):
         for arch in results
         if 'error' not in results[arch]
         for option in results[arch]
-        if option != 'strace'
+        if option not in ['strace', 'error']
     )
 
 
