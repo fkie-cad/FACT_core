@@ -116,15 +116,15 @@ class InterComBackEndAnalysisPlugInsPublisher(InterComMongoInterface):
                     {plugin : available_plugin_dictionary_bw[plugin] + (blacklist,) + (whitelist,)})
             except:
                 available_plugin_dictionary_bw.update(
-                    {plugin: available_plugin_dictionary_bw[plugin] + ("unkown",) + ("unkown",)})
-                print("back_end_binding: error of plugin: %s could not find blacklist/whitelist" % plugin)
+                    {plugin: available_plugin_dictionary_bw[plugin] + ("unknown",) + ("unknown",)})
+                logging.warning("back_end_binding: error of plugin: %s could not find blacklist/whitelist" % plugin)
 
             if plugin in thread_info:
                 available_plugin_dictionary_bw.update(
                     {plugin: available_plugin_dictionary_bw[plugin] + (thread_info[plugin],)})
             else:
                 available_plugin_dictionary_bw.update(
-                    {plugin: available_plugin_dictionary_bw[plugin] + ("unkown",)})
+                    {plugin: available_plugin_dictionary_bw[plugin] + ("unknown",)})
 
         overwrite_file(self.connections['plugins_catalog']['fs'], "plugin_dictonary_bw", pickle.dumps(available_plugin_dictionary_bw))
 

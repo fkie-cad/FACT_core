@@ -3,7 +3,7 @@ from helperFunctions.fileSystem import get_src_dir
 
 
 def get_path_to_conf():
-    return str(Path(get_src_dir()))+'/config/main.cfg'
+    return str(Path(get_src_dir()) / 'config' / 'main.cfg')
 
 
 def load_plugin_conf(input_list):

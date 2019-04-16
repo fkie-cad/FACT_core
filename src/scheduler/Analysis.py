@@ -180,7 +180,7 @@ class AnalysisScheduler:
     def scheduler(self):
         while self.stop_condition.value == 0:
             try:
-                task = self.process_queue.get(timeout=int(self.config['ExpertSettings']['block_delay']))
+                task = self.process_queue.get(timeout=float(self.config['ExpertSettings']['block_delay']))
             except Empty:
                 pass
             else:
@@ -321,7 +321,7 @@ class AnalysisScheduler:
                         self.post_analysis(fw)
                     self.check_further_process_or_complete(fw)
             if nop:
-                sleep(int(self.config['ExpertSettings']['block_delay']))
+                sleep(float(self.config['ExpertSettings']['block_delay']))
 
     def _handle_analysis_tags(self, fw, plugin):
         self.tag_queue.put(check_tags(fw, plugin))
