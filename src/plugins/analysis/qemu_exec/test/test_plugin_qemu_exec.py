@@ -49,12 +49,20 @@ def execute_shell_fails(monkeypatch):
 @pytest.fixture
 def execute_docker_error(monkeypatch):
     def mock_execute_shell(call, **_):
-        if call == 'pgrep dockerd':
-            return '', 0
         if 'file-with-error' in call:
             raise subprocess.CalledProcessError(1, 'foo')
         raise subprocess.TimeoutExpired('', 0.1)
     monkeypatch.setattr(qemu_exec, 'check_output', mock_execute_shell)
+
+
+@pytest.fixture
+def docker_is_running(monkeypatch):
+    monkeypatch.setattr(qemu_exec, 'execute_shell_command_get_return_code', lambda _: (None, 0))
+
+
+@pytest.fixture
+def docker_is_not_running(monkeypatch):
+    monkeypatch.setattr(qemu_exec, 'execute_shell_command_get_return_code', lambda _: (None, 1))
 
 
 class TestPluginQemuExec(AnalysisPluginTest):
@@ -124,6 +132,7 @@ class TestPluginQemuExec(AnalysisPluginTest):
         assert test_uid in result['files']
         assert result['files'][test_uid]['executable'] is True
 
+    @pytest.mark.usefixtures('docker_is_running')
     def test_process_object(self):
         self.analysis_plugin.OPTIONS = ['-h']
         test_fw = self._set_up_fw_for_process_object()
@@ -134,6 +143,7 @@ class TestPluginQemuExec(AnalysisPluginTest):
         assert len(result['files']) == 4
         assert any(result['files'][uid]['executable'] for uid in result['files'])
 
+    @pytest.mark.usefixtures('docker_is_running')
     def test_process_object__with_extracted_folder(self):
         self.analysis_plugin.OPTIONS = ['-h']
         test_fw = self._set_up_fw_for_process_object(path=TEST_DATA_DIR_2)
@@ -145,6 +155,7 @@ class TestPluginQemuExec(AnalysisPluginTest):
         assert len(result['files']) == 3
         assert result['files'][test_file_uid]['executable'] is True
 
+    @pytest.mark.usefixtures('docker_is_running')
     def test_process_object__error(self):
         test_fw = self._set_up_fw_for_process_object(path=TEST_DATA_DIR / 'usr')
 
@@ -160,6 +171,7 @@ class TestPluginQemuExec(AnalysisPluginTest):
             if option != 'strace'
         )
 
+    @pytest.mark.usefixtures('docker_is_running')
     @pytest.mark.usefixtures('execute_docker_error')
     def test_process_object__timeout(self):
         test_fw = self._set_up_fw_for_process_object()
@@ -178,6 +190,7 @@ class TestPluginQemuExec(AnalysisPluginTest):
             for uid in result['files']
         )
 
+    @pytest.mark.usefixtures('docker_is_running')
     def test_process_object__no_files(self):
         test_fw = create_test_firmware()
         test_fw.files_included = []
@@ -186,6 +199,7 @@ class TestPluginQemuExec(AnalysisPluginTest):
         assert self.analysis_plugin.NAME in test_fw.processed_analysis
         assert test_fw.processed_analysis[self.analysis_plugin.NAME] == {'summary': []}
 
+    @pytest.mark.usefixtures('docker_is_running')
     def test_process_object__included_binary(self):
         test_fw = create_test_firmware()
         test_fw.processed_analysis['file_type']['mime'] = self.analysis_plugin.FILE_TYPES[0]
@@ -195,7 +209,7 @@ class TestPluginQemuExec(AnalysisPluginTest):
         assert 'parent_flag' in test_fw.processed_analysis[self.analysis_plugin.NAME]
         assert test_fw.processed_analysis[self.analysis_plugin.NAME]['parent_flag'] is True
 
-    @pytest.mark.usefixtures('execute_shell_fails')
+    @pytest.mark.usefixtures('docker_is_not_running')
     def test_process_object__docker_not_running(self):
         test_fw = create_test_firmware()
         test_fw.files_included = ['foo', 'bar']
@@ -358,11 +372,8 @@ def test_convert_to_strings():
     {'strace': {'stdout': ''}},
 ])
 def test_process_strace_output__no_strace(input_data):
-    try:
-        qemu_exec.process_strace_output(input_data)
-        assert input_data['strace'] == {}
-    except Exception:
-        pytest.fail('there should be no exception here...')
+    qemu_exec.process_strace_output(input_data)
+    assert input_data['strace'] == {}
 
 
 def test_process_strace_output():
