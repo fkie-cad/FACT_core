@@ -1,5 +1,7 @@
 from pathlib import Path
 from helperFunctions.fileSystem import get_src_dir
+import configparser
+import logging
 
 
 def get_path_to_conf():
@@ -7,25 +9,20 @@ def get_path_to_conf():
 
 
 def load_plugin_conf(input_list):
-    path_to_config = get_path_to_conf()
-    dict_of_plugins = input_list
+    config = configparser.ConfigParser()
+    config.read(get_path_to_conf())
 
-    lines = []
+    threads_info = {}
 
-    with open(path_to_config) as config_file:
-        for line in config_file:
-            lines.append(line)
+    for plugin in input_list:
+        number_threads = 1
 
-    info = {}
-    for i in range(len(lines)):
-        if lines[i][0] == '[':
-            for plugin_name in dict_of_plugins:
-                if plugin_name in lines[i]:
-                    j = i
-                    while(j < len(lines)):
-                        if 'threads' in lines[j]:
-                            threads = lines[j].split('=')[1].rstrip()
-                            info.update({plugin_name : threads})
-                            break
-                        j += 1
-    return info
+        if plugin in config:
+            if config.has_option(plugin, 'threads'):
+                number_threads = config[plugin]['threads']
+            threads_info.update({plugin: number_threads})
+        else:
+            threads_info.update({plugin: number_threads})
+            logging.warning("plugin(%s) not in main.cfg" % plugin)
+
+    return threads_info
