@@ -20,7 +20,7 @@ from objects.file import FileObject
 from storage.binary_service import BinaryServiceDbInterface
 from unpacker.unpackBase import UnpackBase
 
-TIMEOUT = 10
+TIMEOUT_IN_SECONDS = 10
 EXECUTABLE = 'executable'
 EMPTY = '(no parameter)'
 DOCKER_IMAGE = 'fact/qemu:latest'
@@ -29,7 +29,10 @@ QEMU_ERRORS = [b'Unsupported syscall', b'Invalid ELF', b'uncaught target signal'
 
 class Unpacker(UnpackBase):
     def unpack_fo(self, file_object: FileObject) -> Optional[TemporaryDirectory]:
-        file_path = file_object.file_path if file_object.file_path else self._get_file_path_from_db(file_object.get_uid())
+        file_path = (
+            file_object.file_path if file_object.file_path
+            else self._get_file_path_from_db(file_object.get_uid())
+        )
         if not file_path or not Path(file_path).is_file():
             logging.error('could not unpack {}: file path not found'.format(file_object.get_uid()))
             return None
@@ -154,12 +157,17 @@ class AnalysisPlugin(AnalysisBasePlugin):
         jobs = []
         for file_path, full_type in file_list:
             uid = self._get_uid(file_path, self.root_path)
-            if uid not in file_object.processed_analysis[self.NAME]['files']:
-                # file could be contained in the fo multiple times (but should be tested only once)
+            if self._analysis_not_already_completed(file_object, uid):
                 qemu_arch_suffixes = self._find_arch_suffixes(full_type)
-                jobs.extend(
-                    [(file_path, arch_suffix, self.root_path, results_dict, uid) for arch_suffix in qemu_arch_suffixes])
+                jobs.extend([
+                    (file_path, arch_suffix, self.root_path, results_dict, uid)
+                    for arch_suffix in qemu_arch_suffixes
+                ])
         return jobs
+
+    def _analysis_not_already_completed(self, file_object, uid):
+        # file could be contained in the fo multiple times (but should be tested only once)
+        return uid not in file_object.processed_analysis[self.NAME]['files']
 
     @staticmethod
     def _get_uid(file_path, root_path: Path):
@@ -174,19 +182,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
     def _enter_results(self, results, file_object):
         tmp = file_object.processed_analysis[self.NAME]['files'] = results
         for uid in tmp:
-            tmp[uid]['executable'] = self._valid_execution_in_results(tmp[uid]['results'])
+            tmp[uid]['executable'] = _valid_execution_in_results(tmp[uid]['results'])
         file_object.processed_analysis['qemu_exec']['summary'] = self._get_summary(tmp)
-
-    @staticmethod
-    def _valid_execution_in_results(results: dict):
-        return any(
-            (results[arch][option]['stdout'] != ''
-             and (results[arch][option]['return_code'] == '0' or results[arch][option]['stderr'] == ''))
-            for arch in results
-            if 'error' not in results[arch]
-            for option in results[arch]
-            if option != 'strace'
-        )
 
     def _add_tag(self, file_object: FileObject):
         result = file_object.processed_analysis[self.NAME]['files']
@@ -220,6 +217,23 @@ def process_qemu_job(file_path: str, arch_suffix: str, root_path: Path, results_
         }
 
 
+def _valid_execution_in_results(results: dict):
+    return any(
+        _output_without_error_exists(results[arch][option])
+        for arch in results
+        if 'error' not in results[arch]
+        for option in results[arch]
+        if option != 'strace'
+    )
+
+
+def _output_without_error_exists(docker_output: Dict[str, str]) -> bool:
+    return (
+        docker_output['stdout'] != ''
+        and (docker_output['return_code'] == '0' or docker_output['stderr'] == '')
+    )
+
+
 def test_qemu_executability(file_path: str, arch_suffix: str, root_path: Path) -> dict:
     result = get_docker_output(arch_suffix, file_path, root_path)
     if result and 'error' not in result:
@@ -238,22 +252,22 @@ def get_docker_output(arch_suffix: str, file_path: str, root_path: Path) -> dict
     }
     in case of an error, there will be an entry 'error' instead of the entries stdout/stderr/return_code
     '''
-    command = 'docker run --rm --net=none -v {}:/opt/firmware_root {} {} {}'.format(
-        root_path, DOCKER_IMAGE, arch_suffix, file_path)
+    command = 'docker run --rm --net=none -v {root_path}:/opt/firmware_root {image} {arch_suffix} {target}'.format(
+        root_path=root_path, image=DOCKER_IMAGE, arch_suffix=arch_suffix, target=file_path)
     try:
-        output = check_output(command, timeout=TIMEOUT, shell=True)
-        return loads(output)
+        docker_output = loads(check_output(command, timeout=TIMEOUT_IN_SECONDS, shell=True))
+        if result_contains_qemu_errors(docker_output):
+            return {}
+        return docker_output
     except TimeoutExpired:
         logging.warning('encountered timeout while trying to run docker container')
         return {'error': 'timeout'}
-    except (CalledProcessError, UnpicklingError, TypeError):
+    except (CalledProcessError, UnpicklingError, TypeError, KeyError):
         logging.warning('encountered error while trying to run docker container')
         return {'error': 'process error'}
 
 
-def process_docker_output(docker_output: Dict[bytes, Dict[bytes, bytes]]) -> Optional[Dict[str, Dict[str, str]]]:
-    if result_contains_qemu_errors(docker_output):
-        return {}  # wrong architecture -> empty output
+def process_docker_output(docker_output: Dict[str, Dict[str, Union[bytes, int]]]) -> Optional[Dict[str, Dict[str, str]]]:
     docker_output = convert_output_to_strings(docker_output)
     process_strace_output(docker_output)
     replace_empty_strings(docker_output)
@@ -270,15 +284,19 @@ def convert_output_to_strings(bytes_dict: Dict[str, Dict[str, Union[bytes, int]]
     return result
 
 
+def _strace_output_exists(docker_output):
+    return (
+        'strace' in docker_output
+        and 'stdout' in docker_output['strace']
+        and bool(docker_output['strace']['stdout'])
+    )
+
+
 def process_strace_output(docker_output: dict):
-    if (
-            'strace' in docker_output
-            and 'stdout' in docker_output['strace']
-            and bool(docker_output['strace']['stdout'])
-    ):
-        docker_output['strace'] = zlib.compress(docker_output['strace']['stdout'].encode())
-    else:
-        docker_output['strace'] = {}
+    docker_output['strace'] = (
+        zlib.compress(docker_output['strace']['stdout'].encode())
+        if _strace_output_exists(docker_output) else {}
+    )
 
 
 def result_contains_qemu_errors(docker_output: Dict[bytes, Dict[bytes, bytes]]) -> bool:

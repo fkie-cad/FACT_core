@@ -11,6 +11,7 @@ from common_helper_files import get_dir_of_file
 from helperFunctions.config import get_config_for_testing
 from helperFunctions.fileSystem import get_test_data_dir
 from test.common_helper import create_test_firmware
+from test.mock import mock_patch
 from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
 from ..code import qemu_exec
 
@@ -82,48 +83,6 @@ class TestPluginQemuExec(AnalysisPluginTest):
         for path in ['/lib/ld.so.1', '/lib/libc.so.6', '/test_mips_static', '/usr/bin/test_mips']:
             assert path in path_list
         assert all('MIPS' in mime for mime in mime_types)
-
-    def test_get_docker_output__static(self):
-        result = qemu_exec.get_docker_output('mips', '/test_mips_static', TEST_DATA_DIR)
-        self._check_result(result)
-
-    def test_get_docker_output__dynamic(self):
-        result = qemu_exec.get_docker_output('mips', '/usr/bin/test_mips', TEST_DATA_DIR)
-        self._check_result(result)
-
-    def test_get_docker_output__arm(self):
-        result = qemu_exec.get_docker_output('arm', '/test_arm_static', TEST_DATA_DIR_3)
-        self._check_result(result)
-
-    def test_get_docker_output__ppc(self):
-        result = qemu_exec.get_docker_output('ppc', '/test_ppc_static', TEST_DATA_DIR_3)
-        self._check_result(result)
-
-    def _check_result(self, result):
-        for parameter in CLI_PARAMETERS:
-            assert parameter in result
-            assert 'error' not in result[parameter]
-            assert b'Hello World' in result[parameter]['stdout']
-        assert 'strace' in result
-
-    def test_get_docker_output__wrong_arch(self):
-        result = qemu_exec.get_docker_output('i386', '/test_mips_static', TEST_DATA_DIR)
-        for parameter in CLI_PARAMETERS:
-            assert parameter in result
-            assert 'error' not in result[parameter]
-            assert b'Invalid ELF image' in result[parameter]['stderr']
-
-    @pytest.mark.usefixtures('execute_docker_error')
-    def test_get_docker_output__timeout(self):
-        result = qemu_exec.get_docker_output('mips', '/test_mips_static', TEST_DATA_DIR)
-        assert 'error' in result
-        assert result['error'] == 'timeout'
-
-    @pytest.mark.usefixtures('execute_docker_error')
-    def test_get_docker_output__error(self):
-        result = qemu_exec.get_docker_output('mips', '/file-with-error', TEST_DATA_DIR)
-        assert 'error' in result
-        assert result['error'] == 'process error'
 
     def test_test_qemu_executability(self):
         self.analysis_plugin.OPTIONS = ['-h']
@@ -203,7 +162,6 @@ class TestPluginQemuExec(AnalysisPluginTest):
 
     @pytest.mark.usefixtures('execute_docker_error')
     def test_process_object__timeout(self):
-        self.analysis_plugin._docker_is_running = lambda: True
         test_fw = self._set_up_fw_for_process_object()
 
         self.analysis_plugin.process_object(test_fw)
@@ -244,58 +202,104 @@ class TestPluginQemuExec(AnalysisPluginTest):
         self.analysis_plugin.process_object(test_fw)
         assert self.analysis_plugin.NAME not in test_fw.processed_analysis
 
-    def test_docker_is_running(self):
-        assert qemu_exec.docker_is_running() is True, 'Docker is not running'
-
-    @pytest.mark.usefixtures('execute_shell_fails')
-    def test_docker_is_running__not_running(self):
-        assert qemu_exec.docker_is_running() is False
-
     def _set_up_fw_for_process_object(self, path=TEST_DATA_DIR):
         test_fw = create_test_firmware()
         test_fw.files_included = ['foo', 'bar']
         self.analysis_plugin.unpacker.set_tmp_dir(MockTmpDir(path))
         return test_fw
 
-    def test_valid_execution_in_results(self):
-        def _get_results(return_code: str, stdout: str, stderr: str):
-            return {'arch': {'option': {'return_code': return_code, 'stdout': stdout, 'stderr': stderr}}}
 
-        assert self.analysis_plugin._valid_execution_in_results(_get_results(return_code='0', stdout='', stderr='')) is False
-        assert self.analysis_plugin._valid_execution_in_results(_get_results(return_code='1', stdout='', stderr='')) is False
-        assert self.analysis_plugin._valid_execution_in_results(_get_results(return_code='0', stdout='something', stderr='')) is True
-        assert self.analysis_plugin._valid_execution_in_results(_get_results(return_code='1', stdout='something', stderr='')) is True
-        assert self.analysis_plugin._valid_execution_in_results(_get_results(return_code='0', stdout='something', stderr='error')) is True
-        assert self.analysis_plugin._valid_execution_in_results(_get_results(return_code='1', stdout='something', stderr='error')) is False
+def test_get_docker_output__static():
+    result = qemu_exec.get_docker_output('mips', '/test_mips_static', TEST_DATA_DIR)
+    _check_result(result)
 
-    def test_process_qemu_job(self):
-        tmp = qemu_exec.test_qemu_executability
-        qemu_exec.test_qemu_executability = lambda file_path, arch_suffix, root_path: {'--option': {'stdout': 'test', 'stderr': '', 'return_code': '0'}}
 
+def test_get_docker_output__dynamic():
+    result = qemu_exec.get_docker_output('mips', '/usr/bin/test_mips', TEST_DATA_DIR)
+    _check_result(result)
+
+
+def test_get_docker_output__arm():
+    result = qemu_exec.get_docker_output('arm', '/test_arm_static', TEST_DATA_DIR_3)
+    _check_result(result)
+
+
+def test_get_docker_output__ppc():
+    result = qemu_exec.get_docker_output('ppc', '/test_ppc_static', TEST_DATA_DIR_3)
+    _check_result(result)
+
+
+def _check_result(result):
+    for parameter in CLI_PARAMETERS:
+        assert parameter in result
+        assert 'error' not in result[parameter]
+        assert b'Hello World' in result[parameter]['stdout']
+    assert 'strace' in result
+
+
+def test_get_docker_output__wrong_arch():
+    result = qemu_exec.get_docker_output('i386', '/test_mips_static', TEST_DATA_DIR)
+    assert result == {}
+
+
+@pytest.mark.usefixtures('execute_docker_error')
+def test_get_docker_output__timeout():
+    result = qemu_exec.get_docker_output('mips', '/test_mips_static', TEST_DATA_DIR)
+    assert 'error' in result
+    assert result['error'] == 'timeout'
+
+
+@pytest.mark.usefixtures('execute_docker_error')
+def test_get_docker_output__error():
+    result = qemu_exec.get_docker_output('mips', '/file-with-error', TEST_DATA_DIR)
+    assert 'error' in result
+    assert result['error'] == 'process error'
+
+
+def test_docker_is_running():
+    assert qemu_exec.docker_is_running() is True, 'Docker is not running'
+
+
+@pytest.mark.usefixtures('execute_shell_fails')
+def test_docker_is_running__not_running():
+    assert qemu_exec.docker_is_running() is False
+
+
+def test_process_qemu_job():
+    def mock_test_executability(*_):
+        return {'--option': {'stdout': 'test', 'stderr': '', 'return_code': '0'}}
+    with mock_patch(qemu_exec, 'test_qemu_executability', mock_test_executability):
         results = {}
-        qemu_exec.process_qemu_job('test_path', 'test_arch', 'test_root', results, 'test_uid')
+        qemu_exec.process_qemu_job('test_path', 'test_arch', Path('test_root'), results, 'test_uid')
         assert results == {'test_uid': {'path': 'test_path', 'results': {'test_arch': {'--option': {'stdout': 'test', 'stderr': '', 'return_code': '0'}}}}}
 
-        qemu_exec.process_qemu_job('test_path', 'test_arch_2', 'test_root', results, 'test_uid')
+        qemu_exec.process_qemu_job('test_path', 'test_arch_2', Path('test_root'), results, 'test_uid')
         assert results == {'test_uid': {'path': 'test_path', 'results': {
             'test_arch': {'--option': {'stderr': '', 'return_code': '0', 'stdout': 'test'}},
             'test_arch_2': {'--option': {'stderr': '', 'return_code': '0', 'stdout': 'test'}}
         }}}
 
-        qemu_exec.test_qemu_executability = tmp
 
-    def test_get_summary(self):
-        analysis_result = {}
-        result = self.analysis_plugin._get_summary(analysis_result)
-        assert result == []
+@pytest.mark.parametrize('input_data, expected_output', [
+    ({}, []),
+    ({'foo': {'executable': False}}, []),
+    ({'foo': {'executable': False}, 'bar': {'executable': True}}, ['executable']),
+])
+def test_get_summary(input_data, expected_output):
+    result = qemu_exec.AnalysisPlugin._get_summary(input_data)
+    assert result == expected_output
 
-        analysis_result.update({'foo': {'executable': False}})
-        result = self.analysis_plugin._get_summary(analysis_result)
-        assert result == []
 
-        analysis_result.update({'bar': {'executable': True}})
-        result = self.analysis_plugin._get_summary(analysis_result)
-        assert result == ['executable']
+def test_valid_execution_in_results():
+    def _get_results(return_code: str, stdout: str, stderr: str):
+        return {'arch': {'option': {'return_code': return_code, 'stdout': stdout, 'stderr': stderr}}}
+
+    assert qemu_exec._valid_execution_in_results(_get_results(return_code='0', stdout='', stderr='')) is False
+    assert qemu_exec._valid_execution_in_results(_get_results(return_code='1', stdout='', stderr='')) is False
+    assert qemu_exec._valid_execution_in_results(_get_results(return_code='0', stdout='something', stderr='')) is True
+    assert qemu_exec._valid_execution_in_results(_get_results(return_code='1', stdout='something', stderr='')) is True
+    assert qemu_exec._valid_execution_in_results(_get_results(return_code='0', stdout='something', stderr='error')) is True
+    assert qemu_exec._valid_execution_in_results(_get_results(return_code='1', stdout='something', stderr='error')) is False
 
 
 def test_merge_similar_entries():
