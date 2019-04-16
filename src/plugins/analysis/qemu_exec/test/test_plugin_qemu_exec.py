@@ -146,7 +146,7 @@ class TestPluginQemuExec(AnalysisPluginTest):
         assert result['files'][test_file_uid]['executable'] is True
 
     def test_process_object__error(self):
-        test_fw = self._set_up_fw_for_process_object(path=os.path.join(TEST_DATA_DIR, 'usr'))
+        test_fw = self._set_up_fw_for_process_object(path=TEST_DATA_DIR / 'usr')
 
         self.analysis_plugin.process_object(test_fw)
         result = test_fw.processed_analysis[self.analysis_plugin.NAME]
@@ -202,7 +202,7 @@ class TestPluginQemuExec(AnalysisPluginTest):
         self.analysis_plugin.process_object(test_fw)
         assert self.analysis_plugin.NAME not in test_fw.processed_analysis
 
-    def _set_up_fw_for_process_object(self, path=TEST_DATA_DIR):
+    def _set_up_fw_for_process_object(self, path: Path = TEST_DATA_DIR):
         test_fw = create_test_firmware()
         test_fw.files_included = ['foo', 'bar']
         self.analysis_plugin.unpacker.set_tmp_dir(MockTmpDir(path))
