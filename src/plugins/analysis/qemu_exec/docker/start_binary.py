@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 import subprocess
 import sys
-from pickle import dumps
+from base64 import b64encode
+from json import dumps
 from typing import Tuple
 
 FIRMWARE_ROOT = '/opt/firmware_root/'
@@ -19,7 +20,15 @@ def get_output(command: str) -> dict:
     std_out, std_err, return_code = get_output_error_and_return_code(command)
     if return_code in TIMEOUT_ERROR_EXIT_CODES:
         return {'error': 'timeout'}
-    return {'stdout': std_out, 'stderr': std_err, 'return_code': return_code}
+    return {
+        'stdout': encode_as_str(std_out),
+        'stderr': encode_as_str(std_err),
+        'return_code': return_code
+    }
+
+
+def encode_as_str(std_out):
+    return b64encode(std_out).decode()
 
 
 def main():
@@ -30,7 +39,7 @@ def main():
 
     command = f'timeout --signal=SIGKILL 2s qemu-{ARCH} -strace {FILE_PATH}'
     result['strace'] = get_output(command)
-    sys.stdout.buffer.write(dumps(result))
+    print(dumps(result), flush=True)
 
 
 if __name__ == '__main__':

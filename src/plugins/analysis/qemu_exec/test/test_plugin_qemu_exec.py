@@ -1,12 +1,14 @@
-# pylint: disable=protected-access, no-self-use
+# pylint: disable=protected-access, no-self-use,wrong-import-order,invalid-name
 import os
-import subprocess
+from base64 import b64decode
 from contextlib import suppress
 from pathlib import Path
 from unittest import TestCase
 
+import docker
 import pytest
 from common_helper_files import get_dir_of_file
+from requests.exceptions import ReadTimeout, ConnectionError as RequestConnectionError
 
 from helperFunctions.config import get_config_for_testing
 from helperFunctions.fileSystem import get_test_data_dir
@@ -46,13 +48,38 @@ def execute_shell_fails(monkeypatch):
     monkeypatch.setattr(qemu_exec, 'execute_shell_command_get_return_code', mock_execute_shell)
 
 
+class ContainerMock:
+    @staticmethod
+    def wait(**_):
+        pass
+
+    @staticmethod
+    def stop():
+        pass
+
+    @staticmethod
+    def remove():
+        pass
+
+    @staticmethod
+    def logs():
+        return 'not json decodable'
+
+
+class DockerClientMock:
+    class containers:
+        @staticmethod
+        def run(_, arch_and_path, **___):
+            if 'file-with-error' in arch_and_path:
+                raise RequestConnectionError()
+            if 'json-error' in arch_and_path:
+                return ContainerMock()
+            raise ReadTimeout()
+
+
 @pytest.fixture
 def execute_docker_error(monkeypatch):
-    def mock_execute_shell(call, **_):
-        if 'file-with-error' in call:
-            raise subprocess.CalledProcessError(1, 'foo')
-        raise subprocess.TimeoutExpired('', 0.1)
-    monkeypatch.setattr(qemu_exec, 'check_output', mock_execute_shell)
+    monkeypatch.setattr(docker, 'from_env', DockerClientMock)
 
 
 @pytest.fixture
@@ -247,13 +274,16 @@ def _check_result(result):
     for parameter in CLI_PARAMETERS:
         assert parameter in result
         assert 'error' not in result[parameter]
-        assert b'Hello World' in result[parameter]['stdout']
+        assert b'Hello World' in b64decode(result[parameter]['stdout'])
     assert 'strace' in result
 
 
 def test_get_docker_output__wrong_arch():
     result = qemu_exec.get_docker_output('i386', '/test_mips_static', TEST_DATA_DIR)
-    assert result == {}
+    assert all(
+        b'Invalid ELF image' in b64decode(result_dict['stderr'])
+        for result_dict in result.values()
+    )
 
 
 @pytest.mark.usefixtures('execute_docker_error')
@@ -268,6 +298,13 @@ def test_get_docker_output__error():
     result = qemu_exec.get_docker_output('mips', '/file-with-error', TEST_DATA_DIR)
     assert 'error' in result
     assert result['error'] == 'process error'
+
+
+@pytest.mark.usefixtures('execute_docker_error')
+def test_get_docker_output__json_error():
+    result = qemu_exec.get_docker_output('mips', '/json-error', TEST_DATA_DIR)
+    assert 'error' in result
+    assert result['error'] == 'could not decode result'
 
 
 def test_docker_is_running():
@@ -347,17 +384,17 @@ def test_merge_similar_entries():
 
 
 @pytest.mark.parametrize('input_data, expected_output', [
-    ({b'parameter': {b'std_out': b'foo Invalid ELF bar'}}, True),
-    ({b'parameter': {b'std_out': b'no errors'}}, False),
+    ({'parameter': {'std_out': 'foo Invalid ELF bar'}}, True),
+    ({'parameter': {'std_out': 'no errors'}}, False),
 ])
 def test_result_contains_qemu_errors(input_data, expected_output):
     assert qemu_exec.result_contains_qemu_errors(input_data) == expected_output
 
 
 @pytest.mark.parametrize('input_data, expected_output', [
-    (b'Unknown syscall 4001 qemu: Unsupported syscall: 4001\n', True),
-    (b'foobar', False),
-    (b'', False),
+    ('Unknown syscall 4001 qemu: Unsupported syscall: 4001\n', True),
+    ('foobar', False),
+    ('', False),
 ])
 def test_contains_docker_error(input_data, expected_output):
     assert qemu_exec.contains_docker_error(input_data) == expected_output
@@ -374,7 +411,7 @@ def test_replace_empty_strings():
 
 def test_convert_to_strings():
     test_input = {'-h': {'std_out': b'', 'std_err': b'', 'return_code': 0}}
-    result = qemu_exec.convert_output_to_strings(test_input)
+    result = qemu_exec.decode_output_values(test_input)
     assert all(
         isinstance(value, str)
         for parameter in result

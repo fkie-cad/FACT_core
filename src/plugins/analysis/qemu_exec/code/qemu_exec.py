@@ -1,18 +1,23 @@
+import binascii
 import itertools
 import logging
-import shlex
 import zlib
+from base64 import b64decode
 from collections import OrderedDict
+from contextlib import suppress
+from json import loads, JSONDecodeError
 from multiprocessing import Manager, Pool
 from pathlib import Path
-from pickle import loads, UnpicklingError
-from subprocess import TimeoutExpired, check_output, CalledProcessError
 from tempfile import TemporaryDirectory
 from typing import Dict, List, Optional, Tuple, Union
 
 from common_helper_files import get_binary_from_file, safe_rglob
 from common_helper_process import execute_shell_command_get_return_code
+import docker
+from docker.errors import ImageNotFound, APIError, DockerException
+from docker.types import Mount
 from fact_helper_file import get_file_type_from_path
+from requests.exceptions import ReadTimeout, ConnectionError as RequestConnectionError
 
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.tag import TagColor
@@ -25,7 +30,8 @@ TIMEOUT_IN_SECONDS = 15
 EXECUTABLE = 'executable'
 EMPTY = '(no parameter)'
 DOCKER_IMAGE = 'fact/qemu:latest'
-QEMU_ERRORS = [b'Unsupported syscall', b'Invalid ELF', b'uncaught target signal']
+QEMU_ERRORS = ['Unsupported syscall', 'Invalid ELF', 'uncaught target signal']
+CONTAINER_TARGET_PATH = '/opt/firmware_root'
 
 
 class Unpacker(UnpackBase):
@@ -57,7 +63,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     NAME = 'qemu_exec'
     DESCRIPTION = 'test binaries for executability in QEMU and display help if available'
-    VERSION = '0.5.0'
+    VERSION = '0.5.1'
     DEPENDENCIES = ['file_type']
     FILE_TYPES = ['application/x-executable', 'application/x-sharedlib']
 
@@ -241,6 +247,9 @@ def _output_without_error_exists(docker_output: Dict[str, str]) -> bool:
 def test_qemu_executability(file_path: str, arch_suffix: str, root_path: Path) -> dict:
     result = get_docker_output(arch_suffix, file_path, root_path)
     if result and 'error' not in result:
+        result = decode_output_values(result)
+        if result_contains_qemu_errors(result):
+            return {}
         result = process_docker_output(result)
     return result
 
@@ -249,41 +258,55 @@ def get_docker_output(arch_suffix: str, file_path: str, root_path: Path) -> dict
     '''
     :return: in the case of no error, the output will have the form
     {
-        'parameter 1': {'stdout': b'...', 'stderr': b'...', 'return_code': <int>},
+        'parameter 1': {'stdout': <b64_str>, 'stderr': <b64_str>, 'return_code': <int>},
         'parameter 2': {...},
         '...',
-        'strace': {'stdout': b'...', 'stderr': b'...', 'return_code': <int>},
+        'strace': {'stdout': <b64_str>, 'stderr': <b64_str>, 'return_code': <int>},
     }
     in case of an error, there will be an entry 'error' instead of the entries stdout/stderr/return_code
     '''
-    command = 'docker run --rm --net=none -v {root_path}:/opt/firmware_root:ro {image} {arch_suffix} {target}'.format(
-        root_path=root_path, image=DOCKER_IMAGE, arch_suffix=arch_suffix, target=file_path)
+    container = None
+    volume = Mount(CONTAINER_TARGET_PATH, str(root_path), read_only=True, type="bind")
     try:
-        docker_output = loads(check_output(shlex.split(command), timeout=TIMEOUT_IN_SECONDS))
-        if result_contains_qemu_errors(docker_output):
-            return {}
-        return docker_output
-    except TimeoutExpired:
-        logging.warning('encountered timeout while trying to run docker container')
-        return {'error': 'timeout'}
-    except (CalledProcessError, UnpicklingError, TypeError, KeyError):
-        logging.warning('encountered error while trying to run docker container')
+        client = docker.from_env()
+        container = client.containers.run(
+            DOCKER_IMAGE, '{arch_suffix} {target}'.format(arch_suffix=arch_suffix, target=file_path),
+            network_disabled=True, mounts=[volume], detach=True
+        )
+        container.wait(timeout=TIMEOUT_IN_SECONDS)
+        return loads(container.logs())
+    except (ImageNotFound, APIError, DockerException, RequestConnectionError):
         return {'error': 'process error'}
+    except ReadTimeout:
+        return {'error': 'timeout'}
+    except JSONDecodeError:
+        return {'error': 'could not decode result'}
+    finally:
+        if container:
+            with suppress(APIError):
+                container.stop()
+            container.remove()
 
 
-def process_docker_output(docker_output: Dict[str, Dict[str, Union[bytes, int]]]) -> Optional[Dict[str, Dict[str, str]]]:
-    docker_output = convert_output_to_strings(docker_output)
+def process_docker_output(docker_output: Dict[str, Dict[str, str]]) -> Dict[str, Dict[str, str]]:
     process_strace_output(docker_output)
     replace_empty_strings(docker_output)
     merge_similar_entries(docker_output)
     return docker_output
 
 
-def convert_output_to_strings(bytes_dict: Dict[str, Dict[str, Union[bytes, int]]]) -> Dict[str, Dict[str, str]]:
+def decode_output_values(result_dict: Dict[str, Dict[str, Union[str, int]]]) -> Dict[str, Dict[str, str]]:
     result = {}
-    for parameter in bytes_dict:
-        for key, value in bytes_dict[parameter].items():
-            str_value = value.decode(errors='replace') if isinstance(value, bytes) else str(value)
+    for parameter in result_dict:
+        for key, value in result_dict[parameter].items():
+            if isinstance(value, str) and key != 'error':
+                try:
+                    str_value = b64decode(value.encode()).decode(errors='replace')
+                except binascii.Error:
+                    logging.warning('Error while decoding b64: {}'.format(value))
+                    str_value = 'decoding error: {}'.format(value)
+            else:
+                str_value = str(value)
             result.setdefault(parameter, {})[key] = str_value
     return result
 
@@ -303,16 +326,15 @@ def process_strace_output(docker_output: dict):
     )
 
 
-def result_contains_qemu_errors(docker_output: Dict[bytes, Dict[bytes, bytes]]) -> bool:
+def result_contains_qemu_errors(docker_output: Dict[str, Dict[str, str]]) -> bool:
     return any(
         contains_docker_error(value)
         for parameter in docker_output
         for value in docker_output[parameter].values()
-        if isinstance(value, bytes)
     )
 
 
-def contains_docker_error(docker_output: bytes) -> bool:
+def contains_docker_error(docker_output: str) -> bool:
     return any(error in docker_output for error in QEMU_ERRORS)
 
 
