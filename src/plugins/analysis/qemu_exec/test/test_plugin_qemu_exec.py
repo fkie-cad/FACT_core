@@ -1,6 +1,6 @@
 # pylint: disable=protected-access, no-self-use,wrong-import-order,invalid-name
 import os
-from base64 import b64decode
+from base64 import b64decode, b64encode
 from contextlib import suppress
 from pathlib import Path
 from unittest import TestCase
@@ -409,14 +409,20 @@ def test_replace_empty_strings():
     assert '-h' in test_input
 
 
-def test_convert_to_strings():
-    test_input = {'-h': {'std_out': b'', 'std_err': b'', 'return_code': 0}}
-    result = qemu_exec.decode_output_values(test_input)
+@pytest.mark.parametrize('input_data, expected_output', [
+    ({'parameter': {'output': 0}}, '0'),
+    ({'parameter': {'output': b64encode(b'').decode()}}, ''),
+    ({'parameter': {'output': b64encode(b'foobar').decode()}}, 'foobar'),
+    ({'parameter': {'output': 'no_b64'}}, 'decoding error: no_b64'),
+])
+def test_decode_output_values(input_data, expected_output):
+    result = qemu_exec.decode_output_values(input_data)
     assert all(
         isinstance(value, str)
         for parameter in result
         for value in result[parameter].values()
     )
+    assert result['parameter']['output'] == expected_output
 
 
 @pytest.mark.parametrize('input_data', [
