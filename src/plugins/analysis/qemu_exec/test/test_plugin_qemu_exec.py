@@ -63,7 +63,7 @@ class ContainerMock:
 
     @staticmethod
     def logs():
-        return 'not json decodable'
+        return b'not json decodable'
 
 
 class DockerClientMock:

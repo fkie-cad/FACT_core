@@ -274,7 +274,7 @@ def get_docker_output(arch_suffix: str, file_path: str, root_path: Path) -> dict
             network_disabled=True, mounts=[volume], detach=True
         )
         container.wait(timeout=TIMEOUT_IN_SECONDS)
-        return loads(container.logs())
+        return loads(container.logs().decode())
     except (ImageNotFound, APIError, DockerException, RequestConnectionError):
         return {'error': 'process error'}
     except ReadTimeout:
