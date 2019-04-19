@@ -75,3 +75,14 @@ def read_list_from_config(config_file: ConfigParser, section: str, key: str, def
     if not config_entry:
         return default
     return [item.strip() for item in config_entry.split(',') if item]
+
+
+def load_plugin_conf(input_list):
+    fact_config = load_config('main.cfg')
+    threads_info = {}
+
+    for plugin in input_list:
+        threads_info.update(
+            {plugin: 1 if plugin not in fact_config else fact_config.get(plugin, 'threads', fallback=1)}
+        )
+    return threads_info
