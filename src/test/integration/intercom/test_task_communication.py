@@ -26,6 +26,9 @@ class AnalysisServiceMock():
     def get_plugin_dict(self):
         return {'dummy': 'dummy description'}
 
+    def get_plugin_catalog(self):
+        return {'dummy': ('dummy description',)}
+
 
 class TestInterComTaskCommunication(unittest.TestCase):
 

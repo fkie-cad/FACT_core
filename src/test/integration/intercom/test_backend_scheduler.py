@@ -57,6 +57,9 @@ class AnalysisServiceMock():
     def get_plugin_dict(self):
         return {}
 
+    def get_plugin_catalog(self):
+        return {}
+
 
 class TestInterComBackEndScheduler(unittest.TestCase):
 
