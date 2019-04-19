@@ -8,7 +8,7 @@ from common_helper_mongo.gridfs import overwrite_file
 from helperFunctions.process import no_operation
 from helperFunctions.yara_binary_search import YaraBinarySearchScanner
 from helperFunctions.web_interface import ConnectTo
-from helperFunctions.get_config_of_plugins import load_plugin_conf
+from helperFunctions.config import load_plugin_conf
 
 from intercom.common_mongo_binding import InterComListener, InterComMongoInterface, InterComListenerAndResponder
 from storage.binary_service import BinaryService
@@ -110,9 +110,9 @@ class InterComBackEndAnalysisPlugInsPublisher(InterComMongoInterface):
         thread_info = load_plugin_conf(available_plugin_dictionary_bw)
 
         for plugin in available_plugin_dictionary_bw:
-            blacklist, whitelist = analysis_service._get_blacklist_and_whitelist_from_plugin(plugin)
+
             available_plugin_dictionary_bw.update(
-                {plugin: available_plugin_dictionary_bw[plugin] + (blacklist,) + (whitelist,) + (thread_info[plugin],)})
+                {plugin: available_plugin_dictionary_bw[plugin] + (thread_info[plugin],)})
 
         overwrite_file(self.connections['plugins_catalog']['fs'], "plugin_dictonary_bw", pickle.dumps(available_plugin_dictionary_bw))
 

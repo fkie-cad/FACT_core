@@ -145,9 +145,12 @@ class AnalysisScheduler:
         plugin_list = self.get_list_of_available_plugins()
         result = {}
         for plugin in plugin_list:
+            blacklist, whitelist = self._get_blacklist_and_whitelist_from_plugin(plugin)
             result[plugin] = (self.analysis_plugins[plugin].DESCRIPTION,
                               self.analysis_plugins[plugin].VERSION,
-                              self.analysis_plugins[plugin].DEPENDENCIES)
+                              self.analysis_plugins[plugin].DEPENDENCIES,
+                              blacklist,
+                              whitelist)
 
         return result
 
