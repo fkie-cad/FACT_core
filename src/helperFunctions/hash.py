@@ -55,9 +55,9 @@ def get_imphash(file_object):
         try:
             with suppress_stdout():
                 elf = lief.parse(file_object.file_path)
-            imphash = md5(
-                ','.join(sorted(elf.imported_functions)).encode()).hexdigest()
+            if elf.imported_functions and not isinstance(elf.imported_functions[0], str):
+                elf.imported_functions = [f.name for f in elf.imported_functions]
+            imphash = md5(','.join(sorted(elf.imported_functions)).encode()).hexdigest()
         except Exception as e:
-            logging.error('Could not compute imphash for ELF {}: {} {}'.format(
-                file_object.file_path, type(e), e))
+            logging.error('Could not compute imphash for ELF {}: {} {}'.format(file_object.file_path, type(e), e))
     return imphash

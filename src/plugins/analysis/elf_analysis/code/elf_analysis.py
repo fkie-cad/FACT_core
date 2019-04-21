@@ -70,8 +70,10 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     @staticmethod
     def _get_relevant_imp_functions(imp_functions):
-        imp_functions[:] = [x for x in imp_functions if not x.startswith('__')]
-        return imp_functions
+        if imp_functions and not isinstance(imp_functions[0], str):
+            imp_functions = [f.name for f in imp_functions]
+
+        return [x for x in imp_functions if not x.startswith('__')]
 
     @staticmethod
     def _get_color_codes(tag):
