@@ -7,8 +7,10 @@ from pathlib import Path
 import requests
 from common_helper_process import execute_shell_command_get_return_code
 
-from helperFunctions.install import OperateInDirectory, pip3_install_packages, InstallationError, \
-    check_if_command_in_path, load_main_config, apt_install_packages
+from helperFunctions.install import (
+    InstallationError, OperateInDirectory, apt_install_packages,
+    check_if_command_in_path, load_main_config, pip3_install_packages
+)
 
 DEFAULT_CERT = '.\n.\n.\n.\n.\nexample.com\n.\n\n\n'
 
@@ -101,6 +103,7 @@ def configure_nginx():
 
 
 def main(radare, nginx):
+    execute_shell_command_get_return_code('sudo -EH pip3 install werkzeug==0.14.1')  # FIXME pinning werkzeug because of broken tests
     pip3_install_packages('flask', 'flask_restful', 'flask_security', 'flask_sqlalchemy', 'flask-paginate', 'Flask-API', 'uwsgi', 'bcrypt', 'python-dateutil')
 
     # installing web/js-frameworks

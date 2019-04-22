@@ -26,7 +26,6 @@ class AnalysisSchedulerTest(TestCase):
         config = get_config_for_testing()
         config.add_section('ip_and_uri_finder')
         config.set('ip_and_uri_finder', 'signature_directory', 'analysis/signatures/ip_and_uri_finder/')
-        config.add_section('default_plugins')
         config.set('default_plugins', 'default', 'file_hashes')
         self.tmp_queue = Queue()
         self.sched = AnalysisScheduler(config=config, pre_analysis=lambda *_: None, post_analysis=self.dummy_callback, db_interface=self.mocked_interface)

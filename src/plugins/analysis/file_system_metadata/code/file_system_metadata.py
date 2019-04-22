@@ -1,18 +1,18 @@
-# -*- coding: utf-8 -*-
-
-from base64 import b64encode
-from contextlib import contextmanager, suppress
 import logging
 import os
 import stat
 import tarfile
+import zlib
+from base64 import b64encode
+from contextlib import contextmanager, suppress
 from pathlib import Path
 from tempfile import TemporaryDirectory
-import zlib
 from typing import List
 
-from analysis.PluginBase import AnalysisBasePlugin
+from common_helper_files import safe_rglob
 from common_helper_process import execute_shell_command
+
+from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.tag import TagColor
 from helperFunctions.web_interface import ConnectTo
 from objects.file import FileObject
@@ -108,7 +108,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             pass
 
     def _analyze_metadata_of_mounted_dir(self, mounted_dir: Path):
-        for file_ in mounted_dir.rglob("*"):
+        for file_ in safe_rglob(mounted_dir, False, False):  # FIXME files with PermissionError could be ignored
             if file_.is_file() and not file_.is_symlink():
                 self._enter_results_for_mounted_file(file_)
 
@@ -121,10 +121,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
         result[FsKeys.PATH] = str(file_)
         result[FsKeys.UID] = stats.st_uid
         result[FsKeys.GID] = stats.st_gid
-        if stats.st_uid == 0:
-            result[FsKeys.USER] = 'root'
-        if stats.st_gid == 0:
-            result[FsKeys.GROUP] = 'root'
+        result[FsKeys.USER] = 'root' if stats.st_uid == 0 else ''
+        result[FsKeys.GROUP] = 'root' if stats.st_gid == 0 else ''
         result[FsKeys.M_TIME] = stats.st_mtime
         result[FsKeys.A_TIME] = stats.st_atime
         result[FsKeys.C_TIME] = stats.st_ctime
@@ -185,6 +183,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return any(
             result[FsKeys.USER] == 'root' and (result[FsKeys.SUID] or result[FsKeys.SGID])
             for result in results.values()
+            if FsKeys.USER in result
         )
 
 

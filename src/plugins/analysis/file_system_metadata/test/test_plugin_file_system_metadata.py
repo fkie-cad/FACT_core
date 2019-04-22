@@ -1,15 +1,13 @@
+# pylint: disable=no-self-use,protected-access
+import os
 from base64 import b64encode
-from pathlib import Path
 
 from common_helper_files.fail_safe_file_operations import get_dir_of_file
-import os
 
-from test.common_helper import create_test_file_object, DatabaseMock, TEST_FW, TEST_FW_2
+from test.common_helper import TEST_FW, TEST_FW_2, DatabaseMock, create_test_file_object
 from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
-
 from ..code import file_system_metadata as plugin
 from ..code.file_system_metadata import FsKeys
-
 
 TEST_DATA_DIR = os.path.join(get_dir_of_file(__file__), 'data')
 
@@ -83,11 +81,11 @@ class TestFileSystemMetadata(AnalysisPluginTest):
         self.analysis_plugin._extract_metadata_from_file_system(fo, 'filesystem/squashfs')
         result = self.analysis_plugin.result
 
-        testfile_sticky_key = b64_encode('testfile_sticky')
-        testfile_sgid_key = b64_encode('testfile_sgid')
-        testfile_suid_key = b64_encode('testfile_suid')
-        testfile_all_key = b64_encode('testfile_all')
-        testfile_none_key = b64_encode('testfile_none')
+        testfile_sticky_key = _b64_encode('testfile_sticky')
+        testfile_sgid_key = _b64_encode('testfile_sgid')
+        testfile_suid_key = _b64_encode('testfile_suid')
+        testfile_all_key = _b64_encode('testfile_all')
+        testfile_none_key = _b64_encode('testfile_none')
 
         assert all(
             key in result
@@ -128,11 +126,11 @@ class TestFileSystemMetadata(AnalysisPluginTest):
         self.analysis_plugin._extract_metadata_from_tar(fo)
         result = self.analysis_plugin.result
 
-        testfile_sticky_key = b64_encode('mount/testfile_sticky')
-        testfile_sgid_key = b64_encode('mount/testfile_sgid')
-        testfile_suid_key = b64_encode('mount/testfile_suid')
-        testfile_all_key = b64_encode('mount/testfile_all')
-        testfile_none_key = b64_encode('mount/testfile_none')
+        testfile_sticky_key = _b64_encode('mount/testfile_sticky')
+        testfile_sgid_key = _b64_encode('mount/testfile_sgid')
+        testfile_suid_key = _b64_encode('mount/testfile_suid')
+        testfile_all_key = _b64_encode('mount/testfile_all')
+        testfile_none_key = _b64_encode('mount/testfile_none')
 
         assert all(
             key in result
@@ -168,7 +166,7 @@ class TestFileSystemMetadata(AnalysisPluginTest):
         self.analysis_plugin._extract_metadata_from_tar(fo)
         result = self.analysis_plugin.result
         assert all(
-            b64_encode(key) in result
+            _b64_encode(key) in result
             for key in ['mount/testfile_sticky', 'mount/testfile_sgid', 'mount/testfile_suid', 'mount/testfile_all', 'mount/testfile_none']
         )
 
@@ -178,7 +176,7 @@ class TestFileSystemMetadata(AnalysisPluginTest):
         self.analysis_plugin._extract_metadata_from_tar(fo)
         result = self.analysis_plugin.result
         assert all(
-            b64_encode(key) in result
+            _b64_encode(key) in result
             for key in ['mount/testfile_sticky', 'mount/testfile_sgid', 'mount/testfile_suid', 'mount/testfile_all', 'mount/testfile_none']
         )
 
@@ -278,7 +276,7 @@ class TestFileSystemMetadata(AnalysisPluginTest):
         assert result.processed_analysis['file_system_metadata']['contained_in_file_system'] is False
         assert result.processed_analysis['file_system_metadata'] != {}
         assert 'files' in result.processed_analysis['file_system_metadata']
-        assert b64_encode('testfile_sticky') in result.processed_analysis['file_system_metadata']['files']
+        assert _b64_encode('testfile_sticky') in result.processed_analysis['file_system_metadata']['files']
 
         fo_2 = FoMock(self.test_file_fs, 'wrong_mime', parent_fo_type='filesystem/ext4')
         result = self.analysis_plugin.process_object(fo_2)
@@ -296,8 +294,8 @@ class TestFileSystemMetadata(AnalysisPluginTest):
         self.analysis_plugin._enter_results_for_tar_file(TarMock(file_name))
         result = self.analysis_plugin.result
         assert result != {}
-        assert b64_encode(file_name) not in result
-        assert b64_encode('foo/bar') in result
+        assert _b64_encode(file_name) not in result
+        assert _b64_encode('foo/bar') in result
 
     def test_tag_should_be_set(self):
         def _get_results(user, suid, sgid):
@@ -311,10 +309,11 @@ class TestFileSystemMetadata(AnalysisPluginTest):
             (_get_results(user='user', suid=True, sgid=False), False),
             (_get_results(user='user', suid=False, sgid=True), False),
             (_get_results(user='user', suid=False, sgid=False), False),
+            ({'foo': {FsKeys.SUID: True, FsKeys.SGID: True}}, False),  # user missing (legacy: was not always set)
         ]
         for input_data, expected_result in test_data:
             assert self.analysis_plugin._tag_should_be_set(input_data) == expected_result
 
 
-def b64_encode(s):
-    return b64encode(s.encode()).decode()
+def _b64_encode(string):
+    return b64encode(string.encode()).decode()
