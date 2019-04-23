@@ -11,9 +11,9 @@ ANALYSIS_DIR = Path(__file__).parent.parent / 'plugins' / 'analysis'
 
 
 def extract_plugin_code(dir_path):
-    for item in dir_path.iterdir():
+    for item in Path(get_src_dir(), dir_path).iterdir():
         if item.is_file() and not item.name == '__init__.py':
-            return item
+            return item.relative_to(Path(get_src_dir()))
     return None
 
 
@@ -21,8 +21,10 @@ def import_all():
     plugins = list()
     for plugin in ANALYSIS_DIR.iterdir():
         if not plugin.name.startswith('.') and not plugin.name.startswith('_'):
-            import_path = str(extract_plugin_code(Path(plugin, 'code').relative_to(Path(__file__).parent.parent)))[:-3].replace('/', '.')
-            plugins.append(import_module(import_path))
+            import_file_path = str(extract_plugin_code(Path(plugin, 'code').relative_to(Path(__file__).parent.parent)))
+            without_dot_py = import_file_path[:-3]
+            as_import_path = without_dot_py.replace('/', '.')
+            plugins.append(import_module(as_import_path))
     return plugins
 
 

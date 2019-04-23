@@ -17,7 +17,7 @@ from helperFunctions.parsing import bcolors
 from helperFunctions.plugin import import_all
 from helperFunctions.process import ExceptionSafeProcess, terminate_process_and_childs
 from helperFunctions.tag import add_tags_to_object, check_tags
-from objects.file import FileObject
+from objects.firmware import FileObject, Firmware  # pylint: disable=unused-import
 from storage.db_interface_backend import BackEndDbInterface
 
 MANDATORY_PLUGINS = ['file_type', 'file_hashes']
@@ -32,8 +32,6 @@ class AnalysisScheduler:
         self.config = config
         self.analysis_plugins = {plugin.AnalysisPlugin.NAME: plugin.AnalysisPlugin for plugin in import_all()}
         self._job_manager = Manager()
-        self._pending_jobs = self._job_manager.list()
-        print(self._pending_jobs._id)
         self.stop_condition = Value('i', 0)
         self.process_queue = Queue()
         self.tag_queue = Queue()
@@ -41,7 +39,6 @@ class AnalysisScheduler:
         self.pre_analysis = pre_analysis if pre_analysis else self.db_backend_service.add_object
         self.post_analysis = post_analysis if post_analysis else self.db_backend_service.add_analysis
         self.start_scheduling_process()
-        self.start_result_collector(self._pending_jobs)
         logging.info('Analysis System online...')
         logging.info('Plugins available: {}'.format(sorted(list(self.analysis_plugins.keys()))))
 
@@ -53,7 +50,6 @@ class AnalysisScheduler:
         self.stop_condition.value = 1
         with ThreadPoolExecutor() as e:
             e.submit(self.schedule_process.join)
-            e.submit(self.result_collector_process.join)
         self._job_manager.shutdown()
         if getattr(self.db_backend_service, 'shutdown', False):
             self.db_backend_service.shutdown()
@@ -141,20 +137,6 @@ class AnalysisScheduler:
         workload = {'analysis_main_scheduler': self.process_queue.qsize()}
         return workload
 
-    def start_scheduling_process(self):
-        logging.debug('Starting scheduler...')
-        self.schedule_process = ExceptionSafeProcess(target=self.scheduler)
-        self.schedule_process.start()
-
-    def scheduler(self):
-        while self.stop_condition.value == 0:
-            try:
-                task = self.process_queue.get(timeout=int(self.config['ExpertSettings']['block_delay']))
-            except Empty:
-                pass
-            else:
-                self.process_next_analysis(task)
-
     # ---- analysis skipping ----
 
     def process_next_analysis(self, fw_object: FileObject):
@@ -185,8 +167,7 @@ class AnalysisScheduler:
             self.check_further_process_or_complete(fw_object)
         else:
             async_result = run_job_async.apply_async(args=(fw_object, analysis_to_do, self.config), expires=600, soft_time_limit=300)
-            self._pending_jobs.append((fw_object.get_uid() , analysis_to_do, async_result))
-            print('.0.{} - {}'.format(len(self._pending_jobs), self._pending_jobs._id))
+            self.pending_jobs.append((fw_object.get_uid(), analysis_to_do, async_result))
 
     def _add_completed_analysis_results_to_file_object(self, analysis_to_do: str, fw_object: FileObject):
         db_entry = self.db_backend_service.get_specific_fields_of_db_entry(
@@ -277,28 +258,39 @@ class AnalysisScheduler:
         whitelist = self.analysis_plugins[analysis_plugin].MIME_WHITELIST if hasattr(self.analysis_plugins[analysis_plugin], 'MIME_WHITELIST') else []
         return blacklist, whitelist
 
-    def start_result_collector(self, pending_jobs):
-        logging.debug('Starting result collector')
-        self.result_collector_process = ExceptionSafeProcess(target=self.result_collector, args=(pending_jobs, ))
-        self.result_collector_process.start()
-
 # ---- miscellaneous functions ----
 
-    def result_collector(self, pending_jobs):
+    def start_scheduling_process(self):
+        logging.debug('Starting scheduler...')
+        self.schedule_process = ExceptionSafeProcess(target=self.scheduler_and_collector)
+        self.schedule_process.start()
+
+    def scheduler_and_collector(self):
+        self.pending_jobs = list()
+
         while self.stop_condition.value == 0:
+            # Schedule
+            try:
+                task = self.process_queue.get(timeout=int(self.config['ExpertSettings']['block_delay']))
+            except Empty:
+                pass
+            else:
+                self.process_next_analysis(task)
+
+            # Collect
             nop = True
             still_pending = []
-            print('0.{} - {}'.format(len(pending_jobs), pending_jobs._id))
 
-            for uid, plugin, async_result in pending_jobs:
+            for job in self.pending_jobs:
+                uid, plugin, async_result = job
                 nop = False
-                print('1.{}'.format(dir(async_result)))
+
                 if async_result.ready():
                     if async_result.state == REVOKED:
                         logging.warning('Revoked Job {} on {}'.format(uid, plugin))
                     else:
                         fw = async_result.get()
-                        print('2.{}'.format(fw))
+
                         fw = self._handle_analysis_tags(fw, plugin)
                         if plugin in fw.processed_analysis:
                             self.post_analysis(fw)
@@ -306,7 +298,7 @@ class AnalysisScheduler:
                 else:
                     still_pending.append((uid, plugin, async_result))
 
-            pending_jobs.extend(still_pending)
+            self.pending_jobs = still_pending
 
             if nop:
                 sleep(int(self.config['ExpertSettings']['block_delay']))
@@ -323,7 +315,7 @@ class AnalysisScheduler:
         return list_of_plugins
 
     def check_exceptions(self):
-        for process in [self.schedule_process, self.result_collector_process]:
+        for process in [self.schedule_process, ]:
             if process.exception:
                 logging.error('{}Exception in scheduler process {}{}'.format(bcolors.FAIL, bcolors.ENDC, process.name))
                 logging.error(process.exception[1])
