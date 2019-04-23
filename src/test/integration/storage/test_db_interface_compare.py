@@ -1,13 +1,17 @@
 import gc
-from time import time
 import unittest
+from time import time
+
+import pytest
 
 from helperFunctions.config import get_config_for_testing
 from storage.MongoMgr import MongoMgr
 from storage.db_interface_admin import AdminDbInterface
 from storage.db_interface_backend import BackEndDbInterface
 from storage.db_interface_common import MongoInterfaceCommon
-from storage.db_interface_compare import CompareDbInterface
+from storage.db_interface_compare import (
+    CompareDbInterface, FactCompareException
+)
 from test.common_helper import create_test_firmware
 
 
@@ -69,15 +73,18 @@ class TestCompare(unittest.TestCase):
         comp_id = self.db_interface_compare._calculate_compare_result_id(compare_dict)
         self.assertEqual('a;b', comp_id)
 
-    def test_object_existence_quick_check(self):
+    def test_check_objects_exist(self):
         self.db_interface_backend.add_firmware(self.fw_one)
-        self.assertIsNone(self.db_interface_compare.object_existence_quick_check(self.fw_one.get_uid()), 'existing_object not found')
-        self.assertEqual(self.db_interface_compare.object_existence_quick_check('{};none_existing_object'.format(self.fw_one.get_uid())), 'none_existing_object not found in database', 'error message not correct')
+        assert self.db_interface_compare.check_objects_exist(self.fw_one.get_uid()) is None, 'existing_object not found'
+        with pytest.raises(FactCompareException):
+            self.db_interface_compare.check_objects_exist('{};none_existing_object'.format(self.fw_one.get_uid()))
 
-    def test_get_compare_result_of_none_existing_uid(self):
+    def test_get_compare_result_of_nonexistent_uid(self):
         self.db_interface_backend.add_firmware(self.fw_one)
-        result = self.db_interface_compare.get_compare_result('{};none_existing_uid'.format(self.fw_one.get_uid()))
-        self.assertEqual(result, 'none_existing_uid not found in database', 'no result not found error')
+        try:
+            self.db_interface_compare.check_objects_exist('{};none_existing_object'.format(self.fw_one.get_uid()))
+        except FactCompareException as exception:
+            assert exception.get_message() == 'none_existing_object not found in database', 'error message not correct'
 
     def test_get_latest_comparisons(self):
         self.db_interface_backend.add_firmware(self.fw_one)
@@ -85,11 +92,11 @@ class TestCompare(unittest.TestCase):
         before = time()
         self.db_interface_compare.add_compare_result(self.compare_dict)
         result = self.db_interface_compare.page_compare_results(limit=10)
-        for id, hids, submission_date in result:
+        for id_, hids, submission_date in result:
             self.assertIn(self.fw_one.get_uid(), hids)
             self.assertIn(self.fw_two.get_uid(), hids)
-            self.assertIn(self.fw_one.get_uid(), id)
-            self.assertIn(self.fw_two.get_uid(), id)
+            self.assertIn(self.fw_one.get_uid(), id_)
+            self.assertIn(self.fw_two.get_uid(), id_)
             self.assertTrue(before <= submission_date <= time())
 
     def test_get_latest_comparisons_removed_firmware(self):

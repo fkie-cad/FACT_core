@@ -1,17 +1,17 @@
-# -*- coding: utf-8 -*-
-
 import html
+from typing import List
 
 from common_helper_files import human_readable_file_size
 from flask import jsonify, render_template
-
-from helperFunctions.file_tree import get_correct_icon_for_mime, FileTreeNode
+from helperFunctions.file_tree import FileTreeNode, get_correct_icon_for_mime
 from helperFunctions.web_interface import ConnectTo
 from intercom.front_end_binding import InterComFrontEndBinding
-from storage.db_interface_compare import CompareDbInterface
+from storage.db_interface_compare import (
+    CompareDbInterface, FactCompareException
+)
 from storage.db_interface_frontend import FrontEndDbInterface
 from web_interface.components.component_base import ComponentBase
-from web_interface.filter import encode_base64_filter, bytes_to_str_filter
+from web_interface.filter import bytes_to_str_filter, encode_base64_filter
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
@@ -26,14 +26,14 @@ class AjaxRoutes(ComponentBase):
                                self._ajax_get_common_files_for_compare)
         self._app.add_url_rule('/ajax_get_binary/<mime_type>/<uid>', 'ajax_get_binary/<type>/<uid>', self._ajax_get_binary)
 
-    def _get_exclusive_files(self, compare_id, root_uid):
+    def _get_exclusive_files(self, compare_id: str, root_uid: str) -> List[str]:
         if compare_id is None or root_uid is None:
-            return None
-        with ConnectTo(CompareDbInterface, self._config) as sc:
-            result = sc.get_compare_result(compare_id)
+            return []
         try:
+            with ConnectTo(CompareDbInterface, self._config) as sc:
+                result = sc.get_compare_result(compare_id)
             exclusive_files = result['plugins']['File_Coverage']['exclusive_files'][root_uid]
-        except KeyError:
+        except (KeyError, FactCompareException):
             exclusive_files = []
         return exclusive_files
 
@@ -141,6 +141,6 @@ class AjaxRoutes(ComponentBase):
             binary = sc.get_binary_and_filename(uid)[0]
         if 'text/' in mime_type:
             return '<pre style="white-space: pre-wrap">{}</pre>'.format(html.escape(bytes_to_str_filter(binary)))
-        elif 'image/' in mime_type:
+        if 'image/' in mime_type:
             return '{}<img src="data:image/{} ;base64,{}" style="max-width:100%"></div>'.format(div, mime_type[6:], encode_base64_filter(binary))
         return None

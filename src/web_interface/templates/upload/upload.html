@@ -222,8 +222,8 @@
                     <div class="col-xs-9">
                         <select class="form-control" name='analysis_dropdown' id="analysis"
                                 onchange="change_selected_plugins(this.value);">
-                            {% for option in analysis_plugin_dict[analysis_plugin_dict.keys() | sort | first][2] | sort %}
-                                <option value="{{ option }}">{{ option }}</option>
+                            {% for preset in analysis_presets %}
+                                <option value="{{ preset }}">{{ preset }}</option>
                             {% endfor %}
                         </select>
                         <br>

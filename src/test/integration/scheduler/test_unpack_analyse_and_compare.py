@@ -1,13 +1,12 @@
 import gc
-from tempfile import TemporaryDirectory
-from time import sleep
 import unittest
+from multiprocessing import Event, Value
+from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
-from helperFunctions.dataConversion import unify_string_list
+from helperFunctions.dataConversion import normalize_compare_id
 from helperFunctions.fileSystem import get_test_data_dir
 from helperFunctions.web_interface import ConnectTo
-from multiprocessing import Event, Value
 from objects.firmware import Firmware
 from scheduler.Analysis import AnalysisScheduler
 from scheduler.Compare import CompareScheduler
@@ -15,8 +14,8 @@ from scheduler.Unpacking import UnpackingScheduler
 from storage.MongoMgr import MongoMgr
 from storage.db_interface_backend import BackEndDbInterface
 from storage.db_interface_compare import CompareDbInterface
-from test.common_helper import get_database_names, clean_test_database
-from test.integration.common import initialize_config, MockFSOrganizer
+from test.common_helper import clean_test_database, get_database_names
+from test.integration.common import MockFSOrganizer, initialize_config
 
 
 class TestFileAddition(unittest.TestCase):
@@ -67,7 +66,7 @@ class TestFileAddition(unittest.TestCase):
 
         self.analysis_finished_event.wait(timeout=20)
 
-        compare_id = unify_string_list(';'.join([fw.uid for fw in [test_fw_1, test_fw_2]]))
+        compare_id = normalize_compare_id(';'.join([fw.uid for fw in [test_fw_1, test_fw_2]]))
 
         self.assertIsNone(self._compare_scheduler.add_task((compare_id, False)), 'adding compare task creates error')
 
@@ -76,7 +75,6 @@ class TestFileAddition(unittest.TestCase):
         with ConnectTo(CompareDbInterface, self._config) as sc:
             result = sc.get_compare_result(compare_id)
 
-        self.assertFalse(isinstance(result, str), 'compare result should exist')
         self.assertEqual(result['plugins']['Software'], self._expected_result()['Software'])
         self.assertCountEqual(result['plugins']['File_Coverage']['files_in_common'], self._expected_result()['File_Coverage']['files_in_common'])
 
