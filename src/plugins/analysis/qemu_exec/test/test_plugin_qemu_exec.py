@@ -1,4 +1,4 @@
-# pylint: disable=protected-access, no-self-use,wrong-import-order,invalid-name
+# pylint: disable=protected-access, no-self-use,wrong-import-order,invalid-name,unused-argument,redefined-outer-name
 import os
 from base64 import b64decode, b64encode
 from contextlib import suppress
@@ -119,17 +119,17 @@ class TestPluginQemuExec(AnalysisPluginTest):
             assert path in path_list
         assert all('MIPS' in mime for mime in mime_types)
 
-    def test_test_qemu_executability(self):
+    def test_check_qemu_executability(self):
         self.analysis_plugin.OPTIONS = ['-h']
 
-        result = qemu_exec.test_qemu_executability('/test_mips_static', 'mips', TEST_DATA_DIR)
+        result = qemu_exec.check_qemu_executability('/test_mips_static', 'mips', TEST_DATA_DIR)
         assert any('--help' in option for option in result)
         option = [option for option in result if '--help' in option][0]
         assert result[option]['stdout'] == 'Hello World\n'
         assert result[option]['stderr'] == ''
         assert result[option]['return_code'] == '0'
 
-        result = qemu_exec.test_qemu_executability('/test_mips_static', 'i386', TEST_DATA_DIR)
+        result = qemu_exec.check_qemu_executability('/test_mips_static', 'i386', TEST_DATA_DIR)
         assert result == {}
 
     def test_find_arch_suffixes(self):
@@ -286,22 +286,19 @@ def test_get_docker_output__wrong_arch():
     )
 
 
-@pytest.mark.usefixtures('execute_docker_error')
-def test_get_docker_output__timeout():
+def test_get_docker_output__timeout(execute_docker_error):
     result = qemu_exec.get_docker_output('mips', '/test_mips_static', TEST_DATA_DIR)
     assert 'error' in result
     assert result['error'] == 'timeout'
 
 
-@pytest.mark.usefixtures('execute_docker_error')
-def test_get_docker_output__error():
+def test_get_docker_output__error(execute_docker_error):
     result = qemu_exec.get_docker_output('mips', '/file-with-error', TEST_DATA_DIR)
     assert 'error' in result
     assert result['error'] == 'process error'
 
 
-@pytest.mark.usefixtures('execute_docker_error')
-def test_get_docker_output__json_error():
+def test_get_docker_output__json_error(execute_docker_error):
     result = qemu_exec.get_docker_output('mips', '/json-error', TEST_DATA_DIR)
     assert 'error' in result
     assert result['error'] == 'could not decode result'
@@ -311,24 +308,21 @@ def test_docker_is_running():
     assert qemu_exec.docker_is_running() is True, 'Docker is not running'
 
 
-@pytest.mark.usefixtures('execute_shell_fails')
-def test_docker_is_running__not_running():
+def test_docker_is_running__not_running(execute_shell_fails):
     assert qemu_exec.docker_is_running() is False
 
 
 def test_process_qemu_job():
-    def mock_test_executability(*_):
-        return {'--option': {'stdout': 'test', 'stderr': '', 'return_code': '0'}}
-    with mock_patch(qemu_exec, 'test_qemu_executability', mock_test_executability):
-        results = {}
-        qemu_exec.process_qemu_job('test_path', 'test_arch', Path('test_root'), results, 'test_uid')
-        assert results == {'test_uid': {'path': 'test_path', 'results': {'test_arch': {'--option': {'stdout': 'test', 'stderr': '', 'return_code': '0'}}}}}
+    test_results = {'--option': {'stdout': 'test', 'stderr': '', 'return_code': '0'}}
+    uid = 'test_uid'
+    results = {}
 
-        qemu_exec.process_qemu_job('test_path', 'test_arch_2', Path('test_root'), results, 'test_uid')
-        assert results == {'test_uid': {'path': 'test_path', 'results': {
-            'test_arch': {'--option': {'stderr': '', 'return_code': '0', 'stdout': 'test'}},
-            'test_arch_2': {'--option': {'stderr': '', 'return_code': '0', 'stdout': 'test'}}
-        }}}
+    with mock_patch(qemu_exec, 'check_qemu_executability', lambda *_: test_results):
+        qemu_exec.process_qemu_job('test_path', 'test_arch', Path('test_root'), results, uid)
+        assert results == {uid: {'path': 'test_path', 'results': {'test_arch': test_results}}}
+
+        qemu_exec.process_qemu_job('test_path', 'test_arch_2', Path('test_root'), results, uid)
+        assert results == {uid: {'path': 'test_path', 'results': {'test_arch': test_results, 'test_arch_2': test_results}}}
 
 
 @pytest.mark.parametrize('input_data, expected_output', [
@@ -378,7 +372,7 @@ def test_merge_similar_entries():
         'option_4': {'a': 'y', 'b': 'y', 'c': 'y'},
         'option_5': {'a': 'x', 'b': 'x', 'c': 'x'},
     }
-    qemu_exec.merge_similar_entries(test_dict)
+    qemu_exec.merge_identical_results(test_dict)
     assert len(test_dict) == 3
     assert any(all(option in k for option in ['option_1', 'option_2', 'option_5']) for k in test_dict)
 

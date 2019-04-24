@@ -63,7 +63,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     NAME = 'qemu_exec'
     DESCRIPTION = 'test binaries for executability in QEMU and display help if available'
-    VERSION = '0.5.1'
+    VERSION = '0.5'
     DEPENDENCIES = ['file_type']
     FILE_TYPES = ['application/x-executable', 'application/x-sharedlib']
 
@@ -211,7 +211,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
 
 def process_qemu_job(file_path: str, arch_suffix: str, root_path: Path, results_dict: dict, uid: str):
-    result = test_qemu_executability(file_path, arch_suffix, root_path)
+    result = check_qemu_executability(file_path, arch_suffix, root_path)
     if result:
         if uid in results_dict:
             tmp_dict = dict(results_dict[uid]['results'])
@@ -244,7 +244,7 @@ def _output_without_error_exists(docker_output: Dict[str, str]) -> bool:
         return False
 
 
-def test_qemu_executability(file_path: str, arch_suffix: str, root_path: Path) -> dict:
+def check_qemu_executability(file_path: str, arch_suffix: str, root_path: Path) -> dict:
     result = get_docker_output(arch_suffix, file_path, root_path)
     if result and 'error' not in result:
         result = decode_output_values(result)
@@ -291,7 +291,7 @@ def get_docker_output(arch_suffix: str, file_path: str, root_path: Path) -> dict
 def process_docker_output(docker_output: Dict[str, Dict[str, str]]) -> Dict[str, Dict[str, str]]:
     process_strace_output(docker_output)
     replace_empty_strings(docker_output)
-    merge_similar_entries(docker_output)
+    merge_identical_results(docker_output)
     return docker_output
 
 
@@ -315,7 +315,7 @@ def _strace_output_exists(docker_output):
     return (
         'strace' in docker_output
         and 'stdout' in docker_output['strace']
-        and bool(docker_output['strace']['stdout'])
+        and docker_output['strace']['stdout']
     )
 
 
@@ -344,14 +344,20 @@ def replace_empty_strings(docker_output: Dict[str, object]):
             docker_output[EMPTY] = docker_output.pop(key)
 
 
-def merge_similar_entries(results_dict: Dict[str, Dict[str, str]]):
-    for option_1, option_2 in itertools.combinations(results_dict, 2):
-        if results_dict[option_1] == results_dict[option_2]:
-            combined_key = '{}, {}'.format(option_1, option_2)
-            results_dict[combined_key] = results_dict[option_1]
-            results_dict.pop(option_1)
-            results_dict.pop(option_2)
-            merge_similar_entries(results_dict)
+def merge_identical_results(results: Dict[str, Dict[str, str]]):
+    '''
+    if the results for different parameters (e.g. '-h' and '--help') are identical, merge them
+    example input:  {'-h':         {'stdout': 'foo', 'stderr': '', 'return_code': 0},
+                     '--help':     {'stdout': 'foo', 'stderr': '', 'return_code': 0}}
+    example output: {'-h, --help': {'stdout': 'foo', 'stderr': '', 'return_code': 0}}
+    '''
+    for parameter_1, parameter_2 in itertools.combinations(results, 2):
+        if results[parameter_1] == results[parameter_2]:
+            combined_key = '{}, {}'.format(parameter_1, parameter_2)
+            results[combined_key] = results[parameter_1]
+            results.pop(parameter_1)
+            results.pop(parameter_2)
+            merge_identical_results(results)
             break
 
 
