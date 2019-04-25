@@ -64,11 +64,12 @@ function create_horizontal_bar_chart(canvas_id, chart_data, link, value_percenta
 
     if (value_percentage_present_flag) {
         chart_opt = chart_options_value_percentage_pairs;
-        var max = chart_data.datasets[0].data.slice(0, 2).reduce(_add);
-        chart_opt.scales.xAxes[0].ticks.max = max;
+        max = chart_data.datasets[0].data.slice(0, 2).reduce(_add);
     } else {
         chart_opt = chart_options;
+        max = Math.max(...chart_data.datasets[0].data);
     }
+    chart_opt.scales.xAxes[0].ticks.max = max * 1.05;
 
     var BarChart = new Chart(ctx, {type: "horizontalBar", data: chart_data, options: chart_opt});
 
