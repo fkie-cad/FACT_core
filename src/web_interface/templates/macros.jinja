@@ -20,7 +20,7 @@
 
 {% macro stats_table_row(label, value, percent=False, link=None) -%}
     <tr>
-        <td class="active" style="text-align: left; padding:5px" {% if link %}onclick="location.href='{{ link }}'"{% endif %}>{{ label }}</td>
-        <td class="active" style="text-align: right; padding:5px">{{ value }}{% if percent %}%{% endif %}</td>
+        <td style="text-align: left; padding:5px" {% if link %}onclick="location.href='{{ link }}'"{% endif %}>{{ label }}</td>
+        <td style="text-align: right; padding:5px">{{ value }}{% if percent %}%{% endif %}</td>
     </tr>
 {%- endmacro %}
