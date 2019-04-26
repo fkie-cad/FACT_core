@@ -21,7 +21,9 @@ class UnpackBase:
         self._initialize_shared_folder(tmp_dir)
         shutil.copy2(file_path, str(Path(tmp_dir, 'input', Path(file_path).name)))
 
-        output, return_code = execute_shell_command_get_return_code('docker run --privileged -v /dev:/dev -v {}:/tmp/extractor --rm fkiecad/fact_extractor'.format(tmp_dir))
+        output, return_code = execute_shell_command_get_return_code(
+            'docker run --privileged -m {}m -v /dev:/dev -v {}:/tmp/extractor --rm fkiecad/fact_extractor'.format(self.config.get('unpack', 'memory_limit', fallback='1024'), tmp_dir)
+        )
         if return_code != 0:
             error = 'Failed to execute docker extractor with code {}:\n{}'.format(return_code, output)
             logging.error(error)
