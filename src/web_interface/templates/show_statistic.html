@@ -2,67 +2,12 @@
 
 {% set active_page = "Statistic" %}
 
+{% import 'macros.jinja' as macros %}
+{% set count = [] %}
+
 {% block head %}
 <script src="{{ url_for("static", filename="Chart.js") }}"></script>
-<script type="text/javascript">
-
-    function get_extended_tooltip(element, data){
-        var value = data.datasets[element.datasetIndex].data[element.index];
-        var sum = data.datasets[element.datasetIndex].data.reduce(function(pv, cv) { return pv + cv; }, 0);
-        var percent = Math.round((value / sum) * 1000) / 10;
-        return value + " (" + percent + "%)";
-    }
-
-	function get_extended_tooltip_value_percentage_pairs(element, data){
-        var percent = _round(data.datasets[element.datasetIndex].percentage[element.index], 2);
-        var value = data.datasets[element.datasetIndex].data[element.index];
-        return value + " (" + percent + " %)";
-    }
-
-    function _round(value, decimals){
-        return Number(Math.round(value*100+'e'+decimals)+'e-'+decimals);
-    }
-
-    var chart_options = {
-        legend: {position: "bottom", display: false},
-        tooltips: {callbacks: {label: get_extended_tooltip}},
-        scales: {xAxes: [{display: false, ticks: {beginAtZero: true}}]}
-    };
-
-	var chart_options_value_percentage_pairs = {
-        legend: {position: "bottom", display: false},
-        tooltips: {callbacks: {label: get_extended_tooltip_value_percentage_pairs}},
-        scales: {
-            xAxes: [{display: false, ticks: {beginAtZero: true}}]
-        }
-
-    };
-
-    function create_horizontal_bar_chart(canvas_id, chart_data, link, value_percentage_present_flag) {
-        var ctx = document.getElementById(canvas_id);
-
-        if (value_percentage_present_flag) {
-            chart_opt = chart_options_value_percentage_pairs;
-            var max = chart_data["datasets"][0]["data"].slice(0, 2).reduce((a,b) => a + b)
-            chart_opt["scales"]["xAxes"][0]["ticks"]["max"] = max;
-        } else {
-            chart_opt = chart_options
-		}
-
-        var BarChart = new Chart(ctx, {type: "horizontalBar", data: chart_data, options: chart_opt});
-
-        document.getElementById(canvas_id).onclick = function(evt){
-            var points = BarChart.getElementsAtEvent(evt);
-            var label = BarChart.data.labels[points[0]._index];
-            if ((points[0] !== undefined) && (label != "rest"))
-                window.location = link.replace("PLACEHOLDER", label);
-        };
-
-        return BarChart;
-    }
-
-</script>
-
+<script type="text/javascript" src="{{ url_for('static', filename='js/fact_statistics.js') }}"></script>
 {% endblock %}
 
 
@@ -71,7 +16,7 @@
 
 <script type="text/javascript" src="{{ url_for("static", filename="js/update_url_variables.js") }}"></script>
 
-<div class="row">
+<div class="row" style="margin-bottom: 30px">
     <div class="col-md-8 col-md-offset-2 col-lg-6 col-lg-offset-3" style="max-width: 1600px;">
         <div class="col-md-6" id="device-class-dropdown-div">
             <label class="control-label" for="device_class_dropdown" style="text-align:right">
@@ -103,106 +48,76 @@
 
 <div class="row">
 
+
 {# ------ General Stats ------ #}
 
  	{% if stats["general_stats"] %}
-    	<div class="col-sm-6 col-md-4 col-lg-3">
-    		<h3><span class="glyphicon glyphicon-stats"></span> General</h3>
-    		<table class="table table-responsive table-hover table-bordered" style="border-spacing: 10px; width: 100%;">
-    			<tr>
-    				<td class="active" style="text-align: left; padding:5px">firmware samples</td>
-    				<td class="active" style="text-align: right; padding:5px">{{ stats["general_stats"]["number_of_firmwares"] | nice_number }}</td>
-    			</tr>
-    			<tr>
-    				<td class="active" style="text-align: left; padding:5px">firmware total size</td>
-    				<td class="active" style="text-align: right; padding:5px">{{ stats["general_stats"]["total_firmware_size"] | number_format }}</td>
-    			</tr>
-    			<tr>
-    				<td class="active" style="text-align: left; padding:5px">firmware average size</td>
-    				<td class="active" style="text-align: right; padding:5px">{{ stats["general_stats"]["average_firmware_size"] | number_format }}</td>
-    			</tr>
+ 	    {{ macros.start_stats_panel("General") }}
+            <table class="table table-responsive table-hover table-bordered" style="border-spacing: 10px; width: 100%; margin-bottom: 0;">
+                {{ macros.stats_table_row("firmware samples", stats["general_stats"]["number_of_firmwares"] | nice_number) }}
+                {{ macros.stats_table_row("firmware total size", stats["general_stats"]["total_firmware_size"] | number_format) }}
+                {{ macros.stats_table_row("firmware average size", stats["general_stats"]["average_firmware_size"] | number_format) }}
                 {% if stats["general_stats"]["number_of_unique_files"] %}
-    			<tr>
-    				<td class="active" style="text-align: left; padding:5px">unique included files</td>
-    				<td class="active" style="text-align: right; padding:5px">{{ stats["general_stats"]["number_of_unique_files"] | nice_number }}</td>
-    			</tr>
-    			<tr>
-    				<td class="active" style="text-align: left; padding:5px">unique included files total size</td>
-    				<td class="active" style="text-align: right; padding:5px">{{ stats["general_stats"]["total_file_size"] | number_format }}</td>
-    			</tr>
-    			<tr>
-    				<td class="active" style="text-align: left; padding:5px">unique included files average size</td>
-    				<td class="active" style="text-align: right; padding:5px">{{ stats["general_stats"]["average_file_size"] | number_format }}</td>
-    			</tr>
+                    {{ macros.stats_table_row("unique included files", stats["general_stats"]["number_of_unique_files"] | nice_number) }}
+                    {{ macros.stats_table_row("unique included files total size", stats["general_stats"]["total_file_size"] | number_format) }}
+                    {{ macros.stats_table_row("unique included files average size", stats["general_stats"]["average_file_size"] | number_format) }}
                 {% endif %}
-    		</table>
-    	</div>
+            </table>
+        {{ macros.end_stats_panel(count) }}
     {% endif %}
+
 
 {# ------ Crypto Material Stats ------ #}
 
 	{% if (stats["crypto_material_stats"]["crypto_material"] | length) > 0 %}
-		<div class="col-sm-6 col-md-4 col-lg-3">
-			<h3><span class="glyphicon glyphicon-lock"></span> Crypto Material</h3>
-			<table class="table table-responsive table-hover table-bordered" style="border-spacing: 10px; width: 100%;">
-			{% for item in (stats["crypto_material_stats"]["crypto_material"] | sort_chart_list_by_value) %}
-				<tr>
-					<td class="active" style="text-align: left; padding:5px; cursor:pointer;"
+ 	    {{ macros.start_stats_panel("Crypto Material", "glyphicon-lock") }}
+            <table class="table table-responsive table-hover table-bordered" style="border-spacing: 10px; width: 100%; margin-bottom: 0;">
+            {% for item in (stats["crypto_material_stats"]["crypto_material"] | sort_chart_list_by_value) %}
+                <tr>
+                    <td class="active" style="text-align: left; padding:5px; cursor:pointer;"
                         {% set query = {"processed_analysis.crypto_material.summary": {"$eq": item[0]}} %}
-						onclick="location.href='{{ query_url + query | json_dumps | urlencode }}'">
-						{{ item[0] }}
-					</td>
-					<td class="active" style="text-align: right; padding:5px;">{{ item[1] }}</td>
-				</tr>
-			{% endfor %}
-			</table>
-		</div>
+                        onclick="location.href='{{ query_url + query | json_dumps | urlencode }}'">
+                        {{ item[0] }}
+                    </td>
+                    <td class="active" style="text-align: right; padding:5px;">{{ item[1] }}</td>
+                </tr>
+            {% endfor %}
+            </table>
+        {{ macros.end_stats_panel(count) }}
 	{% endif %}
+
 
 {# ------ Known Vulnerability Stats ------ #}
 
 	{% if (stats["known_vulnerabilities_stats"]["known_vulnerabilities"] | length) > 0 %}
-		<div class="col-sm-6 col-md-4 col-lg-3">
-			<h3><span class="glyphicon glyphicon-flash"></span> Known Vulnerabilities</h3>
-			<table class="table table-responsive table-hover table-bordered" style="border-spacing: 10px; width: 100%;">
-			{% for item in (stats["known_vulnerabilities_stats"]["known_vulnerabilities"] | sort_chart_list_by_value) %}
-				<tr>
-					<td class="active" style="text-align: left; padding:5px; cursor:pointer;"
+ 	    {{ macros.start_stats_panel("Known Vulnerabilities", "glyphicon-flash") }}
+            <table class="table table-responsive table-hover table-bordered" style="border-spacing: 10px; width: 100%; margin-bottom: 0;">
+            {% for item in (stats["known_vulnerabilities_stats"]["known_vulnerabilities"] | sort_chart_list_by_value) %}
+                <tr>
+                    <td class="active" style="text-align: left; padding:5px; cursor:pointer;"
                         {% set query = {"processed_analysis.known_vulnerabilities.summary": {"$eq": item[0]}} %}
-						onclick="location.href='{{ query_url + query | json_dumps | urlencode }}'">
-						{{ item[0] }}
-					</td>
-					<td class="active" style="text-align: right; padding:5px;">{{ item[1] }}</td>
-				</tr>
-			{% endfor %}
-			</table>
-		</div>
+                        onclick="location.href='{{ query_url + query | json_dumps | urlencode }}'">
+                        {{ item[0] }}
+                    </td>
+                    <td class="active" style="text-align: right; padding:5px;">{{ item[1] }}</td>
+                </tr>
+            {% endfor %}
+            </table>
+        {{ macros.end_stats_panel(count) }}
 	{% endif %}
+
 
 {# ------ Unpacker Stats ------ #}
 
 	{% if stats["unpacker_stats"]["overall_unpack_ratio"] %}
-		<div class="col-sm-6 col-md-4 col-lg-3">
-			<h3><span class="glyphicon glyphicon-compressed"></span> Unpacker Stats</h3>
-			<table class="table table-responsive table-hover table-bordered" style="border-spacing: 10px; width: 100%;">
-				<tr>
-					<td class="active" style="text-align: left; padding:5px;">Overall Unpack Ratio</td>
-					<td class="active" style="text-align: right; padding:5px;">{{ stats["unpacker_stats"]["overall_unpack_ratio"] | nice_number }}%</td>
-				</tr>
-				<tr>
-					<td class="active" style="text-align: left; padding:5px;">Average Packed Entropy</td>
-					<td class="active" style="text-align: right; padding:5px;">{{ stats["unpacker_stats"]["average_packed_entropy"] | nice_number }}</td>
-				</tr>
-				<tr>
-					<td class="active" style="text-align: left; padding:5px;">Average Unpacked Entropy</td>
-					<td class="active" style="text-align: right; padding:5px;">{{ stats["unpacker_stats"]["average_unpacked_entropy"] | nice_number }}</td>
-				</tr>
-				<tr>
-					<td class="active" style="text-align: left; padding:5px;">Overall Data Loss Ratio</td>
-					<td class="active" style="text-align: right; padding:5px;">{{ stats["unpacker_stats"]["overall_data_loss_ratio"] | nice_number }}%</td>
-				</tr>
-			</table>
-		</div>
+ 	    {{ macros.start_stats_panel("Unpacker Stats", "glyphicon-compressed") }}
+            <table class="table table-responsive table-hover table-bordered" style="border-spacing: 10px; width: 100%; margin-bottom: 0;">
+                {{ macros.stats_table_row("Overall Unpack Ratio", stats["unpacker_stats"]["overall_unpack_ratio"] | nice_number, True) }}
+                {{ macros.stats_table_row("Average Packed Entropy", stats["unpacker_stats"]["average_packed_entropy"] | nice_number) }}
+                {{ macros.stats_table_row("Average Unpacked Entropy", stats["unpacker_stats"]["average_unpacked_entropy"] | nice_number) }}
+                {{ macros.stats_table_row("Overall Data Loss Ratio", stats["unpacker_stats"]["overall_data_loss_ratio"] | nice_number, True) }}
+            </table>
+        {{ macros.end_stats_panel(count) }}
 	{% endif %}
 
 
@@ -226,47 +141,36 @@
 {% for title, key, data_set, query in chart_list %}
     {% if data_set %}
         {% if data_set[key] %}
-
-            <div class="col-sm-6 col-md-4 col-lg-3" style="min-height: 300px;">
-                <h3>{{ title }}</h3>
-                <div>
-                    <canvas id="{{ key }}_canvas" width="100%" height="{{ data_set[key] | get_canvas_height }}"></canvas>
-                    <script>
-                        create_horizontal_bar_chart(
-                            canvas_id="{{ key }}_canvas",
-                            chart_data={{ data_set[key] | sort_chart_list_by_value | data_to_chart_limited | safe }},
-                            link="{{ query_url + query | json_dumps | urlencode }}"
-                        );
-                    </script>
-                </div>
-            </div>
-
+            {{ macros.start_stats_panel(title) }}
+                <canvas id="{{ key }}_canvas" width="100%" height="{{ data_set[key] | get_canvas_height }}"></canvas>
+                <script>
+                    create_horizontal_bar_chart(
+                        canvas_id="{{ key }}_canvas",
+                        chart_data={{ data_set[key] | sort_chart_list_by_value | data_to_chart_limited | safe }},
+                        link="{{ query_url + query | json_dumps | urlencode }}",
+                    );
+                </script>
+            {{ macros.end_stats_panel(count) }}
         {% endif %}
     {% endif %}
 {% endfor %}
-
 
 
 {# ------ Exploit Mitigation Stats ------ #}
 
 {% if stats["exploit_mitigations_stats"] %}
 	{% if stats["exploit_mitigations_stats"]["exploit_mitigations"] %}
-
-		<div class="col-sm-6 col-md-4 col-lg-3" style="min-height: 300px;">
-			<h3>Exploit Mitigations</h3>
-			<div>
-				<canvas id="exploit_mitigations_canvas" width="100%" height="{{ stats['exploit_mitigations_stats']['exploit_mitigations'] | get_canvas_height }}"></canvas>
-				<script>
-					create_horizontal_bar_chart(
-						canvas_id="exploit_mitigations_canvas",
-						chart_data={{ stats['exploit_mitigations_stats']['exploit_mitigations'] | data_to_chart_with_value_percentage_pairs(limit=13) | safe }},
-						link="{{ query_url + {'processed_analysis.exploit_mitigations.summary': {'$regex': 'PLACEHOLDER'}} | json_dumps | urlencode }}",
-						expl_mit_flag=true
-					);
-				</script>
-			</div>
-		</div>
-
+ 	    {{ macros.start_stats_panel("Exploit Mitigations") }}
+            <canvas id="exploit_mitigations_canvas" width="100%" height="{{ stats['exploit_mitigations_stats']['exploit_mitigations'] | get_canvas_height }}"></canvas>
+            <script>
+                create_horizontal_bar_chart(
+                    canvas_id="exploit_mitigations_canvas",
+                    chart_data={{ stats['exploit_mitigations_stats']['exploit_mitigations'] | data_to_chart_with_value_percentage_pairs(limit=13) | safe }},
+                    link="{{ query_url + {'processed_analysis.exploit_mitigations.summary': {'$regex': 'PLACEHOLDER'}} | json_dumps | urlencode }}",
+                    expl_mit_flag=true
+                );
+            </script>
+        {{ macros.end_stats_panel(count) }}
 	{% endif %}
 {% endif %}
 
@@ -274,84 +178,57 @@
 {# ------ Malware Stats ------ #}
 
 	{% if (stats["malware_stats"]["malware"] | length) > 0 %}
-		<div class="col-sm-6 col-md-4 col-lg-3">
-			<h3><span class="glyphicon glyphicon-alert"></span> Malware</h3>
-			<table class="table table-responsive table-hover table-bordered" style="border-spacing: 10px; width: 100%;">
-			{% for malware in (stats["malware_stats"]["malware"] | sort_chart_list_by_value) %}
-				<tr>
-					<td class="danger" style="text-align: left; padding:5px; cursor:pointer;"
-                        {% set query = {"processed_analysis.malware_scanner.scans.ClamAV.result": {"$eq": malware[0]}} %}
-						onclick="location.href='{{ query_url + query | json_dumps | urlencode }}'">
-						{{ malware[0] }}
-					</td>
-					<td class="danger" style="text-align: right; padding:5px">{{ malware[1] }}</td>
-				</tr>
-			{% endfor %}
-			</table>
-		</div>
+ 	    {{ macros.start_stats_panel("Malware", "glyphicon-alert") }}
+            <table class="table table-responsive table-hover table-bordered" style="border-spacing: 10px; width: 100%; margin-bottom: 0;">
+            {% for malware in (stats["malware_stats"]["malware"] | sort_chart_list_by_value) %}
+                {% set query = {"processed_analysis.malware_scanner.scans.ClamAV.result": {"$eq": malware[0]}} %}
+                {{ macros.stats_table_row(malware[0], malware[1], link=query_url + query | json_dumps | urlencode) }}
+            {% endfor %}
+            </table>
+        {{ macros.end_stats_panel(count) }}
 	{% endif %}
 
 
 {# ------ IP Stats ------ #}
 
-	{% set ips_v4_num = stats["ip_and_uri_stats"]["ips_v6"] | length %}
+	{% set ips_v4_num = stats["ip_and_uri_stats"]["ips_v4"] | length %}
 	{% if ips_v4_num > 0 %}
-		<div class="col-sm-6 col-md-4 col-lg-3">
-			<h3><span class="glyphicon glyphicon-globe"></span> IPv4 Addresses (Top {{ [10, ips_v4_num] | min }}/{{ ips_v4_num }})</h3>
-			<table class="table table-responsive table-hover table-bordered" style="border-spacing: 10px; width: 100%;">
-			{% for ip in (stats["ip_and_uri_stats"]["ips_v4"] | sort_chart_list_by_value)[:10] %}
-				<tr>
-					<td class="active" style="text-align: left; padding:5px; cursor:pointer;"
-                        {% set query = {"processed_analysis.ip_and_uri_finder.ips_v4": {"$elemMatch": {"$elemMatch": {"$in": [ip[0], ]}}}} %}
-						onclick="location.href='{{ query_url + query | json_dumps | urlencode }}'">
-						{{ ip[0] }}
-					</td>
-					<td class="active" style="text-align: right; padding:5px">{{ ip[1] }}</td>
-				</tr>
-			{% endfor %}
-			</table>
-		</div>
+ 	    {{ macros.start_stats_panel("IPv4 Addresses (Top {}/{})".format([10, ips_v4_num] | min, ips_v4_num), "glyphicon-globe") }}
+            <table class="table table-responsive table-hover table-bordered" style="border-spacing: 10px; width: 100%; margin-bottom: 0;">
+            {% for ip in (stats["ip_and_uri_stats"]["ips_v4"] | sort_chart_list_by_value)[:10] %}
+                {% set query = {"processed_analysis.ip_and_uri_finder.ips_v4": {"$elemMatch": {"$elemMatch": {"$in": [ip[0], ]}}}} %}
+                {{ macros.stats_table_row(ip[0], ip[1], link=query_url + query | json_dumps | urlencode) }}
+            {% endfor %}
+            </table>
+        {{ macros.end_stats_panel(count) }}
 	{% endif %}
 
 	{% set ips_v6_num = stats["ip_and_uri_stats"]["ips_v6"] | length %}
 	{% if ips_v6_num > 0 %}
-		<div class="col-sm-6 col-md-4 col-lg-3">
-			<h3><span class="glyphicon glyphicon-globe"></span> IPv6 Addresses (Top {{ [10, ips_v6_num] | min }}/{{ ips_v6_num }})</h3>
-			<table class="table table-responsive table-hover table-bordered" style="border-spacing: 10px; width: 100%;">
-			{% for ip in (stats["ip_and_uri_stats"]["ips_v6"] | sort_chart_list_by_value)[:10] %}
-				<tr>
-					<td class="active" style="text-align: left; padding:5px; cursor:pointer;"
-                        {% set query = {"processed_analysis.ip_and_uri_finder.ips_v6": {"$elemMatch": {"$elemMatch": {"$in": [ip[0], ]}}}} %}
-						onclick="location.href='{{ query_url + query | json_dumps | urlencode }}'">
-						{{ ip[0] }}
-					</td>
-					<td class="active" style="text-align: right; padding:5px">{{ ip[1] }}</td>
-				</tr>
-			{% endfor %}
-			</table>
-		</div>
+ 	    {{ macros.start_stats_panel("IPv6 Addresses (Top {}/{})".format([10, ips_v6_num] | min, ips_v6_num), "glyphicon-globe") }}
+            <table class="table table-responsive table-hover table-bordered" style="border-spacing: 10px; width: 100%; margin-bottom: 0;">
+            {% for ip in (stats["ip_and_uri_stats"]["ips_v6"] | sort_chart_list_by_value)[:10] %}
+                {% set query = {"processed_analysis.ip_and_uri_finder.ips_v6": {"$elemMatch": {"$elemMatch": {"$in": [ip[0], ]}}}} %}
+                {{ macros.stats_table_row(ip[0], ip[1], link=query_url + query | json_dumps | urlencode) }}
+            {% endfor %}
+            </table>
+        {{ macros.end_stats_panel(count) }}
 	{% endif %}
 
 	{% set uri_num = stats["ip_and_uri_stats"]["uris"] | length %}
 	{% if uri_num > 0 %}
-		<div class="col-sm-6 col-md-4 col-lg-3">
-			<h3><span class="glyphicon glyphicon-globe"></span> URIs (Top {{ [10, uri_num] | min }}/{{ uri_num }})</h3>
-			<table class="table table-responsive table-hover table-bordered" style="border-spacing: 10px; width: 100%;">
-			{% for uri in (stats["ip_and_uri_stats"]["uris"] | sort_chart_list_by_value)[:10] %}
-				<tr>
-					<td class="active" style="text-align: left; padding:5px; cursor:pointer;"
-                        {% set query = {"processed_analysis.ip_and_uri_finder.uris": {"$eq": uri[0]}} %}
-						onclick="location.href='{{ query_url + query | json_dumps | urlencode }}'">
-						{{ uri[0] }}
-					</td>
-					<td class="active" style="text-align: right; padding:5px">{{ uri[1] }}</td>
-				</tr>
-			{% endfor %}
-			</table>
-		</div>
+ 	    {{ macros.start_stats_panel("URIs (Top {}/{})".format([10, uri_num] | min, uri_num), "glyphicon-globe") }}
+            <table class="table table-responsive table-hover table-bordered" style="border-spacing: 10px; width: 100%; margin-bottom: 0;">
+            {% for uri in (stats["ip_and_uri_stats"]["uris"] | sort_chart_list_by_value)[:10] %}
+                {% set query = {"processed_analysis.ip_and_uri_finder.uris": {"$eq": uri[0]}} %}
+                {{ macros.stats_table_row(uri[0], uri[1], link=query_url + query | json_dumps | urlencode) }}
+            {% endfor %}
+            </table>
+        {{ macros.end_stats_panel(count) }}
 	{% endif %}
 
 </div>
+
 
 {# ------ Release Date Histogram ------ #}
 
