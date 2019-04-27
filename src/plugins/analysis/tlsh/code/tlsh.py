@@ -37,8 +37,6 @@ class AnalysisPlugin(AnalysisBasePlugin):
                     except:
                         print("TLSH comparison not possible.")
 
-                    pass
-
         tlsh['tlsh'] = comparisons_dict
         file_object.processed_analysis[self.NAME] = tlsh
 
