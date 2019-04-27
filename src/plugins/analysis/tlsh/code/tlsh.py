@@ -10,7 +10,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     '''
     NAME = 'tlsh'
     DESCRIPTION = 'find files with similar tlsh and calculate similarity value'
-    DEPENDENCIES = ['binwalk', 'base64_decoder', 'file_system_metadata', 'file_hashes']
+    DEPENDENCIES = ['file_hashes']
     VERSION = '0.1'
 
     def __init__(self, plugin_adminstrator, config=None, recursive=True):
