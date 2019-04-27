@@ -1,10 +1,9 @@
 from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
-from objects.file import FileObject
 
-from ..code.hello_world import AnalysisPlugin
+from ..code.tlsh import AnalysisPlugin
 
 
-class test_analysis_plugin_Hello_World(AnalysisPluginTest):
+class TestAnalysisPluginTLSH(AnalysisPluginTest):
 
     PLUGIN_NAME = 'tlsh'
 
@@ -19,8 +18,5 @@ class test_analysis_plugin_Hello_World(AnalysisPluginTest):
         super().tearDown()
         # additional tearDown can go here
 
-    def test_plugin(self):
-        test_object = FileObject()
-        self.analysis_plugin.process_object(test_object)
-
-        self.assertEqual(test_object.processed_analysis[self.PLUGIN_NAME]['analysis_result_a'], 'hello world')
+    def test_tlsh(self):
+        pass
