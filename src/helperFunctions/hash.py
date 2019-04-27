@@ -38,8 +38,7 @@ def get_ssdeep_comparison(first, second):
 
 
 def get_tlsh(code):
-    binary = make_bytes(code)
-    return tlsh.hash(binary)
+    return tlsh.hash(make_bytes(code))
 
 
 def get_tlsh_compairson(first, second):
