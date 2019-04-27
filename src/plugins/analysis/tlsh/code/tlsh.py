@@ -14,11 +14,6 @@ class AnalysisPlugin(AnalysisBasePlugin):
     VERSION = '0.1'
 
     def __init__(self, plugin_adminstrator, config=None, recursive=True):
-        '''
-        recursive flag: If True recursively analyze included files
-        '''
-        self.config = config
-
         super().__init__(plugin_adminstrator, config=config, recursive=recursive, plugin_path=__file__)
 
     def process_object(self, file_object):
