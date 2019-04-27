@@ -36,7 +36,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
                     try:
                         value = get_tlsh_compairson(file_object.processed_analysis['file_hashes']['tlsh'],
                                                     files['processed_analysis']['file_hashes']['tlsh'])
-                        if value <= 150:
+                        if value <= 150 and not files['_id'] == file_object.get_uid():
                             comparisons_dict[files['_id']] = value
 
                     except:
