@@ -1,3 +1,4 @@
+# pylint: disable=protected-access,wrong-import-order,no-self-use,no-member
 from unittest import TestCase
 
 from flask import Flask
@@ -16,7 +17,20 @@ class DbInterfaceMock:
 
         self.fw = create_test_firmware()
         self.fw.uid = 'parent_uid'
-        self.fw.processed_analysis[AnalysisPlugin.NAME] = {'files': {'foo': {'executable': False}}}
+        self.fw.processed_analysis[AnalysisPlugin.NAME] = {
+            'files': {
+                'foo': {'executable': False},
+                'bar': {
+                    'executable': True, 'path': '/some/path',
+                    'results': {'some-arch': {'-h': {'stdout': 'stdout result', 'stderr': 'stderr result', 'return_code': '1337'}}},
+                },
+                'error-outside': {'executable': False, 'path': '/some/path', 'results': {'error': 'some error'}},
+                'error-inside': {
+                    'executable': False, 'path': '/some/path',
+                    'results': {'some-arch': {'error': 'some error'}}
+                },
+            }
+        }
 
         self.fo = create_test_file_object()
         self.fo.virtual_file_path['parent_uid'] = ['parent_uid|{}|/{}'.format(self.fw.get_uid(), 'some_file')]
@@ -24,8 +38,9 @@ class DbInterfaceMock:
     def get_object(self, uid):
         if uid == 'parent_uid':
             return self.fw
-        if uid == 'foo':
+        if uid in ['foo', 'bar', 'error-outside', 'error-inside']:
             return self.fo
+        return None
 
     def shutdown(self):
         pass
@@ -82,15 +97,33 @@ class TestFileSystemMetadataRoutes(TestCase):
         app.config['TESTING'] = True
         app.jinja_env.filters['replace_uid_with_hid'] = lambda x: x
         app.jinja_env.filters['nice_unix_time'] = lambda x: x
+        app.jinja_env.filters['decompress'] = lambda x: x
         config = get_config_for_testing()
         self.plugin_routes = routes.PluginRoutes(app, config)
         self.test_client = app.test_client()
 
-    def test__get_analysis_results_of_parent_fo(self):
+    def test__get_analysis_results_not_executable(self):
         response = self.test_client.get('/plugins/qemu_exec/ajax/{}'.format('foo')).data.decode()
         assert 'Results for this File' in response
         assert 'Executable in QEMU' in response
         assert '<td>False</td>' in response
+
+    def test__get_analysis_results_executable(self):
+        response = self.test_client.get('/plugins/qemu_exec/ajax/{}'.format('bar')).data.decode()
+        assert 'Results for this File' in response
+        assert 'Executable in QEMU' in response
+        assert '<td>True</td>' in response
+        assert all(s in response for s in ['some-arch', 'stdout result', 'stderr result', '1337', '/some/path'])
+
+    def test__get_analysis_results_with_error_outside(self):
+        response = self.test_client.get('/plugins/qemu_exec/ajax/{}'.format('error-outside')).data.decode()
+        assert 'some-arch' not in response
+        assert 'some error' in response
+
+    def test__get_analysis_results_with_error_inside(self):
+        response = self.test_client.get('/plugins/qemu_exec/ajax/{}'.format('error-inside')).data.decode()
+        assert 'some-arch' in response
+        assert 'some error' in response
 
 
 class TestFileSystemMetadataRoutesRest(TestCase):

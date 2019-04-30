@@ -18,7 +18,7 @@ def main(distribution):
     apt_install_packages('python-dev', 'python-setuptools')
     apt_install_packages('libjpeg-dev', 'liblzma-dev', 'liblzo2-dev', 'zlib1g-dev')
     apt_install_packages('libssl-dev python3-tk')
-    pip3_install_packages('pluginbase', 'Pillow', 'cryptography', 'pyopenssl', 'entropy', 'matplotlib')
+    pip3_install_packages('pluginbase', 'Pillow', 'cryptography', 'pyopenssl', 'entropy', 'matplotlib', 'docker')
 
     apt_install_packages('python-pip')
     # removes due to compatibilty reasons
