@@ -1,16 +1,15 @@
-from concurrent.futures import ProcessPoolExecutor
-from time import sleep
+from time import time
 
 from analysis import task
 
+
+def analysis_worker(index):
+    return task.CELERY_APP.worker_main(['worker', '-q', '-n', 'w{}%h'.format(index)])
+
+
 if __name__ == '__main__':
-    with ProcessPoolExecutor() as p:
-        for index in range(1):
-            # argv append worker id
-            p.submit(task.CELERY_APP.worker_main)
-        while True:
-            try:
-                sleep(1)
-            except KeyboardInterrupt:
-                break
+    try:
+        analysis_worker(int(time()))
+    except KeyboardInterrupt:
+        pass
     exit(0)

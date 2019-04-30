@@ -10,6 +10,7 @@ CELERY_APP.conf.update(
     accept_content=['pickle'],
     task_serializer='pickle',
     result_serializer='pickle',
+    broker_url='amqp://localhost:5672/fact'
 )
 
 
@@ -25,7 +26,10 @@ def run_job_async(file_object, plugin_name, config):
 
         if analysis_class:
             plugin_instance = analysis_class(config=config)
-            return plugin_instance.analyze_file(file_object)
+            print('>')
+            res = plugin_instance.analyze_file(file_object)
+            print('<')
+            return res
         raise NotImplementedError('Analysis module not implemented: {}'.format(plugin_name))
     except SoftTimeLimitExceeded:
         print('Timed out {} on {}'.format(plugin_name, file_object))
