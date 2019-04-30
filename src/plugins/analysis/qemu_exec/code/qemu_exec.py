@@ -189,12 +189,12 @@ class AnalysisPlugin(AnalysisBasePlugin):
     def _enter_results(self, results, file_object):
         tmp = file_object.processed_analysis[self.NAME]['files'] = results
         for uid in tmp:
-            tmp[uid]['executable'] = _valid_execution_in_results(tmp[uid]['results'])
+            tmp[uid][EXECUTABLE] = _valid_execution_in_results(tmp[uid]['results'])
         file_object.processed_analysis['qemu_exec']['summary'] = self._get_summary(tmp)
 
     def _add_tag(self, file_object: FileObject):
         result = file_object.processed_analysis[self.NAME]['files']
-        if any(result[uid]['executable'] for uid in result):
+        if any(result[uid][EXECUTABLE] for uid in result):
             self.add_analysis_tag(
                 file_object=file_object,
                 tag_name=self.NAME,

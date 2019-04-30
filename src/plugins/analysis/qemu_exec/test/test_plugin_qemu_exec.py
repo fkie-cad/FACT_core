@@ -16,6 +16,7 @@ from test.common_helper import create_test_firmware
 from test.mock import mock_patch
 from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
 from ..code import qemu_exec
+from ..code.qemu_exec import EXECUTABLE
 
 TEST_DATA_DIR = Path(get_dir_of_file(__file__)) / 'data/test_tmp_dir'
 TEST_DATA_DIR_2 = Path(get_dir_of_file(__file__)) / 'data/test_tmp_dir_2'
@@ -327,8 +328,8 @@ def test_process_qemu_job():
 
 @pytest.mark.parametrize('input_data, expected_output', [
     ({}, []),
-    ({'foo': {'executable': False}}, []),
-    ({'foo': {'executable': False}, 'bar': {'executable': True}}, ['executable']),
+    ({'foo': {EXECUTABLE: False}}, []),
+    ({'foo': {EXECUTABLE: False}, 'bar': {EXECUTABLE: True}}, [EXECUTABLE]),
 ])
 def test_get_summary(input_data, expected_output):
     result = qemu_exec.AnalysisPlugin._get_summary(input_data)
@@ -347,18 +348,14 @@ def test_valid_execution_in_results(input_data, expected_output):
     assert qemu_exec._valid_execution_in_results(input_data) == expected_output
 
 
-def _get_results(return_code: str, stdout: str, stderr: str):
-    return {'return_code': return_code, 'stdout': stdout, 'stderr': stderr}
-
-
 @pytest.mark.parametrize('input_data, expected_output', [
     ({}, False),
-    (_get_results(return_code='0', stdout='', stderr=''), False),
-    (_get_results(return_code='1', stdout='', stderr=''), False),
-    (_get_results(return_code='0', stdout='something', stderr=''), True),
-    (_get_results(return_code='1', stdout='something', stderr=''), True),
-    (_get_results(return_code='0', stdout='something', stderr='error'), True),
-    (_get_results(return_code='1', stdout='something', stderr='error'), False),
+    (dict(return_code='0', stdout='', stderr=''), False),
+    (dict(return_code='1', stdout='', stderr=''), False),
+    (dict(return_code='0', stdout='something', stderr=''), True),
+    (dict(return_code='1', stdout='something', stderr=''), True),
+    (dict(return_code='0', stdout='something', stderr='error'), True),
+    (dict(return_code='1', stdout='something', stderr='error'), False),
 ])
 def test_output_without_error_exists(input_data, expected_output):
     assert qemu_exec._output_without_error_exists(input_data) == expected_output
