@@ -19,7 +19,6 @@ class AnalysisPlugin(AnalysisBasePlugin):
     def process_object(self, file_object):
 
         comparisons_dict = {}
-        tlsh = {}
 
         if 'tlsh' in file_object.processed_analysis['file_hashes'].keys():
 
@@ -27,18 +26,14 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
             with ConnectTo(TLSHInterface, self.config) as interface:
 
-                for file in interface.tlsh_query(file_object):
-                    try:
-                        value = get_tlsh_compairson(file_object.processed_analysis['file_hashes']['tlsh'],
-                                                    file['processed_analysis']['file_hashes']['tlsh'])
-                        if value <= 150 and not file['_id'] == file_object.get_uid():
-                            comparisons_dict[file['_id']] = value
+                for file in interface.tlsh_query_file_object(file_object):
 
-                    except:
-                        print("TLSH comparison not possible.")
+                    value = get_tlsh_compairson(file_object.processed_analysis['file_hashes']['tlsh'],
+                                                file['processed_analysis']['file_hashes']['tlsh'])
+                    if value <= 150 and not file['_id'] == file_object.get_uid():
+                        comparisons_dict[file['_id']] = value
 
-        tlsh['tlsh'] = comparisons_dict
-        file_object.processed_analysis[self.NAME] = tlsh
+        file_object.processed_analysis[self.NAME] = comparisons_dict
 
         return file_object
 
@@ -46,5 +41,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
 class TLSHInterface(MongoInterfaceCommon):
     READ_ONLY = True
 
-    def tlsh_query(self, file_object):
+    def tlsh_query_file_object(self, file_object):
         return self.file_objects.find({"processed_analysis.file_hashes.tlsh": {"$exists": True}})
+
+    def tlsh_query_firmware_collection(self, firmware):
+        return self.firmwares.find({"processed_analysis.file_hashes.tlsh": {"$exists": True}})
