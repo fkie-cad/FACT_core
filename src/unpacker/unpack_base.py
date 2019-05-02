@@ -2,10 +2,9 @@ import logging
 import shutil
 from os import getgid, getuid, makedirs
 from pathlib import Path
-from subprocess import PIPE, Popen
 
-from common_helper_process import execute_shell_command_get_return_code
 from common_helper_files import safe_rglob
+from common_helper_process import execute_shell_command_get_return_code
 
 
 class UnpackBase:
@@ -33,14 +32,12 @@ class UnpackBase:
         return [item for item in safe_rglob(Path(tmp_dir, 'files')) if not item.is_dir()]
 
     def change_owner_back_to_me(self, directory: str = None, permissions='u+r'):
-        with Popen('sudo chown -R {}:{} {}'.format(getuid(), getgid(), directory), shell=True, stdout=PIPE, stderr=PIPE) as pl:
-            pl.communicate()
+        execute_shell_command_get_return_code('sudo chown -R {}:{} {}'.format(getuid(), getgid(), directory))
         self._grant_read_permission(directory, permissions)
 
     @staticmethod
     def _grant_read_permission(directory, permissions):
-        with Popen('chmod --recursive {} {}'.format(permissions, directory), shell=True, stdout=PIPE, stderr=PIPE) as pl:
-            pl.communicate()
+        execute_shell_command_get_return_code('chmod --recursive {} {}'.format(permissions, directory))
 
     @staticmethod
     def _initialize_shared_folder(tmp_dir):
