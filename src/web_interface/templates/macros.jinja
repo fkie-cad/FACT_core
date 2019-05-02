@@ -1,0 +1,26 @@
+{% macro start_stats_panel(panel_title, glyph="glyphicon-stats") -%}
+    <!-- stats: {{ panel_title }} -->
+    <div class="col-sm-6 col-md-4" style="padding-right: 10px; padding-left: 10px;">
+        <div class="panel panel-default">
+            <div class="panel-heading" style="background-image: none;">
+                <h2 class="panel-title"><span class="glyphicon {{ glyph }}"></span> {{ panel_title }}</h2>
+            </div>
+            <div class="panel-body" style="padding: 0">
+{%- endmacro %}
+
+{% macro end_stats_panel(counter) -%}
+            </div>
+        </div>
+    </div>
+    {% set _ = counter.append(1) %}
+    {% if counter | length % 3 == 0 %}
+        <div class="clearfix visible-md-block visible-lg-block"></div>
+    {% endif %}
+{%- endmacro %}
+
+{% macro stats_table_row(label, value, percent=False, link=None) -%}
+    <tr>
+        <td style="text-align: left; padding:5px" {% if link %}onclick="location.href='{{ link }}'"{% endif %}>{{ label }}</td>
+        <td style="text-align: right; padding:5px">{{ value }}{% if percent %}%{% endif %}</td>
+    </tr>
+{%- endmacro %}
