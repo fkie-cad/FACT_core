@@ -1,6 +1,7 @@
 import logging
 from concurrent.futures import ThreadPoolExecutor
 from configparser import ConfigParser
+from copy import copy
 from distutils.version import LooseVersion
 from multiprocessing import Queue, Value
 from queue import Empty
@@ -22,7 +23,7 @@ from storage.db_interface_backend import BackEndDbInterface
 MANDATORY_PLUGINS = ['file_type', 'file_hashes']
 
 
-class AnalysisScheduler:
+class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
     '''
     This Scheduler performs analysis of firmware objects
     '''
@@ -48,11 +49,11 @@ class AnalysisScheduler:
         '''
         logging.debug('Shutting down...')
         self.stop_condition.value = 1
-        with ThreadPoolExecutor() as e:
-            e.submit(self.schedule_process.join)
-            e.submit(self.result_collector_process.join)
+        with ThreadPoolExecutor() as executor:
+            executor.submit(self.schedule_process.join)
+            executor.submit(self.result_collector_process.join)
             for plugin in self.analysis_plugins:
-                e.submit(self.analysis_plugins[plugin].shutdown)
+                executor.submit(self.analysis_plugins[plugin].shutdown)
         if getattr(self.db_backend_service, 'shutdown', False):
             self.db_backend_service.shutdown()
         self.tag_queue.close()
@@ -62,24 +63,31 @@ class AnalysisScheduler:
     def add_update_task(self, fo: FileObject):
         for included_file in self.db_backend_service.get_list_of_all_included_files(fo):
             child = self.db_backend_service.get_object(included_file)
-            child.scheduled_analysis = self._add_dependencies_recursively(fo.scheduled_analysis or [])
-            child.scheduled_analysis = self._smart_shuffle(child.scheduled_analysis)
-            self.check_further_process_or_complete(child)
+            self._task(child, fo.scheduled_analysis)
         self.check_further_process_or_complete(fo)
 
     def add_task(self, fo: FileObject):
         '''
         This function should be used to add a new firmware object to the scheduler
         '''
-        scheduled_plugins = self._add_dependencies_recursively(fo.scheduled_analysis or [])
-        fo.scheduled_analysis = self._smart_shuffle(scheduled_plugins + MANDATORY_PLUGINS)
+        self._task(fo, fo.scheduled_analysis, mandatory=True)
+
+    def single_file_task(self, fo: FileObject):
+        '''
+        This function is used to add analysis tasks for a single file
+        '''
+        self._task(fo, fo.scheduled_analysis)
+
+    def _task(self, fo, scheduled_analysis, mandatory=False):
+        scheduled_analysis = self._add_dependencies_recursively(copy(scheduled_analysis) or [])
+        fo.scheduled_analysis = self._smart_shuffle(scheduled_analysis + MANDATORY_PLUGINS if mandatory else scheduled_analysis)
         self.check_further_process_or_complete(fo)
 
     def _smart_shuffle(self, plugin_list: List[str]) -> List[str]:
         scheduled_plugins = []
         remaining_plugins = set(plugin_list)
 
-        while len(remaining_plugins) > 0:
+        while remaining_plugins:
             next_plugins = self._get_plugins_with_met_dependencies(remaining_plugins, scheduled_plugins)
             if not next_plugins:
                 logging.error('Error: Could not schedule plugins because dependencies cannot be fulfilled: {}'.format(remaining_plugins))
@@ -135,7 +143,7 @@ class AnalysisScheduler:
         result = {}
         for plugin in plugin_list:
             mandatory_flag = plugin in MANDATORY_PLUGINS
-            for key in default_plugins.keys():
+            for key in default_plugins:
                 default_flag_dict[key] = plugin in default_plugins[key]
             result[plugin] = (self.analysis_plugins[plugin].DESCRIPTION, mandatory_flag, dict(default_flag_dict), self.analysis_plugins[plugin].VERSION)
         result['unpacker'] = ('Additional information provided by the unpacker', True, False)
@@ -217,7 +225,7 @@ class AnalysisScheduler:
         )
         if not db_entry or analysis_to_do not in db_entry['processed_analysis']:
             return False
-        elif 'plugin_version' not in db_entry['processed_analysis'][analysis_to_do]:
+        if 'plugin_version' not in db_entry['processed_analysis'][analysis_to_do]:
             logging.error('Plugin Version missing: UID: {}, Plugin: {}'.format(uid, analysis_to_do))
             return False
 
