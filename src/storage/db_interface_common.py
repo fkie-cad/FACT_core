@@ -5,7 +5,7 @@ from typing import Set
 
 import gridfs
 from common_helper_files import get_safe_name
-from common_helper_mongo.aggregate import get_list_of_all_values, get_list_of_all_values_and_collect_information_of_additional_field
+from common_helper_mongo.aggregate import get_list_of_all_values, get_all_value_combinations_of_fields
 
 from helperFunctions.dataConversion import get_dict_size, convert_time_to_str
 from objects.file import FileObject
@@ -239,22 +239,19 @@ class MongoInterfaceCommon(MongoInterface):
         }
 
     def get_summary(self, fo, selected_analysis):
-        if selected_analysis in fo.processed_analysis:
-            if 'summary' in fo.processed_analysis[selected_analysis]:
-                if isinstance(fo, Firmware):
-                    summary = get_list_of_all_values_and_collect_information_of_additional_field(
-                        self.file_objects, '$processed_analysis.{}.summary'.format(selected_analysis), '$_id', unwind=True,
-                        match={'virtual_file_path.{}'.format(fo.get_uid()): {'$exists': 'true'}})
-                    fo_summary = self._get_summary_of_one(fo, selected_analysis)
-                    self._update_summary(summary, fo_summary)
-                    return summary
-                else:
-                    return self._collect_summary(fo.list_of_all_included_files, selected_analysis)
-            else:
-                return None
-        else:
+        if selected_analysis not in fo.processed_analysis:
             logging.warning('Analysis {} not available on {}'.format(selected_analysis, fo.get_uid()))
             return None
+        if 'summary' not in fo.processed_analysis[selected_analysis]:
+            return None
+        if not isinstance(fo, Firmware):
+            return self._collect_summary(fo.list_of_all_included_files, selected_analysis)
+        summary = get_all_value_combinations_of_fields(
+            self.file_objects, '$processed_analysis.{}.summary'.format(selected_analysis), '$_id',
+            unwind=True, match={'virtual_file_path.{}'.format(fo.get_uid()): {'$exists': 'true'}})
+        fo_summary = self._get_summary_of_one(fo, selected_analysis)
+        self._update_summary(summary, fo_summary)
+        return summary
 
     @staticmethod
     def _get_summary_of_one(file_object, selected_analysis):
