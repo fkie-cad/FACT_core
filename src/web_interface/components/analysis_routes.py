@@ -40,10 +40,10 @@ class AnalysisRoutes(ComponentBase):
 
     def _init_component(self):
         self._app.add_url_rule('/update-analysis/<uid>', 'update-analysis/<uid>', self._update_analysis, methods=['GET', 'POST'])
-        self._app.add_url_rule('/analysis/<uid>', 'analysis/<uid>', self._show_analysis_results)
-        self._app.add_url_rule('/analysis/<uid>/ro/<root_uid>', '/analysis/<uid>/ro/<root_uid>', self._show_analysis_results)
-        self._app.add_url_rule('/analysis/<uid>/<selected_analysis>', '/analysis/<uid>/<selected_analysis>', self._show_analysis_results)
-        self._app.add_url_rule('/analysis/<uid>/<selected_analysis>/ro/<root_uid>', '/analysis/<uid>/<selected_analysis>/<root_uid>', self._show_analysis_results)
+        self._app.add_url_rule('/analysis/<uid>', 'analysis/<uid>', self._show_analysis_results, methods=['GET', 'POST'])
+        self._app.add_url_rule('/analysis/<uid>/ro/<root_uid>', '/analysis/<uid>/ro/<root_uid>', self._show_analysis_results, methods=['GET', 'POST'])
+        self._app.add_url_rule('/analysis/<uid>/<selected_analysis>', '/analysis/<uid>/<selected_analysis>', self._show_analysis_results, methods=['GET', 'POST'])
+        self._app.add_url_rule('/analysis/<uid>/<selected_analysis>/ro/<root_uid>', '/analysis/<uid>/<selected_analysis>/<root_uid>', self._show_analysis_results, methods=['GET', 'POST'])
         self._app.add_url_rule('/admin/re-do_analysis/<uid>', '/admin/re-do_analysis/<uid>', self._re_do_analysis, methods=['GET', 'POST'])
 
     @staticmethod
@@ -54,6 +54,14 @@ class AnalysisRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
     def _show_analysis_results(self, uid, selected_analysis=None, root_uid=None):
+        if request.method == 'POST':  # Start single file analysis
+            # FIXME This introduces a privilege issue, since it can not be directly differentiated between post and get
+            with ConnectTo(FrontEndDbInterface, self._config) as database:
+                file_object = database.get_object(uid)
+            file_object.scheduled_analysis = request.form.getlist('analysis_systems')
+            with ConnectTo(InterComFrontEndBinding, self._config) as intercom:
+                intercom.add_single_file_task(file_object)
+
         other_versions = None
         with ConnectTo(CompareDbInterface, self._config) as db_service:
             all_comparisons = db_service.page_compare_results()
@@ -89,7 +97,8 @@ class AnalysisRoutes(ComponentBase):
 
     @staticmethod
     def _get_still_available_plugins(already_processed, plugins):
-        return [plugin for plugin in plugins.keys() if not plugin in already_processed.keys()]
+        # return [plugin for plugin in plugins.keys() if not plugin in already_processed.keys()]
+        return [plugin for plugin in plugins.keys()]  # Thinking if not all should be available
 
     def _get_analysis_view(self, selected_analysis):
         if selected_analysis == 'unpacker':

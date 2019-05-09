@@ -42,6 +42,7 @@ class InterComBackEndBinding:
         self.start_binary_search_listener()
         self.start_update_listener()
         self.start_delete_file_listener()
+        self.start_single_analysis_listener()
 
     def shutdown(self):
         self.stop_condition.value = 1
