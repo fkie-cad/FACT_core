@@ -10,21 +10,15 @@ class AnalysisPlugin(AnalysisBasePlugin):
     '''
     NAME = 'tlsh'
     DESCRIPTION = 'find files with similar tlsh and calculate similarity value'
-    DEPENDENCIES = ['binwalk', 'base64_decoder', 'file_system_metadata', 'file_hashes']
+    DEPENDENCIES = ['file_hashes']
     VERSION = '0.1'
 
     def __init__(self, plugin_adminstrator, config=None, recursive=True):
-        '''
-        recursive flag: If True recursively analyze included files
-        '''
-        self.config = config
-
         super().__init__(plugin_adminstrator, config=config, recursive=recursive, plugin_path=__file__)
 
     def process_object(self, file_object):
 
         comparisons_dict = {}
-        tlsh = {}
 
         if 'tlsh' in file_object.processed_analysis['file_hashes'].keys():
 
@@ -32,20 +26,14 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
             with ConnectTo(TLSHInterface, self.config) as interface:
 
-                for files in interface.tlsh_query(file_object):
-                    try:
-                        value = get_tlsh_compairson(file_object.processed_analysis['file_hashes']['tlsh'],
-                                                    files['processed_analysis']['file_hashes']['tlsh'])
-                        if value <= 150:
-                            comparisons_dict[files['_id']] = value
+                for file in interface.tlsh_query_file_object(file_object):
 
-                    except:
-                        print("TLSH comparison not possible.")
+                    value = get_tlsh_compairson(file_object.processed_analysis['file_hashes']['tlsh'],
+                                                file['processed_analysis']['file_hashes']['tlsh'])
+                    if value <= 150 and not file['_id'] == file_object.get_uid():
+                        comparisons_dict[file['_id']] = value
 
-                    pass
-
-        tlsh['tlsh'] = comparisons_dict
-        file_object.processed_analysis[self.NAME] = tlsh
+        file_object.processed_analysis[self.NAME] = comparisons_dict
 
         return file_object
 
@@ -53,5 +41,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
 class TLSHInterface(MongoInterfaceCommon):
     READ_ONLY = True
 
-    def tlsh_query(self, file_object):
+    def tlsh_query_file_object(self, file_object):
         return self.file_objects.find({"processed_analysis.file_hashes.tlsh": {"$exists": True}})
+
+    def tlsh_query_firmware_collection(self, firmware):
+        return self.firmwares.find({"processed_analysis.file_hashes.tlsh": {"$exists": True}})
