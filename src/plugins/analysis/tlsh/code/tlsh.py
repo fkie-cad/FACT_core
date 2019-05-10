@@ -1,8 +1,9 @@
 from itertools import chain
+
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.hash import get_tlsh_comparison
-from storage.db_interface_common import MongoInterfaceCommon
 from helperFunctions.web_interface import ConnectTo
+from storage.db_interface_common import MongoInterfaceCommon
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
@@ -14,8 +15,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
     DEPENDENCIES = ['file_hashes']
     VERSION = '0.1'
 
-    def __init__(self, plugin_adminstrator, config=None, recursive=True):
-        super().__init__(plugin_adminstrator, config=config, recursive=recursive, plugin_path=__file__)
+    def __init__(self, plugin_adminstrator, config=None, recursive=True, offline_testing=False):
+        super().__init__(plugin_adminstrator, config=config, recursive=recursive, plugin_path=__file__, offline_testing=offline_testing)
 
     def process_object(self, file_object):
         comparisons_dict = {}
