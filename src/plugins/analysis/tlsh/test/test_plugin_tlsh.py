@@ -20,7 +20,7 @@ class MockContext:
     def __enter__(self):
         class ControlledInterface:
             def tlsh_query_all_objects(self):
-                return [{'processed_analysis': {'file_hashes': {'tlsh': HASH_0}}}, ]
+                return [{'processed_analysis': {'file_hashes': {'tlsh': HASH_1}}, '_id': '5'}, ]
 
         return ControlledInterface()
 
@@ -46,8 +46,49 @@ def stub_plugin(test_config, monkeypatch):
     return AnalysisPlugin(MockAdmin(), test_config, offline_testing=True)
 
 
-def test_process_object(stub_plugin, test_object, monkeypatch):
+def test_one_matching_file(stub_plugin, test_object, monkeypatch):
     monkeypatch.setattr('plugins.analysis.tlsh.code.tlsh.ConnectTo', MockContext)
 
     result = stub_plugin.process_object(test_object)
-    assert result.processed_analysis[stub_plugin.NAME] == {'summary': []}
+    assert result.processed_analysis[stub_plugin.NAME] == {'5': 0}
+
+
+def test_no_matching_file(test_object, stub_plugin, monkeypatch):
+    monkeypatch.setattr('plugins.analysis.tlsh.code.tlsh.ConnectTo', MockContext)
+    NOT_MATCHING_HASH = '0CC34689821658B06B1B258BCC16689308A671AB3223B3E3684F8d695A658742F0DAB1'
+    test_object.processed_analysis['file_hashes'] = {'tlsh': NOT_MATCHING_HASH}
+    result = stub_plugin.process_object(test_object)
+
+    assert result.processed_analysis[stub_plugin.NAME] == {}
+
+
+def test_match_to_same_file(test_object, stub_plugin, monkeypatch):
+    monkeypatch.setattr('plugins.analysis.tlsh.code.tlsh.ConnectTo', MockContext)
+    test_object.uid = '5'
+    result = stub_plugin.process_object(test_object)
+
+    assert result.processed_analysis[stub_plugin.NAME] == {}
+
+
+def test_file_has_no_tlsh_hash(test_object, stub_plugin, monkeypatch):
+    monkeypatch.setattr('plugins.analysis.tlsh.code.tlsh.ConnectTo', MockContext)
+    test_object.processed_analysis['file_hashes'].pop('tlsh')
+    result = stub_plugin.process_object(test_object)
+
+    assert result.processed_analysis[stub_plugin.NAME] == {}
+
+
+def test_no_files_in_database():
+    pass
+
+
+def test_file_hashes_not_run(test_object, stub_plugin):
+    with pytest.raises(KeyError):
+        test_object.processed_analysis.pop('file_hashes')
+        stub_plugin.process_object(test_object)
+
+
+'''
+if value < 150 expected {id, tlsh_value}
+else expected { }
+'''
