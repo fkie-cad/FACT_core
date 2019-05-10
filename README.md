@@ -4,8 +4,6 @@
 
 # The Firmware Analysis and Comparison Tool (FACT)
 
-[![Build Status](https://ci.die-weidenbachs.de/job/FACT_core_xenial/badge/icon)](https://ci.die-weidenbachs.de/job/FACT_core_xenial)
-[![Build Status](https://ci.die-weidenbachs.de/job/FACT_core_bionic/badge/icon)](https://ci.die-weidenbachs.de/job/FACT_core_bionic)
 [![codecov](https://codecov.io/gh/fkie-cad/FACT_core/branch/master/graph/badge.svg)](https://codecov.io/gh/fkie-cad/FACT_core)
 [![BCH compliance](https://bettercodehub.com/edge/badge/fkie-cad/FACT_core?branch=master)](https://bettercodehub.com/)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/8101a5fc388848e89ec705e06a5ad734)](https://www.codacy.com/app/johannes.vom.dorp/FACT_core?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=fkie-cad/FACT_core&amp;utm_campaign=Badge_Grade)

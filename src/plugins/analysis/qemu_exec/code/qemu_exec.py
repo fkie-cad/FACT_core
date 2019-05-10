@@ -1,16 +1,23 @@
+import binascii
 import itertools
 import logging
+import zlib
+from base64 import b64decode
 from collections import OrderedDict
+from contextlib import suppress
+from json import loads, JSONDecodeError
 from multiprocessing import Manager, Pool
 from pathlib import Path
-from re import findall
 from tempfile import TemporaryDirectory
-from typing import Dict, List, Optional, Tuple
-from zlib import compress
+from typing import Dict, List, Optional, Tuple, Union
 
 from common_helper_files import get_binary_from_file, safe_rglob
 from common_helper_process import execute_shell_command_get_return_code
+import docker
+from docker.errors import ImageNotFound, APIError, DockerException
+from docker.types import Mount
 from fact_helper_file import get_file_type_from_path
+from requests.exceptions import ReadTimeout, ConnectionError as RequestConnectionError
 
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.tag import TagColor
@@ -19,15 +26,20 @@ from objects.file import FileObject
 from storage.binary_service import BinaryServiceDbInterface
 from unpacker.unpackBase import UnpackBase
 
-TIMEOUT = 5
+TIMEOUT_IN_SECONDS = 15
 EXECUTABLE = 'executable'
 EMPTY = '(no parameter)'
 DOCKER_IMAGE = 'fact/qemu:latest'
+QEMU_ERRORS = ['Unsupported syscall', 'Invalid ELF', 'uncaught target signal']
+CONTAINER_TARGET_PATH = '/opt/firmware_root'
 
 
 class Unpacker(UnpackBase):
     def unpack_fo(self, file_object: FileObject) -> Optional[TemporaryDirectory]:
-        file_path = file_object.file_path if file_object.file_path else self._get_file_path_from_db(file_object.get_uid())
+        file_path = (
+            file_object.file_path if file_object.file_path
+            else self._get_file_path_from_db(file_object.get_uid())
+        )
         if not file_path or not Path(file_path).is_file():
             logging.error('could not unpack {}: file path not found'.format(file_object.get_uid()))
             return None
@@ -51,7 +63,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     NAME = 'qemu_exec'
     DESCRIPTION = 'test binaries for executability in QEMU and display help if available'
-    VERSION = '0.4.2'
+    VERSION = '0.5'
     DEPENDENCIES = ['file_type']
     FILE_TYPES = ['application/x-executable', 'application/x-sharedlib']
 
@@ -79,7 +91,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def __init__(self, plugin_administrator, config=None, recursive=True, unpacker=None):
         self.unpacker = Unpacker(config) if unpacker is None else unpacker
-        super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__, timeout=600)
+        super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__, timeout=900)
 
     def process_object(self, file_object: FileObject) -> FileObject:
         if not docker_is_running():
@@ -152,12 +164,17 @@ class AnalysisPlugin(AnalysisBasePlugin):
         jobs = []
         for file_path, full_type in file_list:
             uid = self._get_uid(file_path, self.root_path)
-            if uid not in file_object.processed_analysis[self.NAME]['files']:
-                # file could be contained in the fo multiple times (but should be tested only once)
+            if self._analysis_not_already_completed(file_object, uid):
                 qemu_arch_suffixes = self._find_arch_suffixes(full_type)
-                jobs.extend(
-                    [(file_path, arch_suffix, self.root_path, results_dict, uid) for arch_suffix in qemu_arch_suffixes])
+                jobs.extend([
+                    (file_path, arch_suffix, self.root_path, results_dict, uid)
+                    for arch_suffix in qemu_arch_suffixes
+                ])
         return jobs
+
+    def _analysis_not_already_completed(self, file_object, uid):
+        # file could be contained in the fo multiple times (but should be tested only once)
+        return uid not in file_object.processed_analysis[self.NAME]['files']
 
     @staticmethod
     def _get_uid(file_path, root_path: Path):
@@ -172,21 +189,12 @@ class AnalysisPlugin(AnalysisBasePlugin):
     def _enter_results(self, results, file_object):
         tmp = file_object.processed_analysis[self.NAME]['files'] = results
         for uid in tmp:
-            tmp[uid]['executable'] = self._valid_execution_in_results(tmp[uid]['results'])
+            tmp[uid][EXECUTABLE] = _valid_execution_in_results(tmp[uid]['results'])
         file_object.processed_analysis['qemu_exec']['summary'] = self._get_summary(tmp)
-
-    @staticmethod
-    def _valid_execution_in_results(results: dict):
-        return any(
-            results[arch][option]['stdout'] != '' and (results[arch][option]['return_code'] == '0' or results[arch][option]['stderr'] == '')
-            for arch in results
-            for option in results[arch]
-            if option != 'strace'
-        )
 
     def _add_tag(self, file_object: FileObject):
         result = file_object.processed_analysis[self.NAME]['files']
-        if any(result[uid]['executable'] for uid in result):
+        if any(result[uid][EXECUTABLE] for uid in result):
             self.add_analysis_tag(
                 file_object=file_object,
                 tag_name=self.NAME,
@@ -203,7 +211,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
 
 def process_qemu_job(file_path: str, arch_suffix: str, root_path: Path, results_dict: dict, uid: str):
-    result = test_qemu_executability(file_path, arch_suffix, root_path)
+    result = check_qemu_executability(file_path, arch_suffix, root_path)
     if result:
         if uid in results_dict:
             tmp_dict = dict(results_dict[uid]['results'])
@@ -216,81 +224,141 @@ def process_qemu_job(file_path: str, arch_suffix: str, root_path: Path, results_
         }
 
 
-def test_qemu_executability(file_path: str, arch_suffix: str, root_path: Path) -> dict:
+def _valid_execution_in_results(results: dict):
+    return any(
+        _output_without_error_exists(results[arch][option])
+        for arch in results
+        if 'error' not in results[arch]
+        for option in results[arch]
+        if option not in ['strace', 'error']
+    )
+
+
+def _output_without_error_exists(docker_output: Dict[str, str]) -> bool:
+    try:
+        return (
+            docker_output['stdout'] != ''
+            and (docker_output['return_code'] == '0' or docker_output['stderr'] == '')
+        )
+    except KeyError:
+        return False
+
+
+def check_qemu_executability(file_path: str, arch_suffix: str, root_path: Path) -> dict:
+    result = get_docker_output(arch_suffix, file_path, root_path)
+    if result and 'error' not in result:
+        result = decode_output_values(result)
+        if result_contains_qemu_errors(result):
+            return {}
+        result = process_docker_output(result)
+    return result
+
+
+def get_docker_output(arch_suffix: str, file_path: str, root_path: Path) -> dict:
+    '''
+    :return: in the case of no error, the output will have the form
+    {
+        'parameter 1': {'stdout': <b64_str>, 'stderr': <b64_str>, 'return_code': <int>},
+        'parameter 2': {...},
+        '...',
+        'strace': {'stdout': <b64_str>, 'stderr': <b64_str>, 'return_code': <int>},
+    }
+    in case of an error, there will be an entry 'error' instead of the entries stdout/stderr/return_code
+    '''
+    container = None
+    volume = Mount(CONTAINER_TARGET_PATH, str(root_path), read_only=True, type="bind")
+    try:
+        client = docker.from_env()
+        container = client.containers.run(
+            DOCKER_IMAGE, '{arch_suffix} {target}'.format(arch_suffix=arch_suffix, target=file_path),
+            network_disabled=True, mounts=[volume], detach=True
+        )
+        container.wait(timeout=TIMEOUT_IN_SECONDS)
+        return loads(container.logs().decode())
+    except (ImageNotFound, APIError, DockerException, RequestConnectionError):
+        return {'error': 'process error'}
+    except ReadTimeout:
+        return {'error': 'timeout'}
+    except JSONDecodeError:
+        return {'error': 'could not decode result'}
+    finally:
+        if container:
+            with suppress(APIError):
+                container.stop()
+            container.remove()
+
+
+def process_docker_output(docker_output: Dict[str, Dict[str, str]]) -> Dict[str, Dict[str, str]]:
+    process_strace_output(docker_output)
+    replace_empty_strings(docker_output)
+    merge_identical_results(docker_output)
+    return docker_output
+
+
+def decode_output_values(result_dict: Dict[str, Dict[str, Union[str, int]]]) -> Dict[str, Dict[str, str]]:
     result = {}
-
-    response = get_docker_output(arch_suffix, file_path, root_path)
-    if response:
-        result = parse_docker_output(response)
-
+    for parameter in result_dict:
+        for key, value in result_dict[parameter].items():
+            if isinstance(value, str) and key != 'error':
+                try:
+                    str_value = b64decode(value.encode()).decode(errors='replace')
+                except binascii.Error:
+                    logging.warning('Error while decoding b64: {}'.format(value))
+                    str_value = 'decoding error: {}'.format(value)
+            else:
+                str_value = str(value)
+            result.setdefault(parameter, {})[key] = str_value
     return result
 
 
-def get_docker_output(arch_suffix: str, file_path: str, root_path: Path) -> Optional[str]:
-    call = 'docker run --rm --net=none -v {}:/opt/firmware_root {} {} {}'.format(
-        root_path, DOCKER_IMAGE, arch_suffix, file_path)
-    response, return_code = execute_shell_command_get_return_code(call, timeout=TIMEOUT)
-    if return_code != 0:
-        if 'timed out' in response:
-            logging.warning('encountered timeout while trying to run docker container')
-        else:
-            logging.warning('encountered process error while trying to run docker container')
-        return None
-    return response
+def _strace_output_exists(docker_output):
+    return (
+        'strace' in docker_output
+        and 'stdout' in docker_output['strace']
+        and docker_output['strace']['stdout']
+    )
 
 
-def parse_docker_output(docker_output: str) -> dict:
-    result = parse_docker_output_options(docker_output)
-    merge_similar_entries(result)
-    result.update(parse_docker_output_strace(docker_output))
-    return result
+def process_strace_output(docker_output: dict):
+    docker_output['strace'] = (
+        zlib.compress(docker_output['strace']['stdout'].encode())
+        if _strace_output_exists(docker_output) else {}
+    )
 
 
-def merge_similar_entries(results_dict: Dict[str, Dict[str, str]]):
-    for option_1, option_2 in itertools.combinations(results_dict, 2):
-        if results_dict[option_1] == results_dict[option_2]:
-            combined_key = '{}, {}'.format(option_1, option_2)
-            results_dict[combined_key] = results_dict[option_1]
-            results_dict.pop(option_1)
-            results_dict.pop(option_2)
-            merge_similar_entries(results_dict)
-            break
-
-
-def parse_docker_output_options(docker_output: str) -> Dict[str, Dict[str, str]]:
-    options_regex = '(?s)§#§option§#§((?:(?!§#§).)+)§#§\n' \
-                    '§#§stdout§#§((?:(?!§#§).)*)§#§\n' \
-                    '§#§stderr§#§((?:(?!§#§).)*)§#§\n' \
-                    '§#§return_code§#§((?:(?!§#§).)*)§#§'
-
-    result = {
-        option if option != ' ' else EMPTY: {
-            'stdout': stdout,
-            'stderr': stderr,
-            'return_code': return_code,
-        }
-        for option, stdout, stderr, return_code in findall(options_regex, docker_output)
-        if not contains_docker_error(stderr) and not stderr == stdout == ''
-    }
-
-    return result
-
-
-def parse_docker_output_strace(docker_output: str) -> dict:
-    strace_regex = '(?s)§#§strace§#§\n' \
-                   '§#§stdout§#§((?:(?!§#§).)*)§#§\n' \
-                   '§#§stderr§#§((?:(?!§#§).)*)§#§'
-
-    return {
-        'strace': compress(output.encode())
-        for _, output in findall(strace_regex, docker_output)
-        if not contains_docker_error(output) and not output == ''
-    }
+def result_contains_qemu_errors(docker_output: Dict[str, Dict[str, str]]) -> bool:
+    return any(
+        contains_docker_error(value)
+        for parameter in docker_output
+        for value in docker_output[parameter].values()
+    )
 
 
 def contains_docker_error(docker_output: str) -> bool:
-    error_messages = ['Unsupported syscall', 'Invalid ELF', 'uncaught target signal']
-    return any(e in docker_output for e in error_messages)
+    return any(error in docker_output for error in QEMU_ERRORS)
+
+
+def replace_empty_strings(docker_output: Dict[str, object]):
+    for key in list(docker_output):
+        if key == ' ':
+            docker_output[EMPTY] = docker_output.pop(key)
+
+
+def merge_identical_results(results: Dict[str, Dict[str, str]]):
+    '''
+    if the results for different parameters (e.g. '-h' and '--help') are identical, merge them
+    example input:  {'-h':         {'stdout': 'foo', 'stderr': '', 'return_code': 0},
+                     '--help':     {'stdout': 'foo', 'stderr': '', 'return_code': 0}}
+    example output: {'-h, --help': {'stdout': 'foo', 'stderr': '', 'return_code': 0}}
+    '''
+    for parameter_1, parameter_2 in itertools.combinations(results, 2):
+        if results[parameter_1] == results[parameter_2]:
+            combined_key = '{}, {}'.format(parameter_1, parameter_2)
+            results[combined_key] = results[parameter_1]
+            results.pop(parameter_1)
+            results.pop(parameter_2)
+            merge_identical_results(results)
+            break
 
 
 def docker_is_running() -> bool:
