@@ -41,7 +41,7 @@ def get_tlsh(code):
     return tlsh.hash(make_bytes(code))
 
 
-def get_tlsh_compairson(first, second):
+def get_tlsh_comparison(first, second):
     return tlsh.diff(first, second)
 
 

@@ -13,7 +13,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     NAME = 'file_hashes'
     DEPENDENCIES = ['file_type']
     DESCRIPTION = 'calculate different hash values of the file'
-    VERSION = '1.0'
+    VERSION = '1.1'
 
     def __init__(self, plugin_administrator, config=None, recursive=True):
         '''
