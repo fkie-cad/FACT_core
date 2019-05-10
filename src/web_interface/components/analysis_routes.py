@@ -98,7 +98,7 @@ class AnalysisRoutes(ComponentBase):
     @staticmethod
     def _get_still_available_plugins(already_processed, plugins):
         # return [plugin for plugin in plugins.keys() if not plugin in already_processed.keys()]
-        return [plugin for plugin in plugins.keys()]  # Thinking if not all should be available
+        return [plugin for plugin in plugins.keys() if plugin != 'unpacker']  # Thinking if not all should be available
 
     def _get_analysis_view(self, selected_analysis):
         if selected_analysis == 'unpacker':
