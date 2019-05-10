@@ -1,3 +1,4 @@
+from itertools import chain
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.hash import get_tlsh_compairson
 from storage.db_interface_common import MongoInterfaceCommon
@@ -40,6 +41,12 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
 class TLSHInterface(MongoInterfaceCommon):
     READ_ONLY = True
+
+    # file_object_entry = self.file_objects.find_one({'_id': uid}, {'processed_analysis.unpacker.entropy': 1})
+
+    def telsh_query_all_objects(self, file_object, firmware):
+        return chain(self.file_objects.find({"processed_analysis.file_hashes.tlsh": {"$exists": True}}),
+                     self.firmwares.find({"processed_analysis.file_hashes.tlsh": {"$exists": True}}))
 
     def tlsh_query_file_object(self, file_object):
         return self.file_objects.find({"processed_analysis.file_hashes.tlsh": {"$exists": True}})
