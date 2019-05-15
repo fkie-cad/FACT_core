@@ -1,19 +1,30 @@
+from pathlib import Path
+from tempfile import TemporaryDirectory
+
 from helperFunctions.config import get_config_for_testing
 
 
 class MockFSOrganizer:
-    def __init__(self, config):
-        pass
+    def __init__(self, *_, **__):
+        self._data_folder = TemporaryDirectory()
 
     def store_file(self, file_object):
-        pass
+        Path(self._data_folder.name, file_object.get_uid()).write_bytes(file_object.binary)
 
     def delete_file(self, uid):
-        pass
+        file_path = Path(self._data_folder.name, uid)
+        if file_path.is_file():
+            file_path.unlink()
+
+    def generate_path(self, uid):
+        return str(Path(self._data_folder.name, uid))
+
+    def __del__(self):
+        self._data_folder.cleanup()
 
 
 class MockDbInterface:
-    def __init__(self, config):
+    def __init__(self, *_, **__):
         self._objects = dict()
 
     def existence_quick_check(self, uid):
@@ -41,7 +52,7 @@ def initialize_config(tmp_dir):
     config.set('default_plugins', 'plugins', 'file_hashes')
 
     # Unpacker
-    config.set('unpack', 'threads', '2')
+    config.set('unpack', 'threads', '1')
     config.set('ExpertSettings', 'unpack_throttle_limit', '20')
 
     # Compare
