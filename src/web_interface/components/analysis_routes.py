@@ -4,6 +4,7 @@ import os
 from common_helper_files import get_binary_from_file
 from flask import render_template, render_template_string, request, flash
 from flask_login.utils import current_user
+
 from helperFunctions.dataConversion import none_to_none
 from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.mongo_task_conversion import (
@@ -98,8 +99,10 @@ class AnalysisRoutes(ComponentBase):
 
     @staticmethod
     def _get_still_available_plugins(already_processed, plugins):
-        # return [plugin for plugin in plugins.keys() if not plugin in already_processed.keys()]
-        return [plugin for plugin in plugins.keys() if plugin != 'unpacker']  # Thinking if not all should be available
+        return (
+            filter(lambda x: x not in already_processed, plugins.keys()),
+            filter(lambda x: x in already_processed, plugins.keys())
+        )
 
     def _get_analysis_view(self, selected_analysis):
         if selected_analysis == 'unpacker':
