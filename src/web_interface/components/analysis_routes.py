@@ -1,9 +1,8 @@
-
 import json
 import os
 
 from common_helper_files import get_binary_from_file
-from flask import render_template, render_template_string, request
+from flask import render_template, render_template_string, request, flash
 from flask_login.utils import current_user
 from helperFunctions.dataConversion import none_to_none
 from helperFunctions.fileSystem import get_src_dir
@@ -55,12 +54,14 @@ class AnalysisRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['view_analysis'])
     def _show_analysis_results(self, uid, selected_analysis=None, root_uid=None):
         if request.method == 'POST':  # Start single file analysis
-            # FIXME This introduces a privilege issue, since it can not be directly differentiated between post and get
-            with ConnectTo(FrontEndDbInterface, self._config) as database:
-                file_object = database.get_object(uid)
-            file_object.scheduled_analysis = request.form.getlist('analysis_systems')
-            with ConnectTo(InterComFrontEndBinding, self._config) as intercom:
-                intercom.add_single_file_task(file_object)
+            if user_has_privilege(current_user, privilege='submit_analysis'):
+                with ConnectTo(FrontEndDbInterface, self._config) as database:
+                    file_object = database.get_object(uid)
+                file_object.scheduled_analysis = request.form.getlist('analysis_systems')
+                with ConnectTo(InterComFrontEndBinding, self._config) as intercom:
+                    intercom.add_single_file_task(file_object)
+            else:
+                flash('You have insufficient rights to add additional analysis')
 
         other_versions = None
         with ConnectTo(CompareDbInterface, self._config) as db_service:
