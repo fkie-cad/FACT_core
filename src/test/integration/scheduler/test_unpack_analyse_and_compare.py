@@ -1,8 +1,7 @@
 import gc
-import unittest
 from multiprocessing import Event, Value
 from tempfile import TemporaryDirectory
-from unittest.mock import patch
+from unittest import TestCase, mock
 
 from helperFunctions.dataConversion import normalize_compare_id
 from helperFunctions.fileSystem import get_test_data_dir
@@ -18,9 +17,9 @@ from test.common_helper import clean_test_database, get_database_names
 from test.integration.common import MockFSOrganizer, initialize_config
 
 
-class TestFileAddition(unittest.TestCase):
+class TestFileAddition(TestCase):
 
-    @patch('unpacker.unpack.FS_Organizer', MockFSOrganizer)
+    @mock.patch('unpacker.unpack.FS_Organizer', MockFSOrganizer)
     def setUp(self):
         self._tmp_dir = TemporaryDirectory()
         self._config = initialize_config(self._tmp_dir)

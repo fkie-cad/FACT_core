@@ -17,10 +17,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import sys
-import os
 import argparse
 import logging
+import os
+import sys
 from pathlib import Path
 
 try:
@@ -158,7 +158,7 @@ if __name__ == '__main__':
         if args.db or none_chosen:
             db(distribution)
         if args.backend or none_chosen:
-            backend(distribution)
+            backend()
 
     if args.statistic_cronjob:
         install_statistic_cronjob()

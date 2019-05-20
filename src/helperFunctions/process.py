@@ -17,10 +17,6 @@ def no_operation(task):  # pylint: disable=unused-argument
     pass
 
 
-def program_is_callable(command):
-    return call('type {}'.format(command), shell=True, stdout=PIPE, stderr=STDOUT) == 0
-
-
 def complete_shutdown(message=None):
     if message is not None:
         logging.error(message)

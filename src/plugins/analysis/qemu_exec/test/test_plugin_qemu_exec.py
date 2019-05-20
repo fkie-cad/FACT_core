@@ -1,7 +1,6 @@
 # pylint: disable=protected-access, no-self-use,wrong-import-order,invalid-name,unused-argument,redefined-outer-name
 import os
 from base64 import b64decode, b64encode
-from contextlib import suppress
 from pathlib import Path
 from unittest import TestCase
 
@@ -40,6 +39,10 @@ class MockUnpacker:
 
     def set_tmp_dir(self, tmp_dir):
         self.tmp_dir = tmp_dir
+
+    @staticmethod
+    def get_extracted_files_dir(base_dir):
+        return Path(base_dir)
 
 
 @pytest.fixture
@@ -109,10 +112,11 @@ class TestPluginQemuExec(AnalysisPluginTest):
         assert self.analysis_plugin._has_relevant_type({'mime': 'application/x-executable'}) is True
 
     def test_find_relevant_files(self):
-        tmp_dir = MockTmpDir(TEST_DATA_DIR)
+        tmp_dir = MockTmpDir(str(TEST_DATA_DIR))
+
         self.analysis_plugin.root_path = tmp_dir.name
         self.analysis_plugin.unpacker.set_tmp_dir(tmp_dir)
-        result = sorted(self.analysis_plugin._find_relevant_files(tmp_dir))
+        result = sorted(self.analysis_plugin._find_relevant_files(Path(tmp_dir.name)))
         assert len(result) == 4
 
         path_list, mime_types = list(zip(*result))
@@ -185,6 +189,7 @@ class TestPluginQemuExec(AnalysisPluginTest):
 
     @pytest.mark.usefixtures('docker_is_running')
     def test_process_object__error(self):
+        test_fw = self._set_up_fw_for_process_object(path=Path(TEST_DATA_DIR, 'usr'))
         test_fw = self._set_up_fw_for_process_object(path=TEST_DATA_DIR / 'usr')
 
         self.analysis_plugin.process_object(test_fw)
@@ -247,7 +252,7 @@ class TestPluginQemuExec(AnalysisPluginTest):
     def _set_up_fw_for_process_object(self, path: Path = TEST_DATA_DIR):
         test_fw = create_test_firmware()
         test_fw.files_included = ['foo', 'bar']
-        self.analysis_plugin.unpacker.set_tmp_dir(MockTmpDir(path))
+        self.analysis_plugin.unpacker.set_tmp_dir(MockTmpDir(str(path)))
         return test_fw
 
 
@@ -449,7 +454,7 @@ class TestQemuExecUnpacker(TestCase):
 
         try:
             assert self.name_prefix in tmp_dir.name
-            content = os.listdir(tmp_dir.name)
+            content = os.listdir(str(Path(tmp_dir.name, 'files')))
             assert content != []
             assert 'get_files_test' in content
         finally:
@@ -463,7 +468,7 @@ class TestQemuExecUnpacker(TestCase):
 
         try:
             assert self.name_prefix in tmp_dir.name
-            content = os.listdir(tmp_dir.name)
+            content = os.listdir(str(Path(tmp_dir.name, 'files')))
             assert content != []
             assert 'get_files_test' in content
         finally:
@@ -475,8 +480,6 @@ class TestQemuExecUnpacker(TestCase):
         tmp_dir = self.unpacker.unpack_fo(test_fw)
 
         assert tmp_dir is None
-        with suppress(AttributeError):
-            tmp_dir.cleanup()
 
     def test_unpack_fo__binary_not_found(self):
         test_fw = create_test_firmware()
@@ -485,8 +488,6 @@ class TestQemuExecUnpacker(TestCase):
         tmp_dir = self.unpacker.unpack_fo(test_fw)
 
         assert tmp_dir is None
-        with suppress(AttributeError):
-            tmp_dir.cleanup()
 
 
 class MockBinaryService:
