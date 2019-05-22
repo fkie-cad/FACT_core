@@ -86,7 +86,7 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBase):
     def _check_ajax_file_tree_routes(self):
         rv = self.test_client.get('/ajax_tree/{}/{}'.format(self.test_fw_a.uid, self.test_fw_a.uid))
         self.assertIn(b'"children":', rv.data)
-        rv = self.test_client.get('/ajax_root/{}'.format(self.test_fw_a.uid))
+        rv = self.test_client.get('/ajax_root/{}/{}'.format(self.test_fw_a.uid, self.test_fw_a.uid))
         self.assertIn(b'"children":', rv.data)
 
     def _check_ajax_on_demand_binary_load(self):
