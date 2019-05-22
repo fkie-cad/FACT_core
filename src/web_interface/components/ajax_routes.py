@@ -19,7 +19,7 @@ from web_interface.security.privileges import PRIVILEGES
 class AjaxRoutes(ComponentBase):
     def _init_component(self):
         self._app.add_url_rule('/ajax_tree/<uid>/<root_uid>', '/ajax_tree/<uid>/<root_uid>', self._ajax_get_tree_children)
-        self._app.add_url_rule('/ajax_root/<uid>', 'ajax_root/<uid>', self._ajax_get_tree_root)
+        self._app.add_url_rule('/ajax_root/<uid>/<root_uid>', 'ajax_root/<uid>/<root_uid>', self._ajax_get_tree_root)
         self._app.add_url_rule('/compare/ajax_tree/<compare_id>/<root_uid>/<uid>', 'compare/ajax_tree/<compare_id>/<root_uid>/<uid>',
                                self._ajax_get_tree_children)
         self._app.add_url_rule('/compare/ajax_common_files/<compare_id>/<feature_id>/', 'compare/ajax_common_files/<compare_id>/<feature_id>/',
@@ -54,10 +54,10 @@ class AjaxRoutes(ComponentBase):
         return jsonify(children)
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
-    def _ajax_get_tree_root(self, uid):
+    def _ajax_get_tree_root(self, uid, root_uid):
         root = list()
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
-            for node in sc.generate_file_tree_node(uid, uid):  # only a single item in this 'iterable'
+            for node in sc.generate_file_tree_node(uid, root_uid):  # only a single item in this 'iterable'
                 root = [self._generate_jstree_node(node)]
         return jsonify(root)
 

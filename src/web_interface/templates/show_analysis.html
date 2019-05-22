@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+l{% extends "base.html" %}
 
 {% set active_page = "Database" %}
 
@@ -240,7 +240,7 @@
                                 'data' : {
                                   'url' : function (node) {
                                     return node.id === '#' ?
-                                        "/ajax_root/{{ uid|safe }}" : "/ajax_tree/" + node["data"]["uid"] + "/{{ root_uid|safe }}";
+                                        "/ajax_root/{{ uid|safe }}/{{ root_uid | safe }}" : "/ajax_tree/" + node["data"]["uid"] + "/{{ root_uid|safe }}";
                                   }
                                 }
                               },
