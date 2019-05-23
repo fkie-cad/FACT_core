@@ -1,6 +1,10 @@
 <td class="active clickable" onclick="location.href='/analysis/{{ firmware[0] }}'">
-	{{ firmware[1] }}
-    {{ firmware[2] | render_tags(additional_class='pull-right') | safe}}
+    <a href='/analysis/{{ firmware[0] }}' style="color: rgb(51, 51, 51);">
+        <div style="width: 100%; height: 100%;">
+            {{ firmware[1] }}
+            {{ firmware[2] | render_tags(additional_class='pull-right') | safe}}
+        </div>
+    </a>
     <div><font face="courier"  style="font-size:12px">{{ firmware[0] }}</font>
     	<a href="/download/{{ firmware[0] }}" class="glyphicon glyphicon-download-alt pull-right"></a>
     </div>
