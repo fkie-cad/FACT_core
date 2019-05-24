@@ -1,6 +1,9 @@
 import logging
+from contextlib import suppress
 from time import time
 from typing import Optional
+
+from pymongo.errors import PyMongoError
 
 from helperFunctions.dataConversion import (
     convert_compare_id_to_list, convert_uid_list_to_compare_id,
@@ -25,10 +28,8 @@ class CompareDbInterface(MongoInterfaceCommon):
     def add_compare_result(self, compare_result):
         compare_result['_id'] = self._calculate_compare_result_id(compare_result)
         compare_result['submission_date'] = time()
-        try:
+        with suppress(PyMongoError):
             self.compare_results.delete_one({'_id': compare_result['_id']})
-        except Exception:
-            pass
         self.compare_results.insert_one(compare_result)
         logging.info('compare result added to db: {}'.format(compare_result['_id']))
 

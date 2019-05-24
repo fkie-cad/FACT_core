@@ -1,5 +1,4 @@
 #! /usr/bin/env python3
-# -*- coding: utf-8 -*-
 '''
     Firmware Analysis and Comparison Tool (FACT)
     Copyright (C) 2015-2018  Fraunhofer FKIE
@@ -20,7 +19,9 @@
 
 import os
 import subprocess
+from shlex import split
 from tempfile import NamedTemporaryFile
+
 from common_helper_files import get_files_in_dir, get_dirs_in_dir
 
 from helperFunctions.fileSystem import get_src_dir
@@ -45,7 +46,8 @@ def _get_plugin_name(plugin_path):
 def _create_compiled_signature_file(directory, tmp_file):
     target_path = os.path.join(SIGNATURE_DIR, '{}.yc'.format(_get_plugin_name(directory)))
     try:
-        subprocess.run('yarac -d test_flag=false {} {}'.format(tmp_file.name, target_path), shell=True, check=True)
+        command = 'yarac -d test_flag=false {} {}'.format(tmp_file.name, target_path)
+        subprocess.run(split(command), check=True)
     except subprocess.CalledProcessError:
         print('[ERRROR] Creation of {} failed !!'.format(os.path.split(target_path)[0]))
 

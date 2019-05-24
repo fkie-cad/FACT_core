@@ -5,12 +5,11 @@ import signal
 import traceback
 from contextlib import suppress
 from multiprocessing import pool, Process, Pipe
-from subprocess import call, PIPE, STDOUT
 
 import psutil
 
 
-def no_operation(task):  # pylint: disable=unused-argument
+def no_operation(*_):
     '''
     No Operation
     '''

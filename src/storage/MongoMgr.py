@@ -1,5 +1,6 @@
 import logging
 import os
+from shlex import split
 from subprocess import Popen, PIPE, STDOUT
 
 from common_helper_files.file_functions import create_dir_for_file
@@ -62,10 +63,11 @@ class MongoMgr(object):
     def shutdown(self):
         if self.config['data_storage']['mongo_server'] == 'localhost':
             logging.info('stop local mongo database')
-            with Popen('mongo --eval "db.shutdownServer()" {}:{}/admin --username {} --password \'{}\''.format(
-                    self.config['data_storage']['mongo_server'], self.config['data_storage']['mongo_port'],
-                    self.config['data_storage']['db_admin_user'], self.config['data_storage']['db_admin_pw']),
-                    shell=True, stdout=PIPE, stderr=STDOUT) as pl:
+            command = 'mongo --eval "db.shutdownServer()" {}:{}/admin --username {} --password "{}"'.format(
+                self.config['data_storage']['mongo_server'], self.config['data_storage']['mongo_port'],
+                self.config['data_storage']['db_admin_user'], self.config['data_storage']['db_admin_pw']
+            )
+            with Popen(split(command), stdout=PIPE, stderr=STDOUT) as pl:
                 output = pl.communicate()[0].decode()
                 logging.debug(output)
 

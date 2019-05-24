@@ -1,4 +1,5 @@
 from os.path import basename
+from shlex import split
 from subprocess import check_output, CalledProcessError, STDOUT
 from tempfile import NamedTemporaryFile
 
@@ -24,11 +25,8 @@ class YaraBinarySearchScanner:
         :param rule_file_path: file path to yara rule file
         :return: output from yara scan
         '''
-        return check_output(
-            'yara -r {} {}'.format(rule_file_path, self.db_path if target_path is None else target_path),
-            shell=True,
-            stderr=STDOUT
-        )
+        command = 'yara -r {} {}'.format(rule_file_path, self.db_path if target_path is None else target_path)
+        return check_output(split(command), stderr=STDOUT)
 
     def _execute_yara_search_for_single_firmware(self, rule_file_path, firmware_uid):
         with ConnectTo(YaraBinarySearchScannerDbInterface, self.config) as connection:

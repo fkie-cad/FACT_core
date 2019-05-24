@@ -30,7 +30,7 @@ PROGRAM_NAME = 'FACT DB-Service'
 PROGRAM_DESCRIPTION = 'Firmware Analysis and Compare Tool (FACT) DB-Service'
 
 
-def shutdown(signum, frame):
+def shutdown(*_):
     global run
     logging.info('shutting down {}...'.format(PROGRAM_NAME))
     run = False

@@ -35,17 +35,17 @@ class StatisticUpdater(object):
     def update_all_stats(self):
         self.start_time = time()
 
-        self.db.update_statistic('firmware_meta', self._get_firmware_meta_stats())
-        self.db.update_statistic('file_type', self._get_file_type_stats())
-        self.db.update_statistic('malware', self._get_malware_stats())
-        self.db.update_statistic('crypto_material', self._get_crypto_material_stats())
-        self.db.update_statistic('unpacking', self._get_unpacking_stats())
-        self.db.update_statistic('architecture', self._get_architecture_stats())
-        self.db.update_statistic('ips_and_uris', self._get_ip_stats())
-        self.db.update_statistic('release_date', self._get_time_stats())
-        self.db.update_statistic('exploit_mitigations', self._get_exploit_mitigations_stats())
-        self.db.update_statistic('known_vulnerabilities', self._get_known_vulnerabilities_stats())
-        self.db.update_statistic('software_components', self._get_software_components_stats())
+        self.db.update_statistic('firmware_meta', self.get_firmware_meta_stats())
+        self.db.update_statistic('file_type', self.get_file_type_stats())
+        self.db.update_statistic('malware', self.get_malware_stats())
+        self.db.update_statistic('crypto_material', self.get_crypto_material_stats())
+        self.db.update_statistic('unpacking', self.get_unpacking_stats())
+        self.db.update_statistic('architecture', self.get_architecture_stats())
+        self.db.update_statistic('ips_and_uris', self.get_ip_stats())
+        self.db.update_statistic('release_date', self.get_time_stats())
+        self.db.update_statistic('exploit_mitigations', self.get_exploit_mitigations_stats())
+        self.db.update_statistic('known_vulnerabilities', self.get_known_vulnerabilities_stats())
+        self.db.update_statistic('software_components', self.get_software_components_stats())
         # should always be the last, because of the benchmark
         self.db.update_statistic('general', self.get_general_stats())
 
@@ -78,14 +78,14 @@ class StatisticUpdater(object):
         logging.info('time to create stats: {}'.format(time_format(benchmark)))
         return stats
 
-    def _get_malware_stats(self):
+    def get_malware_stats(self):
         stats = {}
         result = self._get_objects_and_count_of_occurrence_firmware_and_file_db(
             '$processed_analysis.malware_scanner.scans.ClamAV.result', unwind=False, match=self.match)
         stats['malware'] = self._clean_malware_list(result)
         return stats
 
-    def _get_exploit_mitigations_stats(self):
+    def get_exploit_mitigations_stats(self):
         stats = dict()
         stats['exploit_mitigations'] = []
         aggregation_pipeline = self._get_file_object_filter_aggregation_pipeline(
@@ -196,14 +196,14 @@ class StatisticUpdater(object):
         rounded_value = round(exploit_mitigation_stat[0][1] / total_amount_of_files, 5)
         return rounded_value
 
-    def _get_known_vulnerabilities_stats(self):
+    def get_known_vulnerabilities_stats(self):
         stats = {}
         result = self._get_objects_and_count_of_occurrence_firmware_and_file_db(
             '$processed_analysis.known_vulnerabilities.summary', unwind=True, match=self.match)
         stats['known_vulnerabilities'] = self._clean_malware_list(result)
         return stats
 
-    def _get_crypto_material_stats(self):
+    def get_crypto_material_stats(self):
         stats = {}
         result = self._get_objects_and_count_of_occurrence_firmware_and_file_db(
             '$processed_analysis.crypto_material.summary', unwind=True, match=self.match)
@@ -218,20 +218,20 @@ class StatisticUpdater(object):
                 tmp.append(item)
         return tmp
 
-    def _get_firmware_meta_stats(self):
-        stats = {}
-        stats['vendor'] = self._get_objects_and_count_of_occurrence_single_db(self.db.firmwares, '$vendor', match=self.match)
-        stats['device_class'] = self._get_objects_and_count_of_occurrence_single_db(self.db.firmwares, '$device_class', match=self.match)
-        return stats
+    def get_firmware_meta_stats(self):
+        return {
+            'vendor': self._get_objects_and_count_of_occurrence_single_db(self.db.firmwares, '$vendor', match=self.match),
+            'device_class': self._get_objects_and_count_of_occurrence_single_db(self.db.firmwares, '$device_class', match=self.match)
+        }
 
-    def _get_file_type_stats(self):
+    def get_file_type_stats(self):
         stats = {}
         if not self.match:
             stats['file_types'] = self._get_objects_and_count_of_occurrence_single_db(self.db.file_objects, '$processed_analysis.file_type.mime')
         stats['firmware_container'] = self._get_objects_and_count_of_occurrence_single_db(self.db.firmwares, '$processed_analysis.file_type.mime', match=self.match)
         return stats
 
-    def _get_unpacking_stats(self):
+    def get_unpacking_stats(self):
         stats = {}
         stats['used_unpackers'] = self._get_objects_and_count_of_occurrence_firmware_and_file_db('$processed_analysis.unpacker.plugin_used')
         stats['packed_file_types'] = self._get_objects_and_count_of_occurrence_single_db(self.db.file_objects, '$processed_analysis.file_type.mime', match={'processed_analysis.unpacker.summary': 'packed'})
@@ -266,7 +266,7 @@ class StatisticUpdater(object):
             aggregation_pipeline.append({'$sort': SON([('_id', 1)])})
         return aggregation_pipeline
 
-    def _get_architecture_stats(self):
+    def get_architecture_stats(self):
         stats = {}
         aggregation_pipeline = self._get_file_object_filter_aggregation_pipeline(
             pipeline_group={'_id': '$parent_firmware_uids', 'architecture': {'$push': '$processed_analysis.cpu_architecture.summary'}},
@@ -303,11 +303,15 @@ class StatisticUpdater(object):
             # short string (without bitness and endianness but with ' (M)' at the end)
             return s[:-4]
 
-    def _get_ip_stats(self):
-        stats = {}
-        stats['ips_v4'] = self._get_objects_and_count_of_occurrence_firmware_and_file_db('$processed_analysis.ip_and_uri_finder.ips_v4', unwind=True, sumup_function=sum_up_nested_lists)
-        stats['ips_v6'] = self._get_objects_and_count_of_occurrence_firmware_and_file_db('$processed_analysis.ip_and_uri_finder.ips_v6', unwind=True, sumup_function=sum_up_nested_lists)
-        stats['uris'] = self._get_objects_and_count_of_occurrence_firmware_and_file_db('$processed_analysis.ip_and_uri_finder.uris', unwind=True)
+    def get_ip_stats(self):
+        stats = {
+            'ips_v4': self._get_objects_and_count_of_occurrence_firmware_and_file_db(
+                '$processed_analysis.ip_and_uri_finder.ips_v4', unwind=True, sumup_function=sum_up_nested_lists),
+            'ips_v6': self._get_objects_and_count_of_occurrence_firmware_and_file_db(
+                '$processed_analysis.ip_and_uri_finder.ips_v6', unwind=True, sumup_function=sum_up_nested_lists),
+            'uris': self._get_objects_and_count_of_occurrence_firmware_and_file_db(
+                '$processed_analysis.ip_and_uri_finder.uris', unwind=True)
+        }
         return stats
 
     @staticmethod
@@ -322,7 +326,7 @@ class StatisticUpdater(object):
         except ZeroDivisionError:
             return 0
 
-    def _get_time_stats(self):
+    def get_time_stats(self):
         projection = {'month': {'$month': '$release_date'}, 'year': {'$year': '$release_date'}}
         query = get_objects_and_count_of_occurrence(self.db.firmwares, projection, match=self.match)
         histogram_data = self._build_stats_entry_from_date_query(query)
@@ -332,7 +336,7 @@ class StatisticUpdater(object):
     def _get_month_name(month_int):
         return datetime(1900, month_int, 1).strftime('%B')
 
-    def _get_software_components_stats(self):
+    def get_software_components_stats(self):
         query_result = self.db.file_objects.aggregate([
             {'$project': {'sc': {'$objectToArray': '$processed_analysis.software_components'}}},
             {'$match': {'sc.4': {'$exists': True}}},  # match only analyses with actual results (more keys than the 4 standard keys)
@@ -345,7 +349,6 @@ class StatisticUpdater(object):
             for entry in query_result
             if entry['_id'] not in ['summary', 'analysis_date', 'file_system_flag', 'plugin_version', 'tags', 'skipped', 'system_version']
         ]}
-
 
 # ---- internal stuff
 

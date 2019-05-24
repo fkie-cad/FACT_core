@@ -48,7 +48,9 @@ def _create_variety_data(config):
     return return_code
 
 
-def main(command_line_options=sys.argv):
+def main(command_line_options=None):
+    if command_line_options is None:
+        command_line_options = sys.argv
     args, config = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION, command_line_options=command_line_options)
 
     logging.info('Try to start Mongo Server...')

@@ -22,6 +22,7 @@ import pickle
 import signal
 import sys
 import tempfile
+from shlex import split
 from subprocess import Popen, TimeoutExpired, PIPE
 from time import sleep
 
@@ -54,19 +55,20 @@ signal.signal(signal.SIGTERM, shutdown)
 
 def start_uwsgi_server(config_path=None):
     config_parameter = ' --pyargv {}'.format(config_path) if config_path else ''
-    p = Popen('(cd {} && uwsgi --ini  {}/uwsgi_config.ini{})'.format(get_src_dir(), get_config_dir(), config_parameter), shell=True)
-    return p
+    command = 'uwsgi --ini  {}/uwsgi_config.ini{}'.format(get_config_dir(), config_parameter)
+    process = Popen(split(command), cwd=get_src_dir())
+    return process
 
 
 def start_docker():
     command = 'docker-compose -f {}/install/radare/docker-compose.yml up -d'.format(get_src_dir())
-    with Popen(command, shell=True, stdout=PIPE, stderr=PIPE) as docker_process:
+    with Popen(split(command), stdout=PIPE, stderr=PIPE) as docker_process:
         docker_process.communicate()
 
 
 def stop_docker():
     command = 'docker-compose -f {}/install/radare/docker-compose.yml down'.format(get_src_dir())
-    with Popen(command, shell=True, stdout=PIPE, stderr=PIPE) as docker_process:
+    with Popen(split(command), stdout=PIPE, stderr=PIPE) as docker_process:
         docker_process.communicate()
 
 
