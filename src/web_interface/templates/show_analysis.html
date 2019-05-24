@@ -207,7 +207,7 @@
 
     <div class="col-lg-6">
         <table class="table table-bordered table-hover result">
-            <th class="success"> Analysis Results </th>
+            <th class="success">Analysis Results</th>
 
             {% for analysis_plugin in firmware.processed_analysis|sort %}
                 <tr>
@@ -247,15 +247,10 @@
                                         </div>
                                     {% endfor %}
                                     <div style="padding: 15px">
-                                        <button type="submit" id="add_single_file_analysis" value=submit>Add</button>
+                                        <button class="btn btn-default" type="submit" id="add_single_file_analysis" value=submit>Add</button>
                                     </div>
                                 </form>
                             </div>
-
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                            </div>
-
                         </div>
                     </div>
                 </div>
