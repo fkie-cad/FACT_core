@@ -73,7 +73,7 @@ def test_scheduler(test_config, finished_event, intermediate_event):
             intermediate_event.set()
 
     analyzer = AnalysisScheduler(test_config, pre_analysis=count_pre_analysis, db_interface=interface)
-    unpacker = UnpackingScheduler(config=test_config, post_unpack=analyzer.add_task)
+    unpacker = UnpackingScheduler(config=test_config, post_unpack=analyzer.start_analysis_of_object)
     intercom = InterComBackEndBinding(config=test_config, analysis_service=analyzer, unpacking_service=unpacker, compare_service=MockScheduler())
     yield unpacker
     intercom.shutdown()
@@ -84,7 +84,7 @@ def test_scheduler(test_config, finished_event, intermediate_event):
 def add_test_file_and_wait(test_scheduler, path_in_test_dir):
     firmware = Firmware(file_path=str(Path(get_test_data_dir(), path_in_test_dir)))
     firmware.set_release_date('1990-01-16')
-    test_scheduler.add_task(firmware)
+    test_scheduler.start_analysis_of_object(firmware)
 
 
 def test_check_collision(test_app, test_scheduler, finished_event, intermediate_event):

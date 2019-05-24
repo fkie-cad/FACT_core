@@ -48,7 +48,7 @@ if __name__ == '__main__':
     args, config = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION)
     analysis_service = AnalysisScheduler(config=config)
     tagging_service = TaggingDaemon(analysis_scheduler=analysis_service)
-    unpacking_service = UnpackingScheduler(config=config, post_unpack=analysis_service.add_task, analysis_workload=analysis_service.get_scheduled_workload)
+    unpacking_service = UnpackingScheduler(config=config, post_unpack=analysis_service.start_analysis_of_object, analysis_workload=analysis_service.get_scheduled_workload)
     compare_service = CompareScheduler(config=config)
     intercom = InterComBackEndBinding(config=config, analysis_service=analysis_service, compare_service=compare_service, unpacking_service=unpacking_service)
     work_load_stat = WorkLoadStatistic(config=config)

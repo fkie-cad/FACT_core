@@ -60,25 +60,28 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         self.process_queue.close()
         logging.info('Analysis System offline')
 
-    def add_update_task(self, fo: FileObject):
+    def update_analysis_of_object_and_childs(self, fo: FileObject):
+        '''
+        This function is used to recursively analyze an object without need of the unpacker
+        '''
         for included_file in self.db_backend_service.get_list_of_all_included_files(fo):
             child = self.db_backend_service.get_object(included_file)
-            self._task(child, fo.scheduled_analysis)
+            self._schedule_analysis_tasks(child, fo.scheduled_analysis)
         self.check_further_process_or_complete(fo)
 
-    def add_task(self, fo: FileObject):
+    def start_analysis_of_object(self, fo: FileObject):
         '''
         This function should be used to add a new firmware object to the scheduler
         '''
-        self._task(fo, fo.scheduled_analysis, mandatory=True)
+        self._schedule_analysis_tasks(fo, fo.scheduled_analysis, mandatory=True)
 
-    def single_file_task(self, fo: FileObject):
+    def update_analysis_of_single_object(self, fo: FileObject):
         '''
         This function is used to add analysis tasks for a single file
         '''
-        self._task(fo, fo.scheduled_analysis)
+        self._schedule_analysis_tasks(fo, fo.scheduled_analysis)
 
-    def _task(self, fo, scheduled_analysis, mandatory=False):
+    def _schedule_analysis_tasks(self, fo, scheduled_analysis, mandatory=False):
         scheduled_analysis = self._add_dependencies_recursively(copy(scheduled_analysis) or [])
         fo.scheduled_analysis = self._smart_shuffle(scheduled_analysis + MANDATORY_PLUGINS if mandatory else scheduled_analysis)
         self.check_further_process_or_complete(fo)
