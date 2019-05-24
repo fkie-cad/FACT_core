@@ -48,13 +48,13 @@ class AnalysisServiceMock:
     def __init__(self, config=None):
         pass
 
-    def add_update_task(self, fo):
+    def update_analysis_of_object_and_childs(self, fo):
         pass
 
     def get_plugin_dict(self):  # pylint: disable=no-self-use
         return {}
 
-    def single_file_task(self, fw):
+    def update_analysis_of_single_object(self, fw):
         pass
 
 
