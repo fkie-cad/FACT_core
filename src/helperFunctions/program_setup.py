@@ -28,8 +28,7 @@ from version import __VERSION__
 
 
 def program_setup(name, description, version=__VERSION__, command_line_options=None):
-    if not command_line_options:
-        command_line_options = sys.argv
+    command_line_options = sys.argv if not command_line_options else command_line_options
     args = _setup_argparser(name, description, command_line_options=command_line_options, version=version)
     config = _load_config(args)
     _setup_logging(config, args)
@@ -51,8 +50,7 @@ def _setup_argparser(name, description, command_line_options, version=__VERSION_
 def _get_console_output_level(debug_flag):
     if debug_flag:
         return logging.DEBUG
-    else:
-        return logging.INFO
+    return logging.INFO
 
 
 def _setup_logging(config, args):

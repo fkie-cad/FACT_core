@@ -23,8 +23,10 @@ import signal
 import sys
 import tempfile
 from shlex import split
-from subprocess import Popen, TimeoutExpired, PIPE
+from subprocess import Popen, TimeoutExpired
 from time import sleep
+
+from common_helper_process import execute_shell_command
 
 from helperFunctions.config import get_config_dir
 from helperFunctions.fileSystem import get_src_dir
@@ -61,15 +63,11 @@ def start_uwsgi_server(config_path=None):
 
 
 def start_docker():
-    command = 'docker-compose -f {}/install/radare/docker-compose.yml up -d'.format(get_src_dir())
-    with Popen(split(command), stdout=PIPE, stderr=PIPE) as docker_process:
-        docker_process.communicate()
+    execute_shell_command('docker-compose -f {}/install/radare/docker-compose.yml up -d'.format(get_src_dir()))
 
 
 def stop_docker():
-    command = 'docker-compose -f {}/install/radare/docker-compose.yml down'.format(get_src_dir())
-    with Popen(split(command), stdout=PIPE, stderr=PIPE) as docker_process:
-        docker_process.communicate()
+    execute_shell_command('docker-compose -f {}/install/radare/docker-compose.yml down'.format(get_src_dir()))
 
 
 if __name__ == '__main__':

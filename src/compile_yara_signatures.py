@@ -18,11 +18,11 @@
 '''
 
 import os
-import subprocess
-from shlex import split
+from subprocess import CalledProcessError
 from tempfile import NamedTemporaryFile
 
 from common_helper_files import get_files_in_dir, get_dirs_in_dir
+from common_helper_process import execute_shell_command
 
 from helperFunctions.fileSystem import get_src_dir
 
@@ -47,8 +47,8 @@ def _create_compiled_signature_file(directory, tmp_file):
     target_path = os.path.join(SIGNATURE_DIR, '{}.yc'.format(_get_plugin_name(directory)))
     try:
         command = 'yarac -d test_flag=false {} {}'.format(tmp_file.name, target_path)
-        subprocess.run(split(command), check=True)
-    except subprocess.CalledProcessError:
+        execute_shell_command(command, check=True)
+    except CalledProcessError:
         print('[ERRROR] Creation of {} failed !!'.format(os.path.split(target_path)[0]))
 
 

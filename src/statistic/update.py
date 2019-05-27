@@ -1,12 +1,12 @@
+import itertools
 import logging
 import sys
+from datetime import datetime
+from time import time
 
-import itertools
 from bson.son import SON
 from common_helper_filter.time import time_format
 from common_helper_mongo import get_field_average, get_field_sum, get_objects_and_count_of_occurrence
-from datetime import datetime
-from time import time
 
 from helperFunctions.dataConversion import build_time_dict
 from helperFunctions.merge_generators import sum_up_lists, sum_up_nested_lists, avg, merge_dict
@@ -15,7 +15,7 @@ from helperFunctions.statistic import calculate_total_files
 from storage.db_interface_statistic import StatisticDbUpdater
 
 
-class StatisticUpdater(object):
+class StatisticUpdater:
     '''
     This class handles statistic generation
     '''
@@ -54,10 +54,11 @@ class StatisticUpdater(object):
     def get_general_stats(self):
         if self.start_time is None:
             self.start_time = time()
-        stats = {}
-        stats['number_of_firmwares'] = self.db.firmwares.count_documents(self.match)
-        stats['total_firmware_size'] = get_field_sum(self.db.firmwares, '$size', match=self.match)
-        stats['average_firmware_size'] = get_field_average(self.db.firmwares, '$size', match=self.match)
+        stats = {
+            'number_of_firmwares': self.db.firmwares.count_documents(self.match),
+            'total_firmware_size': get_field_sum(self.db.firmwares, '$size', match=self.match),
+            'average_firmware_size': get_field_average(self.db.firmwares, '$size', match=self.match)
+        }
         if not self.match:
             stats['number_of_unique_files'] = self.db.file_objects.count_documents({})
             stats['total_file_size'] = get_field_sum(self.db.file_objects, '$size')
@@ -185,11 +186,9 @@ class StatisticUpdater(object):
     def update_result_dict(self, exploit_mitigation, stats, total_amount_of_files):
         if len(exploit_mitigation) > 0 and total_amount_of_files > 0:
             percentage_value = self._round(exploit_mitigation, total_amount_of_files)
-            stats['exploit_mitigations'].append((exploit_mitigation[0][0],
-                                                 exploit_mitigation[0][1],
-                                                 percentage_value))
-        else:
-            pass
+            stats['exploit_mitigations'].append(
+                (exploit_mitigation[0][0], exploit_mitigation[0][1], percentage_value)
+            )
 
     @staticmethod
     def _round(exploit_mitigation_stat, total_amount_of_files):
@@ -232,19 +231,21 @@ class StatisticUpdater(object):
         return stats
 
     def get_unpacking_stats(self):
-        stats = {}
-        stats['used_unpackers'] = self._get_objects_and_count_of_occurrence_firmware_and_file_db('$processed_analysis.unpacker.plugin_used')
-        stats['packed_file_types'] = self._get_objects_and_count_of_occurrence_single_db(self.db.file_objects, '$processed_analysis.file_type.mime', match={'processed_analysis.unpacker.summary': 'packed'})
-        stats['data_loss_file_types'] = self._get_objects_and_count_of_occurrence_firmware_and_file_db('$processed_analysis.file_type.mime', match={'processed_analysis.unpacker.summary': 'data lost'})
         fo_packing_stats = dict(self._get_objects_and_count_of_occurrence_single_db(self.db.file_objects, '$processed_analysis.unpacker.summary', unwind=True))
         firmware_packing_stats = dict(self._get_objects_and_count_of_occurrence_single_db(self.db.file_objects, '$processed_analysis.unpacker.summary', unwind=True))
-        stats['overall_unpack_ratio'] = self._get_ratio(fo_packing_stats, firmware_packing_stats, ['unpacked', 'packed'])
-        stats['overall_data_loss_ratio'] = self._get_ratio(fo_packing_stats, firmware_packing_stats, ['data lost', 'no data lost'])
-        stats['average_packed_entropy'] = avg(dict(self._get_objects_and_count_of_occurrence_single_db(
-            self.db.file_objects, '$processed_analysis.unpacker.entropy', unwind=True, match={'processed_analysis.unpacker.summary': 'packed'})).keys())
-        stats['average_unpacked_entropy'] = avg(dict(self._get_objects_and_count_of_occurrence_single_db(
-            self.db.file_objects, '$processed_analysis.unpacker.entropy', unwind=True, match={'processed_analysis.unpacker.summary': 'unpacked'})).keys())
-        return stats
+        return {
+            'used_unpackers': self._get_objects_and_count_of_occurrence_firmware_and_file_db('$processed_analysis.unpacker.plugin_used'),
+            'packed_file_types': self._get_objects_and_count_of_occurrence_single_db(
+                self.db.file_objects, '$processed_analysis.file_type.mime', match={'processed_analysis.unpacker.summary': 'packed'}),
+            'data_loss_file_types': self._get_objects_and_count_of_occurrence_firmware_and_file_db(
+                '$processed_analysis.file_type.mime', match={'processed_analysis.unpacker.summary': 'data lost'}),
+            'overall_unpack_ratio': self._get_ratio(fo_packing_stats, firmware_packing_stats, ['unpacked', 'packed']),
+            'overall_data_loss_ratio': self._get_ratio(fo_packing_stats, firmware_packing_stats, ['data lost', 'no data lost']),
+            'average_packed_entropy': avg(dict(self._get_objects_and_count_of_occurrence_single_db(
+                self.db.file_objects, '$processed_analysis.unpacker.entropy', unwind=True, match={'processed_analysis.unpacker.summary': 'packed'})).keys()),
+            'average_unpacked_entropy': avg(dict(self._get_objects_and_count_of_occurrence_single_db(
+                self.db.file_objects, '$processed_analysis.unpacker.entropy', unwind=True, match={'processed_analysis.unpacker.summary': 'unpacked'})).keys())
+        }
 
     def _get_file_object_filter_aggregation_pipeline(self, pipeline_group, pipeline_match=None, additional_projection=None, sort=False, unwind=None):
         aggregation_pipeline = [
@@ -267,7 +268,6 @@ class StatisticUpdater(object):
         return aggregation_pipeline
 
     def get_architecture_stats(self):
-        stats = {}
         aggregation_pipeline = self._get_file_object_filter_aggregation_pipeline(
             pipeline_group={'_id': '$parent_firmware_uids', 'architecture': {'$push': '$processed_analysis.cpu_architecture.summary'}},
             pipeline_match={'processed_analysis.cpu_architecture.summary': {'$exists': True, '$not': {'$size': 0}}},
@@ -275,8 +275,7 @@ class StatisticUpdater(object):
         )
         result = [self._shorten_architecture_string(self._find_most_frequent_architecture(list(itertools.chain.from_iterable(item['architecture']))))
                   for item in self.db.file_objects.aggregate(aggregation_pipeline)]
-        stats['cpu_architecture'] = self._count_occurrences(result)
-        return stats
+        return {'cpu_architecture': self._count_occurrences(result)}
 
     def _find_most_frequent_architecture(self, arch_list):
         try:
@@ -299,12 +298,11 @@ class StatisticUpdater(object):
         if len(string_parts) > 1:
             # long string with bitness and endianness and ' (M)' at the end
             return ','.join(s.split(',')[:2])
-        else:
-            # short string (without bitness and endianness but with ' (M)' at the end)
-            return s[:-4]
+        # short string (without bitness and endianness but with ' (M)' at the end)
+        return s[:-4]
 
     def get_ip_stats(self):
-        stats = {
+        return {
             'ips_v4': self._get_objects_and_count_of_occurrence_firmware_and_file_db(
                 '$processed_analysis.ip_and_uri_finder.ips_v4', unwind=True, sumup_function=sum_up_nested_lists),
             'ips_v6': self._get_objects_and_count_of_occurrence_firmware_and_file_db(
@@ -312,7 +310,6 @@ class StatisticUpdater(object):
             'uris': self._get_objects_and_count_of_occurrence_firmware_and_file_db(
                 '$processed_analysis.ip_and_uri_finder.uris', unwind=True)
         }
-        return stats
 
     @staticmethod
     def _get_ratio(fo_stats, firmware_stats, values):
@@ -378,7 +375,7 @@ class StatisticUpdater(object):
         else:
             tmp = get_objects_and_count_of_occurrence(database, object_path, unwind=unwind, match=merge_dict(match, self.match))
         chart_list = self._convert_dict_list_to_list(tmp)
-        return self._filter_sanitzized_objects(chart_list)
+        return self._filter_sanitized_objects(chart_list)
 
     def _get_objects_and_count_of_occurrence_firmware_and_file_db(self, object_path, unwind=False, match=None, sumup_function=sum_up_lists):
         result_firmwares = self._get_objects_and_count_of_occurrence_single_db(self.db.firmwares, object_path, unwind=unwind, match=match)
@@ -387,7 +384,7 @@ class StatisticUpdater(object):
         return combined_result
 
     @staticmethod
-    def _filter_sanitzized_objects(input_list):
+    def _filter_sanitized_objects(input_list):
         out_list = []
         for item in input_list:
             if not is_sanitized_entry(item[0]):

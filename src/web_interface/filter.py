@@ -342,8 +342,7 @@ def user_has_role(current_user, role):
 
 
 def sort_roles_by_number_of_privileges(roles, privileges=None):
-    if privileges is None:
-        privileges = PRIVILEGES
+    privileges = PRIVILEGES if privileges is None else privileges
     inverted_privileges = {}
     for key, value_list in privileges.items():
         for value in value_list:
