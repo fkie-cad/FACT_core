@@ -1,13 +1,13 @@
-import os
 import sys
-
-from common_helper_files import get_dir_of_file
+from pathlib import Path
 
 from analysis.PluginBase import AnalysisBasePlugin
 
-THIS_FILE_DIR = get_dir_of_file(__file__)
-sys.path.append(os.path.join(THIS_FILE_DIR, '..', 'internal'))
-from string_eval import eval_strings
+try:
+    from ...string_evaluation.internal.string_eval import eval_strings
+except ImportError:
+    sys.path.append(str(Path(__file__).parent / '../internal'))
+    from string_eval import eval_strings
 
 
 class AnalysisPlugin(AnalysisBasePlugin):

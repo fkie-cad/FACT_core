@@ -1,12 +1,14 @@
-import os
 import sys
+from pathlib import Path
 
 from analysis.YaraPluginBase import YaraBasePlugin
 from helperFunctions.tag import TagColor
 
-THIS_FILE = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.join(THIS_FILE, '..', 'internal'))
-from rulebook import evaluate, vulnerabilities
+try:
+    from ..internal.rulebook import evaluate, vulnerabilities
+except ImportError:
+    sys.path.append(str(Path(__file__).parent / '../internal'))
+    from rulebook import evaluate, vulnerabilities
 
 
 class AnalysisPlugin(YaraBasePlugin):
