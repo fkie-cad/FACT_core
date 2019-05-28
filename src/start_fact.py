@@ -21,6 +21,7 @@ import logging
 import os
 import signal
 import sys
+from shlex import split
 from subprocess import Popen, TimeoutExpired
 from time import sleep
 
@@ -47,7 +48,10 @@ def _start_component(component, args):
     if os.path.exists(script_path):
         logging.info('starting {}'.format(component))
         optional_args = _evaluate_optional_args(args)
-        p = Popen('{} -l {} -L {} -C {} {}'.format(script_path, config['Logging']['logFile'], config['Logging']['logLevel'], args.config_file, optional_args), shell=True)
+        command = '{} -l {} -L {} -C {} {}'.format(
+            script_path, config['Logging']['logFile'], config['Logging']['logLevel'], args.config_file, optional_args
+        )
+        p = Popen(split(command))
         return p
     else:
         logging.debug('{} not installed'.format(component))
@@ -64,7 +68,7 @@ def _terminate_process(process):
             process.kill()
 
 
-def shutdown(signum, frame):
+def shutdown(*_):
     global run
     logging.info('shutting down...')
     run = False

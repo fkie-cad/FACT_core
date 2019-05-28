@@ -34,7 +34,7 @@ PROGRAM_NAME = 'FACT Backend'
 PROGRAM_DESCRIPTION = 'Firmware Analysis and Compare Tool (FACT) Backend'
 
 
-def shutdown(signum, frame):
+def shutdown(*_):
     global run
     logging.info('shutting down {}...'.format(PROGRAM_NAME))
     run = False

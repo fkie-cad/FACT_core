@@ -1,12 +1,14 @@
-import gc
+# pylint: disable=protected-access,wrong-import-order
 import unittest
 
+import gc
+
 from helperFunctions.config import get_config_for_testing
+from helperFunctions.statistic import calculate_total_files
 from statistic.update import StatisticUpdater
 from storage.MongoMgr import MongoMgr
 from storage.db_interface_statistic import StatisticDbViewer
 from test.common_helper import get_database_names, clean_test_database
-from helperFunctions.statistic import calculate_total_files
 
 
 class TestStatistic(unittest.TestCase):
@@ -59,7 +61,7 @@ class TestStatistic(unittest.TestCase):
 
     def test_filter_sanitized_entries(self):
         test_list = [['valid', 1], ['sanitized_81abfc7a79c8c1ed85f6b9fc2c5d9a3edc4456c4aecb9f95b4d7a2bf9bf652da_1', 1]]
-        result = self.updater._filter_sanitzized_objects(test_list)
+        result = self.updater._filter_sanitized_objects(test_list)
         self.assertEqual(result, [['valid', 1]])
 
     def test_find_most_frequent_architecture(self):
@@ -109,20 +111,16 @@ class TestStatistic(unittest.TestCase):
                   ('Canary disabled', 700), ('NX enabled', 800), ('PIE disabled', 900), ('Canary enabled', 1000),
                   ('RELRO disabled', 1100)]
 
-        stats = {}
-        stats['exploit_mitigations'] = []
+        stats = {'exploit_mitigations': []}
         self.set_nx_stats_to_dict(result, stats)
 
-        stats = {}
-        stats['exploit_mitigations'] = []
+        stats = {'exploit_mitigations': []}
         self.set_canary_stats_to_dict(result, stats)
 
-        stats = {}
-        stats['exploit_mitigations'] = []
+        stats = {'exploit_mitigations': []}
         self.set_pie_stats_to_dict(result, stats)
 
-        stats = {}
-        stats['exploit_mitigations'] = []
+        stats = {'exploit_mitigations': []}
         self.set_relro_stats_to_dict(result, stats)
 
     def set_nx_stats_to_dict(self, result, stats):
@@ -132,8 +130,7 @@ class TestStatistic(unittest.TestCase):
         total_amount_of_files = calculate_total_files([nx_off, nx_on])
         self.assertEqual(total_amount_of_files, 1000)
         self.updater.append_nx_stats_to_result_dict(nx_off, nx_on, stats, total_amount_of_files)
-        self.assertEqual(stats, {'exploit_mitigations': [('NX enabled', 800, 0.8),
-                                                         ('NX disabled', 200, 0.2)]})
+        self.assertEqual(stats, {'exploit_mitigations': [('NX enabled', 800, 0.8), ('NX disabled', 200, 0.2)]})
 
     def set_canary_stats_to_dict(self, result, stats):
         canary_off, canary_on = self.updater.extract_canary_data_from_analysis(result)
@@ -176,8 +173,7 @@ class TestStatistic(unittest.TestCase):
                   ('RELRO fully enabled', 400), ('PIE enabled', 500), ('RELRO partially enabled', 600),
                   ('Canary disabled', 700), ('NX enabled', 800), ('PIE disabled', 900), ('Canary enabled', 1000),
                   ('RELRO disabled', 1100)]
-        stats = {}
-        stats['exploit_mitigations'] = []
+        stats = {'exploit_mitigations': []}
         self.updater.get_stats_nx(result, stats)
         self.updater.get_stats_canary(result, stats)
         self.updater.get_stats_relro(result, stats)
@@ -200,7 +196,7 @@ class TestStatistic(unittest.TestCase):
         self.assertEqual(self.updater.get_stats_nx(result, stats), None)
 
     def test_fetch_mitigations(self):
-        self.assertEqual(self.updater._get_exploit_mitigations_stats(), {'exploit_mitigations': []})
+        self.assertEqual(self.updater.get_exploit_mitigations_stats(), {'exploit_mitigations': []})
 
     def test_known_vulnerabilities_works(self):
-        self.assertEqual(self.updater._get_known_vulnerabilities_stats(), {'known_vulnerabilities': []})
+        self.assertEqual(self.updater.get_known_vulnerabilities_stats(), {'known_vulnerabilities': []})
