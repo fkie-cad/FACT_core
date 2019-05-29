@@ -59,7 +59,7 @@ def generate_search_terms(product_component: str, input_version: str) -> Tuple[l
                             combinations(range(len(product_terms) + 1), 2)]
     product_search_terms = unbinding(product_search_terms)
 
-    unbound_version = unbinding([input_version])[0]
+    unbound_version = unbinding([input_version])
 
     return product_search_terms, unbound_version
 

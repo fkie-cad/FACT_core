@@ -48,26 +48,22 @@ def setup() -> None:
 
 
 def test_generate_search_terms():
-    result = lookup.generate_search_terms(PRODUCT, VERSION)
-    assert result == (PRODUCT_SEARCH_TERMS, VERSION_SEARCH_TERM)
+    assert (PRODUCT_SEARCH_TERMS, VERSION_SEARCH_TERM) == lookup.generate_search_terms(PRODUCT, VERSION)
 
 
 def test_cpe_matching(monkeypatch):
     with monkeypatch.context() as monkey:
         monkey.setattr(DB, 'select_query', lambda *_, **__: CPE_OUTPUT)
-        cpe_result = lookup.cpe_matching(DB, METADATA, PRODUCT_SEARCH_TERMS, VERSION_SEARCH_TERM)
-        assert cpe_result == MATCHED_CPE
+        assert MATCHED_CPE == lookup.cpe_matching(DB, METADATA, PRODUCT_SEARCH_TERMS, VERSION_SEARCH_TERM)
 
 
 def test_cpe_cve_search(monkeypatch):
     with monkeypatch.context() as monkey:
         monkey.setattr(DB, 'select_query', lambda *_, **__: CPE_CVE_OUTPUT)
-        cve_result = lookup.cve_cpe_search(DB, METADATA, VENDOR, PRODUCT, VERSION)
-        assert cve_result.sort() == MATCHED_CVE.sort()
+        assert MATCHED_CVE.sort() == lookup.cve_cpe_search(DB, METADATA, VENDOR, PRODUCT, VERSION).sort()
 
 
 def test_cve_summary_search(monkeypatch):
     with monkeypatch.context() as monkey:
         monkey.setattr(DB, 'select_query', lambda *_, **__: SUMMARY_OUTPUT)
-        summary_result = lookup.cve_summary_search(DB, METADATA, VENDOR, PRODUCT)
-        assert summary_result.sort() == MATCHED_SUMMARY.sort()
+        assert MATCHED_SUMMARY.sort() == lookup.cve_summary_search(DB, METADATA, VENDOR, PRODUCT).sort()

@@ -145,4 +145,4 @@ def unbinding(attributes: list):
         else:
             attributes[idx] = analyse_attribute(attr)
 
-    return attributes
+    return attributes if len(attributes) > 1 else attributes[0]

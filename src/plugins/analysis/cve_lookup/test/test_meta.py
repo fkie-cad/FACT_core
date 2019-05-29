@@ -9,6 +9,8 @@ from ..internal import meta
 EXPECTED_METADATA_OUTPUT = {'test_key': 'test_value'}
 # the input and expected result for the unbinding function
 BOUND_LIST = ['a', 'micr*osof?t_corp', '*wind§ows 10*', '10.2.4', 'beta\\)1.2', 'sp1', '?en?', '-', '*', '*', '*']
+BOUND_VERSION = ['10.2.4']
+UNBOUND_VERSION = '10\\.2\\.4'
 UNBOUND_LIST = ['a', 'micr\\*osof\\?t_corp', '*wind\\§ows 10*', '10\\.2\\.4', 'beta\\)1\\.2', 'sp1', '?en?', 'NA',
                 'ANY', 'ANY', 'ANY']
 EXPECTED_SELECT_OUTPUT = [('Michael', 'Myers', 23)]
@@ -79,5 +81,5 @@ def test_analyse_attribute():
 
 
 def test_unbinding():
-    unbound_result = meta.unbinding(BOUND_LIST)
-    assert unbound_result == UNBOUND_LIST
+    assert UNBOUND_LIST == meta.unbinding(BOUND_LIST)
+    assert UNBOUND_VERSION == meta.unbinding(BOUND_VERSION)
