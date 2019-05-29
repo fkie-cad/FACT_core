@@ -7,6 +7,12 @@ echo "   install cve lookup dependencies  "
 echo "------------------------------------"
 
 sudo -EH pip3 install pyxdameraulevenshtein
-python3 setup_repository
 
+#
+# setup_repository.py can be called with arguments specified by the user (call setup_repository.py -h for more info)
+# however, for the initial start, it is recommended to use the given default values
+# to ensure the full functionality of the plugin.
+#
+
+python3 setup_repository.py
 exit 0
