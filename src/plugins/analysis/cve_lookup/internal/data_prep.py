@@ -45,31 +45,27 @@ def iterate_urls(dl_urls: list, path: str) -> None:
         zipped_data.extractall(path)
 
 
-def download_cve(dl_urls: list, years: list, meta: dict) -> list:
+def select_cve_urls(all_cve_urls: list, years: list) -> list:
     '''
     Prepares download urls from all specified years if available
-    :param dl_urls: list of specified download links
+    :param all_cve_urls: list of all cve links
     :param years: specifies which CVE feeds should be downloaded
     :param meta: contains the link structure for a CVE link
-    :return: dl_urls
+    :return: cve_candidates
     '''
-    cve_candidates = get_cve_links(meta['source_urls']['cve_source'])
-    if cve_candidates is None:
+    if all_cve_urls is None:
         exit('Error: No CVE links are provided')
     if years is None:
         exit('Error: The required years of CVE feeds are not specified')
-    for candidate in cve_candidates:
-        for year in years:
-            if str(year) in candidate:
-                dl_urls.append(candidate)
+    cve_candidates = [url for url in all_cve_urls for year in years if str(year) in url]
 
-    return dl_urls
+    return cve_candidates
 
 
 def download_data(cpe: bool = False, cve: bool = False, update: bool = False, path: str = None,
                   years: list = None) -> None:
     '''
-
+    Controls which urls are prepared and used for download
     :param cpe: boolean specifying if CPE should be downloaded
     :param cve: boolean specifying if CVE should be downloaded
     :param update: boolean specifying if CVE should be updated
@@ -92,7 +88,8 @@ def download_data(cpe: bool = False, cve: bool = False, update: bool = False, pa
     # in contrast to cpe or update the CVE feed links are resolved dynamically because each year new feeds are added
     # and the user is able to chose which years should be downloaded
     if cve:
-        dl_urls.extend(download_cve(dl_urls, years, meta))
+        all_cve_urls = get_cve_links(meta['source_urls']['cve_source'])
+        dl_urls.extend(select_cve_urls(all_cve_urls, years))
 
     iterate_urls(dl_urls, path)
 
