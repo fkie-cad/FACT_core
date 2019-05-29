@@ -1,3 +1,4 @@
+import argparse
 from datetime import datetime
 from glob import glob
 from pathlib import Path
@@ -192,8 +193,7 @@ def update_repository(db, metadata: dict, extraction_path: str, specify: int) ->
         update_cve(db, metadata, extraction_path)
 
 
-def init_rep(db_name: str = 'cpe_cve.db', update: bool = False, specify: int = 0, start_year: int = None,
-             end_year: int = None) -> None:
+def init_rep(db_name: str, update: bool, specify: int, start_year: int, end_year: int, extraction_path: str) -> None:
     '''
     Initialises changes to CPE and CVE repositories
     :param db_name: database object
@@ -201,16 +201,61 @@ def init_rep(db_name: str = 'cpe_cve.db', update: bool = False, specify: int = 0
     :param specify: specifies which repositories should be updated or set up
     :param start_year: by user specified start year of CVE feeds
     :param end_year: by user specified end year of CVE feeds
+    :param extraction_path: contains the path to the temporarily stored CPE and CVE files
     :return: None
     '''
-    if not start_year or end_year:
-        start_year, end_year = 2002, datetime.now().year
-
-    extraction_path = str(Path(__file__).parent.parent) + '/data_source/'
-
     with DB(db_name) as db:
         metadata = get_meta()
         if update:
             update_repository(db_name, metadata, extraction_path, specify)
         else:
             set_repository(db, metadata, extraction_path, specify, start_year, end_year)
+
+
+def main():
+    current_year = datetime.now().year
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('db_name', help='String which contains the name of the database in which CPE dictionary and CVE'
+                                        ' feeds are stored. Default: \'cpe_cve.db\'', type=str, default='cpe_cve.db')
+
+    parser.add_argument('update', help='Boolean which specifies if the database should be updated. Default: False',
+                        type=bool, default=False)
+
+    parser.add_argument('specify', help='Int which specifies if CPE and/or CVE should be created/updated.\nValues:\n\t'
+                                        '0 - update/import both\n\t1 - update/import CPE dictionary\n\t'
+                                        '2 - update/import CVE feeds\nDefault: 0', type=int, default=0)
+
+    parser.add_argument('start_year', help='Int which defines the oldest CVE feeds to be imported.\nDefault: 2002\n'
+                                           'Lowest valid value: 2002', type=int, default=2002)
+
+    parser.add_argument('end_year', help='Int which defines the most recent CVE feeds to be imported.\n'
+                                         'Default: current year\nHighest valid value: current year',
+                        type=int, default=current_year)
+
+    parser.add_argument('extraction_path', help='Path to which the files containing the CPE dictionary and CVE feeds '
+                                                'should temporarily be stored.\nDefault: '
+                                                'FACT_core/.../cve_lookup/data_source/', type=str,
+                        default=str(Path(__file__).parent.parent) + '/data_source/')
+
+    args = parser.parse_args()
+
+    if not args.db_name.endswith('.db'):
+        raise ValueError('ERROR: Database name must end with \'.db\'.')
+    if args.specify < 0 or args.specify > 2:
+        raise ValueError('ERROR: Value of \'specify\' out of bounds. '
+                         'Look at setup_repository.py -h for more information.')
+    if args.start_year < 2002 or args.start_year > current_year:
+        raise ValueError('ERROR: Value of \'start_year\' out of bounds. '
+                         'Look at setup_repository.py -h for more information.')
+    if args.end_year < 2002 or args.end_year > current_year:
+        raise ValueError('ERROR: Value of \'end_year\' out of bounds. '
+                         'Look at setup_repository.py -h for more information.')
+    if args.start_year > args.end_year:
+        raise ValueError('ERROR: Value of \'start_year\' greater than value of \'end_year\'.')
+
+    init_rep(args.db_name, args.update, args.specify, args.start_year, args.end_year, args.extraction_path)
+
+
+if __name__ == '__main__':
+    main()

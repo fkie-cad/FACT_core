@@ -7,5 +7,6 @@ echo "   install cve lookup dependencies  "
 echo "------------------------------------"
 
 sudo -EH pip3 install pyxdameraulevenshtein
+python3 setup_repository
 
 exit 0
