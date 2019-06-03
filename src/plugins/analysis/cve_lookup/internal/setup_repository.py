@@ -1,7 +1,6 @@
 import argparse
 from datetime import datetime
 from glob import glob
-from pathlib import Path
 
 from . import data_prep as dp
 from .meta import DB
@@ -239,7 +238,7 @@ def main():
     parser.add_argument('extraction_path', help='Path to which the files containing the CPE dictionary and CVE feeds '
                                                 'should temporarily be stored.\nDefault: '
                                                 'FACT_core/.../cve_lookup/data_source/', type=str,
-                        default=str(Path(__file__).parent.parent) + '/data_source/')
+                        default='./data_source/')
 
     args = parser.parse_args()
 
