@@ -1,4 +1,5 @@
 from itertools import combinations
+from pathlib import Path
 from typing import Tuple
 
 from pyxdameraulevenshtein import damerau_levenshtein_distance as distance
@@ -182,7 +183,7 @@ def init_lookup(product_name: str, requested_version: str) -> list:
     :return list containing CVE candidates found with vendor -, product name and version from CPE dictionary
     '''
     meta = get_meta()
-    with DB('cpe_cve.db') as db:
+    with DB(str(Path(__file__).parent.parent) + '/internal/cpe_cve.db') as db:
         product_terms, version = generate_search_terms(product_name, requested_version)
         vendor, product, version = cpe_matching(db, meta, product_terms, version)
         cve_candidates = cve_cpe_search(db, meta, vendor, product, version)
