@@ -4,22 +4,22 @@
     "cve_source": "https://nvd.nist.gov/feeds/json/cve/1.0/nvdcve-1.0-{}.json.zip"
   },
   "sqlite_queries": {
-    "cpe_lookup": "SELECT DISTINCT vendor, product, version FROM cpe_t",
+    "cpe_lookup": "SELECT DISTINCT vendor, product, version FROM cpe_table",
     "create_cpe_table": "CREATE TABLE IF NOT EXISTS {} (cpe_id TEXT NOT NULL, part TEXT NOT NULL, vendor TEXT NOT NULL, product TEXT NOT NULL, version TEXT NOT NULL, 'update' TEXT NOT NULL, edition TEXT NOT NULL, language TEXT NOT NULL, sw_edition TEXT NOT NULL, target_sw TEXT NOT NULL, target_hw TEXT NOT NULL, other TEXT NOT NULL)",
     "create_cve_table": "CREATE TABLE IF NOT EXISTS {} (cve_id TEXT NOT NULL, year INTEGER NOT NULL, cpe_id TEXT NOT NULL, part TEXT NOT NULL, vendor TEXT NOT NULL, product TEXT NOT NULL, version TEXT NOT NULL, 'update' TEXT NOT NULL, edition TEXT NOT NULL, language TEXT NOT NULL, sw_edition TEXT NOT NULL, target_sw TEXT NOT NULL, target_hw TEXT NOT NULL, other TEXT NOT NULL)",
     "create_summary_table": "CREATE TABLE IF NOT EXISTS {} (cve_id TEXT NOT NULL, year INTEGER NOT NULL, summary TEXT NOT NULL )",
-    "cve_lookup": "SELECT cve_id, vendor, product, version FROM cve_t",
+    "cve_lookup": "SELECT cve_id, vendor, product, version FROM cve_table",
     "delete_outdated": "DELETE FROM {} WHERE cve_id IN (SELECT cve_id FROM {})",
     "drop": "DROP TABLE IF EXISTS {}",
     "exist": "SELECT name FROM sqlite_master WHERE type='table' AND name='{}'",
-    "extract_relevant": "SELECT * FROM {} AS new WHERE new.year IN (SELECT distinct(year) FROM cve_t)",
+    "extract_relevant": "SELECT * FROM {} AS new WHERE new.year IN (SELECT distinct(year) FROM cve_table)",
     "insert_cpe": "INSERT INTO {} (cpe_id, part, vendor, product, version, 'update', edition, language, sw_edition, target_sw, target_hw, other) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
     "insert_cve": "INSERT INTO {} (cve_id, year, cpe_id, part, vendor, product, version, 'update', edition, language, sw_edition, target_sw, target_hw, other) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
     "insert_summary": "INSERT INTO {} (cve_id, year, summary) VALUES (?, ?, ?)",
     "select_all": "SELECT * FROM {}",
-    "summary_lookup": "SELECT cve_id, summary FROM summary_t",
-    "test_empty_cpe": "SELECT COUNT(*) FROM cpe_t",
-    "test_empty_cve": "SELECT DISTINCT year FROM cve_t"
+    "summary_lookup": "SELECT cve_id, summary FROM summary_table",
+    "test_empty_cpe": "SELECT COUNT(*) FROM cpe_table",
+    "test_empty_cve": "SELECT DISTINCT year FROM cve_table"
   },
   "test_queries": {
     "setup_test_row": "INSERT INTO test1(first_name, last_name, age) VALUES(?, ?, ?)",
@@ -28,6 +28,7 @@
     "test_drop": "DROP TABLE IF EXISTS test2",
     "test_insert": "INSERT INTO test1(first_name, last_name, age) VALUES(?, ?, ?)",
     "test_select": "SELECT * FROM test1",
-    "test_tables": "SELECT name FROM sqlite_master WHERE type='table'"
+    "test_tables": "SELECT name FROM sqlite_master WHERE type='table'",
+    "test_where": "SELECT * FROM {} WHERE {}"
   }
 }

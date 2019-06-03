@@ -29,12 +29,12 @@ def update_cpe(db, metadata: dict = None, cpe_extract_path: str = None) -> None:
     :return None
     '''
     # if cpe table exists, drop it and create a new table with the new entries
-    db.table_manager(metadata['sqlite_queries']['drop'].format('cpe_t'))
-    db.table_manager(metadata['sqlite_queries']['create_cpe_table'].format('cpe_t'))
+    db.table_manager(metadata['sqlite_queries']['drop'].format('cpe_table'))
+    db.table_manager(metadata['sqlite_queries']['create_cpe_table'].format('cpe_table'))
     dp.download_data(cpe=True, path=cpe_extract_path)
     cpe_list = dp.extract_cpe(glob(cpe_extract_path + '*.xml')[0])
     cpe_table_input = dp.setup_cpe_table(cpe_list)
-    db.insert_rows(query=metadata['sqlite_queries']['insert_cpe'].format('cpe_t'), input_t=cpe_table_input)
+    db.insert_rows(query=metadata['sqlite_queries']['insert_cpe'].format('cpe_table'), input_t=cpe_table_input)
 
 
 def import_cpe(db, metadata: dict = None, cpe_extract_path: str = None) -> None:
@@ -45,14 +45,14 @@ def import_cpe(db, metadata: dict = None, cpe_extract_path: str = None) -> None:
     :param cpe_extract_path: path to which the CPE file was downloaded
     '''
     # create cpe table if it does not exist
-    db.table_manager(query=metadata['sqlite_queries']['create_cpe_table'].format('cpe_t'))
+    db.table_manager(query=metadata['sqlite_queries']['create_cpe_table'].format('cpe_table'))
     output = db.select_single(query=metadata['sqlite_queries']['test_empty_cpe'])
     # if there is no current data in the cpe table, download the dictionary and import the data into the table
     if output[0] == 0:
         dp.download_data(cpe=True, path=cpe_extract_path)
         cpe_list = dp.extract_cpe(glob(cpe_extract_path + '*.xml')[0])
         cpe_table_input = dp.setup_cpe_table(cpe_list)
-        db.insert_rows(query=metadata['sqlite_queries']['insert_cpe'].format('cpe_t'), input_t=cpe_table_input)
+        db.insert_rows(query=metadata['sqlite_queries']['insert_cpe'].format('cpe_table'), input_t=cpe_table_input)
     else:
         print('\nCPE table does already exist!\n')
 
@@ -90,7 +90,7 @@ def update_cve(db, metadata: dict = None, cve_extract_path: str = None) -> None:
     :return None
     '''
     # if the cve table exists, download the modified cve file and import into a separate table
-    if list(db.select_query(metadata['sqlite_queries']['exist'].format('cve_t'))):
+    if list(db.select_query(metadata['sqlite_queries']['exist'].format('cve_table'))):
         # set up update tables and check if a summary update table has been created
         update_summary = create_cve_update_table(db, metadata, cve_extract_path)
         rel_feeds = list(db.select_query(query=metadata['sqlite_queries']['extract_relevant'].format('temp_feeds')))
@@ -98,23 +98,25 @@ def update_cve(db, metadata: dict = None, cve_extract_path: str = None) -> None:
         if update_summary:
             rel_sum = list(db.select_query(query=metadata['sqlite_queries']['extract_relevant'].format('temp_sum')))
             # if no summary table exists, create one to import the new summary entries
-            if not list(db.select_query(metadata['sqlite_queries']['exist'].format('summary_t'))):
-                db.table_manager(query=metadata['sqlite_queries']['create_summary_table'].format('summary_t'))
+            if not list(db.select_query(metadata['sqlite_queries']['exist'].format('summary_table'))):
+                db.table_manager(query=metadata['sqlite_queries']['create_summary_table'].format('summary_table'))
             else:
                 # delete all cve ids from the summary table which are also in the update summary table
-                db.table_manager(query=metadata['sqlite_queries']['delete_outdated'].format('summary_t', 'temp_sum'))
+                db.table_manager(query=metadata['sqlite_queries']['delete_outdated'].format('summary_table',
+                                                                                            'temp_sum'))
                 # cross delete all cve ids from the summary table which are also in the update cve table
-                db.table_manager(query=metadata['sqlite_queries']['delete_outdated'].format('summary_t', 'temp_feeds'))
+                db.table_manager(query=metadata['sqlite_queries']['delete_outdated'].format('summary_table',
+                                                                                            'temp_feeds'))
 
             # insert the relevant feeds into the base table and delete the temporary update table
-            db.insert_rows(query=metadata['sqlite_queries']['insert_summary'].format('summary_t'), input_t=rel_sum)
+            db.insert_rows(query=metadata['sqlite_queries']['insert_summary'].format('summary_table'), input_t=rel_sum)
             # cross delete all cve ids from the cve table which are also in the update summary table
-            db.table_manager(query=metadata['sqlite_queries']['delete_outdated'].format('cve_t', 'temp_sum'))
+            db.table_manager(query=metadata['sqlite_queries']['delete_outdated'].format('cve_table', 'temp_sum'))
             db.table_manager(query=metadata['sqlite_queries']['drop'].format('temp_sum'))
 
         # delete all cve ids from the cve table which are also in the update cve table
-        db.table_manager(query=metadata['sqlite_queries']['delete_outdated'].format('cve_t', 'temp_feeds'))
-        db.insert_rows(query=metadata['sqlite_queries']['insert_cve'].format('cve_t'), input_t=rel_feeds)
+        db.table_manager(query=metadata['sqlite_queries']['delete_outdated'].format('cve_table', 'temp_feeds'))
+        db.insert_rows(query=metadata['sqlite_queries']['insert_cve'].format('cve_table'), input_t=rel_feeds)
         db.table_manager(query=metadata['sqlite_queries']['drop'].format('temp_feeds'))
 
 
@@ -130,7 +132,7 @@ def import_cve(db, metadata: dict, cve_extract_path: str, start_year: int = None
     '''
     cve_list, summary_list = list(), list()
     # create the cve-table if it does not exist yet
-    db.table_manager(query=metadata['sqlite_queries']['create_cve_table'].format('cve_t'))
+    db.table_manager(query=metadata['sqlite_queries']['create_cve_table'].format('cve_table'))
     # get all years existing from the db and test what years overlap with the user input
     output = [el[0] for el in db.select_query(query=metadata['sqlite_queries']['test_empty_cve'])]
     # when there is data in the cve table, get the years and calculate the overlap with the input
@@ -147,11 +149,11 @@ def import_cve(db, metadata: dict, cve_extract_path: str, start_year: int = None
         summary_list.extend(summary_data)
     # set up the data and import everything into the db
     cve_table_input, summary_table_input = dp.setup_cve_table(cve_list, summary_list)
-    db.insert_rows(query=metadata['sqlite_queries']['insert_cve'].format('cve_t'), input_t=cve_table_input)
+    db.insert_rows(query=metadata['sqlite_queries']['insert_cve'].format('cve_table'), input_t=cve_table_input)
     # if there are CVE feeds without CPE ids, import the summaries into a separate table
     if summary_table_input:
-        db.table_manager(query=metadata['sqlite_queries']['create_summary_table'].format('summary_t'))
-        db.insert_rows(query=metadata['sqlite_queries']['insert_summary'].format('summary_t'),
+        db.table_manager(query=metadata['sqlite_queries']['create_summary_table'].format('summary_table'))
+        db.insert_rows(query=metadata['sqlite_queries']['insert_summary'].format('summary_table'),
                        input_t=summary_table_input)
 
 
@@ -193,7 +195,8 @@ def update_repository(db, metadata: dict, extraction_path: str, specify: int) ->
         update_cve(db, metadata, extraction_path)
 
 
-def init_rep(db_name: str, update: bool, specify: int, start_year: int, end_year: int, extraction_path: str) -> None:
+def init_repository(db_name: str, update: bool, specify: int, start_year: int, end_year: int,
+                    extraction_path: str) -> None:
     '''
     Initialises changes to CPE and CVE repositories
     :param db_name: database object
@@ -254,7 +257,7 @@ def main():
     if args.start_year > args.end_year:
         raise ValueError('ERROR: Value of \'start_year\' greater than value of \'end_year\'.')
 
-    init_rep(args.db_name, args.update, args.specify, args.start_year, args.end_year, args.extraction_path)
+    init_repository(args.db_name, args.update, args.specify, args.start_year, args.end_year, args.extraction_path)
 
 
 if __name__ == '__main__':

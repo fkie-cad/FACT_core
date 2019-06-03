@@ -15,4 +15,5 @@ sudo -EH pip3 install pyxdameraulevenshtein
 #
 
 python3 setup_repository.py
+
 exit 0
