@@ -19,8 +19,10 @@
 import argparse
 import configparser
 import logging
+import os
 import sys
 
+import psutil
 from common_helper_files import create_dir_for_file
 
 from helperFunctions.config import get_config_dir
@@ -80,3 +82,8 @@ def _load_config(args):
     if args.log_level is not None:
         config['Logging']['logLevel'] = args.log_level
     return config
+
+
+def was_started_by_start_fact():
+    parent = psutil.Process(os.getppid()).cmdline()[-1]
+    return 'start_fact' in parent
