@@ -58,9 +58,9 @@ def _start_component(component, args):
         return None
 
 
-def _terminate_process(process):
+def _terminate_process(process: Popen):
     if process is not None:
-        process.terminate()
+        os.kill(process.pid, signal.SIGUSR1)
         try:
             process.wait(timeout=60)
         except TimeoutExpired:
@@ -75,7 +75,6 @@ def shutdown(*_):
 
 
 signal.signal(signal.SIGINT, shutdown)
-signal.signal(signal.SIGTERM, shutdown)
 
 if __name__ == '__main__':
     process_list = []
@@ -88,7 +87,7 @@ if __name__ == '__main__':
     backend_process = _start_component('backend', args)
 
     while run:
-        sleep(5)
+        sleep(1)
         if args.testing:
             break
 
@@ -96,8 +95,6 @@ if __name__ == '__main__':
     _terminate_process(backend_process)
     logging.debug('shutdown frontend')
     _terminate_process(frontend_process)
-    logging.debug('wait for childprocesses to stop...')
-    sleep(60)
     logging.debug('shutdown db')
     _terminate_process(db_process)
 

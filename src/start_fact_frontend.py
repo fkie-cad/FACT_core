@@ -30,7 +30,7 @@ from common_helper_process import execute_shell_command
 
 from helperFunctions.config import get_config_dir
 from helperFunctions.fileSystem import get_src_dir
-from helperFunctions.program_setup import program_setup
+from helperFunctions.program_setup import program_setup, was_started_by_start_fact
 from statistic.work_load import WorkLoadStatistic
 
 PROGRAM_NAME = 'FACT Frontend'
@@ -51,10 +51,6 @@ def _shutdown_uwsgi_server(process):
         process.kill()
 
 
-signal.signal(signal.SIGINT, shutdown)
-signal.signal(signal.SIGTERM, shutdown)
-
-
 def start_uwsgi_server(config_path=None):
     config_parameter = ' --pyargv {}'.format(config_path) if config_path else ''
     command = 'uwsgi --ini  {}/uwsgi_config.ini{}'.format(get_config_dir(), config_parameter)
@@ -71,6 +67,12 @@ def stop_docker():
 
 
 if __name__ == '__main__':
+    if was_started_by_start_fact():
+        signal.signal(signal.SIGUSR1, shutdown)
+        signal.signal(signal.SIGINT, lambda *_: None)
+    else:
+        signal.signal(signal.SIGINT, shutdown)
+
     run = True
     args, config = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION)
 

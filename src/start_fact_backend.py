@@ -18,33 +18,36 @@
 '''
 
 import logging
+import os
 import signal
 from time import sleep
 
 from helperFunctions.process import complete_shutdown
-from helperFunctions.program_setup import program_setup
+from helperFunctions.program_setup import was_started_by_start_fact, program_setup
 from intercom.back_end_binding import InterComBackEndBinding
 from scheduler.Analysis import AnalysisScheduler
+from scheduler.analysis_tag import TaggingDaemon
 from scheduler.Compare import CompareScheduler
 from scheduler.Unpacking import UnpackingScheduler
-from scheduler.analysis_tag import TaggingDaemon
 from statistic.work_load import WorkLoadStatistic
 
 PROGRAM_NAME = 'FACT Backend'
 PROGRAM_DESCRIPTION = 'Firmware Analysis and Compare Tool (FACT) Backend'
 
 
-def shutdown(*_):
+def shutdown(signum, _):
     global run
-    logging.info('shutting down {}...'.format(PROGRAM_NAME))
+    logging.info(f'received {signum}. shutting down {PROGRAM_NAME}...')
     run = False
 
 
-signal.signal(signal.SIGINT, shutdown)
-signal.signal(signal.SIGTERM, shutdown)
-
-
 if __name__ == '__main__':
+    if was_started_by_start_fact():
+        signal.signal(signal.SIGUSR1, shutdown)
+        signal.signal(signal.SIGINT, lambda *_: None)
+        os.setpgid(os.getpid(), os.getpid())  # reset pgid to self so that "complete_shutdown" doesn't run amok
+    else:
+        signal.signal(signal.SIGINT, shutdown)
     args, config = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION)
     analysis_service = AnalysisScheduler(config=config)
     tagging_service = TaggingDaemon(analysis_scheduler=analysis_service)
