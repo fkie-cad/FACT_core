@@ -6,7 +6,7 @@ from analysis.PluginBase import AnalysisBasePlugin
 try:
     from ...string_evaluation.internal.string_eval import eval_strings
 except ImportError:
-    sys.path.append(str(Path(__file__).parent / '../internal'))
+    sys.path.append(str(Path(__file__).parent.parent / 'internal'))
     from string_eval import eval_strings
 
 

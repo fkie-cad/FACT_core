@@ -7,7 +7,7 @@ from helperFunctions.tag import TagColor
 try:
     from ..internal.rulebook import evaluate, vulnerabilities
 except ImportError:
-    sys.path.append(str(Path(__file__).parent / '../internal'))
+    sys.path.append(str(Path(__file__).parent.parent / 'internal'))
     from rulebook import evaluate, vulnerabilities
 
 
@@ -40,8 +40,8 @@ class AnalysisPlugin(YaraBasePlugin):
 
         return file_object
 
-    def add_tags(self, file_object, vulnerabilities):
-        for name, details in vulnerabilities:
+    def add_tags(self, file_object, vulnerability_list):
+        for name, details in vulnerability_list:
             if details['score'] == 'high':
                 propagate = True
                 tag_color = TagColor.RED
