@@ -1,10 +1,9 @@
 import os
 import unittest
 
-from common_helper_files import get_files_in_dir
 from helperFunctions.fileSystem import (
-    file_is_empty, get_absolute_path, get_chroot_path,
-    get_chroot_path_excluding_extracted_dir, get_faf_bin_dir, get_parent_dir,
+    file_is_empty, get_absolute_path, _get_relative_path,
+    get_object_path_excluding_fact_dirs, get_parent_dir,
     get_src_dir, get_template_dir, get_test_data_dir
 )
 
@@ -38,13 +37,6 @@ class TestFileSystemHelpers(unittest.TestCase):
         file_suffixes_in_template_dir = [os.path.basename(f).split('.')[-1] for f in os.listdir(template_dir)]
         self.assertTrue('html' in file_suffixes_in_template_dir)
 
-    def test_get_faf_bin_dir(self):
-        bin_dir = get_faf_bin_dir()
-        files_in_bin_dir = [os.path.basename(f) for f in get_files_in_dir(bin_dir)]
-        self.assertTrue(os.path.isdir(bin_dir))
-        self.assertIn('src/bin', bin_dir)
-        self.assertIn('passwords.txt', files_in_bin_dir)
-
     def test_get_absolute_path(self):
         abs_path = '/foo/bar'
         self.assertEqual(get_absolute_path(abs_path), '/foo/bar', 'absolute path of absolute path not correct')
@@ -52,15 +44,15 @@ class TestFileSystemHelpers(unittest.TestCase):
         self.assertEqual(get_absolute_path(rel_path, base_dir='/the'), '/the/foo/bar', 'absolute path of relative path not correct')
 
     def test_get_chroot_path(self):
-        a = get_chroot_path('/foo/bar/com', '/foo/')
+        a = _get_relative_path('/foo/bar/com', '/foo/')
         self.assertEqual(a, '/bar/com', 'simple case with /')
-        b = get_chroot_path('/foo/bar/com', '/foo')
+        b = _get_relative_path('/foo/bar/com', '/foo')
         self.assertEqual(b, '/bar/com', 'simple case without /')
-        c = get_chroot_path('/foo/bar/com', '/bar')
+        c = _get_relative_path('/foo/bar/com', '/bar')
         self.assertEqual(c, '/foo/bar/com', 'none matching root')
 
     def test_get_chroot_excluding_extracted_prefix_dir(self):
-        d = get_chroot_path_excluding_extracted_dir('/foo/fact_extracted/bar/com', '/foo')
+        d = get_object_path_excluding_fact_dirs('/foo/fact_extracted/bar/com', '/foo')
         self.assertEqual(d, '/bar/com', 'including extracted')
 
     def test_file_is_zero(self):

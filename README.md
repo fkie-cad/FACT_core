@@ -60,7 +60,7 @@ FACT provides an optional basic authentication, role and user management. More i
   * [Firmadyne](https://github.com/fkie-cad/FACT_firmadyne_analysis_plugin)
 * REST
   * [FACT Search and Download](https://github.com/fkie-cad/FACT_Search_and_Download)
-  * [PDF Report Generator](https://github.com/any333/FACT_analysis_report_pdf_convertor)
+  * [PDF Report Generator](https://github.com/fkie-cad/fact_pdf_report)
 
 ## Contribute
 The easiest way to contribute is writing your own plug-in.

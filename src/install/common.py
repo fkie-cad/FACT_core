@@ -21,8 +21,6 @@ def install_pip(python_command):
 
 
 def main(distribution):  # pylint: disable=too-many-statements
-    xenial = distribution == 'xenial'
-
     apt_install_packages('apt-transport-https')
 
     logging.info('Updating system')
@@ -46,7 +44,7 @@ def main(distribution):  # pylint: disable=too-many-statements
 
     # install python3 and general build stuff
     apt_install_packages('python3', 'python3-dev', 'build-essential', 'automake', 'autoconf', 'libtool', 'git', 'unzip')
-    if not xenial:
+    if not distribution == 'xenial':
         pip3_install_packages('testresources')
 
     # get a bugfree recent pip version
@@ -88,6 +86,7 @@ def main(distribution):  # pylint: disable=too-many-statements
     pip3_install_packages('git+https://github.com/fkie-cad/common_helper_mongo.git')
     pip3_install_packages('git+https://github.com/mass-project/common_helper_encoder.git')
     pip3_install_packages('git+https://github.com/fkie-cad/common_helper_filter.git')
+    pip3_install_packages('git+https://github.com/fkie-cad/common_helper_process.git')
 
     with OperateInDirectory('../../'):
         with suppress(FileNotFoundError):

@@ -163,13 +163,17 @@ def infection_color(input_data):
     return text_highlighter(input_data, green=['clean', 0], red=['*'])
 
 
-def text_highlighter(input_data, green=['clean', 'online', 0], red=['offline']):
+def text_highlighter(input_data, green=None, red=None):
     '''
     sets color to green if input found in green
     sets color to red if input found in red
     else do not set color
     special character * for all inputs available
     '''
+    if red is None:
+        red = ['offline']
+    if green is None:
+        green = ['clean', 'online', 0]
     if input_data in green:
         return '<span style="color:green;">{}</span>'.format(input_data)
     elif input_data in red:
@@ -337,7 +341,8 @@ def user_has_role(current_user, role):
     return current_user.is_authenticated and user_has_privilege(current_user, role)
 
 
-def sort_roles_by_number_of_privileges(roles, privileges=PRIVILEGES):
+def sort_roles_by_number_of_privileges(roles, privileges=None):
+    privileges = PRIVILEGES if privileges is None else privileges
     inverted_privileges = {}
     for key, value_list in privileges.items():
         for value in value_list:

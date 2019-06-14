@@ -94,7 +94,5 @@ Follow us on Twitter [@FAndCTool](https://twitter.com/FAandCTool) to get the lat
 If you have any further questions, write a [mail](mailto:firmware-security@fkie.fraunhofer.de).
 
 # Authors and Acknowledgment
-FACT is developed by [Fraunhofer FKIE](https://www.fkie.fraunhofer.de).
+FACT is developed by [Fraunhofer FKIE](https://www.fkie.fraunhofer.de) and the FACT community.
 Development is partly financed by [German Federal Office for Information Security (BSI)](https://www.bsi.bund.de) and others.
-
-The FACT project and the [Mallware Analysis and Storage Sytem (MASS) project]( https://mass-project.github.io/) form a code and plug-in sharing alliance.

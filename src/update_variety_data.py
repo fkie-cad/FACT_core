@@ -36,7 +36,8 @@ PROGRAM_DESCRIPTION = 'Initialize or update database structure information used 
 def _create_variety_data(config):
     full_variety_path = os.path.join(get_src_dir(), config['data_storage']['variety_path'])
     output, return_code = execute_shell_command_get_return_code(
-        'mongo --port {mongo_port} {main_database} -u "{username}" -p "{password}" --authenticationDatabase "admin" --eval "var collection = \'file_objects\', persistResults=true" {script_path}'.format(
+        'mongo --port {mongo_port} {main_database} -u "{username}" -p "{password}" --authenticationDatabase "admin" '
+        '--eval "var collection = \'file_objects\', persistResults=true" {script_path}'.format(
             mongo_port=config['data_storage']['mongo_port'],
             username=config['data_storage']['db_admin_user'],
             password=config['data_storage']['db_admin_pw'],
@@ -48,7 +49,8 @@ def _create_variety_data(config):
     return return_code
 
 
-def main(command_line_options=sys.argv):
+def main(command_line_options=None):
+    command_line_options = sys.argv if command_line_options is None else command_line_options
     args, config = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION, command_line_options=command_line_options)
 
     logging.info('Try to start Mongo Server...')

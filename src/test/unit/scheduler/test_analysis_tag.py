@@ -45,7 +45,7 @@ def detached_scheduler(monkeypatch, analysis_service):
 def test_start_process(scheduler):
     assert scheduler.tagging_process.is_alive()
     scheduler.stop_condition.value = 1
-    sleep(float(scheduler.config['ExpertSettings']['block_delay']) * 2)
+    sleep(float(scheduler.config['ExpertSettings']['block_delay']) + 1)
     assert not scheduler.tagging_process.is_alive()
 
 

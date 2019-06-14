@@ -43,6 +43,7 @@ then
 fi
 sudo usermod -aG docker "$FACTUSER"
 
+sudo -EH pip3 install --upgrade pip
 sudo -EH pip3 install --upgrade docker-compose
 
 echo "Installing Python Libraries for python based installation"

@@ -24,7 +24,7 @@ from helperFunctions.tag import TagColor
 from helperFunctions.uid import create_uid
 from objects.file import FileObject
 from storage.binary_service import BinaryServiceDbInterface
-from unpacker.unpackBase import UnpackBase
+from unpacker.unpack_base import UnpackBase
 
 TIMEOUT_IN_SECONDS = 15
 EXECUTABLE = 'executable'
@@ -116,11 +116,12 @@ class AnalysisPlugin(AnalysisBasePlugin):
             return file_object
 
         tmp_dir = self.unpacker.unpack_fo(file_object)
+        extracted_files_dir = self.unpacker.get_extracted_files_dir(tmp_dir.name)
 
-        if tmp_dir:
+        if extracted_files_dir.is_dir():
             try:
-                self.root_path = self._find_root_path(tmp_dir)
-                file_list = self._find_relevant_files(tmp_dir)
+                self.root_path = self._find_root_path(extracted_files_dir)
+                file_list = self._find_relevant_files(extracted_files_dir)
                 if file_list:
                     file_object.processed_analysis[self.NAME]['files'] = {}
                     self._process_included_files(file_list, file_object)
@@ -129,17 +130,17 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
         return file_object
 
-    def _find_relevant_files(self, tmp_dir: TemporaryDirectory):
+    def _find_relevant_files(self, extracted_files_dir: Path):
         result = []
-        for path in safe_rglob(Path(tmp_dir.name)):
+        for path in safe_rglob(extracted_files_dir):
             if path.is_file() and not path.is_symlink():
                 file_type = get_file_type_from_path(path.absolute())
                 if self._has_relevant_type(file_type):
                     result.append(('/{}'.format(path.relative_to(Path(self.root_path))), file_type['full']))
         return result
 
-    def _find_root_path(self, tmp_dir: TemporaryDirectory) -> Path:
-        root_path = Path(tmp_dir.name)
+    def _find_root_path(self, extracted_files_dir: Path) -> Path:
+        root_path = extracted_files_dir
         if (root_path / self.FACT_EXTRACTION_FOLDER_NAME).is_dir():
             # if there a 'fact_extracted' folder in the tmp dir: reset root path to that folder
             root_path /= self.FACT_EXTRACTION_FOLDER_NAME

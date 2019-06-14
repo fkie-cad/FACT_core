@@ -46,10 +46,9 @@ def matches_overlap(first, second):
     second_left, second_right = get_borders(second)
     if first_right >= second_left >= first_left:
         return True
-    elif first_right >= second_right >= first_left:
+    if first_right >= second_right >= first_left:
         return True
-    else:
-        return False
+    return False
 
 
 def match_is_longer(first, second):
