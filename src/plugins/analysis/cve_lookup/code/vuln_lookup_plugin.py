@@ -10,7 +10,7 @@ from ..internal.meta import unbinding, get_meta, DB
 
 class AnalysisPlugin(AnalysisBasePlugin):
     '''
-    lookup vulnerabilities from CVE feeds using ID from CPE dictionary
+    lookup vulnerabilities from CVE feeds using ID from CPE dictionary 
     '''
     NAME = 'cve_lookup'
     DESCRIPTION = 'lookup CVE vulnerabilities'
