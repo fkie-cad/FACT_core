@@ -211,9 +211,10 @@
 
             {% for analysis_plugin in firmware.processed_analysis|sort %}
                 <tr>
-                    <td class="active result clickable" onclick="location.href='/analysis/{{ uid|safe }}/{{analysis_plugin}}/ro/{{ root_uid }}'"
-                     data-toggle="tooltip" title="{{ analysis_plugin_dict.get(analysis_plugin, ['not available'])[0] | safe }}">
-                        {{ analysis_plugin | replace_underscore }}
+                    <td class="active result clickable" data-toggle="tooltip" title="{{ analysis_plugin_dict.get(analysis_plugin, ['not available'])[0] | safe }}" style="padding: 0;">
+                        <a href='/analysis/{{ uid|safe }}/{{analysis_plugin}}/ro/{{ root_uid }}' style="color: rgb(51, 51, 51)">
+                            <div style="width: 100%; height: 100%; padding: 8px;">{{ analysis_plugin | replace_underscore }}</div>
+                        </a>
                     </td>
                 </tr>
             {% endfor %}
@@ -240,7 +241,7 @@
                                 'data' : {
                                   'url' : function (node) {
                                     return node.id === '#' ?
-                                        "/ajax_root/{{ uid|safe }}" : "/ajax_tree/" + node["data"]["uid"] + "/{{ root_uid|safe }}";
+                                        "/ajax_root/{{ uid|safe }}/{{ root_uid | safe }}" : "/ajax_tree/" + node["data"]["uid"] + "/{{ root_uid|safe }}";
                                   }
                                 }
                               },
@@ -369,7 +370,7 @@
                             <div>{{ comment.time|int|nice_unix_time }}</div>
                         </td>
                         <td width="80%" style="margin:0; padding:0;">
-                            <pre style="white-space: pre-wrap; margin-bottom:0;">{{ comment.comment|urlize }}</pre>
+                            <pre style="white-space: pre-wrap; margin: 3px">{{ comment.comment|urlize }}</pre>
                         </td>
                         <td style="margin:0; padding:0;">
                             {# Comment Delete Button #}

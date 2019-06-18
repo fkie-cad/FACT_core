@@ -1,0 +1,5 @@
+component_depth: 2
+languages:
+- python
+exclude:
+- /src/bin/.*

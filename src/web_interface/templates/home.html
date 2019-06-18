@@ -58,7 +58,7 @@
     			</tr>
         	{% for firmware in latest_firmware_submissions %}
             	<tr>
-            		<td class="active clickable" onclick="location.href='/analysis/{{ firmware['_id'] }}'"> {{ firmware[3] | nice_unix_time | safe }} </td>
+            		<td class="active"> {{ firmware[3] | nice_unix_time | safe }} </td>
                 	{{ firmware | firmware_detail_tabular_field | safe }}
             	</tr>
         	{% endfor %}
@@ -77,10 +77,14 @@
     			</tr>
         	{% for comment in latest_comments %}
             	<tr>
-            		<td class="active clickable" onclick="location.href='/analysis/{{ comment.uid }}'"> {{ comment.time|int|nice_unix_time }} </td>
-                	<td class="active clickable" onclick="location.href='/analysis/{{ comment.uid }}'"> {{ comment.author }} </td>
-                	<td class="active clickable" onclick="location.href='/analysis/{{ comment.uid }}'" style="margin:0; padding:0;">
-                        <pre style="white-space: pre-wrap;">{{ comment.comment|urlize }}</pre>
+            		<td class="active"> {{ comment.time|int|nice_unix_time }} </td>
+                	<td class="active"> {{ comment.author }} </td>
+					<td class="active clickable" style="margin:0; padding:0;">
+						<a href='/analysis/{{ comment.uid }}'>
+							<div style="height: 100%; width: 100%">
+								<pre style="white-space: pre-wrap; margin: 3px; background-color: #FFF">{{ comment.comment|urlize }}</pre>
+							</div>
+						</a>
                     </td>
             	</tr>
         	{% endfor %}
@@ -99,12 +103,18 @@
     			</tr>
         	{% for id, hids, submission_date in latest_comparison_results %}
                 <tr>
-            		<td class="active clickable" onclick="location.href='/compare/{{ id }}'"> {{ submission_date | nice_unix_time | safe }} </td>
-                    <td class="active clickable" onclick="location.href='/compare/{{ id }}'">
-                        {%  for uid in hids %}
-                            {{ hids[uid] }}
-                            <div><font face="courier"  style="font-size:12px">{{ uid }}</font></div>
-                        {% endfor %}
+					<td class="active">
+						{{ submission_date | nice_unix_time | safe }}
+					</td>
+					<td class="active clickable" style="padding: 0">
+						<a href='/compare/{{ id }}' style="color: rgb(51, 51, 51)">
+							<div style="width: 100%; height: 100%; padding: 8px;">
+								{%  for uid in hids %}
+									{{ hids[uid] }}
+									<div><font face="courier"  style="font-size:12px">{{ uid }}</font></div>
+								{% endfor %}
+							</div>		
+						</a>
                     </td>
                 </tr>
         	{% endfor %}

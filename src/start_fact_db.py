@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 '''
     Firmware Analysis and Comparison Tool (FACT)
-    Copyright (C) 2015-2018  Fraunhofer FKIE
+    Copyright (C) 2015-2019  Fraunhofer FKIE
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -24,23 +24,25 @@ from time import sleep
 
 from statistic.work_load import WorkLoadStatistic
 from storage.MongoMgr import MongoMgr
-from helperFunctions.program_setup import program_setup
+from helperFunctions.program_setup import program_setup, was_started_by_start_fact
 
 PROGRAM_NAME = 'FACT DB-Service'
 PROGRAM_DESCRIPTION = 'Firmware Analysis and Compare Tool (FACT) DB-Service'
 
 
-def shutdown(signum, frame):
+def shutdown(*_):
     global run
     logging.info('shutting down {}...'.format(PROGRAM_NAME))
     run = False
 
 
-signal.signal(signal.SIGINT, shutdown)
-signal.signal(signal.SIGTERM, shutdown)
-
-
 if __name__ == '__main__':
+    if was_started_by_start_fact():
+        signal.signal(signal.SIGUSR1, shutdown)
+        signal.signal(signal.SIGINT, lambda *_: None)
+    else:
+        signal.signal(signal.SIGINT, shutdown)
+
     args, config = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION)
     mongo_server = MongoMgr(config=config)
     work_load_stat = WorkLoadStatistic(config=config, component='database')

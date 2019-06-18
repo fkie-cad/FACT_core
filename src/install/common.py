@@ -85,6 +85,7 @@ def main(distribution):  # pylint: disable=too-many-statements
     pip3_install_packages('git+https://github.com/fkie-cad/common_helper_mongo.git')
     pip3_install_packages('git+https://github.com/mass-project/common_helper_encoder.git')
     pip3_install_packages('git+https://github.com/fkie-cad/common_helper_filter.git')
+    pip3_install_packages('git+https://github.com/fkie-cad/common_helper_process.git')
 
     with OperateInDirectory('../../'):
         with suppress(FileNotFoundError):
