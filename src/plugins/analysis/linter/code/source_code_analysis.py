@@ -5,11 +5,11 @@ from pathlib import Path
 from analysis.PluginBase import AnalysisBasePlugin
 from objects.file import FileObject
 
-sys.path.append(str(Path(Path(__file__).parent.parent, 'internal')))
-from python_linter import PythonLinter
-from shell_linter import ShellLinter
-from js_linter import JavaScriptLinter
-from lua_linter import LuaLinter
+try:
+    from ..internal import js_linter, lua_linter, python_linter, shell_linter
+except ImportError:
+    sys.path.append(str(Path(__file__).parent.parent))
+    from internal import js_linter, lua_linter, python_linter, shell_linter
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
@@ -29,10 +29,10 @@ class AnalysisPlugin(AnalysisBasePlugin):
     VERSION = '0.4'
     MIME_WHITELIST = ['text/']
     SCRIPT_TYPES = {
-        'shell': {'mime': 'shell', 'shebang': 'sh', 'ending': '.sh', 'linter': ShellLinter},
-        'lua': {'mime': 'luascript', 'shebang': 'lua', 'ending': '.lua', 'linter': LuaLinter},
-        'javascript': {'mime': 'java', 'shebang': 'java', 'ending': '.js', 'linter': JavaScriptLinter},
-        'python': {'mime': 'python', 'shebang': 'python', 'ending': '.py', 'linter': PythonLinter}
+        'shell': {'mime': 'shell', 'shebang': 'sh', 'ending': '.sh', 'linter': shell_linter.ShellLinter},
+        'lua': {'mime': 'luascript', 'shebang': 'lua', 'ending': '.lua', 'linter': lua_linter.LuaLinter},
+        'javascript': {'mime': 'java', 'shebang': 'java', 'ending': '.js', 'linter': js_linter.JavaScriptLinter},
+        'python': {'mime': 'python', 'shebang': 'python', 'ending': '.py', 'linter': python_linter.PythonLinter}
     }
 
     def __init__(self, plugin_adminstrator, config=None, recursive=True, offline_testing=False):
