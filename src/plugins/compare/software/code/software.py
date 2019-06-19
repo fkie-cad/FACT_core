@@ -57,5 +57,6 @@ class ComparePlugin(CompareBasePlugin):
             list_of_software_lists.append(self._get_software_list(item))
         return list_of_software_lists
 
-    def _get_software_list(self, fo):
+    @staticmethod
+    def _get_software_list(fo):
         return list(fo.processed_analysis['software_components']['summary'].keys())

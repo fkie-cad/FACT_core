@@ -1,8 +1,8 @@
 import logging
 import os
-from subprocess import Popen, PIPE, STDOUT
 
 from common_helper_files.file_functions import create_dir_for_file
+from common_helper_process import execute_shell_command
 from pymongo import MongoClient, errors
 
 from helperFunctions.config import get_config_dir
@@ -10,7 +10,7 @@ from helperFunctions.mongo_config_parser import get_mongo_path
 from helperFunctions.process import complete_shutdown
 
 
-class MongoMgr(object):
+class MongoMgr:
     '''
     mongo server startup and shutdown
     '''
@@ -19,7 +19,7 @@ class MongoMgr(object):
         self.config = config
         try:
             self.mongo_log_path = config['Logging']['mongoDbLogFile']
-        except Exception:
+        except (KeyError, TypeError):
             self.mongo_log_path = '/tmp/fact_mongo.log'
         self.config_path = os.path.join(get_config_dir(), 'mongod.conf')
         self.mongo_db_file_path = get_mongo_path(self.config_path)
@@ -33,7 +33,7 @@ class MongoMgr(object):
             mongo_server, mongo_port = self.config['data_storage']['mongo_server'], self.config['data_storage']['mongo_port']
             client = MongoClient('mongodb://{}:{}'.format(mongo_server, mongo_port, connect=False))
             users = [user for user in client.admin.system.users.find({})]
-            return True if len(users) > 0 else False
+            return len(users) > 0
         except errors.OperationFailure:
             return True
 
@@ -42,10 +42,9 @@ class MongoMgr(object):
             logging.info("start local mongo database")
             self.check_file_and_directory_existence_and_permissions()
             auth_option = '--auth ' if _authenticate else ''
-            with Popen('mongod {}--config {} --fork --logpath {}'.format(auth_option, self.config_path, self.mongo_log_path),
-                       shell=True, stdout=PIPE, stderr=STDOUT) as pl:
-                output = pl.communicate()[0].decode()
-                logging.debug(output)
+            command = 'mongod {}--config {} --fork --logpath {}'.format(auth_option, self.config_path, self.mongo_log_path)
+            output = execute_shell_command(command)
+            logging.debug(output)
         else:
             logging.info('using external mongodb: {}:{}'.format(self.config['data_storage']['mongo_server'], self.config['data_storage']['mongo_port']))
 
@@ -62,12 +61,12 @@ class MongoMgr(object):
     def shutdown(self):
         if self.config['data_storage']['mongo_server'] == 'localhost':
             logging.info('stop local mongo database')
-            with Popen('mongo --eval "db.shutdownServer()" {}:{}/admin --username {} --password \'{}\''.format(
-                    self.config['data_storage']['mongo_server'], self.config['data_storage']['mongo_port'],
-                    self.config['data_storage']['db_admin_user'], self.config['data_storage']['db_admin_pw']),
-                    shell=True, stdout=PIPE, stderr=STDOUT) as pl:
-                output = pl.communicate()[0].decode()
-                logging.debug(output)
+            command = 'mongo --eval "db.shutdownServer()" {}:{}/admin --username {} --password "{}"'.format(
+                self.config['data_storage']['mongo_server'], self.config['data_storage']['mongo_port'],
+                self.config['data_storage']['db_admin_user'], self.config['data_storage']['db_admin_pw']
+            )
+            output = execute_shell_command(command)
+            logging.debug(output)
 
     def init_users(self):
         logging.info('Creating users for MongoDB authentication')
@@ -93,5 +92,5 @@ class MongoMgr(object):
                 pwd=self.config['data_storage']['db_readonly_pw'],
                 roles=[{'role': 'readAnyDatabase', 'db': 'admin'}]
             )
-        except Exception as e:
-            logging.error('Could not create users:\n{}'.format(e))
+        except Exception as exception:
+            logging.error('Could not create users:\n{}'.format(exception))
