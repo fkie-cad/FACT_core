@@ -1,9 +1,10 @@
 from os.path import basename
-from subprocess import check_output, CalledProcessError, STDOUT
+from subprocess import CalledProcessError
 from tempfile import NamedTemporaryFile
+from typing import Tuple, List, Optional, Dict
 
 import yara
-from typing import Tuple, List, Optional, Dict
+from common_helper_process import execute_shell_command
 
 from helperFunctions.web_interface import ConnectTo
 from storage.db_interface_common import MongoInterfaceCommon
@@ -24,28 +25,25 @@ class YaraBinarySearchScanner:
         :param rule_file_path: file path to yara rule file
         :return: output from yara scan
         '''
-        return check_output(
-            'yara -r {} {}'.format(rule_file_path, self.db_path if target_path is None else target_path),
-            shell=True,
-            stderr=STDOUT
-        )
+        command = 'yara -r {} {}'.format(rule_file_path, self.db_path if target_path is None else target_path)
+        return execute_shell_command(command)
 
     def _execute_yara_search_for_single_firmware(self, rule_file_path, firmware_uid):
         with ConnectTo(YaraBinarySearchScannerDbInterface, self.config) as connection:
             file_paths = connection.get_file_paths_of_files_included_in_fo(firmware_uid)
         result = (self._execute_yara_search(rule_file_path, path) for path in file_paths)
-        return b'\n'.join(result)
+        return '\n'.join(result)
 
     @staticmethod
-    def _parse_raw_result(raw_result: bytes) -> Dict[str, List[str]]:
+    def _parse_raw_result(raw_result: str) -> Dict[str, List[str]]:
         '''
         :param raw_result: raw yara scan result
         :return: dict of matching rules with lists of matched UIDs as values
         '''
         results = {}
-        for line in raw_result.split(b'\n'):
-            if line and b'warning' not in line:
-                rule, match = line.decode().split(' ')
+        for line in raw_result.split('\n'):
+            if line and 'warning' not in line:
+                rule, match = line.split(' ')
                 match = basename(match)
                 if rule in results:
                     results[rule].append(match)

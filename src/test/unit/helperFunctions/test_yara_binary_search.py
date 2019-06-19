@@ -64,7 +64,7 @@ class TestHelperFunctionsYaraBinarySearch(unittest.TestCase):
         assert isinstance(result, str)
         assert 'There seems to be an error in the rule file' in result
 
-    @patch('helperFunctions.yara_binary_search.check_output', side_effect=mock_check_output)
+    @patch('helperFunctions.yara_binary_search.execute_shell_command', side_effect=mock_check_output)
     def test_get_binary_search_yara_error(self, _):
         result = self.yara_binary_scanner.get_binary_search_result((self.yara_rule, None))
         assert isinstance(result, str)
@@ -76,14 +76,14 @@ class TestHelperFunctionsYaraBinarySearch(unittest.TestCase):
         self.assertEqual(test_dict, {1: [1, 2, 3], 2: [1, 2, 3]})
 
     def test_parse_raw_result(self):
-        raw_result = b'rule_1 match_1\nrule_1 match_2\nrule_2 match_1'
+        raw_result = 'rule_1 match_1\nrule_1 match_2\nrule_2 match_1'
         result = self.yara_binary_scanner._parse_raw_result(raw_result)
         self.assertEqual(result, {'rule_1': ['match_1', 'match_2'], 'rule_2': ['match_1']})
 
     def test_execute_yara_search(self):
         test_rule_path = path.join(fileSystem.get_test_data_dir(), 'yara_binary_search_test_rule')
         result = self.yara_binary_scanner._execute_yara_search(test_rule_path)
-        self.assertTrue(b'test_rule' in result)
+        self.assertTrue('test_rule' in result)
 
     def test_execute_yara_search_for_single_file(self):
         test_rule_path = path.join(fileSystem.get_test_data_dir(), 'yara_binary_search_test_rule')
@@ -91,7 +91,7 @@ class TestHelperFunctionsYaraBinarySearch(unittest.TestCase):
             test_rule_path,
             target_path=path.join(fileSystem.get_test_data_dir(), TEST_FILE_1, TEST_FILE_1)
         )
-        self.assertTrue(b'test_rule' in result)
+        self.assertTrue('test_rule' in result)
 
 
 class TestYaraBinarySearchScannerDbInterface(unittest.TestCase):
