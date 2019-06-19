@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from itertools import combinations
 from pathlib import Path
 from typing import Tuple
@@ -9,9 +10,16 @@ from analysis.PluginBase import AnalysisBasePlugin
 from ..internal.meta import unbinding, get_meta, DB
 
 
+@dataclass
+class Product:
+    vendor_name: str
+    product_name: str
+    version_number: str
+
+
 class AnalysisPlugin(AnalysisBasePlugin):
     '''
-    lookup vulnerabilities from CVE feeds using ID from CPE dictionary 
+    lookup vulnerabilities from CVE feeds using ID from CPE dictionary
     '''
     NAME = 'cve_lookup'
     DESCRIPTION = 'lookup CVE vulnerabilities'
@@ -89,25 +97,20 @@ def cpe_matching(db=None, metadata: dict = None, product_search_terms: list = No
     return cpe_candidates[0]
 
 
-def cve_cpe_search(db=None, metadata: dict = None, vendor_term: str = None, product_term: str = None,
-                   input_version: str = None) -> list:
+def cve_cpe_search(db=None, metadata: dict = None, matched_product: Product = None) -> list:
     '''
     uses the best fitting CPE entry to look for CPE entries in the CVE feeds comparing vendor, product and version
     with the help of the damerau-levenshtein algorithm. A list of CVE ids is returned.
     :param db: contains hook to database object
     :param metadata: contains dictionary with necessary SQL queries
-    :param vendor_term: contains vendor term found in CPE dictionary
-    :param product_term: contains product term found in CPE dictionary
-    :param input_version: contains unbound version from software components' summary
+    :param matched_product: dataclass containing vendor- and product name as well as the version number
     :return: list containing CVE candidates for corresponding product
     '''
     cve_candidates = list()
-    # set a named server-side cursor to give it an itersize-value --> not the whole table will be stored
-    # on the client side at once
     for cve_id, vendor, product, version in list(db.select_query(metadata['sqlite_queries']['cve_lookup'])):
-        if distance(vendor_term, vendor) < 3:
-            if distance(product_term, product) < 3:
-                if input_version in version or version == 'ANY' or version == 'NA':
+        if distance(matched_product.vendor_name, vendor) < 3:
+            if distance(matched_product.product_name, product) < 3:
+                if matched_product.version_number in version or version == 'ANY' or version == 'NA':
                     cve_candidates.append(cve_id)
 
     cve_candidates = list(set(cve_candidates))
@@ -139,20 +142,19 @@ def find_product_summary(vendor_product_distance: int, product_range: list, prod
     return False
 
 
-def cve_summary_search(db=None, metadata: dict = None, vendor: str = None, product: str = None) -> list:
+def cve_summary_search(db=None, metadata: dict = None, matched_product: Product = None) -> list:
     '''
     matches vendor and product search terms in the CVE summary
     :param db: contains hook to database object
     :param metadata: contains dictionary with necessary SQL queries
-    :param vendor: vendor name found in CPE dictionary
-    :param product: product name found in CPE dictionary
+    :param matched_product: dataclass containing vendor- and product name as well as the version number
     :return list containing CVE candidates found searching through CVE summaries
     '''
     cve_summary_candidates = list()
     # if product has matched set True
     match = False
-    vendor = vendor.split('_') if '_' in vendor else [vendor]
-    product = product.split('_') if '_' in product else [product]
+    vendor = matched_product.vendor_name.split('_')
+    product = matched_product.product_name.split('_')
 
     for cve_id, summary in list(db.select_query(metadata['sqlite_queries']['summary_lookup'])):
         # summary = ('CVE ID', 'summary')
@@ -186,8 +188,9 @@ def init_lookup(product_name: str, requested_version: str) -> list:
     with DB(str(Path(__file__).parent.parent) + '/internal/cpe_cve.db') as db:
         product_terms, version = generate_search_terms(product_name, requested_version)
         vendor, product, version = cpe_matching(db, meta, product_terms, version)
-        cve_candidates = cve_cpe_search(db, meta, vendor, product, version)
-        summary_can = cve_summary_search(db, meta, vendor, product)
+        matched_product = Product(vendor, product, version)
+        cve_candidates = cve_cpe_search(db, meta, matched_product)
+        summary_can = cve_summary_search(db, meta, matched_product)
         cve_candidates.extend(summary_can)
 
     return cve_candidates

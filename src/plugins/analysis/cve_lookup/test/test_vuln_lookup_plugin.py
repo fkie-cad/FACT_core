@@ -9,7 +9,7 @@ from ..internal.meta import get_meta
 METADATA = get_meta()
 USER_INPUT = {'vendor': 'Microsoft', 'product': 'Windows 7', 'version': '1.2.5'}
 
-VENDOR = 'microsoft'
+TEST_PRODUCT = lookup.Product('microsoft', 'windows 7', '1\\.2\\.5')
 PRODUCT = 'windows 7'
 VERSION = '1\\.2\\.5'
 MATCHED_CVE = ['CVE-1234-0009', 'CVE-1234-0010', 'CVE-1234-0011']
@@ -60,10 +60,10 @@ def test_cpe_matching(monkeypatch):
 def test_cpe_cve_search(monkeypatch):
     with monkeypatch.context() as monkey:
         monkey.setattr(DB, 'select_query', lambda *_, **__: CPE_CVE_OUTPUT)
-        assert MATCHED_CVE.sort() == lookup.cve_cpe_search(DB, METADATA, VENDOR, PRODUCT, VERSION).sort()
+        assert MATCHED_CVE.sort() == lookup.cve_cpe_search(DB, METADATA, TEST_PRODUCT).sort()
 
 
 def test_cve_summary_search(monkeypatch):
     with monkeypatch.context() as monkey:
         monkey.setattr(DB, 'select_query', lambda *_, **__: SUMMARY_OUTPUT)
-        assert MATCHED_SUMMARY.sort() == lookup.cve_summary_search(DB, METADATA, VENDOR, PRODUCT).sort()
+        assert MATCHED_SUMMARY.sort() == lookup.cve_summary_search(DB, METADATA, TEST_PRODUCT).sort()
