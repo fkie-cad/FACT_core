@@ -1,25 +1,22 @@
-# -*- coding: utf-8 -*-
-
 import json
 import random
 
 from common_helper_filter.time import time_format
 from flask import render_template
-
 from helperFunctions.dataConversion import none_to_none
 from helperFunctions.hash import get_md5
 from helperFunctions.uid import is_list_of_uids
 from helperFunctions.web_interface import ConnectTo
 from storage.db_interface_frontend import FrontEndDbInterface
-from web_interface.filter import byte_number_filter, encode_base64_filter, \
-    bytes_to_str_filter, replace_underscore_filter, nice_list, data_to_chart_limited, data_to_chart, \
-    uids_to_link, get_all_uids_in_string, list_to_line_break_string, sort_comments, \
-    nice_unix_time, infection_color, nice_number_filter, sort_chart_list_by_name, sort_chart_list_by_value, \
-    text_highlighter, get_canvas_height, comment_out_regex_meta_chars, user_has_role, \
-    generic_nice_representation, list_to_line_break_string_no_sort, render_tags, fix_cwe, \
-    data_to_chart_with_value_percentage_pairs, render_analysis_tags, vulnerability_class, sort_users_by_name, \
-    sort_roles_by_number_of_privileges, filter_format_string_list_with_offset, decompress, \
-    get_unique_keys_from_list_of_dicts
+from web_interface.filter import (
+    byte_number_filter, bytes_to_str_filter, comment_out_regex_meta_chars, data_to_chart, data_to_chart_limited,
+    data_to_chart_with_value_percentage_pairs, decompress, encode_base64_filter, filter_format_string_list_with_offset,
+    fix_cwe, generic_nice_representation, get_all_uids_in_string, get_canvas_height, get_unique_keys_from_list_of_dicts,
+    infection_color, list_to_line_break_string, list_to_line_break_string_no_sort, nice_list, nice_number_filter,
+    nice_unix_time, render_analysis_tags, render_tags, replace_underscore_filter, sort_chart_list_by_name,
+    sort_chart_list_by_value, sort_comments, sort_roles_by_number_of_privileges, sort_users_by_name, text_highlighter,
+    uids_to_link, user_has_role, vulnerability_class
+)
 
 
 class FilterClass:
