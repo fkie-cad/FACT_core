@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 {% set navigation_bar = [
-    ("Home", "/", '<span class="glyphicon glyphicon-home"></span>'),
+    ("Home", "/", '<i class="fas fa-home"></i>'),
     ("Database", None, None),
-    ("Upload", "/upload", '<span class="glyphicon glyphicon-upload"></span>'),
-    ("Statistic", "/statistic", '<span class="glyphicon glyphicon-stats"></span>'),
-    ("System", "/system_health", '<span class="glyphicon glyphicon-heart"></span>'),
-    ("About", "/about", '<span class="glyphicon glyphicon-globe"></span>'),
+    ("Upload", "/upload", '<i class="fas fa-upload"></i>'),
+    ("Statistic", "/statistic", '<i class="fas fa-chart-bar"></i>'),
+    ("System", "/system_health", '<i class="fas fa-heartbeat"></i>'),
+    ("About", "/about", '<i class="fas fa-info-circle"></i>'),
     ("Admin", None, None)
 ] -%}
 
@@ -13,7 +13,7 @@
     {% do navigation_bar.append(("Login", None, None)) %}
 {% endif %}
 
-{% set active_page = active_page|default('Home') -%}
+{% set active_page = active_page | default('Home') %}
 
 <html>
     <head lang="en">
@@ -54,9 +54,6 @@
         {% endblock %}
         
         <style>
-            body{
-                padding-top: 70px;
-            }
             a:link{
                 color:#2b669a;
                 text-decoration:none;
@@ -64,16 +61,13 @@
             td.clickable {
                 cursor:pointer;
             }
-            .navbar-inner {
-                background-color: #255e54; /*#607873; /* background color will be black for all browsers */
-                background-image: none;
-                background-repeat: no-repeat;
-                filter: none;
+            .bg-fact {
+                  background-color: #255e54 !important;
             }
-                .navbar-default .navbar-brand, .navbar-default .navbar-nav > li > a {
+            .navbar-light .navbar-brand, .navbar-light .navbar-nav > li > a {
                 color: #ddd;
             }
-                .navbar-default .navbar-brand:hover, .navbar-default .navbar-nav > li > a:hover {
+            .navbar-light .navbar-brand:hover, .navbar-light .navbar-nav > li > a:hover {
                 color: #fff;
             }
             .tooltip > .tooltip-inner {
@@ -92,88 +86,84 @@
 
     <body>
 
-    <nav role="navigation" class="navbar navbar-default navbar-fixed-top navbar-inner" style="margin-bottom:0; padding: 0">
-        <div class="container-fluid" style="padding: 0">
-            <div class="navbar-header">
-                <button type="button" data-target="#navbarCollapse" data-toggle="collapse" class="navbar-toggle">
-                    <span class="sr-only">Toggle navigation</span>
-                    <span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span>
-                </button>
-                <div class="navbar-brand hidden-sm hidden-md" style="vertical-align: middle; margin-left: 15px">
-                    <span><img height="25px" src="{{ url_for('static', filename='fact_logo_inv.svg') }}"></span>
-                </div>
-                <div class="navbar-brand hidden-sm hidden-md" style="vertical-align: middle">
-                    Firmware Analysis and Comparison Tool
-                </div>
-            </div>
-            <div id="navbarCollapse" class="collapse navbar-collapse">
-                <!-- Navbar Elements -->
-                <ul class="nav navbar-nav navbar-left" style="padding-right: 5px">
-                    {% for caption, href, icon in navigation_bar %}
-                        {% if caption == "Database" %}
+    <nav role="navigation" class="navbar navbar-expand-md navbar-light bg-fact">
+        <button type="button" data-target="#navbarCollapse" data-toggle="collapse" class="navbar-toggler">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="navbar-brand hidden-sm hidden-md" style="vertical-align: middle; margin-left: 15px">
+            <span><img height="25px" src="{{ url_for('static', filename='fact_logo_inv.svg') }}"></span>
+        </div>
+        <div class="navbar-brand hidden-sm hidden-md" style="vertical-align: middle">
+            Firmware Analysis and Comparison Tool
+        </div>
+        <div id="navbarCollapse" class="collapse navbar-collapse">
+            <!-- Navbar Elements -->
+            <ul class="nav navbar-nav navbar-left" style="padding-right: 5px">
+                {% for caption, href, icon in navigation_bar %}
+                    {% if caption == "Database" %}
+                        <li class="dropdown {% if caption == active_page %}active{% endif  %}">
+                            <a class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="fas fa-tasks"></i>&nbsp;Database<span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="/database/browse">Browse Firmware Analyses</a></li>
+                                <li><a href="/database/browse_compare">Browse Firmware Compares</a></li>
+                                <li><a href="/database/search">Basic Search</a></li>
+                                <li><a href="/database/advanced_search">Advanced Search</a></li>
+                                <li><a href="/database/binary_search">Binary Pattern Search</a></li>
+                            </ul>
+                        </li>
+                    {% elif caption == "Admin" %}
+                        {% if current_user | user_has_role('manage_users') %}
                             <li class="dropdown {% if caption == active_page %}active{% endif  %}">
-                                <a class="dropdown-toggle" data-toggle="dropdown" href="#"><span class="glyphicon glyphicon-tasks"></span>&nbsp;Database<span class="caret"></span></a>
+                                <a class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="fas fa-users-cog"></i>&nbsp;{{ caption }}<span class="caret"></span></a>
                                 <ul class="dropdown-menu">
-                                    <li><a href="/database/browse">Browse Firmware Analyses</a></li>
-                                    <li><a href="/database/browse_compare">Browse Firmware Compares</a></li>
-                                    <li><a href="/database/search">Basic Search</a></li>
-                                    <li><a href="/database/advanced_search">Advanced Search</a></li>
-                                    <li><a href="/database/binary_search">Binary Pattern Search</a></li>
+                                    <li><a href="/admin/manage_users">Manage Users</a></li>
                                 </ul>
                             </li>
-                        {% elif caption == "Admin" %}
-                            {% if current_user | user_has_role('manage_users') %}
-                                <li class="dropdown {% if caption == active_page %}active{% endif  %}">
-                                    <a class="dropdown-toggle" data-toggle="dropdown" href="#"><span class="glyphicon glyphicon-cog"></span>&nbsp;{{ caption }}<span class="caret"></span></a>
-                                    <ul class="dropdown-menu">
-                                        <li><a href="/admin/manage_users">Manage Users</a></li>
-                                    </ul>
-                                </li>
-                            {% endif %}
-                        {% elif caption == "Login" %}
-                            <li {% if caption == active_page %} class="active"{% endif  %}>
-                                {% if current_user.is_authenticated %}
-                                    <a class="dropdown-toggle" data-toggle="dropdown" href="#"><span class="glyphicon glyphicon-user"></span>&nbsp;{{ current_user.email }}<span class="caret"></span></a>
-                                    <ul class="dropdown-menu">
-                                        <li><a href="/user_profile"><span class="glyphicon glyphicon-user"></span> Profile</a></li>
-                                        <li><a href="/logout"><span class="glyphicon glyphicon-log-out"></span> Logout</a></li>
-                                    </ul>
-                                {% else %}
-                                    <a href="/login"><span class="glyphicon glyphicon-log-in"></span> Login</a>
-                                {% endif %}
-                            </li>
-                        {% else %}
-                            <li {% if caption == active_page %} class="active"{% endif  %}>
-                                <a href={{ href }}>{{ icon|safe }} {{ caption }}</a>
-                            </li>
                         {% endif %}
-                    {% endfor %}
-                </ul>
+                    {% elif caption == "Login" %}
+                        <li {% if caption == active_page %} class="active"{% endif  %}>
+                            {% if current_user.is_authenticated %}
+                                <a class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="fas fa-user"></i>&nbsp;{{ current_user.email }}<span class="caret"></span></a>
+                                <ul class="dropdown-menu">
+                                    <li><a href="/user_profile"><i class="fas fa-user"></i> Profile</a></li>
+                                    <li><a href="/logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                                </ul>
+                            {% else %}
+                                <a href="/login"><i class="fas fa-sign-in-alt"></i> Login</a>
+                            {% endif %}
+                        </li>
+                    {% else %}
+                        <li {% if caption == active_page %} class="active"{% endif  %}>
+                            <a href={{ href }}>{{ icon|safe }} {{ caption }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
 
-                <!-- Navbar Quick Search Button -->
-                <ul class="nav navbar-nav navbar-right">
-                    <li class="hidden-xs float-right" id="nav_quick_search" style="padding-right: 15px">
-                        <a class="dropdown-toggle" onclick="toggleCollapse()">
-                            <span class="glyphicon glyphicon-search"></span>
-                        </a>
-                    </li>
-                </ul>
+            <!-- Navbar Quick Search Button -->
+            <ul class="nav navbar-nav navbar-right">
+                <li class="hidden-xs float-right" id="nav_quick_search" style="padding-right: 15px">
+                    <a class="dropdown-toggle" onclick="toggleCollapse()">
+                        <i class="fas fa-search"></i>
+                    </a>
+                </li>
+            </ul>
 
-                <!-- Navbar Quick Search Input -->
-                <div id="quick_search_div" class="col-sm-12 hidden-xs collapse" style="padding: 0">
-                    <div style="width: 100%; padding: 0; margin: 0;">
-                        <div class="input-group" style="width: 100%; padding: 0; margin: 0; background-color: #e7e7e7;">
-                            <input type="text" class="form-control" placeholder="Quick search name, vendor and hash values" id="quick_search_input" onKeyDown="if(event.keyCode==13) quickSearch();" style="margin: 0; background-color: #e7e7e7; border-radius: 0;">
-                            <span class="input-group-addon" style="background: white !important; width: 44px; padding: 0; margin: 0; border-radius: 0;">
-                                <button onclick="quickSearch()" style="border:0; background:transparent; padding: 0; margin: 0;">
-                                    <span class="glyphicon glyphicon-search"></span>
-                                </button>
-                            </span>
-                        </div>
+            <!-- Navbar Quick Search Input -->
+            <div id="quick_search_div" class="col-sm-12 hidden-xs collapse" style="padding: 0">
+                <div style="width: 100%; padding: 0; margin: 0;">
+                    <div class="input-group" style="width: 100%; padding: 0; margin: 0; background-color: #e7e7e7;">
+                        <input type="text" class="form-control" placeholder="Quick search name, vendor and hash values" id="quick_search_input" onKeyDown="if(event.keyCode==13) quickSearch();" style="margin: 0; background-color: #e7e7e7; border-radius: 0;">
+                        <span class="input-group-addon" style="background: white !important; width: 44px; padding: 0; margin: 0; border-radius: 0;">
+                            <button onclick="quickSearch()" style="border:0; background:transparent; padding: 0; margin: 0;">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </span>
                     </div>
                 </div>
-
             </div>
+
         </div>
     </nav>
 
