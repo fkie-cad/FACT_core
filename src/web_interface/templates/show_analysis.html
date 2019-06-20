@@ -22,8 +22,8 @@
 {% block head %}
 
 	{# jstree import #}
-    <script src="{{ url_for('static', filename='jstree/dist/jstree.min.js') }}"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='jstree/dist/themes/default/style.min.css') }}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/jstree.min.js"></script>
 
 
 	{# highlight.js import #}
@@ -36,102 +36,100 @@
 
 {# firmware comparison from analysis #}
 
-<div class="row" style="padding-right: 15px">
+<div class="row justify-content-end" style="padding-right: 15px">
     {%if known_comparisons %}
-        <div class="pull-right">
-            <span class="glyphicon glyphicon-hdd" data-toggle="collapse" data-target="#old_comparisons" style="padding: 5px; margin-right: 5px;" title="Show List of Known Comparisons"></span>
+        <div class="col-sm-4">
+            <i class="far fa-hdd float-right" data-toggle="collapse" data-target="#old_comparisons" style="padding: 5px; margin-right: 5px;" title="Show List of Known Comparisons"></i>
         </div>
     {% endif %}
     {% if not uids_for_comparison or uid not in uids_for_comparison %}
-        <div class="pull-right">
-            <span class="glyphicon glyphicon-plus" onclick="location.href='/comparison/add/{{ uid }}'" style="padding: 5px; margin-right: 5px;" title="Add to Comparison"></span>
+        <div class="col-sm-4">
+            <i class="fas fa-plus float-right" onclick="location.href='/comparison/add/{{ uid }}'" style="padding: 5px; margin-right: 5px;" title="Add to Comparison"></i>
         </div>
     {% endif %}
 
     {% if uids_for_comparison %}
-        <div class="pull-right">
-            <span class="glyphicon glyphicon-list" data-toggle="collapse" data-target="#comparison-list" style="padding: 5px; margin-right: 5px;" title="Show Selected Firmwares for Comparison"></span>
+        <div class="col-sm-4">
+            <i class="fas fa-list-ul float-right" data-toggle="collapse" data-target="#comparison-list" style="padding: 5px; margin-right: 5px;" title="Show Selected Firmwares for Comparison"></i>
         </div>
     {% endif %}
-    <div class="pull-right">
-        <h5 style="margin-top: 4px; margin-bottom: 0; margin-right: 5px">Comparisons</h5>
+    <div class="col-sm-2">
+        <h5 class="float-right" style="margin-top: 4px; margin-bottom: 0; margin-right: 5px">Comparisons</h5>
     </div>
 </div>
 
 <div class="collapse" id="old_comparisons">
-    <div class="jumbotron pull-right" style="float: left; padding: 10px; margin-bottom: 0; margin-left: 15px; margin-right: 15px; width: auto; max-width: 650px; border: 1px solid #ddd; background-color: #f8f8f8;">
+    <div class="jumbotron float-right" style="padding: 10px; margin-bottom: 0; margin-left: 15px; margin-right: 15px; width: auto; max-width: 650px; border: 1px solid #ddd; background-color: #f8f8f8;">
         <h4 style="margin-top: 0; text-align: center;">List of Comparisons Containing the Displayed Firmware</h4>
-            <hr style="margin: 12px">
-                <div class="card card-body">
-                    {% for comparison in known_comparisons%}
-                            <div class="col-xs-12" style="padding: 0;">
-                                <span style="padding: 2px; margin: 0; display: -webkit-inline-box; display: ">
-                                    <span button type="button" class="btn btn-primary btn-sm" style="margin-left: 3px" onclick="location.href='/compare/{{ comparison[0]}}'">{{ comparison[0] | replace_comparison_uid_with_hid | safe  }}</span>
-                                </span>
-                            </div>
-                        {% endfor %}
+        <hr style="margin: 12px">
+        <div class="card card-body">
+            {% for comparison in known_comparisons%}
+                <div class="col-xs-12" style="padding: 0;">
+                    <span style="padding: 2px; margin: 0;">
+                        <span type="button" class="btn btn-primary btn-sm" style="margin-left: 3px" onclick="location.href='/compare/{{ comparison[0]}}'">{{ comparison[0] | replace_comparison_uid_with_hid | safe  }}</span>
+                    </span>
                 </div>
+            {% endfor %}
+        </div>
     </div>
 </div>
 
 {% if uids_for_comparison %}
-<div class="row" style="margin-bottom: 15px">
-    <div class="row collapse" id="comparison-list" style="margin: 0">
-        <div class="jumbotron pull-right" style="float: left; padding: 10px; margin-bottom: 0; margin-left: 15px; margin-right: 15px; width: auto; max-width: 650px; border: 1px solid #ddd; background-color: #f8f8f8;">
+<div class="row justify-content-end" style="margin-bottom: 15px">
+    <div class="collapse" id="comparison-list" style="margin: 0">
+        <div class="jumbotron float-right" style="float: left; padding: 10px; margin-bottom: 0; margin-left: 15px; margin-right: 15px; width: auto; max-width: 650px; border: 1px solid #ddd; background-color: #f8f8f8;">
             <h4 style="margin-top: 0; text-align: center;">Firmwares Selected for Comparison</h4>
             <hr style="margin: 12px">
             <table width="auto">
                 <tr>
                     <td style="width: 10px; vertical-align: top;">
-                {% for compare_uid in uids_for_comparison %}
-                    <div class="col-xs-12" style="padding: 0;">
-                        <span style="padding: 2px; margin: 0; display: -webkit-inline-box; display: ">
-                            <span class="close" style="font-size: 20px" onclick="location.href='/comparison/remove/{{ uid }}/{{ compare_uid }}'">
-                                &times;
-                            </span>
-                            <span class="tag label label-{% if compare_uid == uid %}primary{% else %}default{% endif %}" style="margin-left: 3px">{{ compare_uid|replace_uid_with_hid|safe }}</span>
-                        </span>
-                    </div>
-                {% endfor %}
-            </div>
+                        {% for compare_uid in uids_for_comparison %}
+                            <div class="col-xs-12" style="padding: 0;">
+                                <span style="padding: 2px; margin: 0; display: -webkit-inline-box; display: ">
+                                    <span class="close" style="font-size: 20px" onclick="location.href='/comparison/remove/{{ uid }}/{{ compare_uid }}'">
+                                        &times;
+                                    </span>
+                                    <span class="tag label label-{% if compare_uid == uid %}primary{% else %}default{% endif %}" style="margin-left: 3px">{{ compare_uid|replace_uid_with_hid|safe }}</span>
+                                </span>
+                            </div>
+                        {% endfor %}
                     </td>
-            {% if uids_for_comparison|length > 1 %}
-                    <td style="width: 180px; vertical-align: top;">
-                    <div class="col-xs-12" style="padding: 2px;">
-                        <button type="button" class="btn btn-default btn-xs" onclick="location.href='/comparison/remove_all/{{ uid }}'" style="width: 100%">
-                            <span class="glyphicon glyphicon-remove"></span> Remove All
-                        </button>
-                    </div>
-                    <div class="col-xs-12" style="padding: 2px;">
-                        <button type="button" id="start_compare_button" class="btn btn-default btn-xs" style="width: 100%">
-                            <span class="glyphicon glyphicon-duplicate"></span> Compare
-                        </button>
-                    </div>
-                    <div class="form-group col-xs-12" style="margin: 0;">
-                        <div class="checkbox" style="margin: 0; margin-left: 30px; text-align: center">
-                            <label style="padding: 2px">
-                                <input type="checkbox" value="true" id="recompare_checkbox" style="margin-top: 2px;"> Force Recompare
-                            </label>
-                        </div>
-                    </div>
-                    <script>
-                        function start_compare(){
-                            var checkbox = document.getElementById('recompare_checkbox');
-                            var link = '/compare';
-                            if (checkbox.checked) link += '?force_recompare=true';
-                            location.href = link;
-                        };
-                        document.getElementById("start_compare_button").onclick = start_compare;
-                    </script>
-                </div>
-                    </td>
-            {% endif %}
+                    {% if uids_for_comparison|length > 1 %}
+                        <td style="width: 180px; vertical-align: top;">
+                            <div class="col-xs-12" style="padding: 2px;">
+                                <button type="button" class="btn btn-secondary btn-sm" onclick="location.href='/comparison/remove_all/{{ uid }}'" style="width: 100%">
+                                    <span class="glyphicon glyphicon-remove"></span> Remove All
+                                </button>
+                            </div>
+                            <div class="col-xs-12" style="padding: 2px;">
+                                <button type="button" id="start_compare_button" class="btn btn-secondary btn-sm" style="width: 100%">
+                                    <span class="glyphicon glyphicon-duplicate"></span> Compare
+                                </button>
+                            </div>
+                            <div class="form-group col-xs-12" style="margin: 0;">
+                                <div class="checkbox" style="margin: 0; margin-left: 30px; text-align: center">
+                                    <label style="padding: 2px">
+                                        <input type="checkbox" value="true" id="recompare_checkbox" style="margin-top: 2px;"> Force Recompare
+                                    </label>
+                                </div>
+                            </div>
+                            <script>
+                                function start_compare(){
+                                    var checkbox = document.getElementById('recompare_checkbox');
+                                    var link = '/compare';
+                                    if (checkbox.checked) link += '?force_recompare=true';
+                                    location.href = link;
+                                };
+                                document.getElementById("start_compare_button").onclick = start_compare;
+                            </script>
+                        </td>
+                    {% endif %}
                 </tr>
             </table>
         </div>
     </div>
-    {% endif %}
 </div>
+{% endif %}
 
 <div style="word-wrap: break-word">
     <h2>Analysis for <span class="text-primary">{{ firmware.get_hid(root_uid=root_uid) }}</span><br /><small><strong>UID:</strong> {{ uid|safe }}</small></h2>
@@ -375,7 +373,7 @@
                         <td style="margin:0; padding:0;">
                             {# Comment Delete Button #}
                             {% if firmware.vendor %}
-                                <button data-toggle="collapse" data-target="#delete-button-div-{{ comment.time }}" class="btn btn-xs">
+                                <button data-toggle="collapse" data-target="#delete-button-div-{{ comment.time }}" class="btn btn-sm">
                                     <span class="glyphicon glyphicon-trash"></span>
                                 </button>
                             {% endif %}
@@ -412,26 +410,26 @@
 	    	<strong>user options:</strong>
             {# Hex View Button #}
             <form action="/hex-dump/{{ firmware.get_uid() }}" style="display: inline" onsubmit="window.open('', 'formpopup', 'width=800,height=400,resizeable,scrollbars');this.target = 'formpopup';">
-                <button class="btn btn-default" type="submit">
+                <button class="btn btn-secondary" type="submit">
                     <span class="glyphicon glyphicon-eye-open"></span> show header in hex
                 </button>
             </form>
             {# Radare Button #}
             <form action="/radare-view/{{ firmware.get_uid() }}" style="display: inline" target="_blank">
-                <button class="btn btn-default" type="submit">
+                <button class="btn btn-secondary" type="submit">
                     <span class="glyphicon glyphicon-console"></span> view in radare
                 </button>
             </form>
             {# Binary Download Button #}
             <form action="/download/{{ firmware.get_uid() }}" style="display:inline">
-                <button class="btn btn-default" type="submit">
+                <button class="btn btn-secondary" type="submit">
                     <span class="glyphicon glyphicon-download-alt"></span> download raw file
                 </button>
             </form>
  			{# Tar Download Button #}
 			{% if firmware.files_included %}
 				<form action="/tar-download/{{ firmware.get_uid() }}" style="display:inline">
-			    	<button class="btn btn-default" type="submit">
+			    	<button class="btn btn-secondary" type="submit">
 			        	<span class="glyphicon glyphicon-compressed"></span> download included files as tar.gz
 			        </button>
 				</form>
@@ -439,14 +437,14 @@
 			{# Update Analysis Buttons #}
 			{% if firmware.vendor %}
                 <form action="/update-analysis/{{ firmware.get_uid() }}" style="display:inline">
-                    <button class="btn btn-default" type="submit">
+                    <button class="btn btn-secondary" type="submit">
                         <span class="glyphicon glyphicon-repeat"></span> update analysis
                     </button>
                 </form>
 			{% endif %}
 			{# Start Binary Search Button #}
 			{% if firmware.vendor %}
-                <button class="btn btn-default" onclick='window.location.href = "/database/binary_search?firmware_uid={{ firmware.get_uid() }}";'>
+                <button class="btn btn-secondary" onclick='window.location.href = "/database/binary_search?firmware_uid={{ firmware.get_uid() }}";'>
                     <span class="glyphicon glyphicon-search"></span> YARA search
                 </button>
 			{% endif %}
@@ -458,7 +456,7 @@
 	    <div class="alert alert-custom" style="padding:5px;">
             <strong>admin options:</strong>
     		{# Update Analysis Buttons #}
-		    <button data-toggle="collapse" data-target="#re-do-button-div" class="btn btn-default">
+		    <button data-toggle="collapse" data-target="#re-do-button-div" class="btn btn-secondary">
 	            <span class="glyphicon glyphicon-repeat"></span> re-do analysis
 	        </button>
 	        <span class="collapse" id="re-do-button-div">
@@ -467,7 +465,7 @@
 	            </button>
 	        </span>
 		    {# FW Delete Confirm Button #}
-		   	<button data-toggle="collapse" data-target="#delete-button-div" class="btn btn-default">
+		   	<button data-toggle="collapse" data-target="#delete-button-div" class="btn btn-secondary">
 		    	<span class="glyphicon glyphicon-trash"></span> delete firmware
 		    </button>
 	        <span class="collapse" id="delete-button-div">

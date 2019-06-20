@@ -1,33 +1,27 @@
 <div class="list-group">
 	{% if not omit_collapse %}
-	<button data-toggle="collapse" data-target="#{{u_show_id}}" class="list-group-item list-group-item-info">
-		<span class="badge">{{ fo_list | length }}</span> show files
-	</button>
-	<div id="{{u_show_id}}" class="collapse">
+		<div class="list-group-item active" data-toggle="collapse" data-target="#{{ u_show_id }}" role="button" aria-expanded="false" aria-controls="{{ u_show_id }}">
+			show files<span class="badge badge-primary badge-pill">{{ fo_list | length }}</span>
+		</div>
+		<div id="{{u_show_id}}" class="collapse">
 	{% endif %}
 	{% if number_of_unanalyzed_files > 0 %}
-	<a href="#" class="list-group-item list-group-item-warning">
-		<h5 class="list-group-item-heading">{{ number_of_unanalyzed_files }} files not analyzed yet.</h5>
-		<p class="list-group-item-text">Unanalyzed files are not shown in this list.</p>
-	</a>
+		<a href="#" class="list-group-item list-group-item-warning">
+			<h5 class="list-group-item-heading">{{ number_of_unanalyzed_files }} files not analyzed yet.</h5>
+			<p class="list-group-item-text">Unanalyzed files are not shown in this list.</p>
+		</a>
 	{% endif %}
 	{% for fo in fo_list %}
-		<span class="list-group-item">
-		{% if selected_analysis %}
-			<a href="/analysis/{{ fo.uid }}/{{selected_analysis}}/ro/{{ root_uid }}"  class="list-group-item-heading">
-		{% else %}
-			<a href="/analysis/{{ fo.uid }}/ro/{{ root_uid }}"  class="list-group-item-heading">
-		{% endif %}
-				<h5>{{ fo.virtual_file_paths | nice_list | replace_uid_with_hid(root_uid=root_uid) | safe }} </h5>					
-			</a>
-			<p class="list-group-item-text">
-				Size: {{ fo.size | number_format }},
-				{% if fo['mime-type'] %}
-					Type: {{ fo['mime-type'] }}
-				{% endif %}
-				<span class="glyphicon glyphicon-download-alt pull-right clickable" onclick="location.href='/download/{{ fo.uid }}'"></span>
-			</p>
-		</span>	
+		<div class="list-group-item">
+			<h5>{{ fo.virtual_file_paths | nice_list | replace_uid_with_hid(root_uid=root_uid) | safe }} </h5>
+			Size: {{ fo.size | number_format }},
+			{% if fo['mime-type'] %}
+				Type: {{ fo['mime-type'] }}
+			{% endif %}
+			<span class="pull-right clickable" onclick="location.href='/download/{{ fo.uid }}'">down</span>
+		</div>
     {% endfor %}
-	{% if not omit_collapse %}</div>{% endif %}
+	{% if not omit_collapse %}
+		</div>
+	{% endif %}
 </div>
