@@ -16,33 +16,31 @@
 {% block body %}
 <script type="text/javascript" src="{{ url_for('static', filename='js/update_url_variables.js') }}"></script>
 
-<div class="row">
-    <div class="col-md-8 col-md-offset-2 col-lg-6 col-lg-offset-3" style="max-width: 1600px;">
-        <div class="col-md-6" id="device-class-dropdown-div">
-            <label class="control-label" for="device_class_dropdown" style="text-align:right">
-                Device Class:
-            </label>
-            <select class="form-control" id="device_class_dropdown" name='device_class_dropdown' style="text-align:left"
-                    onchange="window.location=update_url_variables(update_url_variables(window.location.toString(), 'device_class', this.value), 'page', '')">
-                <option value=''></option>
-            {% for class in device_classes | sort %}
-                <option {% if class in current_class %}selected{% endif %} value='{{ class }}'>{{ class }}</option>
-            {% endfor %}
-            </select>
-        </div>
+<div class="row justify-content-center">
+    <div class="col-sm-4" id="device-class-dropdown-div">
+        <label class="control-label" for="device_class_dropdown" style="text-align:right">
+            Device Class:
+        </label>
+        <select class="form-control" id="device_class_dropdown" name='device_class_dropdown' style="text-align:left"
+                onchange="window.location=update_url_variables(update_url_variables(window.location.toString(), 'device_class', this.value), 'page', '')">
+            <option value=''></option>
+        {% for class in device_classes | sort %}
+            <option {% if class in current_class %}selected{% endif %} value='{{ class }}'>{{ class }}</option>
+        {% endfor %}
+        </select>
+    </div>
 
-        <div class="col-md-6" id="vendor-dropdown-div">
+    <div class="col-sm-4" id="vendor-dropdown-div">
         <label class="control-label" for="vendor_dropdown" style="text-align:right">
             Vendor:
         </label>
-            <select class="form-control" id="vendor_dropdown" name='vendor_dropdown' style="text-align:left"
-                    onchange="window.location=update_url_variables(update_url_variables(window.location.toString(), 'vendor', this.value), 'page', '')">
-                <option value=''></option>
-            {% for vendor in vendors | sort %}
-                <option {% if vendor in current_vendor %}selected{% endif %} value='{{ vendor }}'>{{ vendor }}</option>
-            {% endfor %}
-            </select>
-        </div>
+        <select class="form-control" id="vendor_dropdown" name='vendor_dropdown' style="text-align:left"
+                onchange="window.location=update_url_variables(update_url_variables(window.location.toString(), 'vendor', this.value), 'page', '')">
+            <option value=''></option>
+        {% for vendor in vendors | sort %}
+            <option {% if vendor in current_vendor %}selected{% endif %} value='{{ vendor }}'>{{ vendor }}</option>
+        {% endfor %}
+        </select>
     </div>
 
     <script type="text/javascript">
@@ -53,17 +51,15 @@
           document.getElementById("vendor-dropdown-div").style.display = "none";
       }
     </script>
+</div>
+<div class="row justify-content-center py-2">
+    <div class="col-sm-8">
 
-    <div class="control-group"></div>
-    <div class="col-xs-12" style="height:25px;"></div>
-
-    <div class="col-md-8 col-md-offset-2 col-lg-8 col-lg-offset-2">
-
-        <table class="table table-responsive table-hover table-bordered" style="border-spacing: 10px;">
+        <table class="table table-responsive table-hover">
         {% for firmware in firmware_list %}
             <tr>
             {% if pagination is defined %}
-                <td style="vertical-align:middle">{{ loop.index + (page - 1) * per_page }}</td>
+                <td class="align-middle">{{ loop.index + (page - 1) * per_page }}</td>
             {% endif %}
             {{ firmware | firmware_detail_tabular_field | safe }}
             </tr>
