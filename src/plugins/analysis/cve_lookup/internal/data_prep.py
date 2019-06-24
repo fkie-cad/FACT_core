@@ -11,6 +11,8 @@ import requests
 from .meta import get_meta
 from .meta import unbinding
 
+METADATA = get_meta()
+
 
 def get_cve_links(url: str) -> list:
     '''
@@ -45,53 +47,37 @@ def iterate_urls(dl_urls: list, path: str) -> None:
         zipped_data.extractall(path)
 
 
-def select_cve_urls(all_cve_urls: list, years: list) -> list:
+def download_cve(years: list = None, download_path: str = None, update: bool = False) -> None:
     '''
     Prepares download urls from all specified years if available
-    :param all_cve_urls: list of all cve links
     :param years: specifies which CVE feeds should be downloaded
-    :param meta: contains the link structure for a CVE link
+    :param download_path: local path to store downloaded CVE files
+    :param update: boolean which signalises that the CVE update file should be downloaded
     :return: cve_candidates
     '''
-    if all_cve_urls is None:
-        exit('Error: No CVE links are provided')
-    if years is None:
-        exit('Error: The required years of CVE feeds are not specified')
-    cve_candidates = [url for url in all_cve_urls for year in years if str(year) in url]
+    if update:
+        cve_candidates = [METADATA['source_urls']['cve_source'].format('modified')]
+    else:
+        all_cve_urls = get_cve_links(METADATA['source_urls']['cve_source'])
+        if not all_cve_urls:
+            exit('Error: No CVE links are provided')
+        if not years:
+            exit('Error: The required years of CVE feeds are not specified')
+        cve_candidates = [url for url in all_cve_urls for year in years if str(year) in url]
 
-    return cve_candidates
+    iterate_urls(cve_candidates, download_path)
 
 
-def download_data(cpe: bool = False, cve: bool = False, update: bool = False, path: str = None,
-                  years: list = None) -> None:
+def download_cpe(download_path: str = None) -> None:
     '''
     Controls which urls are prepared and used for download
-    :param cpe: boolean specifying if CPE should be downloaded
-    :param cve: boolean specifying if CVE should be downloaded
-    :param update: boolean specifying if CVE should be updated
-    :param path: destination path for downloaded files
-    :param years: specified CVE years
+    :param download_path: local path to store downloaded CPE file
     :return: None
     '''
-    dl_urls = list()
-    meta = get_meta()
-    if meta is None:
-        exit('Error: No source URLs provided. Check metadata.json if required URL is set.')
-    # if the download options cpe, cve or update are not set, nothing can be downloaded
-    if not cpe and not cve and not update:
-        exit('Error: No file specified for download.')
-    # a list of URLs is declared and the URLs are appended depending on the download options chosen
-    if cpe:
-        dl_urls.append(meta['source_urls']['cpe_source'])
-    if update:
-        dl_urls.append(meta['source_urls']['cve_source'].format('modified'))
-    # in contrast to cpe or update the CVE feed links are resolved dynamically because each year new feeds are added
-    # and the user is able to chose which years should be downloaded
-    if cve:
-        all_cve_urls = get_cve_links(meta['source_urls']['cve_source'])
-        dl_urls.extend(select_cve_urls(all_cve_urls, years))
-
-    iterate_urls(dl_urls, path)
+    cpe_url = METADATA['source_urls']['cpe_source']
+    if not cpe_url:
+        exit('Error: No CPE URL provided. Check metadata.json if required URL is set.')
+    iterate_urls([cpe_url], download_path)
 
 
 def iterate_nodes(nodes: list, cpe_entries: list) -> list:
@@ -123,7 +109,7 @@ def extract_cve(file: str) -> Tuple[list, list]:
     feeds = None
     cve_list = list()
     summary_list = list()
-# get all json feeds from the directory
+    # get all json feeds from the directory
     try:
         feeds = open(file)
         root = load(feeds)

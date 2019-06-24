@@ -9,7 +9,7 @@ from ..internal import data_prep as dp
 from ..internal import meta
 from ..internal import setup_repository as sr
 
-METADATA = meta.get_meta()
+QUERIES = meta.get_meta()
 YEARTUPLE = namedtuple('years', 'start_year end_year')
 YEARS = YEARTUPLE(2002, 2019)
 
@@ -87,12 +87,12 @@ def setup() -> None:
                                                                                 'test_cve_extract.json')
     cve_base, summary_base = dp.setup_cve_table(cve_base, summary_base)
     with meta.DB('test_update.db') as db:
-        db.table_manager(query=METADATA['sqlite_queries']['create_cpe_table'].format('cpe_table'))
-        db.insert_rows(query=METADATA['sqlite_queries']['insert_cpe'].format('cpe_table'), input_t=cpe_base)
-        db.table_manager(query=METADATA['sqlite_queries']['create_cve_table'].format('cve_table'))
-        db.table_manager(query=METADATA['sqlite_queries']['create_summary_table'].format('summary_table'))
-        db.insert_rows(query=METADATA['sqlite_queries']['insert_cve'].format('cve_table'), input_t=cve_base)
-        db.insert_rows(query=METADATA['sqlite_queries']['insert_summary'].format('summary_table'), input_t=summary_base)
+        db.table_manager(query=QUERIES['sqlite_queries']['create_cpe_table'].format('cpe_table'))
+        db.insert_rows(query=QUERIES['sqlite_queries']['insert_cpe'].format('cpe_table'), input_t=cpe_base)
+        db.table_manager(query=QUERIES['sqlite_queries']['create_cve_table'].format('cve_table'))
+        db.table_manager(query=QUERIES['sqlite_queries']['create_summary_table'].format('summary_table'))
+        db.insert_rows(query=QUERIES['sqlite_queries']['insert_cve'].format('cve_table'), input_t=cve_base)
+        db.insert_rows(query=QUERIES['sqlite_queries']['insert_summary'].format('summary_table'), input_t=summary_base)
     yield None
     try:
         remove('test_update.db')
@@ -105,10 +105,10 @@ def test_import_cpe(monkeypatch):
     with monkeypatch.context() as monkey:
         monkey.setattr(sr, 'glob', lambda *_, **__: [str(Path(__file__).parent.parent) + '/test/test_resources/'
                                                                                          'test_cpe_extract.xml'])
-        monkey.setattr(dp, 'download_data', lambda *_, **__: None)
+        monkey.setattr(dp, 'download_cpe', lambda *_, **__: None)
         with meta.DB('test_import.db') as db:
             sr.init_repository('test_import.db', False, 1, YEARS, '')
-            assert EXPECTED_CPE_OUTPUT.sort() == list(db.select_query(METADATA['sqlite_queries']['select_all']
+            assert EXPECTED_CPE_OUTPUT.sort() == list(db.select_query(QUERIES['sqlite_queries']['select_all']
                                                                       .format('cpe_table'))).sort()
 
 
@@ -116,38 +116,38 @@ def test_import_cve(monkeypatch):
     with monkeypatch.context() as monkey:
         monkey.setattr(sr, 'glob', lambda *_, **__: [path[0] + '/plugins/analysis/cve_lookup/test/test_resources/'
                                                                'test_cve_extract.json'])
-        monkey.setattr(dp, 'download_data', lambda *_, **__: None)
+        monkey.setattr(dp, 'download_cve', lambda *_, **__: None)
         with meta.DB('test_import.db') as db:
             sr.init_repository('test_import.db', False, 2, YEARS, '')
-            assert EXPECTED_CVE_OUTPUT.sort() == list(db.select_query(METADATA['test_queries']['test_where']
+            assert EXPECTED_CVE_OUTPUT.sort() == list(db.select_query(QUERIES['test_queries']['test_where']
                                                                       .format('cve_table', 'product=\'ie\''))).sort()
-            assert EXPECTED_SUM_OUTPUT.sort() == list(db.select_query(METADATA['sqlite_queries']['select_all']
+            assert EXPECTED_SUM_OUTPUT.sort() == list(db.select_query(QUERIES['sqlite_queries']['select_all']
                                                                       .format('summary_table'))).sort()
 
 
 def test_create_cve_update_table(monkeypatch):
     with monkeypatch.context() as monkey:
-        monkey.setattr(dp, 'download_data', lambda *_, **__: None)
+        monkey.setattr(dp, 'download_cve', lambda *_, **__: None)
         monkey.setattr(sr, 'glob', lambda *_, **__: [path[0] + '/plugins/analysis/cve_lookup/test/test_resources/'
                                                                'nvdcve_test_cve_update.json'])
         with meta.DB('test_update.db') as db:
-            sr.create_cve_update_table(db, METADATA, '')
-            test_table_exists = list(db.select_query(query=METADATA['test_queries']['test_tables']))
+            sr.create_cve_update_table(db, '')
+            test_table_exists = list(db.select_query(query=QUERIES['test_queries']['test_tables']))
             assert ('temp_feeds',) in test_table_exists
             assert ('temp_sum',) in test_table_exists
 
 
 def test_update_cve(monkeypatch):
     with monkeypatch.context() as monkey:
-        monkey.setattr(dp, 'download_data', lambda *_, **__: None)
+        monkey.setattr(dp, 'download_cve', lambda *_, **__: None)
         monkey.setattr(sr, 'glob', lambda *_, **__: [str(Path(__file__).parent.parent) + '/test/test_resources/'
                                                                                          'nvdcve_test_cve_update.json'])
         with meta.DB('test_update.db') as db:
-            sr.update_cve(db, METADATA, '')
-            assert EXPECTED_UPDATED_CVE_TABLE.sort() == list(db.select_query(query=METADATA['sqlite_queries']
+            sr.update_cve(db, '')
+            assert EXPECTED_UPDATED_CVE_TABLE.sort() == list(db.select_query(query=QUERIES['sqlite_queries']
                                                                              ['select_all'].format('cve_table'))).sort()
-            if list(db.select_query(METADATA['sqlite_queries']['exist'].format('summary_table'))):
-                assert EXPECTED_UPDATED_SUMMARY_TABLE.sort() == list(db.select_query(query=METADATA['sqlite_queries']
+            if list(db.select_query(QUERIES['sqlite_queries']['exist'].format('summary_table'))):
+                assert EXPECTED_UPDATED_SUMMARY_TABLE.sort() == list(db.select_query(query=QUERIES['sqlite_queries']
                                                                                      ['select_all'].format
                                                                                      ('summary_table'))).sort()
 
@@ -156,10 +156,10 @@ def test_update_cpe(monkeypatch):
     with monkeypatch.context() as monkey:
         monkey.setattr(sr, 'glob', lambda *_, **__: [str(Path(__file__).parent.parent) + '/test/test_resources/'
                                                                                          'test_cpe_update.xml'])
-        monkey.setattr(dp, 'download_data', lambda *_, **__: None)
+        monkey.setattr(dp, 'download_cpe', lambda *_, **__: None)
         with meta.DB('test_update.db') as db:
-            sr.update_cpe(db, METADATA, '')
-            assert EXPECTED_UPDATED_CPE_TABLE.sort() == list(db.select_query(query=METADATA['sqlite_queries']
+            sr.update_cpe(db, '')
+            assert EXPECTED_UPDATED_CPE_TABLE.sort() == list(db.select_query(query=QUERIES['sqlite_queries']
                                                                              ['select_all'].format('cpe_table'))).sort()
 
 

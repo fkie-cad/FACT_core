@@ -153,8 +153,13 @@ for i in range(2002, 2020):
 
 DOWNLOAD_DATA_YEAR_INPUT = [2018, 2019]
 
-DOWNLOAD_DATA_EXPECTED_OUTPUT = ['official-cpe-dictionary_v2.3.xml', 'nvdcve-1.0-2018.json', 'nvdcve-1.0-2019.json',
-                                 'nvdcve-1.0-modified.json']
+DOWNLOAD_CPE_EXPECTED = ['official-cpe-dictionary_v2.3.xml']
+
+DOWNLOAD_CVE_EXPECTED = ['nvdcve-1.0-2018.json', 'nvdcve-1.0-2019.json']
+
+DOWNLOAD_UPDATE_EXPECTED = ['nvdcve-1.0-modified.json']
+
+DOWNLOAD_DATA_EXPECTED_OUTPUT = ['official-cpe-dictionary_v2.3.xml', 'nvdcve-1.0-modified.json']
 
 ALL_CVE_URLS = ['nvdcve-1.0-2017.json', 'nvdcve-1.0-2018.json', 'nvdcve-1.0-2019.json', 'nvdcve-1.0-modified.json']
 SELECT_CVE_URLS_EXPECTED_OUTPUT = ['nvdcve-1.0-2018.json', 'nvdcve-1.0-2019.json']
@@ -175,22 +180,24 @@ def test_get_cve_links():
     assert GET_CVE_LINKS_EXPECTED_OUTPUT == dp.get_cve_links(METADATA['source_urls']['cve_source'])
 
 
-def test_download_data():
-    dp.download_data(cpe=True, cve=True, update=True, path='.', years=DOWNLOAD_DATA_YEAR_INPUT)
-    downloaded_files = list()
-    downloaded_files.extend(glob('official-cpe-dictionary_v2.3.xml'))
-    downloaded_files.extend(glob('nvdcve-1.0-*.json'))
-    assert set(DOWNLOAD_DATA_EXPECTED_OUTPUT) == set(downloaded_files)
+def test_download_cve():
+    dp.download_cve(years=DOWNLOAD_DATA_YEAR_INPUT, download_path='.', update=False)
+    assert set(DOWNLOAD_CVE_EXPECTED) == set(glob('nvdcve-1.0-*.json'))
+    dp.download_cve(years=DOWNLOAD_DATA_YEAR_INPUT, download_path='.', update=True)
+    assert DOWNLOAD_UPDATE_EXPECTED == glob('nvdcve-1.0-modified.json')
 
 
-def test_select_cve_urls():
-    assert SELECT_CVE_URLS_EXPECTED_OUTPUT == dp.select_cve_urls(ALL_CVE_URLS, DOWNLOAD_DATA_YEAR_INPUT)
+def test_download_cpe():
+    dp.download_cpe(download_path='.')
+    assert DOWNLOAD_CPE_EXPECTED == glob('official-cpe-dictionary_v2.3.xml')
 
 
 def test_iterate_urls():
+    dp.iterate_urls(['https://nvd.nist.gov/feeds/xml/cpe/dictionary/official-cpe-dictionary_v2.3.xml.zip',
+                     'https://nvd.nist.gov/feeds/json/cve/1.0/nvdcve-1.0-modified.json.zip'], '.')
     downloaded_files = list()
     downloaded_files.extend(glob('official-cpe-dictionary_v2.3.xml'))
-    downloaded_files.extend(glob('nvdcve-1.0-*.json'))
+    downloaded_files.extend(glob('nvdcve-1.0-modified.json'))
     assert set(DOWNLOAD_DATA_EXPECTED_OUTPUT) == set(downloaded_files)
 
 
