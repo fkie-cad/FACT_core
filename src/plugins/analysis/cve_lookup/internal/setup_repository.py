@@ -1,4 +1,5 @@
 import argparse
+from collections import namedtuple
 from datetime import datetime
 from glob import glob
 
@@ -7,16 +8,15 @@ from .meta import DB
 from .meta import get_meta
 
 
-def overlap(start_year: int, end_year: int, available: list) -> list:
+def overlap(years: namedtuple, available: list) -> list:
     '''
     calculates the overlap between years the user wants to import into
     the database and years that are already in the database and returns a list of years the user can import.
-    :param start_year: by user specified start year of CVE feeds
-    :param end_year: by user specified end year of CVE feeds
+    :param years: by user specified start year of CVE feeds
     :param available: list of in the database available years
     :return list containing years of CVE feeds that are not already in the database
     '''
-    return list(set(range(start_year, end_year+1)) - set(available))
+    return list(set(range(years.start_year, years.end_year+1)) - set(available))
 
 
 def update_cpe(db, metadata: dict = None, cpe_extract_path: str = None) -> None:
@@ -119,14 +119,13 @@ def update_cve(db, metadata: dict = None, cve_extract_path: str = None) -> None:
         db.table_manager(query=metadata['sqlite_queries']['drop'].format('temp_feeds'))
 
 
-def import_cve(db, metadata: dict, cve_extract_path: str, start_year: int = None, end_year: int = None) -> None:
+def import_cve(db, metadata: dict, cve_extract_path: str, years: namedtuple) -> None:
     '''
     imports the CPE dictionary
     :param db: database object
     :param metadata: dictionary containing SQL queries
     :param cve_extract_path: path to which the CPE file was downloaded
-    :param start_year: by user specified start year of CVE feeds
-    :param end_year: by user specified end year of CVE feeds
+    :param years: by user specified start year and end year of CVE feeds
     :return None
     '''
     cve_list, summary_list = list(), list()
@@ -136,9 +135,9 @@ def import_cve(db, metadata: dict, cve_extract_path: str, start_year: int = None
     output = [el[0] for el in db.select_query(query=metadata['sqlite_queries']['test_empty_cve'])]
     # when there is data in the cve table, get the years and calculate the overlap with the input
     if output:
-        selection = overlap(start_year, end_year, output)
+        selection = overlap(years, output)
     else:
-        selection = list(range(start_year, end_year + 1))
+        selection = list(range(years.start_year, years.end_year + 1))
     # download all specified files
     dp.download_data(cve=True, path=cve_extract_path, years=selection)
     # extract all data from each downloaded file
@@ -156,24 +155,23 @@ def import_cve(db, metadata: dict, cve_extract_path: str, start_year: int = None
                        input_t=summary_table_input)
 
 
-def set_repository(db, metadata: dict, extraction_path: str, specify: int, start_year: int, end_year: int) -> None:
+def set_repository(db, metadata: dict, extraction_path: str, specify: int, years: namedtuple) -> None:
     '''
     Specifies which repositories have to be set up
     :param db: database object
     :param metadata: dictionary containing SQL queries
     :param extraction_path: path to which the CVE feeds and/or CPE dictionary were downloaded
     :param specify: integer contains the user's which repository to update
-    :param start_year: by user specified start year of CVE feeds
-    :param end_year: by user specified end year of CVE feeds
+    :param years: by user specified start year and end year of CVE feeds
     :return: None
     '''
     if specify == 0:
         import_cpe(db, metadata, extraction_path)
-        import_cve(db, metadata, extraction_path, start_year, end_year)
+        import_cve(db, metadata, extraction_path, years)
     elif specify == 1:
         import_cpe(db, metadata, extraction_path)
     elif specify == 2:
-        import_cve(db, metadata, extraction_path, start_year, end_year)
+        import_cve(db, metadata, extraction_path, years)
 
 
 def update_repository(db, metadata: dict, extraction_path: str, specify: int) -> None:
@@ -194,15 +192,13 @@ def update_repository(db, metadata: dict, extraction_path: str, specify: int) ->
         update_cve(db, metadata, extraction_path)
 
 
-def init_repository(db_name: str, update: bool, specify: int, start_year: int, end_year: int,
-                    extraction_path: str) -> None:
+def init_repository(db_name: str, update: bool, specify: int, years: namedtuple, extraction_path: str) -> None:
     '''
     Initialises changes to CPE and CVE repositories
     :param db_name: database object
     :param update: tells application if repositories should be updated or set up
     :param specify: specifies which repositories should be updated or set up
-    :param start_year: by user specified start year of CVE feeds
-    :param end_year: by user specified end year of CVE feeds
+    :param years: by user specified start year and end year of CVE feeds
     :param extraction_path: contains the path to the temporarily stored CPE and CVE files
     :return: None
     '''
@@ -211,7 +207,7 @@ def init_repository(db_name: str, update: bool, specify: int, start_year: int, e
         if update:
             update_repository(db_name, metadata, extraction_path, specify)
         else:
-            set_repository(db, metadata, extraction_path, specify, start_year, end_year)
+            set_repository(db, metadata, extraction_path, specify, years)
 
 
 def main():
@@ -228,12 +224,9 @@ def main():
                                         '0 - update/import both\n\t1 - update/import CPE dictionary\n\t'
                                         '2 - update/import CVE feeds\nDefault: 0', type=int, default=0)
 
-    parser.add_argument('start_year', help='Int which defines the oldest CVE feeds to be imported.\nDefault: 2002\n'
-                                           'Lowest valid value: 2002', type=int, default=2002)
-
-    parser.add_argument('end_year', help='Int which defines the most recent CVE feeds to be imported.\n'
-                                         'Default: current year\nHighest valid value: current year',
-                        type=int, default=current_year)
+    parser.add_argument('years', nargs='2', help='Tuple containing start year at position 0 and end year at position 1'
+                                                 'for the selection of the CVE feeds', type=int,
+                        default=[2002, current_year])
 
     parser.add_argument('extraction_path', help='Path to which the files containing the CPE dictionary and CVE feeds '
                                                 'should temporarily be stored.\nDefault: '
@@ -241,22 +234,24 @@ def main():
                         default='./data_source/')
 
     args = parser.parse_args()
+    Years = namedtuple('Years', 'start_year end_year')
+    years = Years(start_year=args.years[0], end_year=args.years[1])
 
     if not args.db_name.endswith('.db'):
         raise ValueError('ERROR: Database name must end with \'.db\'.')
     if args.specify < 0 or args.specify > 2:
         raise ValueError('ERROR: Value of \'specify\' out of bounds. '
                          'Look at setup_repository.py -h for more information.')
-    if args.start_year < 2002 or args.start_year > current_year:
+    if years.start_year < 2002 or years.start_year > current_year:
         raise ValueError('ERROR: Value of \'start_year\' out of bounds. '
                          'Look at setup_repository.py -h for more information.')
-    if args.end_year < 2002 or args.end_year > current_year:
+    if years.end_year < 2002 or years.end_year > current_year:
         raise ValueError('ERROR: Value of \'end_year\' out of bounds. '
                          'Look at setup_repository.py -h for more information.')
-    if args.start_year > args.end_year:
+    if years.start_year > years.end_year:
         raise ValueError('ERROR: Value of \'start_year\' greater than value of \'end_year\'.')
 
-    init_repository(args.db_name, args.update, args.specify, args.start_year, args.end_year, args.extraction_path)
+    init_repository(args.db_name, args.update, args.specify, years, args.extraction_path)
 
 
 if __name__ == '__main__':

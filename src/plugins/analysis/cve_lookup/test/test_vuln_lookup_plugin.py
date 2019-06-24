@@ -1,17 +1,16 @@
 import os
+from collections import namedtuple
 
 import pytest
 
 from ..code import vuln_lookup_plugin as lookup
 from ..internal.meta import DB
-from ..internal.meta import get_meta
 
-METADATA = get_meta()
 USER_INPUT = {'vendor': 'Microsoft', 'product': 'Windows 7', 'version': '1.2.5'}
 
-TEST_PRODUCT = lookup.Product('microsoft', 'windows 7', '1\\.2\\.5')
+PRODUCT = namedtuple('PRODUCT', 'vendor_name product_name version_number')
+TEST_PRODUCT = PRODUCT('microsoft', 'windows 7', '1\\.2\\.5')
 PRODUCT = 'windows 7'
-VERSION = '1\\.2\\.5'
 MATCHED_CVE = ['CVE-1234-0009', 'CVE-1234-0010', 'CVE-1234-0011']
 CPE_CVE_OUTPUT = [('CVE-1234-0008', 'microsoft', 'server_2013', '2013'),
                   ('CVE-1234-0009', 'mircosof', 'windows_7', '0\\.7'),
@@ -48,22 +47,22 @@ def setup() -> None:
 
 
 def test_generate_search_terms():
-    assert (PRODUCT_SEARCH_TERMS, VERSION_SEARCH_TERM) == lookup.generate_search_terms(PRODUCT, VERSION)
+    assert PRODUCT_SEARCH_TERMS == lookup.generate_search_terms(PRODUCT)
 
 
 def test_cpe_matching(monkeypatch):
     with monkeypatch.context() as monkey:
         monkey.setattr(DB, 'select_query', lambda *_, **__: CPE_OUTPUT)
-        assert MATCHED_CPE == lookup.cpe_matching(DB, METADATA, PRODUCT_SEARCH_TERMS, VERSION_SEARCH_TERM)
+        assert MATCHED_CPE == lookup.cpe_matching(DB, PRODUCT_SEARCH_TERMS, VERSION_SEARCH_TERM)
 
 
 def test_cpe_cve_search(monkeypatch):
     with monkeypatch.context() as monkey:
         monkey.setattr(DB, 'select_query', lambda *_, **__: CPE_CVE_OUTPUT)
-        assert MATCHED_CVE.sort() == lookup.cve_cpe_search(DB, METADATA, TEST_PRODUCT).sort()
+        assert MATCHED_CVE.sort() == lookup.cve_cpe_search(DB, TEST_PRODUCT).sort()
 
 
 def test_cve_summary_search(monkeypatch):
     with monkeypatch.context() as monkey:
         monkey.setattr(DB, 'select_query', lambda *_, **__: SUMMARY_OUTPUT)
-        assert MATCHED_SUMMARY.sort() == lookup.cve_summary_search(DB, METADATA, TEST_PRODUCT).sort()
+        assert MATCHED_SUMMARY.sort() == lookup.cve_summary_search(DB, TEST_PRODUCT).sort()

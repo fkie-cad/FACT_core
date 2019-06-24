@@ -1,8 +1,8 @@
 from json import load
 from os.path import isfile
+from pathlib import Path
 from re import match, finditer
 from sqlite3 import connect, Error
-from sys import path
 
 
 class DB:
@@ -91,7 +91,7 @@ def get_meta(specified_file: str = None) -> dict:
     :return: json content in dictionary
     '''
     if not specified_file:
-        meta_path = path[0] + '/plugins/analysis/cve_lookup/internal/metadata.json'
+        meta_path = str(Path(__file__).parent / 'metadata.json')
     else:
         meta_path = specified_file
         if not isfile(meta_path):

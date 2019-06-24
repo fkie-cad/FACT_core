@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from collections import namedtuple
 from itertools import combinations
 from pathlib import Path
 from typing import Tuple
@@ -9,12 +9,7 @@ from analysis.PluginBase import AnalysisBasePlugin
 
 from ..internal.meta import unbinding, get_meta, DB
 
-
-@dataclass
-class Product:
-    vendor_name: str
-    product_name: str
-    version_number: str
+QUERIES = get_meta()
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
@@ -55,12 +50,11 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return component_parts if len(component_parts) == 2 else ''.join(component_parts[:-2]), component_parts[-1]
 
 
-def generate_search_terms(product_component: str, input_version: str) -> Tuple[list, str]:
+def generate_search_terms(product_component: str) -> list:
     '''
     generates forward combinations of search terms concatenated by underscores and unbinds version string
     to conform to the CPE naming specification
     :param product_component: contains product name from software components' summary
-    :param input_version: contains product version from software components' summary
     :return: tuple of list containing product search terms and the unbound version string
     '''
     product_terms = product_component.split()
@@ -68,25 +62,22 @@ def generate_search_terms(product_component: str, input_version: str) -> Tuple[l
                             combinations(range(len(product_terms) + 1), 2)]
     product_search_terms = unbinding(product_search_terms)
 
-    unbound_version = unbinding([input_version])
-
-    return product_search_terms, unbound_version
+    return product_search_terms
 
 
-def cpe_matching(db=None, metadata: dict = None, product_search_terms: list = None, input_version: str = None) \
+def cpe_matching(db=None, product_search_terms: list = None, input_version: str = None) \
         -> tuple:
     '''
     matches CPE entries using generated search terms by comparing the vendor and product with the
     help of the damerau-levenshtein algorithm which calculates the string distance between two strings.
     The best fitting CPE entry is returned.
     :param db: contains hook to database object
-    :param metadata: contains dictionary with necessary SQL queries
     :param product_search_terms: contain all generated product search terms
     :param input_version: contains unbound version from software components' summary
     :return: tuple containing vendor name, product name and product version of best fit from CPE dictionary
     '''
     cpe_candidates = list()
-    for vendor, product, version in list(db.select_query(metadata['sqlite_queries']['cpe_lookup'])):
+    for vendor, product, version in list(db.select_query(QUERIES['sqlite_queries']['cpe_lookup'])):
         for product_term in product_search_terms:
             if distance(product_term, product) < 3:
                 cpe_candidates.append((vendor, product, version))
@@ -97,17 +88,16 @@ def cpe_matching(db=None, metadata: dict = None, product_search_terms: list = No
     return cpe_candidates[0]
 
 
-def cve_cpe_search(db=None, metadata: dict = None, matched_product: Product = None) -> list:
+def cve_cpe_search(db=None, matched_product: namedtuple = None) -> list:
     '''
     uses the best fitting CPE entry to look for CPE entries in the CVE feeds comparing vendor, product and version
     with the help of the damerau-levenshtein algorithm. A list of CVE ids is returned.
     :param db: contains hook to database object
-    :param metadata: contains dictionary with necessary SQL queries
     :param matched_product: dataclass containing vendor- and product name as well as the version number
     :return: list containing CVE candidates for corresponding product
     '''
     cve_candidates = list()
-    for cve_id, vendor, product, version in list(db.select_query(metadata['sqlite_queries']['cve_lookup'])):
+    for cve_id, vendor, product, version in list(db.select_query(QUERIES['sqlite_queries']['cve_lookup'])):
         if distance(matched_product.vendor_name, vendor) < 3:
             if distance(matched_product.product_name, product) < 3:
                 if matched_product.version_number in version or version == 'ANY' or version == 'NA':
@@ -142,34 +132,30 @@ def find_product_summary(vendor_product_distance: int, product_range: list, prod
     return False
 
 
-def cve_summary_search(db=None, metadata: dict = None, matched_product: Product = None) -> list:
+def cve_summary_search(db=None, matched_product: namedtuple = None) -> list:
     '''
     matches vendor and product search terms in the CVE summary
     :param db: contains hook to database object
-    :param metadata: contains dictionary with necessary SQL queries
     :param matched_product: dataclass containing vendor- and product name as well as the version number
     :return list containing CVE candidates found searching through CVE summaries
     '''
     cve_summary_candidates = list()
-    # if product has matched set True
+    # if product has matched, set True
     match = False
     vendor = matched_product.vendor_name.split('_')
     product = matched_product.product_name.split('_')
 
-    for cve_id, summary in list(db.select_query(metadata['sqlite_queries']['summary_lookup'])):
-        # summary = ('CVE ID', 'summary')
+    for cve_id, summary in list(db.select_query(QUERIES['sqlite_queries']['summary_lookup'])):
         words = summary.split(' ')
         for idx, word in enumerate(words):
             word = word.lower()
             # a range in which the product term is allowed to come after the vendor term
             # for it not to be a false positive
-            vendor_product_distance = 3
             if match:
                 break
             if distance(vendor[0], word) < 3 and len(words[idx + 2:]) >= len(product):
-                vendor_product_distance = min(vendor_product_distance, len(words[idx + 2:]))
-                product_range = words[idx + 2:]
-                match = find_product_summary(vendor_product_distance, product_range, product)
+                vendor_product_distance = min(3, len(words[idx + 2:]))
+                match = find_product_summary(vendor_product_distance, words[idx + 2:], product)
                 if match:
                     cve_summary_candidates.append(cve_id)
                     match = False
@@ -184,13 +170,13 @@ def init_lookup(product_name: str, requested_version: str) -> list:
     :param requested_version: version from software components' summary
     :return list containing CVE candidates found with vendor -, product name and version from CPE dictionary
     '''
-    meta = get_meta()
+    Product = namedtuple('Product', 'vendor_name product_name version_number')
     with DB(str(Path(__file__).parent.parent) + '/internal/cpe_cve.db') as db:
-        product_terms, version = generate_search_terms(product_name, requested_version)
-        vendor, product, version = cpe_matching(db, meta, product_terms, version)
+        product_terms, version = generate_search_terms(product_name), unbinding([requested_version])
+        vendor, product, version = cpe_matching(db, product_terms, version)
         matched_product = Product(vendor, product, version)
-        cve_candidates = cve_cpe_search(db, meta, matched_product)
-        summary_can = cve_summary_search(db, meta, matched_product)
+        cve_candidates = cve_cpe_search(db, matched_product)
+        summary_can = cve_summary_search(db, matched_product)
         cve_candidates.extend(summary_can)
 
     return cve_candidates

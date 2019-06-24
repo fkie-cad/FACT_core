@@ -1,3 +1,4 @@
+from collections import namedtuple
 from os import remove
 from pathlib import Path
 from sys import path
@@ -9,7 +10,8 @@ from ..internal import meta
 from ..internal import setup_repository as sr
 
 METADATA = meta.get_meta()
-
+YEARTUPLE = namedtuple('years', 'start_year end_year')
+YEARS = YEARTUPLE(2002, 2019)
 
 EXPECTED_CPE_OUTPUT = [('cpe:2.3:a:\\$0.99_kindle_books_project:\\$0.99_kindle_books:6:*:*:*:*:android:*:*', 'a',
                         '\\$0\\.99_kindle_books_project', '\\$0\\.99_kindle_books', '6', 'ANY', 'ANY', 'ANY', 'ANY',
@@ -105,7 +107,7 @@ def test_import_cpe(monkeypatch):
                                                                                          'test_cpe_extract.xml'])
         monkey.setattr(dp, 'download_data', lambda *_, **__: None)
         with meta.DB('test_import.db') as db:
-            sr.init_repository('test_import.db', False, 1, 2002, 2019, '')
+            sr.init_repository('test_import.db', False, 1, YEARS, '')
             assert EXPECTED_CPE_OUTPUT.sort() == list(db.select_query(METADATA['sqlite_queries']['select_all']
                                                                       .format('cpe_table'))).sort()
 
@@ -116,7 +118,7 @@ def test_import_cve(monkeypatch):
                                                                'test_cve_extract.json'])
         monkey.setattr(dp, 'download_data', lambda *_, **__: None)
         with meta.DB('test_import.db') as db:
-            sr.init_repository('test_import.db', False, 2, 2002, 2019, '')
+            sr.init_repository('test_import.db', False, 2, YEARS, '')
             assert EXPECTED_CVE_OUTPUT.sort() == list(db.select_query(METADATA['test_queries']['test_where']
                                                                       .format('cve_table', 'product=\'ie\''))).sort()
             assert EXPECTED_SUM_OUTPUT.sort() == list(db.select_query(METADATA['sqlite_queries']['select_all']
