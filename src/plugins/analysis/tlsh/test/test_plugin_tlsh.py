@@ -88,8 +88,11 @@ def test_file_has_no_tlsh_hash(test_object, stub_plugin, monkeypatch):
     assert result.processed_analysis[stub_plugin.NAME] == {}
 
 
-def test_no_files_in_database(monkeypatch):
+def test_no_files_in_database(test_object, stub_plugin, monkeypatch):
     monkeypatch.setattr('plugins.analysis.tlsh.code.tlsh.ConnectTo', EmptyContext)
+    result = stub_plugin.process_object(test_object)
+
+    assert result.processed_analysis[stub_plugin.NAME] == {}
 
 
 def test_file_hashes_not_run(test_object, stub_plugin):
