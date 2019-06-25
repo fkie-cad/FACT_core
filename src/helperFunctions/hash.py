@@ -3,6 +3,7 @@ from hashlib import new, md5
 
 import lief
 import ssdeep
+import tlsh
 
 from helperFunctions.dataConversion import make_bytes
 from helperFunctions.debug import suppress_stdout
@@ -34,6 +35,14 @@ def get_ssdeep(code):
 def get_ssdeep_comparison(first, second):
     diff = ssdeep.compare(first, second)
     return diff
+
+
+def get_tlsh(code):
+    return tlsh.hash(make_bytes(code))
+
+
+def get_tlsh_comparison(first, second):
+    return tlsh.diff(first, second)
 
 
 def check_similarity_of_sets(pair_of_sets, all_sets):
