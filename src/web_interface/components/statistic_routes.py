@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from flask import render_template, request
 
 from helperFunctions.web_interface import apply_filters_to_query, ConnectTo
@@ -66,17 +64,17 @@ class StatisticRoutes(ComponentBase):
         with ConnectTo(StatisticUpdater, self._config) as stats_updater:
             stats_updater.set_match(filter_query)
             stats_dict = {
-                "firmware_meta_stats": stats_updater._get_firmware_meta_stats(),
-                "file_type_stats": stats_updater._get_file_type_stats(),
-                "malware_stats": stats_updater._get_malware_stats(),
-                "crypto_material_stats": stats_updater._get_crypto_material_stats(),
-                "unpacker_stats": stats_updater._get_unpacking_stats(),
-                "ip_and_uri_stats": stats_updater._get_ip_stats(),
-                "architecture_stats": stats_updater._get_architecture_stats(),
-                "release_date_stats": stats_updater._get_time_stats(),
+                "firmware_meta_stats": stats_updater.get_firmware_meta_stats(),
+                "file_type_stats": stats_updater.get_file_type_stats(),
+                "malware_stats": stats_updater.get_malware_stats(),
+                "crypto_material_stats": stats_updater.get_crypto_material_stats(),
+                "unpacker_stats": stats_updater.get_unpacking_stats(),
+                "ip_and_uri_stats": stats_updater.get_ip_stats(),
+                "architecture_stats": stats_updater.get_architecture_stats(),
+                "release_date_stats": stats_updater.get_time_stats(),
                 "general_stats": stats_updater.get_general_stats(),
-                "exploit_mitigations_stats": stats_updater._get_exploit_mitigations_stats(),
-                "known_vulnerabilities_stats": stats_updater._get_known_vulnerabilities_stats(),
-                "software_stats": stats_updater._get_software_components_stats(),
+                "exploit_mitigations_stats": stats_updater.get_exploit_mitigations_stats(),
+                "known_vulnerabilities_stats": stats_updater.get_known_vulnerabilities_stats(),
+                "software_stats": stats_updater.get_software_components_stats(),
             }
         return stats_dict

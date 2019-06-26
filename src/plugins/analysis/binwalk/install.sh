@@ -9,7 +9,7 @@ echo "------------------------------------"
 sudo -EH apt-get install -y xvfb
 sudo -EH pip3 install matplotlib cstruct==1.0 capstone
 
-git clone https://github.com/ReFirmLabs/binwalk.git
+git clone https://github.com/dorpvom/binwalk.git
 (
 cd binwalk || return
 

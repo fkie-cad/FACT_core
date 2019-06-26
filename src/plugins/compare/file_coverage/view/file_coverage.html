@@ -58,7 +58,7 @@
                             'data' : {
                               'url' : function (node) {
                                 return node.id === '#' ?
-                                    "/ajax_root/{{ firmware_uid|safe }}" : "/compare/ajax_tree/{{ result["_id"] }}/{{ firmware_uid }}/" + node["data"]["uid"];
+                                    "/ajax_root/{{ firmware_uid|safe }}/{{ firmware_uid|safe }}" : "/compare/ajax_tree/{{ result["_id"] }}/{{ firmware_uid }}/" + node["data"]["uid"];
                               }
                             }
                           },

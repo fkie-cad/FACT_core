@@ -29,7 +29,6 @@ def main():
         raise InstallationError('Failed to pull extraction container:\n{}'.format(output))
 
     # installing common code modules
-    pip3_install_packages('git+https://github.com/fkie-cad/common_helper_process.git')
     pip3_install_packages('git+https://github.com/fkie-cad/common_helper_yara.git')
     pip3_install_packages('git+https://github.com/mass-project/common_analysis_base.git')
 

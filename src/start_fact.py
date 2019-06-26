@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 '''
     Firmware Analysis and Comparison Tool (FACT)
-    Copyright (C) 2015-2018  Fraunhofer FKIE
+    Copyright (C) 2015-2019  Fraunhofer FKIE
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@ import logging
 import os
 import signal
 import sys
+from shlex import split
 from subprocess import Popen, TimeoutExpired
 from time import sleep
 
@@ -47,16 +48,19 @@ def _start_component(component, args):
     if os.path.exists(script_path):
         logging.info('starting {}'.format(component))
         optional_args = _evaluate_optional_args(args)
-        p = Popen('{} -l {} -L {} -C {} {}'.format(script_path, config['Logging']['logFile'], config['Logging']['logLevel'], args.config_file, optional_args), shell=True)
+        command = '{} -l {} -L {} -C {} {}'.format(
+            script_path, config['Logging']['logFile'], config['Logging']['logLevel'], args.config_file, optional_args
+        )
+        p = Popen(split(command))
         return p
     else:
         logging.debug('{} not installed'.format(component))
         return None
 
 
-def _terminate_process(process):
+def _terminate_process(process: Popen):
     if process is not None:
-        process.terminate()
+        os.kill(process.pid, signal.SIGUSR1)
         try:
             process.wait(timeout=60)
         except TimeoutExpired:
@@ -64,14 +68,13 @@ def _terminate_process(process):
             process.kill()
 
 
-def shutdown(signum, frame):
+def shutdown(*_):
     global run
     logging.info('shutting down...')
     run = False
 
 
 signal.signal(signal.SIGINT, shutdown)
-signal.signal(signal.SIGTERM, shutdown)
 
 if __name__ == '__main__':
     process_list = []
@@ -84,7 +87,7 @@ if __name__ == '__main__':
     backend_process = _start_component('backend', args)
 
     while run:
-        sleep(5)
+        sleep(1)
         if args.testing:
             break
 
@@ -92,8 +95,6 @@ if __name__ == '__main__':
     _terminate_process(backend_process)
     logging.debug('shutdown frontend')
     _terminate_process(frontend_process)
-    logging.debug('wait for childprocesses to stop...')
-    sleep(60)
     logging.debug('shutdown db')
     _terminate_process(db_process)
 

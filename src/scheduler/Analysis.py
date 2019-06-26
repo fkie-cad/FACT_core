@@ -197,18 +197,19 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         else:
             self._start_or_skip_analysis(analysis_to_do, fw_object)
 
-    def _start_or_skip_analysis(self, analysis_to_do: str, fw_object: FileObject):
-        if self._analysis_is_already_in_db_and_up_to_date(analysis_to_do, fw_object.get_uid()):
-            logging.debug('skipping analysis "{}" for {} (analysis already in DB)'.format(analysis_to_do, fw_object.get_uid()))
-            if analysis_to_do in self._get_cumulative_remaining_dependencies(fw_object.scheduled_analysis):
-                self._add_completed_analysis_results_to_file_object(analysis_to_do, fw_object)
-            self.check_further_process_or_complete(fw_object)
-        elif analysis_to_do not in MANDATORY_PLUGINS and self._next_analysis_is_blacklisted(analysis_to_do, fw_object):
-            logging.debug('skipping analysis "{}" for {} (blacklisted file type)'.format(analysis_to_do, fw_object.get_uid()))
-            fw_object.processed_analysis[analysis_to_do] = self._get_skipped_analysis_result(analysis_to_do)
-            self.check_further_process_or_complete(fw_object)
+    def _start_or_skip_analysis(self, analysis_to_do: str, file_object: FileObject):
+        if self._analysis_is_already_in_db_and_up_to_date(analysis_to_do, file_object.get_uid()):
+            logging.debug('skipping analysis "{}" for {} (analysis already in DB)'.format(analysis_to_do, file_object.get_uid()))
+            if analysis_to_do in self._get_cumulative_remaining_dependencies(file_object.scheduled_analysis):
+                self._add_completed_analysis_results_to_file_object(analysis_to_do, file_object)
+            self.check_further_process_or_complete(file_object)
+        elif analysis_to_do not in MANDATORY_PLUGINS and self._next_analysis_is_blacklisted(analysis_to_do, file_object):
+            logging.debug('skipping analysis "{}" for {} (blacklisted file type)'.format(analysis_to_do, file_object.get_uid()))
+            file_object.processed_analysis[analysis_to_do] = self._get_skipped_analysis_result(analysis_to_do)
+            self.post_analysis(file_object)
+            self.check_further_process_or_complete(file_object)
         else:
-            self.analysis_plugins[analysis_to_do].add_job(fw_object)
+            self.analysis_plugins[analysis_to_do].add_job(file_object)
 
     def _add_completed_analysis_results_to_file_object(self, analysis_to_do: str, fw_object: FileObject):
         db_entry = self.db_backend_service.get_specific_fields_of_db_entry(

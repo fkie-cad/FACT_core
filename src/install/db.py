@@ -18,7 +18,7 @@ def _get_db_directory():
 def _add_mongo_mirror_to_sources():
     apt_key_output, apt_key_code = execute_shell_command_get_return_code(
         'sudo -E apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 2930ADAE8CAF5059EE73BB4B58712A2291FA4AD5')
-    _, __ = execute_shell_command_get_return_code('sudo rm /etc/apt/sources.list.d/mongodb-org-3.*')
+    execute_shell_command_get_return_code('sudo rm /etc/apt/sources.list.d/mongodb-org-3.*')
     tee_output, tee_code = execute_shell_command_get_return_code(
         'echo "deb https://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.6 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.6.list')
     if any(code != 0 for code in (apt_key_code, tee_code)):
