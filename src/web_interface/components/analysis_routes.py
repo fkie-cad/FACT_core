@@ -1,28 +1,22 @@
 import json
 import os
-from typing import Tuple
 
 from common_helper_files import get_binary_from_file
-from flask import render_template, render_template_string, request, flash
+from flask import flash, render_template, render_template_string, request
 from flask_login.utils import current_user
-
 from helperFunctions.dataConversion import none_to_none
 from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.mongo_task_conversion import (
     check_for_errors, convert_analysis_task_to_fw_obj, create_re_analyze_task
 )
-from helperFunctions.web_interface import (
-    ConnectTo, get_template_as_string, overwrite_default_plugins
-)
+from helperFunctions.web_interface import ConnectTo, get_template_as_string, overwrite_default_plugins
 from intercom.front_end_binding import InterComFrontEndBinding
 from objects.firmware import Firmware
 from storage.db_interface_admin import AdminDbInterface
 from storage.db_interface_compare import CompareDbInterface
 from storage.db_interface_frontend import FrontEndDbInterface
 from storage.db_interface_view_sync import ViewReader
-from web_interface.components.compare_routes import (
-    get_comparison_uid_list_from_session
-)
+from web_interface.components.compare_routes import get_comparison_uid_list_from_session
 from web_interface.components.component_base import ComponentBase
 from web_interface.security.authentication import user_has_privilege
 from web_interface.security.decorator import roles_accepted
@@ -88,7 +82,7 @@ class AnalysisRoutes(ComponentBase):
             uids_for_comparison=get_comparison_uid_list_from_session(),
             user_has_admin_clearance=user_has_privilege(current_user, privilege='delete'),
             known_comparisons=known_comparisons,
-            available_plugins=self._get_still_available_plugins(
+            available_plugins=self._get_used_and_unused_plugins(
                 file_obj.processed_analysis,
                 [x for x in analysis_plugins.keys() if x != 'unpacker']
             )
@@ -105,11 +99,11 @@ class AnalysisRoutes(ComponentBase):
             flash('You have insufficient rights to add additional analysis')
 
     @staticmethod
-    def _get_still_available_plugins(processed_analysis: dict, all_plugins: list) -> Tuple[list, list]:
-        return (
-            [x for x in all_plugins if x not in processed_analysis],
-            [x for x in all_plugins if x in processed_analysis]
-        )
+    def _get_used_and_unused_plugins(processed_analysis: dict, all_plugins: list) -> dict:
+        return {
+            'unused': [x for x in all_plugins if x not in processed_analysis],
+            'used': [x for x in all_plugins if x in processed_analysis]
+        }
 
     def _get_analysis_view(self, selected_analysis):
         if selected_analysis == 'unpacker':
