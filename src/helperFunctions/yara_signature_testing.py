@@ -3,15 +3,18 @@ import os
 from tempfile import TemporaryDirectory
 
 from common_helper_files import get_files_in_dir
-from common_helper_yara import compile_rules, scan, get_all_matched_strings
+from common_helper_yara import compile_rules, get_all_matched_strings, scan
 
 
 class SignatureTestingMatching():
 
     def __init__(self):
-        self.tmp_dir = TemporaryDirectory(prefix='faf_software_signature_test')
+        self.tmp_dir = TemporaryDirectory(prefix='fact_software_signature_test')
         self.signature_file_path = os.path.join(self.tmp_dir.name, 'test_sig.yc')
         self.matches = []
+        self.test_file = None
+        self.signature_path = None
+        self.strings_to_match = None
 
     def check(self, signature_path, test_file):
         self.test_file = test_file

@@ -2,15 +2,14 @@ import logging
 import os
 
 from common_helper_files import get_binary_from_file
-
-from helperFunctions.dataConversion import make_bytes, make_unicode_string, get_value_of_first_key
+from helperFunctions.dataConversion import get_value_of_first_key, make_bytes, make_unicode_string
 from helperFunctions.hash import get_sha256
 from helperFunctions.uid import create_uid
 
 
-class FileObject(object):
+class FileObject():  # pylint: disable=too-many-instance-attributes
     '''
-    This is the base file objects. All files in FAF should be implemented as this object type.
+    This is the base file objects. All files in FACT should be implemented as this object type.
     '''
 
     def __init__(self, binary=None, file_name=None, file_path=None, scheduled_analysis=None):
@@ -97,7 +96,7 @@ class FileObject(object):
             self.virtual_file_path[self.root_uid] = []
             for item in parent_pathes:
                 base_path = self.get_base_of_virtual_path(item)
-                if len(base_path) > 0:
+                if base_path:
                     base_path += "|"
                 self.virtual_file_path[self.root_uid].append("{}{}|{}".format(base_path, parent_uid, self.file_path))
 
@@ -121,7 +120,7 @@ class FileObject(object):
             return ["insufficient information: firmware analysis not complete"]
 
     def get_virtual_file_paths(self):
-        if len(self.virtual_file_path.keys()) > 0:
+        if self.virtual_file_path.keys():
             return self.virtual_file_path
         return {self.get_uid(): ['{}'.format(self.get_uid())]}
 
@@ -140,8 +139,7 @@ class FileObject(object):
     def get_root_uid(self):
         if self.root_uid is not None:
             return self.root_uid
-        else:
-            return list(self.get_virtual_file_paths().keys())[0]
+        return list(self.get_virtual_file_paths().keys())[0]
 
     def __str__(self):
         return "UID: {}\n Processed analysis: {}\n Files included: {}".format(self.get_uid(), list(self.processed_analysis.keys()), self.files_included)

@@ -1,18 +1,18 @@
-from common_helper_files import get_binary_from_file
-from configparser import ConfigParser
 import gc
 import os
-from tempfile import TemporaryDirectory
 import unittest
+from configparser import ConfigParser
+from tempfile import TemporaryDirectory
 
+from common_helper_files import get_binary_from_file
 from objects.file import FileObject
 from storage.fs_organizer import FS_Organizer
 
 
-class Test_FS_Organizer(unittest.TestCase):
+class TestFsOrganizer(unittest.TestCase):
 
     def setUp(self):
-        self.ds_tmp_dir = TemporaryDirectory(prefix='faf_tests_')
+        self.ds_tmp_dir = TemporaryDirectory(prefix='fact_tests_')
         config = ConfigParser()
         config.add_section('data_storage')
         config.set('data_storage', 'firmware_file_storage_directory', self.ds_tmp_dir.name)
