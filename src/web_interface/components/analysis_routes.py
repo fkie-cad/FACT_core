@@ -96,7 +96,7 @@ class AnalysisRoutes(ComponentBase):
             with ConnectTo(InterComFrontEndBinding, self._config) as intercom:
                 intercom.add_single_file_task(file_object)
         else:
-            flash('You have insufficient rights to add additional analysis')
+            flash('You have insufficient rights to add additional analyses')
 
     @staticmethod
     def _get_used_and_unused_plugins(processed_analysis: dict, all_plugins: list) -> dict:
