@@ -33,7 +33,8 @@ class InterComMongoInterface(MongoInterface):
         'tar_repack_task',
         'tar_repack_task_resp',
         'binary_search_task',
-        'binary_search_task_resp'
+        'binary_search_task_resp',
+        'single_file_task'
     ]
 
     def _setup_database_mapping(self):
@@ -58,8 +59,8 @@ class InterComListener(InterComMongoInterface):
     def get_next_task(self):
         try:
             task_obj = self.connections[self.CONNECTION_TYPE]['fs'].find_one()
-        except Exception as e:
-            logging.error('Could not get next task: {} {}'.format(sys.exc_info()[0].__name__, e))
+        except Exception as exc:
+            logging.error('Could not get next task: {} {}'.format(type(exc), str(exc)))
             return None
         if task_obj is not None:
             task = pickle.loads(task_obj.read())
@@ -68,8 +69,7 @@ class InterComListener(InterComMongoInterface):
             task = self.post_processing(task, task_id)
             logging.debug('{}: New task received: {}'.format(self.CONNECTION_TYPE, task))
             return task
-        else:
-            return None
+        return None
 
     def additional_setup(self, config=None):
         '''

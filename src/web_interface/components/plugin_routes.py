@@ -1,16 +1,14 @@
-# -*- coding: utf-8 -*-
 
 import importlib
 import inspect
 import pkgutil
 
 from flask_restful import Resource
-
 from helperFunctions.fileSystem import get_src_dir
 from web_interface.components.component_base import ComponentBase
 
 ROUTES_MODULE_NAME = 'routes'
-PLUGIN_CATEGORIES = ['analysis', 'compare', 'unpacking']
+PLUGIN_CATEGORIES = ['analysis', 'compare']
 PLUGIN_DIR = '{}/plugins'.format(get_src_dir())
 
 

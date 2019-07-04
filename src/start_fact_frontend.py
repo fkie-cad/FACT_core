@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 '''
     Firmware Analysis and Comparison Tool (FACT)
-    Copyright (C) 2015-2018  Fraunhofer FKIE
+    Copyright (C) 2015-2019  Fraunhofer FKIE
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,12 +22,15 @@ import pickle
 import signal
 import sys
 import tempfile
-from subprocess import Popen, TimeoutExpired, PIPE
+from shlex import split
+from subprocess import Popen, TimeoutExpired
 from time import sleep
+
+from common_helper_process import execute_shell_command
 
 from helperFunctions.config import get_config_dir
 from helperFunctions.fileSystem import get_src_dir
-from helperFunctions.program_setup import program_setup
+from helperFunctions.program_setup import program_setup, was_started_by_start_fact
 from statistic.work_load import WorkLoadStatistic
 
 PROGRAM_NAME = 'FACT Frontend'
@@ -48,29 +51,28 @@ def _shutdown_uwsgi_server(process):
         process.kill()
 
 
-signal.signal(signal.SIGINT, shutdown)
-signal.signal(signal.SIGTERM, shutdown)
-
-
 def start_uwsgi_server(config_path=None):
     config_parameter = ' --pyargv {}'.format(config_path) if config_path else ''
-    p = Popen('(cd {} && uwsgi --ini  {}/uwsgi_config.ini{})'.format(get_src_dir(), get_config_dir(), config_parameter), shell=True)
-    return p
+    command = 'uwsgi --ini  {}/uwsgi_config.ini{}'.format(get_config_dir(), config_parameter)
+    process = Popen(split(command), cwd=get_src_dir())
+    return process
 
 
 def start_docker():
-    command = 'docker-compose -f {}/install/radare/docker-compose.yml up -d'.format(get_src_dir())
-    with Popen(command, shell=True, stdout=PIPE, stderr=PIPE) as docker_process:
-        docker_process.communicate()
+    execute_shell_command('docker-compose -f {}/install/radare/docker-compose.yml up -d'.format(get_src_dir()))
 
 
 def stop_docker():
-    command = 'docker-compose -f {}/install/radare/docker-compose.yml down'.format(get_src_dir())
-    with Popen(command, shell=True, stdout=PIPE, stderr=PIPE) as docker_process:
-        docker_process.communicate()
+    execute_shell_command('docker-compose -f {}/install/radare/docker-compose.yml down'.format(get_src_dir()))
 
 
 if __name__ == '__main__':
+    if was_started_by_start_fact():
+        signal.signal(signal.SIGUSR1, shutdown)
+        signal.signal(signal.SIGINT, lambda *_: None)
+    else:
+        signal.signal(signal.SIGINT, shutdown)
+
     run = True
     args, config = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION)
 

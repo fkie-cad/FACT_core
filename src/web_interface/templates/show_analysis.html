@@ -207,16 +207,55 @@
 
     <div class="col-lg-6">
         <table class="table table-bordered table-hover result">
-            <th class="success"> Analysis Results </th>
+            <th class="success">Analysis Results</th>
 
             {% for analysis_plugin in firmware.processed_analysis|sort %}
                 <tr>
-                    <td class="active result clickable" onclick="location.href='/analysis/{{ uid|safe }}/{{analysis_plugin}}/ro/{{ root_uid }}'"
-                     data-toggle="tooltip" title="{{ analysis_plugin_dict.get(analysis_plugin, ['not available'])[0] | safe }}">
-                        {{ analysis_plugin | replace_underscore }}
+                    <td class="active result clickable" data-toggle="tooltip" title="{{ analysis_plugin_dict.get(analysis_plugin, ['not available'])[0] | safe }}" style="padding: 0;">
+                        <a href='/analysis/{{ uid|safe }}/{{analysis_plugin}}/ro/{{ root_uid }}' style="color: rgb(51, 51, 51)">
+                            <div style="width: 100%; height: 100%; padding: 8px;">{{ analysis_plugin | replace_underscore }}</div>
+                        </a>
                     </td>
                 </tr>
             {% endfor %}
+            <tr>
+                <td class="active result clickable" data-toggle="modal" data-target="#add_single_file_analysis_modal"><span class="glyphicon glyphicon-play-circle"></span> Run additional analysis</td>
+                <div id="add_single_file_analysis_modal" class="modal fade" role="dialog">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                <h4 class="modal-title">Add analysis to file</h4>
+                            </div>
+
+                            <div class="modal-body">
+                                <form class="form-horizontal" action="" method=post enctype=multipart/form-data>
+                                    <p>Add new analysis</p>
+                                    {% for system in available_plugins.unused | sort %}
+                                        <div id="{{ system }}" class="{% if loop.index0 >= 0 %}col-xs-offset-3 {% endif %}col-xs-9">
+                                            <label class="checkbox-inline" data-toggle="tooltip" title="{{ analysis_plugin_dict[system][0] | safe }}">
+                                                <input type=checkbox name="analysis_systems" value="{{ system }}" unchecked>{{ system | replace_underscore }}<br />
+                                            </label>
+                                        </div>
+                                    {% endfor %}
+                                    <p>Update analysis</p>
+                                    {% for system in available_plugins.used | sort %}
+                                        <div id="{{ system }}" class="{% if loop.index0 >= 0 %}col-xs-offset-3 {% endif %}col-xs-9">
+                                            <label class="checkbox-inline" data-toggle="tooltip" title="{{ analysis_plugin_dict[system][0] | safe }}">
+                                                <input type=checkbox name="analysis_systems" value="{{ system }}" unchecked>{{ system | replace_underscore }}<br />
+                                            </label>
+                                        </div>
+                                    {% endfor %}
+                                    <div style="padding: 15px">
+                                        <button class="btn btn-default" type="submit" id="add_single_file_analysis" value=submit>Add</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </tr>
         </table>
     </div>
 
@@ -240,7 +279,7 @@
                                 'data' : {
                                   'url' : function (node) {
                                     return node.id === '#' ?
-                                        "/ajax_root/{{ uid|safe }}" : "/ajax_tree/" + node["data"]["uid"] + "/{{ root_uid|safe }}";
+                                        "/ajax_root/{{ uid|safe }}/{{ root_uid | safe }}" : "/ajax_tree/" + node["data"]["uid"] + "/{{ root_uid|safe }}";
                                   }
                                 }
                               },
@@ -369,7 +408,7 @@
                             <div>{{ comment.time|int|nice_unix_time }}</div>
                         </td>
                         <td width="80%" style="margin:0; padding:0;">
-                            <pre style="white-space: pre-wrap; margin-bottom:0;">{{ comment.comment|urlize }}</pre>
+                            <pre style="white-space: pre-wrap; margin: 3px">{{ comment.comment|urlize }}</pre>
                         </td>
                         <td style="margin:0; padding:0;">
                             {# Comment Delete Button #}

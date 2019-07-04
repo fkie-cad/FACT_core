@@ -1,7 +1,6 @@
-# -*- coding: utf-8 -*-
 '''
     Firmware Analysis and Comparison Tool (FACT)
-    Copyright (C) 2015-2018  Fraunhofer FKIE
+    Copyright (C) 2015-2019  Fraunhofer FKIE
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,22 +19,25 @@
 import argparse
 import configparser
 import logging
+import os
 import sys
 
+import psutil
 from common_helper_files import create_dir_for_file
 
 from helperFunctions.config import get_config_dir
 from version import __VERSION__
 
 
-def program_setup(name, description, version=__VERSION__, command_line_options=sys.argv):
+def program_setup(name, description, version=__VERSION__, command_line_options=None):
+    command_line_options = sys.argv if not command_line_options else command_line_options
     args = _setup_argparser(name, description, command_line_options=command_line_options, version=version)
     config = _load_config(args)
     _setup_logging(config, args)
     return args, config
 
 
-def _setup_argparser(name, description, command_line_options=sys.argv, version=__VERSION__):
+def _setup_argparser(name, description, command_line_options, version=__VERSION__):
     parser = argparse.ArgumentParser(description='{} - {}'.format(name, description))
     parser.add_argument('-V', '--version', action='version', version='{} {}'.format(name, version))
     parser.add_argument('-l', '--log_file', help='path to log file', default=None)
@@ -50,8 +52,7 @@ def _setup_argparser(name, description, command_line_options=sys.argv, version=_
 def _get_console_output_level(debug_flag):
     if debug_flag:
         return logging.DEBUG
-    else:
-        return logging.INFO
+    return logging.INFO
 
 
 def _setup_logging(config, args):
@@ -81,3 +82,8 @@ def _load_config(args):
     if args.log_level is not None:
         config['Logging']['logLevel'] = args.log_level
     return config
+
+
+def was_started_by_start_fact():
+    parent = psutil.Process(os.getppid()).cmdline()[-1]
+    return 'start_fact.py' in parent or 'start_all_installed_fact_components' in parent

@@ -1,8 +1,7 @@
 import gc
-import unittest
 from multiprocessing import Event, Value
 from tempfile import TemporaryDirectory
-from unittest.mock import patch
+from unittest import TestCase, mock
 
 from helperFunctions.dataConversion import normalize_compare_id
 from helperFunctions.fileSystem import get_test_data_dir
@@ -18,9 +17,9 @@ from test.common_helper import clean_test_database, get_database_names
 from test.integration.common import MockFSOrganizer, initialize_config
 
 
-class TestFileAddition(unittest.TestCase):
+class TestFileAddition(TestCase):
 
-    @patch('unpacker.unpack.FS_Organizer', MockFSOrganizer)
+    @mock.patch('unpacker.unpack.FS_Organizer', MockFSOrganizer)
     def setUp(self):
         self._tmp_dir = TemporaryDirectory()
         self._config = initialize_config(self._tmp_dir)
@@ -32,7 +31,7 @@ class TestFileAddition(unittest.TestCase):
         self.backend_interface = BackEndDbInterface(config=self._config)
 
         self._analysis_scheduler = AnalysisScheduler(config=self._config, post_analysis=self.count_analysis_finished_event)
-        self._unpack_scheduler = UnpackingScheduler(config=self._config, post_unpack=self._analysis_scheduler.add_task)
+        self._unpack_scheduler = UnpackingScheduler(config=self._config, post_unpack=self._analysis_scheduler.start_analysis_of_object)
         self._compare_scheduler = CompareScheduler(config=self._config, callback=self.trigger_compare_finished_event)
 
     def count_analysis_finished_event(self, fw_object):

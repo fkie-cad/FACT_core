@@ -1,7 +1,7 @@
 import pytest
-
 from helperFunctions.config import get_config_for_testing
 from test.common_helper import create_test_file_object
+
 from ..code.source_code_analysis import AnalysisPlugin
 
 
@@ -82,7 +82,8 @@ def test_process_object_this_file(stub_plugin):
 
 def test_process_object_no_issues(stub_plugin, test_object, monkeypatch):
     test_object.processed_analysis['file_type'] = {'full': 'anything containing python'}
-    monkeypatch.setattr('plugins.analysis.linter.code.source_code_analysis.PythonLinter.do_analysis', lambda self, file_path: list())
+    monkeypatch.setattr('plugins.analysis.linter.code.source_code_analysis.python_linter.PythonLinter.do_analysis',
+                        lambda self, file_path: list())
     stub_plugin.process_object(test_object)
     result = test_object.processed_analysis[stub_plugin.NAME]
     assert 'full' not in result

@@ -5,20 +5,15 @@ import signal
 import traceback
 from contextlib import suppress
 from multiprocessing import pool, Process, Pipe
-from subprocess import call, PIPE, STDOUT
 
 import psutil
 
 
-def no_operation(task):  # pylint: disable=unused-argument
+def no_operation(*_):
     '''
     No Operation
     '''
     pass
-
-
-def program_is_callable(command):
-    return call('type {}'.format(command), shell=True, stdout=PIPE, stderr=STDOUT) == 0
 
 
 def complete_shutdown(message=None):
