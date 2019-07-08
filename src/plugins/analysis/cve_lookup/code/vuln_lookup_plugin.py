@@ -14,6 +14,7 @@ from ..internal.meta import unbinding, get_meta, DB
 QUERIES = get_meta()
 MAX_TERM_SPREAD = 3  # a range in which the product term is allowed to come after the vendor term for it not to be a false positive
 MAX_LEVENSHTEIN_DISTANCE = 3
+PRODUCT = namedtuple('Product', 'vendor_name product_name version_number')
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
@@ -48,45 +49,46 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
 
 def generate_search_terms(product_name: str) -> list:
-    product_terms = [term for term in product_name.split() if len(term) > 1 and not term.isdigit()]
-    return ['_'.join(product_terms[i:j]).lower() for i, j in combinations(range(len(product_terms) + 1), 2)]
+    terms = product_name.split(' ')
+    product_terms = ['_'.join(terms[i:j]).lower() for i, j in combinations(range(len(terms) + 1), 2)]
+    return [term for term in product_terms if len(term) > 1 and not term.isdigit()]
 
 
-def match_cpe(db: Type[DB], product_search_terms: list) -> Generator[tuple, None, None]:
+def match_cpe(db: Type[DB], product_search_terms: list) -> Generator[namedtuple, None, None]:
     for vendor, product, version in db.select_query(QUERIES['sqlite_queries']['cpe_lookup']):
         for product_term in product_search_terms:
             if terms_match(product_term, product):
-                yield (vendor, product, version)
+                yield PRODUCT(vendor, product, version)
                 break
 
 
 def is_valid_dotted_version(version: str) -> Optional[Match[str]]:
-    return match(r'^[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)+$', version)
+    return match(r'^[a-zA-Z0-9]+(\\\.[a-zA-Z0-9]+)+$', version)
 
 
 def hasindex(string: str, index: int) -> bool:
-    return index <= len(string.split('.'))-1
+    return index <= len(string.split('\\.'))-1
 
 
 def sort_dotted_versions(cpe_matches: list, version: str) -> list:
-    dotted_version_matches = [cpe for cpe in cpe_matches if '.' in cpe[2]]
-    for index, version_digit in enumerate(version.split('.')):
-        temp = [cpe for cpe in dotted_version_matches if hasindex(cpe[2], index) and cpe[2].split('.')[index] == version_digit]
+    for index, version_digit in enumerate(version.split('\\.')):
+        temp = [product for product in cpe_matches if hasindex(product.version_number, index) and product.version_number.split('\\.')[index] == version_digit]
         if temp:
-            dotted_version_matches = temp
+            cpe_matches = temp
         else:
             break
 
-    dotted_version_matches.sort(key=lambda v: distance(v[2], version))
+    cpe_matches.sort(key=lambda p: (abs(int(p.version_number.split('\\.')[0])-int(version.split('\\.')[0])), abs(int(p.version_number.split('\\.')[1])-int(version.split('\\.')[1]))))
 
-    return dotted_version_matches
+    return cpe_matches
 
 
-def sort_cpe_matches(cpe_matches: list, version: str) -> tuple:
+def sort_cpe_matches(cpe_matches: list, version: str) -> namedtuple:
     if version.isdigit():
-        cpe_matches.sort(key=lambda v: abs(int(v[2])-int(version)))
+        cpe_matches = [product for product in cpe_matches if product.version_number.isdigit()]
+        cpe_matches.sort(key=lambda p: abs(int(p.version_number)-int(version)))
     elif is_valid_dotted_version(version):
-        cpe_matches = sort_dotted_versions(cpe_matches, version)
+        cpe_matches = sort_dotted_versions([product for product in cpe_matches if is_valid_dotted_version(product.version_number)], version)
     else:
         warn('Warning: Version returned from CPE match has invalid type. Returned CPE might not contain relevant version number')
 
@@ -105,17 +107,16 @@ def terms_match(requested_term: str, source_term: str) -> bool:
 
 
 def word_is_in_wordlist(wordlist: list, words: list) -> bool:
-    for index in range(min(MAX_TERM_SPREAD, len(wordlist))):
+    for index in range(min(MAX_TERM_SPREAD, len(wordlist) + 1 - len(words))):
         next_term = index + 1
-
-        if terms_match(words[0], wordlist[index]) and wordlist_longer_than_word(wordlist[next_term:], words[next_term:]):
-            return True if len(words) == 1 else remaining_words_present(words, wordlist[next_term:])
+        if terms_match(wordlist[index], words[0]):
+            return remaining_words_present(wordlist[next_term:], words[next_term:])
 
     return False
 
 
-def remaining_words_present(product_name: list, wordlist: list) -> bool:
-    for index, term in enumerate(product_name):
+def remaining_words_present(wordlist: list, words: list) -> bool:
+    for index, term in enumerate(words):
         if not terms_match(term, wordlist[index]):
             return False
     return True
@@ -133,28 +134,26 @@ def product_is_in_wordlist(product: namedtuple, wordlist: list) -> bool:
 
     for index, word in enumerate(wordlist):
         word = word.lower()
-        next_word = index + 2
+        next_word = index + 1
 
         if terms_match(vendor, word) and \
-                wordlist_longer_than_word(wordlist[next_word:], product_name) and \
+                wordlist_longer_than_sequence(wordlist[next_word:], product_name) and \
                 word_is_in_wordlist(wordlist[next_word:], product_name):
             return True
 
     return False
 
 
-def wordlist_longer_than_word(wordlist: list, product_name: list) -> bool:
-    return len(wordlist) >= len(product_name)
+def wordlist_longer_than_sequence(wordlist: list, sequence: list) -> bool:
+    return len(wordlist) >= len(sequence)
 
 
 def lookup_vulnerabilities_in_database(product_name: str, requested_version: str) -> list:
-    Product = namedtuple('Product', 'vendor_name product_name version_number')
 
     with DB(str(Path(__file__).parent.parent) + '/internal/cpe_cve.db') as db:
         product_terms, version = unbinding(generate_search_terms(product_name)), unbinding([requested_version])
 
-        vendor, product, version = sort_cpe_matches(list(match_cpe(db, product_terms)), version)
-        matched_product = Product(vendor, product, version)
+        matched_product = sort_cpe_matches(list(match_cpe(db, product_terms)), version)
 
         cve_candidates = list(set(list(search_cve(db, matched_product))))
         cve_candidates.extend(list(search_cve_summary(db, matched_product)))
