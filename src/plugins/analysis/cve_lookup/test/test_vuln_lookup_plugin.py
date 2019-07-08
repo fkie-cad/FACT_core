@@ -98,10 +98,10 @@ def test_is_valid_dotted_version():
         assert VALID_DOTTED_VERSION_OUTPUT[index] == bool(lookup.is_valid_dotted_version(VALID_DOTTED_VERSION_INPUT[index]))
 
 
-def test_hasindex():
+def test_has_index():
     for index, pair in enumerate(HASINDEX_INPUT):
         string, given_index = pair.split(' ')
-        assert HASINDEX_OUTPUT[index] == lookup.hasindex(string, int(given_index))
+        assert HASINDEX_OUTPUT[index] == lookup.has_index(string, int(given_index))
 
 
 def test_terms_match():

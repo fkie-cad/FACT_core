@@ -66,19 +66,32 @@ def is_valid_dotted_version(version: str) -> Optional[Match[str]]:
     return match(r'^[a-zA-Z0-9]+(\\\.[a-zA-Z0-9]+)+$', version)
 
 
-def hasindex(string: str, index: int) -> bool:
-    return index <= len(string.split('\\.'))-1
+def get_version_index(version: str, index: int) -> str:
+    return version.split('\\.')[index]
+
+
+def compare_version_index(first_version: str, second_version: str, index: int) -> int:
+    try:
+        return abs(int(get_version_index(first_version, index)) - int(get_version_index(second_version, index)))
+    except ValueError:
+        return 100
+
+
+def has_index(string: str, index: int) -> bool:
+    return index <= len(string.split('\\.')) - 1
 
 
 def sort_dotted_versions(cpe_matches: list, version: str) -> list:
     for index, version_digit in enumerate(version.split('\\.')):
-        temp = [product for product in cpe_matches if hasindex(product.version_number, index) and product.version_number.split('\\.')[index] == version_digit]
+        temp = [product for product in cpe_matches if has_index(product.version_number, index) and get_version_index(product.version_number, index) == version_digit]
         if temp:
             cpe_matches = temp
         else:
             break
 
-    cpe_matches.sort(key=lambda p: (abs(int(p.version_number.split('\\.')[0])-int(version.split('\\.')[0])), abs(int(p.version_number.split('\\.')[1])-int(version.split('\\.')[1]))))
+    cpe_matches.sort(
+        key=lambda p: (compare_version_index(p.version_number, version, 0), compare_version_index(p.version_number, version, 1))
+    )
 
     return cpe_matches
 
