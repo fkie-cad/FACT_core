@@ -312,7 +312,6 @@
 		            function init_preview() {
 		                hide_gif();
 		                highlight_code();
-		                line_enum();
 		            };
 		            function hide_gif() {
 		                loading_gif.style.display = "none";
@@ -321,11 +320,6 @@
 		                var block = $('div#preview-div pre')[0];
                         hljs.highlightBlock(block);
 		            };
-		            function line_enum() {
-		              jQuery(document).ready(function($) {
-		                  $('div#preview-div pre').lineLine()
-		              });
-                    };
 		            function load_preview(){
 		                loading_gif.style.display = "block";
 		                document.getElementById("preview_button").onclick = function() {return false;};
