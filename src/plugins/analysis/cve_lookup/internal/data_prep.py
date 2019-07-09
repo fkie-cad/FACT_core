@@ -23,7 +23,7 @@ def get_cve_links(url: str) -> list:
     '''
     cve_urls = list()
     current = datetime.today().year
-    for year in range(2002, current+1):
+    for year in range(2002, current + 1):
         cve_urls.append(url.format(year))
 
     return cve_urls

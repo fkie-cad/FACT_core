@@ -3,7 +3,7 @@ from collections import namedtuple
 from datetime import datetime
 from glob import glob
 
-from . import data_prep as dp
+from . import data_prep
 from .meta import DB
 from .meta import get_meta
 
@@ -18,7 +18,7 @@ def overlap(years: namedtuple, available: list) -> list:
     :param available: list of in the database available years
     :return list containing years of CVE feeds that are not already in the database
     '''
-    return list(set(range(years.start_year, years.end_year+1)) - set(available))
+    return list(set(range(years.start_year, years.end_year + 1)) - set(available))
 
 
 def update_cpe(db, cpe_extract_path: str = None) -> None:
@@ -31,9 +31,9 @@ def update_cpe(db, cpe_extract_path: str = None) -> None:
     # if cpe table exists, drop it and create a new table with the new entries
     db.table_manager(QUERIES['sqlite_queries']['drop'].format('cpe_table'))
     db.table_manager(QUERIES['sqlite_queries']['create_cpe_table'].format('cpe_table'))
-    dp.download_cpe(download_path=cpe_extract_path)
-    cpe_list = dp.extract_cpe(glob(cpe_extract_path + '*.xml')[0])
-    cpe_table_input = dp.setup_cpe_table(cpe_list)
+    data_prep.download_cpe(download_path=cpe_extract_path)
+    cpe_list = data_prep.extract_cpe(glob(cpe_extract_path + '*.xml')[0])
+    cpe_table_input = data_prep.setup_cpe_table(cpe_list)
     db.insert_rows(query=QUERIES['sqlite_queries']['insert_cpe'].format('cpe_table'), input_t=cpe_table_input)
 
 
@@ -48,9 +48,9 @@ def import_cpe(db, cpe_extract_path: str = None) -> None:
     output = db.select_single(query=QUERIES['sqlite_queries']['test_empty_cpe'])
     # if there is no current data in the cpe table, download the dictionary and import the data into the table
     if output[0] == 0:
-        dp.download_cpe(download_path=cpe_extract_path)
-        cpe_list = dp.extract_cpe(glob(cpe_extract_path + '*.xml')[0])
-        cpe_table_input = dp.setup_cpe_table(cpe_list)
+        data_prep.download_cpe(download_path=cpe_extract_path)
+        cpe_list = data_prep.extract_cpe(glob(cpe_extract_path + '*.xml')[0])
+        cpe_table_input = data_prep.setup_cpe_table(cpe_list)
         db.insert_rows(query=QUERIES['sqlite_queries']['insert_cpe'].format('cpe_table'), input_t=cpe_table_input)
     else:
         print('\nCPE table does already exist!\n')
@@ -65,9 +65,9 @@ def create_cve_update_table(db, cve_extract_path: str = None) -> bool:
     :return boolean telling if summary table has to be updated
     '''
     update_sum = False
-    dp.download_cve(download_path=cve_extract_path, update=True)
-    cve_list, summary_list = dp.extract_cve(glob(cve_extract_path + 'nvdcve*.json')[0])
-    cve_table_input, summary_table_input = dp.setup_cve_table(cve_list, summary_list)
+    data_prep.download_cve(download_path=cve_extract_path, update=True)
+    cve_list, summary_list = data_prep.extract_cve(glob(cve_extract_path + 'nvdcve*.json')[0])
+    cve_table_input, summary_table_input = data_prep.setup_cve_table(cve_list, summary_list)
     db.table_manager(QUERIES['sqlite_queries']['create_cve_table'].format('temp_feeds'))
     db.insert_rows(query=QUERIES['sqlite_queries']['insert_cve'].format('temp_feeds'), input_t=cve_table_input)
     if summary_table_input:
@@ -136,14 +136,14 @@ def import_cve(db, cve_extract_path: str, years: namedtuple) -> None:
     else:
         selection = list(range(years.start_year, years.end_year + 1))
     # download all specified files
-    dp.download_cve(years=selection, download_path=cve_extract_path)
+    data_prep.download_cve(years=selection, download_path=cve_extract_path)
     # extract all data from each downloaded file
     for file in glob(cve_extract_path + 'nvdcve*.json'):
-        cve_data, summary_data = dp.extract_cve(file)
+        cve_data, summary_data = data_prep.extract_cve(file)
         cve_list.extend(cve_data)
         summary_list.extend(summary_data)
     # set up the data and import everything into the db
-    cve_table_input, summary_table_input = dp.setup_cve_table(cve_list, summary_list)
+    cve_table_input, summary_table_input = data_prep.setup_cve_table(cve_list, summary_list)
     db.insert_rows(query=QUERIES['sqlite_queries']['insert_cve'].format('cve_table'), input_t=cve_table_input)
     # if there are CVE feeds without CPE ids, import the summaries into a separate table
     if summary_table_input:
@@ -198,36 +198,54 @@ def init_repository(db_name: str, update: bool, specify: int, years: namedtuple,
     :return: None
     '''
     with DB(db_name) as db:
-        if update:
-            update_repository(db_name, extraction_path, specify)
-        else:
+        if not update:
             set_repository(db, extraction_path, specify, years)
+        else:
+            update_repository(db, extraction_path, specify)
+
+
+def setup_argparser(current_year):
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        'db_name',
+        help='String which contains the name of the database in which CPE dictionary and CVE feeds are stored. Default: \'cpe_cve.db\'',
+        type=str,
+        default='cpe_cve.db'
+    )
+    parser.add_argument(
+        'update',
+        help='Boolean which specifies if the database should be updated. Default: False',
+        type=bool,
+        default=False
+    )
+    parser.add_argument(
+        'specify',
+        help='Int which specifies if CPE and/or CVE should be created/updated.\nValues:\n\t'
+             '0 - update/import both\n\t1 - update/import CPE dictionary\n\t'
+             '2 - update/import CVE feeds\nDefault: 0',
+        type=int,
+        default=0
+    )
+    parser.add_argument(
+        'years',
+        nargs=2,
+        help='Tuple containing start year at position 0 and end year at position 1 for the selection of the CVE feeds',
+        type=int,
+        default=[2002, current_year]
+    )
+    parser.add_argument(
+        'extraction_path',
+        help='Path to which the files containing the CPE dictionary and CVE feeds should temporarily be stored.\nDefault: ./data_source/',
+        type=str,
+        default='./data_source/'
+    )
+
+    return parser.parse_args()
 
 
 def main():
     current_year = datetime.now().year
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument('db_name', help='String which contains the name of the database in which CPE dictionary and CVE'
-                                        ' feeds are stored. Default: \'cpe_cve.db\'', type=str, default='cpe_cve.db')
-
-    parser.add_argument('update', help='Boolean which specifies if the database should be updated. Default: False',
-                        type=bool, default=False)
-
-    parser.add_argument('specify', help='Int which specifies if CPE and/or CVE should be created/updated.\nValues:\n\t'
-                                        '0 - update/import both\n\t1 - update/import CPE dictionary\n\t'
-                                        '2 - update/import CVE feeds\nDefault: 0', type=int, default=0)
-
-    parser.add_argument('years', nargs='2', help='Tuple containing start year at position 0 and end year at position 1'
-                                                 'for the selection of the CVE feeds', type=int,
-                        default=[2002, current_year])
-
-    parser.add_argument('extraction_path', help='Path to which the files containing the CPE dictionary and CVE feeds '
-                                                'should temporarily be stored.\nDefault: '
-                                                'FACT_core/.../cve_lookup/data_source/', type=str,
-                        default='./data_source/')
-
-    args = parser.parse_args()
+    args = setup_argparser(current_year)
     Years = namedtuple('Years', 'start_year end_year')
     years = Years(start_year=args.years[0], end_year=args.years[1])
 

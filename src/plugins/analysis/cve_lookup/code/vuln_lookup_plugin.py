@@ -99,7 +99,7 @@ def sort_dotted_versions(cpe_matches: list, version: str) -> list:
 def sort_cpe_matches(cpe_matches: list, version: str) -> namedtuple:
     if version.isdigit():
         cpe_matches = [product for product in cpe_matches if product.version_number.isdigit()]
-        cpe_matches.sort(key=lambda p: abs(int(p.version_number)-int(version)))
+        cpe_matches.sort(key=lambda p: abs(int(p.version_number) - int(version)))
     elif is_valid_dotted_version(version):
         cpe_matches = sort_dotted_versions([product for product in cpe_matches if is_valid_dotted_version(product.version_number)], version)
     else:
