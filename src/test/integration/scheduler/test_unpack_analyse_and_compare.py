@@ -31,7 +31,7 @@ class TestFileAddition(TestCase):
         self.backend_interface = BackEndDbInterface(config=self._config)
 
         self._analysis_scheduler = AnalysisScheduler(config=self._config, post_analysis=self.count_analysis_finished_event)
-        self._unpack_scheduler = UnpackingScheduler(config=self._config, post_unpack=self._analysis_scheduler.add_task)
+        self._unpack_scheduler = UnpackingScheduler(config=self._config, post_unpack=self._analysis_scheduler.start_analysis_of_object)
         self._compare_scheduler = CompareScheduler(config=self._config, callback=self.trigger_compare_finished_event)
 
     def count_analysis_finished_event(self, fw_object):

@@ -73,7 +73,7 @@ def test_scheduler(test_config, finished_event, intermediate_event):
             intermediate_event.set()
 
     analyzer = AnalysisScheduler(test_config, pre_analysis=count_pre_analysis, db_interface=interface)
-    unpacker = UnpackingScheduler(config=test_config, post_unpack=analyzer.add_task)
+    unpacker = UnpackingScheduler(config=test_config, post_unpack=analyzer.start_analysis_of_object)
     intercom = InterComBackEndBinding(config=test_config, analysis_service=analyzer, unpacking_service=unpacker, compare_service=MockScheduler())
     yield unpacker
     intercom.shutdown()
