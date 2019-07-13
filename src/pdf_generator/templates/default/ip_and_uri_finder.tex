@@ -1,0 +1,35 @@
+\begin{longtable}{|p{3cm}|p{11.5cm}|}
+    \hline
+    Time of Analysis & \VAR{selected_analysis['analysis_date'] | nice_unix_time} \\
+    \hline
+
+    Plugin Version & \VAR{selected_analysis['plugin_version']}\\
+    \hline
+
+    IPs v4
+    \BLOCK{for ip in selected_analysis['ips_v4'] | check_list | filter_list}
+        & \VAR{ip} \\
+    \BLOCK{endfor}
+    \hline
+
+    IPs v6
+    \BLOCK{for ip in selected_analysis['ips_v6'] | check_list | filter_list}
+        & \VAR{ip} \\
+    \BLOCK{endfor}
+    \hline
+
+    URIs
+    \BLOCK{for uri in selected_analysis['uris'] | check_list | filter_list}
+        & \VAR{uri} \\
+    \BLOCK{endfor}
+    \hline
+
+    \BLOCK{if selected_analysis['summary']}
+        \multicolumn{2}{|p{14.5cm}|}{Summary:} \\
+        \multicolumn{2}{|p{14.5cm}|}{} \\
+        \BLOCK{for data in selected_analysis['summary']}
+            \multicolumn{2}{|p{14.5cm}|}{\VAR{data | filter_chars}} \\
+        \BLOCK{endfor}
+        \hline
+    \BLOCK{endif}
+\end{longtable}

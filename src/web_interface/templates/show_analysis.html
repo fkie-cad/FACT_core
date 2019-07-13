@@ -474,19 +474,23 @@
 			        </button>
 				</form>
 			{% endif %}
-			{# Update Analysis Buttons #}
 			{% if firmware.vendor %}
+        		{# Update Analysis Buttons #}
                 <form action="/update-analysis/{{ firmware.get_uid() }}" style="display:inline">
                     <button class="btn btn-default" type="submit">
                         <span class="glyphicon glyphicon-repeat"></span> update analysis
                     </button>
                 </form>
-			{% endif %}
-			{# Start Binary Search Button #}
-			{% if firmware.vendor %}
+    			{# Start Binary Search Button #}
                 <button class="btn btn-default" onclick='window.location.href = "/database/binary_search?firmware_uid={{ firmware.get_uid() }}";'>
                     <span class="glyphicon glyphicon-search"></span> YARA search
                 </button>
+    			{# PDF Button #}
+				<form action="/pdf-download/{{ firmware.get_uid() }}" style="display:inline">
+			    	<button class="btn btn-default" type="submit">
+			        	<span class="glyphicon glyphicon-print"></span> download report as PDF
+			        </button>
+				</form>
 			{% endif %}
 	    </div>
     </div>

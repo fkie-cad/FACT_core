@@ -1,0 +1,145 @@
+\documentclass{article}
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{lmodern}
+\usepackage[a4paper, total={6in, 8in}]{geometry}
+\usepackage{longtable}
+\usepackage{sectsty}
+
+\allsectionsfont{\sffamily}
+
+\begin{document}
+
+\begin{titlepage}
+
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+
+\center
+
+\includegraphics[width = 13cm]{fact_logo.png}\\[3cm]
+
+\HRule \\[0.4cm]
+{\fontfamily{lmss}\selectfont
+{\Large \bfseries Firmware Analysis of \VAR{meta_data['hid'] | filter_chars }}\\[0.4cm]
+}
+\HRule \\[1.5cm]
+
+\vfill
+\end{titlepage}
+
+\section*{Meta Data}
+{\fontfamily{lmss}\selectfont
+\input{meta.tex}
+}
+
+\section*{Analyses}
+
+\BLOCK{if "base64_decoder" in analysis}
+    \subsection*{base64 decoder}
+    {\fontfamily{lmss}\selectfont
+    \input{base64_decoder.tex}
+    }
+\BLOCK{endif}
+
+\BLOCK{if "binwalk" in analysis}
+    \subsection*{binwalk}
+    {\fontfamily{lmss}\selectfont
+    \input{binwalk.tex}
+    }
+\BLOCK{endif}
+
+\BLOCK{if "cpu_architcture" in analysis}
+    \subsection*{cpu architecture}
+    {\fontfamily{lmss}\selectfont
+    \input{cpu_architecture.tex}
+    }
+\BLOCK{endif}
+
+\BLOCK{if "crypto_material" in analysis}
+    \subsection*{crypto material}
+    {\fontfamily{lmss}\selectfont
+    \input{crypto_material.tex}
+    }
+\BLOCK{endif}
+
+\BLOCK{if "exploit_mitigations" in analysis}
+    \subsection*{exploit mitigations}
+    {\fontfamily{lmss}\selectfont
+    \input{exploit_mitigations.tex}
+    }
+\BLOCK{endif}
+
+\BLOCK{if "file_hashes" in analysis}
+    \subsection*{file hashes}
+    {\fontfamily{lmss}\selectfont
+    \input{file_hashes.tex}
+    }
+\BLOCK{endif}
+
+\BLOCK{if "file_type" in analysis}
+    \subsection*{file type}
+    {\fontfamily{lmss}\selectfont
+    \input{file_type.tex}
+    }
+\BLOCK{endif}
+
+\BLOCK{if "init_systems" in analysis}
+    \subsection*{init systems}
+    {\fontfamily{lmss}\selectfont
+    \input{init_systems.tex}
+    }
+\BLOCK{endif}
+
+\BLOCK{if "ip_and_uri_finder" in analysis}
+    \subsection*{ip and uri finder}
+    {\fontfamily{lmss}\selectfont
+    \input{ip_and_uri_finder.tex}
+    }
+\BLOCK{endif}
+
+\BLOCK{if "software_components" in analysis}
+    \subsection*{software components}
+    {\fontfamily{lmss}\selectfont
+    \input{software_components.tex}
+    }
+\BLOCK{endif}
+
+\BLOCK{if "printable_strings" in analysis}
+    \subsection*{printable strings}
+    {\fontfamily{lmss}\selectfont
+    \input{printable_strings.tex}
+    }
+\BLOCK{endif}
+
+\BLOCK{if "users_and_passwords" in analysis}
+    \subsection*{users and passwords}
+    {\fontfamily{lmss}\selectfont
+    \input{users_and_passwords.tex}
+    }
+\BLOCK{endif}
+
+\BLOCK{if "string_evaluator" in analysis}
+    \subsection*{string evaluator}
+    {\fontfamily{lmss}\selectfont
+    \input{string_evaluator.tex}
+    }
+\BLOCK{endif}
+
+\BLOCK{if "unpacker" in analysis}
+    \subsection*{unpacker}
+    {\fontfamily{lmss}\selectfont
+    \input{unpacker.tex}
+    }
+\BLOCK{endif}
+
+\BLOCK{if "malware_scanner" in analysis}
+    \subsection*{malware scanner}
+    {\fontfamily{lmss}\selectfont
+    \input{malware_scanner.tex}
+    }
+\BLOCK{endif}
+
+\end{document}
+
