@@ -1,5 +1,5 @@
-from os import remove
 from collections import namedtuple
+from os import remove
 
 import pytest
 
@@ -12,7 +12,7 @@ PRODUCT = namedtuple('PRODUCT', 'vendor_name product_name version_number')
 MATCHED_CPE = [PRODUCT('microsoft', 'windows_8', '1\\.2\\.5'), PRODUCT('microsoft', 'windows_7', '1\\.3\\.1'),
                PRODUCT('mircosof', 'windows_7', '0\\.7')]
 PRODUCT_NAME = 'windows 7'
-MATCHED_CVE = ['CVE-1234-0009', 'CVE-1234-0010', 'CVE-1234-0011']
+MATCHED_CVE = ['CVE-1234-0010', 'CVE-1234-0011']
 CPE_CVE_OUTPUT = [('CVE-1234-0008', 'microsoft', 'server_2013', '2013'),
                   ('CVE-1234-0009', 'mircosof', 'windows_7', '0\\.7'),
                   ('CVE-1234-0010', 'microsoft', 'windows_8', '1\\.2\\.5'),
@@ -133,16 +133,25 @@ def test_wordlist_longer_than_sequence():
 def test_match_cpe(monkeypatch):
     with monkeypatch.context() as monkey:
         monkey.setattr(DB, 'select_query', lambda *_, **__: CPE_DATABASE_OUTPUT)
-        assert MATCHED_CPE.sort() == list(lookup.match_cpe(DB, PRODUCT_SEARCH_TERMS)).sort()
+        MATCHED_CPE.sort()
+        actual_match = list(lookup.match_cpe(DB, PRODUCT_SEARCH_TERMS))
+        actual_match.sort()
+        assert MATCHED_CPE == actual_match
 
 
 def test_search_cve(monkeypatch):
     with monkeypatch.context() as monkey:
         monkey.setattr(DB, 'select_query', lambda *_, **__: CPE_CVE_OUTPUT)
-        assert MATCHED_CVE.sort() == list(lookup.search_cve(DB, SORT_CPE_MATCHES_OUTPUT)).sort()
+        MATCHED_CVE.sort()
+        actual_match = list(lookup.search_cve(DB, SORT_CPE_MATCHES_OUTPUT))
+        actual_match.sort()
+        assert MATCHED_CVE == actual_match
 
 
 def test_search_cve_summary(monkeypatch):
     with monkeypatch.context() as monkey:
         monkey.setattr(DB, 'select_query', lambda *_, **__: SUMMARY_OUTPUT)
-        assert MATCHED_SUMMARY.sort() == list(lookup.search_cve_summary(DB, SORT_CPE_MATCHES_OUTPUT)).sort()
+        MATCHED_SUMMARY.sort()
+        actual_match = list(lookup.search_cve_summary(DB, SORT_CPE_MATCHES_OUTPUT))
+        actual_match.sort()
+        assert MATCHED_SUMMARY == actual_match

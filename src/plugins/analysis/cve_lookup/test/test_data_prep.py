@@ -7,7 +7,6 @@ import pytest
 from ..internal import data_prep as dp
 from ..internal.meta import get_meta
 
-
 METADATA = get_meta()
 
 # contains a NODES list from the CVE 2012-0010 which serves as input for iterate_nodes()
@@ -88,7 +87,7 @@ CVE_CPE_LIST = ['CVE-2012-0001', 'cpe:2.3:o:microsoft:windows_7:-:*:*:*:*:*:*:*'
                 'cpe:2.3:o:microsoft:windows_vista:*:sp2:*:*:*:*:*:*',
                 'cpe:2.3:o:microsoft:windows_vista:*:sp2:x64:*:*:*:*:*',
                 'cpe:2.3:o:microsoft:windows_xp:*:sp2:professional_x64:*:*:*:*:*',
-                'CVE-2012-0010', 'cpe:2.3:a:microsoft:ie:6:*:*:*:*:*:*:*', 'cpe:2.3:a:microsoft:ie:9:*:*:*:*:*:*:*',
+                'CVE-2018-0010', 'cpe:2.3:a:microsoft:ie:6:*:*:*:*:*:*:*', 'cpe:2.3:a:microsoft:ie:9:*:*:*:*:*:*:*',
                 'cpe:2.3:a:microsoft:ie:7:*:*:*:*:*:*:*', 'cpe:2.3:a:microsoft:ie:8:*:*:*:*:*:*:*']
 
 SUMMARY_EXTRACT_LIST = ['CVE-2018-20229', 'GitLab Community and Enterprise Edition before 11.3.14, '
@@ -204,8 +203,12 @@ def test_iterate_urls():
 def test_extract_cve():
     cve_data, summary_data = dp.extract_cve(str(Path(__file__).parent.parent) + '/test/test_resources/'
                                                                                 'test_cve_extract.json')
-    assert CVE_CPE_LIST.sort() == cve_data.sort()
-    assert SUMMARY_EXTRACT_LIST.sort() == summary_data.sort()
+    CVE_CPE_LIST.sort()
+    SUMMARY_EXTRACT_LIST.sort()
+    cve_data.sort()
+    summary_data.sort()
+    assert CVE_CPE_LIST == cve_data
+    assert SUMMARY_EXTRACT_LIST == summary_data
 
 
 def test_iterate_nodes():
@@ -218,10 +221,18 @@ def test_extract_cpe():
                                                                                   'test_cpe_extract.xml')
 
 
-def test_setup_cve_table():
-    cve_result, sum_result = dp.setup_cve_table(CVE_LIST, SUMMARY_LIST)
+def test_setup_cve_feeds_table():
+    cve_result = dp.setup_cve_feeds_table(CVE_LIST)
+    cve_result.sort()
+    CVE_TABLE.sort()
     assert CVE_TABLE == cve_result
-    assert SUMMARY_TABLE.sort() == sum_result.sort()
+
+
+def test_setup_cve_summary_table():
+    summary_result = dp.setup_cve_summary_table(SUMMARY_LIST)
+    summary_result.sort()
+    SUMMARY_TABLE.sort()
+    assert SUMMARY_TABLE == summary_result
 
 
 def test_setup_cpe_table():

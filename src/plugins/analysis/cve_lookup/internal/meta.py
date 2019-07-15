@@ -1,15 +1,14 @@
 from json import load
-from os.path import isfile
 from pathlib import Path
-from re import match, finditer
-from sqlite3 import connect, Error
+from re import finditer, match
+from sqlite3 import Error, connect
 
 
 class DB:
     '''
     class to provide connections to a sqlite database and allows to operate on it
     '''
-    def __init__(self, db_loc: str = None):
+    def __init__(self, db_loc: str):
         self.conn = None
         self.cur = None
         if db_loc:
@@ -18,11 +17,7 @@ class DB:
             except Error as err:
                 raise err
 
-    def table_manager(self, query: str = None) -> None:
-        '''
-        Covers all operation where the database is altered and nothing is returned. This includes CREATE and DROP
-        :param query: query for creating or dropping tables
-        '''
+    def table_manager(self, query: str):
         try:
             self.cur = self.conn.cursor()
             self.cur.execute(query)
@@ -31,12 +26,7 @@ class DB:
         finally:
             self.cur.close()
 
-    def select_query(self, query: str = None):
-        '''
-
-        :param query: query for selecting multiple rows from a table
-        :return: contains generator object with returned rows
-        '''
+    def select_query(self, query: str):
         try:
             self.cur = self.conn.cursor()
             self.cur.execute(query)
@@ -52,15 +42,10 @@ class DB:
         finally:
             self.cur.close()
 
-    def select_single(self, query: str = None) -> tuple:
-        '''
-
-        :param query: query for selecting a single row from a table
-        :return: tuple containing one row
-        '''
+    def select_single(self, query: str) -> tuple:
         return list(self.select_query(query))[0]
 
-    def insert_rows(self, query: str = None, input_t: list = None) -> None:
+    def insert_rows(self, query: str, input_t: list):
         try:
             self.cur = self.conn.cursor()
             self.cur.executemany(query, input_t)
@@ -71,9 +56,6 @@ class DB:
             self.cur.close()
 
     def __enter__(self):
-        '''
-        :return: itself
-        '''
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -84,18 +66,8 @@ class DB:
                 raise err
 
 
-def get_meta(specified_file: str = None) -> dict:
-    '''
-    Retrieves data from json file
-    :param specified_file: path to specified json file
-    :return: json content in dictionary
-    '''
-    if not specified_file:
-        meta_path = str(Path(__file__).parent / 'metadata.json')
-    else:
-        meta_path = specified_file
-        if not isfile(meta_path):
-            exit(1)
+def get_meta() -> dict:
+    meta_path = str(Path(__file__).parent / 'metadata.json')
     try:
         with open(meta_path) as meta:
             metadata = load(meta)
@@ -106,14 +78,6 @@ def get_meta(specified_file: str = None) -> dict:
 
 
 def analyse_attribute(attribute: str) -> str:
-    '''
-    Unbinds a CPE attribute by following the CPE naming convention
-    find all asterisks (*) and question marks and escape them if they are not at the end or beginning of the
-    string or already escaped.
-    escape all other non alphanumeric character except for *,?,_ ,\\ and whitespaces
-    :param attribute: has to be unbound
-    :return: unbound string
-    '''
     # a counter is incremented every time an escape character is added because it alters the string length
     counter = 0
     for characters in finditer(r'[^.]((?<!\\)[*?])[^.]|((?<!\\)[^a-zA-Z0-9\s?*_\\])', attribute):
@@ -129,11 +93,6 @@ def analyse_attribute(attribute: str) -> str:
 
 
 def unbinding(attributes: list):
-    '''
-    unbinds a attributes from a CPE format string to the corresponding WFN format
-    :param attributes: list of attributes from CPE ID
-    :return: list of attributes conforming to CPE naming convention
-    '''
     for idx, attr in enumerate(attributes):
         if attr == '*':
             attributes[idx] = 'ANY'

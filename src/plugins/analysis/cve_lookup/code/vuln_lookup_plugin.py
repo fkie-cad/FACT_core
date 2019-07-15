@@ -1,15 +1,14 @@
 from collections import namedtuple
 from itertools import combinations
 from pathlib import Path
-from typing import Generator, Type, Optional, Match
 from re import match
+from typing import Generator, Match, Optional
 from warnings import warn
 
 from pyxdameraulevenshtein import damerau_levenshtein_distance as distance
-
 from analysis.PluginBase import AnalysisBasePlugin
 
-from ..internal.meta import unbinding, get_meta, DB
+from ..internal.meta import DB, get_meta, unbinding
 
 QUERIES = get_meta()
 MAX_TERM_SPREAD = 3  # a range in which the product term is allowed to come after the vendor term for it not to be a false positive
@@ -54,7 +53,7 @@ def generate_search_terms(product_name: str) -> list:
     return [term for term in product_terms if len(term) > 1 and not term.isdigit()]
 
 
-def match_cpe(db: Type[DB], product_search_terms: list) -> Generator[namedtuple, None, None]:
+def match_cpe(db: DB, product_search_terms: list) -> Generator[namedtuple, None, None]:
     for vendor, product, version in db.select_query(QUERIES['sqlite_queries']['cpe_lookup']):
         for product_term in product_search_terms:
             if terms_match(product_term, product):
@@ -108,10 +107,10 @@ def sort_cpe_matches(cpe_matches: list, version: str) -> namedtuple:
     return cpe_matches[0]
 
 
-def search_cve(db: Type[DB], product: namedtuple) -> Generator[str, None, None]:
+def search_cve(db: DB, product: namedtuple) -> Generator[str, None, None]:
     for cve_id, vendor, product_name, version in db.select_query(QUERIES['sqlite_queries']['cve_lookup']):
         if terms_match(product.vendor_name, vendor) and terms_match(product.product_name, product_name) \
-                and (product.version_number.startswith(version) or version == 'ANY' or version == 'NA'):
+                and (product.version_number.startswith(get_version_index(version, 0)) or version == 'ANY' or version == 'NA'):
             yield cve_id
 
 
@@ -135,7 +134,7 @@ def remaining_words_present(wordlist: list, words: list) -> bool:
     return True
 
 
-def search_cve_summary(db: Type[DB], product: namedtuple) -> Generator[str, None, None]:
+def search_cve_summary(db: DB, product: namedtuple) -> Generator[str, None, None]:
     for cve_id, summary in db.select_query(QUERIES['sqlite_queries']['summary_lookup']):
         if product_is_in_wordlist(product, summary.split(' ')):
             yield cve_id
