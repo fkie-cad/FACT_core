@@ -1,10 +1,14 @@
 import binascii
 import json
+import logging
+from os import makedirs
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from time import sleep
 
 import requests
+from common_helper_encoder import ReportEncoder
+from common_helper_process import execute_shell_command_get_return_code
 from flask import make_response, redirect, render_template, request
 from helperFunctions.dataConversion import remove_linebreaks_from_byte_string
 from helperFunctions.mongo_task_conversion import (
@@ -13,7 +17,6 @@ from helperFunctions.mongo_task_conversion import (
 from helperFunctions.object_conversion import create_meta_dict
 from helperFunctions.web_interface import ConnectTo, get_radare_endpoint
 from intercom.front_end_binding import InterComFrontEndBinding
-from pdf_generator.generator import compile_pdf, create_templates
 from storage.db_interface_compare import CompareDbInterface, FactCompareException
 from storage.db_interface_frontend import FrontEndDbInterface
 from web_interface.components.additional_functions.hex_dump import create_hex_dump
@@ -182,9 +185,32 @@ class IORoutes(ComponentBase):
         analysis = firmware.processed_analysis
 
         with TemporaryDirectory() as tmp_dir:
-            create_templates(analysis, meta_data, tmp_dir)
-            pdf_path = compile_pdf(meta_data, tmp_dir)
-            response = make_response(Path(pdf_path).read_bytes())
-            response.headers['Content-Disposition'] = 'attachment; filename={}'.format(str(Path(pdf_path).name))
+            self._initialize_pdf_folder(tmp_dir)
+            Path(tmp_dir, 'data', 'meta.json').write_text(json.dumps(meta_data, cls=ReportEncoder))
+            Path(tmp_dir, 'data', 'analysis.json').write_text(json.dumps(analysis, cls=ReportEncoder))
+
+            output, return_code = execute_shell_command_get_return_code(
+                'docker run -m 512m -v {}:/tmp/interface --rm pdf_generator'.format(tmp_dir)
+            )
+            if return_code != 0:
+                logging.error('Failed to execute pdf generator with code {}:\n{}'.format(return_code, output))
+
+            pdf_path = self._find_pdf(tmp_dir)
+            response = make_response(pdf_path.read_bytes())
+            response.headers['Content-Disposition'] = 'attachment; filename={}'.format(pdf_path.name)
 
         return response
+
+    @staticmethod
+    def _initialize_pdf_folder(tmp_dir):
+        for subpath in ['data', 'pdf']:
+            makedirs(str(Path(tmp_dir, subpath)), exist_ok=True)
+
+    @staticmethod
+    def _find_pdf(tmp_dir):
+        pdf_path = None
+        for file_path in Path(tmp_dir, 'pdf').rglob('*.pdf'):
+            if pdf_path:
+                logging.warning('Indistinct pdf name. Found: {}'.format(file_path.name))
+            pdf_path = file_path
+        return pdf_path
