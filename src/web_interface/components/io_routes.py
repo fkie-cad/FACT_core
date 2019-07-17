@@ -1,7 +1,7 @@
 import binascii
 import json
 import logging
-from os import makedirs
+from os import getgid, getuid, makedirs
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from time import sleep
@@ -184,18 +184,19 @@ class IORoutes(ComponentBase):
         meta_data = create_meta_dict(firmware)
         analysis = firmware.processed_analysis
 
-        with TemporaryDirectory() as tmp_dir:
-            self._initialize_pdf_folder(tmp_dir)
-            Path(tmp_dir, 'data', 'meta.json').write_text(json.dumps(meta_data, cls=ReportEncoder))
-            Path(tmp_dir, 'data', 'analysis.json').write_text(json.dumps(analysis, cls=ReportEncoder))
+        with TemporaryDirectory() as folder:
+            self._initialize_pdf_folder(folder)
+            Path(folder, 'data', 'meta.json').write_text(json.dumps(meta_data, cls=ReportEncoder))
+            Path(folder, 'data', 'analysis.json').write_text(json.dumps(analysis, cls=ReportEncoder))
 
             output, return_code = execute_shell_command_get_return_code(
-                'docker run -m 512m -v {}:/tmp/interface --rm pdf_generator'.format(tmp_dir)
+                'docker run -m 512m -v {}:/tmp/interface --rm pdf_generator'.format(folder)
             )
             if return_code != 0:
                 logging.error('Failed to execute pdf generator with code {}:\n{}'.format(return_code, output))
 
-            pdf_path = self._find_pdf(tmp_dir)
+            self._claim_folder_contents(folder)
+            pdf_path = self._find_pdf(folder)
             response = make_response(pdf_path.read_bytes())
             response.headers['Content-Disposition'] = 'attachment; filename={}'.format(pdf_path.name)
 
@@ -205,6 +206,10 @@ class IORoutes(ComponentBase):
     def _initialize_pdf_folder(tmp_dir):
         for subpath in ['data', 'pdf']:
             makedirs(str(Path(tmp_dir, subpath)), exist_ok=True)
+
+    @staticmethod
+    def _claim_folder_contents(tmp_dir):
+        execute_shell_command_get_return_code('sudo chown -R {}:{} {}'.format(getuid(), getgid(), tmp_dir))
 
     @staticmethod
     def _find_pdf(tmp_dir):
