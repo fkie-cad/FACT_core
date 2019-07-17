@@ -120,7 +120,7 @@ class FileObject():  # pylint: disable=too-many-instance-attributes
             return ["insufficient information: firmware analysis not complete"]
 
     def get_virtual_file_paths(self):
-        if self.virtual_file_path.keys():
+        if self.virtual_file_path:
             return self.virtual_file_path
         return {self.get_uid(): ['{}'.format(self.get_uid())]}
 
