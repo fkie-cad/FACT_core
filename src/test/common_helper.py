@@ -16,7 +16,7 @@ from storage.mongo_interface import MongoInterface
 
 class CommonDbInterfaceMock(MongoInterfaceCommon):
 
-    def __init__(self):
+    def __init__(self):  # pylint: disable=super-init-not-called
         pass
 
     def retrieve_analysis(self, sanitized_dict, analysis_filter=None):
@@ -61,7 +61,7 @@ TEST_FW_2 = create_test_firmware(device_class='test_class', device_name='test_fi
 TEST_TEXT_FILE = create_test_file_object()
 
 
-class MockFileObject(object):
+class MockFileObject:
 
     def __init__(self, binary=b'test string', file_path='/bin/ls'):
         self.binary = binary
@@ -84,16 +84,16 @@ class DatabaseMock:
     def update_view(self, file_name, content):
         pass
 
-    def get_meta_list(self, firmware_list=[]):
+    def get_meta_list(self, firmware_list=None):
         fw_entry = ('test_uid', 'test firmware', 'unpacker')
         fo_entry = ('test_fo_uid', 'test file object', 'unpacker')
-        if self.fw_uid in firmware_list and self.fo_uid in firmware_list:
+        if firmware_list and self.fw_uid in firmware_list and self.fo_uid in firmware_list:
             return [fw_entry, fo_entry]
-        elif self.fo_uid in firmware_list:
+        if firmware_list and self.fo_uid in firmware_list:
             return [fo_entry]
         return [fw_entry]
 
-    def get_object(self, uid, analysis_filter=[]):
+    def get_object(self, uid, analysis_filter=None):
         if uid == TEST_FW.get_uid():
             result = deepcopy(TEST_FW)
             result.processed_analysis = {
@@ -102,13 +102,13 @@ class DatabaseMock:
                 'optional_plugin': 'optional result'
             }
             return result
-        elif uid == TEST_TEXT_FILE.get_uid():
+        if uid == TEST_TEXT_FILE.get_uid():
             result = deepcopy(TEST_TEXT_FILE)
             result.processed_analysis = {
                 'file_type': {'mime': 'text/plain', 'full': 'plain text'}
             }
             return result
-        elif uid == self.fw2_uid:
+        if uid == self.fw2_uid:
             result = deepcopy(TEST_FW_2)
             result.processed_analysis = {
                 'file_type': {'mime': 'filesystem/cramfs', 'full': 'test text'},
@@ -117,8 +117,7 @@ class DatabaseMock:
             }
             result.release_date = '2000-01-01'
             return result
-        else:
-            return None
+        return None
 
     def get_hid(self, uid, root_uid=None):
         return 'TEST_FW_HID'
@@ -136,35 +135,27 @@ class DatabaseMock:
         return {'test class': {'test vendor': ['test device']}}
 
     def compare_result_is_in_db(self, uid_list):
-        if uid_list == normalize_compare_id(';'.join([TEST_FW.uid, TEST_TEXT_FILE.uid])):
-            return True
-        else:
-            return False
+        return uid_list == normalize_compare_id(';'.join([TEST_FW.uid, TEST_TEXT_FILE.uid]))
 
     def get_compare_result(self, compare_id):
         if compare_id == normalize_compare_id(';'.join([TEST_FW.uid, TEST_FW_2.uid])):
-            return {'this_is': 'a_compare_result',
-                    'general': {'hid': {TEST_FW.uid: 'foo', TEST_TEXT_FILE.uid: 'bar'}}}
-        elif compare_id == normalize_compare_id(';'.join([TEST_FW.uid, TEST_TEXT_FILE.uid])):
+            return {
+                'this_is': 'a_compare_result',
+                'general': {'hid': {TEST_FW.uid: 'foo', TEST_TEXT_FILE.uid: 'bar'}}
+            }
+        if compare_id == normalize_compare_id(';'.join([TEST_FW.uid, TEST_TEXT_FILE.uid])):
             return {'this_is': 'a_compare_result'}
-        else:
-            return 'generic error'
+        return 'generic error'
 
     def existence_quick_check(self, uid):
-        if uid == self.fw_uid or uid == self.fo_uid or uid == self.fw2_uid:
-            return True
-        elif uid == 'error':
-            return True
-        else:
-            return False
+        return uid in (self.fw_uid, self.fo_uid, self.fw2_uid, 'error')
 
     def check_objects_exist(self, compare_id):
         if compare_id == normalize_compare_id(';'.join([TEST_FW_2.uid, TEST_FW.uid])):
             return None
-        elif compare_id == normalize_compare_id(';'.join([TEST_TEXT_FILE.uid, TEST_FW.uid])):
+        if compare_id == normalize_compare_id(';'.join([TEST_TEXT_FILE.uid, TEST_FW.uid])):
             return None
-        else:
-            raise FactCompareException('bla')
+        raise FactCompareException('bla')
 
     def all_uids_found_in_database(self, uid_list):
         return True
@@ -174,28 +165,28 @@ class DatabaseMock:
             {'time': str(time), 'author': author, 'comment': comment}
         )
 
-    class firmwares():
+    class firmwares:  # pylint: disable=invalid-name
         @staticmethod
         def find_one(uid):
             if uid == 'test_uid':
                 return 'test'
-            elif uid == TEST_FW.get_uid():
+            if uid == TEST_FW.get_uid():
                 return TEST_FW.get_uid()
-            else:
-                return None
+            return None
 
         @staticmethod
-        def find(query, filter):
+        def find(query, query_filter):
             return {}
 
-    class file_objects():
+    class file_objects:  # pylint: disable=invalid-name
         @staticmethod
         def find_one(uid):
             if uid == TEST_TEXT_FILE.get_uid():
                 return TEST_TEXT_FILE.get_uid()
+            return None
 
         @staticmethod
-        def find(query, filter):
+        def find(query, query_filter):
             return {}
 
     def get_data_for_nice_list(self, input_data, root_uid):
@@ -207,7 +198,7 @@ class DatabaseMock:
 
     def generic_search(self, search_string, skip=0, limit=0, only_fo_parent_firmware=False):
         result = []
-        if type(search_string) == dict:
+        if isinstance(search_string, dict):
             search_string = json.dumps(search_string)
         if self.fw_uid in search_string or search_string == '{}':
             result.append(self.fw_uid)
@@ -225,6 +216,9 @@ class DatabaseMock:
     def add_re_analyze_task(self, task, unpack=True):
         self.tasks.append(task)
 
+    def add_single_file_task(self, task):
+        self.tasks.append(task)
+
     def add_compare_task(self, task, force=None):
         self.tasks.append((task, force))
 
@@ -238,26 +232,24 @@ class DatabaseMock:
     def get_binary_and_filename(self, uid):
         if uid == TEST_FW.get_uid():
             return TEST_FW.binary, TEST_FW.file_name
-        elif uid == TEST_TEXT_FILE.get_uid():
+        if uid == TEST_TEXT_FILE.get_uid():
             return TEST_TEXT_FILE.binary, TEST_TEXT_FILE.file_name
-        else:
-            return None
+        return None
 
     def get_repacked_binary_and_file_name(self, uid):
         if uid == TEST_FW.get_uid():
             return TEST_FW.binary, '{}.tar.gz'.format(TEST_FW.file_name)
+        return None, None
 
     def add_binary_search_request(self, yara_rule_binary, firmware_uid=None):
         if yara_rule_binary == b'invalid_rule':
             return 'error: invalid rule'
-        else:
-            return 'some_id'
+        return 'some_id'
 
     def get_binary_search_result(self, uid):
         if uid == 'some_id':
             return {'test_rule': ['test_uid']}, b'some yara rule'
-        else:
-            return None, None
+        return None, None
 
     def get_statistic(self, identifier):
         statistics = {
@@ -271,26 +263,22 @@ class DatabaseMock:
         }
         if identifier == 'general':
             return statistics
-        else:
-            return None
+        return None
 
     def get_complete_object_including_all_summaries(self, uid):
         if uid == TEST_FW.uid:
             return TEST_FW
-        else:
-            raise Exception('UID not found: {}'.format(uid))
+        raise Exception('UID not found: {}'.format(uid))
 
     def rest_get_firmware_uids(self, offset, limit, query=None, recursive=False):
         if (offset != 0) or (limit != 0):
             return []
-        else:
-            return [TEST_FW.uid, ]
+        return [TEST_FW.uid, ]
 
     def rest_get_file_object_uids(self, offset, limit, query=None):
         if (offset != 0) or (limit != 0):
             return []
-        else:
-            return [TEST_TEXT_FILE.uid, ]
+        return [TEST_TEXT_FILE.uid, ]
 
     def get_firmware(self, uid, analysis_filter=None):
         return self.get_object(uid, analysis_filter)
@@ -315,8 +303,7 @@ class DatabaseMock:
     def get_view(self, name):
         if name == 'plugin_1':
             return b'<plugin 1 view>'
-        else:
-            return None
+        return None
 
     def is_firmware(self, uid):
         return uid == 'uid_in_db'
@@ -324,6 +311,7 @@ class DatabaseMock:
     def get_file_name(self, uid):
         if uid == 'deadbeef00000000000000000000000000000000000000000000000000000000_123':
             return 'test_name'
+        return None
 
     def set_unpacking_lock(self, uid):
         self.locks.append(uid)
@@ -355,7 +343,7 @@ def clean_test_database(config, list_of_test_databases):
     try:
         for database_name in list_of_test_databases:
             db.client.drop_database(database_name)
-    except Exception:
+    except Exception:  # pylint: disable=broad-except
         pass
     db.shutdown()
 

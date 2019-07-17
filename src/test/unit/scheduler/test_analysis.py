@@ -52,7 +52,7 @@ class TestScheduleInitialAnalysis(AnalysisSchedulerTest):
         self.sched.shutdown()
         self.sched.process_queue = Queue()
         test_fw = Firmware(binary=b'test')
-        self.sched.add_task(test_fw)
+        self.sched.start_analysis_of_object(test_fw)
         test_fw = self.sched.process_queue.get(timeout=5)
         self.assertEqual(len(test_fw.scheduled_analysis), len(MANDATORY_PLUGINS), 'Mandatory Plugins not selected')
         for item in MANDATORY_PLUGINS:
@@ -61,7 +61,7 @@ class TestScheduleInitialAnalysis(AnalysisSchedulerTest):
     def test_whole_run_analysis_selected(self):
         test_fw = Firmware(file_path=os.path.join(get_test_data_dir(), 'get_files_test/testfile1'))
         test_fw.scheduled_analysis = ['dummy_plugin_for_testing_only']
-        self.sched.add_task(test_fw)
+        self.sched.start_analysis_of_object(test_fw)
         for _ in range(3):  # 3 plugins have to run
             test_fw = self.tmp_queue.get(timeout=10)
         self.assertEqual(len(test_fw.processed_analysis), 3, 'analysis not done')

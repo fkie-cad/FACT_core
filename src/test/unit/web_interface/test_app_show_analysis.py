@@ -10,10 +10,11 @@ class TestAppShowAnalysis(WebInterfaceTest):
         assert b'<strong>UID:</strong> ' + make_bytes(TEST_FW.get_uid()) in result
         assert b'data-toggle="tooltip" title="mandatory plugin description"' in result
         assert b'data-toggle="tooltip" title="optional plugin description"' in result
-        assert b'data-toggle="tooltip" title="default plugin description"' not in result
+
         # check release date not available
         assert b'1970-01-01' not in result
         assert b'unknown' in result
+
         # check file preview
         assert b'Preview' not in result
 
@@ -26,3 +27,16 @@ class TestAppShowAnalysis(WebInterfaceTest):
         assert b'<strong>UID:</strong> ' + make_bytes(TEST_TEXT_FILE.get_uid()) in result
         assert b'Preview' in result
         assert b'test file:\ncontent:'
+
+    def test_app_single_file_analysis(self):
+        result = self.test_client.get('/analysis/{}'.format(TEST_FW.get_uid()))
+
+        assert b'Add new analysis' in result.data
+        assert b'Update analysis' in result.data
+
+        assert not self.mocked_interface.tasks
+        post_new = self.test_client.post('/analysis/{}'.format(TEST_FW.get_uid()), content_type='multipart/form-data', data={'analysis_systems': ['plugin_a', 'plugin_b']})
+
+        assert post_new.status_code == 200
+        assert self.mocked_interface.tasks
+        assert self.mocked_interface.tasks[0].scheduled_analysis == ['plugin_a', 'plugin_b']
