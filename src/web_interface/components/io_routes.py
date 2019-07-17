@@ -1,20 +1,15 @@
 import binascii
 import json
-import logging
-from os import getgid, getuid, makedirs
-from pathlib import Path
 from tempfile import TemporaryDirectory
 from time import sleep
 
 import requests
-from common_helper_encoder import ReportEncoder
-from common_helper_process import execute_shell_command_get_return_code
 from flask import make_response, redirect, render_template, request
 from helperFunctions.dataConversion import remove_linebreaks_from_byte_string
 from helperFunctions.mongo_task_conversion import (
     check_for_errors, convert_analysis_task_to_fw_obj, create_analysis_task
 )
-from helperFunctions.object_conversion import create_meta_dict
+from helperFunctions.pdf import build_pdf_report
 from helperFunctions.web_interface import ConnectTo, get_radare_endpoint
 from intercom.front_end_binding import InterComFrontEndBinding
 from storage.db_interface_compare import CompareDbInterface, FactCompareException
@@ -181,41 +176,13 @@ class IORoutes(ComponentBase):
         with ConnectTo(FrontEndDbInterface, self._config) as connection:
             firmware = connection.get_complete_object_including_all_summaries(uid)
 
-        meta_data = create_meta_dict(firmware)
-        analysis = firmware.processed_analysis
+        try:
+            with TemporaryDirectory() as folder:
+                binary, pdf_path = build_pdf_report(firmware, folder)
+        except RuntimeError as error:
+            return render_template('error.html', message=str(error))
 
-        with TemporaryDirectory() as folder:
-            self._initialize_pdf_folder(folder)
-            Path(folder, 'data', 'meta.json').write_text(json.dumps(meta_data, cls=ReportEncoder))
-            Path(folder, 'data', 'analysis.json').write_text(json.dumps(analysis, cls=ReportEncoder))
-
-            output, return_code = execute_shell_command_get_return_code(
-                'docker run -m 512m -v {}:/tmp/interface --rm pdf_generator'.format(folder)
-            )
-            if return_code != 0:
-                logging.error('Failed to execute pdf generator with code {}:\n{}'.format(return_code, output))
-
-            self._claim_folder_contents(folder)
-            pdf_path = self._find_pdf(folder)
-            response = make_response(pdf_path.read_bytes())
-            response.headers['Content-Disposition'] = 'attachment; filename={}'.format(pdf_path.name)
+        response = make_response(binary)
+        response.headers['Content-Disposition'] = 'attachment; filename={}'.format(pdf_path.name)
 
         return response
-
-    @staticmethod
-    def _initialize_pdf_folder(tmp_dir):
-        for subpath in ['data', 'pdf']:
-            makedirs(str(Path(tmp_dir, subpath)), exist_ok=True)
-
-    @staticmethod
-    def _claim_folder_contents(tmp_dir):
-        execute_shell_command_get_return_code('sudo chown -R {}:{} {}'.format(getuid(), getgid(), tmp_dir))
-
-    @staticmethod
-    def _find_pdf(tmp_dir):
-        pdf_path = None
-        for file_path in Path(tmp_dir, 'pdf').rglob('*.pdf'):
-            if pdf_path:
-                logging.warning('Indistinct pdf name. Found: {}'.format(file_path.name))
-            pdf_path = file_path
-        return pdf_path
