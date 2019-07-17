@@ -1,3 +1,4 @@
+# pylint: disable=protected-access
 import gc
 import os
 import unittest
@@ -66,7 +67,7 @@ class TestStorageDbInterfaceAdmin(unittest.TestCase):
     def test_remove_virtual_path_entries_no_other_roots(self):
         self.db_backend_interface.add_file_object(self.child_fo)
         self.assertIn(self.uid, self.db_backend_interface.file_objects.find_one(self.child_uid, {'virtual_file_path': 1})['virtual_file_path'])
-        removed_vps, deleted_files = self.admin_interface._remove_virtual_path_entries(self.uid, self.child_fo.get_uid())  # pylint: disable=protected-access
+        removed_vps, deleted_files = self.admin_interface._remove_virtual_path_entries(self.uid, self.child_fo.get_uid())
         self.assertIsNone(self.db_backend_interface.file_objects.find_one(self.child_uid))
         self.assertEqual(removed_vps, 0)
         self.assertEqual(deleted_files, 1)
@@ -75,7 +76,7 @@ class TestStorageDbInterfaceAdmin(unittest.TestCase):
         self.child_fo.virtual_file_path.update({'someuid': ['|someuid|/some/virtual/path']})
         self.db_backend_interface.add_file_object(self.child_fo)
         self.assertIn(self.uid, self.db_backend_interface.file_objects.find_one(self.child_uid, {'virtual_file_path': 1})['virtual_file_path'])
-        removed_vps, deleted_files = self.admin_interface._remove_virtual_path_entries(self.uid, self.child_fo.get_uid())  # pylint: disable=protected-access
+        removed_vps, deleted_files = self.admin_interface._remove_virtual_path_entries(self.uid, self.child_fo.get_uid())
         self.assertNotIn(self.uid, self.db_backend_interface.file_objects.find_one(self.child_uid, {'virtual_file_path': 1})['virtual_file_path'])
         self.assertEqual(removed_vps, 1)
         self.assertEqual(deleted_files, 0)
@@ -86,14 +87,14 @@ class TestStorageDbInterfaceAdmin(unittest.TestCase):
         self.admin_interface.client.drop_database(self.config.get('data_storage', 'sanitize_database'))
         self.admin_interface.sanitize_analysis(self.test_firmware.processed_analysis, self.uid)
         self.assertIn('test_plugin_result_{}'.format(self.test_firmware.get_uid()), self.admin_interface.sanitize_fs.list())
-        self.admin_interface._delete_swapped_analysis_entries(self.admin_interface.firmwares.find_one(self.uid))  # pylint: disable=protected-access
+        self.admin_interface._delete_swapped_analysis_entries(self.admin_interface.firmwares.find_one(self.uid))
         self.assertNotIn('test_plugin_result_{}'.format(self.test_firmware.get_uid()), self.admin_interface.sanitize_fs.list())
 
     def test_delete_file_object(self):
         self.db_backend_interface.add_file_object(self.child_fo)
         db_entry = self.db_backend_interface.file_objects.find_one(self.child_fo.get_uid())
         self.assertIsNotNone(db_entry)
-        self.admin_interface._delete_file_object(db_entry)  # pylint: disable=protected-access
+        self.admin_interface._delete_file_object(db_entry)
         self.assertIsNone(self.db_backend_interface.file_objects.find_one(self.child_fo.get_uid()), 'file not deleted from db')
         delete_tasks = self._get_delete_tasks()
         self.assertIn(self.child_fo.get_uid(), delete_tasks, 'file not found in delete tasks')
