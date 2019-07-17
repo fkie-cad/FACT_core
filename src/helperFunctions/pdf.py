@@ -14,7 +14,7 @@ def build_pdf_report(firmware: Firmware, folder: Path) -> Tuple[bytes, Path]:
     _initialize_subfolder(folder, firmware)
 
     output, return_code = execute_shell_command_get_return_code(
-        'docker run -m 512m -v {}:/tmp/interface --rm pdf_generator'.format(folder)
+        'docker run -m 512m -v {}:/tmp/interface --rm fkiecad/fact_pdf_report'.format(folder)
     )
 
     if return_code != 0:
