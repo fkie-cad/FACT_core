@@ -1,8 +1,9 @@
+import json
 import re
 import xml.etree.ElementTree as Et
 from datetime import datetime
 from io import BytesIO
-from json import load
+from pathlib import Path
 from typing import Tuple
 from zipfile import ZipFile
 
@@ -46,10 +47,9 @@ def download_cve(update: bool, download_path: str, years: list):
 
 
 def download_cpe(download_path: str):
-    cpe_url = METADATA['source_urls']['cpe_source']
-    if not cpe_url:
+    if not METADATA['source_urls']['cpe_source']:
         exit('Error: No CPE URL provided. Check metadata.json if required URL is set.')
-    iterate_urls([cpe_url], download_path)
+    iterate_urls([METADATA['source_urls']['cpe_source']], download_path)
 
 
 def iterate_nodes(nodes: list, cpe_entries: list) -> list:
@@ -80,18 +80,8 @@ def extract_data_from_cve(root: dict) -> Tuple[list, list]:
     return cve_list, summary_list
 
 
-def extract_cve(file: str) -> Tuple[list, list]:
-    feeds, root = None, None
-
-    try:
-        feeds = open(file)
-        root = load(feeds)
-    except IOError as err:
-        raise err
-    finally:
-        feeds.close()
-
-    return extract_data_from_cve(root)
+def extract_cve(cve_file: str) -> Tuple[list, list]:
+    return extract_data_from_cve(json.loads(Path(cve_file).read_text()))
 
 
 def extract_cpe(file: str) -> list:

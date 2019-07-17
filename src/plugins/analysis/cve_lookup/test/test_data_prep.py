@@ -200,9 +200,9 @@ def test_iterate_urls():
     assert set(DOWNLOAD_DATA_EXPECTED_OUTPUT) == set(downloaded_files)
 
 
-def test_extract_cve():
-    cve_data, summary_data = dp.extract_cve(str(Path(__file__).parent.parent) + '/test/test_resources/'
-                                                                                'test_cve_extract.json')
+def test_extract_data_from_cve():
+    root = dp.json.loads(Path(str(Path(__file__).parent.parent) + '/test/test_resources/test_cve_extract.json').read_text())
+    cve_data, summary_data = dp.extract_data_from_cve(root)
     CVE_CPE_LIST.sort()
     SUMMARY_EXTRACT_LIST.sort()
     cve_data.sort()
@@ -211,14 +211,20 @@ def test_extract_cve():
     assert SUMMARY_EXTRACT_LIST == summary_data
 
 
+def test_extract_cve(monkeypatch):
+    with monkeypatch.context() as monkey:
+        monkey.setattr(dp.Path, 'read_text', lambda *_, **__: '{"foo": "bar"}')
+        monkey.setattr(dp, 'extract_data_from_cve', lambda root: root)
+        assert dp.extract_cve('') == {'foo': 'bar'}
+
+
 def test_iterate_nodes():
     test_node_list = list()
     assert NODE_LIST == dp.iterate_nodes(NODES, test_node_list)
 
 
 def test_extract_cpe():
-    assert CPE_EXTRACT_LIST == dp.extract_cpe(str(Path(__file__).parent.parent) + '/test/test_resources/'
-                                                                                  'test_cpe_extract.xml')
+    assert CPE_EXTRACT_LIST == dp.extract_cpe(str(Path(__file__).parent.parent) + '/test/test_resources/test_cpe_extract.xml')
 
 
 def test_setup_cve_feeds_table():
