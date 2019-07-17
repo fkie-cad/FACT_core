@@ -134,9 +134,8 @@ EXPECTED_GET_CVE_FEEDS_UPDATE_CONTENT = ['CVE-2012-0001', 'cpe:2.3:o:microsoft:w
                                          'cpe:2.3:a:microsoft:ie:9:*:*:*:*:*:*:*', 'cpe:2.3:a:microsoft:ie:7:*:*:*:*:*:*:*']
 
 
-EXPECTED_GET_CVE_SUMMARY_UPDATE_CONTENT = ['CVE-2018-20229', 'CVE-2018-8825',
-                                           'GitLab Community and Enterprise Edition before 11.3.14, 11.4.x before '
-                                           '11.4.12, and 11.5.x before 11.5.5 allows Directory Traversal.',
+EXPECTED_GET_CVE_SUMMARY_UPDATE_CONTENT = ['CVE-2018-20229', 'GitLab Community and Enterprise Edition before 11.3.14, 11.4.x before '
+                                           '11.4.12, and 11.5.x before 11.5.5 allows Directory Traversal.', 'CVE-2018-8825',
                                            'Google TensorFlow 1.7 and below is affected by: Buffer Overflow. '
                                            'The impact is: execute arbitrary code (local).']
 
@@ -200,7 +199,6 @@ def test_extract_relevant_feeds():
 
 
 def test_delete_outdated_feeds():
-    sr.DATABASE = sr.DB(PATH_TO_TEST + 'test_update.db')
     sr.delete_outdated_feeds(delete_outdated_from='outdated', use_for_selection='new')
     assert sr.DATABASE.select_single(query=QUERIES['sqlite_queries']['select_all'].format('outdated'))[0] == 'CVE-2018-0001'
 
@@ -212,13 +210,11 @@ def test_create():
 
 
 def test_insert_into():
-    sr.DATABASE = sr.DB(PATH_TO_TEST + 'test_import.db')
     sr.insert_into(query='test_insert', table_name='test', input_data=[(1, ), (2, )])
     assert [(1, ), (2, )] == list(sr.DATABASE.select_query(query=QUERIES['sqlite_queries']['select_all'].format('test')))
 
 
 def test_drop_table():
-    sr.DATABASE = sr.DB(PATH_TO_TEST + 'test_import.db')
     sr.drop_table('test')
     assert [] == list(sr.DATABASE.select_query(query=QUERIES['sqlite_queries']['exist'].format('test')))
 
@@ -255,15 +251,24 @@ def test_get_cpe_content(monkeypatch):
 
 
 def test_init_cve_feeds_table():
-    pass
+    sr.init_cve_feeds_table(EXPECTED_GET_CVE_FEEDS_UPDATE_CONTENT, 'test_cve')
+    assert sr.DATABASE.select_single(QUERIES['sqlite_queries']['exist'].format('test_cve'))[0] == 'test_cve'
+    db_cve = list(sr.DATABASE.select_query(QUERIES['sqlite_queries']['select_all'].format('test_cve')))
+    db_cve.sort()
+    EXPECTED_CVE_OUTPUT.sort()
+    assert db_cve == EXPECTED_CVE_OUTPUT
 
 
 def test_init_summaries_table():
-    pass
+    sr.init_cve_summaries_table(EXPECTED_GET_CVE_SUMMARY_UPDATE_CONTENT, 'test_summary')
+    assert sr.DATABASE.select_single(QUERIES['sqlite_queries']['exist'].format('test_summary'))[0] == 'test_summary'
+    db_summary = list(sr.DATABASE.select_query(QUERIES['sqlite_queries']['select_all'].format('test_summary')))
+    db_summary.sort()
+    EXPECTED_SUM_OUTPUT.sort()
+    assert db_summary == EXPECTED_SUM_OUTPUT
 
 
 def test_get_cve_import_content(monkeypatch):
-    sr.DATABASE = sr.DB(PATH_TO_TEST + 'test_update.db')
     with monkeypatch.context() as monkey:
         monkey.setattr(sr, 'glob', lambda *_, **__: [PATH_TO_TEST + 'test_resources/test_cve_extract.json'])
         feeds, summary = sr.get_cve_update_content('')
@@ -276,7 +281,6 @@ def test_get_cve_import_content(monkeypatch):
 
 
 def test_get_cve_update_content(monkeypatch):
-    sr.DATABASE = sr.DB(PATH_TO_TEST + 'test_update.db')
     with monkeypatch.context() as monkey:
         monkey.setattr(sr, 'glob', lambda *_, **__: [PATH_TO_TEST + 'test_resources/test_cve_extract.json'])
         feeds, summary = sr.get_cve_update_content('')
@@ -309,7 +313,10 @@ def test_update_cve_repository(monkeypatch):
 
 
 def test_update_cve_feeds():
-    pass
+    db_cve = list(sr.DATABASE.select_query(QUERIES['sqlite_queries']['select_all'].format('cve_table')))
+    db_cve.sort()
+    EXPECTED_UPDATED_CVE_TABLE.sort()
+    assert db_cve == EXPECTED_UPDATED_CVE_TABLE
 
 
 def test_update_cve_summaries():
@@ -317,7 +324,6 @@ def test_update_cve_summaries():
 
 
 def test_get_years_from_database():
-    sr.DATABASE = sr.DB(PATH_TO_TEST + 'test_update.db')
     assert sr.get_years_from_database()[0] == 2018
 
 
