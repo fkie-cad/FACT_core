@@ -60,6 +60,8 @@ def import_cpe(cpe_extract_path: str):
 
 def get_cpe_content(path: str) -> list:
     dp.download_cpe(download_path=path)
+    if not glob(path + '*.xml')[0]:
+        raise Exception('Error: Glob has found none of the specified files!')
     return dp.extract_cpe(glob(path + '*.xml')[0])
 
 
@@ -77,7 +79,7 @@ def get_cve_import_content(cve_extraction_path: str, year_selection: list) -> Tu
     cve_list, summary_list = list(), list()
     dp.download_cve(update=False, download_path=cve_extraction_path, years=year_selection)
     for file in glob(cve_extraction_path + 'nvdcve*.json'):
-        cve_data, summary_data = dp.extract_cve(file=file)
+        cve_data, summary_data = dp.extract_cve(cve_file=file)
         cve_list.extend(cve_data)
         summary_list.extend(summary_data)
 
@@ -86,7 +88,9 @@ def get_cve_import_content(cve_extraction_path: str, year_selection: list) -> Tu
 
 def get_cve_update_content(cve_extraction_path: str) -> Tuple[list, list]:
     dp.download_cve(update=True, download_path=cve_extraction_path, years=list())
-    return dp.extract_cve(file=glob(cve_extraction_path + 'nvdcve*.json')[0])
+    if not glob(cve_extraction_path + 'nvdcve*.json')[0]:
+        raise Exception('Error: Glob has found none of the specified files!')
+    return dp.extract_cve(cve_file=glob(cve_extraction_path + 'nvdcve*.json')[0])
 
 
 def cve_summaries_can_be_imported(extracted_summaries: list) -> bool:
@@ -221,13 +225,14 @@ def main():
     years = Years(start_year=args.years[0], end_year=args.years[1])
 
     check_validity_of_arguments(specify=args.specify, years=years)
+    extraction_path = args.extraction_path if args.extraction_path.endswith('/') else args.extraction_path + '/'
 
     if args.update:
-        update_repository(extraction_path=args.extraction_path, specify=args.specify)
+        update_repository(extraction_path=extraction_path, specify=args.specify)
     else:
-        set_repository(extraction_path=args.extraction_path, specify=args.specify, years=years)
+        set_repository(extraction_path=extraction_path, specify=args.specify, years=years)
 
-    rmtree(args.extraction_path)
+    rmtree(extraction_path)
 
 
 if __name__ == '__main__':
