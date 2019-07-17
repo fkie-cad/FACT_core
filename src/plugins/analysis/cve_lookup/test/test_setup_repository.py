@@ -18,6 +18,10 @@ OVERLAP_OUTPUT = [2018, 2019]
 
 EXISTS_INPUT = [[''], []]
 EXISTS_OUTPUT = [True, False]
+EXTRACT_CPE_XML = 'test_resources/test_cpe_extract.xml'
+UPDATE_CPE_XML = 'test_resources/test_cpe_update.xml'
+EXTRACT_CVE_JSON = 'test_resources/test_cve_extract.json'
+UPDATE_CVE_JSON = 'test_resources/nvdcve_test_cve_update.json'
 
 EXPECTED_CPE_OUTPUT = [('cpe:2.3:a:\\$0.99_kindle_books_project:\\$0.99_kindle_books:6:*:*:*:*:android:*:*', 'a',
                         '\\$0\\.99_kindle_books_project', '\\$0\\.99_kindle_books', '6', 'ANY', 'ANY', 'ANY', 'ANY', 'android', 'ANY', 'ANY'),
@@ -146,8 +150,8 @@ def setup() -> None:
         remove('cve_cpe.db')
     except OSError:
         pass
-    cpe_base = dp.setup_cpe_table(dp.extract_cpe(PATH_TO_TEST + 'test_resources/test_cpe_extract.xml'))
-    cve_base, summary_base = dp.extract_cve(PATH_TO_TEST + 'test_resources/test_cve_extract.json')
+    cpe_base = dp.setup_cpe_table(dp.extract_cpe(PATH_TO_TEST + EXTRACT_CPE_XML))
+    cve_base, summary_base = dp.extract_cve(PATH_TO_TEST + EXTRACT_CVE_JSON)
     cve_base, summary_base = dp.setup_cve_feeds_table(cve_list=cve_base), dp.setup_cve_summary_table(summary_list=summary_base)
 
     with DB(PATH_TO_TEST + 'test_update.db') as db:
@@ -222,7 +226,7 @@ def test_drop_table():
 def test_update_cpe(monkeypatch):
     with monkeypatch.context() as monkey:
         sr.DATABASE = sr.DB(PATH_TO_TEST + 'test_update.db')
-        monkey.setattr(sr, 'glob', lambda *_, **__: [PATH_TO_TEST + 'test_resources/test_cpe_update.xml'])
+        monkey.setattr(sr, 'glob', lambda *_, **__: [PATH_TO_TEST + UPDATE_CPE_XML])
         sr.update_cpe('')
         EXPECTED_UPDATED_CPE_TABLE.sort()
         actual_cpe_update = list(sr.DATABASE.select_query(query=QUERIES['sqlite_queries']['select_all'].format('cpe_table')))
@@ -233,7 +237,7 @@ def test_update_cpe(monkeypatch):
 def test_import_cpe(monkeypatch):
     with monkeypatch.context() as monkey:
         sr.DATABASE = sr.DB(PATH_TO_TEST + 'test_import.db')
-        monkey.setattr(sr, 'glob', lambda *_, **__: [PATH_TO_TEST + 'test_resources/test_cpe_extract.xml'])
+        monkey.setattr(sr, 'glob', lambda *_, **__: [PATH_TO_TEST + EXTRACT_CPE_XML])
         sr.import_cpe('')
         EXPECTED_CPE_OUTPUT.sort()
         actual_cpe_output = list(sr.DATABASE.select_query(QUERIES['sqlite_queries']['select_all'].format('cpe_table')))
@@ -243,9 +247,9 @@ def test_import_cpe(monkeypatch):
 
 def test_get_cpe_content(monkeypatch):
     with monkeypatch.context() as monkey:
-        monkey.setattr(sr, 'glob', lambda *_, **__: [PATH_TO_TEST + 'test_resources/test_cpe_extract.xml'])
+        monkey.setattr(sr, 'glob', lambda *_, **__: [PATH_TO_TEST + EXTRACT_CPE_XML])
         EXTRACT_CPE_OUTPUT.sort()
-        actual_output = sr.get_cpe_content(path=PATH_TO_TEST + 'test_resources/test_cpe_extract.xml')
+        actual_output = sr.get_cpe_content(path=PATH_TO_TEST + EXTRACT_CPE_XML)
         actual_output.sort()
         assert EXTRACT_CPE_OUTPUT == actual_output
 
@@ -270,7 +274,7 @@ def test_init_summaries_table():
 
 def test_get_cve_import_content(monkeypatch):
     with monkeypatch.context() as monkey:
-        monkey.setattr(sr, 'glob', lambda *_, **__: [PATH_TO_TEST + 'test_resources/test_cve_extract.json'])
+        monkey.setattr(sr, 'glob', lambda *_, **__: [PATH_TO_TEST + EXTRACT_CVE_JSON])
         feeds, summary = sr.get_cve_update_content('')
         EXPECTED_GET_CVE_FEEDS_UPDATE_CONTENT.sort()
         feeds.sort()
@@ -282,7 +286,7 @@ def test_get_cve_import_content(monkeypatch):
 
 def test_get_cve_update_content(monkeypatch):
     with monkeypatch.context() as monkey:
-        monkey.setattr(sr, 'glob', lambda *_, **__: [PATH_TO_TEST + 'test_resources/test_cve_extract.json'])
+        monkey.setattr(sr, 'glob', lambda *_, **__: [PATH_TO_TEST + EXTRACT_CVE_JSON])
         feeds, summary = sr.get_cve_update_content('')
         EXPECTED_GET_CVE_FEEDS_UPDATE_CONTENT.sort()
         feeds.sort()
@@ -300,7 +304,7 @@ def test_cve_summaries_can_be_imported():
 def test_update_cve_repository(monkeypatch):
     with monkeypatch.context() as monkey:
         sr.DATABASE = sr.DB(PATH_TO_TEST + 'test_update.db')
-        monkey.setattr(sr, 'glob', lambda *_, **__: [PATH_TO_TEST + 'test_resources/nvdcve_test_cve_update.json'])
+        monkey.setattr(sr, 'glob', lambda *_, **__: [PATH_TO_TEST + UPDATE_CVE_JSON])
         sr.update_cve_repository(cve_extract_path='')
         EXPECTED_UPDATED_CVE_TABLE.sort()
         actual_cve_update = list(sr.DATABASE.select_query(QUERIES['sqlite_queries']['select_all'].format('cve_table')))
@@ -320,7 +324,10 @@ def test_update_cve_feeds():
 
 
 def test_update_cve_summaries():
-    pass
+    db_summary = list(sr.DATABASE.select_query(QUERIES['sqlite_queries']['select_all'].format('summary_table')))
+    db_summary.sort()
+    EXPECTED_UPDATED_SUMMARY_TABLE.sort()
+    assert db_summary == EXPECTED_UPDATED_SUMMARY_TABLE
 
 
 def test_get_years_from_database():
@@ -330,7 +337,7 @@ def test_get_years_from_database():
 def test_import_cve(monkeypatch):
     with monkeypatch.context() as monkey:
         sr.DATABASE = sr.DB(PATH_TO_TEST + 'test_import.db')
-        monkey.setattr(sr, 'glob', lambda *_, **__: [PATH_TO_TEST + 'test_resources/test_cve_extract.json'])
+        monkey.setattr(sr, 'glob', lambda *_, **__: [PATH_TO_TEST + EXTRACT_CVE_JSON])
         sr.import_cve(cve_extract_path='', years=YEARS)
         EXPECTED_CVE_OUTPUT.sort()
         EXPECTED_SUM_OUTPUT.sort()
@@ -342,16 +349,24 @@ def test_import_cve(monkeypatch):
         assert EXPECTED_SUM_OUTPUT == actual_summary_output
 
 
-def test_set_repository():
-    pass
+@pytest.mark.parametrize('path, specify, years, expected', [('', 0, YEARS, ['cpe', 'cve']), ('', 1, YEARS, ['cpe']), ('', 2, YEARS, ['cve'])])
+def test_set_repository(monkeypatch, path, specify, years, expected):
+    output = list()
+    with monkeypatch.context() as monkey:
+        monkey.setattr(sr, 'import_cpe', lambda *_, **__: output.append('cpe'))
+        monkey.setattr(sr, 'import_cve', lambda *_, **__: output.append('cve'))
+        sr.set_repository(extraction_path=path, specify=specify, years=years)
+        assert output == expected
 
 
-def test_update_repository():
-    pass
-
-
-def test_setup_argparser():
-    pass
+@pytest.mark.parametrize('path, specify, expected', [('', 0, ['cpe', 'cve']), ('', 1, ['cpe']), ('', 2, ['cve'])])
+def test_update_repository(monkeypatch, path, specify, expected):
+    output = list()
+    with monkeypatch.context() as monkey:
+        monkey.setattr(sr, 'update_cpe', lambda *_, **__: output.append('cpe'))
+        monkey.setattr(sr, 'update_cve_repository', lambda *_, **__: output.append('cve'))
+        sr.update_repository(extraction_path=path, specify=specify)
+        assert output == expected
 
 
 @pytest.mark.parametrize('specify, years, raising', [(-1, YEARTUPLE(2002, 2019), ValueError), (0, YEARTUPLE(2002, 2019), None),
