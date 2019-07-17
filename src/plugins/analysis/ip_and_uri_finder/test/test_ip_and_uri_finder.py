@@ -1,11 +1,12 @@
+# pylint: disable=protected-access
 import tempfile
 from collections import namedtuple
 from unittest.mock import patch
 
 from geoip2.errors import AddressNotFoundError
-
 from objects.file import FileObject
 from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
+
 from ..code.ip_and_uri_finder import AnalysisPlugin
 
 MockResponse = namedtuple('MockResponse', ['location'])
@@ -16,7 +17,7 @@ class MockReader:
     def __init__(self, database_path):
         pass
 
-    def city(self, address):
+    def city(self, address):  # pylint: disable=too-complex,inconsistent-return-statements,no-self-use,too-many-return-statements
         if address == '128.101.101.101':
             return MockResponse(location=MockLocation(latitude=44.9759, longitude=-93.2166))
         if address == '1.2.3.4':
@@ -60,8 +61,8 @@ class TestAnalysisPluginIpAndUriFinder(AnalysisPluginTest):
         results = processed_object.processed_analysis[self.PLUGIN_NAME]
         tmp.close()
         self.assertEqual(results['uris'], [])
-        self.assertCountEqual([('1.2.3.4', '47.913, -122.3042'), ('1.1.1.123', '-37.7, 145.1833'),
-                               ('255.255.255.255', '0.0, 0.0')], results['ips_v4'])
+        print(results['ips_v4'])
+        self.assertCountEqual([('1.2.3.4', '47.913, -122.3042'), ('1.1.1.123', '-37.7, 145.1833')], results['ips_v4'])
         self.assertCountEqual([('1234:1234:abcd:abcd:1234:1234:abcd:abcd', '2.1, 2.1'), ('2001:db8:0:0:8d3::', '3.1, 3.1')],
                               results['ips_v6'])
 
@@ -112,3 +113,8 @@ class TestAnalysisPluginIpAndUriFinder(AnalysisPluginTest):
                    'ips_v6': [('1234:1234:abcd:abcd:1234:1234:abcd:abcd', '2.1, 2.1')]}
         expected_results = ['http://www.google.de', '128.101.101.101', '1234:1234:abcd:abcd:1234:1234:abcd:abcd']
         self.assertEqual(AnalysisPlugin._get_summary(results), expected_results)
+
+    def test_remove_blacklisted(self):
+        input_list = ['1.1.1.1', 'blah', '0.0.0.0']
+        blacklist = [r'[0-9].{4}', r'x.y']
+        self.assertEqual(self.analysis_plugin._remove_blacklisted(input_list, blacklist), ['blah'])
