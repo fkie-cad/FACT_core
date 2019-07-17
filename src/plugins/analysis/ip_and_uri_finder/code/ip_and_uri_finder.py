@@ -14,13 +14,14 @@ from maxminddb.errors import InvalidDatabaseError
 GEOIP_DATABASE_PATH = os.path.join(get_dir_of_file(__file__), '../bin/GeoLite2-City/GeoLite2-City.mmdb')
 
 IP_V4_BLACKLIST = [
-    r'127.0.[0-9]+.1',
-    r'255.[0-9]+.[0-9]+.[0-9]+'
+    r'127.0.[0-9]+.1',  # localhost
+    r'255.[0-9]+.[0-9]+.[0-9]+'  # subnetmasks
 ]
-IP_V6_BLACKLIST = [
+IP_V6_BLACKLIST = [  # trivial adresses
     r'^[0-9A-Za-z]::$',
     r'^::[0-9A-Za-z]$',
-    r'^[0-9A-Za-z]::[0-9A-Za-z]$'
+    r'^[0-9A-Za-z]::[0-9A-Za-z]$',
+    r'^::$'
 ]
 
 
