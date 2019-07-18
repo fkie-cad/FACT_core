@@ -2,9 +2,13 @@ from collections import namedtuple
 from os import remove
 
 import pytest
+from helperFunctions.config import get_config_for_testing
+from test.common_helper import TEST_FW
 
 from ..code import vuln_lookup_plugin as lookup
 from ..internal.meta import DB, unbinding
+
+# pylint: disable=redefined-outer-name
 
 USER_INPUT = {'vendor': 'Microsoft', 'product': 'Windows 7', 'version': '1.2.5'}
 
@@ -155,3 +159,61 @@ def test_search_cve_summary(monkeypatch):
         actual_match = list(lookup.search_cve_summary(DB, SORT_CPE_MATCHES_OUTPUT))
         actual_match.sort()
         assert MATCHED_SUMMARY == actual_match
+
+
+class MockAdmin:
+    def register_plugin(self, name, administrator):
+        pass
+
+
+@pytest.fixture(scope='function')
+def test_config():
+    return get_config_for_testing()
+
+
+@pytest.fixture(scope='function')
+def stub_plugin(test_config, monkeypatch):
+    monkeypatch.setattr('plugins.base.BasePlugin._sync_view', lambda self, plugin_path: None)
+    return lookup.AnalysisPlugin(MockAdmin(), test_config, offline_testing=True)
+
+
+def test_process_object(stub_plugin):
+    TEST_FW.processed_analysis['software_components'] = {
+        'dnsmasq': {
+            'meta': {
+                'software_name': 'Dnsmasq',
+                'version': [
+                    '2.40'
+                ]
+            }
+        },
+        'OpenSSL': {
+            'matches': True,
+            'meta': {
+                'description': 'SSL library',
+                'open_source': True,
+                'software_name': 'OpenSSL',
+                'version': [
+                    ''
+                ],
+                'website': 'https://www.openssl.org'
+            },
+            'rule': 'OpenSSL',
+            'strings': [
+                [
+                    7194,
+                    '$a',
+                    'T1BFTlNTTA=='
+                ],
+            ]
+        },
+        'analysis_date': 1563453634.37708,
+        'plugin_version': '0.3.2',
+        'summary': [
+            'OpenSSL ',
+            'Dnsmasq 2.40'
+        ],
+        'system_version': '3.7.1_1560435912',
+    }
+    result = stub_plugin.process_object(TEST_FW).processed_analysis['cve_lookup']
+    assert 'CVE-2018-1000010' in result['summary']
