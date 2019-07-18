@@ -1,14 +1,21 @@
+import sys
 from collections import namedtuple
-from itertools import combinations
+from itertools import chain, combinations
 from pathlib import Path
 from re import match
 from typing import Generator, Match, Optional
 from warnings import warn
 
 from pyxdameraulevenshtein import damerau_levenshtein_distance as distance
+
 from analysis.PluginBase import AnalysisBasePlugin
 
-from ..internal.meta import DB, get_meta, unbinding
+try:
+    from ..internal.meta import DB, DB_NAME, get_meta, unbinding
+except ImportError:
+    sys.path.append(str(Path(__file__).parent.parent / 'internal'))
+    from meta import DB, DB_NAME, get_meta, unbinding
+
 
 QUERIES = get_meta()
 MAX_TERM_SPREAD = 3  # a range in which the product term is allowed to come after the vendor term for it not to be a false positive
@@ -27,23 +34,24 @@ class AnalysisPlugin(AnalysisBasePlugin):
     VERSION = '0.0.1'
     SOFTWARE_SPECS = None
 
-    def __init__(self, plugin_administrator, config=None, recursive=True):
-        super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__)
+    def __init__(self, plugin_administrator, config=None, recursive=True, offline_testing=False):
+        super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__, offline_testing=offline_testing)
 
     def process_object(self, file_object):
         cves = dict()
         for component in file_object.processed_analysis['software_components']['summary']:
             product, version = self._split_component(component)
-            cves[component] = lookup_vulnerabilities_in_database(product_name=product, requested_version=version)
+            if product and version:
+                cves[component] = lookup_vulnerabilities_in_database(product_name=product, requested_version=version)
 
-        cves['summary'] = list({cve for cve in [matches for matches in cves.values()]})
+        cves['summary'] = list(set(chain(*cves.values())))
         file_object.processed_analysis[self.NAME] = cves
 
         return file_object
 
     @staticmethod
     def _split_component(component: str) -> list:
-        component_parts = component.split('')
+        component_parts = component.split()
         return component_parts if len(component_parts) == 2 else [''.join(component_parts[:-2]), component_parts[-1]]
 
 
@@ -162,12 +170,12 @@ def wordlist_longer_than_sequence(wordlist: list, sequence: list) -> bool:
 
 def lookup_vulnerabilities_in_database(product_name: str, requested_version: str) -> list:
 
-    with DB(str(Path(__file__).parent.parent) + '/internal/cpe_cve.db') as db:
+    with DB(str(Path(__file__).parent.parent / 'internal' / DB_NAME)) as db:
         product_terms, version = unbinding(generate_search_terms(product_name)), unbinding([requested_version])
 
         matched_product = sort_cpe_matches(list(match_cpe(db, product_terms)), version)
 
-        cve_candidates = list(set(list(search_cve(db, matched_product))))
-        cve_candidates.extend(list(search_cve_summary(db, matched_product)))
+        cve_candidates = list(set(search_cve(db, matched_product)))
+        cve_candidates.extend(list(set(search_cve_summary(db, matched_product))))
 
     return cve_candidates
