@@ -1,12 +1,19 @@
+import sys
 from collections import namedtuple
 from os import remove
 from pathlib import Path
 
 import pytest
 
-from ..internal import data_prep as dp
-from ..internal import setup_repository as sr
-from ..internal.meta import DB, get_meta
+try:
+    from ..internal import data_prep as dp
+    from ..internal import setup_repository as sr
+    from ..internal.meta import DB, get_meta
+except ImportError:
+    sys.path.append(str(Path(__file__).parent.parent / 'internal'))
+    import data_prep as dp
+    from meta import DB, get_meta
+    import setup_repository as sr
 
 QUERIES = get_meta()
 PATH_TO_TEST = str(Path(__file__).parent.parent) + '/test/'

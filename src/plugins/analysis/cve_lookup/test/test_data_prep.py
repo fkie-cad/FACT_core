@@ -1,11 +1,17 @@
+import sys
 from glob import glob
 from os import remove
 from pathlib import Path
 
 import pytest
 
-from ..internal import data_prep as dp
-from ..internal.meta import get_meta
+try:
+    from ..internal import data_prep as dp
+    from ..internal.meta import get_meta
+except ImportError:
+    sys.path.append(str(Path(__file__).parent.parent / 'internal'))
+    import data_prep as dp
+    from meta import get_meta
 
 METADATA = get_meta()
 
