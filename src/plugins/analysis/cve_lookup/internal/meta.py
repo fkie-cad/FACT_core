@@ -3,6 +3,8 @@ from pathlib import Path
 from re import finditer, match
 from sqlite3 import Error, connect
 
+DB_NAME = 'cve_cpe.db'
+
 
 class DB:
     '''

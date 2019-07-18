@@ -6,11 +6,11 @@ from shutil import rmtree
 from typing import Tuple
 
 import data_prep as dp
-from meta import DB, get_meta
+from meta import DB, DB_NAME, get_meta
 
 QUERIES = get_meta()
 CURRENT_YEAR = datetime.now().year
-DATABASE = DB('cve_cpe.db')
+DATABASE = DB(DB_NAME)
 
 
 def overlap(requested_years: namedtuple, years_in_cve_database: list) -> list:
