@@ -14,6 +14,16 @@ sudo -EH pip3 install pyxdameraulevenshtein
 # to ensure the full functionality of the plugin.
 #
 
-python3 setup_repository.py
+(
+cd internal || exit
+if [ -e "cve_cpe.db" ]
+then
+	echo "Updating existing database"
+	python3 setup_repository.py --update true
+else
+	echo "Setting up database"
+	python3 setup_repository.py
+fi
+)
 
 exit 0

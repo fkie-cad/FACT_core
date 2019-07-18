@@ -12,6 +12,7 @@
 .settings/
 10k-most-common.txt
 coverage.xml
+cve_cpe.db
 htmlcov
 log/
 nose2-junit.xml
