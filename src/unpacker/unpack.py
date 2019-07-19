@@ -5,13 +5,8 @@ from tempfile import TemporaryDirectory
 from typing import List
 
 from fact_helper_file import get_file_type_from_path
-
-from helperFunctions.dataConversion import (
-    make_list_from_dict, make_unicode_string
-)
-from helperFunctions.fileSystem import (
-    file_is_empty, get_object_path_excluding_fact_dirs
-)
+from helperFunctions.dataConversion import make_list_from_dict, make_unicode_string
+from helperFunctions.fileSystem import file_is_empty, get_object_path_excluding_fact_dirs
 from objects.file import FileObject
 from storage.fs_organizer import FS_Organizer
 from unpacker.unpack_base import UnpackBase
@@ -34,7 +29,7 @@ class Unpacker(UnpackBase):
             logging.warning('{} is not extracted since depth limit ({}) is reached'.format(current_fo.get_uid(), self.config.get('unpack', 'max_depth')))
             return []
 
-        tmp_dir = TemporaryDirectory(prefix='faf_unpack_')
+        tmp_dir = TemporaryDirectory(prefix='fact_unpack_')
 
         file_path = self._generate_local_file_path(current_fo)
 
