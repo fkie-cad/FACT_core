@@ -1,24 +1,24 @@
+# pylint: disable=protected-access
 import gc
 import os
+import unittest
 from shutil import copyfile
 from tempfile import TemporaryDirectory
-import unittest
 
 from helperFunctions.config import get_config_for_testing
 from helperFunctions.fileSystem import get_test_data_dir
 from intercom.common_mongo_binding import InterComListener
-from storage.MongoMgr import MongoMgr
 from storage.db_interface_admin import AdminDbInterface
 from storage.db_interface_backend import BackEndDbInterface
-from test.common_helper import create_test_firmware, create_test_file_object
-
+from storage.MongoMgr import MongoMgr
+from test.common_helper import create_test_file_object, create_test_firmware
 
 TESTS_DIR = get_test_data_dir()
-test_file_original = os.path.join(TESTS_DIR, 'get_files_test/testfile1')
-test_file_copy = os.path.join(TESTS_DIR, 'get_files_test/testfile_copy')
-test_firmware_original = os.path.join(TESTS_DIR, 'container/test.zip')
-test_firmware_copy = os.path.join(TESTS_DIR, 'container/test_copy.zip')
-TMP_DIR = TemporaryDirectory(prefix='faf_test_')
+TEST_FILE_ORIGINAL = os.path.join(TESTS_DIR, 'get_files_test/testfile1')
+TEST_FILE_COPY = os.path.join(TESTS_DIR, 'get_files_test/testfile_copy')
+TEST_FIRMWARE_ORIGINAL = os.path.join(TESTS_DIR, 'container/test.zip')
+TEST_FIRMWARE_COPY = os.path.join(TESTS_DIR, 'container/test_copy.zip')
+TMP_DIR = TemporaryDirectory(prefix='fact_test_')
 
 
 class TestStorageDbInterfaceAdmin(unittest.TestCase):
@@ -33,12 +33,12 @@ class TestStorageDbInterfaceAdmin(unittest.TestCase):
     def setUp(self):
         self.admin_interface = AdminDbInterface(config=self.config)
         self.db_backend_interface = BackEndDbInterface(config=self.config)
-        copyfile(test_firmware_original, test_firmware_copy)
+        copyfile(TEST_FIRMWARE_ORIGINAL, TEST_FIRMWARE_COPY)
         self.test_firmware = create_test_firmware(bin_path='container/test_copy.zip')
         self.uid = self.test_firmware.get_uid()
         self.test_firmware.virtual_file_path = {self.uid: ['|{}|'.format(self.test_firmware.get_uid())]}
-        copyfile(test_file_original, test_file_copy)
-        self.child_fo = create_test_file_object(test_file_copy)
+        copyfile(TEST_FILE_ORIGINAL, TEST_FILE_COPY)
+        self.child_fo = create_test_file_object(TEST_FILE_COPY)
         self.child_fo.virtual_file_path = {self.uid: ['|{}|/folder/{}'.format(self.uid, self.child_fo.file_name)]}
         self.test_firmware.files_included = [self.child_fo.get_uid()]
         self.child_uid = self.child_fo.get_uid()
@@ -53,7 +53,7 @@ class TestStorageDbInterfaceAdmin(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         cls.mongo_server.shutdown()
-        for test_file in [test_file_copy, test_firmware_copy]:
+        for test_file in [TEST_FILE_COPY, TEST_FIRMWARE_COPY]:
             if os.path.isfile(test_file):
                 os.remove(test_file)
         TMP_DIR.cleanup()
