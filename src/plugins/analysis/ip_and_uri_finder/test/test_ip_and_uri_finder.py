@@ -61,7 +61,6 @@ class TestAnalysisPluginIpAndUriFinder(AnalysisPluginTest):
         results = processed_object.processed_analysis[self.PLUGIN_NAME]
         tmp.close()
         self.assertEqual(results['uris'], [])
-        print(results['ips_v4'])
         self.assertCountEqual([('1.2.3.4', '47.913, -122.3042'), ('1.1.1.123', '-37.7, 145.1833')], results['ips_v4'])
         self.assertCountEqual([('1234:1234:abcd:abcd:1234:1234:abcd:abcd', '2.1, 2.1'), ('2001:db8:0:0:8d3::', '3.1, 3.1')],
                               results['ips_v6'])
