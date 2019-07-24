@@ -1,21 +1,19 @@
 import gc
 import os
+import unittest
 from tempfile import TemporaryDirectory
 from unittest import mock
-import unittest
 
 from helperFunctions.config import get_config_for_testing
-from intercom.back_end_binding import InterComBackEndAnalysisTask, \
-    InterComBackEndReAnalyzeTask, InterComBackEndCompareTask, \
-    InterComBackEndAnalysisPlugInsPublisher, InterComBackEndRawDownloadTask, \
+from intercom.back_end_binding import (
+    InterComBackEndAnalysisPlugInsPublisher, InterComBackEndAnalysisTask, InterComBackEndCompareTask,
+    InterComBackEndRawDownloadTask, InterComBackEndReAnalyzeTask, InterComBackEndSingleFileTask,
     InterComBackEndTarRepackTask
+)
 from intercom.front_end_binding import InterComFrontEndBinding
-from storage.MongoMgr import MongoMgr
 from storage.fs_organizer import FS_Organizer
+from storage.MongoMgr import MongoMgr
 from test.common_helper import create_test_firmware
-
-
-TMP_DIR = TemporaryDirectory(prefix='fact_test_')
 
 
 class AnalysisServiceMock():
@@ -23,7 +21,7 @@ class AnalysisServiceMock():
     def __init__(self, config=None):
         pass
 
-    def get_plugin_dict(self):
+    def get_plugin_dict(self):  # pylint: disable=no-self-use
         return {'dummy': 'dummy description'}
 
 
@@ -31,7 +29,8 @@ class TestInterComTaskCommunication(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.config = get_config_for_testing(temp_dir=TMP_DIR)
+        cls.tmp_dir = TemporaryDirectory(prefix='fact_test_')
+        cls.config = get_config_for_testing(temp_dir=cls.tmp_dir)
         cls.config.set('ExpertSettings', 'communication_timeout', '1')
         cls.mongo_server = MongoMgr(config=cls.config)
 
@@ -50,7 +49,7 @@ class TestInterComTaskCommunication(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         cls.mongo_server.shutdown()
-        TMP_DIR.cleanup()
+        cls.tmp_dir.cleanup()
 
     def test_analysis_task(self):
         self.backend = InterComBackEndAnalysisTask(config=self.config)
@@ -61,6 +60,17 @@ class TestInterComTaskCommunication(unittest.TestCase):
         self.assertEqual(task.get_uid(), test_fw.get_uid(), 'uid not correct')
         self.assertIsNotNone(task.file_path, 'file_path not set')
         self.assertTrue(os.path.exists(task.file_path), 'file does not exist')
+
+    def test_single_file_task(self):
+        self.backend = InterComBackEndSingleFileTask(config=self.config)
+        test_fw = create_test_firmware()
+        test_fw.file_path = None
+        test_fw.scheduled_analysis = ['binwalk']
+        self.frontend.add_single_file_task(test_fw)
+        task = self.backend.get_next_task()
+
+        assert task.get_uid() == test_fw.get_uid(), 'uid not transported correctly'
+        assert task.scheduled_analysis
 
     def test_re_analyze_task(self):
         self.backend = InterComBackEndReAnalyzeTask(config=self.config)
@@ -97,9 +107,9 @@ class TestInterComTaskCommunication(unittest.TestCase):
 
     @mock.patch('intercom.front_end_binding.generate_task_id')
     @mock.patch('intercom.back_end_binding.BinaryService')
-    def test_raw_download_task(self, binaryServiceMock, generateTaskIdMock):
-        binaryServiceMock().get_binary_and_file_name.return_value = (b'test', 'test.txt')
-        generateTaskIdMock.return_value = 'valid_uid_0.0'
+    def test_raw_download_task(self, binary_service_mock, generate_task_id_mock):
+        binary_service_mock().get_binary_and_file_name.return_value = (b'test', 'test.txt')
+        generate_task_id_mock.return_value = 'valid_uid_0.0'
 
         result = self.frontend.get_binary_and_filename('valid_uid')
         self.assertIsNone(result, 'should be none because of timeout')
@@ -112,9 +122,9 @@ class TestInterComTaskCommunication(unittest.TestCase):
 
     @mock.patch('intercom.front_end_binding.generate_task_id')
     @mock.patch('intercom.back_end_binding.BinaryService')
-    def test_tar_repack_task(self, binaryServiceMock, generateTaskIdMock):
-        binaryServiceMock().get_repacked_binary_and_file_name.return_value = (b'test', 'test.tar')
-        generateTaskIdMock.return_value = 'valid_uid_0.0'
+    def test_tar_repack_task(self, binary_service_mock, generate_task_id_mock):
+        binary_service_mock().get_repacked_binary_and_file_name.return_value = (b'test', 'test.tar')
+        generate_task_id_mock.return_value = 'valid_uid_0.0'
 
         result = self.frontend.get_repacked_binary_and_file_name('valid_uid')
         self.assertIsNone(result, 'should be none because of timeout')
