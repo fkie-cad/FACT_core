@@ -11,7 +11,7 @@ from pyxdameraulevenshtein import damerau_levenshtein_distance as distance
 from analysis.PluginBase import AnalysisBasePlugin
 
 try:
-    from ..internal.meta import DB, DB_NAME, get_meta, unbinding
+    from internal.meta import DB, DB_NAME, get_meta, unbinding
 except ImportError:
     sys.path.append(str(Path(__file__).parent.parent / 'internal'))
     from meta import DB, DB_NAME, get_meta, unbinding
@@ -171,7 +171,7 @@ def wordlist_longer_than_sequence(wordlist: list, sequence: list) -> bool:
 def lookup_vulnerabilities_in_database(product_name: str, requested_version: str) -> list:
 
     with DB(str(Path(__file__).parent.parent / 'internal' / DB_NAME)) as db:
-        product_terms, version = unbinding(generate_search_terms(product_name)), unbinding([requested_version])
+        product_terms, version = unbinding(generate_search_terms(product_name)), unbinding([requested_version])[0]
 
         matched_product = sort_cpe_matches(list(match_cpe(db, product_terms)), version)
 

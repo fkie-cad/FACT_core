@@ -1,4 +1,4 @@
-from json import load
+import json
 from pathlib import Path
 from re import finditer, match
 from sqlite3 import Error, connect
@@ -69,14 +69,13 @@ class DB:
 
 
 def get_meta() -> dict:
-    meta_path = str(Path(__file__).parent / 'metadata.json')
     try:
-        with open(meta_path) as meta:
-            metadata = load(meta)
-    except EnvironmentError as err:
+        with open(str(Path(__file__).parent / 'metadata.json')) as meta:
+            return json.load(meta)
+    except OSError as err:
         raise err
-
-    return metadata
+    except ValueError as err:
+        raise err
 
 
 def analyse_attribute(attribute: str) -> str:
@@ -94,7 +93,7 @@ def analyse_attribute(attribute: str) -> str:
     return attribute
 
 
-def unbinding(attributes: list):
+def unbinding(attributes: list) -> list:
     for idx, attr in enumerate(attributes):
         if attr == '*':
             attributes[idx] = 'ANY'
@@ -106,4 +105,4 @@ def unbinding(attributes: list):
         else:
             attributes[idx] = analyse_attribute(attr)
 
-    return attributes if len(attributes) > 1 else attributes[0]
+    return attributes
