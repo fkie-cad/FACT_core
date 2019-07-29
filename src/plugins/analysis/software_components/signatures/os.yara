@@ -121,9 +121,8 @@ rule MicroC_OS {
 
     strings:
         $a = /Micrium ?OS/ nocase
-        $b = /(\xc2\xb5|u)C\/OS-?[iI]{0,3}/
-        $c = "MicroC/OS" nocase
+        $b = /(\xc2\xb5|u|micro)c\/os-?[i]{0,3}/ nocase
 
     condition:
-        $a or $b or $c
+        $a or $b
 }
