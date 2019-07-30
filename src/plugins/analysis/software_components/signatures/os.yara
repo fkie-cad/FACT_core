@@ -114,7 +114,7 @@ rule ThreadX
 
 rule MicroC_OS {
 	meta:
-		software_name = "µC/OS"
+		software_name = "MicroC/OS"
 		open_source = false
 		website = "https://www.micrium.com/rtos/"
 		description = "proprietary real-time OS by Micrium"
