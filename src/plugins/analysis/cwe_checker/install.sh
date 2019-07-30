@@ -20,10 +20,6 @@ else
     rm -fR internal
     git clone https://github.com/fkie-cad/cwe_checker.git internal
 
-    echo "Cleaning up"
-    rm -rf internal/src/_build
-    rm -f internal/src/cwe_checker.plugin
-
     echo "Building docker container"
     (cd internal && docker build --build-arg=http{,s}_proxy --build-arg=HTTP{,S}_PROXY -t cwe-checker .)
 fi
