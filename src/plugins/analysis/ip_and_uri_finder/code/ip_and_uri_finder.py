@@ -33,7 +33,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     DEPENDENCIES = []
     MIME_BLACKLIST = ['filesystem']
     DESCRIPTION = 'search for IPs and URIs'
-    VERSION = ' 0.4.2'
+    VERSION = '0.4.2'
 
     def __init__(self, plugin_administrator, config=None, recursive=True):
 
