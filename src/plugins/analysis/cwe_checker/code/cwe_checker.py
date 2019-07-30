@@ -22,7 +22,6 @@ from analysis.PluginBase import AnalysisBasePlugin
 
 BAP_TIMEOUT = 10  # in minutes
 DOCKER_IMAGE = 'fkiecad/cwe_checker:latest'
-DOCKER_IMAGE = 'cwe-checker:latest'
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
