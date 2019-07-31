@@ -286,7 +286,7 @@ class TestUtilityFunctions:
     @pytest.mark.parametrize('remaining, scheduled, expected_output', [
         ({'bar'}, ['no_deps', 'foo'], {'bar'}),
         ({'foo', 'bar'}, ['no_deps', 'foo'], {'foo', 'bar'}),
-    ])  # pylint: disable=invalid-name
+    ])
     def test_get_plugins_with_met_dependencies__completed_analyses(self, remaining, scheduled, expected_output):
         self._add_plugins()
         assert set(self.scheduler._get_plugins_with_met_dependencies(remaining, scheduled)) == expected_output
