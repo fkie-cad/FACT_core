@@ -5,7 +5,7 @@ from helperFunctions.pdf import build_pdf_report
 from test.common_helper import TEST_FW
 
 
-def test_build_pdf_error(tmpdir):
+def test_build_pdf_report(tmpdir):
     binary, pdf_path = build_pdf_report(TEST_FW, Path(str(tmpdir)))
 
     assert get_file_type_from_binary(binary)['mime'] == 'application/pdf'
