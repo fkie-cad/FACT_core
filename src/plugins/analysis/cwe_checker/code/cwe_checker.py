@@ -12,10 +12,10 @@ lifts to the following architectures:
 - PowerPC
 - Mips
 '''
-import logging
 import json
+import logging
 from collections import defaultdict
-from subprocess import Popen, PIPE, DEVNULL
+from subprocess import DEVNULL, PIPE, Popen
 
 from common_helper_process import execute_shell_command_get_return_code
 
@@ -86,7 +86,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         j_doc = json.loads(output)
         if 'warnings' in j_doc:
             for warning in j_doc['warnings']:
-                tmp[warning['name']] = tmp[warning['name']] + [warning,]
+                tmp[warning['name']] = tmp[warning['name']] + [warning, ]
 
         res = {}
         for key, values in tmp.items():
