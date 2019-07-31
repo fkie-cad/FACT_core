@@ -111,3 +111,18 @@ rule ThreadX
 	condition:
 		$a
 }
+
+rule MicroC_OS {
+	meta:
+		software_name = "MicroC/OS"
+		open_source = false
+		website = "https://www.micrium.com/rtos/"
+		description = "proprietary real-time OS by Micrium"
+
+    strings:
+        $a = /Micrium ?OS/ nocase
+        $b = /(\xc2\xb5|u|micro)c\/os-?[i]{0,3}/ nocase
+
+    condition:
+        $a or $b
+}
