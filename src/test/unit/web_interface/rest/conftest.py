@@ -1,4 +1,3 @@
-import json
 from tempfile import TemporaryDirectory
 
 import pytest
@@ -20,11 +19,10 @@ def test_config():
 
 
 @pytest.fixture(scope='module')
-def test_app(test_config):
+def test_app(test_config):  # pylint: disable=redefined-outer-name
     client = WebFrontEnd(config=test_config)
     return client.app.test_client()
 
 
 def decode_response(response):
-    response_bytes = response.data
-    return json.loads(response_bytes.decode())
+    return response.json
