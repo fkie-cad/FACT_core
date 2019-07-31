@@ -15,6 +15,7 @@ lifts to the following architectures:
 import logging
 import json
 from collections import defaultdict
+from subprocess import Popen, PIPE, DEVNULL
 
 from common_helper_process import execute_shell_command_get_return_code
 
@@ -82,10 +83,10 @@ class AnalysisPlugin(AnalysisBasePlugin):
     @staticmethod
     def _parse_bap_output(output):
         tmp = defaultdict(list)
-        j = json.loads(output)
-        if 'warnings' in j:
-            for warning in j['warnings']:
-                tmp[warning['name']] = tmp[warning['name']] + [warning]
+        j_doc = json.loads(output)
+        if 'warnings' in j_doc:
+            for warning in j_doc['warnings']:
+                tmp[warning['name']] = tmp[warning['name']] + [warning,]
 
         res = {}
         for key, values in tmp.items():
@@ -106,8 +107,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def _do_full_analysis(self, file_object):
         bap_command = self._build_bap_command(file_object)
-        output, return_code = execute_shell_command_get_return_code(
-            bap_command)
+        pl = Popen(bap_command, shell=True, stdout=PIPE, stderr=DEVNULL)
+        output = pl.communicate()[0].decode('utf-8', errors='replace')
+        return_code = pl.returncode
         if return_code in [0, 124, 128 + 9]:
             cwe_messages = self._parse_bap_output(output)
             file_object.processed_analysis[self.NAME] = {'full': cwe_messages, 'summary': list(cwe_messages.keys())}

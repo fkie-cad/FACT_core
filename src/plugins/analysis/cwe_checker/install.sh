@@ -24,7 +24,4 @@ else
     (cd internal && docker build --build-arg=http{,s}_proxy --build-arg=HTTP{,S}_PROXY -t cwe-checker .)
 fi
 
-echo "Installing Python dependencies."
-sudo -EH pip3 install sexpdata
-
 exit 0
