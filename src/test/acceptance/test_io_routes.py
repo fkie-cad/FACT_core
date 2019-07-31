@@ -1,3 +1,4 @@
+from fact_helper_file import get_file_type_from_binary
 from storage.db_interface_backend import BackEndDbInterface
 from storage.db_interface_compare import CompareDbInterface
 from test.acceptance.base import TestAcceptanceBase
@@ -123,3 +124,16 @@ class TestAcceptanceIoRoutes(TestAcceptanceBase):
 
         response = self.test_client.get('/ida-download/{cid}'.format(cid=cid))
         self.assertIn(b'not found in database', response.data, 'endpoint should dismiss result')
+
+    def test_pdf_download(self):
+        response = self.test_client.get('/pdf-download/{uid}'.format(uid=self.test_fw.uid))
+        assert response.status_code == 200, 'pdf download link failed'
+        assert b'File not found in database' in response.data, 'radare view should fail on missing uid'
+
+        self.db_backend_interface.add_firmware(self.test_fw)
+
+        response = self.test_client.get('/pdf-download/{uid}'.format(uid=self.test_fw.uid))
+
+        assert response.status_code == 200, 'pdf download failed'
+        assert response.headers['Content-Disposition'] == 'attachment; filename={}_analysis_report.pdf'.format(self.test_fw.device_name.replace(' ', '_'))
+        assert get_file_type_from_binary(response.data)['mime'] == 'application/pdf'

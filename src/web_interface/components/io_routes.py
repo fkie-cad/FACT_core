@@ -1,23 +1,20 @@
 import binascii
 import json
+from tempfile import TemporaryDirectory
 from time import sleep
 
 import requests
 from flask import make_response, redirect, render_template, request
-
 from helperFunctions.dataConversion import remove_linebreaks_from_byte_string
 from helperFunctions.mongo_task_conversion import (
     check_for_errors, convert_analysis_task_to_fw_obj, create_analysis_task
 )
+from helperFunctions.pdf import build_pdf_report
 from helperFunctions.web_interface import ConnectTo, get_radare_endpoint
 from intercom.front_end_binding import InterComFrontEndBinding
-from storage.db_interface_compare import (
-    CompareDbInterface, FactCompareException
-)
+from storage.db_interface_compare import CompareDbInterface, FactCompareException
 from storage.db_interface_frontend import FrontEndDbInterface
-from web_interface.components.additional_functions.hex_dump import (
-    create_hex_dump
-)
+from web_interface.components.additional_functions.hex_dump import create_hex_dump
 from web_interface.components.component_base import ComponentBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
@@ -32,6 +29,7 @@ class IORoutes(ComponentBase):
         self._app.add_url_rule('/base64-download/<uid>/<section>/<expression_id>', 'base64-download/<uid>/<section>/<expression_id>', self._download_base64_decoded_section)
         self._app.add_url_rule('/hex-dump/<uid>', 'hex-dump/<uid>', self._show_hex_dump)
         self._app.add_url_rule('/radare-view/<uid>', 'radare-view/<uid>', self._show_radare)
+        self._app.add_url_rule('/pdf-download/<uid>', 'pdf-download/<uid>', self._download_pdf_report)
 
     @roles_accepted(*PRIVILEGES['download'])
     def _download_base64_decoded_section(self, uid, section, expression_id):
@@ -167,3 +165,24 @@ class IORoutes(ComponentBase):
             return redirect(target_link)
         except Exception as exception:
             return render_template('error.html', message=str(exception))
+
+    @roles_accepted(*PRIVILEGES['download'])
+    def _download_pdf_report(self, uid):
+        with ConnectTo(FrontEndDbInterface, self._config) as sc:
+            object_exists = sc.existence_quick_check(uid)
+        if not object_exists:
+            return render_template('uid_not_found.html', uid=uid)
+
+        with ConnectTo(FrontEndDbInterface, self._config) as connection:
+            firmware = connection.get_complete_object_including_all_summaries(uid)
+
+        try:
+            with TemporaryDirectory() as folder:
+                binary, pdf_path = build_pdf_report(firmware, folder)
+        except RuntimeError as error:
+            return render_template('error.html', message=str(error))
+
+        response = make_response(binary)
+        response.headers['Content-Disposition'] = 'attachment; filename={}'.format(pdf_path.name)
+
+        return response
