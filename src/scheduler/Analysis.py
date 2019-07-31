@@ -245,11 +245,13 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         plugin_version = self.analysis_plugins[analysis_to_do].VERSION
         system_version = self.analysis_plugins[analysis_to_do].SYSTEM_VERSION \
             if hasattr(self.analysis_plugins[analysis_to_do], 'SYSTEM_VERSION') else None
-
-        if LooseVersion(analysis_plugin_version) < LooseVersion(plugin_version) or \
-                LooseVersion(analysis_system_version or '0') < LooseVersion(system_version or '0'):
+        try:
+            if LooseVersion(analysis_plugin_version) < LooseVersion(plugin_version) or \
+                    LooseVersion(analysis_system_version or '0') < LooseVersion(system_version or '0'):
+                return False
+        except TypeError:
+            logging.error('Plug-in or system version of {} plug-in is or was invalid!'.format(analysis_to_do))
             return False
-
         return True
 
 # ---- blacklist and whitelist ----
