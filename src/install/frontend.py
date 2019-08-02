@@ -150,6 +150,12 @@ def main(radare, nginx):
         else:
             raise InstallationError('docker-compose is not installed. Please (re-)run pre_install.sh')
 
+    # pull pdf report container
+    logging.info('Pulling pdf report container')
+    output, return_code = execute_shell_command_get_return_code('docker pull fkiecad/fact_pdf_report')
+    if return_code != 0:
+        raise InstallationError('Failed to pull pdf report container:\n{}'.format(output))
+
     with OperateInDirectory('../../'):
         with suppress(FileNotFoundError):
             Path('start_fact_frontend').unlink()

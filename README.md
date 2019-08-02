@@ -57,6 +57,7 @@ FACT provides an optional basic authentication, role and user management. More i
 
 ## List of available community plug-ins and REST scripts
 * Plug-ins
+  * [CVE Lookup](https://github.com/fkie-cad/FACT_analysis-plugin_CVE-lookup)
   * [Firmadyne](https://github.com/fkie-cad/FACT_firmadyne_analysis_plugin)
 * REST
   * [FACT Search and Download](https://github.com/fkie-cad/FACT_Search_and_Download)

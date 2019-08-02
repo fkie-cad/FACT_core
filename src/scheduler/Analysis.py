@@ -13,9 +13,7 @@ from helperFunctions.config import read_list_from_config
 from helperFunctions.merge_generators import shuffled
 from helperFunctions.parsing import bcolors
 from helperFunctions.plugin import import_plugins
-from helperFunctions.process import (
-    ExceptionSafeProcess, terminate_process_and_childs
-)
+from helperFunctions.process import ExceptionSafeProcess, terminate_process_and_childs
 from helperFunctions.tag import add_tags_to_object, check_tags
 from objects.file import FileObject
 from storage.db_interface_backend import BackEndDbInterface
@@ -239,17 +237,23 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
                 logging.warning('Desanitization of version string failed')
                 return False
 
-        analysis_plugin_version = db_entry['processed_analysis'][analysis_to_do]['plugin_version']
-        analysis_system_version = db_entry['processed_analysis'][analysis_to_do]['system_version'] \
-            if 'system_version' in db_entry['processed_analysis'][analysis_to_do] else None
-        plugin_version = self.analysis_plugins[analysis_to_do].VERSION
-        system_version = self.analysis_plugins[analysis_to_do].SYSTEM_VERSION \
-            if hasattr(self.analysis_plugins[analysis_to_do], 'SYSTEM_VERSION') else None
+        return self._analysis_is_up_to_date(db_entry['processed_analysis'][analysis_to_do], self.analysis_plugins[analysis_to_do])
 
-        if LooseVersion(analysis_plugin_version) < LooseVersion(plugin_version) or \
-                LooseVersion(analysis_system_version or '0') < LooseVersion(system_version or '0'):
+    @staticmethod
+    def _analysis_is_up_to_date(analysis_db_entry: dict, analysis_plugin: object):
+        old_plugin_version = analysis_db_entry['plugin_version']
+        old_system_version = analysis_db_entry['system_version'] \
+            if 'system_version' in analysis_db_entry else None
+        current_plugin_version = analysis_plugin.VERSION
+        current_system_version = analysis_plugin.SYSTEM_VERSION \
+            if hasattr(analysis_plugin, 'SYSTEM_VERSION') else None
+        try:
+            if LooseVersion(old_plugin_version) < LooseVersion(current_plugin_version) or \
+                    LooseVersion(old_system_version or '0') < LooseVersion(current_system_version or '0'):
+                return False
+        except TypeError:
+            logging.error('plug-in or system version of "{}" plug-in is or was invalid!'.format(analysis_plugin.NAME))
             return False
-
         return True
 
 # ---- blacklist and whitelist ----

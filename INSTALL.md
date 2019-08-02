@@ -5,13 +5,17 @@ There is an automated installation program supporting Ubuntu 16.04 and 18.04 hos
 :exclamation: **The automated installation scipt might remove some packages of your ubuntu installation. In some cases FACT relies on newer versions of a software and replaces the old versions provided by the ubuntu repositories.**
 
 ## TL;DR
-
-0. `(cd path/to/fact/sources && src/install/pre_install.sh)`
-1. `sudo reboot`
-2. `(sudo mkdir /media/data && sudo chown -R $USER /media/data)`
-3. `(cd path/to/fact/sources && src/install.py)`
-
-Start with `./start_all_installed_fact_components`.
+Execute the following commands as user (not `root`!). 
+```sh
+$ sudo apt update && sudo apt upgrade && sudo apt install git
+$ git clone https://github.com/fkie-cad/FACT_core.git ~/FACT_core
+$ ~/FACT_core/src/install/pre_install.sh && sudo mkdir /media/data && sudo chown -R $USER /media/data
+$ sudo reboot
+$ ~/FACT_core/src/install.py
+$ ~/FACT_core/start_all_installed_fact_components
+```
+Wait a few seconds, open your browser and go to `localhost:5000`  
+Use `Ctrl + c` in your terminal to shutdown FACT.
 
 ## Simple One System Setup
 
