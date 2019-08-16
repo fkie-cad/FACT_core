@@ -8,7 +8,6 @@
 [![BCH compliance](https://bettercodehub.com/edge/badge/fkie-cad/FACT_core?branch=master)](https://bettercodehub.com/)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/8101a5fc388848e89ec705e06a5ad734)](https://www.codacy.com/app/johannes.vom.dorp/FACT_core?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=fkie-cad/FACT_core&amp;utm_campaign=Badge_Grade)
 [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/FACT_core/community)
-[![Black Hat Arsenal](https://github.com/toolswatch/badges/blob/master/arsenal/asia/2018.svg)](http://www.toolswatch.org/2018/01/black-hat-arsenal-asia-2018-great-lineup/)
 
 The Firmware Analysis and Comparison Tool (formerly known as Fraunhofer's Firmware Analysis Framework (FAF)) is intended to automate most of the firmware analysis process. 
 It unpacks arbitrary firmware files and processes several analysis.
@@ -69,6 +68,22 @@ Our Developers Manual can be found [here](https://github.com/fkie-cad/FACT_core/
 
 ## Acknowledgments
 This project is partly financed by [German Federal Office for Information Security (BSI)](https://www.bsi.bund.de) and others.  
+
+## Publications / Presentations
+
+### BlackHat Arsenal
+
+We've been happy to show FACT in a number of BlackHat Arsenal sessions.
+
+- [![Black Hat Arsenal](https://github.com/toolswatch/badges/blob/master/arsenal/asia/2018.svg)](http://www.toolswatch.org/2018/01/black-hat-arsenal-asia-2018-great-lineup/)
+- [![Black Hat Arsenal](https://github.com/toolswatch/badges/blob/master/arsenal/europe/2018.svg)](http://www.toolswatch.org/2018/09/black-hat-arsenal-europe-2018-lineup-announced/)
+- [USA 2019](https://www.blackhat.com/us-19/arsenal/schedule/index.html#fact--firmware-analysis-and-comparison-tool-15216)
+
+### Other
+
+- [Hardwear.io 2017](https://hardwear.io/the-hague-2017/speakers/johannes-vom-dorp.php) / [Slides](https://hardwear.io/document/hio.pdf)
+- [Pass the salt 2019](https://2019.pass-the-salt.org/talks/71.html) / [Slides](https://2019.pass-the-salt.org/files/slides/04-FACT.pdf) / [Video](https://passthesalt.ubicast.tv/videos/improving-your-firmware-security-analysis-process-with-fact/)
+- [Hardwear.io 2019](https://hardwear.io/netherlands-2019/speakers/johannes-vom-dorp-and-peter-weidenbach.php)
 
 ## License
 ```
