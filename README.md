@@ -73,7 +73,7 @@ This project is partly financed by [German Federal Office for Information Securi
 
 ### BlackHat Arsenal
 
-We've been happy to show FACT in a number of BlackHat Arsenal Sessions
+We've been happy to show FACT in a number of BlackHat Arsenal sessions.
 
 - [![Black Hat Arsenal](https://github.com/toolswatch/badges/blob/master/arsenal/asia/2018.svg)](http://www.toolswatch.org/2018/01/black-hat-arsenal-asia-2018-great-lineup/)
 - [![Black Hat Arsenal](https://github.com/toolswatch/badges/blob/master/arsenal/europe/2018.svg)](http://www.toolswatch.org/2018/09/black-hat-arsenal-europe-2018-lineup-announced/)
