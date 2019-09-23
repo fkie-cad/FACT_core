@@ -1,17 +1,21 @@
 import logging
 import os
 from tempfile import TemporaryDirectory
+from typing import List
 
 from common_helper_files import get_files_in_dir
-from common_helper_yara import compile_rules, scan, get_all_matched_strings
+from common_helper_yara import compile_rules, get_all_matched_strings, scan
 
 
-class SignatureTestingMatching():
+class SignatureTestingMatching:
 
     def __init__(self):
-        self.tmp_dir = TemporaryDirectory(prefix='faf_software_signature_test')
+        self.tmp_dir = TemporaryDirectory(prefix='fact_software_signature_test')
         self.signature_file_path = os.path.join(self.tmp_dir.name, 'test_sig.yc')
         self.matches = []
+        self.test_file = None
+        self.signature_path = None
+        self.strings_to_match = None
 
     def check(self, signature_path, test_file):
         self.test_file = test_file
@@ -26,8 +30,8 @@ class SignatureTestingMatching():
         self.matches = get_all_matched_strings(scan_result)
 
     def _get_list_of_test_data(self):
-        with open(self.test_file, mode='r', encoding="utf8") as pointer:
-            self.strings_to_match = pointer.read().split("\n")
+        with open(self.test_file, mode='r', encoding='utf8') as pointer:
+            self.strings_to_match = pointer.read().split('\n')
         self.strings_to_match.pop()
 
     def _intersect_lists(self):
@@ -49,25 +53,34 @@ class SignatureTestingMeta:
     def check_for_file(self, file_path):
         with open(file_path, 'r') as fd:
             raw = fd.read()
-        rules = raw.split('{')
-        self.check_for_rules(rules)
-
-    def check_for_rules(self, rules):
-        last_rule = rules.pop(0).split().pop()
+        rules = self._split_rules(raw)
         for rule in rules:
-            fields = rule.split()
-            if "meta:" not in fields:
-                self.missing_meta_fields.append("ALL in {}".format(last_rule))
-                logging.error("CST: No meta fields for rule {}.".format(last_rule))
-            else:
-                for field in self.META_FIELDS:
-                    logging.info("Checking {} in {}.".format(field, last_rule))
-                    if not check_field(field, fields):
-                        self.missing_meta_fields.append("{} in {}".format(field, last_rule))
-                        logging.error("CST: No meta field {} for rule {}.".format(field, last_rule))
+            self.check_meta_fields_of_rule(rule)
 
-            last_rule = rule.split().pop()
+    @staticmethod
+    def _split_rules(raw_rules: str) -> List[str]:
+        rule_lines = raw_rules.splitlines()
+        rule_start_indices = [
+            i
+            for i in range(len(rule_lines))
+            if rule_lines[i].startswith('rule ')
+        ]
+        rules = [
+            ''.join(rule_lines[start:end])
+            for start, end in zip(rule_start_indices, rule_start_indices[1:] + [len(rule_lines)])
+        ]
+        return rules
 
+    def check_meta_fields_of_rule(self, rule: str):
+        rule_components = [s.strip() for s in rule.split()]
+        rule_name = rule_components[1].replace('{', '')
+        if 'meta:' not in rule_components:
+            self._register_missing_field('ALL', rule_name)
+            return
+        for required_field in self.META_FIELDS:
+            if required_field not in rule_components:
+                self._register_missing_field(required_field, rule_name)
 
-def check_field(field, fields):
-    return field in fields
+    def _register_missing_field(self, missing_field: str, rule_name: str):
+        self.missing_meta_fields.append('{} in {}'.format(missing_field, rule_name))
+        logging.error('CST: No meta field {} for rule {}.'.format(missing_field, rule_name))

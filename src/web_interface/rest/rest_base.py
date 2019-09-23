@@ -9,6 +9,7 @@ from .rest_compare import RestCompare
 from .rest_binary import RestBinary
 from .rest_file_object import RestFileObject
 from .rest_firmware import RestFirmware
+from .rest_statistic import RestStatus
 
 
 class RestBase:
@@ -19,6 +20,7 @@ class RestBase:
         self.api.add_resource(RestFirmware, '/rest/firmware', '/rest/firmware/<uid>', methods=['GET', 'PUT'], resource_class_kwargs={'config': config})
         self.api.add_resource(RestFileObject, '/rest/file_object', '/rest/file_object/<uid>', methods=['GET'], resource_class_kwargs={'config': config})
         self.api.add_resource(RestBinarySearch, '/rest/binary_search', '/rest/binary_search/<search_id>', methods=['GET', 'POST'], resource_class_kwargs={'config': config})
+        self.api.add_resource(RestStatus, '/rest/status', methods=['GET'], resource_class_kwargs={'config': config})
 
         self._wrap_response(self.api)
 
