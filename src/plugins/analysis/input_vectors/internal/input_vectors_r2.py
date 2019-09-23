@@ -55,11 +55,15 @@ def matches_import(imp, input_class):
 def check_interrupts(r2):
     interrupts = []
     for func in r2.cmdj('aflj'):
-        for ins in get_ins(r2, func)['ops']:
-            if 'opcode' in ins and ins['type'] == 'swi':
-                for trap in ['syscall', 'swi', 'int 0x80']:
-                    if trap in ins['opcode']:
-                        interrupts.append(ins['offset'])
+        try:
+            for ins in get_ins(r2, func)['ops']:
+                if 'opcode' in ins and ins['type'] == 'swi':
+                    for trap in ['syscall', 'swi', 'int 0x80']:
+                        if trap in ins['opcode']:
+                            interrupts.append(ins['offset'])
+        except:
+            # function issues
+            pass
     return interrupts
 
 
@@ -75,6 +79,7 @@ def find_input_vectors(r2, config):
                     input_vectors.append({'class': input_class,
                                           'name': clean_import,
                                           'xrefs': get_xrefs_to(r2, func["name"])})
+
     interrupts = check_interrupts(r2)
     if len(interrupts) > 0:
         input_vectors.append({'class': 'kernel',
@@ -95,7 +100,6 @@ def main(argv):
         print("usage: input_vectors_r2.py PATH_TO_ELF")
         sys.exit(1)
     else:
-
         config = json.load(open(os.path.join(os.path.split(os.path.realpath(__file__))[0], "config.json"), 'r'))
 
         r2 = open_with_radare(argv[1])
