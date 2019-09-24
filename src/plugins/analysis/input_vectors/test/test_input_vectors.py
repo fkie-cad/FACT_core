@@ -4,7 +4,7 @@ from objects.file import FileObject
 from ..code.input_vectors import AnalysisPlugin
 
 
-class test_analysis_plugin_input_vectors(AnalysisPluginTest):
+class AnalysisPluginTestInputVectors(AnalysisPluginTest):
 
     PLUGIN_NAME = 'input_vectors'
 

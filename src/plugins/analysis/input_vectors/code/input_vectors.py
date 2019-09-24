@@ -1,11 +1,17 @@
-import json
 import logging
-from subprocess import DEVNULL, PIPE, Popen
+import docker
+from docker.errors import ImageNotFound, APIError, DockerException
+from docker.types import Mount
+from contextlib import suppress
+from requests.exceptions import ReadTimeout, ConnectionError as RequestConnectionError
+from json import loads, JSONDecodeError
 
 from analysis.PluginBase import AnalysisBasePlugin
 
 DOCKER_IMAGE = 'input-vectors:latest'
-TIMEOUT = 2 # in minutes
+TIMEOUT_IN_SECONDS = 120
+MIME_WHITELIST = ['application/x-executable', 'application/x-object', 'application/x-sharedlib']
+CONTAINER_TARGET_PATH = '/tmp/input'
 
 class AnalysisPlugin(AnalysisBasePlugin):
     '''
@@ -20,34 +26,33 @@ class AnalysisPlugin(AnalysisBasePlugin):
     DEPENDENCIES = ['file_type']
     VERSION = '0.1'
 
-    def __init__(self, plugin_adminstrator, config=None, recursive=True):
+    def __init__(self, plugin_administrator, config=None, recursive=True):
         self.config = config
-        super().__init__(plugin_adminstrator, config=config, recursive=recursive, plugin_path=__file__)
+        super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__)
         logging.info('Up and running.')
 
-    @staticmethod
-    def _is_supported_file_type(file_object):
-        file_type = file_object.processed_analysis['file_type']['full'].lower()
-        return 'elf' in file_type
-
     def process_object(self, file_object):
-        if self._is_supported_file_type(file_object):
-            r2_command = 'timeout --signal=SIGKILL {}m docker run -v {}:/tmp/input {} /tmp/input'.format(
-                TIMEOUT, file_object.file_path, DOCKER_IMAGE)
-            pl = Popen(r2_command, shell=True, stdout=PIPE, stderr=DEVNULL)
-            output = pl.communicate()[0].decode('utf-8', errors='replace')
-            return_code = pl.returncode
-            if return_code in [0, 124, 128 + 9]:
-                try:
-                    file_object.processed_analysis[self.NAME] = json.loads(output)
-                except json.JSONDecodeError:
-                    logging.error('Could not decode JSON ouptut.')
-                    logging.error(output)
-                if return_code in [124, 128 + 9]:
-                    logging.warning('input_vectors timed out on {}. Analysis might not be complete.'.format(file_object.get_uid()))
-                    file_object.processed_analysis[self.NAME]['warning'] = 'Analysis timed out. It might not be complete.'
-            else:
-                logging.error('Could not communicate with radare2 plugin: {} ({})\nUID: {}'.format(return_code, output, file_object.get_uid()))
-                file_object.processed_analysis[self.NAME] = {'summary': []}
+        container = None
+        volume = Mount(CONTAINER_TARGET_PATH, file_object.file_path, read_only=True, type="bind")
+        try:
+            client = docker.from_env()
+            container = client.containers.run(
+                DOCKER_IMAGE, '/tmp/input',
+                network_disabled=True, mounts=[volume], detach=True
+            )
+            container.wait(timeout=TIMEOUT_IN_SECONDS)
+            file_object.processed_analysis[self.NAME] = loads(container.logs(stderr=False).decode())
+        except (ImageNotFound, APIError, DockerException, RequestConnectionError):
+            file_object.processed_analysis[self.NAME]['warning'] = 'Analysis issues. It might not be complete.'
+        except ReadTimeout:
+            file_object.processed_analysis[self.NAME]['warning'] = 'Analysis timed out. It might not be complete.'
+        except JSONDecodeError:
+            logging.error('Could not decode JSON ouptut.')
+            logging.error(container.logs().decode())
+        finally:
+            if container:
+                with suppress(APIError):
+                    container.stop()
+                container.remove()
 
         return file_object
