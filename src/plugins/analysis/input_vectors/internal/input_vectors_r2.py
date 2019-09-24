@@ -78,7 +78,7 @@ def find_input_vectors(r2, config):
                 if matches_import(clean_import.lower(), config['input_classes'][input_class]):
                     input_vectors.append({'class': input_class,
                                           'name': clean_import,
-                                          'xrefs': get_xrefs_to(r2, func["name"])})
+                                          'xrefs': list(map(hex, get_xrefs_to(r2, func["name"])))})
 
     interrupts = check_interrupts(r2)
     if len(interrupts) > 0:
