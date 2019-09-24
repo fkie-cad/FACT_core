@@ -1,0 +1,23 @@
+{% extends "analysis_plugins/general_information.html" %}
+
+{% block analysis_result_details %}
+
+{% for iv in firmware.processed_analysis[selected_analysis]['full']|sort %}
+{% if firmware.processed_analysis[selected_analysis]['full'][iv] %}
+<tr>
+  <td class="result"> {{iv}} </td>
+  <td class="result">
+    <ul>
+      {% for res in firmware.processed_analysis[selected_analysis]['full'][iv] %}
+      {% if iv == 'inputs' %}
+      <li> {{ res['class'] }} -> {{ res['name'] }} with callsites at {{ res['xrefs'] }} </li>
+      {% else %}
+      <li> {{res}} </li>
+	  {% endif %}
+      {% endfor %}
+    </ul>
+  </td>
+</tr>
+{% endif %}
+{% endfor %}
+{% endblock %}
