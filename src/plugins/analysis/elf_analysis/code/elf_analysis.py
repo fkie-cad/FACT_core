@@ -89,9 +89,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
             return TagColor.GRAY
 
     def create_tags(self, parsed_bin, file_object):
-        all_libs = self._get_symbols_version_entries(parsed_bin.symbols_version)
-        all_libs.extend(parsed_bin.libraries)
-        all_funcs = self._get_relevant_imp_functions(parsed_bin.imported_functions)
+        all_libs = self._get_symbols_version_entries(self._normalize_items(parsed_bin.symbols_version))
+        all_libs.extend(self._normalize_items(parsed_bin.libraries))
+        all_funcs = self._get_relevant_imp_functions(self._normalize_items(parsed_bin.imported_functions))
         for entry in self._get_tags(all_libs, all_funcs):
             self.add_analysis_tag(
                 file_object=file_object,
@@ -115,14 +115,23 @@ class AnalysisPlugin(AnalysisBasePlugin):
             parsed_binary = lief.parse(file_object.file_path)
             binary_json_dict = json.loads(lief.to_json_from_abstract(parsed_binary))
             if parsed_binary.exported_functions:
-                binary_json_dict['exported_functions'] = parsed_binary.exported_functions
+                binary_json_dict['exported_functions'] = self._normalize_items(parsed_binary.exported_functions)
             if parsed_binary.imported_functions:
-                binary_json_dict['imported_functions'] = parsed_binary.imported_functions
+                binary_json_dict['imported_functions'] = self._normalize_items(parsed_binary.imported_functions)
             if parsed_binary.libraries:
-                binary_json_dict['libraries'] = parsed_binary.libraries
+                binary_json_dict['libraries'] = self._normalize_items(parsed_binary.libraries)
         except (TypeError, lief.bad_file) as error:
             logging.error('Bad file for lief/elf analysis {}. {}'.format(file_object.get_uid(), error))
             return elf_dict
 
         self.get_final_analysis_dict(binary_json_dict, elf_dict)
         return elf_dict, parsed_binary
+
+    @staticmethod
+    def _normalize_items(items):
+        if items and not isinstance(items[0], str):
+            try:
+                return [str(item) for item in items]
+            except AttributeError:
+                return []
+        return [item for item in items]

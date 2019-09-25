@@ -1,10 +1,9 @@
 import logging
-from hashlib import new, md5
+from hashlib import md5, new
 
 import lief
 import ssdeep
 import tlsh
-
 from helperFunctions.dataConversion import make_bytes
 from helperFunctions.debug import suppress_stdout
 
@@ -64,9 +63,17 @@ def get_imphash(file_object):
         try:
             with suppress_stdout():
                 elf = lief.parse(file_object.file_path)
-            imphash = md5(
-                ','.join(sorted(elf.imported_functions)).encode()).hexdigest()
+                functions = _normalize_functions(elf.imported_functions)
+            imphash = md5(','.join(sorted(functions)).encode()).hexdigest()
         except Exception as e:
-            logging.error('Could not compute imphash for ELF {}: {} {}'.format(
-                file_object.file_path, type(e), e))
+            logging.error('Could not compute imphash for ELF {}: {} {}'.format(file_object.file_path, type(e), e))
     return imphash
+
+
+def _normalize_functions(functions):
+    if functions and not isinstance(functions[0], str):
+        try:
+            return [function.name for function in functions]
+        except AttributeError:
+            return []
+    return [function for function in functions]
