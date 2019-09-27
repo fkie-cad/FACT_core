@@ -25,7 +25,7 @@ class RadareAPI:
 
     def get_xrefs_to(self, imp):
         return {
-            int(xref["from"])
+            int(xref['from'])
             for xref in self.api.cmdj('axtj {}'.format(imp))
         }
 
@@ -74,7 +74,7 @@ class RadareAPI:
 
     def find_input_vectors(self):
         input_vectors = []
-        function_list = self.api.cmdj("aflj")
+        function_list = self.api.cmdj('aflj')
         if not function_list:
             return input_vectors
 
@@ -93,18 +93,18 @@ class RadareAPI:
 
     def find_input_vectors_of_function(self, function):
         input_vectors = []
-        clean_import = function["name"].replace(self.config['import_prefix'], "")
+        clean_import = function['name'].replace(self.config['import_prefix'], '')
         for input_class in self.config['input_classes']:
             if self.matches_import(clean_import.lower(), self.config['input_classes'][input_class]):
                 input_vectors.append({
                     'class': input_class,
                     'name': clean_import,
-                    'xrefs': [hex(address) for address in self.get_xrefs_to(function["name"])]
+                    'xrefs': [hex(address) for address in self.get_xrefs_to(function['name'])]
                 })
         return input_vectors
 
     def _is_imported_function(self, function):
-        return self.config['import_prefix'] in function["name"]
+        return self.config['import_prefix'] in function['name']
 
 
 def get_class_summary(input_vectors):
@@ -113,7 +113,7 @@ def get_class_summary(input_vectors):
 
 
 def get_input_vectors(elf_file):
-    config_file = Path(__file__).absolute().parent / "config.json"
+    config_file = Path(__file__).absolute().parent / 'config.json'
     config = json.loads(config_file.read_text())
 
     with RadareAPI(elf_file, config) as r2_api:
@@ -132,8 +132,8 @@ def get_input_vectors(elf_file):
     print(json.dumps(output, indent=4))
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     if len(sys.argv) != 2:
-        print("usage: input_vectors_r2.py PATH_TO_ELF")
+        print('usage: input_vectors_r2.py PATH_TO_ELF')
         sys.exit(1)
     get_input_vectors(sys.argv[1])

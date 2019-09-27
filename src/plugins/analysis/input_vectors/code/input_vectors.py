@@ -5,8 +5,7 @@ from json import JSONDecodeError, loads
 import docker
 from docker.errors import APIError, DockerException, ImageNotFound
 from docker.types import Mount
-from requests.exceptions import ConnectionError as RequestConnectionError
-from requests.exceptions import ReadTimeout
+from requests.exceptions import ConnectionError as RequestConnectionError, ReadTimeout
 
 from analysis.PluginBase import AnalysisBasePlugin
 
@@ -36,7 +35,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def process_object(self, file_object):
         container = None
-        volume = Mount(CONTAINER_TARGET_PATH, file_object.file_path, read_only=True, type="bind")
+        volume = Mount(CONTAINER_TARGET_PATH, file_object.file_path, read_only=True, type='bind')
         try:
             client = docker.from_env()
             container = client.containers.run(
