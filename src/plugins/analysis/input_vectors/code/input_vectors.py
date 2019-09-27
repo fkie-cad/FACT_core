@@ -1,17 +1,19 @@
 import logging
-import docker
-from docker.errors import ImageNotFound, APIError, DockerException
-from docker.types import Mount
 from contextlib import suppress
-from requests.exceptions import ReadTimeout, ConnectionError as RequestConnectionError
-from json import loads, JSONDecodeError
+from json import JSONDecodeError, loads
+
+import docker
+from docker.errors import APIError, DockerException, ImageNotFound
+from docker.types import Mount
+from requests.exceptions import ConnectionError as RequestConnectionError
+from requests.exceptions import ReadTimeout
 
 from analysis.PluginBase import AnalysisBasePlugin
 
 DOCKER_IMAGE = 'input-vectors:latest'
 TIMEOUT_IN_SECONDS = 120
-MIME_WHITELIST = ['application/x-executable', 'application/x-object', 'application/x-sharedlib']
 CONTAINER_TARGET_PATH = '/tmp/input'
+
 
 class AnalysisPlugin(AnalysisBasePlugin):
     '''
@@ -25,6 +27,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     DESCRIPTION = 'Determines possible input vectors of an ELF executable like stdin, network, or syscalls.'
     DEPENDENCIES = ['file_type']
     VERSION = '0.1'
+    MIME_WHITELIST = ['application/x-executable', 'application/x-object', 'application/x-sharedlib']
 
     def __init__(self, plugin_administrator, config=None, recursive=True):
         self.config = config
@@ -37,8 +40,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         try:
             client = docker.from_env()
             container = client.containers.run(
-                DOCKER_IMAGE, '/tmp/input',
-                network_disabled=True, mounts=[volume], detach=True
+                DOCKER_IMAGE, CONTAINER_TARGET_PATH, network_disabled=True, mounts=[volume], detach=True
             )
             container.wait(timeout=TIMEOUT_IN_SECONDS)
             file_object.processed_analysis[self.NAME] = loads(container.logs(stderr=False).decode())
