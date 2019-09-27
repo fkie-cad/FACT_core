@@ -1,4 +1,4 @@
-FROM input-vectors-gui:latest
+FROM fkiecad/radare-web-gui:latest
 
 # Create non-root user
 RUN useradd -m r2 && \
