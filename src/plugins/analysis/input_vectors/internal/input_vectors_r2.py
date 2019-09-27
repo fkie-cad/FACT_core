@@ -1,120 +1,139 @@
 import base64
 import json
-import os
 import re
 import sys
+from pathlib import Path
 
 import r2pipe
 
 
-def open_with_radare(path_to_elf):
-    r2 = r2pipe.open(path_to_elf)
-    r2.cmd('aaaa')
-    return r2
+class RadareAPI:
+    def __init__(self, path_to_elf: str, config: dict):
+        self.config = config
+        self.api = r2pipe.open(path_to_elf)
 
+    def __enter__(self):
+        self.api.cmd('aaaa')
+        return self
 
-def get_ins(r2, func):
-    r2.cmd('s {}'.format(func['offset']))
-    return r2.cmdj('pdfj')
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.api.quit()
 
+    def get_function_instructions(self, function):
+        self.api.cmd('s {}'.format(function['offset']))
+        return self.api.cmdj('pdfj')
 
-def get_xrefs_to(r2, imp):
-    res = []
-    for xref in r2.cmdj('axtj {}'.format(imp)):
-        res.append(int(xref["from"]))
-    return res
+    def get_xrefs_to(self, imp):
+        return {
+            int(xref["from"])
+            for xref in self.api.cmdj('axtj {}'.format(imp))
+        }
 
+    def get_filtered_strings(self, regex):
+        result = []
+        string_list = self.api.cmdj('izj')
+        for string in string_list:
+            decoded_str = base64.b64decode(string['string']).decode()
+            if re.match(regex, decoded_str) is not None:
+                result.append(decoded_str)
+        return result
 
-def get_filtered_strings(r2, regex):
-    res = []
-    strings = r2.cmdj('izj')
-    for s in strings:
-        decoded_str = base64.b64decode(s['string']).decode()
-        if re.match(regex, decoded_str) is not None:
-            res.append(decoded_str)
-    return res
+    def get_possible_url_paths(self, regex):
+        result = []
+        string_list = self.api.cmdj('izj')
+        for string in string_list:
+            decoded_str = base64.b64decode(string['string']).decode()
+            if decoded_str.startswith('/') and re.search(regex, decoded_str) is None:
+                result.append(decoded_str)
+        return result
 
+    @staticmethod
+    def matches_import(imp, input_class):
+        for element in input_class:
+            if re.match(re.compile(element), imp) is not None:
+                return True
+        return False
 
-def get_possible_url_paths(r2, regex):
-    res = []
-    strings = r2.cmdj('izj')
-    for s in strings:
-        decoded_str = base64.b64decode(s['string']).decode()
-        if decoded_str.startswith('/') and re.search(regex, decoded_str) is None:
-            res.append(decoded_str)
-    return res
+    def get_interrupts(self, function_list):
+        interrupts = []
+        for function in function_list:
+            try:
+                interrupts.extend(self._get_interrupts_of_function(function))
+            except (TypeError, KeyError):  # function issues
+                continue
+        return interrupts
 
+    def _get_interrupts_of_function(self, function):
+        interrupts = []
+        for instruction in self.get_function_instructions(function)['ops']:
+            if 'opcode' in instruction and instruction['type'] == 'swi':
+                for trap in ['syscall', 'swi', 'int 0x80']:
+                    if trap in instruction['opcode']:
+                        interrupts.append(instruction['offset'])
+        return interrupts
 
-def matches_import(imp, input_class):
-    for elem in input_class:
-        if re.match(re.compile(elem), imp) is not None:
-            return True
-    return False
+    def find_input_vectors(self):
+        input_vectors = []
+        function_list = self.api.cmdj("aflj")
+        if not function_list:
+            return input_vectors
 
+        for function in function_list:
+            if self._is_imported_function(function):
+                input_vectors.extend(self.find_input_vectors_of_function(function))
 
-def check_interrupts(r2):
-    interrupts = []
-    for func in r2.cmdj('aflj'):
-        try:
-            for ins in get_ins(r2, func)['ops']:
-                if 'opcode' in ins and ins['type'] == 'swi':
-                    for trap in ['syscall', 'swi', 'int 0x80']:
-                        if trap in ins['opcode']:
-                            interrupts.append(ins['offset'])
-        except:
-            # function issues
-            pass
-    return interrupts
-
-
-def find_input_vectors(r2, config):
-    input_vectors = []
-    functions = r2.cmdj("aflj")
-    if functions:
-        for func in functions:
-            if config['import_prefix'] in func["name"]:
-                clean_import = func["name"].replace(config['import_prefix'], "")
-                for input_class in config['input_classes']:
-                    if matches_import(clean_import.lower(), config['input_classes'][input_class]):
-                        input_vectors.append({'class': input_class,
-                                              'name': clean_import,
-                                              'xrefs': list(map(hex, get_xrefs_to(r2, func["name"])))})
-
-        interrupts = check_interrupts(r2)
+        interrupts = self.get_interrupts(function_list)
         if interrupts:
-            input_vectors.append({'class': 'kernel',
-                                  'count': len(interrupts),
-                                  'xrefs': interrupts})
-    return input_vectors
+            input_vectors.append({
+                'class': 'kernel',
+                'count': len(interrupts),
+                'xrefs': interrupts
+            })
+        return input_vectors
+
+    def find_input_vectors_of_function(self, function):
+        input_vectors = []
+        clean_import = function["name"].replace(self.config['import_prefix'], "")
+        for input_class in self.config['input_classes']:
+            if self.matches_import(clean_import.lower(), self.config['input_classes'][input_class]):
+                input_vectors.append({
+                    'class': input_class,
+                    'name': clean_import,
+                    'xrefs': [hex(address) for address in self.get_xrefs_to(function["name"])]
+                })
+        return input_vectors
+
+    def _is_imported_function(self, function):
+        return self.config['import_prefix'] in function["name"]
 
 
 def get_class_summary(input_vectors):
-    classes = {elem['class'] for elem in input_vectors}
+    classes = {element['class'] for element in input_vectors}
     return list(classes)
 
 
-def main(argv):
-    if len(argv) != 2:
-        print("usage: input_vectors_r2.py PATH_TO_ELF")
-        sys.exit(1)
+def get_input_vectors(elf_file):
+    config_file = Path(__file__).absolute().parent / "config.json"
+    config = json.loads(config_file.read_text())
 
-    config = json.load(open(os.path.join(os.path.split(os.path.realpath(__file__))[0], "config.json"), 'r'))
+    with RadareAPI(elf_file, config) as r2_api:
+        input_vectors = r2_api.find_input_vectors()
 
-    r2 = open_with_radare(argv[1])
-    input_vectors = find_input_vectors(r2, config)
-
-    output = {'summary': get_class_summary(input_vectors),
-              'full': {
-                  'inputs': input_vectors,
-                  'configs': get_filtered_strings(r2, re.compile(config['config_regex'])),
-                  'domains': get_filtered_strings(r2, re.compile(config['domain_regex'])),
-                  'url_paths': get_possible_url_paths(r2, re.compile(config['config_regex']))
-              }}
+        output = {
+            'summary': get_class_summary(input_vectors),
+            'full': {
+                'inputs': input_vectors,
+                'configs': r2_api.get_filtered_strings(re.compile(config['config_regex'])),
+                'domains': r2_api.get_filtered_strings(re.compile(config['domain_regex'])),
+                'url_paths': r2_api.get_possible_url_paths(re.compile(config['config_regex']))
+            }
+        }
 
     print(json.dumps(output, indent=4))
 
-    r2.quit()
-
 
 if __name__ == "__main__":
-    main(sys.argv)
+    if len(sys.argv) != 2:
+        print("usage: input_vectors_r2.py PATH_TO_ELF")
+        sys.exit(1)
+    get_input_vectors(sys.argv[1])
