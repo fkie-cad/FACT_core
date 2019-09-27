@@ -3,6 +3,7 @@ import json
 import re
 import sys
 from pathlib import Path
+from typing import Dict, List
 
 import r2pipe
 
@@ -86,6 +87,7 @@ class RadareAPI:
         if interrupts:
             input_vectors.append({
                 'class': 'kernel',
+                'name': 'interrupts',
                 'count': len(interrupts),
                 'xrefs': interrupts
             })
@@ -108,8 +110,15 @@ class RadareAPI:
 
 
 def get_class_summary(input_vectors):
-    classes = {element['class'] for element in input_vectors}
+    classes = {class_ for class_ in input_vectors}
     return list(classes)
+
+
+def group_input_vectors(input_vectors: List[dict]) -> Dict[str, List[dict]]:
+    result = {}
+    for entry in input_vectors:
+        result.setdefault(entry['class'], []).append({'name': entry['name'], 'xrefs': entry['xrefs']})
+    return result
 
 
 def get_input_vectors(elf_file):
@@ -118,6 +127,7 @@ def get_input_vectors(elf_file):
 
     with RadareAPI(elf_file, config) as r2_api:
         input_vectors = r2_api.find_input_vectors()
+        input_vectors = group_input_vectors(input_vectors)
 
         output = {
             'summary': get_class_summary(input_vectors),

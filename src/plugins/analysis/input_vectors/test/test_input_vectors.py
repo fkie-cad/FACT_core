@@ -19,7 +19,8 @@ class AnalysisPluginTestInputVectors(AnalysisPluginTest):
 
     def test_process_object_inputs(self):
         result = self.assert_process_object('test_fgets.elf')
-        assert result['full']['inputs'][0]['name'] == 'fgets'
+        assert 'file' in result['full']['inputs']
+        assert result['full']['inputs']['file'][0]['name'] == 'fgets'
 
     def test_process_object_domains(self):
         result = self.assert_process_object('test_domain.elf')
