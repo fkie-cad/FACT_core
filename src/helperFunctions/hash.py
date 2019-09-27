@@ -4,6 +4,7 @@ from hashlib import md5, new
 import lief
 import ssdeep
 import tlsh
+
 from helperFunctions.dataConversion import make_bytes
 from helperFunctions.debug import suppress_stdout
 
@@ -52,22 +53,19 @@ def check_similarity_of_sets(pair_of_sets, all_sets):
     return True
 
 
-def _is_elf_file(file_object):
-    file_type = file_object.processed_analysis['file_type']['mime']
-    return file_type in ['application/x-executable', 'application/x-object', 'application/x-sharedlib']
-
-
 def get_imphash(file_object):
-    imphash = None
     if _is_elf_file(file_object):
         try:
             with suppress_stdout():
-                elf = lief.parse(file_object.file_path)
-                functions = _normalize_functions(elf.imported_functions)
-            imphash = md5(','.join(sorted(functions)).encode()).hexdigest()
-        except Exception as e:
-            logging.error('Could not compute imphash for ELF {}: {} {}'.format(file_object.file_path, type(e), e))
-    return imphash
+                functions = _normalize_functions(lief.parse(file_object.file_path).imported_functions)
+            return md5(','.join(sorted(functions)).encode()).hexdigest()
+        except Exception:
+            logging.error('Could not compute imphash for {}'.format(file_object.file_path), exc_info=True)
+    return None
+
+
+def _is_elf_file(file_object):
+    return file_object.processed_analysis['file_type']['mime'] in ['application/x-executable', 'application/x-object', 'application/x-sharedlib']
 
 
 def _normalize_functions(functions):
@@ -76,4 +74,4 @@ def _normalize_functions(functions):
             return [function.name for function in functions]
         except AttributeError:
             return []
-    return [function for function in functions]
+    return list(functions)
