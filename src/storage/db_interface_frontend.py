@@ -4,14 +4,14 @@ import sys
 from copy import deepcopy
 
 from helperFunctions.compare_sets import remove_duplicates_from_list
-from helperFunctions.dataConversion import get_value_of_first_key
 from helperFunctions.database_structure import visualize_complete_tree
-from helperFunctions.file_tree import get_partial_virtual_path, FileTreeNode
+from helperFunctions.dataConversion import get_value_of_first_key
+from helperFunctions.file_tree import FileTreeNode, get_partial_virtual_path
 from helperFunctions.merge_generators import merge_generators
+from helperFunctions.tag import TagColor
 from objects.file import FileObject
 from objects.firmware import Firmware
 from storage.db_interface_common import MongoInterfaceCommon
-from helperFunctions.tag import TagColor
 
 
 class FrontEndDbInterface(MongoInterfaceCommon):
@@ -24,21 +24,18 @@ class FrontEndDbInterface(MongoInterfaceCommon):
             firmware_list = self.firmwares.find()
         for firmware in firmware_list:
             if firmware:
-                if 'tags' in firmware:
-                    tags = firmware['tags']
-                else:
-                    tags = dict()
-                if firmware['processed_analysis']['unpacker']['file_system_flag']:
-                    unpacker = self.retrieve_analysis(deepcopy(firmware['processed_analysis']))['unpacker']['plugin_used']
-                else:
-                    unpacker = firmware['processed_analysis']['unpacker']['plugin_used']
-                tags[unpacker] = TagColor.LIGHT_BLUE
-                if 'submission_date' in firmware:
-                    submission_date = firmware['submission_date']
-                else:
-                    submission_date = 0
+                tags = firmware['tags'] if 'tags' in firmware else dict()
+                tags[self._get_unpacker_name(firmware)] = TagColor.LIGHT_BLUE
+                submission_date = firmware['submission_date'] if 'submission_date' in firmware else 0
                 list_of_firmware_data.append((firmware['_id'], self.get_hid(firmware['_id']), tags, submission_date))
         return list_of_firmware_data
+
+    def _get_unpacker_name(self, firmware):
+        if 'unpacker' not in firmware['processed_analysis']:
+            return 'NOP'
+        if firmware['processed_analysis']['unpacker']['file_system_flag']:
+            return self.retrieve_analysis(deepcopy(firmware['processed_analysis']))['unpacker']['plugin_used']
+        return firmware['processed_analysis']['unpacker']['plugin_used']
 
     def get_hid(self, uid, root_uid=None):
         '''
@@ -114,8 +111,7 @@ class FrontEndDbInterface(MongoInterfaceCommon):
         if firmware is not None:
             part = ' -' if 'device_part' not in firmware or firmware['device_part'] == '' else ' - {}'.format(firmware['device_part'])
             return '{} {}{} {} ({})'.format(firmware['vendor'], firmware['device_name'], part, firmware['version'], firmware['device_class'])
-        else:
-            return None
+        return None
 
     def _get_hid_fo(self, uid, root_uid):
         file_object = self.file_objects.find_one({'_id': uid}, {'virtual_file_path': 1})
@@ -232,13 +228,12 @@ class FrontEndDbInterface(MongoInterfaceCommon):
     def get_number_of_total_matches(self, query, only_parent_firmwares):
         if not only_parent_firmwares:
             return self.get_firmware_number(query=query) + self.get_file_object_number(query=query)
-        else:
-            if isinstance(query, str):
-                query = json.loads(query)
-            fw_matches = {match['_id'] for match in self.firmwares.find(query)}
-            fo_matches = {parent for match in self.file_objects.find(query)
-                          for parent in match['virtual_file_path'].keys()} if query != {} else set()
-            return len(fw_matches.union(fo_matches))
+        if isinstance(query, str):
+            query = json.loads(query)
+        fw_matches = {match['_id'] for match in self.firmwares.find(query)}
+        fo_matches = {parent for match in self.file_objects.find(query)
+                      for parent in match['virtual_file_path'].keys()} if query != {} else set()
+        return len(fw_matches.union(fo_matches))
 
     def create_analysis_structure(self):
         if self.client.varietyResults.file_objectsKeys.count_documents({}) == 0:
@@ -247,8 +242,8 @@ class FrontEndDbInterface(MongoInterfaceCommon):
         file_object_keys = self.client.varietyResults.file_objectsKeys.find()
         all_field_strings = list(
             key_item['_id']['key'] for key_item in file_object_keys
-            if key_item['_id']['key'].startswith('processed_analysis') and
-            key_item['percentContaining'] >= float(self.config['data_storage']['structural_threshold'])
+            if key_item['_id']['key'].startswith('processed_analysis')
+            and key_item['percentContaining'] >= float(self.config['data_storage']['structural_threshold'])
         )
         stripped_field_strings = list(field[len('processed_analysis.'):] for field in all_field_strings if field != 'processed_analysis')
 
