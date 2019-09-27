@@ -48,7 +48,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         except ReadTimeout:
             file_object.processed_analysis[self.NAME]['warning'] = 'Analysis timed out. It might not be complete.'
         except JSONDecodeError:
-            logging.error('Could not decode JSON ouptut.')
+            logging.error('Could not decode JSON output.')
             logging.error(container.logs().decode())
         finally:
             if container:
