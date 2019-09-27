@@ -57,7 +57,7 @@ def get_imphash(file_object):
     if _is_elf_file(file_object):
         try:
             with suppress_stdout():
-                functions = _normalize_functions(lief.parse(file_object.file_path).imported_functions)
+                functions = normalize_lief_items(lief.parse(file_object.file_path).imported_functions)
             return md5(','.join(sorted(functions)).encode()).hexdigest()
         except Exception:
             logging.error('Could not compute imphash for {}'.format(file_object.file_path), exc_info=True)
@@ -68,10 +68,7 @@ def _is_elf_file(file_object):
     return file_object.processed_analysis['file_type']['mime'] in ['application/x-executable', 'application/x-object', 'application/x-sharedlib']
 
 
-def _normalize_functions(functions):
+def normalize_lief_items(functions):
     if functions and not isinstance(functions[0], str):
-        try:
-            return [function.name for function in functions]
-        except AttributeError:
-            return []
+        return [str(function) for function in functions]
     return list(functions)

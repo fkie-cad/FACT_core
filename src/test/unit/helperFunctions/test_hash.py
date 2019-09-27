@@ -1,9 +1,8 @@
-from collections import namedtuple
 from pathlib import Path
 
 from helperFunctions.fileSystem import get_test_data_dir
 from helperFunctions.hash import (
-    _normalize_functions, check_similarity_of_sets, get_imphash, get_md5, get_sha256, get_ssdeep, get_ssdeep_comparison
+    check_similarity_of_sets, get_imphash, get_md5, get_sha256, get_ssdeep, get_ssdeep_comparison, normalize_lief_items
 )
 from test.common_helper import create_test_file_object
 
@@ -52,18 +51,20 @@ def test_imphash_bad_file():
 
 def test_normalize_items_from_strings():
     functions = ['printf', '__libc_start_main']
-    assert _normalize_functions(functions) == functions
+    assert normalize_lief_items(functions) == functions
 
 
 def test_normalize_items_from_objects():
-    Function = namedtuple('Function', ['name'])
+    class Function:
+        def __init__(self, name):
+            self.name = name
+
+        def __str__(self):
+            return self.name
+
     functions = ['printf', '__libc_start_main']
-    assert _normalize_functions([Function(name) for name in functions]) == functions
-
-
-def test_normalize_items_bad_objects():
-    assert _normalize_functions([None, None]) == []
+    assert normalize_lief_items([Function(name) for name in functions]) == functions
 
 
 def test_normalize_items_empty_list():
-    assert _normalize_functions([]) == []
+    assert normalize_lief_items([]) == []
