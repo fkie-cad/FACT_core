@@ -1,19 +1,16 @@
 import gc
-from os import path
-from tempfile import TemporaryDirectory
 import unittest
+from tempfile import TemporaryDirectory
 
 from helperFunctions.config import get_config_for_testing
-from helperFunctions.fileSystem import get_test_data_dir
 from helperFunctions.file_tree import FileTreeNode
-from storage.MongoMgr import MongoMgr
+from helperFunctions.fileSystem import get_test_data_dir
 from storage.db_interface_backend import BackEndDbInterface
 from storage.db_interface_frontend import FrontEndDbInterface
-from test.common_helper import create_test_firmware, create_test_file_object
-
+from storage.MongoMgr import MongoMgr
+from test.common_helper import create_test_file_object, create_test_firmware
 
 TESTS_DIR = get_test_data_dir()
-test_file_one = path.join(TESTS_DIR, 'get_files_test/testfile1')
 TMP_DIR = TemporaryDirectory(prefix='fact_test_')
 
 
@@ -39,6 +36,12 @@ class TestStorageDbInterfaceFrontend(unittest.TestCase):
     def tearDownClass(cls):
         cls.mongo_server.shutdown()
         TMP_DIR.cleanup()
+
+    def test_regression_meta_list(self):
+        assert self.test_firmware.processed_analysis.pop('unpacker')
+        self.db_backend_interface.add_firmware(self.test_firmware)
+        list_of_firmwares = self.db_frontend_interface.get_meta_list()
+        assert 'NOP' in list_of_firmwares.pop()[2]
 
     def test_get_meta_list(self):
         self.db_backend_interface.add_firmware(self.test_firmware)
