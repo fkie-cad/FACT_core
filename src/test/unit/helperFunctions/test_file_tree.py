@@ -1,5 +1,3 @@
-import unittest
-
 import pytest
 
 from helperFunctions.file_tree import (
@@ -32,27 +30,27 @@ def test_get_correct_icon_for_mime(mime_type, icon):
     assert get_correct_icon_for_mime(mime_type) == icon
 
 
-class TestFileTree(unittest.TestCase):
+class TestFileTree:  # pylint: disable=no-self-use
     def test_node_creation(self):
         parent_node = FileTreeNode('123', virtual=False, name='parent', size=1, mime_type='somefile')
         child_node = FileTreeNode('456', root_uid='123', virtual=True, name='child')
         parent_node.add_child_node(child_node)
 
-        self.assertEqual(parent_node.uid, '123')
-        self.assertEqual(parent_node.root_uid, None)
-        self.assertEqual(child_node.root_uid, '123')
-        self.assertFalse(parent_node.virtual)
-        self.assertEqual(parent_node.size, 1)
-        self.assertEqual(parent_node.type, 'somefile')
-        self.assertTrue(parent_node.has_children)
-        self.assertEqual(parent_node.get_list_of_child_nodes(), [child_node])
-        self.assertEqual(parent_node.get_id(), ('parent', False))
-        self.assertEqual(list(parent_node.children.keys()), [child_node.get_id()])
-        self.assertEqual(parent_node.get_names_of_children(), [child_node.name])
-        self.assertFalse(child_node.has_children)
-        self.assertTrue(child_node in parent_node)
+        assert parent_node.uid == '123'
+        assert parent_node.root_uid is None
+        assert child_node.root_uid == '123'
+        assert not parent_node.virtual
+        assert parent_node.size == 1
+        assert parent_node.type == 'somefile'
+        assert parent_node.has_children
+        assert parent_node.get_list_of_child_nodes() == [child_node]
+        assert parent_node.get_id() == ('parent', False)
+        assert list(parent_node.children.keys()) == [child_node.get_id()]
+        assert parent_node.get_names_of_children() == [child_node.name]
+        assert not child_node.has_children
+        assert child_node in parent_node
         assert 'Node ' in parent_node.__repr__()
-        self.assertNotEqual(parent_node, child_node)
+        assert parent_node != child_node
         assert parent_node.print_tree() is None
 
     def test_node_merging(self):
@@ -66,25 +64,22 @@ class TestFileTree(unittest.TestCase):
         parent_node.add_child_node(child_node_folder_1)
         parent_node.add_child_node(child_node_folder_2)
 
-        self.assertTrue(parent_node.has_children)
-        self.assertEqual(len(parent_node.get_list_of_child_nodes()), 1)
-        self.assertEqual(list(parent_node.children.keys()), [child_node_folder_1.get_id()])
-        self.assertTrue(child_node_folder_1 in parent_node)
-        self.assertTrue(child_node_folder_2 in parent_node)
-        self.assertEqual(len(parent_node.children[child_node_folder_1.get_id()].get_list_of_child_nodes()), 2)
+        assert parent_node.has_children
+        assert len(parent_node.get_list_of_child_nodes()) == 1
+        assert list(parent_node.children.keys()) == [child_node_folder_1.get_id()]
+        assert child_node_folder_1 in parent_node
+        assert child_node_folder_2 in parent_node
+        assert len(parent_node.children[child_node_folder_1.get_id()].get_list_of_child_nodes()) == 2
         folder_id = child_node_folder_1.get_id()
-        self.assertTrue(child_node_file_1 in parent_node.children[folder_id])
-        self.assertTrue(child_node_file_2 in parent_node.children[folder_id])
+        assert child_node_file_1 in parent_node.children[folder_id]
+        assert child_node_file_2 in parent_node.children[folder_id]
 
     def test_get_partial_virtual_path(self):
         virtual_path = {'abc': ['|abc|def|ghi|folder_1/folder_2/file']}
 
-        self.assertEqual(get_partial_virtual_path(virtual_path, 'abc'),
-                         {'abc': ['|abc|def|ghi|folder_1/folder_2/file']})
-        self.assertEqual(get_partial_virtual_path(virtual_path, 'ghi'),
-                         {'ghi': ['|ghi|folder_1/folder_2/file']})
-        self.assertEqual(get_partial_virtual_path(virtual_path, 'xyz'),
-                         {'xyz': ['|xyz|']})
+        assert get_partial_virtual_path(virtual_path, 'abc') == {'abc': ['|abc|def|ghi|folder_1/folder_2/file']}
+        assert get_partial_virtual_path(virtual_path, 'ghi') == {'ghi': ['|ghi|folder_1/folder_2/file']}
+        assert get_partial_virtual_path(virtual_path, 'xyz') == {'xyz': ['|xyz|']}
 
 
 @pytest.mark.parametrize('input_data, expected_output', [
