@@ -1,6 +1,19 @@
 import unittest
+
 import pytest
-from helperFunctions.file_tree import FileTreeNode, get_partial_virtual_path, get_correct_icon_for_mime
+
+from helperFunctions.file_tree import (
+    FileTreeNode, get_correct_icon_for_mime, get_partial_virtual_path, remove_virtual_path_from_root, root_is_virtual
+)
+
+NON_VIRTUAL_TREE_ROOT = {
+    'a_attr': {'href': '/analysis/someUID/ro/someUID'}, 'children': True, 'data': {'uid': 'someUID'}, 'icon': 'pic.png',
+    'li_attr': {'href': '/analysis/someUID/ro/someUID'}, 'text': 'abc'
+}
+VIRTUAL_TREE_ROOT = {
+    'a_attr': {'href': '#'}, 'children': [NON_VIRTUAL_TREE_ROOT], 'icon': 'pic.png', 'li_attr': {'href': '#'},
+    'text': 'misc',
+}
 
 
 @pytest.mark.parametrize('mime_type, icon', [
@@ -72,3 +85,20 @@ class TestFileTree(unittest.TestCase):
                          {'ghi': ['|ghi|folder_1/folder_2/file']})
         self.assertEqual(get_partial_virtual_path(virtual_path, 'xyz'),
                          {'xyz': ['|xyz|']})
+
+
+@pytest.mark.parametrize('input_data, expected_output', [
+    ([], False),
+    ([NON_VIRTUAL_TREE_ROOT], False),
+    ([VIRTUAL_TREE_ROOT], True),
+])
+def test_root_is_virtual(input_data, expected_output):
+    assert root_is_virtual(input_data) == expected_output
+
+
+@pytest.mark.parametrize('input_data, expected_output', [
+    ([NON_VIRTUAL_TREE_ROOT], [NON_VIRTUAL_TREE_ROOT]),
+    ([VIRTUAL_TREE_ROOT], [NON_VIRTUAL_TREE_ROOT]),  # virtual root includes non-virtual root as child
+])
+def test_remove_virtual_path_from_root(input_data, expected_output):
+    assert remove_virtual_path_from_root(input_data) == expected_output
