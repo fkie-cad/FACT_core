@@ -3,7 +3,7 @@
 FACTUSER=$(whoami)
 
 CODENAME=$(lsb_release -cs)
-if [ "${CODENAME}" = "tara" ] || [ "${CODENAME}" = "tessa" ]; then
+if [ "${CODENAME}" = "tara" ] || [ "${CODENAME}" = "tessa" ] || [ "${CODENAME}" = "tina" ]; then
     CODENAME=bionic
 elif [ "${CODENAME}" = "sarah" ] || [ "${CODENAME}" = "serena" ] || [ "${CODENAME}" = "sonya" ] || [ "${CODENAME}" = "sylvia" ]; then
     CODENAME=xenial
