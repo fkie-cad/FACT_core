@@ -6,12 +6,12 @@
     <tr>
         <th class="success result" colspan=2>Summary Including Results of Included Files</th>
     </tr>
-    <tr>
-        <td class="active result">item count</td>
-        <td class="active result">{{ (summary_of_included_files | length) if summary_of_included_files else 0 }}
-    </tr>
     {% if summary_of_included_files %}
-        {% for item in summary_of_included_files|sort %}
+    <tr>
+            <td class="active result">item count</td>
+            <td class="active result">{{ summary_of_included_files | length }}
+    </tr>
+        {% for item in summary_of_included_files | sort %}
             <tr>
                 <td class="result">{{ item | wordwrap(width=60, break_long_words=True) }}</td>
                 <td class="result">
@@ -19,5 +19,9 @@
                 </td>
             </tr>
         {% endfor %}
+    {% else %}
+        <tr>
+            <td class="active result" colspan=2 style="text-align: center">no summary found</td>
+        </tr>
     {% endif %}
 </table>
