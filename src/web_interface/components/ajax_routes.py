@@ -3,12 +3,10 @@ from typing import List
 
 from common_helper_files import human_readable_file_size
 from flask import jsonify, render_template
-from helperFunctions.file_tree import FileTreeNode, get_correct_icon_for_mime
+from helperFunctions.file_tree import FileTreeNode, get_correct_icon_for_mime, remove_virtual_path_from_root
 from helperFunctions.web_interface import ConnectTo
 from intercom.front_end_binding import InterComFrontEndBinding
-from storage.db_interface_compare import (
-    CompareDbInterface, FactCompareException
-)
+from storage.db_interface_compare import CompareDbInterface, FactCompareException
 from storage.db_interface_frontend import FrontEndDbInterface
 from web_interface.components.component_base import ComponentBase
 from web_interface.filter import bytes_to_str_filter, encode_base64_filter
@@ -59,6 +57,7 @@ class AjaxRoutes(ComponentBase):
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
             for node in sc.generate_file_tree_node(uid, root_uid):  # only a single item in this 'iterable'
                 root = [self._generate_jstree_node(node)]
+        root = remove_virtual_path_from_root(root)
         return jsonify(root)
 
     @staticmethod
