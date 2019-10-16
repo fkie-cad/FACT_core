@@ -1,18 +1,16 @@
-# -*- coding: utf-8 -*-
 import json
 import logging
-import sys
 from datetime import datetime
 
 from dateutil.relativedelta import relativedelta
-from flask import render_template, request, redirect, url_for
+from flask import redirect, render_template, request, url_for
 from flask_paginate import Pagination
 
 from helperFunctions.config import read_list_from_config
 from helperFunctions.dataConversion import make_unicode_string
 from helperFunctions.mongo_task_conversion import get_file_name_and_binary_from_request
 from helperFunctions.web_interface import ConnectTo, apply_filters_to_query, filter_out_illegal_characters
-from helperFunctions.yara_binary_search import is_valid_yara_rule_file, get_yara_error
+from helperFunctions.yara_binary_search import get_yara_error, is_valid_yara_rule_file
 from intercom.front_end_binding import InterComFrontEndBinding
 from storage.db_interface_frontend import FrontEndDbInterface
 from web_interface.components.component_base import ComponentBase
@@ -75,8 +73,8 @@ class DatabaseRoutes(ComponentBase):
             if self._query_has_only_one_result(firmware_list, query):
                 uid = firmware_list[0][0]
                 return redirect(url_for('analysis/<uid>', uid=uid))
-        except Exception as e:
-            error_message = 'Could not query database: {} {}'.format(sys.exc_info()[0].__name__, e)
+        except Exception as err:
+            error_message = 'Could not query database: {} {}'.format(type(err), str(err))
             logging.error(error_message)
             return render_template('error.html', message=error_message)
 
@@ -144,8 +142,8 @@ class DatabaseRoutes(ComponentBase):
                 if not isinstance(query, dict):
                     raise Exception('Error: search query invalid (wrong type)')
                 return redirect(url_for('database/browse', query=json.dumps(query), only_firmwares=only_firmwares))
-            except Exception as e:
-                error = e
+            except Exception as err:
+                error = err
         return render_template('database/database_advanced_search.html', error=error, database_structure=database_structure)
 
     @roles_accepted(*PRIVILEGES['pattern_search'])
@@ -160,20 +158,19 @@ class DatabaseRoutes(ComponentBase):
                     with ConnectTo(InterComFrontEndBinding, self._config) as connection:
                         request_id = connection.add_binary_search_request(yara_rule_file, firmware_uid)
                     return redirect(url_for('database/database_binary_search_results.html', request_id=request_id))
-                else:
-                    error = 'Error in YARA rules: {}'.format(get_yara_error(yara_rule_file))
+                error = 'Error in YARA rules: {}'.format(get_yara_error(yara_rule_file))
             else:
                 error = 'please select a file or enter rules in the text area'
         return render_template('database/database_binary_search.html', error=error)
 
     @staticmethod
-    def _get_items_from_binary_search_request(request):
+    def _get_items_from_binary_search_request(req):
         yara_rule_file = None
-        if 'file' in request.files and request.files['file']:
-            _, yara_rule_file = get_file_name_and_binary_from_request(request)
-        elif request.form['textarea']:
-            yara_rule_file = request.form['textarea'].encode()
-        firmware_uid = request.form.get('firmware_uid') if request.form.get('firmware_uid') else None
+        if 'file' in req.files and req.files['file']:
+            _, yara_rule_file = get_file_name_and_binary_from_request(req)
+        elif req.form['textarea']:
+            yara_rule_file = req.form['textarea'].encode()
+        firmware_uid = req.form.get('firmware_uid') if req.form.get('firmware_uid') else None
         return yara_rule_file, firmware_uid
 
     def _firmware_is_in_db(self, firmware_uid: str) -> bool:
@@ -203,8 +200,7 @@ class DatabaseRoutes(ComponentBase):
         for rule in uid_dict:
             with ConnectTo(FrontEndDbInterface, self._config) as connection:
                 firmware_list = [
-                    connection.firmwares.find_one(uid) or
-                    connection.file_objects.find_one(uid)
+                    connection.firmwares.find_one(uid) or connection.file_objects.find_one(uid)
                     for uid in uid_dict[rule]
                 ]
                 firmware_dict[rule] = sorted(connection.get_meta_list(firmware_list))

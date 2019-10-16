@@ -1,8 +1,9 @@
 from copy import deepcopy
 from unittest.mock import patch
+
 import pytest
 
-from helperFunctions.tag import TagColor, check_tags, add_tags_to_object, update_tags, check_tag_integrity
+from helperFunctions.tag import add_tags_to_object, check_tag_integrity, check_tags, update_tags
 from test.common_helper import TEST_TEXT_FILE
 
 
@@ -22,24 +23,24 @@ def test_object():
     {'value': 'good', 'color': 'danger', 'propagate': 12},
 ])
 def test_check_tag_integrity_bad(tag):
-    status, message = check_tag_integrity(tag)
+    status, _ = check_tag_integrity(tag)
     assert status is False
 
 
 def test_check_tag_integrity_good():
     tag = {'value': 'good', 'color': 'danger', 'propagate': False}
-    status, message = check_tag_integrity(tag)
+    status, _ = check_tag_integrity(tag)
     assert status is True
 
 
-def test_add_tags_to_object_unkown_analysis(test_object):
-    file_object = add_tags_to_object(test_object, 'any_analysis')
+def test_add_tags_to_object_unkown_analysis(t_object):
+    file_object = add_tags_to_object(t_object, 'any_analysis')
     assert not file_object.analysis_tags
 
 
-def test_add_tags_to_object_success(test_object):
-    test_object.processed_analysis['some_analysis'] = {'tags': {'tag': 'any_tag'}}
-    file_object = add_tags_to_object(test_object, 'some_analysis')
+def test_add_tags_to_object_success(t_object):
+    t_object.processed_analysis['some_analysis'] = {'tags': {'tag': 'any_tag'}}
+    file_object = add_tags_to_object(t_object, 'some_analysis')
     assert 'some_analysis' in file_object.analysis_tags
     assert file_object.analysis_tags['some_analysis'] == {'tag': 'any_tag'}
 
