@@ -69,7 +69,7 @@ class MockFileObject:
         self.processed_analysis = {'file_type': {'mime': 'application/x-executable'}}
 
 
-class DatabaseMock:
+class DatabaseMock:  # pylint: disable=too-many-public-methods
     fw_uid = TEST_FW.get_uid()
     fo_uid = TEST_TEXT_FILE.get_uid()
     fw2_uid = TEST_FW_2.get_uid()
@@ -325,6 +325,11 @@ class DatabaseMock:
 
     def get_specific_fields_of_db_entry(self, uid, field_dict):
         return None  # TODO
+
+    def get_summary(self, fo, selected_analysis):
+        if fo.uid == TEST_FW.get_uid() and selected_analysis == 'foobar':
+            return {'foobar': ['some_uid']}
+        return None
 
 
 def fake_exit(self, *args):
