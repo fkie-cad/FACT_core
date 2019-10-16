@@ -5,11 +5,11 @@ from pathlib import Path
 
 from common_helper_process import execute_shell_command_get_return_code
 
-from helperFunctions.install import apt_install_packages, InstallationError, apt_update_sources, OperateInDirectory
+from helperFunctions.install import InstallationError, OperateInDirectory, apt_install_packages, apt_update_sources
 
 
 def _get_db_directory():
-    output, return_code = execute_shell_command_get_return_code('grep -oP "dbPath:[\s]*\K[^\s]+" ../config/mongod.conf')
+    output, return_code = execute_shell_command_get_return_code(r'grep -oP "dbPath:[\s]*\K[^\s]+" ../config/mongod.conf')
     if return_code != 0:
         raise InstallationError('Unable to locate target for database directory')
     return output.strip()

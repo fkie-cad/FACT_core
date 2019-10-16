@@ -1,8 +1,9 @@
 import unittest
-from helperFunctions.uid import create_uid, is_uid, is_list_of_uids
+
+from helperFunctions.uid import create_uid, is_list_of_uids, is_uid
 
 
-class Test_helperFunctionsUID(unittest.TestCase):
+class TestHelperFunctionsUID(unittest.TestCase):
 
     test_uid = "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08_4"
 
@@ -21,6 +22,3 @@ class Test_helperFunctionsUID(unittest.TestCase):
         self.assertFalse(is_list_of_uids(['foobar']))
         self.assertFalse(is_list_of_uids([]))
         self.assertTrue([self.test_uid], "uid list not recognized")
-
-if __name__ == "__main__":
-    unittest.main()

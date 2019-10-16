@@ -1,6 +1,8 @@
 import unittest
 
-from helperFunctions.yara import get_longest_unique_matches, get_borders, match_is_longer, matches_overlap, get_matched_strings_dict
+from helperFunctions.yara import (
+    get_borders, get_longest_unique_matches, get_matched_strings_dict, match_is_longer, matches_overlap
+)
 
 
 class TestHelperFunctionsYara(unittest.TestCase):
@@ -34,6 +36,3 @@ class TestHelperFunctionsYara(unittest.TestCase):
         complex_match_dict = get_matched_strings_dict([self.a, self.c])
         self.assertIn('abcd', complex_match_dict.keys(), "first string not found")
         self.assertIn('abc', complex_match_dict.keys(), "second string not found")
-
-if __name__ == "__main__":
-    unittest.main()

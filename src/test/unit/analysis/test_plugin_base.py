@@ -1,14 +1,14 @@
-from configparser import ConfigParser
+# pylint: disable=protected-access
 import gc
 import os
-from time import sleep
 import unittest
+from configparser import ConfigParser
+from time import sleep
 
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.fileSystem import get_src_dir
 from objects.file import FileObject
 from plugins.analysis.dummy.code.dummy import AnalysisPlugin as DummyPlugin
-from test.common_helper import create_test_file_object
 
 
 class TestPluginBase(unittest.TestCase):
@@ -40,7 +40,8 @@ class TestPluginBase(unittest.TestCase):
 
 class TestPluginBaseCore(TestPluginBase):
 
-    def test_start_stop_workers(self):
+    @staticmethod
+    def test_start_stop_workers():
         sleep(2)
 
     def test_object_processing_no_childs(self):
@@ -117,15 +118,16 @@ class TestPluginNotRunning(TestPluginBase):
 
     def setUp(self):
         self.config = self.set_up_base_config()
+        self.p_base = None
 
     def tearDown(self):
         pass
 
     def multithread_config_test(self, multithread_flag, threads_in_config, threads_wanted):
         self.config.set('base', 'threads', threads_in_config)
-        self.pBase = AnalysisBasePlugin(self, self.config, no_multithread=multithread_flag)
-        self.assertEqual(self.pBase.config[self.pBase.NAME]['threads'], threads_wanted, 'number of threads not correct')
-        self.pBase.shutdown()
+        self.p_base = AnalysisBasePlugin(self, self.config, no_multithread=multithread_flag)
+        self.assertEqual(self.p_base.config[self.p_base.NAME]['threads'], threads_wanted, 'number of threads not correct')
+        self.p_base.shutdown()
 
     def test_no_multithread(self):
         self.multithread_config_test(True, '4', '1')
@@ -134,27 +136,28 @@ class TestPluginNotRunning(TestPluginBase):
         self.multithread_config_test(False, '2', '2')
 
     def test_init_result_dict(self):
-        self.pBase = AnalysisBasePlugin(self, self.config)
-        resultdict = self.pBase.init_dict()
+        self.p_base = AnalysisBasePlugin(self, self.config)
+        resultdict = self.p_base.init_dict()
         self.assertIn('analysis_date', resultdict, 'analysis date missing')
         self.assertEqual(resultdict['plugin_version'], 'not set', 'plugin version field not correct')
-        self.pBase.shutdown()
+        self.p_base.shutdown()
 
 
 class TestPluginTimeout(TestPluginBase):
 
     def setUp(self):
         self.config = self.set_up_base_config()
+        self.p_base = None
 
     def tearDown(self):
         pass
 
     def test_timeout(self):
-        self.pBase = DummyPlugin(self, self.config, timeout=0)
+        self.p_base = DummyPlugin(self, self.config, timeout=0)
         fo_in = FileObject(binary='test', scheduled_analysis=[])
-        self.pBase.add_job(fo_in)
-        fo_out = self.pBase.out_queue.get(timeout=5)
-        self.pBase.shutdown()
+        self.p_base.add_job(fo_in)
+        fo_out = self.p_base.out_queue.get(timeout=5)
+        self.p_base.shutdown()
         self.assertNotIn('summary', fo_out.processed_analysis['dummy_plugin_for_testing_only'])
 
     def register_plugin(self, name, plugin_object):
