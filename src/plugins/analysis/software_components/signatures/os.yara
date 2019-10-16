@@ -137,5 +137,5 @@ rule Contiki
 	strings:
 		$a = /Contiki\/\d+\.\d+/ nocase ascii wide
 	condition:
-		$a
+		$a and no_text_file
 }
