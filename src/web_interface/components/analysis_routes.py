@@ -4,6 +4,7 @@ import os
 from common_helper_files import get_binary_from_file
 from flask import flash, render_template, render_template_string, request
 from flask_login.utils import current_user
+
 from helperFunctions.dataConversion import none_to_none
 from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.mongo_task_conversion import (
@@ -64,7 +65,6 @@ class AnalysisRoutes(ComponentBase):
             if isinstance(file_obj, Firmware):
                 root_uid = file_obj.get_uid()
                 other_versions = sc.get_other_versions_of_firmware(file_obj)
-            summary_of_included_files = sc.get_summary(file_obj, selected_analysis) if selected_analysis else None
             included_fo_analysis_complete = not sc.all_uids_found_in_database(list(file_obj.files_included))
         with ConnectTo(InterComFrontEndBinding, self._config) as sc:
             analysis_plugins = sc.get_available_analysis_plugins()
@@ -74,7 +74,6 @@ class AnalysisRoutes(ComponentBase):
             firmware=file_obj,
             selected_analysis=selected_analysis,
             all_analyzed_flag=included_fo_analysis_complete,
-            summary_of_included_files=summary_of_included_files,
             root_uid=none_to_none(root_uid),
             firmware_including_this_fo=self._get_firmware_ids_including_this_file(file_obj),
             analysis_plugin_dict=analysis_plugins,

@@ -3,6 +3,7 @@ from typing import List
 
 from common_helper_files import human_readable_file_size
 from flask import jsonify, render_template
+
 from helperFunctions.file_tree import FileTreeNode, get_correct_icon_for_mime, remove_virtual_path_from_root
 from helperFunctions.web_interface import ConnectTo
 from intercom.front_end_binding import InterComFrontEndBinding
@@ -23,6 +24,7 @@ class AjaxRoutes(ComponentBase):
         self._app.add_url_rule('/compare/ajax_common_files/<compare_id>/<feature_id>/', 'compare/ajax_common_files/<compare_id>/<feature_id>/',
                                self._ajax_get_common_files_for_compare)
         self._app.add_url_rule('/ajax_get_binary/<mime_type>/<uid>', 'ajax_get_binary/<type>/<uid>', self._ajax_get_binary)
+        self._app.add_url_rule('/ajax_get_summary/<uid>/<selected_analysis>', 'ajax_get_summary/<uid>/<selected_analysis>', self._ajax_get_summary)
 
     def _get_exclusive_files(self, compare_id: str, root_uid: str) -> List[str]:
         if compare_id is None or root_uid is None:
@@ -143,3 +145,10 @@ class AjaxRoutes(ComponentBase):
         if 'image/' in mime_type:
             return '{}<img src="data:image/{} ;base64,{}" style="max-width:100%"></div>'.format(div, mime_type[6:], encode_base64_filter(binary))
         return None
+
+    @roles_accepted(*PRIVILEGES['view_analysis'])
+    def _ajax_get_summary(self, uid, selected_analysis):
+        with ConnectTo(FrontEndDbInterface, self._config) as sc:
+            firmware = sc.get_object(uid, analysis_filter=selected_analysis)
+            summary_of_included_files = sc.get_summary(firmware, selected_analysis)
+        return render_template('summary.html', summary_of_included_files=summary_of_included_files)

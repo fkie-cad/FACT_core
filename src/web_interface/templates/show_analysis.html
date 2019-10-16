@@ -184,19 +184,19 @@
             	<tr class="active">
                 	<td class="result" width="150">other versions</td>
                     <td class="result" style="{{ style }}">
-                                <button data-toggle="collapse" data-target="#other_versions" class="list-group-item list-group-item-info">
-                                    <span class="badge">{{ other_versions | length }}</span> show files
-                                </button>
-                                <div id="other_versions" class="collapse">
-                                    {% for version in other_versions %}
-                                        <a {% if selected_analysis %} href="/analysis/{{ version._id }}/{{selected_analysis}}"
-                                           {% else %} href="/analysis/{{ version._id }}"{% endif %} class="list-group-item">
-                                            <p class="list-group-item-text">
-                                                {{ version.version }}
-                                            </p>
-                                        </a>
-                                    {% endfor %}
-                                </div>
+                        <button data-toggle="collapse" data-target="#other_versions" class="list-group-item list-group-item-info">
+                            <span class="badge">{{ other_versions | length }}</span> show files
+                        </button>
+                        <div id="other_versions" class="collapse">
+                            {% for version in other_versions %}
+                                <a {% if selected_analysis %} href="/analysis/{{ version._id }}/{{selected_analysis}}"
+                                   {% else %} href="/analysis/{{ version._id }}"{% endif %} class="list-group-item">
+                                    <p class="list-group-item-text">
+                                        {{ version.version }}
+                                    </p>
+                                </a>
+                            {% endfor %}
+                        </div>
                     </td>
 				</tr>
 			{% endif %}
@@ -300,30 +300,26 @@
         {% endblock %}
     </div>
 
-    {% if summary_of_included_files %}
-    <div class="col-lg-12">
-    	<table class="table table-bordered result">
-			<colgroup>
-				<col width="100">
-				<col width="700">
-			</colgroup>
-			<tr>
-				<th class="success result" colspan=2>Summary Including Results of Included Files</th>
-			</tr>
-			<tr>
-				<td class="active result">item count</td>
-				<td class="active result">{{ summary_of_included_files | length }}
-			</tr>
-		{% for item in summary_of_included_files|sort %}
-    		<tr>
-				<td class="result">{{ item | wordwrap(width=60, break_long_words=True) }}</td>
-				<td class="result">
-					{{ summary_of_included_files[item] | nice_uid_list(root_uid=root_uid, selected_analysis=selected_analysis) | safe }}
-				</td>
-			</tr>
-    	{% endfor %}
-    	</table>
-    </div>
+    {# summary of included files #}
+    {% if firmware.vendor and selected_analysis %}
+        <div class="col-lg-12" id="summary-div">
+            <div id="loading-summary-gif" style="display: block; border: 1px solid #dddddd; padding: 5px; text-align: center">
+                <img src="{{ url_for("static", filename = "Pacman.gif") }}" alt="loading gif">
+                <p>Generating summary of included files...</p>
+            </div>
+        </div>
+        <script>
+            function hide_summary_gif() {
+                var loading_gif = document.getElementById("loading-summary-gif");
+                loading_gif.style.display = "none";
+            }
+            function load_summary(){
+                $("#summary-div").load("/ajax_get_summary/{{ uid|safe }}/{{ selected_analysis }}", hide_summary_gif);
+            }
+            $(document).ready(function() {
+                load_summary();
+            });
+        </script>
     {% endif %}
 
 
@@ -341,8 +337,8 @@
 		            <b style="color:#f8f8f8;">Show Preview</b>
 		        </button>
 		        <div id="preview-div" class="collapse">
-		            <div id="preview-loading-gif" style="display: block; border: 1px solid; border-color: #dddddd; padding: 5px; text-align: center">
-		                <img src="{{ url_for("static", filename = "Pacman.gif") }}">
+		            <div id="preview-loading-gif" style="display: block; border: 1px solid #dddddd; padding: 5px; text-align: center">
+		                <img src="{{ url_for("static", filename = "Pacman.gif") }}" alt="loading...">
 		            </div>
 		        </div>
 		        <script>
