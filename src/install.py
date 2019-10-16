@@ -69,6 +69,7 @@ def _get_console_output_level(debug_flag):
 
 def _setup_logging(log_level, log_file, debug_flag=False):
     try:
+        log_level = getattr(logging, log_level, None)
         log_format = logging.Formatter(fmt='[%(asctime)s][%(module)s][%(levelname)s]: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
         logger = logging.getLogger('')
         logger.setLevel(logging.DEBUG)
@@ -138,7 +139,7 @@ def install_statistic_cronjob():
 def install():
     check_python_version()
     args = _setup_argparser()
-    _setup_logging(getattr(logging, args.log_level, None), args.log_file, debug_flag=args.debug)
+    _setup_logging(args.log_level, args.log_file, debug_flag=args.debug)
     welcome()
     distribution = check_distribution()
     none_chosen = not (args.frontend or args.db or args.backend)
