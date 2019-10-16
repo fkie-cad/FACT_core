@@ -91,7 +91,7 @@ def create_dir_for_file(file_path: str, dir_description='directory'):
     Creates the directory of the file_path.
     '''
     try:
-        Path(file_path).absolute().mkdir(parents=True, exist_ok=True)
+        Path(file_path).absolute().parent.mkdir(parents=True, exist_ok=True)
     except Exception as exception:
         sys.exit('Error: Could not create {}: {} {}'.format(dir_description, type(exception).__name__, exception))
 
