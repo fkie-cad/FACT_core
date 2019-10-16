@@ -4,6 +4,7 @@ BusyBox v1.01
 BusyBox v1.5.1
 CUPS v1.4.4
 ChaiVM 7.0
+Contiki/2.4
 EFI Shell Version 1.0
 FileX ARM9/Green Hills Version G5.1.5.1
 GoAhead-Webs
