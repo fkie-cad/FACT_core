@@ -33,14 +33,14 @@ def test_check_tag_integrity_good():
     assert status is True
 
 
-def test_add_tags_to_object_unkown_analysis(t_object):
-    file_object = add_tags_to_object(t_object, 'any_analysis')
+def test_add_tags_to_object_unkown_analysis(test_object):  # pylint: disable=redefined-outer-name,invalid-name
+    file_object = add_tags_to_object(test_object, 'any_analysis')
     assert not file_object.analysis_tags
 
 
-def test_add_tags_to_object_success(t_object):
-    t_object.processed_analysis['some_analysis'] = {'tags': {'tag': 'any_tag'}}
-    file_object = add_tags_to_object(t_object, 'some_analysis')
+def test_add_tags_to_object_success(test_object):  # pylint: disable=redefined-outer-name
+    test_object.processed_analysis['some_analysis'] = {'tags': {'tag': 'any_tag'}}
+    file_object = add_tags_to_object(test_object, 'some_analysis')
     assert 'some_analysis' in file_object.analysis_tags
     assert file_object.analysis_tags['some_analysis'] == {'tag': 'any_tag'}
 
@@ -74,7 +74,7 @@ def test_check_tags_found():
     assert result['tags'] == {'some_stuff': 'anything'}
 
 
-def test_update_tags_propagate_exception():
+def test_update_tags_propagate_exception():  # pylint: disable=invalid-name
     bad_tag = {'value': 'good', 'color': 'bad color', 'propagate': True}
     with pytest.raises(ValueError):
         update_tags(dict(), 'some_plugin', 'any_tag', bad_tag)
