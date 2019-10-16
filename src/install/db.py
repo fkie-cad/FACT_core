@@ -9,7 +9,7 @@ from helperFunctions.install import InstallationError, OperateInDirectory, apt_i
 
 
 def _get_db_directory():
-    output, return_code = execute_shell_command_get_return_code('grep -oP "dbPath:[\s]*\K[^\s]+" ../config/mongod.conf')  # noqa: W605
+    output, return_code = execute_shell_command_get_return_code(r'grep -oP "dbPath:[\s]*\K[^\s]+" ../config/mongod.conf')
     if return_code != 0:
         raise InstallationError('Unable to locate target for database directory')
     return output.strip()
