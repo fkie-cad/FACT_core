@@ -39,6 +39,6 @@ class TestAppUpload(WebInterfaceTest):
             'analysis_systems': ['dummy']}, follow_redirects=True)
         assert b'Upload Successful' in rv.data
         assert b'c1f95369a99b765e93c335067e77a7d91af3076d2d3d64aacd04e1e0a810b3ed_17' in rv.data
-        self.assertEqual(self.mocked_interface.tasks[0].get_uid(), 'c1f95369a99b765e93c335067e77a7d91af3076d2d3d64aacd04e1e0a810b3ed_17', 'fw not added to intercom')
+        self.assertEqual(self.mocked_interface.tasks[0].uid, 'c1f95369a99b765e93c335067e77a7d91af3076d2d3d64aacd04e1e0a810b3ed_17', 'fw not added to intercom')
         self.assertIn('dummy', self.mocked_interface.tasks[0].scheduled_analysis, 'analysis system not added')
         self.assertEqual(self.mocked_interface.tasks[0].file_name, 'test_file.txt', 'file name not correct')

@@ -40,7 +40,7 @@ class TestStorageDbInterfaceFrontendEditing(unittest.TestCase):
     def test_add_comment(self):
         test_fw = create_test_firmware()
         self.db_backend_interface.add_object(test_fw)
-        comment, author, uid, time = 'this is a test comment!', 'author', test_fw.get_uid(), 1234567890
+        comment, author, uid, time = 'this is a test comment!', 'author', test_fw.uid, 1234567890
         self.db_frontend_editing.add_comment_to_object(uid, comment, author, time)
         test_fw = self.db_backend_interface.get_object(uid)
         self.assertEqual(
@@ -57,7 +57,7 @@ class TestStorageDbInterfaceFrontendEditing(unittest.TestCase):
         latest_comments = self.db_frontend_interface.get_latest_comments()
         comments.sort(key=lambda x: x['time'], reverse=True)
         for i in range(len(comments)):
-            time, author, comment, uid = comments[i]['time'], comments[i]['author'], comments[i]['comment'], test_fw.get_uid()
+            time, author, comment, uid = comments[i]['time'], comments[i]['author'], comments[i]['comment'], test_fw.uid
             self.assertEqual(latest_comments[i]['time'], time)
             self.assertEqual(latest_comments[i]['author'], author)
             self.assertEqual(latest_comments[i]['comment'], comment)
@@ -65,20 +65,20 @@ class TestStorageDbInterfaceFrontendEditing(unittest.TestCase):
 
     def test_remove_element_from_array_in_field(self):
         test_fw = self._add_test_fw_with_comments_to_db()
-        retrieved_fw = self.db_backend_interface.get_object(test_fw.get_uid())
+        retrieved_fw = self.db_backend_interface.get_object(test_fw.uid)
         self.assertEqual(len(retrieved_fw.comments), 2, 'comments were not saved correctly')
 
-        self.db_frontend_editing.remove_element_from_array_in_field(test_fw.get_uid(), 'comments', {'time': '1234567899'})
-        retrieved_fw = self.db_backend_interface.get_object(test_fw.get_uid())
+        self.db_frontend_editing.remove_element_from_array_in_field(test_fw.uid, 'comments', {'time': '1234567899'})
+        retrieved_fw = self.db_backend_interface.get_object(test_fw.uid)
         self.assertEqual(len(retrieved_fw.comments), 1, 'comment was not deleted')
 
     def test_delete_comment(self):
         test_fw = self._add_test_fw_with_comments_to_db()
-        retrieved_fw = self.db_backend_interface.get_object(test_fw.get_uid())
+        retrieved_fw = self.db_backend_interface.get_object(test_fw.uid)
         self.assertEqual(len(retrieved_fw.comments), 2, 'comments were not saved correctly')
 
-        self.db_frontend_editing.delete_comment(test_fw.get_uid(), '1234567899')
-        retrieved_fw = self.db_backend_interface.get_object(test_fw.get_uid())
+        self.db_frontend_editing.delete_comment(test_fw.uid, '1234567899')
+        retrieved_fw = self.db_backend_interface.get_object(test_fw.uid)
         self.assertEqual(len(retrieved_fw.comments), 1, 'comment was not deleted')
 
     def _add_test_fw_with_comments_to_db(self):

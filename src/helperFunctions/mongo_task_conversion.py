@@ -79,7 +79,7 @@ def convert_analysis_task_to_fw_obj(analysis_task):
     else:
         if 'file_name' in analysis_task.keys():
             fw.file_name = analysis_task['file_name']
-        fw.overwrite_uid(analysis_task['uid'])
+        fw.uid = analysis_task['uid']
     fw.set_device_name(analysis_task['device_name'])
     fw.set_part_name(analysis_task['device_part'])
     fw.set_firmware_version(analysis_task['version'])

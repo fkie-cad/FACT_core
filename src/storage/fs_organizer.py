@@ -29,7 +29,7 @@ class FS_Organizer(object):
         delete_file(local_file_path)
 
     def generate_path(self, file_object):
-        return self.generate_path_from_uid(file_object.get_uid())
+        return self.generate_path_from_uid(file_object.uid)
 
     def generate_path_from_uid(self, uid):
         return os.path.join(self.data_storage_path, uid[0:2], uid)

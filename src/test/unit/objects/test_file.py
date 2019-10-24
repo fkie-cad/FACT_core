@@ -34,8 +34,8 @@ class Test_Objects_File(unittest.TestCase):
         child = FileObject(binary=b'child')
         parent.add_included_file(child)
         self.assertEqual(len(parent.files_included), 1, 'number of included files not correct')
-        self.assertIn(child.get_uid(), parent.files_included, 'child uid not stored correctly')
-        self.assertIn(parent.get_uid(), child.parents, 'parent not added to child')
+        self.assertIn(child.uid, parent.files_included, 'child uid not stored correctly')
+        self.assertIn(parent.uid, child.parents, 'parent not added to child')
         self.assertEqual(child.depth, parent.depth + 1, 'child depth not updated')
         self.assertEqual(child.scheduled_analysis, ['test'], 'child did not get scheduled analysis list of parent')
 
@@ -46,16 +46,16 @@ class Test_Objects_File(unittest.TestCase):
         test_parent.add_included_file(test_child)
         test_parent.add_included_file(test_child2)
         self.assertEqual(len(test_parent.get_included_files_uids()), 2, 'number of uids not correct')
-        self.assertIn(test_child.get_uid(), test_parent.get_included_files_uids(), 'uid of first file not found')
-        self.assertIn(test_child2.get_uid(), test_parent.get_included_files_uids(), 'uid of second file not found')
+        self.assertIn(test_child.uid, test_parent.get_included_files_uids(), 'uid of first file not found')
+        self.assertIn(test_child2.uid, test_parent.get_included_files_uids(), 'uid of second file not found')
 
     def test_get_virtual_file_path(self):
         fo = FileObject(binary=b'file_object')
-        self.assertIn(fo.get_uid(), fo.get_virtual_file_paths().keys(), 'not correct if path _ name not set')
+        self.assertIn(fo.uid, fo.get_virtual_file_paths().keys(), 'not correct if path _ name not set')
         fo.set_name('the_file_name.txt')
-        self.assertEqual(fo.get_virtual_file_paths()[fo.get_uid()][0], fo.get_uid(), 'not correct if path not set')
-        fo.virtual_file_path = {fo.get_uid(): '/foo/bar/the_file_name.txt'}
-        self.assertEqual(fo.get_virtual_file_paths()[fo.get_uid()], '/foo/bar/the_file_name.txt', 'not correct if path set')
+        self.assertEqual(fo.get_virtual_file_paths()[fo.uid][0], fo.uid, 'not correct if path not set')
+        fo.virtual_file_path = {fo.uid: '/foo/bar/the_file_name.txt'}
+        self.assertEqual(fo.get_virtual_file_paths()[fo.uid], '/foo/bar/the_file_name.txt', 'not correct if path set')
 
     def test_get_root_of_virtual_path(self):
         fo = FileObject(binary=b'file_object')
@@ -79,7 +79,7 @@ class Test_Objects_File(unittest.TestCase):
 
     def test_get_one_virtual_path(self):
         fo = FileObject(binary=b'foo')
-        self.assertEqual(fo.get_virtual_paths_for_one_uid(), [fo.get_uid()], 'No Path set should be uid')
+        self.assertEqual(fo.get_virtual_paths_for_one_uid(), [fo.uid], 'No Path set should be uid')
         fo.virtual_file_path = {'uid_a': ['test_file_path_a'], 'uid_b': ['test_file_path_b'], 'uid_c': ['test_file_path_c']}
         self.assertEqual(fo.get_virtual_paths_for_one_uid(), ['test_file_path_a'])
         self.assertEqual(fo.get_virtual_paths_for_one_uid(root_uid='uid_b'), ['test_file_path_b'])
@@ -97,7 +97,7 @@ class Test_Objects_File(unittest.TestCase):
 
     def test_overwrite_uid(self):
         fo = create_test_file_object()
-        orig_uid = fo.get_uid()
+        orig_uid = fo.uid
         fo.overwrite_uid('new_uid')
-        self.assertNotEqual(fo.get_uid(), orig_uid, 'uid not changed')
-        self.assertEqual(fo.get_uid(), 'new_uid', 'new uid not correct')
+        self.assertNotEqual(fo.uid, orig_uid, 'uid not changed')
+        self.assertEqual(fo.uid, 'new_uid', 'new uid not correct')

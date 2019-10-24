@@ -48,7 +48,7 @@ class ComparePlugin(CompareBasePlugin):
         for i, current_element in enumerate(fo_list):
             tmp_list = deepcopy(fo_list)
             tmp_list.pop(i)
-            result[current_element.get_uid()] = difference_of_lists(current_element.list_of_all_included_files, self._get_list_of_file_lists(tmp_list))
+            result[current_element.uid] = difference_of_lists(current_element.list_of_all_included_files, self._get_list_of_file_lists(tmp_list))
         return result
 
     def _get_intersection_of_files(self, fo_list):
@@ -75,9 +75,9 @@ class ComparePlugin(CompareBasePlugin):
     def _get_files_in_more_than_one_but_not_in_all(fo_list, result_dict):
         result = {}
         for _, current_element in enumerate(fo_list):
-            result[current_element.get_uid()] = list(difference_of_sets(
+            result[current_element.uid] = list(difference_of_sets(
                 set(current_element.list_of_all_included_files),
-                [result_dict['files_in_common']['all'], result_dict['exclusive_files'][current_element.get_uid()]]
+                [result_dict['files_in_common']['all'], result_dict['exclusive_files'][current_element.uid]]
             ))
         return result
 
@@ -90,8 +90,8 @@ class ComparePlugin(CompareBasePlugin):
             tmp_list = deepcopy(fo_list)
             parent_one = tmp_list.pop(index)
             for parent_two in tmp_list:
-                for file_one in exclusive_files[parent_one.get_uid()]:
-                    for item, value in self._find_similar_file_for(file=file_one, parent_id=parent_one.get_uid(), potential_matches=parent_two):
+                for file_one in exclusive_files[parent_one.uid]:
+                    for item, value in self._find_similar_file_for(file=file_one, parent_id=parent_one.uid, potential_matches=parent_two):
                         similars.append(item)
                         similarity[convert_uid_list_to_compare_id(item)] = value
         similarity_sets = self.produce_similarity_sets(remove_duplicates_from_list_of_lists(similars))
@@ -103,7 +103,7 @@ class ComparePlugin(CompareBasePlugin):
         if hash_one:
             id1 = '{}:{}'.format(parent_id, file)
             for potential_match in potential_matches.files_included:
-                id2 = '{}:{}'.format(potential_matches.get_uid(), potential_match)
+                id2 = '{}:{}'.format(potential_matches.uid, potential_match)
                 hash_two = self.database.get_ssdeep_hash(potential_match)
 
                 if hash_two and get_ssdeep_comparison(hash_one, hash_two) > self.ssdeep_ignore_threshold:
@@ -144,7 +144,7 @@ class ComparePlugin(CompareBasePlugin):
     def _get_empty_match_dict(fo_list):
         empty = {}
         for fo in fo_list:
-            empty[fo.get_uid()] = None
+            empty[fo.uid] = None
         return empty
 
     def _get_non_zero_common_files(self, files_in_all, not_in_all):

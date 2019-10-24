@@ -41,5 +41,5 @@ class TestFsOrganizer(unittest.TestCase):
         self.check_file_presence_and_content('{}/36/36bbe50ed96841d10443bcb670d6554f0a34b761be67ec9c4a8ad2c0c44ca42c_5'.format(self.ds_tmp_dir.name), b'abcde')
         self.assertEqual(file_object.file_path, '{}/36/36bbe50ed96841d10443bcb670d6554f0a34b761be67ec9c4a8ad2c0c44ca42c_5'.format(self.ds_tmp_dir.name), 'wrong file path set in file object')
 
-        self.fs_organzier.delete_file(file_object.get_uid())
+        self.fs_organzier.delete_file(file_object.uid)
         self.assertFalse(os.path.exists(file_object.file_path), 'file not deleted')

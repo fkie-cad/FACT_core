@@ -121,7 +121,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             if parsed_binary.libraries:
                 binary_json_dict['libraries'] = normalize_lief_items(parsed_binary.libraries)
         except (TypeError, lief.bad_file) as error:
-            logging.error('Bad file for lief/elf analysis {}. {}'.format(file_object.get_uid(), error))
+            logging.error('Bad file for lief/elf analysis {}. {}'.format(file_object.uid, error))
             return elf_dict
 
         self.get_final_analysis_dict(binary_json_dict, elf_dict)

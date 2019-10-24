@@ -63,7 +63,7 @@ class AnalysisRoutes(ComponentBase):
             if not file_obj:
                 return render_template('uid_not_found.html', uid=uid)
             if isinstance(file_obj, Firmware):
-                root_uid = file_obj.get_uid()
+                root_uid = file_obj.uid
                 other_versions = sc.get_other_versions_of_firmware(file_obj)
             included_fo_analysis_complete = not sc.all_uids_found_in_database(list(file_obj.files_included))
         with ConnectTo(InterComFrontEndBinding, self._config) as sc:

@@ -25,7 +25,7 @@ class MockDbInterface(object):
         self.fw.processed_analysis['file_hashes'] = {'ssdeep': get_ssdeep(self.fw.binary)}
 
     def get_object(self, uid, analysis_filter=None):
-        if uid == self.fw.get_uid():
+        if uid == self.fw.uid:
             return self.fw
         elif uid == 'error':
             return None
@@ -64,14 +64,14 @@ class TestCompare(unittest.TestCase):
     def test_create_general_section_dict(self):
         result = self.compare_system._create_general_section_dict([self.fw_one, self.fw_two])
         self.assertIsInstance(result, dict, 'result is not a dict')
-        self.assertEqual(result['device_name'][self.fw_one.get_uid()], 'dev_1')
-        self.assertEqual(result['device_name'][self.fw_two.get_uid()], 'dev_2')
-        self.assertEqual(result['device_class'][self.fw_one.get_uid()], 'Router')
-        self.assertEqual(result['vendor'][self.fw_one.get_uid()], 'test_vendor')
-        self.assertEqual(result['version'][self.fw_one.get_uid()], '0.1')
-        self.assertEqual(result['release_date'][self.fw_one.get_uid()], '1970-01-01')
-        self.assertEqual(result['size'][self.fw_one.get_uid()], len(self.fw_one.binary))
-        self.assertEqual(result['virtual_file_path'][self.fw_one.get_uid()], [self.fw_one.get_uid()])
+        self.assertEqual(result['device_name'][self.fw_one.uid], 'dev_1')
+        self.assertEqual(result['device_name'][self.fw_two.uid], 'dev_2')
+        self.assertEqual(result['device_class'][self.fw_one.uid], 'Router')
+        self.assertEqual(result['vendor'][self.fw_one.uid], 'test_vendor')
+        self.assertEqual(result['version'][self.fw_one.uid], '0.1')
+        self.assertEqual(result['release_date'][self.fw_one.uid], '1970-01-01')
+        self.assertEqual(result['size'][self.fw_one.uid], len(self.fw_one.binary))
+        self.assertEqual(result['virtual_file_path'][self.fw_one.uid], [self.fw_one.uid])
 
     def test_plugin_system(self):
         self.assertGreater(len(self.compare_system.compare_plugins), 0, 'no compare plugin found')
