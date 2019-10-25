@@ -125,7 +125,7 @@ class FileObject():  # pylint: disable=too-many-instance-attributes
     def get_virtual_file_paths(self):
         if self.virtual_file_path:
             return self.virtual_file_path
-        return {self.uid: ['{}'.format(self.uid)]}
+        return {self.uid: [str(self.uid)]}
 
     @staticmethod
     def get_root_of_virtual_path(virtual_path):
