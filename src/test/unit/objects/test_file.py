@@ -1,12 +1,12 @@
-from common_helper_files import get_binary_from_file
 import unittest
+
+from common_helper_files import get_binary_from_file
 
 from helperFunctions.fileSystem import get_test_data_dir
 from objects.file import FileObject
-from test.common_helper import create_test_file_object
 
 
-class Test_Objects_File(unittest.TestCase):
+class TestObjectsFile(unittest.TestCase):
 
     def test_get_file_from_binary(self):
         file_path = '{}/test_data_file.bin'.format(get_test_data_dir())
@@ -94,10 +94,3 @@ class Test_Objects_File(unittest.TestCase):
         fo = FileObject()
         result = fo.get_top_of_virtual_path('foo|bar|test')
         self.assertEqual(result, 'test', 'top should be test')
-
-    def test_overwrite_uid(self):
-        fo = create_test_file_object()
-        orig_uid = fo.uid
-        fo.overwrite_uid('new_uid')
-        self.assertNotEqual(fo.uid, orig_uid, 'uid not changed')
-        self.assertEqual(fo.uid, 'new_uid', 'new uid not correct')

@@ -2,6 +2,7 @@ import logging
 import os
 
 from common_helper_files import get_binary_from_file
+
 from helperFunctions.dataConversion import get_value_of_first_key, make_bytes, make_unicode_string
 from helperFunctions.hash import get_sha256
 from helperFunctions.uid import create_uid
@@ -56,15 +57,6 @@ class FileObject():  # pylint: disable=too-many-instance-attributes
             self.create_from_file(file_path)
         if self.file_name is None:
             self.set_name(os.path.basename(file_path))
-
-    def get_uid(self):
-        logging.warning('Deprecation warning: "get_uid()" was replaced by "uid" and will be removed in a future update')
-        return self.uid
-
-    def overwrite_uid(self, new_uid):
-        logging.warning('Deprecation warning: "overwrite_uid()" was replaced by directly setting "uid" and will be '
-                        'removed in a future update')
-        self.uid = new_uid
 
     @property
     def uid(self):
