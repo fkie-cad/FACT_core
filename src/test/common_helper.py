@@ -141,7 +141,8 @@ class DatabaseMock:  # pylint: disable=too-many-public-methods
         if compare_id == normalize_compare_id(';'.join([TEST_FW.uid, TEST_FW_2.uid])):
             return {
                 'this_is': 'a_compare_result',
-                'general': {'hid': {TEST_FW.uid: 'foo', TEST_TEXT_FILE.uid: 'bar'}}
+                'general': {'hid': {TEST_FW.uid: 'foo', TEST_TEXT_FILE.uid: 'bar'}},
+                'plugins': {'File_Coverage': {'some_feature': {TEST_FW.uid: [TEST_TEXT_FILE.uid]}}}
             }
         if compare_id == normalize_compare_id(';'.join([TEST_FW.uid, TEST_TEXT_FILE.uid])):
             return {'this_is': 'a_compare_result'}
@@ -190,7 +191,7 @@ class DatabaseMock:  # pylint: disable=too-many-public-methods
             return {}
 
     def get_data_for_nice_list(self, input_data, root_uid):
-        return []
+        return [input_data, root_uid]
 
     @staticmethod
     def create_analysis_structure():

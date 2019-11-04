@@ -122,7 +122,8 @@ class AjaxRoutes(ComponentBase):
         uid_list = result['plugins']['File_Coverage'][feature][matching_uid]
         return self._get_nice_uid_list_html(uid_list, root_uid=self._get_root_uid(matching_uid, compare_id))
 
-    def _get_root_uid(self, candidate, compare_id):
+    @staticmethod
+    def _get_root_uid(candidate, compare_id):
         # feature_id contains a uid in individual case, in all case simply take first uid from compare
         if candidate != 'all':
             return candidate
