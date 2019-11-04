@@ -19,7 +19,6 @@
 
 import argparse
 import logging
-import os
 import sys
 from pathlib import Path
 
@@ -42,7 +41,7 @@ PROGRAM_DESCRIPTION = 'Firmware Analysis and Comparison Tool (FACT) installation
 
 INSTALL_CANDIDATES = ['frontend', 'db', 'backend']
 
-BIONIC_CODE_NAMES = ['bionic', 'tara']
+BIONIC_CODE_NAMES = ['bionic', 'tara', 'tessa', 'tina']
 XENIAL_CODE_NAMES = ['xenial', 'yakkety', 'sarah', 'serena', 'sonya', 'sylvia']
 
 
@@ -65,18 +64,17 @@ def _setup_argparser():
 def _get_console_output_level(debug_flag):
     if debug_flag:
         return logging.DEBUG
-    else:
-        return logging.INFO
+    return logging.INFO
 
 
-def _setup_logging(args, debug_flag=False):
+def _setup_logging(log_level, log_file, debug_flag=False):
     try:
-        log_level = getattr(logging, args.log_level, None)
+        log_level = getattr(logging, log_level, None)
         log_format = logging.Formatter(fmt='[%(asctime)s][%(module)s][%(levelname)s]: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
         logger = logging.getLogger('')
         logger.setLevel(logging.DEBUG)
-        create_dir_for_file(args.log_file, dir_description='logging directory')
-        file_log = logging.FileHandler(args.log_file)
+        create_dir_for_file(log_file, dir_description='logging directory')
+        file_log = logging.FileHandler(log_file)
         file_log.setLevel(log_level)
         file_log.setFormatter(log_format)
         console_log = logging.StreamHandler()
@@ -84,23 +82,22 @@ def _setup_logging(args, debug_flag=False):
         console_log.setFormatter(log_format)
         logger.addHandler(file_log)
         logger.addHandler(console_log)
-    except Exception as e:
-        sys.exit('Error: Could not setup logging: {} {}'.format(sys.exc_info()[0].__name__, e))
+    except Exception as exception:
+        sys.exit('Error: Could not setup logging: {} {}'.format(type(exception).__name__, exception))
 
 
-def create_dir_for_file(file_path, dir_description='directory'):
+def create_dir_for_file(file_path: str, dir_description='directory'):
     '''
     Creates the directory of the file_path.
     '''
-    directory = os.path.dirname(os.path.abspath(file_path))
     try:
-        os.makedirs(directory, exist_ok=True)
-    except Exception as e:
-        sys.exit('Error: Could not create {}: {} {}'.format(dir_description, sys.exc_info()[0].__name__, e))
+        Path(file_path).absolute().parent.mkdir(parents=True, exist_ok=True)
+    except Exception as exception:
+        sys.exit('Error: Could not create {}: {} {}'.format(dir_description, type(exception).__name__, exception))
 
 
-def get_directory_of_current_file():
-    return os.path.dirname(os.path.abspath(__file__))
+def get_directory_of_current_file() -> Path:
+    return Path(__file__).parent.absolute()
 
 
 def welcome():
@@ -120,19 +117,18 @@ def check_distribution():
     if codename in BIONIC_CODE_NAMES:
         logging.debug('Ubuntu 18.04 detected')
         return 'bionic'
-    else:
-        sys.exit('Your Distribution ({} {}) is not supported. FACT Installer requires Ubuntu 16.04, Ubuntu 18.04 or compatible!'.format(distro.id(), distro.version()))
+    sys.exit('Your Distribution ({} {}) is not supported. FACT Installer requires Ubuntu 16.04, Ubuntu 18.04 or compatible!'.format(distro.id(), distro.version()))
 
 
 def install_statistic_cronjob():
     logging.info('install cronjob for statistic and variety data updates')
-    statistic_update_script_path = os.path.join(get_directory_of_current_file(), 'update_statistic.py')
-    variety_update_script_path = os.path.join(get_directory_of_current_file(), 'update_variety_data.py')
-    crontab_file_path = os.path.join(get_directory_of_current_file(), '../update_statistic.cron')
+    current_dir = get_directory_of_current_file()
+    statistic_update_script_path = current_dir / 'update_statistic.py'
+    variety_update_script_path = current_dir / 'update_variety_data.py'
+    crontab_file_path = current_dir.parent / 'update_statistic.cron'
     cron_content = '0    *    *    *    *    {} > /dev/null 2>&1\n'.format(statistic_update_script_path)
     cron_content += '30    0    *    *    0    {} > /dev/null 2>&1\n'.format(variety_update_script_path)
-    with open(crontab_file_path, 'w') as f:
-        f.write(cron_content)
+    crontab_file_path.write_text(cron_content)
     output, return_code = execute_shell_command_get_return_code('crontab {}'.format(crontab_file_path))
     if return_code != 0:
         logging.error(output)
@@ -140,17 +136,17 @@ def install_statistic_cronjob():
         logging.info('done')
 
 
-if __name__ == '__main__':
+def install():
     check_python_version()
     args = _setup_argparser()
-    _setup_logging(args, debug_flag=args.debug)
+    _setup_logging(args.log_level, args.log_file, debug_flag=args.debug)
     welcome()
     distribution = check_distribution()
     none_chosen = not (args.frontend or args.db or args.backend)
 
-    installation_directory = str(Path(Path(__file__).parent, 'install').absolute())
+    installation_directory = get_directory_of_current_file() / 'install'
 
-    with OperateInDirectory(installation_directory):
+    with OperateInDirectory(str(installation_directory)):
         common(distribution)
 
         if args.frontend or none_chosen:
@@ -167,3 +163,7 @@ if __name__ == '__main__':
     logging.warning('If FACT does not start, reload the environment variables with: source /etc/profile')
 
     sys.exit()
+
+
+if __name__ == '__main__':
+    install()
