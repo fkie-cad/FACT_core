@@ -118,11 +118,17 @@ class AjaxRoutes(ComponentBase):
     def _ajax_get_common_files_for_compare(self, compare_id, feature_id):
         with ConnectTo(CompareDbInterface, self._config) as sc:
             result = sc.get_compare_result(compare_id)
-        feature, key = feature_id.split('___')
-        uid_list = result['plugins']['File_Coverage'][feature][key]
-        return self._get_nice_uid_list_html(uid_list, key)
+        feature, matching_uid = feature_id.split('___')
+        uid_list = result['plugins']['File_Coverage'][feature][matching_uid]
+        return self._get_nice_uid_list_html(uid_list, root_uid=self._get_root_uid(matching_uid, compare_id))
 
-    def _get_nice_uid_list_html(self, input_data, root_uid=None):
+    def _get_root_uid(self, candidate, compare_id):
+        # feature_id contains a uid in individual case, in all case simply take first uid from compare
+        if candidate != 'all':
+            return candidate
+        return compare_id.split(';')[0]
+
+    def _get_nice_uid_list_html(self, input_data, root_uid):
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
             included_files = sc.get_data_for_nice_list(input_data, None)
         number_of_unanalyzed_files = len(input_data) - len(included_files)
