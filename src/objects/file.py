@@ -58,6 +58,10 @@ class FileObject():  # pylint: disable=too-many-instance-attributes
         if self.file_name is None:
             self.set_name(os.path.basename(file_path))
 
+    def get_uid(self):
+        logging.warning('Deprecation warning: "get_uid()" was replaced by "uid" and will be removed in a future update')
+        return self.uid
+
     @property
     def uid(self):
         if self._uid is None and self.binary is not None:
