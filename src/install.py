@@ -43,7 +43,7 @@ INSTALL_CANDIDATES = ['frontend', 'db', 'backend']
 
 BIONIC_CODE_NAMES = ['bionic', 'tara', 'tessa', 'tina']
 XENIAL_CODE_NAMES = ['xenial', 'yakkety', 'sarah', 'serena', 'sonya', 'sylvia']
-DEBIAN_CODE_NAMES = ['buster', 'jessie', 'kali-rolling']
+DEBIAN_CODE_NAMES = ['buster', 'stretch', 'kali-rolling']
 
 
 def _setup_argparser():

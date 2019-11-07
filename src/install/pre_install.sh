@@ -12,8 +12,8 @@ elif [ "${CODENAME}" = "rebecca" ] || [ "${CODENAME}" = "rafaela" ] || [ "${CODE
     sudo apt-get -y install "linux-image-extra-$(uname -r)" linux-image-extra-virtual
 elif  [ "${CODENAME}" = "kali-rolling" ] || [ "${CODENAME}" = "buster" ]; then
     CODENAME=buster
-elif  [ "${CODENAME}" = "jessie" ]; then
-    CODENAME=jessie
+elif  [ "${CODENAME}" = "stretch" ]; then
+    CODENAME=stretch
 fi
 
 echo "Install Pre-Install Requirements"
@@ -27,7 +27,7 @@ sudo apt-get -y remove docker docker-engine docker.io
 # Install packages to allow apt to use a repository over HTTPS
 sudo apt-get -y install apt-transport-https ca-certificates curl software-properties-common
 
-if [ "${CODENAME}" = "jessie" ] || [ "${CODENAME}" = "buster" ]
+if [ "${CODENAME}" = "stretch" ] || [ "${CODENAME}" = "buster" ]
 then
     # Add Docker’s official GPG key
     curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
@@ -42,7 +42,7 @@ else
     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
 
     # set up the stable repository
-    if [ ! grep -q "^deb .*download.docker.com/linux/ubuntu" /etc/apt/sources.list /etc/apt/sources.list.d/* ]
+    if  ! grep -q "^deb .*download.docker.com/linux/ubuntu" /etc/apt/sources.list /etc/apt/sources.list.d/*
     then
         sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $CODENAME stable"
     fi
