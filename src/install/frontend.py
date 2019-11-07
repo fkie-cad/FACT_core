@@ -103,7 +103,7 @@ def configure_nginx():
 
 
 def main(radare, nginx):
-    execute_shell_command_get_return_code('sudo -EH pip3 install werkzeug==0.14.1')  # FIXME pinning werkzeug because of broken tests
+    execute_shell_command_get_return_code('sudo -EH pip3 install werkzeug==0.14.1')  # FIXME pinning werkzeug because of broken tests, FIXME this leads to a new bug on kali installation
     pip3_install_packages('flask', 'flask_restful', 'flask_security', 'flask_sqlalchemy', 'flask-paginate', 'Flask-API', 'uwsgi', 'bcrypt', 'python-dateutil')
 
     # installing web/js-frameworks

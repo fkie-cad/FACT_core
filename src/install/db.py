@@ -37,8 +37,6 @@ def _add_mongo_mirror(distribution):
         raise InstallationError('Unable to set up mongodb installation\n{}'.format('\n'.join((apt_key_output, tee_output))))
 
 
-
-
 def main(distribution):
     logging.info('Setting up mongo database')
 

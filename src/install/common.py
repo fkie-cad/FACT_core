@@ -29,6 +29,7 @@ def _install_lief_from_sources():
             'sudo -EH python3 setup.py install'
         ])  # Maybe check if this can be omitted on debian stretch
 
+
 def main(distribution):  # pylint: disable=too-many-statements
     apt_install_packages('apt-transport-https')
 
