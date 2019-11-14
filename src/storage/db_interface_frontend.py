@@ -124,7 +124,7 @@ class FrontEndDbInterface(MongoInterfaceCommon):
             return True
         query = self._build_search_query_for_uid_list(uid_list)
         number_of_results = self.get_firmware_number(query) + self.get_file_object_number(query)
-        return len(uid_list) == number_of_results
+        return number_of_results >= len(uid_list)
 
     def generic_search(self, search_dict, skip=0, limit=0, only_fo_parent_firmware=False):
         try:
