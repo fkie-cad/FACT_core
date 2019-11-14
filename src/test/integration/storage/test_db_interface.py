@@ -74,27 +74,27 @@ class TestMongoInterface(unittest.TestCase):
     def test_existence_quick_check(self):
         self.assertFalse(self.db_interface.existence_quick_check('none_existing'), 'none existing firmware found')
         self.db_interface_backend.add_firmware(self.test_firmware)
-        self.assertTrue(self.db_interface.existence_quick_check(self.test_firmware.get_uid()), 'existing firmware not found')
+        self.assertTrue(self.db_interface.existence_quick_check(self.test_firmware.uid), 'existing firmware not found')
         self.db_interface_backend.add_file_object(self.test_fo)
-        self.assertTrue(self.db_interface.existence_quick_check(self.test_fo.get_uid()), 'existing file not found')
+        self.assertTrue(self.db_interface.existence_quick_check(self.test_fo.uid), 'existing file not found')
 
     def test_get_firmware(self):
         self.db_interface_backend.add_firmware(self.test_firmware)
-        fobject = self.db_interface.get_firmware(self.test_firmware.get_uid())
+        fobject = self.db_interface.get_firmware(self.test_firmware.uid)
         self.assertEqual(fobject.vendor, 'test_vendor')
         self.assertEqual(fobject.device_name, 'test_router')
         self.assertEqual(fobject.part, '')
 
     def test_get_object(self):
-        fo = self.db_interface.get_object(self.test_firmware.get_uid())
+        fo = self.db_interface.get_object(self.test_firmware.uid)
         self.assertIsNone(fo, 'found something but there is nothing in the database')
         self.db_interface_backend.add_firmware(self.test_firmware)
-        fo = self.db_interface.get_object(self.test_firmware.get_uid())
+        fo = self.db_interface.get_object(self.test_firmware.uid)
         self.assertIsInstance(fo, Firmware, 'firmware has wrong type')
         self.assertEqual(fo.device_name, 'test_router', 'Device name in Firmware not correct')
         test_file = FileObject(file_path=path.join(get_test_data_dir(), 'get_files_test/testfile2'))
         self.db_interface_backend.add_file_object(test_file)
-        fo = self.db_interface.get_object(test_file.get_uid())
+        fo = self.db_interface.get_object(test_file.uid)
         self.assertIsInstance(fo, FileObject, 'file object has wrong type')
 
     def test_get_complete_object_including_all_summaries(self):
@@ -103,7 +103,7 @@ class TestMongoInterface(unittest.TestCase):
         self.test_firmware.add_included_file(test_file)
         self.db_interface_backend.add_firmware(self.test_firmware)
         self.db_interface_backend.add_file_object(test_file)
-        tmp = self.db_interface.get_complete_object_including_all_summaries(self.test_firmware.get_uid())
+        tmp = self.db_interface.get_complete_object_including_all_summaries(self.test_firmware.uid)
         self.assertIsInstance(tmp, Firmware, 'wrong type')
         self.assertIn('summary', tmp.processed_analysis['dummy'].keys(), 'summary not found in processed analysis')
         self.assertIn('sum a', tmp.processed_analysis['dummy']['summary'], 'summary of original file not included')
@@ -114,15 +114,15 @@ class TestMongoInterface(unittest.TestCase):
         long_dict = {'stub_plugin': {'result': 10000000000, 'misc': 'Bananarama', 'summary': []}}
 
         self.test_firmware.processed_analysis = short_dict
-        sanitized_dict = self.db_interface.sanitize_analysis(self.test_firmware.processed_analysis, self.test_firmware.get_uid())
+        sanitized_dict = self.db_interface.sanitize_analysis(self.test_firmware.processed_analysis, self.test_firmware.uid)
         self.assertIn('file_system_flag', sanitized_dict['stub_plugin'].keys())
         self.assertFalse(sanitized_dict['stub_plugin']['file_system_flag'])
         self.assertEqual(self.db_interface.sanitize_fs.list(), [], 'file stored in db but should not')
 
         self.test_firmware.processed_analysis = long_dict
-        sanitized_dict = self.db_interface.sanitize_analysis(self.test_firmware.processed_analysis, self.test_firmware.get_uid())
-        self.assertIn('stub_plugin_result_{}'.format(self.test_firmware.get_uid()), self.db_interface.sanitize_fs.list(), 'sanitized file not stored')
-        self.assertNotIn('summary_result_{}'.format(self.test_firmware.get_uid()), self.db_interface.sanitize_fs.list(), 'summary is erroneously stored')
+        sanitized_dict = self.db_interface.sanitize_analysis(self.test_firmware.processed_analysis, self.test_firmware.uid)
+        self.assertIn('stub_plugin_result_{}'.format(self.test_firmware.uid), self.db_interface.sanitize_fs.list(), 'sanitized file not stored')
+        self.assertNotIn('summary_result_{}'.format(self.test_firmware.uid), self.db_interface.sanitize_fs.list(), 'summary is erroneously stored')
         self.assertIn('file_system_flag', sanitized_dict['stub_plugin'].keys())
         self.assertTrue(sanitized_dict['stub_plugin']['file_system_flag'])
         self.assertEqual(type(sanitized_dict['stub_plugin']['summary']), list)
@@ -150,12 +150,12 @@ class TestMongoInterface(unittest.TestCase):
 
     def test_get_objects_by_uid_list(self):
         self.db_interface_backend.add_firmware(self.test_firmware)
-        fo_list = self.db_interface.get_objects_by_uid_list([self.test_firmware.get_uid()])
+        fo_list = self.db_interface.get_objects_by_uid_list([self.test_firmware.uid])
         self.assertIsInstance(fo_list[0], Firmware, 'firmware has wrong type')
         self.assertEqual(fo_list[0].device_name, 'test_router', 'Device name in Firmware not correct')
         test_file = FileObject(file_path=path.join(get_test_data_dir(), 'get_files_test/testfile2'))
         self.db_interface_backend.add_file_object(test_file)
-        fo_list = self.db_interface.get_objects_by_uid_list([test_file.get_uid()])
+        fo_list = self.db_interface.get_objects_by_uid_list([test_file.uid])
         self.assertIsInstance(fo_list[0], FileObject, 'file object has wrong type')
 
     def test_sanitize_extract_and_retrieve_binary(self):
@@ -230,16 +230,16 @@ class TestMongoInterface(unittest.TestCase):
         assert not self.db_interface.check_unpacking_lock(self.test_fo.uid), 'add_object should release lock'
 
     def test_is_firmware(self):
-        assert self.db_interface.is_firmware(self.test_firmware.get_uid()) is False
+        assert self.db_interface.is_firmware(self.test_firmware.uid) is False
 
         self.db_interface_backend.add_firmware(self.test_firmware)
-        assert self.db_interface.is_firmware(self.test_firmware.get_uid()) is True
+        assert self.db_interface.is_firmware(self.test_firmware.uid) is True
 
     def test_is_file_object(self):
-        assert self.db_interface.is_file_object(self.test_fo.get_uid()) is False
+        assert self.db_interface.is_file_object(self.test_fo.uid) is False
 
         self.db_interface_backend.add_file_object(self.test_fo)
-        assert self.db_interface.is_file_object(self.test_fo.get_uid()) is True
+        assert self.db_interface.is_file_object(self.test_fo.uid) is True
 
 
 class TestSummary(unittest.TestCase):
@@ -269,11 +269,11 @@ class TestSummary(unittest.TestCase):
         result_set_fo = self.db_interface.get_set_of_all_included_files(self.test_fo)
         self.assertIsInstance(result_set_fo, set, 'result is not a set')
         self.assertEqual(len(result_set_fo), 1, 'number of files not correct')
-        self.assertIn(self.test_fo.get_uid(), result_set_fo, 'object not in its own result set')
+        self.assertIn(self.test_fo.uid, result_set_fo, 'object not in its own result set')
         result_set_fw = self.db_interface.get_set_of_all_included_files(self.test_fw)
         self.assertEqual(len(result_set_fw), 2, 'number of files not correct')
-        self.assertIn(self.test_fo.get_uid(), result_set_fw, 'test file not in result set firmware')
-        self.assertIn(self.test_fw.get_uid(), result_set_fw, 'fw not in result set firmware')
+        self.assertIn(self.test_fo.uid, result_set_fw, 'test file not in result set firmware')
+        self.assertIn(self.test_fw.uid, result_set_fw, 'fw not in result set firmware')
 
     def test_get_uids_of_all_included_files(self):
         def add_test_file_to_db_with_parent_uids(uid, parent_uids: Set[str]):
@@ -294,12 +294,12 @@ class TestSummary(unittest.TestCase):
         result_sum = self.db_interface.get_summary(self.test_fw, 'dummy')
         self.assertIsInstance(result_sum, dict, 'summary is not a dict')
         self.assertIn('sum a', result_sum, 'summary entry of parent missing')
-        self.assertIn(self.test_fw.get_uid(), result_sum['sum a'], 'origin (parent) missing in parent summary entry')
-        self.assertIn(self.test_fo.get_uid(), result_sum['sum a'], 'origin (child) missing in parent summary entry')
-        self.assertNotIn(self.test_fo.get_uid(), result_sum['fw exclusive sum a'], 'child as origin but should not be')
+        self.assertIn(self.test_fw.uid, result_sum['sum a'], 'origin (parent) missing in parent summary entry')
+        self.assertIn(self.test_fo.uid, result_sum['sum a'], 'origin (child) missing in parent summary entry')
+        self.assertNotIn(self.test_fo.uid, result_sum['fw exclusive sum a'], 'child as origin but should not be')
         self.assertIn('file exclusive sum b', result_sum, 'file exclusive summary missing')
-        self.assertIn(self.test_fo.get_uid(), result_sum['file exclusive sum b'], 'origin of file exclusive missing')
-        self.assertNotIn(self.test_fw.get_uid(), result_sum['file exclusive sum b'], 'parent as origin but should not be')
+        self.assertIn(self.test_fo.uid, result_sum['file exclusive sum b'], 'origin of file exclusive missing')
+        self.assertNotIn(self.test_fw.uid, result_sum['file exclusive sum b'], 'parent as origin but should not be')
 
     def test_collect_summary(self):
         self.create_and_add_test_fimrware_and_file_object()

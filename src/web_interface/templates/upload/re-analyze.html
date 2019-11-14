@@ -18,7 +18,7 @@
 
 <div class="row">
     <div class="col-xs-offset-2 col-md-8">
-        <h2>{{ title }} of {{ firmware.get_uid() | replace_uid_with_hid }}</h2>
+        <h2>{{ title }} of {{ firmware.uid | replace_uid_with_hid }}</h2>
 
         <img id="map_img" src="{{url_for('.static', filename='Pacman.gif')}}" style="display: none;"/>
         <script>

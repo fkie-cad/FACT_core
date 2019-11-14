@@ -196,13 +196,13 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             self._start_or_skip_analysis(analysis_to_do, fw_object)
 
     def _start_or_skip_analysis(self, analysis_to_do: str, file_object: FileObject):
-        if self._analysis_is_already_in_db_and_up_to_date(analysis_to_do, file_object.get_uid()):
-            logging.debug('skipping analysis "{}" for {} (analysis already in DB)'.format(analysis_to_do, file_object.get_uid()))
+        if self._analysis_is_already_in_db_and_up_to_date(analysis_to_do, file_object.uid):
+            logging.debug('skipping analysis "{}" for {} (analysis already in DB)'.format(analysis_to_do, file_object.uid))
             if analysis_to_do in self._get_cumulative_remaining_dependencies(file_object.scheduled_analysis):
                 self._add_completed_analysis_results_to_file_object(analysis_to_do, file_object)
             self.check_further_process_or_complete(file_object)
         elif analysis_to_do not in MANDATORY_PLUGINS and self._next_analysis_is_blacklisted(analysis_to_do, file_object):
-            logging.debug('skipping analysis "{}" for {} (blacklisted file type)'.format(analysis_to_do, file_object.get_uid()))
+            logging.debug('skipping analysis "{}" for {} (blacklisted file type)'.format(analysis_to_do, file_object.uid))
             file_object.processed_analysis[analysis_to_do] = self._get_skipped_analysis_result(analysis_to_do)
             self.post_analysis(file_object)
             self.check_further_process_or_complete(file_object)
@@ -211,7 +211,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
 
     def _add_completed_analysis_results_to_file_object(self, analysis_to_do: str, fw_object: FileObject):
         db_entry = self.db_backend_service.get_specific_fields_of_db_entry(
-            fw_object.get_uid(), {'processed_analysis.{}'.format(analysis_to_do): 1}
+            fw_object.uid, {'processed_analysis.{}'.format(analysis_to_do): 1}
         )
         desanitized_analysis = self.db_backend_service.retrieve_analysis(db_entry['processed_analysis'])
         fw_object.processed_analysis[analysis_to_do] = desanitized_analysis[analysis_to_do]

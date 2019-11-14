@@ -14,23 +14,23 @@ class TestAppCompare(WebInterfaceTest):
 
     def test_add_firmwares_to_compare(self):
         with self.test_client:
-            rv = self.test_client.get('/comparison/add/{}'.format(TEST_FW.get_uid()), follow_redirects=True)
+            rv = self.test_client.get('/comparison/add/{}'.format(TEST_FW.uid), follow_redirects=True)
             self.assertIn('Firmwares Selected for Comparison', rv.data.decode())
             self.assertIn('uids_for_comparison', session)
-            self.assertIn(TEST_FW.get_uid(), session['uids_for_comparison'])
+            self.assertIn(TEST_FW.uid, session['uids_for_comparison'])
 
     def test_add_firmwares_to_compare__multiple(self):
         with self.test_client as tc:
             with tc.session_transaction() as test_session:
-                test_session['uids_for_comparison'] = [TEST_FW_2.get_uid()]
-            rv = self.test_client.get('/comparison/add/{}'.format(TEST_FW.get_uid()), follow_redirects=True)
+                test_session['uids_for_comparison'] = [TEST_FW_2.uid]
+            rv = self.test_client.get('/comparison/add/{}'.format(TEST_FW.uid), follow_redirects=True)
             self.assertIn('Remove All', rv.data.decode())
 
     def test_start_compare(self):
         with self.test_client as tc:
             with tc.session_transaction() as test_session:
-                test_session['uids_for_comparison'] = [TEST_FW.get_uid(), TEST_FW_2.get_uid()]
-            compare_id = '{};{}'.format(TEST_FW.get_uid(), TEST_FW_2.get_uid())
+                test_session['uids_for_comparison'] = [TEST_FW.uid, TEST_FW_2.uid]
+            compare_id = '{};{}'.format(TEST_FW.uid, TEST_FW_2.uid)
             rv = self.test_client.get('/compare', follow_redirects=True)
             assert b'Your compare task is in progress' in rv.data
             self.assertEqual(len(self.mocked_interface.tasks), 1, 'task not added')
@@ -39,8 +39,8 @@ class TestAppCompare(WebInterfaceTest):
     def test_start_compare__force(self):
         with self.test_client as tc:
             with tc.session_transaction() as test_session:
-                test_session['uids_for_comparison'] = [TEST_FW.get_uid(), TEST_FW_2.get_uid()]
-            compare_id = '{};{}'.format(TEST_FW.get_uid(), TEST_FW_2.get_uid())
+                test_session['uids_for_comparison'] = [TEST_FW.uid, TEST_FW_2.uid]
+            compare_id = '{};{}'.format(TEST_FW.uid, TEST_FW_2.uid)
             rv = self.test_client.get('/compare?force_recompare=true', follow_redirects=True)
             assert b'Your compare task is in progress' in rv.data
             self.assertEqual(len(self.mocked_interface.tasks), 1, 'task not added')
@@ -51,7 +51,7 @@ class TestAppCompare(WebInterfaceTest):
         assert b'No UIDs found for comparison' in rv.data
 
     def test_show_compare_result(self):
-        compare_id = '{};{}'.format(TEST_FW.get_uid(), TEST_FW_2.get_uid())
+        compare_id = '{};{}'.format(TEST_FW.uid, TEST_FW_2.uid)
         rv = self.test_client.get('/compare/{}'.format(compare_id), follow_redirects=True)
         assert b'General Information' in rv.data
 
@@ -75,27 +75,27 @@ class TestAppCompare(WebInterfaceTest):
 
     def test_remove_from_compare_basket(self):
         with self.frontend.app.test_request_context():
-            session['uids_for_comparison'] = [TEST_FW.get_uid(), TEST_FW_2.get_uid()]
+            session['uids_for_comparison'] = [TEST_FW.uid, TEST_FW_2.uid]
             session.modified = True
             assert 'uids_for_comparison' in session
-            assert TEST_FW.get_uid() in session['uids_for_comparison']
-            assert TEST_FW_2.get_uid() in session['uids_for_comparison']
+            assert TEST_FW.uid in session['uids_for_comparison']
+            assert TEST_FW_2.uid in session['uids_for_comparison']
 
-            CompareRoutes._remove_from_compare_basket(self.frontend, 'some_uid', TEST_FW.get_uid())
-            assert TEST_FW.get_uid() not in session['uids_for_comparison']
-            assert TEST_FW_2.get_uid() in session['uids_for_comparison']
+            CompareRoutes._remove_from_compare_basket(self.frontend, 'some_uid', TEST_FW.uid)
+            assert TEST_FW.uid not in session['uids_for_comparison']
+            assert TEST_FW_2.uid in session['uids_for_comparison']
 
     def test_remove_all_from_compare_basket(self):
         with self.frontend.app.test_request_context():
-            session['uids_for_comparison'] = [TEST_FW.get_uid(), TEST_FW_2.get_uid()]
+            session['uids_for_comparison'] = [TEST_FW.uid, TEST_FW_2.uid]
             session.modified = True
             assert 'uids_for_comparison' in session
-            assert TEST_FW.get_uid() in session['uids_for_comparison']
-            assert TEST_FW_2.get_uid() in session['uids_for_comparison']
+            assert TEST_FW.uid in session['uids_for_comparison']
+            assert TEST_FW_2.uid in session['uids_for_comparison']
 
             CompareRoutes._remove_all_from_compare_basket(self.frontend, 'some_uid')
-            assert TEST_FW.get_uid() not in session['uids_for_comparison']
-            assert TEST_FW_2.get_uid() not in session['uids_for_comparison']
+            assert TEST_FW.uid not in session['uids_for_comparison']
+            assert TEST_FW_2.uid not in session['uids_for_comparison']
 
     def test_insert_plugin_into_view_at_index(self):
         view = '------><------'

@@ -36,10 +36,10 @@ class TestComparePluginFileCoverage(ComparePluginTest):
     def test_get_exclusive_files(self):
         result = self.c_plugin._get_exclusive_files([self.fw_one, self.fw_two])
         self.assertIsInstance(result, dict, 'result is not a dict')
-        self.assertIn(self.fw_one.get_uid(), result, 'fw_one entry not found in result')
-        self.assertIn(self.fw_two.get_uid(), result, 'fw_two entry not found in result')
-        self.assertIn(self.fw_one.get_uid(), result[self.fw_one.get_uid()], 'fw_one not exclusive to one')
-        self.assertNotIn(self.fw_two.get_uid(), result[self.fw_one.get_uid()], 'fw_two in exclusive file of fw one')
+        self.assertIn(self.fw_one.uid, result, 'fw_one entry not found in result')
+        self.assertIn(self.fw_two.uid, result, 'fw_two entry not found in result')
+        self.assertIn(self.fw_one.uid, result[self.fw_one.uid], 'fw_one not exclusive to one')
+        self.assertNotIn(self.fw_two.uid, result[self.fw_one.uid], 'fw_two in exclusive file of fw one')
 
     def test_get_files_in_more_than_one_but_not_in_all(self):
         self.fw_one.list_of_all_included_files.append('foo')
@@ -48,12 +48,12 @@ class TestComparePluginFileCoverage(ComparePluginTest):
         tmp_result_dict = {'files_in_common': {}, 'exclusive_files': {}}
         tmp_result_dict['files_in_common']['all'] = set()
         for i in range(len(fo_list)):
-            tmp_result_dict['exclusive_files'][fo_list[i].get_uid()] = fo_list[i].get_uid()
+            tmp_result_dict['exclusive_files'][fo_list[i].uid] = fo_list[i].uid
         result = self.c_plugin._get_files_in_more_than_one_but_not_in_all(fo_list, tmp_result_dict)
         self.assertIsInstance(result, dict, 'result is not a dict')
-        self.assertIn('foo', result[self.fw_one.get_uid()], 'foo not in result fw one')
-        self.assertIn('foo', result[self.fw_two.get_uid()], 'foo not in result fw_two')
-        self.assertNotIn('foo', result[self.fw_three.get_uid()], 'foo in result fw_three')
+        self.assertIn('foo', result[self.fw_one.uid], 'foo not in result fw one')
+        self.assertIn('foo', result[self.fw_two.uid], 'foo not in result fw_two')
+        self.assertNotIn('foo', result[self.fw_three.uid], 'foo in result fw_three')
 
     def test_run_compare_plugin(self):
         self.fw_one.list_of_all_included_files.append('foo')

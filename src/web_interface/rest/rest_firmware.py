@@ -92,7 +92,7 @@ class RestFirmware(Resource):
             intercom.add_analysis_task(firmware_object)
         data.pop('binary')
 
-        return dict(uid=firmware_object.get_uid())
+        return dict(uid=firmware_object.uid)
 
     @staticmethod
     def _fit_firmware(firmware):

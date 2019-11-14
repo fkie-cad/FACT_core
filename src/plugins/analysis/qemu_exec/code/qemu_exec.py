@@ -38,10 +38,10 @@ class Unpacker(UnpackBase):
     def unpack_fo(self, file_object: FileObject) -> Optional[TemporaryDirectory]:
         file_path = (
             file_object.file_path if file_object.file_path
-            else self._get_file_path_from_db(file_object.get_uid())
+            else self._get_file_path_from_db(file_object.uid)
         )
         if not file_path or not Path(file_path).is_file():
-            logging.error('could not unpack {}: file path not found'.format(file_object.get_uid()))
+            logging.error('could not unpack {}: file path not found'.format(file_object.uid))
             return None
 
         extraction_dir = TemporaryDirectory(prefix='FACT_plugin_qemu_exec')

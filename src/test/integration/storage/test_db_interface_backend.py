@@ -72,18 +72,18 @@ class TestStorageDbInterfaceBackend(unittest.TestCase):
 
     def test_add_and_get_firmware(self):
         self.db_interface_backend.add_firmware(self.test_firmware)
-        result_backend = self.db_interface_backend.get_firmware(self.test_firmware.get_uid())
+        result_backend = self.db_interface_backend.get_firmware(self.test_firmware.uid)
         self.assertIsNotNone(result_backend.binary, 'binary not set in backend result')
-        result_common = self.db_interface.get_firmware(self.test_firmware.get_uid())
+        result_common = self.db_interface.get_firmware(self.test_firmware.uid)
         self.assertIsNone(result_common.binary, 'binary set in common result')
         self.assertEqual(result_common.size, 787, 'file size not correct in common')
         self.assertIsInstance(result_common.tags, dict, 'tag field type not correct')
 
     def test_add_and_get_file_object(self):
         self.db_interface_backend.add_file_object(self.test_fo)
-        result_backend = self.db_interface_backend.get_file_object(self.test_fo.get_uid())
+        result_backend = self.db_interface_backend.get_file_object(self.test_fo.uid)
         self.assertIsNotNone(result_backend.binary, 'binary not set in backend result')
-        result_common = self.db_interface.get_file_object(self.test_fo.get_uid())
+        result_common = self.db_interface.get_file_object(self.test_fo.uid)
         self.assertIsNone(result_common.binary, 'binary set in common result')
         self.assertEqual(result_common.size, 62, 'file size not correct in common')
 
@@ -93,11 +93,11 @@ class TestStorageDbInterfaceBackend(unittest.TestCase):
 
         self.test_firmware.processed_analysis = first_dict
         self.db_interface_backend.add_firmware(self.test_firmware)
-        self.assertEqual(0, self.db_interface.get_object(self.test_firmware.get_uid()).processed_analysis['stub_plugin']['result'])
+        self.assertEqual(0, self.db_interface.get_object(self.test_firmware.uid).processed_analysis['stub_plugin']['result'])
         self.test_firmware.processed_analysis = second_dict
         self.db_interface_backend.add_firmware(self.test_firmware)
-        self.assertEqual(1, self.db_interface.get_object(self.test_firmware.get_uid()).processed_analysis['stub_plugin']['result'])
-        self.assertIn('other_plugin', self.db_interface.get_object(self.test_firmware.get_uid()).processed_analysis.keys())
+        self.assertEqual(1, self.db_interface.get_object(self.test_firmware.uid).processed_analysis['stub_plugin']['result'])
+        self.assertIn('other_plugin', self.db_interface.get_object(self.test_firmware.uid).processed_analysis.keys())
 
     def test_update_file_object(self):
         first_dict = {'other_plugin': {'result': 0}}
@@ -109,13 +109,13 @@ class TestStorageDbInterfaceBackend(unittest.TestCase):
         self.test_fo.processed_analysis = second_dict
         self.test_fo.files_included = {'file b', 'file c'}
         self.db_interface_backend.add_file_object(self.test_fo)
-        received_object = self.db_interface.get_object(self.test_fo.get_uid())
+        received_object = self.db_interface.get_object(self.test_fo.uid)
         self.assertEqual(0, received_object.processed_analysis['other_plugin']['result'])
         self.assertEqual(1, received_object.processed_analysis['stub_plugin']['result'])
         self.assertEqual(3, len(received_object.files_included))
 
     def test_add_and_get_object_including_comment(self):
-        comment, author, date, uid = 'this is a test comment!', 'author', '1473431685', self.test_fo.get_uid()
+        comment, author, date, uid = 'this is a test comment!', 'author', '1473431685', self.test_fo.uid
         self.test_fo.comments.append(
             {'time': str(date), 'author': author, 'comment': comment}
         )

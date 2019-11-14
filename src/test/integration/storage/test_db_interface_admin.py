@@ -35,13 +35,13 @@ class TestStorageDbInterfaceAdmin(unittest.TestCase):
         self.db_backend_interface = BackEndDbInterface(config=self.config)
         copyfile(TEST_FIRMWARE_ORIGINAL, TEST_FIRMWARE_COPY)
         self.test_firmware = create_test_firmware(bin_path='container/test_copy.zip')
-        self.uid = self.test_firmware.get_uid()
-        self.test_firmware.virtual_file_path = {self.uid: ['|{}|'.format(self.test_firmware.get_uid())]}
+        self.uid = self.test_firmware.uid
+        self.test_firmware.virtual_file_path = {self.uid: ['|{}|'.format(self.test_firmware.uid)]}
         copyfile(TEST_FILE_ORIGINAL, TEST_FILE_COPY)
         self.child_fo = create_test_file_object(TEST_FILE_COPY)
         self.child_fo.virtual_file_path = {self.uid: ['|{}|/folder/{}'.format(self.uid, self.child_fo.file_name)]}
-        self.test_firmware.files_included = [self.child_fo.get_uid()]
-        self.child_uid = self.child_fo.get_uid()
+        self.test_firmware.files_included = [self.child_fo.uid]
+        self.child_uid = self.child_fo.uid
 
     def tearDown(self):
         self.admin_interface.client.drop_database(self.config.get('data_storage', 'main_database'))
@@ -67,7 +67,7 @@ class TestStorageDbInterfaceAdmin(unittest.TestCase):
     def test_remove_virtual_path_entries_no_other_roots(self):
         self.db_backend_interface.add_file_object(self.child_fo)
         self.assertIn(self.uid, self.db_backend_interface.file_objects.find_one(self.child_uid, {'virtual_file_path': 1})['virtual_file_path'])
-        removed_vps, deleted_files = self.admin_interface._remove_virtual_path_entries(self.uid, self.child_fo.get_uid())
+        removed_vps, deleted_files = self.admin_interface._remove_virtual_path_entries(self.uid, self.child_fo.uid)
         self.assertIsNone(self.db_backend_interface.file_objects.find_one(self.child_uid))
         self.assertEqual(removed_vps, 0)
         self.assertEqual(deleted_files, 1)
@@ -76,7 +76,7 @@ class TestStorageDbInterfaceAdmin(unittest.TestCase):
         self.child_fo.virtual_file_path.update({'someuid': ['|someuid|/some/virtual/path']})
         self.db_backend_interface.add_file_object(self.child_fo)
         self.assertIn(self.uid, self.db_backend_interface.file_objects.find_one(self.child_uid, {'virtual_file_path': 1})['virtual_file_path'])
-        removed_vps, deleted_files = self.admin_interface._remove_virtual_path_entries(self.uid, self.child_fo.get_uid())
+        removed_vps, deleted_files = self.admin_interface._remove_virtual_path_entries(self.uid, self.child_fo.uid)
         self.assertNotIn(self.uid, self.db_backend_interface.file_objects.find_one(self.child_uid, {'virtual_file_path': 1})['virtual_file_path'])
         self.assertEqual(removed_vps, 1)
         self.assertEqual(deleted_files, 0)
@@ -86,18 +86,18 @@ class TestStorageDbInterfaceAdmin(unittest.TestCase):
         self.db_backend_interface.add_firmware(self.test_firmware)
         self.admin_interface.client.drop_database(self.config.get('data_storage', 'sanitize_database'))
         self.admin_interface.sanitize_analysis(self.test_firmware.processed_analysis, self.uid)
-        self.assertIn('test_plugin_result_{}'.format(self.test_firmware.get_uid()), self.admin_interface.sanitize_fs.list())
+        self.assertIn('test_plugin_result_{}'.format(self.test_firmware.uid), self.admin_interface.sanitize_fs.list())
         self.admin_interface._delete_swapped_analysis_entries(self.admin_interface.firmwares.find_one(self.uid))
-        self.assertNotIn('test_plugin_result_{}'.format(self.test_firmware.get_uid()), self.admin_interface.sanitize_fs.list())
+        self.assertNotIn('test_plugin_result_{}'.format(self.test_firmware.uid), self.admin_interface.sanitize_fs.list())
 
     def test_delete_file_object(self):
         self.db_backend_interface.add_file_object(self.child_fo)
-        db_entry = self.db_backend_interface.file_objects.find_one(self.child_fo.get_uid())
+        db_entry = self.db_backend_interface.file_objects.find_one(self.child_fo.uid)
         self.assertIsNotNone(db_entry)
         self.admin_interface._delete_file_object(db_entry)
-        self.assertIsNone(self.db_backend_interface.file_objects.find_one(self.child_fo.get_uid()), 'file not deleted from db')
+        self.assertIsNone(self.db_backend_interface.file_objects.find_one(self.child_fo.uid), 'file not deleted from db')
         delete_tasks = self._get_delete_tasks()
-        self.assertIn(self.child_fo.get_uid(), delete_tasks, 'file not found in delete tasks')
+        self.assertIn(self.child_fo.uid, delete_tasks, 'file not found in delete tasks')
 
     def test_delete_firmware(self):
         self.db_backend_interface.add_firmware(self.test_firmware)
@@ -114,8 +114,8 @@ class TestStorageDbInterfaceAdmin(unittest.TestCase):
 
         # check if file delete tasks were created
         delete_tasks = self._get_delete_tasks()
-        self.assertIn(self.test_firmware.get_uid(), delete_tasks, 'fw delete task not found')
-        self.assertIn(self.child_fo.get_uid(), delete_tasks, 'child delete task not found')
+        self.assertIn(self.test_firmware.uid, delete_tasks, 'fw delete task not found')
+        self.assertIn(self.child_fo.uid, delete_tasks, 'child delete task not found')
         self.assertEqual(len(delete_tasks), 2, 'number of delete tasks not correct')
 
     def _get_delete_tasks(self):

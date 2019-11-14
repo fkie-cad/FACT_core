@@ -19,10 +19,10 @@ class DbInterfaceMock:
         self.fw = create_test_firmware()
         self.fw.processed_analysis[AnalysisPlugin.NAME] = {'files': {b64_encode('some_file'): {'test_result': 'test_value'}}}
         self.fo = create_test_file_object()
-        self.fo.virtual_file_path['some_uid'] = ['some_uid|{}|/{}'.format(self.fw.get_uid(), 'some_file')]
+        self.fo.virtual_file_path['some_uid'] = ['some_uid|{}|/{}'.format(self.fw.uid, 'some_file')]
 
     def get_object(self, uid):
-        if uid == self.fw.get_uid():
+        if uid == self.fw.uid:
             return self.fw
         if uid == 'foo':
             return self.fo
@@ -48,7 +48,7 @@ class TestFileSystemMetadataRoutesStatic(TestCase):
         encoded_name = b64_encode(file_name)
 
         fw.processed_analysis[AnalysisPlugin.NAME] = {'files': {encoded_name: {'result': 'value'}}}
-        fo.virtual_file_path['some_uid'] = ['some_uid|{}|/{}'.format(fw.get_uid(), file_name)]
+        fo.virtual_file_path['some_uid'] = ['some_uid|{}|/{}'.format(fw.uid, file_name)]
 
         results = {}
         routes.FsMetadataRoutesDbInterface.get_results_from_parent_fos(fw, fo, results)
@@ -68,7 +68,7 @@ class TestFileSystemMetadataRoutesStatic(TestCase):
 
         vfp = fo.virtual_file_path['some_uid'] = []
         for f in file_names:
-            vfp.append('some_uid|{}|/{}'.format(fw.get_uid(), f))
+            vfp.append('some_uid|{}|/{}'.format(fw.uid, f))
 
         results = {}
         routes.FsMetadataRoutesDbInterface.get_results_from_parent_fos(fw, fo, results)

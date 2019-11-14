@@ -160,7 +160,7 @@ class FrontEndDbInterface(MongoInterfaceCommon):
             return []
         query = {'vendor': firmware_object.vendor, 'device_name': firmware_object.device_name, 'device_part': firmware_object.part}
         results = self.firmwares.find(query, {'_id': 1, 'version': 1})
-        return [r for r in results if r['_id'] != firmware_object.get_uid()]
+        return [r for r in results if r['_id'] != firmware_object.uid]
 
     def get_specific_fields_for_multiple_entries(self, uid_list, field_dict):
         query = self._build_search_query_for_uid_list(uid_list)
