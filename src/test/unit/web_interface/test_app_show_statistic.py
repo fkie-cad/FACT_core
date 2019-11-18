@@ -12,6 +12,7 @@ class TestShowStatistic(WebInterfaceTest):
         assert b'<strong>No statistics available!</strong>' in rv.data
 
     def test_stats_available(self):
-        rv = self.test_client.get('/statistic')
-        assert b'General' in rv.data
-        assert b'>1</td>'
+        page_content = self.test_client.get('/statistic').data.decode()
+        assert 'General' in page_content
+        assert '>10.00 Byte<' in page_content
+        assert 'Release Date Stats' in page_content
