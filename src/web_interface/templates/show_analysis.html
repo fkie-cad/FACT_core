@@ -30,6 +30,10 @@
     <script src="{{ url_for('static', filename='highlight.js/highlight.pack.js') }}"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='highlight.js/styles/github.css') }}" />
 
+  {# line_numbering.js import #}
+    <script type="text/javascript" src="{{ url_for('static', filename='js/line_numbering.js') }}"></script>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/line_numbering.css') }}" />
+
 {% endblock %}
 
 {% block body %}
@@ -353,6 +357,7 @@
 		            function highlight_code() {
 		                var block = $('div#preview-div pre')[0];
                         hljs.highlightBlock(block);
+                        line_numbering();
 		            };
 		            function load_preview(){
 		                loading_gif.style.display = "block";
