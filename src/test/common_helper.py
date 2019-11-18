@@ -265,6 +265,8 @@ class DatabaseMock:  # pylint: disable=too-many-public-methods
         }
         if identifier == 'general':
             return statistics
+        if identifier == 'release_date':
+            return {'date_histogram_data': [['July 2014', 1]]}
         return None
 
     def get_complete_object_including_all_summaries(self, uid):
