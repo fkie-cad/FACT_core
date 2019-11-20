@@ -35,7 +35,8 @@ then
     # set up the stable repository
     if [ ! -f /etc/apt/sources.list.d/docker.list ]
     then
-        echo "deb [arch=amd64] https://download.docker.com/linux/debian ${CODENAME} stable" > /etc/apt/sources.list.d/docker.list
+        echo "deb [arch=amd64] https://download.docker.com/linux/debian ${CODENAME} stable" > docker.list
+        sudo mv docker.list /etc/apt/sources.list.d/docker.list
     fi
 else
     # Add Docker’s official GPG key
