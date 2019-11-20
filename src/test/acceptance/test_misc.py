@@ -2,11 +2,11 @@ import os
 import time
 from multiprocessing import Event, Value
 
-from helperFunctions.fileSystem import get_test_data_dir
 from statistic.update import StatisticUpdater
 from statistic.work_load import WorkLoadStatistic
 from storage.db_interface_backend import BackEndDbInterface
 from test.acceptance.base import TestAcceptanceBase
+from test.common_helper import get_test_data_dir
 
 
 class TestAcceptanceMisc(TestAcceptanceBase):

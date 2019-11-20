@@ -1,8 +1,8 @@
+from objects.file import FileObject
+from test.common_helper import get_test_data_dir
 from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
 
 from ..code.file_type import AnalysisPlugin
-from objects.file import FileObject
-from helperFunctions.fileSystem import get_test_data_dir
 
 
 class TestAnalysisPluginFileType(AnalysisPluginTest):

@@ -1,6 +1,7 @@
+# pylint: disable=redefined-outer-name,protected-access
 import pytest
-from helperFunctions.config import get_config_for_testing
-from test.common_helper import create_test_file_object
+
+from test.common_helper import create_test_file_object, get_config_for_testing
 
 from ..code.source_code_analysis import AnalysisPlugin
 

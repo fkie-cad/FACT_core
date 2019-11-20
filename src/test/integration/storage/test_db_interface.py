@@ -1,20 +1,17 @@
 import gc
 import json
-from os import path
 import pickle
-from tempfile import TemporaryDirectory
 import unittest
+from os import path
+from tempfile import TemporaryDirectory
 from typing import Set
 
-from helperFunctions.config import get_config_for_testing
-from helperFunctions.fileSystem import get_test_data_dir
 from objects.file import FileObject
 from objects.firmware import Firmware
-from storage.MongoMgr import MongoMgr
 from storage.db_interface_backend import BackEndDbInterface
 from storage.db_interface_common import MongoInterfaceCommon
-from test.common_helper import create_test_firmware, create_test_file_object
-
+from storage.MongoMgr import MongoMgr
+from test.common_helper import create_test_file_object, create_test_firmware, get_config_for_testing, get_test_data_dir
 
 TESTS_DIR = get_test_data_dir()
 test_file_one = path.join(TESTS_DIR, 'get_files_test/testfile1')

@@ -4,7 +4,6 @@ import unittest
 from tempfile import TemporaryDirectory
 from unittest import mock
 
-from helperFunctions.config import get_config_for_testing
 from intercom.back_end_binding import (
     InterComBackEndAnalysisPlugInsPublisher, InterComBackEndAnalysisTask, InterComBackEndCompareTask,
     InterComBackEndRawDownloadTask, InterComBackEndReAnalyzeTask, InterComBackEndSingleFileTask,
@@ -13,7 +12,7 @@ from intercom.back_end_binding import (
 from intercom.front_end_binding import InterComFrontEndBinding
 from storage.fs_organizer import FS_Organizer
 from storage.MongoMgr import MongoMgr
-from test.common_helper import create_test_firmware
+from test.common_helper import create_test_firmware, get_config_for_testing
 
 
 class AnalysisServiceMock():

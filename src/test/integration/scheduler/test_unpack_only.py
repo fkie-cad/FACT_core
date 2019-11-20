@@ -1,13 +1,12 @@
 import gc
-from multiprocessing import Queue
 import unittest
+from multiprocessing import Queue
 from unittest.mock import patch
 
-from helperFunctions.fileSystem import get_test_data_dir
 from objects.firmware import Firmware
 from scheduler.Unpacking import UnpackingScheduler
-from test.integration.common import initialize_config, MockFSOrganizer
-from test.common_helper import DatabaseMock
+from test.common_helper import DatabaseMock, get_test_data_dir
+from test.integration.common import MockFSOrganizer, initialize_config
 
 
 class TestFileAddition(unittest.TestCase):

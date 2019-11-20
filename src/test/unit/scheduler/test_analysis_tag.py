@@ -3,9 +3,8 @@ from time import sleep
 
 import pytest
 
-from helperFunctions.config import get_config_for_testing
 from scheduler.analysis_tag import TaggingDaemon
-from test.common_helper import DatabaseMock
+from test.common_helper import DatabaseMock, get_config_for_testing
 
 
 class MockProcess:

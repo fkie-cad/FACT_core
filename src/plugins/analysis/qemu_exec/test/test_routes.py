@@ -4,9 +4,9 @@ from unittest import TestCase
 from flask import Flask
 from flask_restful import Api
 
-from helperFunctions.config import get_config_for_testing
-from test.common_helper import create_test_file_object, create_test_firmware
+from test.common_helper import create_test_file_object, create_test_firmware, get_config_for_testing
 from test.unit.web_interface.rest.conftest import decode_response
+
 from ..code.qemu_exec import AnalysisPlugin
 from ..routes import routes
 

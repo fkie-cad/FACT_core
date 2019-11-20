@@ -1,8 +1,7 @@
 import pytest
 
-from helperFunctions.config import get_config_for_testing
 from intercom.back_end_binding import InterComBackEndDeleteFile
-from test.common_helper import DatabaseMock, fake_exit
+from test.common_helper import DatabaseMock, fake_exit, get_config_for_testing
 from test.integration.common import MockFSOrganizer
 
 LOGGING_OUTPUT = None

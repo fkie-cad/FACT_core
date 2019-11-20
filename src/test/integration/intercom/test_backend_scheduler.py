@@ -1,13 +1,12 @@
 import gc
-from multiprocessing import Value, Queue
+import unittest
+from multiprocessing import Queue, Value
 from tempfile import TemporaryDirectory
 from time import sleep
-import unittest
 
-from helperFunctions.config import get_config_for_testing
 from intercom.back_end_binding import InterComBackEndBinding
 from storage.MongoMgr import MongoMgr
-
+from test.common_helper import get_config_for_testing
 
 TMP_DIR = TemporaryDirectory(prefix='fact_test_')
 

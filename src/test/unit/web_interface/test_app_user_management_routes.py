@@ -4,13 +4,12 @@ import unittest.mock
 import pytest
 from sqlalchemy.exc import SQLAlchemyError
 
-from helperFunctions.config import get_config_for_testing
+from test.common_helper import get_config_for_testing
 from web_interface import frontend_main
+from web_interface.components import user_management_routes
 from web_interface.components.user_management_routes import UserManagementRoutes
 from web_interface.security.authentication import add_flask_security_to_app
-from web_interface.components import user_management_routes
 from web_interface.security.privileges import ROLES
-
 
 roles = sorted(ROLES)
 
@@ -63,7 +62,7 @@ class UserDbInterfaceMock:
     def find_user(id=None, email=None):
         if id == '0' or email == 'test_user':
             return UserMock('test_user', 'foo')
-        elif email == 'error':
+        if email == 'error':
             raise SQLAlchemyError('test')
         return None
 
