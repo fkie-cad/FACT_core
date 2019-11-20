@@ -1,5 +1,4 @@
 import html
-from typing import List
 
 from common_helper_files import human_readable_file_size
 from flask import jsonify, render_template
@@ -7,7 +6,7 @@ from flask import jsonify, render_template
 from helperFunctions.file_tree import FileTreeNode, get_correct_icon_for_mime, remove_virtual_path_from_root
 from helperFunctions.web_interface import ConnectTo
 from intercom.front_end_binding import InterComFrontEndBinding
-from storage.db_interface_compare import CompareDbInterface, FactCompareException
+from storage.db_interface_compare import CompareDbInterface
 from storage.db_interface_frontend import FrontEndDbInterface
 from web_interface.components.component_base import ComponentBase
 from web_interface.filter import bytes_to_str_filter, encode_base64_filter
@@ -26,21 +25,18 @@ class AjaxRoutes(ComponentBase):
         self._app.add_url_rule('/ajax_get_binary/<mime_type>/<uid>', 'ajax_get_binary/<type>/<uid>', self._ajax_get_binary)
         self._app.add_url_rule('/ajax_get_summary/<uid>/<selected_analysis>', 'ajax_get_summary/<uid>/<selected_analysis>', self._ajax_get_summary)
 
-    def _get_exclusive_files(self, compare_id: str, root_uid: str) -> List[str]:
-        if compare_id is None or root_uid is None:
-            return []
-        try:
-            with ConnectTo(CompareDbInterface, self._config) as sc:
-                result = sc.get_compare_result(compare_id)
-            exclusive_files = result['plugins']['File_Coverage']['exclusive_files'][root_uid]
-        except (KeyError, FactCompareException):
-            exclusive_files = []
-        return exclusive_files
-
     @roles_accepted(*PRIVILEGES['view_analysis'])
     def _ajax_get_tree_children(self, uid, root_uid=None, compare_id=None):
-        exclusive_files = self._get_exclusive_files(compare_id, root_uid)
-        children = []
+        with ConnectTo(CompareDbInterface, self._config) as sc:
+            exclusive_files = sc.get_exclusive_files(compare_id, root_uid)
+        tree = self._generate_exclusive_files_tree(exclusive_files, root_uid, uid)
+        children = [
+            self._generate_jstree_node(child_node)
+            for child_node in tree.get_list_of_child_nodes()
+        ]
+        return jsonify(children)
+
+    def _generate_exclusive_files_tree(self, exclusive_files, root_uid, uid):
         root = FileTreeNode(None)
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
             child_uids = sc.get_specific_fields_of_db_entry(uid, {'files_included': 1})['files_included']
@@ -48,10 +44,7 @@ class AjaxRoutes(ComponentBase):
                 if not exclusive_files or child_uid in exclusive_files:
                     for node in sc.generate_file_tree_node(child_uid, root_uid, whitelist=exclusive_files):
                         root.add_child_node(node)
-        for child_node in root.get_list_of_child_nodes():
-            child = self._generate_jstree_node(child_node)
-            children.append(child)
-        return jsonify(children)
+        return root
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
     def _ajax_get_tree_root(self, uid, root_uid):
