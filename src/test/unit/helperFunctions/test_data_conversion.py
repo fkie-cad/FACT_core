@@ -3,12 +3,9 @@ from datetime import datetime
 import pytest
 
 from helperFunctions.dataConversion import (
-    _fill_in_time_gaps, build_time_dict, convert_compare_id_to_list,
-    convert_time_to_str, get_value_of_first_key, list_of_lists_to_list_of_sets,
-    list_of_sets_to_list_of_lists, make_bytes, make_dict_from_list,
-    make_list_from_dict, make_unicode_string, none_to_none,
-    normalize_compare_id, remove_included_sets_from_list_of_sets,
-    remove_uneccessary_spaces
+    _fill_in_time_gaps, build_time_dict, convert_compare_id_to_list, convert_time_to_str, get_value_of_first_key,
+    list_of_lists_to_list_of_sets, list_of_sets_to_list_of_lists, make_bytes, make_list_from_dict, make_unicode_string,
+    none_to_none, normalize_compare_id, remove_included_sets_from_list_of_sets
 )
 
 
@@ -34,13 +31,6 @@ def test_make_unicode_string(input_data, expected):
     result = make_unicode_string(input_data)
     assert isinstance(result, str)
     assert result == expected
-
-
-def test_make_dict_from_list():
-    testlist = ['a', 'b']
-    resultdict = make_dict_from_list(testlist)
-    assert isinstance(resultdict, dict), 'type is not dict'
-    assert resultdict == {'0': 'a', '1': 'b'}, 'dict not correct'
 
 
 def test_make_list_from_dict():
@@ -125,14 +115,6 @@ def test_fill_in_time_gaps(input_data, expected):
 ])
 def test_none_to_none(input_data, expected):
     assert none_to_none(input_data) == expected
-
-
-@pytest.mark.parametrize('input_data, expected', [
-    (' test', 'test'),
-    ('blah   blah ', 'blah blah')
-])
-def test_remove_uneccessary_spaces(input_data, expected):
-    assert remove_uneccessary_spaces(input_data) == expected
 
 
 @pytest.mark.parametrize('input_data, expected', [

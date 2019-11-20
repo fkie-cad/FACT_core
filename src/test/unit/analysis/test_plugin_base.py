@@ -62,9 +62,6 @@ class TestPluginBaseCore(TestPluginBase):
         self.assertEqual(processed_object.uid, root_object.uid, 'uid changed')
         self.assertTrue(child_object.uid in root_object.get_included_files_uids(), 'child object not in processed file')
 
-    def test_get_workload(self):
-        assert self.base_plugin.get_workload() == 0
-
 
 class TestPluginBaseAddJob(TestPluginBase):
 

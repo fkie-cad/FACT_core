@@ -12,11 +12,10 @@ def intersection_of_list_of_lists(list_of_lists):
 def intersection_of_list_of_sets(list_of_sets):
     if len(list_of_sets) == 0:
         return set()
-    else:
-        tmp = list_of_sets.pop()
-        for item in list_of_sets:
-            tmp = tmp.intersection(item)
-        return tmp
+    tmp = list_of_sets.pop()
+    for item in list_of_sets:
+        tmp = tmp.intersection(item)
+    return tmp
 
 
 def difference_of_lists(base_list, list_of_other_lists):
@@ -48,13 +47,6 @@ def collapse_pair_of_sets(pair_of_sets):
     return result
 
 
-def index_of_other_list_including_item(list_of_lists, item, start_index):
-    for index in range(start_index + 1, len(list_of_lists)):
-        if item in list_of_lists[index]:
-            return index
-    return -1
-
-
 def remove_all(set_or_list, item):
     while item in set_or_list:
         set_or_list.remove(item)
@@ -69,13 +61,6 @@ def make_pairs_of_sets(list_of_sets):
                 if (first_set, second_set) not in pairs:
                     pairs.append((first_set, second_set))
     return pairs
-
-
-def safely_remove_pair_of_sets(list_of_sets, pair_of_sets):
-    if pair_of_sets[0] in list_of_sets:
-        list_of_sets.remove(pair_of_sets[0])
-    if pair_of_sets[1] in list_of_sets:
-        list_of_sets.remove(pair_of_sets[1])
 
 
 def remove_duplicates_from_list(l):

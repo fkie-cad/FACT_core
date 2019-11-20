@@ -1,5 +1,5 @@
 import logging
-from multiprocessing import Queue, Value, Manager
+from multiprocessing import Manager, Queue, Value
 from queue import Empty
 from time import time
 
@@ -26,7 +26,6 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         self.recursive = recursive
         self.in_queue = Queue()
         self.out_queue = Queue()
-        self.workload_index = Value('i', 0)
         self.stop_condition = Value('i', 0)
         self.workers = []
         if self.timeout is None:
@@ -65,12 +64,6 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
     def _add_plugin_version_and_timestamp_to_analysis_result(self, fo):
         fo.processed_analysis[self.NAME].update(self.init_dict())
         return fo
-
-    def get_workload(self):
-        '''
-        This function returns the current number of objects in progress
-        '''
-        return self.workload_index.value
 
     def shutdown(self):
         '''
