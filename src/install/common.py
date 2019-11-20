@@ -1,5 +1,6 @@
 import logging
 import os
+import sys
 from contextlib import suppress
 from pathlib import Path
 
@@ -17,17 +18,6 @@ def install_pip(python_command):
         output, return_code = execute_shell_command_get_return_code(command)
         if return_code != 0:
             raise InstallationError('Error in pip installation for {}:\n{}'.format(python_command, output))
-
-
-def _install_lief_from_sources():
-    _, return_code = execute_shell_command_get_return_code('python3 -c "import lief"')
-    if return_code != 0:
-        apt_install_packages('cmake')
-        logging.info('Setting up LIEF on python > 3.6. This will take some time.')
-        install_github_project('https://github.com/lief-project/LIEF.git', [
-            'python3 setup.py build',
-            'sudo -EH python3 setup.py install'
-        ])  # Maybe check if this can be omitted on debian stretch
 
 
 def main(distribution):  # pylint: disable=too-many-statements
@@ -77,10 +67,10 @@ def main(distribution):  # pylint: disable=too-many-statements
     pip3_install_packages('pytest==3.5.1', 'pytest-cov', 'pytest-flake8', 'pylint', 'python-magic', 'xmltodict', 'yara-python==3.7.0', 'appdirs')
     pip3_install_packages('ssdeep')
 
-    if distribution in ['xenial', 'bionic']:
-        pip3_install_packages('lief')
+    if sys.version_info.minor > 6:
+        pip3_install_packages('lief==0.10.0.dev0')
     else:
-        _install_lief_from_sources()
+        pip3_install_packages('lief')
 
     pip3_install_packages('requests')
 
