@@ -12,7 +12,7 @@ from helperFunctions.install import (
 )
 
 DEFAULT_CERT = '.\n.\n.\n.\n.\nexample.com\n.\n\n\n'
-COMPOSE_VENV = Path(__file__).parent.absolute / 'compose-env'
+COMPOSE_VENV = Path(__file__).parent.absolute() / 'compose-env'
 
 
 def execute_commands_and_raise_on_return_code(commands, error=None):
