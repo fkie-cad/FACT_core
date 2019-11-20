@@ -1,4 +1,3 @@
-# pylint: disable=redefined-outer-name,protected-access
 import pytest
 
 from test.common_helper import create_test_file_object, get_config_for_testing
