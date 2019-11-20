@@ -8,11 +8,11 @@ import requests
 from common_helper_process import execute_shell_command_get_return_code
 
 from helperFunctions.install import (
-    InstallationError, OperateInDirectory, apt_install_packages, check_if_command_in_path, load_main_config,
-    pip3_install_packages
+    InstallationError, OperateInDirectory, apt_install_packages, load_main_config, pip3_install_packages
 )
 
 DEFAULT_CERT = '.\n.\n.\n.\n.\nexample.com\n.\n\n\n'
+COMPOSE_VENV = Path(__file__).parent.absolute / 'compose-env'
 
 
 def execute_commands_and_raise_on_return_code(commands, error=None):
@@ -141,13 +141,16 @@ def main(radare, nginx):
 
     if radare:
         logging.info('Initializing docker container for radare')
-        if check_if_command_in_path('docker-compose'):
-            with OperateInDirectory('radare'):
-                output, return_code = execute_shell_command_get_return_code('docker-compose build')
-                if return_code != 0:
-                    raise InstallationError('Failed to initialize radare container:\n{}'.format(output))
-        else:
-            raise InstallationError('docker-compose is not installed. Please (re-)run pre_install.sh')
+
+        execute_shell_command_get_return_code('virtualenv {}'.format(COMPOSE_VENV))
+        output, return_code = execute_shell_command_get_return_code('{} install -U docker-compose'.format(COMPOSE_VENV / 'bin' / 'pip'))
+        if return_code != 0:
+            raise InstallationError('Failed to set up virtualenv for docker-compose\n{}'.format(output))
+
+        with OperateInDirectory('radare'):
+            output, return_code = execute_shell_command_get_return_code('{} build'.format(COMPOSE_VENV / 'bin' / 'docker-compose'))
+            if return_code != 0:
+                raise InstallationError('Failed to initialize radare container:\n{}'.format(output))
 
     # pull pdf report container
     logging.info('Pulling pdf report container')

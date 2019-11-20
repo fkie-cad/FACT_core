@@ -60,8 +60,8 @@ then
 fi
 sudo usermod -aG docker "$FACTUSER"
 
-sudo -EH pip3 install --upgrade pip
-sudo -EH pip3 install --upgrade docker-compose
+sudo -EH pip3 install -U pip
+sudo -EH pip3 install -U virtualenv
 
 echo "Installing Python Libraries for python based installation"
 sudo -EH pip3 install --upgrade distro
