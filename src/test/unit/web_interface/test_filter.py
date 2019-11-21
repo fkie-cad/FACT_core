@@ -1,118 +1,162 @@
-import unittest
+import logging
 from time import gmtime
 from zlib import compress
 
 import pytest
 
-from web_interface.filter import replace_underscore_filter, byte_number_filter, get_all_uids_in_string, nice_list, \
-    uids_to_link, list_to_line_break_string, nice_unix_time, nice_number_filter, sort_chart_list_by_value, \
-    sort_chart_list_by_name, text_highlighter, generic_nice_representation, list_to_line_break_string_no_sort, \
-    encode_base64_filter, render_tags, fix_cwe, set_limit_for_data_to_chart, data_to_chart_with_value_percentage_pairs, \
-    data_to_chart_limited, render_analysis_tags, vulnerability_class, sort_users_by_name, user_has_role, \
-    sort_roles_by_number_of_privileges, \
-    filter_format_string_list_with_offset, decompress, infection_color, get_unique_keys_from_list_of_dicts
+from web_interface.filter import (
+    _get_sorted_list, byte_number_filter, comment_out_regex_meta_chars, data_to_chart_limited,
+    data_to_chart_with_value_percentage_pairs, decompress, encode_base64_filter, filter_format_string_list_with_offset,
+    fix_cwe, generic_nice_representation, get_all_uids_in_string, get_unique_keys_from_list_of_dicts, infection_color,
+    list_to_line_break_string, list_to_line_break_string_no_sort, nice_list, nice_number_filter, nice_unix_time,
+    render_analysis_tags, render_tags, replace_underscore_filter, set_limit_for_data_to_chart, sort_chart_list_by_name,
+    sort_chart_list_by_value, sort_comments, sort_roles_by_number_of_privileges, sort_users_by_name, text_highlighter,
+    uids_to_link, user_has_role, vulnerability_class
+)
+
+UNSORTABLE_LIST = [[], ()]
 
 
-class TestWebInterfaceFilter(unittest.TestCase):
+def test_set_limit_for_data_to_chart():
+    limit = 5
+    label_list = ['a', 'b', 'c', 'd', 'e', 'f', 'g']
+    value_list = [1, 2, 3, 4, 5, 6, 7]
+    expected_result = (['a', 'b', 'c', 'd', 'e', 'rest'], [1, 2, 3, 4, 5, 13])
+    assert set_limit_for_data_to_chart(label_list, limit, value_list) == expected_result
 
-    def test_set_limit_for_data_to_chart(self):
-        limit = 5
-        label_list = ['a', 'b', 'c', 'd', 'e', 'f', 'g']
-        value_list = [1, 2, 3, 4, 5, 6, 7]
-        self.assertEqual(set_limit_for_data_to_chart(label_list, limit, value_list),
-                         (['a', 'b', 'c', 'd', 'e', 'rest'], [1, 2, 3, 4, 5, 13]))
 
-    def test_data_to_chart_with_value_percentage_pairs(self):
-        self.maxDiff = None
-        data = [('NX enabled', 1696, 0.89122),
-                ('NX disabled', 207, 0.10878),
-                ('Canary enabled', 9, 0.00473)]
-        self.assertEqual(data_to_chart_with_value_percentage_pairs(data),
-                         {'labels': ['NX enabled', 'NX disabled', 'Canary enabled'],
-                          'datasets': [{'data': [1696, 207, 9],
-                                        'percentage': [0.89122, 0.10878, 0.00473],
-                                        'backgroundColor': ['#2b669a', '#cce0dc', '#2b669a'],
-                                        'borderColor': ['#2b669a', '#cce0dc', '#2b669a'],
-                                        'borderWidth': 1}]})
+@pytest.mark.parametrize('input_data, expected_result', [
+    (
+        [('NX enabled', 1696, 0.89122), ('NX disabled', 207, 0.10878), ('Canary enabled', 9, 0.00473)],
+        {
+            'labels': ['NX enabled', 'NX disabled', 'Canary enabled'],
+            'datasets': [{
+                'data': [1696, 207, 9],
+                'percentage': [0.89122, 0.10878, 0.00473],
+                'backgroundColor': ['#2b669a', '#cce0dc', '#2b669a'],
+                'borderColor': ['#2b669a', '#cce0dc', '#2b669a'],
+                'borderWidth': 1
+            }]
+        }
+    ),
+    ([()], None)
+])
+def test_data_to_chart_with_value_percentage_pairs(input_data, expected_result):
+    assert data_to_chart_with_value_percentage_pairs(input_data) == expected_result
 
-    def test_data_to_chart_limited(self):
-        data = [('NX enabled', 1696),
-                ('NX disabled', 207),
-                ('Canary enabled', 9)]
-        self.assertEqual(data_to_chart_limited(data),
-                         {'labels': ['NX enabled', 'NX disabled', 'Canary enabled'],
-                          'datasets': [{'data': [1696, 207, 9],
-                                        'backgroundColor': ['#2b669a', '#cce0dc', '#2b669a'],
-                                        'borderColor': ['#2b669a', '#cce0dc', '#2b669a'],
-                                        'borderWidth': 1}]})
 
-    def test_get_all_uids_in_string(self):
-        test_string = '{\'d41c0f1431b39b9db565b4e32a5437c61c77762a3f4401bac3bafa4887164117_24\', \'f7c927fb0c209035c7e6939bdd00eabdaada429f2ee9aeca41290412c8c79759_25\' , \'deaa23651f0a9cc247a20d0e0a78041a8e40b144e21b82081ecb519dd548eecf_24494080\'}'
-        result = get_all_uids_in_string(test_string)
-        self.assertEqual(len(result), 3, 'not all uids found')
-        self.assertIn('d41c0f1431b39b9db565b4e32a5437c61c77762a3f4401bac3bafa4887164117_24', result, 'first uid not found')
-        self.assertIn('f7c927fb0c209035c7e6939bdd00eabdaada429f2ee9aeca41290412c8c79759_25', result, 'second uid not found')
-        self.assertIn('deaa23651f0a9cc247a20d0e0a78041a8e40b144e21b82081ecb519dd548eecf_24494080', result, 'third uid not found')
+@pytest.mark.parametrize('input_data, expected_result', [
+    (
+        [('NX enabled', 1696), ('NX disabled', 207), ('Canary enabled', 9)],
+        {
+            'labels': ['NX enabled', 'NX disabled', 'Canary enabled'],
+            'datasets': [{
+                'data': [1696, 207, 9],
+                'backgroundColor': ['#2b669a', '#cce0dc', '#2b669a'],
+                'borderColor': ['#2b669a', '#cce0dc', '#2b669a'],
+                'borderWidth': 1
+            }]
+        }
+    ),
+    ([()], None)
+])
+def test_data_to_chart_limited(input_data, expected_result):
+    assert data_to_chart_limited(input_data) == expected_result
 
-    def test_handle_uids(self):
-        test_string = 'foo d41c0f1431b39b9db565b4e32a5437c61c77762a3f4401bac3bafa4887164117_24 bar'
-        result = uids_to_link(test_string)
-        self.assertEqual(result, 'foo <a href="/analysis/d41c0f1431b39b9db565b4e32a5437c61c77762a3f4401bac3bafa4887164117_24/ro/None">d41c0f1431b39b9db565b4e32a5437c61c77762a3f4401bac3bafa4887164117_24</a> bar', 'output not correct')
 
-    def check_nice_list_output(self, input_data):
-        result = nice_list(input_data)
-        self.assertEqual(result, '<ul>\n\t<li>a</li>\n\t<li>b</li>\n</ul>\n', 'output not correct')
+def test_get_all_uids_in_string():
+    test_string = ('{\'d41c0f1431b39b9db565b4e32a5437c61c77762a3f4401bac3bafa4887164117_24\', '
+                   '\'f7c927fb0c209035c7e6939bdd00eabdaada429f2ee9aeca41290412c8c79759_25\' , '
+                   '\'deaa23651f0a9cc247a20d0e0a78041a8e40b144e21b82081ecb519dd548eecf_24494080\'}')
+    result = get_all_uids_in_string(test_string)
+    assert len(result) == 3, 'not all uids found'
+    assert 'd41c0f1431b39b9db565b4e32a5437c61c77762a3f4401bac3bafa4887164117_24' in result, 'first uid not found'
+    assert 'f7c927fb0c209035c7e6939bdd00eabdaada429f2ee9aeca41290412c8c79759_25' in result, 'second uid not found'
+    assert 'deaa23651f0a9cc247a20d0e0a78041a8e40b144e21b82081ecb519dd548eecf_24494080' in result, 'third uid not found'
 
-    def test_nice_list_set(self):
-        self.check_nice_list_output(set('ab'))
 
-    def test_nice_list_list(self):
-        self.check_nice_list_output(['a', 'b'])
+def test_handle_uids():
+    test_string = 'foo d41c0f1431b39b9db565b4e32a5437c61c77762a3f4401bac3bafa4887164117_24 bar'
+    result = uids_to_link(test_string)
+    expected_result = ('foo <a href="/analysis/d41c0f1431b39b9db565b4e32a5437c61c77762a3f4401bac3bafa4887164117_24/'
+                       'ro/None">d41c0f1431b39b9db565b4e32a5437c61c77762a3f4401bac3bafa4887164117_24</a> bar')
+    assert result == expected_result, 'output not correct'
 
-    def test_list_to_line_break_string(self):
-        input_data = set('ab')
-        self.assertEqual(list_to_line_break_string(input_data), 'a\nb\n')
 
-    def test_list_to_line_break_string_no_sort(self):
-        input_data = ['b', 'a']
-        self.assertEqual(list_to_line_break_string_no_sort(input_data), 'b\na\n')
+def check_nice_list_output(input_data):
+    result = nice_list(input_data)
+    assert result == '<ul>\n\t<li>a</li>\n\t<li>b</li>\n</ul>\n', 'output not correct'
 
-    def test_nice_unix_time_stamp(self):
-        input_data = 1459427460
-        self.assertEqual(nice_unix_time(input_data), '2016-03-31 14:31:00', 'output not correct (int)')
-        input_data = 1459427460.4
-        self.assertEqual(nice_unix_time(input_data), '2016-03-31 14:31:00', 'output not correct (float)')
-        self.assertEqual(nice_unix_time('test'), 'test')
 
-    def test_sort_chart_list_by_value(self):
-        test_list = [['a', 1], ['b', 2]]
-        result = sort_chart_list_by_value(test_list)
-        self.assertEqual(result, [['b', 2], ['a', 1]])
+def test_nice_list_set():
+    check_nice_list_output(set('ab'))
 
-    def test_sort_chart_list_by_name(self):
-        test_list = [['b', 2], ['a', 1]]
-        result = sort_chart_list_by_name(test_list)
-        self.assertEqual(result, [['a', 1], ['b', 2]])
 
-    def test_text_highliter(self):
-        self.assertEqual(text_highlighter('online'), '<span style="color:green;">online</span>')
-        self.assertEqual(text_highlighter('offline'), '<span style="color:red;">offline</span>')
-        self.assertEqual(text_highlighter('foo'), 'foo')
-        self.assertEqual(text_highlighter('foo', green=['*']), '<span style="color:green;">foo</span>')
-        self.assertEqual(text_highlighter('foo', red=['*']), '<span style="color:red;">foo</span>')
+def test_nice_list_list():
+    check_nice_list_output(['a', 'b'])
 
-    def test_infection_color(self):
-        assert 'color:green' in infection_color('clean')
-        assert 'color:green' in infection_color(0)
-        assert 'color:red' in infection_color('foo')
-        assert 'color:red' in infection_color(9999)
-        assert 'color:red' in infection_color(None)
 
-    def test_fix_cwe_valid_string(self):
-        self.assertEqual(fix_cwe("[CWE467] (Use of sizeof on a Pointer Type)"), "467")
+def test_list_to_line_break_string():
+    input_data = set('ab')
+    assert list_to_line_break_string(input_data) == 'a\nb\n'
 
-    def test_fix_cwe_invalid_string(self):
-        self.assertEqual(fix_cwe("something_really_strange"), "")
+
+@pytest.mark.parametrize('input_data, expected_result', [
+    (['b', 'a'], 'b\na\n'),
+    (None, None),
+])
+def test_list_to_line_break_string_no_sort(input_data, expected_result):
+    assert list_to_line_break_string_no_sort(input_data) == expected_result
+
+
+def test_nice_unix_time_stamp():
+    input_data = 1459427460
+    assert nice_unix_time(input_data) == '2016-03-31 14:31:00', 'output not correct (int)'
+    input_data = 1459427460.4
+    assert nice_unix_time(input_data) == '2016-03-31 14:31:00', 'output not correct (float)'
+    assert nice_unix_time('test') == 'test'
+
+
+def test_sort_chart_list_by_value():
+    test_list = [['a', 1], ['b', 2]]
+    result = sort_chart_list_by_value(test_list)
+    assert result == [['b', 2], ['a', 1]]
+
+
+def test_sort_chart_list_by_name():
+    test_list = [['b', 2], ['a', 1]]
+    result = sort_chart_list_by_name(test_list)
+    assert result == [['a', 1], ['b', 2]]
+
+
+@pytest.mark.parametrize('input_data, keyword_args, expected_output', [
+    ('online', {}, '<span style="color:green;">online</span>'),
+    ('offline', {}, '<span style="color:red;">offline</span>'),
+    ('foo', {}, 'foo'),
+    ('foo', {'green': ['*']}, '<span style="color:green;">foo</span>'),
+    ('foo', {'red': ['*']}, '<span style="color:red;">foo</span>'),
+])
+def test_text_highlighter(input_data, keyword_args, expected_output):
+    assert text_highlighter(input_data, **keyword_args) == expected_output
+
+
+@pytest.mark.parametrize('input_data, expected_output', [
+    ('clean', 'color:green'),
+    (0, 'color:green'),
+    ('foo', 'color:red'),
+    (9999, 'color:red'),
+    (None, 'color:red'),
+])
+def test_infection_color(input_data, expected_output):
+    assert expected_output in infection_color(input_data)
+
+
+def test_fix_cwe_valid_string():
+    assert fix_cwe("[CWE467] (Use of sizeof on a Pointer Type)") == "467"
+
+
+def test_fix_cwe_invalid_string():
+    assert fix_cwe("something_really_strange") == ""
 
 
 def test_replace_underscore():
@@ -162,7 +206,11 @@ def test_generic_nice_representation(input_data, expected):
 
 @pytest.mark.parametrize('tag_dict, output', [
     ({'a': 'danger'}, '<span class="label label-pill label-danger " style="font-size: 10px;">a</span>\n'),
-    ({'a': 'danger', 'b': 'default'}, '<span class="label label-pill label-danger " style="font-size: 10px;">a</span>\n<span class="label label-pill label-default " style="font-size: 10px;">b</span>\n'),
+    (
+        {'a': 'danger', 'b': 'default'},
+        '<span class="label label-pill label-danger " style="font-size: 10px;">a</span>\n'
+        '<span class="label label-pill label-default " style="font-size: 10px;">b</span>\n'
+    ),
     (None, '')
 ])
 def test_render_tags(tag_dict, output):
@@ -186,9 +234,9 @@ def test_render_analysis_tags_bad_type():
         render_analysis_tags(tags)
 
 
-@pytest.mark.parametrize('score_and_class', [('low', 'active'), ('medium', 'warning'), ('high', 'danger')])
-def test_vulnerability_class_success(score_and_class):
-    assert vulnerability_class(score_and_class[0]) == score_and_class[1]
+@pytest.mark.parametrize('score, class_', [('low', 'active'), ('medium', 'warning'), ('high', 'danger')])
+def test_vulnerability_class_success(score, class_):
+    assert vulnerability_class(score) == class_
 
 
 @pytest.mark.parametrize('score', [None, '', 'bad', 5])
@@ -269,3 +317,23 @@ def test_filter_decompress():
 ])
 def test_get_unique_keys_from_list_of_dicts(list_of_dicts, expected_result):
     assert get_unique_keys_from_list_of_dicts(list_of_dicts) == expected_result
+
+
+@pytest.mark.parametrize('function, input_data, expected_output, error_message', [
+    (_get_sorted_list, UNSORTABLE_LIST, UNSORTABLE_LIST, 'could not sort list'),
+    (sort_comments, UNSORTABLE_LIST, [], 'could not sort comment list'),
+    (sort_chart_list_by_name, UNSORTABLE_LIST, [], 'could not sort chart list'),
+    (sort_chart_list_by_value, UNSORTABLE_LIST, [], 'could not sort chart list'),
+])
+def test_error_logging(function, input_data, expected_output, error_message, caplog):
+    with caplog.at_level(logging.WARNING):
+        assert function(input_data) == expected_output
+        assert error_message in caplog.messages[0]
+
+
+@pytest.mark.parametrize('input_data, expected_result', [
+    ('abc', 'abc'),
+    ('^$.[]|()?*+{}', '\\^\\$\\.\\[\\]\\|\\(\\)\\?\\*\\+\\{\\}'),
+])
+def test_comment_out_regex_meta_chars(input_data, expected_result):
+    assert comment_out_regex_meta_chars(input_data) == expected_result
