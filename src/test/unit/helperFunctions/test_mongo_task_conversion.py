@@ -50,7 +50,7 @@ class TestMongoTask(unittest.TestCase):
     def test_convert_analysis_task_to_firmware_object(self):
         fw_obj = convert_analysis_task_to_fw_obj(TEST_TASK)
         self.assertIsInstance(fw_obj, Firmware, 'return type not correct')
-        self.assertEqual(fw_obj.get_uid(), '2e99758548972a8e8822ad47fa1017ff72f06f3ff6a016851f45c398732bc50c_14', 'uid not correct -> binary not correct')
+        self.assertEqual(fw_obj.uid, '2e99758548972a8e8822ad47fa1017ff72f06f3ff6a016851f45c398732bc50c_14', 'uid not correct -> binary not correct')
         self.assertEqual(fw_obj.file_name, 'test_file_name')
         self.assertEqual(fw_obj.device_name, 'test device')
         self.assertEqual(fw_obj.part, 'kernel')

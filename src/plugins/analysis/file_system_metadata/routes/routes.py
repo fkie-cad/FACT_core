@@ -36,7 +36,7 @@ class FsMetadataRoutesDbInterface(FsMetadataDbInterface):
             virtual_file_path.split('|')[-1][1:]
             for virtual_path_list in this_fo.virtual_file_path.values()
             for virtual_file_path in virtual_path_list
-            if parent_fo.get_uid() in virtual_file_path
+            if parent_fo.uid in virtual_file_path
         ]
 
         if AnalysisPlugin.NAME in parent_fo.processed_analysis and 'files' in parent_fo.processed_analysis[AnalysisPlugin.NAME]:
@@ -45,7 +45,7 @@ class FsMetadataRoutesDbInterface(FsMetadataDbInterface):
                 encoded_name = b64encode(file_name.encode()).decode()
                 if encoded_name in parent_analysis:
                     results[file_name] = parent_analysis[encoded_name]
-                    results[file_name]['parent_uid'] = parent_fo.get_uid()
+                    results[file_name]['parent_uid'] = parent_fo.uid
 
 
 class PluginRoutes(ComponentBase):

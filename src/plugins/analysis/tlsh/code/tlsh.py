@@ -24,7 +24,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             with ConnectTo(TLSHInterface, self.config) as interface:
                 for file in interface.tlsh_query_all_objects():
                     value = get_tlsh_comparison(file_object.processed_analysis['file_hashes']['tlsh'], file['processed_analysis']['file_hashes']['tlsh'])
-                    if value <= 150 and not file['_id'] == file_object.get_uid():
+                    if value <= 150 and not file['_id'] == file_object.uid:
                         comparisons_dict[file['_id']] = value
 
         file_object.processed_analysis[self.NAME] = comparisons_dict

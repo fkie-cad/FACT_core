@@ -11,16 +11,16 @@ class InterComFrontEndBinding(InterComMongoInterface):
     '''
 
     def add_analysis_task(self, fw):
-        self.connections['analysis_task']['fs'].put(pickle.dumps(fw), filename=fw.get_uid())
+        self.connections['analysis_task']['fs'].put(pickle.dumps(fw), filename=fw.uid)
 
     def add_re_analyze_task(self, fw, unpack=True):
         if unpack:
-            self.connections['re_analyze_task']['fs'].put(pickle.dumps(fw), filename=fw.get_uid())
+            self.connections['re_analyze_task']['fs'].put(pickle.dumps(fw), filename=fw.uid)
         else:
-            self.connections['update_task']['fs'].put(pickle.dumps(fw), filename=fw.get_uid())
+            self.connections['update_task']['fs'].put(pickle.dumps(fw), filename=fw.uid)
 
     def add_single_file_task(self, fw):
-        self.connections['single_file_task']['fs'].put(pickle.dumps(fw), filename=fw.get_uid())
+        self.connections['single_file_task']['fs'].put(pickle.dumps(fw), filename=fw.uid)
 
     def add_compare_task(self, compare_id, force=False):
         self.connections['compare_task']['fs'].put(pickle.dumps((compare_id, force)), filename=compare_id)

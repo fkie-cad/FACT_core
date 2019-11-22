@@ -23,10 +23,10 @@ class Unpacker(UnpackBase):
         Recursively extract all objects included in current_fo and add them to current_fo.files_included
         '''
 
-        logging.debug('[worker {}] Extracting {}: Depth: {}'.format(self.worker_id, current_fo.get_uid(), current_fo.depth))
+        logging.debug('[worker {}] Extracting {}: Depth: {}'.format(self.worker_id, current_fo.uid, current_fo.depth))
 
         if current_fo.depth >= self.config.getint('unpack', 'max_depth'):
-            logging.warning('{} is not extracted since depth limit ({}) is reached'.format(current_fo.get_uid(), self.config.get('unpack', 'max_depth')))
+            logging.warning('{} is not extracted since depth limit ({}) is reached'.format(current_fo.uid, self.config.get('unpack', 'max_depth')))
             return []
 
         tmp_dir = TemporaryDirectory(prefix='fact_unpack_')
@@ -63,27 +63,27 @@ class Unpacker(UnpackBase):
                 current_file = FileObject(file_path=str(item))
                 current_virtual_path = '{}|{}|{}'.format(
                     parent.get_base_of_virtual_path(parent.get_virtual_file_paths()[parent.get_root_uid()][0]),
-                    parent.get_uid(), get_object_path_excluding_fact_dirs(make_unicode_string(str(item)), str(Path(extractor_dir, 'files')))
+                    parent.uid, get_object_path_excluding_fact_dirs(make_unicode_string(str(item)), str(Path(extractor_dir, 'files')))
                 )
                 current_file.temporary_data['parent_fo_type'] = get_file_type_from_path(parent.file_path)['mime']
-                if current_file.get_uid() in extracted_files:  # the same file is extracted multiple times from one archive
-                    extracted_files[current_file.get_uid()].virtual_file_path[parent.get_root_uid()].append(current_virtual_path)
+                if current_file.uid in extracted_files:  # the same file is extracted multiple times from one archive
+                    extracted_files[current_file.uid].virtual_file_path[parent.get_root_uid()].append(current_virtual_path)
                 else:
                     self.db_interface.set_unpacking_lock(current_file.uid)
                     self.file_storage_system.store_file(current_file)
                     current_file.virtual_file_path = {parent.get_root_uid(): [current_virtual_path]}
                     current_file.parent_firmware_uids.add(parent.get_root_uid())
-                    extracted_files[current_file.get_uid()] = current_file
+                    extracted_files[current_file.uid] = current_file
         return extracted_files
 
     @staticmethod
     def remove_duplicates(extracted_fo_dict, parent_fo):
-        if parent_fo.get_uid() in extracted_fo_dict:
-            del extracted_fo_dict[parent_fo.get_uid()]
+        if parent_fo.uid in extracted_fo_dict:
+            del extracted_fo_dict[parent_fo.uid]
         return make_list_from_dict(extracted_fo_dict)
 
     def _generate_local_file_path(self, file_object: FileObject):
         if not Path(file_object.file_path).exists():
-            local_path = self.file_storage_system.generate_path(file_object.get_uid())
+            local_path = self.file_storage_system.generate_path(file_object.uid)
             return local_path
         return file_object.file_path

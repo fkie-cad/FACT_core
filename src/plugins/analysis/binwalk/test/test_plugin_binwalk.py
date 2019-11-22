@@ -1,8 +1,12 @@
+# pylint: disable=protected-access
+
+import string
+
+from helperFunctions.fileSystem import get_test_data_dir
+from objects.file import FileObject
 from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
 
 from ..code.binwalk import AnalysisPlugin
-from helperFunctions.fileSystem import get_test_data_dir
-from objects.file import FileObject
 
 TEST_OUTPUT = '''
 DECIMAL       HEXADECIMAL     DESCRIPTION
@@ -24,10 +28,6 @@ class TestAnalysisPluginBinwalk(AnalysisPluginTest):
         # additional setup can go here
         self.analysis_plugin = AnalysisPlugin(self, config=config)
 
-    def tearDown(self):
-        super().tearDown()
-        # additional tearDown can go here
-
     def test_signature_analysis(self):
         test_file = FileObject(file_path='{}/container/test.zip'.format(get_test_data_dir()))
         processed_file = self.analysis_plugin.process_object(test_file)
@@ -44,3 +44,9 @@ class TestAnalysisPluginBinwalk(AnalysisPluginTest):
     def test_summary(self):
         summary = self.analysis_plugin._extract_summary(TEST_OUTPUT)
         self.assertCountEqual(summary, ['Microsoft executable', 'XML document', 'Zip archive data', 'End of Zip archive'])
+
+    def test_iterate_valid_signature_lines(self):
+        result = list(self.analysis_plugin._iterate_valid_signature_lines(TEST_OUTPUT.splitlines()))
+        assert len(result) == 5
+        assert all(line[0] in string.digits for line in result)
+        assert result[0] == '0             0x0             Microsoft executable, portable (PE)'

@@ -46,27 +46,27 @@ class TestCompare(unittest.TestCase):
         cls.mongo_server.shutdown()
 
     def _create_compare_dict(self):
-        comp_dict = {'general': {'hid': {self.fw_one.get_uid(): 'foo', self.fw_two.get_uid(): 'bar'}}, 'plugins': {}}
-        comp_dict['general']['virtual_file_path'] = {self.fw_one.get_uid(): 'dev_one_name', self.fw_two.get_uid(): 'dev_two_name'}
+        comp_dict = {'general': {'hid': {self.fw_one.uid: 'foo', self.fw_two.uid: 'bar'}}, 'plugins': {}}
+        comp_dict['general']['virtual_file_path'] = {self.fw_one.uid: 'dev_one_name', self.fw_two.uid: 'dev_two_name'}
         return comp_dict
 
     def test_add_and_get_compare_result(self):
         self.db_interface_backend.add_firmware(self.fw_one)
         self.db_interface_backend.add_firmware(self.fw_two)
         self.db_interface_compare.add_compare_result(self.compare_dict)
-        retrieved = self.db_interface_compare.get_compare_result('{};{}'.format(self.fw_one.get_uid(), self.fw_two.get_uid()))
-        self.assertEqual(retrieved['general']['virtual_file_path'][self.fw_one.get_uid()], 'dev_one_name',
+        retrieved = self.db_interface_compare.get_compare_result('{};{}'.format(self.fw_one.uid, self.fw_two.uid))
+        self.assertEqual(retrieved['general']['virtual_file_path'][self.fw_one.uid], 'dev_one_name',
                          'content of retrieval not correct')
 
     def test_get_not_existing_compare_result(self):
         self.db_interface_backend.add_firmware(self.fw_one)
         self.db_interface_backend.add_firmware(self.fw_two)
-        result = self.db_interface_compare.get_compare_result('{};{}'.format(self.fw_one.get_uid(), self.fw_two.get_uid()))
+        result = self.db_interface_compare.get_compare_result('{};{}'.format(self.fw_one.uid, self.fw_two.uid))
         self.assertIsNone(result, 'result not none')
 
     def test_calculate_compare_result_id(self):
         comp_id = self.db_interface_compare._calculate_compare_result_id(self.compare_dict)
-        self.assertEqual(comp_id, '{};{}'.format(self.fw_one.get_uid(), self.fw_two.get_uid()))
+        self.assertEqual(comp_id, '{};{}'.format(self.fw_one.uid, self.fw_two.uid))
 
     def test_calculate_compare_result_id__incomplete_entries(self):
         compare_dict = {'general': {'stat_1': {'a': None}, 'stat_2': {'b': None}}}
@@ -75,14 +75,14 @@ class TestCompare(unittest.TestCase):
 
     def test_check_objects_exist(self):
         self.db_interface_backend.add_firmware(self.fw_one)
-        assert self.db_interface_compare.check_objects_exist(self.fw_one.get_uid()) is None, 'existing_object not found'
+        assert self.db_interface_compare.check_objects_exist(self.fw_one.uid) is None, 'existing_object not found'
         with pytest.raises(FactCompareException):
-            self.db_interface_compare.check_objects_exist('{};none_existing_object'.format(self.fw_one.get_uid()))
+            self.db_interface_compare.check_objects_exist('{};none_existing_object'.format(self.fw_one.uid))
 
     def test_get_compare_result_of_nonexistent_uid(self):
         self.db_interface_backend.add_firmware(self.fw_one)
         try:
-            self.db_interface_compare.check_objects_exist('{};none_existing_object'.format(self.fw_one.get_uid()))
+            self.db_interface_compare.check_objects_exist('{};none_existing_object'.format(self.fw_one.uid))
         except FactCompareException as exception:
             assert exception.get_message() == 'none_existing_object not found in database', 'error message not correct'
 
@@ -93,10 +93,10 @@ class TestCompare(unittest.TestCase):
         self.db_interface_compare.add_compare_result(self.compare_dict)
         result = self.db_interface_compare.page_compare_results(limit=10)
         for id_, hids, submission_date in result:
-            self.assertIn(self.fw_one.get_uid(), hids)
-            self.assertIn(self.fw_two.get_uid(), hids)
-            self.assertIn(self.fw_one.get_uid(), id_)
-            self.assertIn(self.fw_two.get_uid(), id_)
+            self.assertIn(self.fw_one.uid, hids)
+            self.assertIn(self.fw_two.uid, hids)
+            self.assertIn(self.fw_one.uid, id_)
+            self.assertIn(self.fw_two.uid, id_)
             self.assertTrue(before <= submission_date <= time())
 
     def test_get_latest_comparisons_removed_firmware(self):

@@ -49,7 +49,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             arch_dict = detector.get_device_architecture(file_object)
             if arch_dict:
                 return arch_dict
-        logging.debug('Arch Detection Failed: {}'.format(file_object.get_uid()))
+        logging.debug('Arch Detection Failed: {}'.format(file_object.uid))
         return {}
 
 

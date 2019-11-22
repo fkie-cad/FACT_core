@@ -1,5 +1,5 @@
 import logging
-from multiprocessing import Queue, Value, Manager
+from multiprocessing import Manager, Queue, Value
 from queue import Empty
 from time import time
 
@@ -26,7 +26,6 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         self.recursive = recursive
         self.in_queue = Queue()
         self.out_queue = Queue()
-        self.workload_index = Value('i', 0)
         self.stop_condition = Value('i', 0)
         self.workers = []
         if self.timeout is None:
@@ -37,7 +36,7 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
 
     def add_job(self, fw_object: FileObject):
         if self._dependencies_are_unfulfilled(fw_object):
-            logging.error('{}: dependencies of plugin {} not fulfilled'.format(fw_object.get_uid(), self.NAME))
+            logging.error('{}: dependencies of plugin {} not fulfilled'.format(fw_object.uid, self.NAME))
         elif self._analysis_depth_not_reached_yet(fw_object):
             self.in_queue.put(fw_object)
             return
@@ -65,12 +64,6 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
     def _add_plugin_version_and_timestamp_to_analysis_result(self, fo):
         fo.processed_analysis[self.NAME].update(self.init_dict())
         return fo
-
-    def get_workload(self):
-        '''
-        This function returns the current number of objects in progress
-        '''
-        return self.workload_index.value
 
     def shutdown(self):
         '''
@@ -139,19 +132,19 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         if self.timeout_happened(process):
             terminate_process_and_childs(process)
             self.out_queue.put(next_task)
-            logging.warning('Worker {}: Timeout {} analysis on {}'.format(worker_id, self.NAME, next_task.get_uid()))
+            logging.warning('Worker {}: Timeout {} analysis on {}'.format(worker_id, self.NAME, next_task.uid))
         elif process.exception:
             terminate_process_and_childs(process)
             raise process.exception[0]
         else:
             self.out_queue.put(result.pop())
-            logging.debug('Worker {}: Finished {} analysis on {}'.format(worker_id, self.NAME, next_task.get_uid()))
+            logging.debug('Worker {}: Finished {} analysis on {}'.format(worker_id, self.NAME, next_task.uid))
 
     def worker(self, worker_id):
         while self.stop_condition.value == 0:
             try:
                 next_task = self.in_queue.get(timeout=float(self.config['ExpertSettings']['block_delay']))
-                logging.debug('Worker {}: Begin {} analysis on {}'.format(worker_id, self.NAME, next_task.get_uid()))
+                logging.debug('Worker {}: Begin {} analysis on {}'.format(worker_id, self.NAME, next_task.uid))
             except Empty:
                 pass
             else:

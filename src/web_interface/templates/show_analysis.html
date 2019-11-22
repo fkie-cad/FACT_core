@@ -30,6 +30,10 @@
     <script src="{{ url_for('static', filename='highlight.js/highlight.pack.js') }}"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='highlight.js/styles/github.css') }}" />
 
+    {# line_numbering.js import #}
+    <script type="text/javascript" src="{{ url_for('static', filename='js/line_numbering.js') }}"></script>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/line_numbering.css') }}" />
+
 {% endblock %}
 
 {% block body %}
@@ -352,7 +356,8 @@
 		            };
 		            function highlight_code() {
 		                var block = $('div#preview-div pre')[0];
-                        hljs.highlightBlock(block);
+		                hljs.highlightBlock(block);
+		                line_numbering();
 		            };
 		            function load_preview(){
 		                loading_gif.style.display = "block";
@@ -376,7 +381,7 @@
                     <th class="result" valign="baseline">
                         Comments
                         {# Add Comment Button #}
-                        <form action="/comment/{{ firmware.get_uid() }}" style="float: right; margin-right: 5px;">
+                        <form action="/comment/{{ firmware.uid }}" style="float: right; margin-right: 5px;">
                             <button class="btn btn-primary" type="submit">
                                 <span class="glyphicon glyphicon-edit"></span> add comment
                             </button>
@@ -445,26 +450,26 @@
 	    <div class="alert alert-custom" style="padding:5px;">
 	    	<strong>user options:</strong>
             {# Hex View Button #}
-            <form action="/hex-dump/{{ firmware.get_uid() }}" style="display: inline" onsubmit="window.open('', 'formpopup', 'width=800,height=400,resizeable,scrollbars');this.target = 'formpopup';">
+            <form action="/hex-dump/{{ firmware.uid }}" style="display: inline" onsubmit="window.open('', 'formpopup', 'width=800,height=400,resizeable,scrollbars');this.target = 'formpopup';">
                 <button class="btn btn-default" type="submit">
                     <span class="glyphicon glyphicon-eye-open"></span> show header in hex
                 </button>
             </form>
             {# Radare Button #}
-            <form action="/radare-view/{{ firmware.get_uid() }}" style="display: inline" target="_blank">
+            <form action="/radare-view/{{ firmware.uid }}" style="display: inline" target="_blank">
                 <button class="btn btn-default" type="submit">
                     <span class="glyphicon glyphicon-console"></span> view in radare
                 </button>
             </form>
             {# Binary Download Button #}
-            <form action="/download/{{ firmware.get_uid() }}" style="display:inline">
+            <form action="/download/{{ firmware.uid }}" style="display:inline">
                 <button class="btn btn-default" type="submit">
                     <span class="glyphicon glyphicon-download-alt"></span> download raw file
                 </button>
             </form>
  			{# Tar Download Button #}
 			{% if firmware.files_included %}
-				<form action="/tar-download/{{ firmware.get_uid() }}" style="display:inline">
+				<form action="/tar-download/{{ firmware.uid }}" style="display:inline">
 			    	<button class="btn btn-default" type="submit">
 			        	<span class="glyphicon glyphicon-compressed"></span> download included files as tar.gz
 			        </button>
@@ -472,17 +477,17 @@
 			{% endif %}
 			{% if firmware.vendor %}
         		{# Update Analysis Buttons #}
-                <form action="/update-analysis/{{ firmware.get_uid() }}" style="display:inline">
+                <form action="/update-analysis/{{ firmware.uid }}" style="display:inline">
                     <button class="btn btn-default" type="submit">
                         <span class="glyphicon glyphicon-repeat"></span> update analysis
                     </button>
                 </form>
     			{# Start Binary Search Button #}
-                <button class="btn btn-default" onclick='window.location.href = "/database/binary_search?firmware_uid={{ firmware.get_uid() }}";'>
+                <button class="btn btn-default" onclick='window.location.href = "/database/binary_search?firmware_uid={{ firmware.uid }}";'>
                     <span class="glyphicon glyphicon-search"></span> YARA search
                 </button>
     			{# PDF Button #}
-				<form action="/pdf-download/{{ firmware.get_uid() }}" style="display:inline">
+				<form action="/pdf-download/{{ firmware.uid }}" style="display:inline">
 			    	<button class="btn btn-default" type="submit">
 			        	<span class="glyphicon glyphicon-print"></span> download report as PDF
 			        </button>
