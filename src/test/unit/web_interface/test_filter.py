@@ -79,10 +79,14 @@ class TestWebInterfaceFilter(unittest.TestCase):
 
     def test_nice_unix_time_stamp(self):
         input_data = 1459427460
-        self.assertEqual(nice_unix_time(input_data), '2016-03-31 14:31:00', 'output not correct (int)')
+        assert nice_unix_time(input_data).startswith('2016-03-31')
+        assert nice_unix_time(input_data).endswith(':31:00')
+
         input_data = 1459427460.4
-        self.assertEqual(nice_unix_time(input_data), '2016-03-31 14:31:00', 'output not correct (float)')
-        self.assertEqual(nice_unix_time('test'), 'test')
+        assert nice_unix_time(input_data).startswith('2016-03-31')
+        assert nice_unix_time(input_data).endswith(':31:00')
+
+        assert nice_unix_time('test') == 'test'
 
     def test_sort_chart_list_by_value(self):
         test_list = [['a', 1], ['b', 2]]
