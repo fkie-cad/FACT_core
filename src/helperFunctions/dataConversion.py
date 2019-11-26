@@ -20,13 +20,6 @@ def make_unicode_string(code):
     return code.__str__()
 
 
-def make_dict_from_list(list_object):
-    return {
-        str(i): item
-        for i, item in enumerate(list_object)
-    }
-
-
 def make_list_from_dict(dict_object):
     return list(dict_object.values())
 
@@ -84,12 +77,6 @@ def remove_included_sets_from_list_of_sets(list_of_sets):
     for subset in sets_to_delete:
         if subset in list_of_sets:
             list_of_sets.remove(subset)
-
-
-def remove_uneccessary_spaces(input_string):
-    tmp = input_string.split()
-    tmp = ' '.join(tmp)
-    return tmp
 
 
 def convert_str_to_time(string):

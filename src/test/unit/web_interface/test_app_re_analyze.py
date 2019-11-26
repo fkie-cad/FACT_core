@@ -11,7 +11,7 @@ class TestAppReAnalyze(WebInterfaceTest):
         assert b'File not found in database: invalid' in rv.data
 
     def test_app_re_analyze_get_valid_firmware(self):
-        rv = self.test_client.get('/update-analysis/{}'.format(TEST_FW.get_uid()))
+        rv = self.test_client.get('/update-analysis/{}'.format(TEST_FW.uid))
         assert b'<h2>update analysis of TEST_FW_HID</h2>' in rv.data
         assert b'value="default_plugin" unchecked' in rv.data
         assert b'mandatory_plugin' not in rv.data
@@ -29,10 +29,10 @@ class TestAppReAnalyze(WebInterfaceTest):
             'release_date': TEST_FW.release_date,
             'tags': '',
             'analysis_systems': ["new_system"]}
-        rv = self.test_client.post('/update-analysis/{}'.format(TEST_FW.get_uid()), data=form_data)
+        rv = self.test_client.post('/update-analysis/{}'.format(TEST_FW.uid), data=form_data)
         assert b'Upload Successful' in rv.data
-        assert make_bytes(TEST_FW.get_uid()) in rv.data
-        self.assertEqual(self.mocked_interface.tasks[0].get_uid(), TEST_FW.get_uid(), "fw not added to intercom")
+        assert make_bytes(TEST_FW.uid) in rv.data
+        self.assertEqual(self.mocked_interface.tasks[0].uid, TEST_FW.uid, "fw not added to intercom")
         self.assertIn("new_system", self.mocked_interface.tasks[0].scheduled_analysis, "new analysis system not scheduled")
 
     def test_overwrite_default_plugins(self):

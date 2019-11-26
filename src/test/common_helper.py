@@ -40,7 +40,7 @@ def create_test_firmware(device_class='Router', device_name='test_router', vendo
     fw.processed_analysis.update(processed_analysis)
     if all_files_included_set:
         fw.list_of_all_included_files = list(fw.files_included)
-        fw.list_of_all_included_files.append(fw.get_uid())
+        fw.list_of_all_included_files.append(fw.uid)
     return fw
 
 
@@ -70,9 +70,9 @@ class MockFileObject:
 
 
 class DatabaseMock:  # pylint: disable=too-many-public-methods
-    fw_uid = TEST_FW.get_uid()
-    fo_uid = TEST_TEXT_FILE.get_uid()
-    fw2_uid = TEST_FW_2.get_uid()
+    fw_uid = TEST_FW.uid
+    fo_uid = TEST_TEXT_FILE.uid
+    fw2_uid = TEST_FW_2.uid
 
     def __init__(self, config=None):
         self.tasks = []
@@ -94,7 +94,7 @@ class DatabaseMock:  # pylint: disable=too-many-public-methods
         return [fw_entry]
 
     def get_object(self, uid, analysis_filter=None):
-        if uid == TEST_FW.get_uid():
+        if uid == TEST_FW.uid:
             result = deepcopy(TEST_FW)
             result.processed_analysis = {
                 'file_type': {'mime': 'application/octet-stream', 'full': 'test text'},
@@ -102,7 +102,7 @@ class DatabaseMock:  # pylint: disable=too-many-public-methods
                 'optional_plugin': 'optional result'
             }
             return result
-        if uid == TEST_TEXT_FILE.get_uid():
+        if uid == TEST_TEXT_FILE.uid:
             result = deepcopy(TEST_TEXT_FILE)
             result.processed_analysis = {
                 'file_type': {'mime': 'text/plain', 'full': 'plain text'}
@@ -171,8 +171,8 @@ class DatabaseMock:  # pylint: disable=too-many-public-methods
         def find_one(uid):
             if uid == 'test_uid':
                 return 'test'
-            if uid == TEST_FW.get_uid():
-                return TEST_FW.get_uid()
+            if uid == TEST_FW.uid:
+                return TEST_FW.uid
             return None
 
         @staticmethod
@@ -182,8 +182,8 @@ class DatabaseMock:  # pylint: disable=too-many-public-methods
     class file_objects:  # pylint: disable=invalid-name
         @staticmethod
         def find_one(uid):
-            if uid == TEST_TEXT_FILE.get_uid():
-                return TEST_TEXT_FILE.get_uid()
+            if uid == TEST_TEXT_FILE.uid:
+                return TEST_TEXT_FILE.uid
             return None
 
         @staticmethod
@@ -232,14 +232,14 @@ class DatabaseMock:  # pylint: disable=too-many-public-methods
         }
 
     def get_binary_and_filename(self, uid):
-        if uid == TEST_FW.get_uid():
+        if uid == TEST_FW.uid:
             return TEST_FW.binary, TEST_FW.file_name
-        if uid == TEST_TEXT_FILE.get_uid():
+        if uid == TEST_TEXT_FILE.uid:
             return TEST_TEXT_FILE.binary, TEST_TEXT_FILE.file_name
         return None
 
     def get_repacked_binary_and_file_name(self, uid):
-        if uid == TEST_FW.get_uid():
+        if uid == TEST_FW.uid:
             return TEST_FW.binary, '{}.tar.gz'.format(TEST_FW.file_name)
         return None, None
 
@@ -265,6 +265,8 @@ class DatabaseMock:  # pylint: disable=too-many-public-methods
         }
         if identifier == 'general':
             return statistics
+        if identifier == 'release_date':
+            return {'date_histogram_data': [['July 2014', 1]]}
         return None
 
     def get_complete_object_including_all_summaries(self, uid):
@@ -328,7 +330,7 @@ class DatabaseMock:  # pylint: disable=too-many-public-methods
         return None  # TODO
 
     def get_summary(self, fo, selected_analysis):
-        if fo.uid == TEST_FW.get_uid() and selected_analysis == 'foobar':
+        if fo.uid == TEST_FW.uid and selected_analysis == 'foobar':
             return {'foobar': ['some_uid']}
         return None
 

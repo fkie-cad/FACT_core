@@ -45,10 +45,10 @@ class TestUnpackScheduler(unittest.TestCase):
         included_files = [self.tmp_queue.get(timeout=5)]
         included_files.append(self.tmp_queue.get(timeout=5))
         for item in included_files:
-            if item.get_uid() == 'ab4153d747f530f9bc3a4b71907386f50472ea5ae975c61c0bacd918f1388d4b_227':
+            if item.uid == 'ab4153d747f530f9bc3a4b71907386f50472ea5ae975c61c0bacd918f1388d4b_227':
                 self.assertEqual(len(item.files_included), 1, 'number of files in included container not correct')
             else:
-                self.assertEqual(item.get_uid(), 'faa11db49f32a90b51dfc3f0254f9fd7a7b46d0b570abd47e1943b86d554447a_28', 'none container file not rescheduled')
+                self.assertEqual(item.uid, 'faa11db49f32a90b51dfc3f0254f9fd7a7b46d0b570abd47e1943b86d554447a_28', 'none container file not rescheduled')
 
     def test_get_combined_analysis_workload(self):
         self._start_scheduler()

@@ -48,7 +48,7 @@ class TestPluginBaseCore(TestPluginBase):
         root_object = FileObject(binary=b'root_file')
         self.base_plugin.in_queue.put(root_object)
         processed_object = self.base_plugin.out_queue.get()
-        self.assertEqual(processed_object.get_uid(), root_object.get_uid(), 'uid changed')
+        self.assertEqual(processed_object.uid, root_object.uid, 'uid changed')
         self.assertTrue('base' in processed_object.processed_analysis, 'object not processed')
         self.assertEqual(processed_object.processed_analysis['base']['plugin_version'], 'not set', 'plugin version missing in results')
         self.assertGreater(processed_object.processed_analysis['base']['analysis_date'], 1, 'analysis date missing in results')
@@ -59,11 +59,8 @@ class TestPluginBaseCore(TestPluginBase):
         root_object.add_included_file(child_object)
         self.base_plugin.in_queue.put(root_object)
         processed_object = self.base_plugin.out_queue.get()
-        self.assertEqual(processed_object.get_uid(), root_object.get_uid(), 'uid changed')
-        self.assertTrue(child_object.get_uid() in root_object.get_included_files_uids(), 'child object not in processed file')
-
-    def test_get_workload(self):
-        assert self.base_plugin.get_workload() == 0
+        self.assertEqual(processed_object.uid, root_object.uid, 'uid changed')
+        self.assertTrue(child_object.uid in root_object.get_included_files_uids(), 'child object not in processed file')
 
 
 class TestPluginBaseAddJob(TestPluginBase):
