@@ -1,14 +1,12 @@
 # pylint: disable=protected-access,wrong-import-order
+import gc
 import unittest
 
-import gc
-
-from helperFunctions.config import get_config_for_testing
 from helperFunctions.statistic import calculate_total_files
 from statistic.update import StatisticUpdater
-from storage.MongoMgr import MongoMgr
 from storage.db_interface_statistic import StatisticDbViewer
-from test.common_helper import get_database_names, clean_test_database
+from storage.MongoMgr import MongoMgr
+from test.common_helper import clean_test_database, get_config_for_testing, get_database_names
 
 
 class TestStatistic(unittest.TestCase):

@@ -1,14 +1,12 @@
 import gc
-from tempfile import TemporaryDirectory
 import unittest
+from tempfile import TemporaryDirectory
 
-from helperFunctions.config import get_config_for_testing
-from storage.MongoMgr import MongoMgr
 from storage.db_interface_backend import BackEndDbInterface
 from storage.db_interface_frontend import FrontEndDbInterface
 from storage.db_interface_frontend_editing import FrontendEditingDbInterface
-from test.common_helper import create_test_firmware
-
+from storage.MongoMgr import MongoMgr
+from test.common_helper import create_test_firmware, get_config_for_testing
 
 TMP_DIR = TemporaryDirectory(prefix='fact_test_')
 

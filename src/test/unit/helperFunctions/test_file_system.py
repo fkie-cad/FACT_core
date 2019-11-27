@@ -2,10 +2,10 @@ import os
 import unittest
 
 from helperFunctions.fileSystem import (
-    file_is_empty, get_absolute_path, _get_relative_path,
-    get_object_path_excluding_fact_dirs, get_parent_dir,
-    get_src_dir, get_template_dir, get_test_data_dir
+    _get_relative_path, file_is_empty, get_absolute_path, get_object_path_excluding_fact_dirs, get_parent_dir,
+    get_src_dir, get_template_dir
 )
+from test.common_helper import get_test_data_dir
 
 
 class TestFileSystemHelpers(unittest.TestCase):

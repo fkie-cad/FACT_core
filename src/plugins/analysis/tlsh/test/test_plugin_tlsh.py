@@ -1,7 +1,7 @@
 import pytest
-from helperFunctions.config import get_config_for_testing
+
 from plugins.analysis.tlsh.code.tlsh import AnalysisPlugin
-from test.common_helper import create_test_file_object
+from test.common_helper import create_test_file_object, get_config_for_testing
 
 HASH_0 = '9A355C07B5A614FDC5A2847046EF92B7693174A642327DBF3C88D6303F42E746B1ABE1'
 HASH_1 = '0CC34B06B1B258BCC16689308A67D671AB747E5053223B3E3684F7342F56E6F1F0DAB1'

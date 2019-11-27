@@ -6,9 +6,8 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from helperFunctions.dataConversion import make_list_from_dict
-from helperFunctions.fileSystem import get_test_data_dir
 from objects.file import FileObject
-from test.common_helper import DatabaseMock, create_test_file_object
+from test.common_helper import DatabaseMock, create_test_file_object, get_test_data_dir
 from unpacker.unpack import Unpacker
 
 

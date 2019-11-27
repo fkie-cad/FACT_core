@@ -5,13 +5,11 @@ import unittest
 from shutil import copyfile
 from tempfile import TemporaryDirectory
 
-from helperFunctions.config import get_config_for_testing
-from helperFunctions.fileSystem import get_test_data_dir
 from intercom.common_mongo_binding import InterComListener
 from storage.db_interface_admin import AdminDbInterface
 from storage.db_interface_backend import BackEndDbInterface
 from storage.MongoMgr import MongoMgr
-from test.common_helper import create_test_file_object, create_test_firmware
+from test.common_helper import create_test_file_object, create_test_firmware, get_config_for_testing, get_test_data_dir
 
 TESTS_DIR = get_test_data_dir()
 TEST_FILE_ORIGINAL = os.path.join(TESTS_DIR, 'get_files_test/testfile1')
@@ -126,7 +124,6 @@ class TestStorageDbInterfaceAdmin(unittest.TestCase):
             tmp = intercom.get_next_task()
             if tmp is None:
                 break
-            else:
-                delete_tasks.append(tmp['_id'])
+            delete_tasks.append(tmp['_id'])
         intercom.shutdown()
         return delete_tasks

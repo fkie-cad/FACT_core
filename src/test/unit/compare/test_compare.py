@@ -3,11 +3,10 @@ import unittest
 
 import pytest
 
-from compare.PluginBase import CompareBasePlugin
 from compare.compare import Compare
-from helperFunctions.config import get_config_for_testing
+from compare.PluginBase import CompareBasePlugin
 from helperFunctions.hash import get_ssdeep
-from test.common_helper import create_test_firmware, create_test_file_object
+from test.common_helper import create_test_file_object, create_test_firmware, get_config_for_testing
 
 
 @pytest.fixture(autouse=True)

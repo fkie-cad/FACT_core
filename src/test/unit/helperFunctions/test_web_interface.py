@@ -1,11 +1,9 @@
-# -*- coding: utf-8 -*-
 import pytest
-
-from flask_security.core import AnonymousUser, UserMixin, RoleMixin
+from flask_security.core import AnonymousUser, RoleMixin, UserMixin
 from werkzeug.local import LocalProxy
 
-from helperFunctions.web_interface import filter_out_illegal_characters, password_is_legal, get_radare_endpoint
-from helperFunctions.config import get_config_for_testing
+from helperFunctions.web_interface import filter_out_illegal_characters, get_radare_endpoint, password_is_legal
+from test.common_helper import get_config_for_testing
 from web_interface.security.authentication import user_has_privilege
 
 
