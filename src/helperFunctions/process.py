@@ -91,7 +91,7 @@ def check_worker_exceptions(process_list: List[ExceptionSafeProcess], worker_lab
     return_value = False
     for worker_process in process_list:
         if worker_process.exception:
-            logging.error("{}Exception in {} worker process{}".format(bcolors.FAIL, worker_label, bcolors.ENDC))
+            logging.error("{}Exception in {} process{}".format(bcolors.FAIL, worker_label, bcolors.ENDC))
             logging.error(worker_process.exception[1])
             terminate_process_and_childs(worker_process)
             process_list.remove(worker_process)
@@ -99,5 +99,6 @@ def check_worker_exceptions(process_list: List[ExceptionSafeProcess], worker_lab
                 return_value = True
             elif worker_function is not None:
                 process_index = worker_process.name.split('-')[-1]
+                logging.warning("{}restarting {} {} process{}".format(bcolors.WARNING, worker_label, process_index, bcolors.ENDC))
                 process_list.append(start_single_worker(process_index, worker_label, worker_function))
     return return_value

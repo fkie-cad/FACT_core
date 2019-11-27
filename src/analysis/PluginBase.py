@@ -107,7 +107,7 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
 
     def start_worker(self):
         for process_index in range(int(self.config[self.NAME]['threads'])):
-            start_single_worker(process_index, 'Analysis', self.worker)
+            self.workers.append(start_single_worker(process_index, 'Analysis', self.worker))
         logging.debug('{}: {} worker threads started'.format(self.NAME, len(self.workers)))
 
     def process_next_object(self, task, result):
