@@ -84,4 +84,9 @@ class CompareScheduler:
         return redo or uid not in compares_done
 
     def check_exceptions(self):
-        return check_worker_exceptions([self.worker], 'Compare', self.config)
+        processes_to_check = [self.worker]
+        shutdown = check_worker_exceptions(processes_to_check, 'Compare', self.config, self._compare_scheduler_main)
+        # check if process was restarted
+        if not shutdown and processes_to_check[0] != self.worker:
+            self.worker = processes_to_check.pop()
+        return shutdown
