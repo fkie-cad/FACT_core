@@ -150,16 +150,3 @@ class AnalysisPlugin(AnalysisBasePlugin):
     @staticmethod
     def _add_quotes(unquoted_list):
         return list(map(lambda string: ''.join(['"', string, '"']), unquoted_list))
-
-    @staticmethod
-    def _parse_regex_matches(matches):
-        '''
-        takes list with scriptfragments and resolves line continuation
-        '''
-        commands = list()
-        for match in list(matches):
-            match = re.sub('(\\\\\n)', '', match)
-            match = match.splitlines()
-            commands.extend(match)
-        commands = list(map(str.strip, commands))
-        return commands
