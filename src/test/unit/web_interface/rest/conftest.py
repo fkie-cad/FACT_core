@@ -2,8 +2,7 @@ from tempfile import TemporaryDirectory
 
 import pytest
 
-from helperFunctions.config import get_config_for_testing
-from test.common_helper import DatabaseMock, fake_exit
+from test.common_helper import DatabaseMock, fake_exit, get_config_for_testing
 from web_interface.frontend_main import WebFrontEnd
 
 

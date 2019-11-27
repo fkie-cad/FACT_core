@@ -4,8 +4,7 @@ import unittest
 
 import magic
 
-from helperFunctions.config import get_config_for_testing
-from helperFunctions.fileSystem import get_test_data_dir
+from test.common_helper import get_config_for_testing, get_test_data_dir
 from unpacker.tar_repack import TarRepack
 
 

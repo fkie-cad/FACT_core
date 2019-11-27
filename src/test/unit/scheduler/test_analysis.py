@@ -5,11 +5,10 @@ from multiprocessing import Queue
 from unittest import TestCase, mock
 
 import pytest
-from helperFunctions.config import get_config_for_testing
-from helperFunctions.fileSystem import get_test_data_dir
+
 from objects.firmware import Firmware
 from scheduler.Analysis import MANDATORY_PLUGINS, AnalysisScheduler
-from test.common_helper import DatabaseMock, MockFileObject, fake_exit
+from test.common_helper import DatabaseMock, MockFileObject, fake_exit, get_config_for_testing, get_test_data_dir
 from test.mock import mock_patch, mock_spy
 
 

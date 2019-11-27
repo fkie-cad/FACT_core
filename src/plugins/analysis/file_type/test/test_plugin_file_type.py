@@ -1,8 +1,8 @@
+from objects.file import FileObject
+from test.common_helper import get_test_data_dir
 from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
 
 from ..code.file_type import AnalysisPlugin
-from objects.file import FileObject
-from helperFunctions.fileSystem import get_test_data_dir
 
 
 class TestAnalysisPluginFileType(AnalysisPluginTest):
@@ -13,9 +13,6 @@ class TestAnalysisPluginFileType(AnalysisPluginTest):
         super().setUp()
         config = self.init_basic_config()
         self.analysis_plugin = AnalysisPlugin(self, config=config)
-
-    def tearDown(self):
-        super().tearDown()
 
     def test_detect_type_of_file(self):
         test_file = FileObject(file_path='{}/container/test.zip'.format(get_test_data_dir()))

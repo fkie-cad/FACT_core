@@ -7,11 +7,10 @@ from unittest import TestCase
 import docker
 import pytest
 from common_helper_files import get_dir_of_file
-from helperFunctions.config import get_config_for_testing
-from helperFunctions.fileSystem import get_test_data_dir
 from requests.exceptions import ConnectionError as RequestConnectionError
 from requests.exceptions import ReadTimeout
-from test.common_helper import create_test_firmware
+
+from test.common_helper import create_test_firmware, get_config_for_testing, get_test_data_dir
 from test.mock import mock_patch
 from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
 

@@ -3,8 +3,7 @@ import unittest
 import unittest.mock
 from configparser import ConfigParser
 
-from helperFunctions.config import load_config
-from test.common_helper import DatabaseMock, fake_exit
+from test.common_helper import DatabaseMock, fake_exit, load_users_from_main_config
 
 
 class AnalysisPluginTest(unittest.TestCase):
@@ -39,15 +38,10 @@ class AnalysisPluginTest(unittest.TestCase):
         config.add_section('ExpertSettings')
         config.set('ExpertSettings', 'block_delay', '2')
         config.add_section('data_storage')
-        fact_config = load_config('main.cfg')
-        config.set('data_storage', 'db_admin_user', fact_config['data_storage']['db_admin_user'])
-        config.set('data_storage', 'db_admin_pw', fact_config['data_storage']['db_admin_pw'])
-        config.set('data_storage', 'db_readonly_user', fact_config['data_storage']['db_readonly_user'])
-        config.set('data_storage', 'db_readonly_pw', fact_config['data_storage']['db_readonly_pw'])
+        load_users_from_main_config(config)
         config.set('data_storage', 'mongo_server', 'localhost')
         config.set('data_storage', 'mongo_port', '54321')
         config.set('data_storage', 'view_storage', 'tmp_view')
-
         return config
 
     def register_plugin(self, name, plugin_object):

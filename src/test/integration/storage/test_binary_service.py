@@ -3,11 +3,10 @@ import unittest
 
 import magic
 
-from helperFunctions.config import get_config_for_testing
 from storage.binary_service import BinaryService
 from storage.db_interface_backend import BackEndDbInterface
 from storage.MongoMgr import MongoMgr
-from test.common_helper import create_test_firmware
+from test.common_helper import create_test_firmware, get_config_for_testing
 
 TEST_FW = create_test_firmware()
 

@@ -2,16 +2,25 @@
 import json
 import os
 from base64 import standard_b64encode
+from configparser import ConfigParser
 from copy import deepcopy
 
+from helperFunctions.config import load_config
 from helperFunctions.dataConversion import normalize_compare_id
-from helperFunctions.fileSystem import get_test_data_dir
+from helperFunctions.fileSystem import get_src_dir
 from intercom.common_mongo_binding import InterComMongoInterface
 from objects.file import FileObject
 from objects.firmware import Firmware
 from storage.db_interface_common import MongoInterfaceCommon
 from storage.db_interface_compare import FactCompareException
 from storage.mongo_interface import MongoInterface
+
+
+def get_test_data_dir():
+    '''
+    Returns the absolute path of the test data directory
+    '''
+    return os.path.join(get_src_dir(), 'test/data')
 
 
 class CommonDbInterfaceMock(MongoInterfaceCommon):
@@ -374,3 +383,40 @@ def get_firmware_for_rest_upload_test():
         'requested_analysis_systems': ['software_components']
     }
     return data
+
+
+def get_config_for_testing(temp_dir=None):
+    config = ConfigParser()
+    config.add_section('data_storage')
+    config.set('data_storage', 'mongo_server', 'localhost')
+    config.set('data_storage', 'main_database', 'tmp_unit_tests')
+    config.set('data_storage', 'intercom_database_prefix', 'tmp_unit_tests')
+    config.set('data_storage', 'statistic_database', 'tmp_unit_tests')
+    config.set('data_storage', 'view_storage', 'tmp_tests_view')
+    config.set('data_storage', 'mongo_port', '27018')
+    config.set('data_storage', 'report_threshold', '2048')
+    config.set('data_storage', 'password_salt', '1234')
+    config.add_section('unpack')
+    config.set('unpack', 'whitelist', '')
+    config.set('unpack', 'max_depth', '10')
+    config.add_section('default_plugins')
+    config.add_section('ExpertSettings')
+    config.set('ExpertSettings', 'block_delay', '0.1')
+    config.set('ExpertSettings', 'ssdeep_ignore', '1')
+    config.set('ExpertSettings', 'authentication', 'false')
+    config.set('ExpertSettings', 'intercom_poll_delay', '0.5')
+    config.set('ExpertSettings', 'nginx', 'false')
+    load_users_from_main_config(config)
+    config.add_section('Logging')
+    if temp_dir is not None:
+        config.set('data_storage', 'firmware_file_storage_directory', temp_dir.name)
+        config.set('Logging', 'mongoDbLogFile', os.path.join(temp_dir.name, 'mongo.log'))
+    return config
+
+
+def load_users_from_main_config(config: ConfigParser):
+    fact_config = load_config('main.cfg')
+    config.set('data_storage', 'db_admin_user', fact_config['data_storage']['db_admin_user'])
+    config.set('data_storage', 'db_admin_pw', fact_config['data_storage']['db_admin_pw'])
+    config.set('data_storage', 'db_readonly_user', fact_config['data_storage']['db_readonly_user'])
+    config.set('data_storage', 'db_readonly_pw', fact_config['data_storage']['db_readonly_pw'])

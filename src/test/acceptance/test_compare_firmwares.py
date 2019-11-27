@@ -1,11 +1,10 @@
 import os
 import time
-
 from multiprocessing import Event, Value
 
 from storage.db_interface_backend import BackEndDbInterface
 from test.acceptance.base import TestAcceptanceBase
-from helperFunctions.fileSystem import get_test_data_dir
+from test.common_helper import get_test_data_dir
 
 
 class TestAcceptanceCompareFirmwares(TestAcceptanceBase):
