@@ -13,7 +13,7 @@ from helperFunctions.config import read_list_from_config
 from helperFunctions.merge_generators import shuffled
 from helperFunctions.parsing import bcolors
 from helperFunctions.plugin import import_plugins
-from helperFunctions.process import ExceptionSafeProcess, terminate_process_and_childs
+from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions
 from helperFunctions.tag import add_tags_to_object, check_tags
 from objects.file import FileObject
 from storage.db_interface_backend import BackEndDbInterface
@@ -349,13 +349,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         for _, plugin in self.analysis_plugins.items():
             if plugin.check_exceptions():
                 return True
-        for process in [self.schedule_process, self.result_collector_process]:
-            if process.exception:
-                logging.error('{}Exception in scheduler process {}{}'.format(bcolors.FAIL, bcolors.ENDC, process.name))
-                logging.error(process.exception[1])
-                terminate_process_and_childs(process)
-                return True  # Error here means nothing will ever get scheduled again. Thing should just break !
-        return False
+        return check_worker_exceptions([self.schedule_process, self.result_collector_process], 'Scheduler')
 
     def _add_dependencies_recursively(self, scheduled_analyses: List[str]) -> List[str]:
         scheduled_analyses_set = set(scheduled_analyses)

@@ -5,12 +5,12 @@ from queue import Empty
 from time import sleep
 
 from helperFunctions.parsing import bcolors
-from helperFunctions.process import ExceptionSafeProcess, terminate_process_and_childs
+from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions, start_single_worker
 from storage.db_interface_common import MongoInterfaceCommon
 from unpacker.unpack import Unpacker
 
 
-class UnpackingScheduler(object):
+class UnpackingScheduler:
     '''
     This scheduler performs unpacking on firmware objects
     '''
@@ -58,7 +58,7 @@ class UnpackingScheduler(object):
     def start_unpack_workers(self):
         logging.debug('Starting {} working threads'.format(int(self.config['unpack']['threads'])))
         for process_index in range(int(self.config['unpack']['threads'])):
-            self._start_single_worker(process_index)
+            start_single_worker(process_index, 'Unpacking', self.unpack_worker)
 
     def unpack_worker(self, worker_id):
         unpacker = Unpacker(self.config, worker_id=worker_id, db_interface=self.db_interface)
@@ -79,9 +79,8 @@ class UnpackingScheduler(object):
             if self.throttle_condition.value == 0:
                 self.in_queue.put(item)
                 break
-            else:
-                logging.debug('throttle down unpacking to reduce memory consumption...')
-                sleep(5)
+            logging.debug('throttle down unpacking to reduce memory consumption...')
+            sleep(5)
 
     def start_work_load_monitor(self):
         logging.debug('Start work load monitor...')
@@ -115,24 +114,4 @@ class UnpackingScheduler(object):
         return 0
 
     def check_exceptions(self):
-        return_value = False
-        for worker in self.workers:
-            if worker.exception:
-                logging.error("{}Worker Exception Found!!{}".format(bcolors.FAIL, bcolors.ENDC))
-                logging.error(worker.exception[1])
-                terminate_process_and_childs(worker)
-                self.workers.remove(worker)
-
-                if self.config.getboolean('ExpertSettings', 'throw_exceptions'):
-                    return_value = True
-                else:
-                    process_index = worker.name.split('-')[2]
-                    self._start_single_worker(process_index)
-        return return_value
-
-    def _start_single_worker(self, process_index):
-        process = ExceptionSafeProcess(target=self.unpack_worker,
-                                       name='Unpacking-Worker-{}'.format(process_index),
-                                       args=(process_index,))
-        process.start()
-        self.workers.append(process)
+        return check_worker_exceptions(self.workers, 'Unpacking', self.config, self.unpack_worker)

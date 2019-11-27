@@ -4,13 +4,8 @@ from queue import Empty
 
 from compare.compare import Compare
 from helperFunctions.dataConversion import convert_compare_id_to_list
-from helperFunctions.parsing import bcolors
-from helperFunctions.process import (
-    ExceptionSafeProcess, terminate_process_and_childs
-)
-from storage.db_interface_compare import (
-    CompareDbInterface, FactCompareException
-)
+from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions
+from storage.db_interface_compare import CompareDbInterface, FactCompareException
 
 
 class CompareScheduler:
@@ -89,11 +84,4 @@ class CompareScheduler:
         return redo or uid not in compares_done
 
     def check_exceptions(self):
-        return_value = False
-        if self.worker.exception:
-            logging.error("{}Worker Exception Found!!{}".format(bcolors.FAIL, bcolors.ENDC))
-            logging.error(self.worker.exception[1])
-            if self.config.getboolean('ExpertSettings', 'throw_exceptions'):
-                return_value = True
-                terminate_process_and_childs(self.worker)
-        return return_value
+        return check_worker_exceptions([self.worker], 'Compare', self.config)

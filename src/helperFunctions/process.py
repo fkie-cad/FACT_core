@@ -3,17 +3,20 @@ import logging
 import os
 import signal
 import traceback
+from configparser import ConfigParser
 from contextlib import suppress
-from multiprocessing import pool, Process, Pipe
+from multiprocessing import Pipe, Process, pool
+from typing import Callable, List, Optional
 
 import psutil
+
+from helperFunctions.parsing import bcolors
 
 
 def no_operation(*_):
     '''
     No Operation
     '''
-    pass
 
 
 def complete_shutdown(message=None):
@@ -71,3 +74,30 @@ def _terminate_orphans(process):
         parent = psutil.Process(process.pid)
         for child in parent.children(recursive=True):
             child.send_signal(signal.SIGTERM)
+
+
+def start_single_worker(process_index, label: str, function: Callable) -> ExceptionSafeProcess:
+    process = ExceptionSafeProcess(
+        target=function,
+        name='{}-Worker-{}'.format(label, process_index),
+        args=(process_index,)
+    )
+    process.start()
+    return process
+
+
+def check_worker_exceptions(process_list: List[ExceptionSafeProcess], worker_label: str,
+                            config: Optional[ConfigParser] = None, worker_function: Optional[Callable] = None) -> bool:
+    return_value = False
+    for worker_process in process_list:
+        if worker_process.exception:
+            logging.error("{}Exception in {} worker process{}".format(bcolors.FAIL, worker_label, bcolors.ENDC))
+            logging.error(worker_process.exception[1])
+            terminate_process_and_childs(worker_process)
+            process_list.remove(worker_process)
+            if config is None or config.getboolean('ExpertSettings', 'throw_exceptions'):
+                return_value = True
+            elif worker_function is not None:
+                process_index = worker_process.name.split('-')[-1]
+                process_list.append(start_single_worker(process_index, worker_label, worker_function))
+    return return_value
