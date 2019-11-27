@@ -41,7 +41,7 @@ PROGRAM_DESCRIPTION = 'Firmware Analysis and Comparison Tool (FACT) installation
 
 INSTALL_CANDIDATES = ['frontend', 'db', 'backend']
 
-BIONIC_CODE_NAMES = ['bionic', 'tara', 'tessa', 'tina']
+BIONIC_CODE_NAMES = ['bionic', 'tara', 'tessa', 'tina', 'disco']
 XENIAL_CODE_NAMES = ['xenial', 'yakkety', 'sarah', 'serena', 'sonya', 'sylvia']
 DEBIAN_CODE_NAMES = ['buster', 'stretch', 'kali-rolling']
 
