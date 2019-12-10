@@ -4,13 +4,12 @@ from time import time
 
 import pytest
 
-from helperFunctions.config import get_config_for_testing
 from storage.db_interface_admin import AdminDbInterface
 from storage.db_interface_backend import BackEndDbInterface
 from storage.db_interface_common import MongoInterfaceCommon
 from storage.db_interface_compare import CompareDbInterface, FactCompareException
 from storage.MongoMgr import MongoMgr
-from test.common_helper import create_test_firmware
+from test.common_helper import create_test_firmware, get_config_for_testing
 
 
 class TestCompare:
