@@ -3,7 +3,7 @@ import logging
 import os
 import shutil
 from pathlib import Path
-from typing import List
+from typing import List, Union
 
 from common_helper_process import execute_shell_command_get_return_code
 
@@ -12,10 +12,10 @@ class InstallationError(Exception):
     pass
 
 
-class OperateInDirectory():
-    def __init__(self, target_directory, remove=False):
+class OperateInDirectory:
+    def __init__(self, target_directory: Union[str, Path], remove=False):
         self._current_working_dir = None
-        self._target_directory = target_directory
+        self._target_directory = str(target_directory)
         self._remove = remove
 
     def __enter__(self):
@@ -128,9 +128,7 @@ def check_if_command_in_path(command):
 
 def check_string_in_command(command, target_string):
     output, return_code = execute_shell_command_get_return_code(command)
-    if return_code != 0 or target_string not in output:
-        return False
-    return True
+    return return_code == 0 and target_string in output
 
 
 def install_github_project(project_path: str, commands: List[str]):
