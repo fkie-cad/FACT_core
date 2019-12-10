@@ -1,13 +1,10 @@
 import unittest
+from os import path
 from subprocess import CalledProcessError
-
 from unittest.mock import patch
 
-from helperFunctions import yara_binary_search, fileSystem
-from os import path
-
-from helperFunctions.config import get_config_for_testing
-
+from helperFunctions import yara_binary_search
+from test.common_helper import get_config_for_testing, get_test_data_dir
 
 TEST_FILE_1 = 'binary_search_test'
 TEST_FILE_2 = 'binary_search_test_2'
@@ -17,7 +14,8 @@ TEST_FILE_3 = 'binary_search_test_3'
 class MockCommonDbInterface:
     def __init__(self, config):
         self.config = config
-        self.config['data_storage']['firmware_file_storage_directory'] = path.join(fileSystem.get_test_data_dir(), TEST_FILE_1)
+        self.config['data_storage']['firmware_file_storage_directory'] = path.join(
+            get_test_data_dir(), TEST_FILE_1)
 
     @staticmethod
     def get_uids_of_all_included_files(uid):
@@ -43,7 +41,7 @@ class TestHelperFunctionsYaraBinarySearch(unittest.TestCase):
         yara_binary_search.ConnectTo.__enter__ = mock_connect_to_enter
         yara_binary_search.ConnectTo.__exit__ = lambda _, __, ___, ____: None
         self.yara_rule = b'rule test_rule {strings: $a = "test1234" condition: $a}'
-        test_path = path.join(fileSystem.get_test_data_dir(), TEST_FILE_1)
+        test_path = path.join(get_test_data_dir(), TEST_FILE_1)
         test_config = {'data_storage': {'firmware_file_storage_directory': test_path}}
         self.yara_binary_scanner = yara_binary_search.YaraBinarySearchScanner(test_config)
 
@@ -81,15 +79,15 @@ class TestHelperFunctionsYaraBinarySearch(unittest.TestCase):
         self.assertEqual(result, {'rule_1': ['match_1', 'match_2'], 'rule_2': ['match_1']})
 
     def test_execute_yara_search(self):
-        test_rule_path = path.join(fileSystem.get_test_data_dir(), 'yara_binary_search_test_rule')
+        test_rule_path = path.join(get_test_data_dir(), 'yara_binary_search_test_rule')
         result = self.yara_binary_scanner._execute_yara_search(test_rule_path)
         self.assertTrue('test_rule' in result)
 
     def test_execute_yara_search_for_single_file(self):
-        test_rule_path = path.join(fileSystem.get_test_data_dir(), 'yara_binary_search_test_rule')
+        test_rule_path = path.join(get_test_data_dir(), 'yara_binary_search_test_rule')
         result = self.yara_binary_scanner._execute_yara_search(
             test_rule_path,
-            target_path=path.join(fileSystem.get_test_data_dir(), TEST_FILE_1, TEST_FILE_1)
+            target_path=path.join(get_test_data_dir(), TEST_FILE_1, TEST_FILE_1)
         )
         self.assertTrue('test_rule' in result)
 

@@ -2,8 +2,8 @@
 
 import string
 
-from helperFunctions.fileSystem import get_test_data_dir
 from objects.file import FileObject
+from test.common_helper import get_test_data_dir
 from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
 
 from ..code.binwalk import AnalysisPlugin

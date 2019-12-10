@@ -3,13 +3,13 @@ import time
 from multiprocessing import Event, Value
 from pathlib import Path
 
-from helperFunctions.fileSystem import get_test_data_dir
 from helperFunctions.web_interface import ConnectTo
 from intercom.front_end_binding import InterComFrontEndBinding
 from storage.db_interface_backend import BackEndDbInterface
 from storage.db_interface_frontend import FrontEndDbInterface
 from storage.fs_organizer import FS_Organizer
 from test.acceptance.base import TestAcceptanceBase
+from test.common_helper import get_test_data_dir
 
 
 class TestAcceptanceAnalyzeFirmware(TestAcceptanceBase):

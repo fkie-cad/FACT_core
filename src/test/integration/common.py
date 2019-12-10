@@ -1,7 +1,7 @@
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from helperFunctions.config import get_config_for_testing
+from test.common_helper import get_config_for_testing
 
 
 class MockFSOrganizer:

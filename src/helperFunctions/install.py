@@ -25,17 +25,17 @@ class OperateInDirectory:
     def __exit__(self, *args):
         os.chdir(self._current_working_dir)
         if self._remove:
-            self._remove_folder(self._target_directory)
+            remove_folder(self._target_directory)
 
-    @staticmethod
-    def _remove_folder(folder_name):
-        try:
-            shutil.rmtree(folder_name)
-        except PermissionError:
-            logging.debug('Falling back on root permission for deleting {}'.format(folder_name))
-            execute_shell_command_get_return_code('sudo rm -rf {}'.format(folder_name))
-        except Exception as exception:
-            raise InstallationError(exception)
+
+def remove_folder(folder_name):
+    try:
+        shutil.rmtree(folder_name)
+    except PermissionError:
+        logging.debug('Falling back on root permission for deleting {}'.format(folder_name))
+        execute_shell_command_get_return_code('sudo rm -rf {}'.format(folder_name))
+    except Exception as exception:
+        raise InstallationError(exception)
 
 
 def log_current_packages(packages, install=True):
@@ -43,7 +43,7 @@ def log_current_packages(packages, install=True):
     logging.info('{} {}'.format(action, ' '.join(packages)))
 
 
-def run_shell_command_raise_on_return_code(command: str, error: str, add_output_on_error=False) -> str:
+def run_shell_command_raise_on_return_code(command: str, error: str, add_output_on_error=False) -> str:  # pylint: disable=invalid-name
     output, return_code = execute_shell_command_get_return_code(command)
     if return_code != 0:
         if add_output_on_error:
