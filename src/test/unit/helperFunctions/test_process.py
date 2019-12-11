@@ -1,13 +1,16 @@
 import logging
+from multiprocessing import TimeoutError as MultiprocessingTimeoutError
 from time import sleep
 
 import pytest
 
-from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions
+from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions, timeout
 from test.common_helper import get_config_for_testing
 
 
-def breaking_process():
+def breaking_process(wait: bool = False):
+    if wait:
+        sleep(.25)
     raise RuntimeError('now that\'s annoying')
 
 
@@ -22,16 +25,11 @@ def test_exception_safe_process():
     assert str(process.exception[0]) == 'now that\'s annoying'
 
 
-def _worker_with_exception():
-    sleep(.25)
-    raise Exception('foobar')
-
-
 def test_check_worker_exceptions():
     config = get_config_for_testing()
     config.set('ExpertSettings', 'throw_exceptions', 'true')
 
-    process_list = [ExceptionSafeProcess(target=_worker_with_exception)]
+    process_list = [ExceptionSafeProcess(target=breaking_process, args=(True, ))]
     process_list[0].start()
 
     result = check_worker_exceptions(process_list, 'foo', config=config)
@@ -47,7 +45,7 @@ def test_check_worker_restart(caplog):
     config = get_config_for_testing()
     config.set('ExpertSettings', 'throw_exceptions', 'false')
 
-    worker = ExceptionSafeProcess(target=_worker_with_exception)
+    worker = ExceptionSafeProcess(target=breaking_process, args=(True, ))
     process_list = [worker]
     worker.start()
 
@@ -60,3 +58,14 @@ def test_check_worker_restart(caplog):
         assert 'Exception in foo' in caplog.messages[0]
         assert 'restarting foo' in caplog.messages[-1]
         process_list[0].join()
+
+
+def test_timeout():
+    @timeout(0.1)
+    def timeout_function(secs: float):
+        sleep(secs)
+        return True
+
+    with pytest.raises(MultiprocessingTimeoutError):
+        timeout_function(1)
+    assert timeout_function(0.01)

@@ -39,15 +39,15 @@ class TestObjectsFile:  # pylint: disable=no-self-use
         assert child.depth == parent.depth + 1, 'child depth not updated'
         assert child.scheduled_analysis == ['test'], 'child did not get scheduled analysis list of parent'
 
-    def test_get_included_files_uids(self):
+    def test_get_included_files(self):
         test_parent = FileObject(binary=b'parent_file')
         test_child = FileObject(binary=b'1st child')
         test_child2 = FileObject(binary=b'2nd child')
         test_parent.add_included_file(test_child)
         test_parent.add_included_file(test_child2)
-        assert len(test_parent.get_included_files_uids()) == 2, 'number of uids not correct'
-        assert test_child.uid in test_parent.get_included_files_uids(), 'uid of first file not found'
-        assert test_child2.uid in test_parent.get_included_files_uids(), 'uid of second file not found'
+        assert len(test_parent.files_included) == 2, 'number of uids not correct'
+        assert test_child.uid in test_parent.files_included, 'uid of first file not found'
+        assert test_child2.uid in test_parent.files_included, 'uid of second file not found'
 
     def test_get_virtual_file_path(self):
         fo = FileObject(binary=b'file_object')

@@ -77,7 +77,7 @@ We've been happy to show FACT in a number of BlackHat Arsenal sessions.
 
 - [![Black Hat Arsenal](https://github.com/toolswatch/badges/blob/master/arsenal/asia/2018.svg)](http://www.toolswatch.org/2018/01/black-hat-arsenal-asia-2018-great-lineup/)
 - [![Black Hat Arsenal](https://github.com/toolswatch/badges/blob/master/arsenal/europe/2018.svg)](http://www.toolswatch.org/2018/09/black-hat-arsenal-europe-2018-lineup-announced/)
-- [USA 2019](https://www.blackhat.com/us-19/arsenal/schedule/index.html#fact--firmware-analysis-and-comparison-tool-15216)
+- [![Black Hat Arsenal](https://github.com/toolswatch/badges/blob/master/arsenal/usa/2019.svg)](http://www.toolswatch.org/2019/05/amazing-black-hat-arsenal-usa-2019-lineup-announced/)
 
 ### Other
 

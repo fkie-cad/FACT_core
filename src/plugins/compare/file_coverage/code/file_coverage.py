@@ -2,17 +2,14 @@ from copy import deepcopy
 
 from compare.PluginBase import CompareBasePlugin
 from helperFunctions.compare_sets import (
-    collapse_pair_of_sets, difference_of_lists, difference_of_sets,
-    intersection_of_list_of_lists, make_pairs_of_sets,
+    collapse_pair_of_sets, difference_of_lists, difference_of_sets, intersection_of_list_of_lists, make_pairs_of_sets,
     remove_duplicates_from_list_of_lists
 )
 from helperFunctions.dataConversion import (
-    convert_uid_list_to_compare_id, list_of_lists_to_list_of_sets,
-    list_of_sets_to_list_of_lists, remove_included_sets_from_list_of_sets
+    convert_uid_list_to_compare_id, list_of_lists_to_list_of_sets, list_of_sets_to_list_of_lists,
+    remove_included_sets_from_list_of_sets
 )
-from helperFunctions.hash import (
-    check_similarity_of_sets, get_ssdeep_comparison
-)
+from helperFunctions.hash import check_similarity_of_sets, get_ssdeep_comparison
 
 
 class ComparePlugin(CompareBasePlugin):
@@ -121,7 +118,7 @@ class ComparePlugin(CompareBasePlugin):
     def beautify_similar_files(self, similar_files, fo_list, similarity):
         result_dict = {}
         for match in similar_files:
-            match_dict = self._get_empty_match_dict(fo_list)
+            match_dict = {fo.uid: None for fo in fo_list}
             for file in match:
                 firm, sub = file.split(':')
                 match_dict[firm] = sub
@@ -139,13 +136,6 @@ class ComparePlugin(CompareBasePlugin):
             firm, sub = file.split(':')
             _id += '{}{}'.format(firm[0:2], sub[0:2])
         return _id
-
-    @staticmethod
-    def _get_empty_match_dict(fo_list):
-        empty = {}
-        for fo in fo_list:
-            empty[fo.uid] = None
-        return empty
 
     def _get_non_zero_common_files(self, files_in_all, not_in_all):
         non_zero_files = dict()
