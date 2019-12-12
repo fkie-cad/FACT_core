@@ -58,7 +58,7 @@ class UnpackingScheduler:
     def start_unpack_workers(self):
         logging.debug('Starting {} working threads'.format(int(self.config['unpack']['threads'])))
         for process_index in range(int(self.config['unpack']['threads'])):
-            start_single_worker(process_index, 'Unpacking', self.unpack_worker)
+            self.workers.append(start_single_worker(process_index, 'Unpacking', self.unpack_worker))
 
     def unpack_worker(self, worker_id):
         unpacker = Unpacker(self.config, worker_id=worker_id, db_interface=self.db_interface)
