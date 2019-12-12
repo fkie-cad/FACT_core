@@ -4,7 +4,7 @@ from multiprocessing import Queue, Value
 from queue import Empty
 from time import sleep
 
-from helperFunctions.parsing import bcolors
+from helperFunctions.logging import TerminalColors, color_string
 from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions, start_single_worker
 from storage.db_interface_common import MongoInterfaceCommon
 from unpacker.unpack import Unpacker
@@ -99,7 +99,8 @@ class UnpackingScheduler:
             else:
                 self.work_load_counter += 1
                 log_function = logging.debug
-            log_function('{}Queue Length (Analysis/Unpack): {} / {}{}'.format(bcolors.WARNING, workload, unpack_queue_size, bcolors.ENDC))
+            log_function(color_string('Queue Length (Analysis/Unpack): {} / {}'.format(workload, unpack_queue_size),
+                                      TerminalColors.WARNING))
 
             if workload < int(self.config['ExpertSettings']['unpack_throttle_limit']):
                 self.throttle_condition.value = 0

@@ -10,8 +10,8 @@ from typing import List, Optional, Set, Tuple
 
 from helperFunctions.compare_sets import substring_is_in_list
 from helperFunctions.config import read_list_from_config
+from helperFunctions.logging import TerminalColors
 from helperFunctions.merge_generators import shuffled
-from helperFunctions.parsing import bcolors
 from helperFunctions.plugin import import_plugins
 from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions
 from helperFunctions.tag import add_tags_to_object, check_tags
@@ -272,7 +272,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             return False
         if blacklist and whitelist:
             logging.error('{}Configuration of plugin "{}" erroneous{}: found blacklist and whitelist. Ignoring blacklist.'.format(
-                bcolors.FAIL, next_analysis, bcolors.ENDC))
+                TerminalColors.FAIL, next_analysis, TerminalColors.ENDC))
 
         file_type = self._get_file_type_from_object_or_db(fw_object)
 
