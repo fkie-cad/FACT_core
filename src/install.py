@@ -41,8 +41,9 @@ PROGRAM_DESCRIPTION = 'Firmware Analysis and Comparison Tool (FACT) installation
 
 INSTALL_CANDIDATES = ['frontend', 'db', 'backend']
 
-BIONIC_CODE_NAMES = ['bionic', 'tara', 'tessa', 'tina']
+BIONIC_CODE_NAMES = ['bionic', 'tara', 'tessa', 'tina', 'disco']
 XENIAL_CODE_NAMES = ['xenial', 'yakkety', 'sarah', 'serena', 'sonya', 'sylvia']
+DEBIAN_CODE_NAMES = ['buster', 'stretch', 'kali-rolling']
 
 
 def _setup_argparser():
@@ -117,6 +118,9 @@ def check_distribution():
     if codename in BIONIC_CODE_NAMES:
         logging.debug('Ubuntu 18.04 detected')
         return 'bionic'
+    if codename in DEBIAN_CODE_NAMES:
+        logging.debug('Debian/Kali detected')
+        return 'debian'
     sys.exit('Your Distribution ({} {}) is not supported. FACT Installer requires Ubuntu 16.04, Ubuntu 18.04 or compatible!'.format(distro.id(), distro.version()))
 
 

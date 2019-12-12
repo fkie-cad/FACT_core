@@ -111,9 +111,13 @@ def test_list_to_line_break_string_no_sort(input_data, expected_result):
 
 def test_nice_unix_time_stamp():
     input_data = 1459427460
-    assert nice_unix_time(input_data) == '2016-03-31 14:31:00', 'output not correct (int)'
+    assert nice_unix_time(input_data).startswith('2016-03-31')
+    assert nice_unix_time(input_data).endswith(':31:00')
+
     input_data = 1459427460.4
-    assert nice_unix_time(input_data) == '2016-03-31 14:31:00', 'output not correct (float)'
+    assert nice_unix_time(input_data).startswith('2016-03-31')
+    assert nice_unix_time(input_data).endswith(':31:00')
+
     assert nice_unix_time('test') == 'test'
 
 

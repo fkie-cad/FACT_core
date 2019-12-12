@@ -31,6 +31,7 @@ from common_helper_process import execute_shell_command
 from helperFunctions.config import get_config_dir
 from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.program_setup import program_setup, was_started_by_start_fact
+from install.frontend import COMPOSE_VENV
 from statistic.work_load import WorkLoadStatistic
 
 PROGRAM_NAME = 'FACT Frontend'
@@ -59,11 +60,11 @@ def start_uwsgi_server(config_path=None):
 
 
 def start_docker():
-    execute_shell_command('docker-compose -f {}/install/radare/docker-compose.yml up -d'.format(get_src_dir()))
+    execute_shell_command('{} -f {}/install/radare/docker-compose.yml up -d'.format(COMPOSE_VENV / 'bin' / 'docker-compose', get_src_dir()))
 
 
 def stop_docker():
-    execute_shell_command('docker-compose -f {}/install/radare/docker-compose.yml down'.format(get_src_dir()))
+    execute_shell_command('{} -f {}/install/radare/docker-compose.yml down'.format(COMPOSE_VENV / 'bin' / 'docker-compose', get_src_dir()))
 
 
 if __name__ == '__main__':
