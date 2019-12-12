@@ -86,7 +86,9 @@ class CompareScheduler:
     def check_exceptions(self):
         processes_to_check = [self.worker]
         shutdown = check_worker_exceptions(processes_to_check, 'Compare', self.config, self._compare_scheduler_main)
-        # check if process was restarted
-        if not shutdown and processes_to_check[0] != self.worker:
+        if self._new_worker_was_started(processes_to_check[0]):
             self.worker = processes_to_check.pop()
         return shutdown
+
+    def _new_worker_was_started(self, process: ExceptionSafeProcess) -> bool:
+        return process != self.worker
