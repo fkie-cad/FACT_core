@@ -4,7 +4,7 @@ from queue import Empty
 
 from compare.compare import Compare
 from helperFunctions.dataConversion import convert_compare_id_to_list
-from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions
+from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions, new_worker_was_started
 from storage.db_interface_compare import CompareDbInterface, FactCompareException
 
 
@@ -86,9 +86,7 @@ class CompareScheduler:
     def check_exceptions(self):
         processes_to_check = [self.worker]
         shutdown = check_worker_exceptions(processes_to_check, 'Compare', self.config, self._compare_scheduler_main)
-        if self._new_worker_was_started(processes_to_check[0]):
+        if new_worker_was_started(new_process=processes_to_check[0], old_process=self.worker):
             self.worker = processes_to_check.pop()
-        return shutdown
 
-    def _new_worker_was_started(self, process: ExceptionSafeProcess) -> bool:
-        return process != self.worker
+        return shutdown

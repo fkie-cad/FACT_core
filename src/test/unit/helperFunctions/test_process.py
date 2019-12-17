@@ -4,7 +4,7 @@ from time import sleep
 
 import pytest
 
-from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions, timeout
+from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions, new_worker_was_started, timeout
 from test.common_helper import get_config_for_testing
 
 
@@ -51,7 +51,7 @@ def test_check_worker_restart(caplog):
 
     sleep(.5)
     with caplog.at_level(logging.INFO):
-        result = check_worker_exceptions(process_list, 'foo', config, worker_function=lambda: None)
+        result = check_worker_exceptions(process_list, 'foo', config, worker_function=lambda _: None)
         assert not result
         assert len(process_list) == 1
         assert process_list[0] != worker
@@ -69,3 +69,13 @@ def test_timeout():
     with pytest.raises(MultiprocessingTimeoutError):
         timeout_function(1)
     assert timeout_function(0.01)
+
+
+def test_new_worker_was_started():
+    def target():
+        pass
+
+    old, new = ExceptionSafeProcess(target=target), ExceptionSafeProcess(target=target)
+
+    assert new_worker_was_started(old, new)
+    assert not new_worker_was_started(old, old)

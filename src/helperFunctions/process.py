@@ -104,3 +104,7 @@ def check_worker_exceptions(process_list: List[ExceptionSafeProcess], worker_lab
                 )
                 process_list.append(start_single_worker(process_index, worker_label, worker_function))
     return return_value
+
+
+def new_worker_was_started(new_process: ExceptionSafeProcess, old_process: ExceptionSafeProcess) -> bool:
+    return new_process != old_process

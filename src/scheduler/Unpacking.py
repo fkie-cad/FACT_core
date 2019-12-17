@@ -5,7 +5,7 @@ from queue import Empty
 from time import sleep
 
 from helperFunctions.logging import TerminalColors, color_string
-from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions, start_single_worker
+from helperFunctions.process import check_worker_exceptions, new_worker_was_started, start_single_worker
 from storage.db_interface_common import MongoInterfaceCommon
 from unpacker.unpack import Unpacker
 
@@ -27,7 +27,7 @@ class UnpackingScheduler:
         self.db_interface = MongoInterfaceCommon(config) if not db_interface else db_interface
         self.drop_cached_locks()
         self.start_unpack_workers()
-        self.start_work_load_monitor()
+        self.work_load_process = self.start_work_load_monitor()
         logging.info('Unpacker Module online')
 
     def drop_cached_locks(self):
@@ -50,6 +50,7 @@ class UnpackingScheduler:
         self.stop_condition.value = 1
         for worker in self.workers:
             worker.join()
+        self.work_load_process.join()
         self.in_queue.close()
         logging.info('Unpacker Module offline')
 
@@ -84,9 +85,7 @@ class UnpackingScheduler:
 
     def start_work_load_monitor(self):
         logging.debug('Start work load monitor...')
-        process = ExceptionSafeProcess(target=self._work_load_monitor)
-        process.start()
-        self.workers.append(process)
+        return start_single_worker(0, 'unpack-load', self._work_load_monitor)
 
     def _work_load_monitor(self):
         while self.stop_condition.value == 0:
@@ -115,4 +114,11 @@ class UnpackingScheduler:
         return 0
 
     def check_exceptions(self):
-        return check_worker_exceptions(self.workers, 'Unpacking', self.config, self.unpack_worker)
+        shutdown = check_worker_exceptions(self.workers, 'Unpacking', self.config, self.unpack_worker)
+
+        list_with_load_process = [self.work_load_process, ]
+        shutdown |= check_worker_exceptions(list_with_load_process, 'unpack-load', self.config, self._work_load_monitor)
+        if new_worker_was_started(new_process=list_with_load_process[0], old_process=self.work_load_process):
+            self.work_load_process = list_with_load_process.pop()
+
+        return shutdown
