@@ -3,8 +3,9 @@ from multiprocessing import Manager, Queue, Value
 from queue import Empty
 from time import time
 
-from helperFunctions.parsing import bcolors
-from helperFunctions.process import ExceptionSafeProcess, terminate_process_and_childs
+from helperFunctions.process import (
+    ExceptionSafeProcess, check_worker_exceptions, start_single_worker, terminate_process_and_childs
+)
 from helperFunctions.tag import TagColor
 from objects.file import FileObject
 from plugins.base import BasePlugin
@@ -106,13 +107,8 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
 
     def start_worker(self):
         for process_index in range(int(self.config[self.NAME]['threads'])):
-            self._start_single_worker_process(process_index)
+            self.workers.append(start_single_worker(process_index, 'Analysis', self.worker))
         logging.debug('{}: {} worker threads started'.format(self.NAME, len(self.workers)))
-
-    def _start_single_worker_process(self, process_index):
-        process = ExceptionSafeProcess(target=self.worker, name='Analysis-Worker-{}'.format(process_index), args=(process_index,))
-        process.start()
-        self.workers.append(process)
 
     def process_next_object(self, task, result):
         task.processed_analysis.update({self.NAME: {}})
@@ -154,16 +150,4 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         logging.debug('worker {} stopped'.format(worker_id))
 
     def check_exceptions(self):
-        return_value = False
-        for worker in self.workers:
-            if worker.exception:
-                logging.error('{}Analysis worker {} caused exception{}'.format(bcolors.FAIL, worker.name, bcolors.ENDC))
-                logging.error(worker.exception[1])
-                terminate_process_and_childs(worker)
-                self.workers.remove(worker)
-                if self.config.getboolean('ExpertSettings', 'throw_exceptions'):
-                    return_value = True
-                else:
-                    process_index = worker.name.split('-')[2]
-                    self._start_single_worker_process(process_index)
-        return return_value
+        return check_worker_exceptions(self.workers, 'Analysis', self.config, self.worker)
