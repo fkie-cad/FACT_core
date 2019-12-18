@@ -3,7 +3,7 @@
     ("Home", "/", '<span class="glyphicon glyphicon-home"></span>'),
     ("Database", None, None),
     ("Upload", "/upload", '<span class="glyphicon glyphicon-upload"></span>'),
-    ("Misc.", None, '<span class="glyphicon glyphicon-question-sign"></span>'),
+    ("Info", None, '<span class="glyphicon glyphicon-info-sign"></span>'),
     ("Admin", None, None)
 ] -%}
 
@@ -118,7 +118,7 @@
                                     <li><a href="/database/binary_search"><span class="glyphicon glyphicon-screenshot"></span> Binary Pattern Search</a></li>
                                 </ul>
                             </li>
-                        {% elif caption == "Misc." %}
+                        {% elif caption == "Info" %}
                             <li class="dropdown {% if caption == active_page %}active{% endif  %}">
                                 <a class="dropdown-toggle" data-toggle="dropdown" href="#"><span class="glyphicon glyphicon-info-sign"></span>&nbsp;{{ caption }}<span class="caret"></span></a>
                                 <ul class="dropdown-menu">
