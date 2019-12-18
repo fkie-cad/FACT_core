@@ -1,7 +1,8 @@
 import os
 
 from common_helper_files import get_dir_of_file
-from helperFunctions.yara_signature_testing import SignatureTestingMatching, SignatureTestingMeta
+
+from test.yara_signature_testing import SignatureTestingMatching, SignatureTestingMeta
 
 TEST_DATA_DIR = os.path.join(get_dir_of_file(__file__), 'data')
 SIGNATURE_PATH = os.path.join(get_dir_of_file(__file__), '../signatures/')

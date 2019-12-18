@@ -1,8 +1,7 @@
 from collections import namedtuple
 
 from test.acceptance.base import TestAcceptanceBase
-
-from helperFunctions.fileSystem import get_test_data_dir
+from test.common_helper import get_test_data_dir
 
 MockUser = namedtuple('MockUser', ['name', 'password', 'key'])
 

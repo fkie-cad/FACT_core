@@ -1,16 +1,15 @@
 from base64 import b64encode
+from unittest import TestCase
 
 from flask import Flask
 from flask_restful import Api
-from unittest import TestCase
 
-from helperFunctions.config import get_config_for_testing
 from helperFunctions.web_interface import ConnectTo
-from test.common_helper import create_test_file_object, create_test_firmware
+from test.common_helper import create_test_file_object, create_test_firmware, get_config_for_testing
 from test.unit.web_interface.rest.conftest import decode_response
 
-from ..routes import routes
 from ..code.file_system_metadata import AnalysisPlugin
+from ..routes import routes
 
 
 class DbInterfaceMock:

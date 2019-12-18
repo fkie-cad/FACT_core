@@ -1,8 +1,10 @@
 import os
+
+from common_helper_files import get_dir_of_file
+
 from objects.file import FileObject
 from plugins.analysis.init_systems.code.init_system import AnalysisPlugin
 from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
-from common_helper_files import get_dir_of_file
 
 
 class TestAnalysisPluginInit(AnalysisPluginTest):
@@ -141,12 +143,6 @@ class TestAnalysisPluginInit(AnalysisPluginTest):
         result = processed_file.processed_analysis[self.PLUGIN_NAME]
 
         self.assertDictEqual({}, result, "should be empty for comments only in file")
-
-    def test_parse_regex_matches(self):
-        string = ['   /bin/test -start \\\n-a \\\n --another-option=true']
-        result = self.analysis_plugin._parse_regex_matches(list(string))
-
-        self.assertEqual(['/bin/test -start -a  --another-option=true'], result, "not correct parsed")
 
     def test_add_quotes(self):
         unquoted = ['test', '2']

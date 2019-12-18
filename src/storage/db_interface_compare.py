@@ -1,21 +1,20 @@
 import logging
 from contextlib import suppress
 from time import time
-from typing import Optional
+from typing import List, Optional
 
 from pymongo.errors import PyMongoError
 
 from helperFunctions.dataConversion import (
-    convert_compare_id_to_list, convert_uid_list_to_compare_id,
-    normalize_compare_id
+    convert_compare_id_to_list, convert_uid_list_to_compare_id, normalize_compare_id
 )
 from storage.db_interface_common import MongoInterfaceCommon
 
 
 class FactCompareException(Exception):
     def get_message(self):
-        if self.args:
-            return self.args[0]
+        if self.args:  # pylint: disable=using-constant-test
+            return self.args[0]  # pylint: disable=unsubscriptable-object
         return ''
 
 
@@ -51,7 +50,7 @@ class CompareDbInterface(MongoInterfaceCommon):
 
     def compare_result_is_in_db(self, compare_id):
         compare_result = self.compare_results.find_one(normalize_compare_id(compare_id))
-        return True if compare_result else False
+        return bool(compare_result)
 
     def delete_old_compare_result(self, compare_id):
         try:
@@ -96,3 +95,13 @@ class CompareDbInterface(MongoInterfaceCommon):
     def get_entropy(self, uid):
         file_object_entry = self.file_objects.find_one({'_id': uid}, {'processed_analysis.unpacker.entropy': 1})
         return file_object_entry['processed_analysis']['unpacker']['entropy'] if 'unpacker' in file_object_entry['processed_analysis'] else 0.0
+
+    def get_exclusive_files(self, compare_id: str, root_uid: str) -> List[str]:
+        if compare_id is None or root_uid is None:
+            return []
+        try:
+            result = self.get_compare_result(compare_id)
+            exclusive_files = result['plugins']['File_Coverage']['exclusive_files'][root_uid]
+        except (KeyError, FactCompareException):
+            exclusive_files = []
+        return exclusive_files

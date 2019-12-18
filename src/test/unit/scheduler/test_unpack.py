@@ -1,14 +1,13 @@
-from configparser import ConfigParser
 import gc
+import unittest
+from configparser import ConfigParser
 from multiprocessing import Queue
 from tempfile import TemporaryDirectory
 from time import sleep
-import unittest
 
-from helperFunctions.fileSystem import get_test_data_dir
 from objects.firmware import Firmware
 from scheduler.Unpacking import UnpackingScheduler
-from test.common_helper import DatabaseMock
+from test.common_helper import DatabaseMock, get_test_data_dir
 
 
 class TestUnpackScheduler(unittest.TestCase):

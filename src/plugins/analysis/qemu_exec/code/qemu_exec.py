@@ -65,7 +65,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     DESCRIPTION = 'test binaries for executability in QEMU and display help if available'
     VERSION = '0.5'
     DEPENDENCIES = ['file_type']
-    FILE_TYPES = ['application/x-executable', 'application/x-sharedlib']
+    FILE_TYPES = ['application/x-executable', 'application/x-pie-executable', 'application/x-sharedlib']
 
     FACT_EXTRACTION_FOLDER_NAME = 'fact_extracted'
 
