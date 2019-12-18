@@ -85,7 +85,7 @@ class UnpackingScheduler:
 
     def start_work_load_monitor(self):
         logging.debug('Start work load monitor...')
-        return start_single_worker(0, 'unpack-load', self._work_load_monitor)
+        return start_single_worker(None, 'unpack-load', self._work_load_monitor)
 
     def _work_load_monitor(self):
         while self.stop_condition.value == 0:

@@ -80,7 +80,7 @@ def start_single_worker(process_index, label: str, function: Callable) -> Except
     process = ExceptionSafeProcess(
         target=function,
         name='{}-Worker-{}'.format(label, process_index),
-        args=(process_index,)
+        args=(process_index,) if process_index is not None else tuple()
     )
     process.start()
     return process
