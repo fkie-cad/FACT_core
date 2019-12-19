@@ -1,8 +1,8 @@
 from itertools import chain
 
 from analysis.PluginBase import AnalysisBasePlugin
+from helperFunctions.database import ConnectTo
 from helperFunctions.hash import get_tlsh_comparison
-from helperFunctions.web_interface import ConnectTo
 from storage.db_interface_common import MongoInterfaceCommon
 
 

@@ -5,13 +5,13 @@ from time import sleep
 
 from common_helper_mongo.gridfs import overwrite_file
 
+from helperFunctions.database import ConnectTo
 from helperFunctions.process import no_operation
 from helperFunctions.yara_binary_search import YaraBinarySearchScanner
-from helperFunctions.web_interface import ConnectTo
-from intercom.common_mongo_binding import InterComListener, InterComMongoInterface, InterComListenerAndResponder
+from intercom.common_mongo_binding import InterComListener, InterComListenerAndResponder, InterComMongoInterface
 from storage.binary_service import BinaryService
-from storage.fs_organizer import FS_Organizer
 from storage.db_interface_common import MongoInterfaceCommon
+from storage.fs_organizer import FS_Organizer
 
 
 class InterComBackEndBinding:

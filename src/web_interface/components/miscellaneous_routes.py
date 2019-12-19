@@ -1,11 +1,10 @@
-# -*- coding: utf-8 -*-
 
 from time import time
 
-from flask import render_template, request, redirect, url_for
+from flask import redirect, render_template, request, url_for
 from flask_security import login_required
 
-from helperFunctions.web_interface import ConnectTo
+from helperFunctions.database import ConnectTo
 from statistic.update import StatisticUpdater
 from storage.db_interface_admin import AdminDbInterface
 from storage.db_interface_compare import CompareDbInterface
@@ -68,7 +67,6 @@ class MiscellaneousRoutes(ComponentBase):
             is_firmware = sc.is_firmware(uid)
         if not is_firmware:
             return render_template('error.html', message='Firmware not found in database: {}'.format(uid))
-        else:
-            with ConnectTo(AdminDbInterface, config=self._config) as sc:
-                deleted_virtual_file_path_entries, deleted_files = sc.delete_firmware(uid)
-            return render_template('delete_firmware.html', deleted_vps=deleted_virtual_file_path_entries, deleted_files=deleted_files, uid=uid)
+        with ConnectTo(AdminDbInterface, config=self._config) as sc:
+            deleted_virtual_file_path_entries, deleted_files = sc.delete_firmware(uid)
+        return render_template('delete_firmware.html', deleted_vps=deleted_virtual_file_path_entries, deleted_files=deleted_files, uid=uid)

@@ -3,10 +3,11 @@ import random
 
 from common_helper_filter.time import time_format
 from flask import render_template
+
+from helperFunctions.database import ConnectTo
 from helperFunctions.dataConversion import none_to_none
 from helperFunctions.hash import get_md5
 from helperFunctions.uid import is_list_of_uids
-from helperFunctions.web_interface import ConnectTo
 from storage.db_interface_frontend import FrontEndDbInterface
 from web_interface.filter import (
     byte_number_filter, bytes_to_str_filter, comment_out_regex_meta_chars, data_to_chart, data_to_chart_limited,

@@ -3,8 +3,8 @@ import html
 from common_helper_files import human_readable_file_size
 from flask import jsonify, render_template
 
+from helperFunctions.database import ConnectTo
 from helperFunctions.file_tree import FileTreeNode, get_correct_icon_for_mime, remove_virtual_path_from_root
-from helperFunctions.web_interface import ConnectTo
 from intercom.front_end_binding import InterComFrontEndBinding
 from storage.db_interface_compare import CompareDbInterface
 from storage.db_interface_frontend import FrontEndDbInterface

@@ -1,6 +1,7 @@
 from flask import render_template, request
 
-from helperFunctions.web_interface import apply_filters_to_query, ConnectTo
+from helperFunctions.database import ConnectTo
+from helperFunctions.web_interface import apply_filters_to_query
 from intercom.front_end_binding import InterComFrontEndBinding
 from statistic.update import StatisticUpdater
 from storage.db_interface_frontend import FrontEndDbInterface

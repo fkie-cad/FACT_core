@@ -1,10 +1,11 @@
+# pylint: disable=invalid-name
 from base64 import b64encode
 from unittest import TestCase
 
 from flask import Flask
 from flask_restful import Api
 
-from helperFunctions.web_interface import ConnectTo
+from helperFunctions.database import ConnectTo
 from test.common_helper import create_test_file_object, create_test_firmware, get_config_for_testing
 from test.unit.web_interface.rest.conftest import decode_response
 
@@ -29,6 +30,7 @@ class DbInterfaceMock:
             fo = create_test_file_object()
             fo.virtual_file_path = {'some_uid': ['a|b|c']}
             return fo
+        return None
 
     def shutdown(self):
         pass
@@ -152,5 +154,5 @@ class TestFileSystemMetadataRoutesRest(TestCase):
         assert result[AnalysisPlugin.NAME] == {}
 
 
-def b64_encode(s):
-    return b64encode(s.encode()).decode()
+def b64_encode(string):
+    return b64encode(string.encode()).decode()

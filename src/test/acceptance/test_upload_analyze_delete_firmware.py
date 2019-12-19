@@ -3,7 +3,7 @@ import time
 from multiprocessing import Event, Value
 from pathlib import Path
 
-from helperFunctions.web_interface import ConnectTo
+from helperFunctions.database import ConnectTo
 from intercom.front_end_binding import InterComFrontEndBinding
 from storage.db_interface_backend import BackEndDbInterface
 from storage.db_interface_frontend import FrontEndDbInterface

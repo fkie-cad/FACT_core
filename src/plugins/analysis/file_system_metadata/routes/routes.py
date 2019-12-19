@@ -1,18 +1,18 @@
-from base64 import b64encode
 import os
+from base64 import b64encode
 
+from common_helper_files.fail_safe_file_operations import get_dir_of_file
 from flask import render_template_string
 from flask_restful import Resource
-from common_helper_files.fail_safe_file_operations import get_dir_of_file
 
-from helperFunctions.rest import success_message, error_message
-from helperFunctions.web_interface import ConnectTo
+from helperFunctions.database import ConnectTo
+from helperFunctions.rest import error_message, success_message
 from objects.file import FileObject
 from web_interface.components.component_base import ComponentBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
-from ..code.file_system_metadata import FsMetadataDbInterface, AnalysisPlugin
+from ..code.file_system_metadata import AnalysisPlugin, FsMetadataDbInterface
 
 
 class FsMetadataRoutesDbInterface(FsMetadataDbInterface):
@@ -22,8 +22,8 @@ class FsMetadataRoutesDbInterface(FsMetadataDbInterface):
         this_fo = self.get_object(uid)
         if this_fo is not None:
             parent_uids = self.get_parent_uids_from_virtual_path(this_fo)
-            for uid in parent_uids:
-                parent_fo = self.get_object(uid)
+            for current_uid in parent_uids:
+                parent_fo = self.get_object(current_uid)
                 self.get_results_from_parent_fos(parent_fo, this_fo, results)
         return results
 
@@ -46,6 +46,7 @@ class FsMetadataRoutesDbInterface(FsMetadataDbInterface):
                 if encoded_name in parent_analysis:
                     results[file_name] = parent_analysis[encoded_name]
                     results[file_name]['parent_uid'] = parent_fo.uid
+        return None
 
 
 class PluginRoutes(ComponentBase):
