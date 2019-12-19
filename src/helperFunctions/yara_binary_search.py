@@ -70,10 +70,10 @@ class YaraBinarySearchScanner:
                 results = self._parse_raw_result(raw_result)
                 self._eliminate_duplicates(results)
                 return results
-            except yara.SyntaxError as err:
-                return 'There seems to be an error in the rule file:\n{}'.format(err)
-            except CalledProcessError as err:
-                return 'Error when calling YARA:\n{}'.format(err.output.decode())
+            except yara.SyntaxError as yara_error:
+                return 'There seems to be an error in the rule file:\n{}'.format(yara_error)
+            except CalledProcessError as process_error:
+                return 'Error when calling YARA:\n{}'.format(process_error.output.decode())
 
     def _get_raw_result(self, firmware_uid, temp_rule_file):
         if firmware_uid is None:
@@ -99,8 +99,8 @@ def get_yara_error(rules_file):
     try:
         yara.compile(source=rules_file)
         return None
-    except Exception as err:
-        return err
+    except Exception as exception:
+        return exception
 
 
 class YaraBinarySearchScannerDbInterface(MongoInterfaceCommon):
