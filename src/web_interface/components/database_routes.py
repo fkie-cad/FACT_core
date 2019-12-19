@@ -7,9 +7,10 @@ from flask import redirect, render_template, request, url_for
 from flask_paginate import Pagination
 
 from helperFunctions.config import read_list_from_config
+from helperFunctions.database import ConnectTo
 from helperFunctions.dataConversion import make_unicode_string
 from helperFunctions.mongo_task_conversion import get_file_name_and_binary_from_request
-from helperFunctions.web_interface import ConnectTo, apply_filters_to_query, filter_out_illegal_characters
+from helperFunctions.web_interface import apply_filters_to_query, filter_out_illegal_characters
 from helperFunctions.yara_binary_search import get_yara_error, is_valid_yara_rule_file
 from intercom.front_end_binding import InterComFrontEndBinding
 from storage.db_interface_frontend import FrontEndDbInterface

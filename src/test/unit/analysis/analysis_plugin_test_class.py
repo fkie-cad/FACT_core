@@ -16,10 +16,10 @@ class AnalysisPluginTest(unittest.TestCase):
     def setUp(self):
         self.mocked_interface = DatabaseMock()
 
-        self.enter_patch = unittest.mock.patch(target='helperFunctions.web_interface.ConnectTo.__enter__', new=lambda _: self.mocked_interface)
+        self.enter_patch = unittest.mock.patch(target='helperFunctions.database.ConnectTo.__enter__', new=lambda _: self.mocked_interface)
         self.enter_patch.start()
 
-        self.exit_patch = unittest.mock.patch(target='helperFunctions.web_interface.ConnectTo.__exit__', new=fake_exit)
+        self.exit_patch = unittest.mock.patch(target='helperFunctions.database.ConnectTo.__exit__', new=fake_exit)
         self.exit_patch.start()
 
     def tearDown(self):

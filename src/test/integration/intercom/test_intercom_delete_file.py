@@ -1,3 +1,4 @@
+# pylint: disable=redefined-outer-name
 import pytest
 
 from intercom.back_end_binding import InterComBackEndDeleteFile
@@ -14,8 +15,8 @@ def set_output(message):
 
 @pytest.fixture(scope='function', autouse=True)
 def mocking_the_database(monkeypatch):
-    monkeypatch.setattr('helperFunctions.web_interface.ConnectTo.__enter__', lambda _: DatabaseMock())
-    monkeypatch.setattr('helperFunctions.web_interface.ConnectTo.__exit__', fake_exit)
+    monkeypatch.setattr('helperFunctions.database.ConnectTo.__enter__', lambda _: DatabaseMock())
+    monkeypatch.setattr('helperFunctions.database.ConnectTo.__exit__', fake_exit)
     monkeypatch.setattr('intercom.common_mongo_binding.InterComListener.__init__', lambda self, config: None)
     monkeypatch.setattr('logging.info', set_output)
     monkeypatch.setattr('logging.debug', set_output)
