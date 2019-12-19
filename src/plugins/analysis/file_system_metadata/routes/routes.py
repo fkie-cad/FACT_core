@@ -22,8 +22,8 @@ class FsMetadataRoutesDbInterface(FsMetadataDbInterface):
         this_fo = self.get_object(uid)
         if this_fo is not None:
             parent_uids = self.get_parent_uids_from_virtual_path(this_fo)
-            for c_uid in parent_uids:
-                parent_fo = self.get_object(c_uid)
+            for current_uid in parent_uids:
+                parent_fo = self.get_object(current_uid)
                 self.get_results_from_parent_fos(parent_fo, this_fo, results)
         return results
 
