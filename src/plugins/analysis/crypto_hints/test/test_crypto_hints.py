@@ -19,7 +19,7 @@ class TestAnalysisPluginCryptoHints(AnalysisPluginTest):
         # additional setup can go here
         self.analysis_plugin = AnalysisPlugin(self, config=config)
 
-    def test_your_test_code(self):
+    def test_basic_scan_feature(self):
         test_file = FileObject(file_path=str(Path(TEST_DATA_DIR / 'CRC32_table')))
         processed_file = self.analysis_plugin.process_object(test_file)
         result = processed_file.processed_analysis[self.PLUGIN_NAME]
