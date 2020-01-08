@@ -1,9 +1,15 @@
 import sqlite3 as lite
+import sys
 from os import remove
+from pathlib import Path
 
 import pytest
 
-from internal.database_interface import DB, QUERIES
+try:
+    from internal.database_interface import DB, QUERIES
+except ImportError:
+    sys.path.append(str(Path(__file__).parent.parent / 'internal'))
+    from database_interface import DB, QUERIES
 
 
 @pytest.fixture(scope='module', autouse=True)

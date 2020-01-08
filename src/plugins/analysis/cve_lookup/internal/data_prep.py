@@ -1,5 +1,6 @@
 import json
 import re
+import sys
 import xml.etree.ElementTree as Et
 from datetime import datetime
 from io import BytesIO
@@ -8,7 +9,12 @@ from typing import Tuple
 from zipfile import ZipFile
 
 import requests
-from helper_functions import unbinding
+
+try:
+    from internal.helper_functions import unbind
+except ImportError:
+    sys.path.append(str(Path(__file__).parent.parent / 'internal'))
+    from helper_functions import unbind
 
 CPE_URL = 'https://nvd.nist.gov/feeds/xml/cpe/dictionary/official-cpe-dictionary_v2.3.xml.zip'
 CVE_URL = 'https://nvd.nist.gov/feeds/json/cve/1.0/nvdcve-1.0-{}.json.zip'
@@ -114,7 +120,7 @@ def setup_cve_feeds_table(cve_list: list) -> list:
             year = ident.split('-')[1]
             row.append(year)
             row.append(entry)
-            row.extend(unbinding(re.split(r'(?<!\\)[:]', entry)[2:]))
+            row.extend(unbind(re.split(r'(?<!\\)[:]', entry)[2:]))
             cve_table.append(tuple(row))
             row = list()
 
@@ -140,7 +146,7 @@ def setup_cve_summary_table(summary_list: list) -> list:
 def setup_cpe_table(cpe_list: list) -> list:
     cpe_table = []
     for cpe in cpe_list:
-        row = unbinding(re.split(r'(?<!\\)[:]', cpe)[2:])
+        row = unbind(re.split(r'(?<!\\)[:]', cpe)[2:])
         row.insert(0, cpe)
         cpe_table.append(tuple(row))
 

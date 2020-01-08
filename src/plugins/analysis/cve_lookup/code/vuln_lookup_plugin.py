@@ -1,22 +1,24 @@
+import logging
 import sys
 from collections import namedtuple
 from itertools import chain, combinations
 from pathlib import Path
 from re import match
-from typing import Generator, Match, Optional
+from typing import Generator, List, Match, Optional, Tuple
 from warnings import warn
+
 from packaging.version import LegacyVersion, parse
+from pyxdameraulevenshtein import damerau_levenshtein_distance as distance
 
 from analysis.PluginBase import AnalysisBasePlugin
-from pyxdameraulevenshtein import damerau_levenshtein_distance as distance
 
 try:
     from internal.database_interface import DB, DB_NAME, QUERIES
-    from internal.helper_functions import unbinding
+    from internal.helper_functions import unbind
 except ImportError:
     sys.path.append(str(Path(__file__).parent.parent / 'internal'))
     from database_interface import DB, DB_NAME, QUERIES
-    from helper_functions import unbinding
+    from helper_functions import unbind
 
 MAX_TERM_SPREAD = 3  # a range in which the product term is allowed to come after the vendor term for it not to be a false positive
 MAX_LEVENSHTEIN_DISTANCE = 3
@@ -33,7 +35,6 @@ class AnalysisPlugin(AnalysisBasePlugin):
     MIME_BLACKLIST = ['audio', 'filesystem', 'image', 'video']
     DEPENDENCIES = ['software_components']
     VERSION = '0.0.1'
-    SOFTWARE_SPECS = None
 
     def __init__(self, plugin_administrator, config=None, recursive=True, offline_testing=False):
         super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__, offline_testing=offline_testing)
@@ -51,12 +52,14 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return file_object
 
     @staticmethod
-    def _split_component(component: str) -> list:
+    def _split_component(component: str) -> Tuple[str, str]:
         component_parts = component.split()
-        return component_parts if len(component_parts) == 2 else [''.join(component_parts[:-2]), component_parts[-1]]
+        if len(component_parts) == 1:
+            return component_parts[0], 'ANY'
+        return ''.join(component_parts[:-1]), component_parts[-1]
 
 
-def generate_search_terms(product_name: str) -> list:
+def generate_search_terms(product_name: str) -> List[str]:
     terms = product_name.split(' ')
     product_terms = ['_'.join(terms[i:j]).lower() for i, j in combinations(range(len(terms) + 1), 2)]
     return [term for term in product_terms if len(term) > 1 and not term.isdigit()]
@@ -77,34 +80,32 @@ def get_version_index(version: str, index: int) -> str:
     return version.split('\\.')[index]
 
 
-def get_version_numbers(target_values: list) -> list:
+def get_version_numbers(target_values: List[PRODUCT]) -> List[str]:
     return [t.version_number for t in target_values]
 
 
 def get_closest_matches(target_values: list, search_word: str) -> list:
     search_word_index = target_values.index(search_word)
-    if 0 < search_word_index < len(target_values)-1:
-        return [target_values[search_word_index-1], target_values[search_word_index+1]]
-    elif search_word_index == 0:
-        return [target_values[search_word_index+1]]
-    else:
-        return [target_values[search_word_index-1]]
+    if 0 < search_word_index < len(target_values) - 1:
+        return [target_values[search_word_index - 1], target_values[search_word_index + 1]]
+    if search_word_index == 0:
+        return [target_values[search_word_index + 1]]
+    return [target_values[search_word_index - 1]]
 
 
-def sort_cpe_matches(cpe_matches: list, requested_version: str) -> namedtuple:
+def sort_cpe_matches(cpe_matches: List[PRODUCT], requested_version: str) -> PRODUCT:
     if requested_version.isdigit() or is_valid_dotted_version(requested_version):
         version_numbers = get_version_numbers(target_values=cpe_matches)
         if requested_version in version_numbers:
             return [product for product in cpe_matches if product.version_number == requested_version][0]
-        else:
-            version_numbers.append(requested_version)
-            version_numbers.sort(key=lambda v: LegacyVersion(parse(v)))
-            closest_match = get_closest_matches(target_values=version_numbers, search_word=requested_version)[0]
-            return [product for product in cpe_matches if product.version_number == closest_match][0]
-    else:
-        warn('Warning: Version returned from CPE match has invalid type. Returned CPE might not contain relevant version number')
-
-        return cpe_matches[0]
+        version_numbers.append(requested_version)
+        version_numbers.sort(key=lambda v: LegacyVersion(parse(v)))
+        closest_match = get_closest_matches(target_values=version_numbers, search_word=requested_version)[0]
+        return [product for product in cpe_matches if product.version_number == closest_match][0]
+    if requested_version == 'ANY':
+        return [m for m in cpe_matches if m.version_number == 'ANY'][0]
+    warn('Warning: Version returned from CPE match has invalid type. Returned CPE might not contain relevant version number')
+    return cpe_matches[0]
 
 
 def search_cve(db: DB, product: namedtuple) -> Generator[str, None, None]:
@@ -163,15 +164,17 @@ def wordlist_longer_than_sequence(wordlist: list, sequence: list) -> bool:
 def lookup_vulnerabilities_in_database(product_name: str, requested_version: str) -> list:
 
     with DB(str(Path(__file__).parent.parent / 'internal' / DB_NAME)) as db:
-        product_terms, version = unbinding(generate_search_terms(product_name)), unbinding([requested_version])[0]
+        product_terms, version = unbind(generate_search_terms(product_name)), unbind([requested_version])[0]
 
-        matched_cpe = list(match_cpe(db, product_terms))
+        matched_cpe = list(set(match_cpe(db, product_terms)))
         if len(matched_cpe) == 0:
-            print('No CPEs were found!\n')
+            logging.debug('No CPEs were found!\n')
             return ['N/A']
-        else:
+        try:
             matched_product = sort_cpe_matches(matched_cpe, version)
-            cve_candidates = list(set(search_cve(db, matched_product)))
-            cve_candidates.extend(list(set(search_cve_summary(db, matched_product))))
+        except IndexError:
+            return ['N/A']
+        cve_candidates = list(set(search_cve(db, matched_product)))
+        cve_candidates.extend(list(set(search_cve_summary(db, matched_product))))
 
-            return cve_candidates
+        return cve_candidates

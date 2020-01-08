@@ -9,10 +9,10 @@ try:
     from internal import data_prep as dp
     from internal import setup_repository as sr
     from internal.database_interface import DB, QUERIES
-except ImportError:
+except (ImportError, ModuleNotFoundError):
     sys.path.append(str(Path(__file__).parent.parent / 'internal'))
     import data_prep as dp
-    from database_interface import DB, get_meta
+    from database_interface import DB, QUERIES
     import setup_repository as sr
 
 PATH_TO_TEST = str(Path(__file__).parent.parent) + '/test/'

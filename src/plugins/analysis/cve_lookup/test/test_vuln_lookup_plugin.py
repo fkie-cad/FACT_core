@@ -1,22 +1,33 @@
-from collections import namedtuple
+import sys
 from os import remove
+from pathlib import Path
 
 import pytest
-from helperFunctions.config import get_config_for_testing
-from test.common_helper import TEST_FW
 
-from code import vuln_lookup_plugin as lookup
-from internal.database_interface import DB
-from internal.helper_functions import unbinding
+from test.common_helper import TEST_FW, get_config_for_testing
+
+try:
+    from code import vuln_lookup_plugin as lookup
+    from internal.database_interface import DB
+    from internal.helper_functions import unbind
+except ImportError:
+    root = Path(__file__).parent.parent
+    sys.path.extend([str(root / 'code'), str(root / 'internal')])
+    import vuln_lookup_plugin as lookup
+    from database_interface import DB
+    from helper_functions import unbind
 
 
 # pylint: disable=redefined-outer-name
 
 USER_INPUT = {'vendor': 'Microsoft', 'product': 'Windows 7', 'version': '1.2.5'}
 
-PRODUCT = namedtuple('PRODUCT', 'vendor_name product_name version_number')
-MATCHED_CPE = [PRODUCT('microsoft', 'windows_8', '1\\.2\\.5'), PRODUCT('microsoft', 'windows_7', '1\\.3\\.1'),
-               PRODUCT('mircosof', 'windows_7', '0\\.7')]
+# PRODUCT = namedtuple('Product', 'vendor_name product_name version_number')
+MATCHED_CPE = [
+    lookup.PRODUCT('microsoft', 'windows_8', '1\\.2\\.5'),
+    lookup.PRODUCT('microsoft', 'windows_7', '1\\.3\\.1'),
+    lookup.PRODUCT('mircosof', 'windows_7', '0\\.7')
+]
 PRODUCT_NAME = 'windows 7'
 MATCHED_CVE = ['CVE-1234-0010', 'CVE-1234-0011']
 CPE_CVE_OUTPUT = [('CVE-1234-0008', 'microsoft', 'server_2013', '2013'),
@@ -57,14 +68,16 @@ WORDLIST_LONGER_THAN_SEQUENCE_INPUT = [[['', '', ''], ['', '']], [['', ''], ['',
 WORDLIST_LONGER_THAN_SEQUENCE_OUTPUT = [True, False, True]
 
 
-SORT_CPE_MATCHES_OUTPUT = PRODUCT('microsoft', 'windows_8', '1\\.2\\.5')
-PRODUCT_IS_IN_WORDLIST_INPUT = [{'Product': SORT_CPE_MATCHES_OUTPUT, 'Wordlist': ['bla', 'bla', 'microsoft', 'windows', '8', 'bla']},
-                                {'Product': SORT_CPE_MATCHES_OUTPUT, 'Wordlist': ['bla', 'bla', 'microsoft', 'windows']},
-                                {'Product': SORT_CPE_MATCHES_OUTPUT, 'Wordlist': ['bla', 'bla', 'mirosoft', 'windos', '7', 'bla']},
-                                {'Product': SORT_CPE_MATCHES_OUTPUT, 'Wordlist': ['bla', 'bla', 'microsoft', 'corporation', 'windows', '8', 'bla']},
-                                {'Product': SORT_CPE_MATCHES_OUTPUT, 'Wordlist': ['bla', 'bla', 'microsoft', 'corporation', 'corp', 'inc', 'windows', '8', 'bla']},
-                                {'Product': SORT_CPE_MATCHES_OUTPUT, 'Wordlist': ['bla', 'bla', 'microsoft', 'windows', '8']},
-                                {'Product': SORT_CPE_MATCHES_OUTPUT, 'Wordlist': ['bla', 'bla', 'microsoft', 'windows', 'home', '8', 'bla']}]
+SORT_CPE_MATCHES_OUTPUT = lookup.PRODUCT('microsoft', 'windows_8', '1\\.2\\.5')
+PRODUCT_IS_IN_WORDLIST_INPUT = [
+    {'Product': SORT_CPE_MATCHES_OUTPUT, 'Wordlist': ['bla', 'bla', 'microsoft', 'windows', '8', 'bla']},
+    {'Product': SORT_CPE_MATCHES_OUTPUT, 'Wordlist': ['bla', 'bla', 'microsoft', 'windows']},
+    {'Product': SORT_CPE_MATCHES_OUTPUT, 'Wordlist': ['bla', 'bla', 'mirosoft', 'windos', '7', 'bla']},
+    {'Product': SORT_CPE_MATCHES_OUTPUT, 'Wordlist': ['bla', 'bla', 'microsoft', 'corporation', 'windows', '8', 'bla']},
+    {'Product': SORT_CPE_MATCHES_OUTPUT, 'Wordlist': ['bla', 'bla', 'microsoft', 'corporation', 'corp', 'inc', 'windows', '8', 'bla']},
+    {'Product': SORT_CPE_MATCHES_OUTPUT, 'Wordlist': ['bla', 'bla', 'microsoft', 'windows', '8']},
+    {'Product': SORT_CPE_MATCHES_OUTPUT, 'Wordlist': ['bla', 'bla', 'microsoft', 'windows', 'home', '8', 'bla']}
+]
 PRODUCT_IS_IN_WORDLIST_OUTPUT = [True, False, True, True, False, True, False]
 
 
@@ -78,12 +91,12 @@ def setup() -> None:
 
 
 def test_generate_search_terms():
-    assert PRODUCT_SEARCH_TERMS == unbinding(lookup.generate_search_terms(PRODUCT_NAME))
+    assert PRODUCT_SEARCH_TERMS == unbind(lookup.generate_search_terms(PRODUCT_NAME))
 
 
 def test_is_valid_dotted_version():
-    for index in range(8):
-        assert VALID_DOTTED_VERSION_OUTPUT[index] == bool(lookup.is_valid_dotted_version(VALID_DOTTED_VERSION_INPUT[index]))
+    for _input, expected_output in zip(VALID_DOTTED_VERSION_INPUT, VALID_DOTTED_VERSION_OUTPUT):
+        assert expected_output == bool(lookup.is_valid_dotted_version(_input))
 
 
 @pytest.mark.parametrize('version, index, expected', [('1\\.2\\.3', 0, '1'), ('1\\.2\\.3\\.2a', -1, '2a')])
@@ -91,15 +104,18 @@ def test_get_version_index(version, index, expected):
     assert lookup.get_version_index(version=version, index=index) == expected
 
 
-@pytest.mark.parametrize('target_values, expected', [([PRODUCT('abc', 'def', '1\\.2\\.3'),
-                                                      PRODUCT('abc', 'def', '4\\.5\\.6')], ['1\\.2\\.3', '4\\.5\\.6'])])
+@pytest.mark.parametrize('target_values, expected', [
+    ([lookup.PRODUCT('abc', 'def', '1\\.2\\.3'), lookup.PRODUCT('abc', 'def', '4\\.5\\.6')], ['1\\.2\\.3', '4\\.5\\.6'])
+])
 def test_get_version_numbers(target_values, expected):
     assert lookup.get_version_numbers(target_values=target_values) == expected
 
 
-@pytest.mark.parametrize('target_values, search_word, expected', [(['1\\.2\\.3', '2\\.2\\.2', '4\\.5\\.6'], '2\\.2\\.2', ['1\\.2\\.3', '4\\.5\\.6']),
-                                                                  (['1\\.1\\.1', '1\\.2\\.3', '4\\.5\\.6'], '1\\.1\\.1', ['1\\.2\\.3']),
-                                                                  (['1\\.2\\.3', '4\\.5\\.6', '7\\.8\\.9'], '7\\.8\\.9', ['4\\.5\\.6'])])
+@pytest.mark.parametrize('target_values, search_word, expected', [
+    (['1\\.2\\.3', '2\\.2\\.2', '4\\.5\\.6'], '2\\.2\\.2', ['1\\.2\\.3', '4\\.5\\.6']),
+    (['1\\.1\\.1', '1\\.2\\.3', '4\\.5\\.6'], '1\\.1\\.1', ['1\\.2\\.3']),
+    (['1\\.2\\.3', '4\\.5\\.6', '7\\.8\\.9'], '7\\.8\\.9', ['4\\.5\\.6'])
+])
 def test_get_closest_matches(target_values, search_word, expected):
     assert lookup.get_closest_matches(target_values=target_values, search_word=search_word) == expected
 
@@ -137,10 +153,8 @@ def test_wordlist_longer_than_sequence():
 def test_match_cpe(monkeypatch):
     with monkeypatch.context() as monkey:
         monkey.setattr(DB, 'select_query', lambda *_, **__: CPE_DATABASE_OUTPUT)
-        MATCHED_CPE.sort()
         actual_match = list(lookup.match_cpe(DB, PRODUCT_SEARCH_TERMS))
-        actual_match.sort()
-        assert MATCHED_CPE == actual_match
+        assert all(entry in actual_match for entry in MATCHED_CPE)
 
 
 def test_search_cve(monkeypatch):
@@ -182,9 +196,7 @@ def test_process_object(stub_plugin):
         'dnsmasq': {
             'meta': {
                 'software_name': 'Dnsmasq',
-                'version': [
-                    '2.40'
-                ]
+                'version': ['2.40']
             }
         },
         'OpenSSL': {
@@ -193,19 +205,11 @@ def test_process_object(stub_plugin):
                 'description': 'SSL library',
                 'open_source': True,
                 'software_name': 'OpenSSL',
-                'version': [
-                    ''
-                ],
+                'version': [''],
                 'website': 'https://www.openssl.org'
             },
             'rule': 'OpenSSL',
-            'strings': [
-                [
-                    7194,
-                    '$a',
-                    'T1BFTlNTTA=='
-                ],
-            ]
+            'strings': [[7194, '$a', 'T1BFTlNTTA==']]
         },
         'analysis_date': 1563453634.37708,
         'plugin_version': '0.3.2',
@@ -216,4 +220,4 @@ def test_process_object(stub_plugin):
         'system_version': '3.7.1_1560435912',
     }
     result = stub_plugin.process_object(TEST_FW).processed_analysis['cve_lookup']
-    assert 'CVE-2018-1000010' in result['summary']
+    assert 'CVE-2017-14494' in result['summary']

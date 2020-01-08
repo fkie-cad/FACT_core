@@ -12,68 +12,56 @@ except ImportError:
     import data_prep as dp
 
 # contains a NODES list from the CVE 2012-0010 which serves as input for iterate_nodes()
-NODES = [{'operator': 'AND', 'children': [{'operator': 'OR', 'cpe_match': [{'vulnerable': True, 'cpe23Uri':
-                                                                            'cpe:2.3:a:microsoft:ie:6:*:*:*:*:*:*:*'}]},
-                                          {'operator': 'OR', 'cpe_match': [{'vulnerable': False,
-                                                                            'cpe23Uri': 'cpe:2.3:o: microsoft:windows_'
-                                                                                        'xp:*:sp3:*:*:*:*:*:*'},
-                                                                           {'vulnerable': False,
-                                                                            'cpe23Uri': 'cpe:2.3:o:microsoft:windows_xp'
-                                                                                        ':-:sp2:x64:*:*:*:*:*'}]}]},
-         {'operator': 'AND', 'children': [{'operator': 'OR', 'cpe_match': [{'vulnerable': True, 'cpe23Uri':
-                                                                            'cpe:2.3:a:microsoft:ie:9:*:*:*:*:*:*:*'}]},
-                                          {'operator': 'OR', 'cpe_match': [{'vulnerable': False,
-                                                                            'cpe23Uri': 'cpe:2.3:o:microsoft:windows_7:'
-                                                                                        '*:*:x64:*:*:*:*:*'},
-                                                                           {'vulnerable': False,
-                                                                            'cpe23Uri': 'cpe:2.3:o:microsoft:windows_7:'
-                                                                                        '*:*:x86:*:*:*:*:*'},
-                                                                           {'vulnerable': False,
-                                                                            'cpe23Uri': 'cpe:2.3:o:microsoft:windows_7:'
-                                                                                        '*:sp1:x64:*:*:*:*:*'},
-                                                                           {'vulnerable': False,
-                                                                            'cpe23Uri': 'cpe:2.3:o:microsoft:windows_7:'
-                                                                                        '*:sp1:x86:*:*:*:*:*'},
-                                                                           {'vulnerable': False,
-                                                                            'cpe23Uri': 'cpe:2.3:o:microsoft:windows_'
-                                                                                        'vista:*:sp2:*:*:*:*:*:*'},
-                                                                           {'vulnerable': False,
-                                                                            'cpe23Uri': 'cpe:2.3:o:microsoft:windows_'
-                                                                                        'vista:*:sp2:x64:*:*:*:*:*'},
-                                                                           {'vulnerable': False,
-                                                                            'cpe23Uri': 'cpe:2.3:o:microsoft:windows_xp'
-                                                                                        ':*:sp3:*:*:*:*:*:*'}]}]},
-         {'operator': 'AND', 'children': [{'operator': 'OR', 'cpe_match': [{'vulnerable': True, 'cpe23Uri':
-                                                                            'cpe:2.3:a:microsoft:ie:7:*:*:*:*:*:*:*'}]},
-                                          {'operator': 'OR', 'cpe_match': [{'vulnerable': False, 'cpe23Uri':
-                                                                            'cpe:2.3:o:microsoft:windows_vista:*:sp2:*:'
-                                                                            '*:*:*:*:*'},
-                                                                           {'vulnerable': False, 'cpe23Uri':
-                                                                            'cpe:2.3:o:microsoft:windows_vista:*:sp2:'
-                                                                            'x64:*:*:*:*:*'},
-                                                                           {'vulnerable': False, 'cpe23Uri':
-                                                                            'cpe:2.3:o:microsoft:windows_xp:*:sp3:*:*:*'
-                                                                            ':*:*:*'},
-                                                                           {'vulnerable': False, 'cpe23Uri':
-                                                                            'cpe:2.3:o:microsoft:windows_xp:-:sp2:x64:*'
-                                                                            ':*:*:*:*'}]}]},
-         {'operator': 'AND', 'children': [{'operator': 'OR', 'cpe_match': [{'vulnerable': True, 'cpe23Uri':
-                                                                            'cpe:2.3:a:microsoft:ie:8:*:*:*:*:*:*:*'}]},
-                                          {'operator': 'OR', 'cpe_match':
-                                           [{'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_7:*:*:'
-                                                                              'x64:*:*:*:*:*'},
-                                            {'vulnerable': False,
-                                             'cpe23Uri': 'cpe:2.3:o:microsoft:windows_7:*:*:x86:*:*:*:*:*'},
-                                            {'vulnerable': False,
-                                             'cpe23Uri': 'cpe:2.3:o:microsoft:windows_7:*:sp1:x64:*:*:*:*:*'},
-                                            {'vulnerable': False,
-                                             'cpe23Uri': 'cpe:2.3:o:microsoft:windows_7:*:sp1:x86:*:*:*:*:*'},
-                                            {'vulnerable': False,
-                                             'cpe23Uri': 'cpe:2.3:o:microsoft:windows_vista:*:sp2:*:*:*:*:*:*'},
-                                            {'vulnerable': False,
-                                             'cpe23Uri': 'cpe:2.3:o:microsoft:windows_vista:*:sp2:x64:*:*:*:*:*'},
-                                            {'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_xp:*:sp3'
-                                                                              ':*:*:*:*:*:*'}]}]}]
+NODES = [
+    {'operator': 'AND', 'children': [
+        {'operator': 'OR', 'cpe_match': [
+            {'vulnerable': True, 'cpe23Uri': 'cpe:2.3:a:microsoft:ie:6:*:*:*:*:*:*:*'}
+        ]},
+        {'operator': 'OR', 'cpe_match': [
+            {'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o: microsoft:windows_xp:*:sp3:*:*:*:*:*:*'},
+            {'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_xp:-:sp2:x64:*:*:*:*:*'}
+        ]}
+    ]},
+    {'operator': 'AND', 'children': [
+        {'operator': 'OR', 'cpe_match': [
+            {'vulnerable': True, 'cpe23Uri': 'cpe:2.3:a:microsoft:ie:9:*:*:*:*:*:*:*'}
+        ]},
+        {'operator': 'OR', 'cpe_match': [
+            {'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_7:*:*:x64:*:*:*:*:*'},
+            {'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_7:*:*:x86:*:*:*:*:*'},
+            {'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_7:*:sp1:x64:*:*:*:*:*'},
+            {'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_7:*:sp1:x86:*:*:*:*:*'},
+            {'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_vista:*:sp2:*:*:*:*:*:*'},
+            {'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_vista:*:sp2:x64:*:*:*:*:*'},
+            {'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_xp:*:sp3:*:*:*:*:*:*'}
+        ]}
+    ]},
+    {'operator': 'AND', 'children': [
+        {'operator': 'OR', 'cpe_match': [
+            {'vulnerable': True, 'cpe23Uri': 'cpe:2.3:a:microsoft:ie:7:*:*:*:*:*:*:*'}
+        ]},
+        {'operator': 'OR', 'cpe_match': [
+            {'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_vista:*:sp2:*:*:*:*:*:*'},
+            {'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_vista:*:sp2:x64:*:*:*:*:*'},
+            {'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_xp:*:sp3:*:*:*:*:*:*'},
+            {'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_xp:-:sp2:x64:*:*:*:*:*'}
+        ]}
+    ]},
+    {'operator': 'AND', 'children': [
+        {'operator': 'OR', 'cpe_match': [
+            {'vulnerable': True, 'cpe23Uri': 'cpe:2.3:a:microsoft:ie:8:*:*:*:*:*:*:*'}
+        ]},
+        {'operator': 'OR', 'cpe_match': [
+            {'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_7:*:*:x64:*:*:*:*:*'},
+            {'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_7:*:*:x86:*:*:*:*:*'},
+            {'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_7:*:sp1:x64:*:*:*:*:*'},
+            {'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_7:*:sp1:x86:*:*:*:*:*'},
+            {'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_vista:*:sp2:*:*:*:*:*:*'},
+            {'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_vista:*:sp2:x64:*:*:*:*:*'},
+            {'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_xp:*:sp3:*:*:*:*:*:*'}
+        ]}
+    ]}
+]
 # contain the expected result from the extract_cve function
 CVE_CPE_LIST = ['CVE-2012-0001', 'cpe:2.3:o:microsoft:windows_7:-:*:*:*:*:*:*:*',
                 'cpe:2.3:o:microsoft:windows_7:-:sp1:x64:*:*:*:*:*',
@@ -178,7 +166,7 @@ def setup() -> None:
 
 
 def test_get_cve_links():
-    assert GET_CVE_LINKS_EXPECTED_OUTPUT == dp.get_cve_links(dp.CVE_URL)
+    assert all(entry in dp.get_cve_links(dp.CVE_URL) for entry in GET_CVE_LINKS_EXPECTED_OUTPUT)
 
 
 def test_download_cve():

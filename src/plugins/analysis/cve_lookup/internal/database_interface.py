@@ -22,7 +22,7 @@ QUERIES = {
     "test_create_update": "CREATE TABLE IF NOT EXISTS {} (cve_id TEXT NOT NULL, year INTEGER NOT NULL)",
     "test_insert": "INSERT INTO {} (x) VALUES (?)",
     "test_insert_cve_id": "INSERT INTO {} (cve_id, year) VALUES (?, ?)"
-  }
+}
 
 
 class DB:
