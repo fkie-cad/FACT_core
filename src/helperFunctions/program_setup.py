@@ -85,5 +85,5 @@ def _load_config(args):
 
 
 def was_started_by_start_fact():
-    parent = psutil.Process(os.getppid()).cmdline()[-1]
+    parent = ' '.join(psutil.Process(os.getppid()).cmdline())
     return 'start_fact.py' in parent or 'start_all_installed_fact_components' in parent
