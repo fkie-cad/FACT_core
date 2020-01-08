@@ -195,6 +195,19 @@ rule netatalk
 		$a and no_text_file
 }
 
+rule NicheStack
+{
+	meta:
+		software_name = "NicheStack"
+		open_source = false
+		website = "http://www.iniche.com/source-code/networking-stack/nichestack.php"
+		description = "embedded TCP/IP stack from InterNiche"
+    strings:
+        $a = /InterNiche Portable TCP\/IP[a-zA-Z ]{,30}, v\d(\.\d)?/
+    condition:
+        $a and no_text_file
+}
+
 rule OpenSSH
 {
 	meta:

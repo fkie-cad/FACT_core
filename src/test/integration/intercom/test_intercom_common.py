@@ -1,13 +1,12 @@
 import gc
 import pickle
-from tempfile import TemporaryDirectory
 import unittest
+from tempfile import TemporaryDirectory
 
-from helperFunctions.config import get_config_for_testing
 from helperFunctions.entropy import generate_random_data
 from intercom.common_mongo_binding import InterComListener
 from storage.MongoMgr import MongoMgr
-
+from test.common_helper import get_config_for_testing
 
 TMP_DIR = TemporaryDirectory(prefix='fact_test_')
 

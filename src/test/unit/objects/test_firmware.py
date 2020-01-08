@@ -1,9 +1,9 @@
-from common_helper_files import get_binary_from_file
 import pytest
+from common_helper_files import get_binary_from_file
 
-from helperFunctions.fileSystem import get_test_data_dir
-from objects.firmware import Firmware
 from helperFunctions.tag import TagColor
+from objects.firmware import Firmware
+from test.common_helper import get_test_data_dir
 
 
 @pytest.mark.parametrize('input_data, expected_count', [

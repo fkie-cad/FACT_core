@@ -38,10 +38,10 @@ class Unpacker(UnpackBase):
     def unpack_fo(self, file_object: FileObject) -> Optional[TemporaryDirectory]:
         file_path = (
             file_object.file_path if file_object.file_path
-            else self._get_file_path_from_db(file_object.get_uid())
+            else self._get_file_path_from_db(file_object.uid)
         )
         if not file_path or not Path(file_path).is_file():
-            logging.error('could not unpack {}: file path not found'.format(file_object.get_uid()))
+            logging.error('could not unpack {}: file path not found'.format(file_object.uid))
             return None
 
         extraction_dir = TemporaryDirectory(prefix='FACT_plugin_qemu_exec')
@@ -65,7 +65,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     DESCRIPTION = 'test binaries for executability in QEMU and display help if available'
     VERSION = '0.5'
     DEPENDENCIES = ['file_type']
-    FILE_TYPES = ['application/x-executable', 'application/x-sharedlib']
+    FILE_TYPES = ['application/x-executable', 'application/x-pie-executable', 'application/x-sharedlib']
 
     FACT_EXTRACTION_FOLDER_NAME = 'fact_extracted'
 

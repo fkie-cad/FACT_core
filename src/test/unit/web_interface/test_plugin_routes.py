@@ -1,15 +1,14 @@
 import os
 from itertools import chain
-from test.unit.web_interface.rest.conftest import decode_response
 from unittest import TestCase
 
 from flask import Flask
 from flask_restful import Api
-from helperFunctions.config import get_config_for_testing
+
 from helperFunctions.fileSystem import get_src_dir
-from web_interface.components.plugin_routes import (
-    PLUGIN_CATEGORIES, PluginRoutes
-)
+from test.common_helper import get_config_for_testing
+from test.unit.web_interface.rest.conftest import decode_response
+from web_interface.components.plugin_routes import PLUGIN_CATEGORIES, PluginRoutes
 
 
 class PluginRoutesMock(PluginRoutes):

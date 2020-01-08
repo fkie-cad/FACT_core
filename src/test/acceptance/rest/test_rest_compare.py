@@ -1,14 +1,13 @@
-from base64 import standard_b64encode
 import json
 import os
 import time
 import urllib.parse
-
+from base64 import standard_b64encode
 from multiprocessing import Event, Value
 
-from helperFunctions.fileSystem import get_test_data_dir
 from storage.db_interface_backend import BackEndDbInterface
 from test.acceptance.base import TestAcceptanceBase
+from test.common_helper import get_test_data_dir
 
 
 class TestRestCompareFirmware(TestAcceptanceBase):

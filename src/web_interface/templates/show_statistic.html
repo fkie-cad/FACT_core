@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% set active_page = "Statistic" %}
+{% set active_page = "Info" %}
 
 {% import 'macros.jinja' as macros %}
 {% set count = [] %}
@@ -259,7 +259,7 @@
 					var points = DateBarChart.getElementsAtEvent(evt);
 					var date = DateBarChart.data.labels[points[0]._index];
 					if (points[0] !== undefined)
-						window.location = "database/browse?date=" + "\"" + date + "\"";
+						window.location = "database/browse?date=" + date;
 				};
 
             </script>

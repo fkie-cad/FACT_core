@@ -3,7 +3,7 @@ from objects.firmware import Firmware
 
 def _add_firmware_exclusive_information(fo, meta):
     if isinstance(fo, Firmware):
-        fo.root_uid = fo.get_uid()
+        fo.root_uid = fo.uid
         meta['device_name'] = fo.device_name
         meta['device_class'] = fo.device_class
         meta['device_part'] = fo.part

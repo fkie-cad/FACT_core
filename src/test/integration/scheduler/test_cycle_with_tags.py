@@ -4,14 +4,13 @@ from multiprocessing import Event
 from tempfile import TemporaryDirectory
 from time import sleep
 
-from helperFunctions.fileSystem import get_test_data_dir
 from objects.firmware import Firmware
 from scheduler.Analysis import AnalysisScheduler
-from scheduler.Unpacking import UnpackingScheduler
 from scheduler.analysis_tag import TaggingDaemon
-from storage.MongoMgr import MongoMgr
+from scheduler.Unpacking import UnpackingScheduler
 from storage.db_interface_backend import BackEndDbInterface
-from test.common_helper import get_database_names, clean_test_database
+from storage.MongoMgr import MongoMgr
+from test.common_helper import clean_test_database, get_database_names, get_test_data_dir
 from test.integration.common import initialize_config
 
 
@@ -28,7 +27,7 @@ class TestTagPropagation(unittest.TestCase):
 
         self._analysis_scheduler = AnalysisScheduler(config=self._config, pre_analysis=self.backend_interface.add_object, post_analysis=self.count_analysis_finished_event)
         self._tagging_scheduler = TaggingDaemon(analysis_scheduler=self._analysis_scheduler)
-        self._unpack_scheduler = UnpackingScheduler(config=self._config, post_unpack=self._analysis_scheduler.add_task)
+        self._unpack_scheduler = UnpackingScheduler(config=self._config, post_unpack=self._analysis_scheduler.start_analysis_of_object)
 
     def count_analysis_finished_event(self, fw_object):
         self.backend_interface.add_analysis(fw_object)

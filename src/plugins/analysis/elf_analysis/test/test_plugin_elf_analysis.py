@@ -3,10 +3,10 @@ from pathlib import Path
 
 import pytest
 
-from helperFunctions.config import get_config_for_testing
-from helperFunctions.fileSystem import get_test_data_dir
 from helperFunctions.tag import TagColor
 from objects.file import FileObject
+from test.common_helper import get_config_for_testing, get_test_data_dir
+
 from ..code.elf_analysis import AnalysisPlugin
 
 TEST_DATA = Path(get_test_data_dir(), 'test_data_file.bin')

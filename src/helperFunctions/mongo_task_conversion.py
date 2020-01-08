@@ -22,14 +22,13 @@ def create_analysis_task(request):
     return task
 
 
-def get_file_name_and_binary_from_request(request):
-    result = []
+def get_file_name_and_binary_from_request(request):  # pylint: disable=invalid-name
     try:
-        result.append(request.files['file'].filename)
+        file_name = request.files['file'].filename
     except Exception:
-        result.append('no name')
-    result.append(get_uploaded_file_binary(request.files['file']))
-    return result
+        file_name = 'no name'
+    file_binary = get_uploaded_file_binary(request.files['file'])
+    return file_name, file_binary
 
 
 def create_re_analyze_task(request, uid):
@@ -69,8 +68,7 @@ def _get_meta_from_dropdowns(meta, request):
 def _get_tag_list(tag_string):
     if tag_string == '':
         return []
-    else:
-        return tag_string.split(',')
+    return tag_string.split(',')
 
 
 def convert_analysis_task_to_fw_obj(analysis_task):
@@ -81,7 +79,7 @@ def convert_analysis_task_to_fw_obj(analysis_task):
     else:
         if 'file_name' in analysis_task.keys():
             fw.file_name = analysis_task['file_name']
-        fw.overwrite_uid(analysis_task['uid'])
+        fw.uid = analysis_task['uid']
     fw.set_device_name(analysis_task['device_name'])
     fw.set_part_name(analysis_task['device_part'])
     fw.set_firmware_version(analysis_task['version'])
@@ -97,24 +95,22 @@ def get_uid_of_analysis_task(analysis_task):
     if analysis_task['binary']:
         uid = create_uid(analysis_task['binary'])
         return uid
-    else:
-        return None
+    return None
 
 
 def get_uploaded_file_binary(request_file):
     if request_file:
-        tmp_dir = TemporaryDirectory(prefix='faf_upload_')
+        tmp_dir = TemporaryDirectory(prefix='fact_upload_')
         tmp_file_path = os.path.join(tmp_dir.name, 'upload.bin')
         try:
             request_file.save(tmp_file_path)
-            with open(tmp_file_path, 'rb') as f:
-                binary = f.read()
+            with open(tmp_file_path, 'rb') as tmp_file:
+                binary = tmp_file.read()
             tmp_dir.cleanup()
             return binary
         except Exception:
             return None
-    else:
-        return None
+    return None
 
 
 def check_for_errors(analysis_task):
@@ -129,10 +125,9 @@ def is_sanitized_entry(entry):
     try:
         if re.search(r'_[0-9a-f]{64}_[0-9]+', entry) is None:
             return False
-        else:
-            return True
+        return True
     except TypeError:  # DB entry has type other than string (e.g. integer or float)
         return False
-    except Exception as e:
-        logging.error('Could not determine entry sanitization state: {} {}'.format(sys.exc_info()[0].__name__, e))
+    except Exception as e_type:
+        logging.error('Could not determine entry sanitization state: {} {}'.format(sys.exc_info()[0].__name__, e_type))
         return False

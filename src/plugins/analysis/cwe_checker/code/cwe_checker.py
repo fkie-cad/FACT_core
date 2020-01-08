@@ -12,57 +12,17 @@ lifts to the following architectures:
 - PowerPC
 - Mips
 '''
+import json
 import logging
 from collections import defaultdict
+from subprocess import DEVNULL, PIPE, Popen
 
-import sexpdata
 from common_helper_process import execute_shell_command_get_return_code
 
 from analysis.PluginBase import AnalysisBasePlugin
 
 BAP_TIMEOUT = 10  # in minutes
 DOCKER_IMAGE = 'fkiecad/cwe_checker:latest'
-
-
-class CweWarning:
-
-    def __init__(self, name, plugin_version, warning):
-        self.name = name
-        self.plugin_version = plugin_version
-        self.warning = warning
-
-
-class CweWarningParser:
-    '''
-    Parses a CWE warning emitted by the BAP plugin CweChecker
-    '''
-
-    @staticmethod
-    def _remove_color(string):
-        '''
-        Removes 'color' from string
-        See https://stackoverflow.com/questions/287871/print-in-terminal-with-colors/293633#293633
-        '''
-        return string.replace('\x1b[0m', '').strip()
-
-    def parse(self, warning):
-        try:
-            splitted_line = warning.split('WARN')
-            cwe_warning = splitted_line[1].replace(
-                'u32', '').replace(':', '')
-
-            cwe_name = self._remove_color(cwe_warning.split(')')[0]) + ')'
-            cwe_name = cwe_name.split('{')[0].strip() + ' ' + cwe_name.split('}')[1].strip()
-
-            plugin_version = cwe_warning.split('{')[1].split('}')[0]
-
-            cwe_message = ')'.join(cwe_warning.split(')')[1:])
-            cwe_message = cwe_message.replace('.', '').replace('32u', '')
-
-            return CweWarning(cwe_name, plugin_version, cwe_message)
-        except IndexError as error:
-            logging.error('IndexError while parsing CWE warning: {}.'.format(str(error)))
-            return None
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
@@ -72,10 +32,10 @@ class AnalysisPlugin(AnalysisBasePlugin):
     NAME = 'cwe_checker'
     DESCRIPTION = 'This plugin checks ELF binaries for several CWEs (Common Weakness Enumeration) like'\
                   'CWE-243 (Creation of chroot Jail Without Changing Working Directory) and'\
-                  'CWE-676 (Use of Potentially Dangerous Function). Internally it uses BAP 1.5, which currently supports ARM, x86/x64, PPC and MIPS.'\
+                  'CWE-676 (Use of Potentially Dangerous Function). Internally it uses BAP, which currently supports ARM, x86/x64, PPC and MIPS.'\
                   'Due to the nature of static analysis, this plugin may run for a long time.'
     DEPENDENCIES = ['cpu_architecture', 'file_type']
-    VERSION = '0.3.4'
+    VERSION = '0.4.0'
     MIME_WHITELIST = ['application/x-executable', 'application/x-object', 'application/x-sharedlib']
     SUPPORTED_ARCHS = ['arm', 'x86', 'x64', 'mips', 'ppc']
 
@@ -106,38 +66,36 @@ class AnalysisPlugin(AnalysisBasePlugin):
         module_versions = {}
         for line in bap_output.splitlines():
             if 'module_versions:' in line:
-                version_sexp = line.split('module_versions:')[-1].strip()
-                module_versions = dict(sexpdata.loads(version_sexp))
+                version_json = line.split('module_versions:')[-1].strip()
+                module_versions = json.loads(version_json)
         return module_versions
 
     @staticmethod
     def _build_bap_command_for_modules_versions():
         # unfortunately, there must be a dummy file passed to BAP, I chose /bin/true because it is damn small
-        return 'docker run --rm {} bap /bin/true --pass=cwe-checker --cwe-checker-module_versions=true'.format(DOCKER_IMAGE)
+        return 'docker run --rm {} bap /bin/true --pass=cwe-checker --cwe-checker-module-versions'.format(DOCKER_IMAGE)
 
     @staticmethod
     def _build_bap_command(file_object):
         return 'timeout --signal=SIGKILL {}m docker run --rm -v {}:/tmp/input {} bap /tmp/input '\
-               '--pass=cwe-checker --cwe-checker-config=/home/bap/cwe_checker/src/config.json'.format(BAP_TIMEOUT, file_object.file_path, DOCKER_IMAGE)
+               '--pass=cwe-checker --cwe-checker-json --cwe-checker-no-logging'.format(BAP_TIMEOUT, file_object.file_path, DOCKER_IMAGE)
 
     @staticmethod
     def _parse_bap_output(output):
         tmp = defaultdict(list)
-        cwe_parser = CweWarningParser()
-
-        for line in output.splitlines():
-            if 'WARN' in line:
-                cwe_warning = cwe_parser.parse(line)
-                tmp[cwe_warning.name].append(cwe_warning)
+        j_doc = json.loads(output)
+        if 'warnings' in j_doc:
+            for warning in j_doc['warnings']:
+                tmp[warning['name']] = tmp[warning['name']] + [warning, ]
 
         res = {}
         for key, values in tmp.items():
             tmp_list = []
             plugin_version = None
-            for cwe in values:
-                tmp_list.append(cwe.warning)
+            for hit in values:
+                tmp_list.append(hit['description'])
                 if not plugin_version:
-                    plugin_version = cwe.plugin_version
+                    plugin_version = hit['version']
             res[key] = {'plugin_version': plugin_version,
                         'warnings': tmp_list}
 
@@ -149,16 +107,17 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def _do_full_analysis(self, file_object):
         bap_command = self._build_bap_command(file_object)
-        output, return_code = execute_shell_command_get_return_code(
-            bap_command)
+        pl = Popen(bap_command, shell=True, stdout=PIPE, stderr=DEVNULL)
+        output = pl.communicate()[0].decode('utf-8', errors='replace')
+        return_code = pl.returncode
         if return_code in [0, 124, 128 + 9]:
             cwe_messages = self._parse_bap_output(output)
             file_object.processed_analysis[self.NAME] = {'full': cwe_messages, 'summary': list(cwe_messages.keys())}
             if return_code in [124, 128 + 9]:
-                logging.warning('CWE-Checker timed out on {}. Warnings might not be complete.'.format(file_object.get_uid()))
+                logging.warning('CWE-Checker timed out on {}. Warnings might not be complete.'.format(file_object.uid))
                 file_object.processed_analysis[self.NAME]['warning'] = 'Analysis timed out. Warnings might not be complete.'
         else:
-            logging.error('Could not communicate with Bap plugin: {} ({})\nUID: {}'.format(return_code, output, file_object.get_uid()))
+            logging.error('Could not communicate with Bap plugin: {} ({})\nUID: {}'.format(return_code, output, file_object.uid))
             file_object.processed_analysis[self.NAME] = {'summary': []}
         return file_object
 

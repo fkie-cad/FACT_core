@@ -3,20 +3,19 @@ import os
 import re
 
 from common_helper_files import get_binary_from_file
-
-from helperFunctions.fileSystem import get_template_dir
 from passlib.context import CryptContext
 
+from helperFunctions.fileSystem import get_template_dir
 
 SPECIAL_CHARACTERS = 'ÄäÀàÁáÂâÃãÅåǍǎĄąĂăÆæĀāÇçĆćĈĉČčĎđĐďðÈèÉéÊêËëĚěĘęĖėĒēĜĝĢģĞğĤĥÌìÍíÎîÏïıĪīĮįĴĵĶķĹĺĻļŁłĽľÑñŃńŇňŅņÖöÒòÓóÔôÕõŐőØøŒœŔŕŘřẞßŚśŜŝŞşŠšȘș' \
                      'ŤťŢţÞþȚțÜüÙùÚúÛûŰűŨũŲųŮůŪūŴŵÝýŸÿŶŷŹźŽžŻż'
 
 
-def get_color_list(n, limit=15):
+def get_color_list(number, limit=15):
     compliant_colors = ['#2b669a', '#cce0dc', '#2b669a', '#cce0dc', '#2b669a', '#cce0dc',
                         '#2b669a', '#cce0dc', '#2b669a', '#cce0dc', '#2b669a', '#cce0dc',
                         '#2b669a', '#cce0dc', '#2b669a', '#cce0dc', '#2b669a', '#cce0dc']
-    return compliant_colors[:n if n <= limit else limit]
+    return compliant_colors[:number if number <= limit else limit]
 
 
 def overwrite_default_plugins(intercom, checked_plugin_list):
@@ -47,19 +46,6 @@ def filter_out_illegal_characters(string):
     if string is None:
         return string
     return re.sub('[^\\w {}!.-]'.format(SPECIAL_CHARACTERS), '', string)
-
-
-class ConnectTo:
-    def __init__(self, connected_interface, config):
-        self.interface = connected_interface
-        self.config = config
-
-    def __enter__(self):
-        self.connection = self.interface(self.config)
-        return self.connection
-
-    def __exit__(self, *args):
-        self.connection.shutdown()
 
 
 def get_template_as_string(view_name):

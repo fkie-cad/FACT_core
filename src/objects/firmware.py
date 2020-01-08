@@ -47,8 +47,8 @@ class Firmware(FileObject):
         self.release_date = release_date
 
     def _update_root_id_and_virtual_path(self):
-        self.root_uid = self.get_uid()
-        self.virtual_file_path = {self.get_uid(): [self.get_uid()]}
+        self.root_uid = self.uid
+        self.virtual_file_path = {self.uid: [self.uid]}
 
     def set_tag(self, tag, tag_color=TagColor.GRAY):
         self.tags[tag] = tag_color

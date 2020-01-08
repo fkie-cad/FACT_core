@@ -32,7 +32,7 @@ class ComparePlugin(CompareBasePlugin):
         for i in range(len(fo_list)):
             tmp_list = deepcopy(fo_list)
             current_element = tmp_list.pop(i)
-            result[current_element.get_uid()] = difference_of_lists(self._get_software_list(current_element), self._get_list_of_software_lists(tmp_list))
+            result[current_element.uid] = difference_of_lists(self._get_software_list(current_element), self._get_list_of_software_lists(tmp_list))
         result['collapse'] = True
         return result
 
@@ -47,7 +47,7 @@ class ComparePlugin(CompareBasePlugin):
         for i in range(len(fo_list)):
             tmp_list = deepcopy(fo_list)
             current_element = tmp_list.pop(i)
-            result[current_element.get_uid()] = list(difference_of_sets(set(self._get_software_list(current_element)), [result_dict['software_in_common']['all'], result_dict['exclusive_software'][current_element.get_uid()]]))
+            result[current_element.uid] = list(difference_of_sets(set(self._get_software_list(current_element)), [result_dict['software_in_common']['all'], result_dict['exclusive_software'][current_element.uid]]))
         result['collapse'] = True
         return result
 

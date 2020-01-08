@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 '''
     Firmware Analysis and Comparison Tool (FACT)
     Copyright (C) 2015-2019  Fraunhofer FKIE
@@ -17,4 +16,4 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-__VERSION__ = '2.7-dev'
+__VERSION__ = '3.1-dev'

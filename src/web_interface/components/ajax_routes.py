@@ -1,14 +1,12 @@
 import html
-from typing import List
 
 from common_helper_files import human_readable_file_size
 from flask import jsonify, render_template
-from helperFunctions.file_tree import FileTreeNode, get_correct_icon_for_mime
-from helperFunctions.web_interface import ConnectTo
+
+from helperFunctions.database import ConnectTo
+from helperFunctions.file_tree import FileTreeNode, get_correct_icon_for_mime, remove_virtual_path_from_root
 from intercom.front_end_binding import InterComFrontEndBinding
-from storage.db_interface_compare import (
-    CompareDbInterface, FactCompareException
-)
+from storage.db_interface_compare import CompareDbInterface
 from storage.db_interface_frontend import FrontEndDbInterface
 from web_interface.components.component_base import ComponentBase
 from web_interface.filter import bytes_to_str_filter, encode_base64_filter
@@ -25,22 +23,20 @@ class AjaxRoutes(ComponentBase):
         self._app.add_url_rule('/compare/ajax_common_files/<compare_id>/<feature_id>/', 'compare/ajax_common_files/<compare_id>/<feature_id>/',
                                self._ajax_get_common_files_for_compare)
         self._app.add_url_rule('/ajax_get_binary/<mime_type>/<uid>', 'ajax_get_binary/<type>/<uid>', self._ajax_get_binary)
-
-    def _get_exclusive_files(self, compare_id: str, root_uid: str) -> List[str]:
-        if compare_id is None or root_uid is None:
-            return []
-        try:
-            with ConnectTo(CompareDbInterface, self._config) as sc:
-                result = sc.get_compare_result(compare_id)
-            exclusive_files = result['plugins']['File_Coverage']['exclusive_files'][root_uid]
-        except (KeyError, FactCompareException):
-            exclusive_files = []
-        return exclusive_files
+        self._app.add_url_rule('/ajax_get_summary/<uid>/<selected_analysis>', 'ajax_get_summary/<uid>/<selected_analysis>', self._ajax_get_summary)
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
     def _ajax_get_tree_children(self, uid, root_uid=None, compare_id=None):
-        exclusive_files = self._get_exclusive_files(compare_id, root_uid)
-        children = []
+        with ConnectTo(CompareDbInterface, self._config) as sc:
+            exclusive_files = sc.get_exclusive_files(compare_id, root_uid)
+        tree = self._generate_exclusive_files_tree(exclusive_files, root_uid, uid)
+        children = [
+            self._generate_jstree_node(child_node)
+            for child_node in tree.get_list_of_child_nodes()
+        ]
+        return jsonify(children)
+
+    def _generate_exclusive_files_tree(self, exclusive_files, root_uid, uid):
         root = FileTreeNode(None)
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
             child_uids = sc.get_specific_fields_of_db_entry(uid, {'files_included': 1})['files_included']
@@ -48,10 +44,7 @@ class AjaxRoutes(ComponentBase):
                 if not exclusive_files or child_uid in exclusive_files:
                     for node in sc.generate_file_tree_node(child_uid, root_uid, whitelist=exclusive_files):
                         root.add_child_node(node)
-        for child_node in root.get_list_of_child_nodes():
-            child = self._generate_jstree_node(child_node)
-            children.append(child)
-        return jsonify(children)
+        return root
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
     def _ajax_get_tree_root(self, uid, root_uid):
@@ -59,6 +52,7 @@ class AjaxRoutes(ComponentBase):
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
             for node in sc.generate_file_tree_node(uid, root_uid):  # only a single item in this 'iterable'
                 root = [self._generate_jstree_node(node)]
+        root = remove_virtual_path_from_root(root)
         return jsonify(root)
 
     @staticmethod
@@ -117,11 +111,18 @@ class AjaxRoutes(ComponentBase):
     def _ajax_get_common_files_for_compare(self, compare_id, feature_id):
         with ConnectTo(CompareDbInterface, self._config) as sc:
             result = sc.get_compare_result(compare_id)
-        feature, key = feature_id.split('___')
-        uid_list = result['plugins']['File_Coverage'][feature][key]
-        return self._get_nice_uid_list_html(uid_list, key)
+        feature, matching_uid = feature_id.split('___')
+        uid_list = result['plugins']['File_Coverage'][feature][matching_uid]
+        return self._get_nice_uid_list_html(uid_list, root_uid=self._get_root_uid(matching_uid, compare_id))
 
-    def _get_nice_uid_list_html(self, input_data, root_uid=None):
+    @staticmethod
+    def _get_root_uid(candidate, compare_id):
+        # feature_id contains a uid in individual case, in all case simply take first uid from compare
+        if candidate != 'all':
+            return candidate
+        return compare_id.split(';')[0]
+
+    def _get_nice_uid_list_html(self, input_data, root_uid):
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
             included_files = sc.get_data_for_nice_list(input_data, None)
         number_of_unanalyzed_files = len(input_data) - len(included_files)
@@ -144,3 +145,10 @@ class AjaxRoutes(ComponentBase):
         if 'image/' in mime_type:
             return '{}<img src="data:image/{} ;base64,{}" style="max-width:100%"></div>'.format(div, mime_type[6:], encode_base64_filter(binary))
         return None
+
+    @roles_accepted(*PRIVILEGES['view_analysis'])
+    def _ajax_get_summary(self, uid, selected_analysis):
+        with ConnectTo(FrontEndDbInterface, self._config) as sc:
+            firmware = sc.get_object(uid, analysis_filter=selected_analysis)
+            summary_of_included_files = sc.get_summary(firmware, selected_analysis)
+        return render_template('summary.html', summary_of_included_files=summary_of_included_files, root_uid=uid)
