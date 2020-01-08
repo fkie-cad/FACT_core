@@ -35,18 +35,77 @@
                             <td style="padding: 5px;">
                                 <label class="checkbox-inline" style="padding: 0; margin: 0 0 0 20px;">
                                     <input type="checkbox" name="only_firmwares" value="True">
-                                    only show the firmwares that include the matching file objects
+                                    only show the firmware that includes the matching file objects
                                 </label>
                             </td>
                         </tr>
                     </table>
-                    <hr>
-                    <p style="color:grey">Simple example:<br />{"device_class": "Router", "vendor": "Cisco Systems"}</p>
-                    <p style="color:grey">RegEx example:<br />{"processed_analysis.crypto_code.summary": {"$options": "si", "$regex": "sha"}}</p>
                 </div>
             </div>
 
-            <h3>Structure of processed_analysis field:</h3>
+            <hr>
+
+            <h4>Example queries:</h4>
+
+            <p>
+                Simple:<br />
+                <span style="font-size: 0.9em; font-family: 'Deja Vu Sans Mono', monospace">{"device_class": "Router", "vendor": "AVM"}</span><br />
+                <span style="color:grey; font-size: 0.9em">Select firmware files based on specific vendor and device class</span>
+            </p>
+            <p>
+                With regular expression:<br />
+                <span style="font-size: 0.9em; font-family: 'Deja Vu Sans Mono', monospace">{"processed_analysis.crypto_code.summary": {"$options": "si", "$regex": "sha"}}</span><br />
+                <span style="color:grey; font-size: 0.9em">Match field with regular expression. Options mean interpret dot as wildcard (s) and case insensitive (i)</span>
+            </p>
+            <p>
+                With arithmetic:<br />
+                <span style="font-size: 0.9em; font-family: 'Deja Vu Sans Mono', monospace">{"processed_analysis.file_type.mime": "application/x-executable", "size": {"$lt": 1337}}</span><br />
+                <span style="color:grey; font-size: 0.9em">Select only executables that are smaller then or equal 1337 bytes</span>
+            </p>
+            <p>
+                With existence check:<br />
+                <span style="font-size: 0.9em; font-family: 'Deja Vu Sans Mono', monospace">{"vendor": {"$exists": true}, "size": {"$lt": 4200000}}</span><br />
+                <span style="color:grey; font-size: 0.9em">Select files that have a vendor field (outer container) and are smaller than 4.2 MB</span>
+            </p>
+
+            For further usage also see <a href="https://docs.mongodb.com/v3.6/tutorial/query-documents/">the MongoDB documentation</a> or simply ask for help at our <a href="https://gitter.im/FACT_core/community">Gitter channel</a>.
+
+            <hr>
+
+            <h4>Structure of file objects in database:</h4>
+            <pre>Common fields
+- _id                   # UID of file
+- analysis_tags         # Dynamically generated tags such as "Linux 2.7"
+- depth                 # Level of extraction: Outer container has 0, SquashFS inside
+                        # container has 1, ..
+- file_name             # Name of file, can for example be busybox if extracted by a high
+                        # level tool, can also be smth. like 49913.bin if carved
+- file_path             # Path on backend file system
+- files_included        # UIDs of included files (next level of extraction downwards)
+- parent_firmware_uids  # UIDs for outer firmware container files containing this file
+- parents               # UIDs of files containing this file (next level of extraction
+                        # upwards)
+- processed_analysis    # Dictionary containing all analysis results. See below for
+                        # structure
+- sha256                # SHA-2 hash of file
+- size                  # file size in bytes
+- virtual_file_path     # Full path of file in outer container with human readable format
+                        # (e.g. |&lt;Vendor&gt; 32-Route-2000 v.1.1|rootfs.bin|/bin/bash)
+
+Additional fields for Outer Container: (Mostly set by user, so depend on submission policy)
+- device_class          # e.g. Router
+- device_name           # e.g. Speedport W724
+- device_part           # e.g. Kernel
+- md5                   # MD5 hash of file
+- release_date          # Release date in seconds since epoch (1970-01-01)
+- submission_date       # Submission date in seconds since epoch (1970-01-01)
+- tags                  # User defined tags, e.g. Partial, Crawled
+- vendor                # e.g. EvilCorp
+- version               # e.g 1.0.0.312</pre>
+
+            <hr>
+
+            <h4>Structure of processed_analysis field:</h4>
 
             {% if database_structure is mapping %}
 
