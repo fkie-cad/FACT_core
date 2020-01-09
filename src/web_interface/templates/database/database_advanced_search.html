@@ -35,7 +35,7 @@
                             <td style="padding: 5px;">
                                 <label class="checkbox-inline" style="padding: 0; margin: 0 0 0 20px;">
                                     <input type="checkbox" name="only_firmwares" value="True">
-                                    only show the firmware that includes the matching file objects
+                                    show parent firmware instead of matching file
                                 </label>
                             </td>
                         </tr>
@@ -54,7 +54,7 @@
             </p>
             <p>
                 With regular expression:<br />
-                <span style="font-size: 0.9em; font-family: 'Deja Vu Sans Mono', monospace">{"processed_analysis.crypto_code.summary": {"$options": "si", "$regex": "sha"}}</span><br />
+                <span style="font-size: 0.9em; font-family: 'Deja Vu Sans Mono', monospace">{"processed_analysis.software_components.summary": {"$options": "si", "$regex": "Linux Kernel 2.6"}}</span><br />
                 <span style="color:grey; font-size: 0.9em">Match field with regular expression. Options mean interpret dot as wildcard (s) and case insensitive (i)</span>
             </p>
             <p>
@@ -92,7 +92,7 @@
 - virtual_file_path     # Full path of file in outer container with human readable format
                         # (e.g. |&lt;Vendor&gt; 32-Route-2000 v.1.1|rootfs.bin|/bin/bash)
 
-Additional fields for Outer Container: (Mostly set by user, so depend on submission policy)
+Additional fields for outer container: (Mostly set by user, so depend on submission policy)
 - device_class          # e.g. Router
 - device_name           # e.g. Speedport W724
 - device_part           # e.g. Kernel
