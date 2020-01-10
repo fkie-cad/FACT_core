@@ -83,9 +83,6 @@ class FileObject():  # pylint: disable=too-many-instance-attributes
         tmp = self.get_virtual_paths_for_one_uid(root_uid=self.get_root_uid())[0]
         return self.get_top_of_virtual_path(tmp)
 
-    def get_included_files_uids(self):
-        return self.files_included
-
     def create_from_file(self, file_path):
         self.set_binary(get_binary_from_file(file_path))
         self.set_file_path(file_path)
@@ -122,7 +119,7 @@ class FileObject():  # pylint: disable=too-many-instance-attributes
             if req_root_uid is None:
                 return get_value_of_first_key(file_paths)
             return file_paths[req_root_uid]
-        except Exception:
+        except (AttributeError, IndexError, KeyError, TypeError):
             logging.error('Error on virtual file path retrieval. This should be fixed')
             return ["insufficient information: firmware analysis not complete"]
 

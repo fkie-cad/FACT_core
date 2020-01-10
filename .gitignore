@@ -41,3 +41,4 @@ start_faf_db
 start_faf_frontend
 update_statistic.cron
 wget-lo*
+src/install/compose-env/

@@ -60,7 +60,7 @@ class TestPluginBaseCore(TestPluginBase):
         self.base_plugin.in_queue.put(root_object)
         processed_object = self.base_plugin.out_queue.get()
         self.assertEqual(processed_object.uid, root_object.uid, 'uid changed')
-        self.assertTrue(child_object.uid in root_object.get_included_files_uids(), 'child object not in processed file')
+        self.assertTrue(child_object.uid in root_object.files_included, 'child object not in processed file')
 
 
 class TestPluginBaseAddJob(TestPluginBase):

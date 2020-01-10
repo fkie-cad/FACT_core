@@ -21,9 +21,15 @@ FACT is designed as a multiprocess application, the more Cores and RAM, the bett
 
 Minimal | Recommended | Software
 ------- | ----------- | --------
-4 Cores<br>8GB RAM | 16 Cores<br>64GB RAM | Ubuntu (16.04 or 18.04)<br>Python 3.5 or above
+4 Cores<br>8GB RAM<br>10 GB disk space | 16 Cores<br>64GB RAM<br>10* GB disk space | git<br>python 3.5 - 3.7<br>OS see below
 
-It is possible to install FACT on any Linux distribution but the installer is limited to Ubuntu 16.04 and 18.04 at the moment.
+> ~ 10 GB required to set up FACT code, container and binaries. Additional space is necessary for result storage. That can be on a seperate partition or drive.
+
+It is possible to install FACT on any Linux distribution but the installer is limited to
+- Ubuntu 16.04, 18.04 (stable)
+- Ubuntu 19.04 (experimental)
+- Debian 9, 10 (experimental)
+- Kali (tested on 2019.3 and 2019.4) (experimental)
 
 :exclamation: **Caution: FACT is not intended to be used as public internet service. The GUI is not a hardened WEB-application and it may take your server at risk!**
 
@@ -77,7 +83,7 @@ We've been happy to show FACT in a number of BlackHat Arsenal sessions.
 
 - [![Black Hat Arsenal](https://github.com/toolswatch/badges/blob/master/arsenal/asia/2018.svg)](http://www.toolswatch.org/2018/01/black-hat-arsenal-asia-2018-great-lineup/)
 - [![Black Hat Arsenal](https://github.com/toolswatch/badges/blob/master/arsenal/europe/2018.svg)](http://www.toolswatch.org/2018/09/black-hat-arsenal-europe-2018-lineup-announced/)
-- [USA 2019](https://www.blackhat.com/us-19/arsenal/schedule/index.html#fact--firmware-analysis-and-comparison-tool-15216)
+- [![Black Hat Arsenal](https://github.com/toolswatch/badges/blob/master/arsenal/usa/2019.svg)](http://www.toolswatch.org/2019/05/amazing-black-hat-arsenal-usa-2019-lineup-announced/)
 
 ### Other
 

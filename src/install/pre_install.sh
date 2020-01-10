@@ -10,6 +10,8 @@ elif [ "${CODENAME}" = "sarah" ] || [ "${CODENAME}" = "serena" ] || [ "${CODENAM
 elif [ "${CODENAME}" = "rebecca" ] || [ "${CODENAME}" = "rafaela" ] || [ "${CODENAME}" = "rosa" ]; then
     CODENAME=trusty
     sudo apt-get -y install "linux-image-extra-$(uname -r)" linux-image-extra-virtual
+elif  [ "${CODENAME}" = "kali-rolling" ]; then
+    CODENAME=buster
 fi
 
 echo "Install Pre-Install Requirements"
@@ -23,12 +25,26 @@ sudo apt-get -y remove docker docker-engine docker.io
 # Install packages to allow apt to use a repository over HTTPS
 sudo apt-get -y install apt-transport-https ca-certificates curl software-properties-common
 
-# Add Docker’s official GPG key
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+if [ "${CODENAME}" = "stretch" ] || [ "${CODENAME}" = "buster" ]
+then
+    # Add Docker’s official GPG key
+    curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
 
-# set up the stable repository
-if ! grep -q "^deb .*download.docker.com/linux/ubuntu" /etc/apt/sources.list /etc/apt/sources.list.d/*; then
-    sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $CODENAME stable"
+    # set up the stable repository
+    if [ ! -f /etc/apt/sources.list.d/docker.list ]
+    then
+        echo "deb [arch=amd64] https://download.docker.com/linux/debian ${CODENAME} stable" > docker.list
+        sudo mv docker.list /etc/apt/sources.list.d/docker.list
+    fi
+else
+    # Add Docker’s official GPG key
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+
+    # set up the stable repository
+    if  ! grep -q "^deb .*download.docker.com/linux/ubuntu" /etc/apt/sources.list /etc/apt/sources.list.d/*
+    then
+        sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $CODENAME stable"
+    fi
 fi
 
 # install docker
@@ -44,7 +60,7 @@ fi
 sudo usermod -aG docker "$FACTUSER"
 
 sudo -EH pip3 install --upgrade pip
-sudo -EH pip3 install --upgrade docker-compose
+sudo -EH pip3 install --upgrade virtualenv
 
 echo "Installing Python Libraries for python based installation"
 sudo -EH pip3 install --upgrade distro
@@ -53,6 +69,6 @@ sudo -EH pip3 install --upgrade python-magic
 sudo -EH pip3 install --upgrade git+https://github.com/fkie-cad/common_helper_files.git
 sudo -EH pip3 install --upgrade git+https://github.com/fkie-cad/common_helper_process.git
 
-echo -e "Pre-Install-Routine complete! \033[31mPlease reboot before running install.py\033[0m"
+echo -e "Pre-Install-Routine complete! \\033[31mPlease reboot before running install.py\\033[0m"
 
 exit 0
