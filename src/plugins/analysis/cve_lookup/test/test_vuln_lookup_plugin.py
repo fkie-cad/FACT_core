@@ -7,14 +7,14 @@ import pytest
 from test.common_helper import TEST_FW, get_config_for_testing
 
 try:
-    from code import vuln_lookup_plugin as lookup
-    from internal.database_interface import DB
-    from internal.helper_functions import unbind
+    from ..code import vuln_lookup_plugin as lookup
+    from ..internal.database_interface import DatabaseInterface
+    from ..internal.helper_functions import unbind
 except ImportError:
-    root = Path(__file__).parent.parent
-    sys.path.extend([str(root / 'code'), str(root / 'internal')])
+    ROOT = Path(__file__).parent.parent
+    sys.path.extend([str(ROOT / 'code'), str(ROOT / 'internal')])
     import vuln_lookup_plugin as lookup
-    from database_interface import DB
+    from database_interface import DatabaseInterface
     from helper_functions import unbind
 
 
@@ -22,13 +22,11 @@ except ImportError:
 
 USER_INPUT = {'vendor': 'Microsoft', 'product': 'Windows 7', 'version': '1.2.5'}
 
-# PRODUCT = namedtuple('Product', 'vendor_name product_name version_number')
 MATCHED_CPE = [
     lookup.PRODUCT('microsoft', 'windows_8', '1\\.2\\.5'),
     lookup.PRODUCT('microsoft', 'windows_7', '1\\.3\\.1'),
     lookup.PRODUCT('mircosof', 'windows_7', '0\\.7')
 ]
-PRODUCT_NAME = 'windows 7'
 MATCHED_CVE = ['CVE-1234-0010', 'CVE-1234-0011']
 CPE_CVE_OUTPUT = [('CVE-1234-0008', 'microsoft', 'server_2013', '2013'),
                   ('CVE-1234-0009', 'mircosof', 'windows_7', '0\\.7'),
@@ -53,32 +51,37 @@ CPE_DATABASE_OUTPUT = [('microsoft', 'server_2013', '2013'),
                        ('microsoft', 'windows_7', '1\\.3\\.1'),
                        ('linux', 'linux_kernel', '2\\.2.\\3')]
 
-TERMS_MATCH_INPUT = ['mircosoft', 'microsof', 'microso', 'ircosof']
-MATCHING_TERM = 'microsoft'
-TERMS_MATCH_OUTPUT = [True, True, True, False]
-REMAINING_WORDS_INPUT = ['abcdef', 'ghijkl']
-REMAINING_WORDS_INPUT_2 = ['abcdef', 'ghijklmnop']
-WORDS_INPUT = ['abcde', 'ghkl']
 SUMMARY_INPUT = ''
 
-VALID_DOTTED_VERSION_INPUT = ['11\\.00\\.00', '1\\.0\\.0', '1\\.0', '1', '\\.1\\.0', '1\\.0\\.', '1\\.\\.0', '\\.1\\.0\\.']
-VALID_DOTTED_VERSION_OUTPUT = [True, True, True, False, False, False, False, False]
-
-WORDLIST_LONGER_THAN_SEQUENCE_INPUT = [[['', '', ''], ['', '']], [['', ''], ['', '', '']], [['', ''], ['', '']]]
-WORDLIST_LONGER_THAN_SEQUENCE_OUTPUT = [True, False, True]
-
-
 SORT_CPE_MATCHES_OUTPUT = lookup.PRODUCT('microsoft', 'windows_8', '1\\.2\\.5')
-PRODUCT_IS_IN_WORDLIST_INPUT = [
-    {'Product': SORT_CPE_MATCHES_OUTPUT, 'Wordlist': ['bla', 'bla', 'microsoft', 'windows', '8', 'bla']},
-    {'Product': SORT_CPE_MATCHES_OUTPUT, 'Wordlist': ['bla', 'bla', 'microsoft', 'windows']},
-    {'Product': SORT_CPE_MATCHES_OUTPUT, 'Wordlist': ['bla', 'bla', 'mirosoft', 'windos', '7', 'bla']},
-    {'Product': SORT_CPE_MATCHES_OUTPUT, 'Wordlist': ['bla', 'bla', 'microsoft', 'corporation', 'windows', '8', 'bla']},
-    {'Product': SORT_CPE_MATCHES_OUTPUT, 'Wordlist': ['bla', 'bla', 'microsoft', 'corporation', 'corp', 'inc', 'windows', '8', 'bla']},
-    {'Product': SORT_CPE_MATCHES_OUTPUT, 'Wordlist': ['bla', 'bla', 'microsoft', 'windows', '8']},
-    {'Product': SORT_CPE_MATCHES_OUTPUT, 'Wordlist': ['bla', 'bla', 'microsoft', 'windows', 'home', '8', 'bla']}
-]
-PRODUCT_IS_IN_WORDLIST_OUTPUT = [True, False, True, True, False, True, False]
+
+SOFTWARE_COMPONENTS_ANALYSIS_RESULT = {
+    'dnsmasq': {
+        'meta': {
+            'software_name': 'Dnsmasq',
+            'version': ['2.40']
+        }
+    },
+    'OpenSSL': {
+        'matches': True,
+        'meta': {
+            'description': 'SSL library',
+            'open_source': True,
+            'software_name': 'OpenSSL',
+            'version': [''],
+            'website': 'https://www.openssl.org'
+        },
+        'rule': 'OpenSSL',
+        'strings': [[7194, '$a', 'T1BFTlNTTA==']]
+    },
+    'analysis_date': 1563453634.37708,
+    'plugin_version': '0.3.2',
+    'summary': [
+        'OpenSSL ',
+        'Dnsmasq 2.40'
+    ],
+    'system_version': '3.7.1_1560435912',
+}
 
 
 @pytest.fixture(scope='module', autouse=True)
@@ -91,12 +94,21 @@ def setup() -> None:
 
 
 def test_generate_search_terms():
-    assert PRODUCT_SEARCH_TERMS == unbind(lookup.generate_search_terms(PRODUCT_NAME))
+    assert PRODUCT_SEARCH_TERMS == unbind(lookup.generate_search_terms('windows 7'))
 
 
-def test_is_valid_dotted_version():
-    for _input, expected_output in zip(VALID_DOTTED_VERSION_INPUT, VALID_DOTTED_VERSION_OUTPUT):
-        assert expected_output == bool(lookup.is_valid_dotted_version(_input))
+@pytest.mark.parametrize('version, expected_output', [
+    ('11\\.00\\.00', True),
+    ('1\\.0\\.0', True),
+    ('1\\.0', True),
+    ('1', False),
+    ('\\.1\\.0', False),
+    ('1\\.0\\.', False),
+    ('1\\.\\.0', False),
+    ('\\.1\\.0\\.', False),
+])
+def test_is_valid_dotted_version(version, expected_output):
+    assert lookup.is_valid_dotted_version(version) == expected_output
 
 
 @pytest.mark.parametrize('version, index, expected', [('1\\.2\\.3', 0, '1'), ('1\\.2\\.3\\.2a', -1, '2a')])
@@ -120,57 +132,80 @@ def test_get_closest_matches(target_values, search_word, expected):
     assert lookup.get_closest_matches(target_values=target_values, search_word=search_word) == expected
 
 
-def test_sort_cpe_matches():
-    assert SORT_CPE_MATCHES_OUTPUT == lookup.sort_cpe_matches(MATCHED_CPE, VERSION_SEARCH_TERM)
+def test_find_matching_cpe_product():
+    assert SORT_CPE_MATCHES_OUTPUT == lookup.find_matching_cpe_product(MATCHED_CPE, VERSION_SEARCH_TERM)
 
 
-def test_terms_match():
-    assert TERMS_MATCH_OUTPUT == [lookup.terms_match(TERMS_MATCH_INPUT[i], MATCHING_TERM)
-                                  for i in range(len(TERMS_MATCH_INPUT))]
+@pytest.mark.parametrize('term, expected_output', [
+    ('mircosoft', True),
+    ('microsof', True),
+    ('microso', True),
+    ('ircosof', False),
+])
+def test_terms_match(term, expected_output):
+    assert lookup.terms_match(term, 'microsoft') == expected_output
 
 
-def test_word_is_in_wordlist():
-    assert lookup.remaining_words_present(WORDS_INPUT, REMAINING_WORDS_INPUT) is True
-    assert lookup.remaining_words_present(WORDS_INPUT, REMAINING_WORDS_INPUT_2) is False
+@pytest.mark.parametrize('word_list, remaining_words, expected_output', [
+    (['aaaa', 'bbbb', 'cccc', 'dddd', 'eeee', 'ffff', 'gggg'], ['cccc', 'dddd', 'eeee'], True),
+    (['abcde', 'ghkl'], ['abcdef', 'ghijkl'], True),
+    (['abcde', 'ghkl'], ['abcdef', 'ghijklmnop'], False)
+])
+def test_word_is_in_wordlist(word_list, remaining_words, expected_output):
+    assert lookup.word_is_in_wordlist(word_list, remaining_words) == expected_output
 
 
-def test_remaining_words_present():
-    assert lookup.remaining_words_present(WORDS_INPUT, REMAINING_WORDS_INPUT) is True
-    assert lookup.remaining_words_present(WORDS_INPUT, REMAINING_WORDS_INPUT_2) is False
+@pytest.mark.parametrize('word_list, remaining_words, expected_output', [
+    (['abcde', 'ghkl'], ['abcdef', 'ghijkl'], True),
+    (['abcde', 'ghkl'], ['abcdef', 'ghijklmnop'], False)
+])
+def test_remaining_words_present(word_list, remaining_words, expected_output):
+    assert lookup.remaining_words_present(word_list, remaining_words) == expected_output
 
 
-def test_product_is_in_wordlist():
-    for index, parameter in enumerate(PRODUCT_IS_IN_WORDLIST_INPUT):
-        assert PRODUCT_IS_IN_WORDLIST_OUTPUT[index] == lookup.product_is_in_wordlist(parameter['Product'], parameter['Wordlist'])
+@pytest.mark.parametrize('word_list, expected_output', [
+    (['bla', 'bla', 'microsoft', 'windows', '8', 'bla'], True),
+    (['bla', 'bla', 'microsoft', 'windows'], False),
+    (['bla', 'bla', 'mirosoft', 'windos', '7', 'bla'], True),
+    (['bla', 'bla', 'microsoft', 'corporation', 'windows', '8', 'bla'], True),
+    (['bla', 'bla', 'microsoft', 'corporation', 'corp', 'inc', 'windows', '8', 'bla'], False),
+    (['bla', 'bla', 'microsoft', 'windows', '8'], True),
+    (['bla', 'bla', 'microsoft', 'windows', 'home', '8', 'bla'], False),
+])
+def test_product_is_in_wordlist(word_list, expected_output):
+    assert lookup.product_is_in_wordlist(SORT_CPE_MATCHES_OUTPUT, word_list) == expected_output
 
 
-def test_wordlist_longer_than_sequence():
-    for index, pair in enumerate(WORDLIST_LONGER_THAN_SEQUENCE_INPUT):
-        wordlist, sequence = pair[0], pair[1]
-        assert WORDLIST_LONGER_THAN_SEQUENCE_OUTPUT[index] == lookup.wordlist_longer_than_sequence(wordlist, sequence)
+@pytest.mark.parametrize('word_list, sequence, expected_result', [
+    (['', '', ''], ['', ''], True),
+    (['', ''], ['', '', ''], False),
+    (['', ''], ['', ''], True)
+])
+def test_wordlist_longer_than_sequence(word_list, sequence, expected_result):
+    assert lookup.wordlist_longer_than_sequence(word_list, sequence) == expected_result
 
 
 def test_match_cpe(monkeypatch):
     with monkeypatch.context() as monkey:
-        monkey.setattr(DB, 'select_query', lambda *_, **__: CPE_DATABASE_OUTPUT)
-        actual_match = list(lookup.match_cpe(DB, PRODUCT_SEARCH_TERMS))
+        monkey.setattr(DatabaseInterface, 'select_query', lambda *_, **__: CPE_DATABASE_OUTPUT)
+        actual_match = list(lookup.match_cpe(DatabaseInterface, PRODUCT_SEARCH_TERMS))
         assert all(entry in actual_match for entry in MATCHED_CPE)
 
 
 def test_search_cve(monkeypatch):
     with monkeypatch.context() as monkey:
-        monkey.setattr(DB, 'select_query', lambda *_, **__: CPE_CVE_OUTPUT)
+        monkey.setattr(DatabaseInterface, 'select_query', lambda *_, **__: CPE_CVE_OUTPUT)
         MATCHED_CVE.sort()
-        actual_match = list(lookup.search_cve(DB, SORT_CPE_MATCHES_OUTPUT))
+        actual_match = list(lookup.search_cve(DatabaseInterface, SORT_CPE_MATCHES_OUTPUT))
         actual_match.sort()
         assert MATCHED_CVE == actual_match
 
 
 def test_search_cve_summary(monkeypatch):
     with monkeypatch.context() as monkey:
-        monkey.setattr(DB, 'select_query', lambda *_, **__: SUMMARY_OUTPUT)
+        monkey.setattr(DatabaseInterface, 'select_query', lambda *_, **__: SUMMARY_OUTPUT)
         MATCHED_SUMMARY.sort()
-        actual_match = list(lookup.search_cve_summary(DB, SORT_CPE_MATCHES_OUTPUT))
+        actual_match = list(lookup.search_cve_summary(DatabaseInterface, SORT_CPE_MATCHES_OUTPUT))
         actual_match.sort()
         assert MATCHED_SUMMARY == actual_match
 
@@ -192,32 +227,6 @@ def stub_plugin(test_config, monkeypatch):
 
 
 def test_process_object(stub_plugin):
-    TEST_FW.processed_analysis['software_components'] = {
-        'dnsmasq': {
-            'meta': {
-                'software_name': 'Dnsmasq',
-                'version': ['2.40']
-            }
-        },
-        'OpenSSL': {
-            'matches': True,
-            'meta': {
-                'description': 'SSL library',
-                'open_source': True,
-                'software_name': 'OpenSSL',
-                'version': [''],
-                'website': 'https://www.openssl.org'
-            },
-            'rule': 'OpenSSL',
-            'strings': [[7194, '$a', 'T1BFTlNTTA==']]
-        },
-        'analysis_date': 1563453634.37708,
-        'plugin_version': '0.3.2',
-        'summary': [
-            'OpenSSL ',
-            'Dnsmasq 2.40'
-        ],
-        'system_version': '3.7.1_1560435912',
-    }
+    TEST_FW.processed_analysis['software_components'] = SOFTWARE_COMPONENTS_ANALYSIS_RESULT
     result = stub_plugin.process_object(TEST_FW).processed_analysis['cve_lookup']
     assert 'CVE-2017-14494' in result['summary']

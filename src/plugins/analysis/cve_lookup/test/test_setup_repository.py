@@ -6,13 +6,13 @@ from pathlib import Path
 import pytest
 
 try:
-    from internal import data_prep as dp
-    from internal import setup_repository as sr
-    from internal.database_interface import DB, QUERIES
+    from ..internal import data_prep as dp
+    from ..internal import setup_repository as sr
+    from ..internal.database_interface import DatabaseInterface, QUERIES
 except (ImportError, ModuleNotFoundError):
     sys.path.append(str(Path(__file__).parent.parent / 'internal'))
     import data_prep as dp
-    from database_interface import DB, QUERIES
+    from database_interface import DatabaseInterface, QUERIES
     import setup_repository as sr
 
 PATH_TO_TEST = str(Path(__file__).parent.parent) + '/test/'
@@ -87,44 +87,34 @@ EXPECTED_SUM_OUTPUT = [('CVE-2018-20229', 2018, 'GitLab Community and Enterprise
                        ('CVE-2018-8825', 2018, 'Google TensorFlow 1.7 and below is affected by: Buffer Overflow. '
                                                'The impact is: execute arbitrary code (local).')]
 
-EXPECTED_UPDATED_CPE_TABLE = [('cpe:2.3:a:\\$0.99_kindle_books_project:\\$0.99_kindle_books:6:*:*:*:*:android:*:*',
-                               'a', '\\$0\\.99_kindle_books_project', '\\$0\\.99_kindle_books', '6', 'ANY', 'ANY',
-                               'ANY', 'ANY', 'android', 'ANY', 'ANY'),
-                              ('cpe:2.3:a:1000guess:1000_guess:-:*:*:*:*:*:*:*', 'a', '1000guess', '1000_guess', 'NA',
-                               'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY'),
-                              ('cpe:2.3:a:1024cms:1024_cms:0.7:*:*:*:*:*:*:*', 'a', '1024cms', '1024_cms', '0\\.7',
-                               'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY'),
-                              ('cpe:2.3:a:1024cms:1024_cms:1.2.5:*:*:*:*:*:*:*', 'a', '1024cms', '1024_cms',
-                               '1\\.2\\.5', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY'),
-                              ('cpe:2.3:a:1024cms:1024_cms:1.3.1:*:*:*:*:*:*:*', 'a', '1024cms', '1024_cms',
-                               '1\\.3\\.1', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY'),
-                              ('cpe:2.3:a:1024cms:1024_cms:1.4.1:*:*:*:*:*:*:*', 'a', '1024cms', '1024_cms',
-                               '1\\.4\\.1', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY')]
+EXPECTED_UPDATED_CPE_TABLE = [
+    ('cpe:2.3:a:\\$0.99_kindle_books_project:\\$0.99_kindle_books:6:*:*:*:*:android:*:*', 'a',
+     '\\$0\\.99_kindle_books_project', '\\$0\\.99_kindle_books', '6', 'ANY', 'ANY', 'ANY', 'ANY', 'android', 'ANY', 'ANY'),
+    ('cpe:2.3:a:1000guess:1000_guess:-:*:*:*:*:*:*:*', 'a', '1000guess', '1000_guess', 'NA', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY'),
+    ('cpe:2.3:a:1024cms:1024_cms:0.7:*:*:*:*:*:*:*', 'a', '1024cms', '1024_cms', '0\\.7', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY'),
+    ('cpe:2.3:a:1024cms:1024_cms:1.2.5:*:*:*:*:*:*:*', 'a', '1024cms', '1024_cms', '1\\.2\\.5', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY'),
+    ('cpe:2.3:a:1024cms:1024_cms:1.3.1:*:*:*:*:*:*:*', 'a', '1024cms', '1024_cms', '1\\.3\\.1', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY'),
+    ('cpe:2.3:a:1024cms:1024_cms:1.4.1:*:*:*:*:*:*:*', 'a', '1024cms', '1024_cms', '1\\.4\\.1', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY')
+]
 
-EXPECTED_UPDATED_CVE_TABLE = [('CVE-2018-0010', 2018, 'cpe:2.3:a:microsoft:ie:7:*:*:*:*:*:*:*', 'a', 'microsoft', 'ie',
-                               '7', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY'),
-                              ('CVE-2018-0010', 2018, 'cpe:2.3:a:microsoft:ie:9:*:*:*:*:*:*:*', 'a', 'microsoft', 'ie',
-                               '9', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY'),
-                              ('CVE-2018-0010', 2018, 'cpe:2.3:a:microsoft:ie:6:*:*:*:*:*:*:*', 'a', 'microsoft', 'ie',
-                               '6', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY'),
-                              ('CVE-2018-0010', 2018, 'cpe:2.3:a:microsoft:ie:8:*:*:*:*:*:*:*', 'a', 'microsoft', 'ie',
-                               '8', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY'),
-                              ('CVE-2018-20229', 2018, 'cpe:2.3:o:microsoft:windows_xp:*:sp3:*:*:*:*:*:*', 'o',
-                               'microsoft', 'windows_xp', 'ANY', 'sp3', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY'),
-                              ('CVE-2018-20229', 2018, 'cpe:2.3:o:microsoft:windows_xp:-:sp2:x64:*:*:*:*:*', 'o',
-                               'microsoft', 'windows_xp', 'NA', 'sp2', 'x64', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY'),
-                              ('CVE-2018-1136', 2018, 'cpe:2.3:a:moodle:moodle:*:*:*:*:*:*:*:*', 'a', 'moodle',
-                               'moodle', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY')]
-EXPECTED_UPDATED_SUMMARY_TABLE = [('CVE-2012-0001', 2012, 'The kernel in Microsoft Windows XP SP2, Windows Server '
-                                   '2003 SP2, Windows Vista SP2, Windows Server 2008 SP2, R2, and R2 SP1, and Windows 7'
-                                   ' Gold and SP1 does not properly load structured exception handling tables, which '
-                                   'allows context-dependent attackers to bypass the SafeSEH security feature by '
-                                   'leveraging a Visual C++ .NET 2003 application, aka \"Windows Kernel SafeSEH Bypass '
-                                   'Vulnerability.\"'),
-                                  ('CVE-2018-7576', 2018, 'Google TensorFlow 1.6.x and earlier is affected by: Null '
-                                   'Pointer Dereference. The type of exploitation is: context-dependent.'),
-                                  ('CVE-2018-8825', 2018, 'Google TensorFlow 1.7 and below is affected by: Buffer '
-                                   'Overflow. The impact is: execute arbitrary code (local).')]
+EXPECTED_UPDATED_CVE_TABLE = [
+    ('CVE-2018-0010', 2018, 'cpe:2.3:a:microsoft:ie:7:*:*:*:*:*:*:*', 'a', 'microsoft', 'ie', '7', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY'),
+    ('CVE-2018-0010', 2018, 'cpe:2.3:a:microsoft:ie:9:*:*:*:*:*:*:*', 'a', 'microsoft', 'ie', '9', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY'),
+    ('CVE-2018-0010', 2018, 'cpe:2.3:a:microsoft:ie:6:*:*:*:*:*:*:*', 'a', 'microsoft', 'ie', '6', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY'),
+    ('CVE-2018-0010', 2018, 'cpe:2.3:a:microsoft:ie:8:*:*:*:*:*:*:*', 'a', 'microsoft', 'ie', '8', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY'),
+    ('CVE-2018-20229', 2018, 'cpe:2.3:o:microsoft:windows_xp:*:sp3:*:*:*:*:*:*', 'o', 'microsoft', 'windows_xp', 'ANY', 'sp3', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY'),
+    ('CVE-2018-20229', 2018, 'cpe:2.3:o:microsoft:windows_xp:-:sp2:x64:*:*:*:*:*', 'o', 'microsoft', 'windows_xp', 'NA', 'sp2', 'x64', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY'),
+    ('CVE-2018-1136', 2018, 'cpe:2.3:a:moodle:moodle:*:*:*:*:*:*:*:*', 'a', 'moodle', 'moodle', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY')
+]
+EXPECTED_UPDATED_SUMMARY_TABLE = [
+    ('CVE-2012-0001', 2012,
+     'The kernel in Microsoft Windows XP SP2, Windows Server 2003 SP2, Windows Vista SP2, Windows Server 2008 SP2, R2, '
+     'and R2 SP1, and Windows 7 Gold and SP1 does not properly load structured exception handling tables, which allows '
+     'context-dependent attackers to bypass the SafeSEH security feature by leveraging a Visual C++ .NET 2003 '
+     'application, aka \"Windows Kernel SafeSEH Bypass Vulnerability.\"'),
+    ('CVE-2018-7576', 2018, 'Google TensorFlow 1.6.x and earlier is affected by: Null Pointer Dereference. The type of exploitation is: context-dependent.'),
+    ('CVE-2018-8825', 2018, 'Google TensorFlow 1.7 and below is affected by: Buffer Overflow. The impact is: execute arbitrary code (local).')
+]
 
 EXPECTED_GET_CVE_FEEDS_UPDATE_CONTENT = ['CVE-2012-0001', 'cpe:2.3:o:microsoft:windows_server_2003:*:sp2:*:*:*:*:*:*',
                                          'cpe:2.3:o:microsoft:windows_server_2008:*:sp2:x32:*:*:*:*:*',
@@ -160,18 +150,18 @@ def setup() -> None:
     cve_base, summary_base = dp.extract_cve(PATH_TO_TEST + EXTRACT_CVE_JSON)
     cve_base, summary_base = dp.setup_cve_feeds_table(cve_list=cve_base), dp.setup_cve_summary_table(summary_list=summary_base)
 
-    with DB(PATH_TO_TEST + 'test_update.db') as db:
+    with DatabaseInterface(PATH_TO_TEST + 'test_update.db') as db:
         db.table_manager(query=QUERIES['create_cpe_table'].format('cpe_table'))
-        db.insert_rows(query=QUERIES['insert_cpe'].format('cpe_table'), input_t=cpe_base)
+        db.insert_rows(query=QUERIES['insert_cpe'].format('cpe_table'), input_data=cpe_base)
         db.table_manager(query=QUERIES['create_cve_table'].format('cve_table'))
         db.table_manager(query=QUERIES['create_summary_table'].format('summary_table'))
-        db.insert_rows(query=QUERIES['insert_cve'].format('cve_table'), input_t=cve_base)
-        db.insert_rows(query=QUERIES['insert_summary'].format('summary_table'), input_t=summary_base)
+        db.insert_rows(query=QUERIES['insert_cve'].format('cve_table'), input_data=cve_base)
+        db.insert_rows(query=QUERIES['insert_summary'].format('summary_table'), input_data=summary_base)
 
         db.table_manager(query=QUERIES['test_create_update'].format('outdated'))
         db.table_manager(query=QUERIES['test_create_update'].format('new'))
-        db.insert_rows(query=QUERIES['test_insert_cve_id'].format('outdated'), input_t=[('CVE-2018-0001', 2018), ('CVE-2018-0002', 2018)])
-        db.insert_rows(query=QUERIES['test_insert_cve_id'].format('new'), input_t=[('CVE-2018-0002', 2018), ('CVE-2018-0003', 2018)])
+        db.insert_rows(query=QUERIES['test_insert_cve_id'].format('outdated'), input_data=[('CVE-2018-0001', 2018), ('CVE-2018-0002', 2018)])
+        db.insert_rows(query=QUERIES['test_insert_cve_id'].format('new'), input_data=[('CVE-2018-0002', 2018), ('CVE-2018-0003', 2018)])
 
     yield None
     try:
@@ -205,7 +195,7 @@ def test_exists(monkeypatch):
 
 
 def test_extract_relevant_feeds():
-    sr.DATABASE = sr.DB(PATH_TO_TEST + 'test_update.db')
+    sr.DATABASE = sr.DatabaseInterface(PATH_TO_TEST + 'test_update.db')
     assert [('CVE-2018-0002', 2018), ('CVE-2018-0003', 2018)] == sr.extract_relevant_feeds(from_table='new', where_table='outdated')
 
 
@@ -215,7 +205,7 @@ def test_delete_outdated_feeds():
 
 
 def test_create():
-    sr.DATABASE = sr.DB(PATH_TO_TEST + 'test_import.db')
+    sr.DATABASE = sr.DatabaseInterface(PATH_TO_TEST + 'test_import.db')
     sr.create(query='test_create', table_name='test')
     assert sr.DATABASE.select_single(query=QUERIES['exist'].format('test'))[0] == 'test'
 
@@ -232,28 +222,28 @@ def test_drop_table():
 
 def test_update_cpe(monkeypatch, capsys):
     with monkeypatch.context() as monkey:
-        sr.DATABASE = sr.DB(PATH_TO_TEST + 'test_update.db')
+        sr.DATABASE = sr.DatabaseInterface(PATH_TO_TEST + 'test_update.db')
         monkey.setattr(sr, 'glob', lambda *_, **__: [PATH_TO_TEST + UPDATE_CPE_XML])
         sr.update_cpe('')
         EXPECTED_UPDATED_CPE_TABLE.sort()
         actual_cpe_update = list(sr.DATABASE.select_query(query=QUERIES['select_all'].format('cpe_table')))
         actual_cpe_update.sort()
         assert EXPECTED_UPDATED_CPE_TABLE == actual_cpe_update
-        sr.DATABASE = sr.DB(PATH_TO_TEST + 'test_output.db')
+        sr.DATABASE = sr.DatabaseInterface(PATH_TO_TEST + 'test_output.db')
         sr.update_cpe('')
         assert capsys.readouterr().out == '\nCPE table does not exist! Did you mean import CPE?\n\n'
 
 
 def test_import_cpe(monkeypatch, capsys):
     with monkeypatch.context() as monkey:
-        sr.DATABASE = sr.DB(PATH_TO_TEST + 'test_import.db')
+        sr.DATABASE = sr.DatabaseInterface(PATH_TO_TEST + 'test_import.db')
         monkey.setattr(sr, 'glob', lambda *_, **__: [PATH_TO_TEST + EXTRACT_CPE_XML])
         sr.import_cpe('')
         EXPECTED_CPE_OUTPUT.sort()
         actual_cpe_output = list(sr.DATABASE.select_query(QUERIES['select_all'].format('cpe_table')))
         actual_cpe_output.sort()
         assert EXPECTED_CPE_OUTPUT == actual_cpe_output
-        sr.DATABASE = sr.DB(PATH_TO_TEST + 'test_output.db')
+        sr.DATABASE = sr.DatabaseInterface(PATH_TO_TEST + 'test_output.db')
         sr.DATABASE.table_manager(QUERIES['create_cpe_table'].format('cpe_table'))
         sr.import_cpe('')
         assert capsys.readouterr().out == '\nCPE table does already exist!\n\n'
@@ -292,38 +282,25 @@ def test_init_summaries_table():
 def test_get_cve_import_content(monkeypatch):
     with monkeypatch.context() as monkey:
         monkey.setattr(sr, 'glob', lambda *_, **__: [PATH_TO_TEST + EXTRACT_CVE_JSON])
-        feeds, summary = sr.get_cve_update_content('')
-        EXPECTED_GET_CVE_FEEDS_UPDATE_CONTENT.sort()
-        feeds.sort()
-        EXPECTED_GET_CVE_SUMMARY_UPDATE_CONTENT.sort()
-        summary.sort()
-        assert EXPECTED_GET_CVE_FEEDS_UPDATE_CONTENT == feeds
-        assert EXPECTED_GET_CVE_SUMMARY_UPDATE_CONTENT == summary
+        feeds, summary = sr.get_cve_import_content('', [2003])
+        assert set(EXPECTED_GET_CVE_FEEDS_UPDATE_CONTENT) == set(feeds)
+        assert set(EXPECTED_GET_CVE_SUMMARY_UPDATE_CONTENT) == set(summary)
 
 
 def test_get_cve_update_content(monkeypatch):
     with monkeypatch.context() as monkey:
         monkey.setattr(sr, 'glob', lambda *_, **__: [PATH_TO_TEST + EXTRACT_CVE_JSON])
         feeds, summary = sr.get_cve_update_content('')
-        EXPECTED_GET_CVE_FEEDS_UPDATE_CONTENT.sort()
-        feeds.sort()
-        EXPECTED_GET_CVE_SUMMARY_UPDATE_CONTENT.sort()
-        summary.sort()
-        assert EXPECTED_GET_CVE_FEEDS_UPDATE_CONTENT == feeds
-        assert EXPECTED_GET_CVE_SUMMARY_UPDATE_CONTENT == summary
+        assert set(EXPECTED_GET_CVE_FEEDS_UPDATE_CONTENT) == set(feeds)
+        assert set(EXPECTED_GET_CVE_SUMMARY_UPDATE_CONTENT) == set(summary)
 
     with pytest.raises(Exception):
         sr.get_cve_update_content('.')
 
 
-def test_cve_summaries_can_be_imported():
-    assert sr.cve_summaries_can_be_imported(['']) is True
-    assert sr.cve_summaries_can_be_imported([]) is False
-
-
 def test_update_cve_repository(monkeypatch, capsys):
     with monkeypatch.context() as monkey:
-        sr.DATABASE = sr.DB(PATH_TO_TEST + 'test_update.db')
+        sr.DATABASE = sr.DatabaseInterface(PATH_TO_TEST + 'test_update.db')
         monkey.setattr(sr, 'glob', lambda *_, **__: [PATH_TO_TEST + UPDATE_CVE_JSON])
         sr.update_cve_repository(cve_extract_path='')
         EXPECTED_UPDATED_CVE_TABLE.sort()
@@ -334,34 +311,30 @@ def test_update_cve_repository(monkeypatch, capsys):
         actual_summary_update.sort()
         assert EXPECTED_UPDATED_CVE_TABLE == actual_cve_update
         assert EXPECTED_UPDATED_SUMMARY_TABLE == actual_summary_update
-        sr.DATABASE = sr.DB(PATH_TO_TEST + 'test_output.db')
+        sr.DATABASE = sr.DatabaseInterface(PATH_TO_TEST + 'test_output.db')
         sr.update_cve_repository('.')
         assert capsys.readouterr().out == '\nCVE tables do not exist! Did you mean import CVE?\n\n'
-        sr.DATABASE = sr.DB(PATH_TO_TEST + 'test_update.db')
+        sr.DATABASE = sr.DatabaseInterface(PATH_TO_TEST + 'test_update.db')
 
 
 def test_update_cve_feeds():
     db_cve = list(sr.DATABASE.select_query(QUERIES['select_all'].format('cve_table')))
-    db_cve.sort()
-    EXPECTED_UPDATED_CVE_TABLE.sort()
-    assert db_cve == EXPECTED_UPDATED_CVE_TABLE
+    assert sorted(db_cve) == sorted(EXPECTED_UPDATED_CVE_TABLE)
 
 
-def test_update_cve_summaries(monkeypatch, capsys):
+def test_update_cve_summaries(monkeypatch):
     db_summary = list(sr.DATABASE.select_query(QUERIES['select_all'].format('summary_table')))
-    db_summary.sort()
-    EXPECTED_UPDATED_SUMMARY_TABLE.sort()
-    assert db_summary == EXPECTED_UPDATED_SUMMARY_TABLE
+    assert sorted(db_summary) == sorted(EXPECTED_UPDATED_SUMMARY_TABLE)
 
 
 def test_get_years_from_database():
-    sr.DATABASE = sr.DB(PATH_TO_TEST + 'test_update.db')
+    sr.DATABASE = sr.DatabaseInterface(PATH_TO_TEST + 'test_update.db')
     assert sr.get_years_from_database()[0] == 2018
 
 
 def test_import_cve(monkeypatch):
     with monkeypatch.context() as monkey:
-        sr.DATABASE = sr.DB(PATH_TO_TEST + 'test_import.db')
+        sr.DATABASE = sr.DatabaseInterface(PATH_TO_TEST + 'test_import.db')
         monkey.setattr(sr, 'glob', lambda *_, **__: [PATH_TO_TEST + EXTRACT_CVE_JSON])
         sr.import_cve(cve_extract_path='', years=YEARS)
         EXPECTED_CVE_OUTPUT.sort()

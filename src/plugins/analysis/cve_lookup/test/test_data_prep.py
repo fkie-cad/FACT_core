@@ -1,4 +1,5 @@
 import sys
+from datetime import datetime
 from glob import glob
 from os import remove
 from pathlib import Path
@@ -6,7 +7,7 @@ from pathlib import Path
 import pytest
 
 try:
-    from internal import data_prep as dp
+    from ..internal import data_prep as dp
 except ImportError:
     sys.path.append(str(Path(__file__).parent.parent / 'internal'))
     import data_prep as dp
@@ -136,21 +137,14 @@ CPE_TABLE = [('cpe:2.3:a:\\$0.99_kindle_books_project:\\$0.99_kindle_books:6:*:*
              ('cpe:2.3:a:1024cms:1024_cms:1.3.1:*:*:*:*:*:*:*', 'a', '1024cms', '1024_cms', '1\\.3\\.1', 'ANY',
               'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY')]
 
-GET_CVE_LINKS_EXPECTED_OUTPUT = list()
-for i in range(2002, 2020):
-    GET_CVE_LINKS_EXPECTED_OUTPUT.append(dp.CVE_URL.format(i))
-
 DOWNLOAD_DATA_YEAR_INPUT = [2018, 2019]
-
-DOWNLOAD_CPE_EXPECTED = ['official-cpe-dictionary_v2.3.xml']
 
 DOWNLOAD_CVE_EXPECTED = ['nvdcve-1.0-2018.json', 'nvdcve-1.0-2019.json']
 
 DOWNLOAD_UPDATE_EXPECTED = ['nvdcve-1.0-modified.json']
 
-DOWNLOAD_DATA_EXPECTED_OUTPUT = ['official-cpe-dictionary_v2.3.xml', 'nvdcve-1.0-modified.json']
+DOWNLOAD_DATA_EXPECTED_OUTPUT = [dp.CPE_FILE, 'nvdcve-1.0-modified.json']
 
-ALL_CVE_URLS = ['nvdcve-1.0-2017.json', 'nvdcve-1.0-2018.json', 'nvdcve-1.0-2019.json', 'nvdcve-1.0-modified.json']
 SELECT_CVE_URLS_EXPECTED_OUTPUT = ['nvdcve-1.0-2018.json', 'nvdcve-1.0-2019.json']
 
 
@@ -158,7 +152,7 @@ SELECT_CVE_URLS_EXPECTED_OUTPUT = ['nvdcve-1.0-2018.json', 'nvdcve-1.0-2019.json
 def setup() -> None:
     yield None
     try:
-        remove('official-cpe-dictionary_v2.3.xml')
+        remove(dp.CPE_FILE)
         for file in glob('nvdcve-1.0-*.json'):
             remove(file)
     except OSError:
@@ -166,9 +160,14 @@ def setup() -> None:
 
 
 def test_get_cve_links():
-    assert all(entry in dp.get_cve_links(dp.CVE_URL) for entry in GET_CVE_LINKS_EXPECTED_OUTPUT)
+    this_year = datetime.today().year
+    expected_links = [dp.CVE_URL.format(year) for year in range(2002, this_year + 1)]
+    actual_links = dp.get_cve_links(dp.CVE_URL)
+    assert len(actual_links) == this_year - 2001
+    assert expected_links == actual_links
 
 
+@pytest.mark.skip(reason='don\'t download each time')
 def test_download_cve():
     dp.download_cve(years=DOWNLOAD_DATA_YEAR_INPUT, download_path='.', update=False)
     assert set(DOWNLOAD_CVE_EXPECTED) == set(glob('nvdcve-1.0-*.json'))
@@ -176,29 +175,27 @@ def test_download_cve():
     assert DOWNLOAD_UPDATE_EXPECTED == glob('nvdcve-1.0-modified.json')
 
 
+@pytest.mark.skip(reason='don\'t download each time')
 def test_download_cpe():
     dp.download_cpe(download_path='.')
-    assert DOWNLOAD_CPE_EXPECTED == glob('official-cpe-dictionary_v2.3.xml')
+    assert Path(dp.CPE_FILE).is_file()
 
 
+@pytest.mark.skip(reason='don\'t download each time')
 def test_iterate_urls():
     dp.iterate_urls(['https://nvd.nist.gov/feeds/xml/cpe/dictionary/official-cpe-dictionary_v2.3.xml.zip',
                      'https://nvd.nist.gov/feeds/json/cve/1.0/nvdcve-1.0-modified.json.zip'], '.')
     downloaded_files = list()
-    downloaded_files.extend(glob('official-cpe-dictionary_v2.3.xml'))
+    downloaded_files.extend(glob(dp.CPE_FILE))
     downloaded_files.extend(glob('nvdcve-1.0-modified.json'))
     assert set(DOWNLOAD_DATA_EXPECTED_OUTPUT) == set(downloaded_files)
 
 
 def test_extract_data_from_cve():
-    root = dp.json.loads(Path(str(Path(__file__).parent.parent) + '/test/test_resources/test_cve_extract.json').read_text())
-    cve_data, summary_data = dp.extract_data_from_cve(root)
-    CVE_CPE_LIST.sort()
-    SUMMARY_EXTRACT_LIST.sort()
-    cve_data.sort()
-    summary_data.sort()
-    assert CVE_CPE_LIST == cve_data
-    assert SUMMARY_EXTRACT_LIST == summary_data
+    raw_cve_data = dp.json.loads((Path(__file__).parent / 'test_resources/test_cve_extract.json').read_text())
+    cve_data, summary_data = dp.extract_data_from_cve(raw_cve_data)
+    assert sorted(CVE_CPE_LIST) == sorted(cve_data)
+    assert sorted(SUMMARY_EXTRACT_LIST) == sorted(summary_data)
 
 
 def test_extract_cve(monkeypatch):
@@ -209,12 +206,11 @@ def test_extract_cve(monkeypatch):
 
 
 def test_iterate_nodes():
-    test_node_list = list()
-    assert NODE_LIST == dp.iterate_nodes(NODES, test_node_list)
+    assert NODE_LIST == dp.iterate_nodes(NODES)
 
 
 def test_extract_cpe():
-    assert CPE_EXTRACT_LIST == dp.extract_cpe(str(Path(__file__).parent.parent) + '/test/test_resources/test_cpe_extract.xml')
+    assert CPE_EXTRACT_LIST == dp.extract_cpe(str(Path(__file__).parent / 'test_resources/test_cpe_extract.xml'))
 
 
 def test_setup_cve_feeds_table():
