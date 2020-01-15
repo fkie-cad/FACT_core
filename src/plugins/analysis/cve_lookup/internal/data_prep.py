@@ -13,7 +13,7 @@ import requests
 
 try:
     from ..internal.helper_functions import unbind
-except ImportError:
+except (ImportError, SystemError):
     sys.path.append(str(Path(__file__).parent.parent / 'internal'))
     from helper_functions import unbind
 

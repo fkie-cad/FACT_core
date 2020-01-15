@@ -10,7 +10,7 @@ from typing import List, Tuple
 try:
     from ..internal import data_prep as dp
     from ..internal.database_interface import DatabaseInterface, QUERIES
-except (ImportError, ValueError):
+except (ImportError, ValueError, SystemError):
     sys.path.append(str(Path(__file__).parent.parent / 'internal'))
     import data_prep as dp
     from database_interface import DatabaseInterface, QUERIES
