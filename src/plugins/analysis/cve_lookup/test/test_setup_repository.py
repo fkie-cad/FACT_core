@@ -9,7 +9,7 @@ try:
     from ..internal import data_prep as dp
     from ..internal import setup_repository as sr
     from ..internal.database_interface import DatabaseInterface, QUERIES
-except (ImportError, ModuleNotFoundError):
+except ImportError:
     sys.path.append(str(Path(__file__).parent.parent / 'internal'))
     import data_prep as dp
     from database_interface import DatabaseInterface, QUERIES
@@ -322,7 +322,7 @@ def test_update_cve_feeds():
     assert sorted(db_cve) == sorted(EXPECTED_UPDATED_CVE_TABLE)
 
 
-def test_update_cve_summaries(monkeypatch):
+def test_update_cve_summaries():
     db_summary = list(sr.DATABASE.select_query(QUERIES['select_all'].format('summary_table')))
     assert sorted(db_summary) == sorted(EXPECTED_UPDATED_SUMMARY_TABLE)
 
