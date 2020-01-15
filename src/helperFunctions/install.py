@@ -56,18 +56,6 @@ def apt_update_sources():
     return run_shell_command_raise_on_return_code('sudo apt-get update', 'Unable to update repository sources. Check network.')
 
 
-def apt_upgrade_system():
-    return run_shell_command_raise_on_return_code('sudo apt-get upgrade -y', 'Unable to upgrade packages:', True)
-
-
-def apt_autoremove_packages():
-    return run_shell_command_raise_on_return_code('sudo apt-get autoremove -y', 'Automatic removal of packages failed:', True)
-
-
-def apt_clean_system():
-    return run_shell_command_raise_on_return_code('sudo apt-get clean', 'Cleaning of package files failed:', True)
-
-
 def apt_install_packages(*args):
     log_current_packages(args)
     return run_shell_command_raise_on_return_code('sudo apt-get install -y {}'.format(' '.join(args)), 'Error in installation of package(s) {}'.format(' '.join(args)), True)
