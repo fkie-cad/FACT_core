@@ -1,6 +1,5 @@
 import json
 import logging
-import os
 import re
 import subprocess
 from pathlib import Path
@@ -23,7 +22,7 @@ class YaraBasePlugin(AnalysisBasePlugin):
         propagate flag: If True add analysis result of child to parent object
         '''
         self.config = config
-        self._get_signature_file(plugin_path)
+        self.signature_path = self._get_signature_file(plugin_path) if plugin_path else None
         self.SYSTEM_VERSION = self.get_yara_system_version()
         super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=plugin_path)
 
@@ -42,7 +41,7 @@ class YaraBasePlugin(AnalysisBasePlugin):
                 result = self._parse_yara_output(output)
                 file_object.processed_analysis[self.NAME] = result
                 file_object.processed_analysis[self.NAME]['summary'] = list(result.keys())
-            except ValueError:
+            except (ValueError, TypeError):
                 file_object.processed_analysis[self.NAME] = {'ERROR': 'Processing corrupted. Likely bad call to yara.'}
         else:
             file_object.processed_analysis[self.NAME] = {'ERROR': 'Signature path not set'}
@@ -53,12 +52,8 @@ class YaraBasePlugin(AnalysisBasePlugin):
         return plugin_path.split('/')[-3] + '.yc'
 
     def _get_signature_file(self, plugin_path):
-        if plugin_path:
-            sig_file_name = self._get_signature_file_name(plugin_path)
-            sig_dir = os.path.join(get_src_dir(), 'analysis/signatures')
-            self.signature_path = os.path.join(sig_dir, sig_file_name)
-        else:
-            self.signature_path = None
+        sig_file_name = self._get_signature_file_name(plugin_path)
+        return str(Path(get_src_dir()) / 'analysis/signatures' / sig_file_name)
 
     @staticmethod
     def _parse_yara_output(output):
@@ -89,11 +84,7 @@ def _split_output_in_rules_and_matches(output):
 
 
 def _append_match_to_result(match, resulting_matches, rule):
-    if not len(rule) == 4:
-        raise ValueError()
     rule_name, meta_string, _, _ = rule
-    if not len(match) == 4:
-        raise ValueError()
     _, offset, matched_tag, matched_string = match
 
     meta_dict = _parse_meta_data(meta_string)
