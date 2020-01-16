@@ -7,7 +7,7 @@ from helperFunctions.compare_sets import (
 )
 from helperFunctions.dataConversion import (
     convert_uid_list_to_compare_id, list_of_lists_to_list_of_sets, list_of_sets_to_list_of_lists,
-    remove_included_sets_from_list_of_sets
+    remove_subsets_from_list_of_sets
 )
 from helperFunctions.hash import check_similarity_of_sets, get_ssdeep_comparison
 
@@ -92,7 +92,7 @@ class ComparePlugin(CompareBasePlugin):
                         similars.append(item)
                         similarity[convert_uid_list_to_compare_id(item)] = value
         similarity_sets = self.produce_similarity_sets(remove_duplicates_from_list_of_lists(similars))
-        remove_included_sets_from_list_of_sets(similarity_sets)
+        remove_subsets_from_list_of_sets(similarity_sets)
         return remove_duplicates_from_list_of_lists(list_of_sets_to_list_of_lists(similarity_sets)), similarity
 
     def _find_similar_file_for(self, file, parent_id, potential_matches):
