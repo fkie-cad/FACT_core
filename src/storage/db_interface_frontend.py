@@ -155,7 +155,7 @@ class FrontEndDbInterface(MongoInterfaceCommon):
             return error_message
         return result
 
-    def get_other_versions_of_firmware(self, firmware_object):
+    def get_other_versions_of_firmware(self, firmware_object: Firmware):
         if not isinstance(firmware_object, Firmware):
             return []
         query = {'vendor': firmware_object.vendor, 'device_name': firmware_object.device_name, 'device_part': firmware_object.part}
