@@ -1,7 +1,7 @@
 import json
 import logging
-import re
 import os
+import re
 import subprocess
 from pathlib import Path
 
@@ -60,58 +60,60 @@ class YaraBasePlugin(AnalysisBasePlugin):
         else:
             self.signature_path = None
 
-    def _parse_yara_output(self, output):
+    @staticmethod
+    def _parse_yara_output(output):
         resulting_matches = dict()
 
-        match_blocks, rules = self._split_output_in_rules_and_matches(output)
+        match_blocks, rules = _split_output_in_rules_and_matches(output)
 
         matches_regex = re.compile(r'((0x[a-f0-9]*):(\S+):\s(.+))+')
         for index, rule in enumerate(rules):
             for match in matches_regex.findall(match_blocks[index]):
-                self._append_match_to_result(match, resulting_matches, rule)
+                _append_match_to_result(match, resulting_matches, rule)
 
         return resulting_matches
 
-    @staticmethod
-    def _split_output_in_rules_and_matches(output):
-        split_regex = re.compile(r'\n*.*\[.*\]\s\/.+\n*')
-        match_blocks = split_regex.split(output)
-        while '' in match_blocks:
-            match_blocks.remove('')
 
-        rule_regex = re.compile(r'(.*)\s\[(.*)\]\s([\.\.\/]|[\/]|[\.\/])(.+)')
-        rules = rule_regex.findall(output)
+def _split_output_in_rules_and_matches(output):
+    split_regex = re.compile(r'\n*.*\[.*\]\s/.+\n*')
+    match_blocks = split_regex.split(output)
+    while '' in match_blocks:
+        match_blocks.remove('')
 
-        if not len(match_blocks) == len(rules):
-            raise ValueError()
-        return match_blocks, rules
+    rule_regex = re.compile(r'(\w*)\s\[(.*)\]\s([.]{0,2}/)(.+)')
+    rules = rule_regex.findall(output)
 
-    def _append_match_to_result(self, match, resulting_matches, rule):
-        if not len(rule) == 4:
-            raise ValueError()
-        rule_name, meta_string, _, _ = rule
-        if not len(match) == 4:
-            raise ValueError()
-        _, offset, matched_tag, matched_string = match
+    if not len(match_blocks) == len(rules):
+        raise ValueError()
+    return match_blocks, rules
 
-        meta_dict = self._parse_meta_data(meta_string)
 
-        this_match = resulting_matches[rule_name] if rule_name in resulting_matches else dict(rule=rule_name, matches=True, strings=list(), meta=meta_dict)
+def _append_match_to_result(match, resulting_matches, rule):
+    if not len(rule) == 4:
+        raise ValueError()
+    rule_name, meta_string, _, _ = rule
+    if not len(match) == 4:
+        raise ValueError()
+    _, offset, matched_tag, matched_string = match
 
-        this_match['strings'].append((int(offset, 16), matched_tag, matched_string.encode()))
-        resulting_matches[rule_name] = this_match
+    meta_dict = _parse_meta_data(meta_string)
 
-    @staticmethod
-    def _parse_meta_data(meta_data_string):
-        '''
-        Will be of form 'item0=lowercaseboolean0,item1="value1",item2=value2,..'
-        '''
-        meta_data = dict()
-        for item in meta_data_string.split(','):
-            if '=' in item:
-                key, value = item.split('=', maxsplit=1)
-                value = json.loads(value) if value in ['true', 'false'] else value.strip('"')
-                meta_data[key] = value
-            else:
-                logging.warning('Malformed meta string \'{}\''.format(meta_data_string))
-        return meta_data
+    this_match = resulting_matches[rule_name] if rule_name in resulting_matches else dict(rule=rule_name, matches=True, strings=list(), meta=meta_dict)
+
+    this_match['strings'].append((int(offset, 16), matched_tag, matched_string.encode()))
+    resulting_matches[rule_name] = this_match
+
+
+def _parse_meta_data(meta_data_string):
+    '''
+    Will be of form 'item0=lowercaseboolean0,item1="value1",item2=value2,..'
+    '''
+    meta_data = dict()
+    for item in meta_data_string.split(','):
+        if '=' in item:
+            key, value = item.split('=', maxsplit=1)
+            value = json.loads(value) if value in ['true', 'false'] else value.strip('"')
+            meta_data[key] = value
+        else:
+            logging.warning('Malformed meta string \'{}\''.format(meta_data_string))
+    return meta_data

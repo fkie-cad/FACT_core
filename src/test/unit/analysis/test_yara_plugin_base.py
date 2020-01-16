@@ -1,10 +1,13 @@
 import os
+from pathlib import Path
 
 from analysis.YaraPluginBase import YaraBasePlugin
 from helperFunctions.fileSystem import get_src_dir
 from objects.file import FileObject
 from test.common_helper import get_test_data_dir
 from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
+
+YARA_TEST_OUTPUT = Path(get_test_data_dir(), 'yara_matches').read_text()
 
 
 class TestAnalysisYaraBasePlugin(AnalysisPluginTest):
@@ -16,9 +19,6 @@ class TestAnalysisYaraBasePlugin(AnalysisPluginTest):
         config = self.init_basic_config()
         self.intended_signature_path = os.path.join(get_src_dir(), 'analysis/signatures', self.PLUGIN_NAME)
         self.analysis_plugin = YaraBasePlugin(self, config=config, plugin_path='/foo/bar/Yara_Base_Plugin/code/test.py')
-
-    def test_get_signature_file_name(self):
-        assert self.analysis_plugin._get_signature_file_name('/foo/bar/plugin_name/code/test.py') == 'plugin_name.yc'
 
     def test_get_signature_paths(self):
         self.assertTrue(isinstance(self.analysis_plugin.signature_path, str), "incorrect type")
@@ -40,11 +40,17 @@ class TestAnalysisYaraBasePlugin(AnalysisPluginTest):
         self.assertEqual(len(processed_file.processed_analysis[self.PLUGIN_NAME]), 1, "result present but should not")
         self.assertEqual(processed_file.processed_analysis[self.PLUGIN_NAME]['summary'], [], "summary not empty")
 
-    def test_new_yara_matching(self):
-        with open(os.path.join(get_test_data_dir(), 'yara_matches'), 'r') as fd:
-            match_file = fd.read()
-        matches = self.analysis_plugin._parse_yara_output(match_file)
 
-        self.assertIsInstance(matches, dict, 'matches should be dict')
-        self.assertIn('PgpPublicKeyBlock', matches.keys(), 'Pgp block should have been matched')
-        self.assertIn(0, matches['PgpPublicKeyBlock']['strings'][0], 'first block should start at 0x0')
+def test_parse_yara_output():
+    matches = YaraBasePlugin._parse_yara_output(YARA_TEST_OUTPUT)
+
+    assert isinstance(matches, dict), 'matches should be dict'
+    assert 'PgpPublicKeyBlock' in matches.keys(), 'Pgp block should have been matched'
+    assert matches['PgpPublicKeyBlock']['strings'][0][0] == 0, 'first block should start at 0x0'
+    assert 'r_libjpeg8_8d12b1_0' in matches
+    assert matches['r_libjpeg8_8d12b1_0']['meta']['description'] == 'foo [bar]'
+    assert len(matches) == 7, 'not all matches found'
+
+
+def test_get_signature_file_name():
+    assert YaraBasePlugin._get_signature_file_name('/foo/bar/plugin_name/code/test.py') == 'plugin_name.yc'
