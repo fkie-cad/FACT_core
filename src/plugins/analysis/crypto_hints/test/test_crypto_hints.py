@@ -5,7 +5,7 @@ from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
 
 from ..code.crypto_hints import AnalysisPlugin
 
-TEST_DATA_DIR = Path(Path(__file__).parent / 'data')
+TEST_DATA_DIR = Path(__file__).parent / 'data'
 
 
 class TestAnalysisPluginCryptoHints(AnalysisPluginTest):
@@ -15,12 +15,10 @@ class TestAnalysisPluginCryptoHints(AnalysisPluginTest):
     def setUp(self):
         super().setUp()
         config = self.init_basic_config()
-        # additional config can go here
-        # additional setup can go here
         self.analysis_plugin = AnalysisPlugin(self, config=config)
 
     def test_basic_scan_feature(self):
-        test_file = FileObject(file_path=str(Path(TEST_DATA_DIR / 'CRC32_table')))
+        test_file = FileObject(file_path=str(TEST_DATA_DIR / 'CRC32_table'))
         processed_file = self.analysis_plugin.process_object(test_file)
         result = processed_file.processed_analysis[self.PLUGIN_NAME]
         assert 'CRC32_table' in result
