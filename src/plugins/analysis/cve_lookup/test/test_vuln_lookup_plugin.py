@@ -19,6 +19,7 @@ except ImportError:
 
 
 # pylint: disable=redefined-outer-name
+lookup.MAX_LEVENSHTEIN_DISTANCE = 3
 
 USER_INPUT = {'vendor': 'Microsoft', 'product': 'Windows 7', 'version': '1.2.5'}
 
@@ -174,15 +175,6 @@ def test_remaining_words_present(word_list, remaining_words, expected_output):
 ])
 def test_product_is_in_wordlist(word_list, expected_output):
     assert lookup.product_is_in_wordlist(SORT_CPE_MATCHES_OUTPUT, word_list) == expected_output
-
-
-@pytest.mark.parametrize('word_list, sequence, expected_result', [
-    (['', '', ''], ['', ''], True),
-    (['', ''], ['', '', ''], False),
-    (['', ''], ['', ''], True)
-])
-def test_wordlist_longer_than_sequence(word_list, sequence, expected_result):
-    assert lookup.wordlist_longer_than_sequence(word_list, sequence) == expected_result
 
 
 def test_match_cpe(monkeypatch):
