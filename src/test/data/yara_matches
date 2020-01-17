@@ -20,7 +20,7 @@ VersionStrings [description="Version String Finder"] /Firmware/FmpUpdateWrapper.
 0x54d2:$a: w\x00i\x00t\x00h\x00 \x001\x00.\x005\x00
 0x54d4:$a: i\x00t\x00h\x00 \x001\x00.\x005\x00
 0x54d6:$a: t\x00h\x00 \x001\x00.\x005\x00
-r_libjpeg8_8d12b1_0 [package="libjpeg8",version="8d1-2+b1",filename="libjpeg.0"] /Firmware/drone/p3x_1320/P3X_FW_V01.03.0020.bin
+r_libjpeg8_8d12b1_0 [package="libjpeg8",version="8d1-2+b1",filename="libjpeg.0",description="foo [bar]"] /Firmware/drone/p3x_1320/P3X_FW_V01.03.0020.bin
 0x4bcb39a:$a: 31 32 00 43 61 75 74 69
 0x4ba015b:$b: 66 64 63 74 5F 31 36 78
 0x4ba016b:$b: 66 64 63 74 5F 31 36 78
