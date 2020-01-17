@@ -95,10 +95,10 @@ class FileObject():  # pylint: disable=too-many-instance-attributes
         file_object.scheduled_analysis = self.scheduled_analysis
         self.files_included.add(file_object.uid)
 
-    def add_virtual_file_path_if_none_exists(self, parent_pathes, parent_uid):
+    def add_virtual_file_path_if_none_exists(self, parent_paths, parent_uid):
         if self.root_uid not in self.virtual_file_path.keys():
             self.virtual_file_path[self.root_uid] = []
-            for item in parent_pathes:
+            for item in parent_paths:
                 base_path = self.get_base_of_virtual_path(item)
                 if base_path:
                     base_path += "|"
@@ -108,14 +108,11 @@ class FileObject():  # pylint: disable=too-many-instance-attributes
         '''
         returns the virtual path of root_uid if argument set
         if not: returns virtual path of self.root_uid if set
-        else: return virtual_pathes of first key
+        else: return virtual_paths of first key
         '''
         try:
             file_paths = self.get_virtual_file_paths()
-            if root_uid is not None:
-                req_root_uid = root_uid
-            else:
-                req_root_uid = self.root_uid
+            req_root_uid = root_uid or self.root_uid
             if req_root_uid is None:
                 return get_value_of_first_key(file_paths)
             return file_paths[req_root_uid]

@@ -2,7 +2,10 @@ import pytest
 from flask_security.core import AnonymousUser, RoleMixin, UserMixin
 from werkzeug.local import LocalProxy
 
-from helperFunctions.web_interface import filter_out_illegal_characters, get_radare_endpoint, password_is_legal
+from helperFunctions.web_interface import (
+    filter_out_illegal_characters, get_radare_endpoint, password_is_legal, split_virtual_path,
+    virtual_path_element_to_span
+)
 from test.common_helper import get_config_for_testing
 from web_interface.security.authentication import user_has_privilege
 
@@ -18,24 +21,24 @@ def test_filter_out_illegal_characters(input_data, expected):
     assert filter_out_illegal_characters(input_data) == expected
 
 
-class role_superuser(RoleMixin):
+class RoleSuperuser(RoleMixin):
     name = 'superuser'
 
 
-class superuser_user(UserMixin):
+class SuperuserUser(UserMixin):
     id = 1
-    roles = [role_superuser]
+    roles = [RoleSuperuser]
 
 
-class normal_user(UserMixin):
+class NormalUser(UserMixin):
     id = 2
     roles = []
 
 
 @pytest.mark.parametrize('input_data, expected', [
     (AnonymousUser, True),
-    (superuser_user, True),
-    (normal_user, False)
+    (SuperuserUser, True),
+    (NormalUser, False)
 ])
 def test_is_superuser(input_data, expected):
     proxied_object = LocalProxy(input_data)
@@ -61,3 +64,20 @@ def test_get_radare_endpoint():
 
     config.set('ExpertSettings', 'nginx', 'true')
     assert get_radare_endpoint(config) == 'https://localhost/radare'
+
+
+@pytest.mark.parametrize('hid, uid, expected_output', [
+    ('foo', 'bar', 'label-default">foo'),
+    ('foo', 'a152ccc610b53d572682583e778e43dc1f24ddb6577255bff61406bc4fb322c3_21078024', 'label-primary"><a'),
+])
+def test_virtual_path_element_to_span(hid, uid, expected_output):
+    assert expected_output in virtual_path_element_to_span(hid, uid, 'root_uid')
+
+
+@pytest.mark.parametrize('virtual_path, expected_output', [
+    ('', []),
+    ('a|b|c', ['a', 'b', 'c']),
+    ('|a|b|c|', ['a', 'b', 'c']),
+])
+def test_split_virtual_path(virtual_path, expected_output):
+    assert split_virtual_path(virtual_path) == expected_output
