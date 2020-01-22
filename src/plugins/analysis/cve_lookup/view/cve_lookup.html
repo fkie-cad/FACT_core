@@ -13,7 +13,7 @@
                             <th>CVE ID</th>
                             <th style="width: 120px">cvss v2 Score</th>
                             <th style="width: 120px">cvss v3 Score</th>
-                            <th style="width: 150px">matched version</th>
+                            <th style="width: 180px">affected versions</th>
                         </tr>
                         {% for cve_id, entry in result.items()|sort %}
                         <tr>
@@ -22,7 +22,7 @@
                             </td>
                             {% for score in [entry.get("score2", "N/A"), entry.get("score3", "N/A")] %}
                                 {% set class = "default" if score == "N/A" else ("success" if score|float < 4 else ("warning" if score|float < 7 else "danger")) %}
-                                <td><span class="label label-{{ class }}">{{ score }}</span></td>
+                                <td><span class="label label-{{ class }}" style="font-size: 100%; background-color: {{ color }}">{{ score }}</span></td>
                             {% endfor %}
                             <td>{{ entry.get("cpe_version", "N/A") }}</td>
                         </tr>
