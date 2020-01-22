@@ -1,24 +1,26 @@
 import logging
+import operator
 import sys
 from collections import namedtuple
-from itertools import chain, combinations
+from distutils.version import LooseVersion, StrictVersion
+from itertools import combinations
 from pathlib import Path
 from re import match
-from typing import List, Tuple
+from typing import Callable, List, Optional, Tuple
 from warnings import warn
 
 from packaging.version import LegacyVersion, parse
-from pyxdameraulevenshtein import damerau_levenshtein_distance as distance
+from pyxdameraulevenshtein import damerau_levenshtein_distance as distance  # pylint: disable=no-name-in-module
 
 from analysis.PluginBase import AnalysisBasePlugin
 
 try:
     from ..internal.database_interface import DatabaseInterface, QUERIES
-    from ..internal.helper_functions import unbind
+    from ..internal.helper_functions import unbind, unescape
 except ImportError:
     sys.path.append(str(Path(__file__).parent.parent / 'internal'))
     from database_interface import DatabaseInterface, QUERIES
-    from helper_functions import unbind
+    from helper_functions import unbind, unescape
 
 MAX_TERM_SPREAD = 3  # a range in which the product term is allowed to come after the vendor term for it not to be a false positive
 MAX_LEVENSHTEIN_DISTANCE = 0
@@ -34,19 +36,21 @@ class AnalysisPlugin(AnalysisBasePlugin):
     DESCRIPTION = 'lookup CVE vulnerabilities'
     MIME_BLACKLIST = ['audio', 'filesystem', 'image', 'video']
     DEPENDENCIES = ['software_components']
-    VERSION = '0.0.1'
+    VERSION = '0.0.2'
 
     def __init__(self, plugin_administrator, config=None, recursive=True, offline_testing=False):
         super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__, offline_testing=offline_testing)
 
     def process_object(self, file_object):
-        cves = dict()
+        cves = {'cve_results': {}}
         for component in file_object.processed_analysis['software_components']['summary']:
             product, version = self._split_component(component)
             if product and version:
-                cves[component] = lookup_vulnerabilities_in_database(product_name=product, requested_version=version)
+                vulnerabilities = lookup_vulnerabilities_in_database(product_name=product, requested_version=version)
+                if vulnerabilities:
+                    cves['cve_results'][component] = vulnerabilities
 
-        cves['summary'] = list(set(chain(*cves.values())))
+        cves['summary'] = list({cve_id for software in cves['cve_results'] for cve_id in cves['cve_results'][software]})
         file_object.processed_analysis[self.NAME] = cves
 
         return file_object
@@ -59,20 +63,20 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return ''.join(component_parts[:-1]), component_parts[-1]
 
 
-def lookup_vulnerabilities_in_database(product_name: str, requested_version: str) -> List[str]:
+def lookup_vulnerabilities_in_database(product_name: str, requested_version: str) -> Optional[dict]:
     with DatabaseInterface() as db:
         product_terms, version = unbind(generate_search_terms(product_name)), unbind([requested_version])[0]
 
         matched_cpe = match_cpe(db, product_terms)
         if len(matched_cpe) == 0:
-            logging.debug('No CPEs were found!\n')
-            return ['N/A']
+            logging.debug('No CPEs were found for product {}'.format(product_name))
+            return None
         try:
             matched_product = find_matching_cpe_product(matched_cpe, version)
         except IndexError:
-            return ['N/A']
+            return None
         cve_candidates = search_cve(db, matched_product)
-        cve_candidates.extend(search_cve_summary(db, matched_product))
+        cve_candidates.update(search_cve_summary(db, matched_product))
 
         return cve_candidates
 
@@ -119,28 +123,74 @@ def get_closest_matches(target_values: list, search_word: str) -> list:
     return [target_values[search_word_index - 1]]
 
 
-def search_cve(db: DatabaseInterface, product: PRODUCT) -> List[str]:
-    return list({
-        cve_id
-        for cve_id, vendor, product_name, version in db.select_query(QUERIES['cve_lookup'])
-        if terms_match(product.vendor_name, vendor) and terms_match(product.product_name, product_name) and versions_match(version, product)
-    })
+def build_version_string(version: str, version_start_including: str, version_start_excluding: str,
+                         version_end_including: str, version_end_excluding: str) -> str:
+    if not any([version_start_including, version_start_excluding, version_end_including, version_end_excluding]):
+        return version
+    result = 'version'
+    if version_start_including:
+        result = '{} ≤ {}'.format(version_start_including, result)
+    elif version_start_excluding:
+        result = '{} < {}'.format(version_start_excluding, result)
+    if version_end_including:
+        result = '{} ≤ {}'.format(result, version_end_including)
+    elif version_end_excluding:
+        result = '{} < {}'.format(result, version_end_excluding)
+    return result
 
 
-def versions_match(version: str, product: PRODUCT) -> bool:
-    return product.version_number.startswith(get_version_index(version, 0)) or version in ['ANY', 'NA']
+def search_cve(db: DatabaseInterface, product: PRODUCT) -> dict:
+    return {
+        cve_id: {
+            'score2': cvss_v2_score, 'score3': cvss_v3_score,
+            'cpe_version': build_version_string(unescape(version), version_start_including, version_start_excluding,
+                                                version_end_including, version_end_excluding)
+        }
+        for cve_id, vendor, product_name, version, cvss_v2_score, cvss_v3_score, version_start_including,
+        version_start_excluding, version_end_including, version_end_excluding in db.select_query(QUERIES['cve_lookup'])
+        if terms_match(product.vendor_name, vendor)
+        and terms_match(product.product_name, product_name)
+        and versions_match(unescape(product.version_number), unescape(version), version_start_including,
+                           version_start_excluding, version_end_including, version_end_excluding)
+    }
+
+
+def versions_match(cpe_version: str, cve_version: str, version_start_including: str, version_start_excluding: str,
+                   version_end_including: str, version_end_excluding: str) -> bool:
+    for version_boundary, operator_ in [
+            (version_start_including, operator.le), (version_start_excluding, operator.lt),
+            (version_end_including, operator.ge), (version_end_excluding, operator.gt)
+    ]:
+        if version_boundary and not compare_version(version_boundary, cpe_version, operator_):
+            return False
+    if cve_version not in ['ANY', 'N/A'] and not compare_version(cve_version, cpe_version, operator.eq):
+        return False
+    return True
+
+
+def compare_version(version1: str, version2: str, comp_operator: Callable) -> bool:
+    try:
+        if not comp_operator(StrictVersion(version1), StrictVersion(version2)):
+            return False
+    except ValueError:
+        try:
+            if not comp_operator(LooseVersion(version1), LooseVersion(version2)):
+                return False
+        except TypeError:
+            return False
+    return True
 
 
 def get_version_index(version: str, index: int) -> str:
     return version.split('\\.')[index]
 
 
-def search_cve_summary(db: DatabaseInterface, product: namedtuple) -> List[str]:
-    return list({
-        cve_id
-        for cve_id, summary in db.select_query(QUERIES['summary_lookup'])
+def search_cve_summary(db: DatabaseInterface, product: namedtuple) -> dict:
+    return {
+        cve_id: {'score2': cvss_v2_score, 'score3': cvss_v3_score}
+        for cve_id, summary, cvss_v2_score, cvss_v3_score in db.select_query(QUERIES['summary_lookup'])
         if product_is_in_wordlist(product, summary.split(' '))
-    })
+    }
 
 
 def product_is_in_wordlist(product: PRODUCT, wordlist: List[str]) -> bool:

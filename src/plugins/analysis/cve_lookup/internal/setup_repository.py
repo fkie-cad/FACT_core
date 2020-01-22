@@ -10,10 +10,12 @@ from typing import List, Tuple
 try:
     from ..internal import data_prep as dp
     from ..internal.database_interface import DatabaseInterface, QUERIES
+    from ..internal.helper_functions import CveEntry
 except (ImportError, ValueError, SystemError):
     sys.path.append(str(Path(__file__).parent.parent / 'internal'))
     import data_prep as dp
     from database_interface import DatabaseInterface, QUERIES
+    from helper_functions import CveEntry
 
 CURRENT_YEAR = datetime.now().year
 DATABASE = DatabaseInterface()
@@ -71,7 +73,7 @@ def get_cpe_content(path: str) -> list:
     return dp.extract_cpe(glob(path + '*.xml')[0])
 
 
-def init_cve_feeds_table(cve_list: list, table_name: str):
+def init_cve_feeds_table(cve_list: List[CveEntry], table_name: str):
     create(query='create_cve_table', table_name=table_name)
     insert_into(query='insert_cve', table_name=table_name, input_data=dp.setup_cve_feeds_table(cve_list=cve_list))
 

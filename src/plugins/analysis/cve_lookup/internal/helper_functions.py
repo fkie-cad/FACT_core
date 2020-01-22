@@ -1,5 +1,8 @@
 from re import finditer, match
-from typing import List
+from typing import List, NamedTuple, Tuple
+
+CveEntry = NamedTuple('CveEntry', [('cve_id', str), ('impact', str), ('cpe_list', List[Tuple[str, str, str, str, str]])])
+CveSummaryEntry = NamedTuple('CveSummaryEntry', [('cve_id', str), ('summary', str), ('impact', str)])
 
 
 def escape_special_characters(attribute: str) -> str:
@@ -20,7 +23,7 @@ def unbind(attributes: List[str]) -> List[str]:
         if attribute == '*':
             attributes[index] = 'ANY'
         elif attribute == '-':
-            attributes[index] = 'NA'
+            attributes[index] = 'N/A'
         # if there are no non-alphanumeric characters apart from underscore and escaped colon, continue
         elif not match(r'^.*[^a-zA-Z0-9_\\:].*$', attribute):
             continue
@@ -28,3 +31,15 @@ def unbind(attributes: List[str]) -> List[str]:
             attributes[index] = escape_special_characters(attribute)
 
     return attributes
+
+
+def get_field_string(fields: List[Tuple[str, str]]) -> str:
+    return ', '.join(['{} {} NOT NULL'.format(name, type_) for name, type_ in fields])
+
+
+def get_field_names(fields: List[Tuple[str, str]]) -> str:
+    return ', '.join(list(zip(*fields))[0])
+
+
+def unescape(string: str) -> str:
+    return string.replace('\\', '')

@@ -1,21 +1,36 @@
 {% extends "analysis_plugins/general_information.html" %}
 
 {% block analysis_result_details %}
-
-	{% for key in firmware.processed_analysis[selected_analysis]|sort %}
-		{% if key not in ['summary', 'plugin_version', 'analysis_date', 'tags', 'skipped'] %}
-			<tr>
-				<td class="result" rowspan="{{ firmware.processed_analysis[selected_analysis][key] | length }}">{{ key }}</td>
-                {% for cve_id in firmware.processed_analysis[selected_analysis][key] | sort %}
-				<td>
-                    <a href="https://nvd.nist.gov/vuln/detail/{{ cve_id }}">{{ cve_id }}</a>
+    {% for product_name, result in firmware.processed_analysis[selected_analysis]['cve_results'].items()|sort %}
+        <tr>
+            <td class="result">{{ product_name }}</td>
+            {% if result == ['N/A'] %}
+                <td>N/A</td>
+            {% else %}
+                <td style="padding: 0">
+                    <table class="table table-bordered" style="width: 100%; margin-bottom: 0">
+                        <tr>
+                            <th>CVE ID</th>
+                            <th style="width: 120px">cvss v2 Score</th>
+                            <th style="width: 120px">cvss v3 Score</th>
+                            <th style="width: 150px">matched version</th>
+                        </tr>
+                        {% for cve_id, entry in result.items()|sort %}
+                        <tr>
+                            <td>
+                                <a href="https://nvd.nist.gov/vuln/detail/{{ cve_id }}">{{ cve_id }}</a>
+                            </td>
+                            {% for score in [entry.get("score2", "N/A"), entry.get("score3", "N/A")] %}
+                                {% set class = "default" if score == "N/A" else ("success" if score|float < 4 else ("warning" if score|float < 7 else "danger")) %}
+                                <td><span class="label label-{{ class }}">{{ score }}</span></td>
+                            {% endfor %}
+                            <td>{{ entry.get("cpe_version", "N/A") }}</td>
+                        </tr>
+                        {% endfor %}
+                    </table>
                 </td>
-			</tr>
-	    	<tr>
-                {% endfor %}
-                <td style="display: none;">Place</td><td style="display: none;">holder</td>
-            </tr>
-		{% endif %}
-	{% endfor %}
+            {% endif %}
+        </tr>
+    {% endfor %}
 
 {% endblock %}
