@@ -17,7 +17,7 @@ def test_analyse_attribute():
 @pytest.mark.parametrize('bound_string, unbound_string', [
     (
         ['a', 'micr*osof?t_corp', '*wind§ows 10*', '10.2.4', 'beta\\)1.2', 'sp1', '?en?', '-', '*', '*', '*'],
-        ['a', 'micr\\*osof\\?t_corp', '*wind\\§ows 10*', '10\\.2\\.4', 'beta\\)1\\.2', 'sp1', '?en?', 'NA', 'ANY', 'ANY', 'ANY']
+        ['a', 'micr\\*osof\\?t_corp', '*wind\\§ows 10*', '10\\.2\\.4', 'beta\\)1\\.2', 'sp1', '?en?', 'N/A', 'ANY', 'ANY', 'ANY']
     ),
     (['10.2.4'], ['10\\.2\\.4'])
 ])

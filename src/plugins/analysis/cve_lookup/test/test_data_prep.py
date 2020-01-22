@@ -8,9 +8,11 @@ import pytest
 
 try:
     from ..internal import data_prep as dp
+    from ..internal.helper_functions import CveEntry, CveSummaryEntry
 except ImportError:
     sys.path.append(str(Path(__file__).parent.parent / 'internal'))
     import data_prep as dp
+    from helper_functions import CveEntry, CveSummaryEntry
 
 # contains a NODES list from the CVE 2012-0010 which serves as input for iterate_nodes()
 NODES = [
@@ -64,22 +66,22 @@ NODES = [
     ]}
 ]
 # contain the expected result from the extract_cve function
-CVE_CPE_LIST = ['CVE-2012-0001', 'cpe:2.3:o:microsoft:windows_7:-:*:*:*:*:*:*:*',
-                'cpe:2.3:o:microsoft:windows_7:-:sp1:x64:*:*:*:*:*',
-                'cpe:2.3:o:microsoft:windows_7:-:sp1:x86:*:*:*:*:*',
-                'cpe:2.3:o:microsoft:windows_server_2003:*:sp2:*:*:*:*:*:*',
-                'cpe:2.3:o:microsoft:windows_server_2008:*:sp2:x32:*:*:*:*:*',
-                'cpe:2.3:o:microsoft:windows_server_2008:*:sp2:x64:*:*:*:*:*',
-                'cpe:2.3:o:microsoft:windows_server_2008:-:sp2:itanium:*:*:*:*:*',
-                'cpe:2.3:o:microsoft:windows_server_2008:r2:*:itanium:*:*:*:*:*',
-                'cpe:2.3:o:microsoft:windows_server_2008:r2:*:x64:*:*:*:*:*',
-                'cpe:2.3:o:microsoft:windows_server_2008:r2:sp1:itanium:*:*:*:*:*',
-                'cpe:2.3:o:microsoft:windows_server_2008:r2:sp1:x64:*:*:*:*:*',
-                'cpe:2.3:o:microsoft:windows_vista:*:sp2:*:*:*:*:*:*',
-                'cpe:2.3:o:microsoft:windows_vista:*:sp2:x64:*:*:*:*:*',
-                'cpe:2.3:o:microsoft:windows_xp:*:sp2:professional_x64:*:*:*:*:*',
-                'CVE-2018-0010', 'cpe:2.3:a:microsoft:ie:6:*:*:*:*:*:*:*', 'cpe:2.3:a:microsoft:ie:9:*:*:*:*:*:*:*',
-                'cpe:2.3:a:microsoft:ie:7:*:*:*:*:*:*:*', 'cpe:2.3:a:microsoft:ie:8:*:*:*:*:*:*:*']
+CVE_CPE_LIST = [
+    'cpe:2.3:o:microsoft:windows_7:-:*:*:*:*:*:*:*',
+    'cpe:2.3:o:microsoft:windows_7:-:sp1:x64:*:*:*:*:*',
+    'cpe:2.3:o:microsoft:windows_7:-:sp1:x86:*:*:*:*:*',
+    'cpe:2.3:o:microsoft:windows_server_2003:*:sp2:*:*:*:*:*:*',
+    'cpe:2.3:o:microsoft:windows_server_2008:*:sp2:x32:*:*:*:*:*',
+    'cpe:2.3:o:microsoft:windows_server_2008:*:sp2:x64:*:*:*:*:*',
+    'cpe:2.3:o:microsoft:windows_server_2008:-:sp2:itanium:*:*:*:*:*',
+    'cpe:2.3:o:microsoft:windows_server_2008:r2:*:itanium:*:*:*:*:*',
+    'cpe:2.3:o:microsoft:windows_server_2008:r2:*:x64:*:*:*:*:*',
+    'cpe:2.3:o:microsoft:windows_server_2008:r2:sp1:itanium:*:*:*:*:*',
+    'cpe:2.3:o:microsoft:windows_server_2008:r2:sp1:x64:*:*:*:*:*',
+    'cpe:2.3:o:microsoft:windows_vista:*:sp2:*:*:*:*:*:*',
+    'cpe:2.3:o:microsoft:windows_vista:*:sp2:x64:*:*:*:*:*',
+    'cpe:2.3:o:microsoft:windows_xp:*:sp2:professional_x64:*:*:*:*:*',
+]
 
 SUMMARY_EXTRACT_LIST = ['CVE-2018-20229', 'GitLab Community and Enterprise Edition before 11.3.14, '
                                           '11.4.x before 11.4.12, and 11.5.x before 11.5.5 allows Directory Traversal.',
@@ -94,48 +96,50 @@ CPE_EXTRACT_LIST = ['cpe:2.3:a:\\$0.99_kindle_books_project:\\$0.99_kindle_books
                     'cpe:2.3:a:1024cms:1024_cms:1.2.5:*:*:*:*:*:*:*', 'cpe:2.3:a:1024cms:1024_cms:1.3.1:*:*:*:*:*:*:*']
 
 # contain input and expected results of the setup_cve_format function
-CVE_LIST = ['CVE-2012-0001', 'cpe:2.3:a:\\$0.99_kindle_bo\\:oks_project:\\$0.99_kindle_books:6:*:*:*:*:android:*:*',
-            'cpe:2.3:a:1000guess:1000_guess:-:*:*:*:*:*:*:*', 'cpe:2.3:a:1024cms:1024_cms:0.7:*:*:*:*:*:*:*',
-            'cpe:2.3:a:1024cms:1024_cms:1.2.5:*:*:*:*:*:*:*', 'CVE-2012-0002',
-            'cpe:2.3:a:1024cms:1024_cms:1.3.1:*:*:*:*:*:*:*']
-SUMMARY_LIST = ['CVE-2018-20229', 'GitLab Community and Enterprise Edition before 11.3.14, 11.4.x before 11.4.12, '
-                                  'and 11.5.x before 11.5.5 allows Directory Traversal.', 'CVE-2018-0010',
-                'Microsoft Internet Explorer 6 through 9 does not properly perform copy-and-paste operations, '
-                'which allows user-assisted remote attackers to read content from a different (1) domain or (2) '
-                'zone via a crafted web site, aka \'Copy and Paste Information Disclosure Vulnerability.\'']
-CVE_TABLE = [('CVE-2012-0001', '2012',
-              'cpe:2.3:a:\\$0.99_kindle_bo\\:oks_project:\\$0.99_kindle_books:6:*:*:*:*:android:*:*', 'a',
-              '\\$0\\.99_kindle_bo\\:oks_project', '\\$0\\.99_kindle_books', '6', 'ANY', 'ANY', 'ANY', 'ANY',
-              'android', 'ANY', 'ANY'),
-             ('CVE-2012-0001', '2012', 'cpe:2.3:a:1000guess:1000_guess:-:*:*:*:*:*:*:*', 'a', '1000guess',
-              '1000_guess', 'NA', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY'),
-             ('CVE-2012-0001', '2012', 'cpe:2.3:a:1024cms:1024_cms:0.7:*:*:*:*:*:*:*', 'a', '1024cms', '1024_cms',
-              '0\\.7', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY'),
-             ('CVE-2012-0001', '2012', 'cpe:2.3:a:1024cms:1024_cms:1.2.5:*:*:*:*:*:*:*', 'a', '1024cms', '1024_cms',
-              '1\\.2\\.5', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY'),
-             ('CVE-2012-0002', '2012', 'cpe:2.3:a:1024cms:1024_cms:1.3.1:*:*:*:*:*:*:*', 'a', '1024cms', '1024_cms',
-              '1\\.3\\.1', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY')]
-SUMMARY_TABLE = [('CVE-2018-20229', '2018', 'GitLab Community and Enterprise Edition before 11.3.14, 11.4.x before '
-                                            '11.4.12, and 11.5.x before 11.5.5 allows Directory Traversal.'),
-                 ('CVE-2018-0010', '2018', 'Microsoft Internet Explorer 6 through 9 does not properly perform '
-                                           'copy-and-paste operations, which allows user-assisted remote attackers '
-                                           'to read content from a different (1) domain or (2) zone via a crafted '
-                                           'web site, aka \'Copy and Paste Information Disclosure Vulnerability.\'')]
+CVE_LIST = [
+    CveEntry('CVE-2012-0001', {}, [
+        ('cpe:2.3:a:\\$0.99_kindle_bo\\:oks_project:\\$0.99_kindle_books:6:*:*:*:*:android:*:*', '', '', '', ''),
+        ('cpe:2.3:a:1000guess:1000_guess:-:*:*:*:*:*:*:*', '', '', '', ''),
+        ('cpe:2.3:a:1024cms:1024_cms:0.7:*:*:*:*:*:*:*', '', '', '', ''),
+        ('cpe:2.3:a:1024cms:1024_cms:1.2.5:*:*:*:*:*:*:*', '', '', '', ''),
+    ]),
+    CveEntry('CVE-2012-0002', {'cvssV2': '5.3'}, [('cpe:2.3:a:1024cms:1024_cms:1.3.1:*:*:*:*:*:*:*', '', '', '', '')]),
+]
+CVE_TABLE = [
+    (
+        'CVE-2012-0001', '2012', 'cpe:2.3:a:\\$0.99_kindle_bo\\:oks_project:\\$0.99_kindle_books:6:*:*:*:*:android:*:*',
+        'N/A', 'N/A', 'a', '\\$0\\.99_kindle_bo\\:oks_project', '\\$0\\.99_kindle_books', '6', 'ANY', 'ANY', 'ANY',
+        'ANY', 'android', 'ANY', 'ANY', '', '', '', ''
+    ),
+    (
+        'CVE-2012-0001', '2012', 'cpe:2.3:a:1000guess:1000_guess:-:*:*:*:*:*:*:*', 'N/A', 'N/A', 'a', '1000guess',
+        '1000_guess', 'N/A', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', '', '', '', ''
+    ),
+    (
+        'CVE-2012-0001', '2012', 'cpe:2.3:a:1024cms:1024_cms:0.7:*:*:*:*:*:*:*', 'N/A', 'N/A', 'a', '1024cms',
+        '1024_cms', '0\\.7', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', '', '', '', ''
+    ),
+    (
+        'CVE-2012-0001', '2012', 'cpe:2.3:a:1024cms:1024_cms:1.2.5:*:*:*:*:*:*:*', 'N/A', 'N/A', 'a', '1024cms',
+        '1024_cms', '1\\.2\\.5', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', '', '', '', ''
+    ),
+    (
+        'CVE-2012-0002', '2012', 'cpe:2.3:a:1024cms:1024_cms:1.3.1:*:*:*:*:*:*:*', '5.3', 'N/A', 'a', '1024cms',
+        '1024_cms', '1\\.3\\.1', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', '', '', '', ''
+    )
+]
 # contain input and expected results of the setup_cpe_format function
 CPE_LIST = ['cpe:2.3:a:\\$0.99_kindle_books_project:\\$0.99_kindle_books:6:*:*:*:*:android:*:*',
             'cpe:2.3:a:1000guess:1000_guess:-:*:*:*:*:*:*:*', 'cpe:2.3:a:1024cms:1024_cms:0.7:*:*:*:*:*:*:*',
             'cpe:2.3:a:1024cms:1024_cms:1.2.5:*:*:*:*:*:*:*', 'cpe:2.3:a:1024cms:1024_cms:1.3.1:*:*:*:*:*:*:*']
-CPE_TABLE = [('cpe:2.3:a:\\$0.99_kindle_books_project:\\$0.99_kindle_books:6:*:*:*:*:android:*:*', 'a',
-              '\\$0\\.99_kindle_books_project', '\\$0\\.99_kindle_books', '6', 'ANY', 'ANY', 'ANY', 'ANY',
-              'android', 'ANY', 'ANY'),
-             ('cpe:2.3:a:1000guess:1000_guess:-:*:*:*:*:*:*:*', 'a', '1000guess', '1000_guess', 'NA', 'ANY', 'ANY',
-              'ANY', 'ANY', 'ANY', 'ANY', 'ANY'),
-             ('cpe:2.3:a:1024cms:1024_cms:0.7:*:*:*:*:*:*:*', 'a', '1024cms', '1024_cms', '0\\.7', 'ANY', 'ANY',
-              'ANY', 'ANY', 'ANY', 'ANY', 'ANY'),
-             ('cpe:2.3:a:1024cms:1024_cms:1.2.5:*:*:*:*:*:*:*', 'a', '1024cms', '1024_cms', '1\\.2\\.5', 'ANY',
-              'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY'),
-             ('cpe:2.3:a:1024cms:1024_cms:1.3.1:*:*:*:*:*:*:*', 'a', '1024cms', '1024_cms', '1\\.3\\.1', 'ANY',
-              'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY')]
+CPE_TABLE = [
+    ('cpe:2.3:a:\\$0.99_kindle_books_project:\\$0.99_kindle_books:6:*:*:*:*:android:*:*', 'a',
+     '\\$0\\.99_kindle_books_project', '\\$0\\.99_kindle_books', '6', 'ANY', 'ANY', 'ANY', 'ANY', 'android', 'ANY', 'ANY'),
+    ('cpe:2.3:a:1000guess:1000_guess:-:*:*:*:*:*:*:*', 'a', '1000guess', '1000_guess', 'N/A', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY'),
+    ('cpe:2.3:a:1024cms:1024_cms:0.7:*:*:*:*:*:*:*', 'a', '1024cms', '1024_cms', '0\\.7', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY'),
+    ('cpe:2.3:a:1024cms:1024_cms:1.2.5:*:*:*:*:*:*:*', 'a', '1024cms', '1024_cms', '1\\.2\\.5', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY'),
+    ('cpe:2.3:a:1024cms:1024_cms:1.3.1:*:*:*:*:*:*:*', 'a', '1024cms', '1024_cms', '1\\.3\\.1', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY')
+]
 
 DOWNLOAD_DATA_YEAR_INPUT = [2018, 2019]
 
@@ -194,8 +198,14 @@ def test_iterate_urls():
 def test_extract_data_from_cve():
     raw_cve_data = dp.json.loads((Path(__file__).parent / 'test_resources/test_cve_extract.json').read_text())
     cve_data, summary_data = dp.extract_data_from_cve(raw_cve_data)
-    assert sorted(CVE_CPE_LIST) == sorted(cve_data)
-    assert sorted(SUMMARY_EXTRACT_LIST) == sorted(summary_data)
+    assert len(cve_data) == 2
+    assert len(summary_data) == 2
+    assert all(isinstance(entry, CveEntry) for entry in cve_data)
+    assert all(isinstance(entry, CveSummaryEntry) for entry in summary_data)
+    assert any(entry.cve_id == 'CVE-2018-0010' for entry in cve_data)
+    assert len(cve_data[0].cpe_list) == 14
+    cpe_list = list(zip(*cve_data[0].cpe_list))[0]
+    assert all(cpe in cpe_list for cpe in CVE_CPE_LIST)
 
 
 def test_extract_cve(monkeypatch):
@@ -206,7 +216,9 @@ def test_extract_cve(monkeypatch):
 
 
 def test_iterate_nodes():
-    assert NODE_LIST == dp.iterate_nodes(NODES)
+    cpe_output = dp.extract_cpe_data_from_cve(NODES)
+    cpe_list = list(zip(*cpe_output))[0]
+    assert sorted(NODE_LIST) == sorted(cpe_list)
 
 
 def test_extract_cpe():
@@ -215,17 +227,22 @@ def test_extract_cpe():
 
 def test_setup_cve_feeds_table():
     cve_result = dp.setup_cve_feeds_table(CVE_LIST)
-    cve_result.sort()
-    CVE_TABLE.sort()
     assert CVE_TABLE == cve_result
 
 
 def test_setup_cve_summary_table():
-    summary_result = dp.setup_cve_summary_table(SUMMARY_LIST)
-    summary_result.sort()
-    SUMMARY_TABLE.sort()
-    assert SUMMARY_TABLE == summary_result
+    summary_input = [
+        CveSummaryEntry('CVE-2018-20229', 'some description ...', {'cvssV2': '5.3'}),
+        CveSummaryEntry('CVE-2018-0010', 'foobar', {'cvssV2': '7.3', 'cvssV3': '8.3'}),
+    ]
+    expected_output = [
+        ('CVE-2018-20229', '2018', 'some description ...', '5.3', 'N/A'),
+        ('CVE-2018-0010', '2018', 'foobar', '7.3', '8.3'),
+    ]
+    summary_result = dp.setup_cve_summary_table(summary_input)
+    assert summary_result == expected_output
 
 
 def test_setup_cpe_table():
-    assert CPE_TABLE == dp.setup_cpe_table(CPE_LIST)
+    result = dp.setup_cpe_table(CPE_LIST)
+    assert CPE_TABLE == result

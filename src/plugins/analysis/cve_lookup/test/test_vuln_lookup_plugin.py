@@ -29,20 +29,24 @@ MATCHED_CPE = [
     lookup.PRODUCT('mircosof', 'windows_7', '0\\.7')
 ]
 MATCHED_CVE = ['CVE-1234-0010', 'CVE-1234-0011']
-CPE_CVE_OUTPUT = [('CVE-1234-0008', 'microsoft', 'server_2013', '2013'),
-                  ('CVE-1234-0009', 'mircosof', 'windows_7', '0\\.7'),
-                  ('CVE-1234-0010', 'microsoft', 'windows_8', '1\\.2\\.5'),
-                  ('CVE-1234-0011', 'microsoft', 'windows_7', '1\\.3\\.1'),
-                  ('CVE-1234-0012', 'linux', 'linux_kernel', '2\\.2.\\3')]
+CPE_CVE_OUTPUT = [
+    ('CVE-1234-0008', 'microsoft', 'server_2013', '2013', '10.0', '7.0', '1.2', '', '3.4', ''),
+    ('CVE-1234-0009', 'mircosof', 'windows_7', '0\\.7', '10.0', '7.0', '1.2', '', '3.4', ''),
+    ('CVE-1234-0010', 'microsoft', 'windows_8', '1\\.2\\.5', '10.0', '7.0', '1.2', '', '3.4', ''),
+    ('CVE-1234-0011', 'microsoft', 'windows_8', 'ANY', '10.0', '7.0', '1.2', '', '3.4', ''),
+    ('CVE-1234-0012', 'linux', 'linux_kernel', '2\\.2.\\3', '10.0', '7.0', '1.2', '', '3.4', ''),
+]
 
 MATCHED_SUMMARY = ['CVE-1234-0005', 'CVE-1234-0006', 'CVE-1234-0007']
-SUMMARY_OUTPUT = [('CVE-1234-0001', 'Attacker gains remote access'),
-                  ('CVE-1234-0002', 'Attacker gains remote access to microsoft windows'),
-                  ('CVE-1234-0003', 'Attacker gains remote access to microsoft server 2018'),
-                  ('CVE-1234-0004', 'Attacker gains remote access to microsoft windows 2018'),
-                  ('CVE-1234-0005', 'Attacker gains remote access to microsoft windows 8'),
-                  ('CVE-1234-0006', 'Attacker gains remote access to microsoft windows 7'),
-                  ('CVE-1234-0007', 'Attacker gains remote access to microsoft corporation windows 7')]
+SUMMARY_OUTPUT = [
+    ('CVE-1234-0001', 'Attacker gains remote access', '5.0', '7.0'),
+    ('CVE-1234-0002', 'Attacker gains remote access to microsoft windows', '5.0', '7.0'),
+    ('CVE-1234-0003', 'Attacker gains remote access to microsoft server 2018', '5.0', '7.0'),
+    ('CVE-1234-0004', 'Attacker gains remote access to microsoft windows 2018', '5.0', '7.0'),
+    ('CVE-1234-0005', 'Attacker gains remote access to microsoft windows 8', '5.0', '7.0'),
+    ('CVE-1234-0006', 'Attacker gains remote access to microsoft windows 7', '5.0', '7.0'),
+    ('CVE-1234-0007', 'Attacker gains remote access to microsoft corporation windows 7', '5.0', '7.0'),
+]
 
 PRODUCT_SEARCH_TERMS = ['windows', 'windows_7']
 VERSION_SEARCH_TERM = '1\\.2\\.5'
@@ -187,10 +191,8 @@ def test_match_cpe(monkeypatch):
 def test_search_cve(monkeypatch):
     with monkeypatch.context() as monkey:
         monkey.setattr(DatabaseInterface, 'select_query', lambda *_, **__: CPE_CVE_OUTPUT)
-        MATCHED_CVE.sort()
         actual_match = list(lookup.search_cve(DatabaseInterface, SORT_CPE_MATCHES_OUTPUT))
-        actual_match.sort()
-        assert MATCHED_CVE == actual_match
+        assert sorted(MATCHED_CVE) == sorted(actual_match)
 
 
 def test_search_cve_summary(monkeypatch):
@@ -222,3 +224,68 @@ def test_process_object(stub_plugin):
     TEST_FW.processed_analysis['software_components'] = SOFTWARE_COMPONENTS_ANALYSIS_RESULT
     result = stub_plugin.process_object(TEST_FW).processed_analysis['cve_lookup']
     assert 'CVE-2017-14494' in result['summary']
+    assert 'Dnsmasq 2.40' in result['cve_results']
+    assert 'CVE-2013-0198' in result['cve_results']['Dnsmasq 2.40']
+
+
+@pytest.mark.parametrize(
+    'cpe_version, cve_version, version_start_including, version_start_excluding, version_end_including, '
+    'version_end_excluding, expected_output', [
+        ('1', '1', '', '', '', '', True),
+        ('1', '2', '', '', '', '', False),
+        ('1.2.3', '1.2.3', '', '', '', '', True),
+        ('1.2.3', '1.8.3', '', '', '', '', False),
+        ('v1.2a', 'v1.2a', '', '', '', '', True),
+        ('v1.2a', 'v1.2b', '', '', '', '', False),
+        ('1', 'ANY', '', '', '', '', True),
+        ('1', 'N/A', '', '', '', '', True),
+        ('1.2', 'ANY', '1.1', '', '', '', True),
+        ('1.2', 'ANY', '1.2', '', '', '', True),
+        ('1.1', 'ANY', '1.2', '', '', '', False),
+        ('1.2', 'ANY', '', '1.1', '', '', True),
+        ('1.2', 'ANY', '', '1.2', '', '', False),
+        ('1.1', 'ANY', '', '1.2', '', '', False),
+        ('1.2', 'ANY', '', '', '1.1', '', False),
+        ('1.2', 'ANY', '', '', '1.2', '', True),
+        ('1.1', 'ANY', '', '', '1.2', '', True),
+        ('1.2', 'ANY', '', '', '', '1.1', False),
+        ('1.2', 'ANY', '', '', '', '1.2', False),
+        ('1.1', 'ANY', '', '', '', '1.2', True),
+        ('1.0', 'ANY', '', '1.1', '', '1.3', False),
+        ('1.1', 'ANY', '', '1.1', '', '1.3', False),
+        ('1.2', 'ANY', '', '1.1', '', '1.3', True),
+        ('1.3', 'ANY', '', '1.1', '', '1.3', False),
+        ('1.4', 'ANY', '', '1.1', '', '1.3', False),
+        ('1.0', 'ANY', '1.1', '', '1.3', '', False),
+        ('1.1', 'ANY', '1.1', '', '1.3', '', True),
+        ('1.2', 'ANY', '1.1', '', '1.3', '', True),
+        ('1.3', 'ANY', '1.1', '', '1.3', '', True),
+        ('1.4', 'ANY', '1.1', '', '1.3', '', False),
+        ('$%&fööbar,.-', '1.2.3', '', '', '', '', False),
+        ('v1.1a', 'ANY', 'v1.1a', '', 'v1.1a', '', True),
+        ('v1.1b', 'ANY', '', 'v1.1a', '', 'v1.1c', True),
+        ('v1.1a', 'ANY', '', 'v1.1b', '', 'v1.1c', False),
+        ('1.1-r2345', 'ANY', '', '1.1-r1234', '', '1.1-r3456', True),
+    ]
+)
+def test_versions_match(cpe_version: str, cve_version: str, version_start_including: str, version_start_excluding: str,
+                        version_end_including: str, version_end_excluding: str, expected_output: bool):
+    assert lookup.versions_match(cpe_version, cve_version, version_start_including, version_start_excluding,
+                                 version_end_including, version_end_excluding) == expected_output
+
+
+@pytest.mark.parametrize('version, version_start_including, version_start_excluding, version_end_including, version_end_excluding, expected_output', [
+    ('1.2', '', '', '', '', '1.2'),
+    ('ANY', '', '', '', '', 'ANY'),
+    ('N/A', '', '', '', '', 'N/A'),
+    ('ANY', '1.2', '', '', '', '1.2 ≤ version'),
+    ('ANY', '', '1.2', '', '', '1.2 < version'),
+    ('ANY', '', '', '1.2', '', 'version ≤ 1.2'),
+    ('ANY', '', '', '', '1.2', 'version < 1.2'),
+    ('ANY', '1.1', '', '1.2', '', '1.1 ≤ version ≤ 1.2'),
+    ('ANY', '', '1.1', '', '1.2', '1.1 < version < 1.2'),
+])
+def test_build_version_string(version: str, version_start_including: str, version_start_excluding: str,
+                              version_end_including: str, version_end_excluding: str, expected_output: str):
+    assert lookup.build_version_string(version, version_start_including, version_start_excluding,
+                                       version_end_including, version_end_excluding) == expected_output
