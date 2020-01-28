@@ -1,7 +1,7 @@
 from flask_restful import Resource, request
 
-from helperFunctions.rest import success_message, error_message, convert_rest_request
-from helperFunctions.web_interface import ConnectTo
+from helperFunctions.database import ConnectTo
+from helperFunctions.rest import convert_rest_request, error_message, success_message
 from helperFunctions.yara_binary_search import is_valid_yara_rule_file
 from intercom.front_end_binding import InterComFrontEndBinding
 from storage.db_interface_frontend import FrontEndDbInterface

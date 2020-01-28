@@ -1,0 +1,36 @@
+{% extends "analysis_plugins/general_information.html" %}
+
+{% block analysis_result_details %}
+
+{% for vector in firmware.processed_analysis[selected_analysis]['full'] | sort %}
+    {% set input_vector = firmware.processed_analysis[selected_analysis]['full'][vector] %}
+    {% if input_vector %}
+    <tr>
+        <td class="result">{{ vector }}</td>
+        {% if vector == 'inputs' %}
+        <td class="result" style="padding: 0">
+            <table class="table table-bordered" style="margin-bottom: 0">
+                {% for class in input_vector %}
+                    <tr>
+                        <td rowspan="{{ input_vector[class] | length }}">{{ class }}</td>
+                        {% for result in input_vector[class] %}
+                            <td>{{ result['name'] }} with callsites at {{ result['xrefs'] }}{% if 'count' in result %}({{ result['count'] }}){% endif %}</td>
+                        </tr><tr>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </table>
+        {% else %}
+        <td class="result">
+            <ul>
+                {% for result in input_vector %}
+                    <li>{{result}}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+        </td>
+    </tr>
+    {% endif %}
+{% endfor %}
+
+{% endblock %}

@@ -5,12 +5,14 @@ from time import sleep
 
 import requests
 from flask import make_response, redirect, render_template, request
+
+from helperFunctions.database import ConnectTo
 from helperFunctions.dataConversion import remove_linebreaks_from_byte_string
 from helperFunctions.mongo_task_conversion import (
     check_for_errors, convert_analysis_task_to_fw_obj, create_analysis_task
 )
 from helperFunctions.pdf import build_pdf_report
-from helperFunctions.web_interface import ConnectTo, get_radare_endpoint
+from helperFunctions.web_interface import get_radare_endpoint
 from intercom.front_end_binding import InterComFrontEndBinding
 from storage.db_interface_compare import CompareDbInterface, FactCompareException
 from storage.db_interface_frontend import FrontEndDbInterface

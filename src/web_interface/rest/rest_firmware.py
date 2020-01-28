@@ -4,10 +4,13 @@ from base64 import standard_b64decode
 from flask import request
 from flask_restful import Resource
 
+from helperFunctions.database import ConnectTo
 from helperFunctions.mongo_task_conversion import convert_analysis_task_to_fw_obj
 from helperFunctions.object_conversion import create_meta_dict
-from helperFunctions.rest import get_paging, get_query, success_message, error_message, convert_rest_request, get_update, get_recursive, get_summary_flag
-from helperFunctions.web_interface import ConnectTo
+from helperFunctions.rest import (
+    convert_rest_request, error_message, get_paging, get_query, get_recursive, get_summary_flag, get_update,
+    success_message
+)
 from intercom.front_end_binding import InterComFrontEndBinding
 from objects.firmware import Firmware
 from storage.db_interface_frontend import FrontEndDbInterface
@@ -73,12 +76,11 @@ class RestFirmware(Resource):
 
             logging.debug('Upload Successful!')
             return success_message(result, self.URL, request_data=data)
-        else:
-            try:
-                update = get_update(request.args)
-            except ValueError as value_error:
-                return error_message(str(value_error), self.URL, request_data={'uid': uid})
-            return self._update_analysis(uid, update)
+        try:
+            update = get_update(request.args)
+        except ValueError as value_error:
+            return error_message(str(value_error), self.URL, request_data={'uid': uid})
+        return self._update_analysis(uid, update)
 
     def _process_data(self, data):
         for field in ['device_name', 'device_class', 'device_part', 'file_name', 'version', 'vendor', 'release_date',
@@ -92,7 +94,7 @@ class RestFirmware(Resource):
             intercom.add_analysis_task(firmware_object)
         data.pop('binary')
 
-        return dict(uid=firmware_object.get_uid())
+        return dict(uid=firmware_object.uid)
 
     @staticmethod
     def _fit_firmware(firmware):

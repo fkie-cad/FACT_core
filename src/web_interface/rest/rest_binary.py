@@ -2,9 +2,9 @@ from base64 import standard_b64encode
 
 from flask_restful import Resource, request
 
+from helperFunctions.database import ConnectTo
 from helperFunctions.hash import get_sha256
-from helperFunctions.rest import success_message, error_message, get_tar_flag
-from helperFunctions.web_interface import ConnectTo
+from helperFunctions.rest import error_message, get_tar_flag, success_message
 from intercom.front_end_binding import InterComFrontEndBinding
 from storage.db_interface_frontend import FrontEndDbInterface
 from web_interface.security.decorator import roles_accepted

@@ -4,7 +4,6 @@ import unittest
 from tempfile import TemporaryDirectory
 from unittest import mock
 
-from helperFunctions.config import get_config_for_testing
 from intercom.back_end_binding import (
     InterComBackEndAnalysisPlugInsPublisher, InterComBackEndAnalysisTask, InterComBackEndCompareTask,
     InterComBackEndRawDownloadTask, InterComBackEndReAnalyzeTask, InterComBackEndSingleFileTask,
@@ -13,7 +12,7 @@ from intercom.back_end_binding import (
 from intercom.front_end_binding import InterComFrontEndBinding
 from storage.fs_organizer import FS_Organizer
 from storage.MongoMgr import MongoMgr
-from test.common_helper import create_test_firmware
+from test.common_helper import create_test_firmware, get_config_for_testing
 
 
 class AnalysisServiceMock():
@@ -57,7 +56,7 @@ class TestInterComTaskCommunication(unittest.TestCase):
         test_fw.file_path = None
         self.frontend.add_analysis_task(test_fw)
         task = self.backend.get_next_task()
-        self.assertEqual(task.get_uid(), test_fw.get_uid(), 'uid not correct')
+        self.assertEqual(task.uid, test_fw.uid, 'uid not correct')
         self.assertIsNotNone(task.file_path, 'file_path not set')
         self.assertTrue(os.path.exists(task.file_path), 'file does not exist')
 
@@ -69,7 +68,7 @@ class TestInterComTaskCommunication(unittest.TestCase):
         self.frontend.add_single_file_task(test_fw)
         task = self.backend.get_next_task()
 
-        assert task.get_uid() == test_fw.get_uid(), 'uid not transported correctly'
+        assert task.uid == test_fw.uid, 'uid not transported correctly'
         assert task.scheduled_analysis
 
     def test_re_analyze_task(self):
@@ -83,7 +82,7 @@ class TestInterComTaskCommunication(unittest.TestCase):
         test_fw.binary = None
         self.frontend.add_re_analyze_task(test_fw)
         task = self.backend.get_next_task()
-        self.assertEqual(task.get_uid(), test_fw.get_uid(), 'uid not correct')
+        self.assertEqual(task.uid, test_fw.uid, 'uid not correct')
         self.assertIsNotNone(task.file_path, 'file path not set')
         self.assertEqual(task.file_path, original_file_path)
         self.assertIsNotNone(task.binary, 'binary not set')

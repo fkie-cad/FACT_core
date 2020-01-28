@@ -3,17 +3,16 @@ from multiprocessing import Event, Value
 from tempfile import TemporaryDirectory
 from unittest import TestCase, mock
 
+from helperFunctions.database import ConnectTo
 from helperFunctions.dataConversion import normalize_compare_id
-from helperFunctions.fileSystem import get_test_data_dir
-from helperFunctions.web_interface import ConnectTo
 from objects.firmware import Firmware
 from scheduler.Analysis import AnalysisScheduler
 from scheduler.Compare import CompareScheduler
 from scheduler.Unpacking import UnpackingScheduler
-from storage.MongoMgr import MongoMgr
 from storage.db_interface_backend import BackEndDbInterface
 from storage.db_interface_compare import CompareDbInterface
-from test.common_helper import clean_test_database, get_database_names
+from storage.MongoMgr import MongoMgr
+from test.common_helper import clean_test_database, get_database_names, get_test_data_dir
 from test.integration.common import MockFSOrganizer, initialize_config
 
 

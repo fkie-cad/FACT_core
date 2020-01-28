@@ -1,7 +1,8 @@
 import re
 from datetime import datetime
+from itertools import combinations
 from pickle import dumps
-from typing import List, Set
+from typing import KT, VT, Dict, List, Optional, Set
 
 
 def make_bytes(code):
@@ -18,13 +19,6 @@ def make_unicode_string(code):
     if isinstance(code, bytes):
         return code.decode(errors='replace')
     return code.__str__()
-
-
-def make_dict_from_list(list_object):
-    return {
-        str(i): item
-        for i, item in enumerate(list_object)
-    }
 
 
 def make_list_from_dict(dict_object):
@@ -61,12 +55,8 @@ def normalize_compare_id(compare_id: str) -> str:
     return convert_uid_list_to_compare_id(uids)
 
 
-def get_value_of_first_key(input_dict):
-    key_list = list(input_dict.keys())
-    key_list.sort()
-    if key_list:
-        return input_dict[key_list[0]]
-    return None
+def get_value_of_first_key(input_dict: Dict[KT, VT]) -> Optional[VT]:
+    return input_dict[sorted(input_dict.keys())[0]] if input_dict else None
 
 
 def none_to_none(input_data):
@@ -75,21 +65,16 @@ def none_to_none(input_data):
     return input_data
 
 
-def remove_included_sets_from_list_of_sets(list_of_sets):
+def remove_subsets_from_list_of_sets(list_of_sets: List[set]):
     sets_to_delete = []
-    for subset in list_of_sets:
-        for superset in list_of_sets:
-            if subset.issubset(superset) and not subset == superset:
-                sets_to_delete.append(subset)
+    for set1, set2 in combinations(list_of_sets, 2):
+        if set1.issubset(set2):
+            sets_to_delete.append(set1)
+        elif set2.issubset(set1):
+            sets_to_delete.append(set2)
     for subset in sets_to_delete:
         if subset in list_of_sets:
             list_of_sets.remove(subset)
-
-
-def remove_uneccessary_spaces(input_string):
-    tmp = input_string.split()
-    tmp = ' '.join(tmp)
-    return tmp
 
 
 def convert_str_to_time(string):

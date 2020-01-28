@@ -1,16 +1,16 @@
+# pylint: disable=invalid-name
 from base64 import b64encode
+from unittest import TestCase
 
 from flask import Flask
 from flask_restful import Api
-from unittest import TestCase
 
-from helperFunctions.config import get_config_for_testing
-from helperFunctions.web_interface import ConnectTo
-from test.common_helper import create_test_file_object, create_test_firmware
+from helperFunctions.database import ConnectTo
+from test.common_helper import create_test_file_object, create_test_firmware, get_config_for_testing
 from test.unit.web_interface.rest.conftest import decode_response
 
-from ..routes import routes
 from ..code.file_system_metadata import AnalysisPlugin
+from ..routes import routes
 
 
 class DbInterfaceMock:
@@ -19,10 +19,10 @@ class DbInterfaceMock:
         self.fw = create_test_firmware()
         self.fw.processed_analysis[AnalysisPlugin.NAME] = {'files': {b64_encode('some_file'): {'test_result': 'test_value'}}}
         self.fo = create_test_file_object()
-        self.fo.virtual_file_path['some_uid'] = ['some_uid|{}|/{}'.format(self.fw.get_uid(), 'some_file')]
+        self.fo.virtual_file_path['some_uid'] = ['some_uid|{}|/{}'.format(self.fw.uid, 'some_file')]
 
     def get_object(self, uid):
-        if uid == self.fw.get_uid():
+        if uid == self.fw.uid:
             return self.fw
         if uid == 'foo':
             return self.fo
@@ -30,6 +30,7 @@ class DbInterfaceMock:
             fo = create_test_file_object()
             fo.virtual_file_path = {'some_uid': ['a|b|c']}
             return fo
+        return None
 
     def shutdown(self):
         pass
@@ -48,7 +49,7 @@ class TestFileSystemMetadataRoutesStatic(TestCase):
         encoded_name = b64_encode(file_name)
 
         fw.processed_analysis[AnalysisPlugin.NAME] = {'files': {encoded_name: {'result': 'value'}}}
-        fo.virtual_file_path['some_uid'] = ['some_uid|{}|/{}'.format(fw.get_uid(), file_name)]
+        fo.virtual_file_path['some_uid'] = ['some_uid|{}|/{}'.format(fw.uid, file_name)]
 
         results = {}
         routes.FsMetadataRoutesDbInterface.get_results_from_parent_fos(fw, fo, results)
@@ -68,7 +69,7 @@ class TestFileSystemMetadataRoutesStatic(TestCase):
 
         vfp = fo.virtual_file_path['some_uid'] = []
         for f in file_names:
-            vfp.append('some_uid|{}|/{}'.format(fw.get_uid(), f))
+            vfp.append('some_uid|{}|/{}'.format(fw.uid, f))
 
         results = {}
         routes.FsMetadataRoutesDbInterface.get_results_from_parent_fos(fw, fo, results)
@@ -153,5 +154,5 @@ class TestFileSystemMetadataRoutesRest(TestCase):
         assert result[AnalysisPlugin.NAME] == {}
 
 
-def b64_encode(s):
-    return b64encode(s.encode()).decode()
+def b64_encode(string):
+    return b64encode(string.encode()).decode()

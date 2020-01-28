@@ -13,8 +13,8 @@ from common_helper_files import safe_rglob
 from common_helper_process import execute_shell_command
 
 from analysis.PluginBase import AnalysisBasePlugin
+from helperFunctions.database import ConnectTo
 from helperFunctions.tag import TagColor
-from helperFunctions.web_interface import ConnectTo
 from objects.file import FileObject
 from storage.db_interface_common import MongoInterfaceCommon
 

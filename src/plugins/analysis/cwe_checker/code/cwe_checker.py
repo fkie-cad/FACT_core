@@ -114,10 +114,10 @@ class AnalysisPlugin(AnalysisBasePlugin):
             cwe_messages = self._parse_bap_output(output)
             file_object.processed_analysis[self.NAME] = {'full': cwe_messages, 'summary': list(cwe_messages.keys())}
             if return_code in [124, 128 + 9]:
-                logging.warning('CWE-Checker timed out on {}. Warnings might not be complete.'.format(file_object.get_uid()))
+                logging.warning('CWE-Checker timed out on {}. Warnings might not be complete.'.format(file_object.uid))
                 file_object.processed_analysis[self.NAME]['warning'] = 'Analysis timed out. Warnings might not be complete.'
         else:
-            logging.error('Could not communicate with Bap plugin: {} ({})\nUID: {}'.format(return_code, output, file_object.get_uid()))
+            logging.error('Could not communicate with Bap plugin: {} ({})\nUID: {}'.format(return_code, output, file_object.uid))
             file_object.processed_analysis[self.NAME] = {'summary': []}
         return file_object
 

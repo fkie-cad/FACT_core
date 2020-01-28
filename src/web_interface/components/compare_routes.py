@@ -1,20 +1,16 @@
 import logging
 from contextlib import suppress
 
-from flask import (
-    redirect, render_template, render_template_string, request, session,
-    url_for
-)
+from flask import redirect, render_template, render_template_string, request, session, url_for
 from flask_paginate import Pagination
+
+from helperFunctions.database import ConnectTo
 from helperFunctions.dataConversion import (
-    convert_compare_id_to_list, convert_uid_list_to_compare_id,
-    normalize_compare_id
+    convert_compare_id_to_list, convert_uid_list_to_compare_id, normalize_compare_id
 )
-from helperFunctions.web_interface import ConnectTo, get_template_as_string
+from helperFunctions.web_interface import get_template_as_string
 from intercom.front_end_binding import InterComFrontEndBinding
-from storage.db_interface_compare import (
-    CompareDbInterface, FactCompareException
-)
+from storage.db_interface_compare import CompareDbInterface, FactCompareException
 from storage.db_interface_view_sync import ViewReader
 from web_interface.components.component_base import ComponentBase
 from web_interface.security.decorator import roles_accepted

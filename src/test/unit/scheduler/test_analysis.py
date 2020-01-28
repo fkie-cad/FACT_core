@@ -5,11 +5,10 @@ from multiprocessing import Queue
 from unittest import TestCase, mock
 
 import pytest
-from helperFunctions.config import get_config_for_testing
-from helperFunctions.fileSystem import get_test_data_dir
+
 from objects.firmware import Firmware
 from scheduler.Analysis import MANDATORY_PLUGINS, AnalysisScheduler
-from test.common_helper import DatabaseMock, MockFileObject, fake_exit
+from test.common_helper import DatabaseMock, MockFileObject, fake_exit, get_config_for_testing, get_test_data_dir
 from test.mock import mock_patch, mock_spy
 
 
@@ -17,9 +16,9 @@ class AnalysisSchedulerTest(TestCase):
 
     def setUp(self):
         self.mocked_interface = DatabaseMock()
-        self.enter_patch = mock.patch(target='helperFunctions.web_interface.ConnectTo.__enter__', new=lambda _: self.mocked_interface)
+        self.enter_patch = mock.patch(target='helperFunctions.database.ConnectTo.__enter__', new=lambda _: self.mocked_interface)
         self.enter_patch.start()
-        self.exit_patch = mock.patch(target='helperFunctions.web_interface.ConnectTo.__exit__', new=fake_exit)
+        self.exit_patch = mock.patch(target='helperFunctions.database.ConnectTo.__exit__', new=fake_exit)
         self.exit_patch.start()
 
         config = get_config_for_testing()

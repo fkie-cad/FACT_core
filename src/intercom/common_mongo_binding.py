@@ -1,6 +1,5 @@
 import logging
 import pickle
-import sys
 from time import time
 
 import gridfs
@@ -75,9 +74,9 @@ class InterComListener(InterComMongoInterface):
         '''
         optional additional setup
         '''
-        pass
+        pass  # pylint: disable=unnecessary-pass
 
-    def post_processing(self, task, task_id):
+    def post_processing(self, task, task_id):  # pylint: disable=no-self-use,unused-argument
         '''
         optional post processing of a task
         '''
@@ -99,7 +98,7 @@ class InterComListenerAndResponder(InterComListener):
         logging.debug('response send: {} -> {}'.format(self.OUTGOING_CONNECTION_TYPE, task_id))
         return task
 
-    def get_response(self, task):
+    def get_response(self, task):  # pylint: disable=no-self-use
         '''
         this function must be implemented by the sub_class
         '''

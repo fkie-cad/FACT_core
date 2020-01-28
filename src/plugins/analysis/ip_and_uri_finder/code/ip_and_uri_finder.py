@@ -41,7 +41,11 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
         self.ip_and_uri_finder = CommonAnalysisIPAndURIFinder()
 
-        self.reader = geoip2.database.Reader(str(GEOIP_DATABASE_PATH))
+        try:
+            self.reader = geoip2.database.Reader(str(GEOIP_DATABASE_PATH))
+        except FileNotFoundError:
+            logging.error('could not load GeoIP database')
+            self.reader = None
 
         super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__)
 
@@ -71,12 +75,12 @@ class AnalysisPlugin(AnalysisBasePlugin):
         response = self.reader.city(ip_address)
         return '{}, {}'.format(response.location.latitude, response.location.longitude)  # pylint: disable=no-member
 
-    def link_ips_with_geo_location(self, ip_adresses):
+    def link_ips_with_geo_location(self, ip_addresses):
         linked_ip_geo_list = []
-        for ip in ip_adresses:
+        for ip in ip_addresses:
             try:
                 ip_tuple = ip, self.find_geo_location(ip)
-            except (AddressNotFoundError, FileNotFoundError, ValueError, InvalidDatabaseError) as exception:
+            except (AttributeError, AddressNotFoundError, FileNotFoundError, ValueError, InvalidDatabaseError) as exception:
                 logging.debug('{} {}'.format(type(exception), str(exception)))
                 ip_tuple = ip, ''
             linked_ip_geo_list.append(ip_tuple)

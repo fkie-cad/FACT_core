@@ -3,9 +3,9 @@ from contextlib import suppress
 from flask import request
 from flask_restful import Resource
 
+from helperFunctions.database import ConnectTo
 from helperFunctions.dataConversion import normalize_compare_id
 from helperFunctions.rest import convert_rest_request, error_message, success_message
-from helperFunctions.web_interface import ConnectTo
 from intercom.front_end_binding import InterComFrontEndBinding
 from storage.db_interface_compare import CompareDbInterface, FactCompareException
 from web_interface.security.decorator import roles_accepted

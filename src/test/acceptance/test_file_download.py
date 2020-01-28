@@ -42,7 +42,7 @@ class TestAcceptanceDownloadFile(TestAcceptanceBase):
     def test_firmware_download(self):
         test_fw = create_test_firmware()
         test_fw.processed_analysis.pop('dummy')
-        test_fw.uid = test_fw.get_uid()
+        test_fw.uid = test_fw.uid
         self.db_backend.add_firmware(test_fw)
         self.assertIsNotNone(self.db_backend.firmwares.find_one(test_fw.uid))
 
