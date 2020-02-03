@@ -1,11 +1,12 @@
 import logging
 from hashlib import md5, new
+from typing import Dict, List, Set
 
 import lief
 import ssdeep
 import tlsh
 
-from helperFunctions.dataConversion import make_bytes
+from helperFunctions.dataConversion import make_bytes, remove_subsets_from_list_of_sets
 from helperFunctions.debug import suppress_stdout
 
 
@@ -45,12 +46,32 @@ def get_tlsh_comparison(first, second):
     return tlsh.diff(first, second)
 
 
-def check_similarity_of_sets(pair_of_sets, all_sets):
-    for first_item in pair_of_sets[0]:
-        for second_item in pair_of_sets[1]:
-            if first_item != second_item and {first_item, second_item} not in all_sets:
-                return False
-    return True
+def generate_similarity_sets(list_of_pairs: List[Set[str]]):
+    similarity_sets = find_transitive_combinations(generate_similarity_dict(list_of_pairs))
+    remove_subsets_from_list_of_sets(similarity_sets)
+    return similarity_sets
+
+
+def generate_similarity_dict(list_of_pairs: List[Set[str]]) -> Dict[str, Set[str]]:
+    '''
+    :param list_of_pairs: list of pairs of similar files
+    :return: dictionary with key file and value dictionary of all similar files
+    '''
+    similarity_dict = {}
+    for set_ in list_of_pairs:
+        for element in set_:
+            similarity_dict.setdefault(element, set()).update(set_)
+    return similarity_dict
+
+
+def find_transitive_combinations(similarity_dict: Dict[str, Set[str]]) -> List[Set[str]]:
+    similarity_sets = []
+    for key in similarity_dict:
+        referenced_sets = [similarity_dict[other_key] for other_key in similarity_dict[key] if key != other_key]
+        intersection = similarity_dict[key].intersection(*referenced_sets)
+        if intersection not in similarity_sets:
+            similarity_sets.append(intersection)
+    return similarity_sets
 
 
 def get_imphash(file_object):

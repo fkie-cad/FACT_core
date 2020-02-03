@@ -1,15 +1,13 @@
-from copy import deepcopy
+from itertools import combinations
+from typing import Dict, List, Set, Tuple
+
+import ssdeep
 
 from compare.PluginBase import CompareBasePlugin
-from helperFunctions.compare_sets import (
-    collapse_pair_of_sets, difference_of_lists, difference_of_sets, intersection_of_list_of_lists, make_pairs_of_sets,
-    remove_duplicates_from_list_of_lists
-)
-from helperFunctions.dataConversion import (
-    convert_uid_list_to_compare_id, list_of_lists_to_list_of_sets, list_of_sets_to_list_of_lists,
-    remove_subsets_from_list_of_sets
-)
-from helperFunctions.hash import check_similarity_of_sets, get_ssdeep_comparison
+from helperFunctions.compare_sets import iter_element_and_rest, remove_duplicates_from_unhashable
+from helperFunctions.dataConversion import convert_uid_list_to_compare_id, list_of_sets_to_list_of_lists
+from helperFunctions.hash import generate_similarity_sets
+from objects.file import FileObject
 
 
 class ComparePlugin(CompareBasePlugin):
@@ -36,29 +34,27 @@ class ComparePlugin(CompareBasePlugin):
                 compare_result[key]['collapse'] = False
 
         similar_files, similarity = self._get_similar_files(fo_list, compare_result['exclusive_files'])
-        compare_result['similar_files'] = self.beautify_similar_files(similar_files, fo_list, similarity)
+        compare_result['similar_files'] = self.combine_similarity_results(similar_files, fo_list, similarity)
 
         return compare_result
 
-    def _get_exclusive_files(self, fo_list):
+    def _get_exclusive_files(self, fo_list: List[FileObject]) -> Dict[str, List[str]]:
         result = {}
-        for i, current_element in enumerate(fo_list):
-            tmp_list = deepcopy(fo_list)
-            tmp_list.pop(i)
-            result[current_element.uid] = difference_of_lists(current_element.list_of_all_included_files, self._get_list_of_file_lists(tmp_list))
+        for current_element, other_elements in iter_element_and_rest(fo_list):
+            exclusive_files = set.difference(
+                set(current_element.list_of_all_included_files),
+                *self._get_included_file_sets(other_elements)
+            )
+            result[current_element.uid] = list(exclusive_files)
         return result
 
-    def _get_intersection_of_files(self, fo_list):
-        intersecting_files = intersection_of_list_of_lists(self._get_list_of_file_lists(fo_list))
-        result = {'all': intersecting_files}
-        return result
+    def _get_intersection_of_files(self, fo_list: List[FileObject]) -> Dict[str, List[str]]:
+        intersection_of_files = set.intersection(*self._get_included_file_sets(fo_list))
+        return {'all': list(intersection_of_files)}
 
     @staticmethod
-    def _get_list_of_file_lists(fo_list):
-        list_of_file_lists = []
-        for item in fo_list:
-            list_of_file_lists.append(item.list_of_all_included_files)
-        return list_of_file_lists
+    def _get_included_file_sets(fo_list: List[FileObject]) -> List[Set[str]]:
+        return [set(file_object.list_of_all_included_files) for file_object in fo_list]
 
     def _handle_partially_common_files(self, compare_result, fo_list):
         if len(fo_list) > 2:
@@ -71,71 +67,74 @@ class ComparePlugin(CompareBasePlugin):
     @staticmethod
     def _get_files_in_more_than_one_but_not_in_all(fo_list, result_dict):
         result = {}
-        for _, current_element in enumerate(fo_list):
-            result[current_element.uid] = list(difference_of_sets(
+        for current_element in fo_list:
+            result[current_element.uid] = list(set.difference(
                 set(current_element.list_of_all_included_files),
-                [result_dict['files_in_common']['all'], result_dict['exclusive_files'][current_element.uid]]
+                result_dict['files_in_common']['all'],
+                result_dict['exclusive_files'][current_element.uid]
             ))
         return result
 
     # ---- SSDEEP similarity ---- #
 
-    def _get_similar_files(self, fo_list, exclusive_files):
-        similars = list()
-        similarity = dict()
-        for index, _ in enumerate(fo_list):
-            tmp_list = deepcopy(fo_list)
-            parent_one = tmp_list.pop(index)
-            for parent_two in tmp_list:
-                for file_one in exclusive_files[parent_one.uid]:
-                    for item, value in self._find_similar_file_for(file=file_one, parent_id=parent_one.uid, potential_matches=parent_two):
-                        similars.append(item)
-                        similarity[convert_uid_list_to_compare_id(item)] = value
-        similarity_sets = self.produce_similarity_sets(remove_duplicates_from_list_of_lists(similars))
-        remove_subsets_from_list_of_sets(similarity_sets)
-        return remove_duplicates_from_list_of_lists(list_of_sets_to_list_of_lists(similarity_sets)), similarity
+    def _get_similar_files(self, fo_list: List[FileObject], exclusive_files: Dict[str, List[str]]) -> Tuple[List[list], dict]:
+        similar_files = []
+        similarity = {}
+        for parent_one, parent_two in combinations(fo_list, 2):
+            for file_one in exclusive_files[parent_one.uid]:
+                for similar_file_pair, value in self._find_similar_file_for(file_one, parent_one.uid, parent_two):
+                    similar_files.append(similar_file_pair)
+                    similarity[convert_uid_list_to_compare_id(similar_file_pair)] = value
+        similarity_sets = generate_similarity_sets(remove_duplicates_from_unhashable(similar_files))
+        return list_of_sets_to_list_of_lists(similarity_sets), similarity
 
-    def _find_similar_file_for(self, file, parent_id, potential_matches):
-        hash_one = self.database.get_ssdeep_hash(file)
+    def _find_similar_file_for(self, file_uid: str, parent_uid: str, comparison_fo: FileObject):
+        hash_one = self.database.get_ssdeep_hash(file_uid)
         if hash_one:
-            id1 = '{}:{}'.format(parent_id, file)
-            for potential_match in potential_matches.files_included:
-                id2 = '{}:{}'.format(potential_matches.uid, potential_match)
+            id1 = self._get_similar_file_id(file_uid, parent_uid)
+            for potential_match in comparison_fo.files_included:
+                id2 = self._get_similar_file_id(potential_match, comparison_fo.uid)
                 hash_two = self.database.get_ssdeep_hash(potential_match)
+                ssdeep_similarity = ssdeep.compare(hash_one, hash_two)
+                if hash_two and ssdeep_similarity > self.ssdeep_ignore_threshold:
+                    yield {id1, id2}, ssdeep_similarity
 
-                if hash_two and get_ssdeep_comparison(hash_one, hash_two) > self.ssdeep_ignore_threshold:
-                    yield [id1, id2], get_ssdeep_comparison(hash_one, hash_two)
-
-    @staticmethod
-    def produce_similarity_sets(list_of_lists):
-        list_of_sets = list_of_lists_to_list_of_sets(list_of_lists)
-        for pair_of_sets in make_pairs_of_sets(list_of_sets):
-            if check_similarity_of_sets(pair_of_sets, list_of_sets):
-                new = collapse_pair_of_sets(pair_of_sets)
-                list_of_sets.append(new)
-        return list_of_sets
-
-    def beautify_similar_files(self, similar_files, fo_list, similarity):
+    def combine_similarity_results(self, similar_files: List[List[str]], fo_list: List[FileObject], similarity: dict):
         result_dict = {}
-        for match in similar_files:
+        for group_of_similar_files in similar_files:
             match_dict = {fo.uid: None for fo in fo_list}
-            for file in match:
-                firm, sub = file.split(':')
-                match_dict[firm] = sub
-            if convert_uid_list_to_compare_id(match) in similarity.keys():
-                match_dict['similarity'] = similarity[convert_uid_list_to_compare_id(match)]
-            else:
-                match_dict['similarity'] = ''
-            result_dict[self._match_id(match)] = match_dict
+            for similar_file_id in group_of_similar_files:
+                parent_id, file_id = similar_file_id.split(':')
+                match_dict[parent_id] = file_id
+            match_dict['similarity'] = self._get_similarity_value(group_of_similar_files, similarity)
+            result_dict[self._get_similar_file_group_id(group_of_similar_files)] = match_dict
         return result_dict
 
     @staticmethod
-    def _match_id(match):
-        _id = ''
-        for file in match:
-            firm, sub = file.split(':')
-            _id += '{}{}'.format(firm[0:2], sub[0:2])
-        return _id
+    def _get_similarity_value(group_of_similar_files: List[str], similarity_dict: Dict[str, str]) -> str:
+        similarities_list = []
+        for id_tuple in combinations(group_of_similar_files, 2):
+            similar_file_pair_id = convert_uid_list_to_compare_id(id_tuple)
+            if similar_file_pair_id in similarity_dict:
+                similarities_list.append(similarity_dict[similar_file_pair_id])
+        if not similarities_list:
+            return ''
+        if len(similarities_list) == 1:
+            return similarities_list.pop()
+        similarities_list = [int(v) for v in similarities_list]
+        return '{} ‒ {}'.format(min(similarities_list), max(similarities_list))
+
+    @staticmethod
+    def _get_similar_file_id(file_uid: str, parent_uid: str) -> str:
+        return '{}:{}'.format(parent_uid, file_uid)
+
+    @staticmethod
+    def _get_similar_file_group_id(similar_file_group: List[str]) -> str:
+        group_id = ''
+        for similar_file_id in similar_file_group:
+            parent_uid, file_uid = similar_file_id.split(':')
+            group_id = '{}{}{}'.format(group_id, parent_uid[:2], file_uid[:2])
+        return group_id
 
     def _get_non_zero_common_files(self, files_in_all, not_in_all):
         non_zero_files = dict()
