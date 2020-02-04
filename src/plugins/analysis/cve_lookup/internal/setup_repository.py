@@ -148,7 +148,7 @@ def update_cve_summaries():
 
 
 def get_years_from_database():
-    return [element[0] for element in DATABASE.select_query(QUERIES['get_years_from_cve'])]
+    return [year for (year,) in DATABASE.select_query(QUERIES['get_years_from_cve'])]
 
 
 def import_cve(cve_extract_path: str, years: namedtuple):
@@ -210,11 +210,11 @@ def setup_argparser():
     )
     parser.add_argument(
         '--extraction_path', '-ex',
-        help='Path to which the files containing the CPE dictionary and CVE feeds should temporarily be stored.\nDefault: ./data_source/',
+        help='Path to which the files containing the CPE dictionary and CVE feeds should temporarily be stored.\n'
+             'Default: ./data_source/',
         type=str,
         default='./data_source/'
     )
-
     return parser.parse_args()
 
 
@@ -238,7 +238,9 @@ def main():
     years = Years(start_year=args.years[0], end_year=args.years[1])
 
     check_validity_of_arguments(specify=args.specify, years=years)
-    extraction_path = args.extraction_path if args.extraction_path.endswith('/') else args.extraction_path + '/'
+    extraction_path = args.extraction_path
+    if not extraction_path.endswith('/'):
+        extraction_path = '{}/'.format(extraction_path)
 
     if args.update:
         update_repository(extraction_path=extraction_path, specify=args.specify)
