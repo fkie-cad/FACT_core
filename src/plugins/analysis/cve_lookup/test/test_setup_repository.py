@@ -422,7 +422,7 @@ def test_update_cve_summaries():
 
 def test_get_years_from_database():
     sr.DATABASE = sr.DatabaseInterface(PATH_TO_TEST + 'test_update.db')
-    assert sr.get_years_from_database() == [2012, 2018]
+    assert sr.get_years_from_database() == [2018]
 
 
 def test_import_cve(monkeypatch):
