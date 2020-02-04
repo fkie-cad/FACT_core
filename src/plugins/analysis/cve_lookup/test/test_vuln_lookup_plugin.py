@@ -270,8 +270,9 @@ def test_process_object(stub_plugin):
 )
 def test_versions_match(cpe_version: str, cve_version: str, version_start_including: str, version_start_excluding: str,
                         version_end_including: str, version_end_excluding: str, expected_output: bool):
-    assert lookup.versions_match(cpe_version, cve_version, version_start_including, version_start_excluding,
-                                 version_end_including, version_end_excluding) == expected_output
+    cve_entry = lookup.CveDbEntry(None, None, None, cve_version, None, None, version_start_including,
+                                  version_start_excluding, version_end_including, version_end_excluding)
+    assert lookup.versions_match(cpe_version, cve_entry) == expected_output
 
 
 @pytest.mark.parametrize('version, version_start_including, version_start_excluding, version_end_including, version_end_excluding, expected_output', [
@@ -287,5 +288,6 @@ def test_versions_match(cpe_version: str, cve_version: str, version_start_includ
 ])
 def test_build_version_string(version: str, version_start_including: str, version_start_excluding: str,
                               version_end_including: str, version_end_excluding: str, expected_output: str):
-    assert lookup.build_version_string(version, version_start_including, version_start_excluding,
-                                       version_end_including, version_end_excluding) == expected_output
+    cve_entry = lookup.CveDbEntry(None, None, None, version, None, None, version_start_including,
+                                  version_start_excluding, version_end_including, version_end_excluding)
+    assert lookup.build_version_string(cve_entry) == expected_output

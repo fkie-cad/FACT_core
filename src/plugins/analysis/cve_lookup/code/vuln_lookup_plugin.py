@@ -6,7 +6,7 @@ from distutils.version import LooseVersion, StrictVersion
 from itertools import combinations
 from pathlib import Path
 from re import match
-from typing import Callable, List, Optional, Tuple
+from typing import Callable, List, NamedTuple, Optional, Tuple
 from warnings import warn
 
 from packaging.version import LegacyVersion, parse
@@ -25,6 +25,12 @@ except ImportError:
 MAX_TERM_SPREAD = 3  # a range in which the product term is allowed to come after the vendor term for it not to be a false positive
 MAX_LEVENSHTEIN_DISTANCE = 0
 PRODUCT = namedtuple('Product', ['vendor_name', 'product_name', 'version_number'])
+CveDbEntry = NamedTuple(
+    'CveDbEntry', [
+        ('cve_id', str), ('vendor', str), ('product_name', str), ('version', str), ('cvss_v2_score', str), ('cvss_v3_score', str),
+        ('version_start_including', str), ('version_start_excluding', str), ('version_end_including', str), ('version_end_excluding', str)
+    ]
+)
 MATCH_FOUND = 2
 
 
@@ -77,8 +83,7 @@ def lookup_vulnerabilities_in_database(product_name: str, requested_version: str
             return None
         cve_candidates = search_cve(db, matched_product)
         cve_candidates.update(search_cve_summary(db, matched_product))
-
-        return cve_candidates
+    return cve_candidates
 
 
 def generate_search_terms(product_name: str) -> List[str]:
@@ -123,46 +128,51 @@ def get_closest_matches(target_values: list, search_word: str) -> list:
     return [target_values[search_word_index - 1]]
 
 
-def build_version_string(version: str, version_start_including: str, version_start_excluding: str,
-                         version_end_including: str, version_end_excluding: str) -> str:
-    if not any([version_start_including, version_start_excluding, version_end_including, version_end_excluding]):
-        return version
+def build_version_string(cve_entry: CveDbEntry) -> str:
+    if not any([cve_entry.version_start_including, cve_entry.version_start_excluding,
+                cve_entry.version_end_including, cve_entry.version_end_excluding]):
+        return unescape(cve_entry.version)
     result = 'version'
-    if version_start_including:
-        result = '{} ≤ {}'.format(version_start_including, result)
-    elif version_start_excluding:
-        result = '{} < {}'.format(version_start_excluding, result)
-    if version_end_including:
-        result = '{} ≤ {}'.format(result, version_end_including)
-    elif version_end_excluding:
-        result = '{} < {}'.format(result, version_end_excluding)
+    if cve_entry.version_start_including:
+        result = '{} ≤ {}'.format(cve_entry.version_start_including, result)
+    elif cve_entry.version_start_excluding:
+        result = '{} < {}'.format(cve_entry.version_start_excluding, result)
+    if cve_entry.version_end_including:
+        result = '{} ≤ {}'.format(result, cve_entry.version_end_including)
+    elif cve_entry.version_end_excluding:
+        result = '{} < {}'.format(result, cve_entry.version_end_excluding)
     return result
 
 
 def search_cve(db: DatabaseInterface, product: PRODUCT) -> dict:
-    return {
-        cve_id: {
-            'score2': cvss_v2_score, 'score3': cvss_v3_score,
-            'cpe_version': build_version_string(unescape(version), version_start_including, version_start_excluding,
-                                                version_end_including, version_end_excluding)
-        }
-        for cve_id, vendor, product_name, version, cvss_v2_score, cvss_v3_score, version_start_including,
-        version_start_excluding, version_end_including, version_end_excluding in db.select_query(QUERIES['cve_lookup'])
-        if terms_match(product.vendor_name, vendor)
-        and terms_match(product.product_name, product_name)
-        and versions_match(unescape(product.version_number), unescape(version), version_start_including,
-                           version_start_excluding, version_end_including, version_end_excluding)
-    }
+    result = {}
+    for query_result in db.select_query(QUERIES['cve_lookup']):
+        cve_entry = CveDbEntry(*query_result)
+        if _product_matches_cve(product, cve_entry):
+            result[cve_entry.cve_id] = {
+                'score2': cve_entry.cvss_v2_score,
+                'score3': cve_entry.cvss_v3_score,
+                'cpe_version': build_version_string(cve_entry)
+            }
+    return result
 
 
-def versions_match(cpe_version: str, cve_version: str, version_start_including: str, version_start_excluding: str,
-                   version_end_including: str, version_end_excluding: str) -> bool:
+def _product_matches_cve(product, cve_entry):
+    return (
+        terms_match(product.vendor_name, cve_entry.vendor)
+        and terms_match(product.product_name, cve_entry.product_name)
+        and versions_match(unescape(product.version_number), cve_entry)
+    )
+
+
+def versions_match(cpe_version: str, cve_entry: CveDbEntry) -> bool:
     for version_boundary, operator_ in [
-            (version_start_including, operator.le), (version_start_excluding, operator.lt),
-            (version_end_including, operator.ge), (version_end_excluding, operator.gt)
+            (cve_entry.version_start_including, operator.le), (cve_entry.version_start_excluding, operator.lt),
+            (cve_entry.version_end_including, operator.ge), (cve_entry.version_end_excluding, operator.gt)
     ]:
         if version_boundary and not compare_version(version_boundary, cpe_version, operator_):
             return False
+    cve_version = unescape(cve_entry.version)
     if cve_version not in ['ANY', 'N/A'] and not compare_version(cve_version, cpe_version, operator.eq):
         return False
     return True

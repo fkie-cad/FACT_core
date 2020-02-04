@@ -165,7 +165,7 @@ def import_cve(cve_extract_path: str, years: namedtuple):
         init_cve_summaries_table(summary_list=summary_list, table_name='summary_table')
 
 
-def set_repository(extraction_path: str, specify: int, years: namedtuple):
+def init_repository(extraction_path: str, specify: int, years: namedtuple):
     if specify == 0:
         import_cpe(cpe_extract_path=extraction_path)
         import_cve(cve_extract_path=extraction_path, years=years)
@@ -245,7 +245,7 @@ def main():
     if args.update:
         update_repository(extraction_path=extraction_path, specify=args.specify)
     else:
-        set_repository(extraction_path=extraction_path, specify=args.specify, years=years)
+        init_repository(extraction_path=extraction_path, specify=args.specify, years=years)
 
     rmtree(extraction_path)
 

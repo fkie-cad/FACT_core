@@ -1,5 +1,6 @@
 import sys
 from collections import namedtuple
+from contextlib import suppress
 from os import remove
 from pathlib import Path
 
@@ -20,9 +21,6 @@ except ImportError:
 PATH_TO_TEST = str(Path(__file__).parent.parent) + '/test/'
 YEARTUPLE = namedtuple('years', 'start_year end_year')
 YEARS = YEARTUPLE(2016, 2019)
-
-DATABASE_YEARS_INPUT = [2015, 2016, 2017]
-OVERLAP_OUTPUT = [2018, 2019]
 
 EXISTS_INPUT = [[''], []]
 EXISTS_OUTPUT = [True, False]
@@ -209,14 +207,12 @@ EXPECTED_GET_CVE_SUMMARY_UPDATE_CONTENT = [
 
 @pytest.fixture(scope='session', autouse=True)
 def setup():
-    try:
+    with suppress(OSError):
         remove('cve_cpe.db')
-    except OSError:
-        pass
     cpe_base = dp.setup_cpe_table(dp.extract_cpe(PATH_TO_TEST + EXTRACT_CPE_XML))
     cve_base, summary_base = dp.extract_cve(PATH_TO_TEST + EXTRACT_CVE_JSON)
-    cve_base, summary_base = dp.setup_cve_feeds_table(cve_list=cve_base), dp.setup_cve_summary_table(
-        summary_list=summary_base)
+    cve_base = dp.setup_cve_feeds_table(cve_list=cve_base)
+    summary_base = dp.setup_cve_summary_table(summary_list=summary_base)
 
     with DatabaseInterface(PATH_TO_TEST + 'test_update.db') as db:
         db.table_manager(query=QUERIES['create_cpe_table'].format('cpe_table'))
@@ -228,18 +224,14 @@ def setup():
 
         db.table_manager(query=QUERIES['test_create_update'].format('outdated'))
         db.table_manager(query=QUERIES['test_create_update'].format('new'))
-        db.insert_rows(query=QUERIES['test_insert_cve_id'].format('outdated'),
-                       input_data=[('CVE-2018-0001', 2018), ('CVE-2018-0002', 2018)])
-        db.insert_rows(query=QUERIES['test_insert_cve_id'].format('new'),
-                       input_data=[('CVE-2018-0002', 2018), ('CVE-2018-0003', 2018)])
+        db.insert_rows(query=QUERIES['test_insert_cve_id'].format('outdated'), input_data=[('CVE-2018-0001', 2018), ('CVE-2018-0002', 2018)])
+        db.insert_rows(query=QUERIES['test_insert_cve_id'].format('new'), input_data=[('CVE-2018-0002', 2018), ('CVE-2018-0003', 2018)])
 
     yield None
-    try:
+    with suppress(OSError):
         remove(PATH_TO_TEST + 'test_update.db')
         remove(PATH_TO_TEST + 'test_import.db')
         remove(PATH_TO_TEST + 'test_output.db')
-    except OSError:
-        pass
 
 
 @pytest.fixture(scope='function', autouse=True)
@@ -252,7 +244,7 @@ def patch_download(monkeypatch):
 
 
 def test_overlap():
-    assert OVERLAP_OUTPUT == sr.overlap(requested_years=YEARS, years_in_cve_database=DATABASE_YEARS_INPUT)
+    assert sr.overlap(requested_years=YEARS, years_in_cve_database=[2015, 2016, 2017]) == [2018, 2019]
 
 
 def test_exists(monkeypatch):
@@ -446,7 +438,7 @@ def test_set_repository(monkeypatch, path, specify, years, expected):
     with monkeypatch.context() as monkey:
         monkey.setattr(sr, 'import_cpe', lambda *_, **__: output.append('cpe'))
         monkey.setattr(sr, 'import_cve', lambda *_, **__: output.append('cve'))
-        sr.set_repository(extraction_path=path, specify=specify, years=years)
+        sr.init_repository(extraction_path=path, specify=specify, years=years)
         assert output == expected
 
 
