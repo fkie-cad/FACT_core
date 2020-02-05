@@ -5,7 +5,7 @@ import pytest
 from helperFunctions.dataConversion import (
     _fill_in_time_gaps, build_time_dict, convert_compare_id_to_list, convert_time_to_str, get_value_of_first_key,
     list_of_lists_to_list_of_sets, list_of_sets_to_list_of_lists, make_bytes, make_list_from_dict, make_unicode_string,
-    none_to_none, normalize_compare_id, remove_included_sets_from_list_of_sets
+    none_to_none, normalize_compare_id, remove_subsets_from_list_of_sets
 )
 
 
@@ -83,9 +83,9 @@ def test_get_value_of_first_key(input_data, expected):
     assert get_value_of_first_key(input_data) == expected
 
 
-def test_remove_included_sets_from_list_of_sets():
+def test_remove_subsets_from_list_of_sets():
     test_sets = [{0, 1}, {0, 3}, {0, 2}, {0, 1, 2}, {1, 2, 3}, {1, 2}]
-    remove_included_sets_from_list_of_sets(test_sets)
+    remove_subsets_from_list_of_sets(test_sets)
     assert {0, 3} in test_sets, 'subset removal deletes wrong sets'
     assert {0, 1} not in test_sets, 'subset removal omits sets'
     assert {1, 2} not in test_sets, 'subset removal omits duplicate subsets'

@@ -11,7 +11,7 @@
     ("version", firmware.version, "", ""),
     ("release date", firmware.release_date, "", ""),
     ("file name", firmware.file_name, "word-break: break-all; word-wrap: break-word;", ""),
-    ("virtual_path", firmware.get_virtual_paths_for_one_uid(root_uid=root_uid)|nice_list|replace_uid_with_hid|safe, "word-break: break-all; overflow-wrap: break-word;", ""),
+    ("virtual_path", firmware.get_virtual_paths_for_one_uid(root_uid=root_uid)|nice_virtual_path_list|nice_list|safe, "word-break: break-all; overflow-wrap: break-word;", ""),
     ("file size", firmware.size|number_format(verbose=True), "", ""),
     ("MD5", firmware.md5, "word-break: break-all;", ""),
     ("SHA256", firmware.sha256, "word-break: break-all;", ""),

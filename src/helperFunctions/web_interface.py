@@ -1,11 +1,13 @@
 import json
 import os
 import re
+from typing import List
 
 from common_helper_files import get_binary_from_file
 from passlib.context import CryptContext
 
 from helperFunctions.fileSystem import get_template_dir
+from helperFunctions.uid import is_uid
 
 SPECIAL_CHARACTERS = 'ÄäÀàÁáÂâÃãÅåǍǎĄąĂăÆæĀāÇçĆćĈĉČčĎđĐďðÈèÉéÊêËëĚěĘęĖėĒēĜĝĢģĞğĤĥÌìÍíÎîÏïıĪīĮįĴĵĶķĹĺĻļŁłĽľÑñŃńŇňŅņÖöÒòÓóÔôÕõŐőØøŒœŔŕŘřẞßŚśŜŝŞşŠšȘș' \
                      'ŤťŢţÞþȚțÜüÙùÚúÛûŰűŨũŲųŮůŪūŴŵÝýŸÿŶŷŹźŽžŻż'
@@ -65,3 +67,14 @@ def password_is_legal(pw: str) -> bool:
     schemes = ['bcrypt', 'des_crypt', 'pbkdf2_sha256', 'pbkdf2_sha512', 'sha256_crypt', 'sha512_crypt', 'plaintext']
     ctx = CryptContext(schemes=schemes)
     return ctx.identify(pw) == 'plaintext'
+
+
+def virtual_path_element_to_span(hid_element: str, uid_element, root_uid) -> str:
+    if is_uid(uid_element):
+        return ('<span class="label label-primary"><a style="color: #fff" href="/analysis/{uid}/ro/{root_uid}">'
+                '{hid}</a></span>'.format(uid=uid_element, root_uid=root_uid, hid=hid_element))
+    return '<span class="label label-default">{}</span>'.format(hid_element)
+
+
+def split_virtual_path(virtual_path: str) -> List[str]:
+    return [element for element in virtual_path.split('|') if element]
