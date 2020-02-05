@@ -18,8 +18,10 @@ nose2-junit.xml
 src/bin
 src/bootstrap/doc
 src/bootstrap/man
+src/install/compose-env/
 src/log
 src/plugins/*/*/bin
+src/plugins/analysis/crypto_hints/signatures/crypto_signatures.yar 
 src/plugins/analysis/qemu_exec/**/lib
 src/test_unittests/data/arch_detection/
 src/web_interface/static/Chart.js
@@ -41,4 +43,3 @@ start_faf_db
 start_faf_frontend
 update_statistic.cron
 wget-lo*
-src/install/compose-env/
