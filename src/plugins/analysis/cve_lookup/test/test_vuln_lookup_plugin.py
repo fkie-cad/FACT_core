@@ -24,9 +24,9 @@ lookup.MAX_LEVENSHTEIN_DISTANCE = 3
 USER_INPUT = {'vendor': 'Microsoft', 'product': 'Windows 7', 'version': '1.2.5'}
 
 MATCHED_CPE = [
-    lookup.PRODUCT('microsoft', 'windows_8', '1\\.2\\.5'),
-    lookup.PRODUCT('microsoft', 'windows_7', '1\\.3\\.1'),
-    lookup.PRODUCT('mircosof', 'windows_7', '0\\.7')
+    lookup.Product('microsoft', 'windows_8', '1\\.2\\.5'),
+    lookup.Product('microsoft', 'windows_7', '1\\.3\\.1'),
+    lookup.Product('mircosof', 'windows_7', '0\\.7')
 ]
 MATCHED_CVE = ['CVE-1234-0010', 'CVE-1234-0011']
 CPE_CVE_OUTPUT = [
@@ -58,7 +58,7 @@ CPE_DATABASE_OUTPUT = [('microsoft', 'server_2013', '2013'),
 
 SUMMARY_INPUT = ''
 
-SORT_CPE_MATCHES_OUTPUT = lookup.PRODUCT('microsoft', 'windows_8', '1\\.2\\.5')
+SORT_CPE_MATCHES_OUTPUT = lookup.Product('microsoft', 'windows_8', '1\\.2\\.5')
 
 SOFTWARE_COMPONENTS_ANALYSIS_RESULT = {
     'dnsmasq': {
@@ -122,7 +122,7 @@ def test_get_version_index(version, index, expected):
 
 
 @pytest.mark.parametrize('target_values, expected', [
-    ([lookup.PRODUCT('abc', 'def', '1\\.2\\.3'), lookup.PRODUCT('abc', 'def', '4\\.5\\.6')], ['1\\.2\\.3', '4\\.5\\.6'])
+    ([lookup.Product('abc', 'def', '1\\.2\\.3'), lookup.Product('abc', 'def', '4\\.5\\.6')], ['1\\.2\\.3', '4\\.5\\.6'])
 ])
 def test_get_version_numbers(target_values, expected):
     assert lookup.get_version_numbers(target_values=target_values) == expected
@@ -156,8 +156,8 @@ def test_terms_match(term, expected_output):
     (['abcde', 'ghkl'], ['abcdef', 'ghijkl'], True),
     (['abcde', 'ghkl'], ['abcdef', 'ghijklmnop'], False)
 ])
-def test_word_is_in_wordlist(word_list, remaining_words, expected_output):
-    assert lookup.word_is_in_wordlist(word_list, remaining_words) == expected_output
+def test_word_is_in_word_list(word_list, remaining_words, expected_output):
+    assert lookup.word_sequence_is_in_word_list(word_list, remaining_words) == expected_output
 
 
 @pytest.mark.parametrize('word_list, remaining_words, expected_output', [
@@ -169,16 +169,16 @@ def test_remaining_words_present(word_list, remaining_words, expected_output):
 
 
 @pytest.mark.parametrize('word_list, expected_output', [
-    (['bla', 'bla', 'microsoft', 'windows', '8', 'bla'], True),
-    (['bla', 'bla', 'microsoft', 'windows'], False),
-    (['bla', 'bla', 'mirosoft', 'windos', '7', 'bla'], True),
-    (['bla', 'bla', 'microsoft', 'corporation', 'windows', '8', 'bla'], True),
-    (['bla', 'bla', 'microsoft', 'corporation', 'corp', 'inc', 'windows', '8', 'bla'], False),
-    (['bla', 'bla', 'microsoft', 'windows', '8'], True),
-    (['bla', 'bla', 'microsoft', 'windows', 'home', '8', 'bla'], False),
+    ('bla bla microsoft windows 8 bla', True),
+    ('bla bla microsoft windows', False),
+    ('bla bla mirosoft windos 7 bla', True),
+    ('bla bla microsoft corporation windows 8 bla', True),
+    ('bla bla microsoft corporation corp inc windows 8 bla', False),
+    ('bla bla microsoft windows 8', True),
+    ('bla bla microsoft windows home 8 bla', False),
 ])
-def test_product_is_in_wordlist(word_list, expected_output):
-    assert lookup.product_is_in_wordlist(SORT_CPE_MATCHES_OUTPUT, word_list) == expected_output
+def test_product_is_mentioned(word_list, expected_output):
+    assert lookup.product_is_mentioned_in_summary(SORT_CPE_MATCHES_OUTPUT, word_list) == expected_output
 
 
 def test_match_cpe(monkeypatch):

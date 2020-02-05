@@ -24,7 +24,7 @@ except ImportError:
 
 MAX_TERM_SPREAD = 3  # a range in which the product term is allowed to come after the vendor term for it not to be a false positive
 MAX_LEVENSHTEIN_DISTANCE = 0
-PRODUCT = namedtuple('Product', ['vendor_name', 'product_name', 'version_number'])
+Product = NamedTuple('Product', [('vendor_name', str), ('product_name', str), ('version_number', str)])
 CveDbEntry = NamedTuple(
     'CveDbEntry', [
         ('cve_id', str), ('vendor', str), ('product_name', str), ('version', str), ('cvss_v2_score', str), ('cvss_v3_score', str),
@@ -92,7 +92,7 @@ def generate_search_terms(product_name: str) -> List[str]:
     return [term for term in product_terms if len(term) > 1 and not term.isdigit()]
 
 
-def find_matching_cpe_product(cpe_matches: List[PRODUCT], requested_version: str) -> PRODUCT:
+def find_matching_cpe_product(cpe_matches: List[Product], requested_version: str) -> Product:
     if requested_version.isdigit() or is_valid_dotted_version(requested_version):
         version_numbers = get_version_numbers(cpe_matches)
         if requested_version in version_numbers:
@@ -111,7 +111,7 @@ def is_valid_dotted_version(version: str) -> bool:
     return bool(match(r'^[a-zA-Z0-9\-]+(\\\.[a-zA-Z0-9\-]+)+$', version))
 
 
-def get_version_numbers(target_values: List[PRODUCT]) -> List[str]:
+def get_version_numbers(target_values: List[Product]) -> List[str]:
     return [t.version_number for t in target_values]
 
 
@@ -144,7 +144,7 @@ def build_version_string(cve_entry: CveDbEntry) -> str:
     return result
 
 
-def search_cve(db: DatabaseInterface, product: PRODUCT) -> dict:
+def search_cve(db: DatabaseInterface, product: Product) -> dict:
     result = {}
     for query_result in db.select_query(QUERIES['cve_lookup']):
         cve_entry = CveDbEntry(*query_result)
@@ -167,8 +167,10 @@ def _product_matches_cve(product, cve_entry):
 
 def versions_match(cpe_version: str, cve_entry: CveDbEntry) -> bool:
     for version_boundary, operator_ in [
-            (cve_entry.version_start_including, operator.le), (cve_entry.version_start_excluding, operator.lt),
-            (cve_entry.version_end_including, operator.ge), (cve_entry.version_end_excluding, operator.gt)
+            (cve_entry.version_start_including, operator.le),
+            (cve_entry.version_start_excluding, operator.lt),
+            (cve_entry.version_end_including, operator.ge),
+            (cve_entry.version_end_excluding, operator.gt)
     ]:
         if version_boundary and not compare_version(version_boundary, cpe_version, operator_):
             return False
@@ -180,15 +182,12 @@ def versions_match(cpe_version: str, cve_entry: CveDbEntry) -> bool:
 
 def compare_version(version1: str, version2: str, comp_operator: Callable) -> bool:
     try:
-        if not comp_operator(StrictVersion(version1), StrictVersion(version2)):
-            return False
+        return comp_operator(StrictVersion(version1), StrictVersion(version2))
     except ValueError:
         try:
-            if not comp_operator(LooseVersion(version1), LooseVersion(version2)):
-                return False
+            return comp_operator(LooseVersion(version1), LooseVersion(version2))
         except TypeError:
             return False
-    return True
 
 
 def get_version_index(version: str, index: int) -> str:
@@ -199,41 +198,41 @@ def search_cve_summary(db: DatabaseInterface, product: namedtuple) -> dict:
     return {
         cve_id: {'score2': cvss_v2_score, 'score3': cvss_v3_score}
         for cve_id, summary, cvss_v2_score, cvss_v3_score in db.select_query(QUERIES['summary_lookup'])
-        if product_is_in_wordlist(product, summary.split(' '))
+        if product_is_mentioned_in_summary(product, summary)
     }
 
 
-def product_is_in_wordlist(product: PRODUCT, wordlist: List[str]) -> bool:
+def product_is_mentioned_in_summary(product: Product, summary: str) -> bool:
+    word_list = summary.split(' ')
     vendor = product.vendor_name.split('_')[0]
-    product_name = product.product_name.split('_')
+    name_components = product.product_name.split('_')
 
-    for index, word in enumerate(wordlist):
-        word = word.lower()
-        if terms_match(vendor, word) and word_is_in_wordlist(wordlist[index + 1:], product_name):
+    for index, word in enumerate(word_list):
+        if terms_match(vendor, word.lower()) and word_sequence_is_in_word_list(word_list[index + 1:], name_components):
             return True
 
     return False
 
 
-def word_is_in_wordlist(wordlist: List[str], words: List[str]) -> bool:
-    if len(wordlist) < len(words):
+def word_sequence_is_in_word_list(word_list: List[str], word_sequence: List[str]) -> bool:
+    if len(word_list) < len(word_sequence):
         return False
-    for index in range(min(MAX_TERM_SPREAD, len(wordlist) + 1 - len(words))):
-        if terms_match(wordlist[index], words[0]):
-            return remaining_words_present(wordlist[index + 1:], words[1:])
+    for index in range(min(MAX_TERM_SPREAD, len(word_list) + 1 - len(word_sequence))):
+        if terms_match(word_list[index], word_sequence[0]):
+            return remaining_words_present(word_list[index + 1:], word_sequence[1:])
     return False
 
 
-def remaining_words_present(wordlist: List[str], words: List[str]) -> bool:
-    for index, term in enumerate(words):
-        if not terms_match(term, wordlist[index]):
+def remaining_words_present(word_list: List[str], words: List[str]) -> bool:
+    for word1, word2 in zip(word_list[:len(words)], words):
+        if not terms_match(word1, word2):
             return False
     return True
 
 
-def match_cpe(db: DatabaseInterface, product_search_terms: list) -> List[PRODUCT]:
+def match_cpe(db: DatabaseInterface, product_search_terms: list) -> List[Product]:
     return list({
-        PRODUCT(vendor, product, version)
+        Product(vendor, product, version)
         for vendor, product, version in db.select_query(QUERIES['cpe_lookup'])
         for product_term in product_search_terms
         if terms_match(product_term, product)
