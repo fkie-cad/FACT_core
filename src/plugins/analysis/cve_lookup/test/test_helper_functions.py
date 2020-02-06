@@ -4,10 +4,17 @@ from pathlib import Path
 import pytest
 
 try:
-    from internal.helper_functions import unbind, escape_special_characters
+    from ..internal.helper_functions import (
+        replace_special_characters_and_wildcards, escape_special_characters, get_field_string, get_field_names
+    )
 except ImportError:
     sys.path.append(str(Path(__file__).parent.parent / 'internal'))
-    from helper_functions import unbind, escape_special_characters
+    from helper_functions import (
+        replace_special_characters_and_wildcards, escape_special_characters, get_field_string, get_field_names
+    )
+
+
+DB_FIELDS = [('cpe_id', 'TEXT'), ('year', 'INTEGER'), ('vendor', 'TEXT')]
 
 
 def test_analyse_attribute():
@@ -21,5 +28,13 @@ def test_analyse_attribute():
     ),
     (['10.2.4'], ['10\\.2\\.4'])
 ])
-def test_unbind(bound_string, unbound_string):
-    assert unbind(bound_string) == unbound_string
+def test_replace_characters(bound_string, unbound_string):
+    assert replace_special_characters_and_wildcards(bound_string) == unbound_string
+
+
+def test_get_field_string():
+    assert get_field_string(DB_FIELDS) == 'cpe_id TEXT NOT NULL, year INTEGER NOT NULL, vendor TEXT NOT NULL'
+
+
+def test_get_field_names():
+    assert get_field_names(DB_FIELDS) == 'cpe_id, year, vendor'

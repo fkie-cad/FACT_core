@@ -7,18 +7,18 @@ CveSummaryEntry = NamedTuple('CveSummaryEntry', [('cve_id', str), ('summary', st
 
 def escape_special_characters(attribute: str) -> str:
     # a counter is incremented every time an escape character is added because it alters the string length
-    counter = 0
+    index_shift = 0
     for characters in finditer(r'[^.]((?<!\\)[*?])[^.]|((?<!\\)[^a-zA-Z0-9\s?*_\\])', attribute):
         group = 2 if characters.span(1)[0] == -1 else 1
-        start = characters.span(group)[0] + counter
+        start = characters.span(group)[0] + index_shift
         if start:
-            attribute = attribute[:start] + '\\' + attribute[start:]
-            counter += 1
+            attribute = '{}{}{}'.format(attribute[:start], '\\', attribute[start:])
+            index_shift += 1
 
     return attribute
 
 
-def unbind(attributes: List[str]) -> List[str]:
+def replace_characters_and_wildcards(attributes: List[str]) -> List[str]:
     for index, attribute in enumerate(attributes):
         if attribute == '*':
             attributes[index] = 'ANY'

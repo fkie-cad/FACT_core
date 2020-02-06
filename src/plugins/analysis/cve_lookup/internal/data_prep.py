@@ -12,10 +12,10 @@ from zipfile import ZipFile
 import requests
 
 try:
-    from ..internal.helper_functions import unbind, CveEntry, CveSummaryEntry
+    from ..internal.helper_functions import replace_characters_and_wildcards, CveEntry, CveSummaryEntry
 except (ImportError, SystemError):
     sys.path.append(str(Path(__file__).parent.parent / 'internal'))
-    from helper_functions import unbind, CveEntry, CveSummaryEntry
+    from helper_functions import replace_characters_and_wildcards, CveEntry, CveSummaryEntry
 
 CPE_FILE = 'official-cpe-dictionary_v2.3.xml'
 CPE_URL = 'https://nvd.nist.gov/feeds/xml/cpe/dictionary/{}.zip'.format(CPE_FILE)
@@ -135,7 +135,7 @@ def setup_cve_feeds_table(cve_list: List[CveEntry]) -> List[Tuple[str, ...]]:
             year = entry.cve_id.split('-')[1]
             score_v2 = entry.impact.get('cvssV2', 'N/A')
             score_v3 = entry.impact.get('cvssV3', 'N/A')
-            cpe_elements = unbind(re.split(SPLIT_REGEX, cpe_id)[2:])
+            cpe_elements = replace_characters_and_wildcards(re.split(SPLIT_REGEX, cpe_id)[2:])
             row = (
                 entry.cve_id, year, cpe_id, score_v2, score_v3, *cpe_elements,
                 version_start_including, version_start_excluding, version_end_including, version_end_excluding
@@ -157,7 +157,7 @@ def setup_cve_summary_table(summary_list: List[CveSummaryEntry]) -> List[Tuple[s
 def setup_cpe_table(cpe_list: list) -> list:
     cpe_table = []
     for cpe in cpe_list:
-        row = unbind(re.split(SPLIT_REGEX, cpe)[2:])
+        row = replace_characters_and_wildcards(re.split(SPLIT_REGEX, cpe)[2:])
         row.insert(0, cpe)
         cpe_table.append(tuple(row))
     return cpe_table

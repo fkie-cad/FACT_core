@@ -15,11 +15,11 @@ from analysis.PluginBase import AnalysisBasePlugin
 
 try:
     from ..internal.database_interface import DatabaseInterface, QUERIES
-    from ..internal.helper_functions import unbind, unescape
+    from ..internal.helper_functions import replace_characters_and_wildcards, unescape
 except ImportError:
     sys.path.append(str(Path(__file__).parent.parent / 'internal'))
     from database_interface import DatabaseInterface, QUERIES
-    from helper_functions import unbind, unescape
+    from helper_functions import replace_characters_and_wildcards, unescape
 
 MAX_TERM_SPREAD = 3  # a range in which the product term is allowed to come after the vendor term for it not to be a false positive
 MAX_LEVENSHTEIN_DISTANCE = 0
@@ -51,7 +51,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         for component in file_object.processed_analysis['software_components']['summary']:
             product, version = self._split_component(component)
             if product and version:
-                vulnerabilities = lookup_vulnerabilities_in_database(product_name=product, requested_version=version)
+                vulnerabilities = look_up_vulnerabilities(product_name=product, requested_version=version)
                 if vulnerabilities:
                     cves['cve_results'][component] = vulnerabilities
 
@@ -68,9 +68,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return ''.join(component_parts[:-1]), component_parts[-1]
 
 
-def lookup_vulnerabilities_in_database(product_name: str, requested_version: str) -> Optional[dict]:
+def look_up_vulnerabilities(product_name: str, requested_version: str) -> Optional[dict]:
     with DatabaseInterface() as db:
-        product_terms, version = unbind(generate_search_terms(product_name)), unbind([requested_version])[0]
+        product_terms, version = replace_characters_and_wildcards(generate_search_terms(product_name)), replace_characters_and_wildcards([requested_version])[0]
 
         matched_cpe = match_cpe(db, product_terms)
         if len(matched_cpe) == 0:
@@ -80,6 +80,7 @@ def lookup_vulnerabilities_in_database(product_name: str, requested_version: str
             matched_product = find_matching_cpe_product(matched_cpe, version)
         except IndexError:
             return None
+
         cve_candidates = search_cve(db, matched_product)
         cve_candidates.update(search_cve_summary(db, matched_product))
     return cve_candidates

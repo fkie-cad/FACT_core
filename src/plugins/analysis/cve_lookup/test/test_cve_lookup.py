@@ -4,18 +4,18 @@ from pathlib import Path
 
 import pytest
 
-from test.common_helper import get_config_for_testing, TEST_FW
+from test.common_helper import TEST_FW, get_config_for_testing
 
 try:
     from ..code import cve_lookup as lookup
     from ..internal.database_interface import DatabaseInterface
-    from ..internal.helper_functions import unbind
+    from ..internal.helper_functions import replace_special_characters_and_wildcards
 except ImportError:
     ROOT = Path(__file__).parent.parent
     sys.path.extend([str(ROOT / 'code'), str(ROOT / 'internal')])
     import vuln_lookup_plugin as lookup
     from database_interface import DatabaseInterface
-    from helper_functions import unbind
+    from helper_functions import replace_special_characters_and_wildcards
 
 
 # pylint: disable=redefined-outer-name
@@ -99,7 +99,7 @@ def setup() -> None:
 
 
 def test_generate_search_terms():
-    assert PRODUCT_SEARCH_TERMS == unbind(lookup.generate_search_terms('windows 7'))
+    assert PRODUCT_SEARCH_TERMS == replace_special_characters_and_wildcards(lookup.generate_search_terms('windows 7'))
 
 
 @pytest.mark.parametrize('version, expected_output', [
