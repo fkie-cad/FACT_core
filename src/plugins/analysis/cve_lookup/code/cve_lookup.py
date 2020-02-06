@@ -140,7 +140,7 @@ def build_version_string(cve_entry: CveDbEntry) -> str:
 
 def search_cve(db: DatabaseInterface, product: Product) -> dict:
     result = {}
-    for query_result in db.select_query(QUERIES['cve_lookup']):
+    for query_result in db.fetch_multiple(QUERIES['cve_lookup']):
         cve_entry = CveDbEntry(*query_result)
         if _product_matches_cve(product, cve_entry):
             result[cve_entry.cve_id] = {
@@ -191,7 +191,7 @@ def get_version_index(version: str, index: int) -> str:
 def search_cve_summary(db: DatabaseInterface, product: namedtuple) -> dict:
     return {
         cve_id: {'score2': cvss_v2_score, 'score3': cvss_v3_score}
-        for cve_id, summary, cvss_v2_score, cvss_v3_score in db.select_query(QUERIES['summary_lookup'])
+        for cve_id, summary, cvss_v2_score, cvss_v3_score in db.fetch_multiple(QUERIES['summary_lookup'])
         if product_is_mentioned_in_summary(product, summary)
     }
 
@@ -227,7 +227,7 @@ def remaining_words_present(word_list: List[str], words: List[str]) -> bool:
 def match_cpe(db: DatabaseInterface, product_search_terms: list) -> List[Product]:
     return list({
         Product(vendor, product, version)
-        for vendor, product, version in db.select_query(QUERIES['cpe_lookup'])
+        for vendor, product, version in db.fetch_multiple(QUERIES['cpe_lookup'])
         for product_term in product_search_terms
         if terms_match(product_term, product)
     })

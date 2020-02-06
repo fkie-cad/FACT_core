@@ -41,19 +41,19 @@ def test_db_connection():
 
 def test_select_functionality():
     with DatabaseInterface(TEST_DB_PATH) as db:
-        assert list(db.select_query(query=QUERIES['select_all'].format('test_table'))) == [(23,)]
+        assert list(db.fetch_multiple(query=QUERIES['select_all'].format('test_table'))) == [(23,)]
 
 
 def test_insert_functionality():
     with DatabaseInterface(TEST_DB_PATH) as db:
         db.insert_rows(QUERIES['test_insert'].format('test_table'), [[34]])
-        test_insert_output = list(db.select_query(query=QUERIES['select_all'].format('test_table')))
+        test_insert_output = list(db.fetch_multiple(query=QUERIES['select_all'].format('test_table')))
         assert test_insert_output == [(23,), (34,)]
 
 
-def test_table_manager():
+def test_execute_query():
     with DatabaseInterface(TEST_DB_PATH) as db:
-        db.table_manager(query=QUERIES['test_create'].format('test_table_2'))
-        assert list(db.select_query(query=QUERIES['exist'].format('test_table_2'))) == [('test_table_2',)]
-        db.table_manager(query=QUERIES['drop'].format('test_table_2'))
-        assert list(db.select_query(query=QUERIES['exist'].format('test_table_2'))) == []
+        db.execute_query(query=QUERIES['test_create'].format('test_table_2'))
+        assert list(db.fetch_multiple(query=QUERIES['exist'].format('test_table_2'))) == [('test_table_2',)]
+        db.execute_query(query=QUERIES['drop'].format('test_table_2'))
+        assert list(db.fetch_multiple(query=QUERIES['exist'].format('test_table_2'))) == []

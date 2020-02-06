@@ -1,6 +1,6 @@
 import logging
 import sys
-from contextlib import suppress
+from contextlib import contextmanager, suppress
 from pathlib import Path
 from sqlite3 import Error as SqliteException
 from sqlite3 import connect
@@ -64,7 +64,6 @@ class DatabaseInterface:
 
     def __init__(self, db_path: str = DB_PATH):
         self.connection = None
-        self.cursor = None
         if not db_path.endswith('.db') and isinstance(db_path, str):
             raise TypeError('Input must be string and end on \'.db\'')
         try:
@@ -73,36 +72,41 @@ class DatabaseInterface:
             logging.warning('Could not connect to CPE database: {} {}'.format(type(exception).__name__, exception))
             raise exception
 
-    def table_manager(self, query: str):
-        try:
-            self.cursor = self.connection.cursor()
-            self.cursor.execute(query)
-        finally:
-            self.cursor.close()
+    def execute_query(self, query: str):
+        with self.get_cursor() as cursor:
+            cursor.execute(query)
 
-    def select_query(self, query: str):
-        try:
-            self.cursor = self.connection.cursor()
-            self.cursor.execute(query)
+    def fetch_multiple(self, query: str):
+        with self.get_cursor() as cursor:
+            cursor.execute(query)
             while True:
-                outputs = self.cursor.fetchmany(10000)
+                outputs = cursor.fetchmany(10000)
                 if not outputs:
                     break
                 for output in outputs:
                     yield output
-        finally:
-            self.cursor.close()
 
-    def select_single(self, query: str) -> tuple:
-        return list(self.select_query(query))[0]
+    def fetch_one(self, query: str):
+        with self.get_cursor() as cursor:
+            cursor.execute(query)
+            return cursor.fetchone()
 
     def insert_rows(self, query: str, input_data: list):
-        try:
-            self.cursor = self.connection.cursor()
-            self.cursor.executemany(query, input_data)
+        with self.get_cursor() as cursor:
+            cursor.executemany(query, input_data)
             self.connection.commit()
+
+    @contextmanager
+    def get_cursor(self):
+        cursor = None
+        try:
+            cursor = self.connection.cursor()
+            yield cursor
+        except SqliteException as error:
+            logging.error('[cve_lookup]: encountered error while accessing DB: {} {}'.format(type(error).__name__, error))
         finally:
-            self.cursor.close()
+            with suppress(AttributeError, SqliteException):
+                cursor.close()
 
     def __enter__(self):
         return self

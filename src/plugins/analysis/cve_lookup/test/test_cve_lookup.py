@@ -9,13 +9,13 @@ from test.common_helper import TEST_FW, get_config_for_testing
 try:
     from ..code import cve_lookup as lookup
     from ..internal.database_interface import DatabaseInterface
-    from ..internal.helper_functions import replace_special_characters_and_wildcards
+    from ..internal.helper_functions import replace_characters_and_wildcards
 except ImportError:
     ROOT = Path(__file__).parent.parent
     sys.path.extend([str(ROOT / 'code'), str(ROOT / 'internal')])
     import vuln_lookup_plugin as lookup
     from database_interface import DatabaseInterface
-    from helper_functions import replace_special_characters_and_wildcards
+    from helper_functions import replace_characters_and_wildcards
 
 
 # pylint: disable=redefined-outer-name
@@ -99,7 +99,7 @@ def setup() -> None:
 
 
 def test_generate_search_terms():
-    assert PRODUCT_SEARCH_TERMS == replace_special_characters_and_wildcards(lookup.generate_search_terms('windows 7'))
+    assert PRODUCT_SEARCH_TERMS == replace_characters_and_wildcards(lookup.generate_search_terms('windows 7'))
 
 
 @pytest.mark.parametrize('version, expected_output', [
@@ -176,21 +176,21 @@ def test_product_is_mentioned(word_list, expected_output):
 
 def test_match_cpe(monkeypatch):
     with monkeypatch.context() as monkey:
-        monkey.setattr(DatabaseInterface, 'select_query', lambda *_, **__: CPE_DATABASE_OUTPUT)
+        monkey.setattr(DatabaseInterface, 'fetch_multiple', lambda *_, **__: CPE_DATABASE_OUTPUT)
         actual_match = list(lookup.match_cpe(DatabaseInterface, PRODUCT_SEARCH_TERMS))
         assert all(entry in actual_match for entry in MATCHED_CPE)
 
 
 def test_search_cve(monkeypatch):
     with monkeypatch.context() as monkey:
-        monkey.setattr(DatabaseInterface, 'select_query', lambda *_, **__: CPE_CVE_OUTPUT)
+        monkey.setattr(DatabaseInterface, 'fetch_multiple', lambda *_, **__: CPE_CVE_OUTPUT)
         actual_match = list(lookup.search_cve(DatabaseInterface, SORT_CPE_MATCHES_OUTPUT))
         assert sorted(MATCHED_CVE) == sorted(actual_match)
 
 
 def test_search_cve_summary(monkeypatch):
     with monkeypatch.context() as monkey:
-        monkey.setattr(DatabaseInterface, 'select_query', lambda *_, **__: SUMMARY_OUTPUT)
+        monkey.setattr(DatabaseInterface, 'fetch_multiple', lambda *_, **__: SUMMARY_OUTPUT)
         MATCHED_SUMMARY.sort()
         actual_match = list(lookup.search_cve_summary(DatabaseInterface, SORT_CPE_MATCHES_OUTPUT))
         actual_match.sort()

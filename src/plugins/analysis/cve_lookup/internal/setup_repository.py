@@ -26,19 +26,19 @@ def overlap(requested_years: namedtuple, years_in_cve_database: list) -> list:
 
 
 def exists(table_name: str) -> bool:
-    return bool(list(DATABASE.select_query(QUERIES['exist'].format(table_name))))
+    return bool(list(DATABASE.fetch_multiple(QUERIES['exist'].format(table_name))))
 
 
 def drop_table(table_name: str):
-    DATABASE.table_manager(QUERIES['drop'].format(table_name))
+    DATABASE.execute_query(QUERIES['drop'].format(table_name))
 
 
 def delete_outdated_feeds(delete_outdated_from: str, use_for_selection: str):
-    DATABASE.table_manager(QUERIES['delete_outdated'].format(delete_outdated_from, use_for_selection))
+    DATABASE.execute_query(QUERIES['delete_outdated'].format(delete_outdated_from, use_for_selection))
 
 
 def extract_relevant_feeds(from_table: str, where_table: str) -> list:
-    return list(DATABASE.select_query(QUERIES['extract_relevant'].format(from_table, where_table)))
+    return list(DATABASE.fetch_multiple(QUERIES['extract_relevant'].format(from_table, where_table)))
 
 
 def insert_into(query: str, table_name: str, input_data: list):
@@ -46,7 +46,7 @@ def insert_into(query: str, table_name: str, input_data: list):
 
 
 def create(query: str, table_name: str):
-    DATABASE.table_manager(QUERIES[query].format(table_name))
+    DATABASE.execute_query(QUERIES[query].format(table_name))
 
 
 def update_cpe(cpe_extract_path: str):
@@ -148,7 +148,7 @@ def update_cve_summaries():
 
 
 def get_years_from_database():
-    return [year for (year,) in DATABASE.select_query(QUERIES['get_years_from_cve'])]
+    return [year for (year,) in DATABASE.fetch_multiple(QUERIES['get_years_from_cve'])]
 
 
 def import_cve(cve_extract_path: str, years: namedtuple):

@@ -215,15 +215,15 @@ def setup():
     summary_base = dp.setup_cve_summary_table(summary_list=summary_base)
 
     with DatabaseInterface(PATH_TO_TEST + 'test_update.db') as db:
-        db.table_manager(query=QUERIES['create_cpe_table'].format('cpe_table'))
+        db.execute_query(query=QUERIES['create_cpe_table'].format('cpe_table'))
         db.insert_rows(query=QUERIES['insert_cpe'].format('cpe_table'), input_data=cpe_base)
-        db.table_manager(query=QUERIES['create_cve_table'].format('cve_table'))
-        db.table_manager(query=QUERIES['create_summary_table'].format('summary_table'))
+        db.execute_query(query=QUERIES['create_cve_table'].format('cve_table'))
+        db.execute_query(query=QUERIES['create_summary_table'].format('summary_table'))
         db.insert_rows(query=QUERIES['insert_cve'].format('cve_table'), input_data=cve_base)
         db.insert_rows(query=QUERIES['insert_summary'].format('summary_table'), input_data=summary_base)
 
-        db.table_manager(query=QUERIES['test_create_update'].format('outdated'))
-        db.table_manager(query=QUERIES['test_create_update'].format('new'))
+        db.execute_query(query=QUERIES['test_create_update'].format('outdated'))
+        db.execute_query(query=QUERIES['test_create_update'].format('new'))
         db.insert_rows(query=QUERIES['test_insert_cve_id'].format('outdated'), input_data=[('CVE-2018-0001', 2018), ('CVE-2018-0002', 2018)])
         db.insert_rows(query=QUERIES['test_insert_cve_id'].format('new'), input_data=[('CVE-2018-0002', 2018), ('CVE-2018-0003', 2018)])
 
@@ -249,37 +249,36 @@ def test_overlap():
 
 def test_exists(monkeypatch):
     with monkeypatch.context() as monkey:
-        monkey.setattr(sr.DATABASE, 'select_query', lambda *_, **__: EXISTS_INPUT[0])
+        monkey.setattr(sr.DATABASE, 'fetch_multiple', lambda *_, **__: EXISTS_INPUT[0])
         assert EXISTS_OUTPUT[0] == sr.exists(table_name='')
-        monkey.setattr(sr.DATABASE, 'select_query', lambda *_, **__: EXISTS_INPUT[1])
+        monkey.setattr(sr.DATABASE, 'fetch_multiple', lambda *_, **__: EXISTS_INPUT[1])
         assert EXISTS_OUTPUT[1] == sr.exists(table_name='')
 
 
 def test_extract_relevant_feeds():
     sr.DATABASE = sr.DatabaseInterface(PATH_TO_TEST + 'test_update.db')
-    assert [('CVE-2018-0002', 2018), ('CVE-2018-0003', 2018)] == sr.extract_relevant_feeds(from_table='new',
-                                                                                           where_table='outdated')
+    assert [('CVE-2018-0002', 2018), ('CVE-2018-0003', 2018)] == sr.extract_relevant_feeds(from_table='new', where_table='outdated')
 
 
 def test_delete_outdated_feeds():
     sr.delete_outdated_feeds(delete_outdated_from='outdated', use_for_selection='new')
-    assert sr.DATABASE.select_single(query=QUERIES['select_all'].format('outdated'))[0] == 'CVE-2018-0001'
+    assert sr.DATABASE.fetch_one(query=QUERIES['select_all'].format('outdated'))[0] == 'CVE-2018-0001'
 
 
 def test_create():
     sr.DATABASE = sr.DatabaseInterface(PATH_TO_TEST + 'test_import.db')
     sr.create(query='test_create', table_name='test')
-    assert sr.DATABASE.select_single(query=QUERIES['exist'].format('test'))[0] == 'test'
+    assert sr.DATABASE.fetch_one(query=QUERIES['exist'].format('test'))[0] == 'test'
 
 
 def test_insert_into():
     sr.insert_into(query='test_insert', table_name='test', input_data=[(1,), (2,)])
-    assert [(1,), (2,)] == list(sr.DATABASE.select_query(query=QUERIES['select_all'].format('test')))
+    assert [(1,), (2,)] == list(sr.DATABASE.fetch_multiple(query=QUERIES['select_all'].format('test')))
 
 
 def test_drop_table():
     sr.drop_table('test')
-    assert [] == list(sr.DATABASE.select_query(query=QUERIES['exist'].format('test')))
+    assert [] == list(sr.DATABASE.fetch_multiple(query=QUERIES['exist'].format('test')))
 
 
 def test_update_cpe(monkeypatch, capsys):
@@ -287,7 +286,7 @@ def test_update_cpe(monkeypatch, capsys):
         sr.DATABASE = sr.DatabaseInterface(PATH_TO_TEST + 'test_update.db')
         monkey.setattr(sr, 'glob', lambda *_, **__: [PATH_TO_TEST + UPDATE_CPE_XML])
         sr.update_cpe('')
-        actual_cpe_update = sorted(sr.DATABASE.select_query(query=QUERIES['select_all'].format('cpe_table')))
+        actual_cpe_update = sorted(sr.DATABASE.fetch_multiple(query=QUERIES['select_all'].format('cpe_table')))
         assert sorted(EXPECTED_UPDATED_CPE_TABLE) == actual_cpe_update
         sr.DATABASE = sr.DatabaseInterface(PATH_TO_TEST + 'test_output.db')
         sr.update_cpe('')
@@ -299,10 +298,10 @@ def test_import_cpe(monkeypatch, capsys):
         sr.DATABASE = sr.DatabaseInterface(PATH_TO_TEST + 'test_import.db')
         monkey.setattr(sr, 'glob', lambda *_, **__: [PATH_TO_TEST + EXTRACT_CPE_XML])
         sr.import_cpe('')
-        actual_cpe_output = sr.DATABASE.select_query(QUERIES['select_all'].format('cpe_table'))
+        actual_cpe_output = sr.DATABASE.fetch_multiple(QUERIES['select_all'].format('cpe_table'))
         assert sorted(EXPECTED_CPE_OUTPUT) == sorted(actual_cpe_output)
         sr.DATABASE = sr.DatabaseInterface(PATH_TO_TEST + 'test_output.db')
-        sr.DATABASE.table_manager(QUERIES['create_cpe_table'].format('cpe_table'))
+        sr.DATABASE.execute_query(QUERIES['create_cpe_table'].format('cpe_table'))
         sr.import_cpe('')
         assert capsys.readouterr().out == '\nCPE table does already exist!\n\n'
 
@@ -344,8 +343,8 @@ def test_init_cve_feeds_table():
          '1024_cms', '1\\.3\\.1', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', '', '', '', '')
     ]
     sr.init_cve_feeds_table(input_content, 'test_cve')
-    assert sr.DATABASE.select_single(QUERIES['exist'].format('test_cve'))[0] == 'test_cve'
-    db_cve = sorted(sr.DATABASE.select_query(QUERIES['select_all'].format('test_cve')))
+    assert sr.DATABASE.fetch_one(QUERIES['exist'].format('test_cve'))[0] == 'test_cve'
+    db_cve = sorted(sr.DATABASE.fetch_multiple(QUERIES['select_all'].format('test_cve')))
     assert len(db_cve) == 5
     assert db_cve == expected
 
@@ -353,8 +352,8 @@ def test_init_cve_feeds_table():
 def test_init_summaries_table():
     sr.DATABASE = sr.DatabaseInterface(PATH_TO_TEST + 'test_import.db')
     sr.init_cve_summaries_table(EXPECTED_GET_CVE_SUMMARY_UPDATE_CONTENT, 'test_summary')
-    assert sr.DATABASE.select_single(QUERIES['exist'].format('test_summary'))[0] == 'test_summary'
-    db_summary = list(sr.DATABASE.select_query(QUERIES['select_all'].format('test_summary')))
+    assert sr.DATABASE.fetch_one(QUERIES['exist'].format('test_summary'))[0] == 'test_summary'
+    db_summary = list(sr.DATABASE.fetch_multiple(QUERIES['select_all'].format('test_summary')))
     db_summary.sort()
     EXPECTED_SUM_OUTPUT.sort()
     assert db_summary == EXPECTED_SUM_OUTPUT
@@ -391,8 +390,8 @@ def test_update_cve_repository(monkeypatch, capsys):
         sr.DATABASE = sr.DatabaseInterface(PATH_TO_TEST + 'test_update.db')
         monkey.setattr(sr, 'glob', lambda *_, **__: [PATH_TO_TEST + UPDATE_CVE_JSON])
         sr.update_cve_repository(cve_extract_path='')
-        actual_cve_update = list(sr.DATABASE.select_query(QUERIES['select_all'].format('cve_table')))
-        actual_summary_update = list(sr.DATABASE.select_query(QUERIES['select_all'].format('summary_table')))
+        actual_cve_update = list(sr.DATABASE.fetch_multiple(QUERIES['select_all'].format('cve_table')))
+        actual_summary_update = list(sr.DATABASE.fetch_multiple(QUERIES['select_all'].format('summary_table')))
         # assert len(actual_cve_update) == len(EXPECTED_UPDATED_CVE_TABLE)
         assert sorted(actual_cve_update) == sorted(EXPECTED_UPDATED_CVE_TABLE)
         assert sorted(actual_summary_update) == sorted(EXPECTED_UPDATED_SUMMARY_TABLE)
@@ -403,12 +402,12 @@ def test_update_cve_repository(monkeypatch, capsys):
 
 
 def test_update_cve_feeds():
-    db_cve = list(sr.DATABASE.select_query(QUERIES['select_all'].format('cve_table')))
+    db_cve = list(sr.DATABASE.fetch_multiple(QUERIES['select_all'].format('cve_table')))
     assert sorted(db_cve) == sorted(EXPECTED_UPDATED_CVE_TABLE)
 
 
 def test_update_cve_summaries():
-    db_summary = list(sr.DATABASE.select_query(QUERIES['select_all'].format('summary_table')))
+    db_summary = list(sr.DATABASE.fetch_multiple(QUERIES['select_all'].format('summary_table')))
     assert sorted(db_summary) == sorted(EXPECTED_UPDATED_SUMMARY_TABLE)
 
 
@@ -422,8 +421,8 @@ def test_import_cve(monkeypatch):
         sr.DATABASE = sr.DatabaseInterface(PATH_TO_TEST + 'test_import.db')
         monkey.setattr(sr, 'glob', lambda *_, **__: [PATH_TO_TEST + EXTRACT_CVE_JSON])
         sr.import_cve(cve_extract_path='', years=YEARS)
-        actual_cve_output = list(sr.DATABASE.select_query(QUERIES['select_all'].format('cve_table')))
-        actual_summary_output = list(sr.DATABASE.select_query(QUERIES['select_all'].format('summary_table')))
+        actual_cve_output = list(sr.DATABASE.fetch_multiple(QUERIES['select_all'].format('cve_table')))
+        actual_summary_output = list(sr.DATABASE.fetch_multiple(QUERIES['select_all'].format('summary_table')))
         assert sorted(actual_cve_output) == sorted(EXPECTED_CVE_OUTPUT)
         assert sorted(actual_summary_output) == sorted(EXPECTED_SUM_OUTPUT)
 
