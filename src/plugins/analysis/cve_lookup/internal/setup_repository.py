@@ -1,4 +1,5 @@
 import argparse
+import re
 import sys
 from collections import namedtuple
 from datetime import datetime
@@ -8,17 +9,18 @@ from shutil import rmtree
 from typing import List, Tuple
 
 try:
-    from ..internal import data_prep as dp
+    from ..internal import data_parsing as dp
     from ..internal.database_interface import DatabaseInterface, QUERIES
-    from ..internal.helper_functions import CveEntry
+    from ..internal.helper_functions import CveEntry, CveSummaryEntry, replace_characters_and_wildcards
 except (ImportError, ValueError, SystemError):
     sys.path.append(str(Path(__file__).parent.parent / 'internal'))
     import data_prep as dp
     from database_interface import DatabaseInterface, QUERIES
-    from helper_functions import CveEntry
+    from helper_functions import CveEntry, CveSummaryEntry, replace_characters_and_wildcards
 
 CURRENT_YEAR = datetime.now().year
 DATABASE = DatabaseInterface()
+SPLIT_REGEX = r'(?<!\\)[:]'
 
 
 def overlap(requested_years: namedtuple, years_in_cve_database: list) -> list:
@@ -80,12 +82,12 @@ def init_cve_feeds_table(cve_list: List[CveEntry], table_name: str):
 
 def init_cve_summaries_table(summary_list: list, table_name: str):
     create(query='create_summary_table', table_name=table_name)
-    insert_into(query='insert_summary', table_name=table_name, input_data=dp.setup_cve_summary_table(summary_list=summary_list))
+    insert_into(query='insert_summary', table_name=table_name, input_data=setup_cve_summary_table(summary_list=summary_list))
 
 
 def get_cve_import_content(cve_extraction_path: str, year_selection: list) -> Tuple[list, list]:
     cve_list, summary_list = list(), list()
-    dp.download_cve(update=False, download_path=cve_extraction_path, years=year_selection)
+    dp.download_cve(cve_extraction_path, years=year_selection)
     for file in get_cve_json_files(cve_extraction_path):
         cve_data, summary_data = dp.extract_cve(file)
         cve_list.extend(cve_data)
@@ -95,7 +97,7 @@ def get_cve_import_content(cve_extraction_path: str, year_selection: list) -> Tu
 
 
 def get_cve_update_content(cve_extraction_path: str) -> Tuple[list, list]:
-    dp.download_cve(update=True, download_path=cve_extraction_path, years=list())
+    dp.download_cve(cve_extraction_path, update=True)
     cve_json_files = get_cve_json_files(cve_extraction_path)
     if not cve_json_files:
         raise Exception('Error: Glob has found none of the specified files!')
@@ -114,7 +116,7 @@ def update_cve_repository(cve_extract_path: str):
     if not exists(table_name='cve_table'):
         print('\nCVE tables do not exist! Did you mean import CVE?\n')
         return
-    dp.download_cve(update=True, download_path=cve_extract_path, years=list())
+    dp.download_cve(cve_extract_path, update=True)
     cve_list, summary_list = get_cve_update_content(cve_extraction_path=cve_extract_path)
 
     init_cve_feeds_table(cve_list=cve_list, table_name='temp_feeds')
@@ -163,6 +165,41 @@ def import_cve(cve_extract_path: str, years: namedtuple):
 
     if summary_list:
         init_cve_summaries_table(summary_list=summary_list, table_name='summary_table')
+
+
+def setup_cve_summary_table(summary_list: List[CveSummaryEntry]) -> List[Tuple[str, ...]]:
+    return [
+        (
+            entry.cve_id,
+            entry.cve_id.split('-')[1],  # year
+            entry.summary,
+            entry.impact.get('cvssV2', 'N/A'),
+            entry.impact.get('cvssV3', 'N/A')
+        ) for entry in summary_list
+    ]
+
+
+def setup_cve_feeds_table(cve_list: List[CveEntry]) -> List[Tuple[str, ...]]:
+    cve_table = []
+    for entry in cve_list:
+        for cpe_id, version_start_including, version_start_excluding, version_end_including, version_end_excluding in entry.cpe_list:
+            year = entry.cve_id.split('-')[1]
+            score_v2 = entry.impact.get('cvssV2', 'N/A')
+            score_v3 = entry.impact.get('cvssV3', 'N/A')
+            cpe_elements = replace_characters_and_wildcards(re.split(SPLIT_REGEX, cpe_id)[2:])
+            row = (
+                entry.cve_id, year, cpe_id, score_v2, score_v3, *cpe_elements,
+                version_start_including, version_start_excluding, version_end_including, version_end_excluding
+            )
+            cve_table.append(row)
+    return cve_table
+
+
+def setup_cpe_table(cpe_list: list) -> list:
+    return [
+        (cpe, *replace_characters_and_wildcards(re.split(SPLIT_REGEX, cpe)[2:]))
+        for cpe in cpe_list
+    ]
 
 
 def init_repository(extraction_path: str, specify: int, years: namedtuple):

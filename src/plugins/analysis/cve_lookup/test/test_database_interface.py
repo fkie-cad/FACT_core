@@ -43,11 +43,6 @@ def test_db_connection():
         assert db.connection is not None
 
 
-def test_connection_db_not_found():
-    with pytest.raises(FileNotFoundError):
-        DatabaseInterface('foo.bar')
-
-
 def test_select_functionality():
     with DatabaseInterface(TEST_DB_PATH) as db:
         assert list(db.fetch_multiple(query=QUERIES['select_all'].format('test_table'))) == [(23,)]

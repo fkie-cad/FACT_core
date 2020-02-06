@@ -60,8 +60,6 @@ class DatabaseInterface:
 
     def __init__(self, db_path: str = DB_PATH):
         self.connection = None
-        if not Path(db_path).is_file():
-            raise FileNotFoundError('Database not found at {}'.format(db_path))
         try:
             self.connection = connect(db_path)
         except SqliteException as exception:

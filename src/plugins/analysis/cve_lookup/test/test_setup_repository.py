@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 try:
-    from ..internal import data_prep as dp
+    from ..internal import data_parsing as dp
     from ..internal import setup_repository as sr
     from ..internal.database_interface import DatabaseInterface, QUERIES
     from ..internal.helper_functions import CveEntry, CveSummaryEntry
@@ -29,20 +29,6 @@ EXTRACT_CPE_XML = 'test_resources/test_cpe_extract.xml'
 UPDATE_CPE_XML = 'test_resources/test_cpe_update.xml'
 EXTRACT_CVE_JSON = 'test_resources/test_cve_extract.json'
 UPDATE_CVE_JSON = 'test_resources/nvdcve_test_cve_update.json'
-
-EXPECTED_CPE_OUTPUT = [
-    ('cpe:2.3:a:\\$0.99_kindle_books_project:\\$0.99_kindle_books:6:*:*:*:*:android:*:*', 'a',
-     '\\$0\\.99_kindle_books_project',
-     '\\$0\\.99_kindle_books', '6', 'ANY', 'ANY', 'ANY', 'ANY', 'android', 'ANY', 'ANY'),
-    ('cpe:2.3:a:1000guess:1000_guess:-:*:*:*:*:*:*:*', 'a', '1000guess', '1000_guess', 'N/A', 'ANY', 'ANY', 'ANY',
-     'ANY', 'ANY', 'ANY', 'ANY'),
-    ('cpe:2.3:a:1024cms:1024_cms:0.7:*:*:*:*:*:*:*', 'a', '1024cms', '1024_cms', '0\\.7', 'ANY', 'ANY', 'ANY', 'ANY',
-     'ANY', 'ANY', 'ANY'),
-    ('cpe:2.3:a:1024cms:1024_cms:1.2.5:*:*:*:*:*:*:*', 'a', '1024cms', '1024_cms', '1\\.2\\.5', 'ANY', 'ANY', 'ANY',
-     'ANY', 'ANY', 'ANY', 'ANY'),
-    ('cpe:2.3:a:1024cms:1024_cms:1.3.1:*:*:*:*:*:*:*', 'a', '1024cms', '1024_cms', '1\\.3\\.1', 'ANY', 'ANY', 'ANY',
-     'ANY', 'ANY', 'ANY', 'ANY')
-]
 
 EXPECTED_CVE_OUTPUT = [
     ('CVE-2012-0001', 2012, 'cpe:2.3:o:microsoft:windows_7:-:*:*:*:*:*:*:*', '9.3', 'N/A', 'o', 'microsoft',
@@ -205,11 +191,59 @@ EXPECTED_GET_CVE_SUMMARY_UPDATE_CONTENT = [
     )
 ]
 
+# contain input and expected results of the setup_cve_format function
+CVE_LIST = [
+    CveEntry('CVE-2012-0001', {}, [
+        ('cpe:2.3:a:\\$0.99_kindle_bo\\:oks_project:\\$0.99_kindle_books:6:*:*:*:*:android:*:*', '', '', '', ''),
+        ('cpe:2.3:a:1000guess:1000_guess:-:*:*:*:*:*:*:*', '', '', '', ''),
+        ('cpe:2.3:a:1024cms:1024_cms:0.7:*:*:*:*:*:*:*', '', '', '', ''),
+        ('cpe:2.3:a:1024cms:1024_cms:1.2.5:*:*:*:*:*:*:*', '', '', '', ''),
+    ]),
+    CveEntry('CVE-2012-0002', {'cvssV2': '5.3'}, [('cpe:2.3:a:1024cms:1024_cms:1.3.1:*:*:*:*:*:*:*', '', '', '', '')]),
+]
+CVE_TABLE = [
+    (
+        'CVE-2012-0001', '2012', 'cpe:2.3:a:\\$0.99_kindle_bo\\:oks_project:\\$0.99_kindle_books:6:*:*:*:*:android:*:*',
+        'N/A', 'N/A', 'a', '\\$0\\.99_kindle_bo\\:oks_project', '\\$0\\.99_kindle_books', '6', 'ANY', 'ANY', 'ANY',
+        'ANY', 'android', 'ANY', 'ANY', '', '', '', ''
+    ),
+    (
+        'CVE-2012-0001', '2012', 'cpe:2.3:a:1000guess:1000_guess:-:*:*:*:*:*:*:*', 'N/A', 'N/A', 'a', '1000guess',
+        '1000_guess', 'N/A', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', '', '', '', ''
+    ),
+    (
+        'CVE-2012-0001', '2012', 'cpe:2.3:a:1024cms:1024_cms:0.7:*:*:*:*:*:*:*', 'N/A', 'N/A', 'a', '1024cms',
+        '1024_cms', '0\\.7', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', '', '', '', ''
+    ),
+    (
+        'CVE-2012-0001', '2012', 'cpe:2.3:a:1024cms:1024_cms:1.2.5:*:*:*:*:*:*:*', 'N/A', 'N/A', 'a', '1024cms',
+        '1024_cms', '1\\.2\\.5', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', '', '', '', ''
+    ),
+    (
+        'CVE-2012-0002', '2012', 'cpe:2.3:a:1024cms:1024_cms:1.3.1:*:*:*:*:*:*:*', '5.3', 'N/A', 'a', '1024cms',
+        '1024_cms', '1\\.3\\.1', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', '', '', '', ''
+    )
+]
+
+# contain input and expected results of the setup_cpe_format function
+CPE_LIST = ['cpe:2.3:a:\\$0.99_kindle_books_project:\\$0.99_kindle_books:6:*:*:*:*:android:*:*',
+            'cpe:2.3:a:1000guess:1000_guess:-:*:*:*:*:*:*:*', 'cpe:2.3:a:1024cms:1024_cms:0.7:*:*:*:*:*:*:*',
+            'cpe:2.3:a:1024cms:1024_cms:1.2.5:*:*:*:*:*:*:*', 'cpe:2.3:a:1024cms:1024_cms:1.3.1:*:*:*:*:*:*:*']
+CPE_TABLE = [
+    ('cpe:2.3:a:\\$0.99_kindle_books_project:\\$0.99_kindle_books:6:*:*:*:*:android:*:*', 'a',
+     '\\$0\\.99_kindle_books_project', '\\$0\\.99_kindle_books', '6', 'ANY', 'ANY', 'ANY', 'ANY', 'android', 'ANY', 'ANY'),
+    ('cpe:2.3:a:1000guess:1000_guess:-:*:*:*:*:*:*:*', 'a', '1000guess', '1000_guess', 'N/A', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY'),
+    ('cpe:2.3:a:1024cms:1024_cms:0.7:*:*:*:*:*:*:*', 'a', '1024cms', '1024_cms', '0\\.7', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY'),
+    ('cpe:2.3:a:1024cms:1024_cms:1.2.5:*:*:*:*:*:*:*', 'a', '1024cms', '1024_cms', '1\\.2\\.5', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY'),
+    ('cpe:2.3:a:1024cms:1024_cms:1.3.1:*:*:*:*:*:*:*', 'a', '1024cms', '1024_cms', '1\\.3\\.1', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY')
+]
+
 
 @pytest.fixture(scope='session', autouse=True)
 def setup():
     with suppress(OSError):
         remove('cve_cpe.db')
+    sr.QUERIES.update(TEST_QUERIES)
     cpe_base = dp.setup_cpe_table(dp.extract_cpe(PATH_TO_TEST + EXTRACT_CPE_XML))
     cve_base, summary_base = dp.extract_cve(PATH_TO_TEST + EXTRACT_CVE_JSON)
     cve_base = dp.setup_cve_feeds_table(cve_list=cve_base)
@@ -228,7 +262,8 @@ def setup():
         db.insert_rows(query=TEST_QUERIES['test_insert_cve_id'].format('outdated'), input_data=[('CVE-2018-0001', 2018), ('CVE-2018-0002', 2018)])
         db.insert_rows(query=TEST_QUERIES['test_insert_cve_id'].format('new'), input_data=[('CVE-2018-0002', 2018), ('CVE-2018-0003', 2018)])
 
-    yield None
+    yield
+
     with suppress(OSError):
         remove(PATH_TO_TEST + 'test_update.db')
         remove(PATH_TO_TEST + 'test_import.db')
@@ -300,7 +335,7 @@ def test_import_cpe(monkeypatch, capsys):
         monkey.setattr(sr, 'glob', lambda *_, **__: [PATH_TO_TEST + EXTRACT_CPE_XML])
         sr.import_cpe('')
         actual_cpe_output = sr.DATABASE.fetch_multiple(QUERIES['select_all'].format('cpe_table'))
-        assert sorted(EXPECTED_CPE_OUTPUT) == sorted(actual_cpe_output)
+        assert sorted(CPE_TABLE) == sorted(actual_cpe_output)
         sr.DATABASE = sr.DatabaseInterface(PATH_TO_TEST + 'test_output.db')
         sr.DATABASE.execute_query(QUERIES['create_cpe_table'].format('cpe_table'))
         sr.import_cpe('')
@@ -321,15 +356,6 @@ def test_get_cpe_content(monkeypatch):
 
 def test_init_cve_feeds_table():
     sr.DATABASE = sr.DatabaseInterface(PATH_TO_TEST + 'test_import.db')
-    input_content = [
-        CveEntry('CVE-2012-0001', {}, [
-            ('cpe:2.3:a:\\$0.99_kindle_bo\\:oks_project:\\$0.99_kindle_books:6:*:*:*:*:android:*:*', '', '', '', ''),
-            ('cpe:2.3:a:1000guess:1000_guess:-:*:*:*:*:*:*:*', '', '', '', ''),
-            ('cpe:2.3:a:1024cms:1024_cms:0.7:*:*:*:*:*:*:*', '', '', '', ''),
-            ('cpe:2.3:a:1024cms:1024_cms:1.2.5:*:*:*:*:*:*:*', '', '', '', ''),
-        ]),
-        CveEntry('CVE-2012-0002', {'cvssV2': '5.3'}, [('cpe:2.3:a:1024cms:1024_cms:1.3.1:*:*:*:*:*:*:*', '', '', '', '')]),
-    ]
     expected = [
         ('CVE-2012-0001', 2012, 'cpe:2.3:a:1000guess:1000_guess:-:*:*:*:*:*:*:*', 'N/A', 'N/A', 'a', '1000guess',
          '1000_guess', 'N/A', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', '', '', '', ''),
@@ -343,7 +369,7 @@ def test_init_cve_feeds_table():
         ('CVE-2012-0002', 2012, 'cpe:2.3:a:1024cms:1024_cms:1.3.1:*:*:*:*:*:*:*', '5.3', 'N/A', 'a', '1024cms',
          '1024_cms', '1\\.3\\.1', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', '', '', '', '')
     ]
-    sr.init_cve_feeds_table(input_content, 'test_cve')
+    sr.init_cve_feeds_table(CVE_LIST, 'test_cve')
     assert sr.DATABASE.fetch_one(QUERIES['exist'].format('test_cve'))[0] == 'test_cve'
     db_cve = sorted(sr.DATABASE.fetch_multiple(QUERIES['select_all'].format('test_cve')))
     assert len(db_cve) == 5
@@ -465,3 +491,26 @@ def test_check_validity_of_arguments(specify, years, raising):
             sr.check_validity_of_arguments(specify=specify, years=years)
     else:
         sr.check_validity_of_arguments(specify=specify, years=years)
+
+
+def test_setup_cve_feeds_table():
+    cve_result = sr.setup_cve_feeds_table(CVE_LIST)
+    assert CVE_TABLE == cve_result
+
+
+def test_setup_cve_summary_table():
+    summary_input = [
+        CveSummaryEntry('CVE-2018-20229', 'some description ...', {'cvssV2': '5.3'}),
+        CveSummaryEntry('CVE-2018-0010', 'foobar', {'cvssV2': '7.3', 'cvssV3': '8.3'}),
+    ]
+    expected_output = [
+        ('CVE-2018-20229', '2018', 'some description ...', '5.3', 'N/A'),
+        ('CVE-2018-0010', '2018', 'foobar', '7.3', '8.3'),
+    ]
+    summary_result = sr.setup_cve_summary_table(summary_input)
+    assert summary_result == expected_output
+
+
+def test_setup_cpe_table():
+    result = sr.setup_cpe_table(CPE_LIST)
+    assert CPE_TABLE == result
