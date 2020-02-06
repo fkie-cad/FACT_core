@@ -86,7 +86,6 @@ class CompareScheduler:
     def check_exceptions(self):
         processes_to_check = [self.worker]
         shutdown = check_worker_exceptions(processes_to_check, 'Compare', self.config, self._compare_scheduler_main)
-        if new_worker_was_started(new_process=processes_to_check[0], old_process=self.worker):
+        if not shutdown and new_worker_was_started(new_process=processes_to_check[0], old_process=self.worker):
             self.worker = processes_to_check.pop()
-
         return shutdown
