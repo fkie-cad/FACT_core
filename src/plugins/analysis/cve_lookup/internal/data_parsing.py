@@ -10,10 +10,10 @@ from zipfile import ZipFile
 import requests
 
 try:
-    from ..internal.helper_functions import CveEntry, CveSummaryEntry
+    from ..internal.helper_functions import CveEntry, CveSummaryEntry, CveLookupException
 except (ImportError, SystemError):
     sys.path.append(str(Path(__file__).parent.parent / 'internal'))
-    from helper_functions import CveEntry, CveSummaryEntry
+    from helper_functions import CveEntry, CveSummaryEntry, CveLookupException
 
 CPE_FILE = 'official-cpe-dictionary_v2.3.xml'
 CPE_URL = 'https://nvd.nist.gov/feeds/xml/cpe/dictionary/{}.zip'.format(CPE_FILE)
@@ -109,7 +109,3 @@ def extract_cpe(file: str) -> list:
         for item in entry
         if 'cpe23-item' in item.tag
     ]
-
-
-class CveLookupException(Exception):
-    pass

@@ -43,3 +43,11 @@ def get_field_names(fields: List[Tuple[str, str]]) -> str:
 
 def unescape(string: str) -> str:
     return string.replace('\\', '')
+
+
+class CveLookupException(Exception):
+    def __init__(self, message: str):  # pylint: disable=super-init-not-called
+        self.message = message
+
+    def __str__(self):
+        return self.message

@@ -1,4 +1,5 @@
 import argparse
+import logging
 import re
 import sys
 from collections import namedtuple
@@ -12,12 +13,14 @@ from typing import List, Tuple
 try:
     from ..internal import data_parsing as dp
     from ..internal.database_interface import DatabaseInterface, QUERIES
-    from ..internal.helper_functions import CveEntry, CveSummaryEntry, replace_characters_and_wildcards
+    from ..internal.helper_functions import (
+        CveEntry, CveSummaryEntry, replace_characters_and_wildcards, CveLookupException
+    )
 except (ImportError, ValueError, SystemError):
     sys.path.append(str(Path(__file__).parent.parent / 'internal'))
     import data_prep as dp
     from database_interface import DatabaseInterface, QUERIES
-    from helper_functions import CveEntry, CveSummaryEntry, replace_characters_and_wildcards
+    from helper_functions import CveEntry, CveSummaryEntry, replace_characters_and_wildcards, CveLookupException
 
 CURRENT_YEAR = datetime.now().year
 DATABASE = DatabaseInterface()
@@ -27,10 +30,11 @@ Years = namedtuple('Years', 'start_year end_year')
 
 
 def overlap(requested_years: namedtuple, years_in_cve_database: list) -> list:
-    return list(set(range(requested_years.start_year, requested_years.end_year + 1)) - set(years_in_cve_database))
+    set_of_requested_years = set(range(requested_years.start_year, requested_years.end_year + 1))
+    return list(set_of_requested_years.difference(set(years_in_cve_database)))
 
 
-def exists(table_name: str) -> bool:
+def table_exists(table_name: str) -> bool:
     return bool(list(DATABASE.fetch_multiple(QUERIES['exist'].format(table_name))))
 
 
@@ -55,26 +59,24 @@ def create(query: str, table_name: str):
 
 
 def update_cpe(cpe_extract_path: str):
-    if exists(table_name='cpe_table'):
-        drop_table(table_name='cpe_table')
-        create(query='create_cpe_table', table_name='cpe_table')
-        insert_into(query='insert_cpe', table_name='cpe_table', input_data=setup_cpe_table(get_cpe_content(path=cpe_extract_path)))
-    else:
-        print('\nCPE table does not exist! Did you mean import CPE?\n')
+    if not table_exists(table_name='cpe_table'):
+        raise CveLookupException('CPE table does not exist! Did you mean import CPE?')
+    drop_table(table_name='cpe_table')
+    create(query='create_cpe_table', table_name='cpe_table')
+    insert_into(query='insert_cpe', table_name='cpe_table', input_data=setup_cpe_table(get_cpe_content(path=cpe_extract_path)))
 
 
 def import_cpe(cpe_extract_path: str):
-    if exists(table_name='cpe_table'):
-        print('\nCPE table does already exist!\n')
-    else:
-        create(query='create_cpe_table', table_name='cpe_table')
-        insert_into(query='insert_cpe', table_name='cpe_table', input_data=setup_cpe_table(get_cpe_content(path=cpe_extract_path)))
+    if table_exists(table_name='cpe_table'):
+        raise CveLookupException('CPE table does already exist')
+    create(query='create_cpe_table', table_name='cpe_table')
+    insert_into(query='insert_cpe', table_name='cpe_table', input_data=setup_cpe_table(get_cpe_content(path=cpe_extract_path)))
 
 
 def get_cpe_content(path: str) -> list:
     dp.download_cpe(download_path=path)
     if not glob(path + '*.xml'):
-        raise Exception('Error: Glob has found none of the specified files!')
+        raise CveLookupException('Glob has found none of the specified files!')
     return dp.extract_cpe(glob(path + '*.xml')[0])
 
 
@@ -103,7 +105,7 @@ def get_cve_update_content(cve_extraction_path: str) -> Tuple[list, list]:
     dp.download_cve(cve_extraction_path, update=True)
     cve_json_files = get_cve_json_files(cve_extraction_path)
     if not cve_json_files:
-        raise Exception('Error: Glob has found none of the specified files!')
+        raise CveLookupException('Glob has found none of the specified files!')
     return dp.extract_cve(cve_json_files[0])
 
 
@@ -116,9 +118,8 @@ def cve_summaries_can_be_imported(extracted_summaries: list) -> bool:
 
 
 def update_cve_repository(cve_extract_path: str):
-    if not exists(table_name='cve_table'):
-        print('\nCVE tables do not exist! Did you mean import CVE?\n')
-        return
+    if not table_exists(table_name='cve_table'):
+        raise CveLookupException('CVE tables do not exist! Did you mean import CVE?')
     dp.download_cve(cve_extract_path, update=True)
     cve_list, summary_list = get_cve_update_content(cve_extraction_path=cve_extract_path)
 
@@ -142,7 +143,7 @@ def update_cve_feeds():
 def update_cve_summaries():
     summaries_to_be_updated = extract_relevant_feeds(from_table='temp_sum', where_table='cve_table')
 
-    if exists(table_name='summary_table'):
+    if table_exists(table_name='summary_table'):
         delete_outdated_feeds(delete_outdated_from='summary_table', use_for_selection='temp_sum')
         delete_outdated_feeds(delete_outdated_from='summary_table', use_for_selection='temp_feeds')
     else:
@@ -157,15 +158,11 @@ def get_years_from_database():
 
 
 def import_cve(cve_extract_path: str, years: namedtuple):
-    if exists(table_name='cve_table'):
-        filtered_years = overlap(requested_years=years, years_in_cve_database=get_years_from_database())
-        year_selection = filtered_years if filtered_years else list(range(years.start_year, years.end_year + 1))
-    else:
-        year_selection = list(range(years.start_year, years.end_year + 1))
+    filtered_years = overlap(years, get_years_from_database()) if table_exists(table_name='cve_table') else None
+    year_selection = filtered_years or list(range(years.start_year, years.end_year + 1))
 
-    cve_list, summary_list = get_cve_import_content(cve_extraction_path=cve_extract_path, year_selection=year_selection)
+    cve_list, summary_list = get_cve_import_content(cve_extract_path, year_selection)
     init_cve_feeds_table(cve_list=cve_list, table_name='cve_table')
-
     if summary_list:
         init_cve_summaries_table(summary_list=summary_list, table_name='summary_table')
 
@@ -257,7 +254,7 @@ def setup_argparser():
         default=[2002, CURRENT_YEAR]
     )
     parser.add_argument(
-        '--extraction_path', '-ex',
+        '--extraction_path', '-x',
         help='Path to which the files containing the CPE dictionary and CVE feeds should temporarily be stored.\n'
              'Default: ./data_source/',
         type=str,
@@ -268,13 +265,11 @@ def setup_argparser():
 
 def check_validity_of_arguments(years: namedtuple):
     if years.start_year < 2002 or years.start_year > CURRENT_YEAR:
-        raise ValueError('ERROR: Value of \'start_year\' out of bounds. '
-                         'Look at setup_repository.py -h for more information.')
+        raise ValueError('Value of \'start_year\' out of bounds. Look at setup_repository.py -h for more information.')
     if years.end_year < 2002 or years.end_year > CURRENT_YEAR:
-        raise ValueError('ERROR: Value of \'end_year\' out of bounds. '
-                         'Look at setup_repository.py -h for more information.')
+        raise ValueError('Value of \'end_year\' out of bounds. Look at setup_repository.py -h for more information.')
     if years.start_year > years.end_year:
-        raise ValueError('ERROR: Value of \'start_year\' greater than value of \'end_year\'.')
+        raise ValueError('Value of \'start_year\' greater than value of \'end_year\'.')
 
 
 def main():
@@ -286,10 +281,14 @@ def main():
     if not extraction_path.endswith('/'):
         extraction_path = '{}/'.format(extraction_path)
 
-    if args.update:
-        update_repository(extraction_path, args.choice)
-    else:
-        init_repository(extraction_path, args.choice, years=years)
+    try:
+        if args.update:
+            update_repository(extraction_path, args.choice)
+        else:
+            init_repository(extraction_path, args.choice, years=years)
+    except CveLookupException as exception:
+        logging.error(exception.message)
+        sys.exit(1)
 
     rmtree(extraction_path)
 

@@ -215,10 +215,14 @@ def stub_plugin(test_config, monkeypatch):
 
 def test_process_object(stub_plugin):
     TEST_FW.processed_analysis['software_components'] = SOFTWARE_COMPONENTS_ANALYSIS_RESULT
-    result = stub_plugin.process_object(TEST_FW).processed_analysis['cve_lookup']
-    assert 'CVE-2017-14494' in result['summary']
-    assert 'Dnsmasq 2.40' in result['cve_results']
-    assert 'CVE-2013-0198' in result['cve_results']['Dnsmasq 2.40']
+    lookup.MAX_LEVENSHTEIN_DISTANCE = 0
+    try:
+        result = stub_plugin.process_object(TEST_FW).processed_analysis['cve_lookup']
+        assert 'CVE-2017-14494' in result['summary']
+        assert 'Dnsmasq 2.40' in result['cve_results']
+        assert 'CVE-2013-0198' in result['cve_results']['Dnsmasq 2.40']
+    finally:
+        lookup.MAX_LEVENSHTEIN_DISTANCE = 3
 
 
 @pytest.mark.parametrize(

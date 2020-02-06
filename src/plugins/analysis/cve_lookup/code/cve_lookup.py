@@ -151,7 +151,7 @@ def search_cve(db: DatabaseInterface, product: Product) -> dict:
     return result
 
 
-def _product_matches_cve(product, cve_entry):
+def _product_matches_cve(product: Product, cve_entry: CveDbEntry) -> bool:
     return (
         terms_match(product.vendor_name, cve_entry.vendor)
         and terms_match(product.product_name, cve_entry.product_name)

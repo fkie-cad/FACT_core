@@ -10,14 +10,14 @@ try:
     from ..internal import data_parsing as dp
     from ..internal import setup_repository as sr
     from ..internal.database_interface import DatabaseInterface, QUERIES
-    from ..internal.helper_functions import CveEntry, CveSummaryEntry
+    from ..internal.helper_functions import CveEntry, CveSummaryEntry, CveLookupException
     from .test_database_interface import TEST_QUERIES
 except ImportError:
     sys.path.append(str(Path(__file__).parent.parent / 'internal'))
     import data_prep as dp
     from database_interface import DatabaseInterface, QUERIES
     import setup_repository as sr
-    from helper_functions import CveEntry, CveSummaryEntry
+    from helper_functions import CveEntry, CveSummaryEntry, CveLookupException
 
 PATH_TO_TEST = str(Path(__file__).parent.parent) + '/test/'
 YEARTUPLE = namedtuple('years', 'start_year end_year')
@@ -286,9 +286,9 @@ def test_overlap():
 def test_exists(monkeypatch):
     with monkeypatch.context() as monkey:
         monkey.setattr(sr.DATABASE, 'fetch_multiple', lambda *_, **__: EXISTS_INPUT[0])
-        assert EXISTS_OUTPUT[0] == sr.exists(table_name='')
+        assert EXISTS_OUTPUT[0] == sr.table_exists(table_name='')
         monkey.setattr(sr.DATABASE, 'fetch_multiple', lambda *_, **__: EXISTS_INPUT[1])
-        assert EXISTS_OUTPUT[1] == sr.exists(table_name='')
+        assert EXISTS_OUTPUT[1] == sr.table_exists(table_name='')
 
 
 def test_extract_relevant_feeds():
@@ -317,7 +317,7 @@ def test_drop_table():
     assert [] == list(sr.DATABASE.fetch_multiple(query=QUERIES['exist'].format('test')))
 
 
-def test_update_cpe(monkeypatch, capsys):
+def test_update_cpe(monkeypatch):
     with monkeypatch.context() as monkey:
         sr.DATABASE = sr.DatabaseInterface(PATH_TO_TEST + 'test_update.db')
         monkey.setattr(sr, 'glob', lambda *_, **__: [PATH_TO_TEST + UPDATE_CPE_XML])
@@ -325,11 +325,12 @@ def test_update_cpe(monkeypatch, capsys):
         actual_cpe_update = sorted(sr.DATABASE.fetch_multiple(query=QUERIES['select_all'].format('cpe_table')))
         assert sorted(EXPECTED_UPDATED_CPE_TABLE) == actual_cpe_update
         sr.DATABASE = sr.DatabaseInterface(PATH_TO_TEST + 'test_output.db')
-        sr.update_cpe('')
-        assert capsys.readouterr().out == '\nCPE table does not exist! Did you mean import CPE?\n\n'
+        with pytest.raises(CveLookupException) as exception:
+            sr.update_cpe('')
+            assert 'CPE table does not exist' in exception.message
 
 
-def test_import_cpe(monkeypatch, capsys):
+def test_import_cpe(monkeypatch):
     with monkeypatch.context() as monkey:
         sr.DATABASE = sr.DatabaseInterface(PATH_TO_TEST + 'test_import.db')
         monkey.setattr(sr, 'glob', lambda *_, **__: [PATH_TO_TEST + EXTRACT_CPE_XML])
@@ -338,8 +339,9 @@ def test_import_cpe(monkeypatch, capsys):
         assert sorted(CPE_TABLE) == sorted(actual_cpe_output)
         sr.DATABASE = sr.DatabaseInterface(PATH_TO_TEST + 'test_output.db')
         sr.DATABASE.execute_query(QUERIES['create_cpe_table'].format('cpe_table'))
-        sr.import_cpe('')
-        assert capsys.readouterr().out == '\nCPE table does already exist!\n\n'
+        with pytest.raises(CveLookupException) as exception:
+            sr.import_cpe('')
+            assert 'CPE table does already exist' in exception.message
 
 
 def test_get_cpe_content(monkeypatch):
@@ -412,19 +414,20 @@ def test_get_cve_update_content(monkeypatch):
         sr.get_cve_update_content('.')
 
 
-def test_update_cve_repository(monkeypatch, capsys):
+def test_update_cve_repository(monkeypatch):
     with monkeypatch.context() as monkey:
         sr.DATABASE = sr.DatabaseInterface(PATH_TO_TEST + 'test_update.db')
         monkey.setattr(sr, 'glob', lambda *_, **__: [PATH_TO_TEST + UPDATE_CVE_JSON])
         sr.update_cve_repository(cve_extract_path='')
         actual_cve_update = list(sr.DATABASE.fetch_multiple(QUERIES['select_all'].format('cve_table')))
         actual_summary_update = list(sr.DATABASE.fetch_multiple(QUERIES['select_all'].format('summary_table')))
-        # assert len(actual_cve_update) == len(EXPECTED_UPDATED_CVE_TABLE)
         assert sorted(actual_cve_update) == sorted(EXPECTED_UPDATED_CVE_TABLE)
         assert sorted(actual_summary_update) == sorted(EXPECTED_UPDATED_SUMMARY_TABLE)
         sr.DATABASE = sr.DatabaseInterface(PATH_TO_TEST + 'test_output.db')
-        sr.update_cve_repository('.')
-        assert capsys.readouterr().out == '\nCVE tables do not exist! Did you mean import CVE?\n\n'
+
+        with pytest.raises(CveLookupException) as exception:
+            sr.update_cve_repository('.')
+            assert 'CVE tables do not exist!' in exception.message
         sr.DATABASE = sr.DatabaseInterface(PATH_TO_TEST + 'test_update.db')
 
 

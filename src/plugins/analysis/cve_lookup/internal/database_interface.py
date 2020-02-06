@@ -74,7 +74,7 @@ class DatabaseInterface:
         with self.get_cursor() as cursor:
             cursor.execute(query)
             while True:
-                result_batch = cursor.fetchmany(10000)
+                result_batch = cursor.fetchmany(1000)
                 if not result_batch:
                     break
                 for query_result in result_batch:
