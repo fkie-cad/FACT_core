@@ -7,7 +7,6 @@ from itertools import combinations
 from pathlib import Path
 from re import match
 from typing import Callable, List, NamedTuple, Optional, Tuple
-from warnings import warn
 
 from packaging.version import LegacyVersion, parse
 from pyxdameraulevenshtein import damerau_levenshtein_distance as distance  # pylint: disable=no-name-in-module
@@ -94,16 +93,16 @@ def generate_search_terms(product_name: str) -> List[str]:
 
 def find_matching_cpe_product(cpe_matches: List[Product], requested_version: str) -> Product:
     if requested_version.isdigit() or is_valid_dotted_version(requested_version):
-        version_numbers = get_version_numbers(cpe_matches)
+        version_numbers = [t.version_number for t in cpe_matches]
         if requested_version in version_numbers:
             return find_cpe_product_with_version(cpe_matches, requested_version)
         version_numbers.append(requested_version)
         version_numbers.sort(key=lambda v: LegacyVersion(parse(v)))
-        closest_match = get_closest_matches(target_values=version_numbers, search_word=requested_version)[0]
-        return find_cpe_product_with_version(cpe_matches, closest_match)
+        next_closest_version = find_next_closest_version(version_numbers, requested_version)
+        return find_cpe_product_with_version(cpe_matches, next_closest_version)
     if requested_version == 'ANY':
         return find_cpe_product_with_version(cpe_matches, 'ANY')
-    warn('Warning: Version returned from CPE match has invalid type. Returned CPE might not contain relevant version number')
+    logging.warning('Version returned from CPE match has invalid type. Returned CPE might not contain relevant version number')
     return cpe_matches[0]
 
 
@@ -111,21 +110,15 @@ def is_valid_dotted_version(version: str) -> bool:
     return bool(match(r'^[a-zA-Z0-9\-]+(\\\.[a-zA-Z0-9\-]+)+$', version))
 
 
-def get_version_numbers(target_values: List[Product]) -> List[str]:
-    return [t.version_number for t in target_values]
-
-
 def find_cpe_product_with_version(cpe_matches, requested_version):
     return [product for product in cpe_matches if product.version_number == requested_version][0]
 
 
-def get_closest_matches(target_values: list, search_word: str) -> list:
-    search_word_index = target_values.index(search_word)
-    if 0 < search_word_index < len(target_values) - 1:
-        return [target_values[search_word_index - 1], target_values[search_word_index + 1]]
+def find_next_closest_version(sorted_version_list: List[str], requested_version: str) -> str:
+    search_word_index = sorted_version_list.index(requested_version)
     if search_word_index == 0:
-        return [target_values[search_word_index + 1]]
-    return [target_values[search_word_index - 1]]
+        return sorted_version_list[search_word_index + 1]
+    return sorted_version_list[search_word_index - 1]
 
 
 def build_version_string(cve_entry: CveDbEntry) -> str:

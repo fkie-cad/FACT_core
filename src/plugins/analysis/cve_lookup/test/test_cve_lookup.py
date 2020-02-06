@@ -4,10 +4,10 @@ from pathlib import Path
 
 import pytest
 
-from test.common_helper import TEST_FW, get_config_for_testing
+from test.common_helper import get_config_for_testing, TEST_FW
 
 try:
-    from ..code import vuln_lookup_plugin as lookup
+    from ..code import cve_lookup as lookup
     from ..internal.database_interface import DatabaseInterface
     from ..internal.helper_functions import unbind
 except ImportError:
@@ -121,20 +121,13 @@ def test_get_version_index(version, index, expected):
     assert lookup.get_version_index(version=version, index=index) == expected
 
 
-@pytest.mark.parametrize('target_values, expected', [
-    ([lookup.Product('abc', 'def', '1\\.2\\.3'), lookup.Product('abc', 'def', '4\\.5\\.6')], ['1\\.2\\.3', '4\\.5\\.6'])
-])
-def test_get_version_numbers(target_values, expected):
-    assert lookup.get_version_numbers(target_values=target_values) == expected
-
-
 @pytest.mark.parametrize('target_values, search_word, expected', [
-    (['1\\.2\\.3', '2\\.2\\.2', '4\\.5\\.6'], '2\\.2\\.2', ['1\\.2\\.3', '4\\.5\\.6']),
-    (['1\\.1\\.1', '1\\.2\\.3', '4\\.5\\.6'], '1\\.1\\.1', ['1\\.2\\.3']),
-    (['1\\.2\\.3', '4\\.5\\.6', '7\\.8\\.9'], '7\\.8\\.9', ['4\\.5\\.6'])
+    (['1\\.2\\.3', '2\\.2\\.2', '4\\.5\\.6'], '2\\.2\\.2', '1\\.2\\.3'),
+    (['1\\.1\\.1', '1\\.2\\.3', '4\\.5\\.6'], '1\\.1\\.1', '1\\.2\\.3'),
+    (['1\\.2\\.3', '4\\.5\\.6', '7\\.8\\.9'], '7\\.8\\.9', '4\\.5\\.6')
 ])
-def test_get_closest_matches(target_values, search_word, expected):
-    assert lookup.get_closest_matches(target_values=target_values, search_word=search_word) == expected
+def test_find_next_closest_version(target_values, search_word, expected):
+    assert lookup.find_next_closest_version(sorted_version_list=target_values, requested_version=search_word) == expected
 
 
 def test_find_matching_cpe_product():
@@ -229,8 +222,8 @@ def test_process_object(stub_plugin):
 
 
 @pytest.mark.parametrize(
-    'cpe_version, cve_version, version_start_including, version_start_excluding, version_end_including, '
-    'version_end_excluding, expected_output', [
+    'cpe_version, cve_version, version_start_including, version_start_excluding, version_end_including, version_end_excluding, expected_output',
+    [
         ('1', '1', '', '', '', '', True),
         ('1', '2', '', '', '', '', False),
         ('1.2.3', '1.2.3', '', '', '', '', True),
