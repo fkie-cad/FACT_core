@@ -11,6 +11,7 @@ try:
     from ..internal import setup_repository as sr
     from ..internal.database_interface import DatabaseInterface, QUERIES
     from ..internal.helper_functions import CveEntry, CveSummaryEntry
+    from .test_database_interface import TEST_QUERIES
 except ImportError:
     sys.path.append(str(Path(__file__).parent.parent / 'internal'))
     import data_prep as dp
@@ -222,10 +223,10 @@ def setup():
         db.insert_rows(query=QUERIES['insert_cve'].format('cve_table'), input_data=cve_base)
         db.insert_rows(query=QUERIES['insert_summary'].format('summary_table'), input_data=summary_base)
 
-        db.execute_query(query=QUERIES['test_create_update'].format('outdated'))
-        db.execute_query(query=QUERIES['test_create_update'].format('new'))
-        db.insert_rows(query=QUERIES['test_insert_cve_id'].format('outdated'), input_data=[('CVE-2018-0001', 2018), ('CVE-2018-0002', 2018)])
-        db.insert_rows(query=QUERIES['test_insert_cve_id'].format('new'), input_data=[('CVE-2018-0002', 2018), ('CVE-2018-0003', 2018)])
+        db.execute_query(query=TEST_QUERIES['test_create_update'].format('outdated'))
+        db.execute_query(query=TEST_QUERIES['test_create_update'].format('new'))
+        db.insert_rows(query=TEST_QUERIES['test_insert_cve_id'].format('outdated'), input_data=[('CVE-2018-0001', 2018), ('CVE-2018-0002', 2018)])
+        db.insert_rows(query=TEST_QUERIES['test_insert_cve_id'].format('new'), input_data=[('CVE-2018-0002', 2018), ('CVE-2018-0003', 2018)])
 
     yield None
     with suppress(OSError):

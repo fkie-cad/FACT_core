@@ -50,10 +50,6 @@ QUERIES = {
         get_field_names(CVE_SUMMARY_DB_FIELDS), ', '.join(['?'] * len(CVE_SUMMARY_DB_FIELDS))),
     'select_all': 'SELECT * FROM {}',
     'summary_lookup': 'SELECT cve_id, summary, cvss_v2_score, cvss_v3_score FROM summary_table',
-    'test_create': 'CREATE TABLE IF NOT EXISTS {} (x INTEGER)',
-    'test_create_update': 'CREATE TABLE IF NOT EXISTS {} (cve_id TEXT NOT NULL, year INTEGER NOT NULL)',
-    'test_insert': 'INSERT INTO {} (x) VALUES (?)',
-    'test_insert_cve_id': 'INSERT INTO {} (cve_id, year) VALUES (?, ?)'
 }
 
 
@@ -64,8 +60,8 @@ class DatabaseInterface:
 
     def __init__(self, db_path: str = DB_PATH):
         self.connection = None
-        if not db_path.endswith('.db') and isinstance(db_path, str):
-            raise TypeError('Input must be string and end on \'.db\'')
+        if not Path(db_path).is_file():
+            raise FileNotFoundError('Database not found at {}'.format(db_path))
         try:
             self.connection = connect(db_path)
         except SqliteException as exception:
@@ -80,11 +76,11 @@ class DatabaseInterface:
         with self.get_cursor() as cursor:
             cursor.execute(query)
             while True:
-                outputs = cursor.fetchmany(10000)
-                if not outputs:
+                result_batch = cursor.fetchmany(10000)
+                if not result_batch:
                     break
-                for output in outputs:
-                    yield output
+                for query_result in result_batch:
+                    yield query_result
 
     def fetch_one(self, query: str):
         with self.get_cursor() as cursor:

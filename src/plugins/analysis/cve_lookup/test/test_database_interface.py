@@ -8,6 +8,12 @@ from pathlib import Path
 import pytest
 
 TEST_DB_PATH = 'test.db'
+TEST_QUERIES = {
+    'test_create': 'CREATE TABLE IF NOT EXISTS {} (x INTEGER)',
+    'test_create_update': 'CREATE TABLE IF NOT EXISTS {} (cve_id TEXT NOT NULL, year INTEGER NOT NULL)',
+    'test_insert': 'INSERT INTO {} (x) VALUES (?)',
+    'test_insert_cve_id': 'INSERT INTO {} (cve_id, year) VALUES (?, ?)'
+}
 
 try:
     from ..internal.database_interface import DatabaseInterface, QUERIES
@@ -21,8 +27,8 @@ def setup() -> None:
     try:
         connection = sqlite3.connect(TEST_DB_PATH)
         cursor = connection.cursor()
-        cursor.execute(QUERIES['test_create'].format('test_table'))
-        cursor.execute(QUERIES['test_insert'].format('test_table'), [23])
+        cursor.execute(TEST_QUERIES['test_create'].format('test_table'))
+        cursor.execute(TEST_QUERIES['test_insert'].format('test_table'), [23])
         connection.commit()
         connection.close()
     except sqlite3.Error as error:
@@ -35,8 +41,11 @@ def setup() -> None:
 def test_db_connection():
     with DatabaseInterface(TEST_DB_PATH) as db:
         assert db.connection is not None
-    with pytest.raises(TypeError):
-        DatabaseInterface('')
+
+
+def test_connection_db_not_found():
+    with pytest.raises(FileNotFoundError):
+        DatabaseInterface('foo.bar')
 
 
 def test_select_functionality():
@@ -46,14 +55,14 @@ def test_select_functionality():
 
 def test_insert_functionality():
     with DatabaseInterface(TEST_DB_PATH) as db:
-        db.insert_rows(QUERIES['test_insert'].format('test_table'), [[34]])
+        db.insert_rows(TEST_QUERIES['test_insert'].format('test_table'), [[34]])
         test_insert_output = list(db.fetch_multiple(query=QUERIES['select_all'].format('test_table')))
         assert test_insert_output == [(23,), (34,)]
 
 
 def test_execute_query():
     with DatabaseInterface(TEST_DB_PATH) as db:
-        db.execute_query(query=QUERIES['test_create'].format('test_table_2'))
+        db.execute_query(query=TEST_QUERIES['test_create'].format('test_table_2'))
         assert list(db.fetch_multiple(query=QUERIES['exist'].format('test_table_2'))) == [('test_table_2',)]
         db.execute_query(query=QUERIES['drop'].format('test_table_2'))
         assert list(db.fetch_multiple(query=QUERIES['exist'].format('test_table_2'))) == []
