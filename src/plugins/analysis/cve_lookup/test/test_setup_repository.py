@@ -244,10 +244,10 @@ def setup():
     with suppress(OSError):
         remove('cve_cpe.db')
     sr.QUERIES.update(TEST_QUERIES)
-    cpe_base = dp.setup_cpe_table(dp.extract_cpe(PATH_TO_TEST + EXTRACT_CPE_XML))
+    cpe_base = sr.setup_cpe_table(dp.extract_cpe(PATH_TO_TEST + EXTRACT_CPE_XML))
     cve_base, summary_base = dp.extract_cve(PATH_TO_TEST + EXTRACT_CVE_JSON)
-    cve_base = dp.setup_cve_feeds_table(cve_list=cve_base)
-    summary_base = dp.setup_cve_summary_table(summary_list=summary_base)
+    cve_base = sr.setup_cve_feeds_table(cve_list=cve_base)
+    summary_base = sr.setup_cve_summary_table(summary_list=summary_base)
 
     with DatabaseInterface(PATH_TO_TEST + 'test_update.db') as db:
         db.execute_query(query=QUERIES['create_cpe_table'].format('cpe_table'))
@@ -454,43 +454,45 @@ def test_import_cve(monkeypatch):
         assert sorted(actual_summary_output) == sorted(EXPECTED_SUM_OUTPUT)
 
 
-@pytest.mark.parametrize('path, specify, years, expected', [
-    ('', 0, YEARS, ['cpe', 'cve']),
-    ('', 1, YEARS, ['cpe']),
-    ('', 2, YEARS, ['cve']),
+@pytest.mark.parametrize('path, choice, years, expected', [
+    ('', sr.Choice('both'), YEARS, ['cpe', 'cve']),
+    ('', sr.Choice('cpe'), YEARS, ['cpe']),
+    ('', sr.Choice('cve'), YEARS, ['cve']),
 ])
-def test_set_repository(monkeypatch, path, specify, years, expected):
+def test_set_repository(monkeypatch, path, choice, years, expected):
     output = list()
     with monkeypatch.context() as monkey:
         monkey.setattr(sr, 'import_cpe', lambda *_, **__: output.append('cpe'))
         monkey.setattr(sr, 'import_cve', lambda *_, **__: output.append('cve'))
-        sr.init_repository(extraction_path=path, specify=specify, years=years)
+        sr.init_repository(path, choice, years)
         assert output == expected
 
 
-@pytest.mark.parametrize('path, specify, expected', [('', 0, ['cpe', 'cve']), ('', 1, ['cpe']), ('', 2, ['cve'])])
-def test_update_repository(monkeypatch, path, specify, expected):
+@pytest.mark.parametrize('path, choice, expected', [
+    ('', sr.Choice('both'), ['cpe', 'cve']),
+    ('', sr.Choice('cpe'), ['cpe']),
+    ('', sr.Choice('cve'), ['cve']),
+])
+def test_update_repository(monkeypatch, path, choice, expected):
     output = list()
     with monkeypatch.context() as monkey:
         monkey.setattr(sr, 'update_cpe', lambda *_, **__: output.append('cpe'))
         monkey.setattr(sr, 'update_cve_repository', lambda *_, **__: output.append('cve'))
-        sr.update_repository(extraction_path=path, specify=specify)
+        sr.update_repository(path, choice)
         assert output == expected
 
 
-@pytest.mark.parametrize('specify, years, raising', [
-    (-1, YEARTUPLE(2002, 2019), ValueError),
-    (0, YEARTUPLE(2002, 2019), None),
-    (3, YEARS, ValueError),
-    (0, YEARTUPLE(2001, 2019), ValueError),
-    (0, YEARTUPLE(2018, 2017), ValueError)
+@pytest.mark.parametrize('years, raising', [
+    (YEARTUPLE(2002, 2019), None),
+    (YEARTUPLE(2001, 2019), ValueError),
+    (YEARTUPLE(2018, 2017), ValueError)
 ])
-def test_check_validity_of_arguments(specify, years, raising):
+def test_check_validity_of_arguments(years, raising):
     if raising:
         with pytest.raises(ValueError):
-            sr.check_validity_of_arguments(specify=specify, years=years)
+            sr.check_validity_of_arguments(years=years)
     else:
-        sr.check_validity_of_arguments(specify=specify, years=years)
+        sr.check_validity_of_arguments(years=years)
 
 
 def test_setup_cve_feeds_table():

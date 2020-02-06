@@ -3,6 +3,7 @@ import re
 import sys
 from collections import namedtuple
 from datetime import datetime
+from enum import Enum
 from glob import glob
 from pathlib import Path
 from shutil import rmtree
@@ -21,6 +22,8 @@ except (ImportError, ValueError, SystemError):
 CURRENT_YEAR = datetime.now().year
 DATABASE = DatabaseInterface()
 SPLIT_REGEX = r'(?<!\\)[:]'
+
+Years = namedtuple('Years', 'start_year end_year')
 
 
 def overlap(requested_years: namedtuple, years_in_cve_database: list) -> list:
@@ -55,7 +58,7 @@ def update_cpe(cpe_extract_path: str):
     if exists(table_name='cpe_table'):
         drop_table(table_name='cpe_table')
         create(query='create_cpe_table', table_name='cpe_table')
-        insert_into(query='insert_cpe', table_name='cpe_table', input_data=dp.setup_cpe_table(get_cpe_content(path=cpe_extract_path)))
+        insert_into(query='insert_cpe', table_name='cpe_table', input_data=setup_cpe_table(get_cpe_content(path=cpe_extract_path)))
     else:
         print('\nCPE table does not exist! Did you mean import CPE?\n')
 
@@ -65,7 +68,7 @@ def import_cpe(cpe_extract_path: str):
         print('\nCPE table does already exist!\n')
     else:
         create(query='create_cpe_table', table_name='cpe_table')
-        insert_into(query='insert_cpe', table_name='cpe_table', input_data=dp.setup_cpe_table(get_cpe_content(path=cpe_extract_path)))
+        insert_into(query='insert_cpe', table_name='cpe_table', input_data=setup_cpe_table(get_cpe_content(path=cpe_extract_path)))
 
 
 def get_cpe_content(path: str) -> list:
@@ -77,7 +80,7 @@ def get_cpe_content(path: str) -> list:
 
 def init_cve_feeds_table(cve_list: List[CveEntry], table_name: str):
     create(query='create_cve_table', table_name=table_name)
-    insert_into(query='insert_cve', table_name=table_name, input_data=dp.setup_cve_feeds_table(cve_list=cve_list))
+    insert_into(query='insert_cve', table_name=table_name, input_data=setup_cve_feeds_table(cve_list=cve_list))
 
 
 def init_cve_summaries_table(summary_list: list, table_name: str):
@@ -202,41 +205,49 @@ def setup_cpe_table(cpe_list: list) -> list:
     ]
 
 
-def init_repository(extraction_path: str, specify: int, years: namedtuple):
-    if specify == 0:
-        import_cpe(cpe_extract_path=extraction_path)
-        import_cve(cve_extract_path=extraction_path, years=years)
-    elif specify == 1:
-        import_cpe(cpe_extract_path=extraction_path)
-    elif specify == 2:
-        import_cve(cve_extract_path=extraction_path, years=years)
+class Choice(Enum):
+    cpe = 'cpe'
+    cve = 'cve'
+    both = 'both'
+
+    def cpe_was_chosen(self):
+        return self.value in [self.cpe.value, self.both.value]
+
+    def cve_was_chosen(self):
+        return self.value in [self.cve.value, self.both.value]
+
+    def __str__(self):
+        return self.value
 
 
-def update_repository(extraction_path: str, specify: int):
-    if specify == 0:
+def update_repository(extraction_path: str, choice: Choice):
+    if choice.cpe_was_chosen():
         update_cpe(extraction_path)
+    if choice.cve_was_chosen():
         update_cve_repository(extraction_path)
-    elif specify == 1:
-        update_cpe(extraction_path)
-    elif specify == 2:
-        update_cve_repository(extraction_path)
+
+
+def init_repository(extraction_path: str, choice: Choice, years: namedtuple):
+    if choice.cpe_was_chosen():
+        import_cpe(cpe_extract_path=extraction_path)
+    if choice.cve_was_chosen():
+        import_cve(cve_extract_path=extraction_path, years=years)
 
 
 def setup_argparser():
     parser = argparse.ArgumentParser()
     parser.add_argument(
+        'choice',
+        help='specifies if CPE and/or CVE should be created/updated.\nChoices: cpe, cve, both (default)',
+        type=Choice,
+        default='both',
+        choices=list(Choice)
+    )
+    parser.add_argument(
         '--update', '-u',
         help='Boolean which specifies if the DATABASE should be updated. Default: False',
         type=bool,
         default=False
-    )
-    parser.add_argument(
-        '--specify', '-s',
-        help='Int which specifies if CPE and/or CVE should be created/updated.\nValues:\n\t'
-             '0 - update/import both\n\t1 - update/import CPE dictionary\n\t'
-             '2 - update/import CVE feeds\nDefault: 0',
-        type=int,
-        default=0
     )
     parser.add_argument(
         '--years', '-y',
@@ -255,10 +266,7 @@ def setup_argparser():
     return parser.parse_args()
 
 
-def check_validity_of_arguments(specify, years: namedtuple):
-    if specify < 0 or specify > 2:
-        raise ValueError('ERROR: Value of \'specify\' out of bounds. '
-                         'Look at setup_repository.py -h for more information.')
+def check_validity_of_arguments(years: namedtuple):
     if years.start_year < 2002 or years.start_year > CURRENT_YEAR:
         raise ValueError('ERROR: Value of \'start_year\' out of bounds. '
                          'Look at setup_repository.py -h for more information.')
@@ -271,18 +279,17 @@ def check_validity_of_arguments(specify, years: namedtuple):
 
 def main():
     args = setup_argparser()
-    Years = namedtuple('Years', 'start_year end_year')
     years = Years(start_year=args.years[0], end_year=args.years[1])
 
-    check_validity_of_arguments(specify=args.specify, years=years)
+    check_validity_of_arguments(years=years)
     extraction_path = args.extraction_path
     if not extraction_path.endswith('/'):
         extraction_path = '{}/'.format(extraction_path)
 
     if args.update:
-        update_repository(extraction_path=extraction_path, specify=args.specify)
+        update_repository(extraction_path, args.choice)
     else:
-        init_repository(extraction_path=extraction_path, specify=args.specify, years=years)
+        init_repository(extraction_path, args.choice, years=years)
 
     rmtree(extraction_path)
 
