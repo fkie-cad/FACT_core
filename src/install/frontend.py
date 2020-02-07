@@ -140,6 +140,7 @@ def _install_and_patch_bootstrap():
 
 
 def main(radare, nginx):
+    pip3_install_packages('werkzeug==0.16.1')  # Multiple flask plugins break on werkzeug > 0.16.1
     pip3_install_packages(
         'flask',
         'flask_restful',
