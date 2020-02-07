@@ -1,3 +1,4 @@
+import logging
 from typing import List
 
 ARCHIVE_FILE_TYPES = [
@@ -49,7 +50,7 @@ def get_partial_virtual_path(virtual_path, root):
     return {root: ['|'.join([''] + first_path[index:])]}
 
 
-class FileTreeNode:
+class FileTreeNode:  # pylint: disable=too-many-instance-attributes,too-many-arguments
     def __init__(self, uid, root_uid=None, virtual=False, name=None, size=None, mime_type=None, has_children=False,
                  not_analyzed=False):
         self.uid = uid
@@ -75,7 +76,7 @@ class FileTreeNode:
         return item.get_id() in self.children
 
     def print_tree(self, spacer=''):
-        print('{}{} (virtual:{}, has_children:{})'.format(spacer, self.name, self.virtual, self.has_children))
+        logging.info('{}{} (virtual:{}, has_children:{})'.format(spacer, self.name, self.virtual, self.has_children))
         for child_node in self.children.values():
             child_node.print_tree(spacer=spacer + '\t|')
 

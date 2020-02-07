@@ -27,8 +27,7 @@ class AjaxRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
     def _ajax_get_tree_children(self, uid, root_uid=None, compare_id=None):
-        with ConnectTo(CompareDbInterface, self._config) as sc:
-            exclusive_files = sc.get_exclusive_files(compare_id, root_uid)
+        exclusive_files = self._get_exclusive_files(compare_id, root_uid)
         tree = self._generate_exclusive_files_tree(exclusive_files, root_uid, uid)
         children = [
             self._generate_jstree_node(child_node)
@@ -36,7 +35,13 @@ class AjaxRoutes(ComponentBase):
         ]
         return jsonify(children)
 
-    def _generate_exclusive_files_tree(self, exclusive_files, root_uid, uid):
+    def _get_exclusive_files(self, compare_id, root_uid):
+        if compare_id:
+            with ConnectTo(CompareDbInterface, self._config) as sc:
+                return sc.get_exclusive_files(compare_id, root_uid)
+        return None
+
+    def _generate_exclusive_files_tree(self, exclusive_files, root_uid, uid) -> FileTreeNode:
         root = FileTreeNode(None)
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
             child_uids = sc.get_specific_fields_of_db_entry(uid, {'files_included': 1})['files_included']
