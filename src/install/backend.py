@@ -5,9 +5,10 @@ from pathlib import Path
 
 from common_helper_process import execute_shell_command_get_return_code
 from compile_yara_signatures import main as compile_signatures
+
 from helperFunctions.install import (
-    InstallationError, OperateInDirectory, apt_install_packages,
-    check_string_in_command, load_main_config, pip3_install_packages
+    InstallationError, OperateInDirectory, apt_install_packages, check_string_in_command, load_main_config,
+    pip3_install_packages
 )
 
 
@@ -16,7 +17,7 @@ def main():
     apt_install_packages('python-dev', 'python-setuptools')
     apt_install_packages('libjpeg-dev')
     apt_install_packages('libssl-dev', 'python3-tk')
-    pip3_install_packages('pluginbase', 'Pillow', 'cryptography', 'pyopenssl', 'entropy', 'matplotlib', 'docker')
+    pip3_install_packages('pluginbase', 'Pillow', 'cryptography', 'pyopenssl', 'entropy', 'matplotlib', 'docker', 'networkx')
 
     # install yara
     _install_yara()

@@ -5,7 +5,7 @@ import ssdeep
 
 from compare.PluginBase import CompareBasePlugin
 from helperFunctions.compare_sets import iter_element_and_rest, remove_duplicates_from_unhashable
-from helperFunctions.dataConversion import convert_uid_list_to_compare_id, list_of_sets_to_list_of_lists
+from helperFunctions.dataConversion import convert_uid_list_to_compare_id
 from helperFunctions.hash import generate_similarity_sets
 from objects.file import FileObject
 
@@ -86,7 +86,7 @@ class ComparePlugin(CompareBasePlugin):
                     similar_files.append(similar_file_pair)
                     similarity[convert_uid_list_to_compare_id(similar_file_pair)] = value
         similarity_sets = generate_similarity_sets(remove_duplicates_from_unhashable(similar_files))
-        return list_of_sets_to_list_of_lists(similarity_sets), similarity
+        return similarity_sets, similarity
 
     def _find_similar_file_for(self, file_uid: str, parent_uid: str, comparison_fo: FileObject):
         hash_one = self.database.get_ssdeep_hash(file_uid)
@@ -97,7 +97,7 @@ class ComparePlugin(CompareBasePlugin):
                 hash_two = self.database.get_ssdeep_hash(potential_match)
                 ssdeep_similarity = ssdeep.compare(hash_one, hash_two)
                 if hash_two and ssdeep_similarity > self.ssdeep_ignore_threshold:
-                    yield {id1, id2}, ssdeep_similarity
+                    yield (id1, id2), ssdeep_similarity
 
     def combine_similarity_results(self, similar_files: List[List[str]], fo_list: List[FileObject], similarity: dict):
         result_dict = {}
