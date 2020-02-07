@@ -151,7 +151,7 @@ def main(radare, nginx):
         'uwsgi',
         'bcrypt',
         'python-dateutil')
-    
+
     # installing web/js-frameworks
     _install_and_patch_bootstrap()
 
