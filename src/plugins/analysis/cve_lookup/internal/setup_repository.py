@@ -18,7 +18,7 @@ try:
     )
 except (ImportError, ValueError, SystemError):
     sys.path.append(str(Path(__file__).parent.parent / 'internal'))
-    import data_prep as dp
+    import data_parsing as dp
     from database_interface import DatabaseInterface, QUERIES
     from helper_functions import CveEntry, CveSummaryEntry, replace_characters_and_wildcards, CveLookupException
 
@@ -234,7 +234,7 @@ def init_repository(extraction_path: str, choice: Choice, years: namedtuple):
 def setup_argparser():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        'choice',
+        '--target', '-t',
         help='specifies if CPE and/or CVE should be created/updated.\nChoices: cpe, cve, both (default)',
         type=Choice,
         default='both',
