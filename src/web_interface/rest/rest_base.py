@@ -4,12 +4,12 @@ from common_helper_encoder import ReportEncoder
 from flask import make_response
 from flask_restful import Api
 
+from web_interface.rest.rest_binary import RestBinary
 from web_interface.rest.rest_binary_search import RestBinarySearch
-from .rest_compare import RestCompare
-from .rest_binary import RestBinary
-from .rest_file_object import RestFileObject
-from .rest_firmware import RestFirmware
-from .rest_statistic import RestStatus
+from web_interface.rest.rest_compare import RestCompare
+from web_interface.rest.rest_file_object import RestFileObject
+from web_interface.rest.rest_firmware import RestFirmware
+from web_interface.rest.rest_statistic import RestStatus
 
 
 class RestBase:
@@ -27,7 +27,7 @@ class RestBase:
     @staticmethod
     def _wrap_response(api):
         @api.representation('application/json')
-        def output_json(data, code, headers=None):
+        def output_json(data, code, headers=None):  # pylint: disable=unused-variable
             output_data = json.dumps(data, cls=ReportEncoder, sort_keys=True)
             resp = make_response(output_data, code)
             resp.headers.extend(headers if headers else {})
