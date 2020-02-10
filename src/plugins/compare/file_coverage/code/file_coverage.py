@@ -1,12 +1,12 @@
 from itertools import combinations
 from typing import Dict, List, Set, Tuple
 
+import networkx
 import ssdeep
 
 from compare.PluginBase import CompareBasePlugin
 from helperFunctions.compare_sets import iter_element_and_rest, remove_duplicates_from_unhashable
 from helperFunctions.dataConversion import convert_uid_list_to_compare_id
-from helperFunctions.hash import generate_similarity_sets
 from objects.file import FileObject
 
 
@@ -154,3 +154,10 @@ class ComparePlugin(CompareBasePlugin):
                 non_zero_file_ids.append(uid)
         if non_zero_file_ids:
             new_result[firmware_uid] = non_zero_file_ids
+
+
+def generate_similarity_sets(list_of_pairs: List[Tuple[str, str]]) -> List[List[str]]:
+    graph = networkx.Graph()
+    for file1, file2 in list_of_pairs:
+        graph.add_edge(file1, file2)
+    return [sorted(c) for c in networkx.algorithms.clique.find_cliques(graph)]

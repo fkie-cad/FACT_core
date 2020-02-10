@@ -1,7 +1,7 @@
 # pylint: disable=protected-access,no-member
 import pytest
 
-from plugins.compare.file_coverage.code.file_coverage import ComparePlugin
+from plugins.compare.file_coverage.code.file_coverage import ComparePlugin, generate_similarity_sets
 from test.unit.compare.compare_plugin_test_class import ComparePluginTest
 
 
@@ -82,3 +82,15 @@ class TestComparePluginFileCoverage(ComparePluginTest):
 ])
 def test_get_similarity_value(similar_files, similarity_dict, expected_output):
     assert ComparePlugin._get_similarity_value(similar_files, similarity_dict) == expected_output
+
+
+@pytest.mark.parametrize('test_input, expected_output', [
+    ([], []),
+    ([(1, 2), (2, 3), (1, 3)], [[1, 2, 3]]),
+    ([(1, 2), (2, 3), (1, 3), (1, 4), (2, 4), (3, 4), (1, 5), (2, 5), (3, 5), (4, 5)], [[1, 2, 3, 4, 5]]),
+    ([(1, 2), (2, 3), (1, 3), (1, 4)], [[1, 2, 3], [1, 4]]),
+    ([(1, 2), (2, 3), (1, 3), (1, 4), (3, 4)], [[1, 2, 3], [1, 3, 4]]),
+    ([(1, 4), (4, 5)], [[1, 4], [4, 5]]),
+])
+def test_generate_similarity_sets(test_input, expected_output):
+    assert generate_similarity_sets(test_input) == expected_output

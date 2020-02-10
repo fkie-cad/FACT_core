@@ -1,9 +1,7 @@
 import logging
 from hashlib import md5, new
-from typing import List, Tuple
 
 import lief
-import networkx
 import ssdeep
 import tlsh
 
@@ -35,8 +33,7 @@ def get_ssdeep(code):
 
 
 def get_ssdeep_comparison(first, second):
-    diff = ssdeep.compare(first, second)
-    return diff
+    return ssdeep.compare(first, second)
 
 
 def get_tlsh(code):
@@ -45,13 +42,6 @@ def get_tlsh(code):
 
 def get_tlsh_comparison(first, second):
     return tlsh.diff(first, second)
-
-
-def generate_similarity_sets(list_of_pairs: List[Tuple[str, str]]) -> List[List[str]]:
-    graph = networkx.Graph()
-    for file1, file2 in list_of_pairs:
-        graph.add_edge(file1, file2)
-    return [sorted(c) for c in networkx.algorithms.clique.find_cliques(graph)]
 
 
 def get_imphash(file_object):

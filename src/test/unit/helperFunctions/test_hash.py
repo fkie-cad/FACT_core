@@ -1,9 +1,7 @@
 from pathlib import Path
 
-import pytest
-
 from helperFunctions.hash import (
-    generate_similarity_sets, get_imphash, get_md5, get_sha256, get_ssdeep, get_ssdeep_comparison, normalize_lief_items
+    get_imphash, get_md5, get_sha256, get_ssdeep, get_ssdeep_comparison, normalize_lief_items
 )
 from test.common_helper import create_test_file_object, get_test_data_dir
 
@@ -63,15 +61,3 @@ def test_normalize_items_from_objects():
 
 def test_normalize_items_empty_list():
     assert normalize_lief_items([]) == []
-
-
-@pytest.mark.parametrize('test_input, expected_output', [
-    ([], []),
-    ([(1, 2), (2, 3), (1, 3)], [[1, 2, 3]]),
-    ([(1, 2), (2, 3), (1, 3), (1, 4), (2, 4), (3, 4), (1, 5), (2, 5), (3, 5), (4, 5)], [[1, 2, 3, 4, 5]]),
-    ([(1, 2), (2, 3), (1, 3), (1, 4)], [[1, 2, 3], [1, 4]]),
-    ([(1, 2), (2, 3), (1, 3), (1, 4), (3, 4)], [[1, 2, 3], [1, 3, 4]]),
-    ([(1, 4), (4, 5)], [[1, 4], [4, 5]]),
-])
-def test_generate_similarity_sets(test_input, expected_output):
-    assert generate_similarity_sets(test_input) == expected_output
