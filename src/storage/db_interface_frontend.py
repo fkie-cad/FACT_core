@@ -208,8 +208,7 @@ class FrontEndDbInterface(MongoInterfaceCommon):
         return node
 
     def get_node_for_real_file(self, current_virtual_path, fo_data, root_uid, uid, whitelist):
-        mime_type = fo_data['processed_analysis']['file_type']['mime'] if 'file_type' in fo_data[
-            'processed_analysis'] else 'file-type-plugin/not-run-yet'
+        mime_type = fo_data['processed_analysis'].get('file_type', {}).get('mime') or 'file-type-plugin/not-run-yet'
         return FileTreeNode(
             uid, root_uid=root_uid, virtual=False, name=self._get_file_name(current_virtual_path, fo_data),
             size=fo_data['size'], mime_type=mime_type, has_children=self._has_children(fo_data, whitelist)
