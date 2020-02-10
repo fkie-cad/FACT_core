@@ -24,6 +24,6 @@ else
 	echo "Setting up database"
 	python3 setup_repository.py
 fi
-)
+) || exit 1
 
 exit 0

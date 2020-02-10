@@ -283,9 +283,9 @@ def main():
 
     try:
         if args.update:
-            update_repository(extraction_path, args.choice)
+            update_repository(extraction_path, args.target)
         else:
-            init_repository(extraction_path, args.choice, years=years)
+            init_repository(extraction_path, args.target, years=years)
     except CveLookupException as exception:
         logging.error(exception.message)
         sys.exit(1)
