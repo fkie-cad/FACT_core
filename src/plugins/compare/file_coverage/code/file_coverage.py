@@ -133,7 +133,7 @@ class ComparePlugin(CompareBasePlugin):
         group_id = ''
         for similar_file_id in similar_file_group:
             parent_uid, file_uid = similar_file_id.split(':')
-            group_id = '{}{}{}'.format(group_id, parent_uid[:2], file_uid[:2])
+            group_id = '{}{}{}'.format(group_id, parent_uid[:4], file_uid[:4])
         return group_id
 
     def _get_non_zero_common_files(self, files_in_all, not_in_all):
