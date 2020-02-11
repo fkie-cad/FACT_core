@@ -5,6 +5,7 @@ from common_helper_files import human_readable_file_size
 from flask import jsonify, render_template
 
 from helperFunctions.database import ConnectTo
+from helperFunctions.dataConversion import none_to_none
 from helperFunctions.file_tree import FileTreeNode, get_correct_icon_for_mime, remove_virtual_path_from_root
 from intercom.front_end_binding import InterComFrontEndBinding
 from storage.db_interface_compare import CompareDbInterface
@@ -28,6 +29,7 @@ class AjaxRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
     def _ajax_get_tree_children(self, uid, root_uid=None, compare_id=None):
+        root_uid, compare_id = none_to_none(root_uid), none_to_none(compare_id)
         exclusive_files = self._get_exclusive_files(compare_id, root_uid)
         tree = self._generate_file_tree(root_uid, uid, exclusive_files)
         children = [
@@ -48,7 +50,7 @@ class AjaxRoutes(ComponentBase):
             child_uids = sc.get_specific_fields_of_db_entry(uid, {'files_included': 1})['files_included']
             for child_uid in child_uids:
                 if not whitelist or child_uid in whitelist:
-                    for node in sc.generate_file_tree_node(child_uid, root_uid, whitelist):
+                    for node in sc.generate_file_tree_level(child_uid, root_uid or uid, whitelist):
                         root.add_child_node(node)
         return root
 
@@ -56,7 +58,7 @@ class AjaxRoutes(ComponentBase):
     def _ajax_get_tree_root(self, uid, root_uid):
         root = list()
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
-            for node in sc.generate_file_tree_node(uid, root_uid):  # only a single item in this 'iterable'
+            for node in sc.generate_file_tree_level(uid, root_uid):  # only a single item in this 'iterable'
                 root = [self._generate_jstree_node(node)]
         root = remove_virtual_path_from_root(root)
         return jsonify(root)
