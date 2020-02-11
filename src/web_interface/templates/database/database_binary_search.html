@@ -74,14 +74,9 @@
                     <div class="col-xs-12 clear">
                         <textarea name="textarea" rows="5" style="resize: vertical; position: relative; z-index: 1;"
                         class="form-control" id="textarea"></textarea>
-                        <p style="font-family: monospace; color: gray">
-                            Example: <br>
-                            rule rulename {strings: $a = { 0123456789abcdef } condition: $a }
-                        </p>
                     </div>
                 </div>
             </div>
-
             <div class="col-md-offset-2 col-md-8 col-xs-12" style="padding-bottom: 15px">
                 <label><input type='checkbox' name="firmware_checkbox" id="firmware_checkbox" onclick='clickCheckbox(this);'> Scan Single Firmware</label>
                 <input name="firmware_uid" type="text" class="form-control" id="firmware_uid_input" placeholder="Firmware UID" style="display: none;">
@@ -98,6 +93,45 @@
             </div>
         </form>
     </div>
+    <div class="col-md-offset-2 col-md-8 col-xs-12">
+		<h4>Example queries:</h4>
+		<p>
+            HEX-Pattern:<br />
+	        <pre><code>rule a_hex_string_rule
+{
+    strings:
+        $a = { 0A1B }
+    condition:
+        $a
+}</code></pre>
+            <span style="color:grey; font-size: 0.9em">Matches firmware files including 0x0A1B.</span>
+        </p>
+		<p>
+            ASCII:<br />
+	        <pre><code>rule a_ascii_string_rule
+{
+    strings:
+        $a = "backdoor" ascii wide nocase
+        $b = "roodkcab" ascii wide nocase
+    condition:
+        $a or $b
+}</code></pre>
+            <span style="color:grey; font-size: 0.9em">Matches firmware files including the string "backdoor" or "roodkcab" in 8bit (ascii) or 16bit (wide) representation and not case sensitive.</span>
+        </p>
+
+        <p>
+             RegEx:<br />
+	        <pre><code>rule a_regex_rule
+{
+    strings:
+        $a = /vxworks 5\.\d+(\.\d+)?/ nocase
+    condition:
+        $a 
+}</code></pre>
+             <span style="color:grey; font-size: 0.9em">Matches firmware files including "vxworks 5.X.Y" with "X" and "Y" are arbitrary numbers, ".Y" is optional and the whole string is not case sensitive.</span>
+        </p>
+        <p>Do you need more advanced rules? Have a look at the <a href="https://yara.readthedocs.io/en/latest/writingrules.html">official yara documentation</a>!</p>    
+	</div>
 
     <script>
         function set_uid(){
