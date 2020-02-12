@@ -33,8 +33,7 @@ def get_ssdeep(code):
 
 
 def get_ssdeep_comparison(first, second):
-    diff = ssdeep.compare(first, second)
-    return diff
+    return ssdeep.compare(first, second)
 
 
 def get_tlsh(code):
@@ -43,14 +42,6 @@ def get_tlsh(code):
 
 def get_tlsh_comparison(first, second):
     return tlsh.diff(first, second)
-
-
-def check_similarity_of_sets(pair_of_sets, all_sets):
-    for first_item in pair_of_sets[0]:
-        for second_item in pair_of_sets[1]:
-            if first_item != second_item and {first_item, second_item} not in all_sets:
-                return False
-    return True
 
 
 def get_imphash(file_object):

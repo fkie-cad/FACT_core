@@ -2,7 +2,7 @@ import re
 from datetime import datetime
 from itertools import combinations
 from pickle import dumps
-from typing import KT, VT, Dict, List, Optional, Set
+from typing import KT, VT, Dict, Iterable, List, Optional, Set
 
 
 def make_bytes(code):
@@ -42,7 +42,7 @@ def list_of_sets_to_list_of_lists(list_of_sets: List[Set]) -> List[List]:
     return [sorted(item) for item in list_of_sets]
 
 
-def convert_uid_list_to_compare_id(uid_list: List[str]) -> str:
+def convert_uid_list_to_compare_id(uid_list: Iterable[str]) -> str:
     return ';'.join(sorted(uid_list))
 
 

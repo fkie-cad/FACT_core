@@ -2,6 +2,7 @@ import json
 import logging
 import sys
 from copy import deepcopy
+from typing import Dict, List
 
 from helperFunctions.compare_sets import remove_duplicates_from_list
 from helperFunctions.database_structure import visualize_complete_tree
@@ -197,17 +198,31 @@ class FrontEndDbInterface(MongoInterfaceCommon):
 
     def _create_node_from_virtual_path(self, uid, root_uid, current_virtual_path, fo_data, whitelist=None):
         if len(current_virtual_path) > 1:  # in the middle of a virtual file path
-            node = FileTreeNode(uid=None, root_uid=root_uid, virtual=True, name=current_virtual_path.pop(0))
-            for child_node in self.generate_file_tree_node(uid, root_uid, current_virtual_path=current_virtual_path, fo_data=fo_data, whitelist=whitelist):
-                node.add_child_node(child_node)
-        else:  # at the end of a virtual path aka a 'real' file
-            if whitelist:
-                has_children = any(f in fo_data['files_included'] for f in whitelist)
-            else:
-                has_children = fo_data['files_included'] != []
-            mime_type = fo_data['processed_analysis']['file_type']['mime'] if 'file_type' in fo_data['processed_analysis'] else 'file-type-plugin/not-run-yet'
-            node = FileTreeNode(uid, root_uid=root_uid, virtual=False, name=fo_data['file_name'], size=fo_data['size'], mime_type=mime_type, has_children=has_children)
+            return self.get_node_for_virtual_file(current_virtual_path, fo_data, root_uid, uid, whitelist)
+        return self.get_node_for_real_file(current_virtual_path, fo_data, root_uid, uid, whitelist)
+
+    def get_node_for_virtual_file(self, current_virtual_path, fo_data, root_uid, uid, whitelist):
+        node = FileTreeNode(uid=None, root_uid=root_uid, virtual=True, name=current_virtual_path.pop(0))
+        for child_node in self.generate_file_tree_node(uid, root_uid, current_virtual_path=current_virtual_path, fo_data=fo_data, whitelist=whitelist):
+            node.add_child_node(child_node)
         return node
+
+    def get_node_for_real_file(self, current_virtual_path, fo_data, root_uid, uid, whitelist):
+        mime_type = fo_data['processed_analysis'].get('file_type', {}).get('mime') or 'file-type-plugin/not-run-yet'
+        return FileTreeNode(
+            uid, root_uid=root_uid, virtual=False, name=self._get_file_name(current_virtual_path, fo_data),
+            size=fo_data['size'], mime_type=mime_type, has_children=self._has_children(fo_data, whitelist)
+        )
+
+    @staticmethod
+    def _get_file_name(current_virtual_path: List[str], fo_data: Dict[str, str]) -> str:
+        return current_virtual_path.pop() if current_virtual_path else fo_data['file_name']
+
+    @staticmethod
+    def _has_children(fo_data, whitelist):
+        if whitelist:
+            return any(f in fo_data['files_included'] for f in whitelist)
+        return fo_data['files_included'] != []
 
     def generate_file_tree_node(self, uid, root_uid, current_virtual_path=None, fo_data=None, whitelist=None):
         required_fields = {'virtual_file_path': 1, 'files_included': 1, 'file_name': 1, 'size': 1, 'processed_analysis.file_type.mime': 1, '_id': 1}
