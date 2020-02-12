@@ -95,20 +95,19 @@
     </div>
     <div class="col-md-offset-2 col-md-8 col-xs-12">
 		<h4>Example queries:</h4>
-		<p>
-            HEX-Pattern:<br />
-	        <pre><code>rule a_hex_string_rule
+
+		HEX-Pattern:
+	    <pre style="margin-bottom: 0px;"><code>rule a_hex_string_rule
 {
     strings:
         $a = { 0A1B }
     condition:
         $a
 }</code></pre>
-            <span style="color:grey; font-size: 0.9em">Matches firmware files including 0x0A1B.</span>
-        </p>
-		<p>
-            ASCII:<br />
-	        <pre><code>rule a_ascii_string_rule
+        <div style="color:grey; font-size: 0.9em; margin-bottom: 5px;">Matches firmware files including 0x0A1B.</div>
+
+		ASCII:
+	    <pre style="margin-bottom: 0px;"><code>rule a_ascii_string_rule
 {
     strings:
         $a = "backdoor" ascii wide nocase
@@ -116,20 +115,18 @@
     condition:
         $a or $b
 }</code></pre>
-            <span style="color:grey; font-size: 0.9em">Matches firmware files including the string "backdoor" or "roodkcab" in 8bit (ascii) or 16bit (wide) representation and not case sensitive.</span>
-        </p>
-
-        <p>
-             RegEx:<br />
-	        <pre><code>rule a_regex_rule
+        <div style="color:grey; font-size: 0.9em; margin-bottom: 5px;">Matches firmware files including the string "backdoor" or "roodkcab" in 8bit (ascii) or 16bit (wide) representation and not case sensitive.</div>
+		
+        RegEx:
+	    <pre style="margin-bottom: 0px;"><code>rule a_regex_rule
 {
     strings:
         $a = /vxworks 5\.\d+(\.\d+)?/ nocase
     condition:
         $a 
 }</code></pre>
-             <span style="color:grey; font-size: 0.9em">Matches firmware files including "vxworks 5.X.Y" with "X" and "Y" are arbitrary numbers, ".Y" is optional and the whole string is not case sensitive.</span>
-        </p>
+        <div style="color:grey; font-size: 0.9em; margin-bottom: 5px;">Matches firmware files including "vxworks 5.X.Y" with "X" and "Y" are arbitrary numbers, ".Y" is optional and the whole string is not case sensitive.</div>
+
         <p>Do you need more advanced rules? Have a look at the <a href="https://yara.readthedocs.io/en/latest/writingrules.html">official yara documentation</a>!</p>    
 	</div>
 
