@@ -195,13 +195,12 @@ class FrontEndDbInterface(MongoInterfaceCommon):
 
     # --- file tree
 
-    def generate_file_tree_level(self, uid, root_uid, fo_data=None, whitelist=None):
-        if fo_data is None:
-            fo_data = self.get_specific_fields_of_db_entry({'_id': uid}, VirtualPathFileTree.FO_DATA_FIELDS)
+    def generate_file_tree_level(self, uid, root_uid, whitelist=None):
+        fo_data = self.get_specific_fields_of_db_entry({'_id': uid}, VirtualPathFileTree.FO_DATA_FIELDS)
         try:
             for node in VirtualPathFileTree(root_uid, fo_data, whitelist).get_file_tree_nodes():
                 yield node
-        except Exception:  # the requested data is not present in the DB aka the file has not been analyzed yet
+        except (KeyError, TypeError):  # the requested data is not in the DB aka the file has not been analyzed yet
             yield FileTreeNode(uid, root_uid, not_analyzed=True, name='{uid} (not analyzed yet)'.format(uid=uid))
 
     def get_number_of_total_matches(self, query, only_parent_firmwares):
