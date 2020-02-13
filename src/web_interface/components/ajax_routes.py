@@ -50,7 +50,7 @@ class AjaxRoutes(ComponentBase):
             child_uids = sc.get_specific_fields_of_db_entry(uid, {'files_included': 1})['files_included']
             for child_uid in child_uids:
                 if not whitelist or child_uid in whitelist:
-                    for node in sc.generate_file_tree_level(child_uid, root_uid or uid, whitelist):
+                    for node in sc.generate_file_tree_level(child_uid, root_uid or uid, whitelist=whitelist):
                         root.add_child_node(node)
         return root
 
