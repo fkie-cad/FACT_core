@@ -29,7 +29,7 @@ class TestAnalysisPluginsKnownVulnerabilities(AnalysisPluginTest):
 
         results = self.analysis_plugin.process_object(test_file).processed_analysis[self.PLUGIN_NAME]
 
-        self.assertEqual(len(results), 3, 'incorrect number of software components found (summary + tag + one result)')
+        self.assertEqual(len(results), 4, 'incorrect number of vulnerabilities found (summary + tag + one result)')
         self.assertTrue('DLink_Bug' in results, 'test match not found')
         self.assertEqual(results['DLink_Bug']['score'], 'high', 'incorrect or no score found in meta data')
 
@@ -43,7 +43,7 @@ class TestAnalysisPluginsKnownVulnerabilities(AnalysisPluginTest):
 
         results = self.analysis_plugin.process_object(test_file).processed_analysis[self.PLUGIN_NAME]
 
-        self.assertEqual(len(results), 3, 'incorrect number of software components found (summary + tag + one result)')
+        self.assertEqual(len(results), 3, 'incorrect number of vulnerabilities found (summary + tag + one result)')
         self.assertTrue('Heartbleed' in results, 'test match not found')
         self.assertEqual(results['Heartbleed']['score'], 'high', 'incorrect or no score found in meta data')
 
@@ -64,7 +64,7 @@ class TestAnalysisPluginsKnownVulnerabilities(AnalysisPluginTest):
 
         results = self.analysis_plugin.process_object(test_file).processed_analysis[self.PLUGIN_NAME]
 
-        self.assertEqual(len(results), 3, 'incorrect number of software components found (summary + tag + one result)')
+        self.assertEqual(len(results), 3, 'incorrect number of vulnerabilities found (summary + tag + one result)')
         self.assertTrue('Netgear_CGI' in results, 'test match not found')
         self.assertEqual(results['Netgear_CGI']['score'], 'medium', 'incorrect or no score found in meta data')
 
