@@ -1,0 +1,45 @@
+import time
+from multiprocessing import Event, Value
+from pathlib import Path
+
+from storage.db_interface_backend import BackEndDbInterface
+from test.acceptance.base import TestAcceptanceBase
+from test.common_helper import get_test_data_dir
+
+
+class TestAcceptanceBaseFullStart(TestAcceptanceBase):
+
+    def setUp(self):
+        super().setUp()
+        self.analysis_finished_event = Event()
+        self.elements_finished_analyzing = Value('i', 0)
+        self.db_backend_service = BackEndDbInterface(config=self.config)
+        self._start_backend(post_analysis=self._analysis_callback)
+        time.sleep(2)  # wait for systems to start
+
+    def tearDown(self):
+        self._stop_backend()
+        self.db_backend_service.shutdown()
+        super().tearDown()
+
+    def _analysis_callback(self, fo):
+        self.db_backend_service.add_object(fo)
+        self.elements_finished_analyzing.value += 1
+        if self.elements_finished_analyzing.value == 4 * 2:  # container including 3 files times 2 plugins
+            self.analysis_finished_event.set()
+
+    def upload_test_firmware(self):
+        testfile_path = Path(get_test_data_dir()) / self.test_fw_a.path
+        with open(str(testfile_path), 'rb') as fp:
+            data = {
+                'file': (fp, self.test_fw_a.file_name),
+                'device_part': 'test_part',
+                'device_name': 'test_device',
+                'device_class': 'test_class',
+                'version': '1.0',
+                'vendor': 'test_vendor',
+                'release_date': '1970-01-01',
+                'tags': '',
+                'analysis_systems': []
+            }
+            return self.test_client.post('/upload', content_type='multipart/form-data', data=data, follow_redirects=True)
