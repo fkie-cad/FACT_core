@@ -449,12 +449,6 @@
 	<div class="col-lg-6 col-md-12">
 	    <div class="alert alert-custom" style="padding:5px;">
 	    	<strong>user options:</strong>
-            {# Hex View Button #}
-            <form action="/hex-dump/{{ firmware.uid }}" style="display: inline" onsubmit="window.open('', 'formpopup', 'width=800,height=400,resizeable,scrollbars');this.target = 'formpopup';">
-                <button class="btn btn-default" type="submit">
-                    <span class="glyphicon glyphicon-eye-open"></span> show header in hex
-                </button>
-            </form>
             {# Radare Button #}
             <form action="/radare-view/{{ firmware.uid }}" style="display: inline" target="_blank">
                 <button class="btn btn-default" type="submit">
