@@ -10,7 +10,7 @@ from test.common_helper import get_config_for_testing
 
 def breaking_process(wait: bool = False):
     if wait:
-        sleep(.25)
+        sleep(.5)
     raise RuntimeError('now that\'s annoying')
 
 
@@ -35,7 +35,7 @@ def test_check_worker_exceptions():
     result = check_worker_exceptions(process_list, 'foo', config=config)
     assert not result
     assert len(process_list) == 1
-    sleep(.5)
+    sleep(1)
     result = check_worker_exceptions(process_list, 'foo', config=config)
     assert result
     assert len(process_list) == 0
@@ -49,7 +49,7 @@ def test_check_worker_restart(caplog):
     process_list = [worker]
     worker.start()
 
-    sleep(.5)
+    sleep(1)
     with caplog.at_level(logging.INFO):
         result = check_worker_exceptions(process_list, 'foo', config, worker_function=lambda _: None)
         assert not result
