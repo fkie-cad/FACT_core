@@ -1,7 +1,8 @@
 from flask import Markup
 
 from test.unit.compare.compare_plugin_test_class import ComparePluginTest  # pylint: disable=wrong-import-order
-from ..code.file_header import ComparePlugin
+
+from ..code.file_header import ComparePlugin, replace_none_ascii_with_dots
 
 
 class TestComparePluginFileHeader(ComparePluginTest):
@@ -24,3 +25,11 @@ class TestComparePluginFileHeader(ComparePluginTest):
         should_be_false = [5, 4, 3, 1, 2, 6]
         assert self.c_plugin._at_least_two_are_common(should_be_true), 'should find a commonality'  # pylint: disable=no-member,protected-access
         assert not self.c_plugin._at_least_two_are_common(should_be_false), 'should not find a commonality'  # pylint: disable=no-member,protected-access
+
+
+def test_process_ascii_bytes():
+    input_bytes = b'GoodCharacters\xBA\xDCharacters'
+    expected_output = 'GoodCharacters..haracters'
+
+    assert len(replace_none_ascii_with_dots(input_bytes)) == len(input_bytes), 'length of strings do not match'
+    assert replace_none_ascii_with_dots(input_bytes).decode() == expected_output, 'ascii byte processing not correct'
