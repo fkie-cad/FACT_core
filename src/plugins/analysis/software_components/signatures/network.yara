@@ -221,6 +221,23 @@ rule OpenSSH
         $a and no_text_file
 }
 
+rule pppd_format_string
+{
+    meta:
+        software_name = "Point-to-Point Protocol daemon"
+		open_source = true
+		website = "https://ppp.samba.org/"
+		description = "ppp (Paul's PPP Package) is an open source package which implements the Point-to-Point Protocol (PPP) on Linux and Solaris systems."
+		format_string = true
+    strings:
+        $a = "pppd %s started by %s, uid %d"
+        $b = "pppd version %s"
+        $c = "pppd: %s %d"
+        $d = "See pppd(8) for more options."
+    condition:
+        ($a or $b or $c) and $d and no_text_file
+}
+
 rule pptpClient
 {
 	meta:
@@ -258,6 +275,22 @@ rule radvd
 		$a = /radvd-\d+\.\d+/ nocase ascii wide
 	condition:
 		$a and no_text_file
+}
+
+rule radvd_format_string
+{
+	meta:
+		software_name = "radvd"
+		open_source = true
+		website = "http://www.litech.org/radvd/"
+		description = "IPv6 Router Advertisement Daemon"
+		format_string = true
+	strings:
+	    $a = "radvd already running, terminating."
+        $b = "version %s started"
+        $c = "Version: %s"
+	condition:
+        $a and ($b or $c) and no_text_file
 }
 
 rule readymedia
