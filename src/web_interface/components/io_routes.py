@@ -1,4 +1,3 @@
-import binascii
 import json
 from tempfile import TemporaryDirectory
 from time import sleep
@@ -7,7 +6,6 @@ import requests
 from flask import make_response, redirect, render_template, request
 
 from helperFunctions.database import ConnectTo
-from helperFunctions.dataConversion import remove_linebreaks_from_byte_string
 from helperFunctions.mongo_task_conversion import (
     check_for_errors, convert_analysis_task_to_fw_obj, create_analysis_task
 )
@@ -27,38 +25,8 @@ class IORoutes(ComponentBase):
         self._app.add_url_rule('/download/<uid>', 'download/<uid>', self._app_download_binary)
         self._app.add_url_rule('/tar-download/<uid>', 'tar-download/<uid>', self._app_download_tar)
         self._app.add_url_rule('/ida-download/<compare_id>', 'ida-download/<compare_id>', self._download_ida_file)
-        self._app.add_url_rule('/base64-download/<uid>/<section>/<expression_id>', 'base64-download/<uid>/<section>/<expression_id>', self._download_base64_decoded_section)
         self._app.add_url_rule('/radare-view/<uid>', 'radare-view/<uid>', self._show_radare)
         self._app.add_url_rule('/pdf-download/<uid>', 'pdf-download/<uid>', self._download_pdf_report)
-
-    @roles_accepted(*PRIVILEGES['download'])
-    def _download_base64_decoded_section(self, uid, section, expression_id):
-        with ConnectTo(FrontEndDbInterface, self._config) as sc:
-            file_obj = sc.get_object(uid, analysis_filter=['base64_decoder'])
-        span_in_binary, span_in_section = None, (None, None)
-        for expression in file_obj.processed_analysis['base64_decoder'][section]:
-            if expression['id'] == int(expression_id):
-                span_in_section = expression['span_in_section']
-                span_in_binary = expression['span_in_binary']
-                break
-
-        if not span_in_binary:
-            return render_template('error.html', message='Undisclosed error in base64 decoding')
-
-        with ConnectTo(InterComFrontEndBinding, self._config) as connection:
-            raw_binary = connection.get_binary_and_filename(file_obj.uid)
-
-        binary, _ = remove_linebreaks_from_byte_string(raw_binary[0][span_in_binary[0]:span_in_binary[1]])
-
-        try:
-            binary = binascii.a2b_base64(binary[span_in_section[0]:span_in_section[1]])
-        except binascii.Error as error:
-            return render_template('error.html', message=str(error))
-        response = make_response(binary)
-        file_name = '{}_0x{:X}-0x{:X}_decoded'.format(
-            file_obj.file_name, span_in_binary[0] + span_in_section[0], span_in_binary[1] - span_in_section[2])
-        response.headers['Content-Disposition'] = 'attachment; filename={}'.format(file_name)
-        return response
 
     # ---- upload
     @roles_accepted(*PRIVILEGES['submit_analysis'])
