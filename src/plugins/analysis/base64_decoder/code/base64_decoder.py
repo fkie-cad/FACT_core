@@ -3,10 +3,11 @@ import os
 import re
 from binascii import a2b_base64
 
-from analysis.PluginBase import AnalysisBasePlugin
 from common_helper_files import get_dir_of_file, get_string_list_from_file
 from entropy import shannon_entropy  # pylint: disable=no-name-in-module
 from fact_helper_file import get_file_type_from_binary
+
+from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.dataConversion import remove_linebreaks_from_byte_string
 from helperFunctions.fileSystem import get_parent_dir
 from helperFunctions.strings import find_all_strings
@@ -25,7 +26,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     NAME = 'base64_decoder'
     DEPENDENCIES = []
     MIME_BLACKLIST = ['audio', 'image', 'video']
-    DESCRIPTION = 'Detect and decode base64 sections'
+    DESCRIPTION = 'Detect and decode base64 sections (plugin is deprecated and going to be removed soon)'
     VERSION = '0.1.3'
 
     def __init__(self, plugin_administrator, config=None, recursive=True, timeout=300):
