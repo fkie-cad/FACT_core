@@ -1,7 +1,8 @@
 import pytest
 
 from helperFunctions.file_tree import (
-    FileTreeNode, get_correct_icon_for_mime, get_partial_virtual_path, remove_virtual_path_from_root, root_is_virtual
+    FileTreeNode, VirtualPathFileTree, get_correct_icon_for_mime, get_partial_virtual_paths, get_vpath_relative_to,
+    remove_virtual_path_from_root, root_is_virtual
 )
 
 NON_VIRTUAL_TREE_ROOT = {
@@ -74,12 +75,33 @@ class TestFileTree:  # pylint: disable=no-self-use
         assert child_node_file_1 in parent_node.children[folder_id]
         assert child_node_file_2 in parent_node.children[folder_id]
 
-    def test_get_partial_virtual_path(self):
-        virtual_path = {'abc': ['|abc|def|ghi|folder_1/folder_2/file']}
 
-        assert get_partial_virtual_path(virtual_path, 'abc') == {'abc': ['|abc|def|ghi|folder_1/folder_2/file']}
-        assert get_partial_virtual_path(virtual_path, 'ghi') == {'ghi': ['|ghi|folder_1/folder_2/file']}
-        assert get_partial_virtual_path(virtual_path, 'xyz') == {'xyz': ['|xyz|']}
+VIRTUAL_PATH_INPUT = {
+    'abc': ['|abc|def|ghi|folder_1/folder_2/file'],
+    '123': ['|123|456|ghi|folder_1/folder_2/file'],
+    'foo': ['|foo|bar|/dir_a/file_a', '|foo|bar|/dir_a/file_b', '|foo|bar|/dir_a/dir_b/file_c']
+}
+
+
+@pytest.mark.parametrize('uid, expected_output', [
+    ('abc', ['|abc|def|ghi|folder_1/folder_2/file']),
+    ('ghi', ['|ghi|folder_1/folder_2/file']),
+    ('xyz', ['|xyz|']),
+    ('456', ['|456|ghi|folder_1/folder_2/file']),
+    ('foo', ['|foo|bar|/dir_a/dir_b/file_c', '|foo|bar|/dir_a/file_a', '|foo|bar|/dir_a/file_b']),
+    ('bar', ['|bar|/dir_a/dir_b/file_c', '|bar|/dir_a/file_a', '|bar|/dir_a/file_b']),
+])
+def test_get_partial_virtual_paths(uid, expected_output):
+    assert get_partial_virtual_paths(VIRTUAL_PATH_INPUT, uid) == expected_output
+
+
+@pytest.mark.parametrize('virtual_path, uid, expected_output', [
+    ('|abc|def|ghi|folder_1/folder_2/file', 'abc', '|abc|def|ghi|folder_1/folder_2/file'),
+    ('|abc|def|ghi|folder_1/folder_2/file', 'def', '|def|ghi|folder_1/folder_2/file'),
+    ('|abc|def|ghi|folder_1/folder_2/file', 'ghi', '|ghi|folder_1/folder_2/file'),
+])
+def test_get_vpath_relative_to(virtual_path, uid, expected_output):
+    assert get_vpath_relative_to(virtual_path, uid) == expected_output
 
 
 @pytest.mark.parametrize('input_data, expected_output', [
@@ -97,3 +119,15 @@ def test_root_is_virtual(input_data, expected_output):
 ])
 def test_remove_virtual_path_from_root(input_data, expected_output):
     assert remove_virtual_path_from_root(input_data) == expected_output
+
+
+def test_virtual_path_file_tree():
+    fo_data = {
+        '_id': 'uid', 'virtual_file_path': {'root_uid': ['root_uid|uid|/foo/bar', 'root_uid|uid|/foobar']}, 'size': 1,
+        'files_included': [], 'processed_analysis': {'file_type': {'mime': 'footype'}}, 'file_name': 'foo.exe',
+    }
+    nodes = {node.name: node for node in VirtualPathFileTree('uid', fo_data).get_file_tree_nodes()}
+    assert len(nodes) == 2, 'wrong number of nodes created'
+    assert 'foo' in nodes and 'foobar' in nodes
+    assert len(nodes['foo'].children) == 1
+    assert nodes['foo'].get_names_of_children() == ['bar']

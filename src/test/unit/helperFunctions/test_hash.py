@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from helperFunctions.hash import (
-    check_similarity_of_sets, get_imphash, get_md5, get_sha256, get_ssdeep, get_ssdeep_comparison, normalize_lief_items
+    get_imphash, get_md5, get_sha256, get_ssdeep, get_ssdeep_comparison, normalize_lief_items
 )
 from test.common_helper import create_test_file_object, get_test_data_dir
 
@@ -26,14 +26,6 @@ def test_get_ssdeep():
 def test_get_ssdeep_comparison():
     factor = get_ssdeep_comparison('192:3xaGk2v7RNOrG4D9tVwTiGTUwMyKP3JDddt2vT3GiH3gnK:BHTWy66gnK', '192:3xaGk2v7RNOrG4D9tVwTiGTUwMyKP3JDddt2vT3GK:B')
     assert factor == 96, 'ssdeep similarity seems to be out of shape'
-
-
-def test_check_similarity_of_sets():
-    pairs = [{0, 1}, {2, 3}, {4, 8}, {1, 8}, {3, 4}, {0, 8}]
-    pair_one = [{0, 8}, {1, 8}]
-    pair_two = [{2, 3}, {3, 4}]
-    assert check_similarity_of_sets(pair_one, pairs), 'set simililarity does not work correctly'
-    assert not check_similarity_of_sets(pair_two, pairs), 'set simililarity does not work correctly'
 
 
 def test_imphash():

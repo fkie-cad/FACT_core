@@ -188,7 +188,7 @@ class DatabaseRoutes(ComponentBase):
             if isinstance(result, str):
                 error = result
             elif result is not None:
-                yara_rules = make_unicode_string(yara_rules)
+                yara_rules = make_unicode_string(yara_rules[0])
                 firmware_dict = self._build_firmware_dict_for_binary_search(result)
         else:
             error = 'No request ID found'

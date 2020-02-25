@@ -126,7 +126,7 @@ class TestStorageDbInterfaceFrontend(unittest.TestCase):
         self.assertEqual(result[0][0], test_fw_three.uid, 'last firmware is not first entry')
         self.assertEqual(result[1][0], test_fw_two.uid, 'second last firmware is not the second entry')
 
-    def test_generate_file_tree_node(self):
+    def test_generate_file_tree_level(self):
         parent_fw = create_test_firmware()
         child_fo = create_test_file_object()
         child_fo.processed_analysis['file_type'] = {'mime': 'sometype'}
@@ -135,11 +135,11 @@ class TestStorageDbInterfaceFrontend(unittest.TestCase):
         parent_fw.files_included = {child_fo.uid}
         self.db_backend_interface.add_object(parent_fw)
         self.db_backend_interface.add_object(child_fo)
-        for node in self.db_frontend_interface.generate_file_tree_node(uid, uid):
+        for node in self.db_frontend_interface.generate_file_tree_level(uid, uid):
             self.assertIsInstance(node, FileTreeNode)
             self.assertEqual(node.name, parent_fw.file_name)
             self.assertTrue(node.has_children)
-        for node in self.db_frontend_interface.generate_file_tree_node(child_fo.uid, uid):
+        for node in self.db_frontend_interface.generate_file_tree_level(child_fo.uid, uid):
             self.assertIsInstance(node, FileTreeNode)
             self.assertEqual(node.name, 'folder')
             self.assertTrue(node.has_children)

@@ -16,7 +16,6 @@ from helperFunctions.web_interface import get_radare_endpoint
 from intercom.front_end_binding import InterComFrontEndBinding
 from storage.db_interface_compare import CompareDbInterface, FactCompareException
 from storage.db_interface_frontend import FrontEndDbInterface
-from web_interface.components.additional_functions.hex_dump import create_hex_dump
 from web_interface.components.component_base import ComponentBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
@@ -29,7 +28,6 @@ class IORoutes(ComponentBase):
         self._app.add_url_rule('/tar-download/<uid>', 'tar-download/<uid>', self._app_download_tar)
         self._app.add_url_rule('/ida-download/<compare_id>', 'ida-download/<compare_id>', self._download_ida_file)
         self._app.add_url_rule('/base64-download/<uid>/<section>/<expression_id>', 'base64-download/<uid>/<section>/<expression_id>', self._download_base64_decoded_section)
-        self._app.add_url_rule('/hex-dump/<uid>', 'hex-dump/<uid>', self._show_hex_dump)
         self._app.add_url_rule('/radare-view/<uid>', 'radare-view/<uid>', self._show_radare)
         self._app.add_url_rule('/pdf-download/<uid>', 'pdf-download/<uid>', self._download_pdf_report)
 
@@ -81,10 +79,10 @@ class IORoutes(ComponentBase):
             device_name_dict = sc.get_device_name_dict()
         with ConnectTo(InterComFrontEndBinding, self._config) as sc:
             analysis_plugins = sc.get_available_analysis_plugins()
-        analysis_presets = [key for key in self._config['default_plugins']]
         return render_template(
             'upload/upload.html',
-            device_classes=device_class_list, vendors=vendor_list, error=error, analysis_presets=analysis_presets,
+            device_classes=device_class_list, vendors=vendor_list, error=error,
+            analysis_presets=list(self._config['default_plugins']),
             device_names=json.dumps(device_name_dict, sort_keys=True), analysis_plugin_dict=analysis_plugins
         )
 
@@ -128,23 +126,6 @@ class IORoutes(ComponentBase):
         response = make_response(binary)
         response.headers['Content-Disposition'] = 'attachment; filename={}.idb'.format(compare_id[:8])
         return response
-
-    @roles_accepted(*PRIVILEGES['download'])
-    def _show_hex_dump(self, uid):
-        with ConnectTo(FrontEndDbInterface, self._config) as sc:
-            object_exists = sc.existence_quick_check(uid)
-        if not object_exists:
-            return render_template('uid_not_found.html', uid=uid)
-        with ConnectTo(InterComFrontEndBinding, self._config) as sc:
-            result = sc.get_binary_and_filename(uid)
-        if result is None:
-            return render_template('error.html', message='timeout')
-        binary, _ = result
-        try:
-            hex_dump = create_hex_dump(binary)
-            return render_template('generic_view/hex_dump_popup.html', uid=uid, hex_dump=hex_dump)
-        except Exception as exception:
-            return render_template('error.html', message=str(exception))
 
     @roles_accepted(*PRIVILEGES['download'])
     def _show_radare(self, uid):

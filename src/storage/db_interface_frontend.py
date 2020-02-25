@@ -6,7 +6,7 @@ from copy import deepcopy
 from helperFunctions.compare_sets import remove_duplicates_from_list
 from helperFunctions.database_structure import visualize_complete_tree
 from helperFunctions.dataConversion import get_value_of_first_key
-from helperFunctions.file_tree import FileTreeNode, get_partial_virtual_path
+from helperFunctions.file_tree import FileTreeNode, VirtualPathFileTree
 from helperFunctions.merge_generators import merge_generators
 from helperFunctions.tag import TagColor
 from objects.file import FileObject
@@ -195,35 +195,13 @@ class FrontEndDbInterface(MongoInterfaceCommon):
 
     # --- file tree
 
-    def _create_node_from_virtual_path(self, uid, root_uid, current_virtual_path, fo_data, whitelist=None):
-        if len(current_virtual_path) > 1:  # in the middle of a virtual file path
-            node = FileTreeNode(uid=None, root_uid=root_uid, virtual=True, name=current_virtual_path.pop(0))
-            for child_node in self.generate_file_tree_node(uid, root_uid, current_virtual_path=current_virtual_path, fo_data=fo_data, whitelist=whitelist):
-                node.add_child_node(child_node)
-        else:  # at the end of a virtual path aka a 'real' file
-            if whitelist:
-                has_children = any(f in fo_data['files_included'] for f in whitelist)
-            else:
-                has_children = fo_data['files_included'] != []
-            mime_type = fo_data['processed_analysis']['file_type']['mime'] if 'file_type' in fo_data['processed_analysis'] else 'file-type-plugin/not-run-yet'
-            node = FileTreeNode(uid, root_uid=root_uid, virtual=False, name=fo_data['file_name'], size=fo_data['size'], mime_type=mime_type, has_children=has_children)
-        return node
-
-    def generate_file_tree_node(self, uid, root_uid, current_virtual_path=None, fo_data=None, whitelist=None):
-        required_fields = {'virtual_file_path': 1, 'files_included': 1, 'file_name': 1, 'size': 1, 'processed_analysis.file_type.mime': 1, '_id': 1}
-        if fo_data is None:
-            fo_data = self.get_specific_fields_of_db_entry({'_id': uid}, required_fields)
+    def generate_file_tree_level(self, uid, root_uid, whitelist=None):
+        fo_data = self.get_specific_fields_of_db_entry({'_id': uid}, VirtualPathFileTree.FO_DATA_FIELDS)
         try:
-            if root_uid not in fo_data['virtual_file_path']:  # file tree for a file object (instead of a firmware)
-                fo_data['virtual_file_path'] = get_partial_virtual_path(fo_data['virtual_file_path'], root_uid)
-            if current_virtual_path is None:
-                for entry in fo_data['virtual_file_path'][root_uid]:  # the same file may occur several times with different virtual paths
-                    current_virtual_path = entry.split('/')[1:]
-                    yield self._create_node_from_virtual_path(uid, root_uid, current_virtual_path, fo_data, whitelist)
-            else:
-                yield self._create_node_from_virtual_path(uid, root_uid, current_virtual_path, fo_data, whitelist)
-        except Exception:  # the requested data is not present in the DB aka the file has not been analyzed yet
-            yield FileTreeNode(uid=uid, root_uid=root_uid, not_analyzed=True, name='{} (not analyzed yet)'.format(uid))
+            for node in VirtualPathFileTree(root_uid, fo_data, whitelist).get_file_tree_nodes():
+                yield node
+        except (KeyError, TypeError):  # the requested data is not in the DB aka the file has not been analyzed yet
+            yield FileTreeNode(uid, root_uid, not_analyzed=True, name='{uid} (not analyzed yet)'.format(uid=uid))
 
     def get_number_of_total_matches(self, query, only_parent_firmwares):
         if not only_parent_firmwares:
