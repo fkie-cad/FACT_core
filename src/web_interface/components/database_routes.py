@@ -86,7 +86,7 @@ class DatabaseRoutes(ComponentBase):
 
         pagination = self._get_pagination(page=page, per_page=per_page, total=total, record_name='firmwares', )
         return render_template('database/database_browse.html', firmware_list=firmware_list, page=page, per_page=per_page, pagination=pagination,
-                               device_classes=device_classes, vendors=vendors, current_class=str(request.args.get('device_class')), current_vendor=str(request.args.get('vendor')))
+                               device_classes=device_classes, vendors=vendors, current_class=str(request.args.get('device_class')), current_vendor=str(request.args.get('vendor')), search_query=query)
 
     @staticmethod
     def _query_has_only_one_result(result_list, query):
