@@ -41,7 +41,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     DESCRIPTION = 'lookup CVE vulnerabilities'
     MIME_BLACKLIST = ['audio', 'filesystem', 'image', 'video']
     DEPENDENCIES = ['software_components']
-    VERSION = '0.0.2'
+    VERSION = '0.0.3'
 
     def __init__(self, plugin_administrator, config=None, recursive=True, offline_testing=False):
         super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__, offline_testing=offline_testing)
@@ -65,7 +65,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         component_parts = component.split()
         if len(component_parts) == 1:
             return component_parts[0], 'ANY'
-        return ''.join(component_parts[:-1]), component_parts[-1]
+        return ' '.join(component_parts[:-1]), component_parts[-1]
 
 
 def look_up_vulnerabilities(product_name: str, requested_version: str) -> Optional[dict]:

@@ -24,12 +24,9 @@ def replace_characters_and_wildcards(attributes: List[str]) -> List[str]:
             attributes[index] = 'ANY'
         elif attribute == '-':
             attributes[index] = 'N/A'
-        # if there are no non-alphanumeric characters apart from underscore and escaped colon, continue
-        elif not match(r'^.*[^a-zA-Z0-9_\\:].*$', attribute):
-            continue
-        else:
+        # if there are non-alphanumeric characters apart from underscore and escaped colon, escape them
+        elif match(r'^.*[^a-zA-Z0-9_\\:].*$', attribute):
             attributes[index] = escape_special_characters(attribute)
-
     return attributes
 
 

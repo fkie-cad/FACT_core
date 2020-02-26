@@ -47,11 +47,13 @@ class AjaxRoutes(ComponentBase):
     def _generate_file_tree(self, root_uid: str, uid: str, whitelist: List[str]) -> FileTreeNode:
         root = FileTreeNode(None)
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
-            child_uids = sc.get_specific_fields_of_db_entry(uid, {'files_included': 1})['files_included']
-            for child_uid in child_uids:
-                if whitelist is None or child_uid in whitelist:
-                    for node in sc.generate_file_tree_level(child_uid, root_uid or uid, whitelist=whitelist):
-                        root.add_child_node(node)
+            child_uids = [
+                child_uid
+                for child_uid in sc.get_specific_fields_of_db_entry(uid, {'files_included': 1})['files_included']
+                if whitelist is None or child_uid in whitelist
+            ]
+            for node in sc.generate_file_tree_nodes_for_uid_list(child_uids, root_uid or uid, whitelist):
+                root.add_child_node(node)
         return root
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
