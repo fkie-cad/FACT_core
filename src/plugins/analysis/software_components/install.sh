@@ -11,6 +11,6 @@ cd "$( dirname "${BASH_SOURCE[0]}" )" || exit 1
 docker build -t fact/fsr_ghidra_headless docker || exit 1
 
 # extract software names
-python3 extract_names.py || exit 1
+python3 -c "from internal.extract_os_names import extract_names; extract_names()" || exit 1
 
 exit 0
