@@ -1,6 +1,7 @@
 import json
 import logging
 from datetime import datetime
+from itertools import chain
 
 from dateutil.relativedelta import relativedelta
 from flask import redirect, render_template, request, url_for
@@ -189,12 +190,19 @@ class DatabaseRoutes(ComponentBase):
                 error = result
             elif result is not None:
                 yara_rules = make_unicode_string(yara_rules[0])
-                firmware_dict = self._build_firmware_dict_for_binary_search(result)
+                joined_results = self._join_results(result)
+                query = '{"_id": {"$in": ' + str(joined_results).replace('\'', '"') + '}}'
+                logging.error(query)
+                return redirect(url_for('database/browse', query=json.dumps(query), only_firmwares=False))
         else:
             error = 'No request ID found'
             request_id = None
         return render_template('database/database_binary_search_results.html', result=firmware_dict, error=error,
                                request_id=request_id, yara_rules=yara_rules)
+
+    @staticmethod
+    def _join_results(result_dict):
+        return list(set(chain(*result_dict.values())))
 
     def _build_firmware_dict_for_binary_search(self, uid_dict):
         firmware_dict = {}

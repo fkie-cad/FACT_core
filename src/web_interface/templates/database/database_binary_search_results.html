@@ -40,30 +40,6 @@
     {% endif %}
     {% if error %}
         <h3>Error: {{ error }}</h3>
-    {% elif result == {} %}
-        <h3 style="color: red">No results found in the database</h3>
-    {% elif result %}
-        {% for rule in result %}
-            <button data-toggle="collapse" data-target="#id_{{rule}}" class="list-group-item list-group-item-success">
-                <span class="badge">{{ result[rule] | length }}</span>
-                Results for signature <b style="font-family:monospace; color: dimgray">{{ rule }}</b>:
-            </button>
-            <div id="id_{{rule}}" class="collapse">
-            <table class="table table-responsive table-hover table-bordered" style="border-spacing: 10px;">
-                {% for firmware in result[rule] %}
-                    <tr>
-                        <td class="active clickable" onclick="location.href='/analysis/{{ firmware[0] }}'">
-                            {{ firmware[1] }}
-                            <span class="label label-pill {% if firmware[2] == 'generic_carver' %} label-warning
-                                  {% elif 'failed' in firmware[2] %} label-danger {% else %} label-default {% endif %} pull-right"
-                                  style="font-size: 10px;">{{ firmware[2] }}</span>
-                            <div><font face="courier"  style="font-size:12px">{{ firmware[0] }}</font></div>
-                        </td>
-                    </tr>
-                {% endfor %}
-            </table>
-            </div>
-        {% endfor %}
     {% else %}
         <div class="alert alert-info">
             <span class="glyphicon glyphicon-refresh glyphicon-refresh-animate"></span>
