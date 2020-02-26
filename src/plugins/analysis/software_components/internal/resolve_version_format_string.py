@@ -12,7 +12,7 @@ from docker.types import Mount
 from requests.exceptions import ReadTimeout
 
 CONTAINER_TARGET_PATH = '/work'
-DOCKER_IMAGE = 'fact/fsr_ghidra_headless'
+DOCKER_IMAGE = 'fact/format_string_resolver'
 DOCKER_OUTPUT_FILE = 'ghidra_output.json'
 TIMEOUT = 300
 KEY_FILE = 'key_file'
