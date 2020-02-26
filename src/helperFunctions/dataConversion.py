@@ -1,4 +1,3 @@
-import re
 from datetime import datetime
 from itertools import combinations
 from pickle import dumps
@@ -126,15 +125,3 @@ def _fill_in_time_gaps(time_dict):
             for month in range(min_month, max_month + 1):
                 if month not in time_dict[year]:
                     time_dict[year][month] = 0
-
-
-def remove_linebreaks_from_byte_string(byte_string):
-    '''
-    Removes \x0A und \x0D line breaks from a byte string and returns sanitized string and number of removed breaks
-    :param byte_string: Any byte string
-    :return: sanitized_byte_string, number_of_removed_linebreaks
-    '''
-    rep = {b'\x0a': b'', b'\x0d': b''}  # CR LF
-    rep = dict((re.escape(k), v) for k, v in rep.items())
-    pattern = re.compile(b'|'.join(rep.keys()))
-    return pattern.subn(lambda m: rep[re.escape(m.group(0))], byte_string)
