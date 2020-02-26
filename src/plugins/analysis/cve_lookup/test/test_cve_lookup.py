@@ -98,8 +98,14 @@ def setup() -> None:
         pass
 
 
-def test_generate_search_terms():
-    assert PRODUCT_SEARCH_TERMS == replace_characters_and_wildcards(lookup.generate_search_terms('windows 7'))
+@pytest.mark.parametrize('software_name, expected_output', [
+    ('windows 7', ['windows', 'windows_7']),
+    ('Linux Kernel', ['linux', 'linux_kernel', 'kernel']),
+])
+def test_generate_search_terms(software_name, expected_output):
+    result = lookup.generate_search_terms(software_name)
+    assert result == expected_output
+    assert replace_characters_and_wildcards(result) == expected_output
 
 
 @pytest.mark.parametrize('version, expected_output', [
