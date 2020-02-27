@@ -66,7 +66,7 @@ class ContainerMock:
         pass
 
     @staticmethod
-    def logs():
+    def logs(**_):
         return b'not json decodable'
 
 
