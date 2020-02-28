@@ -136,7 +136,7 @@ class ReferencedStringFinder:
                     break
                 result += chr(byte)
                 current_addr = current_addr.next()
-        except Exception:
+        except:  # pylint: disable=bare-except
             pass
         return result
 
