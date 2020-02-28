@@ -23,7 +23,7 @@ def extract_data_from_ghidra(input_file_data: bytes, key_strings: List[str]) -> 
         docker_output = run_docker_container(DOCKER_IMAGE, TIMEOUT, mount=(CONTAINER_TARGET_PATH, tmp_dir), label='FSR')
         logging.debug(docker_output)
         try:
-            output_file = (tmp_dir_path / DOCKER_OUTPUT_FILE).read_bytes()
+            output_file = (tmp_dir_path / DOCKER_OUTPUT_FILE).read_text()
             return filter_implausible_results(json.loads(output_file))
         except (json.JSONDecodeError, FileNotFoundError):
             logging.debug("[FSR]: output file could not be read")
