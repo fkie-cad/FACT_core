@@ -82,7 +82,8 @@ class AnalysisPlugin(YaraBasePlugin):
             versions.add(self.get_version(match, result['meta']))
         if result['meta'].get('format_string'):
             key_strings = [s.decode() for _, _, s in result['strings'] if b'%s' in s]
-            versions.update(extract_data_from_ghidra(file_object.binary, key_strings))
+            if key_strings:
+                versions.update(extract_data_from_ghidra(file_object.binary, key_strings))
         result['meta']['version'] = list(versions)
         return result
 
