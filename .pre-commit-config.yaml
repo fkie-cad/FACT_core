@@ -23,7 +23,7 @@ repos:
         files: src/unpacker/passwords|.gitignore|_list.txt
 
     -   id: flake8
-        args: [--ignore="E501,W503", --select=W504, --ignore=ghidra_scripts]
+        args: [--ignore="E501,W503", --select=W504]
 
     -   id: forbid-new-submodules
 
