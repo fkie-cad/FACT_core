@@ -2,6 +2,7 @@ import gc
 import unittest
 from tempfile import TemporaryDirectory
 
+from helperFunctions.uid import create_uid
 from storage.db_interface_backend import BackEndDbInterface
 from storage.db_interface_frontend import FrontEndDbInterface
 from storage.db_interface_frontend_editing import FrontendEditingDbInterface
@@ -54,7 +55,7 @@ class TestStorageDbInterfaceFrontendEditing(unittest.TestCase):
         test_fw = self._add_test_fw_with_comments_to_db()
         latest_comments = self.db_frontend_interface.get_latest_comments()
         comments.sort(key=lambda x: x['time'], reverse=True)
-        for i in range(len(comments)):
+        for i in range(len(comments)):  # pylint: disable=consider-using-enumerate
             time, author, comment, uid = comments[i]['time'], comments[i]['author'], comments[i]['comment'], test_fw.uid
             self.assertEqual(latest_comments[i]['time'], time)
             self.assertEqual(latest_comments[i]['author'], author)
@@ -99,3 +100,12 @@ class TestStorageDbInterfaceFrontendEditing(unittest.TestCase):
         self.db_frontend_editing.update_object_field(test_fw.uid, 'vendor', 'bar')
         result = self.db_frontend_editing.get_object(test_fw.uid)
         assert result.vendor == 'bar'
+
+    def test_add_to_search_query_cache(self):
+        query = '{"device_class": "Router"}'
+        uid = create_uid(query)
+        assert self.db_frontend_editing.add_to_search_query_cache('{"device_class": "Router"}') == uid
+        assert self.db_frontend_editing.search_query_cache.find_one({'_id': uid})['search_query'] == query
+        # check what happens if search is added again
+        assert self.db_frontend_editing.add_to_search_query_cache('{"device_class": "Router"}') == uid
+        assert self.db_frontend_editing.search_query_cache.count_documents({'_id': uid}) == 1

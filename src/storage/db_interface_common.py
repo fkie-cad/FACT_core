@@ -5,21 +5,22 @@ from typing import Set
 
 import gridfs
 from common_helper_files import get_safe_name
-from common_helper_mongo.aggregate import get_list_of_all_values, get_all_value_combinations_of_fields
+from common_helper_mongo.aggregate import get_all_value_combinations_of_fields, get_list_of_all_values
 
-from helperFunctions.dataConversion import get_dict_size, convert_time_to_str
+from helperFunctions.dataConversion import convert_time_to_str, get_dict_size
 from objects.file import FileObject
 from objects.firmware import Firmware
 from storage.mongo_interface import MongoInterface
 
 
-class MongoInterfaceCommon(MongoInterface):
+class MongoInterfaceCommon(MongoInterface):  # pylint: disable=too-many-instance-attributes
 
     def _setup_database_mapping(self):
         main_database = self.config['data_storage']['main_database']
         self.main = self.client[main_database]
         self.firmwares = self.main.firmwares
         self.file_objects = self.main.file_objects
+        self.search_query_cache = self.main.search_query_cache
         self.locks = self.main.locks
         # sanitize stuff
         self.report_threshold = int(self.config['data_storage']['report_threshold'])
@@ -30,10 +31,9 @@ class MongoInterfaceCommon(MongoInterface):
     def existence_quick_check(self, uid):
         if self.is_firmware(uid):
             return True
-        elif self.is_file_object(uid):
+        if self.is_file_object(uid):
             return True
-        else:
-            return False
+        return False
 
     def is_firmware(self, uid):
         return self.firmwares.count_documents({'_id': uid}) > 0
@@ -63,27 +63,24 @@ class MongoInterfaceCommon(MongoInterface):
         fo = self.get_object(uid)
         if fo is None:
             raise Exception('UID not found: {}'.format(uid))
-        else:
-            fo.list_of_all_included_files = self.get_list_of_all_included_files(fo)
-            for analysis in fo.processed_analysis:
-                fo.processed_analysis[analysis]['summary'] = self.get_summary(fo, analysis)
+        fo.list_of_all_included_files = self.get_list_of_all_included_files(fo)
+        for analysis in fo.processed_analysis:
+            fo.processed_analysis[analysis]['summary'] = self.get_summary(fo, analysis)
         return fo
 
     def get_firmware(self, uid, analysis_filter=None):
         firmware_entry = self.firmwares.find_one(uid)
         if firmware_entry:
             return self._convert_to_firmware(firmware_entry, analysis_filter=analysis_filter)
-        else:
-            logging.debug('No firmware with UID {} found.'.format(uid))
-            return None
+        logging.debug('No firmware with UID {} found.'.format(uid))
+        return None
 
     def get_file_object(self, uid, analysis_filter=None):
         file_entry = self.file_objects.find_one(uid)
         if file_entry:
             return self._convert_to_file_object(file_entry, analysis_filter=analysis_filter)
-        else:
-            logging.debug('No FileObject with UID {} found.'.format(uid))
-            return None
+        logging.debug('No FileObject with UID {} found.'.format(uid))
+        return None
 
     def get_objects_by_uid_list(self, uid_list, analysis_filter=None):
         if not uid_list:
@@ -172,8 +169,8 @@ class MongoInterfaceCommon(MongoInterface):
                     sanitized_dict[key] = self._retrieve_binaries(sanitized_dict, key)
                 else:
                     sanitized_dict[key].pop('file_system_flag')
-            except Exception as e:
-                logging.debug('Could not retrieve information: {} {}'.format(type(e), e))
+            except Exception as err:
+                logging.debug('Could not retrieve information: {} {}'.format(type(err), err))
         return sanitized_dict
 
     def _extract_binaries(self, analysis_dict, key, uid):
@@ -190,7 +187,7 @@ class MongoInterfaceCommon(MongoInterface):
     def _retrieve_binaries(self, sanitized_dict, key):
         tmp_dict = {}
         for analysis_key in sanitized_dict[key].keys():
-            if analysis_key == 'summary' and type(sanitized_dict[key][analysis_key]) != str:
+            if analysis_key == 'summary' and not isinstance(sanitized_dict[key][analysis_key], str):
                 tmp_dict[analysis_key] = sanitized_dict[key][analysis_key]
             else:
                 logging.debug('Retrieving {}'.format(analysis_key))
@@ -229,8 +226,7 @@ class MongoInterfaceCommon(MongoInterface):
             for item in included_files:
                 files.update(self.get_set_of_all_included_files(item))
             return files
-        else:
-            return set()
+        return set()
 
     def get_uids_of_all_included_files(self, uid: str) -> Set[str]:
         return {
@@ -260,8 +256,8 @@ class MongoInterfaceCommon(MongoInterface):
             if 'summary' in file_object.processed_analysis[selected_analysis].keys():
                 for item in file_object.processed_analysis[selected_analysis]['summary']:
                     summary[item] = [file_object.uid]
-        except Exception as e:
-            logging.warning('Could not get summary: {} {}'.format(type(e), e))
+        except Exception as err:
+            logging.warning('Could not get summary: {} {}'.format(type(err), err))
         return summary
 
     def _collect_summary(self, uid_list, selected_analysis):
