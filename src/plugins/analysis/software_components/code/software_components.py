@@ -84,6 +84,8 @@ class AnalysisPlugin(YaraBasePlugin):
             key_strings = [s.decode() for _, _, s in result['strings'] if b'%s' in s]
             if key_strings:
                 versions.update(extract_data_from_ghidra(file_object.binary, key_strings))
+        if '' in versions and len(versions) > 1:  # if there are actual version results, remove the "empty" result
+            versions.remove('')
         result['meta']['version'] = list(versions)
         return result
 

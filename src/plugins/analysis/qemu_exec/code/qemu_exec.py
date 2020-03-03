@@ -61,7 +61,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     NAME = 'qemu_exec'
     DESCRIPTION = 'test binaries for executability in QEMU and display help if available'
-    VERSION = '0.5'
+    VERSION = '0.5.1'
     DEPENDENCIES = ['file_type']
     FILE_TYPES = ['application/x-executable', 'application/x-pie-executable', 'application/x-sharedlib']
 
