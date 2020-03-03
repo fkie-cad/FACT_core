@@ -66,17 +66,17 @@ class ContainerMock:
         pass
 
     @staticmethod
-    def logs():
+    def logs(**_):
         return b'not json decodable'
 
 
 class DockerClientMock:
     class containers:
         @staticmethod
-        def run(_, arch_and_path, **___):
-            if 'file-with-error' in arch_and_path:
+        def run(_, command, **___):
+            if 'file-with-error' in command:
                 raise RequestConnectionError()
-            if 'json-error' in arch_and_path:
+            if 'json-error' in command:
                 return ContainerMock()
             raise ReadTimeout()
 
@@ -189,7 +189,6 @@ class TestPluginQemuExec(AnalysisPluginTest):
 
     @pytest.mark.usefixtures('docker_is_running')
     def test_process_object__error(self):
-        test_fw = self._set_up_fw_for_process_object(path=Path(TEST_DATA_DIR, 'usr'))
         test_fw = self._set_up_fw_for_process_object(path=TEST_DATA_DIR / 'usr')
 
         self.analysis_plugin.process_object(test_fw)

@@ -1,13 +1,14 @@
 import logging
-from contextlib import suppress
 from json import JSONDecodeError, loads
+from pathlib import Path
+from tempfile import TemporaryDirectory
 
-import docker
-from docker.errors import APIError, DockerException, ImageNotFound
-from docker.types import Mount
-from requests.exceptions import ConnectionError as RequestConnectionError, ReadTimeout
+from docker.errors import DockerException
+from requests.exceptions import ReadTimeout
 
 from analysis.PluginBase import AnalysisBasePlugin
+from helperFunctions.docker import run_docker_container
+from objects.file import FileObject
 
 DOCKER_IMAGE = 'input-vectors:latest'
 TIMEOUT_IN_SECONDS = 120
@@ -25,7 +26,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     NAME = 'input_vectors'
     DESCRIPTION = 'Determines possible input vectors of an ELF executable like stdin, network, or syscalls.'
     DEPENDENCIES = ['file_type']
-    VERSION = '0.1'
+    VERSION = '0.1.1'
     MIME_WHITELIST = ['application/x-executable', 'application/x-object', 'application/x-sharedlib']
 
     def __init__(self, plugin_administrator, config=None, recursive=True):
@@ -33,27 +34,21 @@ class AnalysisPlugin(AnalysisBasePlugin):
         super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__)
         logging.info('Up and running.')
 
-    def process_object(self, file_object):
-        container = None
-        volume = Mount(CONTAINER_TARGET_PATH, file_object.file_path, read_only=True, type='bind')
-        try:
-            client = docker.from_env()
-            container = client.containers.run(
-                DOCKER_IMAGE, CONTAINER_TARGET_PATH, network_disabled=True, mounts=[volume], detach=True
-            )
-            container.wait(timeout=TIMEOUT_IN_SECONDS)
-            file_object.processed_analysis[self.NAME] = loads(container.logs(stderr=False).decode())
-        except (ImageNotFound, APIError, DockerException, RequestConnectionError):
-            file_object.processed_analysis[self.NAME]['warning'] = 'Analysis issues. It might not be complete.'
-        except ReadTimeout:
-            file_object.processed_analysis[self.NAME]['warning'] = 'Analysis timed out. It might not be complete.'
-        except JSONDecodeError:
-            logging.error('Could not decode JSON output.')
-            logging.error(container.logs().decode())
-        finally:
-            if container:
-                with suppress(APIError):
-                    container.stop()
-                container.remove()
+    def process_object(self, file_object: FileObject):
+        with TemporaryDirectory(prefix=self.NAME) as tmp_dir:
+            file_path = Path(tmp_dir) / file_object.file_name
+            file_path.write_bytes(file_object.binary)
+            try:
+                result = run_docker_container(
+                    DOCKER_IMAGE, TIMEOUT_IN_SECONDS, CONTAINER_TARGET_PATH, reraise=True,
+                    mount=(CONTAINER_TARGET_PATH, str(file_path)), label=self.NAME, include_stderr=False
+                )
+                file_object.processed_analysis[self.NAME] = loads(result)
+            except ReadTimeout:
+                file_object.processed_analysis[self.NAME]['warning'] = 'Analysis timed out. It might not be complete.'
+            except (DockerException, IOError):
+                file_object.processed_analysis[self.NAME]['warning'] = 'Analysis issues. It might not be complete.'
+            except JSONDecodeError:
+                logging.error('Could not decode JSON output: {}'.format(repr(result)))
 
-        return file_object
+            return file_object
