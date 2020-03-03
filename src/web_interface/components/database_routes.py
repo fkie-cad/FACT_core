@@ -63,9 +63,9 @@ class DatabaseRoutes(ComponentBase):
             return query
 
     @roles_accepted(*PRIVILEGES['basic_search'])
-    def _app_show_browse_database(self, query: str = '{}', query_title: str = None, only_firmwares=False):
+    def _app_show_browse_database(self, query: str = '{}', only_firmwares=False):
         page, per_page = self._get_page_items()[0:2]
-        search_parameters = self._get_search_parameters(query, query_title, only_firmwares)
+        search_parameters = self._get_search_parameters(query, only_firmwares)
         try:
             firmware_list = self._search_database(search_parameters['query'], skip=per_page * (page - 1), limit=per_page, only_firmwares=search_parameters['only_firmware'])
             if self._query_has_only_one_result(firmware_list, search_parameters['query']):
@@ -83,9 +83,9 @@ class DatabaseRoutes(ComponentBase):
 
         pagination = self._get_pagination(page=page, per_page=per_page, total=total, record_name='firmwares', )
         return render_template('database/database_browse.html', firmware_list=firmware_list, page=page, per_page=per_page, pagination=pagination,
-                               device_classes=device_classes, vendors=vendors, current_class=str(request.args.get('device_class')), current_vendor=str(request.args.get('vendor')), search_query=search_parameters['query_title'])
+                               device_classes=device_classes, vendors=vendors, current_class=str(request.args.get('device_class')), current_vendor=str(request.args.get('vendor')), search_parameters=search_parameters)
 
-    def _get_search_parameters(self, query, query_title, only_firmware):
+    def _get_search_parameters(self, query, only_firmware):
         search_parameters = dict()
         if request.args.get('query'):
             query = request.args.get('query')
