@@ -168,14 +168,14 @@ class DatabaseRoutes(ComponentBase):
     def _app_start_binary_search(self):
         error = None
         if request.method == 'POST':
-            yara_rule_file, firmware_uid = self._get_items_from_binary_search_request(request)
+            yara_rule_file, firmware_uid, only_firmware = self._get_items_from_binary_search_request(request)
             if firmware_uid and not self._firmware_is_in_db(firmware_uid):
                 error = 'Error: Firmware with UID {} not found in database'.format(repr(firmware_uid))
             elif yara_rule_file is not None:
                 if is_valid_yara_rule_file(yara_rule_file):
                     with ConnectTo(InterComFrontEndBinding, self._config) as connection:
                         request_id = connection.add_binary_search_request(yara_rule_file, firmware_uid)
-                    return redirect(url_for('database/database_binary_search_results.html', request_id=request_id))
+                    return redirect(url_for('database/database_binary_search_results.html', request_id=request_id, only_firmware=only_firmware))
                 error = 'Error in YARA rules: {}'.format(get_yara_error(yara_rule_file))
             else:
                 error = 'please select a file or enter rules in the text area'
@@ -189,7 +189,8 @@ class DatabaseRoutes(ComponentBase):
         elif req.form['textarea']:
             yara_rule_file = req.form['textarea'].encode()
         firmware_uid = req.form.get('firmware_uid') if req.form.get('firmware_uid') else None
-        return yara_rule_file, firmware_uid
+        only_firmware = req.form.get('only_firmware') is not None
+        return yara_rule_file, firmware_uid, only_firmware
 
     def _firmware_is_in_db(self, firmware_uid: str) -> bool:
         with ConnectTo(FrontEndDbInterface, self._config) as connection:
@@ -208,7 +209,7 @@ class DatabaseRoutes(ComponentBase):
                 yara_rules = make_unicode_string(yara_rules[0])
                 joined_results = self._join_results(result)
                 query_uid = self._do_binary_search_query(joined_results, yara_rules)
-                return redirect(url_for('database/browse', query=query_uid, only_firmwares=False))
+                return redirect(url_for('database/browse', query=query_uid, only_firmwares=request.args.get('only_firmware')))
         else:
             error = 'No request ID found'
             request_id = None
