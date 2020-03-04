@@ -154,9 +154,10 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
 # ---- scheduling functions ----
 
     def get_scheduled_workload(self):
-        workload = {'analysis_main_scheduler': self.process_queue.qsize()}
-        for plugin in self.analysis_plugins:
-            workload[plugin] = self.analysis_plugins[plugin].in_queue.qsize()
+        workload = {'analysis_main_scheduler': self.process_queue.qsize(), 'plugins': {}}
+        for plugin_name in self.analysis_plugins:
+            plugin = self.analysis_plugins[plugin_name]
+            workload['plugins'][plugin_name] = {'queue': plugin.in_queue.qsize(), 'active': plugin.active.value}
         return workload
 
     def register_plugin(self, name, plugin_instance):

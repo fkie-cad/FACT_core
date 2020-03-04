@@ -25,6 +25,7 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         super().__init__(plugin_administrator, config=config, plugin_path=plugin_path)
         self.check_config(no_multithread)
         self.recursive = recursive
+        self.active = Value('i', 0)
         self.in_queue = Queue()
         self.out_queue = Queue()
         self.stop_condition = Value('i', 0)
@@ -142,8 +143,9 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
                 next_task = self.in_queue.get(timeout=float(self.config['ExpertSettings']['block_delay']))
                 logging.debug('Worker {}: Begin {} analysis on {}'.format(worker_id, self.NAME, next_task.uid))
             except Empty:
-                pass
+                self.active.value = 0
             else:
+                self.active.value = 1
                 next_task.processed_analysis.update({self.NAME: {}})
                 self.worker_processing_with_timeout(worker_id, next_task)
 
