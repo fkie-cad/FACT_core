@@ -6,12 +6,14 @@ from distutils.version import LooseVersion, StrictVersion
 from itertools import combinations
 from pathlib import Path
 from re import match
-from typing import Callable, List, NamedTuple, Optional, Tuple
+from typing import Callable, Dict, List, NamedTuple, Optional, Tuple
 
 from packaging.version import LegacyVersion, parse
 from pyxdameraulevenshtein import damerau_levenshtein_distance as distance  # pylint: disable=no-name-in-module
 
 from analysis.PluginBase import AnalysisBasePlugin
+from helperFunctions.tag import TagColor
+from objects.file import FileObject
 
 try:
     from ..internal.database_interface import DatabaseInterface, QUERIES
@@ -57,8 +59,18 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
         cves['summary'] = list({cve_id for software in cves['cve_results'] for cve_id in cves['cve_results'][software]})
         file_object.processed_analysis[self.NAME] = cves
-
+        self.add_tags(cves['cve_results'], file_object)
         return file_object
+
+    def add_tags(self, cve_results: Dict[str, Dict[str, Dict[str, str]]], file_object: FileObject):
+        # results structure: {'component': {'cve_id': {'score2': '6.4', 'score3': 'N/A'}}}
+        for component in cve_results:
+            for cve_id in cve_results[component]:
+                entry = cve_results[component][cve_id]
+                for key in ['score2', 'score3']:
+                    if entry[key] != 'N/A' and float(entry[key]) >= 9.0:
+                        self.add_analysis_tag(file_object, 'CVE', 'critical CVE', TagColor.RED, True)
+                        return
 
     @staticmethod
     def _split_component(component: str) -> Tuple[str, str]:
