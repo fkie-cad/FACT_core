@@ -98,7 +98,7 @@ def check_worker_exceptions(process_list: List[ExceptionSafeProcess], worker_lab
             if config is None or config.getboolean('ExpertSettings', 'throw_exceptions'):
                 return_value = True
             elif worker_function is not None:
-                process_index = worker_process.name.split('-')[-1]
+                process_index = int(worker_process.name.split('-')[-1])
                 logging.warning(
                     color_string('restarting {} {} process'.format(worker_label, process_index), TerminalColors.WARNING)
                 )
