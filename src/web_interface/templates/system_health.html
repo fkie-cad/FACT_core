@@ -118,10 +118,12 @@
 										<span class="glyphicon glyphicon-cog{{ span_class }}" style="{{ span_style }}"></span> {{ plugin_data.active | nice_number }}
 									</td>
                                     <td class="active" style="text-align: right; padding:5px">
-                                        {{ plugin_data.queue | nice_number }}
+										{% set span_style = "color: black" if plugin_data['queue'] else "color: darkgrey" %}
+                                        <span class="glyphicon glyphicon-log-in" style="{{ span_style }}"></span> {{ plugin_data.queue | nice_number }}
                                     </td>
                                     <td class="active" style="text-align: right; padding:5px">
-                                        {{ plugin_data.out_queue | nice_number }}
+										{% set span_style = "color: black" if plugin_data['out_queue'] else "color: darkgrey" %}
+                                        <span class="glyphicon glyphicon-log-out" style="{{ span_style }}"></span> {{ plugin_data.out_queue | nice_number }}
                                     </td>
 								</tr>
 			    			{% endfor %}
