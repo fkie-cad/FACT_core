@@ -200,7 +200,8 @@ class FrontEndDbInterface(MongoInterfaceCommon):
         fo_data = self.file_objects.find(query, VirtualPathFileTree.FO_DATA_FIELDS)
         fo_data_dict = {entry['_id']: entry for entry in fo_data}
         for uid in uid_list:
-            for node in self.generate_file_tree_level(uid, root_uid, whitelist, fo_data_dict[uid]):
+            fo_data_entry = fo_data_dict[uid] if uid in fo_data_dict else {}
+            for node in self.generate_file_tree_level(uid, root_uid, whitelist, fo_data_entry):
                 yield node
 
     def generate_file_tree_level(self, uid, root_uid, whitelist=None, fo_data=None):
