@@ -144,6 +144,8 @@ def test_plugin(stub_plugin, stub_object, monkeypatch):
     stub_object.processed_analysis['file_type'] = {'mime': 'application/x-executable'}
     stub_plugin.process_object(stub_object)
 
-    assert stub_object.processed_analysis[stub_plugin.NAME]['Output'] != {}
+    output = stub_object.processed_analysis[stub_plugin.NAME]['Output']
+    assert output != {}
     result_summary = sorted(stub_object.processed_analysis[stub_plugin.NAME]['summary'])
     assert result_summary == ['dynamic_entries', 'exported_functions', 'header', 'imported_functions', 'libraries', 'sections', 'segments', 'symbols_version']
+    assert 'strcmp' in output['imported_functions']
