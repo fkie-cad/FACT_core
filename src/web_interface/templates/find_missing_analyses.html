@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% set active_page = "Database" %}
+
+
+{% block body %}
+
+<div class="col-sm-offset-1 col-sm-10">
+
+    <div class="row" style="margin-bottom: 16px">
+        <h2>{{ missing_count }} Missing Files</h2>
+        <table class="table table-bordered table-hover">
+            <tr class="success">
+                <th>Parent UID</th><th>UID</th>
+            </tr>
+            {% for parent_uid, uid_list in missing_db_entries | sort %}
+                <tr>
+                    <td>
+                        <a href='/analysis/{{ parent_uid }}'>{{ parent_uid }}</a>
+                    </td>
+                    <td>{{ uid_list | nice_list | safe }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+</div>
+
+{% endblock %}

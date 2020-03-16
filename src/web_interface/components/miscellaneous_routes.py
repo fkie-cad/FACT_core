@@ -22,6 +22,7 @@ class MiscellaneousRoutes(ComponentBase):
         self._app.add_url_rule('/comment/<uid>', 'comment/<uid>', self._app_add_comment, methods=['GET', 'POST'])
         self._app.add_url_rule('/admin/delete_comment/<uid>/<timestamp>', '/admin/delete_comment/<uid>/<timestamp>', self._app_delete_comment)
         self._app.add_url_rule('/admin/delete/<uid>', '/admin/delete/<uid>', self._app_delete_firmware)
+        self._app.add_url_rule('/admin/find_missing_analyses', 'admin/find_missing_analyses', self._app_find_missing_analyses, methods=['GET'])
 
     @login_required
     @roles_accepted(*PRIVILEGES['status'])
@@ -70,3 +71,27 @@ class MiscellaneousRoutes(ComponentBase):
         with ConnectTo(AdminDbInterface, config=self._config) as sc:
             deleted_virtual_file_path_entries, deleted_files = sc.delete_firmware(uid)
         return render_template('delete_firmware.html', deleted_vps=deleted_virtual_file_path_entries, deleted_files=deleted_files, uid=uid)
+
+    @roles_accepted(*PRIVILEGES['delete'])
+    def _app_find_missing_analyses(self):
+        if request.method == 'POST':
+            return 'TODO'  # TODO
+        all_uids, all_included_files = set(), set()
+        parent_to_included = {}
+        with ConnectTo(FrontEndDbInterface, config=self._config) as db:
+            for collection in [db.file_objects, db.firmwares]:
+                for result in collection.find({}, {'_id': 1, 'files_included': 1}):
+                    all_uids.add(result['_id'])
+                    all_included_files.update(result['files_included'])
+                    parent_to_included[result['_id']] = result['files_included']
+        missing_db_entries = all_included_files.difference(all_uids)
+        missing_entries_and_parents = {}
+        for uid in missing_db_entries:
+            for parent_uid, included_files in parent_to_included.items():
+                if uid in included_files:
+                    missing_entries_and_parents.setdefault(parent_uid, []).append(uid)
+        return render_template(
+            'find_missing_analyses.html',
+            missing_db_entries=list(missing_entries_and_parents.items()),
+            missing_count=len(missing_db_entries)
+        )
