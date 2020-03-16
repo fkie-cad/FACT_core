@@ -409,6 +409,8 @@ def get_config_for_testing(temp_dir=None):
     config.set('ExpertSettings', 'authentication', 'false')
     config.set('ExpertSettings', 'intercom_poll_delay', '0.5')
     config.set('ExpertSettings', 'nginx', 'false')
+    config.add_section('database')
+    config.set('database', 'results_per_page', '10')
     load_users_from_main_config(config)
     config.add_section('Logging')
     if temp_dir is not None:
