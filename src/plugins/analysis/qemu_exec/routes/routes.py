@@ -4,13 +4,14 @@ from contextlib import suppress
 from flask import render_template_string
 from flask_restful import Resource
 
+from helperFunctions.database import ConnectTo
 from helperFunctions.fileSystem import get_src_dir
-from helperFunctions.rest import success_message, error_message
-from helperFunctions.web_interface import ConnectTo
+from helperFunctions.rest import error_message, success_message
 from storage.db_interface_frontend import FrontEndDbInterface
 from web_interface.components.component_base import ComponentBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
+
 from ..code.qemu_exec import AnalysisPlugin
 
 

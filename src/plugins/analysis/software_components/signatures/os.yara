@@ -4,7 +4,7 @@ rule VxWorks
 		software_name = "VxWorks"
 		open_source = false
 		website = "http://www.windriver.com/products/vxworks/"
-		description = "Operating system for embedded devices"
+		description = "Real Time Operating System by WindRiver"
     strings:
         $b = /VxWorks[ -]?\d+\.\d+(\.\d+)?/ nocase ascii wide
     condition:
@@ -110,4 +110,32 @@ rule ThreadX
 		$a = /ThreadX [a-z\/ 1-9]+ [a-z]?\d+\.\d+(\.\d+)?(\.\d+)?/ nocase ascii wide
 	condition:
 		$a
+}
+
+rule MicroC_OS {
+	meta:
+		software_name = "MicroC/OS"
+		open_source = false
+		website = "https://www.micrium.com/rtos/"
+		description = "Real Time Operating System by Micrium"
+
+    strings:
+        $a = /Micrium ?OS/ nocase
+        $b = /(\xc2\xb5|u|micro)c\/os-?[i]{0,3}/ nocase
+
+    condition:
+        $a or $b
+}
+
+rule Contiki
+{
+	meta:
+		software_name = "Contiki-OS"
+		open_source = true
+		website = "http://www.contiki-os.org/"
+		description = "Real Time Operating System"
+	strings:
+		$a = /Contiki\/\d+\.\d+/ nocase ascii wide
+	condition:
+		$a and no_text_file
 }

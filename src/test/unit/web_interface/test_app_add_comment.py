@@ -9,12 +9,12 @@ class TestAppAddComment(WebInterfaceTest):
         assert b'Error: UID not found in database' in rv.data
 
     def test_app_add_comment_get_valid_uid(self):
-        rv = self.test_client.get('/comment/{}'.format(TEST_FW.get_uid()))
+        rv = self.test_client.get('/comment/{}'.format(TEST_FW.uid))
         assert b'Error: UID not found in database' not in rv.data
         assert b'Add Comment' in rv.data
 
     def test_app_add_comment_put(self):
-        rv = self.test_client.post('/comment/{}'.format(TEST_FW.get_uid()), content_type='multipart/form-data', data={
+        rv = self.test_client.post('/comment/{}'.format(TEST_FW.uid), content_type='multipart/form-data', data={
             'comment': "this is the test comment",
             'author': "test author"}, follow_redirects=True)
         assert b'Analysis' in rv.data

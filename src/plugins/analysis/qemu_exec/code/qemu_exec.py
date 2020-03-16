@@ -4,8 +4,7 @@ import logging
 import zlib
 from base64 import b64decode
 from collections import OrderedDict
-from contextlib import suppress
-from json import loads, JSONDecodeError
+from json import JSONDecodeError, loads
 from multiprocessing import Manager, Pool
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -13,13 +12,12 @@ from typing import Dict, List, Optional, Tuple, Union
 
 from common_helper_files import get_binary_from_file, safe_rglob
 from common_helper_process import execute_shell_command_get_return_code
-import docker
-from docker.errors import ImageNotFound, APIError, DockerException
-from docker.types import Mount
+from docker.errors import DockerException
 from fact_helper_file import get_file_type_from_path
-from requests.exceptions import ReadTimeout, ConnectionError as RequestConnectionError
+from requests.exceptions import ReadTimeout
 
 from analysis.PluginBase import AnalysisBasePlugin
+from helperFunctions.docker import run_docker_container
 from helperFunctions.tag import TagColor
 from helperFunctions.uid import create_uid
 from objects.file import FileObject
@@ -38,10 +36,10 @@ class Unpacker(UnpackBase):
     def unpack_fo(self, file_object: FileObject) -> Optional[TemporaryDirectory]:
         file_path = (
             file_object.file_path if file_object.file_path
-            else self._get_file_path_from_db(file_object.get_uid())
+            else self._get_file_path_from_db(file_object.uid)
         )
         if not file_path or not Path(file_path).is_file():
-            logging.error('could not unpack {}: file path not found'.format(file_object.get_uid()))
+            logging.error('could not unpack {}: file path not found'.format(file_object.uid))
             return None
 
         extraction_dir = TemporaryDirectory(prefix='FACT_plugin_qemu_exec')
@@ -63,9 +61,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     NAME = 'qemu_exec'
     DESCRIPTION = 'test binaries for executability in QEMU and display help if available'
-    VERSION = '0.5'
+    VERSION = '0.5.1'
     DEPENDENCIES = ['file_type']
-    FILE_TYPES = ['application/x-executable', 'application/x-sharedlib']
+    FILE_TYPES = ['application/x-executable', 'application/x-pie-executable', 'application/x-sharedlib']
 
     FACT_EXTRACTION_FOLDER_NAME = 'fact_extracted'
 
@@ -266,27 +264,18 @@ def get_docker_output(arch_suffix: str, file_path: str, root_path: Path) -> dict
     }
     in case of an error, there will be an entry 'error' instead of the entries stdout/stderr/return_code
     '''
-    container = None
-    volume = Mount(CONTAINER_TARGET_PATH, str(root_path), read_only=True, type="bind")
+    command = '{arch_suffix} {target}'.format(arch_suffix=arch_suffix, target=file_path)
     try:
-        client = docker.from_env()
-        container = client.containers.run(
-            DOCKER_IMAGE, '{arch_suffix} {target}'.format(arch_suffix=arch_suffix, target=file_path),
-            network_disabled=True, mounts=[volume], detach=True
-        )
-        container.wait(timeout=TIMEOUT_IN_SECONDS)
-        return loads(container.logs().decode())
-    except (ImageNotFound, APIError, DockerException, RequestConnectionError):
-        return {'error': 'process error'}
+        return loads(run_docker_container(
+            DOCKER_IMAGE, TIMEOUT_IN_SECONDS, command, reraise=True, mount=(CONTAINER_TARGET_PATH, str(root_path)),
+            label='qemu_exec'
+        ))
     except ReadTimeout:
         return {'error': 'timeout'}
+    except (DockerException, IOError):
+        return {'error': 'process error'}
     except JSONDecodeError:
         return {'error': 'could not decode result'}
-    finally:
-        if container:
-            with suppress(APIError):
-                container.stop()
-            container.remove()
 
 
 def process_docker_output(docker_output: Dict[str, Dict[str, str]]) -> Dict[str, Dict[str, str]]:

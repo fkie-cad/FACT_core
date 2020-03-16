@@ -211,7 +211,7 @@ class MongoInterfaceCommon(MongoInterface):
     def get_list_of_all_included_files(self, fo):
         if isinstance(fo, Firmware):
             fo.list_of_all_included_files = get_list_of_all_values(
-                self.file_objects, '$_id', match={'virtual_file_path.{}'.format(fo.get_uid()): {'$exists': 'true'}})
+                self.file_objects, '$_id', match={'virtual_file_path.{}'.format(fo.uid): {'$exists': 'true'}})
         if fo.list_of_all_included_files is None:
             fo.list_of_all_included_files = list(self.get_set_of_all_included_files(fo))
         fo.list_of_all_included_files.sort()
@@ -224,7 +224,7 @@ class MongoInterfaceCommon(MongoInterface):
         '''
         if fo is not None:
             files = set()
-            files.add(fo.get_uid())
+            files.add(fo.uid)
             included_files = self.get_objects_by_uid_list(fo.files_included, analysis_filter=[])
             for item in included_files:
                 files.update(self.get_set_of_all_included_files(item))
@@ -240,7 +240,7 @@ class MongoInterfaceCommon(MongoInterface):
 
     def get_summary(self, fo, selected_analysis):
         if selected_analysis not in fo.processed_analysis:
-            logging.warning('Analysis {} not available on {}'.format(selected_analysis, fo.get_uid()))
+            logging.warning('Analysis {} not available on {}'.format(selected_analysis, fo.uid))
             return None
         if 'summary' not in fo.processed_analysis[selected_analysis]:
             return None
@@ -248,7 +248,7 @@ class MongoInterfaceCommon(MongoInterface):
             return self._collect_summary(fo.list_of_all_included_files, selected_analysis)
         summary = get_all_value_combinations_of_fields(
             self.file_objects, '$processed_analysis.{}.summary'.format(selected_analysis), '$_id',
-            unwind=True, match={'virtual_file_path.{}'.format(fo.get_uid()): {'$exists': 'true'}})
+            unwind=True, match={'virtual_file_path.{}'.format(fo.uid): {'$exists': 'true'}})
         fo_summary = self._get_summary_of_one(fo, selected_analysis)
         self._update_summary(summary, fo_summary)
         return summary
@@ -259,7 +259,7 @@ class MongoInterfaceCommon(MongoInterface):
         try:
             if 'summary' in file_object.processed_analysis[selected_analysis].keys():
                 for item in file_object.processed_analysis[selected_analysis]['summary']:
-                    summary[item] = [file_object.get_uid()]
+                    summary[item] = [file_object.uid]
         except Exception as e:
             logging.warning('Could not get summary: {} {}'.format(type(e), e))
         return summary

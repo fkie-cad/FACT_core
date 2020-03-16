@@ -11,13 +11,16 @@ class InterComFrontEndBinding(InterComMongoInterface):
     '''
 
     def add_analysis_task(self, fw):
-        self.connections['analysis_task']['fs'].put(pickle.dumps(fw), filename=fw.get_uid())
+        self.connections['analysis_task']['fs'].put(pickle.dumps(fw), filename=fw.uid)
 
     def add_re_analyze_task(self, fw, unpack=True):
         if unpack:
-            self.connections['re_analyze_task']['fs'].put(pickle.dumps(fw), filename=fw.get_uid())
+            self.connections['re_analyze_task']['fs'].put(pickle.dumps(fw), filename=fw.uid)
         else:
-            self.connections['update_task']['fs'].put(pickle.dumps(fw), filename=fw.get_uid())
+            self.connections['update_task']['fs'].put(pickle.dumps(fw), filename=fw.uid)
+
+    def add_single_file_task(self, fw):
+        self.connections['single_file_task']['fs'].put(pickle.dumps(fw), filename=fw.uid)
 
     def add_compare_task(self, compare_id, force=False):
         self.connections['compare_task']['fs'].put(pickle.dumps((compare_id, force)), filename=compare_id)
@@ -30,8 +33,7 @@ class InterComFrontEndBinding(InterComMongoInterface):
         if plugin_file is not None:
             plugin_dict = pickle.loads(plugin_file.read())
             return plugin_dict
-        else:
-            raise Exception("No available plug-ins found. FAF backend might be down!")
+        raise Exception("No available plug-ins found. FACT backend might be down!")
 
     def get_binary_and_filename(self, uid):
         return self._request_response_listener(uid, 'raw_download_task', 'raw_download_task_resp')
@@ -66,7 +68,7 @@ class InterComFrontEndBinding(InterComMongoInterface):
             if resp:
                 output_data = pickle.loads(resp.read())
                 if delete:
-                    self.connections[response_connection]['fs'].delete(resp._id)
+                    self.connections[response_connection]['fs'].delete(resp._id)  # pylint: disable=protected-access
                 logging.debug('Response received: {} -> {}'.format(response_connection, request_id))
                 break
             else:

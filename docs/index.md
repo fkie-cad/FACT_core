@@ -57,7 +57,7 @@ FACT is based on a plug-in concept.
 Unpackers are implemented as plug-ins, as well as analysis features and compare functionalities.
 More details can be found in the [Developer’s Manual](https://github.com/fkie-cad/FACT_core/wiki).  
 Integration is easy as well since we provide a REST API covering almost all of FACT’s features.
-More Details can be found in our [REST API documentation](https://github.com/fkie-cad/FACT_core/wiki/doku_rest).
+More Details can be found in our [REST API documentation](https://github.com/fkie-cad/FACT_core/wiki/rest-documentation).
 
 ## Screenshots
 <table border="0px">

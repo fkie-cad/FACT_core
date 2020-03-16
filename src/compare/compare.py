@@ -47,19 +47,19 @@ class Compare(object):
         general = {}
         for fo in object_list:
             if isinstance(fo, Firmware):
-                fo.root_uid = fo.get_uid()
-                self._add_content_to_general_dict(general, 'device_name', fo.get_uid(), fo.device_name)
-                self._add_content_to_general_dict(general, 'device_part', fo.get_uid(), fo.part)
-                self._add_content_to_general_dict(general, 'device_class', fo.get_uid(), fo.device_class)
-                self._add_content_to_general_dict(general, 'vendor', fo.get_uid(), fo.vendor)
-                self._add_content_to_general_dict(general, 'version', fo.get_uid(), fo.version)
-                self._add_content_to_general_dict(general, 'release_date', fo.get_uid(), fo.release_date)
+                fo.root_uid = fo.uid
+                self._add_content_to_general_dict(general, 'device_name', fo.uid, fo.device_name)
+                self._add_content_to_general_dict(general, 'device_part', fo.uid, fo.part)
+                self._add_content_to_general_dict(general, 'device_class', fo.uid, fo.device_class)
+                self._add_content_to_general_dict(general, 'vendor', fo.uid, fo.vendor)
+                self._add_content_to_general_dict(general, 'version', fo.uid, fo.version)
+                self._add_content_to_general_dict(general, 'release_date', fo.uid, fo.release_date)
             else:
-                self._add_content_to_general_dict(general, 'firmwares_including_this_file', fo.get_uid(), list(fo.get_virtual_file_paths().keys()))
-            self._add_content_to_general_dict(general, 'hid', fo.get_uid(), fo.get_hid())
-            self._add_content_to_general_dict(general, 'size', fo.get_uid(), fo.size)
-            self._add_content_to_general_dict(general, 'virtual_file_path', fo.get_uid(), fo.get_virtual_paths_for_one_uid())
-            self._add_content_to_general_dict(general, 'number_of_files', fo.get_uid(), len(fo.list_of_all_included_files))
+                self._add_content_to_general_dict(general, 'firmwares_including_this_file', fo.uid, list(fo.get_virtual_file_paths().keys()))
+            self._add_content_to_general_dict(general, 'hid', fo.uid, fo.get_hid())
+            self._add_content_to_general_dict(general, 'size', fo.uid, fo.size)
+            self._add_content_to_general_dict(general, 'virtual_file_path', fo.uid, fo.get_virtual_paths_for_one_uid())
+            self._add_content_to_general_dict(general, 'number_of_files', fo.uid, len(fo.list_of_all_included_files))
         return general
 
     @staticmethod

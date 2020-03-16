@@ -1,0 +1,26 @@
+#preview-div pre{
+  border: 1px solid white;
+}
+
+#preview-div pre .line-number {
+  color:black;
+  display:block;;
+}
+
+#preview-div pre .line-number {
+  float:left;
+  margin: 0;
+  border-right:1px solid;
+  text-align:right;
+  margin-right: 1em;
+}
+
+#preview-div pre .line-number span {
+  display:block;
+  padding:0 .5em 0 1em;
+}
+
+#preview-div pre .cl {
+  display:block;
+  clear:both;
+}

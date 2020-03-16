@@ -1,8 +1,9 @@
 import logging
-from hashlib import new, md5
+from hashlib import md5, new
 
 import lief
 import ssdeep
+import tlsh
 
 from helperFunctions.dataConversion import make_bytes
 from helperFunctions.debug import suppress_stdout
@@ -32,32 +33,33 @@ def get_ssdeep(code):
 
 
 def get_ssdeep_comparison(first, second):
-    diff = ssdeep.compare(first, second)
-    return diff
+    return ssdeep.compare(first, second)
 
 
-def check_similarity_of_sets(pair_of_sets, all_sets):
-    for first_item in pair_of_sets[0]:
-        for second_item in pair_of_sets[1]:
-            if first_item != second_item and {first_item, second_item} not in all_sets:
-                return False
-    return True
+def get_tlsh(code):
+    return tlsh.hash(make_bytes(code))
 
 
-def _is_elf_file(file_object):
-    file_type = file_object.processed_analysis['file_type']['mime']
-    return file_type in ['application/x-executable', 'application/x-object', 'application/x-sharedlib']
+def get_tlsh_comparison(first, second):
+    return tlsh.diff(first, second)
 
 
 def get_imphash(file_object):
-    imphash = None
     if _is_elf_file(file_object):
         try:
             with suppress_stdout():
-                elf = lief.parse(file_object.file_path)
-            imphash = md5(
-                ','.join(sorted(elf.imported_functions)).encode()).hexdigest()
-        except Exception as e:
-            logging.error('Could not compute imphash for ELF {}: {} {}'.format(
-                file_object.file_path, type(e), e))
-    return imphash
+                functions = normalize_lief_items(lief.parse(file_object.file_path).imported_functions)
+            return md5(','.join(sorted(functions)).encode()).hexdigest()
+        except Exception:
+            logging.error('Could not compute imphash for {}'.format(file_object.file_path), exc_info=True)
+    return None
+
+
+def _is_elf_file(file_object):
+    return file_object.processed_analysis['file_type']['mime'] in ['application/x-executable', 'application/x-object', 'application/x-sharedlib']
+
+
+def normalize_lief_items(functions):
+    if functions and not isinstance(functions[0], str):
+        return [str(function) for function in functions]
+    return list(functions)

@@ -7,11 +7,10 @@ from unittest import TestCase
 import docker
 import pytest
 from common_helper_files import get_dir_of_file
-from helperFunctions.config import get_config_for_testing
-from helperFunctions.fileSystem import get_test_data_dir
 from requests.exceptions import ConnectionError as RequestConnectionError
 from requests.exceptions import ReadTimeout
-from test.common_helper import create_test_firmware
+
+from test.common_helper import create_test_firmware, get_config_for_testing, get_test_data_dir
 from test.mock import mock_patch
 from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
 
@@ -67,17 +66,17 @@ class ContainerMock:
         pass
 
     @staticmethod
-    def logs():
+    def logs(**_):
         return b'not json decodable'
 
 
 class DockerClientMock:
     class containers:
         @staticmethod
-        def run(_, arch_and_path, **___):
-            if 'file-with-error' in arch_and_path:
+        def run(_, command, **___):
+            if 'file-with-error' in command:
                 raise RequestConnectionError()
-            if 'json-error' in arch_and_path:
+            if 'json-error' in command:
                 return ContainerMock()
             raise ReadTimeout()
 
@@ -190,7 +189,6 @@ class TestPluginQemuExec(AnalysisPluginTest):
 
     @pytest.mark.usefixtures('docker_is_running')
     def test_process_object__error(self):
-        test_fw = self._set_up_fw_for_process_object(path=Path(TEST_DATA_DIR, 'usr'))
         test_fw = self._set_up_fw_for_process_object(path=TEST_DATA_DIR / 'usr')
 
         self.analysis_plugin.process_object(test_fw)

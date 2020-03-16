@@ -1,12 +1,12 @@
 from os.path import basename
 from subprocess import CalledProcessError
 from tempfile import NamedTemporaryFile
-from typing import Tuple, List, Optional, Dict
+from typing import Dict, List, Optional, Tuple
 
 import yara
 from common_helper_process import execute_shell_command
 
-from helperFunctions.web_interface import ConnectTo
+from helperFunctions.database import ConnectTo
 from storage.db_interface_common import MongoInterfaceCommon
 from storage.fs_organizer import FS_Organizer
 
@@ -70,10 +70,10 @@ class YaraBinarySearchScanner:
                 results = self._parse_raw_result(raw_result)
                 self._eliminate_duplicates(results)
                 return results
-            except yara.SyntaxError as e:
-                return 'There seems to be an error in the rule file:\n{}'.format(e)
-            except CalledProcessError as e:
-                return 'Error when calling YARA:\n{}'.format(e.output.decode())
+            except yara.SyntaxError as yara_error:
+                return 'There seems to be an error in the rule file:\n{}'.format(yara_error)
+            except CalledProcessError as process_error:
+                return 'Error when calling YARA:\n{}'.format(process_error.output.decode())
 
     def _get_raw_result(self, firmware_uid, temp_rule_file):
         if firmware_uid is None:
@@ -99,8 +99,8 @@ def get_yara_error(rules_file):
     try:
         yara.compile(source=rules_file)
         return None
-    except Exception as e:
-        return e
+    except Exception as exception:
+        return exception
 
 
 class YaraBinarySearchScannerDbInterface(MongoInterfaceCommon):

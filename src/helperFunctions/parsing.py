@@ -14,8 +14,7 @@ def _get_start_and_size_of_der_field(binary=None, offset=None):
         logging.debug('[LOG] - Length {}'.format(length_of_length))
         form_string = _determine_format_string(length_of_length)
         return offset + 2 + length_of_length, unpack(form_string, binary[(offset + 2):(offset + 2 + length_of_length)])[0]
-    else:
-        return offset + 2, binary[offset + 1]
+    return offset + 2, binary[offset + 1]
 
 
 def _determine_format_string(length=None):
@@ -60,14 +59,3 @@ def read_ssl_cert(binary=None, start=None, end=None):
     except OpenSSL.crypto.Error:
         logging.debug('Found SSL certificate signature, but looks false positive')
         return None
-
-
-class bcolors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'

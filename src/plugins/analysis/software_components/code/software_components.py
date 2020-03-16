@@ -1,12 +1,22 @@
 import os
 import re
+import sys
+from pathlib import Path
+from typing import List
 
 from common_helper_files import get_dir_of_file
 
 from analysis.YaraPluginBase import YaraBasePlugin
 from helperFunctions.dataConversion import make_unicode_string
 from helperFunctions.tag import TagColor
+from objects.file import FileObject
 from plugins.analysis.software_components.bin import OS_LIST
+
+try:
+    from ..internal.resolve_version_format_string import extract_data_from_ghidra
+except ImportError:
+    sys.path.append(str(Path(__file__).parent.parent / 'internal'))
+    from resolve_version_format_string import extract_data_from_ghidra
 
 SIGNATURE_DIR = os.path.join(get_dir_of_file(__file__), '../signatures')
 
@@ -22,7 +32,7 @@ class AnalysisPlugin(YaraBasePlugin):
     NAME = 'software_components'
     DESCRIPTION = 'identify software components'
     MIME_BLACKLIST = ['audio', 'filesystem', 'image', 'video']
-    VERSION = '0.3.2'
+    VERSION = '0.4.0'
 
     def __init__(self, plugin_administrator, config=None, recursive=True):
         super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__)
@@ -31,7 +41,7 @@ class AnalysisPlugin(YaraBasePlugin):
         file_object = super().process_object(file_object)
         analysis = file_object.processed_analysis[self.NAME]
         if len(analysis) > 1:
-            analysis = self.add_version_information(analysis)
+            analysis = self.add_version_information(analysis, file_object)
             analysis['summary'] = self._get_summary(analysis)
 
             self.add_os_key(file_object)
@@ -42,37 +52,40 @@ class AnalysisPlugin(YaraBasePlugin):
         if 'version_regex' in meta_dict:
             regex = meta_dict['version_regex'].replace('\\\\', '\\')
         else:
-            regex = '\\d+.\\d+(.\\d+)?(\\w)?'
+            regex = r'\d+.\d+(.\d+)?(\w)?'
         pattern = re.compile(regex)
         version = pattern.search(input_string)
         if version is not None:
             return version.group(0)
-        else:
-            return ''
+        return ''
 
     @staticmethod
-    def _get_summary(results):
+    def _get_summary(results) -> List[str]:
         summary = set()
         for item in results:
             if item != 'summary':
                 for version in results[item]['meta']['version']:
                     summary.add('{} {}'.format(results[item]['meta']['software_name'], version))
-        summary = list(summary)
-        summary.sort()
-        return summary
+        return sorted(summary)
 
-    def add_version_information(self, results):
+    def add_version_information(self, results, file_object: FileObject):
         for item in results:
             if item != 'summary':
-                results[item] = self.get_version_for_component(results[item])
+                results[item] = self.get_version_for_component(results[item], file_object)
         return results
 
-    def get_version_for_component(self, result):
+    def get_version_for_component(self, result, file_object: FileObject):
         versions = set()
         for matched_string in result['strings']:
             match = matched_string[2]
             match = make_unicode_string(match)
             versions.add(self.get_version(match, result['meta']))
+        if result['meta'].get('format_string'):
+            key_strings = [s.decode() for _, _, s in result['strings'] if b'%s' in s]
+            if key_strings:
+                versions.update(extract_data_from_ghidra(file_object.binary, key_strings))
+        if '' in versions and len(versions) > 1:  # if there are actual version results, remove the "empty" result
+            versions.remove('')
         result['meta']['version'] = list(versions)
         return result
 

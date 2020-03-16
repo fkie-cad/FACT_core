@@ -3,10 +3,8 @@
     ("Home", "/", '<i class="fas fa-home"></i>'),
     ("Database", None, None),
     ("Upload", "/upload", '<i class="fas fa-upload"></i>'),
-    ("Statistic", "/statistic", '<i class="fas fa-chart-bar"></i>'),
-    ("System", "/system_health", '<i class="fas fa-heartbeat"></i>'),
-    ("About", "/about", '<i class="fas fa-info-circle"></i>'),
-    ("Admin", None, None)
+    ("Info", None, '<i class="fas fa-info-circle"></i>'),
+    ("Admin", None, '<i class="fas fa-users-cog"></i>')
 ] -%}
 
 {% if ("string only here to have input to " | auth_enabled) %}
@@ -105,11 +103,20 @@
                         <li class="dropdown {% if caption == active_page %}active{% endif  %}">
                             <a class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="fas fa-tasks"></i>&nbsp;Database<span class="caret"></span></a>
                             <ul class="dropdown-menu">
-                                <li><a href="/database/browse">Browse Firmware Analyses</a></li>
-                                <li><a href="/database/browse_compare">Browse Firmware Compares</a></li>
-                                <li><a href="/database/search">Basic Search</a></li>
-                                <li><a href="/database/advanced_search">Advanced Search</a></li>
-                                <li><a href="/database/binary_search">Binary Pattern Search</a></li>
+                                <li><a href="/database/browse"><i class="fas fa-list-ul"></i>Browse Firmware Analyses</a></li>
+                                <li><a href="/database/browse_compare"><i class="far fa-copy"></i>Browse Firmware Compares</a></li>
+                                <li><a href="/database/search"><i class="fas fa-search"></i>Basic Search</a></li>
+                                <li><a href="/database/advanced_search"><i class="fas fa-search-plus"></i>Advanced Search</a></li>
+                                <li><a href="/database/binary_search"><i class="fas fa-search-dollar"></i>Binary Pattern Search</a></li>
+                            </ul>
+                        </li>
+                    {% elif caption == "Info" %}
+                        <li class="dropdown {% if caption == active_page %}active{% endif  %}">
+                            <a class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="fas fa-info-circle"></i>&nbsp;{{ caption }}<span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="/statistic"><i class="fas fa-chart-bar"></i> Statistics</a></li>
+                                <li><a href="/system_health"><i class="fas fa-heartbeat"></i> System</a></li>
+                                <li><a href="/about"><i class="fas fa-beer"></i> About</a></li>
                             </ul>
                         </li>
                     {% elif caption == "Admin" %}
@@ -198,7 +205,7 @@
 		<div class="col-md-4"></div>
 		<div class="col-md-4" style="text-align:center;">
 			powered by <a href="https://fkie-cad.github.io/FACT_core/">FACT {{ "" | print_program_version }}</a><br />
-			&copy; <a href="http://www.fkie.fraunhofer.de">Fraunhofer FKIE</a> 2015-2019
+			&copy; <a href="http://www.fkie.fraunhofer.de">Fraunhofer FKIE</a> 2015-2020
 		</div>
 		<div class="col-md-4"></div>
 	</div>

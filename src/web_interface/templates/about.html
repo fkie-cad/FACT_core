@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% set active_page = "About" %}
+{% set active_page = "Info" %}
 
 {% block body %}
 <div class="row">
@@ -14,7 +14,7 @@
         <h2>License Information</h2>
         <div class="well">
             Firmware Analysis and Comparison Tool (FACT)<br />
-            Copyright (C) 2015-2019  Fraunhofer FKIE<br />
+            Copyright (C) 2015-2020  Fraunhofer FKIE<br />
             <br />
             This program is free software: you can redistribute it and/or modify
             it under the terms of the GNU General Public License as published by
@@ -41,14 +41,37 @@
 
 <h2>Change Log</h2>
 <div style="width:100%;column-count:2;column-rule:grey 1px dotted;column-gap:50px">
-    <h4>FACT 2.7-dev</h4>
+	<h4>FACT 3.1-dev</h4>
+	<ul>
+		<li>New or Improved Analysis
+			<ul>
+				<li>New CVE lookup plug-in to match software to known vulnerabilities</li>
+				<li>New plug-in to identify input vectors for executables (e.g. file, network, environment, stdin)</li>
+				<li>New software signatures added</li>
+				<li>Crypto hints plug-in added</li>
+				<li><b>Warning:</b> Base64 is deprecated and is going to be removed in 3.2</li>
+			</ul>
+		</li>
+        <li>Dynamic generation of analysis summary</li>
+        <li>Navigation bar restructured</li>
+		<li>Added experimental support for multiple Debian and Kali releases as well as Ubuntu 19.04</li>
+        <li><b>Warning:</b> Hex view was removed as planned</li>
+		<li>Bug fixes</li>
+	</ul>
+
+    <h4>FACT 3.0 (2019-07-31)</h4>
     <ul>
         <li>New or Improved Analysis
             <ul>
+                <li>New "tlsh" analysis plugin for finding similar files accross the database</li>
                 <li>Major refactoring of QEMU plugin (improved stability, more feedback)</li>
+                <li>Added tlsh to file hashes plugin</li>
             </ul>
         </li>
         <li>Moved unpacking to standalone project, integrated via docker</li>
+        <li>Added automatic PDF report generation (stable, template in alpha)</li>
+        <li>Added REST endpoint for system monitoring</li>
+        <li>Added button to start analysis plugins on single file or firmware objects</li>
         <li>Revised statistics page</li>
         <li>Bug fixes</li>
     </ul>
@@ -100,7 +123,7 @@
             </ul>
         </li>
         <li><a href="https://github.com/fkie-cad/FACT_core/wiki/radare-integration">Radare view allows opening objects in radare2-webui</a></li>
-        <li><b>Warning:</b> Hex view is deprecated and is going to be removed in 2.6</li>
+        <li><b>Warning:</b> Hex view is deprecated and is going to be removed in 3.1</li>
         <li>Device part meta data support</li>
         <li>Quick download buttons added</li>
         <li><a href="https://github.com/fkie-cad/FACT_core/wiki/analysis-plugin-presets">Analysis preset support</a></li>

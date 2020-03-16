@@ -1,22 +1,20 @@
-from pathlib import Path
-
 import gc
 import os
 import unittest
 from configparser import ConfigParser
+from pathlib import Path
 from tempfile import TemporaryDirectory
-from test.common_helper import DatabaseMock, create_test_file_object
 
 from helperFunctions.dataConversion import make_list_from_dict
-from helperFunctions.fileSystem import get_test_data_dir
 from objects.file import FileObject
+from test.common_helper import DatabaseMock, create_test_file_object, get_test_data_dir
 from unpacker.unpack import Unpacker
 
 
 class TestUnpackerBase(unittest.TestCase):
     def setUp(self):
         config = ConfigParser()
-        self.ds_tmp_dir = TemporaryDirectory(prefix='faf_tests_')
+        self.ds_tmp_dir = TemporaryDirectory(prefix='fact_tests_')
         config.add_section('data_storage')
         config.set('data_storage', 'firmware_file_storage_directory', self.ds_tmp_dir.name)
         config.add_section('unpack')
@@ -24,7 +22,7 @@ class TestUnpackerBase(unittest.TestCase):
         config.set('unpack', 'whitelist', 'text/plain, image/png')
         config.add_section('ExpertSettings')
         self.unpacker = Unpacker(config=config, db_interface=DatabaseMock())
-        self.tmp_dir = TemporaryDirectory(prefix='faf_tests_')
+        self.tmp_dir = TemporaryDirectory(prefix='fact_tests_')
         self.test_fo = create_test_file_object()
 
     def tearDown(self):
@@ -41,12 +39,12 @@ class TestUnpackerCore(TestUnpackerBase):
         file_objects = make_list_from_dict(file_objects)
         self.assertEqual(len(file_objects), 1, 'number of objects not correct')
         self.assertEqual(file_objects[0].file_name, 'testfile1', 'wrong object created')
-        parent_uid = self.test_fo.get_uid()
-        self.assertIn('|{}|/get_files_test/testfile1'.format(parent_uid), file_objects[0].virtual_file_path[self.test_fo.get_uid()])
+        parent_uid = self.test_fo.uid
+        self.assertIn('|{}|/get_files_test/testfile1'.format(parent_uid), file_objects[0].virtual_file_path[self.test_fo.uid])
 
     def test_remove_duplicates_child_equals_parent(self):
         parent = FileObject(binary=b'parent_content')
-        result = self.unpacker.remove_duplicates({parent.get_uid(): parent}, parent)
+        result = self.unpacker.remove_duplicates({parent.uid: parent}, parent)
         self.assertEqual(len(result), 0, 'parent not removed from list')
 
     def test_file_is_locked(self):

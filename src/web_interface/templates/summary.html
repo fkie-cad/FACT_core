@@ -1,0 +1,27 @@
+<table class="table table-bordered result">
+    <colgroup>
+        <col width="100">
+        <col width="700">
+    </colgroup>
+    <tr>
+        <th class="success result" colspan=2>Summary Including Results of Included Files</th>
+    </tr>
+    {% if summary_of_included_files %}
+    <tr>
+            <td class="active result">item count</td>
+            <td class="active result">{{ summary_of_included_files | length }}
+    </tr>
+        {% for item in summary_of_included_files | sort %}
+            <tr>
+                <td class="result">{{ item | wordwrap(width=60, break_long_words=True) }}</td>
+                <td class="result">
+                    {{ summary_of_included_files[item] | nice_uid_list(root_uid=root_uid, selected_analysis=selected_analysis) | safe }}
+                </td>
+            </tr>
+        {% endfor %}
+    {% else %}
+        <tr>
+            <td class="active result" colspan=2 style="text-align: center">no summary found</td>
+        </tr>
+    {% endif %}
+</table>

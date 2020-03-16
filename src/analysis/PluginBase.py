@@ -1,10 +1,11 @@
 import logging
-from multiprocessing import Queue, Value, Manager
+from multiprocessing import Manager, Queue, Value
 from queue import Empty
 from time import time
 
-from helperFunctions.parsing import bcolors
-from helperFunctions.process import ExceptionSafeProcess, terminate_process_and_childs
+from helperFunctions.process import (
+    ExceptionSafeProcess, check_worker_exceptions, start_single_worker, terminate_process_and_childs
+)
 from helperFunctions.tag import TagColor
 from objects.file import FileObject
 from plugins.base import BasePlugin
@@ -26,7 +27,6 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         self.recursive = recursive
         self.in_queue = Queue()
         self.out_queue = Queue()
-        self.workload_index = Value('i', 0)
         self.stop_condition = Value('i', 0)
         self.workers = []
         if self.timeout is None:
@@ -37,7 +37,7 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
 
     def add_job(self, fw_object: FileObject):
         if self._dependencies_are_unfulfilled(fw_object):
-            logging.error('{}: dependencies of plugin {} not fulfilled'.format(fw_object.get_uid(), self.NAME))
+            logging.error('{}: dependencies of plugin {} not fulfilled'.format(fw_object.uid, self.NAME))
         elif self._analysis_depth_not_reached_yet(fw_object):
             self.in_queue.put(fw_object)
             return
@@ -65,12 +65,6 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
     def _add_plugin_version_and_timestamp_to_analysis_result(self, fo):
         fo.processed_analysis[self.NAME].update(self.init_dict())
         return fo
-
-    def get_workload(self):
-        '''
-        This function returns the current number of objects in progress
-        '''
-        return self.workload_index.value
 
     def shutdown(self):
         '''
@@ -113,13 +107,8 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
 
     def start_worker(self):
         for process_index in range(int(self.config[self.NAME]['threads'])):
-            self._start_single_worker_process(process_index)
+            self.workers.append(start_single_worker(process_index, 'Analysis', self.worker))
         logging.debug('{}: {} worker threads started'.format(self.NAME, len(self.workers)))
-
-    def _start_single_worker_process(self, process_index):
-        process = ExceptionSafeProcess(target=self.worker, name='Analysis-Worker-{}'.format(process_index), args=(process_index,))
-        process.start()
-        self.workers.append(process)
 
     def process_next_object(self, task, result):
         task.processed_analysis.update({self.NAME: {}})
@@ -139,19 +128,19 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         if self.timeout_happened(process):
             terminate_process_and_childs(process)
             self.out_queue.put(next_task)
-            logging.warning('Worker {}: Timeout {} analysis on {}'.format(worker_id, self.NAME, next_task.get_uid()))
+            logging.warning('Worker {}: Timeout {} analysis on {}'.format(worker_id, self.NAME, next_task.uid))
         elif process.exception:
             terminate_process_and_childs(process)
             raise process.exception[0]
         else:
             self.out_queue.put(result.pop())
-            logging.debug('Worker {}: Finished {} analysis on {}'.format(worker_id, self.NAME, next_task.get_uid()))
+            logging.debug('Worker {}: Finished {} analysis on {}'.format(worker_id, self.NAME, next_task.uid))
 
     def worker(self, worker_id):
         while self.stop_condition.value == 0:
             try:
                 next_task = self.in_queue.get(timeout=float(self.config['ExpertSettings']['block_delay']))
-                logging.debug('Worker {}: Begin {} analysis on {}'.format(worker_id, self.NAME, next_task.get_uid()))
+                logging.debug('Worker {}: Begin {} analysis on {}'.format(worker_id, self.NAME, next_task.uid))
             except Empty:
                 pass
             else:
@@ -161,16 +150,4 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         logging.debug('worker {} stopped'.format(worker_id))
 
     def check_exceptions(self):
-        return_value = False
-        for worker in self.workers:
-            if worker.exception:
-                logging.error('{}Analysis worker {} caused exception{}'.format(bcolors.FAIL, worker.name, bcolors.ENDC))
-                logging.error(worker.exception[1])
-                terminate_process_and_childs(worker)
-                self.workers.remove(worker)
-                if self.config.getboolean('ExpertSettings', 'throw_exceptions'):
-                    return_value = True
-                else:
-                    process_index = worker.name.split('-')[2]
-                    self._start_single_worker_process(process_index)
-        return return_value
+        return check_worker_exceptions(self.workers, 'Analysis', self.config, self.worker)

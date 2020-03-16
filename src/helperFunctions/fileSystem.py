@@ -9,13 +9,6 @@ def get_src_dir():
     return get_parent_dir(get_directory_of_current_file())
 
 
-def get_test_data_dir():
-    '''
-    Returns the absolute path of the test data directory
-    '''
-    return os.path.join(get_src_dir(), 'test/data')
-
-
 def get_template_dir():
     '''
     Returns the absolute path of the template directory
@@ -41,8 +34,7 @@ def get_absolute_path(path, base_dir=os.getcwd()):
     '''
     if path[0] == '/':
         return path
-    else:
-        return os.path.join(base_dir, path)
+    return os.path.join(base_dir, path)
 
 
 def get_object_path_excluding_fact_dirs(absolute_path: str, offset_path: str):
@@ -69,8 +61,7 @@ def _get_relative_path(absolute_path, base_path):
         if new_path[0] != '/':
             new_path = '/{}'.format(new_path)
         return new_path
-    else:
-        return absolute_path
+    return absolute_path
 
 
 def file_is_empty(file_path):
