@@ -3,49 +3,46 @@
 {% set active_page = "Home" %}
 
 {% block body %}
-    <div class="row align-items-center">
+    <div class="row justify-content-between">
 
-    	
-    	<div class="col-lg-2 py-2">
-			<div style="max-width: 300px; margin: 0 auto;">
+    	<div class="col-lg-4 py-2 mx-auto">
+			<div style="max-width: 300px;">
     			<img width="100%" height="auto" src="{{ url_for('static', filename='fact_logo.png') }}">
 			</div>
-    	</div>
-
-    	<div class="col-lg-3 py-2">
-    		<table class="table table-responsive table-hover">
-                <thead>
+            <br /><br />
+    		<table class="table table-sm table-responsive mx-auto">
+                <thead class="thead-light">
                     <tr>
-                        <th colspan="2" scope="col"><h4>General Facts</h4></th>
+                        <th colspan="2"><h4>General Facts</h4></th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <th scope="row" style="text-align: left; padding:5px">firmware samples</th>
+                        <td style="text-align: left; padding:5px">firmware samples</td>
                         <td style="text-align: right; padding:5px">{{ general_stats['number_of_firmwares'] | nice_number }}</td>
                     </tr>
                     <tr>
-                        <th scope="row" style="text-align: left; padding:5px">firmware total size</td>
+                        <td style="text-align: left; padding:5px">firmware total size</td>
                         <td style="text-align: right; padding:5px">{{ general_stats['total_firmware_size'] | number_format }}</td>
                     </tr>
                     <tr>
-                        <th scope="row" style="text-align: left; padding:5px">firmware average size</td>
+                        <td style="text-align: left; padding:5px">firmware average size</td>
                         <td style="text-align: right; padding:5px">{{ general_stats['average_firmware_size'] | number_format }}</td>
                     </tr>
                     <tr>
-                        <th scope="row" style="text-align: left; padding:5px">unique included files</td>
+                        <td style="text-align: left; padding:5px">unique included files</td>
                         <td style="text-align: right; padding:5px">{{ general_stats['number_of_unique_files'] | nice_number }}</td>
                     </tr>
                     <tr>
-                        <th scope="row" style="text-align: left; padding:5px">unique included files total size</td>
+                        <td style="text-align: left; padding:5px">unique included files total size</td>
                         <td style="text-align: right; padding:5px">{{ general_stats['total_file_size'] | number_format }}</td>
                     </tr>
                     <tr>
-                        <th scope="row" style="text-align: left; padding:5px">unique included files average size</td>
+                        <td style="text-align: left; padding:5px">unique included files average size</td>
                         <td style="text-align: right; padding:5px">{{ general_stats['average_file_size'] | number_format }}</td>
                     </tr>
                     <tr>
-                        <th scope="row" style="text-align: left; padding:5px">statistic generation time</td>
+                        <td style="text-align: left; padding:5px">statistic generation time</td>
                         <td style="text-align: right; padding:5px">{{ general_stats['benchmark'] | nice_number }} s</td>
                     </tr>
                 </tbody>
@@ -53,9 +50,9 @@
     	</div>
 
     	{% if (latest_firmware_submissions | length) > 0 %}
-            <div class="col-lg-7 py-2">
-                <table class="table table-responsive table-hover">
-                    <thead>
+            <div class="col-lg-8 py-2">
+                <table class="table table-sm table-responsive table-hover">
+                    <thead class="thead-light">
                         <tr>
                             <td colspan="2">
                                 <h4>Latest Submissions</h4>
@@ -63,14 +60,14 @@
                             </td>
                         </tr>
                         <tr>
-                            <th class="align-middle text-center" scope="col" style="padding:5px">Submission Time</th>
-                            <th class="align-middle text-center" scope="col" style="padding:5px">Firmware</th>
+                            <th class="align-middle text-center" style="padding:5px">Submission Time</th>
+                            <th class="align-middle text-center" style="padding:5px">Firmware</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for firmware in latest_firmware_submissions %}
                             <tr>
-                                <td> {{ firmware[3] | nice_unix_time | safe }} </td>
+                                <td style="font-size: 14px"> {{ firmware[3] | nice_unix_time | safe }} </td>
                                 {{ firmware | firmware_detail_tabular_field | safe }}
                             </tr>
                         {% endfor %}
@@ -78,31 +75,32 @@
                 </table>
             </div>
     	{% endif %}
+
     </div>
 
     <div class="row">
     	{% if (latest_comments | length) > 0 %}
-            <div class="col-lg-5 py-2">
-                <table class="table table-responsive table-hover">
-                    <thead>
+            <div class="col-lg-4 py-2">
+                <table class="table table-sm table-responsive table-hover">
+                    <thead class="thead-light">
                         <tr>
                             <td colspan="3">
                                 <h4>Latest Comments</h4>
                             </td>
                         </tr>
                         <tr>
-                            <th scope="col" class="align-middle text-center" style="padding:5px;">Submission Time</th>
-                            <th scope="col" class="align-middle text-center" style="padding:5px;">Author</th>
-                            <th scope="col" class="align-middle text-center" style="padding:5px;">Comment</th>
+                            <th class="align-middle text-center" style="padding:5px;">Submission Time</th>
+                            <th class="align-middle text-center" style="padding:5px;">Author</th>
+                            <th class="align-middle text-center" style="padding:5px;">Comment</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for comment in latest_comments %}
                             <tr>
-                                <td> {{ comment.time | int | nice_unix_time }} </td>
-                                <td> {{ comment.author }} </td>
+                                <td style="font-size: 14px"> {{ comment.time | int | nice_unix_time }} </td>
+                                <td style="font-size: 14px"> {{ comment.author }} </td>
                                 <td class="clickable">
-                                    <a href="/analysis/{{ comment.uid }}" style="font-family: monospace; color: #000">
+                                    <a href="/analysis/{{ comment.uid }}" style="font-family: monospace; color: #000; font-size: 14px">
                                         {{ comment.comment | urlize }}
                                     </a>
                                 </td>
@@ -115,10 +113,10 @@
 
         {# latest_comparison_results #}
     	{% if (latest_comparison_results | length) > 0 %}
-            <div class="col-lg-7 py-2">
+            <div class="col-lg-8 py-2">
 
-                <table class="table table-responsive table-hover">
-                    <thead>
+                <table class="table table-sm table-responsive table-hover">
+                    <thead class="thead-light">
                         <tr>
                             <td colspan="2">
                                 <h4>Latest Comparisons</h4>
@@ -132,15 +130,15 @@
                     <tbody>
                         {% for id, hids, submission_date in latest_comparison_results %}
                             <tr>
-                                <td>
+                                <td style="font-size: 14px">
                                     {{ submission_date | nice_unix_time | safe }}
                                 </td>
-                                <td class="clickable" style="padding: 0">
-                                    <a href='/compare/{{ id }}' style="color: rgb(51, 51, 51)">
-                                        <div style="width: 100%; height: 100%; padding: 8px;">
+                                <td class="clickable" style="padding: 0" onclick="location.href='/compare/{{ id }}'">
+                                    <a href="/compare/{{ id }}" style="color: rgb(51, 51, 51);">
+                                        <div style="width: 100%; height: 100%; padding: 8px; font-size: 14px;">
                                             {% for uid in hids %}
                                                 {{ hids[uid] }}
-                                                <div><span style="font-family: 'Courier New', Courier, monospace; font-size:12px">{{ uid }}</span></div>
+                                                <div><span style="font-family: 'Courier New', Courier, monospace; font-size:10px">{{ uid }}</span></div>
                                             {% endfor %}
                                         </div>
                                     </a>
