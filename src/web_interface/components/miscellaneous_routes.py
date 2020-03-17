@@ -88,7 +88,7 @@ class MiscellaneousRoutes(ComponentBase):
                 for result in collection.find({}, {'_id': 1, 'files_included': 1}):
                     uids_in_db.add(result['_id'])
                     parent_to_included[result['_id']] = set(result['files_included'])
-        for included_files in list(parent_to_included.values()):
+        for included_files in parent_to_included.values():
             included_files.difference_update(uids_in_db)
         return {
             'missing_files': [(parent, included) for parent, included in parent_to_included.items() if included],
