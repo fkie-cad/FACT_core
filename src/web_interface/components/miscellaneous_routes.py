@@ -1,8 +1,9 @@
-
 from time import time
+from typing import Dict, Sized
 
 from flask import redirect, render_template, request, url_for
 from flask_security import login_required
+from si_prefix import si_format
 
 from helperFunctions.database import ConnectTo
 from statistic.update import StatisticUpdater
@@ -74,24 +75,54 @@ class MiscellaneousRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['delete'])
     def _app_find_missing_analyses(self):
-        if request.method == 'POST':
-            return 'TODO'  # TODO
-        all_uids, all_included_files = set(), set()
+        data = self._find_missing_files()
+        data.update(self._find_missing_analyses())
+        return render_template('find_missing_analyses.html', data=data)
+
+    def _find_missing_files(self):
+        start = time()
+        uids_in_db = set()
         parent_to_included = {}
         with ConnectTo(FrontEndDbInterface, config=self._config) as db:
             for collection in [db.file_objects, db.firmwares]:
                 for result in collection.find({}, {'_id': 1, 'files_included': 1}):
-                    all_uids.add(result['_id'])
-                    all_included_files.update(result['files_included'])
-                    parent_to_included[result['_id']] = result['files_included']
-        missing_db_entries = all_included_files.difference(all_uids)
-        missing_entries_and_parents = {}
-        for uid in missing_db_entries:
-            for parent_uid, included_files in parent_to_included.items():
-                if uid in included_files:
-                    missing_entries_and_parents.setdefault(parent_uid, []).append(uid)
-        return render_template(
-            'find_missing_analyses.html',
-            missing_db_entries=list(missing_entries_and_parents.items()),
-            missing_count=len(missing_db_entries)
-        )
+                    uids_in_db.add(result['_id'])
+                    parent_to_included[result['_id']] = set(result['files_included'])
+        for included_files in list(parent_to_included.values()):
+            included_files.difference_update(uids_in_db)
+        return {
+            'missing_files': [(parent, included) for parent, included in parent_to_included.items() if included],
+            'missing_files_count': self._count_values(parent_to_included),
+            'missing_files_duration': self._get_duration(start),
+        }
+
+    def _find_missing_analyses(self):
+        start = time()
+        missing_analyses = {}
+        with ConnectTo(FrontEndDbInterface, config=self._config) as db:
+            query_result = db.firmwares.aggregate([
+                {'$project': {'temp': {'$objectToArray': '$processed_analysis'}}},
+                {'$unwind': '$temp'},
+                {'$group': {'_id': '$_id', 'analyses': {'$addToSet': '$temp.k'}}},
+            ], allowDiskUse=True)
+            for result in query_result:
+                firmware_uid, analysis_list = result['_id'], result['analyses']
+                query = {"$and": [
+                    {"virtual_file_path.{}".format(firmware_uid): {"$exists": True}},
+                    {"$or": [{"processed_analysis.{}".format(plugin): {"$exists": False}} for plugin in analysis_list]}
+                ]}
+                for entry in db.file_objects.find(query, {'_id': 1}):
+                    missing_analyses.setdefault(firmware_uid, set()).add(entry['_id'])
+        return {
+            'missing_analyses': missing_analyses,
+            'missing_analyses_count': self._count_values(missing_analyses),
+            'missing_analyses_duration': self._get_duration(start),
+        }
+
+    @staticmethod
+    def _count_values(dictionary: Dict[str, Sized]) -> int:
+        return sum(len(e) for e in dictionary.values())
+
+    @staticmethod
+    def _get_duration(start: float) -> str:
+        return '{}s'.format(si_format(time() - start, precision=2))

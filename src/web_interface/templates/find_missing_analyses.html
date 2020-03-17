@@ -8,19 +8,53 @@
 <div class="col-sm-offset-1 col-sm-10">
 
     <div class="row" style="margin-bottom: 16px">
-        <h2>{{ missing_count }} Missing Files</h2>
+        <h2>{{ data.missing_files_count | nice_number }} Missing Files</h2>
+        <h6>took {{ data.missing_files_duration }} to generate</h6>
         <table class="table table-bordered table-hover">
             <tr class="success">
-                <th>Parent UID</th><th>UID</th>
+                <th style="width: 50%">Parent Object UID</th>
+                <th>Missing File UID</th>
             </tr>
-            {% for parent_uid, uid_list in missing_db_entries | sort %}
-                <tr>
-                    <td>
-                        <a href='/analysis/{{ parent_uid }}'>{{ parent_uid }}</a>
-                    </td>
-                    <td>{{ uid_list | nice_list | safe }}</td>
-                </tr>
-            {% endfor %}
+            {% for parent_uid, uid_list in data.missing_files | sort -%}
+            <tr>
+                <td>
+                    <a href='/analysis/{{ parent_uid }}'>{{ parent_uid }}</a>
+                </td>
+                <td>
+                    <button data-toggle="collapse" data-target="#{{ parent_uid }}" class="list-group-item list-group-item-info">
+                        <span class="badge">{{ uid_list | length }}</span> show files
+                    </button>
+                    <div id="{{ parent_uid }}" class="collapse">
+                        <ul style="margin-top: 5px">
+                            {% for uid in uid_list -%}
+                            <li>{{ uid }}</li>
+                            {%- endfor %}
+                        </ul>
+                    </div>
+                </td>
+            </tr>
+            {%- endfor %}
+        </table>
+    </div>
+
+    <div class="row" style="margin-bottom: 16px">
+        <h2>{{ data.missing_analyses_count | nice_number }} Missing Analyses</h2>
+        <h6>took {{ data.missing_analyses_duration }} to generate</h6>
+        <table class="table table-bordered table-hover">
+            <tr class="success">
+                <th style="width: 50%">Parent Object UID</th>
+                <th>Files Missing Analyses</th>
+            </tr>
+            {% for parent_uid, uid_list in data.missing_analyses.items() | sort -%}
+            <tr>
+                <td>
+                    <a href='/analysis/{{ parent_uid }}'>{{ parent_uid }}</a>
+                </td>
+                <td>
+                    {{ uid_list | nice_uid_list | safe }}
+                </td>
+            </tr>
+            {%- endfor %}
         </table>
     </div>
 
