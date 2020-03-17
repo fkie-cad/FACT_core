@@ -3,7 +3,6 @@ Jinja2 template filter
 '''
 import logging
 import re
-import sys
 import zlib
 from base64 import standard_b64encode
 from operator import itemgetter
@@ -129,8 +128,8 @@ def _get_sorted_list(input_data):
     if isinstance(input_data, list):
         try:
             input_data.sort()
-        except Exception as exception:
-            logging.warning('could not sort list: {} - {}'.format(sys.exc_info()[0].__name__, exception))
+        except TypeError:
+            logging.warning('Could not sort list', exc_info=True)
     return input_data
 
 
@@ -179,9 +178,8 @@ def text_highlighter(input_data, green=None, red=None):
 def sort_chart_list_by_name(input_data):
     try:
         input_data.sort(key=lambda x: x[0])
-    except Exception as exception:
-        logging.error(
-            'could not sort chart list {}: {} - {}'.format(input_data, sys.exc_info()[0].__name__, exception))
+    except (IndexError, TypeError):
+        logging.error('Could not sort chart list {}'.format(input_data), exc_info=True)
         return []
     return input_data
 
@@ -189,9 +187,8 @@ def sort_chart_list_by_name(input_data):
 def sort_chart_list_by_value(input_data):
     try:
         input_data.sort(key=lambda x: x[1], reverse=True)
-    except Exception as exception:
-        logging.error(
-            'could not sort chart list {}: {} - {}'.format(input_data, sys.exc_info()[0].__name__, exception))
+    except (IndexError, TypeError):
+        logging.error('Could not sort chart list {}'.format(input_data), exc_info=True)
         return []
     return input_data
 
@@ -199,9 +196,8 @@ def sort_chart_list_by_value(input_data):
 def sort_comments(comment_list):
     try:
         comment_list.sort(key=itemgetter('time'), reverse=True)
-    except Exception as exception:
-        logging.error('could not sort comment list {}: {} - {}'.format(
-            comment_list, sys.exc_info()[0].__name__, exception))
+    except (KeyError, TypeError):
+        logging.error('Could not sort comment list {}'.format(comment_list), exc_info=True)
         return []
     return comment_list
 
@@ -281,21 +277,21 @@ def comment_out_regex_meta_chars(input_data):
     return input_data
 
 
-def render_tags(tag_dict, additional_class='', size=10):
+def render_tags(tag_dict, additional_class='', size=14):
     output = ''
     if tag_dict:
         for tag in sorted(tag_dict.keys()):
-            output += '<span class="label label-pill label-{} {}" style="font-size: {}px;">{}</span>\n'.format(
+            output += '<span class="badge badge-{} {}" style="font-size: {}px;">{}</span>\n'.format(
                 tag_dict[tag], additional_class, size, tag)
     return output
 
 
-def render_analysis_tags(tags, size=10):
+def render_analysis_tags(tags, size=14):
     output = ''
     if tags:
         for plugin_name in tags:
             for key, tag in tags[plugin_name].items():
-                output += '<span class="label label-pill label-{}" style="font-size: {}px;" data-toggle="tooltip" title="{}: {}">{}</span>\n'.format(
+                output += '<span class="badge badge-{}" style="font-size: {}px;" data-toggle="tooltip" title="{}: {}">{}</span>\n'.format(
                     tag['color'], size, replace_underscore_filter(plugin_name), replace_underscore_filter(key), tag['value']
                 )
     return output

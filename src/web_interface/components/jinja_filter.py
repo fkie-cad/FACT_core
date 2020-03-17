@@ -11,7 +11,15 @@ from helperFunctions.hash import get_md5
 from helperFunctions.uid import is_list_of_uids
 from helperFunctions.web_interface import split_virtual_path, virtual_path_element_to_span
 from storage.db_interface_frontend import FrontEndDbInterface
-from web_interface import filter as flt
+from web_interface.filter import (
+    byte_number_filter, bytes_to_str_filter, comment_out_regex_meta_chars, data_to_chart, data_to_chart_limited,
+    data_to_chart_with_value_percentage_pairs, decompress, encode_base64_filter, filter_format_string_list_with_offset,
+    fix_cwe, generic_nice_representation, get_all_uids_in_string, get_canvas_height, get_unique_keys_from_list_of_dicts,
+    infection_color, list_to_line_break_string, list_to_line_break_string_no_sort, nice_list, nice_number_filter,
+    nice_unix_time, render_analysis_tags, render_tags, replace_underscore_filter, sort_chart_list_by_name,
+    sort_chart_list_by_value, sort_comments, sort_roles_by_number_of_privileges, sort_users_by_name, text_highlighter,
+    uids_to_link, user_has_role, vulnerability_class
+)
 
 
 class FilterClass:
@@ -31,7 +39,7 @@ class FilterClass:
 
     def _filter_replace_uid_with_file_name(self, input_data):
         tmp = input_data.__str__()
-        uid_list = flt.get_all_uids_in_string(tmp)
+        uid_list = get_all_uids_in_string(tmp)
         for item in uid_list:
             with ConnectTo(FrontEndDbInterface, self._config) as sc:
                 file_name = sc.get_file_name(item)
@@ -42,7 +50,7 @@ class FilterClass:
         tmp = str(input_data)
         if tmp == 'None':
             return ' '
-        uid_list = flt.get_all_uids_in_string(tmp)
+        uid_list = get_all_uids_in_string(tmp)
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
             for item in uid_list:
                 tmp = tmp.replace(item, sc.get_hid(item, root_uid=root_uid))
@@ -57,7 +65,7 @@ class FilterClass:
         tmp = input_data.__str__()
         if tmp == 'None':
             return ' '
-        uid_list = flt.get_all_uids_in_string(tmp)
+        uid_list = get_all_uids_in_string(tmp)
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
             for item in uid_list:
                 tmp = tmp.replace(item, '<a href="/analysis/{}/ro/{}">{}</a>'.format(
@@ -98,48 +106,49 @@ class FilterClass:
         self._app.jinja_env.add_extension('jinja2.ext.do')
 
         self._app.jinja_env.filters['auth_enabled'] = self.check_auth
-        self._app.jinja_env.filters['base64_encode'] = flt.encode_base64_filter
-        self._app.jinja_env.filters['bytes_to_str'] = flt.bytes_to_str_filter
-        self._app.jinja_env.filters['data_to_chart'] = flt.data_to_chart
-        self._app.jinja_env.filters['data_to_chart_limited'] = flt.data_to_chart_limited
-        self._app.jinja_env.filters['data_to_chart_with_value_percentage_pairs'] = flt.data_to_chart_with_value_percentage_pairs
-        self._app.jinja_env.filters['decompress'] = flt.decompress
+        self._app.jinja_env.filters['base64_encode'] = encode_base64_filter
+        self._app.jinja_env.filters['bytes_to_str'] = bytes_to_str_filter
+        self._app.jinja_env.filters['data_to_chart'] = data_to_chart
+        self._app.jinja_env.filters['data_to_chart_limited'] = data_to_chart_limited
+        self._app.jinja_env.filters['data_to_chart_with_value_percentage_pairs'] = data_to_chart_with_value_percentage_pairs
+        self._app.jinja_env.filters['decompress'] = decompress
         self._app.jinja_env.filters['dict_to_json'] = json.dumps
         self._app.jinja_env.filters['firmware_detail_tabular_field'] = self._render_firmware_detail_tabular_field
-        self._app.jinja_env.filters['fix_cwe'] = flt.fix_cwe
-        self._app.jinja_env.filters['format_string_list_with_offset'] = flt.filter_format_string_list_with_offset
-        self._app.jinja_env.filters['get_canvas_height'] = flt.get_canvas_height
-        self._app.jinja_env.filters['get_unique_keys_from_list_of_dicts'] = flt.get_unique_keys_from_list_of_dicts
-        self._app.jinja_env.filters['infection_color'] = flt.infection_color
+        self._app.jinja_env.filters['fix_cwe'] = fix_cwe
+        self._app.jinja_env.filters['format_string_list_with_offset'] = filter_format_string_list_with_offset
+        self._app.jinja_env.filters['get_canvas_height'] = get_canvas_height
+        self._app.jinja_env.filters['get_unique_keys_from_list_of_dicts'] = get_unique_keys_from_list_of_dicts
+        self._app.jinja_env.filters['infection_color'] = infection_color
         self._app.jinja_env.filters['is_list'] = lambda item: isinstance(item, list)
         self._app.jinja_env.filters['json_dumps'] = json.dumps
-        self._app.jinja_env.filters['list_to_line_break_string'] = flt.list_to_line_break_string
-        self._app.jinja_env.filters['list_to_line_break_string_no_sort'] = flt.list_to_line_break_string_no_sort
+        self._app.jinja_env.filters['list_to_line_break_string'] = list_to_line_break_string
+        self._app.jinja_env.filters['list_to_line_break_string_no_sort'] = list_to_line_break_string_no_sort
         self._app.jinja_env.filters['md5_hash'] = get_md5
-        self._app.jinja_env.filters['nice_generic'] = flt.generic_nice_representation
-        self._app.jinja_env.filters['nice_list'] = flt.nice_list
-        self._app.jinja_env.filters['nice_number'] = flt.nice_number_filter
+        self._app.jinja_env.filters['min'] = min
+        self._app.jinja_env.filters['nice_generic'] = generic_nice_representation
+        self._app.jinja_env.filters['nice_list'] = nice_list
+        self._app.jinja_env.filters['nice_number'] = nice_number_filter
         self._app.jinja_env.filters['nice_time'] = time_format
         self._app.jinja_env.filters['nice_uid_list'] = self._filter_nice_uid_list
-        self._app.jinja_env.filters['nice_unix_time'] = flt.nice_unix_time
+        self._app.jinja_env.filters['nice_unix_time'] = nice_unix_time
         self._app.jinja_env.filters['nice_virtual_path_list'] = self._nice_virtual_path_list
-        self._app.jinja_env.filters['number_format'] = flt.byte_number_filter
+        self._app.jinja_env.filters['number_format'] = byte_number_filter
         self._app.jinja_env.filters['print_program_version'] = self._filter_print_program_version
-        self._app.jinja_env.filters['regex_meta'] = flt.comment_out_regex_meta_chars
-        self._app.jinja_env.filters['render_analysis_tags'] = flt.render_analysis_tags
-        self._app.jinja_env.filters['render_tags'] = flt.render_tags
+        self._app.jinja_env.filters['regex_meta'] = comment_out_regex_meta_chars
+        self._app.jinja_env.filters['render_analysis_tags'] = render_analysis_tags
+        self._app.jinja_env.filters['render_tags'] = render_tags
         self._app.jinja_env.filters['replace_comparison_uid_with_hid'] = self._filter_replace_comparison_uid_with_hid
         self._app.jinja_env.filters['replace_uid_with_file_name'] = self._filter_replace_uid_with_file_name
-        self._app.jinja_env.filters['replace_uid_with_hid'] = self._filter_replace_uid_with_hid
         self._app.jinja_env.filters['replace_uid_with_hid_link'] = self._filter_replace_uid_with_hid_link
-        self._app.jinja_env.filters['replace_underscore'] = flt.replace_underscore_filter
-        self._app.jinja_env.filters['sort_chart_list_by_name'] = flt.sort_chart_list_by_name
-        self._app.jinja_env.filters['sort_chart_list_by_value'] = flt.sort_chart_list_by_value
-        self._app.jinja_env.filters['sort_comments'] = flt.sort_comments
+        self._app.jinja_env.filters['replace_uid_with_hid'] = self._filter_replace_uid_with_hid
+        self._app.jinja_env.filters['replace_underscore'] = replace_underscore_filter
+        self._app.jinja_env.filters['sort_chart_list_by_name'] = sort_chart_list_by_name
+        self._app.jinja_env.filters['sort_chart_list_by_value'] = sort_chart_list_by_value
+        self._app.jinja_env.filters['sort_comments'] = sort_comments
         self._app.jinja_env.filters['sort_privileges'] = lambda privileges: sorted(privileges, key=lambda role: len(privileges[role]), reverse=True)
-        self._app.jinja_env.filters['sort_roles'] = flt.sort_roles_by_number_of_privileges
-        self._app.jinja_env.filters['sort_users'] = flt.sort_users_by_name
-        self._app.jinja_env.filters['text_highlighter'] = flt.text_highlighter
-        self._app.jinja_env.filters['uids_to_link'] = flt.uids_to_link
-        self._app.jinja_env.filters['user_has_role'] = flt.user_has_role
-        self._app.jinja_env.filters['vulnerability_class'] = flt.vulnerability_class
+        self._app.jinja_env.filters['sort_roles'] = sort_roles_by_number_of_privileges
+        self._app.jinja_env.filters['sort_users'] = sort_users_by_name
+        self._app.jinja_env.filters['text_highlighter'] = text_highlighter
+        self._app.jinja_env.filters['uids_to_link'] = uids_to_link
+        self._app.jinja_env.filters['user_has_role'] = user_has_role
+        self._app.jinja_env.filters['vulnerability_class'] = vulnerability_class

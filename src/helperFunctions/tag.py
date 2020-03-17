@@ -1,10 +1,12 @@
 class TagColor:
-    GRAY = 'default'
+    GRAY = 'secondary'
     BLUE = 'primary'
     GREEN = 'success'
     LIGHT_BLUE = 'info'
     ORANGE = 'warning'
     RED = 'danger'
+    LIGHT = 'light'
+    DARK = 'dark'
 
 
 def check_tags(file_object, analysis_name):

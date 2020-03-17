@@ -15,8 +15,8 @@
     ("file size", firmware.size|number_format(verbose=True), "", ""),
     ("MD5", firmware.md5, "word-break: break-all;", ""),
     ("SHA256", firmware.sha256, "word-break: break-all;", ""),
-    ("Tags", firmware.tags|render_tags(size=12)|safe, "", ""),
-    ("Analysis Tags", firmware.analysis_tags | render_analysis_tags(size=12) | safe, "", "")
+    ("Tags", firmware.tags | render_tags | safe, "", ""),
+    ("Analysis Tags", firmware.analysis_tags | render_analysis_tags | safe, "", "")
 ] -%}
 
 {% block head %}
@@ -132,7 +132,7 @@
 {% endif %}
 
 <div style="word-wrap: break-word">
-    <h2>Analysis for <span class="text-primary">{{ firmware.get_hid(root_uid=root_uid) }}</span><br /><small><strong>UID:</strong> {{ uid|safe }}</small></h2>
+    <h2>Analysis for <span class="text-primary">{{ firmware.get_hid(root_uid=root_uid) }}</span><br /><small><strong>UID:</strong> {{ uid | safe }}</small></h2>
 </div>
 {% if all_analyzed_flag %}
     <div class="alert alert-warning">
@@ -145,16 +145,16 @@
         {# general info section section #}
 
         <div class="col-lg-6">
-            <table class="table table-bordered table-hover">
-                <tr class="success">
-                    <th class="result" colspan="2">General</th>
+            <table class="table table-bordered table-hover" style="max-width: 800px">
+                <tr>
+                    <th class="bg-secondary" colspan="2" style="max-width: 100px">General</th>
                 </tr>
                 {%- for label, content, style, query in general_analysis_elements -%}
                     {%- if content %}
                         <tr>
-                            <td class="active result" style="width: 120px;">{{ label | replace_underscore }}</td>
+                            <td style="width: 120px;">{{ label | replace_underscore }}</td>
                             {%- set clickable_class = " clickable" if query else "" %}
-                            <td class="active result{{ clickable_class }}"
+                            <td class="{{ clickable_class }}"
                                 {%- if style %} style="{{ style }}" {% endif -%}
                                 {%- if query %} onclick="location.href='{{ query_url + query.replace("PLACEHOLDER", content) | urlencode }}'" data-toggle="tooltip" title="show other firmwares of {{content}}" {% endif -%}
                             >
@@ -168,21 +168,21 @@
                     {%- endif -%}
                 {%- endfor %}
                 {%- if "file_type" in firmware.processed_analysis -%}
-                    <tr class="active">
-                        <td class="result">file type</td>
-                        <td class="result" style="{{ style }}">{{ firmware.processed_analysis["file_type"]["full"] }}</td>
+                    <tr>
+                        <td>file type</td>
+                        <td style="{{ style }}">{{ firmware.processed_analysis["file_type"]["full"] }}</td>
                     </tr>
                 {%- endif %}
                 {%- if firmware_including_this_fo %}
-                    <tr class="active">
-                        <td class="result">firmwares including this files</td>
-                        <td class="result" style="{{ style }}">{{ firmware_including_this_fo | nice_uid_list() | safe }}</td>
+                    <tr>
+                        <td>firmwares including this files</td>
+                        <td style="{{ style }}">{{ firmware_including_this_fo | nice_uid_list() | safe }}</td>
                     </tr>
                 {%- endif %}
                 {%- if other_versions %}
-                    <tr class="active">
-                        <td class="result">other versions</td>
-                        <td class="result" style="{{ style }}">
+                    <tr>
+                        <td>other versions</td>
+                        <td style="{{ style }}">
                             <button data-toggle="collapse" data-target="#other_versions" class="list-group-item list-group-item-info">
                                 <span class="badge">{{ other_versions | length }}</span> show files
                             </button>
@@ -207,14 +207,13 @@
         </div>
 
         {# processed analysis section #}
-
         <div class="col-lg-6">
-            <table class="table table-bordered table-hover result">
-                <th class="success">Analysis Results</th>
+            <table class="table table-bordered table-hover">
+                <th class="bg-secondary">Analysis Results</th>
 
                 {% for analysis_plugin in firmware.processed_analysis|sort %}
                     <tr>
-                        <td class="active result clickable" data-toggle="tooltip" title="{{ analysis_plugin_dict.get(analysis_plugin, ['not available'])[0] | safe }}" style="padding: 0;">
+                        <td class="clickable" data-toggle="tooltip" title="{{ analysis_plugin_dict.get(analysis_plugin, ['not available'])[0] | safe }}" style="padding: 0;">
                             <a href='/analysis/{{ uid|safe }}/{{analysis_plugin}}/ro/{{ root_uid }}' style="color: rgb(51, 51, 51)">
                                 <div style="width: 100%; height: 100%; padding: 8px;">{{ analysis_plugin | replace_underscore }}</div>
                             </a>
@@ -222,7 +221,7 @@
                     </tr>
                 {% endfor %}
                 <tr>
-                    <td class="active result clickable" data-toggle="modal" data-target="#add_single_file_analysis_modal">
+                    <td class="clickable" data-toggle="modal" data-target="#add_single_file_analysis_modal">
                         <i class="fas fa-play-circle"></i> Run additional analysis
                     </td>
                 </tr>
@@ -266,16 +265,15 @@
             </div>
         </div>
 
-        {# included files file tree section #}
+    {# included files file tree section #}
         <div class="col-lg-12">
-            <table class="table table-bordered">
-                <tr class="success">
-                    <th class="result">File Tree</th>
-                </tr>
-                <tr>
-                    <td>
-                        <div id="fileTreeAjax"></div>
-
+    	<table class="table table-bordered" width="800">
+            <tr class="bg-secondary">
+                <th>File Tree</th>
+            </tr>
+    		<tr>
+    			<td>
+                    <div id="fileTreeAjax"></div>
                         <script>
                             $('#fileTreeAjax')
                                 // generate links to the analysis page
@@ -286,7 +284,7 @@
                                     'data' : {
                                       'url' : function (node) {
                                         return node.id === '#' ?
-                                            "/ajax_root/{{ uid|safe }}/{{ root_uid | safe }}" : "/ajax_tree/" + node["data"]["uid"] + "/{{ root_uid|safe }}";
+                                            "/ajax_root/{{ uid | safe }}/{{ root_uid | safe }}" : "/ajax_tree/" + node["data"]["uid"] + "/{{ root_uid|safe }}";
                                       }
                                     }
                                   },
@@ -330,7 +328,6 @@
             {%- endif -%}
 
         {% endblock %}
-
 
         {# preview section #}
         {%- if "file_type" in firmware.processed_analysis -%}
@@ -493,7 +490,7 @@
         {# admin buttons #}
         {% if firmware.vendor and user_has_admin_clearance %}
             <div class="col-lg-6 col-md-12">
-                <div class="alert alert-custom" style="padding:5px;">
+                <div class="alert alert-light" style="padding:5px;">
                     <strong>admin options:</strong>
                     {# Update Analysis Buttons #}
                     <button data-toggle="collapse" data-target="#re-do-button-div" class="btn btn-secondary">
