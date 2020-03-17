@@ -132,7 +132,10 @@
 {% endif %}
 
 <div style="word-wrap: break-word">
-    <h2>Analysis for <span class="text-primary">{{ firmware.get_hid(root_uid=root_uid) }}</span><br /><small><strong>UID:</strong> {{ uid | safe }}</small></h2>
+    <h3>
+        {{ firmware.get_hid(root_uid=root_uid) }}<br />
+        <span style="font-size: 15px"><strong>UID:</strong> {{ uid | safe }}</span>
+    </h3>
 </div>
 {% if all_analyzed_flag %}
     <div class="alert alert-warning">
@@ -145,86 +148,95 @@
         {# general info section section #}
 
         <div class="col-lg-6">
-            <table class="table table-bordered table-hover" style="max-width: 800px">
-                <tr>
-                    <th class="bg-secondary" colspan="2" style="max-width: 100px">General</th>
-                </tr>
-                {%- for label, content, style, query in general_analysis_elements -%}
-                    {%- if content %}
+            <table class="table table-sm table-bordered table-hover" style="max-width: 800px">
+                <thead class="thead-light clickable" data-toggle="collapse" role="button" data-target="#general-information">
+                    <tr>
+                        <th colspan="2" style="max-width: 100px">General information</th>
+                    </tr>
+                </thead>
+                <tbody id="general-information" class="collapse">
+                    {%- for label, content, style, query in general_analysis_elements -%}
+                        {%- if content %}
+                            <tr>
+                                <td style="width: 120px;">{{ label | replace_underscore }}</td>
+                                {%- set clickable_class = " clickable" if query else "" %}
+                                <td class="{{ clickable_class }}"
+                                    {%- if style %} style="{{ style }}" {% endif -%}
+                                    {%- if query %} onclick="location.href='{{ query_url + query.replace("PLACEHOLDER", content) | urlencode }}'" data-toggle="tooltip" title="show other firmwares of {{content}}" {% endif -%}
+                                >
+                                    {%- if label == "release date" and content == "1970-01-01" -%}
+                                        unknown
+                                    {%- else -%}
+                                        {{ content }}
+                                    {%- endif -%}
+                                </td>
+                            </tr>
+                        {%- endif -%}
+                    {%- endfor %}
+                    {%- if "file_type" in firmware.processed_analysis -%}
                         <tr>
-                            <td style="width: 120px;">{{ label | replace_underscore }}</td>
-                            {%- set clickable_class = " clickable" if query else "" %}
-                            <td class="{{ clickable_class }}"
-                                {%- if style %} style="{{ style }}" {% endif -%}
-                                {%- if query %} onclick="location.href='{{ query_url + query.replace("PLACEHOLDER", content) | urlencode }}'" data-toggle="tooltip" title="show other firmwares of {{content}}" {% endif -%}
-                            >
-                                {%- if label == "release date" and content == "1970-01-01" -%}
-                                    unknown
-                                {%- else -%}
-                                    {{ content }}
-                                {%- endif -%}
+                            <td>file type</td>
+                            <td style="{{ style }}">{{ firmware.processed_analysis["file_type"]["full"] }}</td>
+                        </tr>
+                    {%- endif %}
+                    {%- if firmware_including_this_fo %}
+                        <tr>
+                            <td>firmwares including this files</td>
+                            <td style="{{ style }}">{{ firmware_including_this_fo | nice_uid_list() | safe }}</td>
+                        </tr>
+                    {%- endif %}
+                    {%- if other_versions %}
+                        <tr>
+                            <td>other versions</td>
+                            <td style="{{ style }}">
+                                <button data-toggle="collapse" data-target="#other_versions" class="list-group-item list-group-item-info">
+                                    <span class="badge">{{ other_versions | length }}</span> show files
+                                </button>
+                                <div id="other_versions" class="collapse">
+                                    {% for version in other_versions %}
+                                        {%- if selected_analysis -%}
+                                            {% set other_version_link = "/analysis/{}/{}".format(version._id, selected_analysis) %}
+                                        {%- else -%}
+                                            {% set other_version_link = "/analysis/{}".format(version._id) %}
+                                        {%- endif -%}
+                                        <a href="{{ other_version_link }}" class="list-group-item">
+                                            <p class="list-group-item-text">
+                                                {{ version.version }}
+                                            </p>
+                                        </a>
+                                    {% endfor %}
+                                </div>
                             </td>
                         </tr>
                     {%- endif -%}
-                {%- endfor %}
-                {%- if "file_type" in firmware.processed_analysis -%}
-                    <tr>
-                        <td>file type</td>
-                        <td style="{{ style }}">{{ firmware.processed_analysis["file_type"]["full"] }}</td>
-                    </tr>
-                {%- endif %}
-                {%- if firmware_including_this_fo %}
-                    <tr>
-                        <td>firmwares including this files</td>
-                        <td style="{{ style }}">{{ firmware_including_this_fo | nice_uid_list() | safe }}</td>
-                    </tr>
-                {%- endif %}
-                {%- if other_versions %}
-                    <tr>
-                        <td>other versions</td>
-                        <td style="{{ style }}">
-                            <button data-toggle="collapse" data-target="#other_versions" class="list-group-item list-group-item-info">
-                                <span class="badge">{{ other_versions | length }}</span> show files
-                            </button>
-                            <div id="other_versions" class="collapse">
-                                {% for version in other_versions %}
-                                    {%- if selected_analysis -%}
-                                        {% set other_version_link = "/analysis/{}/{}".format(version._id, selected_analysis) %}
-                                    {%- else -%}
-                                        {% set other_version_link = "/analysis/{}".format(version._id) %}
-                                    {%- endif -%}
-                                    <a href="{{ other_version_link }}" class="list-group-item">
-                                        <p class="list-group-item-text">
-                                            {{ version.version }}
-                                        </p>
-                                    </a>
-                                {% endfor %}
-                            </div>
-                        </td>
-                    </tr>
-                {%- endif -%}
+                </tbody>
             </table>
         </div>
 
         {# processed analysis section #}
         <div class="col-lg-6">
-            <table class="table table-bordered table-hover">
-                <th class="bg-secondary">Analysis Results</th>
-
-                {% for analysis_plugin in firmware.processed_analysis|sort %}
+            <table class="table table-sm table-bordered table-hover">
+                <thead class="thead-light">
                     <tr>
-                        <td class="clickable" data-toggle="tooltip" title="{{ analysis_plugin_dict.get(analysis_plugin, ['not available'])[0] | safe }}" style="padding: 0;">
-                            <a href='/analysis/{{ uid|safe }}/{{analysis_plugin}}/ro/{{ root_uid }}' style="color: rgb(51, 51, 51)">
-                                <div style="width: 100%; height: 100%; padding: 8px;">{{ analysis_plugin | replace_underscore }}</div>
-                            </a>
+                        <th>Analysis Results</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for analysis_plugin in firmware.processed_analysis|sort %}
+                        <tr>
+                            <td class="clickable" data-toggle="tooltip" title="{{ analysis_plugin_dict.get(analysis_plugin, ['not available'])[0] | safe }}" style="padding: 0;">
+                                <a href='/analysis/{{ uid|safe }}/{{analysis_plugin}}/ro/{{ root_uid }}' style="color: rgb(51, 51, 51)">
+                                    {{ analysis_plugin | replace_underscore }}
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    <tr>
+                        <td class="table-active clickable" data-toggle="modal" data-target="#add_single_file_analysis_modal">
+                            <i class="fas fa-play-circle"></i> Run additional analysis
                         </td>
                     </tr>
-                {% endfor %}
-                <tr>
-                    <td class="clickable" data-toggle="modal" data-target="#add_single_file_analysis_modal">
-                        <i class="fas fa-play-circle"></i> Run additional analysis
-                    </td>
-                </tr>
+                </tbody>
             </table>
         </div>
 
@@ -268,31 +280,35 @@
     {# included files file tree section #}
         <div class="col-lg-12">
     	<table class="table table-bordered" width="800">
-            <tr class="bg-secondary">
-                <th>File Tree</th>
-            </tr>
-    		<tr>
-    			<td>
-                    <div id="fileTreeAjax"></div>
-                        <script>
-                            $('#fileTreeAjax')
-                                // generate links to the analysis page
-                                .on("activate_node.jstree", function(e,data){window.location.href = data.node.a_attr.href;})
-                                // generate file tree
-                                .jstree({
-                                  "core" : {
-                                    'data' : {
-                                      'url' : function (node) {
-                                        return node.id === '#' ?
-                                            "/ajax_root/{{ uid | safe }}/{{ root_uid | safe }}" : "/ajax_tree/" + node["data"]["uid"] + "/{{ root_uid|safe }}";
-                                      }
-                                    }
-                                  },
-                                  "plugins" : [ "sort" ]
-                                });
-                        </script>
-                    </td>
+            <thead>
+                <tr class="thead-light">
+                    <th>File Tree</th>
                 </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <div id="fileTreeAjax"></div>
+                            <script>
+                                $('#fileTreeAjax')
+                                    // generate links to the analysis page
+                                    .on("activate_node.jstree", function(e,data){window.location.href = data.node.a_attr.href;})
+                                    // generate file tree
+                                    .jstree({
+                                      "core" : {
+                                        'data' : {
+                                          'url' : function (node) {
+                                            return node.id === '#' ?
+                                                "/ajax_root/{{ uid | safe }}/{{ root_uid | safe }}" : "/ajax_tree/" + node["data"]["uid"] + "/{{ root_uid|safe }}";
+                                          }
+                                        }
+                                      },
+                                      "plugins" : [ "sort" ]
+                                    });
+                            </script>
+                        </td>
+                    </tr>
+                </tbody>
             </table>
         </div>
 
@@ -376,9 +392,9 @@
 
         <div class="col-lg-12" style="margin-top: 20px">
             <table class="table table-bordered" id="comments-head" style="margin-bottom:0;">
-                <thead>
-                    <tr class="success">
-                        <th class="result">
+                <thead class="thead-light">
+                    <tr>
+                        <th>
                             Comments
                             {# Add Comment Button #}
                             <form action="/comment/{{ firmware.uid }}" style="float: right; margin-right: 5px;">
@@ -443,57 +459,54 @@
     {# Buttons #}
     <div class="row" style="margin-top: 20px">
         {# user buttons #}
-        <div class="col-lg-6 col-md-12">
-            <div class="alert alert-custom" style="padding:5px;">
-                <strong>user options:</strong>
-                {# Radare Button #}
-                <form action="/radare-view/{{ firmware.get_uid() }}" style="display: inline" target="_blank">
-                    <button class="btn btn-secondary" type="submit">
-                        <i class="fas fa-terminal"></i> view in radare
-                    </button>
-                </form>
+        <div class="col-lg-12 col-md-12">
+            <div class="btn-group mb-2" role="group" aria-label="Download buttons">
+                <button class="btn btn-secondary">Download options</button>
+
                 {# Binary Download Button #}
-                <form action="/download/{{ firmware.get_uid() }}" style="display:inline">
-                    <button class="btn btn-secondary" type="submit">
-                        <i class="fas fa-download"></i> download raw file
-                    </button>
-                </form>
+                <button class="btn btn-outline-secondary" onclick='window.location.href = "/download/{{ firmware.get_uid() }}";'>
+                    <i class="fas fa-download"></i> download raw file
+                </button>
                 {# Tar Download Button #}
                 {% if firmware.files_included %}
-                    <form action="/tar-download/{{ firmware.get_uid() }}" style="display:inline">
-                        <button class="btn btn-secondary" type="submit">
-                            <i class="fas fa-file-archive"></i> download included files as tar.gz
-                        </button>
-                    </form>
+                    <button class="btn btn-outline-secondary" onclick='window.location.href = "/tar-download/{{ firmware.get_uid() }}";'>
+                        <i class="fas fa-file-archive"></i> download included files as tar.gz
+                    </button>
                 {% endif %}
                 {% if firmware.vendor %}
-                    {# Update Analysis Buttons #}
-                    <form action="/update-analysis/{{ firmware.uid }}" style="display:inline">
-                        <button class="btn btn-secondary" type="submit">
-                            <i class="fas fa-redo-alt"></i> update analysis
-                        </button>
-                    </form>
-                    {# Start Binary Search Button #}
-                    <button class="btn btn-secondary" onclick='window.location.href = "/database/binary_search?firmware_uid={{ firmware.uid }}";'>
-                        <i class="fas fa-search"></i> YARA search
-                    </button>
                     {# PDF Button #}
-                    <form action="/pdf-download/{{ firmware.uid }}" style="display:inline">
-                        <button class="btn btn-secondary" type="submit">
-                            <i class="far fa-file-pdf"></i> download report as PDF
-                        </button>
-                    </form>
+                    <button class="btn btn-outline-secondary" onclick='window.location.href = "/pdf-download/{{ firmware.uid }}";'>
+                        <i class="far fa-file-pdf"></i> download report as PDF
+                    </button>
                 {% endif %}
             </div>
-        </div>
 
-        {# admin buttons #}
-        {% if firmware.vendor and user_has_admin_clearance %}
-            <div class="col-lg-6 col-md-12">
-                <div class="alert alert-light" style="padding:5px;">
-                    <strong>admin options:</strong>
+            <div class="btn-group" aria-label="Analysis buttons">
+                <button class="btn btn-secondary">Analysis options</button>
+
+                {# Radare Button #}
+                <button class="btn btn-outline-secondary" onclick="radare_view()">
+                    <i class="fas fa-terminal"></i> view in radare
+                </button>
+                {% if firmware.vendor %}
                     {# Update Analysis Buttons #}
-                    <button data-toggle="collapse" data-target="#re-do-button-div" class="btn btn-secondary">
+                    <button class="btn btn-outline-secondary" onclick='window.location.href = "/update-analysis/{{ firmware.uid }}";'>
+                        <i class="fas fa-redo-alt"></i> update analysis
+                    </button>
+                    <button class="btn btn-outline-secondary" onclick='window.location.href = "/database/binary_search?firmware_uid={{ firmware.uid }}";'>
+                        <i class="fas fa-search"></i> YARA search
+                    </button>
+                    {# Start Binary Search Button #}
+                {% endif %}
+            </div>
+
+            {# admin buttons #}
+            {% if firmware.vendor and user_has_admin_clearance %}
+                <div class="btn-group" role="group" aria-label="Admin buttons">
+                    <button class="btn btn-secondary">Admin options</button>
+
+                    {# Update Analysis Buttons #}
+                    <button data-toggle="collapse" data-target="#re-do-button-div" class="btn btn-outline-secondary">
                         <i class="fas fa-redo-alt"></i> re-do analysis
                     </button>
                     <span class="collapse" id="re-do-button-div">
@@ -502,17 +515,31 @@
                         </button>
                     </span>
                     {# FW Delete Confirm Button #}
-                    <button data-toggle="collapse" data-target="#delete-button-div" class="btn btn-secondary">
-                        <i class="fas fa-trash-alt"></i> delete firmware
-                    </button>
                     <span class="collapse" id="delete-button-div">
                         <button class="btn btn-danger" type="button" onclick='window.location.href = "/admin/delete/{{ uid }}";'>
                             <i class="fas fa-check"></i> click here to confirm removal!
                         </button>
                     </span>
+                    <button data-toggle="collapse" data-target="#delete-button-div" class="btn btn-outline-secondary">
+                        <i class="fas fa-trash-alt"></i> delete firmware
+                    </button>
                 </div>
-            </div>
-        {% endif %}
+
+            {% endif %}
+
+            <script>
+                function radare_view() {
+                    let radare_form = document.createElement('form');
+                    radare_form.action = '/radare-view/{{ firmware.get_uid() }}';
+                    radare_form.target = '_blank';
+                    radare_form.method = 'GET';
+
+                    document.body.append(radare_form);
+                    radare_form.submit();
+                }
+            </script>
+
+        </div>
     </div>
 
 {% endblock %}
