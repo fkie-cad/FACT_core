@@ -42,7 +42,7 @@ class DatabaseRoutes(ComponentBase):
     @staticmethod
     def _get_pagination(**kwargs):
         kwargs.setdefault('record_name', 'records')
-        return Pagination(css_framework='bootstrap3', link_size='sm', show_single_page=False,
+        return Pagination(css_framework='bootstrap4', link_size='sm', show_single_page=False,
                           format_total=True, format_number=True, **kwargs)
 
     @staticmethod
@@ -98,7 +98,7 @@ class DatabaseRoutes(ComponentBase):
             result = connection.generic_search(query, skip, limit, only_fo_parent_firmware=only_firmwares)
             if not isinstance(result, list):
                 raise Exception(result)
-            if not (query == '{}' or query == {}):
+            if query not in ('{}', {}):
                 firmware_list = [connection.firmwares.find_one(uid) or connection.file_objects.find_one(uid) for uid in result]
             else:  # if search query is empty: get only firmware objects
                 firmware_list = [connection.firmwares.find_one(uid) for uid in result]

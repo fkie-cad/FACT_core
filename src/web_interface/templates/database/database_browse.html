@@ -18,10 +18,10 @@
 
 <div class="row justify-content-center">
     <div class="col-sm-4" id="device-class-dropdown-div">
-        <label class="control-label" for="device_class_dropdown" style="text-align:right">
+        <label class="control-label" for="device_class_dropdown" style="text-align:right; font-size: 15px;">
             Device Class:
         </label>
-        <select class="form-control" id="device_class_dropdown" name='device_class_dropdown' style="text-align:left"
+        <select class="form-control form-control-sm" id="device_class_dropdown" name='device_class_dropdown' style="text-align:left"
                 onchange="window.location=update_url_variables(update_url_variables(window.location.toString(), 'device_class', this.value), 'page', '')">
             <option value=''></option>
         {% for class in device_classes | sort %}
@@ -31,14 +31,14 @@
     </div>
 
     <div class="col-sm-4" id="vendor-dropdown-div">
-        <label class="control-label" for="vendor_dropdown" style="text-align:right">
+        <label class="control-label" for="vendor_dropdown" style="text-align:right; font-size: 15px;">
             Vendor:
         </label>
-        <select class="form-control" id="vendor_dropdown" name='vendor_dropdown' style="text-align:left"
+        <select class="form-control form-control-sm" id="vendor_dropdown" name='vendor_dropdown' style="text-align:left"
                 onchange="window.location=update_url_variables(update_url_variables(window.location.toString(), 'vendor', this.value), 'page', '')">
-            <option value=''></option>
+            <option value='' style="font-size: 14px;"></option>
         {% for vendor in vendors | sort %}
-            <option {% if vendor in current_vendor %}selected{% endif %} value='{{ vendor }}'>{{ vendor }}</option>
+            <option {% if vendor in current_vendor %}selected{% endif %} value='{{ vendor }}' style="font-size: 14px;">{{ vendor }}</option>
         {% endfor %}
         </select>
     </div>
@@ -55,7 +55,7 @@
 <div class="row justify-content-center py-2">
     <div class="col-sm-8">
 
-        <table class="table table-responsive table-hover">
+        <table class="table table-sm table-responsive table-hover">
         {% for firmware in firmware_list %}
             <tr>
             {% if pagination is defined %}
