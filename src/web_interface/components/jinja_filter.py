@@ -1,5 +1,6 @@
 import json
 import random
+import string
 from typing import List
 
 from common_helper_filter.time import time_format
@@ -76,7 +77,8 @@ class FilterClass:
         root_uid = none_to_none(root_uid)
         if not is_list_of_uids(input_data):
             return input_data
-        show_id = str(random.randint(0, 999999))
+
+        show_id = ''.join((random.choice(string.ascii_letters + string.digits) for _ in range(8)))
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
             included_files = sc.get_data_for_nice_list(input_data, root_uid)
         number_of_unanalyzed_files = len(input_data) - len(included_files)
