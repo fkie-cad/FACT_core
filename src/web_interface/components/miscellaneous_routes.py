@@ -23,7 +23,7 @@ class MiscellaneousRoutes(ComponentBase):
         self._app.add_url_rule('/comment/<uid>', 'comment/<uid>', self._app_add_comment, methods=['GET', 'POST'])
         self._app.add_url_rule('/admin/delete_comment/<uid>/<timestamp>', '/admin/delete_comment/<uid>/<timestamp>', self._app_delete_comment)
         self._app.add_url_rule('/admin/delete/<uid>', '/admin/delete/<uid>', self._app_delete_firmware)
-        self._app.add_url_rule('/admin/find_missing_analyses', 'admin/find_missing_analyses', self._app_find_missing_analyses, methods=['GET'])
+        self._app.add_url_rule('/admin/missing_analyses', 'admin/missing_analyses', self._app_find_missing_analyses, methods=['GET'])
 
     @login_required
     @roles_accepted(*PRIVILEGES['status'])
