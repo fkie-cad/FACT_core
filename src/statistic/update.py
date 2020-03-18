@@ -68,7 +68,7 @@ class StatisticUpdater:
                 pipeline_group={'_id': '$_id', 'size': {'$push': '$size'}},
                 additional_projection={'size': 1}
             )
-            query_result = [item['size'][0] for item in self.db.file_objects.aggregate(aggregation_pipeline)]
+            query_result = [item['size'][0] for item in self.db.file_objects.aggregate(aggregation_pipeline, allowDiskUse=True)]
             stats['number_of_unique_files'] = len(query_result)
             stats['total_file_size'] = sum(query_result)
             stats['average_file_size'] = avg(query_result)
@@ -96,7 +96,7 @@ class StatisticUpdater:
             additional_projection={'processed_analysis.exploit_mitigations.summary': 1})
 
         result_list_of_lists = [list(itertools.chain.from_iterable(d['exploit_mitigations']))
-                                for d in self.db.file_objects.aggregate(aggregation_pipeline)]
+                                for d in self.db.file_objects.aggregate(aggregation_pipeline, allowDiskUse=True)]
         result_flattened = list(itertools.chain.from_iterable(result_list_of_lists))
         result = self._count_occurrences(result_flattened)
         self.get_stats_nx(result, stats)
@@ -274,7 +274,7 @@ class StatisticUpdater:
             additional_projection={'processed_analysis.cpu_architecture.summary': 1}
         )
         result = [self._shorten_architecture_string(self._find_most_frequent_architecture(list(itertools.chain.from_iterable(item['architecture']))))
-                  for item in self.db.file_objects.aggregate(aggregation_pipeline)]
+                  for item in self.db.file_objects.aggregate(aggregation_pipeline, allowDiskUse=True)]
         return {'cpu_architecture': self._count_occurrences(result)}
 
     def _find_most_frequent_architecture(self, arch_list):
@@ -339,7 +339,7 @@ class StatisticUpdater:
             {'$match': {'sc.4': {'$exists': True}}},  # match only analyses with actual results (more keys than the 4 standard keys)
             {'$unwind': '$sc'},
             {'$group': {'_id': '$sc.k', 'count': {'$sum': 1}}}
-        ])
+        ], allowDiskUse=True)
 
         return {'software_components': [
             (entry['_id'], int(entry['count']))
@@ -371,7 +371,7 @@ class StatisticUpdater:
             aggregation_pipeline = self._get_file_object_filter_aggregation_pipeline(
                 pipeline_group={'_id': object_path, 'count': {'$sum': 1}}, pipeline_match=match, sort=True,
                 additional_projection={object_path.replace('$', ''): 1}, unwind=object_path if unwind else None)
-            tmp = database.aggregate(aggregation_pipeline)
+            tmp = database.aggregate(aggregation_pipeline, allowDiskUse=True)
         else:
             tmp = get_objects_and_count_of_occurrence(database, object_path, unwind=unwind, match=merge_dict(match, self.match))
         chart_list = self._convert_dict_list_to_list(tmp)
