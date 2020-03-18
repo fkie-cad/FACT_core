@@ -22,15 +22,19 @@ class AnalysisPlugin(AnalysisBasePlugin):
     VERSION = '0.3'
     MIME_WHITELIST = ['application/x-executable', 'application/x-object', 'application/x-sharedlib']
 
-    def __init__(self, plugin_adminstrator, config=None, recursive=True, offline_testing=False):
+    def __init__(self, plugin_administrator, config=None, recursive=True, offline_testing=False):
         self.config = config
-        super().__init__(plugin_adminstrator, config=config, recursive=recursive, plugin_path=__file__, offline_testing=offline_testing)
+        super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__, offline_testing=offline_testing)
 
     def process_object(self, file_object):
-        elf_dict, parsed_binary = self._analyze_elf(file_object)
-        file_object.processed_analysis[self.NAME] = {'Output': elf_dict}
-        self.create_tags(parsed_binary, file_object)
-        file_object.processed_analysis[self.NAME]['summary'] = list(elf_dict.keys())
+        try:
+            elf_dict, parsed_binary = self._analyze_elf(file_object)
+            file_object.processed_analysis[self.NAME] = {'Output': elf_dict}
+            self.create_tags(parsed_binary, file_object)
+            file_object.processed_analysis[self.NAME]['summary'] = list(elf_dict.keys())
+        except RuntimeError:
+            logging.error('lief could not parse {}'.format(file_object.uid))
+            file_object.processed_analysis[self.NAME] = {'Output': {}}
         return file_object
 
     @staticmethod

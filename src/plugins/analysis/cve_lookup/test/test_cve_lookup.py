@@ -231,6 +231,19 @@ def test_process_object(stub_plugin):
         lookup.MAX_LEVENSHTEIN_DISTANCE = 3
 
 
+@pytest.mark.parametrize('cve_score, should_be_tagged', [('9.9', True), ('5.5', False)])
+def test_add_tags(stub_plugin, cve_score, should_be_tagged):
+    TEST_FW.processed_analysis['cve_lookup'] = {}
+    cve_results = {'component': {'cve_id': {'score2': cve_score, 'score3': 'N/A'}}}
+    stub_plugin.add_tags(cve_results, TEST_FW)
+    if should_be_tagged:
+        assert 'tags' in TEST_FW.processed_analysis['cve_lookup']
+        tags = TEST_FW.processed_analysis['cve_lookup']['tags']
+        assert 'CVE' in tags and tags['CVE']['value'] == 'critical CVE'
+    else:
+        assert 'tags' not in TEST_FW.processed_analysis['cve_lookup']
+
+
 @pytest.mark.parametrize(
     'cpe_version, cve_version, version_start_including, version_start_excluding, version_end_including, version_end_excluding, expected_output',
     [
