@@ -70,8 +70,8 @@ class MiscellaneousRoutes(ComponentBase):
         if not is_firmware:
             return render_template('error.html', message='Firmware not found in database: {}'.format(uid))
         with ConnectTo(AdminDbInterface, config=self._config) as sc:
-            deleted_virtual_file_path_entries, deleted_files = sc.delete_firmware(uid)
-        return render_template('delete_firmware.html', deleted_vps=deleted_virtual_file_path_entries, deleted_files=deleted_files, uid=uid)
+            deleted_virtual_path_entries, deleted_files = sc.delete_firmware(uid)
+        return render_template('delete_firmware.html', deleted_vps=deleted_virtual_path_entries, deleted_files=deleted_files, uid=uid)
 
     @roles_accepted(*PRIVILEGES['delete'])
     def _app_find_missing_analyses(self):
@@ -81,38 +81,18 @@ class MiscellaneousRoutes(ComponentBase):
 
     def _find_missing_files(self):
         start = time()
-        uids_in_db = set()
-        parent_to_included = {}
         with ConnectTo(FrontEndDbInterface, config=self._config) as db:
-            for collection in [db.file_objects, db.firmwares]:
-                for result in collection.find({}, {'_id': 1, 'files_included': 1}):
-                    uids_in_db.add(result['_id'])
-                    parent_to_included[result['_id']] = set(result['files_included'])
-        for included_files in parent_to_included.values():
-            included_files.difference_update(uids_in_db)
+            parent_to_included = db.find_missing_files()
         return {
-            'missing_files': [(parent, included) for parent, included in parent_to_included.items() if included],
+            'missing_files': list(parent_to_included.items()),
             'missing_files_count': self._count_values(parent_to_included),
             'missing_files_duration': self._get_duration(start),
         }
 
     def _find_missing_analyses(self):
         start = time()
-        missing_analyses = {}
         with ConnectTo(FrontEndDbInterface, config=self._config) as db:
-            query_result = db.firmwares.aggregate([
-                {'$project': {'temp': {'$objectToArray': '$processed_analysis'}}},
-                {'$unwind': '$temp'},
-                {'$group': {'_id': '$_id', 'analyses': {'$addToSet': '$temp.k'}}},
-            ], allowDiskUse=True)
-            for result in query_result:
-                firmware_uid, analysis_list = result['_id'], result['analyses']
-                query = {"$and": [
-                    {"virtual_file_path.{}".format(firmware_uid): {"$exists": True}},
-                    {"$or": [{"processed_analysis.{}".format(plugin): {"$exists": False}} for plugin in analysis_list]}
-                ]}
-                for entry in db.file_objects.find(query, {'_id': 1}):
-                    missing_analyses.setdefault(firmware_uid, set()).add(entry['_id'])
+            missing_analyses = db.find_missing_analyses()
         return {
             'missing_analyses': missing_analyses,
             'missing_analyses_count': self._count_values(missing_analyses),
