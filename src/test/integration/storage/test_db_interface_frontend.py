@@ -202,3 +202,34 @@ class TestStorageDbInterfaceFrontend(unittest.TestCase):
         assert all(set(entry.keys()) == {'_id', 'virtual_file_path'} for entry in result)
         result_uids = [entry['_id'] for entry in result]
         assert all(uid in result_uids for uid in test_uid_list)
+
+    def test_find_missing_files(self):
+        test_fw_1 = create_test_firmware()
+        test_fw_1.files_included.add('uid1234')
+        self.db_backend_interface.add_firmware(test_fw_1)
+        missing_files = self.db_frontend_interface.find_missing_files()
+        assert test_fw_1.uid in missing_files
+        assert missing_files[test_fw_1.uid] == {'uid1234'}
+
+        test_fo = create_test_file_object()
+        test_fo.uid = 'uid1234'
+        self.db_backend_interface.add_file_object(test_fo)
+        missing_files = self.db_frontend_interface.find_missing_files()
+        assert missing_files == {}
+
+    def test_find_missing_analyses(self):
+        test_fw_1 = create_test_firmware()
+        test_fo = create_test_file_object()
+        test_fw_1.files_included.add(test_fo.uid)
+        test_fo.virtual_file_path = {test_fw_1.uid: ['|foo|bar|']}
+        self.db_backend_interface.add_firmware(test_fw_1)
+        self.db_backend_interface.add_file_object(test_fo)
+
+        missing_analyses = self.db_frontend_interface.find_missing_analyses()
+        assert missing_analyses == {}
+
+        test_fw_1.processed_analysis['foobar'] = {'foo': 'bar'}
+        self.db_backend_interface.add_firmware(test_fw_1)
+        missing_analyses = self.db_frontend_interface.find_missing_analyses()
+        assert test_fw_1.uid in missing_analyses
+        assert missing_analyses[test_fw_1.uid] == {test_fo.uid}
