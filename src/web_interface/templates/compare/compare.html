@@ -26,20 +26,30 @@
 	
 	{# --- general information --- #}
 		<tr>
-			<th colspan="{{ uid_list | length + 1 }}" class="success" style="text-align:center;">General Information</th>
+			<th colspan="{{ uid_list | length + 1 }}" class="table-active" style="text-align:center;">General Information</th>
 		</tr>
 		{% for feature in result['general'] | sort %}
 		<tr>
 			<td class="active" width="150px"> {{ feature | replace_underscore }} </td>
-			{% for uid in uid_list %}
-				<td>
-				{% if feature == "size"%}
-					{{ result['general'][feature][uid] | number_format }}
-				{% else %}
-					{{ result['general'][feature][uid] | nice_list | replace_uid_with_hid | safe }}
-				{% endif %}
-				</td>
-			{% endfor %}
+            {% if result['general'][feature] | all_same %}
+                <td colspan="{{ uid_list | length }}" class="table-success text-center">
+                    {% if feature == "size"%}
+                        {{ result['general'][feature][uid_list[0]] | number_format }}
+                    {% else %}
+                        {{ result['general'][feature][uid_list[0]] | nice_list | replace_uid_with_hid | safe }}
+                    {% endif %}
+                </td>
+            {% else %}
+                {% for uid in uid_list %}
+                    <td>
+                        {% if feature == "size"%}
+                            {{ result['general'][feature][uid] | number_format }}
+                        {% else %}
+                            {{ result['general'][feature][uid] | nice_list | replace_uid_with_hid | safe }}
+                        {% endif %}
+                        </td>
+                {% endfor %}
+            {% endif %}
 		</tr>
 		{% endfor %}
 		
@@ -47,7 +57,7 @@
 		
 		{% for plugin in result['plugins'] | sort %}
 		<tr>
-			<th colspan="{{ uid_list | length  + 1 }}" class="success" style="text-align:center;">{{ plugin | replace_underscore }}</th>
+			<th colspan="{{ uid_list | length  + 1 }}" class="table-active" style="text-align:center;">{{ plugin | replace_underscore }}</th>
 		</tr>
             {% if plugin in plugins_without_view %}
 
@@ -61,7 +71,7 @@
                             {% if result['plugins'][plugin][feature]['collapse'] %}
                                 <td colspan="{{ uid_list | length }}">
                                     <center>
-                                        <button type="button" class="btn btn-sm btn-fact-one" data-toggle="collapse" data-target="#{{ feature }}">
+                                        <button type="button" class="btn btn-sm btn-success" data-toggle="collapse" data-target="#{{ feature }}">
                                             {{ result['plugins'][plugin][feature]['all'] | length }}
                                         </button>
                                     </center>
@@ -79,7 +89,7 @@
                                 <td>
                                 {% if result['plugins'][plugin][feature]['collapse'] %}
                                     <center>
-                                        <button type="button" class="btn btn-sm btn-primary" data-toggle="collapse" data-target="#{{ feature + uid }}">
+                                        <button type="button" class="btn btn-sm btn-warning" data-toggle="collapse" data-target="#{{ feature + uid }}">
                                             {{ result['plugins'][plugin][feature][uid] | length }}
                                         </button>
                                     </center>

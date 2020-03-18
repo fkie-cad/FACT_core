@@ -107,6 +107,7 @@ class FilterClass:
     def _setup_filters(self):
         self._app.jinja_env.add_extension('jinja2.ext.do')
 
+        self._app.jinja_env.filters['all_same'] = lambda data: len(set(str(value) for value in data.values())) == 1
         self._app.jinja_env.filters['auth_enabled'] = self.check_auth
         self._app.jinja_env.filters['base64_encode'] = encode_base64_filter
         self._app.jinja_env.filters['bytes_to_str'] = bytes_to_str_filter

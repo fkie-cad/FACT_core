@@ -26,7 +26,7 @@
 
     {# --- similar files exception ---#}
     {% if feature == 'similar_files' %}
-        <tr><th colspan="{{ uid_list | length + 1 }}" style="text-align:center;" class="success">SSDEEP Similarity</th></tr>
+        <tr><th colspan="{{ uid_list | length + 1 }}" style="text-align:center;" class="table-active">SSDEEP Similarity</th></tr>
         {% if not result['plugins'][plugin][feature] %}
             <tr>
                 <td colspan="{{ uid_list | length + 1 }}" align="center">No similar files found</td>
@@ -76,25 +76,29 @@
             {# --- all case --- #}
             {% if 'all' in result['plugins'][plugin][feature] %}
                 <td colspan="{{ uid_list | length }}" style="text-align:center;">
-                        <button data-toggle="collapse" data-target="#{{ feature + '___all' }}" class="list-group-item list-group-item-info">
-                            <span class="badge">{{ result['plugins'][plugin][feature]['all'] | length }}</span> show files
-                        </button>
+                    <div class="list-group">
+                        <div role="button" data-toggle="collapse" data-target="#{{ feature + '___all' }}" class="list-group-item list-group-item-primary d-flex justify-content-between align-items-center">
+                            show files<span class="badge badge-pill badge-primary">{{ result['plugins'][plugin][feature]['all'] | length }}</span>
+                        </div>
                         <div id="{{ feature + '___all' }}" class="collapse"></div>
                         <div id="{{ feature + '___all' + '_gif' }}" style="display: none;">
                             <img src="{{ url_for('static', filename = 'Pacman.gif') }}" width="50px">
                         </div>
+                    </div>
                 </td>
 
             {# --- individual results --- #}
             {% else %}
                 {% for uid in uid_list %}
                     <td style="text-align:center;">
-                        <button data-toggle="collapse" data-target="#{{ feature + '___' + uid }}" class="list-group-item list-group-item-info">
-                            <span class="badge">{{ result['plugins'][plugin][feature][uid] | length }}</span> show files
-                        </button>
-                        <div id="{{ feature + '___' + uid }}" class="collapse"></div>
-                        <div id="{{ feature + '___' + uid + '_gif' }}" style="display: none;">
-                            <img src="{{ url_for('static', filename = 'Pacman.gif') }}" width="50px">
+                        <div class="list-group">
+                            <div role="button" data-toggle="collapse" data-target="#{{ feature + '___' + uid }}" class="list-group-item list-group-item-primary d-flex justify-content-between align-items-center">
+                                show files<span class="badge badge-pill badge-primary">{{ result['plugins'][plugin][feature][uid] | length }}</span>
+                            </div>
+                            <div id="{{ feature + '___' + uid }}" class="collapse"></div>
+                            <div id="{{ feature + '___' + uid + '_gif' }}" style="display: none;">
+                                <img src="{{ url_for('static', filename = 'Pacman.gif') }}" width="50px">
+                            </div>
                         </div>
                     </td>
                 {% endfor %}
