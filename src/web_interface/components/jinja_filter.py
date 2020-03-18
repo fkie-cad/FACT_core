@@ -69,7 +69,7 @@ class FilterClass:
         uid_list = get_all_uids_in_string(tmp)
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
             for item in uid_list:
-                tmp = tmp.replace(item, '<a href="/analysis/{}/ro/{}">{}</a>'.format(
+                tmp = tmp.replace(item, '<a style="text-reset" href="/analysis/{}/ro/{}">{}</a>'.format(
                     item, root_uid, sc.get_hid(item, root_uid=root_uid)))
         return tmp
 
@@ -78,7 +78,7 @@ class FilterClass:
         if not is_list_of_uids(input_data):
             return input_data
 
-        show_id = ''.join((random.choice(string.ascii_letters + string.digits) for _ in range(8)))
+        show_id = ''.join((random.choice(string.ascii_letters) for _ in range(10)))
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
             included_files = sc.get_data_for_nice_list(input_data, root_uid)
         number_of_unanalyzed_files = len(input_data) - len(included_files)

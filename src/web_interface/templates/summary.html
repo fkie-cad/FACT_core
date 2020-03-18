@@ -3,13 +3,15 @@
         <col width="100">
         <col width="700">
     </colgroup>
-    <tr>
-        <th class="bg-secondary" colspan=2>Summary Including Results of Included Files</th>
-    </tr>
+    <thead class="thead-light">
+        <tr>
+            <th colspan=2>Summary Including Results of Included Files</th>
+        </tr>
+    </thead>
     {% if summary_of_included_files %}
     <tr>
-            <td>item count</td>
-            <td>{{ summary_of_included_files | length }}
+        <td class="table-secondary">item count</td>
+        <td>{{ summary_of_included_files | length }}
     </tr>
         {% for item in summary_of_included_files | sort %}
             <tr>
