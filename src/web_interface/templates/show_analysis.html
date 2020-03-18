@@ -14,9 +14,7 @@
     ("virtual_path", firmware.get_virtual_paths_for_one_uid(root_uid=root_uid)|nice_virtual_path_list|nice_list|safe, "word-break: break-all; overflow-wrap: break-word;", ""),
     ("file size", firmware.size|number_format(verbose=True), "", ""),
     ("MD5", firmware.md5, "word-break: break-all;", ""),
-    ("SHA256", firmware.sha256, "word-break: break-all;", ""),
-    ("Tags", firmware.tags | render_tags | safe, "", ""),
-    ("Analysis Tags", firmware.analysis_tags | render_analysis_tags | safe, "", "")
+    ("SHA256", firmware.sha256, "word-break: break-all;", "")
 ] -%}
 
 {% block head %}
@@ -131,17 +129,23 @@
 </div>
 {% endif %}
 
-<div style="word-wrap: break-word">
-    <h3>
-        {{ firmware.get_hid(root_uid=root_uid) }}<br />
-        <span style="font-size: 15px"><strong>UID:</strong> {{ uid | safe }}</span>
-    </h3>
-</div>
-{% if all_analyzed_flag %}
-    <div class="alert alert-warning">
-        <strong>Warning!</strong> Not all included files are fully analyzed yet! Only analyzed files are shown.
+    {# Header #}
+
+    <div class="row">
+        <div class="col-lg-12 header" style="word-wrap: break-word">
+        <h3>
+            {{ firmware.get_hid(root_uid=root_uid) }}<br />
+            {{ firmware.analysis_tags | render_analysis_tags | safe }} {{ firmware.tags | render_tags | safe }}<br />
+            <span style="font-size: 15px"><strong>UID:</strong> {{ uid | safe }}</span>
+        </h3>
+        </div>
     </div>
-{% endif %}
+
+    {% if all_analyzed_flag %}
+        <div class="alert alert-warning">
+            <strong>Warning!</strong> Not all included files are fully analyzed yet! Only analyzed files are shown.
+        </div>
+    {% endif %}
 
     <div class="row">
 
@@ -481,7 +485,7 @@
                 {% endif %}
             </div>
 
-            <div class="btn-group" aria-label="Analysis buttons">
+            <div class="btn-group mb-2" aria-label="Analysis buttons">
                 <button class="btn btn-secondary">Analysis options</button>
 
                 {# Radare Button #}
@@ -502,7 +506,7 @@
 
             {# admin buttons #}
             {% if firmware.vendor and user_has_admin_clearance %}
-                <div class="btn-group" role="group" aria-label="Admin buttons">
+                <div class="btn-group mb-2" role="group" aria-label="Admin buttons">
                     <button class="btn btn-secondary">Admin options</button>
 
                     {# Update Analysis Buttons #}
