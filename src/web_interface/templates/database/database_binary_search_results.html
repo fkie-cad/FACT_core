@@ -54,8 +54,8 @@
                     <tr>
                         <td class="active clickable" onclick="location.href='/analysis/{{ firmware[0] }}'">
                             {{ firmware[1] }}
-                            <span class="label label-pill {% if firmware[2] == 'generic_carver' %} label-warning
-                                  {% elif 'failed' in firmware[2] %} label-danger {% else %} label-default {% endif %} pull-right"
+                            <span class="badge badge-pill {% if firmware[2] == 'generic_carver' %} badge-warning
+                                  {% elif 'failed' in firmware[2] %} badge-danger {% else %} badge-secondary {% endif %} pull-right"
                                   style="font-size: 10px;">{{ firmware[2] }}</span>
                             <div><font face="courier"  style="font-size:12px">{{ firmware[0] }}</font></div>
                         </td>

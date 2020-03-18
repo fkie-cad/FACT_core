@@ -71,9 +71,9 @@ def password_is_legal(pw: str) -> bool:
 
 def virtual_path_element_to_span(hid_element: str, uid_element, root_uid) -> str:
     if is_uid(uid_element):
-        return ('<span class="label label-primary"><a style="color: #fff" href="/analysis/{uid}/ro/{root_uid}">'
+        return ('<span class="badge badge-primary"><a style="color: #fff" href="/analysis/{uid}/ro/{root_uid}">'
                 '{hid}</a></span>'.format(uid=uid_element, root_uid=root_uid, hid=hid_element))
-    return '<span class="label label-default">{}</span>'.format(hid_element)
+    return '<span class="badge badge-secondary">{}</span>'.format(hid_element)
 
 
 def split_virtual_path(virtual_path: str) -> List[str]:

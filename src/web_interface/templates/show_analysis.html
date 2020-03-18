@@ -87,7 +87,7 @@
                                     <span class="close" style="font-size: 20px" onclick="location.href='/comparison/remove/{{ uid }}/{{ compare_uid }}'">
                                         &times;
                                     </span>
-                                    <span class="tag label label-{% if compare_uid == uid %}primary{% else %}default{% endif %}" style="margin-left: 3px">{{ compare_uid |replace_uid_with_hid | safe }}</span>
+                                    <span class="tag badge badge-{% if compare_uid == uid %}primary{% else %}secondary{% endif %}" style="margin-left: 3px">{{ compare_uid |replace_uid_with_hid | safe }}</span>
                                 </span>
                             </div>
                         {% endfor %}
