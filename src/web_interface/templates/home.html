@@ -3,9 +3,9 @@
 {% set active_page = "Home" %}
 
 {% block body %}
-    <div class="row justify-content-between">
+    <div class="row justify-content-center">
 
-    	<div class="col-lg-4 py-2 mx-auto">
+    	<div class="col-lg-5 py-2 mx-auto">
 			<div style="max-width: 300px;">
     			<img width="100%" height="auto" src="{{ url_for('static', filename='fact_logo.png') }}">
 			</div>
@@ -50,7 +50,7 @@
     	</div>
 
     	{% if (latest_firmware_submissions | length) > 0 %}
-            <div class="col-lg-8 py-2">
+            <div class="col-lg-7 py-2">
                 <table class="table table-sm table-responsive table-hover">
                     <thead class="thead-light">
                         <tr>
@@ -78,9 +78,9 @@
 
     </div>
 
-    <div class="row">
+    <div class="row justify-content-center">
     	{% if (latest_comments | length) > 0 %}
-            <div class="col-lg-4 py-2">
+            <div class="col-lg-5 py-2">
                 <table class="table table-sm table-responsive table-hover">
                     <thead class="thead-light">
                         <tr>
@@ -113,7 +113,7 @@
 
         {# latest_comparison_results #}
     	{% if (latest_comparison_results | length) > 0 %}
-            <div class="col-lg-8 py-2">
+            <div class="col-lg-7 py-2">
 
                 <table class="table table-sm table-responsive table-hover">
                     <thead class="thead-light">
