@@ -65,13 +65,13 @@
         <table class="table table-sm table-responsive table-hover">
         {% for firmware in firmware_list %}
             <tr>
-            {% if pagination is defined %}
-                <td class="align-middle">{{ loop.index + (page - 1) * per_page }}</td>
-            {% endif %}
-            {{ firmware | firmware_detail_tabular_field | safe }}
+                {% if pagination is defined %}
+                    <td class="align-middle">{{ loop.index + (page - 1) * per_page }}</td>
+                {% endif %}
+                {{ firmware | firmware_detail_tabular_field | safe }}
             </tr>
         {% else %}
-            <h2>No firmware found in database!</h2>
+            <h4>No firmware found in database!</h4>
         {% endfor %}
         </table>
 
