@@ -56,17 +56,6 @@ def _build_highlight_js():
     Path(highlight_js_zip).unlink()
 
 
-def _patch_bootstrap():
-    with OperateInDirectory('bootstrap/css'):
-        for file_name in ['bootstrap.min.css', 'bootstrap.min.css.map', 'bootstrap-theme.min.css', 'bootstrap-theme.min.css.map', 'bootstrap.css.map', 'bootstrap-theme.css.map']:
-            Path(file_name).unlink()
-
-        _, first_code = execute_shell_command_get_return_code('patch --forward -r - bootstrap.css ../../../../install/patches/bootstrap.patch')
-        _, second_code = execute_shell_command_get_return_code('patch --forward -r - bootstrap-theme.css ../../../../install/patches/bootstrap-theme.patch')
-        if not first_code == second_code == 0:
-            raise InstallationError('Failed to patch bootstrap files')
-
-
 def _create_directory_for_authentication():  # pylint: disable=invalid-name
     logging.info('Creating directory for authentication')
 
@@ -121,8 +110,6 @@ def _install_and_patch_bootstrap():
              'rm -rf bootstrap',
              'mv bootstrap-3.3.7-dist bootstrap'],
             'bootstrap')
-
-        _patch_bootstrap()
 
         wget_static_web_content('https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js', 'bootstrap/js', [], 'jquery')
         wget_static_web_content('https://raw.githubusercontent.com/Eonasdan/bootstrap-datetimepicker/master/build/js/bootstrap-datetimepicker.min.js', 'bootstrap/js', [], 'datetimepicker js')
