@@ -38,7 +38,7 @@
 
             <h4>Example queries:</h4>
 
-            <p>
+            <p class="mt-4">
                 Simple:<br />
                 <span style="font-size: 0.9em; font-family: 'Deja Vu Sans Mono', monospace">{"device_class": "Router", "vendor": "AVM"}</span><br />
                 <span style="color:grey; font-size: 0.9em">Select firmware files based on specific vendor and device class</span>
@@ -64,7 +64,7 @@
             <hr>
 
             <h4>Structure of file objects in database:</h4>
-            <pre>Common fields
+            <pre class="mt-4">Common fields
 - _id                   # UID of file
 - analysis_tags         # Dynamically generated tags such as "Linux 2.7"
 - depth                 # Level of extraction: Outer container has 0, SquashFS inside
@@ -102,13 +102,13 @@ Additional fields for outer container: (Mostly set by user, so depend on submiss
 
             <div ng-app="myApp" ng-controller="formCtrl">
                 <form>
-                    <div class="input-group mt-1">
+                    <div class="input-group mt-4">
                         <div class="input-group-prepend"><span class="input-group-text">Select analysis plugin</span></div>
                         <input class="form-control" type="text" ng-model="firstname">
                         <div class="input-group-append"><span class="input-group-text">select&nbsp;<span style="font-weight: bold">complete</span>&nbsp;to see all</span></div>
                     </div>
                 </form>
-                <table class="table table-responsive mt-4" style="vertical-align: top;">
+                <table class="table mt-4" style="vertical-align: top;">
                     <tr>
                         <td>
                             <p>Available plugins:</p>
