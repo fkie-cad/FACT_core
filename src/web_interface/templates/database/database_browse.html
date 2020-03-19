@@ -17,7 +17,7 @@
 <script type="text/javascript" src="{{ url_for('static', filename='js/update_url_variables.js') }}"></script>
 
 <div class="row justify-content-center">
-    <div class="col-sm-4" id="device-class-dropdown-div">
+    <div class="col-lg-2" id="device-class-dropdown-div">
         <label class="control-label" for="device_class_dropdown" style="text-align:right; font-size: 15px;">
             Device Class:
         </label>
@@ -30,7 +30,7 @@
         </select>
     </div>
 
-    <div class="col-sm-4" id="vendor-dropdown-div">
+    <div class="col-lg-2" id="vendor-dropdown-div">
         <label class="control-label" for="vendor_dropdown" style="text-align:right; font-size: 15px;">
             Vendor:
         </label>
@@ -52,8 +52,9 @@
       }
     </script>
 </div>
+
 <div class="row justify-content-center py-2">
-    <div class="col-sm-8">
+    <div class="col-lg-6">
 
         <table class="table table-sm table-responsive table-hover">
         {% for firmware in firmware_list %}
@@ -68,11 +69,16 @@
         {% endfor %}
         </table>
 
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-4">
         {% if pagination is defined %}
             {{ pagination.info }}
             {{ pagination.links }}
         {% endif %}
-
     </div>
 </div>
+
 {% endblock %}
