@@ -1,5 +1,6 @@
-from test.unit.web_interface.base import WebInterfaceTest
 from io import BytesIO
+
+from test.unit.web_interface.base import WebInterfaceTest
 
 
 class TestAppBinarySearch(WebInterfaceTest):
