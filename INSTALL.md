@@ -26,7 +26,7 @@ Some components of FACT depend on docker. Since a restart is necessary before do
 The following lines will handle the first half of the installation (based on git not tarball):
 
 ```sh
-$ sudo apt-get update && apt-get upgrade && apt-get install git
+$ sudo apt update && sudo apt upgrade && sudo apt install git
 $ git clone https://github.com/fkie-cad/FACT_core.git
 $ cd FACT_core
 $ src/install/pre_install.sh
