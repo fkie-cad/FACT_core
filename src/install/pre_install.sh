@@ -59,6 +59,12 @@ then
 fi
 sudo usermod -aG docker "$FACTUSER"
 
+if [ "$(pip3 freeze | grep enum34)" ]
+then
+        echo "Please uninstall the enum34 pypi package before continuing as it is not compatible with python >3.6 anymore"
+        exit 1
+fi
+
 sudo -EH pip3 install --upgrade pip
 sudo -EH pip3 install --upgrade virtualenv
 
