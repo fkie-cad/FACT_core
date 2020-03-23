@@ -91,7 +91,7 @@ class DatabaseRoutes(ComponentBase):
             query = request.args.get('query')
             if is_uid(query):
                 with ConnectTo(FrontEndDbInterface, self._config) as connection:
-                    cached_query = connection.search_query_cache.find_one({'_id': query})
+                    cached_query = connection.get_query_from_cache(query)
                     query = cached_query['search_query']
                     search_parameters['query_title'] = cached_query['query_title']
         if request.args.get('only_firmwares'):

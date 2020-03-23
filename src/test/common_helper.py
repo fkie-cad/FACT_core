@@ -176,7 +176,10 @@ class DatabaseMock:  # pylint: disable=too-many-public-methods
         )
 
     def add_to_search_query_cache(self, search_query: str, query_title: str = None) -> str:
-        return '0000_0'
+        return '0000000000000000000000000000000000000000000000000000000000000000_0'
+
+    def get_query_from_cache(self, query_uid):
+        return {'search_query': '{{"_id": "{}"}}'.format(format(TEST_FW_2.uid)), 'query_title': 'test'}
 
     class firmwares:  # pylint: disable=invalid-name
         @staticmethod

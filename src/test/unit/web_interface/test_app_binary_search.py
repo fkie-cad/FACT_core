@@ -15,8 +15,7 @@ class TestAppBinarySearch(WebInterfaceTest):
             data={'file': (BytesIO(b'rule rulename {strings: $a = { 0123456789abcdef } condition: $a }'), 'test_file.txt'), 'textarea': ''},
             follow_redirects=True
         )
-        assert b'test firmware' in rv.data
-        assert b'Results for signature' in rv.data
+        assert b"test_uid" in rv.data
 
     def test_app_binary_search_post_from_textarea(self):
         rv = self.test_client.post(
@@ -25,8 +24,7 @@ class TestAppBinarySearch(WebInterfaceTest):
             data={'file': None, 'textarea': 'rule rulename {strings: $a = { 0123456789abcdef } condition: $a }'},
             follow_redirects=True
         )
-        assert b'test firmware' in rv.data
-        assert b'Results for signature' in rv.data
+        assert b"test_uid" in rv.data
 
     def test_app_binary_search_post_invalid_rule(self):
         rv = self.test_client.post('/database/binary_search', content_type='multipart/form-data',
@@ -59,5 +57,4 @@ class TestAppBinarySearch(WebInterfaceTest):
             data={'file': None, 'textarea': 'rule rulename {strings: $a = { 0123456789abcdef } condition: $a }', 'firmware_uid': 'uid_in_db'},
             follow_redirects=True
         )
-        assert b'test firmware' in rv.data
-        assert b'Results for signature' in rv.data
+        assert b"test_uid" in rv.data

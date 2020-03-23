@@ -54,6 +54,9 @@ class FrontEndDbInterface(MongoInterfaceCommon):
         result = self.generate_nice_list_data(merge_generators(self.firmwares.find(query), self.file_objects.find(query)), root_uid)
         return result
 
+    def get_query_from_cache(self, query):
+        return self.search_query_cache.find_one({'_id': query})
+
     @staticmethod
     def generate_nice_list_data(db_iterable, root_uid):
         result = []
