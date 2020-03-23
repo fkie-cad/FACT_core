@@ -6,7 +6,7 @@ class TestAppBinarySearch(WebInterfaceTest):
 
     def test_app_binary_search_get(self):
         rv = self.test_client.get('/database/binary_search')
-        assert b'<h2>Binary Search</h2>' in rv.data
+        assert b'<h2>Binary Pattern Search</h2>' in rv.data
 
     def test_app_binary_search_post_from_file(self):
         rv = self.test_client.post(

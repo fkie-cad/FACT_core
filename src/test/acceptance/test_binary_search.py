@@ -20,7 +20,7 @@ class TestAcceptanceBinarySearch(TestAcceptanceBaseFullStart):
         rv = self.test_client.post(
             '/database/binary_search',
             content_type='multipart/form-data',
-            data={'file': None, 'textarea': 'rule test_file_string {strings: $a = "This is the second test file" condition: $a }'},
+            data={'file': None, 'textarea': 'rule test_file_string {strings: $a = "This is the second test file" condition: $a }', 'only_firmware': 'True'},
             follow_redirects=True
         )
         assert b'test_device' in rv.data
