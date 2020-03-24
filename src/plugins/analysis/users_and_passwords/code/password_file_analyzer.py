@@ -9,6 +9,7 @@ from common_helper_process import execute_shell_command
 
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.fileSystem import get_src_dir
+from helperFunctions.tag import TagColor
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
@@ -19,7 +20,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     DEPENDENCIES = []
     MIME_BLACKLIST = ['audio', 'filesystem', 'image', 'video']
     DESCRIPTION = 'search for UNIX and httpd password files, parse them and try to crack the passwords'
-    VERSION = '0.4.1'
+    VERSION = '0.4.2'
 
     wordlist_path = os.path.join(get_src_dir(), 'bin/passwords.txt')
 
@@ -44,15 +45,21 @@ class AnalysisPlugin(AnalysisBasePlugin):
         file_object.processed_analysis[self.NAME]['summary'] = []
 
         for passwd_regex in [
-            b'[a-zA-Z][a-zA-Z0-9_-]{2,15}:[^:]?:\\d+:\\d*:[^:]*:[^:]*:[^\n ]*',
-            b'[a-zA-Z][a-zA-Z0-9_-]{2,15}:\\$[^\\$]+\\$[^\\$]+\\$[a-zA-Z0-9\\./]{16,128}'
+                b'[a-zA-Z][a-zA-Z0-9_-]{2,15}:[^:]?:\\d+:\\d*:[^:]*:[^:]*:[^\n ]*',
+                b'[a-zA-Z][a-zA-Z0-9_-]{2,15}:\\$[^\\$]+\\$[^\\$]+\\$[a-zA-Z0-9\\./]{16,128}'
         ]:
             passwd_entries = re.findall(passwd_regex, file_object.binary)
             if passwd_entries:
                 result = self._generate_analysis_entry(passwd_entries)
                 file_object.processed_analysis[self.NAME].update(result)
                 file_object.processed_analysis[self.NAME]['summary'] += list(result.keys())
+                self._add_found_password_tag(file_object, result)
         return file_object
+
+    def _add_found_password_tag(self, file_object, result):
+        for password_entry in result:
+            if 'password' in result[password_entry]:
+                self.add_analysis_tag(file_object, '{}_{}'.format(password_entry, result[password_entry]['password']), 'Password: {}:{}'.format(password_entry, result[password_entry]['password']), TagColor.RED, True)
 
     def _generate_analysis_entry(self, passwd_entries):
         result = {}
@@ -63,9 +70,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 if entry[1][0] == ord('$'):
                     result[key]['password-hash'] = entry[1].decode(encoding='utf_8', errors='replace')
                     cracked_pw = self._crack_hash(entry, result, key)
-                    result[key]['cracked'] = True if cracked_pw else False
-            except Exception as e:
-                logging.error('Invalid Format: {} - {}'.format(sys.exc_info()[0].__name__, e))
+                    result[key]['cracked'] = bool(cracked_pw)
+            except Exception as excep:
+                logging.error('Invalid Format: {} - {}'.format(sys.exc_info()[0].__name__, excep))
         return result
 
     def _crack_hash(self, passwd_entry, result_dict, key):
