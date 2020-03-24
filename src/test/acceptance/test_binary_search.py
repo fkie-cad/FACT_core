@@ -26,9 +26,14 @@ class TestAcceptanceBinarySearch(TestAcceptanceBaseFullStart):
         assert b'test_device' in rv.data
         assert b'testfile2' not in rv.data
 
+    def _get_without_request_id(self):
+        rv = self.test_client.get('/database/database_binary_search_results.html')
+        assert b'No request ID found' in rv.data
+
     def test_binary_search(self):
         self._query_page_get()
         self.upload_test_firmware()
         self.analysis_finished_event.wait(timeout=15)
         self._query_page_post_file_query()
         self._query_page_post_firmware_query()
+        self._get_without_request_id()

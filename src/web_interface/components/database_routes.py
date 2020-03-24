@@ -30,7 +30,7 @@ class DatabaseRoutes(ComponentBase):
         self._app.add_url_rule('/database/advanced_search', 'database/advanced_search', self._app_show_advanced_search, methods=['GET', 'POST'])
         self._app.add_url_rule('/database/binary_search', 'database/binary_search', self._app_start_binary_search, methods=['GET', 'POST'])
         self._app.add_url_rule('/database/quick_search', 'database/quick_search', self._app_start_quick_search, methods=['GET'])
-        self._app.add_url_rule('/database/database_binary_search_results.html', 'database/database_binary_search_results.html', self._app_show_binary_search_results)
+        self._app.add_url_rule('/database/database_binary_search_results.html', 'database/database_binary_search_results.html', self._app_get_binary_search_results)
 
     def _get_page_items(self):
         page = int(request.args.get('page', 1))
@@ -197,7 +197,7 @@ class DatabaseRoutes(ComponentBase):
             return connection.is_firmware(firmware_uid)
 
     @roles_accepted(*PRIVILEGES['pattern_search'])
-    def _app_show_binary_search_results(self):
+    def _app_get_binary_search_results(self):
         firmware_dict, error, yara_rules = None, None, None
         if request.args.get('request_id'):
             request_id = request.args.get('request_id')
@@ -225,17 +225,6 @@ class DatabaseRoutes(ComponentBase):
     @staticmethod
     def _join_results(result_dict):
         return list(set(chain(*result_dict.values())))
-
-    def _build_firmware_dict_for_binary_search(self, uid_dict):
-        firmware_dict = {}
-        for rule in uid_dict:
-            with ConnectTo(FrontEndDbInterface, self._config) as connection:
-                firmware_list = [
-                    connection.firmwares.find_one(uid) or connection.file_objects.find_one(uid)
-                    for uid in uid_dict[rule]
-                ]
-                firmware_dict[rule] = sorted(connection.get_meta_list(firmware_list))
-        return firmware_dict
 
     @roles_accepted(*PRIVILEGES['basic_search'])
     def _app_start_quick_search(self):
