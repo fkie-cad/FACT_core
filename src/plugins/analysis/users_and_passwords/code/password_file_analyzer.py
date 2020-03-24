@@ -14,32 +14,17 @@ from helperFunctions.tag import TagColor
 
 class AnalysisPlugin(AnalysisBasePlugin):
     '''
-    This Plugin trys to find and crack passwords
+    This plug-in tries to find and crack passwords
     '''
     NAME = 'users_and_passwords'
     DEPENDENCIES = []
     MIME_BLACKLIST = ['audio', 'filesystem', 'image', 'video']
     DESCRIPTION = 'search for UNIX and httpd password files, parse them and try to crack the passwords'
-    VERSION = '0.4.2'
+    VERSION = '0.4.3'
 
     wordlist_path = os.path.join(get_src_dir(), 'bin/passwords.txt')
 
-    def __init__(self, plugin_administrator, config=None, recursive=True):
-        '''
-        recursive flag: If True recursively analyze included files
-        default flags should be edited above. Otherwise the scheduler cannot overwrite them.
-        '''
-        self.config = config
-
-        # additional init stuff can go here
-        super().__init__(plugin_administrator, config=config, recursive=recursive, no_multithread=True, plugin_path=__file__)
-
     def process_object(self, file_object):
-        '''
-        This function must be implemented by the plugin.
-        Analysis result must be a dict stored in file_object.processed_analysis[self.NAME]
-        If you want to propagate results to parent objects store a list of strings 'summary' entry of your result dict
-        '''
         if self.NAME not in file_object.processed_analysis:
             file_object.processed_analysis[self.NAME] = {}
         file_object.processed_analysis[self.NAME]['summary'] = []
