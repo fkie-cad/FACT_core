@@ -148,26 +148,23 @@
                 {% endfor %}
 
                 <label class="control-label" for="datetimepicker2">Release Date:</label>
-                <div class="form-group">
-                    <div class="{% if 'release_date' in error.keys() %}has-error{% endif %}">
-                        <div class='input-group date' id='datetimepicker2'>
-                            <input type='text' name="release_date" value="{{ firmware.release_date }}" class="form-control">
-                            <span class="input-group-addon">
-                                <span class="glyphicon glyphicon-calendar"></span>
-                            </span>
-                        </div>
-                        <script type="text/javascript">
-                            $(function () {
-                                $('#datetimepicker2').datetimepicker({
-                                    format: 'YYYY-MM-DD'
-                                });
-                            });
-                        </script>
-                        {% if 'release_date' in error.keys() %}
-                            <span class="help-block">{{ error['release_date'] }}</span>
-                        {% endif %}
+                <div class="input-group{% if 'release_date' in error.keys() %} has-error{% endif %}">
+                    <input type='text' name="release_date" value="{{ firmware.release_date }}" class="form-control" id='datetimepicker2'>
+                    <div class="input-group-append">
+                        <span class="btn btn-secondary"><i class="fas fa-calendar-alt"></i></span>
                     </div>
-                </div>
+                    <script type="text/javascript">
+                        $(function () {
+                            $('#datetimepicker2').datepicker({
+                                format: 'yyyy-mm-dd',
+                                todayHighlight: true
+                            });
+                        });
+                    </script>
+                    {% if 'release_date' in error.keys() %}
+                        <span class="help-block">{{ error['release_date'] }}</span>
+                    {% endif %}
+            </div>
 
                 <label class="control-label" for="tags">Tags:</label>
                 <div class="form-group">

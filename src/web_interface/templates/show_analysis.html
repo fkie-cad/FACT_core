@@ -175,35 +175,35 @@
                     {%- if "file_type" in firmware.processed_analysis -%}
                         <tr>
                             <td>file type</td>
-                            <td style="{{ style }}">{{ firmware.processed_analysis["file_type"]["full"] }}</td>
+                            <td>{{ firmware.processed_analysis["file_type"]["full"] }}</td>
                         </tr>
                     {%- endif %}
                     {%- if firmware_including_this_fo %}
                         <tr>
                             <td>firmwares including this files</td>
-                            <td style="{{ style }}">{{ firmware_including_this_fo | nice_uid_list | safe }}</td>
+                            <td>{{ firmware_including_this_fo | nice_uid_list | safe }}</td>
                         </tr>
                     {%- endif %}
                     {%- if other_versions %}
                         <tr>
                             <td>other versions</td>
-                            <td style="{{ style }}">
-                                <button data-toggle="collapse" data-target="#other_versions" class="list-group-item list-group-item-info">
-                                    <span class="badge">{{ other_versions | length }}</span> show files
-                                </button>
-                                <div id="other_versions" class="collapse">
-                                    {% for version in other_versions %}
-                                        {%- if selected_analysis -%}
-                                            {% set other_version_link = "/analysis/{}/{}".format(version._id, selected_analysis) %}
-                                        {%- else -%}
-                                            {% set other_version_link = "/analysis/{}".format(version._id) %}
-                                        {%- endif -%}
-                                        <a href="{{ other_version_link }}" class="list-group-item">
-                                            <p class="list-group-item-text">
+                            <td>
+                                <div class="list-group">
+                                    <button data-toggle="collapse" data-target="#other_versions" class="list-group-item list-group-item-primary d-flex justify-content-between align-items-center">
+                                        show files<span class="badge badge-primary badge-pill">{{ other_versions | length }}</span>
+                                    </button>
+                                    <div id="other_versions" class="collapse">
+                                        {% for version in other_versions %}
+                                            {%- if selected_analysis -%}
+                                                {% set other_version_link = "/analysis/{}/{}".format(version._id, selected_analysis) %}
+                                            {%- else -%}
+                                                {% set other_version_link = "/analysis/{}".format(version._id) %}
+                                            {%- endif -%}
+                                            <a href="{{ other_version_link }}" class="list-group-item list-group-item-action">
                                                 {{ version.version }}
-                                            </p>
-                                        </a>
-                                    {% endfor %}
+                                            </a>
+                                        {% endfor %}
+                                    </div>
                                 </div>
                             </td>
                         </tr>
@@ -284,9 +284,9 @@
             <div class="modal-dialog">
                 <div class="modal-content">
 
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal">&times;</button>
-                        <h4 class="modal-title">Add analysis to file</h4>
+                    <div class="modal-header d-flex justify-content-between align-items-center">
+                        <h5 class="modal-title">Add analysis to file</h5>
+                        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
                     </div>
 
                     <div class="modal-body">
@@ -299,6 +299,7 @@
                                     </label>
                                 </div>
                             {% endfor %}
+                            <hr />
                             <p>Update analysis</p>
                             {% for system in available_plugins.used | sort %}
                                 <div id="{{ system }}" class="{% if loop.index0 >= 0 %}col-xs-offset-3 {% endif %}col-xs-9">
@@ -307,9 +308,8 @@
                                     </label>
                                 </div>
                             {% endfor %}
-                            <div style="padding: 15px">
-                                <button class="btn btn-default" type="submit" id="add_single_file_analysis" value=submit>Add</button>
-                            </div>
+                            <hr />
+                            <button class="btn btn-primary" type="submit" id="add_single_file_analysis" value=submit><i class="fas fa-play-circle"></i> Add</button>
                         </form>
                     </div>
                 </div>
