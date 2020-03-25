@@ -1,11 +1,11 @@
-{% macro start_stats_panel(panel_title, glyph="glyphicon-stats") -%}
+{% macro start_stats_panel(panel_title, icon="chart-bar") -%}
     <!-- stats: {{ panel_title }} -->
-    <div class="col-sm-6 col-md-4" style="padding-right: 10px; padding-left: 10px;">
-        <div class="panel panel-default">
-            <div class="panel-heading" style="background-image: none;">
-                <h2 class="panel-title"><span class="glyphicon {{ glyph }}"></span> {{ panel_title }}</h2>
+    <div class="col-sm-6 col-md-4 px-3 mb-4">
+        <div class="card bg-light">
+            <div class="card-header" style="background-image: none;">
+                <h4 class="card-title"><i class="fas fa-{{ icon }}"></i> {{ panel_title }}</h4>
             </div>
-            <div class="panel-body" style="padding: 0">
+            <div class="card-body p-0">
 {%- endmacro %}
 
 {% macro end_stats_panel(counter) -%}
@@ -14,7 +14,7 @@
     </div>
     {% set _ = counter.append(1) %}
     {% if counter | length % 3 == 0 %}
-        <div class="clearfix visible-md-block visible-lg-block"></div>
+        <div class="clearfix"></div>
     {% endif %}
 {%- endmacro %}
 

@@ -16,33 +16,39 @@
 
 <script type="text/javascript" src="{{ url_for("static", filename="js/update_url_variables.js") }}"></script>
 
-<div class="row" style="margin-bottom: 30px">
-    <div class="col-md-8 col-md-offset-2 col-lg-6 col-lg-offset-3" style="max-width: 1600px;">
-        <div class="col-md-6" id="device-class-dropdown-div">
-            <label class="control-label" for="device_class_dropdown" style="text-align:right">
-                Device Class:
-            </label>
-            <select class="form-control" id="device_class_dropdown" name="device_class_dropdown" style="text-align:left"
-                    onchange="window.location=update_url_variables(window.location.toString(), 'device_class', this.value)">
-                <option value=""></option>
-            {% for class in device_classes | sort %}
-                <option {% if class in current_class %}selected{% endif %} value="{{ class }}">{{ class }}</option>
-            {% endfor %}
-            </select>
-        </div>
+<div class="row justify-content-center">
+    <div class="col-lg-8 mt-4">
+        <h3 class="mb-3">Firmware Statistics</h3>
+    </div>
+</div>
 
-        <div class="col-md-6" id="vendor-dropdown-div">
-        <label class="control-label" for="vendor_dropdown" style="text-align:right">
-            Vendor:
-        </label>
-            <select class="form-control" id="vendor_dropdown" name="vendor_dropdown" style="text-align:left"
-                    onchange="window.location=update_url_variables(window.location.toString(), 'vendor', this.value)">
-                <option value=""></option>
-            {% for vendor in vendors | sort %}
-                <option {% if vendor in current_vendor %}selected{% endif %} value="{{ vendor }}">{{ vendor }}</option>
-            {% endfor %}
-            </select>
-        </div>
+<div class="row justify-content-center" id="dropdown-div">
+    <div class="col-lg-8 mb-4">
+        <form>
+            <div class="form-row">
+                <div class="form-group col-lg-6" id="device-class-dropdown-div">
+                    <label class="control-label" for="device_class_dropdown">Device Class:</label>
+                    <select class="form-control" id="device_class_dropdown" name="device_class_dropdown"
+                            onchange="window.location=update_url_variables(window.location.toString(), 'device_class', this.value)">
+                        <option value=""></option>
+                        {% for class in device_classes | sort %}
+                            <option {% if class in current_class %}selected{% endif %} value="{{ class }}">{{ class }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group col-lg-6" id="vendor-dropdown-div">
+                    <label class="control-label" for="vendor_dropdown">Vendor:</label>
+                    <select class="form-control" id="vendor_dropdown" name="vendor_dropdown"
+                            onchange="window.location=update_url_variables(window.location.toString(), 'vendor', this.value)">
+                        <option value=""></option>
+                        {% for vendor in vendors | sort %}
+                            <option {% if vendor in current_vendor %}selected{% endif %} value="{{ vendor }}">{{ vendor }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -52,8 +58,8 @@
 {# ------ General Stats ------ #}
 
  	{% if stats["general_stats"] %}
- 	    {{ macros.start_stats_panel("General") }}
-            <table class="table table-responsive table-hover table-bordered" style="border-spacing: 10px; width: 100%; margin-bottom: 0;">
+        {{ macros.start_stats_panel("General") }}
+            <table class="table table-responsive-md table-hover table-bordered mb-0" style="width: 100%;">
                 {{ macros.stats_table_row("firmware samples", stats["general_stats"]["number_of_firmwares"] | nice_number) }}
                 {{ macros.stats_table_row("firmware total size", stats["general_stats"]["total_firmware_size"] | number_format) }}
                 {{ macros.stats_table_row("firmware average size", stats["general_stats"]["average_firmware_size"] | number_format) }}
@@ -70,8 +76,8 @@
 {# ------ Crypto Material Stats ------ #}
 
 	{% if (stats["crypto_material_stats"]["crypto_material"] | length) > 0 %}
- 	    {{ macros.start_stats_panel("Crypto Material", "glyphicon-lock") }}
-            <table class="table table-responsive table-hover table-bordered" style="border-spacing: 10px; width: 100%; margin-bottom: 0;">
+        {{ macros.start_stats_panel("Crypto Material", "lock") }}
+            <table class="table table-responsive-md table-hover table-bordered mb-0" style="width: 100%;">
             {% for item in (stats["crypto_material_stats"]["crypto_material"] | sort_chart_list_by_value) %}
                 <tr>
                     <td class="active" style="text-align: left; padding:5px; cursor:pointer;"
@@ -90,8 +96,8 @@
 {# ------ Known Vulnerability Stats ------ #}
 
 	{% if (stats["known_vulnerabilities_stats"]["known_vulnerabilities"] | length) > 0 %}
- 	    {{ macros.start_stats_panel("Known Vulnerabilities", "glyphicon-flash") }}
-            <table class="table table-responsive table-hover table-bordered" style="border-spacing: 10px; width: 100%; margin-bottom: 0;">
+        {{ macros.start_stats_panel("Known Vulnerabilities", "bolt") }}
+            <table class="table table-responsive-md table-hover table-bordered mb-0" style="width: 100%;">
             {% for item in (stats["known_vulnerabilities_stats"]["known_vulnerabilities"] | sort_chart_list_by_value) %}
                 <tr>
                     <td class="active" style="text-align: left; padding:5px; cursor:pointer;"
@@ -110,8 +116,8 @@
 {# ------ Unpacker Stats ------ #}
 
 	{% if stats["unpacker_stats"]["overall_unpack_ratio"] %}
- 	    {{ macros.start_stats_panel("Unpacker Stats", "glyphicon-compressed") }}
-            <table class="table table-responsive table-hover table-bordered" style="border-spacing: 10px; width: 100%; margin-bottom: 0;">
+        {{ macros.start_stats_panel("Unpacker Stats", "file-archive") }}
+            <table class="table table-responsive-md table-hover table-bordered mb-0" style="width: 100%;">
                 {{ macros.stats_table_row("Overall Unpack Ratio", stats["unpacker_stats"]["overall_unpack_ratio"] | nice_number, True) }}
                 {{ macros.stats_table_row("Average Packed Entropy", stats["unpacker_stats"]["average_packed_entropy"] | nice_number) }}
                 {{ macros.stats_table_row("Average Unpacked Entropy", stats["unpacker_stats"]["average_unpacked_entropy"] | nice_number) }}
@@ -160,7 +166,7 @@
 
 {% if stats["exploit_mitigations_stats"] %}
 	{% if stats["exploit_mitigations_stats"]["exploit_mitigations"] %}
- 	    {{ macros.start_stats_panel("Exploit Mitigations") }}
+        {{ macros.start_stats_panel("Exploit Mitigations") }}
             <canvas id="exploit_mitigations_canvas" width="100%" height="{{ stats['exploit_mitigations_stats']['exploit_mitigations'] | get_canvas_height }}"></canvas>
             <script>
                 create_horizontal_bar_chart(
@@ -178,8 +184,8 @@
 {# ------ Malware Stats ------ #}
 
 	{% if (stats["malware_stats"]["malware"] | length) > 0 %}
- 	    {{ macros.start_stats_panel("Malware", "glyphicon-alert") }}
-            <table class="table table-responsive table-hover table-bordered" style="border-spacing: 10px; width: 100%; margin-bottom: 0;">
+        {{ macros.start_stats_panel("Malware", "exclamation-triangle") }}
+            <table class="table table-responsive-md table-hover table-bordered mb-0" style="width: 100%;">
             {% for malware in (stats["malware_stats"]["malware"] | sort_chart_list_by_value) %}
                 {% set query = {"processed_analysis.malware_scanner.scans.ClamAV.result": {"$eq": malware[0]}} %}
                 {{ macros.stats_table_row(malware[0], malware[1], link=query_url + query | json_dumps | urlencode) }}
@@ -193,8 +199,8 @@
 
 	{% set ips_v4_num = stats["ip_and_uri_stats"]["ips_v4"] | length %}
 	{% if ips_v4_num > 0 %}
- 	    {{ macros.start_stats_panel("IPv4 Addresses (Top {}/{})".format([10, ips_v4_num] | min, ips_v4_num), "glyphicon-globe") }}
-            <table class="table table-responsive table-hover table-bordered" style="border-spacing: 10px; width: 100%; margin-bottom: 0;">
+        {{ macros.start_stats_panel("IPv4 Addresses (Top {}/{})".format([10, ips_v4_num] | min, ips_v4_num), "globe") }}
+            <table class="table table-responsive-md table-hover table-bordered mb-0" style="width: 100%;">
             {% for ip in (stats["ip_and_uri_stats"]["ips_v4"] | sort_chart_list_by_value)[:10] %}
                 {% set query = {"processed_analysis.ip_and_uri_finder.ips_v4": {"$elemMatch": {"$elemMatch": {"$in": [ip[0], ]}}}} %}
                 {{ macros.stats_table_row(ip[0], ip[1], link=query_url + query | json_dumps | urlencode) }}
@@ -205,8 +211,8 @@
 
 	{% set ips_v6_num = stats["ip_and_uri_stats"]["ips_v6"] | length %}
 	{% if ips_v6_num > 0 %}
- 	    {{ macros.start_stats_panel("IPv6 Addresses (Top {}/{})".format([10, ips_v6_num] | min, ips_v6_num), "glyphicon-globe") }}
-            <table class="table table-responsive table-hover table-bordered" style="border-spacing: 10px; width: 100%; margin-bottom: 0;">
+        {{ macros.start_stats_panel("IPv6 Addresses (Top {}/{})".format([10, ips_v6_num] | min, ips_v6_num), "globe") }}
+            <table class="table table-responsive-md table-hover table-bordered mb-0" style="width: 100%;">
             {% for ip in (stats["ip_and_uri_stats"]["ips_v6"] | sort_chart_list_by_value)[:10] %}
                 {% set query = {"processed_analysis.ip_and_uri_finder.ips_v6": {"$elemMatch": {"$elemMatch": {"$in": [ip[0], ]}}}} %}
                 {{ macros.stats_table_row(ip[0], ip[1], link=query_url + query | json_dumps | urlencode) }}
@@ -217,8 +223,8 @@
 
 	{% set uri_num = stats["ip_and_uri_stats"]["uris"] | length %}
 	{% if uri_num > 0 %}
- 	    {{ macros.start_stats_panel("URIs (Top {}/{})".format([10, uri_num] | min, uri_num), "glyphicon-globe") }}
-            <table class="table table-responsive table-hover table-bordered" style="border-spacing: 10px; width: 100%; margin-bottom: 0;">
+        {{ macros.start_stats_panel("URIs (Top {}/{})".format([10, uri_num] | min, uri_num), "globe") }}
+            <table class="table table-responsive-md table-hover table-bordered mb-0" style="width: 100%;">
             {% for uri in (stats["ip_and_uri_stats"]["uris"] | sort_chart_list_by_value)[:10] %}
                 {% set query = {"processed_analysis.ip_and_uri_finder.uris": {"$eq": uri[0]}} %}
                 {{ macros.stats_table_row(uri[0], uri[1], link=query_url + query | json_dumps | urlencode) }}
@@ -233,9 +239,9 @@
 {# ------ Release Date Histogram ------ #}
 
 {% if (stats["release_date_stats"]["date_histogram_data"] | length) > 0 %}
-<div class="row" style="margin-bottom: 10px">
-    <div class="col-xs-12">
-        <h3>Release Date Stats</h3>
+<div class="row justify-content-center mb-2">
+    <div class="col-lg-8">
+        <h3 class="mt-2">Release Date Stats</h3>
         <div>
             <canvas id="release_date_canvas"></canvas>
             <script>
