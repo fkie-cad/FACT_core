@@ -1,6 +1,7 @@
 import itertools
 import logging
 import sys
+from collections import Counter
 from datetime import datetime
 from time import time
 
@@ -286,7 +287,7 @@ class StatisticUpdater:
 
     @staticmethod
     def _count_occurrences(result_list):
-        return [(item, result_list.count(item)) for item in set(result_list)]
+        return list(Counter(result_list).items())
 
     @staticmethod
     def _shorten_architecture_string(string):
