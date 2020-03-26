@@ -1,7 +1,6 @@
 import logging
 import os
 import re
-import sys
 from contextlib import suppress
 from tempfile import NamedTemporaryFile
 
@@ -60,8 +59,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
                     result[key]['password-hash'] = entry[1].decode(encoding='utf_8', errors='replace')
                     cracked_pw = self._crack_hash(entry, result, key)
                     result[key]['cracked'] = bool(cracked_pw)
-            except Exception as excep:
-                logging.error('Invalid Format: {} - {}'.format(sys.exc_info()[0].__name__, excep))
+            except (IndexError, AttributeError, TypeError):
+                logging.error('Invalid Format:', exc_info=True)
         return result
 
     def _crack_hash(self, passwd_entry, result_dict, key):

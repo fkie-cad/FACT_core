@@ -1,13 +1,11 @@
-import os
-
-from common_helper_files import get_dir_of_file
+from pathlib import Path
 
 from objects.file import FileObject
 from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
 
 from ..code.password_file_analyzer import AnalysisPlugin
 
-TEST_DATA_DIR = os.path.join(get_dir_of_file(__file__), 'data')
+TEST_DATA_DIR = Path(__file__).parent / 'data'
 
 
 class TestAnalysisPluginPasswordFileAnalyzer(AnalysisPluginTest):
@@ -19,8 +17,8 @@ class TestAnalysisPluginPasswordFileAnalyzer(AnalysisPluginTest):
         config = self.init_basic_config()
         self.analysis_plugin = AnalysisPlugin(self, config=config)
 
-    def test_process_object(self):
-        test_file = FileObject(file_path=os.path.join(TEST_DATA_DIR, 'passwd_test'))
+    def test_process_object_shadow_file(self):
+        test_file = FileObject(file_path=str(TEST_DATA_DIR / 'passwd_test'))
         processed_object = self.analysis_plugin.process_object(test_file)
         results = processed_object.processed_analysis[self.PLUGIN_NAME]
 
@@ -36,7 +34,8 @@ class TestAnalysisPluginPasswordFileAnalyzer(AnalysisPluginTest):
         self.assertEqual(results['johndoe']['password'], '123456')
         self.assertEqual(results['tags']['johndoe_123456']['value'], 'Password: johndoe:123456')
 
-        test_file = FileObject(file_path=os.path.join(TEST_DATA_DIR, 'passwd.bin'))
+    def test_process_object_password_in_binary_file(self):
+        test_file = FileObject(file_path=str(TEST_DATA_DIR / 'passwd.bin'))
         processed_object = self.analysis_plugin.process_object(test_file)
         results = processed_object.processed_analysis[self.PLUGIN_NAME]
 
