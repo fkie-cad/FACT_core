@@ -8,15 +8,15 @@
 <div class="col-sm-offset-1 col-sm-10">
 
     <div class="row" style="margin-bottom: 16px">
-        {% if data.missing_files_count -%}
-            <h2>{{ data.missing_files_count | nice_number }} Missing Files</h2>
-            <h6>took {{ data.missing_files_duration }} to generate</h6>
+        {% if missing_files.count -%}
+            <h2>{{ missing_files.count | nice_number }} Missing Files</h2>
+            <h6>took {{ missing_files.duration }} to generate</h6>
             <table class="table table-bordered table-hover">
                 <tr class="success">
                     <th style="width: 50%">Parent Object UID</th>
                     <th>Missing File UID</th>
                 </tr>
-                {% for parent_uid, uid_list in data.missing_files | sort -%}
+                {% for parent_uid, uid_list in missing_files.tuples | sort -%}
                 <tr>
                     <td>
                         <a href='/analysis/{{ parent_uid }}'>{{ parent_uid }}</a>
@@ -42,15 +42,15 @@
     </div>
 
     <div class="row" style="margin-bottom: 16px">
-        {% if data.missing_analyses_count -%}
-            <h2>{{ data.missing_analyses_count | nice_number }} Missing Analyses</h2>
-            <h6>took {{ data.missing_analyses_duration }} to generate</h6>
+        {% if missing_analyses.count -%}
+            <h2>{{ missing_analyses.count | nice_number }} Missing Analyses</h2>
+            <h6>took {{ missing_analyses.duration }} to generate</h6>
             <table class="table table-bordered table-hover">
                 <tr class="success">
-                    <th style="width: 50%">Parent Object UID</th>
+                    <th style="width: 50%">Parent Firmware UID</th>
                     <th>Files Missing Analyses</th>
                 </tr>
-                {% for parent_uid, uid_list in data.missing_analyses.items() | sort -%}
+                {% for parent_uid, uid_list in missing_analyses.tuples | sort -%}
                 <tr>
                     <td>
                         <a href='/analysis/{{ parent_uid }}'>{{ parent_uid }}</a>

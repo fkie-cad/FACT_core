@@ -3,9 +3,9 @@ from typing import Dict, Sized
 
 from flask import redirect, render_template, request, url_for
 from flask_security import login_required
-from si_prefix import si_format
 
 from helperFunctions.database import ConnectTo
+from helperFunctions.web_interface import format_time
 from statistic.update import StatisticUpdater
 from storage.db_interface_admin import AdminDbInterface
 from storage.db_interface_compare import CompareDbInterface
@@ -75,18 +75,20 @@ class MiscellaneousRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['delete'])
     def _app_find_missing_analyses(self):
-        template_data = self._find_missing_files()
-        template_data.update(self._find_missing_analyses())
-        return render_template('find_missing_analyses.html', data=template_data)
+        template_data = {
+            'missing_files': self._find_missing_files(),
+            'missing_analyses': self._find_missing_analyses()
+        }
+        return render_template('find_missing_analyses.html', **template_data)
 
     def _find_missing_files(self):
         start = time()
         with ConnectTo(FrontEndDbInterface, config=self._config) as db:
             parent_to_included = db.find_missing_files()
         return {
-            'missing_files': list(parent_to_included.items()),
-            'missing_files_count': self._count_values(parent_to_included),
-            'missing_files_duration': self._get_duration(start),
+            'tuples': list(parent_to_included.items()),
+            'count': self._count_values(parent_to_included),
+            'duration': format_time(time() - start),
         }
 
     def _find_missing_analyses(self):
@@ -94,15 +96,11 @@ class MiscellaneousRoutes(ComponentBase):
         with ConnectTo(FrontEndDbInterface, config=self._config) as db:
             missing_analyses = db.find_missing_analyses()
         return {
-            'missing_analyses': missing_analyses,
-            'missing_analyses_count': self._count_values(missing_analyses),
-            'missing_analyses_duration': self._get_duration(start),
+            'tuples': list(missing_analyses.items()),
+            'count': self._count_values(missing_analyses),
+            'duration': format_time(time() - start),
         }
 
     @staticmethod
     def _count_values(dictionary: Dict[str, Sized]) -> int:
         return sum(len(e) for e in dictionary.values())
-
-    @staticmethod
-    def _get_duration(start: float) -> str:
-        return '{}s'.format(si_format(time() - start, precision=2))
