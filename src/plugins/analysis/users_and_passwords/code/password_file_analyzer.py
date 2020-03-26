@@ -24,6 +24,10 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     wordlist_path = os.path.join(get_src_dir(), 'bin/passwords.txt')
 
+    def __init__(self, plugin_administrator, config=None, recursive=True):
+        self.config = config
+        super().__init__(plugin_administrator, config=config, recursive=recursive, no_multithread=True, plugin_path=__file__)
+
     def process_object(self, file_object):
         if self.NAME not in file_object.processed_analysis:
             file_object.processed_analysis[self.NAME] = {}
