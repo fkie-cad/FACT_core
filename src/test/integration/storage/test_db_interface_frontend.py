@@ -229,7 +229,7 @@ class TestStorageDbInterfaceFrontend(unittest.TestCase):
         assert missing_analyses == {}
 
         test_fw_1.processed_analysis['foobar'] = {'foo': 'bar'}
-        self.db_backend_interface.add_firmware(test_fw_1)
+        self.db_backend_interface.add_analysis(test_fw_1)
         missing_analyses = self.db_frontend_interface.find_missing_analyses()
         assert test_fw_1.uid in missing_analyses
         assert missing_analyses[test_fw_1.uid] == {test_fo.uid}

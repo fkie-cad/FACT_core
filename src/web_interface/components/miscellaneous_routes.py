@@ -75,9 +75,9 @@ class MiscellaneousRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['delete'])
     def _app_find_missing_analyses(self):
-        data = self._find_missing_files()
-        data.update(self._find_missing_analyses())
-        return render_template('find_missing_analyses.html', data=data)
+        template_data = self._find_missing_files()
+        template_data.update(self._find_missing_analyses())
+        return render_template('find_missing_analyses.html', data=template_data)
 
     def _find_missing_files(self):
         start = time()
