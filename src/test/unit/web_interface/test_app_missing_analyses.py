@@ -12,7 +12,7 @@ class MissingAnalysesDbMock(DatabaseMock):
         return self.result
 
 
-class TestAppAddComment(WebInterfaceTest):
+class TestAppMissingAnalyses(WebInterfaceTest):
     def setUp(self, db_mock=None):
         super().setUp(db_mock=MissingAnalysesDbMock)
 
