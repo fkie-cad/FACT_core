@@ -185,7 +185,7 @@ class FrontEndDbInterface(MongoInterfaceCommon):
                 {'$unwind': {'path': '$comments'}},
                 {'$sort': {'comments.time': -1}},
                 {'$limit': limit}
-            ])
+            ], allowDiskUse=True)
             comments.extend([
                 {**entry['comments'], 'uid': entry['_id']}  # caution: >=python3.5 exclusive syntax
                 for entry in db_entries if entry['comments']
