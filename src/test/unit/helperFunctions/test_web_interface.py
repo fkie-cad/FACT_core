@@ -3,8 +3,8 @@ from flask_security.core import AnonymousUser, RoleMixin, UserMixin
 from werkzeug.local import LocalProxy
 
 from helperFunctions.web_interface import (
-    filter_out_illegal_characters, get_radare_endpoint, password_is_legal, split_virtual_path,
-    virtual_path_element_to_span
+    filter_out_illegal_characters, format_si_prefix, format_time, get_radare_endpoint, password_is_legal,
+    split_virtual_path, virtual_path_element_to_span
 )
 from test.common_helper import get_config_for_testing
 from web_interface.security.authentication import user_has_privilege
@@ -26,12 +26,12 @@ class RoleSuperuser(RoleMixin):
 
 
 class SuperuserUser(UserMixin):
-    id = 1
+    id = 1  # pylint: disable=invalid-name
     roles = [RoleSuperuser]
 
 
 class NormalUser(UserMixin):
-    id = 2
+    id = 2  # pylint: disable=invalid-name
     roles = []
 
 
@@ -81,3 +81,23 @@ def test_virtual_path_element_to_span(hid, uid, expected_output):
 ])
 def test_split_virtual_path(virtual_path, expected_output):
     assert split_virtual_path(virtual_path) == expected_output
+
+
+@pytest.mark.parametrize('number, unit, expected_output', [
+    (1, 'm', '1.00 m'),
+    (0.034, 'g', '34.00 mg'),
+    (0.0000123456789, 's', '12.35 µs'),
+    (1234.5, 'm', '1.23 km'),
+])
+def test_format_si_prefix(number, unit, expected_output):
+    assert format_si_prefix(number, unit) == expected_output
+
+
+@pytest.mark.parametrize('seconds, expected_output', [
+    (2, '2.00 s'),
+    (0.2, '200.00 ms'),
+    (120, '0:02:00'),
+    (100000, '1 day, 3:46:40'),
+])
+def test_format_time(seconds, expected_output):
+    assert format_time(seconds) == expected_output
