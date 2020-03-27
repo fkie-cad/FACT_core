@@ -3,62 +3,56 @@
 {% set active_page = "Home" %}
 
 {% block body %}
-    <div class="row justify-content-center">
+    <div class="row justify-content-center mt-4">
 
-    	<div class="col-lg-5 py-2 mx-auto">
-			<div style="max-width: 300px;">
-    			<img width="100%" height="auto" src="{{ url_for('static', filename='fact_logo.png') }}">
-			</div>
-            <br /><br />
-    		<table class="table table-sm table-responsive mx-auto">
-                <thead class="thead-light">
-                    <tr>
-                        <th colspan="2"><h4>General Facts</h4></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td style="text-align: left; padding:5px">firmware samples</td>
-                        <td style="text-align: right; padding:5px">{{ general_stats['number_of_firmwares'] | nice_number }}</td>
-                    </tr>
-                    <tr>
-                        <td style="text-align: left; padding:5px">firmware total size</td>
-                        <td style="text-align: right; padding:5px">{{ general_stats['total_firmware_size'] | number_format }}</td>
-                    </tr>
-                    <tr>
-                        <td style="text-align: left; padding:5px">firmware average size</td>
-                        <td style="text-align: right; padding:5px">{{ general_stats['average_firmware_size'] | number_format }}</td>
-                    </tr>
-                    <tr>
-                        <td style="text-align: left; padding:5px">unique included files</td>
-                        <td style="text-align: right; padding:5px">{{ general_stats['number_of_unique_files'] | nice_number }}</td>
-                    </tr>
-                    <tr>
-                        <td style="text-align: left; padding:5px">unique included files total size</td>
-                        <td style="text-align: right; padding:5px">{{ general_stats['total_file_size'] | number_format }}</td>
-                    </tr>
-                    <tr>
-                        <td style="text-align: left; padding:5px">unique included files average size</td>
-                        <td style="text-align: right; padding:5px">{{ general_stats['average_file_size'] | number_format }}</td>
-                    </tr>
-                    <tr>
-                        <td style="text-align: left; padding:5px">statistic generation time</td>
-                        <td style="text-align: right; padding:5px">{{ general_stats['benchmark'] | nice_number }} s</td>
-                    </tr>
-                </tbody>
-    		</table>
+    	<div class="p-2" style="max-width: 445px;">
+            <center>
+                <img width="100%" height="auto" src="{{ url_for('static', filename='fact_logo.png') }}">
+
+                <br /><br />
+
+                <h4 class="mb-3">General Facts</h4>
+                <table class="table table-sm table-responsive">
+                    <tbody>
+                        <tr>
+                            <td style="text-align: left; padding:5px">firmware samples</td>
+                            <td style="text-align: right; padding:5px">{{ general_stats['number_of_firmwares'] | nice_number }}</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left; padding:5px">firmware total size</td>
+                            <td style="text-align: right; padding:5px">{{ general_stats['total_firmware_size'] | number_format }}</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left; padding:5px">firmware average size</td>
+                            <td style="text-align: right; padding:5px">{{ general_stats['average_firmware_size'] | number_format }}</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left; padding:5px">unique included files</td>
+                            <td style="text-align: right; padding:5px">{{ general_stats['number_of_unique_files'] | nice_number }}</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left; padding:5px">unique included files total size</td>
+                            <td style="text-align: right; padding:5px">{{ general_stats['total_file_size'] | number_format }}</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left; padding:5px">unique included files average size</td>
+                            <td style="text-align: right; padding:5px">{{ general_stats['average_file_size'] | number_format }}</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left; padding:5px">statistic generation time</td>
+                            <td style="text-align: right; padding:5px">{{ general_stats['benchmark'] | nice_number }} s</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </center>
     	</div>
 
     	{% if (latest_firmware_submissions | length) > 0 %}
-            <div class="col-lg-7 py-2">
-                <table class="table table-sm table-responsive table-hover">
+            <div class="p-2" style="max-width: 703px;">
+                <h4>Latest Submissions</h4>
+                <p>Showing {{ latest_firmware_submissions | length }} out of <b>{{ general_stats['number_of_firmwares'] | nice_number }}</b> firmwares in the database.</p>
+                <table class="table table-sm table-responsive table-hover mt-3">
                     <thead class="thead-light">
-                        <tr>
-                            <td colspan="2">
-                                <h4>Latest Submissions</h4>
-                                Showing {{ latest_firmware_submissions | length }} out of <b>{{ general_stats['number_of_firmwares'] | nice_number }}</b> firmwares in the database.
-                            </td>
-                        </tr>
                         <tr>
                             <th class="align-middle text-center" style="padding:5px">Submission Time</th>
                             <th class="align-middle text-center" style="padding:5px">Firmware</th>
@@ -80,14 +74,10 @@
 
     <div class="row justify-content-center">
     	{% if (latest_comments | length) > 0 %}
-            <div class="col-lg-5 py-2">
+            <div class="p-2" style="max-width: 554px;">
+                <h4 class="mb-3">Latest Comments</h4>
                 <table class="table table-sm table-responsive table-hover">
                     <thead class="thead-light">
-                        <tr>
-                            <td colspan="3">
-                                <h4>Latest Comments</h4>
-                            </td>
-                        </tr>
                         <tr>
                             <th class="align-middle text-center" style="padding:5px;">Submission Time</th>
                             <th class="align-middle text-center" style="padding:5px;">Author</th>
@@ -113,15 +103,10 @@
 
         {# latest_comparison_results #}
     	{% if (latest_comparison_results | length) > 0 %}
-            <div class="col-lg-7 py-2">
-
+            <div class="p-2" style="max-width: 594px">
+                <h4 class="mb-3">Latest Comparisons</h4>
                 <table class="table table-sm table-responsive table-hover">
                     <thead class="thead-light">
-                        <tr>
-                            <td colspan="2">
-                                <h4>Latest Comparisons</h4>
-                            </td>
-                        </tr>
                         <tr>
                             <th scope="col" class="align-middle text-center" style="padding:5px">Submission Time </th>
                             <th scope="col" class="align-middle text-center" style="padding:5px">Comparisons </th>

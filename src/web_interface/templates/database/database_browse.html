@@ -17,16 +17,16 @@
 <script type="text/javascript" src="{{ url_for('static', filename='js/update_url_variables.js') }}"></script>
 
 <div class="row justify-content-center">
-    <div class="col-lg-8 mt-4">
+    <div class="col-xl-6 col-md-8 mt-4">
         <h3 class="mb-3">Browse Firmware Database</h3>
     </div>
 </div>
 
 <div class="row justify-content-center" id="dropdown-div">
-    <div class="col-lg-8">
+    <div class="col-xl-6 col-md-8">
         <form>
             <div class="form-row">
-                <div class="form-group col-lg-6">
+                <div class="form-group col-md-6">
                     <label class="control-label" for="device_class_dropdown">Device Class:</label>
                     <select class="form-control form-control-sm" id="device_class_dropdown" name='device_class_dropdown'
                             onchange="window.location=update_url_variables(update_url_variables(window.location.toString(), 'device_class', this.value), 'page', '')">
@@ -37,7 +37,7 @@
                     </select>
                 </div>
 
-                <div class="form-group col-lg-6">
+                <div class="form-group col-md-6">
                     <label class="control-label" for="vendor_dropdown">Vendor:</label>
                     <select class="form-control form-control-sm" id="vendor_dropdown" name='vendor_dropdown'
                             onchange="window.location=update_url_variables(update_url_variables(window.location.toString(), 'vendor', this.value), 'page', '')">
@@ -60,7 +60,7 @@
 </div>
 
 <div class="row justify-content-center">
-    <div class="col-lg-8 mt-4">
+    <div class="mt-4" style="max-width: 572px;">
 
         <table class="table table-sm table-responsive table-hover">
         {% for firmware in firmware_list %}
@@ -79,7 +79,7 @@
 </div>
 
 <div class="row justify-content-center">
-    <div class="col-lg-8">
+    <div style="max-width: 300px;">
         {% if pagination is defined %}
             {{ pagination.info }}
             {{ pagination.links }}
