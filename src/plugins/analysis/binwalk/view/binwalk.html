@@ -3,9 +3,9 @@
 
 {% block analysis_result_details %}
 	<tr>
-		<td class="result"> Signature Analysis</td>
-		<td class="result">
-			<pre><code>{{ firmware.processed_analysis[selected_analysis]["signature_analysis"] | safe }}</code></pre>
+		<td> Signature Analysis</td>
+		<td class="bg-dark">
+			<pre class="border-0 p-2 text-white" style="white-space: pre-wrap;">{{ firmware.processed_analysis[selected_analysis]["signature_analysis"] | safe }}</pre>
         </td>
 	</tr>
 

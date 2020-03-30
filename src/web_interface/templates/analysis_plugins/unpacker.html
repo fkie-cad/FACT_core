@@ -22,7 +22,7 @@
 	{% if firmware.processed_analysis[selected_analysis]['output'] %}
 		<tr>
 			<td>Output</td>
-			<td><pre class="border rounded p-2 bg-light"><code>{{ firmware.processed_analysis[selected_analysis]['output'] }}</code></pre></td>
+			<td><pre class="border rounded p-2 bg-light" style="white-space: pre-wrap;"><code>{{ firmware.processed_analysis[selected_analysis]['output'] }}</code></pre></td>
 		</tr>
 	{% endif %}
 

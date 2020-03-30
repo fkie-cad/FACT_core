@@ -12,9 +12,9 @@
 		{% for key in firmware.processed_analysis[selected_analysis] %}
 			{% if key not in ['summary', 'system_version', 'plugin_version', 'analysis_date', 'tags', 'skipped'] %}
 				<tr>
-					<td class="active" rowspan=5> {{loop.index - 1}} </td>
-					<td class="active"> Matched Rule</td>
-					<td class="active"> {{ firmware.processed_analysis[selected_analysis][key]['rule'] }} </td>
+					<td class="table-secondary" rowspan=5> {{loop.index - 1}} </td>
+					<td class="table-secondary"> Matched Rule</td>
+					<td class="table-secondary"> {{ firmware.processed_analysis[selected_analysis][key]['rule'] }} </td>
 				</tr>
 					<td> Description</td>
 					<td> {{ firmware.processed_analysis[selected_analysis][key]['meta']['description'] }} </td>
@@ -28,13 +28,13 @@
 				</tr>
 				<tr>
 					<td>Matches</td>
-					<td style="padding:0px;">
+					<td class="p-0 m-0">
 						<table class="table table-bordered" style="margin:0px;">
 							<colgroup>
 								<col width="75">
 								<col width="525">
 							</colgroup>
-							<tr><td class="active">offset</td><td class="active">value in hex</td></tr>
+							<tr><td class="table-secondary">offset</td><td class="table-secondary">value in hex</td></tr>
 							{% for offset, _, hex_value in firmware.processed_analysis[selected_analysis][key]['strings'] %}
 								<tr>
 									<td> 0x{{ '0%x' % offset }} </td>
