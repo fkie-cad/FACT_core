@@ -42,7 +42,7 @@
         {% endfor %}
 
     {% elif feature == 'exclusive_files' %}
-        <td class="table-active"> {{ feature | replace_underscore }} </td>
+        <td> {{ feature | replace_underscore }} </td>
         {% for firmware_uid in uid_list %}
             {% if firmware_uid != "collapse" %}
             <td>
@@ -71,7 +71,7 @@
 
     {% else %}
         <tr>
-            <td class="table-active"> {{ feature | replace_underscore }} </td>
+            <td>{{ feature | replace_underscore }}</td>
 
             {# --- all case --- #}
             {% if 'all' in result['plugins'][plugin][feature] %}
