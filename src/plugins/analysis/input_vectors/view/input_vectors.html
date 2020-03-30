@@ -7,27 +7,26 @@
     {% if input_vector %}
     <tr>
         <td class="result">{{ vector }}</td>
-        {% if vector == 'inputs' %}
-        <td class="result" style="padding: 0">
-            <table class="table table-bordered" style="margin-bottom: 0">
-                {% for class in input_vector %}
-                    <tr>
-                        <td rowspan="{{ input_vector[class] | length }}">{{ class }}</td>
-                        {% for result in input_vector[class] %}
-                            <td>{{ result['name'] }} with callsites at {{ result['xrefs'] }}{% if 'count' in result %}({{ result['count'] }}){% endif %}</td>
-                        </tr><tr>
-                        {% endfor %}
-                    </tr>
-                {% endfor %}
-            </table>
-        {% else %}
-        <td class="result">
-            <ul>
-                {% for result in input_vector %}
-                    <li>{{result}}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
+        <td class="p-0">
+            {% if vector == 'inputs' %}
+                <table class="table table-bordered mb-0">
+                    {% for class in input_vector %}
+                        <tr>
+                            <td rowspan="{{ input_vector[class] | length }}">{{ class }}</td>
+                            {% for result in input_vector[class] %}
+                                <td>{{ result['name'] }} with callsites at {{ result['xrefs'] }}{% if 'count' in result %}({{ result['count'] }}){% endif %}</td>
+                            </tr><tr>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </table>
+            {% else %}
+                <ul class="list-group mb-0 p-0">
+                    {% for result in input_vector %}
+                        <li class="list-group-item rounded-0">{{result}}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
         </td>
     </tr>
     {% endif %}
