@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 '''
     Firmware Analysis and Comparison Tool (FACT)
-    Copyright (C) 2015-2019  Fraunhofer FKIE
+    Copyright (C) 2015-2020  Fraunhofer FKIE
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -39,7 +39,7 @@ PROGRAM_DESCRIPTION = 'Firmware Analysis and Compare Tool Frontend'
 
 
 def shutdown(*_):
-    global run
+    global run  # pylint: disable=invalid-name,global-statement
     logging.debug('shutting down frontend')
     run = False
 
@@ -54,7 +54,7 @@ def _shutdown_uwsgi_server(process):
 
 def start_uwsgi_server(config_path=None):
     config_parameter = ' --pyargv {}'.format(config_path) if config_path else ''
-    command = 'uwsgi --ini  {}/uwsgi_config.ini{}'.format(get_config_dir(), config_parameter)
+    command = 'uwsgi --thunder-lock --ini  {}/uwsgi_config.ini{}'.format(get_config_dir(), config_parameter)
     process = Popen(split(command), cwd=get_src_dir())
     return process
 
@@ -74,22 +74,22 @@ if __name__ == '__main__':
     else:
         signal.signal(signal.SIGINT, shutdown)
 
-    run = True
-    args, config = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION)
+    run = True  # pylint: disable=invalid-name
+    ARGS, CONFIG = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION)
 
     start_docker()
 
-    work_load_stat = WorkLoadStatistic(config=config, component='frontend')
+    work_load_stat = WorkLoadStatistic(config=CONFIG, component='frontend')
 
     with tempfile.NamedTemporaryFile() as fp:
-        fp.write(pickle.dumps(args))
+        fp.write(pickle.dumps(ARGS))
         fp.flush()
         uwsgi_process = start_uwsgi_server(fp.name)
 
         while run:
             work_load_stat.update()
             sleep(5)
-            if args.testing:
+            if ARGS.testing:
                 break
 
         work_load_stat.shutdown()

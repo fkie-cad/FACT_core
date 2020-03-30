@@ -188,7 +188,7 @@ class FrontEndDbInterface(MongoInterfaceCommon):
                 {'$unwind': {'path': '$comments'}},
                 {'$sort': {'comments.time': -1}},
                 {'$limit': limit}
-            ])
+            ], allowDiskUse=True)
             comments.extend([
                 {**entry['comments'], 'uid': entry['_id']}  # caution: >=python3.5 exclusive syntax
                 for entry in db_entries if entry['comments']
@@ -252,3 +252,33 @@ class FrontEndDbInterface(MongoInterfaceCommon):
     def rest_get_object_uids(database, offset, limit, query):
         uid_cursor = database.find(query, {'_id': 1}).skip(offset).limit(limit)
         return [result['_id'] for result in uid_cursor]
+
+    def find_missing_files(self):
+        uids_in_db = set()
+        parent_to_included = {}
+        for collection in [self.file_objects, self.firmwares]:
+            for result in collection.find({}, {'_id': 1, 'files_included': 1}):
+                uids_in_db.add(result['_id'])
+                parent_to_included[result['_id']] = set(result['files_included'])
+        for parent_uid, included_files in list(parent_to_included.items()):
+            included_files.difference_update(uids_in_db)
+            if not included_files:
+                parent_to_included.pop(parent_uid)
+        return parent_to_included
+
+    def find_missing_analyses(self):
+        missing_analyses = {}
+        query_result = self.firmwares.aggregate([
+            {'$project': {'temp': {'$objectToArray': '$processed_analysis'}}},
+            {'$unwind': '$temp'},
+            {'$group': {'_id': '$_id', 'analyses': {'$addToSet': '$temp.k'}}},
+        ], allowDiskUse=True)
+        for result in query_result:
+            firmware_uid, analysis_list = result['_id'], result['analyses']
+            query = {"$and": [
+                {"virtual_file_path.{}".format(firmware_uid): {"$exists": True}},
+                {"$or": [{"processed_analysis.{}".format(plugin): {"$exists": False}} for plugin in analysis_list]}
+            ]}
+            for entry in self.file_objects.find(query, {'_id': 1}):
+                missing_analyses.setdefault(firmware_uid, set()).add(entry['_id'])
+        return missing_analyses

@@ -1,3 +1,5 @@
+import logging
+
 import gridfs
 from common_helper_mongo.gridfs import overwrite_file
 
@@ -20,6 +22,7 @@ class ViewUpdater(ViewSyncDb):
 
     def update_view(self, file_name, content):
         overwrite_file(self.view_storage, file_name, content)
+        logging.debug('view updated: {}'.format(file_name))
 
 
 class ViewReader(ViewSyncDb):
@@ -30,5 +33,4 @@ class ViewReader(ViewSyncDb):
         view = self.view_storage.find_one({'filename': '{}'.format(plugin_name)})
         if view:
             return view.read()
-        else:
-            return None
+        return None

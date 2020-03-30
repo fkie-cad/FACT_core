@@ -11,8 +11,8 @@ TMP_DIR = TemporaryDirectory(prefix="fact_test_")
 
 class WebInterfaceTest(unittest.TestCase):
 
-    def setUp(self):
-        self.mocked_interface = DatabaseMock()
+    def setUp(self, db_mock=DatabaseMock):  # pylint: disable=arguments-differ
+        self.mocked_interface = db_mock()
 
         self.enter_patch = unittest.mock.patch(target='helperFunctions.database.ConnectTo.__enter__', new=lambda _: self.mocked_interface)
         self.enter_patch.start()

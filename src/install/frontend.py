@@ -150,7 +150,9 @@ def main(radare, nginx):
         'Flask-API',
         'uwsgi',
         'bcrypt',
-        'python-dateutil')
+        'python-dateutil',
+        'si-prefix'
+    )
 
     # installing web/js-frameworks
     _install_and_patch_bootstrap()
