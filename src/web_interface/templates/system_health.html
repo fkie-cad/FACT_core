@@ -85,12 +85,12 @@
 				 		<h3>{{ component['name'] }} workload</h3>
 				 		<table class="table table-responsive table-hover table-bordered" style="border-spacing: 10px;">
 					 		<tr>
-					 			<th class="success active" colspan=4 style="text-align: center; padding:5px">Unpacking</th>
+					 			<th class="success active" colspan=3 style="text-align: center; padding:5px">Unpacking</th>
 					 		</tr>
 			    			<tr>
 			    				<td class="active" style="text-align: left; padding:5px">main</td>
                                 {%- set unpacking_class = "alert alert-warning" if component['unpacking']['unpacking_queue'] > 500 else "active" -%}
-			    				<td class="{{ unpacking_class }}" colspan=3 style="text-align: right; padding:5px">{{ component['unpacking']['unpacking_queue'] | nice_number }}</td>
+			    				<td class="{{ unpacking_class }}" colspan=2 style="text-align: right; padding:5px">{{ component['unpacking']['unpacking_queue'] | nice_number }}</td>
 			    			</tr>
 					 		<tr>
 					 			<th class="success active" colspan=4 style="text-align: center; padding:5px">Analysis</th>
@@ -98,8 +98,7 @@
 					 		<tr>
 					 			<td class="success active" style="text-align: center; padding:5px">Plugin</td>
 					 			<td class="success active" style="text-align: center; padding:5px">Running</td>
-					 			<td class="success active" style="text-align: center; padding:5px">In Queue</td>
-					 			<td class="success active" style="text-align: center; padding:5px">Out Queue</td>
+					 			<td class="success active" style="text-align: center; padding:5px">Queue</td>
 					 		</tr>
 			    			<tr>
 			    				<td class="active" style="text-align: left; padding:5px">main</td>
@@ -107,25 +106,23 @@
 			    				<td class="{{ analysis_main_class }}" colspan=3 style="text-align: right; padding:5px">{{ component['analysis']['analysis_main_scheduler'] | nice_number }}</td>
 			    			</tr>
 			    			{% for plugin_name, plugin_data in component['analysis']['plugins'].items() | sort %}
-								<tr>
-									<td class="active" style="text-align: left; padding:5px">
-										{{ plugin_name }}
-										{%- if plugin_name in analysis_plugin_info %} {{ analysis_plugin_info[plugin_name][3] }}{% endif -%}
-									</td>
-									<td class="{% if plugin_data.queue > 150 %}alert alert-warning{%else%}active{% endif %}" style="text-align: right; padding:5px">
-										{% set span_class = " spin" if plugin_data['active'] else "" %}
-										{% set span_style = "color: black" if plugin_data['active'] else "color: darkgrey" %}
-										<span class="glyphicon glyphicon-cog{{ span_class }}" style="{{ span_style }}"></span> {{ plugin_data.active | nice_number }}
-									</td>
-                                    <td class="active" style="text-align: right; padding:5px">
-										{% set span_style = "color: black" if plugin_data['queue'] else "color: darkgrey" %}
-                                        <span class="glyphicon glyphicon-log-in" style="{{ span_style }}"></span> {{ plugin_data.queue | nice_number }}
-                                    </td>
-                                    <td class="active" style="text-align: right; padding:5px">
-										{% set span_style = "color: black" if plugin_data['out_queue'] else "color: darkgrey" %}
-                                        <span class="glyphicon glyphicon-log-out" style="{{ span_style }}"></span> {{ plugin_data.out_queue | nice_number }}
-                                    </td>
-								</tr>
+								{% if "dummy" not in plugin_name %}
+									<tr>
+										<td class="active" style="text-align: left; padding:5px">
+											{{ plugin_name }}
+											{%- if plugin_name in analysis_plugin_info %} {{ analysis_plugin_info[plugin_name][3] }}{% endif -%}
+										</td>
+										<td class="{% if plugin_data.queue > 150 %}alert alert-warning{%else%}active{% endif %}" style="text-align: right; padding:5px">
+											{% set span_class = " spin" if plugin_data['active'] else "" %}
+											{% set span_style = "color: black" if plugin_data['active'] else "color: darkgrey" %}
+											<span class="glyphicon glyphicon-cog{{ span_class }}" style="{{ span_style }}"></span> {{ plugin_data.active | nice_number }}
+										</td>
+										<td class="active" style="text-align: right; padding:5px">
+											{% set span_style = "color: black" if plugin_data['queue'] else "color: darkgrey" %}
+											<span class="glyphicon glyphicon-log-in" style="{{ span_style }}"></span> {{ plugin_data.queue | nice_number }}
+										</td>
+									</tr>
+								{% endif %}
 			    			{% endfor %}
 						</table>			 		
 				 	</div>
