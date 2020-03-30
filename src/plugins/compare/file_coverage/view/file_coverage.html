@@ -29,12 +29,12 @@
         <tr><th colspan="{{ uid_list | length + 1 }}" style="text-align:center;" class="table-active">SSDEEP Similarity</th></tr>
         {% if not result['plugins'][plugin][feature] %}
             <tr>
-                <td colspan="{{ uid_list | length + 1 }}" align="center">No similar files found</td>
+                <td colspan="{{ uid_list | length + 1 }}" style="text-align:center;">No similar files found</td>
             </tr>
         {% endif %}
         {% for match in result['plugins'][plugin][feature] %}
             <tr>
-                <td align="right" class="active">{{ result['plugins'][plugin][feature][match]['similarity'] }}</td>
+                <td style="text-align:right;" class="table-active">{{ result['plugins'][plugin][feature][match]['similarity'] }}</td>
             {% for uid in uid_list %}
                 <td>{{ result['plugins'][plugin][feature][match][uid] | replace_uid_with_hid_link | safe }}</td>
             {% endfor %}
@@ -42,7 +42,7 @@
         {% endfor %}
 
     {% elif feature == 'exclusive_files' %}
-        <td class="active"> {{ feature | replace_underscore }} </td>
+        <td class="table-active"> {{ feature | replace_underscore }} </td>
         {% for firmware_uid in uid_list %}
             {% if firmware_uid != "collapse" %}
             <td>
@@ -71,11 +71,11 @@
 
     {% else %}
         <tr>
-            <td class="active"> {{ feature | replace_underscore }} </td>
+            <td class="table-active"> {{ feature | replace_underscore }} </td>
 
             {# --- all case --- #}
             {% if 'all' in result['plugins'][plugin][feature] %}
-                <td colspan="{{ uid_list | length }}" style="text-align:center;">
+                <td colspan="{{ uid_list | length }}">
                     <div class="list-group">
                         <div role="button" data-toggle="collapse" data-target="#{{ feature + '___all' }}" class="list-group-item list-group-item-primary d-flex justify-content-between align-items-center">
                             show files<span class="badge badge-pill badge-primary">{{ result['plugins'][plugin][feature]['all'] | length }}</span>
@@ -90,7 +90,7 @@
             {# --- individual results --- #}
             {% else %}
                 {% for uid in uid_list %}
-                    <td style="text-align:center;">
+                    <td>
                         <div class="list-group">
                             <div role="button" data-toggle="collapse" data-target="#{{ feature + '___' + uid }}" class="list-group-item list-group-item-primary d-flex justify-content-between align-items-center">
                                 show files<span class="badge badge-pill badge-primary">{{ result['plugins'][plugin][feature][uid] | length }}</span>

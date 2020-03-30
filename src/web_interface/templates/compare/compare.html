@@ -26,7 +26,7 @@
 	
 	{# --- general information --- #}
 		<tr>
-			<th colspan="{{ uid_list | length + 1 }}" class="table-active" style="text-align:center;">General Information</th>
+			<th colspan="{{ uid_list | length + 1 }}" class="table-active" style="text-align:center;">General information</th>
 		</tr>
 		{% for feature in result['general'] | sort %}
 		<tr>
@@ -80,7 +80,7 @@
                                     </div>
                                 </td>
                             {% else %}
-                                <td colspan="{{ uid_list | length }}" style="text-align:center;"> {{ result['plugins'][plugin][feature]['all'] | nice_uid_list | safe }} </td>
+                                <td colspan="{{ uid_list | length }}"> {{ result['plugins'][plugin][feature]['all'] | nice_uid_list | safe }} </td>
                             {% endif %}
 
                         {# --- individual results --- #}

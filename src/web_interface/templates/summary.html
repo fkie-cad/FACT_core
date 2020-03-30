@@ -5,12 +5,12 @@
     </colgroup>
     <thead class="thead-light">
         <tr>
-            <th colspan=2>Summary Including Results of Included Files</th>
+            <th colspan=2>Summary including results of included files</th>
         </tr>
     </thead>
     {% if summary_of_included_files %}
     <tr>
-        <td class="table-secondary">item count</td>
+        <td class="table-secondary">Item count</td>
         <td>{{ summary_of_included_files | length }}
     </tr>
         {% for item in summary_of_included_files | sort %}
@@ -23,7 +23,7 @@
         {% endfor %}
     {% else %}
         <tr>
-            <td class="active result" colspan=2 style="text-align: center">no summary found</td>
+            <td class="table-secondary" colspan=2 style="text-align: center">No summary found</td>
         </tr>
     {% endif %}
 </table>
