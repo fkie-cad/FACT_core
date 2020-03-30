@@ -4,22 +4,23 @@
 
     {% if firmware.processed_analysis[selected_analysis]['init_type'] %}
         <tr>
-            <td class="active result"> Init Type </td>
-            <td class="active result"> {{ firmware.processed_analysis[selected_analysis]['init_type'][0]}} </td>
+            <td class="table-secondary">Init system</td>
+            <td class="table-secondary">{{ firmware.processed_analysis[selected_analysis]['init_type'][0]}}</td>
         </tr>
     {% endif %}
     {% if firmware.processed_analysis[selected_analysis]['description'] %}
         <tr>
-            <td class="active result"> Description </td>
-            <td class="active result"> {{ firmware.processed_analysis[selected_analysis]['description'][0]}} </td>
+            <td>Description</td>
+            <td>{{ firmware.processed_analysis[selected_analysis]['description'][0]}}</td>
         </tr>
     {% endif %}
     {% for key, value in firmware.processed_analysis[selected_analysis].items()|sort %}
         {% if key not in ['summary', 'plugin_version', 'analysis_date', 'init_type', 'description', 'skipped'] %}
             <tr>
-                <td class="active result"> {{key}} </td>
-                <td class="active result">
-                <pre><code>{{ value }}</code></pre></td>
+                <td>{{ key }}</td>
+                <td>
+                    <pre class="border rounded p-2 bg-light" style="white-space: pre-wrap;"><code>{{ value }}</code></pre>
+                </td>
             </tr>
         {% endif %}
     {% endfor %}
