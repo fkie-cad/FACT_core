@@ -6,6 +6,7 @@ from tempfile import TemporaryDirectory
 
 from helperFunctions.uid import create_uid
 from objects.firmware import Firmware
+from flask import escape
 
 OPTIONAL_FIELDS = ['tags', 'device_part']
 DROPDOWN_FIELDS = ['device_class', 'vendor', 'device_name', 'device_part']
@@ -24,7 +25,7 @@ def create_analysis_task(request):
 
 def get_file_name_and_binary_from_request(request):  # pylint: disable=invalid-name
     try:
-        file_name = request.files['file'].filename
+        file_name = escape(request.files['file'].filename)
     except Exception:
         file_name = 'no name'
     file_binary = get_uploaded_file_binary(request.files['file'])
@@ -41,19 +42,19 @@ def create_re_analyze_task(request, uid):
 
 def _get_meta_from_request(request):
     meta = {
-        'device_name': request.form['device_name'],
-        'device_part': request.form['device_part'],
-        'device_class': request.form['device_class'],
-        'vendor': request.form['vendor'],
-        'version': request.form['version'],
-        'release_date': request.form['release_date'],
+        'device_name': escape(request.form['device_name']),
+        'device_part': escape(request.form['device_part']),
+        'device_class': escape(request.form['device_class']),
+        'vendor': escape(request.form['vendor']),
+        'version': escape(request.form['version']),
+        'release_date': escape(request.form['release_date']),
         'requested_analysis_systems': request.form.getlist('analysis_systems'),
-        'tags': request.form['tags']
+        'tags': escape(request.form['tags'])
     }
     _get_meta_from_dropdowns(meta, request)
 
     if 'file_name' in request.form.keys():
-        meta['file_name'] = request.form['file_name']
+        meta['file_name'] = escape(request.form['file_name'])
     return meta
 
 
@@ -62,7 +63,7 @@ def _get_meta_from_dropdowns(meta, request):
         if not meta[item] and item in DROPDOWN_FIELDS:
             dd = request.form['{}_dropdown'.format(item)]
             if dd != 'new entry':
-                meta[item] = dd
+                meta[item] = escape(dd)
 
 
 def _get_tag_list(tag_string):

@@ -1,10 +1,12 @@
 import json
 import os
 import re
+from datetime import timedelta
 from typing import List
 
 from common_helper_files import get_binary_from_file
 from passlib.context import CryptContext
+from si_prefix import si_format
 
 from helperFunctions.fileSystem import get_template_dir
 from helperFunctions.uid import is_uid
@@ -78,3 +80,13 @@ def virtual_path_element_to_span(hid_element: str, uid_element, root_uid) -> str
 
 def split_virtual_path(virtual_path: str) -> List[str]:
     return [element for element in virtual_path.split('|') if element]
+
+
+def format_si_prefix(number: float, unit: str) -> str:
+    return '{number}{unit}'.format(number=si_format(number, precision=2), unit=unit)
+
+
+def format_time(seconds: float):
+    if seconds < 60:
+        return format_si_prefix(seconds, 's')
+    return str(timedelta(seconds=seconds))

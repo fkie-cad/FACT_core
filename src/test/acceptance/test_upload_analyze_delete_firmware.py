@@ -1,37 +1,14 @@
-import os
 import time
-from multiprocessing import Event, Value
 from pathlib import Path
 
 from helperFunctions.database import ConnectTo
 from intercom.front_end_binding import InterComFrontEndBinding
-from storage.db_interface_backend import BackEndDbInterface
 from storage.db_interface_frontend import FrontEndDbInterface
 from storage.fs_organizer import FS_Organizer
-from test.acceptance.base import TestAcceptanceBase
-from test.common_helper import get_test_data_dir
+from test.acceptance.base_full_start import TestAcceptanceBaseFullStart
 
 
-class TestAcceptanceAnalyzeFirmware(TestAcceptanceBase):
-
-    def setUp(self):
-        super().setUp()
-        self.analysis_finished_event = Event()
-        self.elements_finished_analyzing = Value('i', 0)
-        self.db_backend_service = BackEndDbInterface(config=self.config)
-        self._start_backend(post_analysis=self._analysis_callback)
-        time.sleep(2)  # wait for systems to start
-
-    def _analysis_callback(self, fo):
-        self.db_backend_service.add_object(fo)
-        self.elements_finished_analyzing.value += 1
-        if self.elements_finished_analyzing.value == 4 * 2:  # container including 3 files times 2 plugins
-            self.analysis_finished_event.set()
-
-    def tearDown(self):
-        self._stop_backend()
-        self.db_backend_service.shutdown()
-        super().tearDown()
+class TestAcceptanceAnalyzeFirmware(TestAcceptanceBaseFullStart):
 
     def _upload_firmware_get(self):
         rv = self.test_client.get('/upload')
@@ -52,30 +29,12 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBase):
             self.assertIn('value="{}" unchecked'.format(optional_plugin).encode(), rv.data,
                           'optional plugin {} erroneously checked or not found'.format(optional_plugin))
 
-    def _upload_firmware_post(self):
-        testfile_path = os.path.join(get_test_data_dir(), self.test_fw_a.path)
-        with open(testfile_path, 'rb') as fp:
-            data = {
-                'file': (fp, self.test_fw_a.file_name),
-                'device_part': 'test_part',
-                'device_name': 'test_device',
-                'device_class': 'test_class',
-                'version': '1.0',
-                'vendor': 'test_vendor',
-                'release_date': '1970-01-01',
-                'tags': '',
-                'analysis_systems': []
-            }
-            rv = self.test_client.post('/upload', content_type='multipart/form-data', data=data, follow_redirects=True)
-        self.assertIn(b'Upload Successful', rv.data, 'upload not successful')
-        self.assertIn(self.test_fw_a.uid.encode(), rv.data, 'uid not found on upload success page')
-
     def _show_analysis_page(self):
         with ConnectTo(FrontEndDbInterface, self.config) as connection:
             self.assertIsNotNone(connection.firmwares.find_one({'_id': self.test_fw_a.uid}), 'Error: Test firmware not found in DB!')
         rv = self.test_client.get('/analysis/{}'.format(self.test_fw_a.uid))
         self.assertIn(self.test_fw_a.uid.encode(), rv.data)
-        self.assertIn(b'test_device', rv.data)
+        self.assertIn(self.test_fw_a.name.encode(), rv.data)
         self.assertIn(b'test_class', rv.data)
         self.assertIn(b'test_vendor', rv.data)
         self.assertIn(b'test_part', rv.data)
@@ -120,7 +79,7 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBase):
 
     def test_run_from_upload_via_show_analysis_to_delete(self):
         self._upload_firmware_get()
-        self._upload_firmware_post()
+        self.upload_test_firmware(self.test_fw_a)
         self.analysis_finished_event.wait(timeout=15)
         self._show_analysis_page()
         self._show_analysis_details_file_type()

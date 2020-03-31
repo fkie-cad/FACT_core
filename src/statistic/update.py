@@ -1,6 +1,7 @@
 import itertools
 import logging
 import sys
+from collections import Counter
 from datetime import datetime
 from time import time
 
@@ -9,7 +10,7 @@ from common_helper_filter.time import time_format
 from common_helper_mongo import get_field_average, get_field_sum, get_objects_and_count_of_occurrence
 
 from helperFunctions.dataConversion import build_time_dict
-from helperFunctions.merge_generators import sum_up_lists, sum_up_nested_lists, avg, merge_dict
+from helperFunctions.merge_generators import avg, merge_dict, sum_up_lists, sum_up_nested_lists
 from helperFunctions.mongo_task_conversion import is_sanitized_entry
 from helperFunctions.statistic import calculate_total_files
 from storage.db_interface_statistic import StatisticDbUpdater
@@ -68,7 +69,7 @@ class StatisticUpdater:
                 pipeline_group={'_id': '$_id', 'size': {'$push': '$size'}},
                 additional_projection={'size': 1}
             )
-            query_result = [item['size'][0] for item in self.db.file_objects.aggregate(aggregation_pipeline)]
+            query_result = [item['size'][0] for item in self.db.file_objects.aggregate(aggregation_pipeline, allowDiskUse=True)]
             stats['number_of_unique_files'] = len(query_result)
             stats['total_file_size'] = sum(query_result)
             stats['average_file_size'] = avg(query_result)
@@ -81,8 +82,7 @@ class StatisticUpdater:
 
     def get_malware_stats(self):
         stats = {}
-        result = self._get_objects_and_count_of_occurrence_firmware_and_file_db(
-            '$processed_analysis.malware_scanner.scans.ClamAV.result', unwind=False, match=self.match)
+        result = self._get_objects_and_count_of_occurrence('$processed_analysis.malware_scanner.scans.ClamAV.result', unwind=False, match=self.match)
         stats['malware'] = self._clean_malware_list(result)
         return stats
 
@@ -96,7 +96,7 @@ class StatisticUpdater:
             additional_projection={'processed_analysis.exploit_mitigations.summary': 1})
 
         result_list_of_lists = [list(itertools.chain.from_iterable(d['exploit_mitigations']))
-                                for d in self.db.file_objects.aggregate(aggregation_pipeline)]
+                                for d in self.db.file_objects.aggregate(aggregation_pipeline, allowDiskUse=True)]
         result_flattened = list(itertools.chain.from_iterable(result_list_of_lists))
         result = self._count_occurrences(result_flattened)
         self.get_stats_nx(result, stats)
@@ -180,8 +180,7 @@ class StatisticUpdater:
 
     @staticmethod
     def extract_mitigation_from_list(string, result):
-        exploit_mitigation_stat = list(filter(lambda x: x.count(string) > 0, result))
-        return exploit_mitigation_stat
+        return [entry for entry in result if string in entry]
 
     def update_result_dict(self, exploit_mitigation, stats, total_amount_of_files):
         if len(exploit_mitigation) > 0 and total_amount_of_files > 0:
@@ -197,15 +196,13 @@ class StatisticUpdater:
 
     def get_known_vulnerabilities_stats(self):
         stats = {}
-        result = self._get_objects_and_count_of_occurrence_firmware_and_file_db(
-            '$processed_analysis.known_vulnerabilities.summary', unwind=True, match=self.match)
+        result = self._get_objects_and_count_of_occurrence('$processed_analysis.known_vulnerabilities.summary', unwind=True, match=self.match)
         stats['known_vulnerabilities'] = self._clean_malware_list(result)
         return stats
 
     def get_crypto_material_stats(self):
         stats = {}
-        result = self._get_objects_and_count_of_occurrence_firmware_and_file_db(
-            '$processed_analysis.crypto_material.summary', unwind=True, match=self.match)
+        result = self._get_objects_and_count_of_occurrence('$processed_analysis.crypto_material.summary', unwind=True, match=self.match)
         stats['crypto_material'] = result
         return stats
 
@@ -234,10 +231,10 @@ class StatisticUpdater:
         fo_packing_stats = dict(self._get_objects_and_count_of_occurrence_single_db(self.db.file_objects, '$processed_analysis.unpacker.summary', unwind=True))
         firmware_packing_stats = dict(self._get_objects_and_count_of_occurrence_single_db(self.db.file_objects, '$processed_analysis.unpacker.summary', unwind=True))
         return {
-            'used_unpackers': self._get_objects_and_count_of_occurrence_firmware_and_file_db('$processed_analysis.unpacker.plugin_used'),
+            'used_unpackers': self._get_objects_and_count_of_occurrence('$processed_analysis.unpacker.plugin_used'),
             'packed_file_types': self._get_objects_and_count_of_occurrence_single_db(
                 self.db.file_objects, '$processed_analysis.file_type.mime', match={'processed_analysis.unpacker.summary': 'packed'}),
-            'data_loss_file_types': self._get_objects_and_count_of_occurrence_firmware_and_file_db(
+            'data_loss_file_types': self._get_objects_and_count_of_occurrence(
                 '$processed_analysis.file_type.mime', match={'processed_analysis.unpacker.summary': 'data lost'}),
             'overall_unpack_ratio': self._get_ratio(fo_packing_stats, firmware_packing_stats, ['unpacked', 'packed']),
             'overall_data_loss_ratio': self._get_ratio(fo_packing_stats, firmware_packing_stats, ['data lost', 'no data lost']),
@@ -273,53 +270,54 @@ class StatisticUpdater:
             pipeline_match={'processed_analysis.cpu_architecture.summary': {'$exists': True, '$not': {'$size': 0}}},
             additional_projection={'processed_analysis.cpu_architecture.summary': 1}
         )
-        result = [self._shorten_architecture_string(self._find_most_frequent_architecture(list(itertools.chain.from_iterable(item['architecture']))))
-                  for item in self.db.file_objects.aggregate(aggregation_pipeline)]
+        query_result = self.db.file_objects.aggregate(aggregation_pipeline, allowDiskUse=True)
+        result = [
+            self._shorten_architecture_string(self._find_most_frequent_architecture(list(itertools.chain.from_iterable(item['architecture']))))
+            for item in query_result
+        ]
         return {'cpu_architecture': self._count_occurrences(result)}
 
     def _find_most_frequent_architecture(self, arch_list):
         try:
             arch_frequency = sorted(self._count_occurrences(arch_list), key=lambda x: x[1], reverse=True)
             return arch_frequency[0][0]
-        except Exception as e:
-            logging.error('Could not get arch frequency: {} {}'.format(sys.exc_info()[0].__name__, e))
+        except (AttributeError, KeyError, TypeError) as exception:
+            logging.error('Could not get arch frequency: {} {}'.format(sys.exc_info()[0].__name__, exception))
             return None
 
     @staticmethod
-    def _count_occurrences(l):
-        return [(item, l.count(item)) for item in set(l)]
+    def _count_occurrences(result_list):
+        return list(Counter(result_list).items())
 
     @staticmethod
-    def _shorten_architecture_string(s):
-        if s is None:
+    def _shorten_architecture_string(string):
+        if string is None:
             return None
-        logging.debug(s)
-        string_parts = s.split(',')[:2]
+        logging.debug(string)
+        string_parts = string.split(',')[:2]
         if len(string_parts) > 1:
             # long string with bitness and endianness and ' (M)' at the end
-            return ','.join(s.split(',')[:2])
+            return ','.join(string.split(',')[:2])
         # short string (without bitness and endianness but with ' (M)' at the end)
-        return s[:-4]
+        return string[:-4]
 
     def get_ip_stats(self):
         return {
-            'ips_v4': self._get_objects_and_count_of_occurrence_firmware_and_file_db(
+            'ips_v4': self._get_objects_and_count_of_occurrence(
                 '$processed_analysis.ip_and_uri_finder.ips_v4', unwind=True, sumup_function=sum_up_nested_lists),
-            'ips_v6': self._get_objects_and_count_of_occurrence_firmware_and_file_db(
+            'ips_v6': self._get_objects_and_count_of_occurrence(
                 '$processed_analysis.ip_and_uri_finder.ips_v6', unwind=True, sumup_function=sum_up_nested_lists),
-            'uris': self._get_objects_and_count_of_occurrence_firmware_and_file_db(
-                '$processed_analysis.ip_and_uri_finder.uris', unwind=True)
+            'uris': self._get_objects_and_count_of_occurrence('$processed_analysis.ip_and_uri_finder.uris', unwind=True)
         }
 
     @staticmethod
     def _get_ratio(fo_stats, firmware_stats, values):
         for stats in [fo_stats, firmware_stats]:
-            for v in values:
-                if v not in stats:
-                    stats[v] = 0
+            for value in values:
+                stats.setdefault(value, 0)
         try:
-            return (fo_stats[values[0]] + firmware_stats[values[0]]) / \
-                   (fo_stats[values[0]] + fo_stats[values[1]] + firmware_stats[values[0]] + firmware_stats[values[1]])
+            sum_ = fo_stats[values[0]] + fo_stats[values[1]] + firmware_stats[values[0]] + firmware_stats[values[1]]
+            return (fo_stats[values[0]] + firmware_stats[values[0]]) / sum_
         except ZeroDivisionError:
             return 0
 
@@ -339,7 +337,7 @@ class StatisticUpdater:
             {'$match': {'sc.4': {'$exists': True}}},  # match only analyses with actual results (more keys than the 4 standard keys)
             {'$unwind': '$sc'},
             {'$group': {'_id': '$sc.k', 'count': {'$sum': 1}}}
-        ])
+        ], allowDiskUse=True)
 
         return {'software_components': [
             (entry['_id'], int(entry['count']))
@@ -371,13 +369,13 @@ class StatisticUpdater:
             aggregation_pipeline = self._get_file_object_filter_aggregation_pipeline(
                 pipeline_group={'_id': object_path, 'count': {'$sum': 1}}, pipeline_match=match, sort=True,
                 additional_projection={object_path.replace('$', ''): 1}, unwind=object_path if unwind else None)
-            tmp = database.aggregate(aggregation_pipeline)
+            tmp = database.aggregate(aggregation_pipeline, allowDiskUse=True)
         else:
             tmp = get_objects_and_count_of_occurrence(database, object_path, unwind=unwind, match=merge_dict(match, self.match))
         chart_list = self._convert_dict_list_to_list(tmp)
         return self._filter_sanitized_objects(chart_list)
 
-    def _get_objects_and_count_of_occurrence_firmware_and_file_db(self, object_path, unwind=False, match=None, sumup_function=sum_up_lists):
+    def _get_objects_and_count_of_occurrence(self, object_path, unwind=False, match=None, sumup_function=sum_up_lists):
         result_firmwares = self._get_objects_and_count_of_occurrence_single_db(self.db.firmwares, object_path, unwind=unwind, match=match)
         result_files = self._get_objects_and_count_of_occurrence_single_db(self.db.file_objects, object_path, unwind=unwind, match=match)
         combined_result = sumup_function(result_firmwares, result_files)

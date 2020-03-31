@@ -2,10 +2,9 @@
 
 {% set active_page = "Database" %}
 
-
 {% block styles %}
 {% if result is none %}
-    <meta http-equiv="refresh" content="10 URL=/database/database_binary_search_results.html?request_id={{ request_id }}">
+    <meta http-equiv="refresh" content="10 URL=/database/database_binary_search_results.html?request_id={{ request_id }}&only_firmware={{ only_firmware }}">
 {% endif %}
 {% endblock %}
 
@@ -13,11 +12,11 @@
 
 <div class="row justify-content-center">
     <div class="col-lg-8 mt-4">
-        <h3 class="mb-3">Binary Search Results</h3>
+        <h3 class="mb-3">Binary Pattern Search Results</h3>
         <div class="list-group">
             {% if yara_rules %}
                 <button data-toggle="collapse" data-target="#yara_rules" class="list-group-item list-group-item-primary">
-                    Show Yara Rules
+                    Show yara rules
                 </button>
                 <div id="yara_rules" class="collapse">
                     <pre class="border rounded p-2 bg-light">{{ yara_rules }}</pre>
@@ -25,34 +24,6 @@
             {% endif %}
             {% if error %}
                 <h3>Error: {{ error }}</h3>
-            {% elif result == {} %}
-                <h3 style="color: red">No results found in the database</h3>
-            {% elif result %}
-                {% for rule in result %}
-                    <button data-toggle="collapse" data-target="#id_{{rule}}" class="list-group-item list-group-item-success">
-                        <div class="d-flex justify-content-between align-items-center">
-                            Results for signature "{{ rule }}"
-                            <span class="badge badge-pill badge-success">{{ result[rule] | length }}</span>
-                        </div>
-                    </button>
-                    <div id="id_{{rule}}" class="collapse">
-                        <table class="table table-responsive table-hover table-bordered">
-                            {% for firmware in result[rule] %}
-                                <tr>
-                                    <td class="clickable" onclick="location.href='/analysis/{{ firmware[0] }}'">
-                                        <a href='/analysis/{{ firmware[0] }}' style="color: rgb(51, 51, 51);">
-                                            <div class="d-flex justify-content-between align-items-center" style="font-size: 14px">
-                                                {{ firmware[1] }}
-                                                {{ firmware[2] | render_tags(size=11) | safe}}
-                                            </div>
-                                        </a>
-                                        <span style="font-family: monospace; font-size:12px">{{ firmware[0] }}</span>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </table>
-                    </div>
-                {% endfor %}
             {% else %}
                 <div class="alert alert-primary">
                     <i class="fas fa-sync-alt fa-spin"></i>

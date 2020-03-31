@@ -8,11 +8,11 @@
 <div class="row justify-content-center">
 
     <div class="col-xl-6 col-lg-8 mt-4">
-        <h3 class="mb-3">Binary Search</h3>
+        <h3 class="mb-3">Binary Pattern Search</h3>
         <form class="form-horizontal" action="" method=post enctype=multipart/form-data>
 
             <script>
-                function openCity(evt, tabname) {
+                function switchTab(evt, tabname) {
                     let i, tabcontent, tablinks;
                     tabcontent = document.getElementsByClassName("tab-content");
                     for (i = 0; i < tabcontent.length; i++) {
@@ -40,12 +40,12 @@
 
             <ul class="nav nav-tabs mb-4">
                 <li class="nav-item">
-                    <a class="nav-link active" href="#" onclick="openCity(event, 'fromFile')">
+                    <a class="nav-link active" href="#" onclick="switchTab(event, 'fromFile')">
                         From File
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#" onclick="openCity(event, 'fromText')">
+                    <a class="nav-link" href="#" onclick="switchTab(event, 'fromText')">
                         From Text
                     </a>
                 </li>
@@ -53,14 +53,14 @@
 
             <div class="col-lg-8">
                 <div class="form-group tab-content" id="fromFile">
-                    <label for="selectFile">Yara Rule File:</label><br />
+                    <label for="selectFile">Yara rule file:</label><br />
                     <input id="selectFile" type="file" name="file">
                 </div>
             </div>
 
             <div class="col-lg-8">
                 <div class="form-group tab-content" id="fromText" style="display: none;">
-                        <label class="control-label" for="textarea">Yara Rule:</label><br />
+                        <label class="control-label" for="textarea">Yara rule:</label><br />
                     <div class="clear">
                         <textarea name="textarea" rows="5" style="resize: vertical; position: relative; z-index: 1;"
                         class="form-control" id="textarea"></textarea>
@@ -68,8 +68,10 @@
                 </div>
             </div>
             <div class="col-lg-5 my-2">
-                <label><input type='checkbox' name="firmware_checkbox" id="firmware_checkbox" onclick='clickCheckbox(this);'> Scan Single Firmware</label>
+                <label><input type='checkbox' name="firmware_checkbox" id="firmware_checkbox" onclick='clickCheckbox(this);'> scan single firmware</label>
                 <input name="firmware_uid" type="text" class="form-control" id="firmware_uid_input" placeholder="Firmware UID" style="display: none;">
+                <br />
+                <label><input type="checkbox" name="only_firmware" value="True"> show parent firmware instead of matching file</label>
             </div>
 
             {% if error %}

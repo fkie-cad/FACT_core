@@ -18,7 +18,7 @@ from web_interface.security.authentication import user_has_privilege
 from web_interface.security.privileges import PRIVILEGES
 
 
-def generic_nice_representation(i):
+def generic_nice_representation(i):  # pylint: disable=too-many-return-statements
     if isinstance(i, struct_time):
         return strftime('%Y-%m-%d - %H:%M:%S', i)
     if isinstance(i, list):
@@ -223,7 +223,7 @@ def data_to_chart_limited(data, limit=10, color_list=None):
     return result
 
 
-def data_to_chart_with_value_percentage_pairs(data, limit=10, color_list=None):
+def data_to_chart_with_value_percentage_pairs(data, limit=10, color_list=None):  # pylint: disable=invalid-name
     try:
         label_list, value_list, percentage_list = [list(d) for d in zip(*data)]
     except ValueError:
@@ -333,7 +333,7 @@ def sort_roles_by_number_of_privileges(roles, privileges=None):
     return sorted(roles, key=lambda role: len(inverted_privileges[role]))
 
 
-def filter_format_string_list_with_offset(offset_tuples):
+def filter_format_string_list_with_offset(offset_tuples):  # pylint: disable=invalid-name
     max_offset_len = len(str(max(list(zip(*offset_tuples))[0]))) if offset_tuples else 0
     lines = [
         '{0: >{width}}: {1}'.format(offset, repr(string)[1:-1], width=max_offset_len)
@@ -357,3 +357,7 @@ def get_unique_keys_from_list_of_dicts(list_of_dicts: List[dict]):
         for key in dictionary:
             unique_keys.add(key)
     return unique_keys
+
+
+def is_not_manditory_analysis_entry(item):
+    return item not in ['analysis_date', 'plugin_version', 'skipped', 'summary', 'system_version', 'tags']

@@ -175,6 +175,12 @@ class DatabaseMock:  # pylint: disable=too-many-public-methods
             {'time': str(time), 'author': author, 'comment': comment}
         )
 
+    def add_to_search_query_cache(self, search_query: str, query_title: str = None) -> str:
+        return '0000000000000000000000000000000000000000000000000000000000000000_0'
+
+    def get_query_from_cache(self, query_uid):
+        return {'search_query': '{{"_id": "{}"}}'.format(format(TEST_FW_2.uid)), 'query_title': 'test'}
+
     class firmwares:  # pylint: disable=invalid-name
         @staticmethod
         def find_one(uid):
@@ -406,6 +412,8 @@ def get_config_for_testing(temp_dir=None):
     config.set('ExpertSettings', 'authentication', 'false')
     config.set('ExpertSettings', 'intercom_poll_delay', '0.5')
     config.set('ExpertSettings', 'nginx', 'false')
+    config.add_section('database')
+    config.set('database', 'results_per_page', '10')
     load_users_from_main_config(config)
     config.add_section('Logging')
     if temp_dir is not None:

@@ -109,8 +109,8 @@ class UnpackingScheduler:
 
     def _get_combined_analysis_workload(self):
         if self.get_analysis_workload is not None:
-            current_analysis_workload = self.get_analysis_workload()
-            return sum(current_analysis_workload.values())
+            workload = self.get_analysis_workload()
+            return sum([entry['queue'] for entry in workload['plugins'].values()]) + workload['analysis_main_scheduler']
         return 0
 
     def check_exceptions(self):
