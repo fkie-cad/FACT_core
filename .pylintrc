@@ -173,7 +173,7 @@ logging-modules=logging
 [FORMAT]
 
 # Maximum number of characters on a single line.
-max-line-length=250
+max-line-length=200
 
 # Regexp for a line that is allowed to be longer than the limit.
 ignore-long-lines=^\s*(# )?<?https?://\S+>?$

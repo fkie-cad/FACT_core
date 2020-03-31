@@ -29,17 +29,12 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBaseFullStart):
             self.assertIn('value="{}" unchecked'.format(optional_plugin).encode(), rv.data,
                           'optional plugin {} erroneously checked or not found'.format(optional_plugin))
 
-    def _upload_firmware_post(self):
-        rv = self.upload_test_firmware()
-        self.assertIn(b'Upload Successful', rv.data, 'upload not successful')
-        self.assertIn(self.test_fw_a.uid.encode(), rv.data, 'uid not found on upload success page')
-
     def _show_analysis_page(self):
         with ConnectTo(FrontEndDbInterface, self.config) as connection:
             self.assertIsNotNone(connection.firmwares.find_one({'_id': self.test_fw_a.uid}), 'Error: Test firmware not found in DB!')
         rv = self.test_client.get('/analysis/{}'.format(self.test_fw_a.uid))
         self.assertIn(self.test_fw_a.uid.encode(), rv.data)
-        self.assertIn(b'test_device', rv.data)
+        self.assertIn(self.test_fw_a.name.encode(), rv.data)
         self.assertIn(b'test_class', rv.data)
         self.assertIn(b'test_vendor', rv.data)
         self.assertIn(b'test_part', rv.data)
@@ -84,7 +79,7 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBaseFullStart):
 
     def test_run_from_upload_via_show_analysis_to_delete(self):
         self._upload_firmware_get()
-        self._upload_firmware_post()
+        self.upload_test_firmware(self.test_fw_a)
         self.analysis_finished_event.wait(timeout=15)
         self._show_analysis_page()
         self._show_analysis_details_file_type()

@@ -82,8 +82,16 @@ class DatabaseRoutes(ComponentBase):
             vendors = connection.get_vendor_list()
 
         pagination = self._get_pagination(page=page, per_page=per_page, total=total, record_name='firmwares', )
-        return render_template('database/database_browse.html', firmware_list=firmware_list, page=page, per_page=per_page, pagination=pagination,
-                               device_classes=device_classes, vendors=vendors, current_class=str(request.args.get('device_class')), current_vendor=str(request.args.get('vendor')), search_parameters=search_parameters)
+        return render_template('database/database_browse.html',
+                               firmware_list=firmware_list,
+                               page=page,
+                               per_page=per_page,
+                               pagination=pagination,
+                               device_classes=device_classes,
+                               vendors=vendors,
+                               current_class=str(request.args.get('device_class')),
+                               current_vendor=str(request.args.get('vendor')),
+                               search_parameters=search_parameters)
 
     def _get_search_parameters(self, query, only_firmware):
         search_parameters = dict()
@@ -208,7 +216,7 @@ class DatabaseRoutes(ComponentBase):
             elif result is not None:
                 yara_rules = make_unicode_string(yara_rules[0])
                 joined_results = self._join_results(result)
-                query_uid = self._do_binary_search_query(joined_results, yara_rules)
+                query_uid = self._store_binary_search_query(joined_results, yara_rules)
                 return redirect(url_for('database/browse', query=query_uid, only_firmwares=request.args.get('only_firmware')))
         else:
             error = 'No request ID found'
@@ -216,7 +224,7 @@ class DatabaseRoutes(ComponentBase):
         return render_template('database/database_binary_search_results.html', result=firmware_dict, error=error,
                                request_id=request_id, yara_rules=yara_rules)
 
-    def _do_binary_search_query(self, binary_search_results: list, yara_rules: str) -> str:
+    def _store_binary_search_query(self, binary_search_results: list, yara_rules: str) -> str:
         query = '{"_id": {"$in": ' + str(binary_search_results).replace('\'', '"') + '}}'
         with ConnectTo(FrontendEditingDbInterface, self._config) as connection:
             query_uid = connection.add_to_search_query_cache(query, query_title=yara_rules)

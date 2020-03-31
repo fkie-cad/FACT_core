@@ -55,12 +55,11 @@ class TestStorageDbInterfaceFrontendEditing(unittest.TestCase):
         test_fw = self._add_test_fw_with_comments_to_db()
         latest_comments = self.db_frontend_interface.get_latest_comments()
         comments.sort(key=lambda x: x['time'], reverse=True)
-        for i in range(len(comments)):  # pylint: disable=consider-using-enumerate
-            time, author, comment, uid = comments[i]['time'], comments[i]['author'], comments[i]['comment'], test_fw.uid
-            self.assertEqual(latest_comments[i]['time'], time)
-            self.assertEqual(latest_comments[i]['author'], author)
-            self.assertEqual(latest_comments[i]['comment'], comment)
-            self.assertEqual(latest_comments[i]['uid'], uid)
+        for i, comment in enumerate(comments):
+            assert latest_comments[i]['time'] == comment['time']
+            assert latest_comments[i]['author'] == comment['author']
+            assert latest_comments[i]['comment'] == comment['comment']
+            assert latest_comments[i]['uid'] == test_fw.uid
 
     def test_remove_element_from_array_in_field(self):
         test_fw = self._add_test_fw_with_comments_to_db()
@@ -104,8 +103,8 @@ class TestStorageDbInterfaceFrontendEditing(unittest.TestCase):
     def test_add_to_search_query_cache(self):
         query = '{"device_class": "Router"}'
         uid = create_uid(query)
-        assert self.db_frontend_editing.add_to_search_query_cache('{"device_class": "Router"}') == uid
+        assert self.db_frontend_editing.add_to_search_query_cache(query) == uid
         assert self.db_frontend_editing.search_query_cache.find_one({'_id': uid})['search_query'] == query
         # check what happens if search is added again
-        assert self.db_frontend_editing.add_to_search_query_cache('{"device_class": "Router"}') == uid
+        assert self.db_frontend_editing.add_to_search_query_cache(query) == uid
         assert self.db_frontend_editing.search_query_cache.count_documents({'_id': uid}) == 1

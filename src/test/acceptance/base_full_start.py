@@ -9,12 +9,16 @@ from test.common_helper import get_test_data_dir
 
 class TestAcceptanceBaseFullStart(TestAcceptanceBase):
 
+    NUMBER_OF_FILES_TO_ANALYZE = 4
+    NUMBER_OF_PLUGINS = 2
+
     def setUp(self):
         super().setUp()
         self.analysis_finished_event = Event()
+        self.compare_finished_event = Event()
         self.elements_finished_analyzing = Value('i', 0)
         self.db_backend_service = BackEndDbInterface(config=self.config)
-        self._start_backend(post_analysis=self._analysis_callback)
+        self._start_backend(post_analysis=self._analysis_callback, compare_callback=self._compare_callback)
         time.sleep(2)  # wait for systems to start
 
     def tearDown(self):
@@ -25,16 +29,19 @@ class TestAcceptanceBaseFullStart(TestAcceptanceBase):
     def _analysis_callback(self, fo):
         self.db_backend_service.add_object(fo)
         self.elements_finished_analyzing.value += 1
-        if self.elements_finished_analyzing.value == 4 * 2:  # container including 3 files times 2 plugins
+        if self.elements_finished_analyzing.value == self.NUMBER_OF_FILES_TO_ANALYZE * self.NUMBER_OF_PLUGINS:
             self.analysis_finished_event.set()
 
-    def upload_test_firmware(self):
-        testfile_path = Path(get_test_data_dir()) / self.test_fw_a.path
+    def _compare_callback(self):
+        self.compare_finished_event.set()
+
+    def upload_test_firmware(self, test_fw):
+        testfile_path = Path(get_test_data_dir()) / test_fw.path
         with open(str(testfile_path), 'rb') as fp:
             data = {
-                'file': (fp, self.test_fw_a.file_name),
+                'file': (fp, test_fw.file_name),
+                'device_name': test_fw.name,
                 'device_part': 'test_part',
-                'device_name': 'test_device',
                 'device_class': 'test_class',
                 'version': '1.0',
                 'vendor': 'test_vendor',
@@ -42,4 +49,6 @@ class TestAcceptanceBaseFullStart(TestAcceptanceBase):
                 'tags': '',
                 'analysis_systems': []
             }
-            return self.test_client.post('/upload', content_type='multipart/form-data', data=data, follow_redirects=True)
+            rv = self.test_client.post('/upload', content_type='multipart/form-data', data=data, follow_redirects=True)
+        self.assertIn(b'Upload Successful', rv.data, 'upload not successful')
+        self.assertIn(test_fw.uid.encode(), rv.data, 'uid not found on upload success page')
