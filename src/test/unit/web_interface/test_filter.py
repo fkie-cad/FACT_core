@@ -8,12 +8,12 @@ import pytest
 from web_interface.filter import (
     _get_sorted_list, byte_number_filter, comment_out_regex_meta_chars, data_to_chart_limited,
     data_to_chart_with_value_percentage_pairs, decompress, encode_base64_filter, filter_format_string_list_with_offset,
-    fix_cwe, generic_nice_representation, get_all_uids_in_string, get_unique_keys_from_list_of_dicts, infection_color,
-    is_not_manditory_analysis_entry, list_to_line_break_string, list_to_line_break_string_no_sort, nice_list,
-    nice_number_filter, nice_unix_time, render_analysis_tags, render_tags, replace_underscore_filter,
-    set_limit_for_data_to_chart, sort_chart_list_by_name, sort_chart_list_by_value, sort_comments,
-    sort_roles_by_number_of_privileges, sort_users_by_name, text_highlighter, uids_to_link, user_has_role,
-    vulnerability_class
+    fix_cwe, fix_uid_for_collapse_id, generic_nice_representation, get_all_uids_in_string,
+    get_unique_keys_from_list_of_dicts, infection_color, is_not_manditory_analysis_entry, list_to_line_break_string,
+    list_to_line_break_string_no_sort, nice_list, nice_number_filter, nice_unix_time, render_analysis_tags, render_tags,
+    replace_underscore_filter, set_limit_for_data_to_chart, sort_chart_list_by_name, sort_chart_list_by_value,
+    sort_comments, sort_roles_by_number_of_privileges, sort_users_by_name, text_highlighter, uids_to_link,
+    user_has_role, vulnerability_class
 )
 
 UNSORTABLE_LIST = [[], ()]
@@ -351,3 +351,12 @@ def test_comment_out_regex_meta_chars(input_data, expected_result):
 ])
 def test_is_not_mandatory_analysis_entry(input_data, expected_result):
     assert is_not_manditory_analysis_entry(input_data) is expected_result
+
+
+def test_fix_uid_for_collapse():
+    non_leading_number_uid = '{}_0'.format(32 * 'A')
+    assert fix_uid_for_collapse_id(non_leading_number_uid) == non_leading_number_uid
+
+    leading_number_uid = '{}_0'.format(32 * '1')
+    assert fix_uid_for_collapse_id(leading_number_uid) != leading_number_uid
+    assert fix_uid_for_collapse_id(leading_number_uid).startswith('collapse_')

@@ -361,3 +361,9 @@ def get_unique_keys_from_list_of_dicts(list_of_dicts: List[dict]):
 
 def is_not_manditory_analysis_entry(item):
     return item not in ['analysis_date', 'plugin_version', 'skipped', 'summary', 'system_version', 'tags']
+
+
+def fix_uid_for_collapse_id(uid):
+    if uid and uid[0] in '0123456789_':
+        return 'collapse_id_{}'.format(uid)
+    return uid
