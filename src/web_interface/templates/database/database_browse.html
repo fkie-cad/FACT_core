@@ -57,6 +57,16 @@
     <div class="control-group"></div>
     <div class="col-xs-12" style="height:25px;"></div>
 
+	{% if search_parameters['query_title'] %}
+    <div class="col-md-8 col-md-offset-2 col-lg-8 col-lg-offset-2">
+	        <button data-toggle="collapse" data-target="#search_query" class="list-group-item list-group-item-info">
+            	Show Search Query <span class="badge">{% if search_parameters['only_firmware'] %}Firmware{% else %}File{% endif %} Search</span>
+        	</button>
+        <div id="search_query" class="collapse">
+            <pre>{{ search_parameters['query_title'] }}</pre>
+        </div>
+	</div>
+	{% endif %}
     <div class="col-md-8 col-md-offset-2 col-lg-8 col-lg-offset-2">
 
         <table class="table table-responsive table-hover table-bordered" style="border-spacing: 10px;">

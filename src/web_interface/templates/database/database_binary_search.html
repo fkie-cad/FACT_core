@@ -8,7 +8,7 @@
 <div class="row">
 
     <div class="col-md-offset-2 col-md-8">
-        <h2>Binary Search</h2>
+        <h2>Binary Pattern Search</h2>
         <form class="form-horizontal" action="" method=post enctype=multipart/form-data>
 
             <script>
@@ -78,8 +78,10 @@
                 </div>
             </div>
             <div class="col-md-offset-2 col-md-8 col-xs-12" style="padding-bottom: 15px">
-                <label><input type='checkbox' name="firmware_checkbox" id="firmware_checkbox" onclick='clickCheckbox(this);'> Scan Single Firmware</label>
+                <label><input type='checkbox' name="firmware_checkbox" id="firmware_checkbox" onclick='clickCheckbox(this);'> scan single firmware</label>
                 <input name="firmware_uid" type="text" class="form-control" id="firmware_uid_input" placeholder="Firmware UID" style="display: none;">
+                <br />
+                <label><input type="checkbox" name="only_firmware" value="True"> show parent firmware instead of matching file </label>
             </div>
 
             {% if error %}

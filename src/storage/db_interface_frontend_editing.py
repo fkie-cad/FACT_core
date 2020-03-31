@@ -1,3 +1,9 @@
+from contextlib import suppress
+from typing import Optional
+
+from pymongo.errors import DuplicateKeyError
+
+from helperFunctions.uid import create_uid
 from storage.db_interface_common import MongoInterfaceCommon
 
 
@@ -33,3 +39,9 @@ class FrontendEditingDbInterface(MongoInterfaceCommon):
 
     def delete_comment(self, uid, timestamp):
         self.remove_element_from_array_in_field(uid, 'comments', {'time': timestamp})
+
+    def add_to_search_query_cache(self, search_query: str, query_title: Optional[str] = None) -> str:
+        query_uid = create_uid(search_query)
+        with suppress(DuplicateKeyError):
+            self.search_query_cache.insert_one({'_id': query_uid, 'search_query': search_query, 'query_title': query_title})
+        return query_uid
