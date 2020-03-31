@@ -5,14 +5,13 @@
 
 {% block body %}
 
-<div class="col-sm-offset-1 col-sm-10">
-
-    <div class="row" style="margin-bottom: 16px">
-        {% if missing_files.count -%}
-            <h2>{{ missing_files.count | nice_number }} Missing Files</h2>
+<div class="row justify-content-center">
+    <div class="col-xl-8 col-lg-12">
+        {% if missing_files.count %}
+            <h3 class="mt-4">{{ missing_files.count | nice_number }} Missing Files</h3>
             <h6>took {{ missing_files.duration }} to generate</h6>
-            <table class="table table-bordered table-hover">
-                <tr class="success">
+            <table class="table table-bordered">
+                <tr class="table-success">
                     <th style="width: 50%">Parent Object UID</th>
                     <th>Missing File UID</th>
                 </tr>
@@ -23,30 +22,32 @@
                     </td>
                     <td>
                         <button data-toggle="collapse" data-target="#{{ parent_uid }}" class="list-group-item list-group-item-info">
-                            <span class="badge">{{ uid_list | length }}</span> show files
+                            <span class="badge badge-primary">{{ uid_list | length }}</span> show files
                         </button>
                         <div id="{{ parent_uid }}" class="collapse">
                             <ul style="margin-top: 5px">
-                                {% for uid in uid_list -%}
-                                <li>{{ uid }}</li>
-                                {%- endfor %}
+                                {% for uid in uid_list %}
+                                    <li>{{ uid }}</li>
+                                {% endfor %}
                             </ul>
                         </div>
                     </td>
                 </tr>
-                {%- endfor %}
+                {% endfor %}
             </table>
-        {%- else %}
-            <h2>No missing files found <span class="glyphicon glyphicon-ok"></span></h2>
-        {%- endif %}
+        {% else %}
+            <h3 class="mt-4">No missing files found <span class="fas fa-check"></span></h3>
+        {% endif %}
     </div>
+</div>
 
-    <div class="row" style="margin-bottom: 16px">
+<div class="row justify-content-center">
+    <div class="col-xl-8 col-lg-12">
         {% if missing_analyses.count -%}
-            <h2>{{ missing_analyses.count | nice_number }} Missing Analyses</h2>
+            <h3 class="mt-4">{{ missing_analyses.count | nice_number }} Missing Analyses</h3>
             <h6>took {{ missing_analyses.duration }} to generate</h6>
-            <table class="table table-bordered table-hover">
-                <tr class="success">
+            <table class="table table-bordered">
+                <tr class="table-success">
                     <th style="width: 50%">Parent Firmware UID</th>
                     <th>Files Missing Analyses</th>
                 </tr>
@@ -62,10 +63,9 @@
                 {%- endfor %}
             </table>
         {%- else %}
-            <h2>No missing analyses found <span class="glyphicon glyphicon-ok"></span></h2>
+            <h3 class="mt-4">No missing analyses found <span class="fas fa-check"></span></h3>
         {%- endif %}
     </div>
-
 </div>
 
 {% endblock %}
