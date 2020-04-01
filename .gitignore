@@ -27,13 +27,13 @@ src/plugins/analysis/qemu_exec/**/lib
 src/test_unittests/data/arch_detection/
 src/web_interface/static/Chart.js
 src/web_interface/static/angular.min.js
-src/web_interface/static/bootstrap
 src/web_interface/static/bootstrap3-editable
 src/web_interface/static/entropy
 src/web_interface/static/google_charts
 src/web_interface/static/highlight.js
-src/web_interface/static/jstree*
 src/web_interface/static/raw
+src/web_interface/static/web_css
+src/web_interface/static/web_js
 start_all_installed_fact_components
 start_all_installed_faf_components
 start_fact_backend
