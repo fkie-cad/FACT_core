@@ -5,14 +5,14 @@
 {% block body %}
     <div class="row justify-content-center mt-4">
 
-    	<div class="p-2" style="max-width: 445px;">
+    	<div class="p-2">
             <center>
-                <img width="100%" height="auto" src="{{ url_for('static', filename='fact_logo.png') }}">
+                <img width="100%" height="auto" src="{{ url_for('static', filename='fact_logo.png') }}" style="max-width: 445px;">
 
                 <br /><br />
 
                 <h4 class="mb-3">General Facts</h4>
-                <table class="table table-sm table-responsive">
+                <table class="table table-sm table-responsive" style="width: 705px;">
                     <tbody>
                         <tr>
                             <td style="text-align: left; padding:5px">firmware samples</td>
@@ -48,10 +48,10 @@
     	</div>
 
     	{% if (latest_firmware_submissions | length) > 0 %}
-            <div class="p-2" style="max-width: 703px;">
+            <div class="p-2">
                 <h4>Latest Submissions</h4>
                 <p>Showing {{ latest_firmware_submissions | length }} out of <b>{{ general_stats['number_of_firmwares'] | nice_number }}</b> firmwares in the database.</p>
-                <table class="table table-sm table-responsive table-hover mt-3">
+                <table class="table table-sm table-hover mt-3" style="width: 705px;">
                     <thead class="thead-light">
                         <tr>
                             <th class="align-middle text-center" style="padding:5px">Submission Time</th>
@@ -74,9 +74,9 @@
 
     <div class="row justify-content-center">
     	{% if (latest_comments | length) > 0 %}
-            <div class="p-2" style="max-width: 554px;">
+            <div class="p-2">
                 <h4 class="mb-3">Latest Comments</h4>
-                <table class="table table-sm table-responsive table-hover">
+                <table class="table table-sm table-responsive table-hover" style="width: 705px;">
                     <thead class="thead-light">
                         <tr>
                             <th class="align-middle text-center" style="padding:5px;">Submission Time</th>
@@ -103,9 +103,9 @@
 
         {# latest_comparison_results #}
     	{% if (latest_comparison_results | length) > 0 %}
-            <div class="p-2" style="max-width: 594px">
+            <div class="p-2">
                 <h4 class="mb-3">Latest Comparisons</h4>
-                <table class="table table-sm table-responsive table-hover">
+                <table class="table table-sm table-hover" style="width: 705px;">
                     <thead class="thead-light">
                         <tr>
                             <th scope="col" class="align-middle text-center" style="padding:5px">Submission Time </th>
