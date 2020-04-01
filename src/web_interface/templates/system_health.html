@@ -15,7 +15,7 @@
                 <h3>{{component['name']}} machine status</h3>
                 <table class="table table-responsive-md table-hover table-bordered">
                     <tr>
-                        <th class="table-secondary p-2" colspan=2 style="text-align: center;">General</th>
+                        <th class="table-head-light p-2" colspan=2 style="text-align: center; color: #495057">General</th>
                     </tr>
                     <tr>
                         <td style="text-align: left; padding:5px">{{ component['name']}} status</td>
@@ -27,7 +27,7 @@
                     </tr>
                     {% if component['platform'] %}
                         <tr>
-                            <th class="table-secondary p-2" colspan=2 style="text-align: center;">Platform Information</th>
+                            <th class="table-head-light p-2" colspan=2 style="text-align: center; color: #495057">Platform Information</th>
                         </tr>
                         <tr>
                             <td style="text-align: left; padding:5px">operating system</td>
@@ -44,7 +44,7 @@
                     {% endif %}
                     {% if component['system'] %}
                         <tr>
-                            <th class="table-secondary p-2" colspan=2 style="text-align: center;">System Stats</th>
+                            <th class="table-head-light p-2" colspan=2 style="text-align: center; color: #495057">System Stats</th>
                         </tr>
                         <tr>
                             <td style="text-align: left; padding:5px">cpu cores</td>
@@ -74,7 +74,7 @@
                     <h3>{{ component['name'] }} workload</h3>
                     <table class="table table-responsive-md table-hover table-bordered">
                         <tr>
-                            <th class="table-secondary" colspan=3 style="text-align: center; padding:5px">Unpacking</th>
+                            <th class="table-head-light" colspan=3 style="text-align: center; padding:5px; color: #495057">Unpacking</th>
                         </tr>
                         <tr>
                             <td style="text-align: left; padding:5px">main</td>
@@ -82,7 +82,7 @@
                             <td class="{{ unpacking_class }}" colspan=2 style="text-align: right; padding:5px">{{ component['unpacking']['unpacking_queue'] | nice_number }}</td>
                         </tr>
                         <tr>
-                            <th class="table-secondary" colspan=3 style="text-align: center; padding:5px">Analysis</th>
+                            <th class="table-head-light" colspan=3 style="text-align: center; padding:5px; color: #495057">Analysis</th>
                         </tr>
                         <tr>
                             <td style="text-align: left; padding:5px">main</td>
@@ -90,9 +90,9 @@
                             <td class="{{ analysis_main_class }}" colspan=2 style="text-align: right; padding:5px">{{ component['analysis']['analysis_main_scheduler'] | nice_number }}</td>
                         </tr>
                         <tr>
-                            <td class="table-secondary" style="text-align: center; padding:5px">Plugin</td>
-                            <td class="table-secondary" style="text-align: center; padding:5px">Running</td>
-                            <td class="table-secondary" style="text-align: center; padding:5px">Queue</td>
+                            <td class="table-head-light" style="padding:5px;">Plugin</td>
+                            <td class="table-head-light" style="text-align: right; padding:5px;">Running</td>
+                            <td class="table-head-light" style="text-align: right; padding:5px;">Queue</td>
                         </tr>
                         {% for plugin_name, plugin_data in component['analysis']['plugins'].items() | sort %}
                             {% if "dummy" not in plugin_name %}  {# {% if plugin != "analysis_main_scheduler" %} #}

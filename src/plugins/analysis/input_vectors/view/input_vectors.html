@@ -6,7 +6,7 @@
     {% set input_vector = firmware.processed_analysis[selected_analysis]['full'][vector] %}
     {% if input_vector %}
     <tr>
-        <td class="result">{{ vector }}</td>
+        <td>{{ vector }}</td>
         <td class="p-0">
             {% if vector == 'inputs' %}
                 <table class="table table-bordered mb-0">

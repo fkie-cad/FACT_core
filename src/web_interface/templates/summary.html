@@ -10,7 +10,7 @@
     </thead>
     {% if summary_of_included_files %}
     <tr>
-        <td class="table-secondary">Item count</td>
+        <td class="table-head-light">Item count</td>
         <td>{{ summary_of_included_files | length }}
     </tr>
         {% for item in summary_of_included_files | sort %}
@@ -23,7 +23,7 @@
         {% endfor %}
     {% else %}
         <tr>
-            <td class="table-secondary" colspan=2 style="text-align: center">No summary found</td>
+            <td class="table-warning" colspan=2 style="text-align: center">No summary found</td>
         </tr>
     {% endif %}
 </table>

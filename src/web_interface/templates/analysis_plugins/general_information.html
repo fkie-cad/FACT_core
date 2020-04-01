@@ -21,19 +21,19 @@
             {% endif %}
             {% if firmware.processed_analysis[selected_analysis]['analysis_date'] %}
             <tr>
-                <td class="table-secondary">Time of Analysis</td>
+                <td class="table-head-light">Time of Analysis</td>
                 <td>{{ firmware.processed_analysis[selected_analysis]['analysis_date'] | nice_unix_time }}</td>
             </tr>
             {% endif %}
             {% if firmware.processed_analysis[selected_analysis]['plugin_version'] %}
             <tr>
-                <td class="table-secondary">Plugin Version</td>
+                <td class="table-head-light">Plugin Version</td>
                 <td>{{ firmware.processed_analysis[selected_analysis]['plugin_version']}}</td>
             </tr>
             {% endif %}
             {% if firmware.processed_analysis[selected_analysis]['system_version'] %}
             <tr>
-                <td class="table-secondary">System Version</td>
+                <td class="table-head-light">System Version</td>
                 <td>{{ firmware.processed_analysis[selected_analysis]['system_version']}}</td>
             </tr>
             {% endif %}

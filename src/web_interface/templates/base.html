@@ -63,6 +63,7 @@
             .navbar-light .navbar-brand:hover, .navbar-light .navbar-nav > li > a:hover {
                 color: #fff;
             }
+
             .tooltip > .tooltip-inner {
                 background-color: #2b669a;
                 color: #FFFFFF;
@@ -108,8 +109,8 @@
             <ul class="navbar-nav" style="padding-right: 5px">
                 {% for caption, href, icon in navigation_bar %}
                     {% if caption == "Database" %}
-                        <li class="dropdown {% if caption == active_page %}active {% endif  %}pr-3">
-                            <a class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="fas fa-tasks"></i>&nbsp;Database<span class="caret"></span></a>
+                        <li class="dropdown pr-3">
+                            <a {% if caption == active_page %}style="color: #fff; font-weight: 500;"{% endif  %} class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="fas fa-tasks"></i>&nbsp;Database<span class="caret"></span></a>
                             <ul class="dropdown-menu">
                                 <li class="dropdown-item"><a href="/database/browse" style="font-size: 14px"><i class="fas fa-list-ul"></i> Browse Firmware</a></li>
                                 <li class="dropdown-item"><a href="/database/browse_compare" style="font-size: 14px"><i class="far fa-copy"></i> Browse Compares</a></li>
@@ -119,8 +120,8 @@
                             </ul>
                         </li>
                     {% elif caption == "Info" %}
-                        <li class="dropdown {% if caption == active_page %}active {% endif  %}pr-3">
-                            <a class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="fas fa-info-circle"></i>&nbsp;{{ caption }}<span class="caret"></span></a>
+                        <li class="dropdown pr-3">
+                            <a {% if caption == active_page %}style="color: #fff; font-weight: 500;"{% endif  %} class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="fas fa-info-circle"></i>&nbsp;{{ caption }}<span class="caret"></span></a>
                             <ul class="dropdown-menu">
                                 <li class="dropdown-item"><a href="/statistic" style="font-size: 14px"><i class="fas fa-chart-bar"></i> Statistics</a></li>
                                 <li class="dropdown-item"><a href="/system_health" style="font-size: 14px"><i class="fas fa-heartbeat"></i> System</a></li>
@@ -129,8 +130,8 @@
                         </li>
                     {% elif caption == "Admin" %}
                         {% if current_user | user_has_role('manage_users') %}
-                            <li class="dropdown {% if caption == active_page %}active {% endif  %}pr-3">
-                                <a class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="fas fa-user-shield"></i>&nbsp;{{ caption }}<span class="caret"></span></a>
+                            <li class="dropdown pr-3">
+                                <a {% if caption == active_page %}style="color: #fff; font-weight: 500;"{% endif  %} class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="fas fa-user-shield"></i>&nbsp;{{ caption }}<span class="caret"></span></a>
                                 <ul class="dropdown-menu">
                                     <li class="dropdown-item"><a href="/admin/manage_users" style="font-size: 14px"><i class="fas fa-users-cog"></i> Manage Users</a></li>
                                     <li class="dropdown-item"><a href="/admin/missing_analyses" style="font-size: 14px"><i class="fas fa-search"></i> Find Missing Analyses</a></li>
@@ -139,21 +140,21 @@
                         {% endif %}
                     {% elif caption == "Login" %}
                             {% if current_user.is_authenticated %}
-                                <li class="dropdown {% if caption == active_page %}active {% endif  %}pr-3">
-                                    <a class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="fas fa-user"></i>&nbsp;{{ current_user.email }}<span class="caret"></span></a>
+                                <li class="dropdown pr-3">
+                                    <a {% if caption == active_page %}style="color: #fff; font-weight: 500;"{% endif  %} class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="fas fa-user"></i>&nbsp;{{ current_user.email }}<span class="caret"></span></a>
                                     <ul class="dropdown-menu">
                                         <li class="dropdown-item"><a href="/user_profile" style="font-size: 14px"><i class="fas fa-user-cog"></i> Profile</a></li>
                                         <li class="dropdown-item"><a href="/logout" style="font-size: 14px"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
                                     </ul>
                                 </li>
                             {% else %}
-                                <li class="{% if caption == active_page %}active {% endif  %}">
-                                    <a href="/login"><i class="fas fa-sign-in-alt"></i> Login</a>
+                                <li>
+                                    <a {% if caption == active_page %}style="color: #fff; font-weight: 500;"{% endif  %} href="/login"><i class="fas fa-sign-in-alt"></i> Login</a>
                                 </li>
                             {% endif %}
                     {% else %}
-                        <li class="{% if caption == active_page %}active {% endif  %}pr-3">
-                            <a href={{ href }}>{{ icon|safe }} {{ caption }}</a>
+                        <li class="pr-3">
+                            <a {% if caption == active_page %}style="color: #fff; font-weight: 500;"{% endif  %} href={{ href }}>{{ icon|safe }} {{ caption }}</a>
                         </li>
                     {% endif %}
                 {% endfor %}

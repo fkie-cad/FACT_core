@@ -80,12 +80,12 @@
             <table class="table table-responsive-md table-hover table-bordered mb-0" style="width: 100%;">
             {% for item in (stats["crypto_material_stats"]["crypto_material"] | sort_chart_list_by_value) %}
                 <tr>
-                    <td class="active" style="text-align: left; padding:5px; cursor:pointer;"
+                    <td style="text-align: left; padding:5px; cursor:pointer;"
                         {% set query = {"processed_analysis.crypto_material.summary": {"$eq": item[0]}} %}
                         onclick="location.href='{{ query_url + query | json_dumps | urlencode }}'">
                         {{ item[0] }}
                     </td>
-                    <td class="active" style="text-align: right; padding:5px;">{{ item[1] }}</td>
+                    <td style="text-align: right; padding:5px;">{{ item[1] }}</td>
                 </tr>
             {% endfor %}
             </table>
@@ -100,12 +100,12 @@
             <table class="table table-responsive-md table-hover table-bordered mb-0" style="width: 100%;">
             {% for item in (stats["known_vulnerabilities_stats"]["known_vulnerabilities"] | sort_chart_list_by_value) %}
                 <tr>
-                    <td class="active" style="text-align: left; padding:5px; cursor:pointer;"
+                    <td style="text-align: left; padding:5px; cursor:pointer;"
                         {% set query = {"processed_analysis.known_vulnerabilities.summary": {"$eq": item[0]}} %}
                         onclick="location.href='{{ query_url + query | json_dumps | urlencode }}'">
                         {{ item[0] }}
                     </td>
-                    <td class="active" style="text-align: right; padding:5px;">{{ item[1] }}</td>
+                    <td style="text-align: right; padding:5px;">{{ item[1] }}</td>
                 </tr>
             {% endfor %}
             </table>

@@ -26,7 +26,7 @@
 	
 	{# --- general information --- #}
 		<tr>
-			<th colspan="{{ uid_list | length + 1 }}" class="table-active" style="text-align:center;">General information</th>
+			<th colspan="{{ uid_list | length + 1 }}" class="table-head-light" style="text-align:center;">General information</th>
 		</tr>
 		{% for feature in result['general'] | sort %}
             {% if feature != 'hid' %}
@@ -59,7 +59,7 @@
 		
 		{% for plugin in result['plugins'] | sort %}
 		<tr>
-			<th colspan="{{ uid_list | length  + 1 }}" class="table-active" style="text-align:center;">{{ plugin | replace_underscore }}</th>
+			<th colspan="{{ uid_list | length  + 1 }}" class="table-head-light" style="text-align:center;">{{ plugin | replace_underscore }}</th>
 		</tr>
             {% if plugin in plugins_without_view %}
 
