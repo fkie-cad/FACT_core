@@ -12,13 +12,13 @@
 <script type="text/javascript" src="{{ url_for('static', filename='js/update_url_variables.js') }}"></script>
 
 <div class="row justify-content-center">
-    <div class="col-xl-6 col-md-8 mt-4">
+    <div class="col-xl-6 col-lg-8 col-md-10 mt-4">
         <h3 class="mb-3">Browse Firmware Database</h3>
     </div>
 </div>
 
 <div class="row justify-content-center" id="dropdown-div">
-    <div class="col-xl-6 col-md-8">
+    <div class="col-xl-6 col-lg-8 col-md-10">
         <form>
             <div class="form-row">
                 <div class="form-group col-md-6">
@@ -56,7 +56,7 @@
 
 {% if search_parameters['query_title'] %}
     <div class="row justify-content-center">
-        <div class="col-xl-6 col-md-8">
+        <div class="col-xl-6 col-lg-8 col-md-10">
             <div class="list-group mt-4">
                 {% if search_parameters['query_title'] %}
                     <button data-toggle="collapse" data-target="#search_query" class="list-group-item list-group-item-primary d-flex justify-content-between align-items-center">
@@ -72,8 +72,8 @@
 {% endif %}
 
 <div class="row justify-content-center">
-    <div class="mt-4" style="max-width: 703px;">
-        <table class="table table-sm table-responsive table-hover">
+    <div class="mt-4 col-xl-6 col-lg-8 col-md-10">
+        <table class="table table-sm table-hover">
         {% for firmware in firmware_list %}
             <tr>
                 {% if pagination is defined %}

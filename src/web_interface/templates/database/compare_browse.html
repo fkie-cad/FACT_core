@@ -17,19 +17,19 @@
 <script type="text/javascript" src="{{ url_for('static', filename='js/update_url_variables.js') }}"></script>
 
 <div class="row justify-content-center">
-    <div class="col-xl-6 col-md-8 mt-4">
+    <div class="col-xl-6 col-lg-8 col-md-10 mt-4">
         <h3 class="mb-3">Browse Firmware Comparisons</h3>
     </div>
 </div>
 
 <div class="row justify-content-center">
-    <div class="mt-4" style="max-width: 594px">
+    <div class="col-xl-6 col-lg-8 col-md-10 mt-4">
 
-        <table class="table table-sm table-responsive table-hover">
+        <table class="table table-sm table-hover">
             {% for id, hids, submission_date in compare_list %}
                 <tr>
                     {% if pagination is defined %}
-                        <td class="align-middle">{{ loop.index + (page - 1) * per_page }}</td>
+                        <th>{{ loop.index + (page - 1) * per_page }}</th>
                     {% endif %}
                     <td class="clickable" onclick="location.href='/compare/{{ id }}'">
                         {%  for uid in hids %}
