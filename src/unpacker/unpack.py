@@ -5,6 +5,7 @@ from tempfile import TemporaryDirectory
 from typing import List
 
 from fact_helper_file import get_file_type_from_path
+
 from helperFunctions.dataConversion import make_list_from_dict, make_unicode_string
 from helperFunctions.fileSystem import file_is_empty, get_object_path_excluding_fact_dirs
 from objects.file import FileObject
@@ -27,6 +28,10 @@ class Unpacker(UnpackBase):
 
         if current_fo.depth >= self.config.getint('unpack', 'max_depth'):
             logging.warning('{} is not extracted since depth limit ({}) is reached'.format(current_fo.uid, self.config.get('unpack', 'max_depth')))
+            current_fo.processed_analysis['unpacker'] = {
+                'plugin_used': 'None', 'number_of_unpacked_files': 0,
+                'info': 'Unpacking stopped because maximum unpacking depth was reached'
+            }
             return []
 
         tmp_dir = TemporaryDirectory(prefix='fact_unpack_')

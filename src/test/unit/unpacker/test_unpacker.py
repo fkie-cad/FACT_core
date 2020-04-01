@@ -62,12 +62,19 @@ class TestUnpackerCoreMain(TestUnpackerBase):
         self.assertEqual(len(extracted_files), number_unpacked_files, 'not all files found')
         self.assertEqual(test_object.processed_analysis['unpacker']['plugin_used'], first_unpacker, 'Wrong plugin in Meta')
         self.assertEqual(test_object.processed_analysis['unpacker']['number_of_unpacked_files'], number_unpacked_files, 'Number of unpacked files wrong in Meta')
-        self.check_deps_of_childs(test_object, extracted_files)
+        self.check_depths_of_children(test_object, extracted_files)
 
-    def check_deps_of_childs(self, parent, extracted_files):
+    def check_depths_of_children(self, parent, extracted_files):
         for item in extracted_files:
             self.assertEqual(item.depth, parent.depth + 1, 'depth of child not correct')
 
     def test_main_unpack_function(self):
         test_file = FileObject(file_path=os.path.join(get_test_data_dir(), 'container/test.zip'))
         self.main_unpack_check(test_file, 3, '7z')
+
+    def test_unpacking_depth_reached(self):
+        test_file = FileObject(file_path=os.path.join(get_test_data_dir(), 'container/test.zip'))
+        test_file.depth = 10
+        self.unpacker.unpack(test_file)
+        assert 'unpacker' in test_file.processed_analysis
+        assert 'maximum unpacking depth was reached' in test_file.processed_analysis['unpacker']['info']
