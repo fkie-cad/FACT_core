@@ -54,7 +54,7 @@
                 {% for parent_uid, uid_list in missing_analyses.tuples | sort -%}
                 <tr>
                     <td>
-                        <a href='/analysis/{{ parent_uid }}'>{{ parent_uid }}</a>
+                        <a href="/analysis/{{ parent_uid }}">{{ parent_uid }}</a>
                     </td>
                     <td>
                         {{ uid_list | nice_uid_list | safe }}
