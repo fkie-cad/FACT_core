@@ -77,7 +77,7 @@ class TestCompare:
 
     def test_check_objects_exist(self):
         self.db_interface_backend.add_firmware(self.fw_one)
-        assert self.db_interface_compare.check_objects_exist(self.fw_one.uid) is None, 'existing_object not found'
+        assert not self.db_interface_compare.check_objects_exist(self.fw_one.uid), 'existing_object not found'
         with pytest.raises(FactCompareException):
             self.db_interface_compare.check_objects_exist('{};none_existing_object'.format(self.fw_one.uid))
 
