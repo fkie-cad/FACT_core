@@ -10,7 +10,7 @@ class TestAcceptanceCompareFirmwares(TestAcceptanceBaseFullStart):
         rv = self.test_client.get('/analysis/{}'.format(self.test_fw_a.uid))
         self.assertIn(self.test_fw_a.uid, rv.data.decode(), '')
         rv = self.test_client.get('/comparison/add/{}'.format(self.test_fw_a.uid), follow_redirects=True)
-        self.assertIn('Firmwares Selected for Comparison', rv.data.decode())
+        self.assertIn('Firmware Selected for Comparison', rv.data.decode())
 
         rv = self.test_client.get('/analysis/{}'.format(self.test_fw_c.uid))
         self.assertIn(self.test_fw_c.uid, rv.data.decode())

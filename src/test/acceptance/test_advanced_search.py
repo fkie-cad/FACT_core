@@ -3,7 +3,7 @@ from urllib.parse import quote
 
 from storage.db_interface_backend import BackEndDbInterface
 from test.acceptance.base import TestAcceptanceBase
-from test.common_helper import create_test_firmware, create_test_file_object
+from test.common_helper import create_test_file_object, create_test_firmware
 
 
 class TestAcceptanceAdvancedSearch(TestAcceptanceBase):
@@ -30,7 +30,7 @@ class TestAcceptanceAdvancedSearch(TestAcceptanceBase):
 
     def test_advanced_search_get(self):
         rv = self.test_client.get('/database/advanced_search')
-        assert b'<h2>Advanced Search</h2>' in rv.data
+        assert b'<h3 class="mb-3">Advanced Search</h3>' in rv.data
 
     def test_advanced_search(self):
         rv = self.test_client.post('/database/advanced_search', content_type='multipart/form-data',
