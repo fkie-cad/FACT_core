@@ -26,7 +26,7 @@
 
     {# --- similar files exception ---#}
     {% if feature == 'similar_files' %}
-        <tr><th colspan="{{ uid_list | length + 1 }}" style="text-align:center;" class="table-active">SSDEEP Similarity</th></tr>
+        <tr><th colspan="{{ uid_list | length + 1 }}" style="text-align:center;" class="table-head-light">SSDEEP Similarity</th></tr>
         {% if not result['plugins'][plugin][feature] %}
             <tr>
                 <td colspan="{{ uid_list | length + 1 }}" style="text-align:center;">No similar files found</td>
@@ -34,7 +34,7 @@
         {% endif %}
         {% for match in result['plugins'][plugin][feature] %}
             <tr>
-                <td style="text-align:right;" class="table-active">{{ result['plugins'][plugin][feature][match]['similarity'] }}</td>
+                <td style="text-align:right;" class="table-head-light">{{ result['plugins'][plugin][feature][match]['similarity'] }}</td>
             {% for uid in uid_list %}
                 <td>{{ result['plugins'][plugin][feature][match][uid] | replace_uid_with_hid_link | safe }}</td>
             {% endfor %}

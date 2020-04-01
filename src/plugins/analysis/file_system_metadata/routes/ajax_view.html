@@ -1,17 +1,17 @@
 {% if results %}
 <table class="table table-bordered table-hover" style="margin-top: -20px">
     <tr>
-        <th class="success" colspan="2">
+        <th class="table-success" colspan="2">
             Results for this File
         </th>
     </tr>
     {% for file in results %}
         <tr>
-            <td class="active" onclick="location.href='/analysis/{{ results[file]['parent_uid'] }}'">
+            <td onclick="location.href='/analysis/{{ results[file]['parent_uid'] }}'">
                 {{ results[file]["parent_uid"] | replace_uid_with_hid | safe }} | {{ file }}
             </td>
-            <td style="padding: 0;">
-                <table class="table table-bordered" style="margin-bottom: 0;">
+            <td class="p-0">
+                <table class="table table-bordered mb-0">
                     {% for key in results[file] | sort %}
                         {% if key != "parent_uid" %}
                             <tr>

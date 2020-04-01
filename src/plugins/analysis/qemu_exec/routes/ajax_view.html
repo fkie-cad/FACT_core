@@ -10,21 +10,21 @@
     {% for parent_uid, result in results.items() %}
 
         <tr data-toggle="collapse" data-target="#collapse-{{ parent_uid }}">
-            <td class="active clickable" colspan=2>
-                <span class="glyphicon glyphicon-chevron-down"></span> {{ parent_uid | replace_uid_with_hid | safe }} -- {{ result['path'] }}
+            <td class="clickable" colspan=2>
+                <i class="fas fa-angle-down"></i> {{ parent_uid | replace_uid_with_hid | safe }} -- {{ result['path'] }}
                 {% if result['executable'] %}
-                    <span class="glyphicon glyphicon-ok" style="color:DarkGreen"></span>
+                    <i class="fas fa-check text-success"></i>
                 {% else %}
-                    <span class="glyphicon glyphicon-remove" style="color:DarkRed"></span>
+                    <i class="fas fa-times text-danger"></i>
                 {% endif %}
             </td>
         </tr>
 
         <tr>
-            <td colspan="2" class="qemu-td" style="padding: 0;">
+            <td colspan="2" class="qemu-td p-0">
                 <div class="collapse" id="collapse-{{ parent_uid }}">
 
-                    <table class="table table-bordered" style="margin: 0; width: 100%">
+                    <table class="table table-bordered m-0" style="width: 100%">
                         <tr>
                             <td width="175px">Executable in QEMU:</td>
                             <td>{{ result['executable'] }}</td>
@@ -33,11 +33,11 @@
                         {% if result['results'] %}
                         <tr>
                             <td>Individual Results:</td>
-                            <td style="padding: 0">
-                                <table class="table table-bordered" style="margin: 0; width: 100%">
+                            <td class="p-0">
+                                <table class="table table-bordered m-0" style="width: 100%">
                                     {% if 'error' in result['results'] %}
                                         <!-- error outside docker container -->
-                                        <tr><td><b style="color:red">Error</b>: {{ result['results']['error'] }}</td></tr>
+                                        <tr><td><b class="text-danger">Error</b>: {{ result['results']['error'] }}</td></tr>
                                     {% else %}
                                         {% for arch in result['results'] %}
                                             <tr>
@@ -46,7 +46,7 @@
                                                 </td>
                                             {% if 'error' in result['results'][arch] %}
                                                 <!-- error in docker container case -->
-                                                <td><b style="color:red">Error</b>: {{ result['results'][arch]['error'] }}</td>
+                                                <td><b class="text-danger">Error</b>: {{ result['results'][arch]['error'] }}</td>
                                             {% else %}
                                                 <!-- no error case -->
                                                 {% for option in result['results'][arch] %}

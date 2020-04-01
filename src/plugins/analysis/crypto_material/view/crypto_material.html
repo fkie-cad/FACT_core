@@ -5,8 +5,8 @@
 	{% for key in firmware.processed_analysis[selected_analysis] %}
         {% if key not in ['summary', 'plugin_version', 'system_version', 'analysis_date', 'tags', 'skipped'] %}
             <tr>
-                <td class="table-secondary">Description</td>
-                <td class="table-secondary">{{ key }}</td>
+                <td class="table-head-light">Description</td>
+                <td class="table-head-light">{{ key }}</td>
             </tr>
             <tr>
                 <td rowspan={{ firmware.processed_analysis[selected_analysis][key]['count'] + 1}}>Content</td>

@@ -4,8 +4,8 @@
 
     {% if firmware.processed_analysis[selected_analysis]['init_type'] %}
         <tr>
-            <td class="table-secondary">Init system</td>
-            <td class="table-secondary">{{ firmware.processed_analysis[selected_analysis]['init_type'][0]}}</td>
+            <td class="table-head-light">Init system</td>
+            <td class="table-head-light">{{ firmware.processed_analysis[selected_analysis]['init_type'][0]}}</td>
         </tr>
     {% endif %}
     {% if firmware.processed_analysis[selected_analysis]['description'] %}
