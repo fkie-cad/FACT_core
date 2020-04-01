@@ -67,8 +67,8 @@ def test_get_radare_endpoint():
 
 
 @pytest.mark.parametrize('hid, uid, expected_output', [
-    ('foo', 'bar', 'label-default">foo'),
-    ('foo', 'a152ccc610b53d572682583e778e43dc1f24ddb6577255bff61406bc4fb322c3_21078024', 'label-primary"><a'),
+    ('foo', 'bar', 'badge-secondary">foo'),
+    ('foo', 'a152ccc610b53d572682583e778e43dc1f24ddb6577255bff61406bc4fb322c3_21078024', 'badge-primary"><a'),
 ])
 def test_virtual_path_element_to_span(hid, uid, expected_output):
     assert expected_output in virtual_path_element_to_span(hid, uid, 'root_uid')
