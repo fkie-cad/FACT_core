@@ -8,6 +8,7 @@ from fact_helper_file import get_file_type_from_path
 
 from helperFunctions.dataConversion import make_list_from_dict, make_unicode_string
 from helperFunctions.fileSystem import file_is_empty, get_object_path_excluding_fact_dirs
+from helperFunctions.tag import TagColor
 from objects.file import FileObject
 from storage.fs_organizer import FS_Organizer
 from unpacker.unpack_base import UnpackBase
@@ -28,10 +29,7 @@ class Unpacker(UnpackBase):
 
         if current_fo.depth >= self.config.getint('unpack', 'max_depth'):
             logging.warning('{} is not extracted since depth limit ({}) is reached'.format(current_fo.uid, self.config.get('unpack', 'max_depth')))
-            current_fo.processed_analysis['unpacker'] = {
-                'plugin_used': 'None', 'number_of_unpacked_files': 0,
-                'info': 'Unpacking stopped because maximum unpacking depth was reached'
-            }
+            self._store_unpacking_depth_skip_info(current_fo)
             return []
 
         tmp_dir = TemporaryDirectory(prefix='fact_unpack_')
@@ -49,6 +47,15 @@ class Unpacker(UnpackBase):
 
         self.cleanup(tmp_dir)
         return extracted_file_objects
+
+    @staticmethod
+    def _store_unpacking_depth_skip_info(file_object: FileObject):
+        file_object.processed_analysis['unpacker'] = {
+            'plugin_used': 'None', 'number_of_unpacked_files': 0,
+            'info': 'Unpacking stopped because maximum unpacking depth was reached',
+        }
+        tag_dict = {'unpacker': {'depth reached': {'value': 'unpacking depth reached', 'color': TagColor.ORANGE, 'propagate': False}}}
+        file_object.analysis_tags.update(tag_dict)
 
     def cleanup(self, tmp_dir):
         try:
