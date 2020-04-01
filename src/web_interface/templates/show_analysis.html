@@ -146,14 +146,14 @@
 
     {# General info section #}
     <div class="row">
-        <div class="col-lg-12">
-            <table class="table table-sm table-bordered table-hover" style="max-width: 800px">
-                <thead class="thead-light clickable" data-toggle="collapse" role="button" data-target="#general-information">
+        <div class="col-xl-6">
+            <table class="table table-sm table-bordered table-hover">
+                <thead class="thead-light">
                     <tr>
-                        <th colspan="2">General information<i class="fas fa-angle-down float-right"></i></th>
+                        <th colspan="2">General information</th>
                     </tr>
                 </thead>
-                <tbody id="general-information" class="collapse">
+                <tbody>
                     {%- for label, content, style, query in general_analysis_elements -%}
                         {%- if content %}
                             <tr>
@@ -211,37 +211,121 @@
                 </tbody>
             </table>
         </div>
+
+        <div class="col-xl-6">
+                    {# user buttons #}
+            <div class="btn-group mb-2" role="group" aria-label="Download buttons">
+                <button class="btn btn-secondary">Download options</button>
+
+                {# Binary Download Button #}
+                <button class="btn btn-outline-secondary" onclick='window.location.href = "/download/{{ firmware.get_uid() }}";'>
+                    <i class="fas fa-download"></i> download raw file
+                </button>
+                {# Tar Download Button #}
+                {% if firmware.files_included %}
+                    <button class="btn btn-outline-secondary" onclick='window.location.href = "/tar-download/{{ firmware.get_uid() }}";'>
+                        <i class="fas fa-file-archive"></i> download included files as tar.gz
+                    </button>
+                {% endif %}
+                {% if firmware.vendor %}
+                    {# PDF Button #}
+                    <button class="btn btn-outline-secondary" onclick='window.location.href = "/pdf-download/{{ firmware.uid }}";'>
+                        <i class="far fa-file-pdf"></i> download report as PDF
+                    </button>
+                {% endif %}
+            </div><br />
+
+            <div class="btn-group mb-2" aria-label="Analysis buttons">
+                <button class="btn btn-secondary">Analysis options</button>
+
+                {# Radare Button #}
+                <button class="btn btn-outline-secondary" onclick="radare_view()">
+                    <i class="fas fa-terminal"></i> view in radare
+                </button>
+                {% if firmware.vendor %}
+                    {# Update Analysis Buttons #}
+                    <button class="btn btn-outline-secondary" onclick='window.location.href = "/update-analysis/{{ firmware.uid }}";'>
+                        <i class="fas fa-redo-alt"></i> update analysis
+                    </button>
+                    <button class="btn btn-outline-secondary" onclick='window.location.href = "/database/binary_search?firmware_uid={{ firmware.uid }}";'>
+                        <i class="fas fa-search"></i> YARA search
+                    </button>
+                    {# Start Binary Search Button #}
+                {% endif %}
+            </div><br />
+
+            {# admin buttons #}
+            {% if firmware.vendor and user_has_admin_clearance %}
+                <div class="btn-group mb-2" role="group" aria-label="Admin buttons">
+                    <button class="btn btn-secondary">Admin options</button>
+
+                    {# Update Analysis Buttons #}
+                    <button data-toggle="collapse" data-target="#re-do-button-div" class="btn btn-outline-secondary">
+                        <i class="fas fa-redo-alt"></i> re-do analysis
+                    </button>
+                    <span class="collapse" id="re-do-button-div">
+                        <button class="btn btn-danger" type="button" onclick='window.location.href = "/admin/re-do_analysis/{{ uid }}";'>
+                            <i class="fas fa-check"></i> confirm: This action will delete all previous results and data including comments!
+                        </button>
+                    </span>
+                    {# FW Delete Confirm Button #}
+                    <span class="collapse" id="delete-button-div">
+                        <button class="btn btn-danger" type="button" onclick='window.location.href = "/admin/delete/{{ uid }}";'>
+                            <i class="fas fa-check"></i> click here to confirm removal!
+                        </button>
+                    </span>
+                    <button data-toggle="collapse" data-target="#delete-button-div" class="btn btn-outline-secondary">
+                        <i class="fas fa-trash-alt"></i> delete firmware
+                    </button>
+                </div>
+
+            {% endif %}
+
+            <script>
+                function radare_view() {
+                    let radare_form = document.createElement('form');
+                    radare_form.action = '/radare-view/{{ firmware.get_uid() }}';
+                    radare_form.target = '_blank';
+                    radare_form.method = 'GET';
+
+                    document.body.append(radare_form);
+                    radare_form.submit();
+                }
+            </script>
+
+        </div>
+
    </div>
 
 
     {# File tree section #}
     <div class="row">
         <div class="col-lg-12">
-    	<table class="table table-sm table-bordered">
-            <thead>
-                <tr class="thead-light">
-                    <th>File Tree</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>
-                        <div id="fileTreeAjax"></div>
+            <table class="table table-sm table-bordered" style="font-size: 14px;">
+                <thead>
+                    <tr class="thead-light">
+                        <th>File Tree</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <div id="fileTreeAjax"></div>
                             <script>
                                 $('#fileTreeAjax')
                                     // generate links to the analysis page
                                     .on("activate_node.jstree", function(e,data){window.location.href = data.node.a_attr.href;})
                                     // generate file tree
                                     .jstree({
-                                      "core" : {
-                                        'data' : {
-                                          'url' : function (node) {
-                                            return node.id === '#' ?
-                                                "/ajax_root/{{ uid | safe }}/{{ root_uid | safe }}" : "/ajax_tree/" + node["data"]["uid"] + "/{{ root_uid|safe }}";
-                                          }
-                                        }
-                                      },
-                                      "plugins" : [ "sort" ]
+                                        "core" : {
+                                            'data' : {
+                                                'url' : function (node) {
+                                                    return node.id === '#' ?
+                                                        "/ajax_root/{{ uid | safe }}/{{ root_uid | safe }}" : "/ajax_tree/" + node["data"]["uid"] + "/{{ root_uid|safe }}";
+                                                }
+                                            }
+                                        },
+                                        "plugins" : [ "sort" ]
                                     });
                             </script>
                         </td>
@@ -253,7 +337,7 @@
 
     {# Select analysis section #}
     <div class="row">
-        <div class="col-lg-12">
+        <div class="col-lg-2">
             <table class="table table-sm table-bordered table-hover">
                 <thead class="thead-light">
                     <tr>
@@ -263,7 +347,7 @@
                 <tbody>
                     {% for analysis_plugin in firmware.processed_analysis | sort %}
                         <tr>
-                            <td class="table-light clickable mx-1 my-2" data-toggle="tooltip" title="{{ analysis_plugin_dict.get(analysis_plugin, ['not available'])[0] | safe }}">
+                            <td class="clickable mx-1 my-2" data-toggle="tooltip" title="{{ analysis_plugin_dict.get(analysis_plugin, ['not available'])[0] | safe }}">
                                 <a class="text-reset" href='/analysis/{{ uid|safe }}/{{analysis_plugin}}/ro/{{ root_uid }}'>
                                     {{ analysis_plugin | replace_underscore }}
                                 </a>
@@ -271,7 +355,7 @@
                         </tr>
                     {% endfor %}
                     <tr>
-                        <td class="table-active clickable" data-toggle="modal" data-target="#add_single_file_analysis_modal">
+                        <td class="table-head-light clickable" data-toggle="modal" data-target="#add_single_file_analysis_modal">
                             <i class="fas fa-play-circle"></i> Run additional analysis
                         </td>
                     </tr>
@@ -315,14 +399,12 @@
                 </div>
             </div>
         </div>
-    </div>
 
-    {# Showing analysis section #}
-    <div class="row">
+        {# Showing analysis section #}
 
         {% block complete_analysis_block %}
 
-            <div class="col-lg-12">
+            <div class="col-lg-10">
                 {% block analysis_result %}
                 {% endblock %}
             </div>
@@ -361,7 +443,7 @@
                 <div class="col-lg-12">
                     <div class="list-group">
                         <button id="preview_button" data-toggle="collapse" data-target="#preview-div" class="list-group-item list-group-item-primary">
-                            <b style="color:#f8f8f8;">Show Preview</b>
+                            Show Preview
                         </button>
                         <div id="preview-div" class="collapse">
                             <div id="preview-loading-gif" style="display: block; border: 1px solid #dddddd; padding: 5px; text-align: center">
@@ -466,88 +548,7 @@
 
     {# Button section #}
     <div class="row" style="margin-top: 20px">
-        {# user buttons #}
-        <div class="col-lg-12 col-md-12">
-            <div class="btn-group mb-2" role="group" aria-label="Download buttons">
-                <button class="btn btn-secondary">Download options</button>
 
-                {# Binary Download Button #}
-                <button class="btn btn-outline-secondary" onclick='window.location.href = "/download/{{ firmware.get_uid() }}";'>
-                    <i class="fas fa-download"></i> download raw file
-                </button>
-                {# Tar Download Button #}
-                {% if firmware.files_included %}
-                    <button class="btn btn-outline-secondary" onclick='window.location.href = "/tar-download/{{ firmware.get_uid() }}";'>
-                        <i class="fas fa-file-archive"></i> download included files as tar.gz
-                    </button>
-                {% endif %}
-                {% if firmware.vendor %}
-                    {# PDF Button #}
-                    <button class="btn btn-outline-secondary" onclick='window.location.href = "/pdf-download/{{ firmware.uid }}";'>
-                        <i class="far fa-file-pdf"></i> download report as PDF
-                    </button>
-                {% endif %}
-            </div>
-
-            <div class="btn-group mb-2" aria-label="Analysis buttons">
-                <button class="btn btn-secondary">Analysis options</button>
-
-                {# Radare Button #}
-                <button class="btn btn-outline-secondary" onclick="radare_view()">
-                    <i class="fas fa-terminal"></i> view in radare
-                </button>
-                {% if firmware.vendor %}
-                    {# Update Analysis Buttons #}
-                    <button class="btn btn-outline-secondary" onclick='window.location.href = "/update-analysis/{{ firmware.uid }}";'>
-                        <i class="fas fa-redo-alt"></i> update analysis
-                    </button>
-                    <button class="btn btn-outline-secondary" onclick='window.location.href = "/database/binary_search?firmware_uid={{ firmware.uid }}";'>
-                        <i class="fas fa-search"></i> YARA search
-                    </button>
-                    {# Start Binary Search Button #}
-                {% endif %}
-            </div>
-
-            {# admin buttons #}
-            {% if firmware.vendor and user_has_admin_clearance %}
-                <div class="btn-group mb-2" role="group" aria-label="Admin buttons">
-                    <button class="btn btn-secondary">Admin options</button>
-
-                    {# Update Analysis Buttons #}
-                    <button data-toggle="collapse" data-target="#re-do-button-div" class="btn btn-outline-secondary">
-                        <i class="fas fa-redo-alt"></i> re-do analysis
-                    </button>
-                    <span class="collapse" id="re-do-button-div">
-                        <button class="btn btn-danger" type="button" onclick='window.location.href = "/admin/re-do_analysis/{{ uid }}";'>
-                            <i class="fas fa-check"></i> confirm: This action will delete all previous results and data including comments!
-                        </button>
-                    </span>
-                    {# FW Delete Confirm Button #}
-                    <span class="collapse" id="delete-button-div">
-                        <button class="btn btn-danger" type="button" onclick='window.location.href = "/admin/delete/{{ uid }}";'>
-                            <i class="fas fa-check"></i> click here to confirm removal!
-                        </button>
-                    </span>
-                    <button data-toggle="collapse" data-target="#delete-button-div" class="btn btn-outline-secondary">
-                        <i class="fas fa-trash-alt"></i> delete firmware
-                    </button>
-                </div>
-
-            {% endif %}
-
-            <script>
-                function radare_view() {
-                    let radare_form = document.createElement('form');
-                    radare_form.action = '/radare-view/{{ firmware.get_uid() }}';
-                    radare_form.target = '_blank';
-                    radare_form.method = 'GET';
-
-                    document.body.append(radare_form);
-                    radare_form.submit();
-                }
-            </script>
-
-        </div>
     </div>
 
 {% endblock %}
