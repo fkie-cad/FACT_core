@@ -149,10 +149,10 @@
 
                 <label class="control-label" for="datetimepicker2">Release Date:</label>
                 <div class="input-group{% if 'release_date' in error.keys() %} has-error{% endif %}">
-                    <input type='text' name="release_date" value="{{ firmware.release_date }}" class="form-control" id='datetimepicker2'>
-                    <div class="input-group-append">
-                        <span class="btn btn-secondary"><i class="fas fa-calendar-alt"></i></span>
+                    <div class="input-group-prepend">
+                        <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
                     </div>
+                    <input type='text' name="release_date" value="{{ firmware.release_date }}" class="form-control" id='datetimepicker2'>
                     <script type="text/javascript">
                         $(function () {
                             $('#datetimepicker2').datepicker({
