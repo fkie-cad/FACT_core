@@ -2,7 +2,7 @@
     <a href='/analysis/{{ firmware[0] }}' style="color: rgb(51, 51, 51);">
         <div class="d-flex justify-content-between align-items-center" style="width: 100%; height: 100%; font-size: 14px">
             {{ firmware[1] }}
-            {{ firmware[2] | render_tags(size=11) | safe}}
+            <span>{{ firmware[2] | render_tags(size=11) | safe}}</span>
         </div>
     </a>
     <div class="d-flex justify-content-between align-items-center">
