@@ -89,10 +89,10 @@
                             <tr>
                                 <td style="font-size: 14px"> {{ comment.time | int | nice_unix_time }} </td>
                                 <td style="font-size: 14px"> {{ comment.author }} </td>
-                                <td class="clickable">
-                                    <a href="/analysis/{{ comment.uid }}" style="font-family: monospace; color: #000; font-size: 14px">
+                                <td class="clickable" onclick="location.href='/analysis/{{ comment.uid }}'">
+                                    <span style="font-family: monospace; color: #000; font-size: 14px">
                                         {{ comment.comment | urlize }}
-                                    </a>
+                                    </span>
                                 </td>
                             </tr>
                         {% endfor %}
