@@ -51,14 +51,14 @@
                 </li>
             </ul>
 
-            <div class="col-lg-8">
+            <div class="col-lg-8 px-0">
                 <div class="form-group tab-content" id="fromFile">
                     <label for="selectFile">Yara rule file:</label><br />
                     <input id="selectFile" type="file" name="file">
                 </div>
             </div>
 
-            <div class="col-lg-8">
+            <div class="col-lg-8 px-0">
                 <div class="form-group tab-content" id="fromText" style="display: none;">
                         <label class="control-label" for="textarea">Yara rule:</label><br />
                     <div>
@@ -67,7 +67,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-lg-8 my-2">
+            <div class="col-lg-8 px-0 my-2">
                 <label><input type='checkbox' name="firmware_checkbox" id="firmware_checkbox" onclick='clickCheckbox(this);'> scan single firmware</label>
                 <input name="firmware_uid" type="text" class="form-control" id="firmware_uid_input" placeholder="Firmware UID" style="display: none;">
                 <br />
@@ -78,7 +78,7 @@
                 <h5 style="color: red;">{{ error }}</h5>
             {% endif %}
 
-            <div class="col-lg-8">
+            <div class="col-lg-8 px-0">
                 <button type="submit" value=submit class="btn btn-primary" id="input_submit" onclick='showImg()'>
                     <i class="fas fa-search"></i> Search
                 </button>
