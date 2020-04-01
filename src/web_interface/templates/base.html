@@ -73,6 +73,19 @@
             .tooltip.top > .tooltip-arrow {
                 border-top: 5px solid #2b669a;
             }
+
+            .table-head-light,
+            .table-head-light > th,
+            .table-head-light > td {
+                background-color: #e9ecef;
+            }
+            .table-hover .table-head-light:hover {
+                background-color: #d6d8db;
+            }
+            .table-hover .table-head-light:hover > td,
+            .table-hover .table-head-light:hover > th {
+                background-color: #d6d8db;
+            }
         </style>
         {% block styles %}{% endblock %}
     </head>
@@ -87,7 +100,7 @@
         <div class="navbar-brand d-none d-md-block mr-0 mr-md-2" style="vertical-align: middle; margin-left: 15px">
             <span><img height="25px" src="{{ url_for('static', filename='fact_logo_inv.svg') }}"></span>
         </div>
-        <div class="navbar-brand d-none d-lg-block " style="vertical-align: middle">
+        <div class="navbar-brand d-none d-xl-block" style="vertical-align: middle">
             Firmware Analysis and Comparison Tool
         </div>
         <div id="navbarCollapse" class="collapse navbar-collapse">
