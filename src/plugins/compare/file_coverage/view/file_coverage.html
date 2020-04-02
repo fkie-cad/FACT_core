@@ -45,7 +45,7 @@
         <td> {{ feature | replace_underscore }} </td>
         {% for firmware_uid in uid_list %}
             {% if firmware_uid != "collapse" %}
-            <td>
+            <td style="font-size: 14px;">
                 <div id="fileTreeAjax_{{ loop.index }}"></div>
                 {# --- file tree ---#}
                 <script>
