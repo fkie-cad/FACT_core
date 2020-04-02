@@ -44,7 +44,7 @@ def main(distribution):  # pylint: disable=too-many-statements
     if not distribution == 'xenial':
         pip3_install_packages('testresources')
 
-    # get a bugfree recent pip version
+    # get a bug free recent pip version
     apt_remove_packages('python3-pip', 'python3-setuptools', 'python3-wheel')
     install_pip('python3')
 
@@ -53,7 +53,7 @@ def main(distribution):  # pylint: disable=too-many-statements
     apt_remove_packages('python-pip')
     install_pip('python2')
 
-    # install general python dependencys
+    # install general python dependencies
     apt_install_packages('libmagic-dev')
     apt_install_packages('libfuzzy-dev')
     apt_install_packages('python3-tlsh')
@@ -66,7 +66,7 @@ def main(distribution):  # pylint: disable=too-many-statements
 
     pip3_install_packages('requests')
 
-    # install python mongo bindings
+    # install python MongoDB bindings
     pip3_install_packages('pymongo', 'pyyaml')
 
     # VarietyJS (is executed by update_statistic.py)
