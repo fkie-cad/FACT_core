@@ -11,7 +11,7 @@
 	<td class="active result"><b>Means of Detection</b></td>
 </tr>
 	{% for key in firmware.processed_analysis[selected_analysis] %}
-    	{% if key not in ['summary', 'plugin_version', 'analysis_date', 'skipped'] %}
+    	{% if key | is_not_mandatory_analysis_entry %}
 			<tr>
 				<td> {{ key }} </td>
 				<td>{{ firmware.processed_analysis[selected_analysis][key] }}</td>

@@ -361,5 +361,5 @@ def get_unique_keys_from_list_of_dicts(list_of_dicts: List[dict]):
     return unique_keys
 
 
-def is_not_manditory_analysis_entry(item):
+def is_not_mandatory_analysis_entry(item):
     return item not in ['analysis_date', 'plugin_version', 'skipped', 'summary', 'system_version', 'tags']
