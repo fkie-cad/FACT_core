@@ -104,7 +104,6 @@ class DatabaseRoutes(ComponentBase):
                     cached_query = connection.get_query_from_cache(query)
                     query = cached_query['search_query']
                     search_parameters['query_title'] = cached_query['query_title']
-        logging.warning(f"\nrequest args: {request.args}")  # tODO
         search_parameters['only_firmware'] = request.args.get('only_firmwares') == 'True' if request.args.get('only_firmwares') else only_firmware
         search_parameters['inverted'] = request.args.get('inverted') == 'True' if request.args.get('inverted') else inverted
         search_parameters['query'] = apply_filters_to_query(request, query)
