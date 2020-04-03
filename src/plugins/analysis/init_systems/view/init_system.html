@@ -15,7 +15,7 @@
         </tr>
     {% endif %}
     {% for key, value in firmware.processed_analysis[selected_analysis].items()|sort %}
-        {% if key not in ['init_type', 'description'] and key | is_not_mandatory_analysis_entry %}
+        {% if key | is_not_mandatory_analysis_entry(['init_type', 'description']) %}
             <tr>
                 <td class="active result"> {{key}} </td>
                 <td class="active result">

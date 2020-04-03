@@ -8,7 +8,7 @@ import zlib
 from base64 import standard_b64encode
 from operator import itemgetter
 from time import localtime, strftime, struct_time
-from typing import AnyStr, List
+from typing import AnyStr, List, Optional
 
 from common_helper_files import human_readable_file_size
 
@@ -361,5 +361,8 @@ def get_unique_keys_from_list_of_dicts(list_of_dicts: List[dict]):
     return unique_keys
 
 
-def is_not_mandatory_analysis_entry(item):
-    return item not in ['analysis_date', 'plugin_version', 'skipped', 'summary', 'system_version', 'tags']
+def is_not_mandatory_analysis_entry(item: str, additional_entries: Optional[List[str]] = None) -> bool:
+    return (
+        item not in ['analysis_date', 'plugin_version', 'skipped', 'summary', 'system_version', 'tags']
+        and (additional_entries is None or item not in additional_entries)
+    )
