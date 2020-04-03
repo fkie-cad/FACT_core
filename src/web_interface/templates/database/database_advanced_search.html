@@ -2,13 +2,22 @@
 
 {% set active_page = "Database" %}
 
+
 {% block head %}
         {# angularJS import #}
         <script type="text/javascript" src="{{ url_for('static', filename='angular.min.js') }}"></script>
+        <script>
+            function hide_checkbox() {
+                if ($("#only_firmwares").is(':checked'))
+                    $("#inverted_label").show();
+                else
+                    $("#inverted_label").hide();
+            }
+        </script>
 {% endblock %}
 
-{% block body %}
 
+{% block body %}
 
 <div class="row">
 
@@ -34,8 +43,14 @@
                             </td>
                             <td style="padding: 5px;">
                                 <label class="checkbox-inline" style="padding: 0; margin: 0 0 0 20px;">
-                                    <input type="checkbox" name="only_firmwares" value="True">
+                                    <input type="checkbox" name="only_firmwares" id="only_firmwares" value="True" onchange="hide_checkbox()">
                                     show parent firmware instead of matching file
+                                </label>
+                            </td>
+                            <td style="padding: 5px;">
+                                <label class="checkbox-inline" id="inverted_label" style="padding: 0; margin: 0 0 0 20px;">
+                                    <input type="checkbox" name="inverted" id="inverted" value="True">
+                                    inverse (firmware without matching files)
                                 </label>
                             </td>
                         </tr>

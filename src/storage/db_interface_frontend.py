@@ -129,7 +129,7 @@ class FrontEndDbInterface(MongoInterfaceCommon):
         number_of_results = self.get_firmware_number(query) + self.get_file_object_number(query)
         return number_of_results >= len(uid_list)
 
-    def generic_search(self, search_dict, skip=0, limit=0, only_fo_parent_firmware=False):
+    def generic_search(self, search_dict, skip=0, limit=0, only_fo_parent_firmware=False, inverted=False):
         try:
             if isinstance(search_dict, str):
                 search_dict = json.loads(search_dict)
@@ -139,16 +139,17 @@ class FrontEndDbInterface(MongoInterfaceCommon):
 
             if len(result) < limit or limit == 0:
                 max_firmware_results = self.get_firmware_number(query=search_dict)
-                skip_fo = skip - max_firmware_results if skip > max_firmware_results else 0
-                limit_fo = limit - len(result) if limit > 0 else 0
+                skip = skip - max_firmware_results if skip > max_firmware_results else 0
+                limit = limit - len(result) if limit > 0 else 0
                 if not only_fo_parent_firmware:
-                    query = self.file_objects.find(search_dict, {'_id': 1}, skip=skip_fo, limit=limit_fo, sort=[('file_name', 1)])
+                    query = self.file_objects.find(search_dict, {'_id': 1}, skip=skip, limit=limit, sort=[('file_name', 1)])
                     result.extend([match['_id'] for match in query])
                 else:  # only searching for parents of matching file objects
                     query = self.file_objects.find(search_dict, {'virtual_file_path': 1})
                     parent_uids = {uid for match in query for uid in match['virtual_file_path'].keys()}
-                    query_filter = {'$nor': [{'_id': {'$nin': list(parent_uids)}}, search_dict]}
-                    query = self.firmwares.find(query_filter, {'_id': 1}, skip=skip_fo, limit=limit_fo, sort=[('file_name', 1)])
+                    uid_matching_operator = '$in' if inverted else '$nin'
+                    query_filter = {'$nor': [{'_id': {uid_matching_operator: list(parent_uids)}}, search_dict]}
+                    query = self.firmwares.find(query_filter, {'_id': 1}, skip=skip, limit=limit, sort=[('file_name', 1)])
                     parents = [match['_id'] for match in query]
                     result = remove_duplicates_from_list(result + parents)
 
