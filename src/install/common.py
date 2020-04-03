@@ -2,7 +2,6 @@ import logging
 import os
 from contextlib import suppress
 from pathlib import Path
-from shutil import rmtree
 
 from common_helper_process import execute_shell_command_get_return_code
 
@@ -70,10 +69,10 @@ def main(distribution):  # pylint: disable=too-many-statements
     pip3_install_packages('pymongo', 'pyyaml')
 
     # VarietyJS (is executed by update_statistic.py)
-    variety_target_dir = Path('../bin/spec')
-    if variety_target_dir.exists():
-        rmtree(str(variety_target_dir))
-    install_github_project('variety/variety', ['git checkout 2f4d815', 'mv -f variety.js ../../bin', 'mv -f spec ../../bin'])
+    if Path('../bin/spec').exists():
+        logging.warning('variety spec not overwritten')
+    else:
+        install_github_project('variety/variety', ['git checkout 2f4d815', 'mv -f variety.js ../../bin', 'mv -f spec ../../bin'])
 
     #  installing common code modules
     pip3_install_packages('hurry.filesize')
