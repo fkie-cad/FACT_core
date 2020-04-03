@@ -129,7 +129,7 @@ def _get_sorted_list(input_data):
     if isinstance(input_data, list):
         try:
             input_data.sort()
-        except Exception as exception:
+        except (AttributeError, TypeError) as exception:
             logging.warning('could not sort list: {} - {}'.format(sys.exc_info()[0].__name__, exception))
     return input_data
 
@@ -179,7 +179,7 @@ def text_highlighter(input_data, green=None, red=None):
 def sort_chart_list_by_name(input_data):
     try:
         input_data.sort(key=lambda x: x[0])
-    except Exception as exception:
+    except (AttributeError, KeyError, TypeError) as exception:
         logging.error(
             'could not sort chart list {}: {} - {}'.format(input_data, sys.exc_info()[0].__name__, exception))
         return []
@@ -189,7 +189,7 @@ def sort_chart_list_by_name(input_data):
 def sort_chart_list_by_value(input_data):
     try:
         input_data.sort(key=lambda x: x[1], reverse=True)
-    except Exception as exception:
+    except (AttributeError, KeyError, TypeError) as exception:
         logging.error(
             'could not sort chart list {}: {} - {}'.format(input_data, sys.exc_info()[0].__name__, exception))
         return []
@@ -199,7 +199,7 @@ def sort_chart_list_by_value(input_data):
 def sort_comments(comment_list):
     try:
         comment_list.sort(key=itemgetter('time'), reverse=True)
-    except Exception as exception:
+    except (AttributeError, KeyError, TypeError) as exception:
         logging.error('could not sort comment list {}: {} - {}'.format(
             comment_list, sys.exc_info()[0].__name__, exception))
         return []
