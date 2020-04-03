@@ -179,7 +179,7 @@ def text_highlighter(input_data, green=None, red=None):
 def sort_chart_list_by_name(input_data):
     try:
         input_data.sort(key=lambda x: x[0])
-    except (AttributeError, KeyError, TypeError) as exception:
+    except (AttributeError, IndexError, KeyError, TypeError) as exception:
         logging.error(
             'could not sort chart list {}: {} - {}'.format(input_data, sys.exc_info()[0].__name__, exception))
         return []
@@ -189,7 +189,7 @@ def sort_chart_list_by_name(input_data):
 def sort_chart_list_by_value(input_data):
     try:
         input_data.sort(key=lambda x: x[1], reverse=True)
-    except (AttributeError, KeyError, TypeError) as exception:
+    except (AttributeError, IndexError, KeyError, TypeError) as exception:
         logging.error(
             'could not sort chart list {}: {} - {}'.format(input_data, sys.exc_info()[0].__name__, exception))
         return []
