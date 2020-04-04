@@ -7,6 +7,7 @@ class TagColor:
     RED = 'danger'
     LIGHT = 'light'
     DARK = 'dark'
+    ALL = [GRAY, BLUE, GREEN, LIGHT_BLUE, ORANGE, RED, LIGHT, DARK]
 
 
 def check_tags(file_object, analysis_name):
@@ -45,7 +46,7 @@ def check_tag_integrity(tag):
     if any(key not in tag for key in ['value', 'color', 'propagate']):
         return False, 'missing key'
 
-    if tag['color'] not in [TagColor.GREEN, TagColor.GRAY, TagColor.BLUE, TagColor.LIGHT_BLUE, TagColor.ORANGE, TagColor.RED]:
+    if tag['color'] not in TagColor.ALL:
         return False, 'bad tag color'
 
     if not isinstance(tag['value'], str):

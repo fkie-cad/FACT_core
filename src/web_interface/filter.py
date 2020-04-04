@@ -13,6 +13,7 @@ from common_helper_files import human_readable_file_size
 
 from helperFunctions.compare_sets import remove_duplicates_from_list
 from helperFunctions.dataConversion import make_unicode_string
+from helperFunctions.tag import TagColor
 from helperFunctions.web_interface import get_color_list
 from web_interface.security.authentication import user_has_privilege
 from web_interface.security.privileges import PRIVILEGES
@@ -284,7 +285,7 @@ def render_tags(tag_dict, additional_class='', size=14):
     if tag_dict:
         for tag in sorted(tag_dict.keys()):
             output += '<span class="badge badge-{} {}" style="font-size: {}px;">{}</span>\n'.format(
-                tag_dict[tag], additional_class, size, tag)
+                _fix_color_class(tag_dict[tag]), additional_class, size, tag)
     return output
 
 
@@ -294,9 +295,13 @@ def render_analysis_tags(tags, size=14):
         for plugin_name in tags:
             for key, tag in tags[plugin_name].items():
                 output += '<span class="badge badge-{}" style="font-size: {}px;" data-toggle="tooltip" title="{}: {}">{}</span>\n'.format(
-                    tag['color'], size, replace_underscore_filter(plugin_name), replace_underscore_filter(key), tag['value']
+                    _fix_color_class(tag['color']), size, replace_underscore_filter(plugin_name), replace_underscore_filter(key), tag['value']
                 )
     return output
+
+
+def _fix_color_class(tag_color_class):
+    return tag_color_class if tag_color_class in TagColor.ALL else TagColor.BLUE
 
 
 def fix_cwe(string):

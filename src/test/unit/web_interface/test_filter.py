@@ -228,9 +228,16 @@ def test_empty_analysis_tags():
 
 
 def test_render_analysis_tags_success():
+    tags = {'such plugin': {'tag': {'color': 'success', 'value': 'wow'}}}
+    output = render_analysis_tags(tags)
+    assert 'badge-success' in output
+    assert '>wow<' in output
+
+
+def test_render_analysis_tags_fix():
     tags = {'such plugin': {'tag': {'color': 'very color', 'value': 'wow'}}}
     output = render_analysis_tags(tags)
-    assert 'badge-very color' in output
+    assert 'badge-primary' in output
     assert '>wow<' in output
 
 
