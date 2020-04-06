@@ -8,8 +8,8 @@ from helperFunctions.database import ConnectTo
 from helperFunctions.mongo_task_conversion import convert_analysis_task_to_fw_obj
 from helperFunctions.object_conversion import create_meta_dict
 from helperFunctions.rest import (
-    convert_rest_request, error_message, get_paging, get_query, get_recursive, get_summary_flag, get_update,
-    success_message
+    convert_rest_request, error_message, get_inverse_flag, get_paging, get_query, get_recursive_flag, get_summary_flag,
+    get_update, success_message
 )
 from intercom.front_end_binding import InterComFrontEndBinding
 from objects.firmware import Firmware
@@ -80,26 +80,30 @@ class RestFirmware(Resource):
         return success_message({}, self.URL, dict(uid=uid, update=update))
 
     def _get_without_uid(self):
-        paging, success = get_paging(request.args)
-        if not success:
-            return error_message(paging, self.URL, request_data=request.args)
-        offset, limit = paging
-
         try:
-            recursive = get_recursive(request.args)
-            query = get_query(request.args)
+            query, recursive, inverse, (offset, limit) = self._get_parameters_from_request(request.args)
         except ValueError as value_error:
-            return error_message(str(value_error), self.URL, request_data=dict(query=request.args.get('query'), recursive=request.args.get('recursive')))
-        if recursive and not query:
-            return error_message('recursive search is only permissible with non-empty query', self.URL, request_data=dict(query=request.args.get('query'), recursive=request.args.get('recursive')))
+            return error_message(str(value_error), self.URL, request_data=request.args)
 
+        parameters = dict(offset=offset, limit=limit, query=query, recursive=recursive, inverse=inverse)
         try:
             with ConnectTo(FrontEndDbInterface, self.config) as connection:
-                uids = connection.rest_get_firmware_uids(offset=offset, limit=limit, query=query, recursive=recursive)
+                uids = connection.rest_get_firmware_uids(**parameters)
+            return success_message(dict(uids=uids), self.URL, parameters)
+        except Exception:  # pylint: disable=broad-except
+            return error_message('Unknown exception on request', self.URL, parameters)
 
-            return success_message(dict(uids=uids), self.URL, dict(offset=offset, limit=limit, query=query, recursive=recursive))
-        except Exception:
-            return error_message('Unknown exception on request', self.URL, dict(offset=offset, limit=limit, query=query, recursive=recursive))
+    @staticmethod
+    def _get_parameters_from_request(request_parameters):
+        query = get_query(request_parameters)
+        recursive = get_recursive_flag(request_parameters)
+        inverse = get_inverse_flag(request_parameters)
+        paging = get_paging(request.args)
+        if recursive and not query:
+            raise ValueError('recursive search is only permissible with non-empty query')
+        if inverse and not recursive:
+            raise ValueError('inverse can only be used with recursive')
+        return query, recursive, inverse, paging
 
     def _get_with_uid(self, uid):
         summary = get_summary_flag(request.args)

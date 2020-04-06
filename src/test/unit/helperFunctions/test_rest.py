@@ -1,6 +1,9 @@
 import pytest
 
-from helperFunctions.rest import success_message, error_message, get_current_gmt, convert_rest_request, get_recursive, get_summary_flag, get_update, get_query, get_paging, get_tar_flag
+from helperFunctions.rest import (
+    convert_rest_request, error_message, get_current_gmt, get_inverse_flag, get_paging, get_query, get_recursive_flag,
+    get_summary_flag, get_tar_flag, get_update, success_message
+)
 
 
 def test_time_is_int():
@@ -64,40 +67,46 @@ def test_convert_rest_request_succeeds(data):
 
 
 def test_get_recursive():
-    assert not get_recursive(None)
+    assert not get_recursive_flag(None)
 
     with pytest.raises(ValueError):
-        get_recursive(dict(recursive='bad_string'))
+        get_recursive_flag(dict(recursive='bad_string'))
 
     with pytest.raises(ValueError):
-        get_recursive(dict(recursive='2'))
+        get_recursive_flag(dict(recursive='2'))
 
-    no_flag = get_recursive(dict())
+    no_flag = get_recursive_flag(dict())
     assert not no_flag
 
-    false_result = get_recursive(dict(recursive='false'))
+    false_result = get_recursive_flag(dict(recursive='false'))
     assert not false_result
 
-    good_result = get_recursive(dict(recursive='true'))
+    good_result = get_recursive_flag(dict(recursive='true'))
     assert good_result
 
 
-def test_get_summary_flag():
-    assert not get_summary_flag(None)
+@pytest.mark.parametrize('get_request_parameter_function, name', [
+    (get_recursive_flag, 'recursive'),
+    (get_inverse_flag, 'inverse'),
+    (get_summary_flag, 'summary'),
+    (get_tar_flag, 'tar'),
+])
+def test_get_boolean_from_request(get_request_parameter_function, name):
+    assert not get_request_parameter_function(None)
 
     with pytest.raises(ValueError):
-        get_summary_flag(dict(summary='bad_string'))
+        get_request_parameter_function({name: 'bad_string'})
 
     with pytest.raises(ValueError):
-        get_summary_flag(dict(summary='2'))
+        get_request_parameter_function({name: '2'})
 
-    no_flag = get_summary_flag(dict())
+    no_flag = get_request_parameter_function(dict())
     assert not no_flag
 
-    false_result = get_summary_flag(dict(summary='false'))
+    false_result = get_request_parameter_function({name: 'false'})
     assert not false_result
 
-    good_result = get_summary_flag(dict(summary='true'))
+    good_result = get_request_parameter_function({name: 'true'})
     assert good_result
 
 
@@ -123,29 +132,13 @@ def test_get_query():
     assert get_query(dict(query='{"a": "b"}')) == {'a': 'b'}
 
 
-@pytest.mark.parametrize('arguments', [(None, None), ('1', None), ('A', 'B')])
-def test_get_paging_bad_arguments(arguments):
-    offset, limit = arguments
-    paging, success = get_paging(dict(offset=offset, limit=limit))
-    assert not success
-
-
-def test_get_paging_success():
-    paging, success = get_paging(dict(offset=0, limit=1))
-    assert success and paging == (0, 1)
-
-    paging, success = get_paging(dict(offset='0', limit='1'))
-    assert success and paging == (0, 1)
-
-
-def test_get_tar_flag_success():
-    assert get_tar_flag(dict()) is False
-
-    assert get_tar_flag(dict(tar='false')) is False
-    assert get_tar_flag(dict(tar='true')) is True
-
-
-@pytest.mark.parametrize('parameter', [None, '12', 'False'])
-def test_get_tar_flag_raises(parameter):
+@pytest.mark.parametrize('offset, limit', [(None, None), ('1', None), ('A', 'B')])
+def test_get_paging_bad_arguments(offset, limit):
     with pytest.raises(ValueError):
-        get_tar_flag(dict(tar=parameter))
+        _ = get_paging(dict(offset=offset, limit=limit))
+
+
+@pytest.mark.parametrize('request_args', [dict(offset=0, limit=1), dict(offset='0', limit='1')])
+def test_get_paging_success(request_args):
+    offset, limit = get_paging(request_args)
+    assert (offset, limit) == (0, 1)
