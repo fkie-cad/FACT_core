@@ -5,6 +5,8 @@ from flask_restful import Resource
 from helperFunctions.database import ConnectTo
 from helperFunctions.rest import success_message
 from storage.db_interface_frontend import FrontEndDbInterface
+from web_interface.security.decorator import roles_accepted
+from web_interface.security.privileges import PRIVILEGES
 
 
 class RestMissingAnalyses(Resource):
@@ -13,6 +15,7 @@ class RestMissingAnalyses(Resource):
     def __init__(self, **kwargs):
         self.config = kwargs.get('config', None)
 
+    @roles_accepted(*PRIVILEGES['delete'])
     def get(self):
         with ConnectTo(FrontEndDbInterface, self.config) as db:
             missing_files = self._make_json_serializable(db.find_missing_files())
