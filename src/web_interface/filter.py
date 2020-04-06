@@ -8,7 +8,7 @@ import zlib
 from base64 import standard_b64encode
 from operator import itemgetter
 from time import localtime, strftime, struct_time
-from typing import AnyStr, List
+from typing import AnyStr, List, Optional
 
 from common_helper_files import human_readable_file_size
 
@@ -129,7 +129,7 @@ def _get_sorted_list(input_data):
     if isinstance(input_data, list):
         try:
             input_data.sort()
-        except Exception as exception:
+        except (AttributeError, TypeError) as exception:
             logging.warning('could not sort list: {} - {}'.format(sys.exc_info()[0].__name__, exception))
     return input_data
 
@@ -179,7 +179,7 @@ def text_highlighter(input_data, green=None, red=None):
 def sort_chart_list_by_name(input_data):
     try:
         input_data.sort(key=lambda x: x[0])
-    except Exception as exception:
+    except (AttributeError, IndexError, KeyError, TypeError) as exception:
         logging.error(
             'could not sort chart list {}: {} - {}'.format(input_data, sys.exc_info()[0].__name__, exception))
         return []
@@ -189,7 +189,7 @@ def sort_chart_list_by_name(input_data):
 def sort_chart_list_by_value(input_data):
     try:
         input_data.sort(key=lambda x: x[1], reverse=True)
-    except Exception as exception:
+    except (AttributeError, IndexError, KeyError, TypeError) as exception:
         logging.error(
             'could not sort chart list {}: {} - {}'.format(input_data, sys.exc_info()[0].__name__, exception))
         return []
@@ -199,7 +199,7 @@ def sort_chart_list_by_value(input_data):
 def sort_comments(comment_list):
     try:
         comment_list.sort(key=itemgetter('time'), reverse=True)
-    except Exception as exception:
+    except (AttributeError, KeyError, TypeError) as exception:
         logging.error('could not sort comment list {}: {} - {}'.format(
             comment_list, sys.exc_info()[0].__name__, exception))
         return []
@@ -361,5 +361,8 @@ def get_unique_keys_from_list_of_dicts(list_of_dicts: List[dict]):
     return unique_keys
 
 
-def is_not_manditory_analysis_entry(item):
-    return item not in ['analysis_date', 'plugin_version', 'skipped', 'summary', 'system_version', 'tags']
+def is_not_mandatory_analysis_entry(item: str, additional_entries: Optional[List[str]] = None) -> bool:
+    return (
+        item not in ['analysis_date', 'plugin_version', 'skipped', 'summary', 'system_version', 'tags']
+        and (additional_entries is None or item not in additional_entries)
+    )

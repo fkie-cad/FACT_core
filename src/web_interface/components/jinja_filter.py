@@ -143,4 +143,4 @@ class FilterClass:
         self._app.jinja_env.filters['uids_to_link'] = flt.uids_to_link
         self._app.jinja_env.filters['user_has_role'] = flt.user_has_role
         self._app.jinja_env.filters['vulnerability_class'] = flt.vulnerability_class
-        self._app.jinja_env.filters['is_not_mandatory_analysis_entry'] = flt.is_not_manditory_analysis_entry
+        self._app.jinja_env.filters['is_not_mandatory_analysis_entry'] = flt.is_not_mandatory_analysis_entry
