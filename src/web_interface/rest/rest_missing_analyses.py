@@ -10,7 +10,7 @@ from web_interface.security.privileges import PRIVILEGES
 
 
 class RestMissingAnalyses(Resource):
-    URL = '/rest/missing_analyses'
+    URL = '/rest/missing'
 
     def __init__(self, **kwargs):
         self.config = kwargs.get('config', None)
