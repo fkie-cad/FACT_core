@@ -1,6 +1,7 @@
 from base64 import standard_b64decode
 
 from test.common_helper import TEST_FW
+
 from .conftest import decode_response
 
 
@@ -33,4 +34,4 @@ def test_successful_tar_download(test_app):
 def test_bad_tar_flag(test_app):
     result = decode_response(test_app.get('/rest/binary/{}?tar=True'.format(TEST_FW.uid)))
     assert result['status'] == 1
-    assert 'Malformed tar parameter' in result['error_message']
+    assert 'tar must be true or false' in result['error_message']

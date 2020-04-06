@@ -83,7 +83,8 @@ class RestFirmware(Resource):
         try:
             query, recursive, inverse, (offset, limit) = self._get_parameters_from_request(request.args)
         except ValueError as value_error:
-            return error_message(str(value_error), self.URL, request_data=request.args)
+            request_data = {k: request.args.get(k) for k in ['query', 'limit', 'offset', 'recursive', 'inverse']}
+            return error_message(str(value_error), self.URL, request_data=request_data)
 
         parameters = dict(offset=offset, limit=limit, query=query, recursive=recursive, inverse=inverse)
         try:
