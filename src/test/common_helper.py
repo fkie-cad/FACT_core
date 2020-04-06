@@ -349,6 +349,12 @@ class DatabaseMock:  # pylint: disable=too-many-public-methods
             return {'foobar': ['some_uid']}
         return None
 
+    def find_missing_files(self):
+        return {'parent_uid': ['missing_child_uid']}
+
+    def find_missing_analyses(self):
+        return {'root_fw_uid': ['missing_child_uid']}
+
 
 def fake_exit(self, *args):
     pass
