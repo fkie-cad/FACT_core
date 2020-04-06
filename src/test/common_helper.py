@@ -212,7 +212,7 @@ class DatabaseMock:  # pylint: disable=too-many-public-methods
     def create_analysis_structure():
         return ''
 
-    def generic_search(self, search_string, skip=0, limit=0, only_fo_parent_firmware=False):
+    def generic_search(self, search_string, skip=0, limit=0, only_fo_parent_firmware=False, inverted=False):
         result = []
         if isinstance(search_string, dict):
             search_string = json.dumps(search_string)
