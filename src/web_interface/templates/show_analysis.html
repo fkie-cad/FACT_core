@@ -71,7 +71,7 @@
 
 {% if uids_for_comparison %}
 <div class="row justify-content-end mt-3 mb-2">
-    <div class="collapse" id="comparison-list" style="margin: 0">
+    <div class="collapse m-0" id="comparison-list">
         <div class="jumbotron float-right mx-2 mb-0 p-3" style="width: auto; max-width: 650px;">
             <span class="mt-0 text-center" style="font-size: larger">Firmware Selected for Comparison</span>
             <hr style="margin: 12px">
@@ -79,8 +79,8 @@
                 <tr>
                     <td style="width: 10px; vertical-align: top;">
                         {% for compare_uid in uids_for_comparison %}
-                            <div class="col-xs-12" style="padding: 0;">
-                                <span style="padding: 2px; margin: 0; display: inline-flex;">
+                            <div class="col-xs-12 p-0">
+                                <span class="m-0" style="padding: 2px; display: inline-flex;">
                                     <span class="close" style="font-size: 20px" onclick="location.href='/comparison/remove/{{ uid }}/{{ compare_uid }}'">
                                         &times;
                                     </span>
@@ -98,11 +98,11 @@
                             </div>
                             <div class="col-xs-12" style="padding: 2px;">
                                 <button type="button" id="start_compare_button" class="btn btn-secondary btn-sm" style="width: 100%">
-                                    <i class="far fa-copy"></i> Compare
+                                    <i class="fas fa-copy"></i> Compare
                                 </button>
                             </div>
-                            <div class="form-group col-xs-12" style="margin: 0;">
-                                <div class="checkbox" style="margin: 0; margin-left: 30px; text-align: center">
+                            <div class="form-group col-xs-12 m-0">
+                                <div class="checkbox m-0" style="margin-left: 30px; text-align: center">
                                     <label style="padding: 2px">
                                         <input type="checkbox" value="true" id="recompare_checkbox" style="margin-top: 2px;"> Force Recompare
                                     </label>
@@ -301,13 +301,13 @@
     {# File tree section #}
     <div class="row">
         <div class="col-lg-12">
-            <table class="table table-sm table-bordered" style="font-size: 14px;">
+            <table class="table table-sm table-bordered">
                 <thead>
                     <tr class="thead-light">
                         <th>File Tree</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody style="font-size: 14px;">
                     <tr>
                         <td>
                             <div id="fileTreeAjax"></div>
@@ -480,21 +480,21 @@
     <div class="row">
 
         <div class="col-lg-12" style="margin-top: 20px">
-            <table class="table table-bordered" id="comments-head" style="margin-bottom:0;">
+            <table class="table table-bordered mb-0" id="comments-head">
                 <thead class="thead-light">
                     <tr>
                         <th>
                             Comments
                             {# Add Comment Button #}
                             <form action="/comment/{{ firmware.uid }}" style="float: right; margin-right: 5px;">
-                                <button class="btn btn-primary" type="submit">
+                                <button class="btn btn-primary btn-sm" type="submit">
                                     <i class="far fa-edit"></i> add comment
                                 </button>
                             </form>
 
                             {# Show Comments Button #}
                             <form onsubmit="return false;" style="float: right; margin-right: 5px;">
-                                <button data-toggle="collapse" data-target="#comments" class="btn btn-primary"
+                                <button data-toggle="collapse" data-target="#comments" class="btn btn-primary btn-sm"
                                 {% if firmware.comments | length == 0 %} disabled {% endif %}>
                                     <span class="badge">{{ firmware.comments | length }}</span> show comments
                                 </button>
@@ -504,8 +504,8 @@
                 </thead>
             </table>
             {% if firmware.comments %}
-            <div class="collapse" id="comments" style="margin:0;">
-                <table class="table table-bordered" valign="center" align="center" border="0" id="comments-table" style="margin-bottom:0;">
+            <div class="collapse m-0" id="comments">
+                <table class="table table-bordered p-0 mb-0" id="comments-table">
                     <tbody>
                         {% for comment in firmware.comments|sort_comments %}
                         <tr>
@@ -513,26 +513,24 @@
                                 <div>{{ comment.author }}</div>
                                 <div>{{ comment.time|int|nice_unix_time }}</div>
                             </td>
-                            <td width="80%" style="margin:0; padding:0;">
-                                <pre style="white-space: pre-wrap; margin: 3px">{{ comment.comment|urlize }}</pre>
+                            <td width="80%">
+                                <span style="font-family: monospace; color: #000; font-size: 14px">
+                                    {{ comment.comment | urlize }}
+                                </span>
                             </td>
-                            <td style="margin:0; padding:0;">
+                            <td class="m-0 p-0 align-middle">
                                 {# Comment Delete Button #}
-                                {% if firmware.vendor %}
-                                    <button data-toggle="collapse" data-target="#delete-button-div-{{ comment.time }}" class="btn btn-sm">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                {% endif %}
+                                <button data-toggle="collapse" data-target="#delete-button-div-{{ comment.time }}" class="btn btn-sm">
+                                    <i class="fas fa-trash-alt text-danger"></i>
+                                </button>
                             </td>
-                            <td style="margin:0; padding:0;">
+                            <td class="m-0 p-0">
                                 {# Comment Delete Confirm Button #}
-                                {% if firmware.vendor %}
-                                    <div class="collapse" id="delete-button-div-{{ comment.time }}">
-                                        <button class="btn btn-danger" type="button" onclick='window.location.href = "/admin/delete_comment/{{ uid }}/{{ comment.time }}";'>
-                                            <i class="fas fa-check"></i> click here to confirm!
-                                        </button>
-                                    </div>
-                                {% endif %}
+                                <div class="collapse" id="delete-button-div-{{ comment.time }}">
+                                    <button class="btn btn-danger" type="button" onclick='window.location.href = "/admin/delete_comment/{{ uid }}/{{ comment.time }}";'>
+                                        <i class="fas fa-check"></i> Click here to confirm!
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                         {% endfor %}
