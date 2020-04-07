@@ -29,10 +29,10 @@
                     </td>
                     <td>
                         <div class="list-group" style="font-size: 15px">
-                            <div data-toggle="collapse" data-target="#{{ parent_uid | fix_uid_for_collapse }}" class="list-group-item list-group-item-primary d-flex justify-content-between align-items-center">
+                            <div data-toggle="collapse" data-target="#uid_{{ parent_uid }}" class="list-group-item list-group-item-primary d-flex justify-content-between align-items-center">
                                 show files <span class="badge badge-primary badge-pill">{{ uid_list | length }}</span>
                             </div>
-                            <div id="{{ parent_uid | fix_uid_for_collapse}}" class="collapse">
+                            <div id="uid_{{ parent_uid }}" class="collapse">
                                 {% for uid in uid_list %}
                                     <div class="list-group-item">{{ uid }}</div>
                                 {% endfor %}

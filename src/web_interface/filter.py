@@ -1,6 +1,3 @@
-'''
-Jinja2 template filter
-'''
 import logging
 import re
 import zlib
@@ -369,9 +366,3 @@ def is_not_mandatory_analysis_entry(item: str, additional_entries: Optional[List
         item not in ['analysis_date', 'plugin_version', 'skipped', 'summary', 'system_version', 'tags']
         and (additional_entries is None or item not in additional_entries)
     )
-
-
-def fix_uid_for_collapse_id(uid):
-    if uid and uid[0] in '0123456789_':
-        return 'collapse_id_{}'.format(uid)
-    return uid
