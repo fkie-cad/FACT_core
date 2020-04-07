@@ -12,7 +12,7 @@
                 <th colspan=2> Showing Analysis: {{ selected_analysis | replace_underscore}}</th>
             </tr>
         </thead>
-        <tbody style="font-size: 15px;">
+        <tbody class="table-analysis">
             {% if firmware.processed_analysis[selected_analysis]['skipped'] %}
             <tr>
                 <td class="table-warning">Analysis was skipped</td>
