@@ -375,20 +375,16 @@
                         <form class="form-horizontal" action="" method=post enctype=multipart/form-data>
                             <p>Add new analysis</p>
                             {% for system in available_plugins.unused | sort %}
-                                <div id="{{ system }}" class="{% if loop.index0 >= 0 %}col-xs-offset-3 {% endif %}col-xs-9">
-                                    <label class="checkbox-inline" data-toggle="tooltip" title="{{ analysis_plugin_dict[system][0] | safe }}">
-                                        <input type=checkbox name="analysis_systems" value="{{ system }}" unchecked>{{ system | replace_underscore }}<br />
-                                    </label>
-                                </div>
+                                <label class="checkbox-inline" data-toggle="tooltip" title="{{ analysis_plugin_dict[system][0] | safe }}" style="display: block">
+                                    <input type=checkbox name="analysis_systems" value="{{ system }}" unchecked>&nbsp;{{ system | replace_underscore }}<br />
+                                </label>
                             {% endfor %}
                             <hr />
                             <p>Update analysis</p>
                             {% for system in available_plugins.used | sort %}
-                                <div id="{{ system }}" class="{% if loop.index0 >= 0 %}col-xs-offset-3 {% endif %}col-xs-9">
-                                    <label class="checkbox-inline" data-toggle="tooltip" title="{{ analysis_plugin_dict[system][0] | safe }}">
-                                        <input type=checkbox name="analysis_systems" value="{{ system }}" unchecked>{{ system | replace_underscore }}<br />
-                                    </label>
-                                </div>
+                                <label class="checkbox-inline" data-toggle="tooltip" title="{{ analysis_plugin_dict[system][0] | safe }}" style="display: block">
+                                    <input type=checkbox name="analysis_systems" value="{{ system }}" unchecked>&nbsp;{{ system | replace_underscore }}<br />
+                                </label>
                             {% endfor %}
                             <hr />
                             <button class="btn btn-primary" type="submit" id="add_single_file_analysis" value=submit><i class="fas fa-play-circle"></i> Add</button>
