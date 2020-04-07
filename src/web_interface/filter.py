@@ -65,10 +65,10 @@ def replace_underscore_filter(string):
     return string.replace('_', ' ')
 
 
-def nice_list(input_data, collapse=False):
+def nice_list(input_data, omit_list_on_single_item=False):
     input_data = _get_sorted_list(input_data)
     if isinstance(input_data, list):
-        if collapse and len(input_data) == 1:
+        if omit_list_on_single_item and len(input_data) == 1:
             return '{}\n'.format(input_data[0])
         http_list = '<ul>\n'
         for item in input_data:
