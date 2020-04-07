@@ -152,12 +152,13 @@ class TestStorageDbInterfaceFrontend(unittest.TestCase):
         parent_fw = create_test_firmware()
         child_fo = create_test_file_object()
         uid = parent_fw.uid
-        child_fo.virtual_file_path = {uid: ['|{}|/folder/{}'.format(uid, child_fo.file_name)]}
+        child_fo.parent_firmware_uids = [uid]
         self.db_backend_interface.add_object(parent_fw)
         self.db_backend_interface.add_object(child_fo)
         query = '{{"$or": [{{"_id": "{}"}}, {{"_id": "{}"}}]}}'.format(uid, child_fo.uid)
-        self.assertEqual(self.db_frontend_interface.get_number_of_total_matches(query, only_parent_firmwares=False), 2)
-        self.assertEqual(self.db_frontend_interface.get_number_of_total_matches(query, only_parent_firmwares=True), 1)
+        assert self.db_frontend_interface.get_number_of_total_matches(query, only_parent_firmwares=False, inverted=False) == 2
+        assert self.db_frontend_interface.get_number_of_total_matches(query, only_parent_firmwares=True, inverted=False) == 1
+        assert self.db_frontend_interface.get_number_of_total_matches(query, only_parent_firmwares=True, inverted=True) == 0
 
     def test_get_other_versions_of_firmware(self):
         parent_fw1 = create_test_firmware(version='1')
