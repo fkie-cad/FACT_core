@@ -22,6 +22,9 @@ class TestAcceptanceAdvancedSearch(TestAcceptanceBase):
         self.child_fo.processed_analysis['unpacker']['plugin_used'] = 'test'
         self.child_fo.processed_analysis['file_type']['mime'] = 'some_type'
         self.db_backend_interface.add_object(self.child_fo)
+        self.other_fw = create_test_firmware()
+        self.other_fw.uid = '1234abcd_123'
+        self.db_backend_interface.add_object(self.other_fw)
 
     def tearDown(self):
         self.db_backend_interface.shutdown()
@@ -52,6 +55,16 @@ class TestAcceptanceAdvancedSearch(TestAcceptanceBase):
         assert b'Please enter a valid search request' not in rv.data
         assert self.child_fo.uid.encode() not in rv.data
         assert self.parent_fw.uid.encode() in rv.data
+
+    def test_advanced_search_inverse_only_firmware(self):
+        response = self.test_client.post(
+            '/database/advanced_search', content_type='multipart/form-data', follow_redirects=True,
+            data={'advanced_search': json.dumps({'_id': self.child_fo.uid}), 'only_firmwares': 'True', 'inverted': 'True'}
+        ).data.decode()
+        assert 'Please enter a valid search request' not in response
+        assert self.child_fo.uid not in response
+        assert '<strong>UID:</strong> {}'.format(self.parent_fw.uid) not in response
+        assert '<strong>UID:</strong> {}'.format(self.other_fw.uid) in response
 
     def test_rest_recursive_firmware_search(self):
         query = quote(json.dumps({'file_name': self.child_fo.file_name}))

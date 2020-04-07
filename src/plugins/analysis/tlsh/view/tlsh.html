@@ -7,7 +7,7 @@
     </tr>
     {% for key in firmware.processed_analysis[selected_analysis].keys() %}
 
-        {% if ('analysis_date' not in key) and ('plugin_version' not in key) %}
+        {% if key | is_not_mandatory_analysis_entry %}
         <tr>
             <td>{{ firmware.processed_analysis[selected_analysis][key] }}</td>
             <td>{{ key | replace_uid_with_hid_link | safe }}</td>

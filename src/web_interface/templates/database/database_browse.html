@@ -58,14 +58,13 @@
     <div class="row justify-content-center">
         <div class="col-xl-6 col-lg-8 col-md-10">
             <div class="list-group mt-4">
-                {% if search_parameters['query_title'] %}
-                    <button data-toggle="collapse" data-target="#search_query" class="list-group-item list-group-item-primary d-flex justify-content-between align-items-center">
-                        Show Search Query <span class="badge badge-primary">{% if search_parameters['only_firmware'] %}Firmware{% else %}File{% endif %} Search</span>
-                    </button>
-                    <div id="search_query" class="collapse list-group-item p-0">
-                        <pre class="bg-light p-2 mb-0">{{ search_parameters['query_title'] }}</pre>
-                    </div>
-                {% endif %}
+                <button data-toggle="collapse" data-target="#search_query" class="list-group-item list-group-item-primary d-flex justify-content-between align-items-center">
+                    {% set search_target = "File" if not search_parameters['only_firmware'] else "Firmware" if not search_parameters['inverted'] else "Inverse Firmware" %}
+                    Show Search Query <span class="badge badge-primary">{{ search_target }} Search</span>
+                </button>
+                <div id="search_query" class="collapse list-group-item p-0">
+                    <pre class="bg-light p-2 mb-0">{{ search_parameters['query_title'] }}</pre>
+                </div>
             </div>
         </div>
     </div>

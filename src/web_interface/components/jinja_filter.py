@@ -116,7 +116,7 @@ class FilterClass:
         self._app.jinja_env.filters['get_unique_keys_from_list_of_dicts'] = flt.get_unique_keys_from_list_of_dicts
         self._app.jinja_env.filters['infection_color'] = flt.infection_color
         self._app.jinja_env.filters['is_list'] = lambda item: isinstance(item, list)
-        self._app.jinja_env.filters['is_not_mandatory_analysis_entry'] = flt.is_not_manditory_analysis_entry
+        self._app.jinja_env.filters['is_not_mandatory_analysis_entry'] = flt.is_not_mandatory_analysis_entry
         self._app.jinja_env.filters['json_dumps'] = json.dumps
         self._app.jinja_env.filters['list_to_line_break_string'] = flt.list_to_line_break_string
         self._app.jinja_env.filters['list_to_line_break_string_no_sort'] = flt.list_to_line_break_string_no_sort
