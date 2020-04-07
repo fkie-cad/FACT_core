@@ -18,7 +18,7 @@
             {% else %}
                 <a href="/analysis/{{ fo.uid }}/ro/{{ root_uid }}">
             {% endif %}
-                <h6>{{ fo.virtual_file_paths | nice_list(collapse=True) | replace_uid_with_hid(root_uid=root_uid) | safe }}</h6>
+                <h6>{{ fo.virtual_file_paths | nice_list(omit_list_on_single_item=True) | replace_uid_with_hid(root_uid=root_uid) | safe }}</h6>
             </a>
             <p class="d-flex justify-content-between mb-0">
                 <span>Size: {{ fo.size | number_format }}
