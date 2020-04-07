@@ -79,7 +79,7 @@ class DatabaseRoutes(ComponentBase):
             return render_template('error.html', message=error_message)
 
         with ConnectTo(FrontEndDbInterface, self._config) as connection:
-            total = connection.get_number_of_total_matches(search_parameters['query'], search_parameters['only_firmware'])
+            total = connection.get_number_of_total_matches(search_parameters['query'], search_parameters['only_firmware'], inverted=search_parameters['inverted'])
             device_classes = connection.get_device_class_list()
             vendors = connection.get_vendor_list()
 
