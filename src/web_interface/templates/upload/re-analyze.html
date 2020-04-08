@@ -16,9 +16,9 @@
 
 {% block body %}
 
-<div class="row">
-    <div class="col-xs-offset-2 col-md-8">
-        <h2>{{ title }} of {{ firmware.uid | replace_uid_with_hid }}</h2>
+<div class="row justify-content-center">
+    <div class="col-xl-6 col-lg-8 mt-4">
+        <h3 class="mb-3">{{ title }} of {{ firmware.uid | replace_uid_with_hid }}</h3>
 
         <img id="map_img" src="{{url_for('.static', filename='Pacman.gif')}}" style="display: none;"/>
         <script>
@@ -58,9 +58,9 @@
                     }
                 </script>
 
+                <label class="control-label" for="device_class_dropdown">Device Class:</label>
                 <div class="form-group">
-                    <label class="control-label col-xs-3" for="device_class_dropdown">Device Class:</label>
-                    <div class="col-xs-9 {% if 'device_class' in error.keys() %}has-error{% endif %}">
+                    <div class="{% if 'device_class' in error.keys() %}has-error{% endif %}">
                         <select class="form-control" id="device_class_dropdown" name='device_class_dropdown' size="2" required onchange="update_text_input(this, document.getElementById('class_text'));
                                           if (vendor_dropdown.selectedIndex != -1){
                                               var selected_device_class = this.options[this.selectedIndex].value;
@@ -81,9 +81,9 @@
                     </div>
             	</div>
 
+                <label class="control-label" for="vendor_dropdown">Vendor:</label>
                 <div class="form-group">
-                    <label class="control-label col-xs-3" for="vendor_dropdown">Vendor:</label>
-                    <div class="col-xs-9 {% if 'vendor' in error.keys() %}has-error{% endif %}">
+                    <div class="{% if 'vendor' in error.keys() %}has-error{% endif %}">
                         <select class="form-control" id="vendor_dropdown" name='vendor_dropdown' size="2" required onchange="update_text_input(this, document.getElementById('vendor_text'));
                                           if (device_class_dropdown.selectedIndex != -1){
                                               var selected_device_class = device_class_dropdown.options[device_class_dropdown.selectedIndex].value;
@@ -104,9 +104,9 @@
                     </div>
                 </div>
 
+                <label class="control-label" for="device_name_dropdown">Device Name:</label>
                 <div class="form-group">
-                    <label class="control-label col-xs-3" for="device_name_dropdown">Device Name:</label>
-                    <div class="col-xs-9 {% if 'device_name' in error.keys() %}has-error{% endif %}">
+                    <div class="{% if 'device_name' in error.keys() %}has-error{% endif %}">
                         <select class="form-control" id="device_name_dropdown" name='device_name_dropdown' size="2" required onchange="update_text_input(this, document.getElementById('device_name_text'));">
                             <option value='{{ firmware.device_name }}' selected>{{ firmware.device_name }}</option>
                             <option value='new entry'>new entry</option>
@@ -118,9 +118,9 @@
                     </div>
                 </div>
 
+                <label class="control-label" for="device_part_dropdown">Device Part:</label>
                 <div class="form-group">
-                    <label class="control-label col-xs-3" for="device_part_dropdown">Device Part:</label>
-                    <div class="col-xs-9 {% if 'device_name' in error.keys() %}has-error{% endif %}">
+                    <div class="{% if 'device_name' in error.keys() %}has-error{% endif %}">
                         <select class="form-control" id="device_part_dropdown" name='device_part_dropdown' size="2" required onchange="update_text_input(this, document.getElementById('device_part_text'));">
                             <option value='{{ firmware.part }}' selected>{{ firmware.part }}</option>
                             <option value='new entry'>new entry</option>
@@ -136,9 +136,9 @@
                     ("Version", "version", firmware.version)
                 ] -%}
                 {% for label, id, data in input_form_text %}
+                <label class="control-label" for="{{ id }}">{{ label }}:</label>
                 <div class="form-group">
-                    <label class="control-label col-xs-3" for="{{ id }}">{{ label }}:</label>
-                    <div class="col-xs-9 {% if id in error.keys() %}has-error{% endif %}">
+                    <div class="{% if id in error.keys() %}has-error{% endif %}">
                         <input type="text" name="{{ id }}" class="form-control" id="{{ id }}" value="{{ data }}" required>
                         {% if id in error.keys() %}
                             <span class="help-block">{{ error[id] }}</span>
@@ -147,57 +147,57 @@
                 </div>
                 {% endfor %}
 
-                <div class="form-group">
-                    <label class="control-label col-xs-3" for="datetimepicker2">Release Date:</label>
-                    <div class="col-xs-9  {% if 'release_date' in error.keys() %}has-error{% endif %}">
-                        <div class='input-group date' id='datetimepicker2'>
-                            <input type='text' name="release_date" value="{{ firmware.release_date }}" class="form-control">
-                            <span class="input-group-addon">
-                                <span class="glyphicon glyphicon-calendar"></span>
-                            </span>
-                        </div>
-                        <script type="text/javascript">
-                            $(function () {
-                                $('#datetimepicker2').datetimepicker({
-                                    format: 'YYYY-MM-DD'
-                                });
+                <label class="control-label" for="datetimepicker2">Release Date:</label>
+                <div class="input-group{% if 'release_date' in error.keys() %} has-error{% endif %}">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
+                    </div>
+                    <input type='text' name="release_date" value="{{ firmware.release_date }}" class="form-control" id='datetimepicker2'>
+                    <script type="text/javascript">
+                        $(function () {
+                            $('#datetimepicker2').datepicker({
+                                format: 'yyyy-mm-dd',
+                                todayHighlight: true
                             });
-                        </script>
-                        {% if 'release_date' in error.keys() %}
-                            <span class="help-block">{{ error['release_date'] }}</span>
-                        {% endif %}
+                        });
+                    </script>
+                    {% if 'release_date' in error.keys() %}
+                        <span class="help-block">{{ error['release_date'] }}</span>
+                    {% endif %}
+            </div>
+
+                <label class="control-label" for="tags">Tags:</label>
+                <div class="form-group">
+                    <input type="text" name="tags" class="form-control" id="tags" value="{{ ','.join(firmware.tags.keys()) }}">
+                    <span class="help-block">Optional: Comma separated list (e.g: flashdump,partial)</span>
+                </div>
+
+                <label class="control-label">Analysis Systems:</label>
+                <div class="form-group">
+                    <div class="col-lg-12 mt-4 px-0" style="column-count: 2;column-rule: 1px hidden black; column-gap:50px">
+                        {% for system in analysis_plugin_dict.keys() | sort %}
+                            {# show if plug-in is not mandatory #}
+                            {% if not analysis_plugin_dict[system][1] %}
+                                <div id="{{ system }}">
+                                    <label class="checkbox-inline" data-toggle="tooltip" title="{{ analysis_plugin_dict[system][0] | safe }}">
+                                    {% if analysis_plugin_dict[system][2] %}
+                                        <input type=checkbox name="analysis_systems" value="{{ system }}" checked>
+                                    {% endif %}
+                                    {% if not analysis_plugin_dict[system][2] %}
+                                       <input type=checkbox name="analysis_systems" value="{{ system }}" unchecked>
+                                    {% endif %}
+                                    <font face="courier">{{ system | replace_underscore }}</font>
+                                    <br />
+                                    </label>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
                     </div>
                 </div>
-                <div class="form-group">
-                    <label class="control-label col-xs-3" for="tags">Tags:</label>
-               		<div class="col-xs-9">
-                       <input type="text" name="tags" class="form-control" id="tags" value="{{ ','.join(firmware.tags.keys()) }}">
-                       <span class="help-block">Optional: Comma separated list (e.g: flashdump,partial)</span>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="control-label col-xs-3">Analysis Systems:</label>
-	                {% for system in analysis_plugin_dict.keys() | sort %}
-	                	{% if not analysis_plugin_dict[system][1] %}
-	                	{# show if plug-in is not mandatory #}
-		                    <div class="{% if loop.index0 > 0 %}col-xs-offset-3 {% endif %}col-xs-9">
-		                        <label class="checkbox-inline" data-toggle="tooltip" title="{{ analysis_plugin_dict[system][0] | safe }}">
-		                            {% if analysis_plugin_dict[system][2] %}
-		                                <input type=checkbox name="analysis_systems" value="{{ system }}" checked>
-		                            {% endif %}
-		                            {% if not analysis_plugin_dict[system][2] %}
-		                               <input type=checkbox name="analysis_systems" value="{{ system }}" unchecked>
-		                            {% endif %}
-		                            <font face="courier">{{ system | replace_underscore }}</font>
-		                            <br>
-		                        </label>
-		                    </div>
-						{% endif %}
-	                {% endfor %}
-                </div>
+
 				<input type="hidden" name="file_name" id="file_name" value="{{ firmware.file_name }}">
-                <button type="submit" value=submit class="btn btn-default" id="input_submit" onclick='showImg()'>
-                    <span class="glyphicon glyphicon-repeat"></span> {{ title }}
+                <button type="submit" value=submit class="btn btn-primary" id="input_submit" onclick='showImg()'>
+                    <i class="fas fa-redo-alt"></i> {{ title }}
                 </button>
             </form>
         </div>

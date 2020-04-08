@@ -20,7 +20,7 @@ class TestAcceptanceNormalSearch(TestAcceptanceBase):
 
     def _show_search_get(self):
         rv = self.test_client.get('/database/search')
-        assert b'<h2>Search Firmware Database</h2>' in rv.data, 'search page not rendered correctly'
+        assert b'<h3 class="mb-3">Search Firmware Database</h3>' in rv.data, 'search page not rendered correctly'
 
     def _show_browse_db(self):
         rv = self.test_client.get('/database/browse')

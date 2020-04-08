@@ -86,10 +86,12 @@ class MetaDataDetector:
         end_result = self._search_for_arch_keys(type_of_file, self.architectures, delimiter='')
         if not end_result:
             return arch_dict
-        else:
-            end_result += self._search_for_arch_keys(type_of_file, self.bitness) + self._search_for_arch_keys(type_of_file, self.endianness) + ' (M)'
-            arch_dict.update({end_result: 'Detection based on metadata'})
-            return arch_dict
+        end_result += '{bitness}{endianness} (M)'.format(
+            bitness=self._search_for_arch_keys(type_of_file, self.bitness),
+            endianness=self._search_for_arch_keys(type_of_file, self.endianness)
+        )
+        arch_dict.update({end_result: 'Detection based on meta data'})
+        return arch_dict
 
     @staticmethod
     def _search_for_arch_keys(file_type_output, arch_dict, delimiter=', '):

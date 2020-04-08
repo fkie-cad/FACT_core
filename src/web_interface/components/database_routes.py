@@ -45,7 +45,7 @@ class DatabaseRoutes(ComponentBase):
     @staticmethod
     def _get_pagination(**kwargs):
         kwargs.setdefault('record_name', 'records')
-        return Pagination(css_framework='bootstrap3', link_size='sm', show_single_page=False,
+        return Pagination(css_framework='bootstrap4', link_size='sm', show_single_page=False,
                           format_total=True, format_number=True, **kwargs)
 
     @staticmethod
@@ -63,21 +63,23 @@ class DatabaseRoutes(ComponentBase):
             return query
 
     @roles_accepted(*PRIVILEGES['basic_search'])
-    def _app_show_browse_database(self, query: str = '{}', only_firmwares=False):
+    def _app_show_browse_database(self, query: str = '{}', only_firmwares=False, inverted=False):
         page, per_page = self._get_page_items()[0:2]
-        search_parameters = self._get_search_parameters(query, only_firmwares)
+        search_parameters = self._get_search_parameters(query, only_firmwares, inverted)
         try:
-            firmware_list = self._search_database(search_parameters['query'], skip=per_page * (page - 1), limit=per_page, only_firmwares=search_parameters['only_firmware'])
+            firmware_list = self._search_database(
+                search_parameters['query'], skip=per_page * (page - 1), limit=per_page,
+                only_firmwares=search_parameters['only_firmware'], inverted=search_parameters['inverted']
+            )
             if self._query_has_only_one_result(firmware_list, search_parameters['query']):
-                uid = firmware_list[0][0]
-                return redirect(url_for('analysis/<uid>', uid=uid))
+                return redirect(url_for('analysis/<uid>', uid=firmware_list[0][0]))
         except Exception as err:
             error_message = 'Could not query database: {} {}'.format(type(err), str(err))
             logging.error(error_message)
             return render_template('error.html', message=error_message)
 
         with ConnectTo(FrontEndDbInterface, self._config) as connection:
-            total = connection.get_number_of_total_matches(search_parameters['query'], search_parameters['only_firmware'])
+            total = connection.get_number_of_total_matches(search_parameters['query'], search_parameters['only_firmware'], inverted=search_parameters['inverted'])
             device_classes = connection.get_device_class_list()
             vendors = connection.get_vendor_list()
 
@@ -93,7 +95,7 @@ class DatabaseRoutes(ComponentBase):
                                current_vendor=str(request.args.get('vendor')),
                                search_parameters=search_parameters)
 
-    def _get_search_parameters(self, query, only_firmware):
+    def _get_search_parameters(self, query, only_firmware, inverted):
         search_parameters = dict()
         if request.args.get('query'):
             query = request.args.get('query')
@@ -102,10 +104,8 @@ class DatabaseRoutes(ComponentBase):
                     cached_query = connection.get_query_from_cache(query)
                     query = cached_query['search_query']
                     search_parameters['query_title'] = cached_query['query_title']
-        if request.args.get('only_firmwares'):
-            search_parameters['only_firmware'] = request.args.get('only_firmwares') == 'True'
-        else:
-            search_parameters['only_firmware'] = only_firmware
+        search_parameters['only_firmware'] = request.args.get('only_firmwares') == 'True' if request.args.get('only_firmwares') else only_firmware
+        search_parameters['inverted'] = request.args.get('inverted') == 'True' if request.args.get('inverted') else inverted
         search_parameters['query'] = apply_filters_to_query(request, query)
         if 'query_title' not in search_parameters.keys():
             search_parameters['query_title'] = search_parameters['query']
@@ -117,10 +117,10 @@ class DatabaseRoutes(ComponentBase):
     def _query_has_only_one_result(result_list, query):
         return len(result_list) == 1 and query != '{}'
 
-    def _search_database(self, query, skip=0, limit=0, only_firmwares=False):
+    def _search_database(self, query, skip=0, limit=0, only_firmwares=False, inverted=False):
         sorted_meta_list = list()
         with ConnectTo(FrontEndDbInterface, self._config) as connection:
-            result = connection.generic_search(query, skip, limit, only_fo_parent_firmware=only_firmwares)
+            result = connection.generic_search(query, skip, limit, only_fo_parent_firmware=only_firmwares, inverted=inverted)
             if not isinstance(result, list):
                 raise Exception(result)
             if query not in ('{}', {}):
@@ -165,9 +165,10 @@ class DatabaseRoutes(ComponentBase):
             try:
                 query = json.loads(request.form['advanced_search'])  # check for syntax errors
                 only_firmwares = request.form.get('only_firmwares') is not None
+                inverted = request.form.get('inverted') is not None
                 if not isinstance(query, dict):
                     raise Exception('Error: search query invalid (wrong type)')
-                return redirect(url_for('database/browse', query=json.dumps(query), only_firmwares=only_firmwares))
+                return redirect(url_for('database/browse', query=json.dumps(query), only_firmwares=only_firmwares, inverted=inverted))
             except Exception as err:
                 error = err
         return render_template('database/database_advanced_search.html', error=error, database_structure=database_structure)

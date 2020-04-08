@@ -12,7 +12,7 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBaseFullStart):
 
     def _upload_firmware_get(self):
         rv = self.test_client.get('/upload')
-        self.assertIn(b'<h2>Upload Firmware</h2>', rv.data, 'upload page not displayed correctly')
+        self.assertIn(b'<h3 class="mb-3">Upload Firmware</h3>', rv.data, 'upload page not displayed correctly')
 
         with ConnectTo(InterComFrontEndBinding, self.config) as connection:
             plugins = connection.get_available_analysis_plugins()
@@ -40,7 +40,7 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBaseFullStart):
         self.assertIn(b'test_part', rv.data)
         self.assertIn(b'unknown', rv.data)
         self.assertIn(self.test_fw_a.file_name.encode(), rv.data, 'file name not found')
-        self.assertIn(b'admin options:', rv.data, 'admin options not shown with disabled auth')
+        self.assertIn(b'Admin options', rv.data, 'admin options not shown with disabled auth')
 
     def _check_ajax_file_tree_routes(self):
         rv = self.test_client.get('/ajax_tree/{}/{}'.format(self.test_fw_a.uid, self.test_fw_a.uid))

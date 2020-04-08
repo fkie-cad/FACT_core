@@ -1,17 +1,18 @@
 import json
 import random
+import string
 from typing import List
 
 from common_helper_filter.time import time_format
 from flask import render_template
 
+import web_interface.filter as flt
 from helperFunctions.database import ConnectTo
 from helperFunctions.dataConversion import none_to_none
 from helperFunctions.hash import get_md5
 from helperFunctions.uid import is_list_of_uids
 from helperFunctions.web_interface import split_virtual_path, virtual_path_element_to_span
 from storage.db_interface_frontend import FrontEndDbInterface
-from web_interface import filter as flt
 
 
 class FilterClass:
@@ -60,7 +61,7 @@ class FilterClass:
         uid_list = flt.get_all_uids_in_string(tmp)
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
             for item in uid_list:
-                tmp = tmp.replace(item, '<a href="/analysis/{}/ro/{}">{}</a>'.format(
+                tmp = tmp.replace(item, '<a style="text-reset" href="/analysis/{}/ro/{}">{}</a>'.format(
                     item, root_uid, sc.get_hid(item, root_uid=root_uid)))
         return tmp
 
@@ -68,7 +69,8 @@ class FilterClass:
         root_uid = none_to_none(root_uid)
         if not is_list_of_uids(input_data):
             return input_data
-        show_id = str(random.randint(0, 999999))
+
+        show_id = ''.join((random.choice(string.ascii_letters) for _ in range(10)))
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
             included_files = sc.get_data_for_nice_list(input_data, root_uid)
         number_of_unanalyzed_files = len(input_data) - len(included_files)
@@ -94,9 +96,10 @@ class FilterClass:
     def check_auth(self, _):
         return self._config.getboolean('ExpertSettings', 'authentication')
 
-    def _setup_filters(self):
+    def _setup_filters(self):  # pylint: disable=too-many-statements
         self._app.jinja_env.add_extension('jinja2.ext.do')
 
+        self._app.jinja_env.filters['all_items_equal'] = lambda data: len(set(str(value) for value in data.values())) == 1
         self._app.jinja_env.filters['auth_enabled'] = self.check_auth
         self._app.jinja_env.filters['base64_encode'] = flt.encode_base64_filter
         self._app.jinja_env.filters['bytes_to_str'] = flt.bytes_to_str_filter
@@ -112,10 +115,12 @@ class FilterClass:
         self._app.jinja_env.filters['get_unique_keys_from_list_of_dicts'] = flt.get_unique_keys_from_list_of_dicts
         self._app.jinja_env.filters['infection_color'] = flt.infection_color
         self._app.jinja_env.filters['is_list'] = lambda item: isinstance(item, list)
+        self._app.jinja_env.filters['is_not_mandatory_analysis_entry'] = flt.is_not_mandatory_analysis_entry
         self._app.jinja_env.filters['json_dumps'] = json.dumps
         self._app.jinja_env.filters['list_to_line_break_string'] = flt.list_to_line_break_string
         self._app.jinja_env.filters['list_to_line_break_string_no_sort'] = flt.list_to_line_break_string_no_sort
         self._app.jinja_env.filters['md5_hash'] = get_md5
+        self._app.jinja_env.filters['min'] = min
         self._app.jinja_env.filters['nice_generic'] = flt.generic_nice_representation
         self._app.jinja_env.filters['nice_list'] = flt.nice_list
         self._app.jinja_env.filters['nice_number'] = flt.nice_number_filter
@@ -130,8 +135,8 @@ class FilterClass:
         self._app.jinja_env.filters['render_tags'] = flt.render_tags
         self._app.jinja_env.filters['replace_comparison_uid_with_hid'] = self._filter_replace_comparison_uid_with_hid
         self._app.jinja_env.filters['replace_uid_with_file_name'] = self._filter_replace_uid_with_file_name
-        self._app.jinja_env.filters['replace_uid_with_hid'] = self._filter_replace_uid_with_hid
         self._app.jinja_env.filters['replace_uid_with_hid_link'] = self._filter_replace_uid_with_hid_link
+        self._app.jinja_env.filters['replace_uid_with_hid'] = self._filter_replace_uid_with_hid
         self._app.jinja_env.filters['replace_underscore'] = flt.replace_underscore_filter
         self._app.jinja_env.filters['sort_chart_list_by_name'] = flt.sort_chart_list_by_name
         self._app.jinja_env.filters['sort_chart_list_by_value'] = flt.sort_chart_list_by_value
@@ -143,4 +148,3 @@ class FilterClass:
         self._app.jinja_env.filters['uids_to_link'] = flt.uids_to_link
         self._app.jinja_env.filters['user_has_role'] = flt.user_has_role
         self._app.jinja_env.filters['vulnerability_class'] = flt.vulnerability_class
-        self._app.jinja_env.filters['is_not_mandatory_analysis_entry'] = flt.is_not_manditory_analysis_entry

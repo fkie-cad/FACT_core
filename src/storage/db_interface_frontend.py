@@ -129,26 +129,28 @@ class FrontEndDbInterface(MongoInterfaceCommon):
         number_of_results = self.get_firmware_number(query) + self.get_file_object_number(query)
         return number_of_results >= len(uid_list)
 
-    def generic_search(self, search_dict, skip=0, limit=0, only_fo_parent_firmware=False):
+    def generic_search(self, search_dict, skip=0, limit=0, only_fo_parent_firmware=False, inverted=False):
         try:
             if isinstance(search_dict, str):
                 search_dict = json.loads(search_dict)
 
-            query = self.firmwares.find(search_dict, {'_id': 1}, skip=skip, limit=limit, sort=[('vendor', 1)])
-            result = [match['_id'] for match in query]
+            if not (inverted and only_fo_parent_firmware):
+                query = self.firmwares.find(search_dict, {'_id': 1}, skip=skip, limit=limit, sort=[('vendor', 1)])
+                result = [match['_id'] for match in query]
+            else:
+                result = []
 
             if len(result) < limit or limit == 0:
                 max_firmware_results = self.get_firmware_number(query=search_dict)
-                skip_fo = skip - max_firmware_results if skip > max_firmware_results else 0
-                limit_fo = limit - len(result) if limit > 0 else 0
+                skip = skip - max_firmware_results if skip > max_firmware_results else 0
+                limit = limit - len(result) if limit > 0 else 0
                 if not only_fo_parent_firmware:
-                    query = self.file_objects.find(search_dict, {'_id': 1}, skip=skip_fo, limit=limit_fo, sort=[('file_name', 1)])
+                    query = self.file_objects.find(search_dict, {'_id': 1}, skip=skip, limit=limit, sort=[('file_name', 1)])
                     result.extend([match['_id'] for match in query])
                 else:  # only searching for parents of matching file objects
-                    query = self.file_objects.find(search_dict, {'virtual_file_path': 1})
-                    parent_uids = {uid for match in query for uid in match['virtual_file_path'].keys()}
-                    query_filter = {'$nor': [{'_id': {'$nin': list(parent_uids)}}, search_dict]}
-                    query = self.firmwares.find(query_filter, {'_id': 1}, skip=skip_fo, limit=limit_fo, sort=[('file_name', 1)])
+                    parent_uids = self.file_objects.distinct('parent_firmware_uids', search_dict)
+                    query_filter = {'$nor': [{'_id': {('$in' if inverted else '$nin'): parent_uids}}, search_dict]}
+                    query = self.firmwares.find(query_filter, {'_id': 1}, skip=skip, limit=limit, sort=[('file_name', 1)])
                     parents = [match['_id'] for match in query]
                     result = remove_duplicates_from_list(result + parents)
 
@@ -216,15 +218,21 @@ class FrontEndDbInterface(MongoInterfaceCommon):
         except (KeyError, TypeError):  # the requested data is not in the DB aka the file has not been analyzed yet
             yield FileTreeNode(uid, root_uid, not_analyzed=True, name='{uid} (not analyzed yet)'.format(uid=uid))
 
-    def get_number_of_total_matches(self, query, only_parent_firmwares):
+    def get_number_of_total_matches(self, query, only_parent_firmwares, inverted):
         if not only_parent_firmwares:
             return self.get_firmware_number(query=query) + self.get_file_object_number(query=query)
         if isinstance(query, str):
             query = json.loads(query)
-        fw_matches = {match['_id'] for match in self.firmwares.find(query)}
-        fo_matches = {parent for match in self.file_objects.find(query)
-                      for parent in match['virtual_file_path'].keys()} if query != {} else set()
-        return len(fw_matches.union(fo_matches))
+        direct_matches = {match['_id'] for match in self.firmwares.find(query, {'_id': 1})} if not inverted else set()
+        if query == {}:
+            return len(direct_matches)
+        parent_matches = {
+            parent for match in self.file_objects.find(query, {'parent_firmware_uids': 1})
+            for parent in match['parent_firmware_uids']
+        }
+        if inverted:
+            parent_matches = {match['_id'] for match in self.firmwares.find({'_id': {'$nin': list(parent_matches)}}, {'_id': 1})}
+        return len(direct_matches.union(parent_matches))
 
     def create_analysis_structure(self):
         if self.client.varietyResults.file_objectsKeys.count_documents({}) == 0:

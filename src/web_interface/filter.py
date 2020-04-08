@@ -1,19 +1,16 @@
-'''
-Jinja2 template filter
-'''
 import logging
 import re
-import sys
 import zlib
 from base64 import standard_b64encode
 from operator import itemgetter
 from time import localtime, strftime, struct_time
-from typing import AnyStr, List
+from typing import AnyStr, List, Optional
 
 from common_helper_files import human_readable_file_size
 
 from helperFunctions.compare_sets import remove_duplicates_from_list
 from helperFunctions.dataConversion import make_unicode_string
+from helperFunctions.tag import TagColor
 from helperFunctions.web_interface import get_color_list
 from web_interface.security.authentication import user_has_privilege
 from web_interface.security.privileges import PRIVILEGES
@@ -65,14 +62,16 @@ def replace_underscore_filter(string):
     return string.replace('_', ' ')
 
 
-def nice_list(input_data):
+def nice_list(input_data, omit_list_on_single_item=False):
     input_data = _get_sorted_list(input_data)
     if isinstance(input_data, list):
-        tmp = '<ul>\n'
+        if omit_list_on_single_item and len(input_data) == 1:
+            return '{}\n'.format(input_data[0])
+        http_list = '<ul>\n'
         for item in input_data:
-            tmp += '\t<li>{}</li>\n'.format(_handle_generic_data(item))
-        tmp += '</ul>\n'
-        return tmp
+            http_list += '\t<li>{}</li>\n'.format(_handle_generic_data(item))
+        http_list += '</ul>\n'
+        return http_list
     return input_data
 
 
@@ -129,8 +128,8 @@ def _get_sorted_list(input_data):
     if isinstance(input_data, list):
         try:
             input_data.sort()
-        except Exception as exception:
-            logging.warning('could not sort list: {} - {}'.format(sys.exc_info()[0].__name__, exception))
+        except (AttributeError, TypeError):
+            logging.warning('Could not sort list', exc_info=True)
     return input_data
 
 
@@ -179,9 +178,8 @@ def text_highlighter(input_data, green=None, red=None):
 def sort_chart_list_by_name(input_data):
     try:
         input_data.sort(key=lambda x: x[0])
-    except Exception as exception:
-        logging.error(
-            'could not sort chart list {}: {} - {}'.format(input_data, sys.exc_info()[0].__name__, exception))
+    except (AttributeError, IndexError, KeyError, TypeError):
+        logging.error('Could not sort chart list {}'.format(input_data), exc_info=True)
         return []
     return input_data
 
@@ -189,9 +187,8 @@ def sort_chart_list_by_name(input_data):
 def sort_chart_list_by_value(input_data):
     try:
         input_data.sort(key=lambda x: x[1], reverse=True)
-    except Exception as exception:
-        logging.error(
-            'could not sort chart list {}: {} - {}'.format(input_data, sys.exc_info()[0].__name__, exception))
+    except (AttributeError, IndexError, KeyError, TypeError):
+        logging.error('Could not sort chart list {}'.format(input_data), exc_info=True)
         return []
     return input_data
 
@@ -199,9 +196,8 @@ def sort_chart_list_by_value(input_data):
 def sort_comments(comment_list):
     try:
         comment_list.sort(key=itemgetter('time'), reverse=True)
-    except Exception as exception:
-        logging.error('could not sort comment list {}: {} - {}'.format(
-            comment_list, sys.exc_info()[0].__name__, exception))
+    except (AttributeError, KeyError, TypeError):
+        logging.error('Could not sort comment list {}'.format(comment_list), exc_info=True)
         return []
     return comment_list
 
@@ -281,24 +277,28 @@ def comment_out_regex_meta_chars(input_data):
     return input_data
 
 
-def render_tags(tag_dict, additional_class='', size=10):
+def render_tags(tag_dict, additional_class='', size=14):
     output = ''
     if tag_dict:
         for tag in sorted(tag_dict.keys()):
-            output += '<span class="label label-pill label-{} {}" style="font-size: {}px;">{}</span>\n'.format(
-                tag_dict[tag], additional_class, size, tag)
+            output += '<span class="badge badge-{} {}" style="font-size: {}px;">{}</span>\n'.format(
+                _fix_color_class(tag_dict[tag]), additional_class, size, tag)
     return output
 
 
-def render_analysis_tags(tags, size=10):
+def render_analysis_tags(tags, size=14):
     output = ''
     if tags:
         for plugin_name in tags:
             for key, tag in tags[plugin_name].items():
-                output += '<span class="label label-pill label-{}" style="font-size: {}px;" data-toggle="tooltip" title="{}: {}">{}</span>\n'.format(
-                    tag['color'], size, replace_underscore_filter(plugin_name), replace_underscore_filter(key), tag['value']
+                output += '<span class="badge badge-{}" style="font-size: {}px;" data-toggle="tooltip" title="{}: {}">{}</span>\n'.format(
+                    _fix_color_class(tag['color']), size, replace_underscore_filter(plugin_name), replace_underscore_filter(key), tag['value']
                 )
     return output
+
+
+def _fix_color_class(tag_color_class):
+    return tag_color_class if tag_color_class in TagColor.ALL else TagColor.BLUE
 
 
 def fix_cwe(string):
@@ -361,5 +361,8 @@ def get_unique_keys_from_list_of_dicts(list_of_dicts: List[dict]):
     return unique_keys
 
 
-def is_not_manditory_analysis_entry(item):
-    return item not in ['analysis_date', 'plugin_version', 'skipped', 'summary', 'system_version', 'tags']
+def is_not_mandatory_analysis_entry(item: str, additional_entries: Optional[List[str]] = None) -> bool:
+    return (
+        item not in ['analysis_date', 'plugin_version', 'skipped', 'summary', 'system_version', 'tags']
+        and (additional_entries is None or item not in additional_entries)
+    )
