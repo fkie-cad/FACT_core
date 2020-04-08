@@ -1,4 +1,5 @@
 from flask_restful import Resource, request
+from pymongo.errors import PyMongoError
 
 from helperFunctions.database import ConnectTo
 from helperFunctions.object_conversion import create_meta_dict
@@ -39,7 +40,7 @@ class RestFileObject(Resource):
             with ConnectTo(FrontEndDbInterface, self.config) as connection:
                 uids = connection.rest_get_file_object_uids(**parameters)
             return success_message(dict(uids=uids), self.URL, parameters)
-        except Exception:  # pylint: disable=broad-except
+        except PyMongoError:
             return error_message('Unknown exception on request', self.URL, parameters)
 
     def _get_with_uid(self, uid):

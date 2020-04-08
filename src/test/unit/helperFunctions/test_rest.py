@@ -1,7 +1,7 @@
 import pytest
 
 from helperFunctions.rest import (
-    convert_rest_request, error_message, get_current_gmt, get_inverse_flag, get_paging, get_query, get_recursive_flag,
+    convert_rest_request, error_message, get_current_gmt, get_inverted_flag, get_paging, get_query, get_recursive_flag,
     get_summary_flag, get_tar_flag, get_update, success_message
 )
 
@@ -87,7 +87,7 @@ def test_get_recursive():
 
 @pytest.mark.parametrize('get_request_parameter_function, name', [
     (get_recursive_flag, 'recursive'),
-    (get_inverse_flag, 'inverse'),
+    (get_inverted_flag, 'inverted'),
     (get_summary_flag, 'summary'),
     (get_tar_flag, 'tar'),
 ])
@@ -96,9 +96,6 @@ def test_get_boolean_from_request(get_request_parameter_function, name):
 
     with pytest.raises(ValueError):
         get_request_parameter_function({name: 'bad_string'})
-
-    with pytest.raises(ValueError):
-        get_request_parameter_function({name: '2'})
 
     no_flag = get_request_parameter_function(dict())
     assert not no_flag

@@ -97,8 +97,8 @@ def get_recursive_flag(request_parameters):
     return _get_boolean_from_request(request_parameters, 'recursive')
 
 
-def get_inverse_flag(request_parameters):
-    return _get_boolean_from_request(request_parameters, 'inverse')
+def get_inverted_flag(request_parameters):
+    return _get_boolean_from_request(request_parameters, 'inverted')
 
 
 def get_update(request_parameter):
