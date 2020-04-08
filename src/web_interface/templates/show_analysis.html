@@ -35,25 +35,25 @@
 {% block body %}
 
 <div class="row justify-content-end mt-2" style="padding-right: 15px">
-    <div class="col-auto">
-        <span style="font-size: large;">Comparisons</span>
-    </div>
-    {% if known_comparisons %}
-        <div class="col-auto">
-            <i class="far fa-hdd" data-toggle="collapse" data-target="#old_comparisons" style="padding: 5px; margin-right: 5px;" title="Show List of Known Comparisons"></i>
-        </div>
-    {% endif %}
-    {% if not uids_for_comparison or uid not in uids_for_comparison %}
-        <div class="col-auto">
-            <i class="fas fa-plus" onclick="location.href='/comparison/add/{{ uid }}'" style="padding: 5px; margin-right: 5px;" title="Add to Comparison"></i>
-        </div>
-    {% endif %}
+    <div class="btn-group d-flex align-items-start">
+        <div class="btn btn-secondary">Comparisons</div>
+        {% if known_comparisons %}
+            <div class="btn btn-outline-secondary" data-toggle="collapse" data-target="#old_comparisons" title="Show List of Known Comparisons">
+                <i class="far fa-hdd"></i>
+            </div>
+        {% endif %}
+        {% if not uids_for_comparison or uid not in uids_for_comparison %}
+            <div class="btn btn-outline-secondary" onclick="location.href='/comparison/add/{{ uid }}'" title="Add to Comparison">
+                <i class="fas fa-plus"></i>
+            </div>
+        {% endif %}
 
-    {% if uids_for_comparison %}
-        <div class="col-auto">
-            <i class="fas fa-list-ul" data-toggle="collapse" data-target="#comparison-list" style="padding: 5px; margin-right: 5px;" title="Show Selected Firmwares for Comparison"></i>
-        </div>
-    {% endif %}
+        {% if uids_for_comparison %}
+            <div class="btn btn-outline-secondary" data-toggle="collapse" data-target="#comparison-list" title="Show Selected Firmwares for Comparison">
+                <i class="fas fa-list-ul"></i>
+            </div>
+        {% endif %}
+    </div>
 
     <div class="col-auto collapse" id="old_comparisons">
         <div class="card float-right" style="width: auto; max-width: 650px;">
