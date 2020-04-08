@@ -3,8 +3,8 @@ from flask_security.core import AnonymousUser, RoleMixin, UserMixin
 from werkzeug.local import LocalProxy
 
 from helperFunctions.web_interface import (
-    filter_out_illegal_characters, format_si_prefix, format_time, get_radare_endpoint, password_is_legal,
-    split_virtual_path, virtual_path_element_to_span
+    cap_length_of_element, filter_out_illegal_characters, format_si_prefix, format_time, get_radare_endpoint,
+    password_is_legal, split_virtual_path, virtual_path_element_to_span
 )
 from test.common_helper import get_config_for_testing
 from web_interface.security.authentication import user_has_privilege
@@ -68,10 +68,23 @@ def test_get_radare_endpoint():
 
 @pytest.mark.parametrize('hid, uid, expected_output', [
     ('foo', 'bar', 'badge-secondary">foo'),
-    ('foo', 'a152ccc610b53d572682583e778e43dc1f24ddb6577255bff61406bc4fb322c3_21078024', 'badge-primary"><a'),
+    ('foo', 'a152ccc610b53d572682583e778e43dc1f24ddb6577255bff61406bc4fb322c3_21078024', 'badge-primary">    <a'),
+    ('suuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuper/long/human_readable_id', 'bar', '~uuuuuuuuuuuuuuuuuuuuuuuuuuuuper/long/human_readable_id'),
 ])
 def test_virtual_path_element_to_span(hid, uid, expected_output):
     assert expected_output in virtual_path_element_to_span(hid, uid, 'root_uid')
+
+
+@pytest.mark.parametrize('element_in, element_out', [
+    ('A' * 55, 'A' * 55),
+    ('A' * 56, '~' + 'A' * 54),
+])
+def test_cap_length_of_element_default(element_in, element_out):
+    assert cap_length_of_element(element_in) == element_out
+
+
+def test_cap_length_of_element_short():
+    assert cap_length_of_element('1234', maximum=3) == '~34'
 
 
 @pytest.mark.parametrize('virtual_path, expected_output', [
