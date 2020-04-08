@@ -4,122 +4,111 @@
 
 {% block head %}
     <meta http-equiv="refresh" content="10" />
-    <style>
-        .glyphicon.spin {
-            animation: spin 2s infinite linear;
-            -webkit-animation: spin-webkit 2s infinite linear;
-        }
-        @keyframes spin {
-            from {transform: scale(1) rotate(0deg);} to {transform: scale(1) rotate(359deg);}
-        }
-        @-webkit-keyframes spin-webkit {
-            from {-webkit-transform: rotate(0deg);} to {-webkit-transform: rotate(359deg);}
-        }
-    </style>
 {% endblock %}
 
 {% block body %}
-<div class="row">
+
+<div class="row justify-content-center mt-4">
     {% for component in status %}
         {% if component %}
             <div class="col-sm-6 col-md-4 col-lg-3">
                 <h3>{{component['name']}} machine status</h3>
-                <table class="table table-responsive table-hover table-bordered" style="border-spacing: 10px;">
+                <table class="table table-responsive-md table-hover table-bordered">
                     <tr>
-                        <th class="success active" colspan=2 style="text-align: center; padding:5px">General </th>
+                        <th class="table-head-light p-2" colspan=2 style="text-align: center; color: #495057">General</th>
                     </tr>
                     <tr>
-                        <td class="active" style="text-align: left; padding:5px">{{ component['name']}} status</td>
-                        <td class="active" style="text-align: right; padding:5px">{{ component['status'] | text_highlighter | safe }}</td>
+                        <td style="text-align: left; padding:5px">{{ component['name']}} status</td>
+                        <td style="text-align: right; padding:5px">{{ component['status'] | text_highlighter | safe }}</td>
                     </tr>
                     <tr>
-                        <td class="active" style="text-align: left; padding:5px">last status update</td>
-                        <td class="active" style="text-align: right; padding:5px">{{ component['last_update'] | nice_unix_time }}</td>
+                        <td style="text-align: left; padding:5px">last status update</td>
+                        <td style="text-align: right; padding:5px">{{ component['last_update'] | nice_unix_time }}</td>
                     </tr>
                     {% if component['platform'] %}
                         <tr>
-                            <th class="success active" colspan=2 style="text-align: center; padding:5px">Platform Information</th>
+                            <th class="table-head-light p-2" colspan=2 style="text-align: center; color: #495057">Platform Information</th>
                         </tr>
                         <tr>
-                            <td class="active" style="text-align: left; padding:5px">operating system</td>
-                            <td class="active" style="text-align: right; padding:5px">{{ component['platform']['os'] }}</td>
+                            <td style="text-align: left; padding:5px">operating system</td>
+                            <td style="text-align: right; padding:5px">{{ component['platform']['os'] }}</td>
                         </tr>
                         <tr>
-                            <td class="active" style="text-align: left; padding:5px">python version</td>
-                            <td class="active" style="text-align: right; padding:5px">{{ component['platform']['python'] }}</td>
+                            <td style="text-align: left; padding:5px">python version</td>
+                            <td style="text-align: right; padding:5px">{{ component['platform']['python'] }}</td>
                         </tr>
                         <tr>
-                            <td class="active" style="text-align: left; padding:5px">fact version</td>
-                            <td class="active" style="text-align: right; padding:5px">{{ component['platform']['fact_version'] }}</td>
+                            <td style="text-align: left; padding:5px">fact version</td>
+                            <td style="text-align: right; padding:5px">{{ component['platform']['fact_version'] }}</td>
                         </tr>
                     {% endif %}
                     {% if component['system'] %}
                         <tr>
-                            <th class="success active" colspan=2 style="text-align: center; padding:5px">System Stats</th>
+                            <th class="table-head-light p-2" colspan=2 style="text-align: center; color: #495057">System Stats</th>
                         </tr>
                         <tr>
-                            <td class="active" style="text-align: left; padding:5px">cpu cores</td>
-                            <td class="active" style="text-align: right; padding:5px">{{ component['system']['cpu_cores'] }} ({{ component['system']['virtual_cpu_cores'] }} threads) </td>
+                            <td style="text-align: left; padding:5px">cpu cores</td>
+                            <td style="text-align: right; padding:5px">{{ component['system']['cpu_cores'] }} ({{ component['system']['virtual_cpu_cores'] }} threads) </td>
                         </tr>
                         <tr>
-                            <td class="active" style="text-align: left; padding:5px">cpu freq</td>
-                            <td class="active" style="text-align: right; padding:5px">{{ component['system']['cpu_freq'] | nice_number}} MHz</td>
+                            <td style="text-align: left; padding:5px">cpu freq</td>
+                            <td style="text-align: right; padding:5px">{{ component['system']['cpu_freq'] | nice_number}} MHz</td>
                         </tr>
                         <tr>
-                            <td class="active" style="text-align: left; padding:5px">load average</td>
-                            <td class="active" style="text-align: right; padding:5px">{{ component['system']['load_average'] }}</td>
+                            <td style="text-align: left; padding:5px">load average</td>
+                            <td style="text-align: right; padding:5px">{{ component['system']['load_average'] }}</td>
                         </tr>
                         <tr>
-                            <td class="active" style="text-align: left; padding:5px">memory usage</td>
-                            <td class="{% if component['system']['memory_percent'] > 80.0 %}alert alert-warning{%else%}active{% endif %}" style="text-align: right; padding:5px">{{ component['system']['memory_used'] | number_format }} / {{ component['system']['memory_total'] | number_format }} ({{ component['system']['memory_percent'] | nice_number }}%)</td>
+                            <td style="text-align: left; padding:5px">memory usage</td>
+                            <td class="{% if component['system']['memory_percent'] > 80.0 %}alert alert-warning{% endif %}" style="text-align: right; padding:5px">{{ component['system']['memory_used'] | number_format }} / {{ component['system']['memory_total'] | number_format }} ({{ component['system']['memory_percent'] | nice_number }}%)</td>
                         </tr>
                         <tr>
-                            <td class="active" style="text-align: left; padding:5px">disk usage</td>
-                            <td class="{% if component['system']['disk_percent'] > 80.0 %}alert alert-warning{%else%}active{% endif %}" style="text-align: right; padding:5px">{{ component['system']['disk_used'] | number_format }} / {{ component['system']['disk_total'] | number_format }} ({{ component['system']['disk_percent'] | nice_number }}%)</td>
+                            <td style="text-align: left; padding:5px">disk usage</td>
+                            <td class="{% if component['system']['disk_percent'] > 80.0 %}alert alert-warning{% endif %}" style="text-align: right; padding:5px">{{ component['system']['disk_used'] | number_format }} / {{ component['system']['disk_total'] | number_format }} ({{ component['system']['disk_percent'] | nice_number }}%)</td>
                         </tr>
                     {% endif %}
                 </table>
             </div>
             {% if component['analysis'] %}
-                <div class="col-sm-6 col-lg-3">
+                <div class="col-sm-6 col-md-4 col-lg-3">
                     <h3>{{ component['name'] }} workload</h3>
-                    <table class="table table-responsive table-hover table-bordered" style="border-spacing: 10px;">
+                    <table class="table table-responsive-md table-hover table-bordered">
                         <tr>
-                            <th class="success active" colspan=3 style="text-align: center; padding:5px">Unpacking</th>
+                            <th class="table-head-light" colspan=3 style="text-align: center; padding:5px; color: #495057">Unpacking</th>
                         </tr>
                         <tr>
-                            <td class="active" style="text-align: left; padding:5px">main</td>
-                            {%- set unpacking_class = "alert alert-warning" if component['unpacking']['unpacking_queue'] > 500 else "active" -%}
+                            <td style="text-align: left; padding:5px">main</td>
+                            {% set unpacking_class = "table-warning" if component['unpacking']['unpacking_queue'] > 500 else "" %}
                             <td class="{{ unpacking_class }}" colspan=2 style="text-align: right; padding:5px">{{ component['unpacking']['unpacking_queue'] | nice_number }}</td>
                         </tr>
                         <tr>
-                            <th class="success active" colspan=4 style="text-align: center; padding:5px">Analysis</th>
+                            <th class="table-head-light" colspan=3 style="text-align: center; padding:5px; color: #495057">Analysis</th>
                         </tr>
                         <tr>
-                            <td class="active" style="text-align: left; padding:5px">main</td>
-                            {%- set analysis_main_class = "alert alert-warning" if component['analysis']['analysis_main_scheduler'] > 150 else "active" -%}
-                            <td class="{{ analysis_main_class }}" colspan=3 style="text-align: right; padding:5px">{{ component['analysis']['analysis_main_scheduler'] | nice_number }}</td>
+                            <td style="text-align: left; padding:5px">main</td>
+                            {% set analysis_main_class = "table-warning" if component['analysis']['analysis_main_scheduler'] > 150 else "" %}
+                            <td class="{{ analysis_main_class }}" colspan=2 style="text-align: right; padding:5px">{{ component['analysis']['analysis_main_scheduler'] | nice_number }}</td>
                         </tr>
                         <tr>
-                            <td class="success active" style="text-align: center; padding:5px">Plugin</td>
-                            <td class="success active" style="text-align: center; padding:5px">Running</td>
-                            <td class="success active" style="text-align: center; padding:5px">Queue</td>
+                            <td class="table-head-light" style="padding:5px;">Plugin</td>
+                            <td class="table-head-light" style="text-align: right; padding:5px;">Running</td>
+                            <td class="table-head-light" style="text-align: right; padding:5px;">Queue</td>
                         </tr>
                         {% for plugin_name, plugin_data in component['analysis']['plugins'].items() | sort %}
-                            {% if "dummy" not in plugin_name %}
+                            {% if "dummy" not in plugin_name %}  {# {% if plugin != "analysis_main_scheduler" %} #}
                                 <tr>
-                                    <td class="active" style="text-align: left; padding:5px">
+                                    <td style="text-align: left; padding:5px">
                                         {{ plugin_name }}
-                                        {%- if plugin_name in analysis_plugin_info %} {{ analysis_plugin_info[plugin_name][3] }}{% endif -%}
+                                        {% if plugin_name in analysis_plugin_info %} {{ analysis_plugin_info[plugin_name][3] }}{% endif %}
                                     </td>
-                                    <td class="{% if plugin_data.queue > 150 %}alert alert-warning{%else%}active{% endif %}" style="text-align: right; padding:5px">
-                                        {% set span_class = " spin" if plugin_data['active'] else "" %}
+                                    <td class="{% if plugin_data.queue > 150 %}table-warning{%else%}{% endif %}" style="text-align: right; padding:5px">
+                                        {% set span_class = " fa-spin" if plugin_data['active'] else "" %}
                                         {% set span_style = "color: black" if plugin_data['active'] else "color: darkgrey" %}
-                                        <span class="glyphicon glyphicon-cog{{ span_class }}" style="{{ span_style }}"></span> {{ plugin_data.active | nice_number }}
+                                        <span class="fas fa-cog{{ span_class }}" style="{{ span_style }}"></span> {{ plugin_data.active | nice_number }}
                                     </td>
-                                    <td class="active" style="text-align: right; padding:5px">
+                                    <td style="text-align: right; padding:5px">
                                         {% set span_style = "color: black" if plugin_data['queue'] else "color: darkgrey" %}
-                                        <span class="glyphicon glyphicon-log-in" style="{{ span_style }}"></span> {{ plugin_data.queue | nice_number }}
+                                        <span class="fas fa-sign-in-alt" style="{{ span_style }}"></span> {{ plugin_data.queue | nice_number }}
                                     </td>
                                 </tr>
                             {% endif %}
@@ -127,12 +116,14 @@
                     </table>
                 </div>
             {% endif %}
-        {% else %}
-            <div class="alert alert-warning col-sm-6 col-md-4 col-lg-3">
-                <strong>{{ component['name'] }} Status not Available!</strong><br /> Maybe the {{ component['name'] }} did not start yet.
-            </div>
-        {% endif %}
-    {% endfor %}
+			 
+		{% else %}
+		
+		<div class="alert alert-warning col-sm-6 col-md-4 col-lg-3">
+			<strong>{{ component['name'] }} Status not Available!</strong><br /> Maybe the {{ component['name'] }} did not start yet.  
+		</div>
+		{% endif %}
+	{% endfor %}
 </div>
 
 {% endblock %}

@@ -43,7 +43,7 @@ class TestAcceptanceMisc(TestAcceptanceBase):
 
     def _upload_firmware_get(self):
         rv = self.test_client.get('/upload')
-        self.assertIn(b'<h2>Upload Firmware</h2>', rv.data, 'upload page not displayed correctly')
+        self.assertIn(b'<h3 class="mb-3">Upload Firmware</h3>', rv.data, 'upload page not displayed correctly')
 
     def _upload_firmware_put(self, path, device_name, uid):
         testfile_path = os.path.join(get_test_data_dir(), path)

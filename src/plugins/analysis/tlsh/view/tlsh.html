@@ -1,17 +1,19 @@
-
 {% extends "analysis_plugins/general_information.html" %}
 
 {% block analysis_result_details %}
+    <tr>
+        <th class="table-head-light">TLSH score</th>
+        <th class="table-head-light">Similar file</th>
+    </tr>
+    {% for key in firmware.processed_analysis[selected_analysis].keys() %}
 
-	{% for key in firmware.processed_analysis[selected_analysis].keys() %}
+        {% if key | is_not_mandatory_analysis_entry %}
+        <tr>
+            <td>{{ firmware.processed_analysis[selected_analysis][key] }}</td>
+            <td>{{ key | replace_uid_with_hid_link | safe }}</td>
+        </tr>
+        {% endif %}
 
-		{% if key | is_not_mandatory_analysis_entry %}
-		<tr>
-			<td>{{ firmware.processed_analysis[selected_analysis][key] }}</td>
-			<td>{{ key | replace_uid_with_hid_link | safe }}</td>
-		</tr>
-		{% endif %}
-
-	{% endfor %}
+    {% endfor %}
 
 {% endblock %}

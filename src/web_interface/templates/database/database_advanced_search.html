@@ -4,65 +4,56 @@
 
 
 {% block head %}
-        {# angularJS import #}
-        <script type="text/javascript" src="{{ url_for('static', filename='angular.min.js') }}"></script>
-        <script>
-            function hide_checkbox() {
-                if ($("#only_firmwares").is(':checked'))
-                    $("#inverted_label").show();
-                else
-                    $("#inverted_label").hide();
+    {# angularJS import #}
+    <script type="text/javascript" src="{{ url_for('static', filename='angular.min.js') }}"></script>
+
+    <script>
+        function hide_checkbox() {
+            if ($("#only_firmware").is(':checked')) {
+                $("#inverted_div").show();
+            } else {
+                $("#inverted_div").hide();
             }
-        </script>
+        }
+    </script>
 {% endblock %}
 
 
 {% block body %}
 
-<div class="row">
+<div class="row justify-content-center" style="font-size: 0.9rem;">
 
-    <div class="col-xs-offset-2 col-md-8">
-        <h2>Advanced Search</h2>
+    <div class="col-xl-6 col-lg-8 col-md-10 mt-4">
+        <h3 class="mb-3">Advanced Search</h3>
+
         <form class="form-horizontal" action="" method=post enctype=multipart/form-data>
-
-            <div class="form-group {% if error %}has-error{% endif %}">
-                <label class="control-label col-xs-3" for="advanced_search">Search Request:</label>
-                <div class="col-xs-9">
-                    <input type="text" name="advanced_search" class="form-control" id="advanced_search"
-                           placeholder="MongoDB Search Request" required>
-                    {% if error %}
-                    <p style="color:red">Please enter a valid search request. {{ error }}</p>
-                    {% endif %}
-                    <br />
-                    <table>
-                        <tr>
-                            <td style="padding: 5px;">
-                                <button type="submit" value=submit class="btn btn-default" id="input_submit">
-                                     <span class="glyphicon glyphicon-search"></span> Search
-                                </button>
-                            </td>
-                            <td style="padding: 5px;">
-                                <label class="checkbox-inline" style="padding: 0; margin: 0 0 0 20px;">
-                                    <input type="checkbox" name="only_firmwares" id="only_firmwares" value="True" onchange="hide_checkbox()">
-                                    show parent firmware instead of matching file
-                                </label>
-                            </td>
-                            <td style="padding: 5px;">
-                                <label class="checkbox-inline" id="inverted_label" style="padding: 0; margin: 0 0 0 20px; display: none;">
-                                    <input type="checkbox" name="inverted" id="inverted" value="True">
-                                    inverse (firmware without matching files)
-                                </label>
-                            </td>
-                        </tr>
-                    </table>
+            <div class="input-group {% if error %}has-error{% endif %} mb-3">
+                <input type="text" name="advanced_search" class="form-control" id="advanced_search" placeholder="MongoDB Search Request" required>
+                <div class="input-group-append">
+                    <button type="submit" value=submit class="btn btn-primary" id="input_submit">
+                        <span class="glyphicon glyphicon-search"></span> Search
+                    </button>
                 </div>
             </div>
+            <div class="form-group form-check">
+                <input type="checkbox" class="form-check-input" name="only_firmwares" id="only_firmware" value="True" onchange="hide_checkbox()">
+                <label class="form-check-label">show parent firmware instead of matching file</label>
+            </div>
+            <div class="form-group form-check pl-0" id="inverted_div" style="display: none;">
+                <input type="checkbox" name="inverted" id="inverted" value="True">
+                <label class="form-check-label">inverse (firmware without matching files)</label>
+            </div>
+            {% if error %}
+                <p class="mt-3" style="color:red">Please enter a valid search request. {{ error }}</p>
+            {% endif %}
+        </form>
+
 
             <hr>
 
             <h4>Example queries:</h4>
 
-            <p>
+            <p class="mt-4">
                 Simple:<br />
                 <span style="font-size: 0.9em; font-family: 'Deja Vu Sans Mono', monospace">{"device_class": "Router", "vendor": "AVM"}</span><br />
                 <span style="color:grey; font-size: 0.9em">Select firmware files based on specific vendor and device class</span>
@@ -88,7 +79,7 @@
             <hr>
 
             <h4>Structure of file objects in database:</h4>
-            <pre>Common fields
+            <pre class="mt-4">Common fields
 - _id                   # UID of file
 - analysis_tags         # Dynamically generated tags such as "Linux 2.7"
 - depth                 # Level of extraction: Outer container has 0, SquashFS inside
@@ -126,18 +117,21 @@ Additional fields for outer container: (Mostly set by user, so depend on submiss
 
             <div ng-app="myApp" ng-controller="formCtrl">
                 <form>
-                    Select analysis plugin: <input type="text" ng-model="firstname"> (select <i>complete</i> to see all)
+                    <div class="input-group mt-4">
+                        <div class="input-group-prepend"><span class="input-group-text">Select analysis plugin</span></div>
+                        <input class="form-control" type="text" ng-model="firstname">
+                        <div class="input-group-append"><span class="input-group-text">select&nbsp;<span style="font-weight: bold">complete</span>&nbsp;to see all</span></div>
+                    </div>
                 </form>
-                <br /><br />
-                <table class="table table-responsive" style="vertical-align: top;">
+                <table class="table mt-4" style="vertical-align: top;">
                     <tr>
                         <td>
                             <p>Available plugins:</p>
-                            <pre>{a plugins | json a}</pre>
+                            <pre class="border rounded p-2 bg-light">{a plugins | json a}</pre>
                         </td>
                         <td>
-                            <p>Structure for plugin {a firstname a}:</p>
-                            <pre>{a data[firstname] a}</pre>
+                            <p>Structure for plugin <span style="font-weight: bold">{a firstname a}</span>:</p>
+                            <pre class="border rounded p-2 bg-light">{a data[firstname] a}</pre>
                         </td>
                     </tr>
                 </table>
@@ -165,8 +159,6 @@ Additional fields for outer container: (Mostly set by user, so depend on submiss
             </div>
 
             {% endif %}
-
-        </form>
     </div>
 </div>
 

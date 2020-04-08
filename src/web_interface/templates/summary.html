@@ -3,25 +3,27 @@
         <col width="100">
         <col width="700">
     </colgroup>
-    <tr>
-        <th class="success result" colspan=2>Summary Including Results of Included Files</th>
-    </tr>
+    <thead class="thead-light">
+        <tr>
+            <th colspan=2>Summary including results of included files</th>
+        </tr>
+    </thead>
     {% if summary_of_included_files %}
     <tr>
-            <td class="active result">item count</td>
-            <td class="active result">{{ summary_of_included_files | length }}
+        <td class="table-head-light">Item count</td>
+        <td>{{ summary_of_included_files | length }}
     </tr>
         {% for item in summary_of_included_files | sort %}
             <tr>
-                <td class="result">{{ item | wordwrap(width=60, break_long_words=True) }}</td>
-                <td class="result">
+                <td>{{ item | wordwrap(width=60, break_long_words=True) }}</td>
+                <td>
                     {{ summary_of_included_files[item] | nice_uid_list(root_uid=root_uid, selected_analysis=selected_analysis) | safe }}
                 </td>
             </tr>
         {% endfor %}
     {% else %}
         <tr>
-            <td class="active result" colspan=2 style="text-align: center">no summary found</td>
+            <td class="table-warning" colspan=2 style="text-align: center">No summary found</td>
         </tr>
     {% endif %}
 </table>

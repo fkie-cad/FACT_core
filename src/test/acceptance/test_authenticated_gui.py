@@ -2,7 +2,7 @@ from test.acceptance.auth_base import TestAuthenticatedAcceptanceBase
 
 
 class TestAcceptanceAuthentication(TestAuthenticatedAcceptanceBase):
-    UNIQUE_LOGIN_STRING = b'<div><h1>Login</h1></div>'
+    UNIQUE_LOGIN_STRING = b'<h3 class="mx-3 mt-4">Login</h3>'
     PERMISSION_DENIED_STRING = b'You do not have permission to view this resource.'
 
     def test_redirection(self):

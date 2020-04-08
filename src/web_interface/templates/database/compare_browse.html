@@ -16,31 +16,43 @@
 {% block body %}
 <script type="text/javascript" src="{{ url_for('static', filename='js/update_url_variables.js') }}"></script>
 
-<div class="row">
-    <div class="col-md-8 col-md-offset-2 col-lg-8 col-lg-offset-2">
-        <table class="table table-responsive table-hover table-bordered" style="border-spacing: 10px;">
+<div class="row justify-content-center">
+    <div class="col-xl-6 col-lg-8 col-md-10 mt-4">
+        <h3 class="mb-3">Browse Firmware Comparisons</h3>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-xl-6 col-lg-8 col-md-10 mt-4">
+
+        <table class="table table-sm table-hover">
             {% for id, hids, submission_date in compare_list %}
                 <tr>
                     {% if pagination is defined %}
-                        <td style="vertical-align:middle">{{ loop.index + (page - 1) * per_page }}</td>
+                        <th>{{ loop.index + (page - 1) * per_page }}</th>
                     {% endif %}
-                    <td class="active clickable" onclick="location.href='/compare/{{ id }}'">
+                    <td class="clickable" onclick="location.href='/compare/{{ id }}'">
                         {%  for uid in hids %}
-                            {{ hids[uid] }}
-                            <div><font face="courier"  style="font-size:12px">{{ uid }}</font></div>
+                            <span class="mb-1">{{ hids[uid] }}</span><br />
+                            <span style="font-family: monospace; font-size:11px">{{ uid }}</span><br />
                         {% endfor %}
                     </td>
                 </tr>
             {% else %}
-                <h2>No compare results found in database!</h2>
+                <h4>No comparisons found in database!</h4>
             {% endfor %}
         </table>
 
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div style="max-width: 300px;">
         {% if pagination is defined %}
             {{ pagination.info }}
             {{ pagination.links }}
         {% endif %}
-
     </div>
 </div>
+
 {% endblock %}

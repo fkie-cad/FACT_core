@@ -3,316 +3,334 @@
 {% set active_page = "Info" %}
 
 {% block body %}
-<div class="row">
 
-    <div class="col-md-6 col-sm-12">
-        <h2>Software</h2>
-        The <a href="https://fkie-cad.github.io/FACT_core/">Firmware Analysis and Comparison Tool (FACT)</a> (formerly known as Fraunhofer's Firmware Analysis Framework (FAF)) is intended to automate Firmware Security Analysis.
-        FACT is developed by <a href="http://www.fkie.fraunhofer.de">Fraunhofer FKIE</a>.
-        The project is partly financed by <a href="https://www.bsi.bund.de">German Federal Office for Information Security (BSI)</a> and others.
+<div class="row justify-content-center mt-4">
 
-        <h2>License Information</h2>
-        <div class="well">
-            Firmware Analysis and Comparison Tool (FACT)<br />
-            Copyright (C) 2015-2020  Fraunhofer FKIE<br />
-            <br />
-            This program is free software: you can redistribute it and/or modify
-            it under the terms of the GNU General Public License as published by
-            the Free Software Foundation, either version 3 of the License, or
-            (at your option) any later version.<br />
-
-            This program is distributed in the hope that it will be useful,
-            but WITHOUT ANY WARRANTY; without even the implied warranty of
-            MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-            GNU General Public License for more details.
-
-            You should have received a copy of the GNU General Public License
-            along with this program.  If not, see <a href="http://www.gnu.org/licenses/">www.gnu.org/licenses/</a>.
-            <br />
-            <br />
-            Some plug-ins may have different licenses.
-        </div>
-    </div>
-    <div class="col-md-6 col-sm-12">
+    <div class="col-xl-4 col-lg-6 col-md-12">
+        <h3 class="mb-3">Software</h3>
+        <p class="mb-3">
+            The <a href="https://fkie-cad.github.io/FACT_core/">Firmware Analysis and Comparison Tool (FACT)</a> (formerly known as Fraunhofer's Firmware Analysis Framework (FAF)) is intended to automate Firmware Security Analysis.
+            FACT is developed by <a href="http://www.fkie.fraunhofer.de">Fraunhofer FKIE</a>.
+            The project is partly financed by <a href="https://www.bsi.bund.de">German Federal Office for Information Security (BSI)</a> and others.
+        </p>
         {% include "imprint.html" %}
     </div>
+    <div class="col-xl-4 col-lg-6 col-md-12">
+        <div class="card bg-light">
+            <div class="card-body">
+                <h3 class="card-title">License Information</h3>
+                <h6 class="card-subtitle mb-2 text-muted">
+                    Firmware Analysis and Comparison Tool (FACT)<br />
+                    Copyright (C) 2015-2020  Fraunhofer FKIE
+                </h6>
+                <p class="card-text">
+                    This program is free software: you can redistribute it and/or modify
+                    it under the terms of the GNU General Public License as published by
+                    the Free Software Foundation, either version 3 of the License, or
+                    (at your option) any later version.<br />
+
+                    This program is distributed in the hope that it will be useful,
+                    but WITHOUT ANY WARRANTY; without even the implied warranty of
+                    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+                    GNU General Public License for more details.
+
+                    You should have received a copy of the GNU General Public License
+                    along with this program.  If not, see <a href="http://www.gnu.org/licenses/">www.gnu.org/licenses/</a>.
+                    <br />
+                    <br />
+                    Some plug-ins may have different licenses.
+                </p>
+            </div>
+        </div>
+    </div>
 
 </div>
 
-<h2>Change Log</h2>
-<div style="width:100%;column-count:2;column-rule:grey 1px dotted;column-gap:50px">
-	<h4>FACT 3.1-dev</h4>
-	<ul>
-		<li>New or Improved Analysis
-			<ul>
-				<li>New CVE lookup plug-in to match software to known vulnerabilities</li>
-				<li>New plug-in to identify input vectors for executables (e.g. file, network, environment, stdin)</li>
-				<li>New software signatures added</li>
-				<li>Crypto hints plug-in added</li>
-				<li>Removed Base64 plug-in</li>
-			</ul>
-		</li>
-        <li>Dynamic generation of analysis summary</li>
-        <li>Navigation bar restructured</li>
-		<li>Added experimental support for multiple Debian and Kali releases as well as Ubuntu 19.04</li>
-        <li><b>Warning:</b> Hex view was removed as planned</li>
-		<li>Bug fixes</li>
-	</ul>
-
-    <h4>FACT 3.0 (2019-07-31)</h4>
-    <ul>
-        <li>New or Improved Analysis
-            <ul>
-                <li>New "tlsh" analysis plugin for finding similar files accross the database</li>
-                <li>Major refactoring of QEMU plugin (improved stability, more feedback)</li>
-                <li>Added tlsh to file hashes plugin</li>
-            </ul>
-        </li>
-        <li>Moved unpacking to standalone project, integrated via docker</li>
-        <li>Added automatic PDF report generation (stable, template in alpha)</li>
-        <li>Added REST endpoint for system monitoring</li>
-        <li>Added button to start analysis plugins on single file or firmware objects</li>
-        <li>Revised statistics page</li>
-        <li>Bug fixes</li>
-    </ul>
-
-    <h4>FACT 2.6 (2019-04-03)</h4>
-    <ul>
-        <li>New or Improved Analysis
-            <ul>
-                <li>Linter plug-in for source code analysis (js, lua, python, sh)</li>
-                <li>Plug-in to test executables for compatibility with QEMU emulation</li>
-                <li>Plug-in for displaying file system metadata information</li>
-                <li>ELF analysis plug-in added</li>
-                <li><a href="https://github.com/fkie-cad/cwe_checker">CWE-Checker</a></li>
-                <li>New software signatures added</li>
-                <li>New known vulnerabilities added</li>
-            </ul>
-        </li>
-        <li>New or Improved Unpacking
-            <ul>
-                <li>dahua firmware image unpacker added</li>
-                <li>intel hex unpacker added</li>
-                <li>hp pjl</li>
-                <li>raw</li>
-            </ul>
-        </li>
-        <li><b>Changed installation!</b> Path to install.py has changed and installation is now wrapped in python for better overview and failure tracking.</li>
-        <li>New <a href="https://github.com/fkie-cad/FACT_core/blob/master/INSTALL.md">INSTALL.md</a> for better documentation of installation options</li>
-        <li>Added software components statistics</li>
-        <li>Added REST endpoint for binary search (YARA)</li>
-        <li>Added unified mime-type-based analysis blacklist feature</li>
-        <li>Added syntax highlighting for code preview</li>
-        <li>Improved analysis caching</li>
-        <li>Bug fixes</li>
-    </ul>
-
-    <h4>FACT 2.5 (2018-08-01)</h4>
-    <ul>
-        <li>New or Improved Analysis
-            <ul>
-                <li>Known vulnerabilities plug-in added</li>
-                <li>IP and URI finder Geo IP support</li>
-                <li>Printable strings: Offsets are shown</li>
-                <li>More software signatures added</li>
-            </ul>
-        </li>
-        <li>New or Improved Unpacking
-            <ul>
-                <li>Debian package unpacking plug-in added</li>
-            </ul>
-        </li>
-        <li><a href="https://github.com/fkie-cad/FACT_core/wiki/radare-integration">Radare view allows opening objects in radare2-webui</a></li>
-        <li><b>Warning:</b> Hex view is deprecated and is going to be removed in 3.1</li>
-        <li>Device part meta data support</li>
-        <li>Quick download buttons added</li>
-        <li><a href="https://github.com/fkie-cad/FACT_core/wiki/analysis-plugin-presets">Analysis preset support</a></li>
-        <li>Interim result publishing</li>
-        <li>Intercom speedup</li>
-        <li>Ubuntu 18.04 support</li>
-        <li>YARA backend upgraded</li>
-        <li><b>Warning:</b> Default MongoDB path changed!</li>
-        <li>Code clean ups</li>
-        <li>Bug fixes</li>
-	</ul>
-
-    <h4>FACT 2.4 (2018-03-16)</h4>
-    <ul>
-        <li>New or Improved Unpacker
-            <ul>
-                <li>Xerox</li>
-            </ul>
-        </li>
-        <li>New or Improved Analysis
-            <ul>
-                <li>file header compare plug-in</li>
-            </ul>
-        </li>
-        <li>Full fledged user <a href="https://github.com/fkie-cad/FACT_core/wiki/Authentication">authentication system</a></li>
-        <li>Supporting custom routes for plug-ins</li>
-        <li>Compare view definition moved to plug-in</li>
-        <li>Firmware tagging feature</li>
-        <li>Imprint feature</li>
-        <li>Improved usability</li>
-        <li>Compare speedup</li>
-        <li>Acceptance test speedup</li>
-        <li>Code clean ups</li>
-        <li>Bug fixes</li>
-    </ul>
-
-	<h4>FACT 2.3 (2017-12-24)</h4>
-	<ul>
-		<li>New or Improved Unpacker
-			<ul>
-				<li>SquashFS: AVM support</li>
-			</ul>
-		</li>
-		<li>New or Improved Analysis
-			<ul>
-				<li>Exploit mitigation plug-in</li>
-				<li>Imphash</li>
-			</ul>
-		</li>
-		<li>Quick search</li>
-		<li>Compare result browsing</li>
-		<li>Convenient compare trigger on analysis page</li>
-		<li>REST: Update analysis without unpacking</li>
-		<li>Improved usability</li>
-		<li>Code clean ups</li>
-		<li>Bug fixes</li>
-	</ul>
-
-	<h4>FACT 2.2 (2017-09-21) (first public release)</h4>
-	<ul>
-		<li>Base64 Decoder improved</li>
-		<li>Enhanced error handling</li>
-		<li>REST API improved</li>
-		<li>Code clean ups</li>
-		<li>Bug fixes</li>
-	</ul>
-
-	<h4>FACT 2.1 (2017-08-23)</h4>
-	<ul>
-		<li>New or Improved Analysis
-			<ul>
-				<li>Init Services</li>
-			</ul>
-		</li>
-		<li>Memory consumption reduced</li>
-	    <li>Load balancing improved</li>
-	    <li>Hex header view</li>
-	    <li>Unittest &rarr; Pytest</li>
-		<li>Code clean ups</li>
-		<li>Bug fixes</li>
-	</ul>
-
-	<h4>FACT 2.0 (2017-07-31)</h4>
-	<ul>
-		<li>New project name: FAF &rarr; FACT </li>
-		<li>New color scheme</li>
-		<li>New plug-in system</li>
-		<li>New or Improved Analysis
-			<ul>
-				<li>Base64 Decoder</li>
-				<li>Software Detection: magic support</li>
-				<li>String Evaluator: printable string sorting</li>
-			</ul>
-		</li>
-		<li>YARA backend upgraded</li>
-		<li>Unpacking Classifier: encoding overhead consideration implemented</li>
-		<li>Code clean ups</li>
-		<li>Bug fixes</li>
-	</ul>
-
-
-	<h4>FAF 1.4 (2017-04-24)</h4>
-	<ul>
-		<li>New or Improved Analysis
-			<ul>
-				<li><i>Re-Do Analysis</i> feature added</li>
-			</ul>
-		</li>
-		<li>Release date statistic added</li>
-		<li>Statistic filtering feature added</li>
-		<li>Frontend refactoring</li>
-		<li>Silent Mode added</li>
-		<li>Bug fixes</li>
-		<li>Code clean ups</li>
-	</ul>
-
-
-	<h4>FAF 1.3 (2017-03-21)</h4>
-	<ul>
-		<li>New or Improved Analysis
-			<ul>
-				<li>Identify users and passwords</li>
-			</ul>
-		</li>
-		<li>New or Improved Unpacking
-			<ul>
-				<li>DJI Drone Firmware unpacker added</li>
-				<li>UBI-Image unpacker added</li>
-				<li>Zip and 7z password support added</li>
-			</ul>
-		</li>
-		<li>Several statistics added</li>
-		<li>System Health Monitoring</li>
-		<li>Statistic Graph Framework changed</li>
-		<li>Optical improvements</li>
-		<li>Bug fixes</li>
-		<li>Code clean ups</li>
-	</ul>
-
-	<h4>FAF 1.2 (2017-02-01)</h4>
-	<ul>
-		<li>New or Improved Unpacker
-			<ul>
-				<li>yaffs2</li>
-				<li>trx (generic)</li>
-				<li>tpl</li>
-			    <li>self extracting archive</li>
-			    <li>elf and pe</li>
-			</ul>
-		</li>
-		<li>New or Improved Analysis
-			<ul>
-				<li>IP and Domain search plug-in</li>
-				<li>printable strings plug-in now supports 16bit characters</li>
-			</ul>
-		</li>
-	    <li><i>Advanced Search</i> database map added</li>
-	    <li>Latest compares and comments shown on start page</li>
-	    <li>Delete comment feature added</li>
-	    <li>Linux Mint 18.1 support added</li>
-	    <li>Bug fixes</li>
-	    <li>Code clean ups</li>
-	</ul>
-
-	<h4>FAF 1.1 (2016-12-20)</h4>
-	<ul>
-		<li><i>Architecture detection</i> utilizing meta data</li>
-		<li><i>Firmware summary search</i> feature added</li>
-		<li><i>GenericFS fallback</i> feature added</li>
-		<li>Firmware removal feature added</li>
-		<li>Unpack info and statistic added</li>
-		<li>Clickable results on statistic page</li>
-		<li>Further LZMA signatures added</li>
-		<li>Performance enhancements</li>
-		<li>Integration tests</li>
-		<li>Bug fixes</li>
-		<li>Code clean ups</li>
-	</ul>
-
-	<h4>FAF 1.0 (2016-10-28)</h4>
-	<ul>
-		<li><i>File tree view</i> replaces <i>included files list</i></li>
-		<li><i>Binary search</i> feature added</li>
-		<li>Statistic page added</li>
-		<li>General stats and last uploads added to <i>Home</i> page</li>
-		<li>UWSGI support</li>
-		<li>Analysis cache added</li>
-		<li>Bug fixes</li>
-	</ul>
+<div class="row justify-content-center">
+    <div class="col-xl-8 col-lg-12">
+        <h3 class="my-4">Change Log</h3>
+    </div>
 </div>
 
+<div class="row justify-content-center">
+    <div class="col-xl-8 col-lg-12" style="width:100%;column-count:2;column-rule:grey 1px dotted;column-gap:50px">
+        <h4>FACT 3.1-dev</h4>
+        <ul>
+            <li>New or Improved Analysis
+                <ul>
+                    <li>New CVE lookup plug-in to match software to known vulnerabilities</li>
+                    <li>New plug-in to identify input vectors for executables (e.g. file, network, environment, stdin)</li>
+                    <li>New software signatures added</li>
+                    <li>Crypto hints plug-in added</li>
+                    <li><b>Warning:</b> Removed Base64 plug-in</li>
+                </ul>
+            </li>
+            <li>Major refactoring of WebUI (Moved from bs3 to bs4)</li>
+            <li>Dynamic generation of analysis summary</li>
+            <li>Navigation bar restructured</li>
+            <li>Added experimental support for multiple Debian and Kali releases as well as Ubuntu 19.04</li>
+            <li><b>Warning:</b> Hex view was removed as planned</li>
+            <li>Binary search now supports directly listing parent firmware of matches</li>
+            <li>New endpoint to find missing analysis results</li>
+            <li>Backend statistics now lists running processes</li>
+            <li>Various smaller improvements</li>
+            <li>Bug fixes</li>
+        </ul>
+
+        <h4>FACT 3.0 (2019-07-31)</h4>
+        <ul>
+            <li>New or Improved Analysis
+                <ul>
+                    <li>New "tlsh" analysis plugin for finding similar files accross the database</li>
+                    <li>Major refactoring of QEMU plugin (improved stability, more feedback)</li>
+                    <li>Added tlsh to file hashes plugin</li>
+                </ul>
+            </li>
+            <li>Moved unpacking to standalone project, integrated via docker</li>
+            <li>Added automatic PDF report generation (stable, template in alpha)</li>
+            <li>Added REST endpoint for system monitoring</li>
+            <li>Added button to start analysis plugins on single file or firmware objects</li>
+            <li>Revised statistics page</li>
+            <li>Bug fixes</li>
+        </ul>
+
+        <h4>FACT 2.6 (2019-04-03)</h4>
+        <ul>
+            <li>New or Improved Analysis
+                <ul>
+                    <li>Linter plug-in for source code analysis (js, lua, python, sh)</li>
+                    <li>Plug-in to test executables for compatibility with QEMU emulation</li>
+                    <li>Plug-in for displaying file system metadata information</li>
+                    <li>ELF analysis plug-in added</li>
+                    <li><a href="https://github.com/fkie-cad/cwe_checker">CWE-Checker</a></li>
+                    <li>New software signatures added</li>
+                    <li>New known vulnerabilities added</li>
+                </ul>
+            </li>
+            <li>New or Improved Unpacking
+                <ul>
+                    <li>dahua firmware image unpacker added</li>
+                    <li>intel hex unpacker added</li>
+                    <li>hp pjl</li>
+                    <li>raw</li>
+                </ul>
+            </li>
+            <li><b>Changed installation!</b> Path to install.py has changed and installation is now wrapped in python for better overview and failure tracking.</li>
+            <li>New <a href="https://github.com/fkie-cad/FACT_core/blob/master/INSTALL.md">INSTALL.md</a> for better documentation of installation options</li>
+            <li>Added software components statistics</li>
+            <li>Added REST endpoint for binary search (YARA)</li>
+            <li>Added unified mime-type-based analysis blacklist feature</li>
+            <li>Added syntax highlighting for code preview</li>
+            <li>Improved analysis caching</li>
+            <li>Bug fixes</li>
+        </ul>
+
+        <h4>FACT 2.5 (2018-08-01)</h4>
+        <ul>
+            <li>New or Improved Analysis
+                <ul>
+                    <li>Known vulnerabilities plug-in added</li>
+                    <li>IP and URI finder Geo IP support</li>
+                    <li>Printable strings: Offsets are shown</li>
+                    <li>More software signatures added</li>
+                </ul>
+            </li>
+            <li>New or Improved Unpacking
+                <ul>
+                    <li>Debian package unpacking plug-in added</li>
+                </ul>
+            </li>
+            <li><a href="https://github.com/fkie-cad/FACT_core/wiki/radare-integration">Radare view allows opening objects in radare2-webui</a></li>
+            <li><b>Warning:</b> Hex view is deprecated and is going to be removed in 3.1</li>
+            <li>Device part meta data support</li>
+            <li>Quick download buttons added</li>
+            <li><a href="https://github.com/fkie-cad/FACT_core/wiki/analysis-plugin-presets">Analysis preset support</a></li>
+            <li>Interim result publishing</li>
+            <li>Intercom speedup</li>
+            <li>Ubuntu 18.04 support</li>
+            <li>YARA backend upgraded</li>
+            <li><b>Warning:</b> Default MongoDB path changed!</li>
+            <li>Code clean ups</li>
+            <li>Bug fixes</li>
+        </ul>
+
+        <h4>FACT 2.4 (2018-03-16)</h4>
+        <ul>
+            <li>New or Improved Unpacker
+                <ul>
+                    <li>Xerox</li>
+                </ul>
+            </li>
+            <li>New or Improved Analysis
+                <ul>
+                    <li>file header compare plug-in</li>
+                </ul>
+            </li>
+            <li>Full fledged user <a href="https://github.com/fkie-cad/FACT_core/wiki/Authentication">authentication system</a></li>
+            <li>Supporting custom routes for plug-ins</li>
+            <li>Compare view definition moved to plug-in</li>
+            <li>Firmware tagging feature</li>
+            <li>Imprint feature</li>
+            <li>Improved usability</li>
+            <li>Compare speedup</li>
+            <li>Acceptance test speedup</li>
+            <li>Code clean ups</li>
+            <li>Bug fixes</li>
+        </ul>
+
+        <h4>FACT 2.3 (2017-12-24)</h4>
+        <ul>
+            <li>New or Improved Unpacker
+                <ul>
+                    <li>SquashFS: AVM support</li>
+                </ul>
+            </li>
+            <li>New or Improved Analysis
+                <ul>
+                    <li>Exploit mitigation plug-in</li>
+                    <li>Imphash</li>
+                </ul>
+            </li>
+            <li>Quick search</li>
+            <li>Compare result browsing</li>
+            <li>Convenient compare trigger on analysis page</li>
+            <li>REST: Update analysis without unpacking</li>
+            <li>Improved usability</li>
+            <li>Code clean ups</li>
+            <li>Bug fixes</li>
+        </ul>
+
+        <h4>FACT 2.2 (2017-09-21) (first public release)</h4>
+        <ul>
+            <li>Base64 Decoder improved</li>
+            <li>Enhanced error handling</li>
+            <li>REST API improved</li>
+            <li>Code clean ups</li>
+            <li>Bug fixes</li>
+        </ul>
+
+        <h4>FACT 2.1 (2017-08-23)</h4>
+        <ul>
+            <li>New or Improved Analysis
+                <ul>
+                    <li>Init Services</li>
+                </ul>
+            </li>
+            <li>Memory consumption reduced</li>
+            <li>Load balancing improved</li>
+            <li>Hex header view</li>
+            <li>Unittest &rarr; Pytest</li>
+            <li>Code clean ups</li>
+            <li>Bug fixes</li>
+        </ul>
+
+        <h4>FACT 2.0 (2017-07-31)</h4>
+        <ul>
+            <li>New project name: FAF &rarr; FACT </li>
+            <li>New color scheme</li>
+            <li>New plug-in system</li>
+            <li>New or Improved Analysis
+                <ul>
+                    <li>Base64 Decoder</li>
+                    <li>Software Detection: magic support</li>
+                    <li>String Evaluator: printable string sorting</li>
+                </ul>
+            </li>
+            <li>YARA backend upgraded</li>
+            <li>Unpacking Classifier: encoding overhead consideration implemented</li>
+            <li>Code clean ups</li>
+            <li>Bug fixes</li>
+        </ul>
+
+
+        <h4>FAF 1.4 (2017-04-24)</h4>
+        <ul>
+            <li>New or Improved Analysis
+                <ul>
+                    <li><i>Re-Do Analysis</i> feature added</li>
+                </ul>
+            </li>
+            <li>Release date statistic added</li>
+            <li>Statistic filtering feature added</li>
+            <li>Frontend refactoring</li>
+            <li>Silent Mode added</li>
+            <li>Bug fixes</li>
+            <li>Code clean ups</li>
+        </ul>
+
+
+        <h4>FAF 1.3 (2017-03-21)</h4>
+        <ul>
+            <li>New or Improved Analysis
+                <ul>
+                    <li>Identify users and passwords</li>
+                </ul>
+            </li>
+            <li>New or Improved Unpacking
+                <ul>
+                    <li>DJI Drone Firmware unpacker added</li>
+                    <li>UBI-Image unpacker added</li>
+                    <li>Zip and 7z password support added</li>
+                </ul>
+            </li>
+            <li>Several statistics added</li>
+            <li>System Health Monitoring</li>
+            <li>Statistic Graph Framework changed</li>
+            <li>Optical improvements</li>
+            <li>Bug fixes</li>
+            <li>Code clean ups</li>
+        </ul>
+
+        <h4>FAF 1.2 (2017-02-01)</h4>
+        <ul>
+            <li>New or Improved Unpacker
+                <ul>
+                    <li>yaffs2</li>
+                    <li>trx (generic)</li>
+                    <li>tpl</li>
+                    <li>self extracting archive</li>
+                    <li>elf and pe</li>
+                </ul>
+            </li>
+            <li>New or Improved Analysis
+                <ul>
+                    <li>IP and Domain search plug-in</li>
+                    <li>printable strings plug-in now supports 16bit characters</li>
+                </ul>
+            </li>
+            <li><i>Advanced Search</i> database map added</li>
+            <li>Latest compares and comments shown on start page</li>
+            <li>Delete comment feature added</li>
+            <li>Linux Mint 18.1 support added</li>
+            <li>Bug fixes</li>
+            <li>Code clean ups</li>
+        </ul>
+
+        <h4>FAF 1.1 (2016-12-20)</h4>
+        <ul>
+            <li><i>Architecture detection</i> utilizing meta data</li>
+            <li><i>Firmware summary search</i> feature added</li>
+            <li><i>GenericFS fallback</i> feature added</li>
+            <li>Firmware removal feature added</li>
+            <li>Unpack info and statistic added</li>
+            <li>Clickable results on statistic page</li>
+            <li>Further LZMA signatures added</li>
+            <li>Performance enhancements</li>
+            <li>Integration tests</li>
+            <li>Bug fixes</li>
+            <li>Code clean ups</li>
+        </ul>
+
+        <h4>FAF 1.0 (2016-10-28)</h4>
+        <ul>
+            <li><i>File tree view</i> replaces <i>included files list</i></li>
+            <li><i>Binary search</i> feature added</li>
+            <li>Statistic page added</li>
+            <li>General stats and last uploads added to <i>Home</i> page</li>
+            <li>UWSGI support</li>
+            <li>Analysis cache added</li>
+            <li>Bug fixes</li>
+        </ul>
+    </div>
+</div>
 {% endblock %}
