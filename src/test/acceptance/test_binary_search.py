@@ -10,7 +10,7 @@ class TestAcceptanceBinarySearch(TestAcceptanceBaseFullStart):
 
     def _query_page_get(self):
         rv = self.test_client.get('/database/binary_search')
-        assert b'<h2>Binary Pattern Search</h2>' in rv.data
+        assert b'<h3 class="mb-3">Binary Pattern Search</h3>' in rv.data
 
     def _query_page_post_file_query(self):
         rv = self.test_client.post(

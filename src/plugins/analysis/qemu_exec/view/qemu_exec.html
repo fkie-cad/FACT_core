@@ -35,21 +35,21 @@
         {% for uid, result in firmware.processed_analysis[selected_analysis]['files'].items() %}
 
             <tr data-toggle="collapse" data-target="#collapse-{{ uid }}">
-                <td class="active clickable" colspan=2>
-                    <span class="glyphicon glyphicon-chevron-down"></span> {{ result['path'] }}
+                <td class="clickable" colspan=2>
+                    <i class="fas fa-angle-down"></i> {{ result['path'] }}
                     {% if result['executable'] %}
-                        <span class="glyphicon glyphicon-ok" style="color:DarkGreen"></span>
+                        <i class="fas fa-check text-success"></i>
                     {% else %}
-                        <span class="glyphicon glyphicon-remove" style="color:DarkRed"></span>
+                        <i class="fas fa-times text-danger"></i>
                     {% endif %}
                 </td>
             </tr>
 
             <tr>
-                <td colspan="2" class="qemu-td" style="padding: 0;">
+                <td colspan="2" class="qemu-td p-0">
                     <div class="collapse" id="collapse-{{ uid }}">
 
-                        <table class="table table-bordered" style="margin: 0; width: 100%">
+                        <table class="table table-bordered m-0" style="width: 100%">
                             <tr>
                                 <td width="175px">Executable in QEMU:</td>
                                 <td>{{ result['executable'] }}</td>
@@ -58,14 +58,14 @@
                             {% if result['results'] %}
                             <tr>
                                 <td>Individual Results:</td>
-                                <td style="padding: 0">
-                                    <table class="table table-bordered" style="margin: 0; width: 100%">
+                                <td class="p-0">
+                                    <table class="table table-bordered m-0" style="width: 100%">
                                     {% for arch in result['results'] %}
                                         <tr>
                                             {% if "strace" in result['results'][arch] %}
-                                            <td width="1px" rowspan="{{ (result['results'][arch] | length - 1) * 3  + 1 }}">
+                                                <td width="1px" rowspan="{{ (result['results'][arch] | length - 1) * 3  + 1 }}">
                                             {% else %}
-                                            <td width="1px" rowspan="{{ (result['results'][arch] | length) * 3 }}">
+                                                <td width="1px" rowspan="{{ (result['results'][arch] | length) * 3 }}">
                                             {% endif %}
                                                 {{ arch }}
                                             </td>

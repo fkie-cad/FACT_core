@@ -1,4 +1,3 @@
-# pylint: disable=invalid-name
 import logging
 from time import gmtime
 from zlib import compress
@@ -17,6 +16,8 @@ from web_interface.filter import (
 )
 
 UNSORTABLE_LIST = [[], ()]
+
+# pylint: disable=invalid-name
 
 
 def test_set_limit_for_data_to_chart():
@@ -211,11 +212,11 @@ def test_generic_nice_representation(input_data, expected):
 
 
 @pytest.mark.parametrize('tag_dict, output', [
-    ({'a': 'danger'}, '<span class="label label-pill label-danger " style="font-size: 10px;">a</span>\n'),
+    ({'a': 'danger'}, '<span class="badge badge-danger " style="font-size: 14px;">a</span>\n'),
     (
-        {'a': 'danger', 'b': 'default'},
-        '<span class="label label-pill label-danger " style="font-size: 10px;">a</span>\n'
-        '<span class="label label-pill label-default " style="font-size: 10px;">b</span>\n'
+        {'a': 'danger', 'b': 'primary'},
+        '<span class="badge badge-danger " style="font-size: 14px;">a</span>\n'
+        '<span class="badge badge-primary " style="font-size: 14px;">b</span>\n'
     ),
     (None, '')
 ])
@@ -228,9 +229,16 @@ def test_empty_analysis_tags():
 
 
 def test_render_analysis_tags_success():
+    tags = {'such plugin': {'tag': {'color': 'success', 'value': 'wow'}}}
+    output = render_analysis_tags(tags)
+    assert 'badge-success' in output
+    assert '>wow<' in output
+
+
+def test_render_analysis_tags_fix():
     tags = {'such plugin': {'tag': {'color': 'very color', 'value': 'wow'}}}
     output = render_analysis_tags(tags)
-    assert 'label-very color' in output
+    assert 'badge-primary' in output
     assert '>wow<' in output
 
 
@@ -326,10 +334,10 @@ def test_get_unique_keys_from_list_of_dicts(list_of_dicts, expected_result):
 
 
 @pytest.mark.parametrize('function, input_data, expected_output, error_message', [
-    (_get_sorted_list, UNSORTABLE_LIST, UNSORTABLE_LIST, 'could not sort list'),
-    (sort_comments, UNSORTABLE_LIST, [], 'could not sort comment list'),
-    (sort_chart_list_by_name, UNSORTABLE_LIST, [], 'could not sort chart list'),
-    (sort_chart_list_by_value, UNSORTABLE_LIST, [], 'could not sort chart list'),
+    (_get_sorted_list, UNSORTABLE_LIST, UNSORTABLE_LIST, 'Could not sort list'),
+    (sort_comments, UNSORTABLE_LIST, [], 'Could not sort comment list'),
+    (sort_chart_list_by_name, UNSORTABLE_LIST, [], 'Could not sort chart list'),
+    (sort_chart_list_by_value, UNSORTABLE_LIST, [], 'Could not sort chart list'),
 ])
 def test_error_logging(function, input_data, expected_output, error_message, caplog):
     with caplog.at_level(logging.WARNING):

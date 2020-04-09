@@ -4,16 +4,17 @@
 
 {% block body %}
 
+<div class="row justify-content-center">
+    <div class="col-lg-8 mt-4">
+        <h3 class="mb-3">User Management</h3>
+    </div>
+</div>
 
-<div class="row">
-    <div class="col-xs-12 col-sm-8 col-sm-offset-2 col-md-6 col-md-offset-3">
-        <h3>
-            User Management
-        </h3>
-
+<div class="row justify-content-center">
+    <div class="col-md-8">
         <!-- add user button -->
-        <button type="button" class="btn btn-default" data-toggle="modal" data-target="#add_user_modal" style="width: 100%; margin-bottom: 10px">
-            Add User
+        <button type="button" class="btn btn-primary mb-3" data-toggle="modal" data-target="#add_user_modal" style="width: 100%">
+            <i class="fas fa-user-plus"></i> Add user
         </button>
 
         <!-- add user modal -->
@@ -21,33 +22,35 @@
             <div class="modal-dialog">
                 <div class="modal-content">
 
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal">&times;</button>
-                        <h4 class="modal-title">Add User</h4>
+                    <div class="modal-header d-flex justify-content-between align-items-center">
+                        <h5 class="modal-title">Add user</h5>
+                        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
                     </div>
 
                     <div class="modal-body">
                         <form method="post">
-
-                            <div style="padding: 15px; margin-bottom: -15px" class="input-group">
-                                <span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span>
+                            <div class="input-group mb-3">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                </div>
                                 <input id="username" type="text" class="form-control" name="username" value="" placeholder="username" required>
                             </div>
 
-                            <div style="padding: 15px; margin-bottom: -15px" class="input-group">
-                                <span class="input-group-addon"><i class="glyphicon glyphicon-lock"></i></span>
+                            <div class="input-group mb-3">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                </div>
                                 <input id="password1" type="password" class="form-control" name="password1" placeholder="password" required>
                             </div>
 
-                            <div style="padding: 15px; margin-bottom: -15px" class="input-group">
-                                <span class="input-group-addon"><i class="glyphicon glyphicon-lock"></i></span>
+                            <div class="input-group mb-3">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                </div>
                                 <input id="password2" type="password" class="form-control" name="password2" placeholder="confirm password" required>
                             </div>
 
-                            <div style="padding: 15px">
-                                <button type="submit">Add</button>
-                            </div>
-
+                            <button class="btn btn-primary" type="submit">Add</button>
                         </form>
                     </div>
 
@@ -56,14 +59,14 @@
         </div>
 
         <!-- user list -->
-        <table class="table table-bordered table-hover result">
-        {% for user in users | sort_users %}
-            <tr>
-                <td align="center" class="active result clickable"  onclick="location.href='/admin/user/{{ user.id|safe }}'">
-                    {{ user.email | safe }}
-                </td>
-            </tr>
-        {% endfor %}
+        <table class="table table-bordered table-hover">
+            {% for user in users | sort_users %}
+                <tr>
+                    <td class="clickable d-flex justify-content-center"  onclick="location.href='/admin/user/{{ user.id|safe }}'">
+                        {{ user.email | safe }}
+                    </td>
+                </tr>
+            {% endfor %}
         </table>
     </div>
 

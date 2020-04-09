@@ -45,7 +45,7 @@ class DatabaseRoutes(ComponentBase):
     @staticmethod
     def _get_pagination(**kwargs):
         kwargs.setdefault('record_name', 'records')
-        return Pagination(css_framework='bootstrap3', link_size='sm', show_single_page=False,
+        return Pagination(css_framework='bootstrap4', link_size='sm', show_single_page=False,
                           format_total=True, format_number=True, **kwargs)
 
     @staticmethod

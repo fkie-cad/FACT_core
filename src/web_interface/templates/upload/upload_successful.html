@@ -3,12 +3,9 @@
 {% set active_page = "Upload" %}
 
 {% block body %}
-    <div class="panel panel-success">
-        <div class="panel-heading">
-            <h3 class="panel-title">Upload Successful</h3>
-        </div>
-        <div class="panel-body">
-            The analysis will be available <a href="/analysis/{{ uid | safe }}">here</a> once it is finished
-        </div>
+    <div class="alert alert-success mt-4">
+        <h3 class="alert-heading">Upload Successful</h3>
+        <hr />
+        The analysis will be available <a href="/analysis/{{ uid | safe }}">here</a> once it is finished
     </div>
 {% endblock %}

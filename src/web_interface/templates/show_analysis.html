@@ -14,15 +14,13 @@
     ("virtual_path", firmware.get_virtual_paths_for_one_uid(root_uid=root_uid)|nice_virtual_path_list|nice_list|safe, "word-break: break-all; overflow-wrap: break-word;", ""),
     ("file size", firmware.size|number_format(verbose=True), "", ""),
     ("MD5", firmware.md5, "word-break: break-all;", ""),
-    ("SHA256", firmware.sha256, "word-break: break-all;", ""),
-    ("Tags", firmware.tags|render_tags(size=12)|safe, "", ""),
-    ("Analysis Tags", firmware.analysis_tags | render_analysis_tags(size=12) | safe, "", "")
+    ("SHA256", firmware.sha256, "word-break: break-all;", "")
 ] -%}
 
 {% block head %}
-    {# jstree import #}
-    <script src="{{ url_for('static', filename='jstree/dist/jstree.min.js') }}"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='jstree/dist/themes/default/style.min.css') }}" />
+	{# jstree import #}
+    <link rel="stylesheet" href="{{ url_for('static', filename='web_js/jstree/dist/themes/default/style.min.css') }}" />
+    <script type="text/javascript" src="{{ url_for('static', filename='web_js/jstree/dist/jstree.min.js') }}"></script>
 
     {# highlight.js import #}
     <script src="{{ url_for('static', filename='highlight.js/highlight.pack.js') }}"></script>
@@ -36,198 +34,330 @@
 
 {% block body %}
 
-    {# firmware comparison from analysis #}
-    <div class="row" style="padding-right: 15px">
-        {%if known_comparisons %}
-            <div class="pull-right">
-                <span class="glyphicon glyphicon-hdd" data-toggle="collapse" data-target="#old_comparisons" style="padding: 5px; margin-right: 5px;" title="Show List of Known Comparisons"></span>
+<div class="row justify-content-end mt-2" style="padding-right: 15px">
+    <div class="btn-group d-flex align-items-start">
+        <div class="btn btn-secondary">Comparisons</div>
+        {% if known_comparisons %}
+            <div class="btn btn-outline-secondary" data-toggle="collapse" data-target="#old_comparisons" title="Show List of Known Comparisons">
+                <i class="far fa-hdd"></i>
             </div>
         {% endif %}
         {% if not uids_for_comparison or uid not in uids_for_comparison %}
-            <div class="pull-right">
-                <span class="glyphicon glyphicon-plus" onclick="location.href='/comparison/add/{{ uid }}'" style="padding: 5px; margin-right: 5px;" title="Add to Comparison"></span>
+            <div class="btn btn-outline-secondary" onclick="location.href='/comparison/add/{{ uid }}'" title="Add to Comparison">
+                <i class="fas fa-plus"></i>
             </div>
         {% endif %}
 
         {% if uids_for_comparison %}
-            <div class="pull-right">
-                <span class="glyphicon glyphicon-list" data-toggle="collapse" data-target="#comparison-list" style="padding: 5px; margin-right: 5px;" title="Show Selected Firmwares for Comparison"></span>
+            <div class="btn btn-outline-secondary" data-toggle="collapse" data-target="#comparison-list" title="Show Selected Firmwares for Comparison">
+                <i class="fas fa-list-ul"></i>
             </div>
         {% endif %}
-        <div class="pull-right">
-            <h5 style="margin-top: 4px; margin-bottom: 0; margin-right: 5px">Comparisons</h5>
-        </div>
     </div>
 
-    <div class="collapse" id="old_comparisons">
-        <div class="jumbotron pull-right" style="float: left; padding: 10px; margin-bottom: 0; margin-left: 15px; margin-right: 15px; width: auto; max-width: 650px; border: 1px solid #ddd; background-color: #f8f8f8;">
-            <h4 style="margin-top: 0; text-align: center;">List of Comparisons Containing the Displayed Firmware</h4>
-            <hr style="margin: 12px">
-            <div class="card card-body">
-                {% for comparison_id, _, _ in known_comparisons %}
-                    <div class="col-xs-12" style="padding: 0;">
-                        <span style="padding: 2px; margin: 0; display: flex; display: -webkit-inline-box;">
-                            <span button type="button" class="btn btn-primary btn-sm" style="margin-left: 3px" onclick="location.href='/compare/{{ comparison_id }}'">{{ comparison_id | replace_comparison_uid_with_hid | safe }}</span>
-                        </span>
+    <div class="col-auto collapse" id="old_comparisons">
+        <div class="card float-right" style="width: auto; max-width: 650px;">
+            <div class="card-header text-center" style="font-size: larger">List of comparisons containing the displayed firmware</div>
+            <div class="card-body">
+                {% for comparison in known_comparisons%}
+                    <div class="col-xs-12 mb-1">
+                        <span type="button" class="btn btn-primary btn-sm" onclick="location.href='/compare/{{ comparison[0]}}'">{{ comparison[0] | replace_comparison_uid_with_hid | safe  }}</span>
                     </div>
                 {% endfor %}
             </div>
         </div>
     </div>
+</div>
 
-    {%- if uids_for_comparison %}
-        <div class="row" style="margin-bottom: 15px">
-            <div class="row collapse" id="comparison-list" style="margin: 0">
-                <div class="jumbotron pull-right" style="float: left; padding: 10px; margin-bottom: 0; margin-left: 15px; margin-right: 15px; width: auto; max-width: 650px; border: 1px solid #ddd; background-color: #f8f8f8;">
-                    <h4 style="margin-top: 0; text-align: center;">Firmwares Selected for Comparison</h4>
-                    <hr style="margin: 12px">
-                    <table width="auto">
-                        <tr>
-                            <td style="width: 10px; vertical-align: top;">
-                                {%- for compare_uid in uids_for_comparison %}
-                                    <div class="col-xs-12" style="padding: 0;">
-                                        <span style="padding: 2px; margin: 0; display: flex; display: -webkit-inline-box;">
-                                            <span class="close" style="font-size: 20px" onclick="location.href='/comparison/remove/{{ uid }}/{{ compare_uid }}'">
-                                                &times;
-                                            </span>
-                                            <span class="tag label label-{% if compare_uid == uid %}primary{% else %}default{% endif %}" style="margin-left: 3px">{{ compare_uid|replace_uid_with_hid|safe }}</span>
-                                        </span>
-                                    </div>
-                                {% endfor -%}
-                            </td>
-                            {%- if uids_for_comparison|length > 1 %}
-                                <td style="width: 180px; vertical-align: top;">
-                                    <div class="col-xs-12" style="padding: 2px;">
-                                        <button type="button" class="btn btn-default btn-xs" onclick="location.href='/comparison/remove_all/{{ uid }}'" style="width: 100%">
-                                            <span class="glyphicon glyphicon-remove"></span> Remove All
-                                        </button>
-                                    </div>
-                                    <div class="col-xs-12" style="padding: 2px;">
-                                        <button type="button" id="start_compare_button" class="btn btn-default btn-xs" style="width: 100%">
-                                            <span class="glyphicon glyphicon-duplicate"></span> Compare
-                                        </button>
-                                    </div>
-                                    <div class="form-group col-xs-12" style="margin: 0;">
-                                        <div class="checkbox" style="margin: 0; margin-left: 30px; text-align: center">
-                                            <label style="padding: 2px">
-                                                <input type="checkbox" value="true" id="recompare_checkbox" style="margin-top: 2px;"> Force Recompare
-                                            </label>
-                                        </div>
-                                    </div>
-                                    <script>
-                                        function start_compare(){
-                                            const checkbox = document.getElementById('recompare_checkbox');
-                                            let link = '/compare';
-                                            if (checkbox.checked) link += '?force_recompare=true';
-                                            location.href = link;
-                                        }
-                                        document.getElementById("start_compare_button").onclick = start_compare;
-                                    </script>
-                                </td>
-                            {%- endif %}
-                        </tr>
-                    </table>
-                </div>
-            </div>
+{% if uids_for_comparison %}
+<div class="row justify-content-end mt-3 mb-2">
+    <div class="collapse m-0" id="comparison-list">
+        <div class="jumbotron float-right mx-2 mb-0 p-3" style="width: auto; max-width: 650px;">
+            <span class="mt-0 text-center" style="font-size: larger">Firmware Selected for Comparison</span>
+            <hr style="margin: 12px">
+            <table>
+                <tr>
+                    <td style="width: 10px; vertical-align: top;">
+                        {% for compare_uid in uids_for_comparison %}
+                            <div class="col-xs-12 p-0">
+                                <span class="m-0" style="padding: 2px; display: inline-flex;">
+                                    <span class="close" style="font-size: 20px" onclick="location.href='/comparison/remove/{{ uid }}/{{ compare_uid }}'">
+                                        &times;
+                                    </span>
+                                    <span class="tag badge badge-{% if compare_uid == uid %}primary{% else %}secondary{% endif %}" style="margin-left: 3px">{{ compare_uid |replace_uid_with_hid | safe }}</span>
+                                </span>
+                            </div>
+                        {% endfor %}
+                    </td>
+                    {% if uids_for_comparison|length > 1 %}
+                        <td style="width: 180px; vertical-align: top;">
+                            <div class="col-xs-12" style="padding: 2px;">
+                                <button type="button" class="btn btn-secondary btn-sm" onclick="location.href='/comparison/remove_all/{{ uid }}'" style="width: 100%">
+                                    <i class="fas fa-ban"></i> Remove All
+                                </button>
+                            </div>
+                            <div class="col-xs-12" style="padding: 2px;">
+                                <button type="button" id="start_compare_button" class="btn btn-secondary btn-sm" style="width: 100%">
+                                    <i class="fas fa-copy"></i> Compare
+                                </button>
+                            </div>
+                            <div class="form-group col-xs-12 m-0">
+                                <div class="checkbox m-0" style="margin-left: 30px; text-align: center">
+                                    <label style="padding: 2px">
+                                        <input type="checkbox" value="true" id="recompare_checkbox" style="margin-top: 2px;"> Force Recompare
+                                    </label>
+                                </div>
+                            </div>
+                            <script>
+                                function start_compare(){
+                                    var checkbox = document.getElementById('recompare_checkbox');
+                                    var link = '/compare';
+                                    if (checkbox.checked) link += '?force_recompare=true';
+                                    location.href = link;
+                                };
+                                document.getElementById("start_compare_button").onclick = start_compare;
+                            </script>
+                        </td>
+                    {% endif %}
+                </tr>
+            </table>
         </div>
-    {%- endif %}
+    </div>
+</div>
+{% endif %}
 
-    <div style="word-wrap: break-word">
-        <h2>Analysis for <span class="text-primary">{{ firmware.get_hid(root_uid=root_uid) }}</span><br /><small><strong>UID:</strong> {{ uid|safe }}</small></h2>
+    {# Header section #}
+    <div class="row">
+        <div class="col-lg-12 header" style="word-wrap: break-word">
+            <h3>
+                {{ firmware.get_hid(root_uid=root_uid) }}<br />
+                {% if firmware.analysis_tags or firmware.tags %}
+                    {{ firmware.analysis_tags | render_analysis_tags | safe }} {{ firmware.tags | render_tags | safe }}<br />
+                {% endif %}
+                <span style="font-size: 15px"><strong>UID:</strong> {{ uid | safe }}</span>
+            </h3>
+            {% if all_analyzed_flag %}
+                <div class="alert alert-warning">
+                    <strong>Warning!</strong> Not all included files are fully analyzed yet! Only analyzed files are shown.
+                </div>
+            {% endif %}
+        </div>
     </div>
 
-    {% if all_analyzed_flag %}
-        <div class="alert alert-warning">
-            <strong>Warning!</strong> Not all included files are fully analyzed yet! Only analyzed files are shown.
-        </div>
-    {% endif %}
-
+    {# General info section #}
     <div class="row">
-
-        {# general info section section #}
-
-        <div class="col-lg-6">
-            <table class="table table-bordered table-hover">
-                <tr class="success">
-                    <th class="result" colspan="2">General</th>
-                </tr>
-                {%- for label, content, style, query in general_analysis_elements -%}
-                    {%- if content %}
+        <div class="col-xl-6">
+            <table class="table table-sm table-bordered table-hover">
+                <thead class="thead-light">
+                    <tr>
+                        <th colspan="2">General information</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {%- for label, content, style, query in general_analysis_elements -%}
+                        {%- if content %}
+                            <tr>
+                                <td style="width: 120px;">{{ label | replace_underscore }}</td>
+                                {%- set clickable_class = " clickable" if query else "" %}
+                                <td class="{{ clickable_class }}"
+                                    {%- if style %} style="{{ style }}" {% endif -%}
+                                    {%- if query %} onclick="location.href='{{ query_url + query.replace("PLACEHOLDER", content) | urlencode }}'" data-toggle="tooltip" title="show other firmwares of {{content}}" {% endif -%}
+                                >
+                                    {%- if label == "release date" and content == "1970-01-01" -%}
+                                        unknown
+                                    {%- else -%}
+                                        {{ content }}
+                                    {%- endif -%}
+                                </td>
+                            </tr>
+                        {%- endif -%}
+                    {%- endfor %}
+                    {%- if "file_type" in firmware.processed_analysis -%}
                         <tr>
-                            <td class="active result" style="width: 120px;">{{ label | replace_underscore }}</td>
-                            {%- set clickable_class = " clickable" if query else "" %}
-                            <td class="active result{{ clickable_class }}"
-                                {%- if style %} style="{{ style }}" {% endif -%}
-                                {%- if query %} onclick="location.href='{{ query_url + query.replace("PLACEHOLDER", content) | urlencode }}'" data-toggle="tooltip" title="show other firmwares of {{content}}" {% endif -%}
-                            >
-                                {%- if label == "release date" and content == "1970-01-01" -%}
-                                    unknown
-                                {%- else -%}
-                                    {{ content }}
-                                {%- endif -%}
+                            <td>file type</td>
+                            <td>{{ firmware.processed_analysis["file_type"]["full"] }}</td>
+                        </tr>
+                    {%- endif %}
+                    {%- if firmware_including_this_fo %}
+                        <tr>
+                            <td>firmware including this files</td>
+                            <td>{{ firmware_including_this_fo | nice_uid_list | safe }}</td>
+                        </tr>
+                    {%- endif %}
+                    {%- if other_versions %}
+                        <tr>
+                            <td>other versions</td>
+                            <td>
+                                <div class="list-group">
+                                    <button data-toggle="collapse" data-target="#other_versions" class="list-group-item list-group-item-primary d-flex justify-content-between align-items-center">
+                                        show files<span class="badge badge-primary badge-pill">{{ other_versions | length }}</span>
+                                    </button>
+                                    <div id="other_versions" class="collapse">
+                                        {% for version in other_versions %}
+                                            {%- if selected_analysis -%}
+                                                {% set other_version_link = "/analysis/{}/{}".format(version._id, selected_analysis) %}
+                                            {%- else -%}
+                                                {% set other_version_link = "/analysis/{}".format(version._id) %}
+                                            {%- endif -%}
+                                            <a href="{{ other_version_link }}" class="list-group-item list-group-item-action">
+                                                {{ version.version }}
+                                            </a>
+                                        {% endfor %}
+                                    </div>
+                                </div>
                             </td>
                         </tr>
                     {%- endif -%}
-                {%- endfor %}
-                {%- if "file_type" in firmware.processed_analysis -%}
-                    <tr class="active">
-                        <td class="result">file type</td>
-                        <td class="result" style="{{ style }}">{{ firmware.processed_analysis["file_type"]["full"] }}</td>
-                    </tr>
-                {%- endif %}
-                {%- if firmware_including_this_fo %}
-                    <tr class="active">
-                        <td class="result">firmwares including this files</td>
-                        <td class="result" style="{{ style }}">{{ firmware_including_this_fo | nice_uid_list() | safe }}</td>
-                    </tr>
-                {%- endif %}
-                {%- if other_versions %}
-                    <tr class="active">
-                        <td class="result">other versions</td>
-                        <td class="result" style="{{ style }}">
-                            <button data-toggle="collapse" data-target="#other_versions" class="list-group-item list-group-item-info">
-                                <span class="badge">{{ other_versions | length }}</span> show files
-                            </button>
-                            <div id="other_versions" class="collapse">
-                                {% for version in other_versions %}
-                                    {%- if selected_analysis -%}
-                                        {% set other_version_link = "/analysis/{}/{}".format(version._id, selected_analysis) %}
-                                    {%- else -%}
-                                        {% set other_version_link = "/analysis/{}".format(version._id) %}
-                                    {%- endif -%}
-                                    <a href="{{ other_version_link }}" class="list-group-item">
-                                        <p class="list-group-item-text">
-                                            {{ version.version }}
-                                        </p>
-                                    </a>
-                                {% endfor %}
-                            </div>
-                        </td>
-                    </tr>
-                {%- endif -%}
+                </tbody>
             </table>
         </div>
 
-        {# processed analysis section #}
+        <div class="col-xl-6">
+                    {# user buttons #}
+            <div class="btn-group mb-2" role="group" aria-label="Download buttons">
+                <button class="btn btn-secondary">Download options</button>
 
-        <div class="col-lg-6">
-            <table class="table table-bordered table-hover result">
-                <th class="success">Analysis Results</th>
+                {# Binary Download Button #}
+                <button class="btn btn-outline-secondary" onclick='window.location.href = "/download/{{ firmware.get_uid() }}";'>
+                    <i class="fas fa-download"></i> download raw file
+                </button>
+                {# Tar Download Button #}
+                {% if firmware.files_included %}
+                    <button class="btn btn-outline-secondary" onclick='window.location.href = "/tar-download/{{ firmware.get_uid() }}";'>
+                        <i class="fas fa-file-archive"></i> download included files as tar.gz
+                    </button>
+                {% endif %}
+                {% if firmware.vendor %}
+                    {# PDF Button #}
+                    <button class="btn btn-outline-secondary" onclick='window.location.href = "/pdf-download/{{ firmware.uid }}";'>
+                        <i class="far fa-file-pdf"></i> download report as PDF
+                    </button>
+                {% endif %}
+            </div><br />
 
-                {% for analysis_plugin in firmware.processed_analysis|sort %}
+            <div class="btn-group mb-2" aria-label="Analysis buttons">
+                <button class="btn btn-secondary">Analysis options</button>
+
+                {# Radare Button #}
+                <button class="btn btn-outline-secondary" onclick="radare_view()">
+                    <i class="fas fa-terminal"></i> view in radare
+                </button>
+                {% if firmware.vendor %}
+                    {# Update Analysis Buttons #}
+                    <button class="btn btn-outline-secondary" onclick='window.location.href = "/update-analysis/{{ firmware.uid }}";'>
+                        <i class="fas fa-redo-alt"></i> update analysis
+                    </button>
+                    <button class="btn btn-outline-secondary" onclick='window.location.href = "/database/binary_search?firmware_uid={{ firmware.uid }}";'>
+                        <i class="fas fa-search"></i> YARA search
+                    </button>
+                    {# Start Binary Search Button #}
+                {% endif %}
+            </div><br />
+
+            {# admin buttons #}
+            {% if firmware.vendor and user_has_admin_clearance %}
+                <div class="btn-group mb-2" role="group" aria-label="Admin buttons">
+                    <button class="btn btn-secondary">Admin options</button>
+
+                    {# Update Analysis Buttons #}
+                    <button data-toggle="collapse" data-target="#re-do-button-div" class="btn btn-outline-secondary">
+                        <i class="fas fa-redo-alt"></i> re-do analysis
+                    </button>
+                    <span class="collapse" id="re-do-button-div">
+                        <button class="btn btn-danger" type="button" onclick='window.location.href = "/admin/re-do_analysis/{{ uid }}";'>
+                            <i class="fas fa-check"></i> confirm: This action will delete all previous results and data including comments!
+                        </button>
+                    </span>
+                    {# FW Delete Confirm Button #}
+                    <span class="collapse" id="delete-button-div">
+                        <button class="btn btn-danger" type="button" onclick='window.location.href = "/admin/delete/{{ uid }}";'>
+                            <i class="fas fa-check"></i> click here to confirm removal!
+                        </button>
+                    </span>
+                    <button data-toggle="collapse" data-target="#delete-button-div" class="btn btn-outline-secondary">
+                        <i class="fas fa-trash-alt"></i> delete firmware
+                    </button>
+                </div>
+
+            {% endif %}
+
+            <script>
+                function radare_view() {
+                    let radare_form = document.createElement('form');
+                    radare_form.action = '/radare-view/{{ firmware.get_uid() }}';
+                    radare_form.target = '_blank';
+                    radare_form.method = 'GET';
+
+                    document.body.append(radare_form);
+                    radare_form.submit();
+                }
+            </script>
+
+        </div>
+
+   </div>
+
+
+    {# File tree section #}
+    <div class="row">
+        <div class="col-lg-12">
+            <table class="table table-sm table-bordered">
+                <thead>
+                    <tr class="thead-light">
+                        <th>File Tree</th>
+                    </tr>
+                </thead>
+                <tbody style="font-size: 14px;">
                     <tr>
-                        <td class="active result clickable" data-toggle="tooltip" title="{{ analysis_plugin_dict.get(analysis_plugin, ['not available'])[0] | safe }}" style="padding: 0;">
-                            <a href='/analysis/{{ uid|safe }}/{{analysis_plugin}}/ro/{{ root_uid }}' style="color: rgb(51, 51, 51)">
-                                <div style="width: 100%; height: 100%; padding: 8px;">{{ analysis_plugin | replace_underscore }}</div>
-                            </a>
+                        <td>
+                            <div id="fileTreeAjax"></div>
+                            <script>
+                                $('#fileTreeAjax')
+                                    // generate links to the analysis page
+                                    .on("activate_node.jstree", function(e,data){window.location.href = data.node.a_attr.href;})
+                                    // generate file tree
+                                    .jstree({
+                                        "core" : {
+                                            'data' : {
+                                                'url' : function (node) {
+                                                    return node.id === '#' ?
+                                                        "/ajax_root/{{ uid | safe }}/{{ root_uid | safe }}" : "/ajax_tree/" + node["data"]["uid"] + "/{{ root_uid|safe }}";
+                                                }
+                                            }
+                                        },
+                                        "plugins" : [ "sort" ]
+                                    });
+                            </script>
                         </td>
                     </tr>
-                {% endfor %}
-                <tr>
-                    <td class="active result clickable" data-toggle="modal" data-target="#add_single_file_analysis_modal">
-                        <span class="glyphicon glyphicon-play-circle"></span> Run additional analysis
-                    </td>
-                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {# Select analysis section #}
+    <div class="row">
+        <div class="col-lg-2">
+            <table class="table table-sm table-bordered table-hover">
+                <thead class="thead-light">
+                    <tr>
+                        <th>Analysis Results</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for analysis_plugin in firmware.processed_analysis | sort %}
+                        <tr>
+                            <td class="clickable mx-1 my-2" data-toggle="tooltip" title="{{ analysis_plugin_dict.get(analysis_plugin, ['not available'])[0] | safe }}" onclick="location.href='/analysis/{{ uid|safe }}/{{analysis_plugin}}/ro/{{ root_uid }}'">
+                                {{ analysis_plugin | replace_underscore }}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    <tr>
+                        <td class="table-head-light clickable" data-toggle="modal" data-target="#add_single_file_analysis_modal">
+                            <i class="fas fa-play-circle"></i> Run additional analysis
+                        </td>
+                    </tr>
+                </tbody>
             </table>
         </div>
 
@@ -236,103 +366,66 @@
             <div class="modal-dialog">
                 <div class="modal-content">
 
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal">&times;</button>
-                        <h4 class="modal-title">Add analysis to file</h4>
+                    <div class="modal-header d-flex justify-content-between align-items-center">
+                        <h5 class="modal-title">Add analysis to file</h5>
+                        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
                     </div>
 
                     <div class="modal-body">
                         <form class="form-horizontal" action="" method=post enctype=multipart/form-data>
                             <p>Add new analysis</p>
                             {% for system in available_plugins.unused | sort %}
-                                <div id="{{ system }}" class="{% if loop.index0 >= 0 %}col-xs-offset-3 {% endif %}col-xs-9">
-                                    <label class="checkbox-inline" data-toggle="tooltip" title="{{ analysis_plugin_dict[system][0] | safe }}">
-                                        <input type=checkbox name="analysis_systems" value="{{ system }}" unchecked>{{ system | replace_underscore }}<br />
-                                    </label>
-                                </div>
+                                <label class="checkbox-inline" data-toggle="tooltip" title="{{ analysis_plugin_dict[system][0] | safe }}" style="display: block">
+                                    <input type=checkbox name="analysis_systems" value="{{ system }}" unchecked>&nbsp;{{ system | replace_underscore }}<br />
+                                </label>
                             {% endfor %}
+                            <hr />
                             <p>Update analysis</p>
                             {% for system in available_plugins.used | sort %}
-                                <div id="{{ system }}" class="{% if loop.index0 >= 0 %}col-xs-offset-3 {% endif %}col-xs-9">
-                                    <label class="checkbox-inline" data-toggle="tooltip" title="{{ analysis_plugin_dict[system][0] | safe }}">
-                                        <input type=checkbox name="analysis_systems" value="{{ system }}" unchecked>{{ system | replace_underscore }}<br />
-                                    </label>
-                                </div>
+                                <label class="checkbox-inline" data-toggle="tooltip" title="{{ analysis_plugin_dict[system][0] | safe }}" style="display: block">
+                                    <input type=checkbox name="analysis_systems" value="{{ system }}" unchecked>&nbsp;{{ system | replace_underscore }}<br />
+                                </label>
                             {% endfor %}
-                            <div style="padding: 15px">
-                                <button class="btn btn-default" type="submit" id="add_single_file_analysis" value=submit>Add</button>
-                            </div>
+                            <hr />
+                            <button class="btn btn-primary" type="submit" id="add_single_file_analysis" value=submit><i class="fas fa-play-circle"></i> Add</button>
                         </form>
                     </div>
                 </div>
             </div>
         </div>
 
-        {# included files file tree section #}
-        <div class="col-lg-12">
-            <table class="table table-bordered">
-                <tr class="success">
-                    <th class="result">File Tree</th>
-                </tr>
-                <tr>
-                    <td>
-                        <div id="fileTreeAjax"></div>
-
-                        <script>
-                            $('#fileTreeAjax')
-                                // generate links to the analysis page
-                                .on("activate_node.jstree", function(e,data){window.location.href = data.node.a_attr.href;})
-                                // generate file tree
-                                .jstree({
-                                  "core" : {
-                                    'data' : {
-                                      'url' : function (node) {
-                                        return node.id === '#' ?
-                                            "/ajax_root/{{ uid|safe }}/{{ root_uid | safe }}" : "/ajax_tree/" + node["data"]["uid"] + "/{{ root_uid|safe }}";
-                                      }
-                                    }
-                                  },
-                                  "plugins" : [ "sort" ]
-                                });
-                        </script>
-                    </td>
-                </tr>
-            </table>
-        </div>
-
-        {# block for showing an analysis #}
+        {# Showing analysis section #}
 
         {% block complete_analysis_block %}
 
-            <div class="col-lg-12">
+            <div class="col-lg-10">
                 {% block analysis_result %}
                 {% endblock %}
+
+                {# summary of included files #}
+                {%- if firmware.vendor and selected_analysis -%}
+                    <div id="summary-div">
+                        <div id="loading-summary-gif" style="display: block; border: 1px solid #dddddd; padding: 5px; text-align: center">
+                            <img src="{{ url_for("static", filename = "Pacman.gif") }}" alt="loading gif">
+                            <p>Generating summary of included files...</p>
+                        </div>
+                    </div>
+                    <script>
+                        function hide_summary_gif() {
+                            const loading_gif = document.getElementById("loading-summary-gif");
+                            loading_gif.style.display = "none";
+                        }
+                        function load_summary(){
+                            $("#summary-div").load("/ajax_get_summary/{{ uid|safe }}/{{ selected_analysis }}", hide_summary_gif);
+                        }
+                        $(document).ready(function() {
+                            load_summary();
+                        });
+                    </script>
+                {%- endif -%}
             </div>
 
-            {# summary of included files #}
-            {%- if firmware.vendor and selected_analysis -%}
-                <div class="col-lg-12" id="summary-div">
-                    <div id="loading-summary-gif" style="display: block; border: 1px solid #dddddd; padding: 5px; text-align: center">
-                        <img src="{{ url_for("static", filename = "Pacman.gif") }}" alt="loading gif">
-                        <p>Generating summary of included files...</p>
-                    </div>
-                </div>
-                <script>
-                    function hide_summary_gif() {
-                        const loading_gif = document.getElementById("loading-summary-gif");
-                        loading_gif.style.display = "none";
-                    }
-                    function load_summary(){
-                        $("#summary-div").load("/ajax_get_summary/{{ uid|safe }}/{{ selected_analysis }}", hide_summary_gif);
-                    }
-                    $(document).ready(function() {
-                        load_summary();
-                    });
-                </script>
-            {%- endif -%}
-
         {% endblock %}
-
 
         {# preview section #}
         {%- if "file_type" in firmware.processed_analysis -%}
@@ -342,61 +435,63 @@
                     or firmware.processed_analysis["file_type"]['mime'][0:6] == "image/" %}
 
                 <div class="col-lg-12">
-                    <button id="preview_button" data-toggle="collapse" data-target="#preview-div" class="list-group-item list-group-item-info">
-                        <b style="color:#f8f8f8;">Show Preview</b>
-                    </button>
-                    <div id="preview-div" class="collapse">
-                        <div id="preview-loading-gif" style="display: block; border: 1px solid #dddddd; padding: 5px; text-align: center">
-                            <img src="{{ url_for("static", filename = "Pacman.gif") }}" alt="loading...">
+                    <div class="list-group">
+                        <button id="preview_button" data-toggle="collapse" data-target="#preview-div" class="list-group-item list-group-item-primary">
+                            Show Preview
+                        </button>
+                        <div id="preview-div" class="collapse">
+                            <div id="preview-loading-gif" style="display: block; border: 1px solid #dddddd; padding: 5px; text-align: center">
+                                <img src="{{ url_for("static", filename = "Pacman.gif") }}" alt="loading...">
+                            </div>
                         </div>
+                        <script>
+                            const loading_gif = document.getElementById("preview-loading-gif");
+                            function init_preview() {
+                                hide_gif();
+                                highlight_code();
+                            }
+                            function hide_gif() {
+                                loading_gif.style.display = "none";
+                            }
+                            function highlight_code() {
+                                const block = $('div#preview-div pre')[0];
+                                hljs.highlightBlock(block);
+                                line_numbering();
+                            }
+                            function load_preview(){
+                                loading_gif.style.display = "block";
+                                document.getElementById("preview_button").onclick = function() {return false;};
+                                $("#preview-div").load("/ajax_get_binary/{{ firmware.processed_analysis["file_type"]["mime"].replace("/", "_") }}/{{ uid|safe }}", init_preview);
+                            }
+                            document.getElementById("preview_button").onclick = load_preview;
+                        </script>
                     </div>
-                    <script>
-                        const loading_gif = document.getElementById("preview-loading-gif");
-                        function init_preview() {
-                            hide_gif();
-                            highlight_code();
-                        }
-                        function hide_gif() {
-                            loading_gif.style.display = "none";
-                        }
-                        function highlight_code() {
-                            const block = $('div#preview-div pre')[0];
-                            hljs.highlightBlock(block);
-                            line_numbering();
-                        }
-                        function load_preview(){
-                            loading_gif.style.display = "block";
-                            document.getElementById("preview_button").onclick = function() {return false;};
-                            $("#preview-div").load("/ajax_get_binary/{{ firmware.processed_analysis["file_type"]["mime"].replace("/", "_") }}/{{ uid|safe }}", init_preview);
-                        }
-                        document.getElementById("preview_button").onclick = load_preview;
-                    </script>
                 </div>
 
             {% endif %}
         {% endif %}
+    </div>
 
-
-        {# comment section #}
+    {# comment section #}
+    <div class="row">
 
         <div class="col-lg-12" style="margin-top: 20px">
-            <table class="table table-bordered" id="comments-head" style="margin-bottom:0;">
-                <thead>
-                    <tr class="success">
-                        <th class="result">
+            <table class="table table-bordered mb-0" id="comments-head">
+                <thead class="thead-light">
+                    <tr>
+                        <th>
                             Comments
                             {# Add Comment Button #}
                             <form action="/comment/{{ firmware.uid }}" style="float: right; margin-right: 5px;">
-                                <button class="btn btn-primary" type="submit">
-                                    <span class="glyphicon glyphicon-edit"></span> add comment
+                                <button class="btn btn-primary btn-sm" type="submit">
+                                    <i class="far fa-edit"></i> add comment
                                 </button>
                             </form>
 
                             {# Show Comments Button #}
                             <form onsubmit="return false;" style="float: right; margin-right: 5px;">
-                                <button data-toggle="collapse" data-target="#comments" class="btn btn-primary"
-                                        {%- if firmware.comments | length == 0 %} disabled {%- endif -%}
-                                >
+                                <button data-toggle="collapse" data-target="#comments" class="btn btn-primary btn-sm"
+                                {% if firmware.comments | length == 0 %} disabled {% endif %}>
                                     <span class="badge">{{ firmware.comments | length }}</span> show comments
                                 </button>
                             </form>
@@ -405,123 +500,47 @@
                 </thead>
             </table>
             {% if firmware.comments %}
-                <div class="collapse" id="comments" style="margin:0;">
-                    <table class="table table-bordered" id="comments-table" style="margin-bottom:0;">
-                        <tbody>
-                            {% for comment in firmware.comments|sort_comments %}
-                                <tr>
-                                    <td valign="bottom" style="width: 20%">
-                                        <div>{{ comment.author }}</div>
-                                        <div>{{ comment.time|int|nice_unix_time }}</div>
-                                    </td>
-                                    <td style="margin:0; padding:0; width: 80%;">
-                                        <pre style="white-space: pre-wrap; margin: 3px">{{ comment.comment|urlize }}</pre>
-                                    </td>
-                                    <td style="margin:0; padding:0;">
-                                        {# Comment Delete Button #}
-                                        {% if firmware.vendor %}
-                                            <button data-toggle="collapse" data-target="#delete-button-div-{{ comment.time }}" class="btn btn-xs">
-                                                <span class="glyphicon glyphicon-trash"></span>
-                                            </button>
-                                        {% endif %}
-                                    </td>
-                                    <td style="margin:0; padding:0;">
-                                        {# Comment Delete Confirm Button #}
-                                        {% if firmware.vendor %}
-                                            <div class="collapse" id="delete-button-div-{{ comment.time }}">
-                                                <button class="btn btn-danger" type="button" onclick='window.location.href = "/admin/delete_comment/{{ uid }}/{{ comment.time }}";'>
-                                                    <span class="glyphicon glyphicon-ok"></span> click here to confirm!
-                                                </button>
-                                            </div>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+            <div class="collapse m-0" id="comments">
+                <table class="table table-bordered p-0 mb-0" id="comments-table">
+                    <tbody>
+                        {% for comment in firmware.comments|sort_comments %}
+                        <tr>
+                            <td width="20%" valign="bottom">
+                                <div>{{ comment.author }}</div>
+                                <div>{{ comment.time|int|nice_unix_time }}</div>
+                            </td>
+                            <td width="80%">
+                                <span style="font-family: monospace; color: #000; font-size: 14px">
+                                    {{ comment.comment | urlize }}
+                                </span>
+                            </td>
+                            <td class="m-0 p-0 align-middle">
+                                {# Comment Delete Button #}
+                                <button data-toggle="collapse" data-target="#delete-button-div-{{ comment.time }}" class="btn btn-sm">
+                                    <i class="fas fa-trash-alt text-danger"></i>
+                                </button>
+                            </td>
+                            <td class="m-0 p-0">
+                                {# Comment Delete Confirm Button #}
+                                <div class="collapse" id="delete-button-div-{{ comment.time }}">
+                                    <button class="btn btn-danger" type="button" onclick='window.location.href = "/admin/delete_comment/{{ uid }}/{{ comment.time }}";'>
+                                        <i class="fas fa-check"></i> Click here to confirm!
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
             {% endif %}
         </div>
 
-
-
     </div>
 
-
-    {# Buttons #}
+    {# Button section #}
     <div class="row" style="margin-top: 20px">
 
-        {# user buttons #}
-        <div class="col-lg-6 col-md-12">
-            <div class="alert alert-custom" style="padding:5px;">
-                <strong>user options:</strong>
-                {# Radare Button #}
-                <form action="/radare-view/{{ firmware.uid }}" style="display: inline" target="_blank">
-                    <button class="btn btn-default" type="submit">
-                        <span class="glyphicon glyphicon-console"></span> view in radare
-                    </button>
-                </form>
-                {# Binary Download Button #}
-                <form action="/download/{{ firmware.uid }}" style="display:inline">
-                    <button class="btn btn-default" type="submit">
-                        <span class="glyphicon glyphicon-download-alt"></span> download raw file
-                    </button>
-                </form>
-                {# Tar Download Button #}
-                {% if firmware.files_included %}
-                    <form action="/tar-download/{{ firmware.uid }}" style="display:inline">
-                        <button class="btn btn-default" type="submit">
-                            <span class="glyphicon glyphicon-compressed"></span> download included files as tar.gz
-                        </button>
-                    </form>
-                {% endif %}
-                {% if firmware.vendor %}
-                    {# Update Analysis Buttons #}
-                    <form action="/update-analysis/{{ firmware.uid }}" style="display:inline">
-                        <button class="btn btn-default" type="submit">
-                            <span class="glyphicon glyphicon-repeat"></span> update analysis
-                        </button>
-                    </form>
-                    {# Start Binary Search Button #}
-                    <button class="btn btn-default" onclick='window.location.href = "/database/binary_search?firmware_uid={{ firmware.uid }}";'>
-                        <span class="glyphicon glyphicon-search"></span> YARA search
-                    </button>
-                    {# PDF Button #}
-                    <form action="/pdf-download/{{ firmware.uid }}" style="display:inline">
-                        <button class="btn btn-default" type="submit">
-                            <span class="glyphicon glyphicon-print"></span> download report as PDF
-                        </button>
-                    </form>
-                {% endif %}
-            </div>
-        </div>
-        {# admin buttons #}
-        {% if firmware.vendor and user_has_admin_clearance %}
-            <div class="col-lg-6 col-md-12">
-                <div class="alert alert-custom" style="padding:5px;">
-                    <strong>admin options:</strong>
-                    {# Update Analysis Buttons #}
-                    <button data-toggle="collapse" data-target="#re-do-button-div" class="btn btn-default">
-                        <span class="glyphicon glyphicon-repeat"></span> re-do analysis
-                    </button>
-                    <span class="collapse" id="re-do-button-div">
-                        <button class="btn btn-danger" type="button" onclick='window.location.href = "/admin/re-do_analysis/{{ uid }}";'>
-                            <span class="glyphicon glyphicon-ok"></span> confirm: This action will delete all previous results and data including comments!
-                        </button>
-                    </span>
-                    {# FW Delete Confirm Button #}
-                    <button data-toggle="collapse" data-target="#delete-button-div" class="btn btn-default">
-                        <span class="glyphicon glyphicon-trash"></span> delete firmware
-                    </button>
-                    <span class="collapse" id="delete-button-div">
-                        <button class="btn btn-danger" type="button" onclick='window.location.href = "/admin/delete/{{ uid }}";'>
-                            <span class="glyphicon glyphicon-ok"></span> click here to confirm removal!
-                        </button>
-                    </span>
-                </div>
-            </div>
-        {% endif %}
     </div>
-
 
 {% endblock %}

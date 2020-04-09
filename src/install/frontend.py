@@ -1,6 +1,5 @@
 import logging
 import os
-import shutil
 from contextlib import suppress
 from pathlib import Path
 
@@ -56,17 +55,6 @@ def _build_highlight_js():
     Path(highlight_js_zip).unlink()
 
 
-def _patch_bootstrap():
-    with OperateInDirectory('bootstrap/css'):
-        for file_name in ['bootstrap.min.css', 'bootstrap.min.css.map', 'bootstrap-theme.min.css', 'bootstrap-theme.min.css.map', 'bootstrap.css.map', 'bootstrap-theme.css.map']:
-            Path(file_name).unlink()
-
-        _, first_code = execute_shell_command_get_return_code('patch --forward -r - bootstrap.css ../../../../install/patches/bootstrap.patch')
-        _, second_code = execute_shell_command_get_return_code('patch --forward -r - bootstrap-theme.css ../../../../install/patches/bootstrap-theme.patch')
-        if not first_code == second_code == 0:
-            raise InstallationError('Failed to patch bootstrap files')
-
-
 def _create_directory_for_authentication():  # pylint: disable=invalid-name
     logging.info('Creating directory for authentication')
 
@@ -111,23 +99,42 @@ def _configure_nginx():
     ], error='configuring nginx')
 
 
-def _install_and_patch_bootstrap():
+def _install_css_and_js_files():
     with OperateInDirectory('../web_interface/static'):
-        wget_static_web_content(
-            'https://github.com/twbs/bootstrap/releases/download/v3.3.7/bootstrap-3.3.7-dist.zip',
-            '.',
-            ['unzip -o bootstrap-3.3.7-dist.zip',
-             'rm bootstrap-3.3.7-dist.zip',
-             'rm -rf bootstrap',
-             'mv bootstrap-3.3.7-dist bootstrap'],
-            'bootstrap')
+        os.makedirs('web_css', exist_ok=True)
+        os.makedirs('web_js', exist_ok=True)
 
-        _patch_bootstrap()
+        wget_static_web_content('https://github.com/vakata/jstree/zipball/3.3.9', '.', ['unzip 3.3.9', 'rm 3.3.9', 'mv vakata* web_js/jstree'], 'jstree')
+        wget_static_web_content('https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js', '.', [], 'angularJS')
+        wget_static_web_content('https://github.com/chartjs/Chart.js/releases/download/v2.3.0/Chart.js', '.', [], 'charts.js')
 
-        wget_static_web_content('https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js', 'bootstrap/js', [], 'jquery')
-        wget_static_web_content('https://raw.githubusercontent.com/Eonasdan/bootstrap-datetimepicker/master/build/js/bootstrap-datetimepicker.min.js', 'bootstrap/js', [], 'datetimepicker js')
-        wget_static_web_content('https://raw.githubusercontent.com/Eonasdan/bootstrap-datetimepicker/master/build/css/bootstrap-datetimepicker.min.css', 'bootstrap/css', [], 'datetimepicker css')
-        wget_static_web_content('https://raw.githubusercontent.com/moment/moment/develop/moment.js', 'bootstrap/js', [], 'moment.js')
+        _build_highlight_js()
+
+        for css_url in [
+                'https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css',
+                'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.8.0/css/bootstrap-datepicker.standalone.css'
+        ]:
+            wget_static_web_content(css_url, 'web_css', [])
+
+        for js_url in [
+                'https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.1/jquery.min.js',
+                'https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js',
+                'https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js',
+                'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.8.0/js/bootstrap-datepicker.js',
+                'https://raw.githubusercontent.com/moment/moment/develop/moment.js'
+        ]:
+            wget_static_web_content(js_url, 'web_js', [])
+
+        if not Path('web_css/fontawesome').exists():
+            wget_static_web_content(
+                'https://use.fontawesome.com/releases/v5.13.0/fontawesome-free-5.13.0-web.zip',
+                '.',
+                [
+                    'unzip fontawesome-free-5.13.0-web.zip',
+                    'rm fontawesome-free-5.13.0-web.zip',
+                    'mv fontawesome-free-5.13.0-web web_css/fontawesome'
+                ]
+            )
 
         if not Path('bootstrap3-editable').exists():
             wget_static_web_content(
@@ -155,17 +162,7 @@ def main(radare, nginx):
     )
 
     # installing web/js-frameworks
-    _install_and_patch_bootstrap()
-
-    with OperateInDirectory('../web_interface/static'):
-        if Path('jstree').is_dir():
-            shutil.rmtree('jstree')
-        wget_static_web_content('https://github.com/vakata/jstree/zipball/3.3.2', '.', ['unzip 3.3.2', 'rm 3.3.2', 'mv vakata* jstree'], 'jstree')
-
-        wget_static_web_content('https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js', '.', [], 'angularJS')
-        wget_static_web_content('https://github.com/chartjs/Chart.js/releases/download/v2.3.0/Chart.js', '.', [], 'charts.js')
-
-        _build_highlight_js()
+    _install_css_and_js_files()
 
     # create user database
     _create_directory_for_authentication()

@@ -12,7 +12,7 @@ class TestAppReAnalyze(WebInterfaceTest):
 
     def test_app_re_analyze_get_valid_firmware(self):
         rv = self.test_client.get('/update-analysis/{}'.format(TEST_FW.uid))
-        assert b'<h2>update analysis of TEST_FW_HID</h2>' in rv.data
+        assert b'<h3 class="mb-3">update analysis of TEST_FW_HID</h3>' in rv.data
         assert b'value="default_plugin" unchecked' in rv.data
         assert b'mandatory_plugin' not in rv.data
         assert b'value="optional_plugin" checked' in rv.data

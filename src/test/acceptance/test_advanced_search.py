@@ -33,7 +33,7 @@ class TestAcceptanceAdvancedSearch(TestAcceptanceBase):
 
     def test_advanced_search_get(self):
         rv = self.test_client.get('/database/advanced_search')
-        assert b'<h2>Advanced Search</h2>' in rv.data
+        assert b'<h3 class="mb-3">Advanced Search</h3>' in rv.data
 
     def test_advanced_search(self):
         rv = self.test_client.post('/database/advanced_search', content_type='multipart/form-data',
