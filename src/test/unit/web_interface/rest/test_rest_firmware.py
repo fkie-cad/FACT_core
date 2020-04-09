@@ -135,7 +135,7 @@ def test_request_with_bad_recursive_flag(test_app):  # pylint: disable=invalid-n
 def test_request_with_inverted_flag(test_app):
     result = decode_response(test_app.get('/rest/firmware?inverted=true&query={"foo": "bar"}'))
     assert result['status'] == 1
-    assert 'inverted flag can only be used with recursive' in result['error_message']
+    assert 'Inverted flag can only be used with recursive' in result['error_message']
 
     result = decode_response(test_app.get('/rest/firmware?inverted=true&recursive=true&query={"foo": "bar"}'))
     assert result['status'] == 0
