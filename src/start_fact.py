@@ -25,8 +25,8 @@ from shlex import split
 from subprocess import Popen, TimeoutExpired
 from time import sleep
 
-from helperFunctions.program_setup import program_setup
 from helperFunctions.config import get_src_dir
+from helperFunctions.program_setup import program_setup
 
 PROGRAM_NAME = 'FACT Starter'
 PROGRAM_DESCRIPTION = 'This script starts all installed FACT components'
@@ -45,33 +45,44 @@ def _evaluate_optional_args(args):
 
 def _start_component(component, args):
     script_path = os.path.join(get_src_dir(), '../start_fact_{}'.format(component))
-    if os.path.exists(script_path):
-        logging.info('starting {}'.format(component))
-        optional_args = _evaluate_optional_args(args)
-        command = '{} -l {} -L {} -C {} {}'.format(
-            script_path, config['Logging']['logFile'], config['Logging']['logLevel'], args.config_file, optional_args
-        )
-        p = Popen(split(command))
-        return p
-    else:
+    if not os.path.exists(script_path):
         logging.debug('{} not installed'.format(component))
         return None
+    logging.info('starting {}'.format(component))
+    optional_args = _evaluate_optional_args(args)
+    command = '{} -l {} -L {} -C {} {}'.format(
+        script_path, config['Logging']['logFile'], config['Logging']['logLevel'], args.config_file, optional_args
+    )
+    p = Popen(split(command))
+    return p
 
 
 def _terminate_process(process: Popen):
     if process is not None:
-        os.kill(process.pid, signal.SIGUSR1)
         try:
+            os.kill(process.pid, signal.SIGUSR1)
             process.wait(timeout=60)
         except TimeoutExpired:
             logging.error('component did not stop in time -> kill')
             process.kill()
+        except ProcessLookupError:
+            pass
 
 
 def shutdown(*_):
     global run
     logging.info('shutting down...')
     run = False
+
+
+def _process_is_running(process: Popen) -> bool:
+    try:
+        os.kill(process.pid, 0)
+        if process.poll() is not None:
+            return False
+        return True
+    except ProcessLookupError:
+        return False
 
 
 signal.signal(signal.SIGINT, shutdown)
@@ -85,6 +96,10 @@ if __name__ == '__main__':
     sleep(2)
     frontend_process = _start_component('frontend', args)
     backend_process = _start_component('backend', args)
+    sleep(2)
+    if not _process_is_running(backend_process):
+        logging.critical('Backend did not start. Shutting down...')
+        run = False
 
     while run:
         sleep(1)

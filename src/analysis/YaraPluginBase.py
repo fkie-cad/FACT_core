@@ -4,7 +4,7 @@ import re
 import subprocess
 from pathlib import Path
 
-from analysis.PluginBase import AnalysisBasePlugin
+from analysis.PluginBase import AnalysisBasePlugin, PluginInitException
 from helperFunctions.fileSystem import get_src_dir
 
 
@@ -23,6 +23,9 @@ class YaraBasePlugin(AnalysisBasePlugin):
         '''
         self.config = config
         self.signature_path = self._get_signature_file(plugin_path) if plugin_path else None
+        if self.signature_path and not Path(self.signature_path).exists():
+            logging.error('Signature file {} not found. Did you run "compile_yara_signatures.py"?'.format(self.signature_path))
+            raise PluginInitException(plugin=self)
         self.SYSTEM_VERSION = self.get_yara_system_version()
         super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=plugin_path)
 
