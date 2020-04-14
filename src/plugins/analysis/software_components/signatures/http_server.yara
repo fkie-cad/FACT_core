@@ -36,3 +36,18 @@ rule nginx
 	condition:
 		$a and no_text_file
 }
+
+rule eCosWebServer
+{
+	meta:
+		software_name = "eCos Embedded Web Server"
+		open_source = true
+		website = "https://www.ecoscentric.com"
+		description = "Web-Server"
+		format_string = true
+	strings:
+		$a = /eCos Embedded Web Server/ nocase ascii wide
+		$b = /Server: %s/ nocase ascii wide
+	condition:
+		$a and $b and no_text_file
+}

@@ -38,6 +38,7 @@ dhcp6c-V1.00
 dhcp6s-V1.00
 dnsmasq-2.41
 dropbear_2014.63
+eCos Release: %d.%d.%d
 hostapd v0.5.9
 iptables-1.4.16.3
 iptables-1.4.5

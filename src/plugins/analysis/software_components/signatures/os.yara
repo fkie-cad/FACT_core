@@ -139,3 +139,17 @@ rule Contiki
 	condition:
 		$a and no_text_file
 }
+
+rule eCos
+{
+	meta:
+		software_name = "eCos"
+		open_source = false
+		website = "https://www.ecoscentric.com"
+		description = "Real Time Operating System"
+		format_string = true
+	strings:
+		$a = /eCos Release: %d.%d.%d/ nocase ascii wide
+	condition:
+		$a
+}
