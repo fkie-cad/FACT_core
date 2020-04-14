@@ -21,6 +21,7 @@ import logging
 import os
 import signal
 import sys
+from pathlib import Path
 from shlex import split
 from subprocess import Popen, TimeoutExpired
 from time import sleep
@@ -44,8 +45,8 @@ def _evaluate_optional_args(args):
 
 
 def _start_component(component, args):
-    script_path = os.path.join(get_src_dir(), '../start_fact_{}'.format(component))
-    if not os.path.exists(script_path):
+    script_path = Path(get_src_dir()) / '../start_fact_{}'.format(component)
+    if not script_path.exists():
         logging.debug('{} not installed'.format(component))
         return None
     logging.info('starting {}'.format(component))
