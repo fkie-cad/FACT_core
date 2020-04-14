@@ -1,7 +1,8 @@
-import json
-from copy import deepcopy
-import time
 import calendar
+import json
+import time
+from copy import deepcopy
+from typing import Dict, Tuple
 
 
 def get_current_gmt():
@@ -45,20 +46,18 @@ def convert_rest_request(data=None):
         raise TypeError(str(error))
 
 
-def get_paging(request_parameter):
-    offset = request_parameter['offset'] if 'offset' in request_parameter else 0
+def get_paging(request_parameters: Dict[str, object]) -> Tuple[int, int]:
     try:
-        offset = int(offset)
+        offset = int(request_parameters.get('offset', 0))
     except (TypeError, ValueError):
-        return 'Malformed offset parameter', False
+        raise ValueError('Malformed offset parameter')
 
-    limit = request_parameter['limit'] if 'limit' in request_parameter else 0
     try:
-        limit = int(limit)
+        limit = int(request_parameters.get('limit', 0))
     except (TypeError, ValueError):
-        return 'Malformed limit parameter', False
+        raise ValueError('Malformed limit parameter')
 
-    return (offset, limit), True
+    return offset, limit
 
 
 def get_query(request_parameter):
@@ -74,24 +73,37 @@ def get_query(request_parameter):
     return query if query else dict()
 
 
-def get_recursive(request_parameter):
+def _get_boolean_from_request(request_parameters: Dict[str, object], name: str) -> bool:
     try:
-        recursive = request_parameter.get('recursive')
-        recursive = json.loads(recursive if recursive else 'false')
+        parameter = json.loads(request_parameters.get(name, 'false'))
+        if not isinstance(parameter, bool):
+            raise TypeError()
     except (AttributeError, KeyError):
         return False
-    except json.JSONDecodeError:
-        raise ValueError('recursive must be true or false')
+    except (json.JSONDecodeError, TypeError):
+        raise ValueError('{} must be true or false'.format(name))
+    return parameter
 
-    if recursive not in [True, False]:
-        raise ValueError('recursive must be true or false')
-    return recursive
+
+def get_tar_flag(request_parameters):
+    return _get_boolean_from_request(request_parameters, 'tar')
+
+
+def get_summary_flag(request_parameters):
+    return _get_boolean_from_request(request_parameters, 'summary')
+
+
+def get_recursive_flag(request_parameters):
+    return _get_boolean_from_request(request_parameters, 'recursive')
+
+
+def get_inverted_flag(request_parameters):
+    return _get_boolean_from_request(request_parameters, 'inverted')
 
 
 def get_update(request_parameter):
     try:
-        update = request_parameter.get('update')
-        update = json.loads(update if update else None)
+        update = json.loads(request_parameter.get('update'))
     except (AttributeError, KeyError, TypeError):
         raise ValueError('Malformed or missing parameter: update')
     except json.JSONDecodeError:
@@ -101,29 +113,3 @@ def get_update(request_parameter):
     if not update:
         raise ValueError('Update has to be specified')
     return update
-
-
-def get_summary_flag(request_parameter):
-    try:
-        summary = request_parameter.get('summary')
-        summary = json.loads(summary if summary else 'false')
-    except (AttributeError, KeyError):
-        return False
-    except json.JSONDecodeError:
-        raise ValueError('summary must be true or false')
-
-    if summary not in [True, False]:
-        raise ValueError('summary must be true or false')
-    return summary
-
-
-def get_tar_flag(request_parameter):
-    tar_arg = request_parameter['tar'] if 'tar' in request_parameter else 'false'
-    try:
-        tar_flag = json.loads(tar_arg)
-        if not isinstance(tar_flag, bool):
-            raise TypeError()
-    except (json.JSONDecodeError, TypeError):
-        raise ValueError('Malformed tar parameter. Must be in {true, false}')
-
-    return tar_flag

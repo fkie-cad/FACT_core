@@ -289,7 +289,7 @@ class DatabaseMock:  # pylint: disable=too-many-public-methods
             return TEST_FW
         raise Exception('UID not found: {}'.format(uid))
 
-    def rest_get_firmware_uids(self, offset, limit, query=None, recursive=False):
+    def rest_get_firmware_uids(self, offset, limit, query=None, recursive=False, inverted=False):
         if (offset != 0) or (limit != 0):
             return []
         return [TEST_FW.uid, ]

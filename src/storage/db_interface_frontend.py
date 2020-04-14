@@ -248,9 +248,9 @@ class FrontEndDbInterface(MongoInterfaceCommon):
 
         return visualize_complete_tree(stripped_field_strings)
 
-    def rest_get_firmware_uids(self, offset, limit, query=None, recursive=False):
+    def rest_get_firmware_uids(self, offset, limit, query=None, recursive=False, inverted=False):
         if recursive:
-            return self.generic_search(search_dict=query, skip=offset, limit=limit, only_fo_parent_firmware=True)
+            return self.generic_search(search_dict=query, skip=offset, limit=limit, only_fo_parent_firmware=True, inverted=inverted)
         return self.rest_get_object_uids(self.firmwares, offset, limit, query if query else dict())
 
     def rest_get_file_object_uids(self, offset, limit, query=None):
