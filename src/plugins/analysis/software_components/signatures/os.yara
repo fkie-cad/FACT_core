@@ -107,7 +107,7 @@ rule ThreadX
 		website = "https://rtos.com/solutions/threadx/real-time-operating-system/"
 		description = "Real Time Operating System"
 	strings:
-		$a = /ThreadX [a-z\/ 1-9]+ [a-z]?\d+\.\d+(\.\d+)?(\.\d+)?/ nocase ascii wide
+		$a = /ThreadX [a-z\/ 1-9_]+ [a-z]?\d+\.\d+(\.\d+)?(\.\d+)?/ nocase ascii wide
 	condition:
 		$a
 }
