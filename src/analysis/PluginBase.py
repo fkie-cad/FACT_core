@@ -11,6 +11,12 @@ from objects.file import FileObject
 from plugins.base import BasePlugin
 
 
+class PluginInitException(Exception):
+    def __init__(self, *args, plugin=None):
+        self.plugin = plugin
+        super().__init__(*args)
+
+
 class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attributes
     '''
     This is the base plugin. All plugins should be subclass of this.
