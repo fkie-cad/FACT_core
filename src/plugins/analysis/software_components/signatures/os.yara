@@ -149,7 +149,7 @@ rule eCos
 		description = "Real Time Operating System"
 		format_string = true
 	strings:
-		$a = /eCos Release: %d.%d.%d/ nocase ascii wide
+		$a = "eCos Release: %d.%d.%d" nocase ascii wide
 	condition:
 		$a
 }

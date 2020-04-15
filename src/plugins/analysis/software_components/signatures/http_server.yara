@@ -46,8 +46,8 @@ rule eCosWebServer
 		description = "Web-Server"
 		format_string = true
 	strings:
-		$a = /eCos Embedded Web Server/ nocase ascii wide
-		$b = /Server: %s/ nocase ascii wide
+		$a = "eCos Embedded Web Server" nocase ascii wide
+		$b = "Server: %s" nocase ascii wide
 	condition:
 		$a and $b and no_text_file
 }
