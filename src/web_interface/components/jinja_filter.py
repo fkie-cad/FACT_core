@@ -93,6 +93,13 @@ class FilterClass:
     def _render_firmware_detail_tabular_field(firmware_meta_data):
         return render_template('generic_view/firmware_detail_tabular_field.html', firmware=firmware_meta_data)
 
+    @staticmethod
+    def _render_general_information_table(firmware, firmware_including_this_fo, other_versions):
+        return render_template(
+            'generic_view/general_information.html',
+            firmware=firmware, firmware_including_this_fo=firmware_including_this_fo, other_versions=other_versions
+        )
+
     def check_auth(self, _):
         return self._config.getboolean('ExpertSettings', 'authentication')
 
@@ -132,6 +139,7 @@ class FilterClass:
         self._app.jinja_env.filters['print_program_version'] = self._filter_print_program_version
         self._app.jinja_env.filters['regex_meta'] = flt.comment_out_regex_meta_chars
         self._app.jinja_env.filters['render_analysis_tags'] = flt.render_analysis_tags
+        self._app.jinja_env.filters['render_general_information'] = self._render_general_information_table
         self._app.jinja_env.filters['render_tags'] = flt.render_tags
         self._app.jinja_env.filters['replace_comparison_uid_with_hid'] = self._filter_replace_comparison_uid_with_hid
         self._app.jinja_env.filters['replace_uid_with_file_name'] = self._filter_replace_uid_with_file_name

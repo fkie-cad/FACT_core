@@ -1,0 +1,76 @@
+{#
+    ToDos:
+    - Check which information might be removed
+    - Replace boilerplate with condensed static table definition
+    - Replace vfp list with some more collapsible design
+    - Add icons
+#}
+
+{% macro field_with_icon(icon, content, tooltip, colspan=1) %}
+    <td class="align-middle text-center" style="width: 30px;" data-toggle="tooltip" data-placement="right" title="{{ tooltip }}">
+        <i class="fas fa-{{ icon }}"></i>
+    </td>
+    <td colspan="{{ colspan }}">{{ content }}</td>
+{% endmacro %}
+
+{# file name: tag #}
+{# device name: ?? #}
+{# class: shapes? #}
+{# vendor: warehouse #}
+{# version: code-branch #}
+
+{# release date: calendar-alt #}
+{# part: puzzle-piece #}
+
+{# file size: arrows-alt-h #}
+{# vfp: project-diagram? #}
+
+{% set general_analysis_elements = [
+    ("device name", firmware.device_name, "", '{"device_name": {"$eq": "PLACEHOLDER"}}'),
+    ("device_part", firmware.part, "", '{"device_part": {"$eq": "PLACEHOLDER"}}'),
+    ("vendor", firmware.vendor, "", '{"vendor": {"$eq": "PLACEHOLDER"}}'),
+    ("device_class", firmware.device_class, "", '{"device_class": {"$eq": "PLACEHOLDER"}}'),
+    ("version", firmware.version, "", ""),
+    ("release date", firmware.release_date, "", ""),
+    ("file name", firmware.file_name, "word-break: break-all; word-wrap: break-word;", ""),
+    ("virtual_path", firmware.get_virtual_paths_for_one_uid(root_uid=root_uid)|nice_virtual_path_list|nice_list|safe, "word-break: break-all; overflow-wrap: break-word;", ""),
+    ("file size", firmware.size|number_format(verbose=True), "", ""),
+] -%}
+
+<table class="table table-borderless table-hover table-sm">
+    <thead>
+        <tr>
+            <th colspan="6">General information</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% if firmware.vendor %}
+            <tr> {# Device name & version #}
+                {{ field_with_icon('tag', firmware.device_name, 'Device name', 3) }}
+                {{ field_with_icon('warehouse', firmware.vendor, 'Vendor', 1) }}
+            </tr>
+            <tr> {# Vendor & class #}
+                {{ field_with_icon('shapes', firmware.device_class, 'Device class', 1) }}
+                {{ field_with_icon('code-branch', firmware.version, 'Firmware version', 1) }}
+                {{ field_with_icon('calendar-alt', firmware.release_date, 'Release date', 1) }}
+            </tr>
+        {% endif %}
+        <tr> {# filename #}
+                {{ field_with_icon('terminal', firmware.file_name, 'File name', 3) }}
+                {{ field_with_icon('arrows-alt-h', firmware.size | number_format(verbose=True), 'File size', 1) }}
+        </tr>
+        {% if "file_type" in firmware.processed_analysis %}
+            <tr>
+                {{ field_with_icon('file', firmware.processed_analysis["file_type"]["full"], 'File type', 5) }}
+            </tr>
+        {% endif %}
+        {% if firmware_including_this_fo %}
+            <tr>
+                {{ field_with_icon('folder-open', firmware_including_this_fo | nice_uid_list | safe, 'Parent firmware', 5) }}
+            </tr>
+        {% endif %}
+        <tr> {# vfp style="word-break: break-all; overflow-wrap: break-word;" #}
+            {{ field_with_icon('project-diagram', firmware.get_virtual_paths_for_one_uid(root_uid=root_uid) | nice_virtual_path_list | nice_list(inline_block=True) | safe, 'Complete file paths in container', 5) }}
+        </tr>
+    </tbody>
+</table>
