@@ -8,7 +8,7 @@ from helperFunctions.hash import get_sha256
 from helperFunctions.uid import create_uid
 
 
-class FileObject():  # pylint: disable=too-many-instance-attributes
+class FileObject:  # pylint: disable=too-many-instance-attributes
     '''
     This is the base file objects. All files in FACT should be implemented as this object type.
     '''
@@ -78,9 +78,9 @@ class FileObject():  # pylint: disable=too-many-instance-attributes
         '''
         return a human readable identifier
         '''
-        if root_uid is not None:
-            self.root_uid = root_uid
-        tmp = self.get_virtual_paths_for_one_uid(root_uid=self.get_root_uid())[0]
+        if root_uid is None:
+            root_uid = self.get_root_uid()
+        tmp = self.get_virtual_paths_for_one_uid(root_uid=root_uid)[0]
         return self.get_top_of_virtual_path(tmp)
 
     def create_from_file(self, file_path):
