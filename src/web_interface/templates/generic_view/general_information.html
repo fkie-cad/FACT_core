@@ -7,10 +7,10 @@
 #}
 
 {% macro field_with_icon(icon, content, tooltip, colspan=1) %}
-    <td class="align-middle text-center" style="width: 30px;" data-toggle="tooltip" data-placement="right" title="{{ tooltip }}">
+    <td class="align-middle text-center border-dark" style="width: 30px;" data-toggle="tooltip" data-placement="right" title="{{ tooltip }}">
         <i class="fas fa-{{ icon }}"></i>
     </td>
-    <td colspan="{{ colspan }}">{{ content }}</td>
+    <td class="border-dark" colspan="{{ colspan }}">{{ content }}</td>
 {% endmacro %}
 
 {# file name: tag #}
@@ -37,10 +37,10 @@
     ("file size", firmware.size|number_format(verbose=True), "", ""),
 ] -%}
 
-<table class="table table-borderless table-hover table-sm">
+<table class="table table-hover table-sm">
     <thead>
         <tr>
-            <th colspan="6">General information</th>
+            <th colspan="6" class="border-dark">General information</th>
         </tr>
     </thead>
     <tbody>
