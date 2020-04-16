@@ -117,9 +117,9 @@ class FrontEndDbInterface(MongoInterfaceCommon):
         return None
 
     def _get_hid_fo(self, uid, root_uid):
-        file_object = self.file_objects.find_one({'_id': uid}, {'virtual_file_path': 1})
-        if file_object is not None:
-            return self._get_one_virtual_path_of_fo(file_object, root_uid)
+        fo_data = self.file_objects.find_one({'_id': uid}, {'virtual_file_path': 1})
+        if fo_data is not None:
+            return self._get_one_virtual_path_of_fo(fo_data, root_uid)
         return None
 
     def all_uids_found_in_database(self, uid_list):
