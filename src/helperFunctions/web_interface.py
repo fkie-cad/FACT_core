@@ -2,7 +2,6 @@ import json
 import os
 import re
 from datetime import timedelta
-from typing import List
 
 from common_helper_files import get_binary_from_file
 from passlib.context import CryptContext
@@ -85,10 +84,6 @@ def virtual_path_element_to_span(hid_element: str, uid_element, root_uid) -> str
 
 def cap_length_of_element(hid_element, maximum=55):
     return '~{}'.format(hid_element[-(maximum - 1):]) if len(hid_element) > maximum else hid_element
-
-
-def split_virtual_path(virtual_path: str) -> List[str]:
-    return [element for element in virtual_path.split('|') if element]
 
 
 def format_si_prefix(number: float, unit: str) -> str:

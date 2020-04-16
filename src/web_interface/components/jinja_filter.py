@@ -11,7 +11,8 @@ from helperFunctions.database import ConnectTo
 from helperFunctions.dataConversion import none_to_none
 from helperFunctions.hash import get_md5
 from helperFunctions.uid import is_list_of_uids
-from helperFunctions.web_interface import split_virtual_path, virtual_path_element_to_span
+from helperFunctions.virtual_file_path import split_virtual_path
+from helperFunctions.web_interface import virtual_path_element_to_span
 from storage.db_interface_frontend import FrontEndDbInterface
 
 

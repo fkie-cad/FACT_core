@@ -9,7 +9,7 @@ from helperFunctions.dataConversion import get_value_of_first_key
 from helperFunctions.file_tree import FileTreeNode, VirtualPathFileTree
 from helperFunctions.merge_generators import merge_generators
 from helperFunctions.tag import TagColor
-from objects.file import FileObject
+from helperFunctions.virtual_file_path import get_top_of_virtual_path
 from objects.firmware import Firmware
 from storage.db_interface_common import MongoInterfaceCommon
 
@@ -107,7 +107,7 @@ class FrontEndDbInterface(MongoInterfaceCommon):
     def _get_one_virtual_path_of_fo(fo_dict, root_uid):
         if root_uid is None or root_uid not in fo_dict['virtual_file_path'].keys():
             root_uid = list(fo_dict['virtual_file_path'].keys())[0]
-        return FileObject.get_top_of_virtual_path(fo_dict['virtual_file_path'][root_uid][0])
+        return get_top_of_virtual_path(fo_dict['virtual_file_path'][root_uid][0])
 
     def _get_hid_firmware(self, uid):
         firmware = self.firmwares.find_one({'_id': uid}, {'vendor': 1, 'device_name': 1, 'device_part': 1, 'version': 1, 'device_class': 1})
