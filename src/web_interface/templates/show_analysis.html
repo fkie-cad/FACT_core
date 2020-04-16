@@ -178,10 +178,10 @@
                             <td>{{ firmware.processed_analysis["file_type"]["full"] }}</td>
                         </tr>
                     {%- endif %}
-                    {%- if firmware_including_this_fo %}
+                    {%- if firmware.parent_firmware_uids %}
                         <tr>
                             <td>firmware including this files</td>
-                            <td>{{ firmware_including_this_fo | nice_uid_list | safe }}</td>
+                            <td>{{ firmware.parent_firmware_uids | nice_uid_list | safe }}</td>
                         </tr>
                     {%- endif %}
                     {%- if other_versions %}
