@@ -50,13 +50,15 @@ Therefore, FACT stores all firmware files and analysis results in a searchable d
 You can search for byte patterns on all unpacked files as well as any kind of analysis result.
 
 # Easy to Install! Easy to Use!
-FACT provides an installation script for Ubuntu 16.04 that installs FACT as well as all dependencies automatically.
+FACT provides an installation script for Ubuntu 18.04 that installs FACT as well as all dependencies automatically.
+The installation script supports Ubuntu 19.04, Debian 9, Debian 10, Kali 2019.4, as well.
+However, there migth be minor issues on these, because we do not activly develop on these plattforms. If you find a bug please tell us.
 Have a look at the [README](https://github.com/fkie-cad/FACT_core/blob/master/README.md) for more details.  
 Furthermore, there is a web GUI so that you can start right away without any further knowledge about FACT or the firmware you want to look at.
 
 # Easy to Extend! Easy to Integrate!
 FACT is based on a plug-in concept.
-Extractors are implemented as plug-ins, as well as analysis features and compare functionalities.
+Extractors, analysis features and compare functionalities are implemented as plug-ins.
 More details can be found in the [Developer’s Manual](https://github.com/fkie-cad/FACT_core/wiki).  
 Integration is easy as well since we provide a REST API covering almost all of FACT’s features.
 More Details can be found in our [REST API documentation](https://github.com/fkie-cad/FACT_core/wiki/rest-documentation).
