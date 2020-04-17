@@ -383,3 +383,12 @@ def is_not_mandatory_analysis_entry(item: str, additional_entries: Optional[List
 
 def random_collapse_id():
     return ''.join((random.choice(ascii_letters) for _ in range(10)))
+
+
+def version_links(versions, selected_analysis=None):
+    if selected_analysis:
+        template = '<a href="/analysis/{{}}/{}">{{}}</a>'.format(selected_analysis)
+    else:
+        template = '<a href="/analysis/{}">{}</a>'
+
+    return [template.format(version['_id'], version['version']) for version in versions]

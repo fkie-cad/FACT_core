@@ -184,7 +184,7 @@
         </div>
         {# General info section #}
         <div class="col-xl-6">
-            {{ firmware | render_general_information(firmware_including_this_fo, other_versions) | safe }}
+            {{ firmware | render_general_information(firmware_including_this_fo, other_versions, selected_analysis) | safe }}
         </div>
    </div>
 

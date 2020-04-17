@@ -97,10 +97,11 @@ class FilterClass:
         return render_template('generic_view/firmware_detail_tabular_field.html', firmware=firmware_meta_data)
 
     @staticmethod
-    def _render_general_information_table(firmware, firmware_including_this_fo, other_versions):
+    def _render_general_information_table(firmware, firmware_including_this_fo, other_versions, selected_analysis):
         return render_template(
             'generic_view/general_information.html',
-            firmware=firmware, firmware_including_this_fo=firmware_including_this_fo, other_versions=other_versions
+            firmware=firmware, firmware_including_this_fo=firmware_including_this_fo, other_versions=other_versions,
+            selected_analysis=selected_analysis
         )
 
     def check_auth(self, _):
@@ -159,4 +160,5 @@ class FilterClass:
         self._app.jinja_env.filters['text_highlighter'] = flt.text_highlighter
         self._app.jinja_env.filters['uids_to_link'] = flt.uids_to_link
         self._app.jinja_env.filters['user_has_role'] = flt.user_has_role
+        self._app.jinja_env.filters['version_links'] = flt.version_links
         self._app.jinja_env.filters['vulnerability_class'] = flt.vulnerability_class
