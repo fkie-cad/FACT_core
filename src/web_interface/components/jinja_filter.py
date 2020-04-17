@@ -134,7 +134,6 @@ class FilterClass:
         self._app.jinja_env.filters['md5_hash'] = get_md5
         self._app.jinja_env.filters['min'] = min
         self._app.jinja_env.filters['nice_generic'] = flt.generic_nice_representation
-        self._app.jinja_env.filters['nice_list'] = flt.nice_list
         self._app.jinja_env.filters['nice_number'] = flt.nice_number_filter
         self._app.jinja_env.filters['nice_time'] = time_format
         self._app.jinja_env.filters['nice_uid_list'] = self._filter_nice_uid_list

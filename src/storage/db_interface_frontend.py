@@ -68,7 +68,7 @@ class FrontEndDbInterface(MongoInterfaceCommon):
                     'files_included': db_entry['files_included'],
                     'size': db_entry['size'],
                     'mime-type': db_entry['processed_analysis']['file_type']['mime'] if 'file_type' in db_entry['processed_analysis'] else 'file-type-plugin/not-run-yet',
-                    'virtual_file_paths': virtual_file_path[root_uid] if root_uid in virtual_file_path else get_value_of_first_key(virtual_file_path)
+                    'current_virtual_path': virtual_file_path[root_uid] if root_uid in virtual_file_path else get_value_of_first_key(virtual_file_path)
                 })
         return result
 

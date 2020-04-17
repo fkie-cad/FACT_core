@@ -17,7 +17,6 @@
     ("vendor", firmware.vendor, "", '{"vendor": {"$eq": "PLACEHOLDER"}}'),
     ("device_class", firmware.device_class, "", '{"device_class": {"$eq": "PLACEHOLDER"}}'),
     ("file name", firmware.file_name, "word-break: break-all; word-wrap: break-word;", ""),
-    ("virtual_path", firmware.get_virtual_paths_for_one_uid(root_uid=root_uid)|nice_virtual_path_list|nice_list|safe, "word-break: break-all; overflow-wrap: break-word;", ""),
 ] %}
 
 <table class="table table-sm">
