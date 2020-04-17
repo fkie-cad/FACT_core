@@ -1,12 +1,15 @@
 import logging
+import random
 import re
 import zlib
 from base64 import standard_b64encode
 from operator import itemgetter
+from string import ascii_letters
 from time import localtime, strftime, struct_time
 from typing import AnyStr, List, Optional
 
 from common_helper_files import human_readable_file_size
+from flask import render_template
 
 from helperFunctions.compare_sets import remove_duplicates_from_list
 from helperFunctions.dataConversion import make_unicode_string
@@ -72,6 +75,29 @@ def nice_list(input_data, inline_block=False, omit_list_on_single_item=False):
             http_list += '\t<li>{}</li>\n'.format(_handle_generic_data(item))
         http_list += '</ul>\n'
         return http_list
+    return input_data
+
+
+def list_group(input_data):
+    input_data = _get_sorted_list(input_data)
+    if isinstance(input_data, list):
+        http_list = '<ul class="list-group list-group-flush">\n'
+        for item in input_data:
+            http_list += '\t<li class="list-group-item">{}</li>\n'.format(_handle_generic_data(item))
+        http_list += '</ul>\n'
+        return http_list
+    return input_data
+
+
+def list_group_collapse(input_data):
+    input_data = [_handle_generic_data(item) for item in _get_sorted_list(input_data)]
+    if isinstance(input_data, list):
+        collapse_id = random_collapse_id()
+        first_item = input_data.pop(0)
+        return render_template(
+            'generic_view/collapsed_list.html',
+            first_item=first_item, collapse_id=collapse_id, input_data=input_data
+        )
     return input_data
 
 
@@ -366,3 +392,7 @@ def is_not_mandatory_analysis_entry(item: str, additional_entries: Optional[List
         item not in ['analysis_date', 'plugin_version', 'skipped', 'summary', 'system_version', 'tags']
         and (additional_entries is None or item not in additional_entries)
     )
+
+
+def random_collapse_id():
+    return ''.join((random.choice(ascii_letters) for _ in range(10)))
