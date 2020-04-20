@@ -35,16 +35,27 @@ PROGRAM_DESCRIPTION = 'Initialize or update database structure information used 
 
 def _create_variety_data(config):
     full_variety_path = os.path.join(get_src_dir(), config['data_storage']['variety_path'])
-    output, return_code = execute_shell_command_get_return_code(
-        'mongo --port {mongo_port} {main_database} -u "{username}" -p "{password}" --authenticationDatabase "admin" '
-        '--eval "var collection = \'file_objects\', persistResults=true" {script_path}'.format(
+    mongo_call = (
+        'mongo --port {mongo_port} -u "{username}" -p "{password}" --authenticationDatabase "admin" '.format(
             mongo_port=config['data_storage']['mongo_port'],
             username=config['data_storage']['db_admin_user'],
             password=config['data_storage']['db_admin_pw'],
-            main_database=config['data_storage']['main_database'],
+        )
+    )
+    output, return_code = execute_shell_command_get_return_code(
+        '{mongo_call} {database} --eval "var collection = \'file_objects\', persistResults=true" {script_path}'.format(
+            mongo_call=mongo_call,
+            database=config['data_storage']['main_database'],
             script_path=full_variety_path),
         timeout=None
     )
+    execute_shell_command_get_return_code(
+        '{mongo_call} varietyResults --eval \'{command}\''.format(
+            mongo_call=mongo_call,
+            command='db.file_objectsKeys.deleteMany({"_id.key": {"$regex": "skipped|file_system_flag"}})'),
+        timeout=None
+    )
+
     logging.debug(output)
     return return_code
 
