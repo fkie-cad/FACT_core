@@ -307,3 +307,13 @@ def test_build_version_string(version: str, version_start_including: str, versio
     cve_entry = lookup.CveDbEntry(None, None, None, version, None, None, version_start_including,
                                   version_start_excluding, version_end_including, version_end_excluding)
     assert lookup.build_version_string(cve_entry) == expected_output
+
+
+@pytest.mark.parametrize('cve_results_dict, expected_output', [
+    ({}, []),
+    ({'component': {'cve_id': {'score2': '6.4', 'score3': 'N/A'}}}, ['cve_id']),
+    ({'component': {'cve_id': {'score2': '9.4', 'score3': 'N/A'}}}, ['cve_id (CRITICAL)']),
+    ({'component': {'cve_id': {'score2': '1.1', 'score3': '9.9'}}}, ['cve_id (CRITICAL)']),
+])
+def test_create_summary(cve_results_dict, expected_output, stub_plugin):
+    assert stub_plugin._create_summary(cve_results_dict) == expected_output  # pylint: disable=protected-access

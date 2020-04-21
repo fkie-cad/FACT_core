@@ -43,7 +43,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     DESCRIPTION = 'lookup CVE vulnerabilities'
     MIME_BLACKLIST = ['audio', 'filesystem', 'image', 'video']
     DEPENDENCIES = ['software_components']
-    VERSION = '0.0.3'
+    VERSION = '0.0.4'
 
     def __init__(self, plugin_administrator, config=None, recursive=True, offline_testing=False):
         super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__, offline_testing=offline_testing)
@@ -57,20 +57,33 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 if vulnerabilities:
                     cves['cve_results'][component] = vulnerabilities
 
-        cves['summary'] = list({cve_id for software in cves['cve_results'] for cve_id in cves['cve_results'][software]})
+        cves['summary'] = self._create_summary(cves['cve_results'])
         file_object.processed_analysis[self.NAME] = cves
         self.add_tags(cves['cve_results'], file_object)
         return file_object
+
+    def _create_summary(self, cve_results: Dict[str, Dict[str, Dict[str, str]]]) -> List[str]:
+        return list({
+            cve_id if not self._entry_has_critical_rating(entry) else '{} (CRITICAL)'.format(cve_id)
+            for software in cve_results
+            for cve_id, entry in cve_results[software].items()
+        })
 
     def add_tags(self, cve_results: Dict[str, Dict[str, Dict[str, str]]], file_object: FileObject):
         # results structure: {'component': {'cve_id': {'score2': '6.4', 'score3': 'N/A'}}}
         for component in cve_results:
             for cve_id in cve_results[component]:
                 entry = cve_results[component][cve_id]
-                for key in ['score2', 'score3']:
-                    if entry[key] != 'N/A' and float(entry[key]) >= 9.0:
-                        self.add_analysis_tag(file_object, 'CVE', 'critical CVE', TagColor.RED, True)
-                        return
+                if self._entry_has_critical_rating(entry):
+                    self.add_analysis_tag(file_object, 'CVE', 'critical CVE', TagColor.RED, True)
+                    return
+
+    @staticmethod
+    def _entry_has_critical_rating(entry):
+        for key in ['score2', 'score3']:
+            if entry[key] != 'N/A' and float(entry[key]) >= 9.0:
+                return True
+        return False
 
     @staticmethod
     def _split_component(component: str) -> Tuple[str, str]:
