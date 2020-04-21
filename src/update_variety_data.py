@@ -18,12 +18,12 @@
 '''
 
 import logging
-import os
 import sys
+from pathlib import Path
 from time import time
 
 from common_helper_filter import time_format
-from common_helper_process import execute_shell_command_get_return_code
+from common_helper_process import execute_shell_command, execute_shell_command_get_return_code
 
 from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.program_setup import program_setup
@@ -34,7 +34,7 @@ PROGRAM_DESCRIPTION = 'Initialize or update database structure information used 
 
 
 def _create_variety_data(config):
-    full_variety_path = os.path.join(get_src_dir(), config['data_storage']['variety_path'])
+    varietyjs_script_path = Path(get_src_dir()) / config['data_storage']['variety_path']
     mongo_call = (
         'mongo --port {mongo_port} -u "{username}" -p "{password}" --authenticationDatabase "admin" '.format(
             mongo_port=config['data_storage']['mongo_port'],
@@ -46,15 +46,16 @@ def _create_variety_data(config):
         '{mongo_call} {database} --eval "var collection = \'file_objects\', persistResults=true" {script_path}'.format(
             mongo_call=mongo_call,
             database=config['data_storage']['main_database'],
-            script_path=full_variety_path),
+            script_path=varietyjs_script_path),
         timeout=None
     )
-    execute_shell_command_get_return_code(
-        '{mongo_call} varietyResults --eval \'{command}\''.format(
-            mongo_call=mongo_call,
-            command='db.file_objectsKeys.deleteMany({"_id.key": {"$regex": "skipped|file_system_flag"}})'),
-        timeout=None
-    )
+    if return_code == 0:
+        execute_shell_command(
+            '{mongo_call} varietyResults --eval \'{command}\''.format(
+                mongo_call=mongo_call,
+                command='db.file_objectsKeys.deleteMany({"_id.key": {"$regex": "skipped|file_system_flag"}})'
+            ),
+        )
 
     logging.debug(output)
     return return_code
