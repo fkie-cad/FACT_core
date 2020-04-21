@@ -64,10 +64,12 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def _create_summary(self, cve_results: Dict[str, Dict[str, Dict[str, str]]]) -> List[str]:
         return list({
-            cve_id if not self._entry_has_critical_rating(entry) else '{} (CRITICAL)'.format(cve_id)
-            for software in cve_results
-            for cve_id, entry in cve_results[software].items()
+            software if not self._software_has_critical_cve(entry) else '{} (CRITICAL)'.format(software)
+            for software, entry in cve_results.items()
         })
+
+    def _software_has_critical_cve(self, cve_dict: Dict[str, Dict[str, str]]) -> bool:
+        return any(self._entry_has_critical_rating(entry) for entry in cve_dict.values())
 
     def add_tags(self, cve_results: Dict[str, Dict[str, Dict[str, str]]], file_object: FileObject):
         # results structure: {'component': {'cve_id': {'score2': '6.4', 'score3': 'N/A'}}}

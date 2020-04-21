@@ -224,7 +224,7 @@ def test_process_object(stub_plugin):
     lookup.MAX_LEVENSHTEIN_DISTANCE = 0
     try:
         result = stub_plugin.process_object(TEST_FW).processed_analysis['cve_lookup']
-        assert 'CVE-2017-14494' in result['summary']
+        assert 'Dnsmasq 2.40 (CRITICAL)' in result['summary']
         assert 'Dnsmasq 2.40' in result['cve_results']
         assert 'CVE-2013-0198' in result['cve_results']['Dnsmasq 2.40']
     finally:
@@ -311,9 +311,9 @@ def test_build_version_string(version: str, version_start_including: str, versio
 
 @pytest.mark.parametrize('cve_results_dict, expected_output', [
     ({}, []),
-    ({'component': {'cve_id': {'score2': '6.4', 'score3': 'N/A'}}}, ['cve_id']),
-    ({'component': {'cve_id': {'score2': '9.4', 'score3': 'N/A'}}}, ['cve_id (CRITICAL)']),
-    ({'component': {'cve_id': {'score2': '1.1', 'score3': '9.9'}}}, ['cve_id (CRITICAL)']),
+    ({'component': {'cve_id': {'score2': '6.4', 'score3': 'N/A'}}}, ['component']),
+    ({'component': {'cve_id': {'score2': '9.4', 'score3': 'N/A'}}}, ['component (CRITICAL)']),
+    ({'component': {'cve_id': {'score2': '1.1', 'score3': '9.9'}, 'cve_id2': {'score2': '1.1', 'score3': '0.0'}}}, ['component (CRITICAL)']),
 ])
 def test_create_summary(cve_results_dict, expected_output, stub_plugin):
     assert stub_plugin._create_summary(cve_results_dict) == expected_output  # pylint: disable=protected-access
