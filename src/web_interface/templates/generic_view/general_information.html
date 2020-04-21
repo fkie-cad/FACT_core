@@ -1,21 +1,21 @@
 {#
     ToDos:
     - Check which information might be removed
-    - Replace vfp list with some more collapsible design
 #}
 
-{% macro field_with_icon(icon, content, tooltip, colspan=1) %}
+{% macro field_with_icon(icon, content, tooltip, colspan=1, query=None) %}
     <td class="align-middle text-center border-dark" style="width: 30px;" data-toggle="tooltip" data-placement="right" title="{{ tooltip }}">
         <i class="fas fa-{{ icon }}"></i>
     </td>
-    <td class="border-dark" colspan="{{ colspan }}">{{ content }}</td>
+
+    {% set mongo_query = '{{"{}": {{"$eq": "{}"}}}}'.format(query, content) if query else None %}
+    <td class="border-dark" colspan="{{ colspan }}"{% if query %} onclick="location.href='/database/browse?query={{ mongo_query | urlencode }}'" data-placement="bottom" data-toggle="tooltip" title="Show all {{ content }} firmware"{% endif %}>
+        {{ content }}
+    </td>
 {% endmacro %}
 
 {% set general_analysis_elements = [
-    ("device name", firmware.device_name, "", '{"device_name": {"$eq": "PLACEHOLDER"}}'),
     ("device_part", firmware.part, "", '{"device_part": {"$eq": "PLACEHOLDER"}}'),
-    ("vendor", firmware.vendor, "", '{"vendor": {"$eq": "PLACEHOLDER"}}'),
-    ("device_class", firmware.device_class, "", '{"device_class": {"$eq": "PLACEHOLDER"}}'),
     ("file name", firmware.file_name, "word-break: break-all; word-wrap: break-word;", ""),
 ] %}
 
@@ -28,18 +28,18 @@
     <tbody>
         {% if firmware.vendor %}
             <tr> {# Device name & version #}
-                {{ field_with_icon('tag', firmware.device_name, 'Device name', 3) }}
-                {{ field_with_icon('warehouse', firmware.vendor, 'Vendor', 1) }}
+                {{ field_with_icon('tag', firmware.device_name, 'Device name', 3, 'device_name') }}
+                {{ field_with_icon('warehouse', firmware.vendor, 'Vendor', 1, 'vendor') }}
             </tr>
             <tr> {# Vendor & class #}
-                {{ field_with_icon('shapes', firmware.device_class, 'Device class', 1) }}
+                {{ field_with_icon('shapes', firmware.device_class, 'Device class', 1, 'device_class') }}
                 {{ field_with_icon('code-branch', firmware.version, 'Firmware version', 1) }}
                 {{ field_with_icon('calendar-alt', firmware.release_date, 'Release date', 1) }}
             </tr>
         {% endif %}
         <tr> {# filename #}
-                {{ field_with_icon('terminal', firmware.file_name, 'File name', 3) }}
-                {{ field_with_icon('arrows-alt-h', firmware.size | number_format(verbose=True), 'File size', 1) }}
+            {{ field_with_icon('terminal', firmware.file_name, 'File name', 3) }}
+            {{ field_with_icon('arrows-alt-h', firmware.size | number_format(verbose=True), 'File size', 1) }}
         </tr>
         {% if "file_type" in firmware.processed_analysis %}
             <tr>

@@ -2,8 +2,6 @@
 
 {% set active_page = "Database" %}
 
-{% set query_url = "/database/browse?query=" %}
-
 {% macro button_collapse(button_id, icon, target, tooltip) %}
     <button id="{{ button_id }}" data-toggle="collapse" data-target="#{{ target }}" class="btn btn-outline-secondary">
         <i class="fas fa-{{ icon }}" data-toggle="tooltip" data-placement="bottom" title="{{ tooltip }}"></i>
