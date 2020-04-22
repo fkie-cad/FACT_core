@@ -4,16 +4,12 @@
     </td>
 
     {% set mongo_query = '{{"{}": {{"$eq": "{}"}}}}'.format(query, content) if query else None %}
-    <td class="border-dark" colspan="{{ colspan }}" style="word-break: break-all; word-wrap: break-word; overflow-wrap: break-word;"
-        {% if query %}
-            onclick="location.href='/database/browse?query={{ mongo_query | urlencode }}'"
-            data-placement="bottom"
-            data-toggle="tooltip"
-            title="Show all {{ content }} firmware"
-        {% endif %}
-    >
-        {{ content }}
-    </td>
+    <td class="border-dark" colspan="{{ colspan }}" style="word-break: break-all; word-wrap: break-word; overflow-wrap: break-word;" {% if query %}
+        onclick="location.href='/database/browse?query={{ mongo_query | urlencode }}'"
+        data-placement="bottom"
+        data-toggle="tooltip"
+        title="Show all {{ content }} firmware"
+    {% endif %}>{{ content }}</td>
 {% endmacro %}
 
 <table class="table table-sm">
@@ -36,7 +32,11 @@
             <tr>
                 {{ field_with_icon('shapes', firmware.device_class, 'Device class', 1, 'device_class') }}
                 {{ field_with_icon('code-branch', firmware.version, 'Firmware version', 1) }}
-                {{ field_with_icon('calendar-alt', firmware.release_date, 'Release date', 1) }}
+                {% if firmware.release_date == '1970-01-01' %}
+                    {{ field_with_icon('calendar-alt', 'unknown', 'Release date', 1) }}
+                {% else %}
+                    {{ field_with_icon('calendar-alt', firmware.release_date, 'Release date', 1) }}
+                {% endif %}
             </tr>
         {% endif %}
         <tr>
