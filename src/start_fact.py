@@ -98,7 +98,7 @@ if __name__ == '__main__':
     frontend_process = _start_component('frontend', args)
     backend_process = _start_component('backend', args)
     sleep(2)
-    if not _process_is_running(backend_process):
+    if backend_process is not None and not _process_is_running(backend_process):
         logging.critical('Backend did not start. Shutting down...')
         run = False
 
