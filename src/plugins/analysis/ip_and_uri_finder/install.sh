@@ -22,7 +22,7 @@ then
     echo "------------------------------------"
     mkdir bin
     cd bin/ || exit 1
-    wget https://github.com/codeqq/geolite2-city-mirror/raw/master2/GeoLite2-City.tar.gz || exit 0
+    wget https://github.com/codeqq/geolite2-city-mirror/raw/master/GeoLite2-City.tar.gz || exit 0
     mkdir GeoLite2-City
     tar xf GeoLite2-City.tar.gz -C GeoLite2-City --strip-components 1
     rm GeoLite2-City.tar.gz
