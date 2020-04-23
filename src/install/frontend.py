@@ -158,7 +158,8 @@ def main(radare, nginx):
         'uwsgi',
         'bcrypt',
         'python-dateutil',
-        'si-prefix'
+        'si-prefix',
+        'email-validator'
     )
 
     # installing web/js-frameworks
