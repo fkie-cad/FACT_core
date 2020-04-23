@@ -3,7 +3,7 @@ from concurrent.futures import ThreadPoolExecutor
 from configparser import ConfigParser
 from copy import copy
 from distutils.version import LooseVersion
-from multiprocessing import Queue, Value
+from multiprocessing import Manager, Queue, Value
 from queue import Empty
 from time import sleep, time
 from typing import List, Optional, Set, Tuple
@@ -17,6 +17,7 @@ from helperFunctions.plugin import import_plugins
 from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions
 from helperFunctions.tag import add_tags_to_object, check_tags
 from objects.file import FileObject
+from objects.firmware import Firmware
 from storage.db_interface_backend import BackEndDbInterface
 
 MANDATORY_PLUGINS = ['file_type', 'file_hashes']
@@ -34,6 +35,9 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         self.stop_condition = Value('i', 0)
         self.process_queue = Queue()
         self.tag_queue = Queue()
+        self.manager = Manager()
+        self.currently_running_analyses = self.manager.dict()
+
         self.db_backend_service = db_interface if db_interface else BackEndDbInterface(config=config)
         self.pre_analysis = pre_analysis if pre_analysis else self.db_backend_service.add_object
         self.post_analysis = post_analysis if post_analysis else self.db_backend_service.add_analysis
@@ -59,7 +63,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         self.process_queue.close()
         logging.info('Analysis System offline')
 
-    def update_analysis_of_object_and_childs(self, fo: FileObject):
+    def update_analysis_of_object_and_children(self, fo: FileObject):
         '''
         This function is used to recursively analyze an object without need of the unpacker
         '''
@@ -72,6 +76,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         '''
         This function should be used to add a new firmware object to the scheduler
         '''
+        self._add_to_current_analyses(fo)
         self._schedule_analysis_tasks(fo, fo.scheduled_analysis, mandatory=True)
 
     def update_analysis_of_single_object(self, fo: FileObject):
@@ -154,7 +159,11 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
 # ---- scheduling functions ----
 
     def get_scheduled_workload(self):
-        workload = {'analysis_main_scheduler': self.process_queue.qsize(), 'plugins': {}}
+        workload = {
+            'analysis_main_scheduler': self.process_queue.qsize(),
+            'plugins': {},
+            'current_analyses': {uid: len(included_files) for uid, included_files in self.currently_running_analyses.items()}
+        }
         for plugin_name in self.analysis_plugins:
             plugin = self.analysis_plugins[plugin_name]
             workload['plugins'][plugin_name] = {
@@ -338,6 +347,8 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
     def check_further_process_or_complete(self, fw_object):
         if not fw_object.scheduled_analysis:
             logging.info('Analysis Completed:\n{}'.format(fw_object))
+            if isinstance(fw_object, FileObject):
+                self._remove_from_current_analyses(fw_object)
         else:
             self.process_queue.put(fw_object)
 
@@ -369,3 +380,37 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             for plugin in scheduled_analyses
             for dependency in self.analysis_plugins[plugin].DEPENDENCIES
         }.difference(scheduled_analyses)
+
+    # currently running analyses
+
+    def _add_to_current_analyses(self, fo):
+        if isinstance(fo, Firmware):
+            self.currently_running_analyses[fo.uid] = self.manager.dict({uid: 1 for uid in fo.files_included})
+            logging.info('started new analysis: {} - {}'.format(fo.uid, fo.files_included))
+        elif fo.files_included:
+            parents = self._find_currently_analyzed_parent(fo)
+            if parents:
+                for parent in parents:
+                    self.currently_running_analyses[parent].update({uid: 1 for uid in fo.files_included})
+                    logging.info('added files to analysis of {}: {}'.format(parent, fo.files_included))
+            else:
+                logging.info('could not add: parent of {} not found in current analyses?'.format(fo.uid))
+
+    def _remove_from_current_analyses(self, fw_object):
+        parents = self._find_currently_analyzed_parent(fw_object)
+        if parents:
+            for parent in parents:
+                try:
+                    self.currently_running_analyses[parent].pop(fw_object.uid)
+                    logging.info('removed {} from analysis of {}'.format(fw_object.uid, parent))
+                    logging.info('currently_running_analyses: {})'.format({k: dict(v) for k, v in self.currently_running_analyses.items()}))
+                    if len(self.currently_running_analyses[parent]) == 0:
+                        self.currently_running_analyses.pop(parent)
+                        logging.info('firmware {} analysis completed'.format(parent))
+                except KeyError:
+                    logging.info('could not remove {} from {}'.format(parent, self.currently_running_analyses))
+        else:
+            logging.info('could not remove: parent of {} not found in current analyses?'.format(fw_object.uid))
+
+    def _find_currently_analyzed_parent(self, fo):
+        return set(self.currently_running_analyses.keys()).intersection(fo.parent_firmware_uids)

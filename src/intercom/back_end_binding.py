@@ -57,7 +57,7 @@ class InterComBackEndBinding:
         self._start_listener(InterComBackEndReAnalyzeTask, self.unpacking_service.add_task)
 
     def start_update_listener(self):
-        self._start_listener(InterComBackEndUpdateTask, self.analysis_service.update_analysis_of_object_and_childs)
+        self._start_listener(InterComBackEndUpdateTask, self.analysis_service.update_analysis_of_object_and_children)
 
     def start_single_analysis_listener(self):
         self._start_listener(InterComBackEndSingleFileTask, self.analysis_service.update_analysis_of_single_object)
