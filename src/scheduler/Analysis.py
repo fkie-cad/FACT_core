@@ -6,7 +6,7 @@ from distutils.version import LooseVersion
 from multiprocessing import Manager, Queue, Value
 from queue import Empty
 from time import sleep, time
-from typing import List, Optional, Set, Tuple
+from typing import List, Optional, Set, Tuple, Union
 
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.compare_sets import substring_is_in_list
@@ -36,7 +36,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         self.process_queue = Queue()
         self.tag_queue = Queue()
         self.manager = Manager()
-        self.currently_running_analyses = self.manager.dict()
+        self.currently_running = self.manager.dict()
 
         self.db_backend_service = db_interface if db_interface else BackEndDbInterface(config=config)
         self.pre_analysis = pre_analysis if pre_analysis else self.db_backend_service.add_object
@@ -162,7 +162,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         workload = {
             'analysis_main_scheduler': self.process_queue.qsize(),
             'plugins': {},
-            'current_analyses': {uid: len(included_files) for uid, included_files in self.currently_running_analyses.items()}
+            'current_analyses': {uid: len(included_files) for uid, included_files in self.currently_running.items()}
         }
         for plugin_name in self.analysis_plugins:
             plugin = self.analysis_plugins[plugin_name]
@@ -383,34 +383,20 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
 
     # currently running analyses
 
-    def _add_to_current_analyses(self, fo):
-        if isinstance(fo, Firmware):
-            self.currently_running_analyses[fo.uid] = self.manager.dict({uid: 1 for uid in fo.files_included})
-            logging.info('started new analysis: {} - {}'.format(fo.uid, fo.files_included))
-        elif fo.files_included:
-            parents = self._find_currently_analyzed_parent(fo)
-            if parents:
-                for parent in parents:
-                    self.currently_running_analyses[parent].update({uid: 1 for uid in fo.files_included})
-                    logging.info('added files to analysis of {}: {}'.format(parent, fo.files_included))
-            else:
-                logging.info('could not add: parent of {} not found in current analyses?'.format(fo.uid))
+    def _add_to_current_analyses(self, fw_object: Union[Firmware, FileObject]):
+        if isinstance(fw_object, Firmware):
+            self.currently_running[fw_object.uid] = list(fw_object.files_included)
+        elif fw_object.files_included:
+            for parent in self._find_currently_analyzed_parents(fw_object):
+                union = set(fw_object.files_included).union(self.currently_running[parent])
+                self.currently_running[parent] = list(union)
 
-    def _remove_from_current_analyses(self, fw_object):
-        parents = self._find_currently_analyzed_parent(fw_object)
-        if parents:
-            for parent in parents:
-                try:
-                    self.currently_running_analyses[parent].pop(fw_object.uid)
-                    logging.info('removed {} from analysis of {}'.format(fw_object.uid, parent))
-                    logging.info('currently_running_analyses: {})'.format({k: dict(v) for k, v in self.currently_running_analyses.items()}))
-                    if len(self.currently_running_analyses[parent]) == 0:
-                        self.currently_running_analyses.pop(parent)
-                        logging.info('firmware {} analysis completed'.format(parent))
-                except KeyError:
-                    logging.info('could not remove {} from {}'.format(parent, self.currently_running_analyses))
-        else:
-            logging.info('could not remove: parent of {} not found in current analyses?'.format(fw_object.uid))
+    def _remove_from_current_analyses(self, fw_object: Union[Firmware, FileObject]):
+        for parent in self._find_currently_analyzed_parents(fw_object):
+            self.currently_running[parent] = [uid for uid in self.currently_running[parent] if uid != fw_object.uid]
+            if len(self.currently_running[parent]) == 0:
+                self.currently_running.pop(parent)
+                logging.info('analysis of firmware {} completed'.format(parent))
 
-    def _find_currently_analyzed_parent(self, fo):
-        return set(self.currently_running_analyses.keys()).intersection(fo.parent_firmware_uids)
+    def _find_currently_analyzed_parents(self, fo):
+        return set(self.currently_running.keys()).intersection(fo.parent_firmware_uids)
