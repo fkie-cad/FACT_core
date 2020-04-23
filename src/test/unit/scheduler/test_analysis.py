@@ -6,6 +6,7 @@ from unittest import TestCase, mock
 
 import pytest
 
+from objects.file import FileObject
 from objects.firmware import Firmware
 from scheduler.Analysis import MANDATORY_PLUGINS, AnalysisScheduler
 from test.common_helper import DatabaseMock, MockFileObject, fake_exit, get_config_for_testing, get_test_data_dir
@@ -310,6 +311,37 @@ class TestUtilityFunctions:
         }
         result = self.scheduler._smart_shuffle(['p1', 'p2', 'p3'])
         assert result == []
+
+    def test_add_firmware_to_current_analyses(self):
+        self.scheduler.currently_running = {}
+        fw = Firmware(binary=b'foo')
+        fw.files_included = ['foo', 'bar']
+        self.scheduler._add_to_current_analyses(fw)
+        assert self.scheduler.currently_running == {fw.uid: ['foo', 'bar']}
+
+    def test_add_file_to_current_analyses(self):
+        self.scheduler.currently_running = {'parent_uid': ['foo', 'bar']}
+        fo = FileObject(binary=b'foo')
+        fo.parent_firmware_uids = {'parent_uid'}
+        fo.files_included = ['bar', 'new']
+        self.scheduler._add_to_current_analyses(fo)
+        assert sorted(self.scheduler.currently_running['parent_uid']) == ['bar', 'foo', 'new']
+
+    def test_remove_partial_from_current_analyses(self):
+        self.scheduler.currently_running = {'parent_uid': ['foo', 'bar']}
+        fo = FileObject(binary=b'foo')
+        fo.parent_firmware_uids = {'parent_uid'}
+        fo.uid = 'foo'
+        self.scheduler._remove_from_current_analyses(fo)
+        assert self.scheduler.currently_running == {'parent_uid': ['bar']}
+
+    def test_remove_fully_from_current_analyses(self):
+        self.scheduler.currently_running = {'parent_uid': ['foo']}
+        fo = FileObject(binary=b'foo')
+        fo.parent_firmware_uids = {'parent_uid'}
+        fo.uid = 'foo'
+        self.scheduler._remove_from_current_analyses(fo)
+        assert self.scheduler.currently_running == {}
 
 
 class TestAnalysisSkipping:
