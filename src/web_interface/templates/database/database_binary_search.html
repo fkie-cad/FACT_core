@@ -5,20 +5,20 @@
 {% block body %}
 
 
-<div class="row">
+<div class="row justify-content-center">
 
-    <div class="col-md-offset-2 col-md-8">
-        <h2>Binary Search</h2>
+    <div class="col-xl-6 col-lg-8 col-md-10 mt-4">
+        <h3 class="mb-3">Binary Pattern Search</h3>
         <form class="form-horizontal" action="" method=post enctype=multipart/form-data>
 
             <script>
-                function openCity(evt, tabname) {
-                    var i, tabcontent, tablinks;
+                function switchTab(evt, tabname) {
+                    let i, tabcontent, tablinks;
                     tabcontent = document.getElementsByClassName("tab-content");
                     for (i = 0; i < tabcontent.length; i++) {
                         tabcontent[i].style.display = "none";
                     }
-                    tablinks = document.getElementsByClassName("li-tab");
+                    tablinks = document.getElementsByClassName("nav-link");
                     for (i = 0; i < tablinks.length; i++) {
                         tablinks[i].className = tablinks[i].className.replace(" active", "");
                     }
@@ -27,7 +27,7 @@
                 };
 
                 function clickCheckbox(box) {
-                    var fw_input =  document.getElementById("firmware_uid_input");
+                    let fw_input =  document.getElementById("firmware_uid_input");
                     if (box.checked) {
                         fw_input.style.display = "inline";
                     } else {
@@ -38,66 +38,92 @@
             </script>
 
 
-            <ul class="nav nav-tabs">
-                <li class="li-tab active">
-                    <a href="#" onclick="openCity(event, 'fromFile')">
+            <ul class="nav nav-tabs mb-4">
+                <li class="nav-item">
+                    <a class="nav-link active" href="#" onclick="switchTab(event, 'fromFile')">
                         From File
                     </a>
                 </li>
-                <li class="li-tab">
-                    <a href="#" onclick="openCity(event, 'fromText')">
+                <li class="nav-item">
+                    <a class="nav-link" href="#" onclick="switchTab(event, 'fromText')">
                         From Text
                     </a>
                 </li>
             </ul>
 
-            <div class="col-md-offset-2 col-md-8 col-xs-12">
+            <div class="col-lg-8 px-0">
                 <div class="form-group tab-content" id="fromFile">
-                    <div class="col-xs-12">
-                        <label class="control-label" for="selectFile">
-                            Yara Rule File:
-                        </label>
-                    </div>
-                    <div class="col-xs-12">
-                        <input id="selectFile" type="file" name="file">
-                    </div>
+                    <label for="selectFile">Yara rule file:</label><br />
+                    <input id="selectFile" type="file" name="file">
                 </div>
             </div>
 
-            <div class="col-md-offset-2 col-md-8 col-xs-12">
+            <div class="col-lg-8 px-0">
                 <div class="form-group tab-content" id="fromText" style="display: none;">
-                    <div class="col-xs-12">
-                        <label class="control-label" for="textarea">
-                            Yara Rule:
-                        </label>
-                    </div>
-                    <div class="col-xs-12 clear">
+                        <label class="control-label" for="textarea">Yara rule:</label><br />
+                    <div>
                         <textarea name="textarea" rows="5" style="resize: vertical; position: relative; z-index: 1;"
                         class="form-control" id="textarea"></textarea>
-                        <p style="font-family: monospace; color: gray">
-                            Example: <br>
-                            rule rulename {strings: $a = { 0123456789abcdef } condition: $a }
-                        </p>
                     </div>
                 </div>
             </div>
-
-            <div class="col-md-offset-2 col-md-8 col-xs-12" style="padding-bottom: 15px">
-                <label><input type='checkbox' name="firmware_checkbox" id="firmware_checkbox" onclick='clickCheckbox(this);'> Scan Single Firmware</label>
+            <div class="col-lg-8 px-0 my-2">
+                <label><input type='checkbox' name="firmware_checkbox" id="firmware_checkbox" onclick='clickCheckbox(this);'> scan single firmware</label>
                 <input name="firmware_uid" type="text" class="form-control" id="firmware_uid_input" placeholder="Firmware UID" style="display: none;">
+                <br />
+                <label><input type="checkbox" name="only_firmware" value="True"> show parent firmware instead of matching file</label>
             </div>
 
             {% if error %}
-            <h5 style="color: red;">{{ error }}</h5>
+                <h5 style="color: red;">{{ error }}</h5>
             {% endif %}
 
-            <div class="col-md-offset-2 col-md-8 col-xs-12">
-                <button type="submit" value=submit class="btn btn-default" id="input_submit" onclick='showImg()'>
-                    <span class="glyphicon glyphicon-search"></span> Search
+            <div class="col-lg-8 px-0">
+                <button type="submit" value=submit class="btn btn-primary" id="input_submit" onclick='showImg()'>
+                    <i class="fas fa-search"></i> Search
                 </button>
             </div>
         </form>
     </div>
+</div>
+
+<div class="row justify-content-center mt-4">
+    <div class="col-xl-6 col-lg-8 col-md-10">
+		<h4>Example queries:</h4>
+
+		HEX-Pattern:
+	    <pre class="border rounded p-2 mb-0 bg-light"><code>rule a_hex_string_rule
+{
+    strings:
+        $a = { 0A1B }
+    condition:
+        $a
+}</code></pre>
+        <div style="color:grey; font-size: 0.9em; margin-bottom: 5px;">Matches firmware files including 0x0A1B.</div>
+
+		ASCII:
+	    <pre class="border rounded p-2 mb-0 bg-light"><code>rule a_ascii_string_rule
+{
+    strings:
+        $a = "backdoor" ascii wide nocase
+        $b = "roodkcab" ascii wide nocase
+    condition:
+        $a or $b
+}</code></pre>
+        <div style="color:grey; font-size: 0.9em; margin-bottom: 5px;">Matches firmware files including the string "backdoor" or "roodkcab" in 8bit (ascii) or 16bit (wide) representation and not case sensitive.</div>
+		
+        RegEx:
+	    <pre class="border rounded p-2 mb-0 bg-light"><code>rule a_regex_rule
+{
+    strings:
+        $a = /vxworks 5\.\d+(\.\d+)?/ nocase
+    condition:
+        $a 
+}</code></pre>
+        <div style="color:grey; font-size: 0.9em; margin-bottom: 5px;">Matches firmware files including "vxworks 5.X.Y" with "X" and "Y" are arbitrary numbers, ".Y" is optional and the whole string is not case sensitive.</div>
+
+        <p>Do you need more advanced rules? Have a look at the <a href="https://yara.readthedocs.io/en/latest/writingrules.html">official yara documentation</a>!</p>    
+	</div>
 
     <script>
         function set_uid(){

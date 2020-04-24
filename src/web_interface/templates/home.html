@@ -3,125 +3,137 @@
 {% set active_page = "Home" %}
 
 {% block body %}
-    <div class="row">
+    <div class="row justify-content-center mt-4">
 
-    	
-    	<div class="col-lg-2 col-md-4 col-sm-6">
-			<h3></h3>
-			<div style="max-width: 300px; margin: 0 auto;">
-    			<img width="100%" height="auto" style="margin-top: 80px" src="{{ url_for('static', filename='fact_logo.png') }}"><br />
-			</div>
-    	</div>
+    	<div class="p-2">
+            <center>
+                <img width="100%" height="auto" src="{{ url_for('static', filename='fact_logo.png') }}" style="max-width: 445px;">
 
-    	<div class="col-lg-4 col-md-8 col-sm-6">
-    		<h3>General Facts</h3>
-    		<table class="table table-responsive table-hover table-bordered" style="border-spacing: 10px;">
-    			<tr>
-    				<td class="active" style="text-align: left; padding:5px">firmware samples</td>
-    				<td class="active" style="text-align: right; padding:5px">{{ general_stats['number_of_firmwares'] | nice_number }}</td>
-    			</tr>    			
-    			<tr>
-    				<td class="active" style="text-align: left; padding:5px">firmware total size</td>
-    				<td class="active" style="text-align: right; padding:5px">{{ general_stats['total_firmware_size'] | number_format }}</td>
-    			</tr>
-    			<tr>
-    				<td class="active" style="text-align: left; padding:5px">firmware average size</td>
-    				<td class="active" style="text-align: right; padding:5px">{{ general_stats['average_firmware_size'] | number_format }}</td>
-    			</tr>    			
-    			<tr>
-    				<td class="active" style="text-align: left; padding:5px">unique included files</td>
-    				<td class="active" style="text-align: right; padding:5px">{{ general_stats['number_of_unique_files'] | nice_number }}</td>
-    			</tr>
-    			<tr>
-    				<td class="active" style="text-align: left; padding:5px">unique included files total size</td>
-    				<td class="active" style="text-align: right; padding:5px">{{ general_stats['total_file_size'] | number_format }}</td>
-    			</tr>
-    			<tr>
-    				<td class="active" style="text-align: left; padding:5px">unique included files average size</td>
-    				<td class="active" style="text-align: right; padding:5px">{{ general_stats['average_file_size'] | number_format }}</td>
-    			</tr>
-    			<tr>
-    				<td class="active" style="text-align: left; padding:5px">statistic generation time</td>
-    				<td class="active" style="text-align: right; padding:5px">{{ general_stats['benchmark'] | nice_number }} s</td>
-    			</tr>  
-    		</table>
+                <br /><br />
+
+                <h4 class="mb-3">General Facts</h4>
+                <table class="table table-sm table-responsive" style="width: 705px;">
+                    <tbody>
+                        <tr>
+                            <td style="text-align: left; padding:5px">firmware samples</td>
+                            <td style="text-align: right; padding:5px">{{ general_stats['number_of_firmwares'] | nice_number }}</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left; padding:5px">firmware total size</td>
+                            <td style="text-align: right; padding:5px">{{ general_stats['total_firmware_size'] | number_format }}</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left; padding:5px">firmware average size</td>
+                            <td style="text-align: right; padding:5px">{{ general_stats['average_firmware_size'] | number_format }}</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left; padding:5px">unique included files</td>
+                            <td style="text-align: right; padding:5px">{{ general_stats['number_of_unique_files'] | nice_number }}</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left; padding:5px">unique included files total size</td>
+                            <td style="text-align: right; padding:5px">{{ general_stats['total_file_size'] | number_format }}</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left; padding:5px">unique included files average size</td>
+                            <td style="text-align: right; padding:5px">{{ general_stats['average_file_size'] | number_format }}</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left; padding:5px">statistic generation time</td>
+                            <td style="text-align: right; padding:5px">{{ general_stats['benchmark'] | nice_number }} s</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </center>
     	</div>
 
     	{% if (latest_firmware_submissions | length) > 0 %}
-    	<div class="col-lg-6">
-    		<h3>Latest Submissions</h3>
-    		Showing {{ latest_firmware_submissions | length }} out of <b>{{ general_stats['number_of_firmwares'] | nice_number }}</b> firmwares in the database.
-    		<table class="table table-responsive table-hover table-bordered" style="border-spacing: 10px;">
-    			<tr>
-    				<th class="success active" style="text-align: center; padding:5px">Submission Time </th>
-    				<th class="success active" style="text-align: center; padding:5px">Firmware </th>
-    			</tr>
-        	{% for firmware in latest_firmware_submissions %}
-            	<tr>
-            		<td class="active"> {{ firmware[3] | nice_unix_time | safe }} </td>
-                	{{ firmware | firmware_detail_tabular_field | safe }}
-            	</tr>
-        	{% endfor %}
-        	</table>
-    	</div>
+            <div class="p-2">
+                <h4>Latest Submissions</h4>
+                <p>Showing {{ latest_firmware_submissions | length }} out of <b>{{ general_stats['number_of_firmwares'] | nice_number }}</b> firmwares in the database.</p>
+                <table class="table table-sm table-hover mt-3" style="width: 705px;">
+                    <thead class="thead-light">
+                        <tr>
+                            <th class="align-middle text-center" style="padding:5px">Submission Time</th>
+                            <th class="align-middle text-center" style="padding:5px">Firmware</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for firmware in latest_firmware_submissions %}
+                            <tr>
+                                <td style="font-size: 14px"> {{ firmware[3] | nice_unix_time | safe }} </td>
+                                {{ firmware | firmware_detail_tabular_field | safe }}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
     	{% endif %}
 
+    </div>
+
+    <div class="row justify-content-center">
     	{% if (latest_comments | length) > 0 %}
-    	<div class="col-lg-6">
-    		<h3>Latest Comments</h3>
-    		<table class="table table-responsive table-hover table-bordered" style="border-spacing: 10px;">
-    			<tr>
-    				<th class="success active" style="text-align: center; padding:5px;">Submission Time </th>
-    				<th class="success active" style="text-align: center; padding:5px;">Author </th>
-    				<th class="success active" style="text-align: center; padding:5px">Comment </th>
-    			</tr>
-        	{% for comment in latest_comments %}
-            	<tr>
-            		<td class="active"> {{ comment.time|int|nice_unix_time }} </td>
-                	<td class="active"> {{ comment.author }} </td>
-					<td class="active clickable" style="margin:0; padding:0;">
-						<a href='/analysis/{{ comment.uid }}'>
-							<div style="height: 100%; width: 100%">
-								<pre style="white-space: pre-wrap; margin: 3px; background-color: #FFF">{{ comment.comment|urlize }}</pre>
-							</div>
-						</a>
-                    </td>
-            	</tr>
-        	{% endfor %}
-        	</table>
-    	</div>
+            <div class="p-2">
+                <h4 class="mb-3">Latest Comments</h4>
+                <table class="table table-sm table-hover" style="width: 705px;">
+                    <thead class="thead-light">
+                        <tr>
+                            <th class="align-middle text-center" style="padding:5px;">Submission Time</th>
+                            <th class="align-middle text-center" style="padding:5px;">Author</th>
+                            <th class="align-middle text-center" style="padding:5px;">Comment</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for comment in latest_comments %}
+                            <tr>
+                                <td style="font-size: 14px"> {{ comment.time | int | nice_unix_time }} </td>
+                                <td style="font-size: 14px"> {{ comment.author }} </td>
+                                <td class="clickable" onclick="location.href='/analysis/{{ comment.uid }}'">
+                                    <span style="font-family: monospace; color: #000; font-size: 14px">
+                                        {{ comment.comment | urlize }}
+                                    </span>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
     	{% endif %}
 
         {# latest_comparison_results #}
     	{% if (latest_comparison_results | length) > 0 %}
-    	<div class="col-lg-6">
-    		<h3>Latest Comparisons</h3>
-    		<table class="table table-responsive table-hover table-bordered" style="border-spacing: 10px;">
-    			<tr>
-    				<th class="success active" style="text-align: center; padding:5px">Submission Time </th>
-    				<th class="success active" style="text-align: center; padding:5px">Comparisons </th>
-    			</tr>
-        	{% for id, hids, submission_date in latest_comparison_results %}
-                <tr>
-					<td class="active">
-						{{ submission_date | nice_unix_time | safe }}
-					</td>
-					<td class="active clickable" style="padding: 0">
-						<a href='/compare/{{ id }}' style="color: rgb(51, 51, 51)">
-							<div style="width: 100%; height: 100%; padding: 8px;">
-								{%  for uid in hids %}
-									{{ hids[uid] }}
-									<div><font face="courier"  style="font-size:12px">{{ uid }}</font></div>
-								{% endfor %}
-							</div>		
-						</a>
-                    </td>
-                </tr>
-        	{% endfor %}
-        	</table>
-    	</div>
+            <div class="p-2">
+                <h4 class="mb-3">Latest Comparisons</h4>
+                <table class="table table-sm table-hover" style="width: 705px;">
+                    <thead class="thead-light">
+                        <tr>
+                            <th scope="col" class="align-middle text-center" style="padding:5px">Submission Time </th>
+                            <th scope="col" class="align-middle text-center" style="padding:5px">Comparisons </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for id, hids, submission_date in latest_comparison_results %}
+                            <tr>
+                                <td style="font-size: 14px">
+                                    {{ submission_date | nice_unix_time | safe }}
+                                </td>
+                                <td class="clickable" style="padding: 0" onclick="location.href='/compare/{{ id }}'">
+                                    <a href="/compare/{{ id }}" style="color: rgb(51, 51, 51);">
+                                        <div style="width: 100%; height: 100%; padding: 8px; font-size: 14px;">
+                                            {% for uid in hids %}
+                                                {{ hids[uid] }}
+                                                <div><span style="font-family: 'Courier New', Courier, monospace; font-size:10px">{{ uid }}</span></div>
+                                            {% endfor %}
+                                        </div>
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
     	{% endif %}
-
     </div>
 
 {% endblock %}

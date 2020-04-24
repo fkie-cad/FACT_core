@@ -2,20 +2,11 @@
 
 {% set active_page = "Database" %}
 
-
 {% block body %}
-
-<div class="col-sm-offset-1 col-sm-10">
-
-    <div class="row" style="margin-bottom: 16px">
-        <h2>Firmware deleted</h2>
-        <div class="alert alert-success">
-            <span class="glyphicon glyphicon-trash"></span>
-            <strong>Deleted firmware with UID: {{ uid }}</strong><br>
-            Deleted {{ deleted_files }} file(s) from database{% if deleted_vps %} and deleted {{ deleted_vps }} virtual paths in other database entries{% endif %}.
-        </div>
+    <div class="alert alert-danger mt-4">
+        <h3 class="alert-heading">Firmware deleted <i class="fas fa-trash-alt"></i></h3>
+        <h6>Deleted firmware with UID: {{ uid }}</h6>
+        <hr />
+        <p class="mb-0">Deleted {{ deleted_files }} file(s) from database{% if deleted_vps %} and deleted {{ deleted_vps }} virtual paths in other database entries{% endif %}.</p>
     </div>
-
-</div>
-
 {% endblock %}

@@ -26,6 +26,21 @@ rule DLink_Bug {
     condition: $a
 }
 
+rule BackDoor_String {
+	meta:
+        description = "Contains a string similar to backdoor"
+        reliability = "90"
+        score = "medium"
+        link = ""
+    strings:
+        $normaldoor = /b[a4]ckd[o0]{2}r/ nocase ascii wide
+        $reversedoor = /r[o0]{2}dkc[a4]b/ nocase ascii wide
+        $basedoor = "YmFja2Rvb3I"
+        $hexdoor = { 62 61 63 6b 64 6f 6f 72 }
+    condition:
+        any of them
+}
+
 rule WPA_Key_Hardcoded {
     meta:
         description = "WiFi Access Point with hardcoded WPA key"

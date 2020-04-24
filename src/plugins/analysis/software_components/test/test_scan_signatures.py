@@ -1,11 +1,11 @@
 import os
-
-from common_helper_files import get_dir_of_file
 from tempfile import NamedTemporaryFile
 
-from ..internal.extract_os_names import get_software_names, extract_names
+from common_helper_files import get_dir_of_file
 
-TEST_SIGNATURE_FILE = os.path.join(get_dir_of_file(__file__), './data/test_signature.yara')
+from ..internal.extract_os_names import extract_names, get_software_names
+
+TEST_SIGNATURE_FILE = os.path.join(get_dir_of_file(__file__), './data/signatures/test_signature.yara')
 
 
 def test_get_scanned_software():

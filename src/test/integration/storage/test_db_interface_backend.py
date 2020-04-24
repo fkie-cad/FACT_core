@@ -1,6 +1,5 @@
 import gc
 import unittest
-from os import path
 from tempfile import TemporaryDirectory
 from time import time
 
@@ -10,7 +9,6 @@ from storage.MongoMgr import MongoMgr
 from test.common_helper import create_test_file_object, create_test_firmware, get_config_for_testing, get_test_data_dir
 
 TESTS_DIR = get_test_data_dir()
-test_file_one = path.join(TESTS_DIR, 'get_files_test/testfile1')
 TMP_DIR = TemporaryDirectory(prefix='fact_test_')
 
 
@@ -146,7 +144,7 @@ class TestStorageDbInterfaceBackend(unittest.TestCase):
 
     def test_update_analysis_tag_success(self):
         self.db_interface_backend.add_firmware(self.test_firmware)
-        tag = {'value': 'yay', 'color': 'default', 'propagate': True}
+        tag = {'value': 'yay', 'color': 'primary', 'propagate': True}
 
         self.db_interface_backend.update_analysis_tags(self.test_firmware.uid, plugin_name='dummy', tag_name='some_tag', tag=tag)
         processed_firmware = self.db_interface_backend.get_object(self.test_firmware.uid)
@@ -182,4 +180,4 @@ class TestStorageDbInterfaceBackend(unittest.TestCase):
             self.db_interface_backend.add_analysis(dict())
 
         with self.assertRaises(AttributeError):
-            self.db_interface_backend._update_analysis(dict(), 'dummy', dict())
+            self.db_interface_backend._update_analysis(dict(), 'dummy', dict())  # pylint: disable=protected-access

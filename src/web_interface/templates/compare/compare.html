@@ -6,19 +6,19 @@
 
 {% block head %}
 	{# jstree import #}
-    <script src="{{ url_for('static', filename='jstree/dist/jstree.min.js') }}"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='jstree/dist/themes/default/style.min.css') }}" />
+    <script src="{{ url_for('static', filename='web_js/jstree/dist/jstree.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='web_js/jstree/dist/themes/default/style.min.css') }}" />
 {% endblock %}
 
 
 {% block body %}
 
-<table class="table table-bordered">
+<table class="table table-bordered mt-4">
 	<thead>
 		<tr>
-			<th class="active"></th>
+			<th>Firmware</th>
 			{% for uid in uid_list %}
-				<th class="active">{{ result['general']['hid'][uid] }}</th>
+				<th>{{ result['general']['hid'][uid] }}</th>
 			{% endfor %}
 		</tr>
 	</thead>
@@ -26,42 +26,54 @@
 	
 	{# --- general information --- #}
 		<tr>
-			<th colspan="{{ uid_list | length + 1 }}" class="success" style="text-align:center;">General Information</th>
+			<th colspan="{{ uid_list | length + 1 }}" class="table-head-light" style="text-align:center;">General information</th>
 		</tr>
 		{% for feature in result['general'] | sort %}
-		<tr>
-			<td class="active" width="150px"> {{ feature | replace_underscore }} </td>
-			{% for uid in uid_list %}
-				<td>
-				{% if feature == "size"%}
-					{{ result['general'][feature][uid] | number_format }}
-				{% else %}
-					{{ result['general'][feature][uid] | nice_list | replace_uid_with_hid | safe }}
-				{% endif %}
-				</td>
-			{% endfor %}
-		</tr>
+            {% if feature != 'hid' %}
+                <tr>
+                    <td width="150px"> {{ feature | replace_underscore }} </td>
+                    {% if result['general'][feature] | all_items_equal %}
+                        <td colspan="{{ uid_list | length }}" class="text-center text-success">
+                            {% if feature == "size"%}
+                                {{ result['general'][feature][uid_list[0]] | number_format }}
+                            {% else %}
+                                {{ result['general'][feature][uid_list[0]] | nice_list | replace_uid_with_hid | safe }}
+                            {% endif %}
+                        </td>
+                    {% else %}
+                        {% for uid in uid_list %}
+                            <td>
+                                {% if feature == "size"%}
+                                    {{ result['general'][feature][uid] | number_format }}
+                                {% else %}
+                                    {{ result['general'][feature][uid] | nice_list | replace_uid_with_hid | safe }}
+                                {% endif %}
+                                </td>
+                        {% endfor %}
+                    {% endif %}
+                </tr>
+            {% endif %}
 		{% endfor %}
 		
 		{# --- plugin results --- #}
 		
 		{% for plugin in result['plugins'] | sort %}
 		<tr>
-			<th colspan="{{ uid_list | length  + 1 }}" class="success" style="text-align:center;">{{ plugin | replace_underscore }}</th>
+			<th colspan="{{ uid_list | length  + 1 }}" class="table-head-light" style="text-align:center;">{{ plugin | replace_underscore }}</th>
 		</tr>
             {% if plugin in plugins_without_view %}
 
                 {# plugins without separate view #}
                 {% for feature in result['plugins'][plugin] | sort %}
                     <tr>
-                        <td class="active"> {{ feature | replace_underscore }} </td>
+                        <td>{{ feature | replace_underscore }}</td>
 
                         {# --- all case --- #}
                         {% if 'all' in result['plugins'][plugin][feature] %}
                             {% if result['plugins'][plugin][feature]['collapse'] %}
                                 <td colspan="{{ uid_list | length }}">
                                     <center>
-                                        <button type="button" class="btn btn-sm btn-fact-one" data-toggle="collapse" data-target="#{{ feature }}">
+                                        <button type="button" class="btn btn-sm btn-success" data-toggle="collapse" data-target="#{{ feature }}">
                                             {{ result['plugins'][plugin][feature]['all'] | length }}
                                         </button>
                                     </center>
@@ -70,7 +82,7 @@
                                     </div>
                                 </td>
                             {% else %}
-                                <td colspan="{{ uid_list | length }}" style="text-align:center;"> {{ result['plugins'][plugin][feature]['all'] | nice_uid_list | safe }} </td>
+                                <td colspan="{{ uid_list | length }}">{{ result['plugins'][plugin][feature]['all'] | nice_uid_list | safe }}</td>
                             {% endif %}
 
                         {# --- individual results --- #}
@@ -79,7 +91,7 @@
                                 <td>
                                 {% if result['plugins'][plugin][feature]['collapse'] %}
                                     <center>
-                                        <button type="button" class="btn btn-sm btn-primary" data-toggle="collapse" data-target="#{{ feature + uid }}">
+                                        <button type="button" class="btn btn-sm btn-warning" data-toggle="collapse" data-target="#{{ feature + uid }}">
                                             {{ result['plugins'][plugin][feature][uid] | length }}
                                         </button>
                                     </center>

@@ -58,7 +58,7 @@ rule FileX
 		website = "https://rtos.com/solutions/threadx/real-time-operating-system/"
 		description = "FAT filesystem implementation for ThreadX RTOS"
 	strings:
-		$a = /FileX [a-z\/ 1-9]+ [a-z]?\d+\.\d+(\.\d+)?(\.\d+)?/ nocase ascii wide
+		$a = /FileX [a-z\/ 1-9_]+ [a-z]?\d+\.\d+(\.\d+)?(\.\d+)?/ nocase ascii wide
 	condition:
 		$a
 }

@@ -1,8 +1,7 @@
-import re
 from datetime import datetime
 from itertools import combinations
 from pickle import dumps
-from typing import KT, VT, Dict, List, Optional, Set
+from typing import KT, VT, Dict, Iterable, List, Optional, Set
 
 
 def make_bytes(code):
@@ -42,7 +41,7 @@ def list_of_sets_to_list_of_lists(list_of_sets: List[Set]) -> List[List]:
     return [sorted(item) for item in list_of_sets]
 
 
-def convert_uid_list_to_compare_id(uid_list: List[str]) -> str:
+def convert_uid_list_to_compare_id(uid_list: Iterable[str]) -> str:
     return ';'.join(sorted(uid_list))
 
 
@@ -126,15 +125,3 @@ def _fill_in_time_gaps(time_dict):
             for month in range(min_month, max_month + 1):
                 if month not in time_dict[year]:
                     time_dict[year][month] = 0
-
-
-def remove_linebreaks_from_byte_string(byte_string):
-    '''
-    Removes \x0A und \x0D line breaks from a byte string and returns sanitized string and number of removed breaks
-    :param byte_string: Any byte string
-    :return: sanitized_byte_string, number_of_removed_linebreaks
-    '''
-    rep = {b'\x0a': b'', b'\x0d': b''}  # CR LF
-    rep = dict((re.escape(k), v) for k, v in rep.items())
-    pattern = re.compile(b'|'.join(rep.keys()))
-    return pattern.subn(lambda m: rep[re.escape(m.group(0))], byte_string)

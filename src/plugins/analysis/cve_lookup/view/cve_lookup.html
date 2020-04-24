@@ -1,0 +1,36 @@
+{% extends "analysis_plugins/general_information.html" %}
+
+{% block analysis_result_details %}
+    {% for product_name, result in firmware.processed_analysis[selected_analysis]['cve_results'].items()|sort %}
+        <tr>
+            <td>{{ product_name }}</td>
+            {% if result == ['N/A'] %}
+                <td>N/A</td>
+            {% else %}
+                <td class="p-0 m-0">
+                    <table class="table table-bordered m-0" style="width: 100%;">
+                        <tr>
+                            <th>CVE ID</th>
+                            <th style="width: 130px">CVSS v2 score</th>
+                            <th style="width: 130px">CVSS v3 score</th>
+                            <th style="width: 200px">Affected versions</th>
+                        </tr>
+                        {% for cve_id, entry in result.items()|sort %}
+                        <tr>
+                            <td>
+                                <a href="https://nvd.nist.gov/vuln/detail/{{ cve_id }}">{{ cve_id }}</a>
+                            </td>
+                            {% for score in [entry.get("score2", "N/A"), entry.get("score3", "N/A")] %}
+                                {% set class = "secondary" if score == "N/A" else ("success" if score|float < 4 else ("warning" if score|float < 7 else "danger")) %}
+                                <td><span class="badge badge-{{ class }}" style="font-size: 100%;">{{ score }}</span></td>
+                            {% endfor %}
+                            <td>{{ entry.get("cpe_version", "N/A") }}</td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+                </td>
+            {% endif %}
+        </tr>
+    {% endfor %}
+
+{% endblock %}

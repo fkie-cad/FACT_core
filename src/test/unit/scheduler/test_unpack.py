@@ -73,7 +73,7 @@ class TestUnpackScheduler(TestCase):
 
     @staticmethod
     def _mock_get_analysis_workload():
-        return {'a': 1, 'b': 2}
+        return {'analysis_main_scheduler': 1, 'plugins': {'a': {'queue': 2}}}
 
     def _trigger_sleep(self, seconds: int) -> None:
         self.sleep_event.set()

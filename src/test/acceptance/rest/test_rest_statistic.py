@@ -26,4 +26,4 @@ class TestRestStatistic(TestAcceptanceBase):
         assert all(key in rv.json for key in ['system_status', 'plugins'])
         assert 'backend' in rv.json['system_status']
         assert rv.json['system_status']['backend']['status'] == 'online'
-        assert rv.json['system_status']['backend']['analysis']['file_type'] == 0
+        assert rv.json['system_status']['backend']['analysis']['plugins']['file_type']['queue'] == 0

@@ -107,7 +107,7 @@ rule ThreadX
 		website = "https://rtos.com/solutions/threadx/real-time-operating-system/"
 		description = "Real Time Operating System"
 	strings:
-		$a = /ThreadX [a-z\/ 1-9]+ [a-z]?\d+\.\d+(\.\d+)?(\.\d+)?/ nocase ascii wide
+		$a = /ThreadX [a-z\/ 1-9_]+ [a-z]?\d+\.\d+(\.\d+)?(\.\d+)?/ nocase ascii wide
 	condition:
 		$a
 }
@@ -138,4 +138,18 @@ rule Contiki
 		$a = /Contiki\/\d+\.\d+/ nocase ascii wide
 	condition:
 		$a and no_text_file
+}
+
+rule eCos
+{
+	meta:
+		software_name = "eCos"
+		open_source = false
+		website = "https://www.ecoscentric.com"
+		description = "Real Time Operating System"
+		format_string = true
+	strings:
+		$a = "eCos Release: %d.%d.%d" nocase ascii wide
+	condition:
+		$a
 }

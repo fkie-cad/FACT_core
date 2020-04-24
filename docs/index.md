@@ -9,11 +9,11 @@ FACT implements this automation leading to more complete analysis as well as a m
 
 <img src="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/images/FACT_Vulnerability_Hunting.png" alt="FACT analysis speedup" width="100%"/>
 
-## Challenge: Firmware Unpacking
-Unpacking of a firmware image can be very time consuming.
+## Challenge: Firmware Extraction
+Extraction of a firmware image can be very time consuming.
 At first you have to identify the container format.
 Afterwards you need to find an appropriate unpacker.
-If no unpacker is available you might try a file carver like binwalk to extract at least some of the firmware components.
+If no extraction tool is available you might try a file carver like binwalk to extract at least some of the firmware components.
 When you finished this task you must re-do these tasks for each layer multiple times.
 FACT automates the whole process. 
 
@@ -24,13 +24,15 @@ The next challenge is to find out as much about the firmware as possible to iden
    * Which programs are present?
    * Which versions are used?
    * Which services are started on boot?
-   * Are there any well-known vulnerabilities in these?
-* Find user credentials
+   * Are there any well-known vulnerabilities in these? (CVEs)
+* Find login credentials, especially hard-coded passwords
 * Crypto material detection
    * private keys
    * certificates
-* CPU architecture (needed for emulation and disassembling)
-* …
+* Detect CPU architecture (needed for emulation and disassembling)
+* Check if executable utilizing QEMU (needed for fuzzing and debugging)
+* Look for implementation flaws (CWEs)
+* ...
 
 ## Challenge: Firmware Comparison
 In many cases you might want to compare Firmware samples.
@@ -48,32 +50,40 @@ Therefore, FACT stores all firmware files and analysis results in a searchable d
 You can search for byte patterns on all unpacked files as well as any kind of analysis result.
 
 # Easy to Install! Easy to Use!
-FACT provides an installation script for Ubuntu 16.04 that installs FACT as well as all dependencies automatically.
+FACT provides an installation script for Ubuntu 18.04 that installs FACT as well as all dependencies automatically.
+The installation script supports Ubuntu 19.04, Debian 9, Debian 10, Kali 2019.4, as well.
+However, there migth be minor issues on these, because we do not activly develop on these plattforms. If you find a bug please tell us.
 Have a look at the [README](https://github.com/fkie-cad/FACT_core/blob/master/README.md) for more details.  
 Furthermore, there is a web GUI so that you can start right away without any further knowledge about FACT or the firmware you want to look at.
 
 # Easy to Extend! Easy to Integrate!
 FACT is based on a plug-in concept.
-Unpackers are implemented as plug-ins, as well as analysis features and compare functionalities.
+Extractors, analysis features and compare functionalities are implemented as plug-ins.
 More details can be found in the [Developer’s Manual](https://github.com/fkie-cad/FACT_core/wiki).  
 Integration is easy as well since we provide a REST API covering almost all of FACT’s features.
-More Details can be found in our [REST API documentation](https://github.com/fkie-cad/FACT_core/wiki/doku_rest).
+More Details can be found in our [REST API documentation](https://github.com/fkie-cad/FACT_core/wiki/rest-documentation).
 
 ## Screenshots
 <table border="0px">
   <tr>
-    <td><a href="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/FACT_upload.png"><img src="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/FACT_upload.png" alt="firmware upload" height="150px" /></a></td>
-    <td><a href="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/FACT_analysis_software.png"><img src="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/FACT_analysis_software.png" alt="software detection" height="150px" /></a></td>
-    <td><a href="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/FACT_analysis_av.png"><img src="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/FACT_analysis_av.png" alt="malware scanner" height="150px" /></a></td>
+    <td><a href="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/01_main.png"><img src="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/01_main.png" alt="Main View" height="150px" /></a></td>
+    <td><a href="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/02_upload.png"><img src="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/02_upload.png" alt="Upload View" height="150px" /></a></td>
+    <td><a href="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/03_firmware_view.png"><img src="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/03_firmware_view.png" alt="Firmware View" height="150px" /></a></td>
   </tr>
   <tr>
-    <td><a href="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/FACT_analysis_binwalk.png"><img src="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/FACT_analysis_binwalk.png" alt="binwalk plug-in" height="150px" /></a></td>
-    <td><a href="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/FACT_compare.png"><img src="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/FACT_compare.png" alt="compare firmware images" height="150px" /></a></td>
-    <td><a href="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/FACT_bin_search.png"><img src="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/FACT_bin_search.png" alt="search for arbitrary binary patterns on all unpacked files" height="150px" /></a></td>
+    <td><a href="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/04_users_and_passwords.png"><img src="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/04_users_and_passwords.png" alt="Login Credential Analysis" height="150px" /></a></td>
+    <td><a href="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/05_cve_lookup.png"><img src="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/05_cve_lookup.png" alt="CVE Analyis" height="150px" /></a></td>
+    <td><a href="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/06_binwalk.png"><img src="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/06_binwalk.png" alt="Binwalk Analysis" height="150px" /></a></td>
   </tr>
   <tr>
-    <td><a href="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/FACT_statistic.png"><img src="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/FACT_statistic.png" alt="statistics" height="150px" /></a></td>
-    <td colspan="2"><a href="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/FACT_system_health.png"><img src="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/FACT_system_health.png" alt="system health monitoring" height="150px" /></a></td>
+    <td><a href="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/07_qemu_exec.png"><img src="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/07_qemu_exec.png" alt="Emulation Analysis" height="150px" /></a></td>
+    <td><a href="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/08_compare.png"><img src="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/08_compare.png" alt="Compare Firmware Images" height="150px" /></a></td>
+    <td><a href="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/09_system.png"><img src="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/09_system.png" alt="System Status" height="150px" /></a></td>
+  </tr>
+  <tr>
+    <td><a href="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/10_user_management.png"><img src="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/10_user_management.png" alt="User Management" height="150px" /></a></td>
+    <td><a href="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/11_advanced_search_result.png"><img src="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/11_advanced_search_result.png" alt="Advance Search Result" height="150px" /></a></td>
+    <td><a href="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/12_yara_search.png"><img src="https://raw.githubusercontent.com/fkie-cad/FACT_core/master/docs/FACT_screenshots/12_yara_search.png" alt="Binary Pattern Search" height="150px" /></a></td>
   </tr>
 </table>
 

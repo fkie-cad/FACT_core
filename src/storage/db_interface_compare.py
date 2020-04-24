@@ -42,11 +42,13 @@ class CompareDbInterface(MongoInterfaceCommon):
         logging.debug('compare result not found in db: {}'.format(compare_id))
         return None
 
-    def check_objects_exist(self, compare_id):
-        uids = convert_compare_id_to_list(compare_id)
-        for uid in uids:
+    def check_objects_exist(self, compare_id, raise_exc=True):
+        for uid in convert_compare_id_to_list(compare_id):
             if not self.existence_quick_check(uid):
-                raise FactCompareException('{} not found in database'.format(uid))
+                if raise_exc:
+                    raise FactCompareException('{} not found in database'.format(uid))
+                return True
+        return False
 
     def compare_result_is_in_db(self, compare_id):
         compare_result = self.compare_results.find_one(normalize_compare_id(compare_id))
@@ -86,7 +88,7 @@ class CompareDbInterface(MongoInterfaceCommon):
 
     def get_total_number_of_results(self):
         db_entries = self.compare_results.find({'submission_date': {'$gt': 1}}, {'_id': 1})
-        return sum(1 for entry in db_entries if not self.check_objects_exist(entry['_id']))  # sum(1 for... calculates length of generator
+        return len([1 for entry in db_entries if not self.check_objects_exist(entry['_id'], raise_exc=False)])
 
     def get_ssdeep_hash(self, uid):
         file_object_entry = self.file_objects.find_one({'_id': uid}, {'processed_analysis.file_hashes.ssdeep': 1})

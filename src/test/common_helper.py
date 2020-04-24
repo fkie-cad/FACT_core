@@ -175,6 +175,12 @@ class DatabaseMock:  # pylint: disable=too-many-public-methods
             {'time': str(time), 'author': author, 'comment': comment}
         )
 
+    def add_to_search_query_cache(self, search_query: str, query_title: str = None) -> str:
+        return '0000000000000000000000000000000000000000000000000000000000000000_0'
+
+    def get_query_from_cache(self, query_uid):
+        return {'search_query': '{{"_id": "{}"}}'.format(format(TEST_FW_2.uid)), 'query_title': 'test'}
+
     class firmwares:  # pylint: disable=invalid-name
         @staticmethod
         def find_one(uid):
@@ -206,7 +212,7 @@ class DatabaseMock:  # pylint: disable=too-many-public-methods
     def create_analysis_structure():
         return ''
 
-    def generic_search(self, search_string, skip=0, limit=0, only_fo_parent_firmware=False):
+    def generic_search(self, search_string, skip=0, limit=0, only_fo_parent_firmware=False, inverted=False):
         result = []
         if isinstance(search_string, dict):
             search_string = json.dumps(search_string)
@@ -283,7 +289,7 @@ class DatabaseMock:  # pylint: disable=too-many-public-methods
             return TEST_FW
         raise Exception('UID not found: {}'.format(uid))
 
-    def rest_get_firmware_uids(self, offset, limit, query=None, recursive=False):
+    def rest_get_firmware_uids(self, offset, limit, query=None, recursive=False, inverted=False):
         if (offset != 0) or (limit != 0):
             return []
         return [TEST_FW.uid, ]
@@ -342,6 +348,12 @@ class DatabaseMock:  # pylint: disable=too-many-public-methods
         if fo.uid == TEST_FW.uid and selected_analysis == 'foobar':
             return {'foobar': ['some_uid']}
         return None
+
+    def find_missing_files(self):
+        return {'parent_uid': ['missing_child_uid']}
+
+    def find_missing_analyses(self):
+        return {'root_fw_uid': ['missing_child_uid']}
 
 
 def fake_exit(self, *args):
@@ -406,6 +418,8 @@ def get_config_for_testing(temp_dir=None):
     config.set('ExpertSettings', 'authentication', 'false')
     config.set('ExpertSettings', 'intercom_poll_delay', '0.5')
     config.set('ExpertSettings', 'nginx', 'false')
+    config.add_section('database')
+    config.set('database', 'results_per_page', '10')
     load_users_from_main_config(config)
     config.add_section('Logging')
     if temp_dir is not None:

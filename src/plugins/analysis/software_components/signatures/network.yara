@@ -98,10 +98,12 @@ rule dnsmasq
 		open_source = true
 		website = "http://www.thekelleys.org.uk/dnsmasq/doc.html"
 		description = "DNS and DHCP Server"
+		format_string = true
 	strings:
 		$a = /dnsmasq-\d+\.\d+/ nocase ascii wide
+		$b = "dnsmasq-%s"
 	condition:
-		$a and no_text_file
+		($a or $b) and no_text_file
 }
 
 rule Dropbear
@@ -125,7 +127,7 @@ rule hostapd
 		website = "https://w1.fi/hostapd/"
 		description = "hostapd is a user space daemon for access point and authentication servers."
     strings:
-        $a = /hostapd v\d+\.\d+\.\d+/ nocase ascii wide
+        $a = /hostapd v\d+\.\d+(\.\d+)?/ nocase ascii wide
     condition:
         $a and no_text_file
 }
@@ -221,6 +223,23 @@ rule OpenSSH
         $a and no_text_file
 }
 
+rule pppd_format_string
+{
+    meta:
+        software_name = "Point-to-Point Protocol daemon"
+		open_source = true
+		website = "https://ppp.samba.org/"
+		description = "ppp (Paul's PPP Package) is an open source package which implements the Point-to-Point Protocol (PPP) on Linux and Solaris systems."
+		format_string = true
+    strings:
+        $a = "pppd %s started by %s, uid %d"
+        $b = "pppd version %s"
+        $c = "pppd: %s %d"
+        $d = "See pppd(8) for more options."
+    condition:
+        ($a or $b or $c) and $d and no_text_file
+}
+
 rule pptpClient
 {
 	meta:
@@ -247,6 +266,19 @@ rule ProFTPD
         $a and no_text_file
 }
 
+rule Quagga
+{
+	meta:
+		software_name = "Quagga"
+		open_source = true
+		website = "https://www.quagga.net/"
+		description = "network routing software suite (fork of Zebra)"
+    strings:
+        $a = /Hello, this is Quagga \(version .+\)./ nocase ascii wide
+    condition:
+        $a and no_text_file
+}
+
 rule radvd
 {
 	meta:
@@ -258,6 +290,22 @@ rule radvd
 		$a = /radvd-\d+\.\d+/ nocase ascii wide
 	condition:
 		$a and no_text_file
+}
+
+rule radvd_format_string
+{
+	meta:
+		software_name = "radvd"
+		open_source = true
+		website = "http://www.litech.org/radvd/"
+		description = "IPv6 Router Advertisement Daemon"
+		format_string = true
+	strings:
+	    $a = "radvd already running, terminating."
+        $b = "version %s started"
+        $c = "Version: %s"
+	condition:
+        $a and ($b or $c) and no_text_file
 }
 
 rule readymedia
@@ -320,7 +368,7 @@ rule wpa_supplicant
 		website = "https://w1.fi/wpa_supplicant/"
 		description = "wpa_supplicant is a WPA Supplicant for Linux and other OSes with support for WPA and WPA2."
     strings:
-        $a = /wpa_supplicant v\d+\.\d+\.\d+/ nocase ascii wide
+        $a = /wpa_supplicant v\d+\.\d+(\.\d+)?/ nocase ascii wide
     condition:
         $a and no_text_file
 }
@@ -334,6 +382,19 @@ rule xl2tpd
 		description = "Layer 2 Tunneling Protocol (L2TP) daemon"
     strings:
         $a = /xl2tpd-\d+\.\d+\.\d+/ nocase ascii wide
+    condition:
+        $a and no_text_file
+}
+
+rule zebra
+{
+	meta:
+		software_name = "GNU Zebra"
+		open_source = true
+		website = "https://www.gnu.org/software/zebra/"
+		description = "multi-server routing software which provides TCP/IP based routing protocols"
+    strings:
+        $a = /Hello, this is zebra \(version 0.\d+.*\)./ nocase ascii wide
     condition:
         $a and no_text_file
 }

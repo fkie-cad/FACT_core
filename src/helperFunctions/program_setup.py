@@ -26,6 +26,7 @@ import psutil
 from common_helper_files import create_dir_for_file
 
 from helperFunctions.config import get_config_dir
+from helperFunctions.logging import ColoringFormatter
 from version import __VERSION__
 
 
@@ -57,20 +58,20 @@ def _get_console_output_level(debug_flag):
 
 def _setup_logging(config, args):
     log_level = getattr(logging, config['Logging']['logLevel'], None)
-    log_format = logging.Formatter(fmt='[%(asctime)s][%(module)s][%(levelname)s]: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+    log_format = dict(fmt='[%(asctime)s][%(module)s][%(levelname)s]: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
     logger = logging.getLogger('')
     logger.setLevel(logging.DEBUG)
 
     create_dir_for_file(config['Logging']['logFile'])
     file_log = logging.FileHandler(config['Logging']['logFile'])
     file_log.setLevel(log_level)
-    file_log.setFormatter(log_format)
+    file_log.setFormatter(logging.Formatter(**log_format))
     logger.addHandler(file_log)
 
     if not args.silent:
         console_log = logging.StreamHandler()
         console_log.setLevel(_get_console_output_level(args.debug))
-        console_log.setFormatter(log_format)
+        console_log.setFormatter(ColoringFormatter(**log_format))
         logger.addHandler(console_log)
 
 

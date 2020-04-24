@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 '''
     Firmware Analysis and Comparison Tool (FACT)
-    Copyright (C) 2015-2019  Fraunhofer FKIE
+    Copyright (C) 2015-2020  Fraunhofer FKIE
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,8 +22,9 @@ import os
 import signal
 from time import sleep
 
+from analysis.PluginBase import PluginInitException
 from helperFunctions.process import complete_shutdown
-from helperFunctions.program_setup import was_started_by_start_fact, program_setup
+from helperFunctions.program_setup import program_setup, was_started_by_start_fact
 from intercom.back_end_binding import InterComBackEndBinding
 from scheduler.Analysis import AnalysisScheduler
 from scheduler.analysis_tag import TaggingDaemon
@@ -49,7 +50,11 @@ if __name__ == '__main__':
     else:
         signal.signal(signal.SIGINT, shutdown)
     args, config = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION)
-    analysis_service = AnalysisScheduler(config=config)
+    try:
+        analysis_service = AnalysisScheduler(config=config)
+    except PluginInitException as error:
+        logging.critical('Error during initialization of plugin {}. Shutting down FACT backend'.format(error.plugin.NAME))
+        complete_shutdown()
     tagging_service = TaggingDaemon(analysis_scheduler=analysis_service)
     unpacking_service = UnpackingScheduler(config=config, post_unpack=analysis_service.start_analysis_of_object, analysis_workload=analysis_service.get_scheduled_workload)
     compare_service = CompareScheduler(config=config)
@@ -65,7 +70,7 @@ if __name__ == '__main__':
         if args.testing:
             break
 
-    logging.info('shutdown components')
+    logging.info('Shutting down components')
     work_load_stat.shutdown()
     intercom.shutdown()
     compare_service.shutdown()

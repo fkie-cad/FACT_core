@@ -6,7 +6,7 @@ from test.yara_signature_testing import SignatureTestingMatching, SignatureTesti
 
 TEST_DATA_DIR = os.path.join(get_dir_of_file(__file__), 'data')
 SIGNATURE_PATH = os.path.join(get_dir_of_file(__file__), '../signatures/')
-TEST_SIGNATURE_PATH = os.path.join(get_dir_of_file(__file__), '../test/data/')
+TEST_SIGNATURE_PATH = os.path.join(get_dir_of_file(__file__), '../test/data/signatures/')
 
 
 class TestSoftwareSignatureMeta:
