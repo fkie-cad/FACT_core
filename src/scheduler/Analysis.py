@@ -6,7 +6,7 @@ from distutils.version import LooseVersion
 from multiprocessing import Queue, Value
 from queue import Empty
 from time import sleep, time
-from typing import List, Optional, Set, Tuple
+from typing import List, Optional, Set, Tuple, Union
 
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.compare_sets import substring_is_in_list
@@ -17,6 +17,7 @@ from helperFunctions.plugin import import_plugins
 from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions
 from helperFunctions.tag import add_tags_to_object, check_tags
 from objects.file import FileObject
+from objects.firmware import Firmware
 from storage.db_interface_backend import BackEndDbInterface
 
 MANDATORY_PLUGINS = ['file_type', 'file_hashes']
@@ -187,7 +188,19 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             except Empty:
                 pass
             else:
+                if task.analysis_exception:
+                    self._reschedule_failed_analysis_task(task)
                 self.process_next_analysis(task)
+
+    def _reschedule_failed_analysis_task(self, fw_object: Union[Firmware, FileObject]):
+        failed_plugin = fw_object.analysis_exception
+        if failed_plugin in fw_object.processed_analysis:
+            fw_object.processed_analysis.pop(failed_plugin)
+        for plugin in fw_object.scheduled_analysis[:]:
+            if failed_plugin in self.analysis_plugins[plugin].DEPENDENCIES:
+                fw_object.scheduled_analysis.remove(plugin)
+                logging.warning('unscheduled analysis {} for {} because dependency {} failed'.format(plugin, fw_object.uid, failed_plugin))
+        fw_object.analysis_exception = None
 
     # ---- analysis skipping ----
 
