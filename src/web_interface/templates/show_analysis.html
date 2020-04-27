@@ -347,7 +347,7 @@
                 <tbody>
                     {% for analysis_plugin in firmware.processed_analysis | sort %}
                         <tr>
-                            <td class="clickable mx-1 my-2" data-toggle="tooltip" title="{{ analysis_plugin_dict.get(analysis_plugin, ['not available'])[0] | safe }}" onclick="location.href='/analysis/{{ uid|safe }}/{{analysis_plugin}}/ro/{{ root_uid }}'">
+                            <td class="clickable mx-1 my-2 {{ 'table-primary' if analysis_plugin == selected_analysis else '' }}" data-toggle="tooltip" title="{{ analysis_plugin_dict.get(analysis_plugin, ['not available'])[0] | safe }}" onclick="location.href='/analysis/{{ uid|safe }}/{{analysis_plugin}}/ro/{{ root_uid }}'">
                                 {{ analysis_plugin | replace_underscore }}
                             </td>
                         </tr>

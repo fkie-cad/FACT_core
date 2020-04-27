@@ -193,13 +193,13 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
                 self.process_next_analysis(task)
 
     def _reschedule_failed_analysis_task(self, fw_object: Union[Firmware, FileObject]):
-        failed_plugin = fw_object.analysis_exception
-        if failed_plugin in fw_object.processed_analysis:
-            fw_object.processed_analysis.pop(failed_plugin)
+        failed_plugin, cause = fw_object.analysis_exception
+        fw_object.processed_analysis[failed_plugin] = {'failed': cause}
         for plugin in fw_object.scheduled_analysis[:]:
             if failed_plugin in self.analysis_plugins[plugin].DEPENDENCIES:
                 fw_object.scheduled_analysis.remove(plugin)
                 logging.warning('unscheduled analysis {} for {} because dependency {} failed'.format(plugin, fw_object.uid, failed_plugin))
+                fw_object.processed_analysis[plugin] = {'failed': 'Analysis of dependency {} failed'.format(failed_plugin)}
         fw_object.analysis_exception = None
 
     # ---- analysis skipping ----
@@ -243,7 +243,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
                 'processed_analysis.{}.system_version'.format(analysis_to_do): 1
             }
         )
-        if not db_entry or analysis_to_do not in db_entry['processed_analysis']:
+        if not db_entry or analysis_to_do not in db_entry['processed_analysis'] or 'failed' in db_entry['processed_analysis'][analysis_to_do]:
             return False
         if 'plugin_version' not in db_entry['processed_analysis'][analysis_to_do]:
             logging.error('Plugin Version missing: UID: {}, Plugin: {}'.format(uid, analysis_to_do))
