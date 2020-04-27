@@ -188,8 +188,6 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             except Empty:
                 pass
             else:
-                if task.analysis_exception:
-                    self._reschedule_failed_analysis_task(task)
                 self.process_next_analysis(task)
 
     def _reschedule_failed_analysis_task(self, fw_object: Union[Firmware, FileObject]):
@@ -327,7 +325,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
 
 # ---- miscellaneous functions ----
 
-    def result_collector(self):
+    def result_collector(self):  # pylint: disable=too-complex
         while self.stop_condition.value == 0:
             nop = True
             for plugin in self.analysis_plugins:
@@ -339,6 +337,9 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
                 else:
                     nop = False
                     if plugin in fw.processed_analysis:
+                        if fw.analysis_exception:
+                            self._reschedule_failed_analysis_task(fw)
+
                         self.post_analysis(fw)
                     self.check_further_process_or_complete(fw)
             if nop:
