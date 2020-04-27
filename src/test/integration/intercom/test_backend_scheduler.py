@@ -47,7 +47,7 @@ class AnalysisServiceMock:
     def __init__(self, config=None):
         pass
 
-    def update_analysis_of_object_and_childs(self, fo):
+    def update_analysis_of_object_and_children(self, fo):
         pass
 
     def get_plugin_dict(self):  # pylint: disable=no-self-use
