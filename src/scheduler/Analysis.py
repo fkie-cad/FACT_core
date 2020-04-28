@@ -196,7 +196,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         for plugin in fw_object.scheduled_analysis[:]:
             if failed_plugin in self.analysis_plugins[plugin].DEPENDENCIES:
                 fw_object.scheduled_analysis.remove(plugin)
-                logging.warning('unscheduled analysis {} for {} because dependency {} failed'.format(plugin, fw_object.uid, failed_plugin))
+                logging.warning('Unscheduled analysis {} for {} because dependency {} failed'.format(plugin, fw_object.uid, failed_plugin))
                 fw_object.processed_analysis[plugin] = {'failed': 'Analysis of dependency {} failed'.format(failed_plugin)}
         fw_object.analysis_exception = None
 
