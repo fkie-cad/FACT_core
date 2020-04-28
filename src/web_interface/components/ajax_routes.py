@@ -161,4 +161,4 @@ class AjaxRoutes(ComponentBase):
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
             firmware = sc.get_object(uid, analysis_filter=selected_analysis)
             summary_of_included_files = sc.get_summary(firmware, selected_analysis)
-        return render_template('summary.html', summary_of_included_files=summary_of_included_files, root_uid=uid)
+        return render_template('summary.html', summary_of_included_files=summary_of_included_files, root_uid=uid, selected_analysis=selected_analysis)

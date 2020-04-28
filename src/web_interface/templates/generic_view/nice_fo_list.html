@@ -1,7 +1,15 @@
-<div class="list-group" style="font-size: 15px;">
+{% from "generic_view/file_object_macros.html" import file_information_span, collapse_head %}
+
+<div class="list-group list-group-flush">
     {% if not omit_collapse %}
-        <div class="list-group-item list-group-item-primary d-flex justify-content-between align-items-center" data-toggle="collapse" data-target="#{{ u_show_id }}" role="button" aria-expanded="false" aria-controls="{{ u_show_id }}">
-            show files<span class="badge badge-primary badge-pill">{{ fo_list | length }}</span>
+        <div data-toggle="collapse" data-target="#{{ u_show_id }}" class="list-group-item d-flex justify-content-between align-items-center border-0">
+            <span class="mr-3" style="width: 100%">
+                {{ file_information_span(first_item, root_uid, selected_analysis) }}
+            </span>
+            <span class="btn-group">
+                <span class="btn btn-sm btn-primary"><i class="fas fa-list-ul"></i></span>
+                <span class="btn btn-sm btn-primary">{{ fo_list | length }}</span>
+            </span>
         </div>
         <div id="{{u_show_id}}" class="collapse">
     {% endif %}
@@ -12,22 +20,8 @@
         </a>
     {% endif %}
     {% for fo in fo_list %}
-        <div class="list-group-item list-group-item-action">
-            {% if selected_analysis %}
-                <a href="/analysis/{{ fo.uid }}/{{ selected_analysis }}/ro/{{ root_uid }}">
-            {% else %}
-                <a href="/analysis/{{ fo.uid }}/ro/{{ root_uid }}">
-            {% endif %}
-                <h6>{{ fo.virtual_file_paths | nice_list(omit_list_on_single_item=True) | replace_uid_with_hid(root_uid=root_uid) | safe }}</h6>
-            </a>
-            <p class="d-flex justify-content-between mb-0">
-                <span>Size: {{ fo.size | number_format }}
-                    {% if fo['mime-type'] %}
-                        , Type: {{ fo['mime-type'] }}
-                    {% endif %}
-                </span>
-                <span class="clickable" onclick="location.href='/download/{{ fo.uid }}'"><i class="fas fa-download"></i></span>
-            </p>
+        <div class="list-group-item list-group-item-action border-top">
+            {{ file_information_span(fo, root_uid, selected_analysis) }}
         </div>
     {% endfor %}
     {% if not omit_collapse %}

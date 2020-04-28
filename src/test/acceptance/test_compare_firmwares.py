@@ -38,11 +38,11 @@ class TestAcceptanceCompareFirmwares(TestAcceptanceBaseFullStart):
 
     def _show_analysis_without_compare_list(self):
         rv = self.test_client.get('/analysis/{}'.format(self.test_fw_a.uid))
-        assert b'Show List of Known Comparisons' not in rv.data
+        assert b'Show list of known comparisons' not in rv.data
 
     def _show_analysis_with_compare_list(self):
         rv = self.test_client.get('/analysis/{}'.format(self.test_fw_a.uid))
-        assert b'Show List of Known Comparisons' in rv.data
+        assert b'Show list of known comparisons' in rv.data
 
     def test_compare_firmwares(self):
         for firmware in [self.test_fw_a, self.test_fw_c]:

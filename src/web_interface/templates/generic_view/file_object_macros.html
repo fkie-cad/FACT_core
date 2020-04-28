@@ -1,0 +1,24 @@
+{% macro file_information_span(file_object, root_uid, selected_analysis=None) %}
+    {% if selected_analysis %}
+        <a href="/analysis/{{ file_object.uid }}/{{ selected_analysis }}/ro/{{ root_uid }}">
+    {% else %}
+        <a href="/analysis/{{ file_object.uid }}/ro/{{ root_uid }}">
+    {% endif %}
+        <h6>{{ file_object.current_virtual_path[0] | replace_uid_with_hid(root_uid=root_uid) | safe }}</h6>
+    </a>
+    <p class="d-flex justify-content-between mb-0">
+        <span>Size: {{ file_object.size | number_format }}
+            {% if file_object['mime-type'] %}
+                , Type: {{ file_object['mime-type'] }}
+            {% endif %}
+        </span>
+        <a href="location.href='/download/{{ file_object.uid }}'"><i class="fas fa-download"></i></a>
+    </p>
+{% endmacro %}
+
+{% macro collapse_head(collapse_id, list_length) %}
+    <div class="list-group-item list-group-item-primary d-flex justify-content-between align-items-center" data-toggle="collapse" data-target="#{{ collapse_id }}" role="button">
+        show file
+        <span class="badge badge-primary badge-pill">{{ list_length }}</span>
+    </div>
+{% endmacro %}
