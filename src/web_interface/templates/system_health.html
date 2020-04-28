@@ -3,7 +3,7 @@
 {% set active_page = "Info" %}
 
 {% block head %}
-    <meta http-equiv="refresh" content="10" />
+    <meta http-equiv="refresh" content="20" />
 {% endblock %}
 
 {% macro mem_label(component) %}
@@ -63,14 +63,11 @@
 
 {% macro plugin_card(plugin_name, plugin_data) %}
     {% set description, _, __, version, dependencies, blacklist, whitelist, threads = analysis_plugin_info[plugin_name] %}
-    <div class="card m-3" style="width: 300px;">
+    <div class="card m-3" style="width: 400px;">
         <div class="card-body">
             <h5 class="card-title">{{ plugin_name }}</h5>
             <h6 class="card-subtitle mb-2 text-muted">{{ version }}</h6>
-            <span class="card-text">
-                {{ description }}
-            </span>
-            <table class="table table-borderless mb-0">
+            <table class="table table-borderless">
                 <tr>
                     <td style="width: 30px;">
                         <i class="fas fa-align-justify"></i>
@@ -92,25 +89,31 @@
                         {{ plugin_data.queue | nice_number }}
                     </td>
                 </tr>
-                <tr data-toggle="collapse" data-target="#{{ plugin_name }}">
-                    <td><i class="fas fa-plus"></i>
-                    </td><td colspan="5">Expand</td>
-                </tr>
-                <tbody id="{{ plugin_name }}" class="collapse">
-                    <tr>
-                        <td><i class="fas fa-project-diagram"></i></td>
-                        <td colspan="5">{{ dependencies | nice_list | safe}}</td>
-                    </tr>
-                    <tr>
-                        <td><i class="fas fa-flag"></i></td>
-                        <td colspan="5">{{ blacklist | nice_list | safe }}</td>
-                    </tr>
-                    <tr>
-                        <td><i class="far fa-flag"></i></td>
-                        <td colspan="5">{{ whitelist | nice_list | safe }}</td>
-                    </tr>
-                </tbody>
             </table>
+
+            <button class="btn btn-outline-secondary btn-block" data-toggle="collapse" data-target="#{{ plugin_name }}">
+                <i class="fas fa-caret-down"></i>
+            </button>
+
+            <div class="collapse m-0 p-0 mt-3" id="{{ plugin_name }}">
+                <span class="card-text">
+                    {{ description }}
+                </span>
+                <table class="table table-borderless mb-0">
+                    <tr>
+                        <td style="width: 30px;" class="align-middle"><i class="fas fa-project-diagram"></i></td>
+                        <td>{{ dependencies | list_group_collapse | safe}}</td>
+                    </tr>
+                    <tr>
+                        <td class="align-middle"><i class="fas fa-flag"></i></td>
+                        <td>{{ blacklist | list_group_collapse | safe }}</td>
+                    </tr>
+                    <tr>
+                        <td class="align-middle"><i class="far fa-flag"></i></td>
+                        <td>{{ whitelist | list_group_collapse | safe }}</td>
+                    </tr>
+                </table>
+            </div>
         </div>
     </div>
 {% endmacro %}

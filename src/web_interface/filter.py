@@ -78,13 +78,15 @@ def list_group(input_data):
 
 def list_group_collapse(input_data, btn_class=None):
     input_data = [_handle_generic_data(item) for item in _get_sorted_list(input_data)]
-    if isinstance(input_data, list):
+    if isinstance(input_data, list) and len(input_data) > 0:
         collapse_id = random_collapse_id()
         first_item = input_data.pop(0)
         return render_template(
             'generic_view/collapsed_list.html',
             first_item=first_item, collapse_id=collapse_id, input_data=input_data, btn_class=btn_class
         )
+    if isinstance(input_data, list) and len(input_data) == 0:
+        return ''
     return input_data
 
 
