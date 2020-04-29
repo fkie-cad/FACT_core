@@ -73,19 +73,20 @@
                         <i class="fas fa-align-justify"></i>
                     </td>
                     <td style="width: 46px;">{{ threads }}</td>
-                    <td class="{% if plugin_data.queue > 150 %}table-warning{%else%}{% endif %}" style="width: 30px;">
+                    <td style="width: 30px;">
                         {% set span_class = " fa-spin" if plugin_data['active'] else "" %}
-                        {% set span_style = "color: black" if plugin_data['active'] else "color: darkgrey" %}
+                        {% set span_style = "color: green" if plugin_data['active'] else "color: darkgrey" %}
+                        {% set span_style = "color: yellow" if plugin_data.queue > 150 else span_style %}
                         <i class="fas fa-cog{{ span_class }}" style="{{ span_style }}"></i>
                     </td>
-                    <td style="width: 46px;">
+                    <td style="width: 46px; {{ span_style }}">
                         {{ plugin_data.active | nice_number }}
                     </td>
                     <td style="width: 30px;">
                         {% set span_style = "color: black" if plugin_data['queue'] else "color: darkgrey" %}
                         <i class="fas fa-sign-in-alt" style="{{ span_style }}"></i>
                     </td>
-                    <td>
+                    <td style="{{ span_style }}">
                         {{ plugin_data.queue | nice_number }}
                     </td>
                 </tr>
@@ -124,46 +125,46 @@
 
 <div class="row justify-content-center mt-4">
     {% for component in status %}
-        {% if component %}
-            {% if component['platform'] and component['system'] %}
-                {{ component_card(component) }}
-            {% endif %}
-            {% if component['analysis'] %}
-                <div class="col-sm-6 col-md-4 col-lg-3">
-                    <h3>{{ component['name'] }} workload</h3>
-                    <table class="table table-responsive-md table-hover table-bordered">
-                        <tr>
-                            <th class="table-head-light" colspan=3 style="text-align: center; padding:5px; color: #495057">Unpacking</th>
+        {% if component and component['platform'] and component['system'] %}
+            {{ component_card(component) }}
+		{% endif %}
+	{% endfor %}
+</div>
+
+{% for component in status %}
+    {% if component and component['analysis'] %}
+        <div class="row justify-content-center">
+            <div class="card m-3">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">general queues</h5>
+                    <table class="table table-borderless mb-0">
+                        {% set unpacking_class = "table-warning" if component['unpacking']['unpacking_queue'] > 500 else "" %}
+                        <tr class="{{ unpacking_class }}">
+                            <td class="px-0">Pending extraction</td>
+                            <td class="px-0" style="text-align: right; width: 80px;">{{ component['unpacking']['unpacking_queue'] | nice_number }}</td>
                         </tr>
-                        <tr>
-                            <td style="text-align: left; padding:5px">main</td>
-                            {% set unpacking_class = "table-warning" if component['unpacking']['unpacking_queue'] > 500 else "" %}
-                            <td class="{{ unpacking_class }}" colspan=2 style="text-align: right; padding:5px">{{ component['unpacking']['unpacking_queue'] | nice_number }}</td>
-                        </tr>
-                        <tr>
-                            <th class="table-head-light" colspan=3 style="text-align: center; padding:5px; color: #495057">Analysis</th>
-                        </tr>
-                        <tr>
-                            <td style="text-align: left; padding:5px">main</td>
-                            {% set analysis_main_class = "table-warning" if component['analysis']['analysis_main_scheduler'] > 150 else "" %}
-                            <td class="{{ analysis_main_class }}" colspan=2 style="text-align: right; padding:5px">{{ component['analysis']['analysis_main_scheduler'] | nice_number }}</td>
+                        {% set analysis_main_class = "table-warning" if component['analysis']['analysis_main_scheduler'] > 150 else "" %}
+                        <tr class="{{ analysis_main_class }}">
+                            <td class="px-0">Unscheduled analysis</td>
+                            <td class="px-0" style="text-align: right;">{{ component['analysis']['analysis_main_scheduler'] | nice_number }}</td>
                         </tr>
                     </table>
                 </div>
             </div>
-            <div class="row justify-content-center">
-                {% for plugin_name, plugin_data in component['analysis']['plugins'].items() | sort %}
-                    {% if "dummy" not in plugin_name %}  {# {% if plugin != "analysis_main_scheduler" %} #}
-                        {{ plugin_card(plugin_name, plugin_data) }}
-                    {% endif %}
-                {% endfor %}
-            {% endif %}
-		{% else %}
-            <div class="alert alert-warning col-sm-6 col-md-4 col-lg-3">
-                <strong>{{ component['name'] }} Status not Available!</strong><br /> Maybe the {{ component['name'] }} did not start yet.
-            </div>
-		{% endif %}
-	{% endfor %}
-</div>
+        </div>
+    {% endif %}
+{% endfor %}
+
+{% for component in status %}
+    {% if component and component['analysis'] %}
+        <div class="row justify-content-center">
+            {% for plugin_name, plugin_data in component['analysis']['plugins'].items() | sort %}
+                {% if "dummy" not in plugin_name %}  {# {% if plugin != "analysis_main_scheduler" %} #}
+                    {{ plugin_card(plugin_name, plugin_data) }}
+                {% endif %}
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endfor %}
 
 {% endblock %}
