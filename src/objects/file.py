@@ -26,6 +26,7 @@ class FileObject():  # pylint: disable=too-many-instance-attributes
         self.parent_firmware_uids = set()
         self.temporary_data = {}
         self.analysis_tags = {}
+        self.analysis_exception = None
         if binary is not None:
             self.set_binary(binary)
         else:

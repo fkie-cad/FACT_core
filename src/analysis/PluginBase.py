@@ -134,15 +134,18 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         process.start()
         process.join(timeout=self.timeout)
         if self.timeout_happened(process):
-            terminate_process_and_childs(process)
-            self.out_queue.put(next_task)
-            logging.warning('Worker {}: Timeout {} analysis on {}'.format(worker_id, self.NAME, next_task.uid))
+            self._handle_failed_analysis(next_task, process, worker_id, 'Timeout')
         elif process.exception:
-            terminate_process_and_childs(process)
-            raise process.exception[0]
+            self._handle_failed_analysis(next_task, process, worker_id, 'Exception')
         else:
             self.out_queue.put(result.pop())
             logging.debug('Worker {}: Finished {} analysis on {}'.format(worker_id, self.NAME, next_task.uid))
+
+    def _handle_failed_analysis(self, fw_object, process, worker_id, cause: str):
+        terminate_process_and_childs(process)
+        fw_object.analysis_exception = (self.NAME, '{} occurred during analysis'.format(cause))
+        logging.error('Worker {}: {} during analysis {} on {}'.format(worker_id, cause, self.NAME, fw_object.uid))
+        self.out_queue.put(fw_object)
 
     def worker(self, worker_id):
         while self.stop_condition.value == 0:
