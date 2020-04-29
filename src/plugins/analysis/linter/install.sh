@@ -26,9 +26,9 @@ then
     echo "deb https://deb.nodesource.com/node_14.x xenial main" | sudo tee /etc/apt/sources.list.d/nodesource.list
     echo "deb-src https://deb.nodesource.com/node_14.x xenial main" | sudo tee -a /etc/apt/sources.list.d/nodesource.list
     sudo apt-get update
-    sudo apt-get install nodejs || exit 1
+    sudo apt-get -y install nodejs || exit 1
 else
-    sudo apt-get install npm || exit 1
+    sudo apt-get -y install npm || exit 1
 fi
 sudo npm install -g jshint || exit 1
 
