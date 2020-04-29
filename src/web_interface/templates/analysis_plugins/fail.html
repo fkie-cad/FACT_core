@@ -1,0 +1,13 @@
+{% extends "analysis_plugins/general_information.html" %}
+
+{% block analysis_result_details %}
+
+<tr>
+    <th>Status</th><th>Reason</th>
+</tr>
+<tr class="table-danger">
+    <td>Failed</td>
+    <td>{{ firmware.processed_analysis[selected_analysis]['failed'] }}</td>
+</tr>
+
+{% endblock %}
