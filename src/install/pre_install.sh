@@ -17,39 +17,45 @@ fi
 echo "Install Pre-Install Requirements"
 sudo apt-get -y install python3-pip git libffi-dev
 
-echo "Installing Docker"
-
-# Uninstall old versions
-sudo apt-get -y remove docker docker-engine docker.io
-
 # Install packages to allow apt to use a repository over HTTPS
 sudo apt-get -y install apt-transport-https ca-certificates curl software-properties-common
 
-if [ "${CODENAME}" = "stretch" ] || [ "${CODENAME}" = "buster" ]
+echo "Installing Docker"
+
+if [ "${CODENAME}" = "focal" ]
 then
-    # Add Docker’s official GPG key
-    curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
-
-    # set up the stable repository
-    if [ ! -f /etc/apt/sources.list.d/docker.list ]
-    then
-        echo "deb [arch=amd64] https://download.docker.com/linux/debian ${CODENAME} stable" > docker.list
-        sudo mv docker.list /etc/apt/sources.list.d/docker.list
-    fi
+	sudo apt-get -y install docker docker-compose docker.io
 else
-    # Add Docker’s official GPG key
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-
-    # set up the stable repository
-    if  ! grep -q "^deb .*download.docker.com/linux/ubuntu" /etc/apt/sources.list /etc/apt/sources.list.d/*
-    then
-        sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $CODENAME stable"
-    fi
+	# Uninstall old versions
+	sudo apt-get -y remove docker docker-engine docker.io
+	
+	if [ "${CODENAME}" = "stretch" ] || [ "${CODENAME}" = "buster" ]
+	then
+	    # Add Docker’s official GPG key
+	    curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
+	
+	    # set up the stable repository
+	    if [ ! -f /etc/apt/sources.list.d/docker.list ]
+	    then
+	        echo "deb [arch=amd64] https://download.docker.com/linux/debian ${CODENAME} stable" > docker.list
+	        sudo mv docker.list /etc/apt/sources.list.d/docker.list
+	    fi
+	else
+	    # Add Docker’s official GPG key
+	    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+	
+	    # set up the stable repository
+	    if  ! grep -q "^deb .*download.docker.com/linux/ubuntu" /etc/apt/sources.list /etc/apt/sources.list.d/*
+	    then
+	        sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $CODENAME stable"
+	    fi
+	fi
+	# install docker
+	sudo apt-get update
+	sudo apt-get -y install docker-ce 
+	sudo systemctl enable docker
 fi
 
-# install docker
-sudo apt-get update
-sudo apt-get -y install docker-ce 
 sudo systemctl enable docker
 
 # add fact-user to docker group
