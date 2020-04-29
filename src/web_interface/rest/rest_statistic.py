@@ -39,7 +39,7 @@ class RestStatus(Resource):
         plugins.pop('unpacker', None)
 
         for name, information in plugins.items():
-            description, _, _, version = information
+            description, _, _, version, _, _, _, _ = information
             plugins[name] = dict(description=description, version=version)
 
         return plugins
