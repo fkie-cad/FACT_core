@@ -16,7 +16,7 @@ echo " Installing python linter..."
 sudo -EH pip3 install --upgrade pylint || exit 1
 
 echo " Installing javascript linter..."
-sudo apt-get install -y libssl1.0-dev nodejs-dev node-gyp npm || exit 1
+sudo apt-get install -y npm || exit 1
 sudo npm install -g jshint || exit 1
 
 exit 0
