@@ -291,6 +291,22 @@ class TestUtilityFunctions:
         self._add_plugins()
         assert set(self.scheduler._get_plugins_with_met_dependencies(remaining, scheduled)) == expected_output
 
+    def test_reschedule_failed_analysis_task(self):
+        task = Firmware(binary='foo')
+        error_message = 'There was an exception'
+        task.analysis_exception = ('foo', error_message)
+        task.scheduled_analysis = ['no_deps', 'bar']
+        task.processed_analysis['foo'] = {'error': 1}
+        self._add_plugins()
+        self.scheduler._reschedule_failed_analysis_task(task)
+
+        assert 'foo' in task.processed_analysis
+        assert task.processed_analysis['foo'] == {'failed': error_message}
+        assert 'bar' not in task.scheduled_analysis
+        assert 'bar' in task.processed_analysis
+        assert task.processed_analysis['bar'] == {'failed': 'Analysis of dependency foo failed'}
+        assert 'no_deps' in task.scheduled_analysis
+
     def test_smart_shuffle(self):
         self._add_plugins()
         result = self.scheduler._smart_shuffle(self.plugin_list)

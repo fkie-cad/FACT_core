@@ -218,12 +218,12 @@
                 <button class="btn btn-secondary">Download options</button>
 
                 {# Binary Download Button #}
-                <button class="btn btn-outline-secondary" onclick='window.location.href = "/download/{{ firmware.get_uid() }}";'>
+                <button class="btn btn-outline-secondary" onclick='window.location.href = "/download/{{ firmware.uid }}";'>
                     <i class="fas fa-download"></i> download raw file
                 </button>
                 {# Tar Download Button #}
                 {% if firmware.files_included %}
-                    <button class="btn btn-outline-secondary" onclick='window.location.href = "/tar-download/{{ firmware.get_uid() }}";'>
+                    <button class="btn btn-outline-secondary" onclick='window.location.href = "/tar-download/{{ firmware.uid }}";'>
                         <i class="fas fa-file-archive"></i> download included files as tar.gz
                     </button>
                 {% endif %}
@@ -284,7 +284,7 @@
             <script>
                 function radare_view() {
                     let radare_form = document.createElement('form');
-                    radare_form.action = '/radare-view/{{ firmware.get_uid() }}';
+                    radare_form.action = '/radare-view/{{ firmware.uid }}';
                     radare_form.target = '_blank';
                     radare_form.method = 'GET';
 
@@ -347,7 +347,7 @@
                 <tbody>
                     {% for analysis_plugin in firmware.processed_analysis | sort %}
                         <tr>
-                            <td class="clickable mx-1 my-2" data-toggle="tooltip" title="{{ analysis_plugin_dict.get(analysis_plugin, ['not available'])[0] | safe }}" onclick="location.href='/analysis/{{ uid|safe }}/{{analysis_plugin}}/ro/{{ root_uid }}'">
+                            <td class="clickable mx-1 my-2 {{ 'table-primary' if analysis_plugin == selected_analysis else '' }}" data-toggle="tooltip" title="{{ analysis_plugin_dict.get(analysis_plugin, ['not available'])[0] | safe }}" onclick="location.href='/analysis/{{ uid|safe }}/{{analysis_plugin}}/ro/{{ root_uid }}'">
                                 {{ analysis_plugin | replace_underscore }}
                             </td>
                         </tr>
