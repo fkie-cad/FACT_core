@@ -9,11 +9,10 @@ from web_interface.filter import (
     data_to_chart_limited, data_to_chart_with_value_percentage_pairs, decompress, encode_base64_filter,
     filter_format_string_list_with_offset, fix_cwe, generic_nice_representation, get_all_uids_in_string,
     get_unique_keys_from_list_of_dicts, infection_color, is_not_mandatory_analysis_entry, list_group,
-    list_group_collapse, list_to_line_break_string, list_to_line_break_string_no_sort, nice_number_filter,
-    nice_unix_time, random_collapse_id, render_analysis_tags, render_tags, replace_underscore_filter,
-    set_limit_for_data_to_chart, sort_chart_list_by_name, sort_chart_list_by_value, sort_comments,
-    sort_roles_by_number_of_privileges, sort_users_by_name, text_highlighter, uids_to_link, user_has_role,
-    vulnerability_class
+    list_to_line_break_string, list_to_line_break_string_no_sort, nice_number_filter, nice_unix_time,
+    random_collapse_id, render_analysis_tags, render_tags, replace_underscore_filter, set_limit_for_data_to_chart,
+    sort_chart_list_by_name, sort_chart_list_by_value, sort_comments, sort_roles_by_number_of_privileges,
+    sort_users_by_name, text_highlighter, uids_to_link, user_has_role, vulnerability_class
 )
 
 UNSORTABLE_LIST = [[], ()]
@@ -380,16 +379,3 @@ def test_random_collapse_id():
     collapse_id = random_collapse_id()
     assert isinstance(collapse_id, str)
     assert not collapse_id[0].isnumeric()
-
-
-def test_list_group_collapse():
-    from web_interface.frontend_main import WebFrontEnd  # pylint: disable=import-outside-toplevel
-    from test.common_helper import get_config_for_testing  # pylint: disable=import-outside-toplevel
-
-    with WebFrontEnd(get_config_for_testing()).app.app_context():
-        collapsed_list_group = list_group_collapse(['a', 'b'])
-
-    assert 'data-toggle="collapse"' in collapsed_list_group
-    assert '<span>a</span>' in collapsed_list_group
-    assert '<span class="btn btn-sm btn-primary">1</span>' in collapsed_list_group
-    assert '<div class="list-group-item border-top">b</div>' in collapsed_list_group
