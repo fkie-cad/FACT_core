@@ -78,14 +78,14 @@ def list_group(input_data):
 
 def list_group_collapse(input_data, btn_class=None):
     input_data = [_handle_generic_data(item) for item in _get_sorted_list(input_data)]
-    if isinstance(input_data, list):
+    if input_data:
         collapse_id = random_collapse_id()
         first_item = input_data.pop(0)
         return render_template(
             'generic_view/collapsed_list.html',
             first_item=first_item, collapse_id=collapse_id, input_data=input_data, btn_class=btn_class
         )
-    return input_data
+    return ''
 
 
 def _handle_generic_data(input_data):
@@ -385,10 +385,10 @@ def random_collapse_id():
     return ''.join((random.choice(ascii_letters) for _ in range(10)))
 
 
-def version_links(versions, selected_analysis=None):
+def create_firmware_version_links(firmware_list, selected_analysis=None):
     if selected_analysis:
         template = '<a href="/analysis/{{}}/{}">{{}}</a>'.format(selected_analysis)
     else:
         template = '<a href="/analysis/{}">{}</a>'
 
-    return [template.format(version['_id'], version['version']) for version in versions]
+    return [template.format(firmware['_id'], firmware['version']) for firmware in firmware_list]
