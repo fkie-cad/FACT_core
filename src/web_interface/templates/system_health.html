@@ -74,20 +74,16 @@
                     <h3>{{ component['name'] }} workload</h3>
                     <table class="table table-responsive-md table-hover table-bordered">
                         {% set current_analyses = component['analysis']['current_analyses'] %}
-                        <tr>
-                            <th class="table-head-light" colspan=3 style="text-align: center; padding:5px; color: #495057">Currently Analyzed Firmware</th>
-                        </tr>
                         {% if current_analyses %}
+                            <tr>
+                                <th class="table-head-light" colspan=3 style="text-align: center; padding:5px; color: #495057">Currently Analyzed Firmware</th>
+                            </tr>
                             {% for firmware_uid, fo_count in current_analyses.items() %}
                                 <tr>
                                     <td colspan=2 style="text-align: left; padding:5px">{{ firmware_uid | replace_uid_with_hid | safe }}</td>
                                     <td style="text-align: right; padding:5px">{{ fo_count | nice_number }}</td>
                                 </tr>
                             {% endfor %}
-                        {% else %}
-                            <tr>
-                                <td colspan=3 style="text-align: left; padding:5px">Empty</td>
-                            </tr>
                         {% endif %}
                         <tr>
                             <th class="table-head-light" colspan=3 style="text-align: center; padding:5px; color: #495057">Unpacking</th>

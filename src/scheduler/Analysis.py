@@ -409,7 +409,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             self.currently_running[parent] = [uid for uid in self.currently_running[parent] if uid != fw_object.uid]
             if len(self.currently_running[parent]) == 0:
                 self.currently_running.pop(parent)
-                logging.info('analysis of firmware {} completed'.format(parent))
+                logging.info('Analysis of firmware {} completed'.format(parent))
 
     def _find_currently_analyzed_parents(self, fo):
         return set(self.currently_running.keys()).intersection(fo.parent_firmware_uids)
