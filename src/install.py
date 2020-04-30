@@ -36,7 +36,7 @@ except ImportError:
     sys.exit('Could not import install dependencies. Please (re-)run install/pre_install.sh')
 
 PROGRAM_NAME = 'FACT Installer'
-PROGRAM_VERSION = '1.0'
+PROGRAM_VERSION = '1.1'
 PROGRAM_DESCRIPTION = 'Firmware Analysis and Comparison Tool (FACT) installation script'
 
 INSTALL_CANDIDATES = ['frontend', 'db', 'backend']
@@ -44,6 +44,7 @@ INSTALL_CANDIDATES = ['frontend', 'db', 'backend']
 BIONIC_CODE_NAMES = ['bionic', 'tara', 'tessa', 'tina', 'disco']
 XENIAL_CODE_NAMES = ['xenial', 'yakkety', 'sarah', 'serena', 'sonya', 'sylvia']
 DEBIAN_CODE_NAMES = ['buster', 'stretch', 'kali-rolling']
+FOCAL_CODE_NAMES = ['focal']
 
 
 def _setup_argparser():
@@ -118,6 +119,9 @@ def check_distribution():
     if codename in BIONIC_CODE_NAMES:
         logging.debug('Ubuntu 18.04 detected')
         return 'bionic'
+    if codename in FOCAL_CODE_NAMES:
+        logging.debug('Ubuntu 20.04 detected')
+        return 'focal'
     if codename in DEBIAN_CODE_NAMES:
         logging.debug('Debian/Kali detected')
         return 'debian'

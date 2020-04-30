@@ -26,7 +26,7 @@ Minimal | Recommended | Software
 > ~ 10 GB required to set up FACT code, container and binaries. Additional space is necessary for result storage. That can be on a seperate partition or drive.
 
 It is possible to install FACT on any Linux distribution but the installer is limited to
-- Ubuntu 16.04, 18.04 (stable)
+- Ubuntu 16.04, 18.04, 20.04 (stable)
 - Ubuntu 19.04 (experimental)
 - Debian 9, 10 (experimental)
 - Kali (tested on 2019.3 and 2019.4) (experimental)
