@@ -360,7 +360,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
     def check_further_process_or_complete(self, fw_object):
         if not fw_object.scheduled_analysis:
             logging.info('Analysis Completed:\n{}'.format(fw_object))
-            if isinstance(fw_object, FileObject):
+            if not isinstance(fw_object, Firmware):
                 self._remove_from_current_analyses(fw_object)
         else:
             self.process_queue.put(fw_object)
