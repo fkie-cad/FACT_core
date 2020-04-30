@@ -145,17 +145,19 @@
     {% if component and component['analysis'] %}
         {% set current_analyses = component['analysis']['current_analyses'] %}
         {% if current_analyses %}
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Currently Analyzed Firmware</h5>
-                    <table class="table table-borderless mb-0">
-                        {% for firmware_uid, fo_count in current_analyses.items() %}
-                            <tr>
-                                <td>{{ firmware_uid | replace_uid_with_hid | safe }}</td>
-                                <td>{{ fo_count | nice_number }}</td>
-                            </tr>
-                        {% endfor %}
-                    </table>
+            <div class="row justify-content-center">
+                <div class="card" style="width: 430px;">
+                    <div class="card-body">
+                        <h5 class="card-title">Currently analyzed firmware</h5>
+                        <table class="table table-borderless mb-0">
+                            {% for firmware_uid, fo_count in current_analyses.items() %}
+                                <tr>
+                                    <td class="px-0" style="text-align: left;">{{ firmware_uid | replace_uid_with_hid | safe }}</td>
+                                    <td class="px-0" style="text-align: right;">{{ fo_count | nice_number }}</td>
+                                </tr>
+                            {% endfor %}
+                        </table>
+                    </div>
                 </div>
             </div>
         {% endif %}
