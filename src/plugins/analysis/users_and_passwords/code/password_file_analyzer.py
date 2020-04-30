@@ -19,7 +19,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     DEPENDENCIES = []
     MIME_BLACKLIST = ['audio', 'filesystem', 'image', 'video']
     DESCRIPTION = 'search for UNIX and httpd password files, parse them and try to crack the passwords'
-    VERSION = '0.4.3'
+    VERSION = '0.4.4'
 
     wordlist_path = os.path.join(get_src_dir(), 'bin/passwords.txt')
 
@@ -69,8 +69,11 @@ class AnalysisPlugin(AnalysisBasePlugin):
             fp.seek(0)
             result_dict[key]['log'] = execute_shell_command('john --wordlist={} {}'.format(self.wordlist_path, fp.name))
             output = execute_shell_command('john --show {}'.format(fp.name)).split('\n')
-        if len(output) > 2 and '0 password hashes cracked' not in output:
+        if len(output) > 2:
             with suppress(KeyError):
+                if '0 password hashes cracked' in output[-2]:
+                    result_dict[key]['ERROR'] = "hash type is not supported"
+                    return False
                 result_dict[key]['password'] = output[0].split(':')[1]
                 return True
         return False
