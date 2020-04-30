@@ -24,7 +24,7 @@ echo "Installing Docker"
 
 if [ "${CODENAME}" = "focal" ]
 then
-	sudo apt-get -y install docker docker-compose docker.io
+	sudo apt-get -y install docker-compose docker.io
 else
 	# Uninstall old versions
 	sudo apt-get -y remove docker docker-engine docker.io
@@ -52,8 +52,7 @@ else
 	fi
 	# install docker
 	sudo apt-get update
-	sudo apt-get -y install docker-ce 
-	sudo systemctl enable docker
+	sudo apt-get -y install docker-ce
 fi
 
 sudo systemctl enable docker
