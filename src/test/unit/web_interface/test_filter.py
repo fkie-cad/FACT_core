@@ -5,14 +5,14 @@ from zlib import compress
 import pytest
 
 from web_interface.filter import (
-    _get_sorted_list, byte_number_filter, comment_out_regex_meta_chars, data_to_chart_limited,
-    data_to_chart_with_value_percentage_pairs, decompress, encode_base64_filter, filter_format_string_list_with_offset,
-    fix_cwe, generic_nice_representation, get_all_uids_in_string, get_unique_keys_from_list_of_dicts, infection_color,
-    is_not_mandatory_analysis_entry, list_group, list_group_collapse, list_to_line_break_string,
-    list_to_line_break_string_no_sort, nice_number_filter, nice_unix_time, random_collapse_id, render_analysis_tags,
-    render_tags, replace_underscore_filter, set_limit_for_data_to_chart, sort_chart_list_by_name,
-    sort_chart_list_by_value, sort_comments, sort_roles_by_number_of_privileges, sort_users_by_name, text_highlighter,
-    uids_to_link, user_has_role, version_links, vulnerability_class
+    _get_sorted_list, byte_number_filter, comment_out_regex_meta_chars, create_firmware_version_links,
+    data_to_chart_limited, data_to_chart_with_value_percentage_pairs, decompress, encode_base64_filter,
+    filter_format_string_list_with_offset, fix_cwe, generic_nice_representation, get_all_uids_in_string,
+    get_unique_keys_from_list_of_dicts, infection_color, is_not_mandatory_analysis_entry, list_group,
+    list_to_line_break_string, list_to_line_break_string_no_sort, nice_number_filter, nice_unix_time,
+    random_collapse_id, render_analysis_tags, render_tags, replace_underscore_filter, set_limit_for_data_to_chart,
+    sort_chart_list_by_name, sort_chart_list_by_value, sort_comments, sort_roles_by_number_of_privileges,
+    sort_users_by_name, text_highlighter, uids_to_link, user_has_role, vulnerability_class
 )
 
 UNSORTABLE_LIST = [[], ()]
@@ -364,13 +364,13 @@ def test_is_not_mandatory_analysis_entry(input_data, additional, expected_result
 
 
 def test_version_links_no_analysis():
-    links = version_links([{'version': '1.0', '_id': 'uid_123'}, {'version': '1.1', '_id': 'uid_234'}])
+    links = create_firmware_version_links([{'version': '1.0', '_id': 'uid_123'}, {'version': '1.1', '_id': 'uid_234'}])
     assert '<a href="/analysis/uid_123">1.0</a>' in links
     assert '<a href="/analysis/uid_234">1.1</a>' in links
 
 
 def test_version_links_with_analysis():
-    links = version_links([{'version': '1.0', '_id': 'uid_123'}, {'version': '1.1', '_id': 'uid_234'}], 'foo')
+    links = create_firmware_version_links([{'version': '1.0', '_id': 'uid_123'}, {'version': '1.1', '_id': 'uid_234'}], 'foo')
     assert '<a href="/analysis/uid_123/foo">1.0</a>' in links
     assert '<a href="/analysis/uid_234/foo">1.1</a>' in links
 
@@ -378,17 +378,4 @@ def test_version_links_with_analysis():
 def test_random_collapse_id():
     collapse_id = random_collapse_id()
     assert isinstance(collapse_id, str)
-    assert not any(collapse_id.startswith(digit) for digit in '0123456789')
-
-
-def test_list_group_collapse():
-    from web_interface.frontend_main import WebFrontEnd  # pylint: disable=import-outside-toplevel
-    from test.common_helper import get_config_for_testing  # pylint: disable=import-outside-toplevel
-
-    with WebFrontEnd(get_config_for_testing()).app.app_context():
-        collapsed_list_group = list_group_collapse(['a', 'b'])
-
-    assert 'data-toggle="collapse"' in collapsed_list_group
-    assert '<span>a</span>' in collapsed_list_group
-    assert '<span class="btn btn-sm btn-primary">1</span>' in collapsed_list_group
-    assert '<div class="list-group-item border-top">b</div>' in collapsed_list_group
+    assert not collapse_id[0].isnumeric()

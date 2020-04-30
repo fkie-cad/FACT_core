@@ -160,5 +160,5 @@ class FilterClass:
         self._app.jinja_env.filters['text_highlighter'] = flt.text_highlighter
         self._app.jinja_env.filters['uids_to_link'] = flt.uids_to_link
         self._app.jinja_env.filters['user_has_role'] = flt.user_has_role
-        self._app.jinja_env.filters['version_links'] = flt.version_links
+        self._app.jinja_env.filters['version_links'] = flt.create_firmware_version_links
         self._app.jinja_env.filters['vulnerability_class'] = flt.vulnerability_class

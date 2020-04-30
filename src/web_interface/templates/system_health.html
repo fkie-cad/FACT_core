@@ -131,8 +131,6 @@
     </div>
 {% endmacro %}
 
-
-
 {% block body %}
 
 <div class="row justify-content-center mt-4">
@@ -145,7 +143,22 @@
 
 {% for component in status %}
     {% if component and component['analysis'] %}
-
+        {% set current_analyses = component['analysis']['current_analyses'] %}
+        {% if current_analyses %}
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Currently Analyzed Firmware</h5>
+                    <table class="table table-borderless mb-0">
+                        {% for firmware_uid, fo_count in current_analyses.items() %}
+                            <tr>
+                                <td>{{ firmware_uid | replace_uid_with_hid | safe }}</td>
+                                <td>{{ fo_count | nice_number }}</td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+            </div>
+        {% endif %}
     {% endif %}
 {% endfor %}
 
