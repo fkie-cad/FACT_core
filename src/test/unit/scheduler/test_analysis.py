@@ -413,9 +413,12 @@ class TestAnalysisSkipping:
             version=plugin_version, system_version=plugin_system_version)
         assert self.scheduler._analysis_is_already_in_db_and_up_to_date(plugin, '') == expected_output
 
-    def test_analysis_is_already_in_db_and_up_to_date__missing_version(self):
-        plugin = 'foo'
-        analysis_entry = {'processed_analysis': {plugin: {}}}
+    @pytest.mark.parametrize('db_entry', [
+        {}, {'plugin': {}}, {'plugin': {'no': 'version'}},
+        {'plugin': {'plugin_version': '0', 'system_version': '0', 'failed': 'reason'}}
+    ])
+    def test_analysis_is_already_in_db_and_up_to_date__incomplete(self, db_entry):
+        analysis_entry = {'processed_analysis': db_entry}
         self.scheduler.db_backend_service = self.BackendMock(analysis_entry)
-        self.scheduler.analysis_plugins[plugin] = self.PluginMock(version='1.0', system_version='1.0')
-        assert self.scheduler._analysis_is_already_in_db_and_up_to_date(plugin, '') is False
+        self.scheduler.analysis_plugins['plugin'] = self.PluginMock(version='1.0', system_version='1.0')
+        assert self.scheduler._analysis_is_already_in_db_and_up_to_date('plugin', '') is False
