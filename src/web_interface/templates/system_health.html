@@ -4,6 +4,18 @@
 
 {% block head %}
     <meta http-equiv="refresh" content="20" />
+    <script>
+        function change_button(button_id) {
+            element = document.getElementById(button_id);
+            if (element.classList.contains("fa-caret-down")) {
+                element.classList.remove("fa-caret-down");
+                element.classList.add("fa-caret-up");
+            } else {
+                element.classList.remove("fa-caret-up");
+                element.classList.add("fa-caret-down");
+            }
+        }
+    </script>
 {% endblock %}
 
 {% macro mem_label(component) %}
@@ -104,10 +116,6 @@
                 </tr>
             </table>
 
-            <button class="btn btn-outline-secondary btn-block" data-toggle="collapse" data-target="#{{ plugin_name }}">
-                <i class="fas fa-caret-down"></i>
-            </button>
-
             <div class="collapse m-0 p-0 mt-3" id="{{ plugin_name }}">
                 <span class="card-text">
                     {{ description }}
@@ -127,6 +135,12 @@
                     </tr>
                 </table>
             </div>
+
+            {% set button_id = "bt-" + plugin_name %}
+            <button class="btn btn-outline-secondary btn-sm btn-block mt-3" data-toggle="collapse" data-target="#{{ plugin_name }}" onclick="change_button('{{ button_id }}')">
+                <i id="{{ button_id }}" class="fas fa-caret-down"></i>
+            </button>
+
         </div>
     </div>
 {% endmacro %}
