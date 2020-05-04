@@ -78,7 +78,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         if len(output) > 2:
             with suppress(KeyError):
                 if '0 password hashes cracked' in output[-2]:
-                    result_dict[key]['ERROR'] = "hash type is not supported"
+                    result_dict[key]['ERROR'] = 'hash type is not supported'
                     return False
                 result_dict[key]['password'] = output[0].split(':')[1]
                 return True
