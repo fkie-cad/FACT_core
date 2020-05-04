@@ -19,7 +19,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     DEPENDENCIES = []
     MIME_BLACKLIST = ['audio', 'filesystem', 'image', 'video']
     DESCRIPTION = 'search for UNIX and httpd password files, parse them and try to crack the passwords'
-    VERSION = '0.4.3'
+    VERSION = '0.4.4'
 
     wordlist_path = os.path.join(get_src_dir(), 'bin/passwords.txt')
 
@@ -34,7 +34,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
         for passwd_regex in [
                 b'[a-zA-Z][a-zA-Z0-9_-]{2,15}:[^:]?:\\d+:\\d*:[^:]*:[^:]*:[^\n ]*',
-                b'[a-zA-Z][a-zA-Z0-9_-]{2,15}:\\$[^\\$]+\\$[^\\$]+\\$[a-zA-Z0-9\\./]{16,128}'
+                b'[a-zA-Z][a-zA-Z0-9_-]{2,15}:\\$[^\\$]+\\$[^\\$]+\\$[a-zA-Z0-9\\./+]{16,128}={0,3}'
         ]:
             passwd_entries = re.findall(passwd_regex, file_object.binary)
             if passwd_entries:
@@ -47,7 +47,13 @@ class AnalysisPlugin(AnalysisBasePlugin):
     def _add_found_password_tag(self, file_object, result):
         for password_entry in result:
             if 'password' in result[password_entry]:
-                self.add_analysis_tag(file_object, '{}_{}'.format(password_entry, result[password_entry]['password']), 'Password: {}:{}'.format(password_entry, result[password_entry]['password']), TagColor.RED, True)
+                self.add_analysis_tag(
+                    file_object,
+                    '{}_{}'.format(password_entry, result[password_entry]['password']),
+                    'Password: {}:{}'.format(password_entry, result[password_entry]['password']),
+                    TagColor.RED,
+                    True
+                )
 
     def _generate_analysis_entry(self, passwd_entries):
         result = {}
@@ -71,6 +77,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
             output = execute_shell_command('john --show {}'.format(fp.name)).split('\n')
         if len(output) > 2:
             with suppress(KeyError):
+                if '0 password hashes cracked' in output[-2]:
+                    result_dict[key]['ERROR'] = 'hash type is not supported'
+                    return False
                 result_dict[key]['password'] = output[0].split(':')[1]
                 return True
         return False
