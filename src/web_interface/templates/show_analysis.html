@@ -2,20 +2,21 @@
 
 {% set active_page = "Database" %}
 
-{% set query_url = "/database/browse?query=" %}
-{% set general_analysis_elements = [
-    ("device name", firmware.device_name, "", '{"device_name": {"$eq": "PLACEHOLDER"}}'),
-    ("device_part", firmware.part, "", '{"device_part": {"$eq": "PLACEHOLDER"}}'),
-    ("vendor", firmware.vendor, "", '{"vendor": {"$eq": "PLACEHOLDER"}}'),
-    ("device_class", firmware.device_class, "", '{"device_class": {"$eq": "PLACEHOLDER"}}'),
-    ("version", firmware.version, "", ""),
-    ("release date", firmware.release_date, "", ""),
-    ("file name", firmware.file_name, "word-break: break-all; word-wrap: break-word;", ""),
-    ("virtual_path", firmware.get_virtual_paths_for_one_uid(root_uid=root_uid)|nice_virtual_path_list|nice_list|safe, "word-break: break-all; overflow-wrap: break-word;", ""),
-    ("file size", firmware.size|number_format(verbose=True), "", ""),
-    ("MD5", firmware.md5, "word-break: break-all;", ""),
-    ("SHA256", firmware.sha256, "word-break: break-all;", "")
-] -%}
+{% macro button_collapse(button_id, icon, target, tooltip) %}
+    <button id="{{ button_id }}" data-toggle="collapse" data-target="#{{ target }}" class="btn btn-outline-secondary">
+        <i class="fas fa-{{ icon }}" data-toggle="tooltip" data-placement="bottom" title="{{ tooltip }}"></i>
+    </button>
+{% endmacro %}
+
+{% macro button_tooltip(tooltip, id, url, icon, onclick=None, danger=False) %}
+    {% set button_class = "btn-danger" if danger else "btn-outline-secondary" %}
+    {% set onclick_value = onclick if onclick else "window.location.href = '" + url + firmware.uid + "'" %}
+
+    <button id="{{ id }}" class="btn {{ button_class }}" onclick="{{ onclick_value }}" data-toggle="tooltip" data-placement="bottom" title="{{ tooltip }}">
+        <i class="fas fa-{{ icon }}"></i>
+    </button>
+{% endmacro %}
+
 
 {% block head %}
 	{# jstree import #}
@@ -34,32 +35,98 @@
 
 {% block body %}
 
-<div class="row justify-content-end mt-2" style="padding-right: 15px">
-    <div class="btn-group d-flex align-items-start">
-        <div class="btn btn-secondary">Comparisons</div>
-        {% if known_comparisons %}
-            <div class="btn btn-outline-secondary" data-toggle="collapse" data-target="#old_comparisons" title="Show List of Known Comparisons">
-                <i class="far fa-hdd"></i>
-            </div>
-        {% endif %}
-        {% if not uids_for_comparison or uid not in uids_for_comparison %}
-            <div class="btn btn-outline-secondary" onclick="location.href='/comparison/add/{{ uid }}'" title="Add to Comparison">
-                <i class="fas fa-plus"></i>
-            </div>
-        {% endif %}
+<div class="row justify-content-between mt-2">
+    <div class="col-lg-6">
 
-        {% if uids_for_comparison %}
-            <div class="btn btn-outline-secondary" data-toggle="collapse" data-target="#comparison-list" title="Show Selected Firmwares for Comparison">
-                <i class="fas fa-list-ul"></i>
+        {# Button section #}
+        <div class="btn-toolbar mb-4" role="toolbar" aria-label="Analysis, download and admin buttons">
+
+            <div class="btn-group mr-2 mb-2" role="group" aria-label="Download buttons">
+                <button class="btn btn-secondary">Download</button>
+
+                {{ button_tooltip('Download raw file', 'bdown-button', '/download/', 'file-download') }}
+                {% if firmware.files_included %}
+                    {{ button_tooltip('Download included files as tar.gz', 'tdown-button', '/tar-download/', 'file-archive') }}
+                {% endif %}
+                {% if firmware.vendor %}
+                    {{ button_tooltip('Download report as PDF', 'pdown-button', '/pdf-download/', 'file-pdf') }}
+                {% endif %}
             </div>
-        {% endif %}
+
+            <div class="btn-group mr-2 mb-2" aria-label="Analysis buttons">
+                <button class="btn btn-secondary">Analysis</button>
+
+                {{ button_tooltip('View in radare', 'radare-button', None, 'terminal', onclick='radare_view()') }}
+                {% if firmware.vendor %}
+                    {{ button_tooltip('Update analysis', 'update-button', '/update-analysis/', 'redo-alt') }}
+                    {{ button_tooltip('YARA search', 'yara-button', '/database/binary_search?firmware_uid=', 'search') }}
+                {% endif %}
+            </div>
+
+            {% if firmware.vendor and user_has_admin_clearance %}
+                <div class="btn-group mr-2 mb-2" role="group" aria-label="Admin buttons">
+                    <button class="btn btn-secondary">Admin</button>
+
+                    {{ button_collapse('redo-button', 'redo-alt', 'redo-button-div', 'Redo analysis') }}
+                    <span class="collapse" id="redo-button-div">
+                        {{ button_tooltip('Confirm removal of current results and comments', 'confirm-redo', '/admin/re-do_analysis/', 'check', danger=True) }}
+                    </span>
+
+                    <span class="collapse" id="delete-button-div">
+                        {{ button_tooltip('Confirm removal of results and comments', 'confirm-delete', '/admin/delete/', 'check', danger=True) }}
+                    </span>
+                    {{ button_collapse('delete-button', 'trash-alt', 'delete-button-div', 'Delete firmware') }}
+                </div>
+
+            {% endif %}
+            <div class="btn-group d-flex align-items-start">
+                <div class="btn btn-secondary">Comparisons</div>
+                {% if known_comparisons %}
+                    {{ button_collapse('old-compare-button', 'hdd', 'known-comparisons', 'Show list of known comparisons') }}
+                {% endif %}
+                {% if not uids_for_comparison or uid not in uids_for_comparison %}
+                    {{ button_tooltip('Add to comparison', 'add-compare', '/comparison/add/', 'plus') }}
+                {% endif %}
+
+                {% if uids_for_comparison %}
+                    {{ button_collapse('new-compare-button', 'list-ul', 'comparison-list', 'Show firmware selected for comparison') }}
+                {% endif %}
+            </div>
+        </div>
+
+        {# Header section #}
+        <div class="header mb-4" style="word-wrap: break-word">
+            <h3>
+                {{ firmware.get_hid(root_uid=root_uid) }}<br />
+                {% if firmware.analysis_tags or firmware.tags %}
+                    {{ firmware.analysis_tags | render_analysis_tags | safe }} {{ firmware.tags | render_tags | safe }}<br />
+                {% endif %}
+                <span style="font-size: 15px"><strong>UID:</strong> {{ uid | safe }}</span>
+            </h3>
+            {% if all_analyzed_flag %}
+                <div class="alert alert-warning">
+                    <strong>Warning!</strong> Not all included files are fully analyzed yet! Only analyzed files are shown.
+                </div>
+            {% endif %}
+        </div>
+
     </div>
 
-    <div class="col-auto collapse" id="old_comparisons">
+    {# General info section #}
+    <div class="col-lg-6">
+        {{ firmware | render_general_information(firmware.parent_firmware_uids, other_versions, selected_analysis) | safe }}
+    </div>
+
+</div>
+
+
+{% if uids_for_comparison or known_comparisons %}
+<div class="row justify-content-start mt-3 mb-2">
+    <div class="col-auto collapse" id="known-comparisons">
         <div class="card float-right" style="width: auto; max-width: 650px;">
             <div class="card-header text-center" style="font-size: larger">List of comparisons containing the displayed firmware</div>
             <div class="card-body">
-                {% for comparison in known_comparisons%}
+                {% for comparison in known_comparisons %}
                     <div class="col-xs-12 mb-1">
                         <span type="button" class="btn btn-primary btn-sm" onclick="location.href='/compare/{{ comparison[0]}}'">{{ comparison[0] | replace_comparison_uid_with_hid | safe  }}</span>
                     </div>
@@ -67,10 +134,7 @@
             </div>
         </div>
     </div>
-</div>
 
-{% if uids_for_comparison %}
-<div class="row justify-content-end mt-3 mb-2">
     <div class="collapse m-0" id="comparison-list">
         <div class="jumbotron float-right mx-2 mb-0 p-3" style="width: auto; max-width: 650px;">
             <span class="mt-0 text-center" style="font-size: larger">Firmware Selected for Comparison</span>
@@ -126,182 +190,10 @@
 </div>
 {% endif %}
 
-    {# Header section #}
-    <div class="row">
-        <div class="col-lg-12 header" style="word-wrap: break-word">
-            <h3>
-                {{ firmware.get_hid(root_uid=root_uid) }}<br />
-                {% if firmware.analysis_tags or firmware.tags %}
-                    {{ firmware.analysis_tags | render_analysis_tags | safe }} {{ firmware.tags | render_tags | safe }}<br />
-                {% endif %}
-                <span style="font-size: 15px"><strong>UID:</strong> {{ uid | safe }}</span>
-            </h3>
-            {% if all_analyzed_flag %}
-                <div class="alert alert-warning">
-                    <strong>Warning!</strong> Not all included files are fully analyzed yet! Only analyzed files are shown.
-                </div>
-            {% endif %}
-        </div>
-    </div>
-
-    {# General info section #}
-    <div class="row">
-        <div class="col-xl-6">
-            <table class="table table-sm table-bordered table-hover">
-                <thead class="thead-light">
-                    <tr>
-                        <th colspan="2">General information</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {%- for label, content, style, query in general_analysis_elements -%}
-                        {%- if content %}
-                            <tr>
-                                <td style="width: 120px;">{{ label | replace_underscore }}</td>
-                                {%- set clickable_class = " clickable" if query else "" %}
-                                <td class="{{ clickable_class }}"
-                                    {%- if style %} style="{{ style }}" {% endif -%}
-                                    {%- if query %} onclick="location.href='{{ query_url + query.replace("PLACEHOLDER", content) | urlencode }}'" data-toggle="tooltip" title="show other firmwares of {{content}}" {% endif -%}
-                                >
-                                    {%- if label == "release date" and content == "1970-01-01" -%}
-                                        unknown
-                                    {%- else -%}
-                                        {{ content }}
-                                    {%- endif -%}
-                                </td>
-                            </tr>
-                        {%- endif -%}
-                    {%- endfor %}
-                    {%- if "file_type" in firmware.processed_analysis -%}
-                        <tr>
-                            <td>file type</td>
-                            <td>{{ firmware.processed_analysis["file_type"]["full"] }}</td>
-                        </tr>
-                    {%- endif %}
-                    {%- if firmware.parent_firmware_uids %}
-                        <tr>
-                            <td>firmware including this files</td>
-                            <td>{{ firmware.parent_firmware_uids | nice_uid_list | safe }}</td>
-                        </tr>
-                    {%- endif %}
-                    {%- if other_versions %}
-                        <tr>
-                            <td>other versions</td>
-                            <td>
-                                <div class="list-group">
-                                    <button data-toggle="collapse" data-target="#other_versions" class="list-group-item list-group-item-primary d-flex justify-content-between align-items-center">
-                                        show files<span class="badge badge-primary badge-pill">{{ other_versions | length }}</span>
-                                    </button>
-                                    <div id="other_versions" class="collapse">
-                                        {% for version in other_versions %}
-                                            {%- if selected_analysis -%}
-                                                {% set other_version_link = "/analysis/{}/{}".format(version._id, selected_analysis) %}
-                                            {%- else -%}
-                                                {% set other_version_link = "/analysis/{}".format(version._id) %}
-                                            {%- endif -%}
-                                            <a href="{{ other_version_link }}" class="list-group-item list-group-item-action">
-                                                {{ version.version }}
-                                            </a>
-                                        {% endfor %}
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                    {%- endif -%}
-                </tbody>
-            </table>
-        </div>
-
-        <div class="col-xl-6">
-                    {# user buttons #}
-            <div class="btn-group mb-2" role="group" aria-label="Download buttons">
-                <button class="btn btn-secondary">Download options</button>
-
-                {# Binary Download Button #}
-                <button class="btn btn-outline-secondary" onclick='window.location.href = "/download/{{ firmware.get_uid() }}";'>
-                    <i class="fas fa-download"></i> download raw file
-                </button>
-                {# Tar Download Button #}
-                {% if firmware.files_included %}
-                    <button class="btn btn-outline-secondary" onclick='window.location.href = "/tar-download/{{ firmware.get_uid() }}";'>
-                        <i class="fas fa-file-archive"></i> download included files as tar.gz
-                    </button>
-                {% endif %}
-                {% if firmware.vendor %}
-                    {# PDF Button #}
-                    <button class="btn btn-outline-secondary" onclick='window.location.href = "/pdf-download/{{ firmware.uid }}";'>
-                        <i class="far fa-file-pdf"></i> download report as PDF
-                    </button>
-                {% endif %}
-            </div><br />
-
-            <div class="btn-group mb-2" aria-label="Analysis buttons">
-                <button class="btn btn-secondary">Analysis options</button>
-
-                {# Radare Button #}
-                <button class="btn btn-outline-secondary" onclick="radare_view()">
-                    <i class="fas fa-terminal"></i> view in radare
-                </button>
-                {% if firmware.vendor %}
-                    {# Update Analysis Buttons #}
-                    <button class="btn btn-outline-secondary" onclick='window.location.href = "/update-analysis/{{ firmware.uid }}";'>
-                        <i class="fas fa-redo-alt"></i> update analysis
-                    </button>
-                    <button class="btn btn-outline-secondary" onclick='window.location.href = "/database/binary_search?firmware_uid={{ firmware.uid }}";'>
-                        <i class="fas fa-search"></i> YARA search
-                    </button>
-                    {# Start Binary Search Button #}
-                {% endif %}
-            </div><br />
-
-            {# admin buttons #}
-            {% if firmware.vendor and user_has_admin_clearance %}
-                <div class="btn-group mb-2" role="group" aria-label="Admin buttons">
-                    <button class="btn btn-secondary">Admin options</button>
-
-                    {# Update Analysis Buttons #}
-                    <button data-toggle="collapse" data-target="#re-do-button-div" class="btn btn-outline-secondary">
-                        <i class="fas fa-redo-alt"></i> re-do analysis
-                    </button>
-                    <span class="collapse" id="re-do-button-div">
-                        <button class="btn btn-danger" type="button" onclick='window.location.href = "/admin/re-do_analysis/{{ uid }}";'>
-                            <i class="fas fa-check"></i> confirm: This action will delete all previous results and data including comments!
-                        </button>
-                    </span>
-                    {# FW Delete Confirm Button #}
-                    <span class="collapse" id="delete-button-div">
-                        <button class="btn btn-danger" type="button" onclick='window.location.href = "/admin/delete/{{ uid }}";'>
-                            <i class="fas fa-check"></i> click here to confirm removal!
-                        </button>
-                    </span>
-                    <button data-toggle="collapse" data-target="#delete-button-div" class="btn btn-outline-secondary">
-                        <i class="fas fa-trash-alt"></i> delete firmware
-                    </button>
-                </div>
-
-            {% endif %}
-
-            <script>
-                function radare_view() {
-                    let radare_form = document.createElement('form');
-                    radare_form.action = '/radare-view/{{ firmware.get_uid() }}';
-                    radare_form.target = '_blank';
-                    radare_form.method = 'GET';
-
-                    document.body.append(radare_form);
-                    radare_form.submit();
-                }
-            </script>
-
-        </div>
-
-   </div>
-
-
     {# File tree section #}
     <div class="row">
         <div class="col-lg-12">
-            <table class="table table-sm table-bordered">
+            <table class="table table-sm">
                 <thead>
                     <tr class="thead-light">
                         <th>File Tree</th>
@@ -338,7 +230,7 @@
     {# Select analysis section #}
     <div class="row">
         <div class="col-lg-2">
-            <table class="table table-sm table-bordered table-hover">
+            <table class="table table-sm table-hover">
                 <thead class="thead-light">
                     <tr>
                         <th>Analysis Results</th>
@@ -347,7 +239,7 @@
                 <tbody>
                     {% for analysis_plugin in firmware.processed_analysis | sort %}
                         <tr>
-                            <td class="clickable mx-1 my-2" data-toggle="tooltip" title="{{ analysis_plugin_dict.get(analysis_plugin, ['not available'])[0] | safe }}" onclick="location.href='/analysis/{{ uid|safe }}/{{analysis_plugin}}/ro/{{ root_uid }}'">
+                            <td class="clickable mx-1 my-2 {{ 'table-primary' if analysis_plugin == selected_analysis else '' }}" data-toggle="tooltip" title="{{ analysis_plugin_dict.get(analysis_plugin, ['not available'])[0] | safe }}" onclick="location.href='/analysis/{{ uid|safe }}/{{analysis_plugin}}/ro/{{ root_uid }}'">
                                 {{ analysis_plugin | replace_underscore }}
                             </td>
                         </tr>
@@ -538,9 +430,16 @@
 
     </div>
 
-    {# Button section #}
-    <div class="row" style="margin-top: 20px">
+    <script>
+        function radare_view() {
+            let radare_form = document.createElement('form');
+            radare_form.action = '/radare-view/{{ firmware.uid }}';
+            radare_form.target = '_blank';
+            radare_form.method = 'GET';
 
-    </div>
+            document.body.append(radare_form);
+            radare_form.submit();
+        }
+    </script>
 
 {% endblock %}

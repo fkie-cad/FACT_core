@@ -1,12 +1,15 @@
 import logging
+import random
 import re
 import zlib
 from base64 import standard_b64encode
 from operator import itemgetter
+from string import ascii_letters
 from time import localtime, strftime, struct_time
 from typing import AnyStr, List, Optional
 
 from common_helper_files import human_readable_file_size
+from flask import render_template
 
 from helperFunctions.compare_sets import remove_duplicates_from_list
 from helperFunctions.dataConversion import make_unicode_string
@@ -20,7 +23,7 @@ def generic_nice_representation(i):  # pylint: disable=too-many-return-statement
     if isinstance(i, struct_time):
         return strftime('%Y-%m-%d - %H:%M:%S', i)
     if isinstance(i, list):
-        return nice_list(i)
+        return list_group(i)
     if isinstance(i, dict):
         return nice_dict(i)
     if isinstance(i, (float, int)):
@@ -62,17 +65,27 @@ def replace_underscore_filter(string):
     return string.replace('_', ' ')
 
 
-def nice_list(input_data, omit_list_on_single_item=False):
+def list_group(input_data):
     input_data = _get_sorted_list(input_data)
     if isinstance(input_data, list):
-        if omit_list_on_single_item and len(input_data) == 1:
-            return '{}\n'.format(input_data[0])
-        http_list = '<ul>\n'
+        http_list = '<ul class="list-group list-group-flush">\n'
         for item in input_data:
-            http_list += '\t<li>{}</li>\n'.format(_handle_generic_data(item))
+            http_list += '\t<li class="list-group-item">{}</li>\n'.format(_handle_generic_data(item))
         http_list += '</ul>\n'
         return http_list
     return input_data
+
+
+def list_group_collapse(input_data, btn_class=None):
+    input_data = [_handle_generic_data(item) for item in _get_sorted_list(input_data)]
+    if input_data:
+        collapse_id = random_collapse_id()
+        first_item = input_data.pop(0)
+        return render_template(
+            'generic_view/collapsed_list.html',
+            first_item=first_item, collapse_id=collapse_id, input_data=input_data, btn_class=btn_class
+        )
+    return ''
 
 
 def _handle_generic_data(input_data):
@@ -366,3 +379,16 @@ def is_not_mandatory_analysis_entry(item: str, additional_entries: Optional[List
         item not in ['analysis_date', 'plugin_version', 'skipped', 'summary', 'system_version', 'tags']
         and (additional_entries is None or item not in additional_entries)
     )
+
+
+def random_collapse_id():
+    return ''.join((random.choice(ascii_letters) for _ in range(10)))
+
+
+def create_firmware_version_links(firmware_list, selected_analysis=None):
+    if selected_analysis:
+        template = '<a href="/analysis/{{}}/{}">{{}}</a>'.format(selected_analysis)
+    else:
+        template = '<a href="/analysis/{}">{}</a>'
+
+    return [template.format(firmware['_id'], firmware['version']) for firmware in firmware_list]

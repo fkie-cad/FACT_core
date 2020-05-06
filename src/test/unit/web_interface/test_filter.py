@@ -5,14 +5,14 @@ from zlib import compress
 import pytest
 
 from web_interface.filter import (
-    _get_sorted_list, byte_number_filter, comment_out_regex_meta_chars, data_to_chart_limited,
-    data_to_chart_with_value_percentage_pairs, decompress, encode_base64_filter, filter_format_string_list_with_offset,
-    fix_cwe, generic_nice_representation, get_all_uids_in_string, get_unique_keys_from_list_of_dicts, infection_color,
-    is_not_mandatory_analysis_entry, list_to_line_break_string, list_to_line_break_string_no_sort, nice_list,
-    nice_number_filter, nice_unix_time, render_analysis_tags, render_tags, replace_underscore_filter,
-    set_limit_for_data_to_chart, sort_chart_list_by_name, sort_chart_list_by_value, sort_comments,
-    sort_roles_by_number_of_privileges, sort_users_by_name, text_highlighter, uids_to_link, user_has_role,
-    vulnerability_class
+    _get_sorted_list, byte_number_filter, comment_out_regex_meta_chars, create_firmware_version_links,
+    data_to_chart_limited, data_to_chart_with_value_percentage_pairs, decompress, encode_base64_filter,
+    filter_format_string_list_with_offset, fix_cwe, generic_nice_representation, get_all_uids_in_string,
+    get_unique_keys_from_list_of_dicts, infection_color, is_not_mandatory_analysis_entry, list_group,
+    list_to_line_break_string, list_to_line_break_string_no_sort, nice_number_filter, nice_unix_time,
+    random_collapse_id, render_analysis_tags, render_tags, replace_underscore_filter, set_limit_for_data_to_chart,
+    sort_chart_list_by_name, sort_chart_list_by_value, sort_comments, sort_roles_by_number_of_privileges,
+    sort_users_by_name, text_highlighter, uids_to_link, user_has_role, vulnerability_class
 )
 
 UNSORTABLE_LIST = [[], ()]
@@ -87,8 +87,8 @@ def test_handle_uids():
 
 
 def check_nice_list_output(input_data):
-    result = nice_list(input_data)
-    assert result == '<ul>\n\t<li>a</li>\n\t<li>b</li>\n</ul>\n', 'output not correct'
+    result = list_group(input_data)
+    assert result == '<ul class="list-group list-group-flush">\n\t<li class="list-group-item">a</li>\n\t<li class="list-group-item">b</li>\n</ul>\n', 'output not correct'
 
 
 def test_nice_list_set():
@@ -201,7 +201,7 @@ def test_nice_number(input_data, expected):
 @pytest.mark.parametrize('input_data, expected', [
     (b'abc', 'abc'),
     (1234, '1,234'),
-    ([1, 3], '<ul>\n\t<li>1</li>\n\t<li>3</li>\n</ul>\n'),
+    ([1, 3], '<ul class="list-group list-group-flush">\n\t<li class="list-group-item">1</li>\n\t<li class="list-group-item">3</li>\n</ul>\n'),
     ({'a': 1}, 'a: 1<br />'),
     (gmtime(0), '1970-01-01 - 00:00:00'),
     ('a_b', 'a b'),
@@ -361,3 +361,21 @@ def test_comment_out_regex_meta_chars(input_data, expected_result):
 ])
 def test_is_not_mandatory_analysis_entry(input_data, additional, expected_result):
     assert is_not_mandatory_analysis_entry(input_data, additional) is expected_result
+
+
+def test_version_links_no_analysis():
+    links = create_firmware_version_links([{'version': '1.0', '_id': 'uid_123'}, {'version': '1.1', '_id': 'uid_234'}])
+    assert '<a href="/analysis/uid_123">1.0</a>' in links
+    assert '<a href="/analysis/uid_234">1.1</a>' in links
+
+
+def test_version_links_with_analysis():
+    links = create_firmware_version_links([{'version': '1.0', '_id': 'uid_123'}, {'version': '1.1', '_id': 'uid_234'}], 'foo')
+    assert '<a href="/analysis/uid_123/foo">1.0</a>' in links
+    assert '<a href="/analysis/uid_234/foo">1.1</a>' in links
+
+
+def test_random_collapse_id():
+    collapse_id = random_collapse_id()
+    assert isinstance(collapse_id, str)
+    assert not collapse_id[0].isnumeric()

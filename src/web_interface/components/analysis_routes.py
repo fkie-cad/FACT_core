@@ -1,5 +1,6 @@
 import json
 import os
+from typing import Union
 
 from common_helper_files import get_binary_from_file
 from flask import flash, render_template, render_template_string, request
@@ -13,6 +14,7 @@ from helperFunctions.mongo_task_conversion import (
 )
 from helperFunctions.web_interface import get_template_as_string, overwrite_default_plugins
 from intercom.front_end_binding import InterComFrontEndBinding
+from objects.file import FileObject
 from objects.firmware import Firmware
 from storage.db_interface_admin import AdminDbInterface
 from storage.db_interface_compare import CompareDbInterface
@@ -64,7 +66,7 @@ class AnalysisRoutes(ComponentBase):
         with ConnectTo(InterComFrontEndBinding, self._config) as sc:
             analysis_plugins = sc.get_available_analysis_plugins()
         return render_template_string(
-            self._get_analysis_view(selected_analysis) if selected_analysis else get_template_as_string('show_analysis.html'),
+            self._get_correct_template(selected_analysis, file_obj),
             uid=uid,
             firmware=file_obj,
             selected_analysis=selected_analysis,
@@ -80,6 +82,13 @@ class AnalysisRoutes(ComponentBase):
                 [x for x in analysis_plugins.keys() if x != 'unpacker']
             )
         )
+
+    def _get_correct_template(self, selected_analysis: str, fw_object: Union[Firmware, FileObject]):
+        if selected_analysis and 'failed' in fw_object.processed_analysis[selected_analysis]:
+            return get_template_as_string('analysis_plugins/fail.html')
+        if selected_analysis:
+            return self._get_analysis_view(selected_analysis)
+        return get_template_as_string('show_analysis.html')
 
     def _start_single_file_analysis(self, uid):
         if user_has_privilege(current_user, privilege='submit_analysis'):

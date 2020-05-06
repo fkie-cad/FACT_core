@@ -6,6 +6,7 @@ from unittest import TestCase, mock
 
 import pytest
 
+from objects.file import FileObject
 from objects.firmware import Firmware
 from scheduler.Analysis import MANDATORY_PLUGINS, AnalysisScheduler
 from test.common_helper import DatabaseMock, MockFileObject, fake_exit, get_config_for_testing, get_test_data_dir
@@ -290,6 +291,22 @@ class TestUtilityFunctions:
         self._add_plugins()
         assert set(self.scheduler._get_plugins_with_met_dependencies(remaining, scheduled)) == expected_output
 
+    def test_reschedule_failed_analysis_task(self):
+        task = Firmware(binary='foo')
+        error_message = 'There was an exception'
+        task.analysis_exception = ('foo', error_message)
+        task.scheduled_analysis = ['no_deps', 'bar']
+        task.processed_analysis['foo'] = {'error': 1}
+        self._add_plugins()
+        self.scheduler._reschedule_failed_analysis_task(task)
+
+        assert 'foo' in task.processed_analysis
+        assert task.processed_analysis['foo'] == {'failed': error_message}
+        assert 'bar' not in task.scheduled_analysis
+        assert 'bar' in task.processed_analysis
+        assert task.processed_analysis['bar'] == {'failed': 'Analysis of dependency foo failed'}
+        assert 'no_deps' in task.scheduled_analysis
+
     def test_smart_shuffle(self):
         self._add_plugins()
         result = self.scheduler._smart_shuffle(self.plugin_list)
@@ -310,6 +327,37 @@ class TestUtilityFunctions:
         }
         result = self.scheduler._smart_shuffle(['p1', 'p2', 'p3'])
         assert result == []
+
+    def test_add_firmware_to_current_analyses(self):
+        self.scheduler.currently_running = {}
+        fw = Firmware(binary=b'foo')
+        fw.files_included = ['foo', 'bar']
+        self.scheduler._add_to_current_analyses(fw)
+        assert self.scheduler.currently_running == {fw.uid: ['foo', 'bar']}
+
+    def test_add_file_to_current_analyses(self):
+        self.scheduler.currently_running = {'parent_uid': ['foo', 'bar']}
+        fo = FileObject(binary=b'foo')
+        fo.parent_firmware_uids = {'parent_uid'}
+        fo.files_included = ['bar', 'new']
+        self.scheduler._add_to_current_analyses(fo)
+        assert sorted(self.scheduler.currently_running['parent_uid']) == ['bar', 'foo', 'new']
+
+    def test_remove_partial_from_current_analyses(self):
+        self.scheduler.currently_running = {'parent_uid': ['foo', 'bar']}
+        fo = FileObject(binary=b'foo')
+        fo.parent_firmware_uids = {'parent_uid'}
+        fo.uid = 'foo'
+        self.scheduler._remove_from_current_analyses(fo)
+        assert self.scheduler.currently_running == {'parent_uid': ['bar']}
+
+    def test_remove_fully_from_current_analyses(self):
+        self.scheduler.currently_running = {'parent_uid': ['foo']}
+        fo = FileObject(binary=b'foo')
+        fo.parent_firmware_uids = {'parent_uid'}
+        fo.uid = 'foo'
+        self.scheduler._remove_from_current_analyses(fo)
+        assert self.scheduler.currently_running == {}
 
 
 class TestAnalysisSkipping:
@@ -365,9 +413,12 @@ class TestAnalysisSkipping:
             version=plugin_version, system_version=plugin_system_version)
         assert self.scheduler._analysis_is_already_in_db_and_up_to_date(plugin, '') == expected_output
 
-    def test_analysis_is_already_in_db_and_up_to_date__missing_version(self):
-        plugin = 'foo'
-        analysis_entry = {'processed_analysis': {plugin: {}}}
+    @pytest.mark.parametrize('db_entry', [
+        {}, {'plugin': {}}, {'plugin': {'no': 'version'}},
+        {'plugin': {'plugin_version': '0', 'system_version': '0', 'failed': 'reason'}}
+    ])
+    def test_analysis_is_already_in_db_and_up_to_date__incomplete(self, db_entry):
+        analysis_entry = {'processed_analysis': db_entry}
         self.scheduler.db_backend_service = self.BackendMock(analysis_entry)
-        self.scheduler.analysis_plugins[plugin] = self.PluginMock(version='1.0', system_version='1.0')
-        assert self.scheduler._analysis_is_already_in_db_and_up_to_date(plugin, '') is False
+        self.scheduler.analysis_plugins['plugin'] = self.PluginMock(version='1.0', system_version='1.0')
+        assert self.scheduler._analysis_is_already_in_db_and_up_to_date('plugin', '') is False

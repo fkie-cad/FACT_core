@@ -37,7 +37,7 @@
                             {% if feature == "size"%}
                                 {{ result['general'][feature][uid_list[0]] | number_format }}
                             {% else %}
-                                {{ result['general'][feature][uid_list[0]] | nice_list | replace_uid_with_hid | safe }}
+                                {{ result['general'][feature][uid_list[0]] | list_group | replace_uid_with_hid | safe }}
                             {% endif %}
                         </td>
                     {% else %}
@@ -46,7 +46,7 @@
                                 {% if feature == "size"%}
                                     {{ result['general'][feature][uid] | number_format }}
                                 {% else %}
-                                    {{ result['general'][feature][uid] | nice_list | replace_uid_with_hid | safe }}
+                                    {{ result['general'][feature][uid] | list_group | replace_uid_with_hid | safe }}
                                 {% endif %}
                                 </td>
                         {% endfor %}
@@ -72,17 +72,10 @@
                         {% if 'all' in result['plugins'][plugin][feature] %}
                             {% if result['plugins'][plugin][feature]['collapse'] %}
                                 <td colspan="{{ uid_list | length }}">
-                                    <center>
-                                        <button type="button" class="btn btn-sm btn-success" data-toggle="collapse" data-target="#{{ feature }}">
-                                            {{ result['plugins'][plugin][feature]['all'] | length }}
-                                        </button>
-                                    </center>
-                                    <div id="{{ feature }}" class="collapse">
-                                        {{ result['plugins'][plugin][feature]['all'] | nice_list | uids_to_link | replace_uid_with_file_name | safe  }}
-                                    </div>
+                                    {{ result['plugins'][plugin][feature]['all'] | list_group_collapse('success') | uids_to_link | replace_uid_with_file_name | safe  }}
                                 </td>
                             {% else %}
-                                <td colspan="{{ uid_list | length }}">{{ result['plugins'][plugin][feature]['all'] | nice_uid_list | safe }}</td>
+                                {{ result['plugins'][plugin][feature]['all'] | list_group | uids_to_link | replace_uid_with_file_name | safe  }}
                             {% endif %}
 
                         {# --- individual results --- #}
@@ -90,16 +83,9 @@
                             {% for uid in uid_list %}
                                 <td>
                                 {% if result['plugins'][plugin][feature]['collapse'] %}
-                                    <center>
-                                        <button type="button" class="btn btn-sm btn-warning" data-toggle="collapse" data-target="#{{ feature + uid }}">
-                                            {{ result['plugins'][plugin][feature][uid] | length }}
-                                        </button>
-                                    </center>
-                                    <div id="{{ feature + uid }}" class="collapse">
-                                        {{ result['plugins'][plugin][feature][uid] | nice_list | uids_to_link(root_uid=uid) | replace_uid_with_file_name | safe }}
-                                    </div>
+                                    {{ result['plugins'][plugin][feature][uid] | list_group_collapse('warning') | uids_to_link(root_uid=uid) | replace_uid_with_file_name | safe }}
                                 {% else %}
-                                    {{ result['plugins'][plugin][feature][uid] | nice_uid_list(root_uid=uid) | safe }}
+                                    {{ result['plugins'][plugin][feature][uid] | list_group | uids_to_link(root_uid=uid) | replace_uid_with_file_name | safe }}
                                 {% endif %}
                                 </td>
                             {% endfor %}

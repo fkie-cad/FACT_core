@@ -49,3 +49,9 @@ class TestAnalysisPluginPasswordFileAnalyzer(AnalysisPluginTest):
         self.assertIn('password-hash', results['max'])
         self.assertIn('password', results['max'])
         self.assertEqual(results['max']['password'], 'dragon')
+
+    def test_crack_hash_failure(self):
+        passwd_entry = [b'user', b'$6$Ph+uRn1vmQ+pA7Ka$fcn9/Ln3W6c6oT3o8bWoLPrmTUs+NowcKYa52WFVP5qU5jzadqwSq8F+Q4AAr2qOC+Sk5LlHmisri4Eqx7/uDg==']
+        result_dict = {'user': dict()}
+        assert self.analysis_plugin._crack_hash(passwd_entry, result_dict, 'user') is False  # pylint: disable=protected-access
+        assert 'ERROR' in result_dict['user']
