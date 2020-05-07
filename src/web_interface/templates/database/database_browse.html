@@ -72,19 +72,16 @@
 
 <div class="row justify-content-center">
     <div class="mt-4 col-xl-6 col-lg-8 col-md-10">
-        <table class="table table-sm table-hover">
-        {% for firmware in firmware_list %}
-            <tr>
-                {% if pagination is defined %}
-                    <td class="align-middle">{{ loop.index + (page - 1) * per_page }}</td>
-                {% endif %}
+        {% if firmware_list %}
+        <ul class="list-group">
+            {% for firmware in firmware_list %}
+                <!-- Fixme(?) bring index {{ loop.index + (page - 1) * per_page }} back -->
                 {{ firmware | firmware_detail_tabular_field | safe }}
-            </tr>
+            {% endfor %}
+        </ul>
         {% else %}
             <h4>No firmware found in database!</h4>
-        {% endfor %}
-        </table>
-
+        {% endif %}
     </div>
 </div>
 
