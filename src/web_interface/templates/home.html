@@ -11,7 +11,7 @@
 
                 <br /><br />
 
-                <h4 class="mb-3">General Facts</h4>
+                <h4 class="mb-3">General FACTs</h4>
                 <table class="table table-sm table-responsive" style="width: 705px;">
                     <tbody>
                         <tr>
@@ -49,8 +49,7 @@
 
     	{% if (latest_firmware_submissions | length) > 0 %}
             <div class="p-2 mt-3" style="width: 705px;">
-                <h3>Latest Firmware Submissions</h3>
-                <p class="mb-1">Showing {{ latest_firmware_submissions | length }} out of <b>{{ general_stats['number_of_firmwares'] | nice_number }}</b> firmwares in the database.</p>
+                <h4 class="mb-3">Latest Firmware Submissions</h4>
                 <ul class="list-group">
                     {% for firmware in latest_firmware_submissions %}
                         {{ firmware | firmware_detail_tabular_field | safe }}
@@ -64,7 +63,7 @@
     <div class="row justify-content-center">
     	{% if (latest_comments | length) > 0 %}
             <div class="p-2 mt-3" style="width: 705px;">
-                <h3>Latest Comments</h3>
+                <h4 class="mb-3">Latest Comments</h4>
                 <ul class="list-group">
                     {% for comment in latest_comments %}
                         <li class="list-group-item p-2 clickable li-hover" onclick="location.href='/analysis/{{ comment.uid }}'">
@@ -88,7 +87,7 @@
         {# latest_comparison_results #}
     	{% if (latest_comparison_results | length) > 0 %}
             <div class="p-2 mt-3" style="width: 705px;">
-                <h3>Latest Comparisons</h3>
+                <h4 class="mb-3">Latest Comparisons</h4>
                 <ul class="list-group">
                     {% for id, hids, submission_date in latest_comparison_results %}
                         <li class="list-group-item p-2 clickable li-hover" onclick="location.href='/compare/{{ id }}'">
