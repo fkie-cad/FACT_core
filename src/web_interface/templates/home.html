@@ -2,6 +2,30 @@
 
 {% set active_page = "Home" %}
 
+{% block head %}
+    <style>
+    .bubble {
+        position: relative;
+        font-family: 'Courier New', Courier, monospace;
+        background: #f4f4f4;
+        border-radius: 10px;
+        padding: 8px;
+        margin: -3px;
+        margin-bottom: -15px;
+    }
+    .bubble-triangle:after {
+        content: '';
+        border: 10px solid transparent;
+        border-left: 10px solid #f4f4f4;
+        border-top: 10px solid #f4f4f4;
+        position: absolute;
+        bottom: -10px;
+        left: 25px;
+    }
+    </style>
+{% endblock %}
+
+
 {% block body %}
     <div class="row justify-content-center mt-4">
 
@@ -62,20 +86,22 @@
 
     <div class="row justify-content-center">
     	{% if (latest_comments | length) > 0 %}
-            <div class="p-2 mt-3" style="width: 705px;">
+            <div class="p-2 mt-3" style ="width: 705px;">
                 <h4 class="mb-3">Latest Comments</h4>
                 <ul class="list-group">
                     {% for comment in latest_comments %}
                         <li class="list-group-item p-2 clickable li-hover" onclick="location.href='/analysis/{{ comment.uid }}'">
-                            <a href="/analysis/{{ comment.uid }}">
+                            <a href="/analysis/{{ comment.uid }}" style="color: #515151;">
                                 <div class="p-1" style="width: 100%; height: 100%; font-size: 14px;">
-                                    <span style="font-family: monospace; color: #515151; font-size: 14px; word-break: break-word;">
+                                    <div class="bubble bubble-triangle">
+<!--                                    <span style="font-family: monospace; font-size: 14px; word-break: break-word;">-->
                                         {{ comment.comment | safe }}
-                                    </span>
+<!--                                    </span>-->
+                                    </div>
                                     <br>
-                                    <span style="font-family: 'Courier New', Courier, monospace; font-size: 10px; color: #6a737d">
-                                        {{ comment.time | int | nice_unix_time }} ‒ {{ comment.author }}
-                                    </span>
+                                    <div class="footnote mt-1">
+                                        <span style="color: #000;">{{ comment.author }}</span> ‒ <span class="text-muted">{{ comment.time | int | nice_unix_time }}</span>
+                                    </div>
                                 </div>
                             </a>
                         </li>
@@ -95,9 +121,9 @@
                                 <div class="p-1" style="width: 100%; height: 100%; font-size: 14px;">
                                     {% for uid in hids %}
                                         {{ hids[uid] }}
-                                        <div><span style="font-family: 'Courier New', Courier, monospace; font-size:10px">{{ uid }}</span></div>
+                                        <div class="footnote">{{ uid }}</div>
                                     {% endfor %}
-                                    <span style="font-family: 'Courier New', Courier, monospace; font-size: 10px; color: #6a737d">
+                                    <span class="footnote text-muted">
                                         {{ submission_date | int | nice_unix_time }}
                                     </span>
                                 </div>

@@ -75,7 +75,6 @@
         {% if firmware_list %}
         <ul class="list-group">
             {% for firmware in firmware_list %}
-                <!-- Fixme(?) bring index {{ loop.index + (page - 1) * per_page }} back -->
                 {{ firmware | firmware_detail_tabular_field | safe }}
             {% endfor %}
         </ul>
