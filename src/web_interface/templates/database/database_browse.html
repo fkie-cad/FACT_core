@@ -73,7 +73,7 @@
 <div class="row justify-content-center">
     <div class="mt-4 col-xl-6 col-lg-8 col-md-10">
         {% if firmware_list %}
-        <ul class="list-group">
+        <ul class="list-group-flush p-4 bg-light">
             {% for firmware in firmware_list %}
                 {{ firmware | firmware_detail_tabular_field | safe }}
             {% endfor %}

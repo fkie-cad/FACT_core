@@ -16,10 +16,11 @@ SPECIAL_CHARACTERS = 'ÄäÀàÁáÂâÃãÅåǍǎĄąĂăÆæĀāÇçĆćĈĉČ
 
 
 def get_color_list(number, limit=15):
-    compliant_colors = ['#2b669a', '#cce0dc', '#2b669a', '#cce0dc', '#2b669a', '#cce0dc',
-                        '#2b669a', '#cce0dc', '#2b669a', '#cce0dc', '#2b669a', '#cce0dc',
-                        '#2b669a', '#cce0dc', '#2b669a', '#cce0dc', '#2b669a', '#cce0dc']
-    return compliant_colors[:number if number <= limit else limit]
+    return [
+        '#007bff', '#6c757d', '#007bff', '#6c757d', '#007bff', '#6c757d',
+        '#007bff', '#6c757d', '#007bff', '#6c757d', '#007bff', '#6c757d',
+        '#007bff', '#6c757d', '#007bff', '#6c757d', '#007bff', '#6c757d'
+    ][:number if number <= limit else limit]
 
 
 def overwrite_default_plugins(intercom, checked_plugin_list):
