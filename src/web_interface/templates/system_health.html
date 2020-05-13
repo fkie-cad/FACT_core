@@ -180,6 +180,11 @@
 
 {% for component in status %}
     {% if component and component['analysis'] %}
+        <div class="row justify-content-center my-3">
+            <div style="width: 430px;" class="border-secondary border-top border-bottom align-middle">
+                <h5 class="d-flex justify-content-center mb-0 p-2">Analysis Plugins</h5>
+            </div>
+        </div>
         <div class="row justify-content-center">
             {% for plugin_name, plugin_data in component['analysis']['plugins'].items() | sort %}
                 {% if "dummy" not in plugin_name %}  {# {% if plugin != "analysis_main_scheduler" %} #}
