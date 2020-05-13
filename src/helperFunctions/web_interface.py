@@ -14,12 +14,15 @@ from helperFunctions.uid import is_uid
 SPECIAL_CHARACTERS = 'ÄäÀàÁáÂâÃãÅåǍǎĄąĂăÆæĀāÇçĆćĈĉČčĎđĐďðÈèÉéÊêËëĚěĘęĖėĒēĜĝĢģĞğĤĥÌìÍíÎîÏïıĪīĮįĴĵĶķĹĺĻļŁłĽľÑñŃńŇňŅņÖöÒòÓóÔôÕõŐőØøŒœŔŕŘřẞßŚśŜŝŞşŠšȘș' \
                      'ŤťŢţÞþȚțÜüÙùÚúÛûŰűŨũŲųŮůŪūŴŵÝýŸÿŶŷŹźŽžŻż'
 
+BS_PRIMARY = '#007bff'
+BS_SECONDARY = '#6c757d'
+
 
 def get_color_list(number, limit=15):
     return [
-        '#007bff', '#6c757d', '#007bff', '#6c757d', '#007bff', '#6c757d',
-        '#007bff', '#6c757d', '#007bff', '#6c757d', '#007bff', '#6c757d',
-        '#007bff', '#6c757d', '#007bff', '#6c757d', '#007bff', '#6c757d'
+        BS_PRIMARY, BS_SECONDARY, BS_PRIMARY, BS_SECONDARY, BS_PRIMARY, BS_SECONDARY,
+        BS_PRIMARY, BS_SECONDARY, BS_PRIMARY, BS_SECONDARY, BS_PRIMARY, BS_SECONDARY,
+        BS_PRIMARY, BS_SECONDARY, BS_PRIMARY, BS_SECONDARY, BS_PRIMARY, BS_SECONDARY
     ][:number if number <= limit else limit]
 
 
