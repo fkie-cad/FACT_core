@@ -8,6 +8,6 @@ echo "        Install Crypto Hints        "
 echo "------------------------------------"
 
 rm -rf signatures
-(mkdir signatures && cd signatures || exit && wget https://raw.githubusercontent.com/Yara-Rules/rules/master/crypto/crypto_signatures.yar)
+(mkdir signatures && cd signatures && wget https://raw.githubusercontent.com/Yara-Rules/rules/master/crypto/crypto_signatures.yar) || exit 1
 	
 exit 0

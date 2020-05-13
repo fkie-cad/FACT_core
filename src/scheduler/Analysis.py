@@ -254,9 +254,8 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         db_entry = self.db_backend_service.get_specific_fields_of_db_entry(
             uid,
             {
-                'processed_analysis.{}.file_system_flag'.format(analysis_to_do): 1,
-                'processed_analysis.{}.plugin_version'.format(analysis_to_do): 1,
-                'processed_analysis.{}.system_version'.format(analysis_to_do): 1
+                'processed_analysis.{plugin}.{key}'.format(plugin=analysis_to_do, key=key): 1
+                for key in ['failed', 'file_system_flag', 'plugin_version', 'system_version']
             }
         )
         if not db_entry or analysis_to_do not in db_entry['processed_analysis'] or 'failed' in db_entry['processed_analysis'][analysis_to_do]:

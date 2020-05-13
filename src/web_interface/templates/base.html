@@ -52,7 +52,7 @@
                 color:#2b669a;
                 text-decoration:none;
             }
-            td.clickable {
+            .clickable {
                 cursor:pointer;
             }
             .bg-fact {
@@ -88,8 +88,17 @@
             .table-hover .table-head-light:hover > th {
                 background-color: #d6d8db;
             }
+            .li-hover:hover {
+                -moz-box-shadow: inset 0 0 5px var(--blue);
+                -webkit-box-shadow: inset 0 0 var(--blue);
+                box-shadow: inset 0 0 5px var(--blue);
+            }
             .table-analysis {
                 font-size: 15px;
+            }
+            .footnote {
+                font-family: 'Courier New', Courier, monospace;
+                font-size: 10px;
             }
         </style>
         {% block styles %}{% endblock %}
@@ -167,7 +176,7 @@
             <!-- Navbar Quick Search Input -->
             <div id="quick_search_div" class="nav navbar-nav ml-md-auto d-none d-md-block">
                 <div class="input-group mr-sm-2">
-                    <input type="text" class="form-control" placeholder="Quick search name, vendor and hash values" id="quick_search_input" onKeyDown="if(event.keyCode==13) quickSearch();" style="margin: 0; background-color: #e7e7e7; border-radius: 0;">
+                    <input type="text" class="form-control" placeholder="Quick search name, vendor and hash values" id="quick_search_input" onKeyDown="if(event.keyCode==13) quickSearch();" style="margin: 0; background-color: #e7e7e7; border-radius: 0; border-top-left-radius: .25rem; border-bottom-left-radius: .25rem;">
                     <div class="input-group-append">
                         <button class="btn btn-secondary" type="button" onclick="quickSearch()">
                             <i class="fas fa-search"></i>
