@@ -20,41 +20,62 @@
 import logging
 import signal
 import sys
+from contextlib import suppress
 from time import sleep
 
-from statistic.work_load import WorkLoadStatistic
-from storage.MongoMgr import MongoMgr
+from docker.errors import DockerException, NotFound
+
 from helperFunctions.program_setup import program_setup, was_started_by_start_fact
+from statistic.work_load import WorkLoadStatistic
+from storage.mongodb_docker import CONTAINER_IP, get_mongodb_container
 
 PROGRAM_NAME = 'FACT DB-Service'
 PROGRAM_DESCRIPTION = 'Firmware Analysis and Compare Tool (FACT) DB-Service'
 
 
-def shutdown(*_):
-    global run
-    logging.info('shutting down {}...'.format(PROGRAM_NAME))
-    run = False
+class FactDb:
+    def __init__(self):
+        self.run = False
+        self._set_signal()
+        args, self.config = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION)
+        self.testing = args.testing
+        self.mongodb_container = get_mongodb_container(self.config)
+        self.mongo_server = None
+        self.work_load_stat = None
+
+    def _set_signal(self):
+        if was_started_by_start_fact():
+            signal.signal(signal.SIGUSR1, self.shutdown)
+            signal.signal(signal.SIGINT, lambda *_: None)
+        else:
+            signal.signal(signal.SIGINT, self.shutdown)
+
+    def shutdown(self, *_):
+        logging.info('shutting down {}...'.format(PROGRAM_NAME))
+        self.run = False
+
+    def start(self):
+        self.mongodb_container.start()
+        sleep(3)
+        logging.info(self.mongodb_container.logs().decode())
+        logging.info('Started MongoDB Docker Container with IP {}'.format(CONTAINER_IP))
+        self.work_load_stat = WorkLoadStatistic(config=self.config, component='database')
+
+        self.run = True
+        while self.run:
+            self.work_load_stat.update()
+            sleep(5)
+            if self.testing:
+                break
+        self.stop()
+
+    def stop(self):
+        self.work_load_stat.shutdown()
+        with suppress(DockerException, NotFound):
+            self.mongodb_container.stop()
+            self.mongodb_container.remove()
 
 
 if __name__ == '__main__':
-    if was_started_by_start_fact():
-        signal.signal(signal.SIGUSR1, shutdown)
-        signal.signal(signal.SIGINT, lambda *_: None)
-    else:
-        signal.signal(signal.SIGINT, shutdown)
-
-    args, config = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION)
-    mongo_server = MongoMgr(config=config)
-    work_load_stat = WorkLoadStatistic(config=config, component='database')
-
-    run = True
-    while run:
-        work_load_stat.update()
-        sleep(5)
-        if args.testing:
-            break
-
-    work_load_stat.shutdown()
-    mongo_server.shutdown()
-
-    sys.exit()
+    FactDb().start()
+    sys.exit(0)

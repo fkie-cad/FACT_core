@@ -160,7 +160,7 @@ def install():
         if args.frontend or none_chosen:
             frontend(not args.no_radare, args.nginx)
         if args.db or none_chosen:
-            db(distribution)
+            db()
         if args.backend or none_chosen:
             backend()
 
