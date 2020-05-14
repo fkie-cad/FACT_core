@@ -71,7 +71,43 @@ function create_horizontal_bar_chart(canvas_id, chart_data, link, value_percenta
     }
     chart_opt.scales.xAxes[0].ticks.max = max * 1.05;
 
-    var BarChart = new Chart(ctx, {type: "horizontalBar", data: chart_data, options: chart_opt});
+    var BarChart = new Chart(
+        ctx, {
+            type: "horizontalBar",
+            data: chart_data,
+            options: chart_opt
+        }
+    );
+
+    document.getElementById(canvas_id).onclick = function(evt){
+        var points = BarChart.getElementsAtEvent(evt);
+        var label = BarChart.data.labels[points[0]._index];
+        if ((points[0] !== undefined) && (label != "rest"))
+            window.location = link.replace("PLACEHOLDER", label);
+    };
+
+    return BarChart;
+}
+
+function create_pie_chart(canvas_id, chart_data, link, value_percentage_present_flag) {
+    var ctx = document.getElementById(canvas_id);
+
+    if (value_percentage_present_flag) {
+        chart_opt = chart_options_value_percentage_pairs;
+        max = chart_data.datasets[0].data.slice(0, 2).reduce(_add);
+    } else {
+        chart_opt = chart_options;
+        max = Math.max(...chart_data.datasets[0].data);
+    }
+    chart_opt.scales.xAxes[0].ticks.max = max * 1.05;
+
+    var BarChart = new Chart(
+        ctx, {
+            type: "doughnut",
+            data: chart_data,
+            options: Chart.defaults.doughnut
+        }
+    );
 
     document.getElementById(canvas_id).onclick = function(evt){
         var points = BarChart.getElementsAtEvent(evt);

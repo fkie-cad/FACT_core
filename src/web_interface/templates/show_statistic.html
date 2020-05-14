@@ -150,7 +150,7 @@
             {{ macros.start_stats_panel(title) }}
                 <canvas id="{{ key }}_canvas" width="100%" height="{{ data_set[key] | get_canvas_height }}"></canvas>
                 <script>
-                    create_horizontal_bar_chart(
+                    create_pie_chart(
                         canvas_id="{{ key }}_canvas",
                         chart_data={{ data_set[key] | sort_chart_list_by_value | data_to_chart_limited | safe }},
                         link="{{ query_url + query | json_dumps | urlencode }}",
