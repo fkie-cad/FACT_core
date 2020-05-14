@@ -57,7 +57,7 @@ class WorkLoadStatistic:
         result = {
             'cpu_cores': psutil.cpu_count(logical=False),
             'virtual_cpu_cores': psutil.cpu_count(),
-            'cpu_percentage,': cpu_percentage,
+            'cpu_percentage': cpu_percentage,
             'load_average': ', '.join(str(x) for x in os.getloadavg()),
             'memory_total': memory_usage.total,
             'memory_used': memory_usage.used,
