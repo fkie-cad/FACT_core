@@ -21,7 +21,11 @@ class TestRestDownload(RestTestBase):
         super().teardown()
 
     def test_rest_download_valid(self):
-        backend_binding = InterComBackEndBinding(self.config, analysis_service=test_backend_scheduler.AnalysisServiceMock(), compare_service=test_backend_scheduler.ServiceMock(self.test_queue), unpacking_service=test_backend_scheduler.ServiceMock(self.test_queue))
+        backend_binding = InterComBackEndBinding(
+            self.config, analysis_service=test_backend_scheduler.AnalysisServiceMock(),
+            compare_service=test_backend_scheduler.ServiceMock(self.test_queue),
+            unpacking_service=test_backend_scheduler.ServiceMock(self.test_queue)
+        )
 
         test_firmware = create_test_firmware(device_class='test class', device_name='test device', vendor='test vendor')
         self.db_interface.add_firmware(test_firmware)

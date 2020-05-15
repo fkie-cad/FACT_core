@@ -113,8 +113,8 @@ class TestStatistic:
         assert total_amount_of_files == 1800
         self.updater.append_pie_stats_to_result_dict(pie_invalid, pie_off, pie_on, pie_partial, stats, total_amount_of_files)
         assert stats == {'exploit_mitigations': [
-            ('PIE enabled', 500, 0.27778), ('PIE/DSO present', 300, 0.16667), ('PIE disabled', 900, 0.5), ('PIE - invalid ELF file', 100, 0.05556)]
-        }
+            ('PIE enabled', 500, 0.27778), ('PIE/DSO present', 300, 0.16667), ('PIE disabled', 900, 0.5), ('PIE - invalid ELF file', 100, 0.05556)
+        ]}
 
     def set_relro_stats_to_dict(self, result, stats):
         relro_off, relro_on, relro_partial = self.updater.extract_relro_data_from_analysis(result)
