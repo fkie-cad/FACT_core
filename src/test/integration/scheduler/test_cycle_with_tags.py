@@ -1,5 +1,4 @@
 import gc
-import unittest
 from multiprocessing import Event
 from tempfile import TemporaryDirectory
 from time import sleep
@@ -9,25 +8,22 @@ from scheduler.Analysis import AnalysisScheduler
 from scheduler.analysis_tag import TaggingDaemon
 from scheduler.Unpacking import UnpackingScheduler
 from storage.db_interface_backend import BackEndDbInterface
-from storage.MongoMgr import MongoMgr
 from test.common_helper import clean_test_database, get_database_names, get_test_data_dir
 from test.integration.common import initialize_config
 
 
-class TestTagPropagation(unittest.TestCase):
+class TestTagPropagation:
 
-    def setUp(self):
+    def setup(self):
         self._tmp_dir = TemporaryDirectory()
-        self._config = initialize_config(self._tmp_dir)
+        self.config = initialize_config(self._tmp_dir)
         self.analysis_finished_event = Event()
         self.uid_of_key_file = '530bf2f1203b789bfe054d3118ebd29a04013c587efd22235b3b9677cee21c0e_2048'
 
-        self._mongo_server = MongoMgr(config=self._config, auth=False)
-        self.backend_interface = BackEndDbInterface(config=self._config)
-
-        self._analysis_scheduler = AnalysisScheduler(config=self._config, pre_analysis=self.backend_interface.add_object, post_analysis=self.count_analysis_finished_event)
+        self.backend_interface = BackEndDbInterface(config=self.config)
+        self._analysis_scheduler = AnalysisScheduler(config=self.config, pre_analysis=self.backend_interface.add_object, post_analysis=self.count_analysis_finished_event)
         self._tagging_scheduler = TaggingDaemon(analysis_scheduler=self._analysis_scheduler)
-        self._unpack_scheduler = UnpackingScheduler(config=self._config, post_unpack=self._analysis_scheduler.start_analysis_of_object)
+        self._unpack_scheduler = UnpackingScheduler(config=self.config, post_unpack=self._analysis_scheduler.start_analysis_of_object)
 
     def count_analysis_finished_event(self, fw_object):
         self.backend_interface.add_analysis(fw_object)
@@ -39,18 +35,17 @@ class TestTagPropagation(unittest.TestCase):
         while not self._analysis_scheduler.tag_queue.empty():
             sleep(0.1)
 
-    def tearDown(self):
+    def teardown(self):
         self._unpack_scheduler.shutdown()
         self._tagging_scheduler.shutdown()
         self._analysis_scheduler.shutdown()
 
-        clean_test_database(self._config, get_database_names(self._config))
-        self._mongo_server.shutdown()
+        clean_test_database(self.config, get_database_names(self.config))
 
         self._tmp_dir.cleanup()
         gc.collect()
 
-    def test_run_analysis_with_tag(self):
+    def test_run_analysis_with_tag(self, start_db):
         test_fw = Firmware(file_path='{}/container/with_key.7z'.format(get_test_data_dir()))
         test_fw.release_date = '2017-01-01'
         test_fw.scheduled_analysis = ['crypto_material']

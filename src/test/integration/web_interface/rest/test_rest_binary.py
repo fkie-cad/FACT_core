@@ -10,15 +10,15 @@ from test.integration.web_interface.rest.base import RestTestBase
 
 class TestRestDownload(RestTestBase):
 
-    def setUp(self):
-        super().setUp()
+    def setup(self):
+        super().setup()
         self.db_interface = BackEndDbInterface(self.config)
         self.test_queue = Queue()
 
-    def tearDown(self):
+    def teardown(self):
         self.test_queue.close()
         self.db_interface.shutdown()
-        super().tearDown()
+        super().teardown()
 
     def test_rest_download_valid(self):
         backend_binding = InterComBackEndBinding(self.config, analysis_service=test_backend_scheduler.AnalysisServiceMock(), compare_service=test_backend_scheduler.ServiceMock(self.test_queue), unpacking_service=test_backend_scheduler.ServiceMock(self.test_queue))

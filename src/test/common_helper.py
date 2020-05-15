@@ -1,9 +1,11 @@
 # pylint: disable=no-self-use,unused-argument
+import gc
 import json
 import os
 from base64 import standard_b64encode
 from configparser import ConfigParser
 from copy import deepcopy
+from tempfile import TemporaryDirectory
 
 from helperFunctions.config import load_config
 from helperFunctions.dataConversion import get_value_of_first_key, normalize_compare_id
@@ -21,6 +23,18 @@ def get_test_data_dir():
     Returns the absolute path of the test data directory
     '''
     return os.path.join(get_src_dir(), 'test/data')
+
+
+class TestBase:
+    @classmethod
+    def setup_class(cls):
+        cls.tmp_dir = TemporaryDirectory(prefix='fact_test_')
+        cls.config = get_config_for_testing(temp_dir=cls.tmp_dir)
+
+    @classmethod
+    def teardown_class(cls):
+        cls.tmp_dir.cleanup()
+        gc.collect()
 
 
 class CommonDbInterfaceMock(MongoInterfaceCommon):
@@ -407,12 +421,12 @@ def get_firmware_for_rest_upload_test():
 def get_config_for_testing(temp_dir=None):
     config = ConfigParser()
     config.add_section('data_storage')
-    config.set('data_storage', 'mongo_server', 'localhost')
+    config.set('data_storage', 'mongo_server', '192.168.27.17')
     config.set('data_storage', 'main_database', 'tmp_unit_tests')
     config.set('data_storage', 'intercom_database_prefix', 'tmp_unit_tests')
     config.set('data_storage', 'statistic_database', 'tmp_unit_tests')
     config.set('data_storage', 'view_storage', 'tmp_tests_view')
-    config.set('data_storage', 'mongo_port', '27018')
+    config.set('data_storage', 'mongo_port', '27017')
     config.set('data_storage', 'report_threshold', '2048')
     config.set('data_storage', 'password_salt', '1234')
     config.add_section('unpack')

@@ -9,7 +9,6 @@ from objects.firmware import Firmware
 from scheduler.Analysis import AnalysisScheduler
 from scheduler.Unpacking import UnpackingScheduler
 from storage.db_interface_backend import BackEndDbInterface
-from storage.MongoMgr import MongoMgr
 from test.common_helper import clean_test_database, get_database_names, get_test_data_dir
 from test.integration.common import initialize_config
 from web_interface.frontend_main import WebFrontEnd
@@ -45,11 +44,9 @@ def test_config():
 
 @pytest.fixture(scope='module', autouse=True)
 def test_server(test_config):
-    mongo = MongoMgr(test_config)
     clean_test_database(test_config, get_database_names(test_config))
     yield None
     clean_test_database(test_config, get_database_names(test_config))
-    mongo.shutdown()
 
 
 @pytest.fixture(scope='module')
@@ -87,7 +84,7 @@ def add_test_file_and_wait(test_scheduler, path_in_test_dir):
     test_scheduler.add_task(firmware)
 
 
-def test_check_collision(test_app, test_scheduler, finished_event, intermediate_event):
+def test_check_collision(start_db, test_app, test_scheduler, finished_event, intermediate_event):
     add_test_file_and_wait(test_scheduler, 'regression_one')
 
     intermediate_event.wait(timeout=30)

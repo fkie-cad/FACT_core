@@ -1,6 +1,7 @@
 import logging
 import sys
 from pathlib import Path
+from time import sleep
 
 import docker
 from docker import DockerClient
@@ -17,11 +18,20 @@ CONTAINER_IP = '192.168.27.17'
 DOCKER_IMAGE = 'mongo:3-xenial'
 
 
+def get_mongodb_container(config) -> Container:
+    client = docker.from_env()
+    try:
+        mongodb_container = client.containers.get(MONGODB_CONTAINER_NAME)
+    except NotFound:
+        mongodb_container = create_mongodb_container(config['data_storage']['mongo_storage_directory'], client)
+    return mongodb_container
+
+
 def create_mongodb_container(db_path: str, docker_client: DockerClient) -> Container:
     try:
         mounts = [
             Mount('/config', get_config_dir(), read_only=False, type='bind'),
-            Mount('/media/data', db_path, read_only=False, type='bind'),
+            Mount('/media/data/fact_wt_mongodb', db_path, read_only=False, type='bind'),
         ]
         network = get_docker_network(docker_client)
         container = docker_client.containers.create(
@@ -52,11 +62,10 @@ def create_docker_network(client: DockerClient) -> Network:
     return client.networks.create(FACT_MONGODB_NETWORK, driver="bridge", ipam=ipam_config)
 
 
-def get_mongodb_container(config) -> Container:
-    client = docker.from_env()
-    try:
-        mongodb_container = client.containers.get(MONGODB_CONTAINER_NAME)
-    except NotFound:
-        db_path = str(Path(config['data_storage']['firmware_file_storage_directory']).parent)
-        mongodb_container = create_mongodb_container(db_path, client)
-    return mongodb_container
+def wait_until_started(container: Container):
+    iteration = 0
+    while 'waiting for connections' not in container.logs().decode():
+        sleep(0.5)
+        iteration += 1
+        if iteration >= 10:
+            raise TimeoutError('MongoDB did not start correctly')

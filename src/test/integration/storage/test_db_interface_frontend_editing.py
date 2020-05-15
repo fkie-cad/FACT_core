@@ -1,40 +1,28 @@
 import gc
-import unittest
-from tempfile import TemporaryDirectory
+
+import pytest
 
 from helperFunctions.uid import create_uid
 from storage.db_interface_backend import BackEndDbInterface
 from storage.db_interface_frontend import FrontEndDbInterface
 from storage.db_interface_frontend_editing import FrontendEditingDbInterface
-from storage.MongoMgr import MongoMgr
-from test.common_helper import create_test_firmware, get_config_for_testing
-
-TMP_DIR = TemporaryDirectory(prefix='fact_test_')
+from test.common_helper import TestBase, create_test_firmware
 
 
-class TestStorageDbInterfaceFrontendEditing(unittest.TestCase):
+@pytest.mark.usefixtures('start_db')
+class TestStorageDbInterfaceFrontendEditing(TestBase):
 
-    @classmethod
-    def setUpClass(cls):
-        cls._config = get_config_for_testing(TMP_DIR)
-        cls.mongo_server = MongoMgr(config=cls._config)
+    def setup(self):
+        self.db_frontend_editing = FrontendEditingDbInterface(config=self.config)
+        self.db_frontend_interface = FrontEndDbInterface(config=self.config)
+        self.db_backend_interface = BackEndDbInterface(config=self.config)
 
-    def setUp(self):
-        self.db_frontend_editing = FrontendEditingDbInterface(config=self._config)
-        self.db_frontend_interface = FrontEndDbInterface(config=self._config)
-        self.db_backend_interface = BackEndDbInterface(config=self._config)
-
-    def tearDown(self):
+    def teardown(self):
         self.db_frontend_editing.shutdown()
         self.db_frontend_interface.shutdown()
-        self.db_backend_interface.client.drop_database(self._config.get('data_storage', 'main_database'))
+        self.db_backend_interface.client.drop_database(self.config.get('data_storage', 'main_database'))
         self.db_backend_interface.shutdown()
         gc.collect()
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.mongo_server.shutdown()
-        TMP_DIR.cleanup()
 
     def test_add_comment(self):
         test_fw = create_test_firmware()
@@ -42,10 +30,7 @@ class TestStorageDbInterfaceFrontendEditing(unittest.TestCase):
         comment, author, uid, time = 'this is a test comment!', 'author', test_fw.uid, 1234567890
         self.db_frontend_editing.add_comment_to_object(uid, comment, author, time)
         test_fw = self.db_backend_interface.get_object(uid)
-        self.assertEqual(
-            test_fw.comments[0],
-            {'time': str(time), 'author': author, 'comment': comment}
-        )
+        assert test_fw.comments[0] == {'time': str(time), 'author': author, 'comment': comment}
 
     def test_get_latest_comments(self):
         comments = [
@@ -64,20 +49,20 @@ class TestStorageDbInterfaceFrontendEditing(unittest.TestCase):
     def test_remove_element_from_array_in_field(self):
         test_fw = self._add_test_fw_with_comments_to_db()
         retrieved_fw = self.db_backend_interface.get_object(test_fw.uid)
-        self.assertEqual(len(retrieved_fw.comments), 2, 'comments were not saved correctly')
+        assert len(retrieved_fw.comments) == 2, 'comments were not saved correctly'
 
         self.db_frontend_editing.remove_element_from_array_in_field(test_fw.uid, 'comments', {'time': '1234567899'})
         retrieved_fw = self.db_backend_interface.get_object(test_fw.uid)
-        self.assertEqual(len(retrieved_fw.comments), 1, 'comment was not deleted')
+        assert len(retrieved_fw.comments) == 1, 'comment was not deleted'
 
     def test_delete_comment(self):
         test_fw = self._add_test_fw_with_comments_to_db()
         retrieved_fw = self.db_backend_interface.get_object(test_fw.uid)
-        self.assertEqual(len(retrieved_fw.comments), 2, 'comments were not saved correctly')
+        assert len(retrieved_fw.comments) == 2, 'comments were not saved correctly'
 
         self.db_frontend_editing.delete_comment(test_fw.uid, '1234567899')
         retrieved_fw = self.db_backend_interface.get_object(test_fw.uid)
-        self.assertEqual(len(retrieved_fw.comments), 1, 'comment was not deleted')
+        assert len(retrieved_fw.comments) == 1, 'comment was not deleted'
 
     def _add_test_fw_with_comments_to_db(self):
         test_fw = create_test_firmware()

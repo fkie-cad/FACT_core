@@ -8,22 +8,17 @@ from storage.db_interface_admin import AdminDbInterface
 from storage.db_interface_backend import BackEndDbInterface
 from storage.db_interface_common import MongoInterfaceCommon
 from storage.db_interface_compare import CompareDbInterface, FactCompareException
-from storage.MongoMgr import MongoMgr
-from test.common_helper import create_test_firmware, get_config_for_testing
+from test.common_helper import TestBase, create_test_firmware
 
 
-class TestCompare:
-
-    @classmethod
-    def setup_class(cls):
-        cls._config = get_config_for_testing()
-        cls.mongo_server = MongoMgr(config=cls._config)
+@pytest.mark.usefixtures('start_db')
+class TestCompare(TestBase):
 
     def setup(self):
-        self.db_interface = MongoInterfaceCommon(config=self._config)
-        self.db_interface_backend = BackEndDbInterface(config=self._config)
-        self.db_interface_compare = CompareDbInterface(config=self._config)
-        self.db_interface_admin = AdminDbInterface(config=self._config)
+        self.db_interface = MongoInterfaceCommon(config=self.config)
+        self.db_interface_backend = BackEndDbInterface(config=self.config)
+        self.db_interface_compare = CompareDbInterface(config=self.config)
+        self.db_interface_admin = AdminDbInterface(config=self.config)
 
         self.fw_one = create_test_firmware()
         self.fw_two = create_test_firmware()
@@ -35,13 +30,9 @@ class TestCompare:
         self.db_interface_compare.shutdown()
         self.db_interface_admin.shutdown()
         self.db_interface_backend.shutdown()
-        self.db_interface.client.drop_database(self._config.get('data_storage', 'main_database'))
+        self.db_interface.client.drop_database(self.config.get('data_storage', 'main_database'))
         self.db_interface.shutdown()
         gc.collect()
-
-    @classmethod
-    def teardown_class(cls):
-        cls.mongo_server.shutdown()
 
     def _create_compare_dict(self):
         return {
