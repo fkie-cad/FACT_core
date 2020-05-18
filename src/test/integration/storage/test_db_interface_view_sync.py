@@ -9,7 +9,7 @@ CONFIG = get_config_for_testing()
 TEST_DATA = b'test data'
 
 
-@pytest.mark.usefixtures('start_db')
+@pytest.mark.usefixtures('use_db')
 def test_view_sync_interface():
     view_update_service = ViewUpdater(config=CONFIG)
     view_update_service.update_view('test', TEST_DATA)

@@ -1,3 +1,5 @@
+# pylint:disable=attribute-defined-outside-init,no-self-use
+
 import gc
 import pickle
 
@@ -10,7 +12,7 @@ from test.common_helper import TestBase
 BSON_MAX_FILE_SIZE = 16 * 1024**2
 
 
-@pytest.mark.usefixtures('start_db')
+@pytest.mark.usefixtures('use_db')
 class TestInterComListener(TestBase):
 
     def setup(self):

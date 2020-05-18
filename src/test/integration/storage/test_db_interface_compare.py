@@ -11,7 +11,7 @@ from storage.db_interface_compare import CompareDbInterface, FactCompareExceptio
 from test.common_helper import TestBase, create_test_firmware
 
 
-@pytest.mark.usefixtures('start_db')
+@pytest.mark.usefixtures('use_db')
 class TestCompare(TestBase):
 
     def setup(self):

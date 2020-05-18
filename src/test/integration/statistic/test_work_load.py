@@ -1,3 +1,5 @@
+# pylint:disable=attribute-defined-outside-init
+
 import gc
 from math import isclose
 from time import time
@@ -9,7 +11,7 @@ from storage.db_interface_statistic import StatisticDbViewer
 from test.common_helper import clean_test_database, get_config_for_testing, get_database_names
 
 
-@pytest.mark.usefixtures('start_db')
+@pytest.mark.usefixtures('use_db')
 class TestWorkloadStatistic:
 
     def setup(self):

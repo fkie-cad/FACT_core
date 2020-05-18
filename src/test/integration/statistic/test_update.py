@@ -1,4 +1,4 @@
-# pylint: disable=protected-access
+# pylint: disable=protected-access,no-self-use,attribute-defined-outside-init
 import gc
 
 import pytest
@@ -9,7 +9,7 @@ from storage.db_interface_statistic import StatisticDbViewer
 from test.common_helper import clean_test_database, get_config_for_testing, get_database_names
 
 
-@pytest.mark.usefixtures('start_db')
+@pytest.mark.usefixtures('use_db')
 class TestStatistic:
     @classmethod
     def setup_class(cls):

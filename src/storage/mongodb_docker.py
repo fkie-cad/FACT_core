@@ -1,5 +1,7 @@
 import logging
 import sys
+from configparser import ConfigParser
+from contextlib import contextmanager, suppress
 from time import sleep
 
 import docker
@@ -8,6 +10,7 @@ from docker.errors import DockerException, NotFound
 from docker.models.containers import Container
 from docker.models.networks import Network
 from docker.types import Mount
+from requests.exceptions import ReadTimeout
 
 from helperFunctions.config import get_config_dir
 
@@ -15,6 +18,28 @@ MONGODB_CONTAINER_NAME = 'fact_mongodb'
 FACT_MONGODB_NETWORK = "fact_mongodb_network"
 CONTAINER_IP = '192.168.27.17'
 DOCKER_IMAGE = 'mongo:3-xenial'
+
+
+@contextmanager
+def start_db_container(config: ConfigParser) -> Container:
+    mongodb_container = get_mongodb_container(config)
+    running = container_is_running(mongodb_container)
+    try:
+        if not running:
+            logging.info('Starting MongoDB container...')
+            mongodb_container.start()
+        yield mongodb_container
+    finally:
+        if not running:
+            logging.info('Stopping MongoDB container...')
+            with suppress(DockerException):
+                mongodb_container.stop()
+                try:
+                    mongodb_container.wait(timeout=10)
+                except ReadTimeout:
+                    logging.error('Unable to stop MongoDB container -> kill')
+                    mongodb_container.kill()
+                mongodb_container.remove()
 
 
 def get_mongodb_container(config) -> Container:
@@ -68,3 +93,7 @@ def wait_until_started(container: Container):
         iteration += 1
         if iteration >= 10:
             raise TimeoutError('MongoDB did not start correctly')
+
+
+def container_is_running(container: Container) -> bool:
+    return container.status == 'running'

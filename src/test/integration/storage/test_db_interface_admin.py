@@ -1,4 +1,4 @@
-# pylint: disable=protected-access
+# pylint: disable=protected-access,attribute-defined-outside-init
 import gc
 import os
 from shutil import copyfile
@@ -17,7 +17,7 @@ TEST_FIRMWARE_ORIGINAL = os.path.join(TESTS_DIR, 'container/test.zip')
 TEST_FIRMWARE_COPY = os.path.join(TESTS_DIR, 'container/test_copy.zip')
 
 
-@pytest.mark.usefixtures('start_db')
+@pytest.mark.usefixtures('use_db')
 class TestStorageDbInterfaceAdmin(TestBase):
 
     @classmethod

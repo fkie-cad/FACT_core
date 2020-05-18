@@ -1,3 +1,5 @@
+# pylint:disable=attribute-defined-outside-init
+
 import gc
 from math import isclose
 from time import time
@@ -11,7 +13,7 @@ from test.common_helper import TestBase, create_test_file_object, create_test_fi
 TESTS_DIR = get_test_data_dir()
 
 
-@pytest.mark.usefixtures('start_db')
+@pytest.mark.usefixtures('use_db')
 class TestStorageDbInterfaceBackend(TestBase):
 
     def setup(self):

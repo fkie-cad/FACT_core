@@ -1,3 +1,5 @@
+# pylint:disable=attribute-defined-outside-init,no-self-use
+
 import gc
 
 import magic
@@ -10,7 +12,7 @@ from test.common_helper import create_test_firmware, get_config_for_testing
 TEST_FW = create_test_firmware()
 
 
-@pytest.mark.usefixtures('start_db')
+@pytest.mark.usefixtures('use_db')
 class TestBinaryService:
 
     def setup(self):

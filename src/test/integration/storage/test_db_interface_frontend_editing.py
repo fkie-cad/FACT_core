@@ -1,3 +1,5 @@
+# pylint:disable=attribute-defined-outside-init
+
 import gc
 
 import pytest
@@ -9,7 +11,7 @@ from storage.db_interface_frontend_editing import FrontendEditingDbInterface
 from test.common_helper import TestBase, create_test_firmware
 
 
-@pytest.mark.usefixtures('start_db')
+@pytest.mark.usefixtures('use_db')
 class TestStorageDbInterfaceFrontendEditing(TestBase):
 
     def setup(self):

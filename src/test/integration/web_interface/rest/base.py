@@ -1,3 +1,5 @@
+# pylint:disable=attribute-defined-outside-init
+
 import gc
 
 import pytest
@@ -6,7 +8,7 @@ from test.common_helper import TestBase, clean_test_database, get_database_names
 from web_interface.frontend_main import WebFrontEnd
 
 
-@pytest.mark.usefixtures('start_db')
+@pytest.mark.usefixtures('use_db')
 class RestTestBase(TestBase):
     def setup(self):
         self.frontend = WebFrontEnd(config=self.config)

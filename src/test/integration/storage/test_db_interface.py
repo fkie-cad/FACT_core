@@ -1,3 +1,5 @@
+# pylint:disable=attribute-defined-outside-init,protected-access
+
 import gc
 import json
 import pickle
@@ -20,7 +22,7 @@ test_file_one = path.join(TESTS_DIR, 'get_files_test/testfile1')
 TMP_DIR = TemporaryDirectory(prefix='fact_test_')
 
 
-@pytest.mark.usefixtures('start_db')
+@pytest.mark.usefixtures('use_db')
 class TestMongoInterface(TestBase):
 
     @classmethod
@@ -236,7 +238,7 @@ class TestMongoInterface(TestBase):
         assert self.db_interface.is_file_object(self.test_fo.uid) is True
 
 
-@pytest.mark.usefixtures('start_db')
+@pytest.mark.usefixtures('use_db')
 class TestSummary:
 
     def setup(self):

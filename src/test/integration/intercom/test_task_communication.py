@@ -1,3 +1,5 @@
+# pylint:disable=attribute-defined-outside-init
+
 import gc
 import os
 from unittest import mock
@@ -23,7 +25,7 @@ class AnalysisServiceMock:
         return {'dummy': 'dummy description'}
 
 
-@pytest.mark.usefixtures('start_db')
+@pytest.mark.usefixtures('use_db')
 class TestInterComTaskCommunication(TestBase):
 
     @classmethod

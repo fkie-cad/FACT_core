@@ -1,3 +1,5 @@
+# pylint:disable=attribute-defined-outside-init
+
 import gc
 from multiprocessing import Queue, Value
 from time import sleep
@@ -53,7 +55,7 @@ class AnalysisServiceMock:
         pass
 
 
-@pytest.mark.usefixtures('start_db')
+@pytest.mark.usefixtures('use_db')
 class TestInterComBackEndScheduler(TestBase):
 
     def setup(self):

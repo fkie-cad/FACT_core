@@ -6,7 +6,7 @@ from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.process import complete_shutdown
 
 
-def load_config(config_file_name):
+def load_config(config_file_name) -> ConfigParser:   # pylint:disable=inconsistent-return-statements
     '''
     loads config of CONFIG_DIR/config_file_name
     Returns config object

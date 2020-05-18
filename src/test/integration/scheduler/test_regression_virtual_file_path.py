@@ -1,3 +1,5 @@
+# pylint:disable=redefined-outer-name
+
 from multiprocessing import Event, Value
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -38,7 +40,7 @@ def intermediate_event():
 
 
 @pytest.fixture(scope='module')
-def test_config():
+def test_config(use_db):
     return initialize_config(TMP_DIR)
 
 
@@ -84,7 +86,7 @@ def add_test_file_and_wait(test_scheduler, path_in_test_dir):
     test_scheduler.add_task(firmware)
 
 
-def test_check_collision(start_db, test_app, test_scheduler, finished_event, intermediate_event):
+def test_check_collision(test_app, test_scheduler, finished_event, intermediate_event):
     add_test_file_and_wait(test_scheduler, 'regression_one')
 
     intermediate_event.wait(timeout=30)
