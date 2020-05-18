@@ -21,7 +21,7 @@ import logging
 import sys
 
 from helperFunctions.program_setup import program_setup
-from storage.mongodb_docker import get_mongodb_container
+from storage.mongodb_docker import start_db_container
 from storage.MongoMgr import MongoMgr
 
 PROGRAM_NAME = 'FACT Database Initializer'
@@ -33,13 +33,10 @@ def main(command_line_options=None):
     _, config = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION, command_line_options=command_line_options)
 
     logging.info('Trying to start Mongo Server and initializing users...')
-    mongodb_container = get_mongodb_container(config)
-    if mongodb_container.status != 'running':
-        mongodb_container.start()
-    mongo_manger = MongoMgr(config=config, auth=False)
-    mongo_manger.init_users()
-    mongo_manger.shutdown()
-    mongodb_container.stop()
+    with start_db_container(config):
+        mongo_manger = MongoMgr(config=config, auth=False)
+        mongo_manger.init_users()
+        mongo_manger.shutdown()
 
     return 0
 

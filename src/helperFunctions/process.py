@@ -22,7 +22,7 @@ def no_operation(*_):
 def complete_shutdown(message=None):
     if message is not None:
         logging.error(message)
-    logging.error('SHUTTING DOWN SYSTEM')
+    logging.critical('SHUTTING DOWN SYSTEM')
     _pid = os.getpid()
     _pgid = os.getpgid(_pid)
     os.killpg(_pgid, 9)

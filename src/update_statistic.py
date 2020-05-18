@@ -20,9 +20,9 @@
 import logging
 import sys
 
-from storage.MongoMgr import MongoMgr
-from statistic.update import StatisticUpdater
 from helperFunctions.program_setup import program_setup
+from statistic.update import StatisticUpdater
+from storage.mongodb_docker import start_db_container
 
 PROGRAM_NAME = 'FACT Statistic Updater'
 PROGRAM_DESCRIPTION = 'Initialize or update FACT statistic'
@@ -30,18 +30,13 @@ PROGRAM_DESCRIPTION = 'Initialize or update FACT statistic'
 
 def main(command_line_options=None):
     command_line_options = sys.argv if not command_line_options else command_line_options
-    args, config = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION, command_line_options=command_line_options)
+    _, config = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION, command_line_options=command_line_options)
 
-    logging.info('Try to start Mongo Server...')
-    mongo_server = MongoMgr(config=config)
-
-    updater = StatisticUpdater(config=config)
-    updater.update_all_stats()
-    updater.shutdown()
-
-    if args.testing:
-        logging.info('Stopping Mongo Server...')
-        mongo_server.shutdown()
+    logging.info('Trying to start Mongo Server...')
+    with start_db_container(config):
+        updater = StatisticUpdater(config=config)
+        updater.update_all_stats()
+        updater.shutdown()
 
     return 0
 

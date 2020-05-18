@@ -27,7 +27,7 @@ from common_helper_process import execute_shell_command, execute_shell_command_g
 
 from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.program_setup import program_setup
-from storage.MongoMgr import MongoMgr
+from storage.mongodb_docker import start_db_container
 
 PROGRAM_NAME = 'FACT Variety Data Updater'
 PROGRAM_DESCRIPTION = 'Initialize or update database structure information used by the "advanced search" feature.'
@@ -63,22 +63,16 @@ def _create_variety_data(config):
 
 def main(command_line_options=None):
     command_line_options = sys.argv if command_line_options is None else command_line_options
-    args, config = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION, command_line_options=command_line_options)
-
-    logging.info('Try to start Mongo Server...')
-    mongo_server = MongoMgr(config=config)
+    _, config = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION, command_line_options=command_line_options)
 
     logging.info('updating data... this may take several hours depending on the size of your database')
 
-    start_time = time()
-    return_code = _create_variety_data(config)
-    process_time = time() - start_time
+    with start_db_container(config):
+        start_time = time()
+        return_code = _create_variety_data(config)
+        process_time = time() - start_time
 
     logging.info('generation time: {}'.format(time_format(process_time)))
-
-    if args.testing:
-        logging.info('Stopping Mongo Server...')
-        mongo_server.shutdown()
 
     return return_code
 
