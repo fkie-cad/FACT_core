@@ -1,3 +1,5 @@
+# pylint:disable=attribute-defined-outside-init
+
 import gc
 import logging
 import os
@@ -5,6 +7,7 @@ import unittest
 from concurrent.futures import ThreadPoolExecutor
 from tempfile import TemporaryDirectory
 
+import pytest
 from common_helper_files import create_dir_for_file
 
 from helperFunctions.config import load_config
@@ -12,15 +15,14 @@ from intercom.back_end_binding import InterComBackEndBinding
 from scheduler.Analysis import AnalysisScheduler
 from scheduler.Compare import CompareScheduler
 from scheduler.Unpacking import UnpackingScheduler
-from storage.MongoMgr import MongoMgr
-from test.common_helper import get_database_names, clean_test_database
+from test.common_helper import clean_test_database, get_database_names
 from web_interface.frontend_main import WebFrontEnd
-
 
 TMP_DIR = TemporaryDirectory(prefix='fact_test_')
 TMP_DB_NAME = 'tmp_acceptance_tests'
 
 
+@pytest.mark.usefixtures('use_db')
 class TestAcceptanceBase(unittest.TestCase):
 
     class TestFW:
@@ -33,7 +35,6 @@ class TestAcceptanceBase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls._set_config()
-        cls.mongo_server = MongoMgr(config=cls.config)
 
     def setUp(self):
         self.frontend = WebFrontEnd(config=self.config)
@@ -52,10 +53,6 @@ class TestAcceptanceBase(unittest.TestCase):
         gc.collect()
 
     @classmethod
-    def tearDownClass(cls):
-        cls.mongo_server.shutdown()
-
-    @classmethod
     def _set_config(cls):
         cls.config = load_config('main.cfg')
         cls.config.set('data_storage', 'main_database', TMP_DB_NAME)
@@ -66,11 +63,11 @@ class TestAcceptanceBase(unittest.TestCase):
         cls.config.set('Logging', 'mongoDbLogFile', os.path.join(TMP_DIR.name, 'mongo.log'))
 
     def _stop_backend(self):
-        with ThreadPoolExecutor(max_workers=4) as e:
-            e.submit(self.intercom.shutdown)
-            e.submit(self.compare_service.shutdown)
-            e.submit(self.unpacking_service.shutdown)
-            e.submit(self.analysis_service.shutdown)
+        with ThreadPoolExecutor(max_workers=4) as pool:
+            pool.submit(self.intercom.shutdown)
+            pool.submit(self.compare_service.shutdown)
+            pool.submit(self.unpacking_service.shutdown)
+            pool.submit(self.analysis_service.shutdown)
 
     def _start_backend(self, post_analysis=None, compare_callback=None):
         self.analysis_service = AnalysisScheduler(config=self.config, post_analysis=post_analysis)

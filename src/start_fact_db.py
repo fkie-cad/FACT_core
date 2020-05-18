@@ -57,7 +57,7 @@ class FactDb:
     def start(self):
         self.mongodb_container.start()
 
-        logging.info(self.mongodb_container.logs().decode())
+        logging.debug(self.mongodb_container.logs().decode())
         logging.info('Started MongoDB Docker Container with IP {}'.format(CONTAINER_IP))
         self.work_load_stat = WorkLoadStatistic(config=self.config, component='database')
 
@@ -73,6 +73,7 @@ class FactDb:
         self.work_load_stat.shutdown()
         with suppress(DockerException, NotFound):
             self.mongodb_container.stop()
+            self.mongodb_container.wait(timeout=10)
             self.mongodb_container.remove()
 
 
