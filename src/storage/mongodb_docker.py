@@ -1,5 +1,4 @@
 import logging
-import sys
 from configparser import ConfigParser
 from contextlib import contextmanager, suppress
 from time import sleep
@@ -33,13 +32,17 @@ def start_db_container(config: ConfigParser) -> Container:
         if not running:
             logging.info('Stopping MongoDB container...')
             with suppress(DockerException):
-                mongodb_container.stop()
-                try:
-                    mongodb_container.wait(timeout=10)
-                except ReadTimeout:
-                    logging.error('Unable to stop MongoDB container -> kill')
-                    mongodb_container.kill()
-                mongodb_container.remove()
+                stop_and_remove_container(mongodb_container)
+
+
+def stop_and_remove_container(mongodb_container: Container):
+    mongodb_container.stop()
+    try:
+        mongodb_container.wait(timeout=10)
+    except ReadTimeout:
+        logging.error('Unable to stop MongoDB container -> kill')
+        mongodb_container.kill()
+    mongodb_container.remove()
 
 
 def get_mongodb_container(config) -> Container:
@@ -69,7 +72,7 @@ def create_mongodb_container(db_path: str, docker_client: DockerClient) -> Conta
         return container
     except DockerException as error:
         logging.error('could not start docker mongodb container: {}'.format(error))
-        sys.exit(1)
+        raise
 
 
 def get_docker_network(docker_client: DockerClient) -> Network:
@@ -86,12 +89,12 @@ def create_docker_network(client: DockerClient) -> Network:
     return client.networks.create(FACT_MONGODB_NETWORK, driver="bridge", ipam=ipam_config)
 
 
-def wait_until_started(container: Container):
+def wait_until_started(container: Container, timeout=5):
     iteration = 0
     while 'waiting for connections' not in container.logs().decode():
-        sleep(0.5)
+        sleep(0.25)
         iteration += 1
-        if iteration >= 10:
+        if iteration >= timeout // 0.25:
             raise TimeoutError('MongoDB did not start correctly')
 
 
