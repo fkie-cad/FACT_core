@@ -167,7 +167,7 @@ def install():
         if args.db or none_chosen:
             db(distribution)
         if args.backend or none_chosen:
-            backend()
+            backend(distribution)
 
     if args.statistic_cronjob:
         install_statistic_cronjob()
