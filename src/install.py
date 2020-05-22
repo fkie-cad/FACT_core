@@ -45,6 +45,7 @@ BIONIC_CODE_NAMES = ['bionic', 'tara', 'tessa', 'tina', 'disco']
 XENIAL_CODE_NAMES = ['xenial', 'yakkety', 'sarah', 'serena', 'sonya', 'sylvia']
 DEBIAN_CODE_NAMES = ['buster', 'stretch', 'kali-rolling']
 FOCAL_CODE_NAMES = ['focal']
+FEDORA_CODE_NAMES = ['31', '32']
 
 
 def _setup_argparser():
@@ -113,6 +114,7 @@ def check_python_version():
 
 def check_distribution():
     codename = distro.codename().lower()
+    dist = distro.linux_distribution()[1]
     if codename in XENIAL_CODE_NAMES:
         logging.debug('Ubuntu 16.04 detected')
         return 'xenial'
@@ -125,6 +127,9 @@ def check_distribution():
     if codename in DEBIAN_CODE_NAMES:
         logging.debug('Debian/Kali detected')
         return 'debian'
+    if dist in FEDORA_CODE_NAMES:
+        logging.debug('Fedora detected')
+        return 'fedora'
     sys.exit('Your Distribution ({} {}) is not supported. FACT Installer requires Ubuntu 16.04, Ubuntu 18.04 or compatible!'.format(distro.id(), distro.version()))
 
 
