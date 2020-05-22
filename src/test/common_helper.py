@@ -6,7 +6,7 @@ from configparser import ConfigParser
 from copy import deepcopy
 
 from helperFunctions.config import load_config
-from helperFunctions.dataConversion import normalize_compare_id
+from helperFunctions.dataConversion import get_value_of_first_key, normalize_compare_id
 from helperFunctions.fileSystem import get_src_dir
 from intercom.common_mongo_binding import InterComMongoInterface
 from objects.file import FileObject
@@ -68,6 +68,13 @@ def create_test_file_object(bin_path='get_files_test/testfile1'):
 TEST_FW = create_test_firmware(device_class='test class', device_name='test device', vendor='test vendor')
 TEST_FW_2 = create_test_firmware(device_class='test_class', device_name='test_firmware_2', vendor='test vendor', bin_path='container/test.7z')
 TEST_TEXT_FILE = create_test_file_object()
+NICE_LIST_DATA = {
+    'uid': TEST_FW.uid,
+    'files_included': TEST_FW.files_included,
+    'size': TEST_FW.size,
+    'mime-type': 'file-type-plugin/not-run-yet',
+    'current_virtual_path': get_value_of_first_key(TEST_FW.get_virtual_file_paths())
+}
 
 
 class MockFileObject:
@@ -206,7 +213,7 @@ class DatabaseMock:  # pylint: disable=too-many-public-methods
             return {}
 
     def get_data_for_nice_list(self, input_data, root_uid):
-        return [input_data, root_uid]
+        return [NICE_LIST_DATA, ]
 
     @staticmethod
     def create_analysis_structure():
@@ -239,11 +246,12 @@ class DatabaseMock:  # pylint: disable=too-many-public-methods
         self.tasks.append((task, force))
 
     def get_available_analysis_plugins(self):
+        common_fields = ('0.0.', [], [], [], 1)
         return {
-            'default_plugin': ('default plugin description', False, {'default': True}, '0.0'),
-            'mandatory_plugin': ('mandatory plugin description', True, {'default': False}, '0.0'),
-            'optional_plugin': ('optional plugin description', False, {'default': False}, '0.0'),
-            'file_type': ('file_type plugin', False, {'default': False}, '0.0')
+            'default_plugin': ('default plugin description', False, {'default': True}, *common_fields),
+            'mandatory_plugin': ('mandatory plugin description', True, {'default': False}, *common_fields),
+            'optional_plugin': ('optional plugin description', False, {'default': False}, *common_fields),
+            'file_type': ('file_type plugin', False, {'default': False}, *common_fields)
         }
 
     def get_binary_and_filename(self, uid):

@@ -1,0 +1,65 @@
+{% macro field_with_icon(icon, content, tooltip, colspan=1, query=None) %}
+    <td class="align-middle text-center border-dark" style="width: 30px;" data-toggle="tooltip" data-placement="right" title="{{ tooltip }}">
+        <i class="fas fa-{{ icon }}"></i>
+    </td>
+
+    {% set mongo_query = '{{"{}": {{"$eq": "{}"}}}}'.format(query, content) if query else None %}
+    <td class="border-dark" colspan="{{ colspan }}" style="word-break: break-all; word-wrap: break-word; overflow-wrap: break-word;" {% if query %}
+        onclick="location.href='/database/browse?query={{ mongo_query | urlencode }}'"
+        data-placement="bottom"
+        data-toggle="tooltip"
+        title="Show all {{ content }} firmware"
+    {% endif %}>{{ content }}</td>
+{% endmacro %}
+
+<table class="table table-sm">
+    <thead>
+        <tr>
+            <th colspan="6" class="border-dark border-top-0">General information</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% if firmware.vendor %}
+            <tr>
+                {% if firmware.part %}
+                    {{ field_with_icon('tag', firmware.device_name, 'Device name', 1, 'device_name') }}
+                    {{ field_with_icon('ellipsis-v', firmware.part, 'Device part', 1, 'device_part') }}
+                {% else %}
+                    {{ field_with_icon('tag', firmware.device_name, 'Device name', 3, 'device_name') }}
+                {% endif %}
+                {{ field_with_icon('warehouse', firmware.vendor, 'Vendor', 1, 'vendor') }}
+            </tr>
+            <tr>
+                {{ field_with_icon('shapes', firmware.device_class, 'Device class', 1, 'device_class') }}
+                {{ field_with_icon('code-branch', firmware.version, 'Firmware version', 1) }}
+                {% if firmware.release_date == '1970-01-01' %}
+                    {{ field_with_icon('calendar-alt', 'unknown', 'Release date', 1) }}
+                {% else %}
+                    {{ field_with_icon('calendar-alt', firmware.release_date, 'Release date', 1) }}
+                {% endif %}
+            </tr>
+        {% endif %}
+        <tr>
+            {{ field_with_icon('terminal', firmware.file_name, 'File name', 3) }}
+            {{ field_with_icon('arrows-alt-h', firmware.size | number_format(verbose=True), 'File size', 1) }}
+        </tr>
+        {% if "file_type" in firmware.processed_analysis %}
+            <tr>
+                {{ field_with_icon('file', firmware.processed_analysis["file_type"]["full"], 'File type', 5) }}
+            </tr>
+        {% endif %}
+        {% if firmware_including_this_fo %}
+            <tr>
+                {{ field_with_icon('folder-open', firmware_including_this_fo | nice_uid_list(selected_analysis=selected_analysis) | safe, 'Parent firmware', 5) }}
+            </tr>
+        {% endif %}
+        <tr>
+            {{ field_with_icon('project-diagram', firmware.get_virtual_paths_for_one_uid(root_uid=root_uid) | nice_virtual_path_list | list_group_collapse | safe, 'Complete file paths in container', 5) }}
+        </tr>
+        {% if other_versions %}
+            <tr>
+                {{ field_with_icon('clone', other_versions | version_links(selected_analysis) | list_group_collapse | safe, 'Other versions', 5) }}
+            </tr>
+        {% endif %}
+    </tbody>
+</table>

@@ -94,7 +94,7 @@ class TestStorageDbInterfaceFrontend(unittest.TestCase):
         uid_list = [self.test_firmware.uid]
         self.db_backend_interface.add_firmware(self.test_firmware)
         nice_list_data = self.db_frontend_interface.get_data_for_nice_list(uid_list, uid_list[0])
-        self.assertEqual(sorted(['size', 'virtual_file_paths', 'uid', 'mime-type', 'files_included']), sorted(nice_list_data[0].keys()))
+        self.assertEqual(sorted(['size', 'current_virtual_path', 'uid', 'mime-type', 'files_included']), sorted(nice_list_data[0].keys()))
         self.assertEqual(nice_list_data[0]['uid'], self.test_firmware.uid)
 
     def test_generic_search(self):

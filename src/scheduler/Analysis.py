@@ -3,10 +3,10 @@ from concurrent.futures import ThreadPoolExecutor
 from configparser import ConfigParser
 from copy import copy
 from distutils.version import LooseVersion
-from multiprocessing import Queue, Value
+from multiprocessing import Manager, Queue, Value
 from queue import Empty
 from time import sleep, time
-from typing import List, Optional, Set, Tuple
+from typing import List, Optional, Set, Tuple, Union
 
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.compare_sets import substring_is_in_list
@@ -17,6 +17,7 @@ from helperFunctions.plugin import import_plugins
 from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions
 from helperFunctions.tag import add_tags_to_object, check_tags
 from objects.file import FileObject
+from objects.firmware import Firmware
 from storage.db_interface_backend import BackEndDbInterface
 
 MANDATORY_PLUGINS = ['file_type', 'file_hashes']
@@ -34,6 +35,9 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         self.stop_condition = Value('i', 0)
         self.process_queue = Queue()
         self.tag_queue = Queue()
+        self.manager = Manager()
+        self.currently_running = self.manager.dict()
+
         self.db_backend_service = db_interface if db_interface else BackEndDbInterface(config=config)
         self.pre_analysis = pre_analysis if pre_analysis else self.db_backend_service.add_object
         self.post_analysis = post_analysis if post_analysis else self.db_backend_service.add_analysis
@@ -59,7 +63,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         self.process_queue.close()
         logging.info('Analysis System offline')
 
-    def update_analysis_of_object_and_childs(self, fo: FileObject):
+    def update_analysis_of_object_and_children(self, fo: FileObject):
         '''
         This function is used to recursively analyze an object without need of the unpacker
         '''
@@ -72,6 +76,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         '''
         This function should be used to add a new firmware object to the scheduler
         '''
+        self._add_to_current_analyses(fo)
         self._schedule_analysis_tasks(fo, fo.scheduled_analysis, mandatory=True)
 
     def update_analysis_of_single_object(self, fo: FileObject):
@@ -134,8 +139,8 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
     def get_plugin_dict(self):
         '''
         returns a dictionary of plugins with the following form: names as keys and the respective description value
-        {NAME: (DESCRIPTION, MANDATORY_FLAG, DEFAULT_FLAG, VERSION)}
-        - mandatory plug-ins shall not be shown in the analysis selection but always exectued
+        {NAME: (DESCRIPTION, mandatory, default, VERSION, DEPENDENCIES, MIME_BLACKLIST, MIME_WHITELIST, config.threads)}
+        - mandatory plug-ins shall not be shown in the analysis selection but always executed
         - default plug-ins shall be pre-selected in the analysis selection
         '''
         plugin_list = self.get_list_of_available_plugins()
@@ -147,14 +152,28 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             mandatory_flag = plugin in MANDATORY_PLUGINS
             for key in default_plugins:
                 default_flag_dict[key] = plugin in default_plugins[key]
-            result[plugin] = (self.analysis_plugins[plugin].DESCRIPTION, mandatory_flag, dict(default_flag_dict), self.analysis_plugins[plugin].VERSION)
+            blacklist, whitelist = self._get_blacklist_and_whitelist_from_plugin(plugin)
+            result[plugin] = (
+                self.analysis_plugins[plugin].DESCRIPTION,
+                mandatory_flag,
+                dict(default_flag_dict),
+                self.analysis_plugins[plugin].VERSION,
+                self.analysis_plugins[plugin].DEPENDENCIES,
+                blacklist,
+                whitelist,
+                self.config[plugin].get('threads', 0)
+            )
         result['unpacker'] = ('Additional information provided by the unpacker', True, False)
         return result
 
 # ---- scheduling functions ----
 
     def get_scheduled_workload(self):
-        workload = {'analysis_main_scheduler': self.process_queue.qsize(), 'plugins': {}}
+        workload = {
+            'analysis_main_scheduler': self.process_queue.qsize(),
+            'plugins': {},
+            'current_analyses': {uid: len(included_files) for uid, included_files in self.currently_running.items()}
+        }
         for plugin_name in self.analysis_plugins:
             plugin = self.analysis_plugins[plugin_name]
             workload['plugins'][plugin_name] = {
@@ -188,6 +207,16 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
                 pass
             else:
                 self.process_next_analysis(task)
+
+    def _reschedule_failed_analysis_task(self, fw_object: Union[Firmware, FileObject]):
+        failed_plugin, cause = fw_object.analysis_exception
+        fw_object.processed_analysis[failed_plugin] = {'failed': cause}
+        for plugin in fw_object.scheduled_analysis[:]:
+            if failed_plugin in self.analysis_plugins[plugin].DEPENDENCIES:
+                fw_object.scheduled_analysis.remove(plugin)
+                logging.warning('Unscheduled analysis {} for {} because dependency {} failed'.format(plugin, fw_object.uid, failed_plugin))
+                fw_object.processed_analysis[plugin] = {'failed': 'Analysis of dependency {} failed'.format(failed_plugin)}
+        fw_object.analysis_exception = None
 
     # ---- analysis skipping ----
 
@@ -225,12 +254,11 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         db_entry = self.db_backend_service.get_specific_fields_of_db_entry(
             uid,
             {
-                'processed_analysis.{}.file_system_flag'.format(analysis_to_do): 1,
-                'processed_analysis.{}.plugin_version'.format(analysis_to_do): 1,
-                'processed_analysis.{}.system_version'.format(analysis_to_do): 1
+                'processed_analysis.{plugin}.{key}'.format(plugin=analysis_to_do, key=key): 1
+                for key in ['failed', 'file_system_flag', 'plugin_version', 'system_version']
             }
         )
-        if not db_entry or analysis_to_do not in db_entry['processed_analysis']:
+        if not db_entry or analysis_to_do not in db_entry['processed_analysis'] or 'failed' in db_entry['processed_analysis'][analysis_to_do]:
             return False
         if 'plugin_version' not in db_entry['processed_analysis'][analysis_to_do]:
             logging.error('Plugin Version missing: UID: {}, Plugin: {}'.format(uid, analysis_to_do))
@@ -314,7 +342,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
 
 # ---- miscellaneous functions ----
 
-    def result_collector(self):
+    def result_collector(self):  # pylint: disable=too-complex
         while self.stop_condition.value == 0:
             nop = True
             for plugin in self.analysis_plugins:
@@ -326,6 +354,9 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
                 else:
                     nop = False
                     if plugin in fw.processed_analysis:
+                        if fw.analysis_exception:
+                            self._reschedule_failed_analysis_task(fw)
+
                         self.post_analysis(fw)
                     self.check_further_process_or_complete(fw)
             if nop:
@@ -338,6 +369,8 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
     def check_further_process_or_complete(self, fw_object):
         if not fw_object.scheduled_analysis:
             logging.info('Analysis Completed:\n{}'.format(fw_object))
+            if not isinstance(fw_object, Firmware):
+                self._remove_from_current_analyses(fw_object)
         else:
             self.process_queue.put(fw_object)
 
@@ -369,3 +402,23 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             for plugin in scheduled_analyses
             for dependency in self.analysis_plugins[plugin].DEPENDENCIES
         }.difference(scheduled_analyses)
+
+    # currently running analyses
+
+    def _add_to_current_analyses(self, fw_object: Union[Firmware, FileObject]):
+        if isinstance(fw_object, Firmware):
+            self.currently_running[fw_object.uid] = list(fw_object.files_included)
+        elif fw_object.files_included:
+            for parent in self._find_currently_analyzed_parents(fw_object):
+                union = set(fw_object.files_included).union(self.currently_running[parent])
+                self.currently_running[parent] = list(union)
+
+    def _remove_from_current_analyses(self, fw_object: Union[Firmware, FileObject]):
+        for parent in self._find_currently_analyzed_parents(fw_object):
+            self.currently_running[parent] = [uid for uid in self.currently_running[parent] if uid != fw_object.uid]
+            if len(self.currently_running[parent]) == 0:
+                self.currently_running.pop(parent)
+                logging.info('Analysis of firmware {} completed'.format(parent))
+
+    def _find_currently_analyzed_parents(self, fo):
+        return set(self.currently_running.keys()).intersection(fo.parent_firmware_uids)

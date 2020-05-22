@@ -52,7 +52,7 @@
                 color:#2b669a;
                 text-decoration:none;
             }
-            td.clickable {
+            .clickable {
                 cursor:pointer;
             }
             .bg-fact {
@@ -88,8 +88,17 @@
             .table-hover .table-head-light:hover > th {
                 background-color: #d6d8db;
             }
+            .li-hover:hover {
+                -moz-box-shadow: inset 0 0 5px var(--blue);
+                -webkit-box-shadow: inset 0 0 var(--blue);
+                box-shadow: inset 0 0 5px var(--blue);
+            }
             .table-analysis {
                 font-size: 15px;
+            }
+            .footnote {
+                font-family: 'Courier New', Courier, monospace;
+                font-size: 10px;
             }
         </style>
         {% block styles %}{% endblock %}
@@ -115,41 +124,41 @@
                     {% if caption == "Database" %}
                         <li class="dropdown pr-3">
                             <a {% if caption == active_page %}style="color: #fff; font-weight: 500;"{% endif  %} class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="fas fa-tasks"></i>&nbsp;Database<span class="caret"></span></a>
-                            <ul class="dropdown-menu">
-                                <li class="dropdown-item"><a href="/database/browse" style="font-size: 14px"><i class="fas fa-list-ul"></i> Browse Firmware</a></li>
-                                <li class="dropdown-item"><a href="/database/browse_compare" style="font-size: 14px"><i class="far fa-copy"></i> Browse Compares</a></li>
-                                <li class="dropdown-item"><a href="/database/search" style="font-size: 14px"><i class="fas fa-search"></i> Basic Search</a></li>
-                                <li class="dropdown-item"><a href="/database/advanced_search" style="font-size: 14px"><i class="fas fa-search-plus"></i> Advanced Search</a></li>
-                                <li class="dropdown-item"><a href="/database/binary_search" style="font-size: 14px"><i class="fas fa-search-dollar"></i> Binary Pattern Search</a></li>
-                            </ul>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item" href="/database/browse" style="font-size: 14px"><i class="fas fa-list-ul"></i> Browse Firmware</a>
+                                <a class="dropdown-item" href="/database/browse_compare" style="font-size: 14px"><i class="far fa-copy"></i> Browse Compares</a>
+                                <a class="dropdown-item" href="/database/search" style="font-size: 14px"><i class="fas fa-search"></i> Basic Search</a>
+                                <a class="dropdown-item" href="/database/advanced_search" style="font-size: 14px"><i class="fas fa-search-plus"></i> Advanced Search</a>
+                                <a class="dropdown-item" href="/database/binary_search" style="font-size: 14px"><i class="fas fa-search-dollar"></i> Binary Pattern Search</a>
+                            </div>
                         </li>
                     {% elif caption == "Info" %}
                         <li class="dropdown pr-3">
                             <a {% if caption == active_page %}style="color: #fff; font-weight: 500;"{% endif  %} class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="fas fa-info-circle"></i>&nbsp;{{ caption }}<span class="caret"></span></a>
-                            <ul class="dropdown-menu">
-                                <li class="dropdown-item"><a href="/statistic" style="font-size: 14px"><i class="fas fa-chart-bar"></i> Statistics</a></li>
-                                <li class="dropdown-item"><a href="/system_health" style="font-size: 14px"><i class="fas fa-heartbeat"></i> System</a></li>
-                                <li class="dropdown-item"><a href="/about" style="font-size: 14px"><i class="fas fa-beer"></i> About</a></li>
-                            </ul>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item" href="/statistic" style="font-size: 14px"><i class="fas fa-chart-bar"></i> Statistics</a>
+                                <a class="dropdown-item" href="/system_health" style="font-size: 14px"><i class="fas fa-heartbeat"></i> System</a>
+                                <a class="dropdown-item" href="/about" style="font-size: 14px"><i class="fas fa-beer"></i> About</a>
+                            </div>
                         </li>
                     {% elif caption == "Admin" %}
                         {% if current_user | user_has_role('manage_users') %}
                             <li class="dropdown pr-3">
                                 <a {% if caption == active_page %}style="color: #fff; font-weight: 500;"{% endif  %} class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="fas fa-user-shield"></i>&nbsp;{{ caption }}<span class="caret"></span></a>
-                                <ul class="dropdown-menu">
-                                    <li class="dropdown-item"><a href="/admin/manage_users" style="font-size: 14px"><i class="fas fa-users-cog"></i> Manage Users</a></li>
-                                    <li class="dropdown-item"><a href="/admin/missing_analyses" style="font-size: 14px"><i class="fas fa-search"></i> Find Missing Analyses</a></li>
-                                </ul>
+                                <div class="dropdown-menu">
+                                    <a class="dropdown-item" href="/admin/manage_users" style="font-size: 14px"><i class="fas fa-users-cog"></i> Manage Users</a>
+                                    <a class="dropdown-item" href="/admin/missing_analyses" style="font-size: 14px"><i class="fas fa-search"></i> Find Missing Analyses</a>
+                                </div>
                             </li>
                         {% endif %}
                     {% elif caption == "Login" %}
                             {% if current_user.is_authenticated %}
                                 <li class="dropdown pr-3">
                                     <a {% if caption == active_page %}style="color: #fff; font-weight: 500;"{% endif  %} class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="fas fa-user"></i>&nbsp;{{ current_user.email }}<span class="caret"></span></a>
-                                    <ul class="dropdown-menu">
-                                        <li class="dropdown-item"><a href="/user_profile" style="font-size: 14px"><i class="fas fa-user-cog"></i> Profile</a></li>
-                                        <li class="dropdown-item"><a href="/logout" style="font-size: 14px"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
-                                    </ul>
+                                    <div class="dropdown-menu">
+                                        <a class="dropdown-item" href="/user_profile" style="font-size: 14px"><i class="fas fa-user-cog"></i> Profile</a>
+                                        <a class="dropdown-item" href="/logout" style="font-size: 14px"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                                    </div>
                                 </li>
                             {% else %}
                                 <li>
@@ -167,7 +176,7 @@
             <!-- Navbar Quick Search Input -->
             <div id="quick_search_div" class="nav navbar-nav ml-md-auto d-none d-md-block">
                 <div class="input-group mr-sm-2">
-                    <input type="text" class="form-control" placeholder="Quick search name, vendor and hash values" id="quick_search_input" onKeyDown="if(event.keyCode==13) quickSearch();" style="margin: 0; background-color: #e7e7e7; border-radius: 0;">
+                    <input type="text" class="form-control" placeholder="Quick search name, vendor and hash values" id="quick_search_input" onKeyDown="if(event.keyCode==13) quickSearch();" style="margin: 0; background-color: #e7e7e7; border-radius: 0; border-top-left-radius: .25rem; border-bottom-left-radius: .25rem;">
                     <div class="input-group-append">
                         <button class="btn btn-secondary" type="button" onclick="quickSearch()">
                             <i class="fas fa-search"></i>

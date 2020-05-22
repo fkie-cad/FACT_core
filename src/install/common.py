@@ -49,7 +49,8 @@ def main(distribution):  # pylint: disable=too-many-statements
 
     # install python2
     apt_install_packages('python', 'python-dev')
-    apt_remove_packages('python-pip')
+    with suppress(InstallationError):
+        apt_remove_packages('python-pip')
     install_pip('python2')
 
     # install general python dependencies
