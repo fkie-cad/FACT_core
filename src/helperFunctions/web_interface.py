@@ -19,11 +19,7 @@ BS_SECONDARY = '#6c757d'
 
 
 def get_color_list(number, limit=15):
-    return [
-        BS_PRIMARY, BS_SECONDARY, BS_PRIMARY, BS_SECONDARY, BS_PRIMARY, BS_SECONDARY,
-        BS_PRIMARY, BS_SECONDARY, BS_PRIMARY, BS_SECONDARY, BS_PRIMARY, BS_SECONDARY,
-        BS_PRIMARY, BS_SECONDARY, BS_PRIMARY, BS_SECONDARY, BS_PRIMARY, BS_SECONDARY
-    ][:number if number <= limit else limit]
+    return ([BS_PRIMARY, BS_SECONDARY, ] * 8)[:number if number <= limit else limit]
 
 
 def overwrite_default_plugins(intercom, checked_plugin_list):
