@@ -55,7 +55,7 @@ You can shutdown the system by pressing *Ctrl + c* or by sending a SIGTERM to th
 :fire: We're currently working to improving our documentation, including installation, getting started and alike. Follow progess on our [wiki pages](https://github.com/fkie-cad/FACT_core/wiki/). :v:
 
 ### REST API
-FACT provides a REST API. More information can be found [here](https://github.com/fkie-cad/FACT_core/wiki/rest-documentation).
+FACT provides a REST API. More information can be found [here](https://github.com/fkie-cad/FACT_core/wiki/Rest-API).
 
 ### User Management
 FACT provides an optional basic authentication, role and user management. More information can be found [here](https://github.com/fkie-cad/FACT_core/wiki/Authentication).
