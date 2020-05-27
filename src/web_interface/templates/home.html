@@ -75,6 +75,10 @@
                             <td style="text-align: left; padding:5px">analysis still running</td>
                             <td id="missing_analysis" style="text-align: right; padding:5px">n/a</td>
                         </tr>
+                        <tr>
+                            <td style="text-align: left; padding:5px">cpu percentage</td>
+                            <td id="cpu_percentage" style="text-align: right; padding:5px">n/a</td>
+                        </tr>
                     </tbody>
                 </table>
             </center>
@@ -90,9 +94,8 @@
 
                 var system_data = $.getJSON("/ajax/stats/system")
                 .success(function(system_data) {
-                    console.log("data: " + system_data.system_status);
-                    // document.getElementById("missing_analysis").innerHTML = data.missing_analysis;
-                    // document.getElementById("missing_files").innerHTML = data.missing_files;
+                    // console.log("data: " + system_data.system_status[0].system.cpu_percentage);
+                    document.getElementById("cpu_percentage").innerHTML = system_data.system_status[0].system.cpu_percentage;
                 });
 
                 //alert(data.missing_files);
