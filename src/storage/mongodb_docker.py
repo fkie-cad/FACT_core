@@ -15,7 +15,6 @@ from helperFunctions.config import get_config_dir
 
 MONGODB_CONTAINER_NAME = 'fact_mongodb'
 FACT_MONGODB_NETWORK = "fact_mongodb_network"
-CONTAINER_IP = '192.168.27.17'
 DOCKER_IMAGE = 'mongo:3.6.8-stretch'
 
 
@@ -64,31 +63,45 @@ def create_mongodb_container(config: ConfigParser, docker_client: DockerClient) 
             Mount('/media/data/fact_wt_mongodb', db_path, read_only=False, type='bind'),
             Mount('/log', str(log_path), read_only=False, type='bind'),
         ]
-        network = get_docker_network(docker_client)
+        network = get_docker_network(config, docker_client)
         container = docker_client.containers.create(
             DOCKER_IMAGE,
             command='docker-entrypoint.sh --config /config/mongod.conf --setParameter honorSystemUmask=true',
             detach=True,
             name=MONGODB_CONTAINER_NAME,
             mounts=mounts,
+            ports={'27018/tcp': config['data_storage']['mongo_port']}
         )
-        network.connect(MONGODB_CONTAINER_NAME, ipv4_address=CONTAINER_IP)
+        network.connect(MONGODB_CONTAINER_NAME, ipv4_address=(config['data_storage']['mongo_server']))
         return container
     except DockerException as error:
         logging.error('could not start docker mongodb container: {}'.format(error))
         raise
 
 
-def get_docker_network(docker_client: DockerClient) -> Network:
+def get_docker_network(config: ConfigParser, docker_client: DockerClient) -> Network:
     try:
         network = docker_client.networks.get(FACT_MONGODB_NETWORK)
+        if not network_conf_is_correct(network, config):
+            raise NotFound
     except NotFound:
-        network = create_docker_network(docker_client)
+        network = create_docker_network(config, docker_client)
     return network
 
 
-def create_docker_network(client: DockerClient) -> Network:
-    ipam_pool = docker.types.IPAMPool(subnet='192.168.27.0/24', gateway='192.168.27.1')
+def network_conf_is_correct(network: Network, config: ConfigParser) -> bool:
+    try:
+        network_config = network.attrs['IPAM']['Config'][0]
+        network_subnet, network_gateway = network_config['Subnet'], network_config['Gateway']
+        config_subnet, config_gateway = config['data_storage']['mongo_subnet'], config['data_storage']['mongo_gateway']
+        return network_subnet == config_subnet and network_gateway == config_gateway
+    except (IndexError, KeyError):
+        return False
+
+
+def create_docker_network(config: ConfigParser, client: DockerClient) -> Network:
+    subnet, gateway = config['data_storage']['mongo_subnet'], config['data_storage']['mongo_gateway']
+    ipam_pool = docker.types.IPAMPool(subnet=subnet, gateway=gateway)
     ipam_config = docker.types.IPAMConfig(pool_configs=[ipam_pool])
     return client.networks.create(FACT_MONGODB_NETWORK, driver="bridge", ipam=ipam_config)
 

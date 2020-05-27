@@ -421,12 +421,10 @@ def get_firmware_for_rest_upload_test():
 def get_config_for_testing(temp_dir=None):
     config = ConfigParser()
     config.add_section('data_storage')
-    config.set('data_storage', 'mongo_server', '192.168.27.17')
     config.set('data_storage', 'main_database', 'tmp_unit_tests')
     config.set('data_storage', 'intercom_database_prefix', 'tmp_unit_tests')
     config.set('data_storage', 'statistic_database', 'tmp_unit_tests')
     config.set('data_storage', 'view_storage', 'tmp_tests_view')
-    config.set('data_storage', 'mongo_port', '27017')
     config.set('data_storage', 'report_threshold', '2048')
     config.set('data_storage', 'password_salt', '1234')
     config.add_section('unpack')
@@ -441,7 +439,7 @@ def get_config_for_testing(temp_dir=None):
     config.set('ExpertSettings', 'nginx', 'false')
     config.add_section('database')
     config.set('database', 'results_per_page', '10')
-    load_users_from_main_config(config)
+    load_entries_from_main_config(config)
     config.add_section('Logging')
     if temp_dir is not None:
         config.set('data_storage', 'firmware_file_storage_directory', temp_dir.name)
@@ -449,9 +447,11 @@ def get_config_for_testing(temp_dir=None):
     return config
 
 
-def load_users_from_main_config(config: ConfigParser):
+def load_entries_from_main_config(config: ConfigParser):
     fact_config = load_config('main.cfg')
     config.set('data_storage', 'db_admin_user', fact_config['data_storage']['db_admin_user'])
     config.set('data_storage', 'db_admin_pw', fact_config['data_storage']['db_admin_pw'])
     config.set('data_storage', 'db_readonly_user', fact_config['data_storage']['db_readonly_user'])
     config.set('data_storage', 'db_readonly_pw', fact_config['data_storage']['db_readonly_pw'])
+    config.set('data_storage', 'mongo_server', fact_config['data_storage']['mongo_server'])
+    config.set('data_storage', 'mongo_port', fact_config['data_storage']['mongo_port'])

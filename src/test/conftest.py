@@ -13,7 +13,7 @@ from test.common_helper import get_config_for_testing
 
 @pytest.fixture(scope="session")
 def start_db(request):
-    config = _get_config()
+    config = get_config()
     db_container = get_mongodb_container(config)
     db_container.start()
 
@@ -27,16 +27,18 @@ def start_db(request):
 
 @pytest.fixture(scope="module")
 def use_db(start_db):
-    config = _get_config()
+    config = get_config()
     db_container = get_mongodb_container(config)
     if not container_is_running(db_container):
         db_container.start()
         assert container_is_running(db_container), 'could not restart db container'
 
 
-def _get_config():
-    config = get_config_for_testing(TemporaryDirectory(prefix='fact_test_'))
+def get_config(use_temp_dir=True):
+    temp_dir = TemporaryDirectory(prefix='fact_test_') if use_temp_dir else None
+    config = get_config_for_testing(temp_dir)
     fact_config = load_config('main.cfg')
-    config.set('data_storage', 'mongo_storage_directory', fact_config.get('data_storage', 'mongo_storage_directory'))
+    for key in ['mongo_storage_directory', 'mongo_server', 'mongo_subnet', 'mongo_gateway', 'mongo_port']:
+        config.set('data_storage', key, fact_config.get('data_storage', key))
     config.set('Logging', 'mongoDbLogPath', fact_config.get('Logging', 'mongoDbLogPath'))
     return config

@@ -24,7 +24,7 @@ from time import sleep
 
 from helperFunctions.program_setup import program_setup, was_started_by_start_fact
 from statistic.work_load import WorkLoadStatistic
-from storage.mongodb_docker import CONTAINER_IP, start_db_container
+from storage.mongodb_docker import start_db_container
 from storage.MongoMgr import MongoMgr
 
 PROGRAM_NAME = 'FACT DB-Service'
@@ -54,7 +54,7 @@ class FactDb:
 
     def start(self):
         with start_db_container(self.config):
-            logging.info('Started MongoDB Docker Container with IP {}'.format(CONTAINER_IP))
+            logging.info('Started MongoDB Docker Container')
             self.work_load_stat = WorkLoadStatistic(config=self.config, component='database')
             self.run = True
 
