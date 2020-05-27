@@ -88,12 +88,14 @@
             .table-hover .table-head-light:hover > th {
                 background-color: #d6d8db;
             }
+            .li-hover {
+                box-shadow: 0 0 0 rgba(0,0,0,.125);
+            }
             .li-hover:hover {
-                -moz-box-shadow: 4px 4px 18px rgba(0,0,0,.125);
-                -webkit-box-shadow: 4px 4px 18px rgba(0,0,0,.125);
-                box-shadow: 4px 4px 18px rgba(0,0,0,.125);
+                box-shadow: 5px 5px 20px rgba(0,0,0,.125);
                 z-index: 1;
                 border-top: 0;
+                transition: box-shadow 0.3s ease-in-out;
             }
             .table-analysis {
                 font-size: 15px;
