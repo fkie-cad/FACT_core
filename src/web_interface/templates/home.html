@@ -65,19 +65,19 @@
                         </tr>
                         <tr>
                             <td style="text-align: left; padding:5px">statistic generation time</td>
-                            <td style="text-ajax_statsalign: right; padding:5px">{{ general_stats['benchmark'] | nice_number }} s</td>
+                            <td style="text-align: right; padding:5px">{{ general_stats['benchmark'] | nice_number }} s</td>
                         </tr>
                         <tr>
-                            <td style="text-align: left; padding:5px">files still being analyzed</td>
+                            <td style="text-align: left; padding:5px">incompletely analyzed Firmware</td>
                             <td id="missing_files" style="text-align: right; padding:5px">n/a</td>
                         </tr>
                         <tr>
-                            <td style="text-align: left; padding:5px">analysis still running</td>
-                            <td id="missing_analysis" style="text-align: right; padding:5px">n/a</td>
+                            <td style="text-align: left; padding:5px">backend CPU load</td>
+                            <td id="cpu_percentage" style="text-align: right; padding:5px">n/a</td>
                         </tr>
                         <tr>
-                            <td style="text-align: left; padding:5px">cpu percentage</td>
-                            <td id="cpu_percentage" style="text-align: right; padding:5px">n/a</td>
+                            <td style="text-align: left; padding:5px">currently analyzed firmware</td>
+                            <td id="currently_running" style="text-align: right; padding:5px">n/a</td>
                         </tr>
                     </tbody>
                 </table>
@@ -85,17 +85,28 @@
     	</div>
         <script>
             function load_ajax_stats(){
-                var data = $.getJSON("/ajax/stats/general")
+                let data = $.getJSON("/ajax/stats/general")
                 .success(function(data) {
-                    // console.log("data: " + data.missing_files);
-                    document.getElementById("missing_analysis").innerHTML = data.missing_analysis;
                     document.getElementById("missing_files").innerHTML = data.missing_files;
                 });
 
-                var system_data = $.getJSON("/ajax/stats/system")
+                let system_data = $.getJSON("/ajax/stats/system")
                 .success(function(system_data) {
-                    // console.log("data: " + system_data.system_status[0].system.cpu_percentage);
-                    document.getElementById("cpu_percentage").innerHTML = system_data.system_status[0].system.cpu_percentage;
+                    document.getElementById("cpu_percentage").innerHTML = system_data.backend_cpu_percentage + " %";
+
+                    let running_node =  document.getElementById("currently_running");
+                    if (system_data.number_of_running_analyses > 0) {
+
+                        if (! running_node.classList.contains('text-success')) {
+                            running_node.classList.add('text-success');
+                        }
+                    } else {
+                        if (running_node.classList.contains('text-success')) {
+                            running_node.classList.remove('text-success');
+                            }
+                    }
+
+                    running_node.innerHTML = system_data.number_of_running_analyses;
                 });
 
                 //alert(data.missing_files);

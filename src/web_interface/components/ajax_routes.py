@@ -1,5 +1,5 @@
 import html
-from typing import List, Dict, Set
+from typing import Dict, List, Set
 
 from common_helper_files import human_readable_file_size
 from flask import jsonify, render_template
@@ -9,8 +9,8 @@ from helperFunctions.dataConversion import none_to_none
 from helperFunctions.file_tree import FileTreeNode, get_correct_icon_for_mime, remove_virtual_path_from_root
 from intercom.front_end_binding import InterComFrontEndBinding
 from storage.db_interface_compare import CompareDbInterface
-from storage.db_interface_statistic import StatisticDbViewer
 from storage.db_interface_frontend import FrontEndDbInterface
+from storage.db_interface_statistic import StatisticDbViewer
 from web_interface.components.component_base import ComponentBase
 from web_interface.filter import bytes_to_str_filter, encode_base64_filter
 from web_interface.security.decorator import roles_accepted
@@ -179,18 +179,12 @@ class AjaxRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['status'])
     def _get_system_stats(self):
-        status = []
         with ConnectTo(StatisticDbViewer, self._config) as stats_db:
-            status.append(stats_db.get_statistic("backend"))
-        '''
-        components = ["frontend", "database", "backend"]
-        status = {}
-        with ConnectTo(StatisticDbViewer, self._config) as db:
-            for component in components:
-                status[component] = db.get_statistic(component)
-        '''
+            backend_data = stats_db.get_statistic("backend")
+
         return {
-            'system_status': status
+            'backend_cpu_percentage': backend_data['system']['cpu_percentage'],
+            'number_of_running_analyses': len(backend_data['analysis']['current_analyses'])
         }
 
     @staticmethod
