@@ -1,5 +1,5 @@
 import html
-from typing import List
+from typing import List, Dict, Set
 
 from common_helper_files import human_readable_file_size
 from flask import jsonify, render_template
@@ -9,6 +9,7 @@ from helperFunctions.dataConversion import none_to_none
 from helperFunctions.file_tree import FileTreeNode, get_correct_icon_for_mime, remove_virtual_path_from_root
 from intercom.front_end_binding import InterComFrontEndBinding
 from storage.db_interface_compare import CompareDbInterface
+from storage.db_interface_statistic import StatisticDbViewer
 from storage.db_interface_frontend import FrontEndDbInterface
 from web_interface.components.component_base import ComponentBase
 from web_interface.filter import bytes_to_str_filter, encode_base64_filter
@@ -26,6 +27,9 @@ class AjaxRoutes(ComponentBase):
                                self._ajax_get_common_files_for_compare)
         self._app.add_url_rule('/ajax_get_binary/<mime_type>/<uid>', 'ajax_get_binary/<type>/<uid>', self._ajax_get_binary)
         self._app.add_url_rule('/ajax_get_summary/<uid>/<selected_analysis>', 'ajax_get_summary/<uid>/<selected_analysis>', self._ajax_get_summary)
+
+        self._app.add_url_rule('/ajax/stats/general', 'ajax/stats/general', self._get_asynchronous_stats)
+        self._app.add_url_rule('/ajax/stats/system', 'ajax/stats/system', self._get_system_stats)
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
     def _ajax_get_tree_children(self, uid, root_uid=None, compare_id=None):
@@ -162,3 +166,33 @@ class AjaxRoutes(ComponentBase):
             firmware = sc.get_object(uid, analysis_filter=selected_analysis)
             summary_of_included_files = sc.get_summary(firmware, selected_analysis)
         return render_template('summary.html', summary_of_included_files=summary_of_included_files, root_uid=uid, selected_analysis=selected_analysis)
+
+    @roles_accepted(*PRIVILEGES['status'])
+    def _get_asynchronous_stats(self):
+        with ConnectTo(FrontEndDbInterface, self._config) as db:
+            missing_files = self._make_json_serializable(db.find_missing_files())
+            missing_analyses = self._make_json_serializable(db.find_missing_analyses())
+        return {
+            'missing_files': len(missing_files),
+            'missing_analysis': len(missing_analyses)
+        }
+
+    @roles_accepted(*PRIVILEGES['status'])
+    def _get_system_stats(self):
+        status = []
+        with ConnectTo(StatisticDbViewer, self._config) as stats_db:
+            status.append(stats_db.get_statistic("backend"))
+        '''
+        components = ["frontend", "database", "backend"]
+        status = {}
+        with ConnectTo(StatisticDbViewer, self._config) as db:
+            for component in components:
+                status[component] = db.get_statistic(component)
+        '''
+        return {
+            'system_status': status
+        }
+
+    @staticmethod
+    def _make_json_serializable(set_dict: Dict[str, Set[str]]) -> Dict[str, List[str]]:
+        return {k: list(v) for k, v in set_dict.items()}
