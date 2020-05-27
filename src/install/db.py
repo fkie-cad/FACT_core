@@ -7,8 +7,8 @@ from common_helper_process import execute_shell_command_get_return_code
 from helperFunctions.install import InstallationError, OperateInDirectory
 
 
-def _get_db_directory():
-    output, return_code = execute_shell_command_get_return_code(r'grep -oP "dbPath:[\s]*\K[^\s]+" ../config/mongod.conf')
+def _get_config_key(key):
+    output, return_code = execute_shell_command_get_return_code(r'grep -oP "{} ?= *[\s]*\K[^\s]+" ../config/main.cfg'.format(key))
     if return_code != 0:
         raise InstallationError('Unable to locate target for database directory')
     return output.strip()
@@ -16,16 +16,17 @@ def _get_db_directory():
 
 def main():
     logging.info('Setting up mongo database')
-    _, return_code = execute_shell_command_get_return_code('docker pull mongo:3-xenial')
+    _, return_code = execute_shell_command_get_return_code('docker pull mongo:3.6.8-stretch')
     if return_code != 0:
         raise InstallationError('Failed to download MongoDB docker image')
 
     # creating DB directory
-    fact_db_directory = _get_db_directory()
-    mkdir_output, _ = execute_shell_command_get_return_code('sudo mkdir -p --mode=0744 {}'.format(fact_db_directory))
-    chown_output, chown_code = execute_shell_command_get_return_code('sudo chown 999:999 {}'.format(fact_db_directory))
-    if chown_code != 0:
-        raise InstallationError('Failed to set up database directory. Check if parent folder exists\n{}'.format('\n'.join((mkdir_output, chown_output))))
+    for path in ['mongo_storage_directory', 'mongoDbLogPath']:
+        fact_db_directory = _get_config_key(path)
+        mkdir_output, _ = execute_shell_command_get_return_code('sudo mkdir -p --mode=0744 {}'.format(fact_db_directory))
+        chown_output, chown_code = execute_shell_command_get_return_code('sudo chown 999:999 {}'.format(fact_db_directory))
+        if chown_code != 0:
+            raise InstallationError('Failed to set up database directory. Check if parent folder exists\n{}'.format('\n'.join((mkdir_output, chown_output))))
 
     # initializing DB authentication
     logging.info('Initialize database')

@@ -34,9 +34,7 @@ def main(command_line_options=None):
 
     logging.info('Trying to start Mongo Server and initializing users...')
     with start_db_container(config):
-        mongo_manger = MongoMgr(config=config, auth=False)
-        mongo_manger.init_users()
-        mongo_manger.shutdown()
+        MongoMgr(config=config).init_users()
 
     return 0
 

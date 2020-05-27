@@ -1,7 +1,7 @@
 import logging
 from configparser import ConfigParser
 from contextlib import contextmanager, suppress
-from time import sleep
+from pathlib import Path
 
 import docker
 from docker import DockerClient
@@ -16,7 +16,7 @@ from helperFunctions.config import get_config_dir
 MONGODB_CONTAINER_NAME = 'fact_mongodb'
 FACT_MONGODB_NETWORK = "fact_mongodb_network"
 CONTAINER_IP = '192.168.27.17'
-DOCKER_IMAGE = 'mongo:3-xenial'
+DOCKER_IMAGE = 'mongo:3.6.8-stretch'
 
 
 @contextmanager
@@ -50,20 +50,24 @@ def get_mongodb_container(config) -> Container:
     try:
         mongodb_container = client.containers.get(MONGODB_CONTAINER_NAME)
     except NotFound:
-        mongodb_container = create_mongodb_container(config['data_storage']['mongo_storage_directory'], client)
+        mongodb_container = create_mongodb_container(config, client)
     return mongodb_container
 
 
-def create_mongodb_container(db_path: str, docker_client: DockerClient) -> Container:
+def create_mongodb_container(config: ConfigParser, docker_client: DockerClient) -> Container:
     try:
+        db_path = config['data_storage']['mongo_storage_directory']
+        log_path = Path(config['Logging']['mongoDbLogPath'])
+        logging.info('creating mongodb docker container\n\tdatabase path: {}\n\tlog path: {})'.format(db_path, log_path))
         mounts = [
             Mount('/config', get_config_dir(), read_only=False, type='bind'),
             Mount('/media/data/fact_wt_mongodb', db_path, read_only=False, type='bind'),
+            Mount('/log', str(log_path), read_only=False, type='bind'),
         ]
         network = get_docker_network(docker_client)
         container = docker_client.containers.create(
             DOCKER_IMAGE,
-            command='docker-entrypoint.sh --config /config/mongod.conf',
+            command='docker-entrypoint.sh --config /config/mongod.conf --setParameter honorSystemUmask=true',
             detach=True,
             name=MONGODB_CONTAINER_NAME,
             mounts=mounts,
@@ -89,14 +93,6 @@ def create_docker_network(client: DockerClient) -> Network:
     return client.networks.create(FACT_MONGODB_NETWORK, driver="bridge", ipam=ipam_config)
 
 
-def wait_until_started(container: Container, timeout=5):
-    iteration = 0
-    while 'waiting for connections' not in container.logs().decode():
-        sleep(0.25)
-        iteration += 1
-        if iteration >= timeout // 0.25:
-            raise TimeoutError('MongoDB did not start correctly')
-
-
 def container_is_running(container: Container) -> bool:
+    container.reload()
     return container.status == 'running'

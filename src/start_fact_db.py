@@ -20,14 +20,12 @@
 import logging
 import signal
 import sys
-from contextlib import suppress
 from time import sleep
-
-from docker.errors import DockerException, NotFound
 
 from helperFunctions.program_setup import program_setup, was_started_by_start_fact
 from statistic.work_load import WorkLoadStatistic
-from storage.mongodb_docker import CONTAINER_IP, get_mongodb_container
+from storage.mongodb_docker import CONTAINER_IP, start_db_container
+from storage.MongoMgr import MongoMgr
 
 PROGRAM_NAME = 'FACT DB-Service'
 PROGRAM_DESCRIPTION = 'Firmware Analysis and Compare Tool (FACT) DB-Service'
@@ -39,8 +37,8 @@ class FactDb:
         self._set_signal()
         args, self.config = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION)
         self.testing = args.testing
-        self.mongodb_container = get_mongodb_container(self.config)
-        self.mongo_server = None
+
+        MongoMgr(self.config).check_file_and_directory_existence_and_permissions()
         self.work_load_stat = None
 
     def _set_signal(self):
@@ -55,26 +53,18 @@ class FactDb:
         self.run = False
 
     def start(self):
-        self.mongodb_container.start()
+        with start_db_container(self.config):
+            logging.info('Started MongoDB Docker Container with IP {}'.format(CONTAINER_IP))
+            self.work_load_stat = WorkLoadStatistic(config=self.config, component='database')
+            self.run = True
 
-        logging.debug(self.mongodb_container.logs().decode())
-        logging.info('Started MongoDB Docker Container with IP {}'.format(CONTAINER_IP))
-        self.work_load_stat = WorkLoadStatistic(config=self.config, component='database')
+            while self.run:
+                self.work_load_stat.update()
+                sleep(5)
+                if self.testing:
+                    break
 
-        self.run = True
-        while self.run:
-            self.work_load_stat.update()
-            sleep(5)
-            if self.testing:
-                break
-        self.stop()
-
-    def stop(self):
-        self.work_load_stat.shutdown()
-        with suppress(DockerException, NotFound):
-            self.mongodb_container.stop()
-            self.mongodb_container.wait(timeout=10)
-            self.mongodb_container.remove()
+            self.work_load_stat.shutdown()
 
 
 if __name__ == '__main__':

@@ -445,7 +445,7 @@ def get_config_for_testing(temp_dir=None):
     config.add_section('Logging')
     if temp_dir is not None:
         config.set('data_storage', 'firmware_file_storage_directory', temp_dir.name)
-        config.set('Logging', 'mongoDbLogFile', os.path.join(temp_dir.name, 'mongo.log'))
+        config.set('Logging', 'mongoDbLogPath', os.path.join(temp_dir.name))
     return config
 
 

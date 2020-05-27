@@ -12,7 +12,7 @@ from requests import ReadTimeout
 from helperFunctions.config import load_config
 from storage.mongodb_docker import (
     CONTAINER_IP, FACT_MONGODB_NETWORK, MONGODB_CONTAINER_NAME, container_is_running, create_mongodb_container,
-    get_docker_network, get_mongodb_container, start_db_container, stop_and_remove_container, wait_until_started
+    get_docker_network, get_mongodb_container, start_db_container, stop_and_remove_container
 )
 from test.common_helper import get_config_for_testing
 
@@ -23,6 +23,7 @@ def _get_config() -> ConfigParser:
     config = get_config_for_testing()
     fact_config = load_config('main.cfg')
     config.set('data_storage', 'mongo_storage_directory', fact_config.get('data_storage', 'mongo_storage_directory'))
+    config.set('Logging', 'mongoDbLogPath', fact_config.get('Logging', 'mongoDbLogPath'))
     return config
 
 
@@ -65,28 +66,17 @@ def _make_sure_network_does_not_exist():
         network.remove()
 
 
-def test_wait_until_container_is_running():
+def test_container_is_running():
     container = get_mongodb_container(_get_config())
     container.stop()
     container.wait(timeout=3)
     assert not container_is_running(container)
     try:
         container.start()
-        container.reload()
-        wait_until_started(container)
         assert container_is_running(container)
     finally:
         container.stop()
         container.wait(timeout=3)
-
-
-def test_wait_until_started_timeout():
-    class MockContainer:
-        @staticmethod
-        def logs():
-            return b''
-    with pytest.raises(TimeoutError):
-        wait_until_started(MockContainer(), timeout=0.5)
 
 
 def test_start_db_container_not_running():
@@ -95,7 +85,6 @@ def test_start_db_container_not_running():
     container.stop()
     container.wait(timeout=3)
     with start_db_container(config):
-        container.reload()
         assert container_is_running(container)
     with pytest.raises(NotFound):
         container.reload()
@@ -105,13 +94,9 @@ def test_start_db_container_already_running():
     config = _get_config()
     container = get_mongodb_container(config)
     container.start()
-    wait_until_started(container)
-    container.reload()
     assert container_is_running(container)
     with start_db_container(config):
-        container.reload()
         assert container_is_running(container)
-    container.reload()
     assert container_is_running(container)
     stop_and_remove_container(container)
 
@@ -145,5 +130,6 @@ def test_create_mongodb_container(caplog):
 
     with caplog.at_level(logging.ERROR):
         with pytest.raises(DockerException):
-            create_mongodb_container('', ClientMock())
+            mock_config = {'data_storage': {'mongo_storage_directory': 'foo'}, 'Logging': {'mongoDbLogPath': 'bar'}}
+            create_mongodb_container(mock_config, ClientMock())
         assert 'could not start docker mongodb' in caplog.messages[0]

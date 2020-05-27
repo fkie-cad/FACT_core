@@ -6,8 +6,3 @@ def parse_yaml(file_path):
         data = yaml.safe_load(fd)
 
     return data
-
-
-def get_mongo_path(file_path):
-    data = parse_yaml(file_path)
-    return data['storage']['dbPath']

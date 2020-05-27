@@ -60,7 +60,7 @@ class TestAcceptanceBase(unittest.TestCase):
         cls.config.set('data_storage', 'statistic_database', TMP_DB_NAME)
         cls.config.set('data_storage', 'firmware_file_storage_directory', TMP_DIR.name)
         cls.config.set('ExpertSettings', 'authentication', 'false')
-        cls.config.set('Logging', 'mongoDbLogFile', os.path.join(TMP_DIR.name, 'mongo.log'))
+        cls.config.set('Logging', 'mongoDbLogPath', os.path.join(TMP_DIR.name))
 
     def _stop_backend(self):
         with ThreadPoolExecutor(max_workers=4) as pool:
