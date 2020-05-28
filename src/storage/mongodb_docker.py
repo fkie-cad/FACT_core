@@ -2,6 +2,7 @@ import logging
 from configparser import ConfigParser
 from contextlib import contextmanager, suppress
 from pathlib import Path
+from typing import Any, Dict
 
 import docker
 from docker import DockerClient
@@ -13,9 +14,12 @@ from requests.exceptions import ReadTimeout
 
 from helperFunctions.config import get_config_dir
 
+DOCKER_COMMAND = 'docker-entrypoint.sh --config /config/mongod.conf --setParameter honorSystemUmask=true'
+
 MONGODB_CONTAINER_NAME = 'fact_mongodb'
 FACT_MONGODB_NETWORK = "fact_mongodb_network"
 DOCKER_IMAGE = 'mongo:3.6.8-stretch'
+LOCALHOST = ['localhost', '127.0.0.1']
 
 
 @contextmanager
@@ -55,28 +59,36 @@ def get_mongodb_container(config) -> Container:
 
 def create_mongodb_container(config: ConfigParser, docker_client: DockerClient) -> Container:
     try:
-        db_path = config['data_storage']['mongo_storage_directory']
-        log_path = Path(config['Logging']['mongoDbLogPath'])
-        logging.info('creating mongodb docker container\n\tdatabase path: {}\n\tlog path: {})'.format(db_path, log_path))
-        mounts = [
-            Mount('/config', get_config_dir(), read_only=False, type='bind'),
-            Mount('/media/data/fact_wt_mongodb', db_path, read_only=False, type='bind'),
-            Mount('/log', str(log_path), read_only=False, type='bind'),
-        ]
-        network = get_docker_network(config, docker_client)
-        container = docker_client.containers.create(
-            DOCKER_IMAGE,
-            command='docker-entrypoint.sh --config /config/mongod.conf --setParameter honorSystemUmask=true',
-            detach=True,
-            name=MONGODB_CONTAINER_NAME,
-            mounts=mounts,
-            ports={'27018/tcp': config['data_storage']['mongo_port']}
-        )
-        network.connect(MONGODB_CONTAINER_NAME, ipv4_address=(config['data_storage']['mongo_server']))
+        container_config = _get_container_config(config)
+        container = docker_client.containers.create(DOCKER_IMAGE, command=DOCKER_COMMAND, **container_config)
+        ip_address = config['data_storage']['mongo_server']
+        if ip_address not in LOCALHOST:
+            network = get_docker_network(config, docker_client)
+            network.connect(MONGODB_CONTAINER_NAME, ipv4_address=ip_address)
         return container
     except DockerException as error:
         logging.error('could not start docker mongodb container: {}'.format(error))
         raise
+
+
+def _get_container_config(config: ConfigParser) -> Dict[str, Any]:
+    db_path, ip_address = config['data_storage']['mongo_storage_directory'], config['data_storage']['mongo_server']
+    log_path = Path(config['Logging']['mongoDbLogPath'])
+    logging.info('creating mongodb docker container\n\tdatabase path: {}\n\tlog path: {})'.format(db_path, log_path))
+    mounts = [
+        Mount('/config', get_config_dir(), read_only=False, type='bind'),
+        Mount('/media/data/fact_wt_mongodb', db_path, read_only=False, type='bind'),
+        Mount('/log', str(log_path), read_only=False, type='bind'),
+    ]
+    container_config = {
+        'detach': True,
+        'name': MONGODB_CONTAINER_NAME,
+        'mounts': mounts,
+        'ports': {'27018/tcp': config['data_storage']['mongo_port']},
+    }
+    if ip_address in LOCALHOST:
+        container_config['network_mode'] = 'host'
+    return container_config
 
 
 def get_docker_network(config: ConfigParser, docker_client: DockerClient) -> Network:
