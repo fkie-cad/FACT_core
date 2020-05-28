@@ -4,6 +4,7 @@ from zlib import compress
 
 import pytest
 
+from helperFunctions.web_interface import BS_PRIMARY, BS_SECONDARY
 from web_interface.filter import (
     _get_sorted_list, byte_number_filter, comment_out_regex_meta_chars, create_firmware_version_links,
     data_to_chart_limited, data_to_chart_with_value_percentage_pairs, decompress, encode_base64_filter,
@@ -36,8 +37,8 @@ def test_set_limit_for_data_to_chart():
             'datasets': [{
                 'data': [1696, 207, 9],
                 'percentage': [0.89122, 0.10878, 0.00473],
-                'backgroundColor': ['#2b669a', '#cce0dc', '#2b669a'],
-                'borderColor': ['#2b669a', '#cce0dc', '#2b669a'],
+                'backgroundColor': [BS_PRIMARY, BS_SECONDARY, BS_PRIMARY],
+                'borderColor': [BS_PRIMARY, BS_SECONDARY, BS_PRIMARY],
                 'borderWidth': 1
             }]
         }
@@ -55,8 +56,8 @@ def test_data_to_chart_with_value_percentage_pairs(input_data, expected_result):
             'labels': ['NX enabled', 'NX disabled', 'Canary enabled'],
             'datasets': [{
                 'data': [1696, 207, 9],
-                'backgroundColor': ['#2b669a', '#cce0dc', '#2b669a'],
-                'borderColor': ['#2b669a', '#cce0dc', '#2b669a'],
+                'backgroundColor': [BS_PRIMARY, BS_SECONDARY, BS_PRIMARY],
+                'borderColor': [BS_PRIMARY, BS_SECONDARY, BS_PRIMARY],
                 'borderWidth': 1
             }]
         }

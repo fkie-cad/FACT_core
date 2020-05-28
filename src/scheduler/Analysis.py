@@ -139,8 +139,8 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
     def get_plugin_dict(self):
         '''
         returns a dictionary of plugins with the following form: names as keys and the respective description value
-        {NAME: (DESCRIPTION, MANDATORY_FLAG, DEFAULT_FLAG, VERSION)}
-        - mandatory plug-ins shall not be shown in the analysis selection but always exectued
+        {NAME: (DESCRIPTION, mandatory, default, VERSION, DEPENDENCIES, MIME_BLACKLIST, MIME_WHITELIST, config.threads)}
+        - mandatory plug-ins shall not be shown in the analysis selection but always executed
         - default plug-ins shall be pre-selected in the analysis selection
         '''
         plugin_list = self.get_list_of_available_plugins()
@@ -152,7 +152,17 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             mandatory_flag = plugin in MANDATORY_PLUGINS
             for key in default_plugins:
                 default_flag_dict[key] = plugin in default_plugins[key]
-            result[plugin] = (self.analysis_plugins[plugin].DESCRIPTION, mandatory_flag, dict(default_flag_dict), self.analysis_plugins[plugin].VERSION)
+            blacklist, whitelist = self._get_blacklist_and_whitelist_from_plugin(plugin)
+            result[plugin] = (
+                self.analysis_plugins[plugin].DESCRIPTION,
+                mandatory_flag,
+                dict(default_flag_dict),
+                self.analysis_plugins[plugin].VERSION,
+                self.analysis_plugins[plugin].DEPENDENCIES,
+                blacklist,
+                whitelist,
+                self.config[plugin].get('threads', 0)
+            )
         result['unpacker'] = ('Additional information provided by the unpacker', True, False)
         return result
 
