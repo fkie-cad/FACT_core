@@ -61,7 +61,7 @@ FACT is based on a plug-in concept.
 Extractors, analysis features and compare functionalities are implemented as plug-ins.
 More details can be found in the [Developer’s Manual](https://github.com/fkie-cad/FACT_core/wiki).  
 Integration is easy as well since we provide a REST API covering almost all of FACT’s features.
-More Details can be found in our [REST API documentation](https://github.com/fkie-cad/FACT_core/wiki/rest-documentation).
+More Details can be found in our [REST API documentation](https://github.com/fkie-cad/FACT_core/wiki/Rest-API).
 
 ## Screenshots
 <table border="0px">
