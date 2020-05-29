@@ -64,7 +64,7 @@ class FilterClass:
                     item, root_uid, sc.get_hid(item, root_uid=root_uid)))
         return tmp
 
-    def _filter_nice_uid_list(self, uids, root_uid=None, selected_analysis=None):
+    def _filter_nice_uid_list(self, uids, root_uid=None, selected_analysis=None, filename_only=False):
         root_uid = none_to_none(root_uid)
         if not is_list_of_uids(uids):
             return uids
@@ -78,7 +78,7 @@ class FilterClass:
             'generic_view/nice_fo_list.html',
             fo_list=analyzed_uids, u_show_id=random_collapse_id(),
             number_of_unanalyzed_files=number_of_unanalyzed_files, root_uid=root_uid,
-            selected_analysis=selected_analysis, first_item=first_item
+            selected_analysis=selected_analysis, first_item=first_item, filename_only=filename_only
         )
 
     def _nice_virtual_path_list(self, virtual_path_list: List[str]) -> List[str]:

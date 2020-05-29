@@ -2,6 +2,7 @@ import json
 import logging
 import sys
 from copy import deepcopy
+from typing import Dict, List
 
 from helperFunctions.compare_sets import remove_duplicates_from_list
 from helperFunctions.database_structure import visualize_complete_tree
@@ -67,6 +68,7 @@ class FrontEndDbInterface(MongoInterfaceCommon):
                     'uid': db_entry['_id'],
                     'files_included': db_entry['files_included'],
                     'size': db_entry['size'],
+                    'file_name': db_entry['file_name'],
                     'mime-type': db_entry['processed_analysis']['file_type']['mime'] if 'file_type' in db_entry['processed_analysis'] else 'file-type-plugin/not-run-yet',
                     'current_virtual_path': virtual_file_path[root_uid] if root_uid in virtual_file_path else get_value_of_first_key(virtual_file_path)
                 })
@@ -290,3 +292,13 @@ class FrontEndDbInterface(MongoInterfaceCommon):
             for entry in self.file_objects.find(query, {'_id': 1}):
                 missing_analyses.setdefault(firmware_uid, set()).add(entry['_id'])
         return missing_analyses
+
+    def find_failed_analyses(self) -> Dict[str, List[str]]:
+        query_result = self.file_objects.aggregate([
+            {'$project': {'analysis': {'$objectToArray': '$processed_analysis'}}},
+            {'$unwind': '$analysis'},
+            {'$match': {'analysis.v.failed': {'$exists': 'true'}}},
+            {'$group': {'_id': '$analysis.k', 'UIDs': {'$addToSet': '$_id'}}},
+        ], allowDiskUse=True)
+        plugin_to_uid_list = {entry['_id']: entry['UIDs'] for entry in query_result}
+        return plugin_to_uid_list

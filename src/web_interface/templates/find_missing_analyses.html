@@ -2,6 +2,28 @@
 
 {% set active_page = "Database" %}
 
+
+{% macro missing_analyses_block(group, title, left_column, right_column) %}
+<div class="row justify-content-center">
+    <div class="col-xl-8 col-lg-12">
+        {% if group.count %}
+            <h3 class="mt-4">{{ title }}: {{ group.count | nice_number }}</h3>
+            <h6>took {{ group.duration }} to generate</h6>
+            <table class="table table-bordered">
+                <tr class="table-success">
+                    <th style="width: 50%">{{ left_column }}</th>
+                    <th>{{ right_column }}</th>
+                </tr>
+                {{ caller() }}
+            </table>
+        {% else %}
+            <h3 class="mt-4">{{ title }}: No entries found <span class="fas fa-check"></span></h3>
+        {% endif %}
+    </div>
+</div>
+{% endmacro %}
+
+
 {% block head %}
     <style>
         table a {
@@ -10,18 +32,11 @@
     </style>
 {% endblock %}
 
+
 {% block body %}
 
-<div class="row justify-content-center">
-    <div class="col-xl-8 col-lg-12">
-        {% if missing_files.count %}
-            <h3 class="mt-4">{{ missing_files.count | nice_number }} Missing Files</h3>
-            <h6>took {{ missing_files.duration }} to generate</h6>
-            <table class="table table-bordered">
-                <tr class="table-success">
-                    <th style="width: 50%">Parent Object UID</th>
-                    <th>Missing File UID</th>
-                </tr>
+{# missing_files #}
+{% call missing_analyses_block(missing_files, "Missing Files", "Parent Object UID", "Missing File UID") %}
                 {% for parent_uid, uid_list in missing_files.tuples | sort -%}
                 <tr>
                     <td>
@@ -41,38 +56,34 @@
                     </td>
                 </tr>
                 {% endfor %}
-            </table>
-        {% else %}
-            <h3 class="mt-4">No missing files found <span class="fas fa-check"></span></h3>
-        {% endif %}
-    </div>
-</div>
+{% endcall %}
 
-<div class="row justify-content-center">
-    <div class="col-xl-8 col-lg-12">
-        {% if missing_analyses.count -%}
-            <h3 class="mt-4">{{ missing_analyses.count | nice_number }} Missing Analyses</h3>
-            <h6>took {{ missing_analyses.duration }} to generate</h6>
-            <table class="table table-bordered">
-                <tr class="table-success">
-                    <th style="width: 50%">Parent Firmware UID</th>
-                    <th>Files Missing Analyses</th>
-                </tr>
+{# missing_analyses #}
+{% call missing_analyses_block(missing_analyses, "Missing Analyses", "Parent Firmware", "Files Missing Analyses") %}
                 {% for parent_uid, uid_list in missing_analyses.tuples | sort -%}
                 <tr>
                     <td>
-                        <a href="/analysis/{{ parent_uid }}">{{ parent_uid }}</a>
+                        <a href="/analysis/{{ parent_uid }}">{{ parent_uid | replace_uid_with_hid }}</a>
+                    </td>
+                    <td>
+                        {{ uid_list | nice_uid_list(filename_only=True) | safe }}
+                    </td>
+                </tr>
+                {%- endfor %}
+{% endcall %}
+
+{# failed_analyses #}
+{% call missing_analyses_block(failed_analyses, "Failed Analyses", "Analysis Plugin", "Files with Failed Analyses") %}
+                {% for plugin, uid_list in failed_analyses.tuples | sort -%}
+                <tr>
+                    <td>
+                        {{ plugin | replace_underscore }}
                     </td>
                     <td>
                         {{ uid_list | nice_uid_list | safe }}
                     </td>
                 </tr>
                 {%- endfor %}
-            </table>
-        {%- else %}
-            <h3 class="mt-4">No missing analyses found <span class="fas fa-check"></span></h3>
-        {%- endif %}
-    </div>
-</div>
+{% endcall %}
 
 {% endblock %}

@@ -1,10 +1,14 @@
-{% macro file_information_span(file_object, root_uid, selected_analysis=None) %}
+{% macro file_information_span(file_object, root_uid, selected_analysis=None, filename_only=False) %}
     {% if selected_analysis %}
         <a href="/analysis/{{ file_object.uid }}/{{ selected_analysis }}/ro/{{ root_uid }}">
     {% else %}
         <a href="/analysis/{{ file_object.uid }}/ro/{{ root_uid }}">
     {% endif %}
+    {% if filename_only %}
+        <h6>{{ file_object.file_name | safe }}</h6>
+    {% else %}
         <h6>{{ file_object.current_virtual_path[0] | replace_uid_with_hid(root_uid=root_uid) | safe }}</h6>
+    {% endif %}
     </a>
     <p class="d-flex justify-content-between mb-0">
         <span>Size: {{ file_object.size | number_format }}

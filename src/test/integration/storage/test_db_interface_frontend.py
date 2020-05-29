@@ -94,7 +94,7 @@ class TestStorageDbInterfaceFrontend(unittest.TestCase):
         uid_list = [self.test_firmware.uid]
         self.db_backend_interface.add_firmware(self.test_firmware)
         nice_list_data = self.db_frontend_interface.get_data_for_nice_list(uid_list, uid_list[0])
-        self.assertEqual(sorted(['size', 'current_virtual_path', 'uid', 'mime-type', 'files_included']), sorted(nice_list_data[0].keys()))
+        self.assertEqual(sorted(['size', 'current_virtual_path', 'uid', 'mime-type', 'files_included', 'file_name']), sorted(nice_list_data[0].keys()))
         self.assertEqual(nice_list_data[0]['uid'], self.test_firmware.uid)
 
     def test_generic_search(self):
@@ -234,3 +234,18 @@ class TestStorageDbInterfaceFrontend(unittest.TestCase):
         missing_analyses = self.db_frontend_interface.find_missing_analyses()
         assert test_fw_1.uid in missing_analyses
         assert missing_analyses[test_fw_1.uid] == {test_fo.uid}
+
+    def test_find_failed_analyses(self):
+        test_fo_1 = create_test_file_object()
+        test_fo_1.processed_analysis.update({'foo': {'failed': 'some reason'}, 'bar': {'failed': 'another reason'}})
+        test_fo_2 = create_test_file_object(bin_path='container/test.7z')
+        test_fo_2.processed_analysis.update({'foo': {'failed': 'no reason'}})
+        assert test_fo_1.uid != test_fo_2.uid, 'files should not be the same'
+        self.db_backend_interface.add_file_object(test_fo_1)
+        self.db_backend_interface.add_file_object(test_fo_2)
+
+        failed_analyses = self.db_frontend_interface.find_failed_analyses()
+        assert failed_analyses, 'should not be empty'
+        assert sorted(failed_analyses) == ['bar', 'foo']
+        assert len(failed_analyses['foo']) == 2 and len(failed_analyses['bar']) == 1
+        assert test_fo_1.uid in failed_analyses['foo'] and test_fo_2.uid in failed_analyses['foo']
