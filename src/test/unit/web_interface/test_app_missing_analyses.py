@@ -29,7 +29,6 @@ class TestAppMissingAnalyses(WebInterfaceTest):
     def test_app_missing_analyses(self):
         MissingAnalysesDbMock.result = {'parent_uid': {'child_uid1', 'child_uid2'}}
         content = self.test_client.get('/admin/missing_analyses').data.decode()
-        print(f"\n{content}")
         assert 'Missing Analyses: 2' in content
         assert 'Missing Files: 2' in content
         assert 'Failed Analyses: 2' in content
