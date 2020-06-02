@@ -3,9 +3,10 @@ import random
 import re
 import zlib
 from base64 import standard_b64encode
+from datetime import timedelta
 from operator import itemgetter
 from string import ascii_letters
-from time import localtime, strftime, struct_time
+from time import localtime, strftime, struct_time, time
 from typing import AnyStr, List, Optional
 
 from common_helper_files import human_readable_file_size
@@ -392,3 +393,11 @@ def create_firmware_version_links(firmware_list, selected_analysis=None):
         template = '<a href="/analysis/{}">{}</a>'
 
     return [template.format(firmware['_id'], firmware['version']) for firmware in firmware_list]
+
+
+def remaining_time(start_time: float, progress: float) -> str:
+    if progress == 0:
+        return 'unknown'
+    estimated_duration = (time() - start_time) * (1 / progress)
+    remaining_duration = estimated_duration * (1 - progress)
+    return str(timedelta(seconds=round(remaining_duration)))
