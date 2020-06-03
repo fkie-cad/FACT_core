@@ -1,5 +1,6 @@
 # pylint: disable=protected-access,invalid-name
 import gc
+import logging
 import os
 from multiprocessing import Manager, Queue
 from unittest import TestCase, mock
@@ -357,6 +358,15 @@ class TestUtilityFunctions:
         assert 'parent_uid' in self.scheduler.currently_running
         assert self.scheduler.currently_running['parent_uid']['file_list'] == ['bar']
         assert self.scheduler.currently_running['parent_uid']['analyzed_files_count'] == 1
+
+    def test_remove_but_not_found(self, caplog):
+        self.scheduler.currently_running = {'parent_uid': {'file_list': ['bar'], 'analyzed_files_count': 1}}
+        fo = FileObject(binary=b'foo')
+        fo.parent_firmware_uids = {'parent_uid'}
+        fo.uid = 'foo'
+        with caplog.at_level(logging.WARNING):
+            self.scheduler._remove_from_current_analyses(fo)
+            assert any('but it is not included' in m for m in caplog.messages)
 
     def test_remove_fully_from_current_analyses(self):
         self.scheduler.currently_running = {'parent_uid': {'file_list': ['foo'], 'analyzed_files_count': 1}}
