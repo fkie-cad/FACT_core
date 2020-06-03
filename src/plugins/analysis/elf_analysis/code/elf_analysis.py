@@ -13,6 +13,8 @@ from helperFunctions.tag import TagColor
 
 TEMPLATE_FILE_PATH = os.path.join(get_dir_of_file(__file__), '../internal/matching_template.json')
 
+# pylint: disable=c-extension-no-member
+
 
 class AnalysisPlugin(AnalysisBasePlugin):
 
@@ -45,7 +47,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     @staticmethod
     def _get_tags_from_library_list(libraries: list, behaviour_class: str, indicators: list, tags: list):
-        for library, indicator in ((l, i) for l in libraries for i in indicators):
+        for library, indicator in ((lib, ind) for lib in libraries for ind in indicators):
             if re.search(indicator, library):
                 tags.append(behaviour_class)
 

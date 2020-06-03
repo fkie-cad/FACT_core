@@ -31,8 +31,8 @@ class MongoMgr:
     def auth_is_enabled(self):
         try:
             mongo_server, mongo_port = self.config['data_storage']['mongo_server'], self.config['data_storage']['mongo_port']
-            client = MongoClient('mongodb://{}:{}'.format(mongo_server, mongo_port, connect=False))
-            users = [user for user in client.admin.system.users.find({})]
+            client = MongoClient('mongodb://{}:{}'.format(mongo_server, mongo_port), connect=False)
+            users = list(client.admin.system.users.find({}))
             return len(users) > 0
         except errors.OperationFailure:
             return True
@@ -75,7 +75,7 @@ class MongoMgr:
         mongo_server = self.config['data_storage']['mongo_server']
         mongo_port = self.config['data_storage']['mongo_port']
         try:
-            client = MongoClient('mongodb://{}:{}'.format(mongo_server, mongo_port, connect=False))
+            client = MongoClient('mongodb://{}:{}'.format(mongo_server, mongo_port), connect=False)
             client.admin.command(
                 "createUser",
                 self.config['data_storage']['db_admin_user'],
@@ -92,5 +92,5 @@ class MongoMgr:
                 pwd=self.config['data_storage']['db_readonly_pw'],
                 roles=[{'role': 'readAnyDatabase', 'db': 'admin'}]
             )
-        except Exception as exception:
-            logging.error('Could not create users:\n{}'.format(exception))
+        except (AttributeError, ValueError, errors.PyMongoError) as error:
+            logging.error('Could not create users:\n{}'.format(error))

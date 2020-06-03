@@ -81,7 +81,7 @@ class TestAcceptanceMisc(TestAcceptanceBase):
 
     def _show_system_monitor(self):
         rv = self.test_client.get('/system_health')
-        self.assertIn(b'backend workload', rv.data)
+        self.assertIn(b'backend status', rv.data)
 
     def _click_chart(self):
         rv = self.test_client.get('/database/browse?query=%7b%22vendor%22%3A+%7b%22%24eq%22%3A+%22test_vendor%22%7d%7d')
