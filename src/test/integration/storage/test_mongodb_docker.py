@@ -113,12 +113,12 @@ def test_stop_and_remove_container():
 
 def test_create_mongodb_container(caplog):
     class ClientMock:
-        class networks:
-            def get(self):
+        class containers:
+            def create(self, **kwargs):
                 raise DockerException
 
     with caplog.at_level(logging.ERROR):
         with pytest.raises(DockerException):
-            mock_config = {'data_storage': {'mongo_storage_directory': 'foo'}, 'Logging': {'mongoDbLogPath': 'bar'}}
+            mock_config = {'data_storage': {'mongo_storage_directory': 'foo', 'mongo_server': 'foo', 'mongo_port': 'foo'}, 'Logging': {'mongoDbLogPath': 'bar'}}
             create_mongodb_container(mock_config, ClientMock())
         assert 'could not start docker mongodb' in caplog.messages[0]

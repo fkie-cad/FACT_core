@@ -1,7 +1,8 @@
-# pylint: disable=protected-access,invalid-name
+# pylint: disable=protected-access,invalid-name,attribute-defined-outside-init
 import gc
 import os
 from multiprocessing import Queue
+from queue import Empty
 from unittest import mock
 
 import pytest
@@ -134,6 +135,11 @@ class TestScheduleInitialAnalysisNoPlugins(AnalysisSchedulerTest):
 class PluginMock:
     DESCRIPTION = 'foo'
     VERSION = '1.2.3'
+
+    class out_queue:
+        @staticmethod
+        def get_nowait():
+            raise Empty
 
     def __init__(self, blacklist=None, whitelist=None, dependencies=()):
         self.DEPENDENCIES = dependencies
