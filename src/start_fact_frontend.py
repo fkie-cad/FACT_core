@@ -77,7 +77,7 @@ if __name__ == '__main__':
     run = True  # pylint: disable=invalid-name
     ARGS, CONFIG = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION)
 
-    # start_docker()
+    start_docker()
 
     work_load_stat = WorkLoadStatistic(config=CONFIG, component='frontend')
 
@@ -95,6 +95,6 @@ if __name__ == '__main__':
         work_load_stat.shutdown()
         _shutdown_uwsgi_server(uwsgi_process)
 
-    # stop_docker()
+    stop_docker()
 
     sys.exit()
