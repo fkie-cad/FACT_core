@@ -161,7 +161,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
                 self.analysis_plugins[plugin].DEPENDENCIES,
                 blacklist,
                 whitelist,
-                self.config.get(plugin, 'threads', fallback="1")
+                self.config.get(plugin, 'threads', fallback='1')
             )
         result['unpacker'] = ('Additional information provided by the unpacker', True, False)
         return result
