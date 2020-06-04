@@ -9,9 +9,11 @@ def join_virtual_path(*elements: str) -> str:
     return '|'.join(elements)
 
 
-def get_base_of_virtual_path(virtual_path):
-    return "|".join(virtual_path.split("|")[:-1])
+def get_base_of_virtual_path(virtual_path: str) -> str:
+    return join_virtual_path(*split_virtual_path(virtual_path)[:-1])
 
 
-def get_top_of_virtual_path(virtual_path):
-    return virtual_path.split("|")[-1]
+def get_top_of_virtual_path(virtual_path: str) -> str:
+    if not virtual_path:
+        return virtual_path
+    return split_virtual_path(virtual_path)[-1]
