@@ -235,9 +235,9 @@ class TestStorageDbInterfaceFrontend(unittest.TestCase):
         assert test_fw_1.uid in missing_analyses
         assert missing_analyses[test_fw_1.uid] == {test_fo.uid}
 
-    def test_find_failed_analyses(self):
+    def test_find_failed_analyses_with_multiple_files(self):
         test_fo_1 = create_test_file_object()
-        test_fo_1.processed_analysis.update({'foo': {'failed': 'some reason'}, 'bar': {'failed': 'another reason'}})
+        test_fo_1.processed_analysis.update({'foo': {'failed': 'some reason'}})
         test_fo_2 = create_test_file_object(bin_path='container/test.7z')
         test_fo_2.processed_analysis.update({'foo': {'failed': 'no reason'}})
         assert test_fo_1.uid != test_fo_2.uid, 'files should not be the same'
@@ -246,6 +246,17 @@ class TestStorageDbInterfaceFrontend(unittest.TestCase):
 
         failed_analyses = self.db_frontend_interface.find_failed_analyses()
         assert failed_analyses, 'should not be empty'
-        assert sorted(failed_analyses) == ['bar', 'foo']
-        assert len(failed_analyses['foo']) == 2 and len(failed_analyses['bar']) == 1
+        assert list(failed_analyses) == ['foo']
+        assert len(failed_analyses['foo']) == 2
         assert test_fo_1.uid in failed_analyses['foo'] and test_fo_2.uid in failed_analyses['foo']
+
+    def test_find_failed_analyses_with_multiple_analyses(self):
+        test_fo_1 = create_test_file_object()
+        test_fo_1.processed_analysis.update({'foo': {'failed': 'some reason'}, 'bar': {'failed': 'another reason'}})
+        self.db_backend_interface.add_file_object(test_fo_1)
+
+        failed_analyses = self.db_frontend_interface.find_failed_analyses()
+        assert failed_analyses, 'should not be empty'
+        assert sorted(failed_analyses) == ['bar', 'foo']
+        assert len(failed_analyses['foo']) == 1 and len(failed_analyses['bar']) == 1
+        assert test_fo_1.uid in failed_analyses['foo']

@@ -294,11 +294,11 @@ class FrontEndDbInterface(MongoInterfaceCommon):
         return missing_analyses
 
     def find_failed_analyses(self) -> Dict[str, List[str]]:
+        '''Returns a dictionary of failed analyses per plugin: {<plugin>: <UID list>}.'''
         query_result = self.file_objects.aggregate([
             {'$project': {'analysis': {'$objectToArray': '$processed_analysis'}}},
             {'$unwind': '$analysis'},
             {'$match': {'analysis.v.failed': {'$exists': 'true'}}},
             {'$group': {'_id': '$analysis.k', 'UIDs': {'$addToSet': '$_id'}}},
         ], allowDiskUse=True)
-        plugin_to_uid_list = {entry['_id']: entry['UIDs'] for entry in query_result}
-        return plugin_to_uid_list
+        return {entry['_id']: entry['UIDs'] for entry in query_result}
