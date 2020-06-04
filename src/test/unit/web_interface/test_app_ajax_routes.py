@@ -24,16 +24,16 @@ class TestAppAjaxRoutes(WebInterfaceTest):
         assert TEST_FW.uid in result
 
     def test_ajax_get_asynchronous_stats(self):
-        result = self.test_client.get('/ajax/stats/general').data.decode()
-        assert 'missing_analysis' in result
-        assert 'missing_files' in result
+        result = self.test_client.get('/ajax/stats/general').json
+
+        assert result['missing_analysis'] == 1
+        assert result['missing_files'] == 1
 
     def test_ajax_get_system_stats(self):
-        '''
-        result = self.test_client.get('/ajax/stats/system').data.decode()
-        print(result)
-        assert 'backend_cpu_percentage' in result '''
-        assert True
+        result = self.test_client.get('/ajax/stats/system').json
+
+        assert result['backend_cpu_percentage'] == 13.37
+        assert result['number_of_running_analyses'] == 2
 
 
 @pytest.mark.parametrize('candidate, compare_id, expected_result', [
