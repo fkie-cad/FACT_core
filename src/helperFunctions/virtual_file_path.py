@@ -14,6 +14,4 @@ def get_base_of_virtual_path(virtual_path: str) -> str:
 
 
 def get_top_of_virtual_path(virtual_path: str) -> str:
-    if not virtual_path:
-        return virtual_path
-    return split_virtual_path(virtual_path)[-1]
+    return split_virtual_path(virtual_path)[-1] if virtual_path else ''
