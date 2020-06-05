@@ -48,9 +48,9 @@
                 {{ field_with_icon('file', firmware.processed_analysis["file_type"]["full"], 'File type', 5) }}
             </tr>
         {% endif %}
-        {% if firmware_including_this_fo %}
+        {% if firmware.parent_firmware_uids %}
             <tr>
-                {{ field_with_icon('folder-open', firmware_including_this_fo | nice_uid_list(selected_analysis=selected_analysis) | safe, 'Parent firmware', 5) }}
+                {{ field_with_icon('folder-open', firmware.parent_firmware_uids | nice_uid_list(selected_analysis=selected_analysis) | safe, 'Parent firmware', 5) }}
             </tr>
         {% endif %}
         <tr>

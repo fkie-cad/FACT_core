@@ -11,7 +11,7 @@ class TestAnalysisPluginInit(AnalysisPluginTest):
     PLUGIN_NAME = "init_systems"
 
     @classmethod
-    def setUpClass(self):
+    def setUpClass(cls):
         test_init_dir = os.path.join(get_dir_of_file(__file__), 'data')
         test_files = {
             'systemd': 'etc/systemd/system/foobar',
@@ -28,25 +28,19 @@ class TestAnalysisPluginInit(AnalysisPluginTest):
         }
 
         for test_file, path in test_files.items():
-            exec("self.test_file_" + test_file + " = FileObject(file_path=os.path.join(test_init_dir, path))")
-            exec("self.test_file_" + test_file + ".processed_analysis['file_type'] = {'mime': 'text/plain'}")
-            exec("self.test_file_" + test_file + ".root_uid = self.test_file_" + test_file + ".uid")
-            exec("self.test_file_" + test_file + ".virtual_file_path = {self.test_file_" + test_file + ".get_root_uid(): [\"" + path + "\"]}")
+            test_fo = FileObject(file_path=os.path.join(test_init_dir, path))
+            setattr(cls, 'test_file_{}'.format(test_file), test_fo)
+            test_fo.processed_analysis['file_type'] = {'mime': 'text/plain'}
+            test_fo.root_uid = test_fo.uid
+            test_fo.virtual_file_path = {test_fo.get_root_uid(): [path]}
 
-        self.test_file_not_text = FileObject(file_path="{}etc/systemd/system/foobar".format(test_init_dir))
-        self.test_file_not_text.processed_analysis['file_type'] = {'mime': 'application/zip'}
-
-    @classmethod
-    def tearDownClass(self):
-        super(TestAnalysisPluginInit, self).tearDownClass()
+        cls.test_file_not_text = FileObject(file_path="{}etc/systemd/system/foobar".format(test_init_dir))
+        cls.test_file_not_text.processed_analysis['file_type'] = {'mime': 'application/zip'}
 
     def setUp(self):
         super().setUp()
         config = self.init_basic_config()
         self.analysis_plugin = AnalysisPlugin(self, config=config)
-
-    def tearDown(self):
-        super().tearDown()
 
     def test_get_systemd_config(self):
         processed_file = self.analysis_plugin.process_object(self.test_file_systemd)

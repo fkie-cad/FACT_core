@@ -136,17 +136,17 @@ class TestStorageDbInterfaceFrontend(unittest.TestCase):
         self.db_backend_interface.add_object(parent_fw)
         self.db_backend_interface.add_object(child_fo)
         for node in self.db_frontend_interface.generate_file_tree_level(uid, uid):
-            self.assertIsInstance(node, FileTreeNode)
-            self.assertEqual(node.name, parent_fw.file_name)
-            self.assertTrue(node.has_children)
+            assert isinstance(node, FileTreeNode)
+            assert node.name == parent_fw.file_name
+            assert node.has_children
         for node in self.db_frontend_interface.generate_file_tree_level(child_fo.uid, uid):
-            self.assertIsInstance(node, FileTreeNode)
-            self.assertEqual(node.name, 'folder')
-            self.assertTrue(node.has_children)
+            assert isinstance(node, FileTreeNode)
+            assert node.name == 'folder'
+            assert node.has_children
             virtual_grand_child = node.get_list_of_child_nodes()[0]
-            self.assertEqual(virtual_grand_child.type, 'sometype')
-            self.assertFalse(virtual_grand_child.has_children)
-            self.assertEqual(virtual_grand_child.name, child_fo.file_name)
+            assert virtual_grand_child.type == 'sometype'
+            assert not virtual_grand_child.has_children
+            assert virtual_grand_child.name == child_fo.file_name
 
     def test_get_number_of_total_matches(self):
         parent_fw = create_test_firmware()
