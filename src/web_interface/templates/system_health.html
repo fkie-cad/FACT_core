@@ -170,12 +170,12 @@
                                     <div class="progress mt-2" style="height: 20px;">
                                         {% set current_analysis_progress = data.finished_count / data.total_count %}
                                         <div class="progress-bar text-center" role="progressbar" style="width: {{ current_analysis_progress * 100 }}%">
-                                            {% if current_analysis_progress >= 0.5 %}
-                                            {{ data.finished_count }}/{{ data.total_count }} (ETA: {{ data.start_time | remaining_time(current_analysis_progress) }})
+                                            {% if current_analysis_progress < 0.5 %}
+                                                </div>
                                             {% endif %}
-                                        </div>
-                                        {% if current_analysis_progress < 0.5 %}
-                                            {{ data.finished_count }}/{{ data.total_count }} (ETA: {{ data.start_time | remaining_time(current_analysis_progress) }})
+                                            {{ data.finished_count }}/{{ data.total_count }} (Elapsed: {{ data.start_time | remaining_time }})
+                                        {% if current_analysis_progress >= 0.5 %}
+                                            </div>
                                         {% endif %}
                                     </div>
                                 </div>

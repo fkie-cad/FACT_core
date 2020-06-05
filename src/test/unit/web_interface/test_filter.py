@@ -7,14 +7,13 @@ import pytest
 from helperFunctions.web_interface import BS_PRIMARY, BS_SECONDARY
 from web_interface.filter import (
     _get_sorted_list, byte_number_filter, comment_out_regex_meta_chars, create_firmware_version_links,
-    data_to_chart_limited, data_to_chart_with_value_percentage_pairs, decompress, encode_base64_filter,
+    data_to_chart_limited, data_to_chart_with_value_percentage_pairs, decompress, elapsed_time, encode_base64_filter,
     filter_format_string_list_with_offset, fix_cwe, generic_nice_representation, get_all_uids_in_string,
     get_unique_keys_from_list_of_dicts, infection_color, is_not_mandatory_analysis_entry, list_group,
     list_to_line_break_string, list_to_line_break_string_no_sort, nice_number_filter, nice_unix_time,
-    random_collapse_id, remaining_time, render_analysis_tags, render_tags, replace_underscore_filter,
-    set_limit_for_data_to_chart, sort_chart_list_by_name, sort_chart_list_by_value, sort_comments,
-    sort_roles_by_number_of_privileges, sort_users_by_name, text_highlighter, uids_to_link, user_has_role,
-    vulnerability_class
+    random_collapse_id, render_analysis_tags, render_tags, replace_underscore_filter, set_limit_for_data_to_chart,
+    sort_chart_list_by_name, sort_chart_list_by_value, sort_comments, sort_roles_by_number_of_privileges,
+    sort_users_by_name, text_highlighter, uids_to_link, user_has_role, vulnerability_class
 )
 
 UNSORTABLE_LIST = [[], ()]
@@ -383,9 +382,9 @@ def test_random_collapse_id():
     assert not collapse_id[0].isnumeric()
 
 
-@pytest.mark.parametrize('elapsed_time, progress, expected_result', [
-    (5, 0.25, '0:00:15'), (10, 0.5, '0:00:10'), (15, 0.75, '0:00:05'), (10, 0, 'unknown')
+@pytest.mark.parametrize('time_diff, expected_result', [
+    (5, '0:00:05'), (83, '0:01:23'), (5025, '1:23:45')
 ])
-def test_remaining_time(elapsed_time, progress, expected_result):
+def test_remaining_time(time_diff, expected_result):
     # if 25% progress took 5 seconds, the estimated remaining time should be 15 seconds
-    assert remaining_time(time() - elapsed_time, progress) == expected_result
+    assert elapsed_time(time() - time_diff) == expected_result
