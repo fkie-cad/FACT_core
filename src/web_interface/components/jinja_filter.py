@@ -9,7 +9,8 @@ from helperFunctions.database import ConnectTo
 from helperFunctions.dataConversion import none_to_none
 from helperFunctions.hash import get_md5
 from helperFunctions.uid import is_list_of_uids
-from helperFunctions.web_interface import split_virtual_path, virtual_path_element_to_span
+from helperFunctions.virtual_file_path import split_virtual_path
+from helperFunctions.web_interface import virtual_path_element_to_span
 from storage.db_interface_frontend import FrontEndDbInterface
 from web_interface.filter import random_collapse_id
 
@@ -97,11 +98,10 @@ class FilterClass:
         return render_template('generic_view/firmware_detail_tabular_field.html', firmware=firmware_meta_data)
 
     @staticmethod
-    def _render_general_information_table(firmware, firmware_including_this_fo, other_versions, selected_analysis):
+    def _render_general_information_table(firmware, other_versions, selected_analysis):
         return render_template(
             'generic_view/general_information.html',
-            firmware=firmware, firmware_including_this_fo=firmware_including_this_fo, other_versions=other_versions,
-            selected_analysis=selected_analysis
+            firmware=firmware, other_versions=other_versions, selected_analysis=selected_analysis
         )
 
     def check_auth(self, _):

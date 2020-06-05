@@ -9,6 +9,7 @@ from fact_helper_file import get_file_type_from_path
 from helperFunctions.dataConversion import make_list_from_dict, make_unicode_string
 from helperFunctions.fileSystem import file_is_empty, get_object_path_excluding_fact_dirs
 from helperFunctions.tag import TagColor
+from helperFunctions.virtual_file_path import get_base_of_virtual_path, join_virtual_path
 from objects.file import FileObject
 from storage.fs_organizer import FS_Organizer
 from unpacker.unpack_base import UnpackBase
@@ -73,8 +74,8 @@ class Unpacker(UnpackBase):
         for item in file_paths:
             if not file_is_empty(item):
                 current_file = FileObject(file_path=str(item))
-                current_virtual_path = '{}|{}|{}'.format(
-                    parent.get_base_of_virtual_path(parent.get_virtual_file_paths()[parent.get_root_uid()][0]),
+                current_virtual_path = join_virtual_path(
+                    get_base_of_virtual_path(parent.get_virtual_file_paths()[parent.get_root_uid()][0]),
                     parent.uid, get_object_path_excluding_fact_dirs(make_unicode_string(str(item)), str(Path(extractor_dir, 'files')))
                 )
                 current_file.temporary_data['parent_fo_type'] = get_file_type_from_path(parent.file_path)['mime']
