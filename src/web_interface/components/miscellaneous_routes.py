@@ -77,7 +77,8 @@ class MiscellaneousRoutes(ComponentBase):
     def _app_find_missing_analyses(self):
         template_data = {
             'missing_files': self._find_missing_files(),
-            'missing_analyses': self._find_missing_analyses()
+            'missing_analyses': self._find_missing_analyses(),
+            'failed_analyses': self._find_failed_analyses(),
         }
         return render_template('find_missing_analyses.html', **template_data)
 
@@ -104,3 +105,13 @@ class MiscellaneousRoutes(ComponentBase):
     @staticmethod
     def _count_values(dictionary: Dict[str, Sized]) -> int:
         return sum(len(e) for e in dictionary.values())
+
+    def _find_failed_analyses(self):
+        start = time()
+        with ConnectTo(FrontEndDbInterface, config=self._config) as db:
+            failed_analyses = db.find_failed_analyses()
+        return {
+            'tuples': list(failed_analyses.items()),
+            'count': self._count_values(failed_analyses),
+            'duration': format_time(time() - start),
+        }
