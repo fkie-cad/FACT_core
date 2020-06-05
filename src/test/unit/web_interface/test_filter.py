@@ -386,5 +386,4 @@ def test_random_collapse_id():
     (5, '0:00:05'), (83, '0:01:23'), (5025, '1:23:45')
 ])
 def test_remaining_time(time_diff, expected_result):
-    # if 25% progress took 5 seconds, the estimated remaining time should be 15 seconds
     assert elapsed_time(time() - time_diff) == expected_result
