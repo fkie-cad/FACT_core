@@ -42,7 +42,7 @@ def test_get_top_of_virtual_path(virtual_path, expected_output):
 
 @pytest.mark.parametrize('old_vfp_list, new_vfp_list, expected_output', [
     ([], [], []),
-    (['foo|/bar'], ['different|/base'], ['foo|/bar', 'different|/base']),
+    (['foo|/bar'], ['different|/base'], ['different|/base', 'foo|/bar']),
     (['foo|/old'], ['foo|/new'], ['foo|/new']),
     (
         ['base1|archive1|/file1', 'base1|archive1|/file2', 'base1|archive2|/file3', 'base2|archive3|/file4'],
@@ -51,4 +51,4 @@ def test_get_top_of_virtual_path(virtual_path, expected_output):
     ),
 ])
 def test_merge_vfp_lists(old_vfp_list, new_vfp_list, expected_output):
-    assert merge_vfp_lists(old_vfp_list, new_vfp_list) == expected_output
+    assert sorted(merge_vfp_lists(old_vfp_list, new_vfp_list)) == expected_output
