@@ -10,11 +10,11 @@ def join_virtual_path(*elements: str) -> str:
 
 
 def get_base_of_virtual_path(virtual_path: str) -> str:
-    return '|'.join(virtual_path.split('|')[:-1])
+    return join_virtual_path(*split_virtual_path(virtual_path)[:-1])
 
 
 def get_top_of_virtual_path(virtual_path: str) -> str:
-    return virtual_path.split('|')[-1]
+    return split_virtual_path(virtual_path)[-1] if virtual_path else ''
 
 
 def merge_vfp_lists(old_vfp_list, new_vfp_list):

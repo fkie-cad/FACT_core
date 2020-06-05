@@ -37,10 +37,6 @@ class TestAnalysisPluginInit(AnalysisPluginTest):
         cls.test_file_not_text = FileObject(file_path="{}etc/systemd/system/foobar".format(test_init_dir))
         cls.test_file_not_text.processed_analysis['file_type'] = {'mime': 'application/zip'}
 
-    @classmethod
-    def tearDownClass(cls):
-        super(TestAnalysisPluginInit, cls).tearDownClass()
-
     def setUp(self):
         super().setUp()
         config = self.init_basic_config()

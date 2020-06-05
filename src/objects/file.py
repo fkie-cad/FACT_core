@@ -82,8 +82,8 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
         '''
         if root_uid is None:
             root_uid = self.get_root_uid()
-        tmp = self.get_virtual_paths_for_one_uid(root_uid=root_uid)[0]
-        return get_top_of_virtual_path(tmp)
+        virtual_path = self.get_virtual_paths_for_one_uid(root_uid=root_uid)[0]
+        return get_top_of_virtual_path(virtual_path)
 
     def create_from_file(self, file_path):
         self.set_binary(get_binary_from_file(file_path))
