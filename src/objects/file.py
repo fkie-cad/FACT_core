@@ -6,9 +6,10 @@ from common_helper_files import get_binary_from_file
 from helperFunctions.dataConversion import get_value_of_first_key, make_bytes, make_unicode_string
 from helperFunctions.hash import get_sha256
 from helperFunctions.uid import create_uid
+from helperFunctions.virtual_file_path import get_base_of_virtual_path, get_top_of_virtual_path
 
 
-class FileObject():  # pylint: disable=too-many-instance-attributes
+class FileObject:  # pylint: disable=too-many-instance-attributes
     '''
     This is the base file objects. All files in FACT should be implemented as this object type.
     '''
@@ -79,10 +80,10 @@ class FileObject():  # pylint: disable=too-many-instance-attributes
         '''
         return a human readable identifier
         '''
-        if root_uid is not None:
-            self.root_uid = root_uid
-        tmp = self.get_virtual_paths_for_one_uid(root_uid=self.get_root_uid())[0]
-        return self.get_top_of_virtual_path(tmp)
+        if root_uid is None:
+            root_uid = self.get_root_uid()
+        virtual_path = self.get_virtual_paths_for_one_uid(root_uid=root_uid)[0]
+        return get_top_of_virtual_path(virtual_path)
 
     def create_from_file(self, file_path):
         self.set_binary(get_binary_from_file(file_path))
@@ -100,7 +101,7 @@ class FileObject():  # pylint: disable=too-many-instance-attributes
         if self.root_uid not in self.virtual_file_path.keys():
             self.virtual_file_path[self.root_uid] = []
             for item in parent_paths:
-                base_path = self.get_base_of_virtual_path(item)
+                base_path = get_base_of_virtual_path(item)
                 if base_path:
                     base_path += "|"
                 self.virtual_file_path[self.root_uid].append("{}{}|{}".format(base_path, parent_uid, self.file_path))
@@ -125,18 +126,6 @@ class FileObject():  # pylint: disable=too-many-instance-attributes
         if self.virtual_file_path:
             return self.virtual_file_path
         return {self.uid: [str(self.uid)]}
-
-    @staticmethod
-    def get_root_of_virtual_path(virtual_path):
-        return virtual_path.split("|")[0]
-
-    @staticmethod
-    def get_base_of_virtual_path(virtual_path):
-        return "|".join(virtual_path.split("|")[:-1])
-
-    @staticmethod
-    def get_top_of_virtual_path(virtual_path):
-        return virtual_path.split("|")[-1]
 
     def get_root_uid(self):
         if self.root_uid is not None:
