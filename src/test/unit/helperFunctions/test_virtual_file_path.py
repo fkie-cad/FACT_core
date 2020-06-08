@@ -1,7 +1,7 @@
 import pytest
 
 from helperFunctions.virtual_file_path import (
-    get_base_of_virtual_path, get_top_of_virtual_path, join_virtual_path, split_virtual_path
+    get_base_of_virtual_path, get_top_of_virtual_path, join_virtual_path, merge_vfp_lists, split_virtual_path
 )
 
 
@@ -38,3 +38,17 @@ def test_get_base_of_virtual_path(virtual_path, expected_output):
 ])
 def test_get_top_of_virtual_path(virtual_path, expected_output):
     assert get_top_of_virtual_path(virtual_path) == expected_output
+
+
+@pytest.mark.parametrize('old_vfp_list, new_vfp_list, expected_output', [
+    ([], [], []),
+    (['foo|/bar'], ['different|/base'], ['different|/base', 'foo|/bar']),
+    (['foo|/old'], ['foo|/new'], ['foo|/new']),
+    (
+        ['base1|archive1|/file1', 'base1|archive1|/file2', 'base1|archive2|/file3', 'base2|archive3|/file4'],
+        ['base1|archive1|/file5', 'base3|archive4|/file6'],
+        ['base1|archive1|/file5', 'base1|archive2|/file3', 'base2|archive3|/file4', 'base3|archive4|/file6']
+    ),
+])
+def test_merge_vfp_lists(old_vfp_list, new_vfp_list, expected_output):
+    assert sorted(merge_vfp_lists(old_vfp_list, new_vfp_list)) == expected_output
