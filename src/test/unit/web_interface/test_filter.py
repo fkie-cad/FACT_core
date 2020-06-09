@@ -1,5 +1,5 @@
 import logging
-from time import gmtime
+from time import gmtime, time
 from zlib import compress
 
 import pytest
@@ -7,7 +7,7 @@ import pytest
 from helperFunctions.web_interface import BS_PRIMARY, BS_SECONDARY
 from web_interface.filter import (
     _get_sorted_list, byte_number_filter, comment_out_regex_meta_chars, create_firmware_version_links,
-    data_to_chart_limited, data_to_chart_with_value_percentage_pairs, decompress, encode_base64_filter,
+    data_to_chart_limited, data_to_chart_with_value_percentage_pairs, decompress, elapsed_time, encode_base64_filter,
     filter_format_string_list_with_offset, fix_cwe, generic_nice_representation, get_all_uids_in_string,
     get_unique_keys_from_list_of_dicts, infection_color, is_not_mandatory_analysis_entry, list_group,
     list_to_line_break_string, list_to_line_break_string_no_sort, nice_number_filter, nice_unix_time,
@@ -380,3 +380,10 @@ def test_random_collapse_id():
     collapse_id = random_collapse_id()
     assert isinstance(collapse_id, str)
     assert not collapse_id[0].isnumeric()
+
+
+@pytest.mark.parametrize('time_diff, expected_result', [
+    (5, '0:00:05'), (83, '0:01:23'), (5025, '1:23:45')
+])
+def test_remaining_time(time_diff, expected_result):
+    assert elapsed_time(time() - time_diff) == expected_result

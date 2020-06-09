@@ -3,9 +3,10 @@ import random
 import re
 import zlib
 from base64 import standard_b64encode
+from datetime import timedelta
 from operator import itemgetter
 from string import ascii_letters
-from time import localtime, strftime, struct_time
+from time import localtime, strftime, struct_time, time
 from typing import AnyStr, List, Optional
 
 from common_helper_files import human_readable_file_size
@@ -392,3 +393,7 @@ def create_firmware_version_links(firmware_list, selected_analysis=None):
         template = '<a href="/analysis/{}">{}</a>'
 
     return [template.format(firmware['_id'], firmware['version']) for firmware in firmware_list]
+
+
+def elapsed_time(start_time: float) -> str:
+    return str(timedelta(seconds=round(time() - start_time)))

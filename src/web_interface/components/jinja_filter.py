@@ -12,7 +12,7 @@ from helperFunctions.uid import is_list_of_uids
 from helperFunctions.virtual_file_path import split_virtual_path
 from helperFunctions.web_interface import virtual_path_element_to_span
 from storage.db_interface_frontend import FrontEndDbInterface
-from web_interface.filter import random_collapse_id
+from web_interface.filter import elapsed_time, random_collapse_id
 
 
 class FilterClass:
@@ -143,6 +143,7 @@ class FilterClass:
         self._app.jinja_env.filters['number_format'] = flt.byte_number_filter
         self._app.jinja_env.filters['print_program_version'] = self._filter_print_program_version
         self._app.jinja_env.filters['regex_meta'] = flt.comment_out_regex_meta_chars
+        self._app.jinja_env.filters['remaining_time'] = elapsed_time
         self._app.jinja_env.filters['render_analysis_tags'] = flt.render_analysis_tags
         self._app.jinja_env.filters['render_general_information'] = self._render_general_information_table
         self._app.jinja_env.filters['render_tags'] = flt.render_tags
