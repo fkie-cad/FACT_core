@@ -1,3 +1,4 @@
+from helperFunctions.virtual_file_path import merge_vfp_lists
 from objects.file import FileObject
 
 
@@ -21,5 +22,8 @@ def update_virtual_file_path(new_object: FileObject, old_object: dict) -> dict:
     old_vfp = old_object['virtual_file_path']
     new_vfp = new_object.virtual_file_path
     for key in new_vfp.keys():
-        old_vfp[key] = new_vfp[key]
+        if key in old_vfp:
+            old_vfp[key] = merge_vfp_lists(old_vfp[key], new_vfp[key])
+        else:
+            old_vfp[key] = new_vfp[key]
     return old_vfp

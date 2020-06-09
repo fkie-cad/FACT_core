@@ -2,6 +2,7 @@ import json
 import logging
 import sys
 from copy import deepcopy
+from typing import Dict, List
 
 from helperFunctions.compare_sets import remove_duplicates_from_list
 from helperFunctions.database_structure import visualize_complete_tree
@@ -9,7 +10,7 @@ from helperFunctions.dataConversion import get_value_of_first_key
 from helperFunctions.file_tree import FileTreeNode, VirtualPathFileTree
 from helperFunctions.merge_generators import merge_generators
 from helperFunctions.tag import TagColor
-from objects.file import FileObject
+from helperFunctions.virtual_file_path import get_top_of_virtual_path
 from objects.firmware import Firmware
 from storage.db_interface_common import MongoInterfaceCommon
 
@@ -67,6 +68,7 @@ class FrontEndDbInterface(MongoInterfaceCommon):
                     'uid': db_entry['_id'],
                     'files_included': db_entry['files_included'],
                     'size': db_entry['size'],
+                    'file_name': db_entry['file_name'],
                     'mime-type': db_entry['processed_analysis']['file_type']['mime'] if 'file_type' in db_entry['processed_analysis'] else 'file-type-plugin/not-run-yet',
                     'current_virtual_path': virtual_file_path[root_uid] if root_uid in virtual_file_path else get_value_of_first_key(virtual_file_path)
                 })
@@ -107,7 +109,7 @@ class FrontEndDbInterface(MongoInterfaceCommon):
     def _get_one_virtual_path_of_fo(fo_dict, root_uid):
         if root_uid is None or root_uid not in fo_dict['virtual_file_path'].keys():
             root_uid = list(fo_dict['virtual_file_path'].keys())[0]
-        return FileObject.get_top_of_virtual_path(fo_dict['virtual_file_path'][root_uid][0])
+        return get_top_of_virtual_path(fo_dict['virtual_file_path'][root_uid][0])
 
     def _get_hid_firmware(self, uid):
         firmware = self.firmwares.find_one({'_id': uid}, {'vendor': 1, 'device_name': 1, 'device_part': 1, 'version': 1, 'device_class': 1})
@@ -117,9 +119,9 @@ class FrontEndDbInterface(MongoInterfaceCommon):
         return None
 
     def _get_hid_fo(self, uid, root_uid):
-        file_object = self.file_objects.find_one({'_id': uid}, {'virtual_file_path': 1})
-        if file_object is not None:
-            return self._get_one_virtual_path_of_fo(file_object, root_uid)
+        fo_data = self.file_objects.find_one({'_id': uid}, {'virtual_file_path': 1})
+        if fo_data is not None:
+            return self._get_one_virtual_path_of_fo(fo_data, root_uid)
         return None
 
     def all_uids_found_in_database(self, uid_list):
@@ -290,3 +292,13 @@ class FrontEndDbInterface(MongoInterfaceCommon):
             for entry in self.file_objects.find(query, {'_id': 1}):
                 missing_analyses.setdefault(firmware_uid, set()).add(entry['_id'])
         return missing_analyses
+
+    def find_failed_analyses(self) -> Dict[str, List[str]]:
+        '''Returns a dictionary of failed analyses per plugin: {<plugin>: <UID list>}.'''
+        query_result = self.file_objects.aggregate([
+            {'$project': {'analysis': {'$objectToArray': '$processed_analysis'}}},
+            {'$unwind': '$analysis'},
+            {'$match': {'analysis.v.failed': {'$exists': 'true'}}},
+            {'$group': {'_id': '$analysis.k', 'UIDs': {'$addToSet': '$_id'}}},
+        ], allowDiskUse=True)
+        return {entry['_id']: entry['UIDs'] for entry in query_result}
