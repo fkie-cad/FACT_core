@@ -1,22 +1,27 @@
 import json
 import os
 import re
+from datetime import timedelta
 
 from common_helper_files import get_binary_from_file
+from passlib.context import CryptContext
+from si_prefix import si_format
 
 from helperFunctions.fileSystem import get_template_dir
-from passlib.context import CryptContext
+from helperFunctions.uid import is_uid
+
+SPECIAL_CHARACTERS = (
+    'ÄäÀàÁáÂâÃãÅåǍǎĄąĂăÆæĀāÇçĆćĈĉČčĎđĐďðÈèÉéÊêËëĚěĘęĖėĒē'
+    'ĜĝĢģĞğĤĥÌìÍíÎîÏïıĪīĮįĴĵĶķĹĺĻļŁłĽľÑñŃńŇňŅņÖöÒòÓóÔôÕõŐőØøŒœ'
+    'ŔŕŘřẞßŚśŜŝŞşŠšȘșŤťŢţÞþȚțÜüÙùÚúÛûŰűŨũŲųŮůŪūŴŵÝýŸÿŶŷŹźŽžŻż'
+)
+
+BS_PRIMARY = '#007bff'
+BS_SECONDARY = '#6c757d'
 
 
-SPECIAL_CHARACTERS = 'ÄäÀàÁáÂâÃãÅåǍǎĄąĂăÆæĀāÇçĆćĈĉČčĎđĐďðÈèÉéÊêËëĚěĘęĖėĒēĜĝĢģĞğĤĥÌìÍíÎîÏïıĪīĮįĴĵĶķĹĺĻļŁłĽľÑñŃńŇňŅņÖöÒòÓóÔôÕõŐőØøŒœŔŕŘřẞßŚśŜŝŞşŠšȘș' \
-                     'ŤťŢţÞþȚțÜüÙùÚúÛûŰűŨũŲųŮůŪūŴŵÝýŸÿŶŷŹźŽžŻż'
-
-
-def get_color_list(n, limit=15):
-    compliant_colors = ['#2b669a', '#cce0dc', '#2b669a', '#cce0dc', '#2b669a', '#cce0dc',
-                        '#2b669a', '#cce0dc', '#2b669a', '#cce0dc', '#2b669a', '#cce0dc',
-                        '#2b669a', '#cce0dc', '#2b669a', '#cce0dc', '#2b669a', '#cce0dc']
-    return compliant_colors[:n if n <= limit else limit]
+def get_color_list(number, limit=15):
+    return ([BS_PRIMARY, BS_SECONDARY, ] * 8)[:number if number <= limit else limit]
 
 
 def overwrite_default_plugins(intercom, checked_plugin_list):
@@ -49,19 +54,6 @@ def filter_out_illegal_characters(string):
     return re.sub('[^\\w {}!.-]'.format(SPECIAL_CHARACTERS), '', string)
 
 
-class ConnectTo:
-    def __init__(self, connected_interface, config):
-        self.interface = connected_interface
-        self.config = config
-
-    def __enter__(self):
-        self.connection = self.interface(self.config)
-        return self.connection
-
-    def __exit__(self, *args):
-        self.connection.shutdown()
-
-
 def get_template_as_string(view_name):
     path = os.path.join(get_template_dir(), view_name)
     return get_binary_from_file(path).decode('utf-8')
@@ -79,3 +71,29 @@ def password_is_legal(pw: str) -> bool:
     schemes = ['bcrypt', 'des_crypt', 'pbkdf2_sha256', 'pbkdf2_sha512', 'sha256_crypt', 'sha512_crypt', 'plaintext']
     ctx = CryptContext(schemes=schemes)
     return ctx.identify(pw) == 'plaintext'
+
+
+def virtual_path_element_to_span(hid_element: str, uid_element, root_uid) -> str:
+    if is_uid(uid_element):
+        return (
+            '<span class="badge badge-primary">'
+            '    <a style="color: #fff" href="/analysis/{uid}/ro/{root_uid}">'
+            '        {hid}'
+            '    </a>'
+            '</span>'.format(uid=uid_element, root_uid=root_uid, hid=cap_length_of_element(hid_element))
+        )
+    return '<span class="badge badge-secondary">{}</span>'.format(cap_length_of_element(hid_element))
+
+
+def cap_length_of_element(hid_element, maximum=55):
+    return '~{}'.format(hid_element[-(maximum - 1):]) if len(hid_element) > maximum else hid_element
+
+
+def format_si_prefix(number: float, unit: str) -> str:
+    return '{number}{unit}'.format(number=si_format(number, precision=2), unit=unit)
+
+
+def format_time(seconds: float):
+    if seconds < 60:
+        return format_si_prefix(seconds, 's')
+    return str(timedelta(seconds=seconds))

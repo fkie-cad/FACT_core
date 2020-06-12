@@ -1,11 +1,10 @@
 import json
 import logging
 import re
-import os
 import subprocess
 from pathlib import Path
 
-from analysis.PluginBase import AnalysisBasePlugin
+from analysis.PluginBase import AnalysisBasePlugin, PluginInitException
 from helperFunctions.fileSystem import get_src_dir
 
 
@@ -23,7 +22,10 @@ class YaraBasePlugin(AnalysisBasePlugin):
         propagate flag: If True add analysis result of child to parent object
         '''
         self.config = config
-        self._get_signature_file(plugin_path)
+        self.signature_path = self._get_signature_file(plugin_path) if plugin_path else None
+        if self.signature_path and not Path(self.signature_path).exists():
+            logging.error('Signature file {} not found. Did you run "compile_yara_signatures.py"?'.format(self.signature_path))
+            raise PluginInitException(plugin=self)
         self.SYSTEM_VERSION = self.get_yara_system_version()
         super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=plugin_path)
 
@@ -42,7 +44,7 @@ class YaraBasePlugin(AnalysisBasePlugin):
                 result = self._parse_yara_output(output)
                 file_object.processed_analysis[self.NAME] = result
                 file_object.processed_analysis[self.NAME]['summary'] = list(result.keys())
-            except ValueError:
+            except (ValueError, TypeError):
                 file_object.processed_analysis[self.NAME] = {'ERROR': 'Processing corrupted. Likely bad call to yara.'}
         else:
             file_object.processed_analysis[self.NAME] = {'ERROR': 'Signature path not set'}
@@ -53,65 +55,59 @@ class YaraBasePlugin(AnalysisBasePlugin):
         return plugin_path.split('/')[-3] + '.yc'
 
     def _get_signature_file(self, plugin_path):
-        if plugin_path:
-            sig_file_name = self._get_signature_file_name(plugin_path)
-            sig_dir = os.path.join(get_src_dir(), 'analysis/signatures')
-            self.signature_path = os.path.join(sig_dir, sig_file_name)
-        else:
-            self.signature_path = None
+        sig_file_name = self._get_signature_file_name(plugin_path)
+        return str(Path(get_src_dir()) / 'analysis/signatures' / sig_file_name)
 
-    def _parse_yara_output(self, output):
+    @staticmethod
+    def _parse_yara_output(output):
         resulting_matches = dict()
 
-        match_blocks, rules = self._split_output_in_rules_and_matches(output)
+        match_blocks, rules = _split_output_in_rules_and_matches(output)
 
         matches_regex = re.compile(r'((0x[a-f0-9]*):(\S+):\s(.+))+')
         for index, rule in enumerate(rules):
             for match in matches_regex.findall(match_blocks[index]):
-                self._append_match_to_result(match, resulting_matches, rule)
+                _append_match_to_result(match, resulting_matches, rule)
 
         return resulting_matches
 
-    @staticmethod
-    def _split_output_in_rules_and_matches(output):
-        split_regex = re.compile(r'\n*.*\[.*\]\s\/.+\n*')
-        match_blocks = split_regex.split(output)
-        while '' in match_blocks:
-            match_blocks.remove('')
 
-        rule_regex = re.compile(r'(.*)\s\[(.*)\]\s([\.\.\/]|[\/]|[\.\/])(.+)')
-        rules = rule_regex.findall(output)
+def _split_output_in_rules_and_matches(output):
+    split_regex = re.compile(r'\n*.*\[.*\]\s/.+\n*')
+    match_blocks = split_regex.split(output)
+    while '' in match_blocks:
+        match_blocks.remove('')
 
-        if not len(match_blocks) == len(rules):
-            raise ValueError()
-        return match_blocks, rules
+    rule_regex = re.compile(r'(\w*)\s\[(.*)\]\s([.]{0,2}/)(.+)')
+    rules = rule_regex.findall(output)
 
-    def _append_match_to_result(self, match, resulting_matches, rule):
-        if not len(rule) == 4:
-            raise ValueError()
-        rule_name, meta_string, _, _ = rule
-        if not len(match) == 4:
-            raise ValueError()
-        _, offset, matched_tag, matched_string = match
+    if not len(match_blocks) == len(rules):
+        raise ValueError()
+    return match_blocks, rules
 
-        meta_dict = self._parse_meta_data(meta_string)
 
-        this_match = resulting_matches[rule_name] if rule_name in resulting_matches else dict(rule=rule_name, matches=True, strings=list(), meta=meta_dict)
+def _append_match_to_result(match, resulting_matches, rule):
+    rule_name, meta_string, _, _ = rule
+    _, offset, matched_tag, matched_string = match
 
-        this_match['strings'].append((int(offset, 16), matched_tag, matched_string.encode()))
-        resulting_matches[rule_name] = this_match
+    meta_dict = _parse_meta_data(meta_string)
 
-    @staticmethod
-    def _parse_meta_data(meta_data_string):
-        '''
-        Will be of form 'item0=lowercaseboolean0,item1="value1",item2=value2,..'
-        '''
-        meta_data = dict()
-        for item in meta_data_string.split(','):
-            if '=' in item:
-                key, value = item.split('=', maxsplit=1)
-                value = json.loads(value) if value in ['true', 'false'] else value.strip('"')
-                meta_data[key] = value
-            else:
-                logging.warning('Malformed meta string \'{}\''.format(meta_data_string))
-        return meta_data
+    this_match = resulting_matches[rule_name] if rule_name in resulting_matches else dict(rule=rule_name, matches=True, strings=list(), meta=meta_dict)
+
+    this_match['strings'].append((int(offset, 16), matched_tag, matched_string.encode()))
+    resulting_matches[rule_name] = this_match
+
+
+def _parse_meta_data(meta_data_string):
+    '''
+    Will be of form 'item0=lowercaseboolean0,item1="value1",item2=value2,..'
+    '''
+    meta_data = dict()
+    for item in meta_data_string.split(','):
+        if '=' in item:
+            key, value = item.split('=', maxsplit=1)
+            value = json.loads(value) if value in ['true', 'false'] else value.strip('"')
+            meta_data[key] = value
+        else:
+            logging.warning('Malformed meta string \'{}\''.format(meta_data_string))
+    return meta_data

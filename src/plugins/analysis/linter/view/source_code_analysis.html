@@ -4,8 +4,8 @@
     {% set result = firmware.processed_analysis[selected_analysis]['full'] %}
     {% for issue in result %}
         <tr>
-            <td class="result"> {{issue['symbol']}} </td>
-            <td class="result"><pre><code>{{ issue['line'] }}:{{ issue['column'] }} {{ issue['message'] | safe}}</code></pre></td>
+            <td> {{issue['symbol']}} </td>
+            <td><pre class="border rounded p-2 bg-light">{{ issue['line'] }}:{{ issue['column'] }} {{ issue['message'] | safe}}</pre></td>
         </tr>
     {% endfor %}
 {% endblock %}

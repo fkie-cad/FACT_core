@@ -3,12 +3,12 @@ import os
 
 from common_helper_files import get_binary_from_file, get_dir_of_file, get_files_in_dir
 
+from helperFunctions.database import ConnectTo
 from helperFunctions.fileSystem import get_parent_dir
-from helperFunctions.web_interface import ConnectTo
 from storage.db_interface_view_sync import ViewUpdater
 
 
-class BasePlugin(object):
+class BasePlugin():
     NAME = 'base'
     DEPENDENCIES = []
 
@@ -31,7 +31,7 @@ class BasePlugin(object):
         if len(view_files) < 1:
             logging.debug('{}: No view available! Generic view will be used.'.format(self.NAME))
             return None
-        elif len(view_files) > 1:
+        if len(view_files) > 1:
             logging.warning('{}: Plug-in provides more than one view! \'{}\' is used!'.format(self.NAME, view_files[0]))
         return view_files[0]
 

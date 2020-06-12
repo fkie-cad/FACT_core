@@ -1,8 +1,6 @@
-import os
-
 from objects.file import FileObject
 from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
-from ..code.cwe_checker import AnalysisPlugin, CweWarningParser, BAP_TIMEOUT, PATH_TO_BAP, DOCKER_IMAGE
+from ..code.cwe_checker import AnalysisPlugin, BAP_TIMEOUT, DOCKER_IMAGE
 
 
 class TestCweCheckerFunctions(AnalysisPluginTest):
@@ -14,56 +12,52 @@ class TestCweCheckerFunctions(AnalysisPluginTest):
         config = self.init_basic_config()
         # TODO: Mock calls to BAP
         AnalysisPlugin._get_module_versions = lambda self: {}
-        self.analysis_plugin = AnalysisPlugin(self, config=config, docker=False)
-
-    def test_cwe_warning_parser_can_parse_warning(self):
-        data = '2018-02-16 13:27:35.552 WARN : [CWE476] {0.1} (NULL Pointer Dereference) There is no check if the return value is NULL at 0x104A0:32u/00000108 (malloc).'
-        p = CweWarningParser()
-        res = p.parse(data)
-        self.assertEqual(res.name, '[CWE476] (NULL Pointer Dereference)')
-        self.assertEqual(res.plugin_version, '0.1')
-        self.assertEqual(res.warning.strip(), 'There is no check if the return value is NULL at 0x104A0/00000108 (malloc)')
-
-    def test_cwe_warning_parser_does_not_parse_empty_warning(self):
-        p = CweWarningParser()
-        res = p.parse("")
-        self.assertEqual(res, None)
+        self.analysis_plugin = AnalysisPlugin(self, config=config)
 
     def test_parse_module_version(self):
-        data = '018-02-16 13:33:37.571 INFO : [cwe_checker] module_versions: (("CWE215" "0.1") ("CWE243" "0.1") ("CWE332" "0.1") ("CWE367" "0.1") ("CWE415" "0.1") ("CWE426" "0.1") ("CWE467" "0.1") ("CWE476" "0.1") ("CWE676" "0.1"))'
-        expected_result = {'CWE215': '0.1',
+        data = 'INFO: [cwe_checker] module_versions: {"CWE190": "0.1", "CWE215": "0.1", "CWE243": "0.1", "CWE248": "0.1", "CWE332": "0.1", "CWE367": "0.1", "CWE426": "0.1", "CWE457": "0.1", "CWE467": "0.1", "CWE476": "0.2", "CWE560": "0.1", "CWE676": "0.1", "CWE782": "0.1"}'
+        expected_result = {'CWE190': '0.1',
+                           'CWE215': '0.1',
                            'CWE243': '0.1',
+                           'CWE248': '0.1',
                            'CWE332': '0.1',
                            'CWE367': '0.1',
-                           'CWE415': '0.1',
                            'CWE426': '0.1',
+                           'CWE457': '0.1',
                            'CWE467': '0.1',
-                           'CWE476': '0.1',
-                           'CWE676': '0.1'}
+                           'CWE476': '0.2',
+                           'CWE560': '0.1',
+                           'CWE676': '0.1',
+                           'CWE782': '0.1'}
         res = self.analysis_plugin._parse_module_versions(data)
         self.assertEqual(res, expected_result)
 
     def test_build_bap_command(self):
-        self.analysis_plugin.docker = True
         fo = FileObject(file_path='/foo')
-        assert self.analysis_plugin._build_bap_command(fo) == 'timeout --signal=SIGKILL {}m docker run --rm -v {}:/tmp/input {} bap /tmp/input --pass=cwe-checker --cwe-checker-config=/home/bap/cwe_checker/src/config.json'.format(BAP_TIMEOUT, fo.file_path, DOCKER_IMAGE)
-
-    def test_build_bap_command_no_docker(self):
-        self.analysis_plugin.docker = False
-        fo = FileObject(file_path='/foo')
-        assert self.analysis_plugin._build_bap_command(fo) == 'timeout --signal=SIGKILL {}m {} {} --pass=cwe-checker --cwe-checker-config={}/code/../internal/src/config.json'.format(
-            BAP_TIMEOUT,
-            PATH_TO_BAP,
-            fo.file_path,
-            os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+        expected_result = 'timeout --signal=SIGKILL {}m docker run --rm -v {}:/tmp/input {} bap /tmp/input '\
+                          '--pass=cwe-checker --cwe-checker-json --cwe-checker-no-logging'.format(
+                              BAP_TIMEOUT, fo.file_path, DOCKER_IMAGE)
+        assert self.analysis_plugin._build_bap_command(fo) == expected_result
 
     def test_parse_bap_output(self):
-        test_data = '2018-10-19 11:41:20.030 [33mWARN [0m: [CWE215] {0.1} (Information Exposure Through Debug Information) CU: cwe_332.c:\n2018-10-19 11:41:20.030 [33mWARN [0m: [CWE332] {0.1} (Insufficient Entropy in PRNG) program uses rand without calling srand before'
+        test_data = """{
+        "binary": "test/artificial_samples/build/cwe_190_x86_gcc.out",
+        "time": 1564489060.0,
+        "warnings": [
+        {
+        "name": "CWE190",
+        "version": "0.1",
+        "addresses": [ "0x6BC:32u" ],
+        "symbols": [ "malloc" ],
+        "other": [],
+        "description":
+        "(Integer Overflow or Wraparound) Potential overflow due to multiplication at 0x6BC:32u (malloc)"
+        }]}"""
         result = self.analysis_plugin._parse_bap_output(test_data)
         print(result)
         assert isinstance(result, dict)
-        assert len(result.keys()) == 2
-        assert isinstance(result['[CWE215] (Information Exposure Through Debug Information)'], dict)
+        assert len(result.keys()) == 1
+        assert isinstance(result['CWE190'], dict)
 
     def test_is_supported_arch(self):
         fo = FileObject()

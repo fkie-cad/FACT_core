@@ -2,68 +2,136 @@
 
 {% set active_page = "Database" %}
 
+
 {% block head %}
-        {# angularJS import #}
-        <script type="text/javascript" src="{{ url_for('static', filename='angular.min.js') }}"></script>
+    {# angularJS import #}
+    <script type="text/javascript" src="{{ url_for('static', filename='angular.min.js') }}"></script>
+
+    <script>
+        function hide_checkbox() {
+            if ($("#only_firmware").is(':checked')) {
+                $("#inverted_div").show();
+            } else {
+                $("#inverted_div").hide();
+            }
+        }
+    </script>
 {% endblock %}
+
 
 {% block body %}
 
+<div class="row justify-content-center" style="font-size: 0.9rem;">
 
-<div class="row">
+    <div class="col-xl-6 col-lg-8 col-md-10 mt-4">
+        <h3 class="mb-3">Advanced Search</h3>
 
-    <div class="col-xs-offset-2 col-md-8">
-        <h2>Advanced Search</h2>
         <form class="form-horizontal" action="" method=post enctype=multipart/form-data>
-
-            <div class="form-group {% if error %}has-error{% endif %}">
-                <label class="control-label col-xs-3" for="advanced_search">Search Request:</label>
-                <div class="col-xs-9">
-                    <input type="text" name="advanced_search" class="form-control" id="advanced_search"
-                           placeholder="MongoDB Search Request" required>
-                    {% if error %}
-                    <p style="color:red">Please enter a valid search request. {{ error }}</p>
-                    {% endif %}
-                    <br />
-                    <table>
-                        <tr>
-                            <td style="padding: 5px;">
-                                <button type="submit" value=submit class="btn btn-default" id="input_submit">
-                                     <span class="glyphicon glyphicon-search"></span> Search
-                                </button>
-                            </td>
-                            <td style="padding: 5px;">
-                                <label class="checkbox-inline" style="padding: 0; margin: 0 0 0 20px;">
-                                    <input type="checkbox" name="only_firmwares" value="True">
-                                    only show the firmwares that include the matching file objects
-                                </label>
-                            </td>
-                        </tr>
-                    </table>
-                    <hr>
-                    <p style="color:grey">Simple example:<br />{"device_class": "Router", "vendor": "Cisco Systems"}</p>
-                    <p style="color:grey">RegEx example:<br />{"processed_analysis.crypto_code.summary": {"$options": "si", "$regex": "sha"}}</p>
+            <div class="input-group {% if error %}has-error{% endif %} mb-3">
+                <input type="text" name="advanced_search" class="form-control" id="advanced_search" placeholder="MongoDB Search Request" required>
+                <div class="input-group-append">
+                    <button type="submit" value=submit class="btn btn-primary" id="input_submit">
+                        <span class="glyphicon glyphicon-search"></span> Search
+                    </button>
                 </div>
             </div>
+            <div class="form-group form-check">
+                <input type="checkbox" class="form-check-input" name="only_firmwares" id="only_firmware" value="True" onchange="hide_checkbox()">
+                <label class="form-check-label">show parent firmware instead of matching file</label>
+            </div>
+            <div class="form-group form-check pl-0" id="inverted_div" style="display: none;">
+                <input type="checkbox" name="inverted" id="inverted" value="True">
+                <label class="form-check-label">inverse (firmware without matching files)</label>
+            </div>
+            {% if error %}
+                <p class="mt-3" style="color:red">Please enter a valid search request. {{ error }}</p>
+            {% endif %}
+        </form>
 
-            <h3>Structure of processed_analysis field:</h3>
+
+            <hr>
+
+            <h4>Example queries:</h4>
+
+            <p class="mt-4">
+                Simple:<br />
+                <span style="font-size: 0.9em; font-family: 'Deja Vu Sans Mono', monospace">{"device_class": "Router", "vendor": "AVM"}</span><br />
+                <span style="color:grey; font-size: 0.9em">Select firmware files based on specific vendor and device class</span>
+            </p>
+            <p>
+                With regular expression:<br />
+                <span style="font-size: 0.9em; font-family: 'Deja Vu Sans Mono', monospace">{"device_name": {"$options": "si", "$regex": "Fritz.+Box"}}</span><br />
+                <span style="color:grey; font-size: 0.9em">Match field with regular expression. Options mean interpret dot as wildcard (s) and case insensitive (i)</span>
+            </p>
+            <p>
+                With arithmetic:<br />
+                <span style="font-size: 0.9em; font-family: 'Deja Vu Sans Mono', monospace">{"processed_analysis.file_type.mime": "application/x-executable", "size": {"$lt": 1337}}</span><br />
+                <span style="color:grey; font-size: 0.9em">Select only executables that are smaller then or equal 1337 bytes</span>
+            </p>
+            <p>
+                With existence check:<br />
+                <span style="font-size: 0.9em; font-family: 'Deja Vu Sans Mono', monospace">{"vendor": {"$exists": true}, "size": {"$lt": 4200000}}</span><br />
+                <span style="color:grey; font-size: 0.9em">Select files that have a vendor field (outer container) and are smaller than 4.2 MB</span>
+            </p>
+
+            For further usage also see <a href="https://docs.mongodb.com/v3.6/tutorial/query-documents/">the MongoDB documentation</a> or simply ask for help at our <a href="https://gitter.im/FACT_core/community">Gitter channel</a>.
+
+            <hr>
+
+            <h4>Structure of file objects in database:</h4>
+            <pre class="mt-4">Common fields
+- _id                   # UID of file
+- analysis_tags         # Dynamically generated tags such as "Linux 2.7"
+- depth                 # Level of extraction: Outer container has 0, SquashFS inside
+                        # container has 1, ..
+- file_name             # Name of file, can for example be busybox if extracted by a high
+                        # level tool, can also be smth. like 49913.bin if carved
+- file_path             # Path on backend file system
+- files_included        # UIDs of included files (next level of extraction downwards)
+- parent_firmware_uids  # UIDs for outer firmware container files containing this file
+- parents               # UIDs of files containing this file (next level of extraction
+                        # upwards)
+- processed_analysis    # Dictionary containing all analysis results. See below for
+                        # structure
+- sha256                # SHA-2 hash of file
+- size                  # file size in bytes
+- virtual_file_path     # Full path of file in outer container with human readable format
+                        # (e.g. |&lt;Vendor&gt; 32-Route-2000 v.1.1|rootfs.bin|/bin/bash)
+
+Additional fields for outer container: (Mostly set by user, so depend on submission policy)
+- device_class          # e.g. Router
+- device_name           # e.g. Speedport W724
+- device_part           # e.g. Kernel
+- md5                   # MD5 hash of file
+- release_date          # Release date in seconds since epoch (1970-01-01)
+- submission_date       # Submission date in seconds since epoch (1970-01-01)
+- tags                  # User defined tags, e.g. Partial, Crawled
+- vendor                # e.g. EvilCorp
+- version               # e.g 1.0.0.312</pre>
+
+            <hr>
+
+            <h4>Structure of processed_analysis field:</h4>
 
             {% if database_structure is mapping %}
 
             <div ng-app="myApp" ng-controller="formCtrl">
                 <form>
-                    Select analysis plugin: <input type="text" ng-model="firstname"> (select <i>complete</i> to see all)
+                    <div class="input-group mt-4">
+                        <div class="input-group-prepend"><span class="input-group-text">Select analysis plugin</span></div>
+                        <input class="form-control" type="text" ng-model="firstname">
+                        <div class="input-group-append"><span class="input-group-text">select&nbsp;<span style="font-weight: bold">complete</span>&nbsp;to see all</span></div>
+                    </div>
                 </form>
-                <br /><br />
-                <table class="table table-responsive" style="vertical-align: top;">
+                <table class="table mt-4" style="vertical-align: top;">
                     <tr>
                         <td>
                             <p>Available plugins:</p>
-                            <pre>{a plugins | json a}</pre>
+                            <pre class="border rounded p-2 bg-light">{a plugins | json a}</pre>
                         </td>
                         <td>
-                            <p>Structure for plugin {a firstname a}:</p>
-                            <pre>{a data[firstname] a}</pre>
+                            <p>Structure for plugin <span style="font-weight: bold">{a firstname a}</span>:</p>
+                            <pre class="border rounded p-2 bg-light">{a data[firstname] a}</pre>
                         </td>
                     </tr>
                 </table>
@@ -91,8 +159,6 @@
             </div>
 
             {% endif %}
-
-        </form>
     </div>
 </div>
 

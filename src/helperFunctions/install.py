@@ -3,7 +3,7 @@ import logging
 import os
 import shutil
 from pathlib import Path
-from typing import List
+from typing import List, Union
 
 from common_helper_process import execute_shell_command_get_return_code
 
@@ -12,10 +12,10 @@ class InstallationError(Exception):
     pass
 
 
-class OperateInDirectory():
-    def __init__(self, target_directory, remove=False):
+class OperateInDirectory:
+    def __init__(self, target_directory: Union[str, Path], remove=False):
         self._current_working_dir = None
-        self._target_directory = target_directory
+        self._target_directory = str(target_directory)
         self._remove = remove
 
     def __enter__(self):
@@ -25,17 +25,17 @@ class OperateInDirectory():
     def __exit__(self, *args):
         os.chdir(self._current_working_dir)
         if self._remove:
-            self._remove_folder(self._target_directory)
+            remove_folder(self._target_directory)
 
-    @staticmethod
-    def _remove_folder(folder_name):
-        try:
-            shutil.rmtree(folder_name)
-        except PermissionError:
-            logging.debug('Falling back on root permission for deleting {}'.format(folder_name))
-            execute_shell_command_get_return_code('sudo rm -rf {}'.format(folder_name))
-        except Exception as exception:
-            raise InstallationError(exception)
+
+def remove_folder(folder_name):
+    try:
+        shutil.rmtree(folder_name)
+    except PermissionError:
+        logging.debug('Falling back on root permission for deleting {}'.format(folder_name))
+        execute_shell_command_get_return_code('sudo rm -rf {}'.format(folder_name))
+    except Exception as exception:
+        raise InstallationError(exception)
 
 
 def log_current_packages(packages, install=True):
@@ -43,7 +43,7 @@ def log_current_packages(packages, install=True):
     logging.info('{} {}'.format(action, ' '.join(packages)))
 
 
-def run_shell_command_raise_on_return_code(command: str, error: str, add_output_on_error=False) -> str:
+def run_shell_command_raise_on_return_code(command: str, error: str, add_output_on_error=False) -> str:  # pylint: disable=invalid-name
     output, return_code = execute_shell_command_get_return_code(command)
     if return_code != 0:
         if add_output_on_error:
@@ -54,18 +54,6 @@ def run_shell_command_raise_on_return_code(command: str, error: str, add_output_
 
 def apt_update_sources():
     return run_shell_command_raise_on_return_code('sudo apt-get update', 'Unable to update repository sources. Check network.')
-
-
-def apt_upgrade_system():
-    return run_shell_command_raise_on_return_code('sudo apt-get upgrade -y', 'Unable to upgrade packages:', True)
-
-
-def apt_autoremove_packages():
-    return run_shell_command_raise_on_return_code('sudo apt-get autoremove -y', 'Automatic removal of packages failed:', True)
-
-
-def apt_clean_system():
-    return run_shell_command_raise_on_return_code('sudo apt-get clean', 'Cleaning of package files failed:', True)
 
 
 def apt_install_packages(*args):
@@ -128,9 +116,7 @@ def check_if_command_in_path(command):
 
 def check_string_in_command(command, target_string):
     output, return_code = execute_shell_command_get_return_code(command)
-    if return_code != 0 or target_string not in output:
-        return False
-    return True
+    return return_code == 0 and target_string in output
 
 
 def install_github_project(project_path: str, commands: List[str]):

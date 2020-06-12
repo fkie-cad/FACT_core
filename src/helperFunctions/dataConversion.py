@@ -1,32 +1,23 @@
-import re
 from datetime import datetime
+from itertools import combinations
 from pickle import dumps
-from typing import List, Set
+from typing import KT, VT, Dict, Iterable, List, Optional, Set
 
 
 def make_bytes(code):
     if isinstance(code, bytes):
         return code
-    elif isinstance(code, str):
+    if isinstance(code, str):
         return code.encode('utf-8')
-    else:
-        return bytes(code)
+    return bytes(code)
 
 
 def make_unicode_string(code):
     if isinstance(code, str):
         return code.encode(errors='replace').decode()
-    elif isinstance(code, bytes):
+    if isinstance(code, bytes):
         return code.decode(errors='replace')
-    else:
-        return code.__str__()
-
-
-def make_dict_from_list(list_object):
-    return {
-        str(i): item
-        for i, item in enumerate(list_object)
-    }
+    return code.__str__()
 
 
 def make_list_from_dict(dict_object):
@@ -50,26 +41,21 @@ def list_of_sets_to_list_of_lists(list_of_sets: List[Set]) -> List[List]:
     return [sorted(item) for item in list_of_sets]
 
 
-def list_to_unified_string_list(uid_list: List[str]) -> str:
+def convert_uid_list_to_compare_id(uid_list: Iterable[str]) -> str:
     return ';'.join(sorted(uid_list))
 
 
-def string_list_to_list(string_list):
-    return string_list.split(';')
+def convert_compare_id_to_list(compare_id: str) -> List[str]:
+    return compare_id.split(';')
 
 
-def unify_string_list(string_list):
-        uids = string_list_to_list(string_list)
-        return list_to_unified_string_list(uids)
+def normalize_compare_id(compare_id: str) -> str:
+    uids = convert_compare_id_to_list(compare_id)
+    return convert_uid_list_to_compare_id(uids)
 
 
-def get_value_of_first_key(input_dict):
-    key_list = list(input_dict.keys())
-    key_list.sort()
-    if len(key_list) > 0:
-        return input_dict[key_list[0]]
-    else:
-        return None
+def get_value_of_first_key(input_dict: Dict[KT, VT]) -> Optional[VT]:
+    return input_dict[sorted(input_dict.keys())[0]] if input_dict else None
 
 
 def none_to_none(input_data):
@@ -78,32 +64,27 @@ def none_to_none(input_data):
     return input_data
 
 
-def remove_included_sets_from_list_of_sets(list_of_sets):
+def remove_subsets_from_list_of_sets(list_of_sets: List[set]):
     sets_to_delete = []
-    for subset in list_of_sets:
-        for superset in list_of_sets:
-            if subset.issubset(superset) and not subset == superset:
-                sets_to_delete.append(subset)
+    for set1, set2 in combinations(list_of_sets, 2):
+        if set1.issubset(set2):
+            sets_to_delete.append(set1)
+        elif set2.issubset(set1):
+            sets_to_delete.append(set2)
     for subset in sets_to_delete:
         if subset in list_of_sets:
             list_of_sets.remove(subset)
 
 
-def remove_uneccessary_spaces(input_string):
-    tmp = input_string.split()
-    tmp = ' '.join(tmp)
-    return tmp
-
-
-def convert_str_to_time(s):
+def convert_str_to_time(string):
     '''
     firmware release dates are entered in the form 'YYYY-MM-DD' and need to be converted to MongoDB date objects
     in order to be stored in the database
-    :param s: date string of the form 'YYYY-MM-DD'
+    :param string: date string of the form 'YYYY-MM-DD'
     :return: datetime object (compatible with pymongo)
     '''
     try:
-        return datetime.strptime(s, '%Y-%m-%d')
+        return datetime.strptime(string, '%Y-%m-%d')
     except ValueError:
         return datetime.fromtimestamp(0)
 
@@ -111,10 +92,9 @@ def convert_str_to_time(s):
 def convert_time_to_str(time_obj):
     if isinstance(time_obj, datetime):
         return time_obj.strftime('%Y-%m-%d')
-    elif isinstance(time_obj, str):
+    if isinstance(time_obj, str):
         return time_obj
-    else:
-        return '1970-01-01'
+    return '1970-01-01'
 
 
 def build_time_dict(query):
@@ -132,7 +112,7 @@ def build_time_dict(query):
 
 
 def _fill_in_time_gaps(time_dict):
-    if not len(time_dict) == 0:
+    if time_dict:
         start_year = min(time_dict.keys())
         start_month = min(time_dict[start_year].keys())
         end_year = max(time_dict.keys())
@@ -145,15 +125,3 @@ def _fill_in_time_gaps(time_dict):
             for month in range(min_month, max_month + 1):
                 if month not in time_dict[year]:
                     time_dict[year][month] = 0
-
-
-def remove_linebreaks_from_byte_string(byte_string):
-    '''
-    Removes \x0A und \x0D line breaks from a byte string and returns sanitized string and number of removed breaks
-    :param byte_string: Any byte string
-    :return: sanitized_byte_string, number_of_removed_linebreaks
-    '''
-    rep = {b'\x0a': b'', b'\x0d': b''}  # CR LF
-    rep = dict((re.escape(k), v) for k, v in rep.items())
-    pattern = re.compile(b'|'.join(rep.keys()))
-    return pattern.subn(lambda m: rep[re.escape(m.group(0))], byte_string)

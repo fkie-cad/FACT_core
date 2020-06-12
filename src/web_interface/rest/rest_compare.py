@@ -1,11 +1,13 @@
+from contextlib import suppress
+
 from flask import request
 from flask_restful import Resource
 
-from helperFunctions.dataConversion import unify_string_list
-from helperFunctions.rest import success_message, error_message, convert_rest_request
-from helperFunctions.web_interface import ConnectTo
+from helperFunctions.database import ConnectTo
+from helperFunctions.dataConversion import normalize_compare_id
+from helperFunctions.rest import convert_rest_request, error_message, success_message
 from intercom.front_end_binding import InterComFrontEndBinding
-from storage.db_interface_compare import CompareDbInterface
+from storage.db_interface_compare import CompareDbInterface, FactCompareException
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
@@ -30,23 +32,24 @@ class RestCompare(Resource):
 
         try:
             uid_string = ';'.join(data['uid_list'])
-            compare_id = unify_string_list(uid_string)
-            if 'redo' in data.keys():
-                redo = data['redo']
-            else:
-                redo = False
-        except Exception:  # FIXME Please specify Exception types - would think at least TypeError might occur
+            compare_id = normalize_compare_id(uid_string)
+            redo = data.get('redo', False)
+        except (AttributeError, TypeError, KeyError):
             return error_message('Request should be of the form {"uid_list": uid_list, "redo": boolean}', self.URL, request_data=data)
 
         with ConnectTo(CompareDbInterface, self.config) as db_compare_service:
             if not db_compare_service.compare_result_is_in_db(compare_id) or redo:
-                err = db_compare_service.object_existence_quick_check(compare_id)
-                if err is not None:
-                    return error_message(err, self.URL, request_data=data, return_code=404)
-                with ConnectTo(InterComFrontEndBinding, self.config) as intercom:
-                    intercom.add_compare_task(compare_id, force=redo)
-                return success_message({'message': 'Compare started. Please use GET to get the results.'}, self.URL, request_data=data, return_code=202)
+                return self.start_compare(db_compare_service, compare_id, data, redo)
         return error_message('Compare already exists. Use "redo" to force re-compare.', self.URL, request_data=data, return_code=200)
+
+    def start_compare(self, db_compare_service, compare_id, data, redo):
+        try:
+            db_compare_service.check_objects_exist(compare_id)
+        except FactCompareException as exception:
+            return error_message(exception.get_message(), self.URL, request_data=data, return_code=404)
+        with ConnectTo(InterComFrontEndBinding, self.config) as intercom:
+            intercom.add_compare_task(compare_id, force=redo)
+        return success_message({'message': 'Compare started. Please use GET to get the results.'}, self.URL, request_data=data, return_code=202)
 
     @roles_accepted(*PRIVILEGES['compare'])
     def get(self, compare_id=None):
@@ -56,15 +59,15 @@ class RestCompare(Resource):
         return value: the result dict from the compare
         '''
         try:
-            compare_id = unify_string_list(compare_id)
-        except Exception:  # FIXME Please specify Exception types - would think at least TypeError might occur
+            compare_id = normalize_compare_id(compare_id)
+        except (AttributeError, TypeError):
             return error_message('Compare ID must be of the form uid1;uid2(;uid3..)', self.URL, request_data={'compare_id': compare_id})
 
         with ConnectTo(CompareDbInterface, self.config) as db_compare_service:
             result = None
-            if db_compare_service.compare_result_is_in_db(compare_id):
-                result = db_compare_service.get_compare_result(compare_id)
+            with suppress(FactCompareException):
+                if db_compare_service.compare_result_is_in_db(compare_id):
+                    result = db_compare_service.get_compare_result(compare_id)
         if result:
             return success_message(result, self.URL, request_data={'compare_id': compare_id}, return_code=202)
-        else:
-            return error_message('Compare not found in database. Please use /rest/start_compare to start the compare.', self.URL, request_data={'compare_id': compare_id}, return_code=404)
+        return error_message('Compare not found in database. Please use /rest/start_compare to start the compare.', self.URL, request_data={'compare_id': compare_id}, return_code=404)

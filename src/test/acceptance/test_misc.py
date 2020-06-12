@@ -2,11 +2,11 @@ import os
 import time
 from multiprocessing import Event, Value
 
-from helperFunctions.fileSystem import get_test_data_dir
 from statistic.update import StatisticUpdater
 from statistic.work_load import WorkLoadStatistic
 from storage.db_interface_backend import BackEndDbInterface
 from test.acceptance.base import TestAcceptanceBase
+from test.common_helper import get_test_data_dir
 
 
 class TestAcceptanceMisc(TestAcceptanceBase):
@@ -43,7 +43,7 @@ class TestAcceptanceMisc(TestAcceptanceBase):
 
     def _upload_firmware_get(self):
         rv = self.test_client.get('/upload')
-        self.assertIn(b'<h2>Upload Firmware</h2>', rv.data, 'upload page not displayed correctly')
+        self.assertIn(b'<h3 class="mb-3">Upload Firmware</h3>', rv.data, 'upload page not displayed correctly')
 
     def _upload_firmware_put(self, path, device_name, uid):
         testfile_path = os.path.join(get_test_data_dir(), path)
@@ -81,7 +81,7 @@ class TestAcceptanceMisc(TestAcceptanceBase):
 
     def _show_system_monitor(self):
         rv = self.test_client.get('/system_health')
-        self.assertIn(b'backend workload', rv.data)
+        self.assertIn(b'backend status', rv.data)
 
     def _click_chart(self):
         rv = self.test_client.get('/database/browse?query=%7b%22vendor%22%3A+%7b%22%24eq%22%3A+%22test_vendor%22%7d%7d')

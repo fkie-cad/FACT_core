@@ -1,15 +1,16 @@
-# -*- coding: utf-8 -*-
-
 import logging
 from contextlib import suppress
 
-from flask import render_template, request, redirect, url_for, session, render_template_string
+from flask import redirect, render_template, render_template_string, request, session, url_for
 from flask_paginate import Pagination
 
-from helperFunctions.dataConversion import string_list_to_list, unify_string_list, list_to_unified_string_list
-from helperFunctions.web_interface import ConnectTo, get_template_as_string
+from helperFunctions.database import ConnectTo
+from helperFunctions.dataConversion import (
+    convert_compare_id_to_list, convert_uid_list_to_compare_id, normalize_compare_id
+)
+from helperFunctions.web_interface import get_template_as_string
 from intercom.front_end_binding import InterComFrontEndBinding
-from storage.db_interface_compare import CompareDbInterface
+from storage.db_interface_compare import CompareDbInterface, FactCompareException
 from storage.db_interface_view_sync import ViewReader
 from web_interface.components.component_base import ComponentBase
 from web_interface.security.decorator import roles_accepted
@@ -27,25 +28,26 @@ class CompareRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['compare'])
     def _app_show_compare_result(self, compare_id):
-        compare_id = unify_string_list(compare_id)
-        with ConnectTo(CompareDbInterface, self._config) as sc:
-            result = sc.get_compare_result(compare_id)
-        download_link = self._create_ida_download_if_existing(result, compare_id)
-        if result is None:
+        compare_id = normalize_compare_id(compare_id)
+        try:
+            with ConnectTo(CompareDbInterface, self._config) as sc:
+                result = sc.get_compare_result(compare_id)
+        except FactCompareException as exception:
+            return render_template('compare/error.html', error=exception.get_message())
+        if not result:
             return render_template('compare/wait.html', compare_id=compare_id)
-        elif isinstance(result, dict):
-            uid_list = string_list_to_list(compare_id)
-            plugin_views, plugins_without_view = self._get_compare_plugin_views(result)
-            compare_view = self._get_compare_view(plugin_views)
-            self._fill_in_empty_fields(result, compare_id)
-            return render_template_string(
-                compare_view,
-                result=result,
-                uid_list=uid_list,
-                download_link=download_link,
-                plugins_without_view=plugins_without_view
-            )
-        return render_template('compare/error.html', error=result.__str__())
+        download_link = self._create_ida_download_if_existing(result, compare_id)
+        uid_list = convert_compare_id_to_list(compare_id)
+        plugin_views, plugins_without_view = self._get_compare_plugin_views(result)
+        compare_view = self._get_compare_view(plugin_views)
+        self._fill_in_empty_fields(result, compare_id)
+        return render_template_string(
+            compare_view,
+            result=result,
+            uid_list=uid_list,
+            download_link=download_link,
+            plugins_without_view=plugins_without_view
+        )
 
     @staticmethod
     def _fill_in_empty_fields(result, compare_id):
@@ -89,14 +91,13 @@ class CompareRoutes(ComponentBase):
     def _insert_plugin_into_view_at_index(plugin, view, index):
         if index < 0:
             return view
-        else:
-            return view[:index] + plugin + view[index:]
+        return view[:index] + plugin + view[index:]
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     def _app_show_start_compare(self):
         if 'uids_for_comparison' not in session or not isinstance(session['uids_for_comparison'], list) or len(session['uids_for_comparison']) < 2:
             return render_template('compare/error.html', error='No UIDs found for comparison')
-        compare_id = list_to_unified_string_list(session['uids_for_comparison'])
+        compare_id = convert_uid_list_to_compare_id(session['uids_for_comparison'])
         session['uids_for_comparison'] = None
         redo = True if request.args.get('force_recompare') else None
 
@@ -105,10 +106,11 @@ class CompareRoutes(ComponentBase):
         if compare_exists and not redo:
             return redirect(url_for('/compare/<compare_id>', compare_id=compare_id))
 
-        with ConnectTo(CompareDbInterface, self._config) as sc:
-            err = sc.object_existence_quick_check(compare_id)
-        if err is not None:
-            return render_template('compare/error.html', error=err.__str__())
+        try:
+            with ConnectTo(CompareDbInterface, self._config) as sc:
+                sc.check_objects_exist(compare_id)
+        except FactCompareException as exception:
+            return render_template('compare/error.html', error=exception.get_message())
 
         with ConnectTo(InterComFrontEndBinding, self._config) as sc:
             sc.add_compare_task(compare_id, force=redo)

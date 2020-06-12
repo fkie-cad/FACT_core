@@ -2,6 +2,7 @@ import re
 
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.dataConversion import make_unicode_string
+from helperFunctions.virtual_file_path import get_top_of_virtual_path
 
 FILE_IGNORES = ['README', 'README.md', 'README.txt', 'INSTALL', 'VERSION']
 
@@ -22,6 +23,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def __init__(self, plugin_administrator, config=None, recursive=True):
         self.config = config
+        self.content = None
         super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__)
 
     @staticmethod
@@ -30,7 +32,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     @staticmethod
     def _get_file_path(file_object):
-        return file_object.get_top_of_virtual_path(file_object.virtual_file_path[file_object.root_uid][0])
+        return get_top_of_virtual_path(file_object.virtual_file_path[file_object.root_uid][0])
 
     def _get_systemd_config(self, file_object):
         result = dict()
@@ -121,21 +123,21 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def process_object(self, file_object):
         if self._is_text_file(file_object) and (file_object.file_name not in FILE_IGNORES):
-            self.file_path = self._get_file_path(file_object)
+            file_path = self._get_file_path(file_object)
             self.content = make_unicode_string(file_object.binary)
-            if '/inittab' in self.file_path:
+            if '/inittab' in file_path:
                 file_object.processed_analysis[self.NAME] = self._get_inittab_config(file_object)
-            if 'systemd/system/' in self.file_path:
+            if 'systemd/system/' in file_path:
                 file_object.processed_analysis[self.NAME] = self._get_systemd_config(file_object)
-            if self.file_path.endswith(('etc/rc', 'etc/rc.local', 'etc/rc.firsttime', 'etc/rc.securelevel')):
+            if file_path.endswith(('etc/rc', 'etc/rc.local', 'etc/rc.firsttime', 'etc/rc.securelevel')):
                 file_object.processed_analysis[self.NAME] = self._get_rc_config(file_object)
-            if self.file_path.endswith('etc/initscript'):
+            if file_path.endswith('etc/initscript'):
                 file_object.processed_analysis[self.NAME] = self._get_initscript_config(file_object)
-            if 'etc/init/' in self.file_path or 'etc/event.d/' in self.file_path:
+            if 'etc/init/' in file_path or 'etc/event.d/' in file_path:
                 file_object.processed_analysis[self.NAME] = self._get_upstart_config(file_object)
-            if 'etc/service/' in self.file_path or 'etc/sv/' in self.file_path:
+            if 'etc/service/' in file_path or 'etc/sv/' in file_path:
                 file_object.processed_analysis[self.NAME] = self._get_runit_config(file_object)
-            if 'etc/init.d/' in self.file_path or 'etc/rc.d/' in self.file_path:
+            if 'etc/init.d/' in file_path or 'etc/rc.d/' in file_path:
                 file_object.processed_analysis[self.NAME] = self._get_sysvinit_config(file_object)
         else:
             file_object.processed_analysis[self.NAME] = dict()
@@ -149,17 +151,4 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     @staticmethod
     def _add_quotes(unquoted_list):
-        return list(map(lambda string: ''.join(['"', string, '"']), unquoted_list))
-
-    @staticmethod
-    def _parse_regex_matches(matches):
-        '''
-        takes list with scriptfragments and resolves line continuation
-        '''
-        commands = list()
-        for match in list(matches):
-            match = re.sub('(\\\\\n)', '', match)
-            match = match.splitlines()
-            commands.extend(match)
-        commands = list(map(str.strip, commands))
-        return commands
+        return ['"{}"'.format(element) for element in unquoted_list]

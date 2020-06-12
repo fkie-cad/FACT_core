@@ -4,13 +4,13 @@ from multiprocessing import Queue, Value
 from queue import Empty
 from time import sleep
 
-from helperFunctions.parsing import bcolors
-from helperFunctions.process import ExceptionSafeProcess, terminate_process_and_childs
+from helperFunctions.logging import TerminalColors, color_string
+from helperFunctions.process import check_worker_exceptions, new_worker_was_started, start_single_worker
 from storage.db_interface_common import MongoInterfaceCommon
 from unpacker.unpack import Unpacker
 
 
-class UnpackingScheduler(object):
+class UnpackingScheduler:
     '''
     This scheduler performs unpacking on firmware objects
     '''
@@ -27,7 +27,7 @@ class UnpackingScheduler(object):
         self.db_interface = MongoInterfaceCommon(config) if not db_interface else db_interface
         self.drop_cached_locks()
         self.start_unpack_workers()
-        self.start_work_load_monitor()
+        self.work_load_process = self.start_work_load_monitor()
         logging.info('Unpacker Module online')
 
     def drop_cached_locks(self):
@@ -50,6 +50,7 @@ class UnpackingScheduler(object):
         self.stop_condition.value = 1
         for worker in self.workers:
             worker.join()
+        self.work_load_process.join()
         self.in_queue.close()
         logging.info('Unpacker Module offline')
 
@@ -58,15 +59,15 @@ class UnpackingScheduler(object):
     def start_unpack_workers(self):
         logging.debug('Starting {} working threads'.format(int(self.config['unpack']['threads'])))
         for process_index in range(int(self.config['unpack']['threads'])):
-            self._start_single_worker(process_index)
+            self.workers.append(start_single_worker(process_index, 'Unpacking', self.unpack_worker))
 
     def unpack_worker(self, worker_id):
         unpacker = Unpacker(self.config, worker_id=worker_id, db_interface=self.db_interface)
         while self.stop_condition.value == 0:
             with suppress(Empty):
-                fo = self.in_queue.get(timeout=int(self.config['ExpertSettings']['block_delay']))
+                fo = self.in_queue.get(timeout=float(self.config['ExpertSettings']['block_delay']))
                 extracted_objects = unpacker.unpack(fo)
-                logging.debug('[worker {}] unpacking of {} complete: {} files extracted'.format(worker_id, fo.get_uid(), len(extracted_objects)))
+                logging.debug('[worker {}] unpacking of {} complete: {} files extracted'.format(worker_id, fo.uid, len(extracted_objects)))
                 self.post_unpack(fo)
                 self.schedule_extracted_files(extracted_objects)
 
@@ -79,15 +80,12 @@ class UnpackingScheduler(object):
             if self.throttle_condition.value == 0:
                 self.in_queue.put(item)
                 break
-            else:
-                logging.debug('throttle down unpacking to reduce memory consumption...')
-                sleep(5)
+            logging.debug('throttle down unpacking to reduce memory consumption...')
+            sleep(5)
 
     def start_work_load_monitor(self):
         logging.debug('Start work load monitor...')
-        process = ExceptionSafeProcess(target=self._work_load_monitor)
-        process.start()
-        self.workers.append(process)
+        return start_single_worker(None, 'unpack-load', self._work_load_monitor)
 
     def _work_load_monitor(self):
         while self.stop_condition.value == 0:
@@ -100,7 +98,8 @@ class UnpackingScheduler(object):
             else:
                 self.work_load_counter += 1
                 log_function = logging.debug
-            log_function('{}Queue Length (Analysis/Unpack): {} / {}{}'.format(bcolors.WARNING, workload, unpack_queue_size, bcolors.ENDC))
+            log_function(color_string('Queue Length (Analysis/Unpack): {} / {}'.format(workload, unpack_queue_size),
+                                      TerminalColors.WARNING))
 
             if workload < int(self.config['ExpertSettings']['unpack_throttle_limit']):
                 self.throttle_condition.value = 0
@@ -110,29 +109,16 @@ class UnpackingScheduler(object):
 
     def _get_combined_analysis_workload(self):
         if self.get_analysis_workload is not None:
-            current_analysis_workload = self.get_analysis_workload()
-            return sum(current_analysis_workload.values())
+            workload = self.get_analysis_workload()
+            return sum([entry['queue'] for entry in workload['plugins'].values()]) + workload['analysis_main_scheduler']
         return 0
 
     def check_exceptions(self):
-        return_value = False
-        for worker in self.workers:
-            if worker.exception:
-                logging.error("{}Worker Exception Found!!{}".format(bcolors.FAIL, bcolors.ENDC))
-                logging.error(worker.exception[1])
-                terminate_process_and_childs(worker)
-                self.workers.remove(worker)
+        shutdown = check_worker_exceptions(self.workers, 'Unpacking', self.config, self.unpack_worker)
 
-                if self.config.getboolean('ExpertSettings', 'throw_exceptions'):
-                    return_value = True
-                else:
-                    process_index = worker.name.split('-')[2]
-                    self._start_single_worker(process_index)
-        return return_value
+        list_with_load_process = [self.work_load_process, ]
+        shutdown |= check_worker_exceptions(list_with_load_process, 'unpack-load', self.config, self._work_load_monitor)
+        if new_worker_was_started(new_process=list_with_load_process[0], old_process=self.work_load_process):
+            self.work_load_process = list_with_load_process.pop()
 
-    def _start_single_worker(self, process_index):
-        process = ExceptionSafeProcess(target=self.unpack_worker,
-                                       name='Unpacking-Worker-{}'.format(process_index),
-                                       args=(process_index,))
-        process.start()
-        self.workers.append(process)
+        return shutdown

@@ -1,22 +1,21 @@
 import gc
-from multiprocessing import Value, Queue
+import unittest
+from multiprocessing import Queue, Value
 from tempfile import TemporaryDirectory
 from time import sleep
-import unittest
 
-from helperFunctions.config import get_config_for_testing
 from intercom.back_end_binding import InterComBackEndBinding
 from storage.MongoMgr import MongoMgr
-
+from test.common_helper import get_config_for_testing
 
 TMP_DIR = TemporaryDirectory(prefix='fact_test_')
 
 
 # This number must be changed, whenever a listener is added or removed
-NUMBER_OF_LISTENERS = 8
+NUMBER_OF_LISTENERS = 9
 
 
-class ServiceMock():
+class ServiceMock:
 
     def __init__(self, test_queue):
         self.test_queue = test_queue
@@ -28,7 +27,7 @@ class ServiceMock():
         pass
 
 
-class CommunicationBackendMock():
+class CommunicationBackendMock:
 
     counter = Value('i', 0)
 
@@ -37,25 +36,25 @@ class CommunicationBackendMock():
 
     def get_next_task(self):
         self.counter.value += 1
-        if self.counter.value < 2:
-            return 'test_task'
-        else:
-            return None
+        return 'test_task' if self.counter.value < 2 else None
 
     def shutdown(self):
         pass
 
 
-class AnalysisServiceMock():
+class AnalysisServiceMock:
 
     def __init__(self, config=None):
         pass
 
-    def add_update_task(self, fo):
+    def update_analysis_of_object_and_children(self, fo):
         pass
 
-    def get_plugin_dict(self):
+    def get_plugin_dict(self):  # pylint: disable=no-self-use
         return {}
+
+    def update_analysis_of_single_object(self, fw):
+        pass
 
 
 class TestInterComBackEndScheduler(unittest.TestCase):
@@ -63,7 +62,9 @@ class TestInterComBackEndScheduler(unittest.TestCase):
     def setUp(self):
         config = get_config_for_testing(TMP_DIR)
         self.test_queue = Queue()
-        self.interface = InterComBackEndBinding(config=config, testing=True, analysis_service=AnalysisServiceMock(), compare_service=ServiceMock(self.test_queue), unpacking_service=ServiceMock(self.test_queue))
+        self.interface = InterComBackEndBinding(
+            config=config, testing=True, analysis_service=AnalysisServiceMock(), compare_service=ServiceMock(self.test_queue), unpacking_service=ServiceMock(self.test_queue)
+        )
         self.interface.WAIT_TIME = 2
         self.db = MongoMgr(config=config)
 
@@ -76,11 +77,11 @@ class TestInterComBackEndScheduler(unittest.TestCase):
 
     def test_backend_worker(self):
         service = ServiceMock(self.test_queue)
-        self.interface._start_listener(CommunicationBackendMock, service.add_task)
+        self.interface._start_listener(CommunicationBackendMock, service.add_task)  # pylint: disable=protected-access
         result = self.test_queue.get(timeout=5)
         self.assertEqual(result, 'test_task', 'task not received correctly')
 
-    def test_all_listeners_startet(self):
+    def test_all_listeners_started(self):
         self.interface.startup()
         sleep(2)
         self.assertEqual(len(self.interface.process_list), NUMBER_OF_LISTENERS, 'Not all listeners started')

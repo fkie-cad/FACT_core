@@ -49,16 +49,16 @@ class BackEndDbInterface(MongoInterfaceCommon):
             })
             collection = self.file_objects
 
-        collection.update_one({'_id': new_object.get_uid()}, {'$set': update_dictionary})
+        collection.update_one({'_id': new_object.uid}, {'$set': update_dictionary})
 
     def _update_processed_analysis(self, new_object: FileObject, old_object: dict) -> dict:
         old_pa = self.retrieve_analysis(old_object['processed_analysis'])
         for key in new_object.processed_analysis.keys():
             old_pa[key] = new_object.processed_analysis[key]
-        return self.sanitize_analysis(analysis_dict=old_pa, uid=new_object.get_uid())
+        return self.sanitize_analysis(analysis_dict=old_pa, uid=new_object.uid)
 
     def add_firmware(self, firmware):
-        old_object = self.firmwares.find_one({'_id': firmware.get_uid()})
+        old_object = self.firmwares.find_one({'_id': firmware.uid})
         if old_object:
             logging.debug('Update old firmware!')
             try:
@@ -71,15 +71,15 @@ class BackEndDbInterface(MongoInterfaceCommon):
             entry = self.build_firmware_dict(firmware)
             try:
                 self.firmwares.insert_one(entry)
-                logging.debug('firmware added to db: {}'.format(firmware.get_uid()))
+                logging.debug('firmware added to db: {}'.format(firmware.uid))
             except Exception as e:
                 logging.error('Could not add firmware: {} - {}'.format(sys.exc_info()[0].__name__, e))
                 return None
 
     def build_firmware_dict(self, firmware):
-        analysis = self.sanitize_analysis(analysis_dict=firmware.processed_analysis, uid=firmware.get_uid())
+        analysis = self.sanitize_analysis(analysis_dict=firmware.processed_analysis, uid=firmware.uid)
         entry = {
-            '_id': firmware.get_uid(),
+            '_id': firmware.uid,
             'file_path': firmware.file_path,
             'file_name': firmware.file_name,
             'device_part': firmware.part,
@@ -103,7 +103,7 @@ class BackEndDbInterface(MongoInterfaceCommon):
         return entry
 
     def add_file_object(self, file_object):
-        old_object = self.file_objects.find_one({'_id': file_object.get_uid()})
+        old_object = self.file_objects.find_one({'_id': file_object.uid})
         if old_object:
             logging.debug('Update old file_object!')
             try:
@@ -116,15 +116,15 @@ class BackEndDbInterface(MongoInterfaceCommon):
             entry = self.build_file_object_dict(file_object)
             try:
                 self.file_objects.insert_one(entry)
-                logging.debug('file added to db: {}'.format(file_object.get_uid()))
+                logging.debug('file added to db: {}'.format(file_object.uid))
             except Exception as e:
                 logging.error('Could not update firmware: {} - {}'.format(sys.exc_info()[0].__name__, e))
                 return None
 
     def build_file_object_dict(self, file_object):
-        analysis = self.sanitize_analysis(analysis_dict=file_object.processed_analysis, uid=file_object.get_uid())
+        analysis = self.sanitize_analysis(analysis_dict=file_object.processed_analysis, uid=file_object.uid)
         entry = {
-            '_id': file_object.get_uid(),
+            '_id': file_object.uid,
             'file_path': file_object.file_path,
             'file_name': file_object.file_name,
             'virtual_file_path': file_object.virtual_file_path,
@@ -173,7 +173,7 @@ class BackEndDbInterface(MongoInterfaceCommon):
 
     def add_analysis(self, file_object: FileObject):
         if isinstance(file_object, (Firmware, FileObject)):
-            processed_analysis = self.sanitize_analysis(file_object.processed_analysis, file_object.get_uid())
+            processed_analysis = self.sanitize_analysis(file_object.processed_analysis, file_object.uid)
             for analysis_system in processed_analysis:
                 self._update_analysis(file_object, analysis_system, processed_analysis[analysis_system])
         else:
@@ -186,7 +186,7 @@ class BackEndDbInterface(MongoInterfaceCommon):
             entry_with_tags = collection.find_one({'_id': file_object.uid}, {'analysis_tags': 1})
 
             collection.update_one(
-                {'_id': file_object.get_uid()},
+                {'_id': file_object.uid},
                 {'$set': {
                     'processed_analysis.{}'.format(analysis_system): result,
                     'analysis_tags': update_analysis_tags(file_object, entry_with_tags)

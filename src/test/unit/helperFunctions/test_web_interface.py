@@ -1,11 +1,12 @@
-# -*- coding: utf-8 -*-
 import pytest
-
-from flask_security.core import AnonymousUser, UserMixin, RoleMixin
+from flask_security.core import AnonymousUser, RoleMixin, UserMixin
 from werkzeug.local import LocalProxy
 
-from helperFunctions.web_interface import filter_out_illegal_characters, password_is_legal, get_radare_endpoint
-from helperFunctions.config import get_config_for_testing
+from helperFunctions.web_interface import (
+    cap_length_of_element, filter_out_illegal_characters, format_si_prefix, format_time, get_radare_endpoint,
+    password_is_legal, virtual_path_element_to_span
+)
+from test.common_helper import get_config_for_testing
 from web_interface.security.authentication import user_has_privilege
 
 
@@ -20,24 +21,24 @@ def test_filter_out_illegal_characters(input_data, expected):
     assert filter_out_illegal_characters(input_data) == expected
 
 
-class role_superuser(RoleMixin):
+class RoleSuperuser(RoleMixin):
     name = 'superuser'
 
 
-class superuser_user(UserMixin):
-    id = 1
-    roles = [role_superuser]
+class SuperuserUser(UserMixin):
+    id = 1  # pylint: disable=invalid-name
+    roles = [RoleSuperuser]
 
 
-class normal_user(UserMixin):
-    id = 2
+class NormalUser(UserMixin):
+    id = 2  # pylint: disable=invalid-name
     roles = []
 
 
 @pytest.mark.parametrize('input_data, expected', [
     (AnonymousUser, True),
-    (superuser_user, True),
-    (normal_user, False)
+    (SuperuserUser, True),
+    (NormalUser, False)
 ])
 def test_is_superuser(input_data, expected):
     proxied_object = LocalProxy(input_data)
@@ -63,3 +64,44 @@ def test_get_radare_endpoint():
 
     config.set('ExpertSettings', 'nginx', 'true')
     assert get_radare_endpoint(config) == 'https://localhost/radare'
+
+
+@pytest.mark.parametrize('hid, uid, expected_output', [
+    ('foo', 'bar', 'badge-secondary">foo'),
+    ('foo', 'a152ccc610b53d572682583e778e43dc1f24ddb6577255bff61406bc4fb322c3_21078024', 'badge-primary">    <a'),
+    ('suuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuper/long/human_readable_id', 'bar', '~uuuuuuuuuuuuuuuuuuuuuuuuuuuuper/long/human_readable_id'),
+])
+def test_virtual_path_element_to_span(hid, uid, expected_output):
+    assert expected_output in virtual_path_element_to_span(hid, uid, 'root_uid')
+
+
+@pytest.mark.parametrize('element_in, element_out', [
+    ('A' * 55, 'A' * 55),
+    ('A' * 56, '~' + 'A' * 54),
+])
+def test_cap_length_of_element_default(element_in, element_out):
+    assert cap_length_of_element(element_in) == element_out
+
+
+def test_cap_length_of_element_short():
+    assert cap_length_of_element('1234', maximum=3) == '~34'
+
+
+@pytest.mark.parametrize('number, unit, expected_output', [
+    (1, 'm', '1.00 m'),
+    (0.034, 'g', '34.00 mg'),
+    (0.0000123456789, 's', '12.35 µs'),
+    (1234.5, 'm', '1.23 km'),
+])
+def test_format_si_prefix(number, unit, expected_output):
+    assert format_si_prefix(number, unit) == expected_output
+
+
+@pytest.mark.parametrize('seconds, expected_output', [
+    (2, '2.00 s'),
+    (0.2, '200.00 ms'),
+    (120, '0:02:00'),
+    (100000, '1 day, 3:46:40'),
+])
+def test_format_time(seconds, expected_output):
+    assert format_time(seconds) == expected_output

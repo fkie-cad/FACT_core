@@ -3,10 +3,10 @@ from pathlib import Path
 
 import pytest
 
-from helperFunctions.config import get_config_for_testing
-from helperFunctions.fileSystem import get_test_data_dir
 from helperFunctions.tag import TagColor
 from objects.file import FileObject
+from test.common_helper import get_config_for_testing, get_test_data_dir
+
 from ..code.elf_analysis import AnalysisPlugin
 
 TEST_DATA = Path(get_test_data_dir(), 'test_data_file.bin')
@@ -144,6 +144,8 @@ def test_plugin(stub_plugin, stub_object, monkeypatch):
     stub_object.processed_analysis['file_type'] = {'mime': 'application/x-executable'}
     stub_plugin.process_object(stub_object)
 
-    assert stub_object.processed_analysis[stub_plugin.NAME]['Output'] != {}
+    output = stub_object.processed_analysis[stub_plugin.NAME]['Output']
+    assert output != {}
     result_summary = sorted(stub_object.processed_analysis[stub_plugin.NAME]['summary'])
     assert result_summary == ['dynamic_entries', 'exported_functions', 'header', 'imported_functions', 'libraries', 'sections', 'segments', 'symbols_version']
+    assert 'strcmp' in output['imported_functions']

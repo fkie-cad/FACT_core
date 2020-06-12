@@ -3,10 +3,10 @@ import binascii
 from flask import Markup
 
 from compare.PluginBase import CompareBasePlugin
-from web_interface.components.additional_functions.hex_dump import convert_binary_to_ascii_with_dots
 
-COLUMN_WIDTH = 32
+ASCII_RANGE = (32, 127)
 BYTES_TO_SHOW = 512
+COLUMN_WIDTH = 32
 
 
 class Mask:
@@ -37,7 +37,7 @@ class ComparePlugin(CompareBasePlugin):
 
     def _get_ascii_representation(self, binaries, lower_bound):
         part = binaries[0][0:lower_bound]
-        bytes_in_ascii = convert_binary_to_ascii_with_dots(part)
+        bytes_in_ascii = replace_none_ascii_with_dots(part).decode()
         if not len(bytes_in_ascii) == lower_bound:
             raise RuntimeError('Converting binary to ascii failed')
 
@@ -114,3 +114,8 @@ class ComparePlugin(CompareBasePlugin):
     @staticmethod
     def _get_number_of_rows(lower_bound):
         return lower_bound // COLUMN_WIDTH if lower_bound % COLUMN_WIDTH == 0 else lower_bound // COLUMN_WIDTH + 1
+
+
+def replace_none_ascii_with_dots(binary_block):
+    ascii_range = set(range(*ASCII_RANGE))
+    return b''.join((binary_block[index:index + 1] if char in ascii_range else b'.' for index, char in enumerate(binary_block)))

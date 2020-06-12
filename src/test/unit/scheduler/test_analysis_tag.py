@@ -3,9 +3,8 @@ from time import sleep
 
 import pytest
 
-from helperFunctions.config import get_config_for_testing
 from scheduler.analysis_tag import TaggingDaemon
-from test.common_helper import DatabaseMock
+from test.common_helper import DatabaseMock, get_config_for_testing
 
 
 class MockProcess:
@@ -45,7 +44,7 @@ def detached_scheduler(monkeypatch, analysis_service):
 def test_start_process(scheduler):
     assert scheduler.tagging_process.is_alive()
     scheduler.stop_condition.value = 1
-    sleep(int(scheduler.config['ExpertSettings']['block_delay']) * 2)
+    sleep(float(scheduler.config['ExpertSettings']['block_delay']) + 1)
     assert not scheduler.tagging_process.is_alive()
 
 

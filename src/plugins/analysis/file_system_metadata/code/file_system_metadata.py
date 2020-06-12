@@ -9,11 +9,12 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import List
 
-from common_helper_process import execute_shell_command
+from common_helper_files import safe_rglob
+from common_helper_process import execute_shell_command, execute_shell_command_get_return_code
 
 from analysis.PluginBase import AnalysisBasePlugin
+from helperFunctions.database import ConnectTo
 from helperFunctions.tag import TagColor
-from helperFunctions.web_interface import ConnectTo
 from objects.file import FileObject
 from storage.db_interface_common import MongoInterfaceCommon
 
@@ -27,14 +28,19 @@ def mount(file_path, fs_type=''):
     mount_dir = TemporaryDirectory()
     try:
         mount_rv = execute_shell_command('sudo mount {} -v -o ro,loop {} {}'.format(fs_type, file_path, mount_dir.name))
-        if 'mounted on' in mount_rv:
+        if _mount_was_successful(mount_dir.name):
             yield Path(mount_dir.name)
         else:
-            logging.error('could not mount {}'.format(file_path))
+            logging.error('could not mount {}: {}'.format(file_path, mount_rv))
             raise MountingError('error while mounting fs')
     finally:
         execute_shell_command('sudo umount -v {}'.format(mount_dir.name))
         mount_dir.cleanup()
+
+
+def _mount_was_successful(mount_path: str) -> bool:
+    _, return_code = execute_shell_command_get_return_code('mountpoint {}'.format(mount_path))
+    return return_code == 0
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
@@ -100,14 +106,12 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def _extract_metadata_from_file_system(self, file_object: FileObject, file_type: str):
         type_parameter = '-t {}'.format(file_type.split('/')[1])
-        try:
+        with suppress(MountingError):
             with mount(file_object.file_path, type_parameter) as mounted_path:
                 self._analyze_metadata_of_mounted_dir(mounted_path)
-        except MountingError:
-            pass
 
     def _analyze_metadata_of_mounted_dir(self, mounted_dir: Path):
-        for file_ in mounted_dir.rglob("*"):
+        for file_ in safe_rglob(mounted_dir, False, False):  # FIXME files with PermissionError could be ignored
             if file_.is_file() and not file_.is_symlink():
                 self._enter_results_for_mounted_file(file_)
 

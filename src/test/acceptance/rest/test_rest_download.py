@@ -22,7 +22,7 @@ class TestIntegrationRestDownloadFirmware(TestAcceptanceBase):
 
     def _rest_search(self):
         rv = self.test_client.get('/rest/firmware?query={}'.format(urllib.parse.quote('{"device_class": "test class"}')), follow_redirects=True)
-        self.assertIn(self.test_fw.get_uid().encode(), rv.data, "test firmware not found in rest search")
+        self.assertIn(self.test_fw.uid.encode(), rv.data, "test firmware not found in rest search")
 
     def _rest_download(self):
         rv = self.test_client.get('/rest/binary/{}'.format(self.test_fw.uid), follow_redirects=True)

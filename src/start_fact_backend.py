@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 '''
     Firmware Analysis and Comparison Tool (FACT)
-    Copyright (C) 2015-2018  Fraunhofer FKIE
+    Copyright (C) 2015-2020  Fraunhofer FKIE
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,37 +18,45 @@
 '''
 
 import logging
+import os
 import signal
 from time import sleep
 
+from analysis.PluginBase import PluginInitException
 from helperFunctions.process import complete_shutdown
-from helperFunctions.program_setup import program_setup
+from helperFunctions.program_setup import program_setup, was_started_by_start_fact
 from intercom.back_end_binding import InterComBackEndBinding
 from scheduler.Analysis import AnalysisScheduler
+from scheduler.analysis_tag import TaggingDaemon
 from scheduler.Compare import CompareScheduler
 from scheduler.Unpacking import UnpackingScheduler
-from scheduler.analysis_tag import TaggingDaemon
 from statistic.work_load import WorkLoadStatistic
 
 PROGRAM_NAME = 'FACT Backend'
 PROGRAM_DESCRIPTION = 'Firmware Analysis and Compare Tool (FACT) Backend'
 
 
-def shutdown(signum, frame):
+def shutdown(signum, _):
     global run
-    logging.info('shutting down {}...'.format(PROGRAM_NAME))
+    logging.info('received {signum}. shutting down {name}...'.format(signum=signum, name=PROGRAM_NAME))
     run = False
 
 
-signal.signal(signal.SIGINT, shutdown)
-signal.signal(signal.SIGTERM, shutdown)
-
-
 if __name__ == '__main__':
+    if was_started_by_start_fact():
+        signal.signal(signal.SIGUSR1, shutdown)
+        signal.signal(signal.SIGINT, lambda *_: None)
+        os.setpgid(os.getpid(), os.getpid())  # reset pgid to self so that "complete_shutdown" doesn't run amok
+    else:
+        signal.signal(signal.SIGINT, shutdown)
     args, config = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION)
-    analysis_service = AnalysisScheduler(config=config)
+    try:
+        analysis_service = AnalysisScheduler(config=config)
+    except PluginInitException as error:
+        logging.critical('Error during initialization of plugin {}. Shutting down FACT backend'.format(error.plugin.NAME))
+        complete_shutdown()
     tagging_service = TaggingDaemon(analysis_scheduler=analysis_service)
-    unpacking_service = UnpackingScheduler(config=config, post_unpack=analysis_service.add_task, analysis_workload=analysis_service.get_scheduled_workload)
+    unpacking_service = UnpackingScheduler(config=config, post_unpack=analysis_service.start_analysis_of_object, analysis_workload=analysis_service.get_scheduled_workload)
     compare_service = CompareScheduler(config=config)
     intercom = InterComBackEndBinding(config=config, analysis_service=analysis_service, compare_service=compare_service, unpacking_service=unpacking_service)
     work_load_stat = WorkLoadStatistic(config=config)
@@ -62,7 +70,7 @@ if __name__ == '__main__':
         if args.testing:
             break
 
-    logging.info('shutdown components')
+    logging.info('Shutting down components')
     work_load_stat.shutdown()
     intercom.shutdown()
     compare_service.shutdown()

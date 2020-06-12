@@ -1,7 +1,7 @@
-from itertools import zip_longest
 from copy import deepcopy
+from itertools import zip_longest
 from random import sample, seed
-
+from typing import Sequence
 
 seed()
 
@@ -11,10 +11,6 @@ def merge_generators(*generators):
         for value in values:
             if value is not None:
                 yield value
-
-
-def dict_to_sorted_tuples(d):
-    return sorted([(i, d[i]) for i in d.keys()], key=lambda x: x[1], reverse=True)
 
 
 def _add_list_to_dict(input_list, input_dict):
@@ -70,10 +66,10 @@ def merge_dict(d1, d2):
     return result
 
 
-def avg(l):
-    if len(l) == 0:
+def avg(list_: Sequence[float]) -> float:
+    if len(list_) == 0:
         return 0
-    return sum(l) / len(l)
+    return sum(list_) / len(list_)
 
 
 def shuffled(sequence):

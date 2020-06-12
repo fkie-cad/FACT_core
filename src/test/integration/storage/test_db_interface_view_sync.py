@@ -1,9 +1,8 @@
 import gc
 
-from helperFunctions.config import get_config_for_testing
+from storage.db_interface_view_sync import ViewReader, ViewUpdater
 from storage.MongoMgr import MongoMgr
-from storage.db_interface_view_sync import ViewUpdater, ViewReader
-
+from test.common_helper import get_config_for_testing
 
 CONFIG = get_config_for_testing()
 TEST_DATA = b'test data'

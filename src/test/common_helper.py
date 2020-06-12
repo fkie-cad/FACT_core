@@ -1,20 +1,31 @@
+# pylint: disable=no-self-use,unused-argument
 import json
 import os
 from base64 import standard_b64encode
+from configparser import ConfigParser
 from copy import deepcopy
 
-from helperFunctions.dataConversion import unify_string_list
-from helperFunctions.fileSystem import get_test_data_dir
+from helperFunctions.config import load_config
+from helperFunctions.dataConversion import get_value_of_first_key, normalize_compare_id
+from helperFunctions.fileSystem import get_src_dir
 from intercom.common_mongo_binding import InterComMongoInterface
 from objects.file import FileObject
 from objects.firmware import Firmware
-from storage.mongo_interface import MongoInterface
 from storage.db_interface_common import MongoInterfaceCommon
+from storage.db_interface_compare import FactCompareException
+from storage.mongo_interface import MongoInterface
+
+
+def get_test_data_dir():
+    '''
+    Returns the absolute path of the test data directory
+    '''
+    return os.path.join(get_src_dir(), 'test/data')
 
 
 class CommonDbInterfaceMock(MongoInterfaceCommon):
 
-    def __init__(self):
+    def __init__(self):  # pylint: disable=super-init-not-called
         pass
 
     def retrieve_analysis(self, sanitized_dict, analysis_filter=None):
@@ -38,7 +49,7 @@ def create_test_firmware(device_class='Router', device_name='test_router', vendo
     fw.processed_analysis.update(processed_analysis)
     if all_files_included_set:
         fw.list_of_all_included_files = list(fw.files_included)
-        fw.list_of_all_included_files.append(fw.get_uid())
+        fw.list_of_all_included_files.append(fw.uid)
     return fw
 
 
@@ -57,9 +68,16 @@ def create_test_file_object(bin_path='get_files_test/testfile1'):
 TEST_FW = create_test_firmware(device_class='test class', device_name='test device', vendor='test vendor')
 TEST_FW_2 = create_test_firmware(device_class='test_class', device_name='test_firmware_2', vendor='test vendor', bin_path='container/test.7z')
 TEST_TEXT_FILE = create_test_file_object()
+NICE_LIST_DATA = {
+    'uid': TEST_FW.uid,
+    'files_included': TEST_FW.files_included,
+    'size': TEST_FW.size,
+    'mime-type': 'file-type-plugin/not-run-yet',
+    'current_virtual_path': get_value_of_first_key(TEST_FW.get_virtual_file_paths())
+}
 
 
-class MockFileObject(object):
+class MockFileObject:
 
     def __init__(self, binary=b'test string', file_path='/bin/ls'):
         self.binary = binary
@@ -67,10 +85,10 @@ class MockFileObject(object):
         self.processed_analysis = {'file_type': {'mime': 'application/x-executable'}}
 
 
-class DatabaseMock:
-    fw_uid = TEST_FW.get_uid()
-    fo_uid = TEST_TEXT_FILE.get_uid()
-    fw2_uid = TEST_FW_2.get_uid()
+class DatabaseMock:  # pylint: disable=too-many-public-methods
+    fw_uid = TEST_FW.uid
+    fo_uid = TEST_TEXT_FILE.uid
+    fw2_uid = TEST_FW_2.uid
 
     def __init__(self, config=None):
         self.tasks = []
@@ -82,17 +100,17 @@ class DatabaseMock:
     def update_view(self, file_name, content):
         pass
 
-    def get_meta_list(self, firmware_list=[]):
+    def get_meta_list(self, firmware_list=None):
         fw_entry = ('test_uid', 'test firmware', 'unpacker')
         fo_entry = ('test_fo_uid', 'test file object', 'unpacker')
-        if self.fw_uid in firmware_list and self.fo_uid in firmware_list:
+        if firmware_list and self.fw_uid in firmware_list and self.fo_uid in firmware_list:
             return [fw_entry, fo_entry]
-        elif self.fo_uid in firmware_list:
+        if firmware_list and self.fo_uid in firmware_list:
             return [fo_entry]
         return [fw_entry]
 
-    def get_object(self, uid, analysis_filter=[]):
-        if uid == TEST_FW.get_uid():
+    def get_object(self, uid, analysis_filter=None):
+        if uid == TEST_FW.uid:
             result = deepcopy(TEST_FW)
             result.processed_analysis = {
                 'file_type': {'mime': 'application/octet-stream', 'full': 'test text'},
@@ -100,13 +118,13 @@ class DatabaseMock:
                 'optional_plugin': 'optional result'
             }
             return result
-        elif uid == TEST_TEXT_FILE.get_uid():
+        if uid == TEST_TEXT_FILE.uid:
             result = deepcopy(TEST_TEXT_FILE)
             result.processed_analysis = {
                 'file_type': {'mime': 'text/plain', 'full': 'plain text'}
             }
             return result
-        elif uid == self.fw2_uid:
+        if uid == self.fw2_uid:
             result = deepcopy(TEST_FW_2)
             result.processed_analysis = {
                 'file_type': {'mime': 'filesystem/cramfs', 'full': 'test text'},
@@ -115,8 +133,7 @@ class DatabaseMock:
             }
             result.release_date = '2000-01-01'
             return result
-        else:
-            return None
+        return None
 
     def get_hid(self, uid, root_uid=None):
         return 'TEST_FW_HID'
@@ -134,35 +151,28 @@ class DatabaseMock:
         return {'test class': {'test vendor': ['test device']}}
 
     def compare_result_is_in_db(self, uid_list):
-        if uid_list == unify_string_list(';'.join([TEST_FW.uid, TEST_TEXT_FILE.uid])):
-            return True
-        else:
-            return False
+        return uid_list == normalize_compare_id(';'.join([TEST_FW.uid, TEST_TEXT_FILE.uid]))
 
     def get_compare_result(self, compare_id):
-        if compare_id == unify_string_list(';'.join([TEST_FW.uid, TEST_FW_2.uid])):
-            return {'this_is': 'a_compare_result',
-                    'general': {'hid': {TEST_FW.uid: 'foo', TEST_TEXT_FILE.uid: 'bar'}}}
-        elif compare_id == unify_string_list(';'.join([TEST_FW.uid, TEST_TEXT_FILE.uid])):
+        if compare_id == normalize_compare_id(';'.join([TEST_FW.uid, TEST_FW_2.uid])):
+            return {
+                'this_is': 'a_compare_result',
+                'general': {'hid': {TEST_FW.uid: 'foo', TEST_TEXT_FILE.uid: 'bar'}},
+                'plugins': {'File_Coverage': {'some_feature': {TEST_FW.uid: [TEST_TEXT_FILE.uid]}}}
+            }
+        if compare_id == normalize_compare_id(';'.join([TEST_FW.uid, TEST_TEXT_FILE.uid])):
             return {'this_is': 'a_compare_result'}
-        else:
-            return 'generic error'
+        return 'generic error'
 
     def existence_quick_check(self, uid):
-        if uid == self.fw_uid or uid == self.fo_uid or uid == self.fw2_uid:
-            return True
-        elif uid == 'error':
-            return True
-        else:
-            return False
+        return uid in (self.fw_uid, self.fo_uid, self.fw2_uid, 'error')
 
-    def object_existence_quick_check(self, compare_id):
-        if compare_id == unify_string_list(';'.join([TEST_FW_2.uid, TEST_FW.uid])):
+    def check_objects_exist(self, compare_id):
+        if compare_id == normalize_compare_id(';'.join([TEST_FW_2.uid, TEST_FW.uid])):
             return None
-        elif compare_id == unify_string_list(';'.join([TEST_TEXT_FILE.uid, TEST_FW.uid])):
+        if compare_id == normalize_compare_id(';'.join([TEST_TEXT_FILE.uid, TEST_FW.uid])):
             return None
-        else:
-            return 'bla'
+        raise FactCompareException('bla')
 
     def all_uids_found_in_database(self, uid_list):
         return True
@@ -172,40 +182,46 @@ class DatabaseMock:
             {'time': str(time), 'author': author, 'comment': comment}
         )
 
-    class firmwares():
+    def add_to_search_query_cache(self, search_query: str, query_title: str = None) -> str:
+        return '0000000000000000000000000000000000000000000000000000000000000000_0'
+
+    def get_query_from_cache(self, query_uid):
+        return {'search_query': '{{"_id": "{}"}}'.format(format(TEST_FW_2.uid)), 'query_title': 'test'}
+
+    class firmwares:  # pylint: disable=invalid-name
         @staticmethod
         def find_one(uid):
             if uid == 'test_uid':
                 return 'test'
-            elif uid == TEST_FW.get_uid():
-                return TEST_FW.get_uid()
-            else:
-                return None
+            if uid == TEST_FW.uid:
+                return TEST_FW.uid
+            return None
 
         @staticmethod
-        def find(query, filter):
+        def find(query, query_filter):
             return {}
 
-    class file_objects():
+    class file_objects:  # pylint: disable=invalid-name
         @staticmethod
         def find_one(uid):
-            if uid == TEST_TEXT_FILE.get_uid():
-                return TEST_TEXT_FILE.get_uid()
+            if uid == TEST_TEXT_FILE.uid:
+                return TEST_TEXT_FILE.uid
+            return None
 
         @staticmethod
-        def find(query, filter):
+        def find(query, query_filter):
             return {}
 
     def get_data_for_nice_list(self, input_data, root_uid):
-        return []
+        return [NICE_LIST_DATA, ]
 
     @staticmethod
     def create_analysis_structure():
         return ''
 
-    def generic_search(self, search_string, skip=0, limit=0, only_fo_parent_firmware=False):
+    def generic_search(self, search_string, skip=0, limit=0, only_fo_parent_firmware=False, inverted=False):
         result = []
-        if type(search_string) == dict:
+        if isinstance(search_string, dict):
             search_string = json.dumps(search_string)
         if self.fw_uid in search_string or search_string == '{}':
             result.append(self.fw_uid)
@@ -223,39 +239,42 @@ class DatabaseMock:
     def add_re_analyze_task(self, task, unpack=True):
         self.tasks.append(task)
 
+    def add_single_file_task(self, task):
+        self.tasks.append(task)
+
     def add_compare_task(self, task, force=None):
         self.tasks.append((task, force))
 
     def get_available_analysis_plugins(self):
+        common_fields = ('0.0.', [], [], [], 1)
         return {
-            'default_plugin': ('default plugin description', False, {'default': True}),
-            'mandatory_plugin': ('mandatory plugin description', True, {'default': False}),
-            'optional_plugin': ('optional plugin description', False, {'default': False}),
-            'file_type': ('file_type plugin', False, {'default': False})}
+            'default_plugin': ('default plugin description', False, {'default': True}, *common_fields),
+            'mandatory_plugin': ('mandatory plugin description', True, {'default': False}, *common_fields),
+            'optional_plugin': ('optional plugin description', False, {'default': False}, *common_fields),
+            'file_type': ('file_type plugin', False, {'default': False}, *common_fields)
+        }
 
     def get_binary_and_filename(self, uid):
-        if uid == TEST_FW.get_uid():
+        if uid == TEST_FW.uid:
             return TEST_FW.binary, TEST_FW.file_name
-        elif uid == TEST_TEXT_FILE.get_uid():
+        if uid == TEST_TEXT_FILE.uid:
             return TEST_TEXT_FILE.binary, TEST_TEXT_FILE.file_name
-        else:
-            return None
+        return None
 
     def get_repacked_binary_and_file_name(self, uid):
-        if uid == TEST_FW.get_uid():
+        if uid == TEST_FW.uid:
             return TEST_FW.binary, '{}.tar.gz'.format(TEST_FW.file_name)
+        return None, None
 
     def add_binary_search_request(self, yara_rule_binary, firmware_uid=None):
         if yara_rule_binary == b'invalid_rule':
             return 'error: invalid rule'
-        else:
-            return 'some_id'
+        return 'some_id'
 
     def get_binary_search_result(self, uid):
         if uid == 'some_id':
             return {'test_rule': ['test_uid']}, b'some yara rule'
-        else:
-            return None, None
+        return None, None
 
     def get_statistic(self, identifier):
         statistics = {
@@ -269,26 +288,24 @@ class DatabaseMock:
         }
         if identifier == 'general':
             return statistics
-        else:
-            return None
+        if identifier == 'release_date':
+            return {'date_histogram_data': [['July 2014', 1]]}
+        return None
 
     def get_complete_object_including_all_summaries(self, uid):
         if uid == TEST_FW.uid:
             return TEST_FW
-        else:
-            raise Exception('UID not found: {}'.format(uid))
+        raise Exception('UID not found: {}'.format(uid))
 
-    def rest_get_firmware_uids(self, offset, limit, query=None, recursive=False):
+    def rest_get_firmware_uids(self, offset, limit, query=None, recursive=False, inverted=False):
         if (offset != 0) or (limit != 0):
             return []
-        else:
-            return [TEST_FW.uid, ]
+        return [TEST_FW.uid, ]
 
     def rest_get_file_object_uids(self, offset, limit, query=None):
         if (offset != 0) or (limit != 0):
             return []
-        else:
-            return [TEST_TEXT_FILE.uid, ]
+        return [TEST_TEXT_FILE.uid, ]
 
     def get_firmware(self, uid, analysis_filter=None):
         return self.get_object(uid, analysis_filter)
@@ -313,8 +330,7 @@ class DatabaseMock:
     def get_view(self, name):
         if name == 'plugin_1':
             return b'<plugin 1 view>'
-        else:
-            return None
+        return None
 
     def is_firmware(self, uid):
         return uid == 'uid_in_db'
@@ -322,6 +338,7 @@ class DatabaseMock:
     def get_file_name(self, uid):
         if uid == 'deadbeef00000000000000000000000000000000000000000000000000000000_123':
             return 'test_name'
+        return None
 
     def set_unpacking_lock(self, uid):
         self.locks.append(uid)
@@ -334,6 +351,20 @@ class DatabaseMock:
 
     def get_specific_fields_of_db_entry(self, uid, field_dict):
         return None  # TODO
+
+    def get_summary(self, fo, selected_analysis):
+        if fo.uid == TEST_FW.uid and selected_analysis == 'foobar':
+            return {'foobar': ['some_uid']}
+        return None
+
+    def find_missing_files(self):
+        return {'parent_uid': ['missing_child_uid']}
+
+    def find_missing_analyses(self):
+        return {'root_fw_uid': ['missing_child_uid']}
+
+    def find_failed_analyses(self):
+        return {'plugin': ['missing_child_uid']}
 
 
 def fake_exit(self, *args):
@@ -353,7 +384,7 @@ def clean_test_database(config, list_of_test_databases):
     try:
         for database_name in list_of_test_databases:
             db.client.drop_database(database_name)
-    except Exception:
+    except Exception:  # pylint: disable=broad-except
         pass
     db.shutdown()
 
@@ -375,3 +406,42 @@ def get_firmware_for_rest_upload_test():
         'requested_analysis_systems': ['software_components']
     }
     return data
+
+
+def get_config_for_testing(temp_dir=None):
+    config = ConfigParser()
+    config.add_section('data_storage')
+    config.set('data_storage', 'mongo_server', 'localhost')
+    config.set('data_storage', 'main_database', 'tmp_unit_tests')
+    config.set('data_storage', 'intercom_database_prefix', 'tmp_unit_tests')
+    config.set('data_storage', 'statistic_database', 'tmp_unit_tests')
+    config.set('data_storage', 'view_storage', 'tmp_tests_view')
+    config.set('data_storage', 'mongo_port', '27018')
+    config.set('data_storage', 'report_threshold', '2048')
+    config.set('data_storage', 'password_salt', '1234')
+    config.add_section('unpack')
+    config.set('unpack', 'whitelist', '')
+    config.set('unpack', 'max_depth', '10')
+    config.add_section('default_plugins')
+    config.add_section('ExpertSettings')
+    config.set('ExpertSettings', 'block_delay', '0.1')
+    config.set('ExpertSettings', 'ssdeep_ignore', '1')
+    config.set('ExpertSettings', 'authentication', 'false')
+    config.set('ExpertSettings', 'intercom_poll_delay', '0.5')
+    config.set('ExpertSettings', 'nginx', 'false')
+    config.add_section('database')
+    config.set('database', 'results_per_page', '10')
+    load_users_from_main_config(config)
+    config.add_section('Logging')
+    if temp_dir is not None:
+        config.set('data_storage', 'firmware_file_storage_directory', temp_dir.name)
+        config.set('Logging', 'mongoDbLogFile', os.path.join(temp_dir.name, 'mongo.log'))
+    return config
+
+
+def load_users_from_main_config(config: ConfigParser):
+    fact_config = load_config('main.cfg')
+    config.set('data_storage', 'db_admin_user', fact_config['data_storage']['db_admin_user'])
+    config.set('data_storage', 'db_admin_pw', fact_config['data_storage']['db_admin_pw'])
+    config.set('data_storage', 'db_readonly_user', fact_config['data_storage']['db_readonly_user'])
+    config.set('data_storage', 'db_readonly_pw', fact_config['data_storage']['db_readonly_pw'])

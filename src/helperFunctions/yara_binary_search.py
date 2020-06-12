@@ -1,11 +1,12 @@
 from os.path import basename
-from subprocess import check_output, CalledProcessError, STDOUT
+from subprocess import CalledProcessError
 from tempfile import NamedTemporaryFile
+from typing import Dict, List, Optional, Tuple
 
 import yara
-from typing import Tuple, List, Optional, Dict
+from common_helper_process import execute_shell_command
 
-from helperFunctions.web_interface import ConnectTo
+from helperFunctions.database import ConnectTo
 from storage.db_interface_common import MongoInterfaceCommon
 from storage.fs_organizer import FS_Organizer
 
@@ -24,28 +25,25 @@ class YaraBinarySearchScanner:
         :param rule_file_path: file path to yara rule file
         :return: output from yara scan
         '''
-        return check_output(
-            'yara -r {} {}'.format(rule_file_path, self.db_path if target_path is None else target_path),
-            shell=True,
-            stderr=STDOUT
-        )
+        command = 'yara -r {} {}'.format(rule_file_path, self.db_path if target_path is None else target_path)
+        return execute_shell_command(command)
 
     def _execute_yara_search_for_single_firmware(self, rule_file_path, firmware_uid):
         with ConnectTo(YaraBinarySearchScannerDbInterface, self.config) as connection:
             file_paths = connection.get_file_paths_of_files_included_in_fo(firmware_uid)
         result = (self._execute_yara_search(rule_file_path, path) for path in file_paths)
-        return b'\n'.join(result)
+        return '\n'.join(result)
 
     @staticmethod
-    def _parse_raw_result(raw_result: bytes) -> Dict[str, List[str]]:
+    def _parse_raw_result(raw_result: str) -> Dict[str, List[str]]:
         '''
         :param raw_result: raw yara scan result
         :return: dict of matching rules with lists of matched UIDs as values
         '''
         results = {}
-        for line in raw_result.split(b'\n'):
-            if line and b'warning' not in line:
-                rule, match = line.decode().split(' ')
+        for line in raw_result.split('\n'):
+            if line and 'warning' not in line:
+                rule, match = line.split(' ')
                 match = basename(match)
                 if rule in results:
                     results[rule].append(match)
@@ -72,10 +70,10 @@ class YaraBinarySearchScanner:
                 results = self._parse_raw_result(raw_result)
                 self._eliminate_duplicates(results)
                 return results
-            except yara.SyntaxError as e:
-                return 'There seems to be an error in the rule file:\n{}'.format(e)
-            except CalledProcessError as e:
-                return 'Error when calling YARA:\n{}'.format(e.output.decode())
+            except yara.SyntaxError as yara_error:
+                return 'There seems to be an error in the rule file:\n{}'.format(yara_error)
+            except CalledProcessError as process_error:
+                return 'Error when calling YARA:\n{}'.format(process_error.output.decode())
 
     def _get_raw_result(self, firmware_uid, temp_rule_file):
         if firmware_uid is None:
@@ -101,8 +99,8 @@ def get_yara_error(rules_file):
     try:
         yara.compile(source=rules_file)
         return None
-    except Exception as e:
-        return e
+    except Exception as exception:
+        return exception
 
 
 class YaraBinarySearchScannerDbInterface(MongoInterfaceCommon):

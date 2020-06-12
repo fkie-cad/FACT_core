@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 '''
     Firmware Analysis and Comparison Tool (FACT)
-    Copyright (C) 2015-2018  Fraunhofer FKIE
+    Copyright (C) 2015-2019  Fraunhofer FKIE
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,11 +21,13 @@ import logging
 import os
 import signal
 import sys
+from pathlib import Path
+from shlex import split
 from subprocess import Popen, TimeoutExpired
 from time import sleep
 
-from helperFunctions.program_setup import program_setup
 from helperFunctions.config import get_src_dir
+from helperFunctions.program_setup import program_setup
 
 PROGRAM_NAME = 'FACT Starter'
 PROGRAM_DESCRIPTION = 'This script starts all installed FACT components'
@@ -43,35 +45,48 @@ def _evaluate_optional_args(args):
 
 
 def _start_component(component, args):
-    script_path = os.path.join(get_src_dir(), '../start_fact_{}'.format(component))
-    if os.path.exists(script_path):
-        logging.info('starting {}'.format(component))
-        optional_args = _evaluate_optional_args(args)
-        p = Popen('{} -l {} -L {} -C {} {}'.format(script_path, config['Logging']['logFile'], config['Logging']['logLevel'], args.config_file, optional_args), shell=True)
-        return p
-    else:
+    script_path = Path(get_src_dir()) / '../start_fact_{}'.format(component)
+    if not script_path.exists():
         logging.debug('{} not installed'.format(component))
         return None
+    logging.info('starting {}'.format(component))
+    optional_args = _evaluate_optional_args(args)
+    command = '{} -l {} -L {} -C {} {}'.format(
+        script_path, config['Logging']['logFile'], config['Logging']['logLevel'], args.config_file, optional_args
+    )
+    p = Popen(split(command))
+    return p
 
 
-def _terminate_process(process):
+def _terminate_process(process: Popen):
     if process is not None:
-        process.terminate()
         try:
+            os.kill(process.pid, signal.SIGUSR1)
             process.wait(timeout=60)
         except TimeoutExpired:
             logging.error('component did not stop in time -> kill')
             process.kill()
+        except ProcessLookupError:
+            pass
 
 
-def shutdown(signum, frame):
+def shutdown(*_):
     global run
     logging.info('shutting down...')
     run = False
 
 
+def _process_is_running(process: Popen) -> bool:
+    try:
+        os.kill(process.pid, 0)
+        if process.poll() is not None:
+            return False
+        return True
+    except ProcessLookupError:
+        return False
+
+
 signal.signal(signal.SIGINT, shutdown)
-signal.signal(signal.SIGTERM, shutdown)
 
 if __name__ == '__main__':
     process_list = []
@@ -82,9 +97,13 @@ if __name__ == '__main__':
     sleep(2)
     frontend_process = _start_component('frontend', args)
     backend_process = _start_component('backend', args)
+    sleep(2)
+    if backend_process is not None and not _process_is_running(backend_process):
+        logging.critical('Backend did not start. Shutting down...')
+        run = False
 
     while run:
-        sleep(5)
+        sleep(1)
         if args.testing:
             break
 
@@ -92,8 +111,6 @@ if __name__ == '__main__':
     _terminate_process(backend_process)
     logging.debug('shutdown frontend')
     _terminate_process(frontend_process)
-    logging.debug('wait for childprocesses to stop...')
-    sleep(60)
     logging.debug('shutdown db')
     _terminate_process(db_process)
 

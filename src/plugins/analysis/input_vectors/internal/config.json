@@ -1,0 +1,17 @@
+{
+    "import_prefix": "sym.imp.",
+    "config_regex": "^/(bin|boot|dev|etc|home|lib|media|mnt|opt|proc|run|sbin|sys|tmp|usr|var)/[0-9a-zA-Z_]*",
+    "domain_regex": "^(http://|www)[0-9a-zA-Z_.]*",
+    "input_classes": {
+	"file": ["open", "fgets", "fgetc", "fread", "fscanf"],
+	"network": ["socket", "^ssl_[a-z_]*", "recv"],
+	"random": ["srand", "rand"],
+	"time": ["time", "gmtime(_r)*", "localtime(_r)*", "asctime(_r)*", "ctime(_r)*"],
+	"environment": ["getenv", "secure_getenv"],
+	"stdin": ["getchar", "getc"],
+	"signal": ["signal"],
+	"shell": ["^exec[a-z_]*", "system"],
+	"bus_usb": ["^libusb[a-z_]*"],
+	"ipc": ["pipe", "pipe2"]
+    }
+}

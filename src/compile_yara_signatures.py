@@ -1,8 +1,7 @@
 #! /usr/bin/env python3
-# -*- coding: utf-8 -*-
 '''
     Firmware Analysis and Comparison Tool (FACT)
-    Copyright (C) 2015-2018  Fraunhofer FKIE
+    Copyright (C) 2015-2020  Fraunhofer FKIE
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,9 +18,11 @@
 '''
 
 import os
-import subprocess
+from subprocess import CalledProcessError
 from tempfile import NamedTemporaryFile
+
 from common_helper_files import get_files_in_dir, get_dirs_in_dir
+from common_helper_process import execute_shell_command
 
 from helperFunctions.fileSystem import get_src_dir
 
@@ -45,8 +46,9 @@ def _get_plugin_name(plugin_path):
 def _create_compiled_signature_file(directory, tmp_file):
     target_path = os.path.join(SIGNATURE_DIR, '{}.yc'.format(_get_plugin_name(directory)))
     try:
-        subprocess.run('yarac -d test_flag=false {} {}'.format(tmp_file.name, target_path), shell=True, check=True)
-    except subprocess.CalledProcessError:
+        command = 'yarac -d test_flag=false {} {}'.format(tmp_file.name, target_path)
+        execute_shell_command(command, check=True)
+    except CalledProcessError:
         print('[ERRROR] Creation of {} failed !!'.format(os.path.split(target_path)[0]))
 
 

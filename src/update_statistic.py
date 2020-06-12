@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 '''
     Firmware Analysis and Comparison Tool (FACT)
-    Copyright (C) 2015-2018  Fraunhofer FKIE
+    Copyright (C) 2015-2020  Fraunhofer FKIE
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,7 +28,8 @@ PROGRAM_NAME = 'FACT Statistic Updater'
 PROGRAM_DESCRIPTION = 'Initialize or update FACT statistic'
 
 
-def main(command_line_options=sys.argv):
+def main(command_line_options=None):
+    command_line_options = sys.argv if not command_line_options else command_line_options
     args, config = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION, command_line_options=command_line_options)
 
     logging.info('Try to start Mongo Server...')
@@ -43,6 +44,7 @@ def main(command_line_options=sys.argv):
         mongo_server.shutdown()
 
     return 0
+
 
 if __name__ == '__main__':
     sys.exit(main())

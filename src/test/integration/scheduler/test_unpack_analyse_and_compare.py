@@ -1,27 +1,24 @@
 import gc
-from tempfile import TemporaryDirectory
-from time import sleep
-import unittest
-from unittest.mock import patch
-
-from helperFunctions.dataConversion import unify_string_list
-from helperFunctions.fileSystem import get_test_data_dir
-from helperFunctions.web_interface import ConnectTo
 from multiprocessing import Event, Value
+from tempfile import TemporaryDirectory
+from unittest import TestCase, mock
+
+from helperFunctions.database import ConnectTo
+from helperFunctions.dataConversion import normalize_compare_id
 from objects.firmware import Firmware
 from scheduler.Analysis import AnalysisScheduler
 from scheduler.Compare import CompareScheduler
 from scheduler.Unpacking import UnpackingScheduler
-from storage.MongoMgr import MongoMgr
 from storage.db_interface_backend import BackEndDbInterface
 from storage.db_interface_compare import CompareDbInterface
-from test.common_helper import get_database_names, clean_test_database
-from test.integration.common import initialize_config, MockFSOrganizer
+from storage.MongoMgr import MongoMgr
+from test.common_helper import clean_test_database, get_database_names, get_test_data_dir
+from test.integration.common import MockFSOrganizer, initialize_config
 
 
-class TestFileAddition(unittest.TestCase):
+class TestFileAddition(TestCase):
 
-    @patch('unpacker.unpack.FS_Organizer', MockFSOrganizer)
+    @mock.patch('unpacker.unpack.FS_Organizer', MockFSOrganizer)
     def setUp(self):
         self._tmp_dir = TemporaryDirectory()
         self._config = initialize_config(self._tmp_dir)
@@ -33,7 +30,7 @@ class TestFileAddition(unittest.TestCase):
         self.backend_interface = BackEndDbInterface(config=self._config)
 
         self._analysis_scheduler = AnalysisScheduler(config=self._config, post_analysis=self.count_analysis_finished_event)
-        self._unpack_scheduler = UnpackingScheduler(config=self._config, post_unpack=self._analysis_scheduler.add_task)
+        self._unpack_scheduler = UnpackingScheduler(config=self._config, post_unpack=self._analysis_scheduler.start_analysis_of_object)
         self._compare_scheduler = CompareScheduler(config=self._config, callback=self.trigger_compare_finished_event)
 
     def count_analysis_finished_event(self, fw_object):
@@ -67,7 +64,7 @@ class TestFileAddition(unittest.TestCase):
 
         self.analysis_finished_event.wait(timeout=20)
 
-        compare_id = unify_string_list(';'.join([fw.uid for fw in [test_fw_1, test_fw_2]]))
+        compare_id = normalize_compare_id(';'.join([fw.uid for fw in [test_fw_1, test_fw_2]]))
 
         self.assertIsNone(self._compare_scheduler.add_task((compare_id, False)), 'adding compare task creates error')
 
@@ -76,7 +73,6 @@ class TestFileAddition(unittest.TestCase):
         with ConnectTo(CompareDbInterface, self._config) as sc:
             result = sc.get_compare_result(compare_id)
 
-        self.assertFalse(isinstance(result, str), 'compare result should exist')
         self.assertEqual(result['plugins']['Software'], self._expected_result()['Software'])
         self.assertCountEqual(result['plugins']['File_Coverage']['files_in_common'], self._expected_result()['File_Coverage']['files_in_common'])
 

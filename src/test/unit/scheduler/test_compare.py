@@ -8,6 +8,7 @@ import pytest
 
 from compare.PluginBase import CompareBasePlugin
 from scheduler.Compare import CompareScheduler
+from storage.db_interface_compare import FactCompareException
 from test.common_helper import create_test_file_object
 
 
@@ -16,19 +17,17 @@ def no_compare_views(monkeypatch):
     monkeypatch.setattr(CompareBasePlugin, '_sync_view', value=lambda s, p: None)
 
 
-class MockDbInterface(object):
+class MockDbInterface:
     def __init__(self, config=None):
         self.test_object = create_test_file_object()
-        self.test_object.list_of_all_included_files = [self.test_object.get_uid()]
+        self.test_object.list_of_all_included_files = [self.test_object.uid]
 
-    def object_existence_quick_check(self, compare_id):
-        if compare_id == 'existing_id':
-            return None
-        else:
-            return '{} not found in database'.format(compare_id)
+    def check_objects_exist(self, compare_id):
+        if not compare_id == 'existing_id':
+            raise FactCompareException('{} not found in database'.format(compare_id))
 
     def get_complete_object_including_all_summaries(self, uid):
-        if uid == self.test_object.get_uid():
+        if uid == self.test_object.uid:
             return self.test_object
 
 
@@ -64,10 +63,10 @@ class TestSchedulerCompare(unittest.TestCase):
 
     def test_compare_single_run(self):
         compares_done = set()
-        self.compare_scheduler.in_queue.put((self.compare_scheduler.db_interface.test_object.get_uid(), False))
+        self.compare_scheduler.in_queue.put((self.compare_scheduler.db_interface.test_object.uid, False))
         self.compare_scheduler._compare_single_run(compares_done)
         self.assertEqual(len(compares_done), 1, 'compares done not set correct')
-        self.assertIn(self.compare_scheduler.db_interface.test_object.get_uid(), compares_done, 'correct uid not in compares done')
+        self.assertIn(self.compare_scheduler.db_interface.test_object.uid, compares_done, 'correct uid not in compares done')
 
     def test_decide_whether_to_process(self):
         compares_done = set('a')

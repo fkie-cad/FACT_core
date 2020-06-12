@@ -107,7 +107,7 @@ def test_request_update_bad_parameter(test_app):
     assert 'has to be a list' in result['error_message']
 
 
-def test_request_update_missing_parameter(test_app):
+def test_request_update_missing_parameter(test_app):  # pylint: disable=invalid-name
     result = decode_response(test_app.put('/rest/firmware/{}'.format(TEST_FW.uid)))
     assert result['status'] == 1
     assert 'missing parameter: update' in result['error_message']
@@ -122,7 +122,7 @@ def test_request_with_unpacking(test_app):
     assert 'unpacker' in result['request']['update']
 
 
-def test_request_with_bad_recursive_flag(test_app):
+def test_request_with_bad_recursive_flag(test_app):  # pylint: disable=invalid-name
     result = decode_response(test_app.get('/rest/firmware?recursive=true'))
     assert result['status'] == 1
     assert 'only permissible with non-empty query' in result['error_message']
@@ -132,6 +132,15 @@ def test_request_with_bad_recursive_flag(test_app):
     assert result['status'] == 0
 
 
-def test_request_with_summary_parameter(test_app):
+def test_request_with_inverted_flag(test_app):
+    result = decode_response(test_app.get('/rest/firmware?inverted=true&query={"foo": "bar"}'))
+    assert result['status'] == 1
+    assert 'Inverted flag can only be used with recursive' in result['error_message']
+
+    result = decode_response(test_app.get('/rest/firmware?inverted=true&recursive=true&query={"foo": "bar"}'))
+    assert result['status'] == 0
+
+
+def test_request_with_summary_parameter(test_app):  # pylint: disable=invalid-name
     result = decode_response(test_app.get('/rest/firmware/{}?summary=true'.format(TEST_FW.uid)))
     assert 'firmware' in result

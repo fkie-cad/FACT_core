@@ -1,5 +1,5 @@
 import re
-from typing import List, Tuple, Pattern
+from typing import List, Pattern, Tuple
 
 from analysis.PluginBase import AnalysisBasePlugin
 
@@ -58,7 +58,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return self._get_list_of_unique_strings(strings_with_offset), strings_with_offset
 
     @staticmethod
-    def _match_with_offset(regex: Pattern[bytes], source: bytes, encoding: str='utf-8') -> List[Tuple[int, str]]:
+    def _match_with_offset(regex: Pattern[bytes], source: bytes, encoding: str = 'utf-8') -> List[Tuple[int, str]]:
         return [
             (match.start(), match.group().decode(encoding))
             for match in regex.finditer(source)

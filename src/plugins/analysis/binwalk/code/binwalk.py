@@ -1,11 +1,11 @@
 import os
+import string
 from tempfile import TemporaryDirectory
 
 from common_helper_files import get_binary_from_file
 from common_helper_process import execute_shell_command
 
 from analysis.PluginBase import AnalysisBasePlugin
-from helperFunctions.binwalk import iterate_valid_signature_lines
 from helperFunctions.dataConversion import make_unicode_string
 
 
@@ -42,7 +42,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         summary = list()
         output_lines = binwalk_output.splitlines()
 
-        for line in iterate_valid_signature_lines(output_lines):
+        for line in self._iterate_valid_signature_lines(output_lines):
             separated_by_spaces = line.split()
             signature_description = self._extract_description_from_signature_line(separated_by_spaces)
             if ',' in signature_description:
@@ -56,3 +56,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     def _extract_description_from_signature_line(separated_by_spaces):
         signature_description = ' '.join(separated_by_spaces[2:]) if len(separated_by_spaces) > 2 else ''
         return signature_description
+
+    @staticmethod
+    def _iterate_valid_signature_lines(output_lines):
+        return (line for line in output_lines if line and line[0] in string.digits)

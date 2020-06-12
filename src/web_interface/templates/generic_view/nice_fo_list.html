@@ -1,33 +1,30 @@
-<div class="list-group">
-	{% if not omit_collapse %}
-	<button data-toggle="collapse" data-target="#{{u_show_id}}" class="list-group-item list-group-item-info">
-		<span class="badge">{{ fo_list | length }}</span> show files
-	</button>
-	<div id="{{u_show_id}}" class="collapse">
-	{% endif %}
-	{% if number_of_unanalyzed_files > 0 %}
-	<a href="#" class="list-group-item list-group-item-warning">
-		<h5 class="list-group-item-heading">{{ number_of_unanalyzed_files }} files not analyzed yet.</h5>
-		<p class="list-group-item-text">Unanalyzed files are not shown in this list.</p>
-	</a>
-	{% endif %}
-	{% for fo in fo_list %}
-		<span class="list-group-item">
-		{% if selected_analysis %}
-			<a href="/analysis/{{ fo.uid }}/{{selected_analysis}}/ro/{{ root_uid }}"  class="list-group-item-heading">
-		{% else %}
-			<a href="/analysis/{{ fo.uid }}/ro/{{ root_uid }}"  class="list-group-item-heading">
-		{% endif %}
-				<h5>{{ fo.virtual_file_paths | nice_list | replace_uid_with_hid(root_uid=root_uid) | safe }} </h5>					
-			</a>
-			<p class="list-group-item-text">
-				Size: {{ fo.size | number_format }},
-				{% if fo['mime-type'] %}
-					Type: {{ fo['mime-type'] }}
-				{% endif %}
-				<span class="glyphicon glyphicon-download-alt pull-right clickable" onclick="location.href='/download/{{ fo.uid }}'"></span>
-			</p>
-		</span>	
+{% from "generic_view/file_object_macros.html" import file_information_span %}
+
+<div class="list-group list-group-flush">
+    {% if not omit_collapse %}
+        <div data-toggle="collapse" data-target="#{{ u_show_id }}" class="list-group-item d-flex justify-content-between align-items-center border-0">
+            <span class="mr-3" style="width: 100%">
+                {{ file_information_span(first_item, root_uid, selected_analysis, filename_only) }}
+            </span>
+            <span class="btn-group">
+                <span class="btn btn-sm btn-primary"><i class="fas fa-list-ul"></i></span>
+                <span class="btn btn-sm btn-primary">{{ fo_list | length }}</span>
+            </span>
+        </div>
+        <div id="{{u_show_id}}" class="collapse">
+    {% endif %}
+    {% if number_of_unanalyzed_files > 0 %}
+        <a href="#" class="list-group-item list-group-item-warning">
+			<h6>{{ number_of_unanalyzed_files }} files not analyzed yet</h6>
+            <p class="mb-0">Unanalyzed files are not shown in this list</p>
+        </a>
+    {% endif %}
+    {% for fo in fo_list %}
+        <div class="list-group-item list-group-item-action border-top">
+            {{ file_information_span(fo, root_uid, selected_analysis, filename_only) }}
+        </div>
     {% endfor %}
-	{% if not omit_collapse %}</div>{% endif %}
+    {% if not omit_collapse %}
+        </div>
+    {% endif %}
 </div>
