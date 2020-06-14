@@ -41,7 +41,8 @@ fi
 sudo systemctl start docker
 sudo systemctl enable docker
 
-echo "Adding mongodb repo" >> /etc/yum.repos.d/mongodb.repo
+echo "Adding mongodb repo"
+touch /etc/yum.repos.d/mongodb.repo
 echo "[mongodb-org-4.2]" >> /etc/yum.repos.d/mongodb.repo
 echo "name=MongoDB Repository" >> /etc/yum.repos.d/mongodb.repo
 echo "baseurl=https://repo.mongodb.org/yum/redhat/8/mongodb-org/4.2/x86_64/" >> /etc/yum.repos.d/mongodb.repo

@@ -7,7 +7,8 @@ echo "     install oms dependencies       "
 echo "------------------------------------"
 
 # common_analysis_oms
-sudo apt-get install -y clamav clamav-daemon clamdscan || exit 1
+# sudo apt-get install -y clamav clamav-daemon clamdscan || exit 1
+sudo dnf install -y clamav clamav-update || exit 1
 sudo -E freshclam
 
 sudo -EH pip3 install --upgrade git+https://github.com/fkie-cad/common_analysis_oms.git || exit 1
