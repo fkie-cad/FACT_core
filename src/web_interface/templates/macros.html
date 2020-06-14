@@ -1,0 +1,18 @@
+{% macro stats_panel(panel_title, icon="chart-bar") %}
+    <!-- stats: {{ panel_title }} -->
+    <div class="col-sm-6 col-md-4 mb-3 px-2">
+        <div class="card p-1 bg-light rounded border-0">
+            <div class="card-body bg-light">
+                <h5 class="card-title mb-3"><i class="fas fa-{{ icon }}"></i> {{ panel_title }}</h5>
+                {{ caller() }}
+            </div>
+        </div>
+    </div>
+{% endmacro %}
+
+{% macro stats_table_row(label, value, percent=False, link=None) %}
+    <tr>
+        <td style="text-align: left; padding:5px" {% if link %}onclick="location.href='{{ link }}'"{% endif %}>{{ label }}</td>
+        <td style="text-align: right; padding:5px">{{ value }}{% if percent %}%{% endif %}</td>
+    </tr>
+{%- endmacro %}

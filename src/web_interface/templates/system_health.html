@@ -163,14 +163,24 @@
                 <div class="card m-2" style="width: 430px;">
                     <div class="card-body">
                         <h5 class="card-title">Currently analyzed firmware</h5>
-                        <table class="table table-borderless mb-0">
-                            {% for firmware_uid, fo_count in current_analyses.items() %}
-                                <tr>
-                                    <td class="px-0" style="text-align: left;">{{ firmware_uid | replace_uid_with_hid | safe }}</td>
-                                    <td class="px-0" style="text-align: right;">{{ fo_count | nice_number }}</td>
-                                </tr>
+                        <div class="list-group list-group-flush">
+                            {% for firmware_uid, data in current_analyses.items() %}
+                                <div class="list-group-item border-top-0">
+                                    {{ firmware_uid | replace_uid_with_hid | safe }}
+                                    <div class="progress mt-2" style="height: 20px;">
+                                        {% set current_analysis_progress = data.finished_count / data.total_count %}
+                                        <div class="progress-bar text-center" role="progressbar" style="width: {{ current_analysis_progress * 100 }}%">
+                                            {% if current_analysis_progress < 0.5 %}
+                                                </div>
+                                            {% endif %}
+                                            {{ data.finished_count }}/{{ data.total_count }} (Elapsed: {{ data.start_time | remaining_time }})
+                                        {% if current_analysis_progress >= 0.5 %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
                             {% endfor %}
-                        </table>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -2,7 +2,6 @@ import json
 import os
 import re
 from datetime import timedelta
-from typing import List
 
 from common_helper_files import get_binary_from_file
 from passlib.context import CryptContext
@@ -11,15 +10,18 @@ from si_prefix import si_format
 from helperFunctions.fileSystem import get_template_dir
 from helperFunctions.uid import is_uid
 
-SPECIAL_CHARACTERS = 'ÄäÀàÁáÂâÃãÅåǍǎĄąĂăÆæĀāÇçĆćĈĉČčĎđĐďðÈèÉéÊêËëĚěĘęĖėĒēĜĝĢģĞğĤĥÌìÍíÎîÏïıĪīĮįĴĵĶķĹĺĻļŁłĽľÑñŃńŇňŅņÖöÒòÓóÔôÕõŐőØøŒœŔŕŘřẞßŚśŜŝŞşŠšȘș' \
-                     'ŤťŢţÞþȚțÜüÙùÚúÛûŰűŨũŲųŮůŪūŴŵÝýŸÿŶŷŹźŽžŻż'
+SPECIAL_CHARACTERS = (
+    'ÄäÀàÁáÂâÃãÅåǍǎĄąĂăÆæĀāÇçĆćĈĉČčĎđĐďðÈèÉéÊêËëĚěĘęĖėĒē'
+    'ĜĝĢģĞğĤĥÌìÍíÎîÏïıĪīĮįĴĵĶķĹĺĻļŁłĽľÑñŃńŇňŅņÖöÒòÓóÔôÕõŐőØøŒœ'
+    'ŔŕŘřẞßŚśŜŝŞşŠšȘșŤťŢţÞþȚțÜüÙùÚúÛûŰűŨũŲųŮůŪūŴŵÝýŸÿŶŷŹźŽžŻż'
+)
+
+BS_PRIMARY = '#007bff'
+BS_SECONDARY = '#6c757d'
 
 
 def get_color_list(number, limit=15):
-    compliant_colors = ['#2b669a', '#cce0dc', '#2b669a', '#cce0dc', '#2b669a', '#cce0dc',
-                        '#2b669a', '#cce0dc', '#2b669a', '#cce0dc', '#2b669a', '#cce0dc',
-                        '#2b669a', '#cce0dc', '#2b669a', '#cce0dc', '#2b669a', '#cce0dc']
-    return compliant_colors[:number if number <= limit else limit]
+    return ([BS_PRIMARY, BS_SECONDARY, ] * 8)[:number if number <= limit else limit]
 
 
 def overwrite_default_plugins(intercom, checked_plugin_list):
@@ -85,10 +87,6 @@ def virtual_path_element_to_span(hid_element: str, uid_element, root_uid) -> str
 
 def cap_length_of_element(hid_element, maximum=55):
     return '~{}'.format(hid_element[-(maximum - 1):]) if len(hid_element) > maximum else hid_element
-
-
-def split_virtual_path(virtual_path: str) -> List[str]:
-    return [element for element in virtual_path.split('|') if element]
 
 
 def format_si_prefix(number: float, unit: str) -> str:
