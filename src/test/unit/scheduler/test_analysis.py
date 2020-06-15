@@ -336,9 +336,9 @@ class TestUtilityFunctions:
         fw.files_included = ['foo', 'bar']
         self.scheduler._add_to_current_analyses(fw)
         assert fw.uid in self.scheduler.currently_running
-        assert self.scheduler.currently_running[fw.uid]['file_list'] == ['foo', 'bar']
+        assert self.scheduler.currently_running[fw.uid]['file_list'] == [fw.uid, 'foo', 'bar']
         assert self.scheduler.currently_running[fw.uid]['analyzed_files_count'] == 0
-        assert self.scheduler.currently_running[fw.uid]['total_files_count'] == 2
+        assert self.scheduler.currently_running[fw.uid]['total_files_count'] == 3
 
     def test_add_file_to_current_analyses(self):
         self.scheduler.currently_running = {'parent_uid': {'file_list': ['foo', 'bar'], 'total_files_count': 2}}
