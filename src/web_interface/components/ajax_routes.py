@@ -28,7 +28,7 @@ class AjaxRoutes(ComponentBase):
         self._app.add_url_rule('/ajax_get_binary/<mime_type>/<uid>', 'ajax_get_binary/<type>/<uid>', self._ajax_get_binary)
         self._app.add_url_rule('/ajax_get_summary/<uid>/<selected_analysis>', 'ajax_get_summary/<uid>/<selected_analysis>', self._ajax_get_summary)
 
-        self._app.add_url_rule('/ajax/stats/general', 'ajax/stats/general', self._get_asynchronous_stats)
+        self._app.add_url_rule('/ajax/stats/general', 'ajax/stats/general', self._get_general_stats)
         self._app.add_url_rule('/ajax/stats/system', 'ajax/stats/system', self._get_system_stats)
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
@@ -168,7 +168,7 @@ class AjaxRoutes(ComponentBase):
         return render_template('summary.html', summary_of_included_files=summary_of_included_files, root_uid=uid, selected_analysis=selected_analysis)
 
     @roles_accepted(*PRIVILEGES['status'])
-    def _get_asynchronous_stats(self):
+    def _get_general_stats(self):
         with ConnectTo(FrontEndDbInterface, self._config) as db:
             missing_files = self._make_json_serializable(db.find_missing_files())
             missing_analyses = self._make_json_serializable(db.find_missing_analyses())
