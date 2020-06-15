@@ -37,6 +37,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         self.tag_queue = Queue()
         self.manager = Manager()
         self.currently_running = self.manager.dict()
+        self.currently_running_lock = self.manager.Lock()  # pylint: disable=no-member
 
         self.db_backend_service = db_interface if db_interface else BackEndDbInterface(config=config)
         self.pre_analysis = pre_analysis if pre_analysis else self.db_backend_service.add_object
@@ -172,7 +173,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         workload = {
             'analysis_main_scheduler': self.process_queue.qsize(),
             'plugins': {},
-            'current_analyses': {uid: len(included_files) for uid, included_files in self.currently_running.items()}
+            'current_analyses': self._get_current_analyses_stats()
         }
         for plugin_name in self.analysis_plugins:
             plugin = self.analysis_plugins[plugin_name]
@@ -181,6 +182,17 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
                 'active': (sum(plugin.active[i].value for i in range(plugin.thread_count))),
             }
         return workload
+
+    def _get_current_analyses_stats(self):
+        return {
+            uid: {
+                'current_count': len(stats_dict['file_list']),
+                'finished_count': stats_dict['analyzed_files_count'],
+                'start_time': stats_dict['start_time'],
+                'total_count': stats_dict['total_files_count'],
+            }
+            for uid, stats_dict in self.currently_running.items()
+        }
 
     def register_plugin(self, name, plugin_instance):
         '''
@@ -406,19 +418,42 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
     # currently running analyses
 
     def _add_to_current_analyses(self, fw_object: Union[Firmware, FileObject]):
-        if isinstance(fw_object, Firmware):
-            self.currently_running[fw_object.uid] = list(fw_object.files_included)
-        elif fw_object.files_included:
-            for parent in self._find_currently_analyzed_parents(fw_object):
-                union = set(fw_object.files_included).union(self.currently_running[parent])
-                self.currently_running[parent] = list(union)
+        try:
+            self.currently_running_lock.acquire()
+            if isinstance(fw_object, Firmware):
+                self.currently_running[fw_object.uid] = {
+                    'file_list': list(fw_object.files_included),
+                    'start_time': time(),
+                    'analyzed_files_count': 0,
+                    'total_files_count': len(fw_object.files_included),
+                }
+            elif fw_object.files_included:
+                for parent in self._find_currently_analyzed_parents(fw_object):
+                    updated_dict = self.currently_running[parent]
+                    union = set(fw_object.files_included).union(updated_dict['file_list'])
+                    updated_dict['total_files_count'] += len(set(fw_object.files_included) - set(updated_dict['file_list']))
+                    updated_dict['file_list'] = list(union)
+                    self.currently_running[parent] = updated_dict
+        finally:
+            self.currently_running_lock.release()
 
     def _remove_from_current_analyses(self, fw_object: Union[Firmware, FileObject]):
-        for parent in self._find_currently_analyzed_parents(fw_object):
-            self.currently_running[parent] = [uid for uid in self.currently_running[parent] if uid != fw_object.uid]
-            if len(self.currently_running[parent]) == 0:
-                self.currently_running.pop(parent)
-                logging.info('Analysis of firmware {} completed'.format(parent))
+        try:
+            self.currently_running_lock.acquire()
+            for parent in self._find_currently_analyzed_parents(fw_object):
+                updated_dict = self.currently_running[parent]
+                if fw_object.uid not in updated_dict['file_list']:
+                    logging.warning('Trying to remove {} from current analysis of {} but it is not included'.format(fw_object.uid, parent))
+                    continue
+                updated_dict['file_list'] = list(set(updated_dict['file_list']) - {fw_object.uid})
+                updated_dict['analyzed_files_count'] += 1
+                if len(updated_dict['file_list']) == 0:
+                    self.currently_running.pop(parent)
+                    logging.info('Analysis of firmware {} completed'.format(parent))
+                else:
+                    self.currently_running[parent] = updated_dict
+        finally:
+            self.currently_running_lock.release()
 
     def _find_currently_analyzed_parents(self, fo):
         return set(self.currently_running.keys()).intersection(fo.parent_firmware_uids)

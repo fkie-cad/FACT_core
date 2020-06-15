@@ -114,7 +114,7 @@
 
     {# General info section #}
     <div class="col-lg-6">
-        {{ firmware | render_general_information(firmware_including_this_fo, other_versions, selected_analysis) | safe }}
+        {{ firmware | render_general_information(other_versions, selected_analysis) | safe }}
     </div>
 
 </div>
@@ -213,7 +213,7 @@
                                             'data' : {
                                                 'url' : function (node) {
                                                     return node.id === '#' ?
-                                                        "/ajax_root/{{ uid | safe }}/{{ root_uid | safe }}" : "/ajax_tree/" + node["data"]["uid"] + "/{{ root_uid|safe }}";
+                                                        "/ajax_root/{{ uid | safe }}/{{ root_uid | safe }}" : "/ajax_tree/" + node["data"]["uid"] + "/{{ root_uid | safe }}";
                                                 }
                                             }
                                         },
