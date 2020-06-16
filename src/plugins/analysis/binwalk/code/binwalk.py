@@ -6,6 +6,7 @@ from common_helper_files import get_binary_from_file
 from common_helper_process import execute_shell_command
 
 from analysis.PluginBase import AnalysisBasePlugin
+from helperFunctions.config import get_temp_dir_path
 from helperFunctions.dataConversion import make_unicode_string
 
 
@@ -23,7 +24,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def process_object(self, file_object):
         result = {}
-        tmp_dir = TemporaryDirectory(prefix='fact_analysis_binwalk_')
+        tmp_dir = TemporaryDirectory(prefix='fact_analysis_binwalk_', dir=get_temp_dir_path(self.config))
         dir_path = tmp_dir.name
 
         signature_analysis_result = execute_shell_command('(cd {} && xvfb-run -a binwalk -BEJ {})'.format(dir_path, file_object.file_path))

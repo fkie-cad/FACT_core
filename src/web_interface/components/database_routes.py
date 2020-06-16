@@ -192,11 +192,10 @@ class DatabaseRoutes(ComponentBase):
                 error = 'please select a file or enter rules in the text area'
         return render_template('database/database_binary_search.html', error=error)
 
-    @staticmethod
-    def _get_items_from_binary_search_request(req):
+    def _get_items_from_binary_search_request(self, req):
         yara_rule_file = None
         if 'file' in req.files and req.files['file']:
-            _, yara_rule_file = get_file_name_and_binary_from_request(req)
+            _, yara_rule_file = get_file_name_and_binary_from_request(req, self._config)
         elif req.form['textarea']:
             yara_rule_file = req.form['textarea'].encode()
         firmware_uid = req.form.get('firmware_uid') if req.form.get('firmware_uid') else None
