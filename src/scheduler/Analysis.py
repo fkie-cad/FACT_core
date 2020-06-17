@@ -381,8 +381,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
     def check_further_process_or_complete(self, fw_object):
         if not fw_object.scheduled_analysis:
             logging.info('Analysis Completed:\n{}'.format(fw_object))
-            if not isinstance(fw_object, Firmware):
-                self._remove_from_current_analyses(fw_object)
+            self._remove_from_current_analyses(fw_object)
         else:
             self.process_queue.put(fw_object)
 
@@ -422,10 +421,10 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             self.currently_running_lock.acquire()
             if isinstance(fw_object, Firmware):
                 self.currently_running[fw_object.uid] = {
-                    'file_list': list(fw_object.files_included),
+                    'file_list': [fw_object.uid] + list(fw_object.files_included),
                     'start_time': time(),
                     'analyzed_files_count': 0,
-                    'total_files_count': len(fw_object.files_included),
+                    'total_files_count': 1 + len(fw_object.files_included),
                 }
             elif fw_object.files_included:
                 for parent in self._find_currently_analyzed_parents(fw_object):
@@ -455,5 +454,6 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         finally:
             self.currently_running_lock.release()
 
-    def _find_currently_analyzed_parents(self, fo):
-        return set(self.currently_running.keys()).intersection(fo.parent_firmware_uids)
+    def _find_currently_analyzed_parents(self, fw_object: Union[Firmware, FileObject]) -> Set[str]:
+        parent_uids = {fw_object.uid} if isinstance(fw_object, Firmware) else fw_object.parent_firmware_uids
+        return set(self.currently_running.keys()).intersection(parent_uids)
