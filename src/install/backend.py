@@ -8,19 +8,28 @@ from compile_yara_signatures import main as compile_signatures
 
 from helperFunctions.install import (
     InstallationError, OperateInDirectory, apt_install_packages, check_string_in_command, load_main_config,
-    pip3_install_packages
+    pip3_install_packages, dnf_install_packages
 )
 
 
-def main():
+def main(distribution):
+
     # dependencies
-    apt_install_packages('python-dev', 'python-setuptools')
-    apt_install_packages('libjpeg-dev')
-    apt_install_packages('libssl-dev', 'python3-tk')
+
+    if distribution == 'fedora':
+        dnf_install_packages('python-devel', 'python-setuptools')
+        dnf_install_packages('libjpeg-devel')
+        dnf_install_packages('openssl-devel', 'python3-tkinter')
+    else:
+        apt_install_packages('python-dev', 'python-setuptools')
+        apt_install_packages('libjpeg-dev')
+        apt_install_packages('libssl-dev', 'python3-tk')
+
+
     pip3_install_packages('pluginbase', 'Pillow', 'cryptography', 'pyopenssl', 'matplotlib', 'docker', 'networkx')
 
     # install yara
-    _install_yara()
+    _install_yara(distribution)
 
     # build extraction docker container
     logging.info('Building fact extraction container')
@@ -101,10 +110,17 @@ def _install_plugins():
             raise InstallationError('Error in installation of {} plugin\n{}'.format(Path(install_script).parent.name, shell_output))
 
 
-def _install_yara():
+def _install_yara(distribution):
     logging.info('Installing yara')
+
     # CAUTION: Yara python binding is installed in bootstrap_common, because it is needed in the frontend as well.
-    apt_install_packages('bison', 'flex')
+
+    if distribution == 'fedora':
+        pass
+    else:
+        apt_install_packages('bison', 'flex')
+
+
     if check_string_in_command('yara --version', '3.7.1'):
         logging.info('skipping yara installation (already installed)')
     else:
