@@ -67,10 +67,54 @@
                             <td style="text-align: left; padding:5px">statistic generation time</td>
                             <td style="text-align: right; padding:5px">{{ general_stats['benchmark'] | nice_number }} s</td>
                         </tr>
+                        <tr>
+                            <td style="text-align: left; padding:5px">incompletely analyzed firmware</td>
+                            <td id="missing_files" style="text-align: right; padding:5px">n/a</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left; padding:5px">backend cpu load</td>
+                            <td id="cpu_percentage" style="text-align: right; padding:5px">n/a</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left; padding:5px">currently analyzed firmware</td>
+                            <td id="currently_running" style="text-align: right; padding:5px">n/a</td>
+                        </tr>
                     </tbody>
                 </table>
             </center>
     	</div>
+        <script>
+            function load_ajax_stats(){
+                let data = $.getJSON("/ajax/stats/general")
+                .success(function(data) {
+                    document.getElementById("missing_files").innerHTML = data.missing_files;
+                });
+
+                let system_data = $.getJSON("/ajax/stats/system")
+                .success(function(system_data) {
+                    document.getElementById("cpu_percentage").innerHTML = system_data.backend_cpu_percentage + " %";
+
+                    let running_node =  document.getElementById("currently_running");
+                    if (system_data.number_of_running_analyses > 0) {
+
+                        if (! running_node.classList.contains('text-success')) {
+                            running_node.classList.add('text-success');
+                        }
+                    } else {
+                        if (running_node.classList.contains('text-success')) {
+                            running_node.classList.remove('text-success');
+                            }
+                    }
+
+                    running_node.innerHTML = system_data.number_of_running_analyses;
+                });
+            }
+
+            load_ajax_stats();
+            setInterval(function(){
+                load_ajax_stats()
+            }, {{ ajax_stats_reload_time }});
+        </script>
 
     	{% if (latest_firmware_submissions | length) > 0 %}
             <div class="card p-2 m-2 bg-light rounded border-0" style="width: 705px;">

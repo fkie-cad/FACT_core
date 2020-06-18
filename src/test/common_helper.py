@@ -277,19 +277,23 @@ class DatabaseMock:  # pylint: disable=too-many-public-methods
         return None, None
 
     def get_statistic(self, identifier):
-        statistics = {
-            'number_of_firmwares': 1,
-            'number_of_unique_files': 0,
-            'total_firmware_size': 10,
-            'total_file_size': 20,
-            'average_firmware_size': 10,
-            'average_file_size': 20,
-            'benchmark': 61
-        }
         if identifier == 'general':
-            return statistics
+            return {
+                'number_of_firmwares': 1,
+                'number_of_unique_files': 0,
+                'total_firmware_size': 10,
+                'total_file_size': 20,
+                'average_firmware_size': 10,
+                'average_file_size': 20,
+                'benchmark': 61
+            }
         if identifier == 'release_date':
             return {'date_histogram_data': [['July 2014', 1]]}
+        if identifier == 'backend':
+            return {
+                'system': {'cpu_percentage': 13.37},
+                'analysis': {'current_analyses': [None, None]}
+            }
         return None
 
     def get_complete_object_including_all_summaries(self, uid):
