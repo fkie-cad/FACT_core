@@ -3,139 +3,206 @@
 {% set active_page = "Info" %}
 
 {% block head %}
-    <meta http-equiv="refresh" content="10" />
+    <meta http-equiv="refresh" content="20" />
+    <script>
+        function change_button(button_id) {
+            element = document.getElementById(button_id);
+            if (element.classList.contains("fa-caret-down")) {
+                element.classList.remove("fa-caret-down");
+                element.classList.add("fa-caret-up");
+            } else {
+                element.classList.remove("fa-caret-up");
+                element.classList.add("fa-caret-down");
+            }
+        }
+    </script>
 {% endblock %}
+
+{% macro mem_label(component) %}
+    {{ component['system']['memory_used'] | number_format }} / {{ component['system']['memory_total'] | number_format }}
+{% endmacro %}
+
+{% macro disk_label(component) %}
+    {{ component['system']['disk_used'] | number_format }} / {{ component['system']['disk_total'] | number_format }}
+{% endmacro %}
+
+{% macro icon_tooltip_desk(icon, tooltip, icon_class=None) %}
+    {% set icon_class = icon_class if icon_class else 'fas' %}
+    <td class="align-middle text-center" style="width: 30px;" data-toggle="tooltip" data-placement="bottom" title="{{ tooltip }}">
+        <i class="{{ icon_class }} fa-{{ icon }}"></i>
+    </td>
+{% endmacro %}
+
+{% macro component_card(component, backend=False) %}
+    <div class="card m-2" style="width: 430px;">
+        <div class="card-body">
+            <h5 class="card-title">{{ component['name'] }} status</h5>
+            <h6 class="card-subtitle mb-2 {% if component['status'] == 'offline'%}text-danger{% else %}text-success{% endif %}">
+                {{ component['status'] }}
+            </h6>
+            <table class="table table-borderless mb-0">
+                <tr>
+                    {{ icon_tooltip_desk('linux', 'Operating system', icon_class='fab') }}
+                    <td>{{ component['platform']['os'] }}</td>
+                    {{ icon_tooltip_desk('python', 'Python version', icon_class='fab') }}
+                    <td>{{ component['platform']['python'] }}</td>
+                    {{ icon_tooltip_desk('code-branch', 'FACT version') }}
+                    <td>{{ component['platform']['fact_version'] }}</td>
+                </tr>
+                <tr>
+                    {{ icon_tooltip_desk('microchip', 'CPU status') }}
+                    <td colspan="5">{{ component['system']['cpu_cores'] }} cores ({{ component['system']['virtual_cpu_cores'] }} threads) @ {{ component['system']['cpu_percentage'] | nice_number }}%</td>
+                </tr>
+                <tr>
+                    {{ icon_tooltip_desk('memory', 'Memory status') }}
+                    <td colspan="5" class="align-middle">
+                        <div class="progress" style="height: 20px;">
+                            <div class="progress-bar text-center {% if component['system']['memory_percent'] > 80.0 %}bg-warning{% endif %}" role="progressbar" style="width: {{ component['system']['memory_percent'] }}%">
+                                {% if component['system']['memory_percent'] >= 50.0 %}{{ mem_label(component) }}{% endif %}
+                            </div>
+                            &nbsp;&nbsp;{% if component['system']['memory_percent'] < 50.0 %}{{ mem_label(component) }}{% endif %}
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    {{ icon_tooltip_desk('hdd', 'Disk status') }}
+                    <td colspan="5" class="align-middle">
+                        <div class="progress" style="height: 20px;">
+                            <div class="progress-bar text-center {% if component['system']['disk_percent'] > 80.0 %}bg-warning{% endif %}" role="progressbar" style="width: {{ component['system']['disk_percent'] }}%">
+                                {% if component['system']['disk_percent'] >= 50.0 %}{{ disk_label(component) }}{% endif %}
+                            </div>
+                            &nbsp;&nbsp;{% if component['system']['disk_percent'] < 50.0 %}{{ disk_label(component) }}{% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% if backend %}
+                    <tr>
+                        {% set unpacking_class = "text-warning" if component['unpacking']['unpacking_queue'] > 500 else "" %}
+                        {{ icon_tooltip_desk('box-open', 'Pending items for extraction') }}
+                        <td colspan="5" class="{{ unpacking_class }}">{{ component['unpacking']['unpacking_queue'] | nice_number }}</td>
+                    </tr>
+                {% endif %}
+            </table>
+       </div>
+    </div>
+{% endmacro %}
+
+{% macro plugin_card(plugin_name, plugin_data) %}
+    {% set description, _, __, version, dependencies, blacklist, whitelist, threads = analysis_plugin_info[plugin_name] %}
+    <div class="card m-2" style="width: 430px;">
+        <div class="card-body">
+            <h5 class="card-title">{{ plugin_name }}</h5>
+            <h6 class="card-subtitle mb-2 text-muted">{{ version }}</h6>
+            <table class="table table-borderless">
+                <tr>
+                    {{ icon_tooltip_desk('align-justify', 'Concurrent threads') }}
+                    <td style="width: 46px;">{{ threads }}</td>
+                    <td style="width: 30px;" data-toggle="tooltip" data-placement="bottom" title="Currently processing">
+                        {% set span_class = " fa-spin" if plugin_data['active'] else "" %}
+                        {% set span_style = "color: green" if plugin_data['active'] else "color: darkgrey" %}
+                        {% set span_style = "color: yellow" if plugin_data.queue > 150 else span_style %}
+                        <i class="fas fa-cog{{ span_class }}" style="{{ span_style }}"></i>
+                    </td>
+                    <td style="width: 46px; {{ span_style }}">
+                        {{ plugin_data.active | nice_number }}
+                    </td>
+                    <td style="width: 30px;" data-toggle="tooltip" data-placement="bottom" title="Pending tasks">
+                        {% set span_style = "color: black" if plugin_data['queue'] else "color: darkgrey" %}
+                        <i class="fas fa-sign-in-alt" style="{{ span_style }}"></i>
+                    </td>
+                    <td style="{{ span_style }}">
+                        {{ plugin_data.queue | nice_number }}
+                    </td>
+                </tr>
+            </table>
+
+            <div class="collapse m-0 p-0 mt-3" id="{{ plugin_name }}">
+                <span class="card-text">
+                    {{ description }}
+                </span>
+                <table class="table table-borderless mb-0">
+                    <tr>
+                        {{ icon_tooltip_desk('project-diagram', 'Plugin dependecies') }}
+                        <td>{{ dependencies | list_group_collapse | safe}}</td>
+                    </tr>
+                    <tr>
+                        {{ icon_tooltip_desk('flag', 'Blacklisted file types') }}
+                        <td>{{ blacklist | list_group_collapse | safe }}</td>
+                    </tr>
+                    <tr>
+                        {{ icon_tooltip_desk('flag', 'Whitelisted file types', icon_class='far') }}
+                        <td>{{ whitelist | list_group_collapse | safe }}</td>
+                    </tr>
+                </table>
+            </div>
+
+            {% set button_id = "bt-" + plugin_name %}
+            <button class="btn btn-outline-secondary btn-sm btn-block mt-3" data-toggle="collapse" data-target="#{{ plugin_name }}" onclick="change_button('{{ button_id }}')">
+                <i id="{{ button_id }}" class="fas fa-caret-down"></i>
+            </button>
+
+        </div>
+    </div>
+{% endmacro %}
 
 {% block body %}
 
 <div class="row justify-content-center mt-4">
     {% for component in status %}
-        {% if component %}
-            <div class="col-sm-6 col-md-4 col-lg-3">
-                <h3>{{component['name']}} machine status</h3>
-                <table class="table table-responsive-md table-hover table-bordered">
-                    <tr>
-                        <th class="table-head-light p-2" colspan=2 style="text-align: center; color: #495057">General</th>
-                    </tr>
-                    <tr>
-                        <td style="text-align: left; padding:5px">{{ component['name']}} status</td>
-                        <td style="text-align: right; padding:5px">{{ component['status'] | text_highlighter | safe }}</td>
-                    </tr>
-                    <tr>
-                        <td style="text-align: left; padding:5px">last status update</td>
-                        <td style="text-align: right; padding:5px">{{ component['last_update'] | nice_unix_time }}</td>
-                    </tr>
-                    {% if component['platform'] %}
-                        <tr>
-                            <th class="table-head-light p-2" colspan=2 style="text-align: center; color: #495057">Platform Information</th>
-                        </tr>
-                        <tr>
-                            <td style="text-align: left; padding:5px">operating system</td>
-                            <td style="text-align: right; padding:5px">{{ component['platform']['os'] }}</td>
-                        </tr>
-                        <tr>
-                            <td style="text-align: left; padding:5px">python version</td>
-                            <td style="text-align: right; padding:5px">{{ component['platform']['python'] }}</td>
-                        </tr>
-                        <tr>
-                            <td style="text-align: left; padding:5px">fact version</td>
-                            <td style="text-align: right; padding:5px">{{ component['platform']['fact_version'] }}</td>
-                        </tr>
-                    {% endif %}
-                    {% if component['system'] %}
-                        <tr>
-                            <th class="table-head-light p-2" colspan=2 style="text-align: center; color: #495057">System Stats</th>
-                        </tr>
-                        <tr>
-                            <td style="text-align: left; padding:5px">cpu cores</td>
-                            <td style="text-align: right; padding:5px">{{ component['system']['cpu_cores'] }} ({{ component['system']['virtual_cpu_cores'] }} threads) </td>
-                        </tr>
-                        <tr>
-                            <td style="text-align: left; padding:5px">cpu freq</td>
-                            <td style="text-align: right; padding:5px">{{ component['system']['cpu_freq'] | nice_number}} MHz</td>
-                        </tr>
-                        <tr>
-                            <td style="text-align: left; padding:5px">load average</td>
-                            <td style="text-align: right; padding:5px">{{ component['system']['load_average'] }}</td>
-                        </tr>
-                        <tr>
-                            <td style="text-align: left; padding:5px">memory usage</td>
-                            <td class="{% if component['system']['memory_percent'] > 80.0 %}alert alert-warning{% endif %}" style="text-align: right; padding:5px">{{ component['system']['memory_used'] | number_format }} / {{ component['system']['memory_total'] | number_format }} ({{ component['system']['memory_percent'] | nice_number }}%)</td>
-                        </tr>
-                        <tr>
-                            <td style="text-align: left; padding:5px">disk usage</td>
-                            <td class="{% if component['system']['disk_percent'] > 80.0 %}alert alert-warning{% endif %}" style="text-align: right; padding:5px">{{ component['system']['disk_used'] | number_format }} / {{ component['system']['disk_total'] | number_format }} ({{ component['system']['disk_percent'] | nice_number }}%)</td>
-                        </tr>
-                    {% endif %}
-                </table>
-            </div>
-            {% if component['analysis'] %}
-                <div class="col-sm-6 col-md-4 col-lg-3">
-                    <h3>{{ component['name'] }} workload</h3>
-                    <table class="table table-responsive-md table-hover table-bordered">
-                        {% set current_analyses = component['analysis']['current_analyses'] %}
-                        {% if current_analyses %}
-                            <tr>
-                                <th class="table-head-light" colspan=3 style="text-align: center; padding:5px; color: #495057">Currently Analyzed Firmware</th>
-                            </tr>
-                            {% for firmware_uid, fo_count in current_analyses.items() %}
-                                <tr>
-                                    <td colspan=2 style="text-align: left; padding:5px">{{ firmware_uid | replace_uid_with_hid | safe }}</td>
-                                    <td style="text-align: right; padding:5px">{{ fo_count | nice_number }}</td>
-                                </tr>
-                            {% endfor %}
-                        {% endif %}
-                        <tr>
-                            <th class="table-head-light" colspan=3 style="text-align: center; padding:5px; color: #495057">Unpacking</th>
-                        </tr>
-                        <tr>
-                            <td colspan=2 style="text-align: left; padding:5px">main</td>
-                            {% set unpacking_class = "table-warning" if component['unpacking']['unpacking_queue'] > 500 else "" %}
-                            <td class="{{ unpacking_class }}" style="text-align: right; padding:5px">{{ component['unpacking']['unpacking_queue'] | nice_number }}</td>
-                        </tr>
-                        <tr>
-                            <th class="table-head-light" colspan=3 style="text-align: center; padding:5px; color: #495057">Analysis</th>
-                        </tr>
-                        <tr>
-                            <td colspan=2 style="text-align: left; padding:5px">main</td>
-                            {% set analysis_main_class = "table-warning" if component['analysis']['analysis_main_scheduler'] > 150 else "" %}
-                            <td class="{{ analysis_main_class }}" style="text-align: right; padding:5px">{{ component['analysis']['analysis_main_scheduler'] | nice_number }}</td>
-                        </tr>
-                        <tr>
-                            <td class="table-head-light" style="padding:5px;">Plugin</td>
-                            <td class="table-head-light" style="text-align: right; padding:5px;">Running</td>
-                            <td class="table-head-light" style="text-align: right; padding:5px;">Queue</td>
-                        </tr>
-                        {% for plugin_name, plugin_data in component['analysis']['plugins'].items() | sort %}
-                            {% if "dummy" not in plugin_name %}  {# {% if plugin != "analysis_main_scheduler" %} #}
-                                <tr>
-                                    <td style="text-align: left; padding:5px">
-                                        {{ plugin_name }}
-                                        {% if plugin_name in analysis_plugin_info %} {{ analysis_plugin_info[plugin_name][3] }}{% endif %}
-                                    </td>
-                                    <td class="{% if plugin_data.queue > 150 %}table-warning{%else%}{% endif %}" style="text-align: right; padding:5px">
-                                        {% set span_class = " fa-spin" if plugin_data['active'] else "" %}
-                                        {% set span_style = "color: black" if plugin_data['active'] else "color: darkgrey" %}
-                                        <span class="fas fa-cog{{ span_class }}" style="{{ span_style }}"></span> {{ plugin_data.active | nice_number }}
-                                    </td>
-                                    <td style="text-align: right; padding:5px">
-                                        {% set span_style = "color: black" if plugin_data['queue'] else "color: darkgrey" %}
-                                        <span class="fas fa-sign-in-alt" style="{{ span_style }}"></span> {{ plugin_data.queue | nice_number }}
-                                    </td>
-                                </tr>
-                            {% endif %}
-                        {% endfor %}
-                    </table>
-                </div>
-            {% endif %}
-			 
-		{% else %}
-		
-		<div class="alert alert-warning col-sm-6 col-md-4 col-lg-3">
-			<strong>{{ component['name'] }} Status not Available!</strong><br /> Maybe the {{ component['name'] }} did not start yet.
-		</div>
+        {% if component and component['platform'] and component['system'] %}
+            {{ component_card(component, backend=component['analysis']) }}
 		{% endif %}
 	{% endfor %}
 </div>
+
+{% for component in status %}
+    {% if component and component['analysis'] %}
+        {% set current_analyses = component['analysis']['current_analyses'] %}
+        {% if current_analyses %}
+            <div class="row justify-content-center">
+                <div class="card m-2" style="width: 430px;">
+                    <div class="card-body">
+                        <h5 class="card-title">Currently analyzed firmware</h5>
+                        <div class="list-group list-group-flush">
+                            {% for firmware_uid, data in current_analyses.items() %}
+                                <div class="list-group-item border-top-0">
+                                    {{ firmware_uid | replace_uid_with_hid | safe }}
+                                    <div class="progress mt-2" style="height: 20px;">
+                                        {% set current_analysis_progress = data.finished_count / data.total_count %}
+                                        <div class="progress-bar text-center" role="progressbar" style="width: {{ current_analysis_progress * 100 }}%">
+                                            {% if current_analysis_progress < 0.5 %}
+                                                </div>
+                                            {% endif %}
+                                            {{ data.finished_count }}/{{ data.total_count }} (Elapsed: {{ data.start_time | remaining_time }})
+                                        {% if current_analysis_progress >= 0.5 %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    {% endif %}
+{% endfor %}
+
+{% for component in status %}
+    {% if component and component['analysis'] %}
+        <div class="row justify-content-center my-3">
+            <div style="width: 430px;" class="border-secondary border-top border-bottom align-middle">
+                <h5 class="d-flex justify-content-center mb-0 p-2">Analysis Plugins</h5>
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            {% for plugin_name, plugin_data in component['analysis']['plugins'].items() | sort %}
+                {% if "dummy" not in plugin_name %}  {# {% if plugin != "analysis_main_scheduler" %} #}
+                    {{ plugin_card(plugin_name, plugin_data) }}
+                {% endif %}
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endfor %}
 
 {% endblock %}

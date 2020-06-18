@@ -71,7 +71,7 @@ rule LinuxKernel
 		website = "http://www.kernel.org"
 		description = "The Linux Kernel"
     strings:
-		$safe_condition = /Linux version [2-4]\.\d\d?\.\d\d?/ nocase ascii wide
+		$safe_condition = /Linux version [2-5]\.\d\d?\.\d\d?/ nocase ascii wide
 		
 	condition:
 		$safe_condition and no_text_file

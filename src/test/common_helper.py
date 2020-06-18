@@ -246,11 +246,12 @@ class DatabaseMock:  # pylint: disable=too-many-public-methods
         self.tasks.append((task, force))
 
     def get_available_analysis_plugins(self):
+        common_fields = ('0.0.', [], [], [], 1)
         return {
-            'default_plugin': ('default plugin description', False, {'default': True}, '0.0'),
-            'mandatory_plugin': ('mandatory plugin description', True, {'default': False}, '0.0'),
-            'optional_plugin': ('optional plugin description', False, {'default': False}, '0.0'),
-            'file_type': ('file_type plugin', False, {'default': False}, '0.0')
+            'default_plugin': ('default plugin description', False, {'default': True}, *common_fields),
+            'mandatory_plugin': ('mandatory plugin description', True, {'default': False}, *common_fields),
+            'optional_plugin': ('optional plugin description', False, {'default': False}, *common_fields),
+            'file_type': ('file_type plugin', False, {'default': False}, *common_fields)
         }
 
     def get_binary_and_filename(self, uid):
@@ -276,19 +277,23 @@ class DatabaseMock:  # pylint: disable=too-many-public-methods
         return None, None
 
     def get_statistic(self, identifier):
-        statistics = {
-            'number_of_firmwares': 1,
-            'number_of_unique_files': 0,
-            'total_firmware_size': 10,
-            'total_file_size': 20,
-            'average_firmware_size': 10,
-            'average_file_size': 20,
-            'benchmark': 61
-        }
         if identifier == 'general':
-            return statistics
+            return {
+                'number_of_firmwares': 1,
+                'number_of_unique_files': 0,
+                'total_firmware_size': 10,
+                'total_file_size': 20,
+                'average_firmware_size': 10,
+                'average_file_size': 20,
+                'benchmark': 61
+            }
         if identifier == 'release_date':
             return {'date_histogram_data': [['July 2014', 1]]}
+        if identifier == 'backend':
+            return {
+                'system': {'cpu_percentage': 13.37},
+                'analysis': {'current_analyses': [None, None]}
+            }
         return None
 
     def get_complete_object_including_all_summaries(self, uid):
@@ -361,6 +366,9 @@ class DatabaseMock:  # pylint: disable=too-many-public-methods
 
     def find_missing_analyses(self):
         return {'root_fw_uid': ['missing_child_uid']}
+
+    def find_failed_analyses(self):
+        return {'plugin': ['missing_child_uid']}
 
 
 def fake_exit(self, *args):

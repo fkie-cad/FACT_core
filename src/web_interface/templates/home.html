@@ -7,7 +7,8 @@
     .bubble {
         position: relative;
         font-family: 'Courier New', Courier, monospace;
-        background: #f4f4f4;
+        color: #fff;
+        background: #007bff;
         border-radius: 10px;
         padding: 8px;
         margin: -3px;
@@ -16,8 +17,8 @@
     .bubble-triangle:after {
         content: '';
         border: 10px solid transparent;
-        border-left: 10px solid #f4f4f4;
-        border-top: 10px solid #f4f4f4;
+        border-left: 10px solid #007bff;
+        border-top: 10px solid #007bff;
         position: absolute;
         bottom: -10px;
         left: 25px;
@@ -29,7 +30,7 @@
 {% block body %}
     <div class="row justify-content-center mt-4">
 
-    	<div class="p-0 mt-3">
+    	<div class="p-0 m-2">
             <center>
                 <img width="100%" height="auto" src="{{ url_for('static', filename='fact_logo.png') }}" style="max-width: 445px;">
 
@@ -66,19 +67,65 @@
                             <td style="text-align: left; padding:5px">statistic generation time</td>
                             <td style="text-align: right; padding:5px">{{ general_stats['benchmark'] | nice_number }} s</td>
                         </tr>
+                        <tr>
+                            <td style="text-align: left; padding:5px">incompletely analyzed firmware</td>
+                            <td id="missing_files" style="text-align: right; padding:5px">n/a</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left; padding:5px">backend cpu load</td>
+                            <td id="cpu_percentage" style="text-align: right; padding:5px">n/a</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left; padding:5px">currently analyzed firmware</td>
+                            <td id="currently_running" style="text-align: right; padding:5px">n/a</td>
+                        </tr>
                     </tbody>
                 </table>
             </center>
     	</div>
+        <script>
+            function load_ajax_stats(){
+                let data = $.getJSON("/ajax/stats/general")
+                .success(function(data) {
+                    document.getElementById("missing_files").innerHTML = data.missing_files;
+                });
+
+                let system_data = $.getJSON("/ajax/stats/system")
+                .success(function(system_data) {
+                    document.getElementById("cpu_percentage").innerHTML = system_data.backend_cpu_percentage + " %";
+
+                    let running_node =  document.getElementById("currently_running");
+                    if (system_data.number_of_running_analyses > 0) {
+
+                        if (! running_node.classList.contains('text-success')) {
+                            running_node.classList.add('text-success');
+                        }
+                    } else {
+                        if (running_node.classList.contains('text-success')) {
+                            running_node.classList.remove('text-success');
+                            }
+                    }
+
+                    running_node.innerHTML = system_data.number_of_running_analyses;
+                });
+            }
+
+            load_ajax_stats();
+            setInterval(function(){
+                load_ajax_stats()
+            }, {{ ajax_stats_reload_time }});
+        </script>
 
     	{% if (latest_firmware_submissions | length) > 0 %}
-            <div class="p-2 mt-3" style="width: 705px;">
-                <h4 class="mb-3">Latest Firmware Submissions</h4>
-                <ul class="list-group">
-                    {% for firmware in latest_firmware_submissions %}
-                        {{ firmware | firmware_detail_tabular_field | safe }}
-                    {% endfor %}
-                </ul>
+            <div class="card p-2 m-2 bg-light rounded border-0" style="width: 705px;">
+                <div class="card-body bg-light p-3">
+                    <h4 class="card-title mb-3">Latest Firmware Submissions</h4>
+                    <ul class="list-group-flush px-0 mb-0">
+                        {% for firmware in latest_firmware_submissions %}
+                            {{ firmware | firmware_detail_tabular_field | safe }}
+                        {% endfor %}
+                    </ul>
+                </div>
             </div>
     	{% endif %}
 
@@ -86,48 +133,52 @@
 
     <div class="row justify-content-center">
     	{% if (latest_comments | length) > 0 %}
-            <div class="p-2 mt-3" style="width: 705px;">
-                <h4 class="mb-3">Latest Comments</h4>
-                <ul class="list-group">
-                    {% for comment in latest_comments %}
-                        <li class="list-group-item p-2 clickable li-hover" onclick="location.href='/analysis/{{ comment.uid }}'">
-                            <a href="/analysis/{{ comment.uid }}" style="color: #515151;">
-                                <div class="p-1" style="width: 100%; height: 100%; font-size: 14px;">
-                                    <div class="bubble bubble-triangle mb-2">
-                                        {{ comment.comment | safe }}
+            <div class="card p-2 m-2 bg-light rounded border-0" style="width: 705px;">
+                <div class="card-body p-3">
+                    <h4 class="card-title mb-3">Latest Comments</h4>
+                    <ul class="list-group-flush px-0">
+                        {% for comment in latest_comments %}
+                            <li class="list-group-item bg-light p-2 clickable li-hover" onclick="location.href='/analysis/{{ comment.uid }}'">
+                                <a href="/analysis/{{ comment.uid }}" style="color: #515151;">
+                                    <div class="p-1" style="width: 100%; height: 100%; font-size: 14px;">
+                                        <div class="bubble bubble-triangle mb-2">
+                                            {{ comment.comment | safe }}
+                                        </div>
+                                        <div class="footnote">
+                                            <span style="color: #000;">{{ comment.author }}</span> ‒ <span class="text-muted">{{ comment.time | int | nice_unix_time }}</span>
+                                        </div>
                                     </div>
-                                    <div class="footnote">
-                                        <span style="color: #000;">{{ comment.author }}</span> ‒ <span class="text-muted">{{ comment.time | int | nice_unix_time }}</span>
-                                    </div>
-                                </div>
-                            </a>
-                        </li>
-                    {% endfor %}
-                </ul>
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
             </div>
     	{% endif %}
 
         {# latest_comparison_results #}
     	{% if (latest_comparison_results | length) > 0 %}
-            <div class="p-2 mt-3" style="width: 705px;">
-                <h4 class="mb-3">Latest Comparisons</h4>
-                <ul class="list-group">
-                    {% for id, hids, submission_date in latest_comparison_results %}
-                        <li class="list-group-item p-2 clickable li-hover" onclick="location.href='/compare/{{ id }}'">
-                            <a href="/compare/{{ id }}" style="color: #515151;">
-                                <div class="p-1" style="width: 100%; height: 100%; font-size: 14px;">
-                                    {% for uid in hids %}
-                                        {{ hids[uid] }}
-                                        <div class="footnote">{{ uid }}</div>
-                                    {% endfor %}
-                                    <span class="footnote text-muted">
-                                        {{ submission_date | int | nice_unix_time }}
-                                    </span>
-                                </div>
-                            </a>
-                        </li>
-                    {% endfor %}
-                </ul>
+            <div class="card p-2 m-2 bg-light rounded border-0" style="width: 705px;">
+                <div class="card-body p-3">
+                    <h4 class="card-title mb-3">Latest Comparisons</h4>
+                    <ul class="list-group list-group-flush px-0">
+                        {% for id, hids, submission_date in latest_comparison_results %}
+                            <li class="list-group-item bg-light p-2 clickable li-hover" onclick="location.href='/compare/{{ id }}'">
+                                <a href="/compare/{{ id }}" style="color: #515151;">
+                                    <div class="p-1" style="width: 100%; height: 100%; font-size: 14px;">
+                                        {% for uid in hids %}
+                                            {{ hids[uid] }}
+                                            <div class="footnote">{{ uid }}</div>
+                                        {% endfor %}
+                                        <span class="footnote text-muted">
+                                            {{ submission_date | int | nice_unix_time }}
+                                        </span>
+                                    </div>
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
             </div>
     	{% endif %}
     </div>

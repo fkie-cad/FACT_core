@@ -4,7 +4,7 @@
     {% if not omit_collapse %}
         <div data-toggle="collapse" data-target="#{{ u_show_id }}" class="list-group-item d-flex justify-content-between align-items-center border-0">
             <span class="mr-3" style="width: 100%">
-                {{ file_information_span(first_item, root_uid, selected_analysis) }}
+                {{ file_information_span(first_item, root_uid, selected_analysis, filename_only) }}
             </span>
             <span class="btn-group">
                 <span class="btn btn-sm btn-primary"><i class="fas fa-list-ul"></i></span>
@@ -21,7 +21,7 @@
     {% endif %}
     {% for fo in fo_list %}
         <div class="list-group-item list-group-item-action border-top">
-            {{ file_information_span(fo, root_uid, selected_analysis) }}
+            {{ file_information_span(fo, root_uid, selected_analysis, filename_only) }}
         </div>
     {% endfor %}
     {% if not omit_collapse %}

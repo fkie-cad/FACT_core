@@ -83,17 +83,19 @@ class DatabaseRoutes(ComponentBase):
             device_classes = connection.get_device_class_list()
             vendors = connection.get_vendor_list()
 
-        pagination = self._get_pagination(page=page, per_page=per_page, total=total, record_name='firmwares', )
-        return render_template('database/database_browse.html',
-                               firmware_list=firmware_list,
-                               page=page,
-                               per_page=per_page,
-                               pagination=pagination,
-                               device_classes=device_classes,
-                               vendors=vendors,
-                               current_class=str(request.args.get('device_class')),
-                               current_vendor=str(request.args.get('vendor')),
-                               search_parameters=search_parameters)
+        pagination = self._get_pagination(page=page, per_page=per_page, total=total, record_name='firmwares')
+        search_parameters['query_title'] = json.dumps(search_parameters['query_title'], indent=2) if search_parameters['query_title'] else None
+        return render_template(
+            'database/database_browse.html',
+            firmware_list=firmware_list,
+            page=page, per_page=per_page,
+            pagination=pagination,
+            device_classes=device_classes,
+            vendors=vendors,
+            current_class=str(request.args.get('device_class')),
+            current_vendor=str(request.args.get('vendor')),
+            search_parameters=search_parameters
+        )
 
     def _get_search_parameters(self, query, only_firmware, inverted):
         search_parameters = dict()
