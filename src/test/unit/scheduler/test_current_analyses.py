@@ -70,12 +70,17 @@ class TestCurrentAnalyses(UtilityBase):
             assert any('but it is not included' in m for m in caplog.messages)
 
     def test_remove_fully_from_current_analyses(self):
-        self.scheduler.currently_running = {'parent_uid': {'files_to_unpack': [], 'files_to_analyze': ['foo'], 'analyzed_files_count': 1}}
+        self.scheduler.currently_running = {'parent_uid': {
+            'files_to_unpack': [], 'files_to_analyze': ['foo'], 'analyzed_files_count': 1, 'start_time': 0, 'total_files_count': 2
+        }}
+        self.scheduler.recently_finished = {}
         fo = FileObject(binary=b'foo')
         fo.parent_firmware_uids = {'parent_uid'}
         fo.uid = 'foo'
         self.scheduler._remove_from_current_analyses(fo)
         assert self.scheduler.currently_running == {}
+        assert 'parent_uid' in self.scheduler.recently_finished
+        assert self.scheduler.recently_finished['parent_uid']['total_files_count'] == 2
 
     def test_remove_but_still_unpacking(self):
         self.scheduler.currently_running = {'parent_uid': {'files_to_unpack': ['bar'], 'files_to_analyze': ['foo'], 'analyzed_files_count': 1}}
