@@ -9,13 +9,13 @@ echo "------------------------------------"
 sudo -EH pip3 install --upgrade git+https://github.com/fkie-cad/common_helper_passwords.git || exit 1
 
 # installing JohnTheRipper
-sudo apt-get install -y john || exit 1
+#sudo apt-get install -y john || exit 1
+sudo dnf install -y john || exit 1
 
-if [[ $(lsb_release -i) == *"Debian" ]]
-then
-	# link to path since debian does not include /usr/sbin
-	sudo ln -s /usr/sbin/john /usr/local/bin || exit 1
-fi
+
+# link to path since fedora does not include /usr/sbin
+sudo ln -sfn /usr/sbin/john /usr/local/bin || exit 1
+
 
 # Add common credentials
 (
