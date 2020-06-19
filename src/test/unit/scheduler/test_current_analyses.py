@@ -1,8 +1,12 @@
 # pylint: disable=protected-access
 import logging
+from time import time
+
+import pytest
 
 from objects.file import FileObject
 from objects.firmware import Firmware
+from scheduler.Analysis import RECENTLY_FINISHED_DISPLAY_TIME_IN_SEC
 from test.unit.scheduler.test_analysis import UtilityBase
 
 
@@ -93,3 +97,12 @@ class TestCurrentAnalyses(UtilityBase):
         assert result['parent_uid']['files_to_analyze'] == []
         assert result['parent_uid']['files_to_unpack'] == ['bar']
         assert result['parent_uid']['analyzed_files_count'] == 2
+
+    @pytest.mark.parametrize('time_finished_delay, expected_result', [
+        (0, True),
+        (RECENTLY_FINISHED_DISPLAY_TIME_IN_SEC + 1, False)
+    ])
+    def test_clear_recently_finished(self, time_finished_delay, expected_result):
+        self.scheduler.recently_finished = {'foo': {'time_finished': time() - time_finished_delay}}
+        self.scheduler._clear_recently_finished()
+        assert bool('foo' in self.scheduler.recently_finished) == expected_result
