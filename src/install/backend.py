@@ -43,7 +43,7 @@ def main(distribution):
     pip3_install_packages('git+https://github.com/mass-project/common_analysis_base.git')
 
     # install plug-in dependencies
-    _install_plugins()
+    _install_plugins(distribution)
 
     # configure environment
     _edit_sudoers()
@@ -98,14 +98,14 @@ def _create_firmware_directory():
         raise InstallationError('Failed to create directories for binary storage\n{}\n{}'.format(mkdir_output, chown_output))
 
 
-def _install_plugins():
+def _install_plugins(distribution):
     logging.info('Installing plugins')
     find_output, return_code = execute_shell_command_get_return_code('find ../plugins -iname "install.sh"')
     if return_code != 0:
         raise InstallationError('Error retrieving plugin installation scripts')
     for install_script in find_output.splitlines(keepends=False):
         logging.info('Running {}'.format(install_script))
-        shell_output, return_code = execute_shell_command_get_return_code(install_script)
+        shell_output, return_code = execute_shell_command_get_return_code('{} {}'.format(install_script, distribution))
         if return_code != 0:
             raise InstallationError('Error in installation of {} plugin\n{}'.format(Path(install_script).parent.name, shell_output))
 
