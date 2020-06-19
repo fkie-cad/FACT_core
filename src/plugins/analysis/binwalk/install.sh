@@ -6,7 +6,13 @@ echo "------------------------------------"
 echo "    install binwalk dependencies    "
 echo "------------------------------------"
 
-sudo -EH dnf install -y xorg-x11-server-Xvfb || exit 1
+if [ "$1" = "fedora" ]
+then 
+	sudo -EH dnf install -y xorg-x11-server-Xvfb || exit 1
+else
+	sudo -EH apt-get install -y xvfb || exit 1
+fi
+
 sudo -EH pip3 install matplotlib cstruct==1.0 capstone || exit 1
 
 git clone https://github.com/dorpvom/binwalk.git
