@@ -164,7 +164,12 @@
             <div class="row justify-content-center">
                 <div class="card m-2" style="width: 430px;">
                     <div class="card-body">
-                        <h5 class="card-title">Currently analyzed firmware</h5>
+                        <div class="d-flex justify-content-between align-items-center" style="width: 100%">
+                            <h5 class="card-title">Currently analyzed firmware</h5>
+                            <button type="button" class="btn btn-outline-primary btn-sm" data-toggle="modal" data-target="#currentAnalysesLegend" style="margin-top: -15px; margin-right: -5px">
+                                <i class="fa fa-question-circle" aria-hidden="true"></i>
+                            </button>
+                        </div>
                         <div class="list-group list-group-flush">
                             {% for firmware_uid, data in current_analyses.items() %}
                                 <div class="list-group-item border-top-0">
@@ -201,6 +206,39 @@
         {% endif %}
     {% endif %}
 {% endfor %}
+
+
+<div class="modal" id="currentAnalysesLegend"  tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fa fa-question-circle" aria-hidden="true"></i> Currently Analyzed Firmware</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="progress mt-2" style="height: 20px; padding-bottom: 0;">
+                    <div class="justify-content-center d-flex w-100">analyzed files / total files (elapsed time)</div>
+                </div>
+                <div class="progress mt-2" style="height: 20px; padding-bottom: 0;">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated text-center" role="progressbar" style="width: 40%">
+                        Analysis Progress
+                    </div>
+                    <div class="progress-bar progress-bar-striped progress-bar-animated bg-warning text-center" role="progressbar" style="width: 40%">
+                        Unpacking Progress
+                    </div>
+                </div>
+                <div class="progress mt-2" style="height: 20px;">
+                    <div class="progress-bar progress-bar-striped bg-success text-center" role="progressbar" style="width: 100%">
+                        Finished Analysis
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 {% for component in status %}
     {% if component and component['analysis'] %}
