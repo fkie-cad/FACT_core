@@ -395,5 +395,9 @@ def create_firmware_version_links(firmware_list, selected_analysis=None):
     return [template.format(firmware['_id'], firmware['version']) for firmware in firmware_list]
 
 
-def elapsed_time(start_time: float) -> str:
-    return str(timedelta(seconds=round(time() - start_time)))
+def elapsed_time(start_time: float) -> int:
+    return round(time() - start_time)
+
+
+def format_duration(duration: float) -> str:
+    return str(timedelta(seconds=duration))

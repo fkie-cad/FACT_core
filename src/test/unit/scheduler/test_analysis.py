@@ -1,13 +1,11 @@
 # pylint: disable=protected-access,invalid-name
 import gc
-import logging
 import os
 from multiprocessing import Manager, Queue
 from unittest import TestCase, mock
 
 import pytest
 
-from objects.file import FileObject
 from objects.firmware import Firmware
 from scheduler.Analysis import MANDATORY_PLUGINS, AnalysisScheduler
 from test.common_helper import DatabaseMock, MockFileObject, fake_exit, get_config_for_testing, get_test_data_dir
@@ -221,7 +219,7 @@ class TestAnalysisSchedulerBlacklist:
         self.sched.config.set('test_plugin', 'mime_blacklist', 'type1, type2')
 
 
-class TestUtilityFunctions:
+class UtilityBase:
 
     class PluginMock:
         def __init__(self, dependencies):
@@ -253,6 +251,8 @@ class TestUtilityFunctions:
             'p6': self.PluginMock([])
         }
 
+
+class TestUtilityFunctions(UtilityBase):
     @pytest.mark.parametrize('input_data, expected_output', [
         (set(), set()),
         ({'p1'}, {'p2', 'p3'}),
@@ -329,52 +329,6 @@ class TestUtilityFunctions:
         }
         result = self.scheduler._smart_shuffle(['p1', 'p2', 'p3'])
         assert result == []
-
-    def test_add_firmware_to_current_analyses(self):
-        self.scheduler.currently_running = {}
-        fw = Firmware(binary=b'foo')
-        fw.files_included = ['foo', 'bar']
-        self.scheduler._add_to_current_analyses(fw)
-        assert fw.uid in self.scheduler.currently_running
-        assert self.scheduler.currently_running[fw.uid]['file_list'] == [fw.uid, 'foo', 'bar']
-        assert self.scheduler.currently_running[fw.uid]['analyzed_files_count'] == 0
-        assert self.scheduler.currently_running[fw.uid]['total_files_count'] == 3
-
-    def test_add_file_to_current_analyses(self):
-        self.scheduler.currently_running = {'parent_uid': {'file_list': ['foo', 'bar'], 'total_files_count': 2}}
-        fo = FileObject(binary=b'foo')
-        fo.parent_firmware_uids = {'parent_uid'}
-        fo.files_included = ['bar', 'new']
-        self.scheduler._add_to_current_analyses(fo)
-        assert sorted(self.scheduler.currently_running['parent_uid']['file_list']) == ['bar', 'foo', 'new']
-        assert self.scheduler.currently_running['parent_uid']['total_files_count'] == 3
-
-    def test_remove_partial_from_current_analyses(self):
-        self.scheduler.currently_running = {'parent_uid': {'file_list': ['foo', 'bar'], 'analyzed_files_count': 0}}
-        fo = FileObject(binary=b'foo')
-        fo.parent_firmware_uids = {'parent_uid'}
-        fo.uid = 'foo'
-        self.scheduler._remove_from_current_analyses(fo)
-        assert 'parent_uid' in self.scheduler.currently_running
-        assert self.scheduler.currently_running['parent_uid']['file_list'] == ['bar']
-        assert self.scheduler.currently_running['parent_uid']['analyzed_files_count'] == 1
-
-    def test_remove_but_not_found(self, caplog):
-        self.scheduler.currently_running = {'parent_uid': {'file_list': ['bar'], 'analyzed_files_count': 1}}
-        fo = FileObject(binary=b'foo')
-        fo.parent_firmware_uids = {'parent_uid'}
-        fo.uid = 'foo'
-        with caplog.at_level(logging.WARNING):
-            self.scheduler._remove_from_current_analyses(fo)
-            assert any('but it is not included' in m for m in caplog.messages)
-
-    def test_remove_fully_from_current_analyses(self):
-        self.scheduler.currently_running = {'parent_uid': {'file_list': ['foo'], 'analyzed_files_count': 1}}
-        fo = FileObject(binary=b'foo')
-        fo.parent_firmware_uids = {'parent_uid'}
-        fo.uid = 'foo'
-        self.scheduler._remove_from_current_analyses(fo)
-        assert self.scheduler.currently_running == {}
 
 
 class TestAnalysisSkipping:
