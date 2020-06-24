@@ -17,6 +17,7 @@ from fact_helper_file import get_file_type_from_path
 from requests.exceptions import ReadTimeout
 
 from analysis.PluginBase import AnalysisBasePlugin
+from helperFunctions.config import get_temp_dir_path
 from helperFunctions.docker import run_docker_container
 from helperFunctions.tag import TagColor
 from helperFunctions.uid import create_uid
@@ -42,7 +43,7 @@ class Unpacker(UnpackBase):
             logging.error('could not unpack {}: file path not found'.format(file_object.uid))
             return None
 
-        extraction_dir = TemporaryDirectory(prefix='FACT_plugin_qemu_exec')
+        extraction_dir = TemporaryDirectory(prefix='FACT_plugin_qemu_exec', dir=get_temp_dir_path(self.config))
         self.extract_files_from_file(file_path, extraction_dir.name)
         return extraction_dir
 
