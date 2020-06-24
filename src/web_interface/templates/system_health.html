@@ -172,7 +172,7 @@
                         </div>
                         <div class="list-group list-group-flush">
                             {% for firmware_uid, data in current_analyses.items() %}
-                                <div class="list-group-item border-top-0">
+                                <div class="list-group-item border-top-0 clickable" onclick="location.href='/analysis/{{ firmware_uid }}/ro/{{ firmware_uid }}'">
                                     {{ firmware_uid | replace_uid_with_hid | safe }}
                                     <div class="progress mt-2" style="height: 20px;">
                                         {% set current_analysis_progress = data.analyzed_count / data.total_count %}
