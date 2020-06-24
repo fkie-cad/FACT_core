@@ -14,8 +14,8 @@ TIMEOUT = 300
 KEY_FILE = 'key_file'
 
 
-def extract_data_from_ghidra(input_file_data: bytes, key_strings: List[str]) -> List[str]:
-    with TemporaryDirectory(prefix='FSR_') as tmp_dir:
+def extract_data_from_ghidra(input_file_data: bytes, key_strings: List[str], path: str = '/tmp') -> List[str]:
+    with TemporaryDirectory(prefix='FSR_', dir=path) as tmp_dir:
         tmp_dir_path = Path(tmp_dir)
         ghidra_input_file = tmp_dir_path / 'ghidra_input'
         (tmp_dir_path / KEY_FILE).write_text(json.dumps(key_strings))
