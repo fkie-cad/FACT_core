@@ -100,8 +100,9 @@ function create_pie_chart(canvas_id, chart_data, link, value_percentage_present_
         max = Math.max(...chart_data.datasets[0].data);
     }
     chart_opt.scales.xAxes[0].ticks.max = max * 1.05;
+    chart_data.datasets[0].borderWidth = 3;
 
-    var BarChart = new Chart(
+    var PieChart = new Chart(
         ctx, {
             type: "doughnut",
             data: chart_data,
@@ -110,11 +111,11 @@ function create_pie_chart(canvas_id, chart_data, link, value_percentage_present_
     );
 
     document.getElementById(canvas_id).onclick = function(evt){
-        var points = BarChart.getElementsAtEvent(evt);
-        var label = BarChart.data.labels[points[0]._index];
+        var points = PieChart.getElementsAtEvent(evt);
+        var label = PieChart.data.labels[points[0]._index];
         if ((points[0] !== undefined) && (label != "rest"))
             window.location = link.replace("PLACEHOLDER", label);
     };
 
-    return BarChart;
+    return PieChart;
 }
