@@ -5,7 +5,7 @@ from pathlib import Path
 
 from common_helper_process import execute_shell_command_get_return_code
 
-from helperFunctions.install import InstallationError, OperateInDirectory, apt_install_packages, apt_update_sources, dnf_install_packages, dnf_update_sources
+from helperFunctions.install import InstallationError, OperateInDirectory, apt_install_packages, apt_update_sources, dnf_install_packages
 
 MONGO_MIRROR_COMMANDS = {
     'debian': {

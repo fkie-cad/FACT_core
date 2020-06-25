@@ -25,7 +25,6 @@ def main(distribution):
         apt_install_packages('libjpeg-dev')
         apt_install_packages('libssl-dev', 'python3-tk')
 
-
     pip3_install_packages('pluginbase', 'Pillow', 'cryptography', 'pyopenssl', 'matplotlib', 'docker', 'networkx')
 
     # install yara
@@ -119,7 +118,6 @@ def _install_yara(distribution):
         pass
     else:
         apt_install_packages('bison', 'flex')
-
 
     if check_string_in_command('yara --version', '3.7.1'):
         logging.info('skipping yara installation (already installed)')
