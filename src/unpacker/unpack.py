@@ -6,6 +6,7 @@ from typing import List
 
 from fact_helper_file import get_file_type_from_path
 
+from helperFunctions.config import get_temp_dir_path
 from helperFunctions.dataConversion import make_list_from_dict, make_unicode_string
 from helperFunctions.fileSystem import file_is_empty, get_object_path_excluding_fact_dirs
 from helperFunctions.tag import TagColor
@@ -33,7 +34,7 @@ class Unpacker(UnpackBase):
             self._store_unpacking_depth_skip_info(current_fo)
             return []
 
-        tmp_dir = TemporaryDirectory(prefix='fact_unpack_')
+        tmp_dir = TemporaryDirectory(prefix='fact_unpack_', dir=get_temp_dir_path(self.config))
 
         file_path = self._generate_local_file_path(current_fo)
 

@@ -155,28 +155,47 @@
 	{% endfor %}
 </div>
 
+<!-- Current Analyses -->
 {% for component in status %}
     {% if component and component['analysis'] %}
         {% set current_analyses = component['analysis']['current_analyses'] %}
-        {% if current_analyses %}
+        {% set recently_finished_analyses = component['analysis']['recently_finished_analyses'] %}
+        {% if current_analyses or recently_finished_analyses %}
             <div class="row justify-content-center">
                 <div class="card m-2" style="width: 430px;">
                     <div class="card-body">
-                        <h5 class="card-title">Currently analyzed firmware</h5>
+                        <div class="d-flex justify-content-between align-items-center" style="width: 100%">
+                            <h5 class="card-title">Currently analyzed firmware</h5>
+                            <button type="button" class="btn btn-outline-primary btn-sm" data-toggle="modal" data-target="#currentAnalysesLegend" style="margin-top: -15px; margin-right: -5px">
+                                <i class="fa fa-question-circle" aria-hidden="true"></i>
+                            </button>
+                        </div>
                         <div class="list-group list-group-flush">
                             {% for firmware_uid, data in current_analyses.items() %}
-                                <div class="list-group-item border-top-0">
+                                <div class="list-group-item border-top-0 clickable" onclick="location.href='/analysis/{{ firmware_uid }}/ro/{{ firmware_uid }}'">
                                     {{ firmware_uid | replace_uid_with_hid | safe }}
                                     <div class="progress mt-2" style="height: 20px;">
-                                        {% set current_analysis_progress = data.finished_count / data.total_count %}
-                                        <div class="progress-bar text-center" role="progressbar" style="width: {{ current_analysis_progress * 100 }}%">
-                                            {% if current_analysis_progress < 0.5 %}
-                                                </div>
+                                        {% set current_analysis_progress = data.analyzed_count / data.total_count %}
+                                        <div class="progress-bar progress-bar-striped progress-bar-animated text-center" role="progressbar" style="width: {{ current_analysis_progress * 100 }}%">
+                                            {% if current_analysis_progress >= 0.5 %}
+                                                {{ data.analyzed_count }} / {{ data.total_count }} (Elapsed: {{ data.start_time | remaining_time | format_duration }})
                                             {% endif %}
-                                            {{ data.finished_count }}/{{ data.total_count }} (Elapsed: {{ data.start_time | remaining_time }})
-                                        {% if current_analysis_progress >= 0.5 %}
-                                            </div>
+                                        </div>
+                                        {% set current_unpacking_progress = (data.unpacked_count - data.analyzed_count) / data.total_count %}
+                                        <div class="progress-bar progress-bar-striped progress-bar-animated bg-warning text-center" role="progressbar" style="width: {{ current_unpacking_progress * 100 }}%"></div>
+                                        {% if current_analysis_progress < 0.5 %}
+                                            <div class="justify-content-center d-flex w-100">{{ data.analyzed_count }} / {{ data.total_count }} (Elapsed: {{ data.start_time | remaining_time | format_duration }})</div>
                                         {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                            {% for firmware_uid, data in recently_finished_analyses.items() %}
+                                <div class="list-group-item border-top-0 clickable" onclick="location.href='/analysis/{{ firmware_uid }}/ro/{{ firmware_uid }}'">
+                                    {{ firmware_uid | replace_uid_with_hid | safe }}
+                                    <div class="progress mt-2" style="height: 20px;">
+                                        <div class="progress-bar progress-bar-striped bg-success text-center" role="progressbar" style="width: 100%">
+                                            {{ data.total_files_count }} / {{ data.total_files_count }} (Finished in: {{ data.duration | round(0) | int | format_duration }})
+                                        </div>
                                     </div>
                                 </div>
                             {% endfor %}
@@ -187,6 +206,39 @@
         {% endif %}
     {% endif %}
 {% endfor %}
+
+
+<div class="modal" id="currentAnalysesLegend"  tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fa fa-question-circle" aria-hidden="true"></i> Currently Analyzed Firmware</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="progress mt-2" style="height: 20px; padding-bottom: 0;">
+                    <div class="justify-content-center d-flex w-100">analyzed files / total files (elapsed time)</div>
+                </div>
+                <div class="progress mt-2" style="height: 20px; padding-bottom: 0;">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated text-center" role="progressbar" style="width: 40%">
+                        Analysis Progress
+                    </div>
+                    <div class="progress-bar progress-bar-striped progress-bar-animated bg-warning text-center" role="progressbar" style="width: 40%">
+                        Unpacking Progress
+                    </div>
+                </div>
+                <div class="progress mt-2" style="height: 20px;">
+                    <div class="progress-bar progress-bar-striped bg-success text-center" role="progressbar" style="width: 100%">
+                        Finished Analysis
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 {% for component in status %}
     {% if component and component['analysis'] %}

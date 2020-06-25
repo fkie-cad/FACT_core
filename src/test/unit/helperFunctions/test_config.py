@@ -1,8 +1,10 @@
+import logging
 import os
+from pathlib import Path
 
 import pytest
 
-from helperFunctions.config import get_config_dir, load_config, read_list_from_config
+from helperFunctions.config import get_config_dir, get_temp_dir_path, load_config, read_list_from_config
 from test.common_helper import get_test_data_dir
 
 
@@ -42,6 +44,23 @@ def test_read_list_from_config__key_not_in_config(monkeypatch):
     assert result == []
 
 
-def test_read_list_from_config__no_config(monkeypatch):
+def test_read_list_from_config__no_config():
     result = read_list_from_config(None, 'foo', 'bar')
     assert result == []
+
+
+class MockConfig:
+    def __init__(self, folder: str):
+        self.dir = folder
+
+    def get(self, *_, **__):
+        return self.dir
+
+
+def test_get_temp_dir_path(caplog):
+    assert get_temp_dir_path() == '/tmp'
+    assert get_temp_dir_path(MockConfig(get_test_data_dir())) == get_test_data_dir()
+    not_a_dir = str(Path(get_test_data_dir()) / '__init__.py')
+    with caplog.at_level(logging.WARNING):
+        assert get_temp_dir_path(MockConfig(not_a_dir)) == '/tmp'
+        assert 'TempDir path does not exist and could not be created' in caplog.messages[0]

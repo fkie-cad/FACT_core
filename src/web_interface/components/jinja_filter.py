@@ -121,6 +121,7 @@ class FilterClass:
         self._app.jinja_env.filters['dict_to_json'] = json.dumps
         self._app.jinja_env.filters['firmware_detail_tabular_field'] = self._render_firmware_detail_tabular_field
         self._app.jinja_env.filters['fix_cwe'] = flt.fix_cwe
+        self._app.jinja_env.filters['format_duration'] = flt.format_duration
         self._app.jinja_env.filters['format_string_list_with_offset'] = flt.filter_format_string_list_with_offset
         self._app.jinja_env.filters['get_canvas_height'] = flt.get_canvas_height
         self._app.jinja_env.filters['get_unique_keys_from_list_of_dicts'] = flt.get_unique_keys_from_list_of_dicts

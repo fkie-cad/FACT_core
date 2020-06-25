@@ -2,9 +2,10 @@ import unittest
 
 import pytest
 
-from helperFunctions.mongo_task_conversion import check_for_errors, \
-    get_uid_of_analysis_task, get_uploaded_file_binary, \
-    convert_analysis_task_to_fw_obj, is_sanitized_entry, _get_tag_list
+from helperFunctions.mongo_task_conversion import (
+    _get_tag_list, check_for_errors, convert_analysis_task_to_fw_obj, get_uid_of_analysis_task,
+    get_uploaded_file_binary, is_sanitized_entry
+)
 from objects.firmware import Firmware
 
 TEST_TASK = {
@@ -41,7 +42,7 @@ class TestMongoTask(unittest.TestCase):
         self.assertEqual(result['b'], 'Please specify the b')
 
     def test_get_uploaded_file_binary_error(self):
-        self.assertEqual(get_uploaded_file_binary(None), None, 'missing upload file should lead to None')
+        self.assertEqual(get_uploaded_file_binary(None, None), None, 'missing upload file should lead to None')
 
     def test_get_uid_of_analysis_task(self):
         analysis_task = {'binary': b'this is a test'}

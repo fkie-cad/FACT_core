@@ -38,7 +38,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         ]:
             passwd_entries = re.findall(passwd_regex, file_object.binary)
             if passwd_entries:
-                result = self._generate_analysis_entry(passwd_entries)
+                result = self._generate_analysis_entry(passwd_entries, file_object.uid)
                 file_object.processed_analysis[self.NAME].update(result)
                 file_object.processed_analysis[self.NAME]['summary'] += list(result.keys())
                 self._add_found_password_tag(file_object, result)
@@ -55,7 +55,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
                     True
                 )
 
-    def _generate_analysis_entry(self, passwd_entries):
+    def _generate_analysis_entry(self, passwd_entries, uid: str):
         result = {}
         for entry in [e.split(b':') for e in passwd_entries]:
             key = entry[0].decode(encoding='utf_8', errors='replace')
@@ -66,7 +66,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
                     cracked_pw = self._crack_hash(entry, result, key)
                     result[key]['cracked'] = bool(cracked_pw)
             except (IndexError, AttributeError, TypeError):
-                logging.error('Invalid Format:', exc_info=True)
+                logging.warning('Unsupported Format: {}'.format(uid), exc_info=True)
         return result
 
     def _crack_hash(self, passwd_entry, result_dict, key):

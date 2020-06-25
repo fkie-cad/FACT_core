@@ -1,6 +1,8 @@
 import configparser
-import os
+import logging
 from configparser import ConfigParser, NoOptionError, NoSectionError
+from pathlib import Path
+from typing import Optional
 
 from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.process import complete_shutdown
@@ -13,10 +15,10 @@ def load_config(config_file_name):
     '''
     config = configparser.ConfigParser()
     config_path = '{}/{}'.format(get_config_dir(), config_file_name)
-    if os.path.exists(config_path):
-        config.read(config_path)
-        return config
-    complete_shutdown('config file not found: {}'.format(config_path))
+    if not Path(config_path).exists():
+        complete_shutdown('config file not found: {}'.format(config_path))
+    config.read(config_path)
+    return config
 
 
 def get_config_dir():
@@ -41,3 +43,14 @@ def read_list_from_config(config_file: ConfigParser, section: str, key: str, def
     if not config_entry:
         return default
     return [item.strip() for item in config_entry.split(',') if item]
+
+
+def get_temp_dir_path(config: Optional[ConfigParser] = None) -> str:
+    temp_dir_path = config.get('data_storage', 'temp_dir_path', fallback='/tmp') if config else '/tmp'
+    if not Path(temp_dir_path).is_dir():
+        try:
+            Path(temp_dir_path).mkdir()
+        except OSError:
+            logging.error('TempDir path does not exist and could not be created. Defaulting to /tmp', exc_info=True)
+            return '/tmp'
+    return temp_dir_path
