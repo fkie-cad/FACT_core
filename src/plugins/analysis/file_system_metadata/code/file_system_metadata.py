@@ -13,6 +13,7 @@ from common_helper_files import safe_rglob
 from common_helper_process import execute_shell_command, execute_shell_command_get_return_code
 
 from analysis.PluginBase import AnalysisBasePlugin
+from helperFunctions.config import get_temp_dir_path
 from helperFunctions.database import ConnectTo
 from helperFunctions.tag import TagColor
 from objects.file import FileObject
@@ -24,8 +25,8 @@ class MountingError(RuntimeError):
 
 
 @contextmanager
-def mount(file_path, fs_type=''):
-    mount_dir = TemporaryDirectory()
+def mount(file_path, fs_type='', mount_path='/tmp'):
+    mount_dir = TemporaryDirectory(dir=mount_path)
     try:
         mount_rv = execute_shell_command('sudo mount {} -v -o ro,loop {} {}'.format(fs_type, file_path, mount_dir.name))
         if _mount_was_successful(mount_dir.name):
@@ -107,7 +108,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     def _extract_metadata_from_file_system(self, file_object: FileObject, file_type: str):
         type_parameter = '-t {}'.format(file_type.split('/')[1])
         with suppress(MountingError):
-            with mount(file_object.file_path, type_parameter) as mounted_path:
+            with mount(file_object.file_path, type_parameter, get_temp_dir_path(self.config)) as mounted_path:
                 self._analyze_metadata_of_mounted_dir(mounted_path)
 
     def _analyze_metadata_of_mounted_dir(self, mounted_dir: Path):

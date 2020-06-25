@@ -5,6 +5,7 @@ from time import sleep
 import requests
 from flask import make_response, redirect, render_template, request
 
+from helperFunctions.config import get_temp_dir_path
 from helperFunctions.database import ConnectTo
 from helperFunctions.mongo_task_conversion import (
     check_for_errors, convert_analysis_task_to_fw_obj, create_analysis_task
@@ -33,7 +34,7 @@ class IORoutes(ComponentBase):
     def _app_upload(self):
         error = {}
         if request.method == 'POST':
-            analysis_task = create_analysis_task(request)
+            analysis_task = create_analysis_task(request, self._config)
             error = check_for_errors(analysis_task)
             if not error:
                 fw = convert_analysis_task_to_fw_obj(analysis_task)
@@ -128,7 +129,7 @@ class IORoutes(ComponentBase):
             firmware = connection.get_complete_object_including_all_summaries(uid)
 
         try:
-            with TemporaryDirectory() as folder:
+            with TemporaryDirectory(dir=get_temp_dir_path(self._config)) as folder:
                 binary, pdf_path = build_pdf_report(firmware, folder)
         except RuntimeError as error:
             return render_template('error.html', message=str(error))

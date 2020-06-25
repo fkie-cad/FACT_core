@@ -1,15 +1,16 @@
 import logging
-from time import gmtime
+from time import gmtime, time
 from zlib import compress
 
 import pytest
 
+from helperFunctions.web_interface import BS_PRIMARY, BS_SECONDARY
 from web_interface.filter import (
     _get_sorted_list, byte_number_filter, comment_out_regex_meta_chars, create_firmware_version_links,
-    data_to_chart_limited, data_to_chart_with_value_percentage_pairs, decompress, encode_base64_filter,
-    filter_format_string_list_with_offset, fix_cwe, generic_nice_representation, get_all_uids_in_string,
-    get_unique_keys_from_list_of_dicts, infection_color, is_not_mandatory_analysis_entry, list_group,
-    list_to_line_break_string, list_to_line_break_string_no_sort, nice_number_filter, nice_unix_time,
+    data_to_chart_limited, data_to_chart_with_value_percentage_pairs, decompress, elapsed_time, encode_base64_filter,
+    filter_format_string_list_with_offset, fix_cwe, format_duration, generic_nice_representation,
+    get_all_uids_in_string, get_unique_keys_from_list_of_dicts, infection_color, is_not_mandatory_analysis_entry,
+    list_group, list_to_line_break_string, list_to_line_break_string_no_sort, nice_number_filter, nice_unix_time,
     random_collapse_id, render_analysis_tags, render_tags, replace_underscore_filter, set_limit_for_data_to_chart,
     sort_chart_list_by_name, sort_chart_list_by_value, sort_comments, sort_roles_by_number_of_privileges,
     sort_users_by_name, text_highlighter, uids_to_link, user_has_role, vulnerability_class
@@ -36,8 +37,8 @@ def test_set_limit_for_data_to_chart():
             'datasets': [{
                 'data': [1696, 207, 9],
                 'percentage': [0.89122, 0.10878, 0.00473],
-                'backgroundColor': ['#2b669a', '#cce0dc', '#2b669a'],
-                'borderColor': ['#2b669a', '#cce0dc', '#2b669a'],
+                'backgroundColor': [BS_PRIMARY, BS_SECONDARY, BS_PRIMARY],
+                'borderColor': [BS_PRIMARY, BS_SECONDARY, BS_PRIMARY],
                 'borderWidth': 1
             }]
         }
@@ -55,8 +56,8 @@ def test_data_to_chart_with_value_percentage_pairs(input_data, expected_result):
             'labels': ['NX enabled', 'NX disabled', 'Canary enabled'],
             'datasets': [{
                 'data': [1696, 207, 9],
-                'backgroundColor': ['#2b669a', '#cce0dc', '#2b669a'],
-                'borderColor': ['#2b669a', '#cce0dc', '#2b669a'],
+                'backgroundColor': [BS_PRIMARY, BS_SECONDARY, BS_PRIMARY],
+                'borderColor': [BS_PRIMARY, BS_SECONDARY, BS_PRIMARY],
                 'borderWidth': 1
             }]
         }
@@ -379,3 +380,10 @@ def test_random_collapse_id():
     collapse_id = random_collapse_id()
     assert isinstance(collapse_id, str)
     assert not collapse_id[0].isnumeric()
+
+
+@pytest.mark.parametrize('time_diff, expected_result', [
+    (5, '0:00:05'), (83, '0:01:23'), (5025, '1:23:45')
+])
+def test_remaining_time(time_diff, expected_result):
+    assert format_duration(elapsed_time(time() - time_diff)) == expected_result

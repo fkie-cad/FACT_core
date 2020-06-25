@@ -2,7 +2,7 @@
 
 {% set active_page = "Info" %}
 
-{% import 'macros.jinja' as macros %}
+{% import 'macros.html' as macros %}
 {% set count = [] %}
 
 {% block head %}
@@ -58,8 +58,8 @@
 {# ------ General Stats ------ #}
 
  	{% if stats["general_stats"] %}
-        {{ macros.start_stats_panel("General") }}
-            <table class="table table-responsive-md table-hover table-bordered mb-0" style="width: 100%;">
+        {% call macros.stats_panel("General") %}
+            <table class="table table-responsive-md table-hover px-0 mb-0" style="width: 100%;">
                 {{ macros.stats_table_row("firmware samples", stats["general_stats"]["number_of_firmwares"] | nice_number) }}
                 {{ macros.stats_table_row("firmware total size", stats["general_stats"]["total_firmware_size"] | number_format) }}
                 {{ macros.stats_table_row("firmware average size", stats["general_stats"]["average_firmware_size"] | number_format) }}
@@ -69,15 +69,15 @@
                     {{ macros.stats_table_row("unique included files average size", stats["general_stats"]["average_file_size"] | number_format) }}
                 {% endif %}
             </table>
-        {{ macros.end_stats_panel(count) }}
+        {% endcall %}
     {% endif %}
 
 
 {# ------ Crypto Material Stats ------ #}
 
 	{% if (stats["crypto_material_stats"]["crypto_material"] | length) > 0 %}
-        {{ macros.start_stats_panel("Crypto Material", "lock") }}
-            <table class="table table-responsive-md table-hover table-bordered mb-0" style="width: 100%;">
+        {% call macros.stats_panel("Crypto Material", "lock") %}
+            <table class="table table-responsive-md table-hover px-0 mb-0" style="width: 100%;">
             {% for item in (stats["crypto_material_stats"]["crypto_material"] | sort_chart_list_by_value) %}
                 <tr>
                     <td style="text-align: left; padding:5px; cursor:pointer;"
@@ -89,15 +89,15 @@
                 </tr>
             {% endfor %}
             </table>
-        {{ macros.end_stats_panel(count) }}
+        {% endcall %}
 	{% endif %}
 
 
 {# ------ Known Vulnerability Stats ------ #}
 
 	{% if (stats["known_vulnerabilities_stats"]["known_vulnerabilities"] | length) > 0 %}
-        {{ macros.start_stats_panel("Known Vulnerabilities", "bolt") }}
-            <table class="table table-responsive-md table-hover table-bordered mb-0" style="width: 100%;">
+        {% call macros.stats_panel("Known Vulnerabilities", "bolt") %}
+            <table class="table table-responsive-md table-hover px-0 mb-0" style="width: 100%;">
             {% for item in (stats["known_vulnerabilities_stats"]["known_vulnerabilities"] | sort_chart_list_by_value) %}
                 <tr>
                     <td style="text-align: left; padding:5px; cursor:pointer;"
@@ -109,21 +109,21 @@
                 </tr>
             {% endfor %}
             </table>
-        {{ macros.end_stats_panel(count) }}
+        {% endcall %}
 	{% endif %}
 
 
 {# ------ Unpacker Stats ------ #}
 
 	{% if stats["unpacker_stats"]["overall_unpack_ratio"] %}
-        {{ macros.start_stats_panel("Unpacker Stats", "file-archive") }}
-            <table class="table table-responsive-md table-hover table-bordered mb-0" style="width: 100%;">
+        {% call macros.stats_panel("Unpacker Stats", "file-archive") %}
+            <table class="table table-responsive-md table-hover px-0 mb-0" style="width: 100%;">
                 {{ macros.stats_table_row("Overall Unpack Ratio", stats["unpacker_stats"]["overall_unpack_ratio"] | nice_number, True) }}
                 {{ macros.stats_table_row("Average Packed Entropy", stats["unpacker_stats"]["average_packed_entropy"] | nice_number) }}
                 {{ macros.stats_table_row("Average Unpacked Entropy", stats["unpacker_stats"]["average_unpacked_entropy"] | nice_number) }}
                 {{ macros.stats_table_row("Overall Data Loss Ratio", stats["unpacker_stats"]["overall_data_loss_ratio"] | nice_number, True) }}
             </table>
-        {{ macros.end_stats_panel(count) }}
+        {% endcall %}
 	{% endif %}
 
 
@@ -147,7 +147,7 @@
 {% for title, key, data_set, query in chart_list %}
     {% if data_set %}
         {% if data_set[key] %}
-            {{ macros.start_stats_panel(title) }}
+            {% call macros.stats_panel(title) %}
                 <canvas id="{{ key }}_canvas" width="100%" height="{{ data_set[key] | get_canvas_height }}"></canvas>
                 <script>
                     create_pie_chart(
@@ -156,7 +156,7 @@
                         link="{{ query_url + query | json_dumps | urlencode }}",
                     );
                 </script>
-            {{ macros.end_stats_panel(count) }}
+            {% endcall %}
         {% endif %}
     {% endif %}
 {% endfor %}
@@ -166,7 +166,7 @@
 
 {% if stats["exploit_mitigations_stats"] %}
 	{% if stats["exploit_mitigations_stats"]["exploit_mitigations"] %}
-        {{ macros.start_stats_panel("Exploit Mitigations") }}
+        {% call macros.stats_panel("Exploit Mitigations") %}
             <canvas id="exploit_mitigations_canvas" width="100%" height="{{ stats['exploit_mitigations_stats']['exploit_mitigations'] | get_canvas_height }}"></canvas>
             <script>
                 create_horizontal_bar_chart(
@@ -176,7 +176,7 @@
                     expl_mit_flag=true
                 );
             </script>
-        {{ macros.end_stats_panel(count) }}
+        {% endcall %}
 	{% endif %}
 {% endif %}
 
@@ -184,14 +184,14 @@
 {# ------ Malware Stats ------ #}
 
 	{% if (stats["malware_stats"]["malware"] | length) > 0 %}
-        {{ macros.start_stats_panel("Malware", "exclamation-triangle") }}
-            <table class="table table-responsive-md table-hover table-bordered mb-0" style="width: 100%;">
+        {% call macros.stats_panel("Malware", "exclamation-triangle") %}
+            <table class="table table-responsive-md table-hover px-0 mb-0" style="width: 100%;">
             {% for malware in (stats["malware_stats"]["malware"] | sort_chart_list_by_value) %}
                 {% set query = {"processed_analysis.malware_scanner.scans.ClamAV.result": {"$eq": malware[0]}} %}
                 {{ macros.stats_table_row(malware[0], malware[1], link=query_url + query | json_dumps | urlencode) }}
             {% endfor %}
             </table>
-        {{ macros.end_stats_panel(count) }}
+        {% endcall %}
 	{% endif %}
 
 
@@ -199,38 +199,38 @@
 
 	{% set ips_v4_num = stats["ip_and_uri_stats"]["ips_v4"] | length %}
 	{% if ips_v4_num > 0 %}
-        {{ macros.start_stats_panel("IPv4 Addresses (Top {}/{})".format([10, ips_v4_num] | min, ips_v4_num), "globe") }}
-            <table class="table table-responsive-md table-hover table-bordered mb-0" style="width: 100%;">
+        {% call macros.stats_panel("IPv4 Addresses (Top {}/{})".format([10, ips_v4_num] | min, ips_v4_num), "globe") %}
+            <table class="table table-responsive-md table-hover px-0 mb-0" style="width: 100%;">
             {% for ip in (stats["ip_and_uri_stats"]["ips_v4"] | sort_chart_list_by_value)[:10] %}
                 {% set query = {"processed_analysis.ip_and_uri_finder.ips_v4": {"$elemMatch": {"$elemMatch": {"$in": [ip[0], ]}}}} %}
                 {{ macros.stats_table_row(ip[0], ip[1], link=query_url + query | json_dumps | urlencode) }}
             {% endfor %}
             </table>
-        {{ macros.end_stats_panel(count) }}
+        {% endcall %}
 	{% endif %}
 
 	{% set ips_v6_num = stats["ip_and_uri_stats"]["ips_v6"] | length %}
 	{% if ips_v6_num > 0 %}
-        {{ macros.start_stats_panel("IPv6 Addresses (Top {}/{})".format([10, ips_v6_num] | min, ips_v6_num), "globe") }}
-            <table class="table table-responsive-md table-hover table-bordered mb-0" style="width: 100%;">
+        {% call macros.stats_panel("IPv6 Addresses (Top {}/{})".format([10, ips_v6_num] | min, ips_v6_num), "globe") %}
+            <table class="table table-responsive-md table-hover px-0 mb-0" style="width: 100%;">
             {% for ip in (stats["ip_and_uri_stats"]["ips_v6"] | sort_chart_list_by_value)[:10] %}
                 {% set query = {"processed_analysis.ip_and_uri_finder.ips_v6": {"$elemMatch": {"$elemMatch": {"$in": [ip[0], ]}}}} %}
                 {{ macros.stats_table_row(ip[0], ip[1], link=query_url + query | json_dumps | urlencode) }}
             {% endfor %}
             </table>
-        {{ macros.end_stats_panel(count) }}
+        {% endcall %}
 	{% endif %}
 
 	{% set uri_num = stats["ip_and_uri_stats"]["uris"] | length %}
 	{% if uri_num > 0 %}
-        {{ macros.start_stats_panel("URIs (Top {}/{})".format([10, uri_num] | min, uri_num), "globe") }}
-            <table class="table table-responsive-md table-hover table-bordered mb-0" style="width: 100%;">
+        {% call macros.stats_panel("URIs (Top {}/{})".format([10, uri_num] | min, uri_num), "globe") %}
+            <table class="table table-responsive-md table-hover px-0 mb-0" style="width: 100%;">
             {% for uri in (stats["ip_and_uri_stats"]["uris"] | sort_chart_list_by_value)[:10] %}
                 {% set query = {"processed_analysis.ip_and_uri_finder.uris": {"$eq": uri[0]}} %}
                 {{ macros.stats_table_row(uri[0], uri[1], link=query_url + query | json_dumps | urlencode) }}
             {% endfor %}
             </table>
-        {{ macros.end_stats_panel(count) }}
+        {% endcall %}
 	{% endif %}
 
 </div>
@@ -240,35 +240,37 @@
 
 {% if (stats["release_date_stats"]["date_histogram_data"] | length) > 0 %}
 <div class="row justify-content-center mb-2">
-    <div class="col-lg-8">
-        <h3 class="mt-2">Release Date Stats</h3>
-        <div>
-            <canvas id="release_date_canvas"></canvas>
-            <script>
-                var options = {
-                    legend: {display: false},
-                    scales: {
-                        yAxes: [{
-                            ticks: {beginAtZero: true},
-                            scaleLabel: {display: true, labelString: "Firmware Releases"}
-                        }]
-                    }
-                };
+    <div class="col-lg-8 card bg-light rounded border-0">
+        <div class="card-body">
+            <h5 class="card-title mt-2"><i class="far fa-calendar-alt"></i> Release Date Stats</h5>
+            <div class="card-text">
+                <canvas id="release_date_canvas"></canvas>
+                <script>
+                    var options = {
+                        legend: {display: false},
+                        scales: {
+                            yAxes: [{
+                                ticks: {beginAtZero: true},
+                                scaleLabel: {display: true, labelString: "Firmware Releases"}
+                            }]
+                        }
+                    };
 
-                var data = {{ stats["release_date_stats"]["date_histogram_data"] | data_to_chart | safe }};
+                    var data = {{ stats["release_date_stats"]["date_histogram_data"] | data_to_chart | safe }};
 
-                var ctx = document.getElementById("release_date_canvas");
+                    var ctx = document.getElementById("release_date_canvas");
 
-                var DateBarChart = new Chart(ctx, {type: "bar", data: data, options: options});
+                    var DateBarChart = new Chart(ctx, {type: "bar", data: data, options: options});
 
-				document.getElementById("release_date_canvas").onclick = function(evt){
-					var points = DateBarChart.getElementsAtEvent(evt);
-					var date = DateBarChart.data.labels[points[0]._index];
-					if (points[0] !== undefined)
-						window.location = "database/browse?date=" + date;
-				};
+                    document.getElementById("release_date_canvas").onclick = function(evt){
+                        var points = DateBarChart.getElementsAtEvent(evt);
+                        var date = DateBarChart.data.labels[points[0]._index];
+                        if (points[0] !== undefined)
+                            window.location = "database/browse?date=" + date;
+                    };
 
-            </script>
+                </script>
+            </div>
         </div>
     </div>
 </div>

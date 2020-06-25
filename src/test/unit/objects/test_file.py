@@ -57,21 +57,6 @@ class TestObjectsFile:  # pylint: disable=no-self-use
         fo.virtual_file_path = {fo.uid: '/foo/bar/the_file_name.txt'}
         assert fo.get_virtual_file_paths()[fo.uid] == '/foo/bar/the_file_name.txt', 'not correct if path set'
 
-    def test_get_root_of_virtual_path(self):
-        fo = FileObject(binary=b'file_object')
-        virtual_test_path = 'root_uid|child_1_uid|child_2_uid|directory/file.type'
-        assert fo.get_root_of_virtual_path(virtual_test_path) == 'root_uid'
-
-    def test_get_base_of_virtual_path(self):
-        fo = FileObject(binary=b'file_object')
-        virtual_test_path = 'root_uid|child_1_uid|child_2_uid|directory/file.type'
-        assert fo.get_base_of_virtual_path(virtual_test_path) == 'root_uid|child_1_uid|child_2_uid'
-
-    def test_get_base_of_virtual_path_root(self):
-        fo = FileObject(binary=b'file_object')
-        virtual_test_path = 'root_uid'
-        assert fo.get_base_of_virtual_path(virtual_test_path) == ''
-
     def test_get_root_uid(self):
         fo = FileObject(binary=b'file_object')
         fo.virtual_file_path = {'root_uid_1': 'virtual_file_path', 'root_uid_2': 'virtual_file_path'}
@@ -89,11 +74,6 @@ class TestObjectsFile:  # pylint: disable=no-self-use
     def test_get_virtual_path_for_none_existing_uid(self):
         fo = FileObject(binary=b'foo')
         assert fo.get_virtual_paths_for_one_uid(root_uid='none_existing') == ['insufficient information: firmware analysis not complete']
-
-    def test_get_top_of_virtual_path(self):
-        fo = FileObject()
-        result = fo.get_top_of_virtual_path('foo|bar|test')
-        assert result == 'test', 'top should be test'
 
     def test_get_uid_deprecation(self, caplog):
         fo = FileObject()

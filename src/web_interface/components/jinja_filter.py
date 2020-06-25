@@ -9,9 +9,10 @@ from helperFunctions.database import ConnectTo
 from helperFunctions.dataConversion import none_to_none
 from helperFunctions.hash import get_md5
 from helperFunctions.uid import is_list_of_uids
-from helperFunctions.web_interface import split_virtual_path, virtual_path_element_to_span
+from helperFunctions.virtual_file_path import split_virtual_path
+from helperFunctions.web_interface import virtual_path_element_to_span
 from storage.db_interface_frontend import FrontEndDbInterface
-from web_interface.filter import random_collapse_id
+from web_interface.filter import elapsed_time, random_collapse_id
 
 
 class FilterClass:
@@ -64,7 +65,7 @@ class FilterClass:
                     item, root_uid, sc.get_hid(item, root_uid=root_uid)))
         return tmp
 
-    def _filter_nice_uid_list(self, uids, root_uid=None, selected_analysis=None):
+    def _filter_nice_uid_list(self, uids, root_uid=None, selected_analysis=None, filename_only=False):
         root_uid = none_to_none(root_uid)
         if not is_list_of_uids(uids):
             return uids
@@ -78,7 +79,7 @@ class FilterClass:
             'generic_view/nice_fo_list.html',
             fo_list=analyzed_uids, u_show_id=random_collapse_id(),
             number_of_unanalyzed_files=number_of_unanalyzed_files, root_uid=root_uid,
-            selected_analysis=selected_analysis, first_item=first_item
+            selected_analysis=selected_analysis, first_item=first_item, filename_only=filename_only
         )
 
     def _nice_virtual_path_list(self, virtual_path_list: List[str]) -> List[str]:
@@ -97,11 +98,10 @@ class FilterClass:
         return render_template('generic_view/firmware_detail_tabular_field.html', firmware=firmware_meta_data)
 
     @staticmethod
-    def _render_general_information_table(firmware, firmware_including_this_fo, other_versions, selected_analysis):
+    def _render_general_information_table(firmware, other_versions, selected_analysis):
         return render_template(
             'generic_view/general_information.html',
-            firmware=firmware, firmware_including_this_fo=firmware_including_this_fo, other_versions=other_versions,
-            selected_analysis=selected_analysis
+            firmware=firmware, other_versions=other_versions, selected_analysis=selected_analysis
         )
 
     def check_auth(self, _):
@@ -121,6 +121,7 @@ class FilterClass:
         self._app.jinja_env.filters['dict_to_json'] = json.dumps
         self._app.jinja_env.filters['firmware_detail_tabular_field'] = self._render_firmware_detail_tabular_field
         self._app.jinja_env.filters['fix_cwe'] = flt.fix_cwe
+        self._app.jinja_env.filters['format_duration'] = flt.format_duration
         self._app.jinja_env.filters['format_string_list_with_offset'] = flt.filter_format_string_list_with_offset
         self._app.jinja_env.filters['get_canvas_height'] = flt.get_canvas_height
         self._app.jinja_env.filters['get_unique_keys_from_list_of_dicts'] = flt.get_unique_keys_from_list_of_dicts
@@ -143,6 +144,7 @@ class FilterClass:
         self._app.jinja_env.filters['number_format'] = flt.byte_number_filter
         self._app.jinja_env.filters['print_program_version'] = self._filter_print_program_version
         self._app.jinja_env.filters['regex_meta'] = flt.comment_out_regex_meta_chars
+        self._app.jinja_env.filters['remaining_time'] = elapsed_time
         self._app.jinja_env.filters['render_analysis_tags'] = flt.render_analysis_tags
         self._app.jinja_env.filters['render_general_information'] = self._render_general_information_table
         self._app.jinja_env.filters['render_tags'] = flt.render_tags

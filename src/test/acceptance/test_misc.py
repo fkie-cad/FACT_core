@@ -79,9 +79,13 @@ class TestAcceptanceMisc(TestAcceptanceBase):
         rv = self.test_client.get('/about')
         self.assertIn(b'License Information', rv.data)
 
+    def _show_home(self):
+        rv = self.test_client.get('/')
+        self.assertIn(b'backend cpu load', rv.data)
+
     def _show_system_monitor(self):
         rv = self.test_client.get('/system_health')
-        self.assertIn(b'backend workload', rv.data)
+        self.assertIn(b'backend status', rv.data)
 
     def _click_chart(self):
         rv = self.test_client.get('/database/browse?query=%7b%22vendor%22%3A+%7b%22%24eq%22%3A+%22test_vendor%22%7d%7d')
@@ -107,3 +111,5 @@ class TestAcceptanceMisc(TestAcceptanceBase):
         self._show_stats_filtered()
         self._click_chart()
         self._click_release_date_histogram()
+
+        self._show_home()

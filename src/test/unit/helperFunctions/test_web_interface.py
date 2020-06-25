@@ -4,7 +4,7 @@ from werkzeug.local import LocalProxy
 
 from helperFunctions.web_interface import (
     cap_length_of_element, filter_out_illegal_characters, format_si_prefix, format_time, get_radare_endpoint,
-    password_is_legal, split_virtual_path, virtual_path_element_to_span
+    password_is_legal, virtual_path_element_to_span
 )
 from test.common_helper import get_config_for_testing
 from web_interface.security.authentication import user_has_privilege
@@ -85,15 +85,6 @@ def test_cap_length_of_element_default(element_in, element_out):
 
 def test_cap_length_of_element_short():
     assert cap_length_of_element('1234', maximum=3) == '~34'
-
-
-@pytest.mark.parametrize('virtual_path, expected_output', [
-    ('', []),
-    ('a|b|c', ['a', 'b', 'c']),
-    ('|a|b|c|', ['a', 'b', 'c']),
-])
-def test_split_virtual_path(virtual_path, expected_output):
-    assert split_virtual_path(virtual_path) == expected_output
 
 
 @pytest.mark.parametrize('number, unit, expected_output', [

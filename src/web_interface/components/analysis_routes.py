@@ -45,12 +45,6 @@ class AnalysisRoutes(ComponentBase):
         self._app.add_url_rule('/analysis/<uid>/<selected_analysis>/ro/<root_uid>', '/analysis/<uid>/<selected_analysis>/<root_uid>', self._show_analysis_results, methods=['GET', 'POST'])
         self._app.add_url_rule('/admin/re-do_analysis/<uid>', '/admin/re-do_analysis/<uid>', self._re_do_analysis, methods=['GET', 'POST'])
 
-    @staticmethod
-    def _get_firmware_ids_including_this_file(fo):
-        if isinstance(fo, Firmware):
-            return None
-        return list(fo.get_virtual_file_paths().keys())
-
     @roles_accepted(*PRIVILEGES['view_analysis'])
     def _show_analysis_results(self, uid, selected_analysis=None, root_uid=None):
         if request.method == 'POST':
@@ -78,7 +72,6 @@ class AnalysisRoutes(ComponentBase):
             selected_analysis=selected_analysis,
             all_analyzed_flag=included_fo_analysis_complete,
             root_uid=none_to_none(root_uid),
-            firmware_including_this_fo=self._get_firmware_ids_including_this_file(file_obj),
             analysis_plugin_dict=analysis_plugins,
             other_versions=other_versions,
             uids_for_comparison=get_comparison_uid_list_from_session(),

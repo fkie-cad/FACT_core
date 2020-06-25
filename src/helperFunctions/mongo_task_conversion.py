@@ -2,20 +2,23 @@ import logging
 import os
 import re
 import sys
+from configparser import ConfigParser
 from tempfile import TemporaryDirectory
 
+from flask import escape
+
+from helperFunctions.config import get_temp_dir_path
 from helperFunctions.uid import create_uid
 from objects.firmware import Firmware
-from flask import escape
 
 OPTIONAL_FIELDS = ['tags', 'device_part']
 DROPDOWN_FIELDS = ['device_class', 'vendor', 'device_name', 'device_part']
 
 
-def create_analysis_task(request):
+def create_analysis_task(request, config: ConfigParser):
     task = _get_meta_from_request(request)
     if request.files['file']:
-        task['file_name'], task['binary'] = get_file_name_and_binary_from_request(request)
+        task['file_name'], task['binary'] = get_file_name_and_binary_from_request(request, config)
     task['uid'] = get_uid_of_analysis_task(task)
     if task['release_date'] == '':
         # set default value if date field is empty
@@ -23,12 +26,12 @@ def create_analysis_task(request):
     return task
 
 
-def get_file_name_and_binary_from_request(request):  # pylint: disable=invalid-name
+def get_file_name_and_binary_from_request(request, config: ConfigParser):  # pylint: disable=invalid-name
     try:
         file_name = escape(request.files['file'].filename)
     except Exception:
         file_name = 'no name'
-    file_binary = get_uploaded_file_binary(request.files['file'])
+    file_binary = get_uploaded_file_binary(request.files['file'], config)
     return file_name, file_binary
 
 
@@ -99,9 +102,9 @@ def get_uid_of_analysis_task(analysis_task):
     return None
 
 
-def get_uploaded_file_binary(request_file):
+def get_uploaded_file_binary(request_file, config: ConfigParser):
     if request_file:
-        tmp_dir = TemporaryDirectory(prefix='fact_upload_')
+        tmp_dir = TemporaryDirectory(prefix='fact_upload_', dir=get_temp_dir_path(config))
         tmp_file_path = os.path.join(tmp_dir.name, 'upload.bin')
         try:
             request_file.save(tmp_file_path)

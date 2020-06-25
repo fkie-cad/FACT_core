@@ -13,7 +13,7 @@ from storage.db_interface_statistic import StatisticDbUpdater
 from version import __VERSION__
 
 
-class WorkLoadStatistic(object):
+class WorkLoadStatistic:
 
     def __init__(self, config=None, component='backend'):
         self.config = config
@@ -50,14 +50,14 @@ class WorkLoadStatistic(object):
         except Exception:
             disk_usage = psutil.disk_usage('/')
         try:
-            cpu_freq = psutil.cpu_freq().current
+            cpu_percentage = psutil.cpu_percent()
         except Exception:
-            cpu_freq = 'unknown'
+            cpu_percentage = 'unknown'
 
         result = {
             'cpu_cores': psutil.cpu_count(logical=False),
             'virtual_cpu_cores': psutil.cpu_count(),
-            'cpu_freq': cpu_freq,
+            'cpu_percentage': cpu_percentage,
             'load_average': ', '.join(str(x) for x in os.getloadavg()),
             'memory_total': memory_usage.total,
             'memory_used': memory_usage.used,
