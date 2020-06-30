@@ -13,7 +13,7 @@
                 , Type: {{ file_object['mime-type'] }}
             {% endif %}
         </span>
-        <a href="location.href='/download/{{ file_object.uid }}'"><i class="fas fa-download"></i></a>
+        <a href="#" onclick="location.href='/download/{{ file_object.uid }}'"><i class="fas fa-download"></i></a>
     </p>
 {% endmacro %}
 
