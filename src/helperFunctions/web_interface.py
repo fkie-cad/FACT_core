@@ -62,8 +62,8 @@ def get_template_as_string(view_name):
 def get_radare_endpoint(config):
     radare2_host = config['ExpertSettings']['radare2_host']
     if config.getboolean('ExpertSettings', 'nginx'):
-        return 'https://' + radare2_host + '/radare'
-    return 'http://' + radare2_host + ':8000'
+        return 'https://{}/radare'.format(radare2_host)
+    return 'http://{}:8000'.format(radare2_host)
 
 
 def password_is_legal(pw: str) -> bool:
