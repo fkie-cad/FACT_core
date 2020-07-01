@@ -33,7 +33,8 @@ try:
     from install.backend import main as backend
     from install.db import main as db
 except ImportError:
-    sys.exit('Could not import install dependencies. Please (re-)run install/pre_install.sh')
+    logging.critical('Could not import install dependencies. Please (re-)run install/pre_install.sh', exc_info=True)
+    sys.exit(1)
 
 PROGRAM_NAME = 'FACT Installer'
 PROGRAM_VERSION = '1.1'
