@@ -43,12 +43,12 @@ sudo systemctl enable docker
 
 echo "Adding mongodb repo"
 sudo touch /etc/yum.repos.d/mongodb.repo
-sudo echo "[mongodb-org-4.2]" >> /etc/yum.repos.d/mongodb.repo
-sudo echo "name=MongoDB Repository" >> /etc/yum.repos.d/mongodb.repo
-sudo echo "baseurl=https://repo.mongodb.org/yum/redhat/8/mongodb-org/4.2/x86_64/" >> /etc/yum.repos.d/mongodb.repo
-sudo echo "gpgcheck=1" >> /etc/yum.repos.d/mongodb.repo
-sudo echo "enabled=1" >> /etc/yum.repos.d/mongodb.repo
-sudo echo "gpgkey=https://www.mongodb.org/static/pgp/server-4.2.asc" >> /etc/yum.repos.d/mongodb.repo
+echo "[mongodb-org-4.2]" | sudo tee /etc/yum.repos.d/mongodb.repo
+echo "name=MongoDB Repository" | sudo tee /etc/yum.repos.d/mongodb.repo
+echo "baseurl=https://repo.mongodb.org/yum/redhat/8/mongodb-org/4.2/x86_64/" | sudo tee /etc/yum.repos.d/mongodb.repo
+echo "gpgcheck=1" | sudo tee /etc/yum.repos.d/mongodb.repo
+echo "enabled=1" | sudo tee /etc/yum.repos.d/mongodb.repo
+echo "gpgkey=https://www.mongodb.org/static/pgp/server-4.2.asc" | sudo tee /etc/yum.repos.d/mongodb.repo
 
 
 # add fact-user to docker group
