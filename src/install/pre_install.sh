@@ -76,6 +76,7 @@ sudo -EH pip3 install --upgrade virtualenv
 echo "Installing Python Libraries for python based installation"
 sudo -EH pip3 install --upgrade distro
 sudo -EH pip3 install --upgrade python-magic
+sudo -EH pip3 install --upgrade requests
 
 sudo -EH pip3 install --upgrade git+https://github.com/fkie-cad/common_helper_files.git
 sudo -EH pip3 install --upgrade git+https://github.com/fkie-cad/common_helper_process.git
