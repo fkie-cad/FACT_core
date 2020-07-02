@@ -114,7 +114,6 @@ def check_python_version():
 
 def check_distribution():
     codename = distro.codename().lower()
-    dist = distro.linux_distribution()[1]
     if codename in XENIAL_CODE_NAMES:
         logging.debug('Ubuntu 16.04 detected')
         return 'xenial'
