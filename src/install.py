@@ -33,7 +33,8 @@ try:
     from install.backend import main as backend
     from install.db import main as db
 except ImportError:
-    sys.exit('Could not import install dependencies. Please (re-)run install/pre_install.sh')
+    logging.critical('Could not import install dependencies. Please (re-)run install/pre_install.sh', exc_info=True)
+    sys.exit(1)
 
 PROGRAM_NAME = 'FACT Installer'
 PROGRAM_VERSION = '1.1'
@@ -125,6 +126,9 @@ def check_distribution():
     if codename in DEBIAN_CODE_NAMES:
         logging.debug('Debian/Kali detected')
         return 'debian'
+    if distro.id() == 'fedora':
+        logging.debug('Fedora detected')
+        return 'fedora'
     sys.exit('Your Distribution ({} {}) is not supported. FACT Installer requires Ubuntu 16.04, Ubuntu 18.04 or compatible!'.format(distro.id(), distro.version()))
 
 
@@ -162,7 +166,7 @@ def install():
         if args.db or none_chosen:
             db(distribution)
         if args.backend or none_chosen:
-            backend()
+            backend(distribution)
 
     if args.statistic_cronjob:
         install_statistic_cronjob()

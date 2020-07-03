@@ -5,7 +5,7 @@ from pathlib import Path
 
 from common_helper_process import execute_shell_command_get_return_code
 
-from helperFunctions.install import InstallationError, OperateInDirectory, apt_install_packages, apt_update_sources
+from helperFunctions.install import InstallationError, OperateInDirectory, apt_install_packages, apt_update_sources, dnf_install_packages
 
 MONGO_MIRROR_COMMANDS = {
     'debian': {
@@ -44,6 +44,8 @@ def main(distribution):
         _add_mongo_mirror(distribution)
         apt_update_sources()
         apt_install_packages('mongodb-org')
+    elif distribution in ['fedora']:
+        dnf_install_packages('mongodb-org-3.6.8')
     else:
         apt_install_packages('mongodb')
 
