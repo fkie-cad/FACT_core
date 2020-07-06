@@ -1,6 +1,10 @@
+from typing import List, NamedTuple, Tuple
+
 from analysis.YaraPluginBase import YaraBasePlugin
 from helperFunctions.parsing import read_asn1_key, read_pkcs_cert, read_ssl_cert
 from helperFunctions.tag import TagColor
+
+Match = NamedTuple('Match', [('offset', int), ('label', str), ('matched_string', str)])
 
 
 class AnalysisPlugin(YaraBasePlugin):
@@ -10,7 +14,7 @@ class AnalysisPlugin(YaraBasePlugin):
     NAME = 'crypto_material'
     DESCRIPTION = 'detects crypto material like SSH keys and SSL certificates'
     STARTEND = ['PgpPublicKeyBlock', 'PgpPrivateKeyBlock', 'PgpPublicKeyBlock_GnuPG', 'genericPublicKey',
-                'SshRsaPrivateKeyBlock', 'SSLPrivateKey']
+                'SshRsaPrivateKeyBlock', 'SshEncryptedRsaPrivateKeyBlock', 'SSLPrivateKey']
     STARTONLY = ['SshRsaPublicKeyBlock']
     MIME_BLACKLIST = ['filesystem']
     PKCS8 = 'Pkcs8PrivateKey'
@@ -51,7 +55,11 @@ class AnalysisPlugin(YaraBasePlugin):
             result['summary'].append(match)
 
     def extract_labeled_keys(self, strings=None, binary=None, min_key_len=128):
-        return [binary[offset[0]:offset[1]].decode(encoding='utf_8', errors='replace') for offset in self.get_offset_pairs(strings) if offset[1] - offset[0] > min_key_len]
+        return [
+            binary[offset[0]:offset[1]].decode(encoding='utf_8', errors='replace')
+            for offset in self.get_offset_pairs(strings)
+            if offset[1] - offset[0] > min_key_len
+        ]
 
     @staticmethod
     def extract_start_only_key(strings=None, binary=None):
@@ -87,18 +95,18 @@ class AnalysisPlugin(YaraBasePlugin):
         return contents
 
     @staticmethod
-    def get_offset_pairs(strings=[]):
+    def get_offset_pairs(strings: List[Tuple[int, str, str]]):
         # Nasty if - elif structure necessary to prevent code duplication for different string pairs - keyword: $gnupg_version_string
-        strings.sort(key=lambda x: x[0])
+        matches = sorted(Match(*t) for t in strings)
+        matches.sort(key=lambda x: x.offset)
         pairs = []
-        for index in range(len(strings) - 1):
-            if strings[index][1] == '$start_string' and strings[index + 1][1] == '$end_string':
-                end_index = strings[index + 1][0] + len(strings[index + 1][2])
-                pairs.append((strings[index][0], end_index))
-            elif strings[index][1] == '$start_string' and strings[index + 1][1] == '$gnupg_version_string' and len(strings) > index + 2:
-                if strings[index][1] == '$start_string' and strings[index + 2][1] == '$end_string':
-                    end_index = strings[index + 2][0] + len(strings[index + 2][2])
-                    pairs.append((strings[index][0], end_index))
+        for index in range(len(matches) - 1):
+            if _is_consecutive_key_block(matches, index):
+                pairs.append((matches[index].offset, _calculate_end_index(matches[index + 1])))
+            elif _is_consecutive_pgp_block(matches, index):
+                pairs.append((matches[index].offset, _calculate_end_index(matches[index + 2])))
+            elif _is_consecutive_encrypted_key(matches, index):
+                pairs.append((matches[index].offset, _calculate_end_index(matches[index + 3])))
         return pairs
 
     def _add_private_key_tag(self, file_object, result):
@@ -110,3 +118,25 @@ class AnalysisPlugin(YaraBasePlugin):
                 color=TagColor.ORANGE,
                 propagate=True
             )
+
+
+def _is_consecutive_key_block(matches: List[Match], index: int) -> bool:
+    return matches[index].label == '$start_string' and matches[index + 1].label == '$end_string'
+
+
+def _is_consecutive_pgp_block(matches: List[Match], index: int) -> bool:
+    return (
+        matches[index].label == '$start_string' and matches[index + 1].label == '$gnupg_version_string'
+        and len(matches) > index + 2 and matches[index + 2].label == '$end_string'
+    )
+
+
+def _is_consecutive_encrypted_key(matches: List[Match], index: int) -> bool:
+    return (
+        len(matches) > index + 3 and matches[index].label == '$start_string' and matches[index + 1].label == '$proc_type'
+        and matches[index + 2].label == '$dek_info' and matches[index + 3].label == '$end_string'
+    )
+
+
+def _calculate_end_index(match: Match) -> int:
+    return match.offset + len(match.matched_string)
