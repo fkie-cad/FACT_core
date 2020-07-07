@@ -38,7 +38,8 @@ class YaraBasePlugin(AnalysisBasePlugin):
 
     def process_object(self, file_object):
         if self.signature_path is not None:
-            with subprocess.Popen('yara --print-meta --print-strings {} {}'.format(self.signature_path, file_object.file_path), shell=True, stdout=subprocess.PIPE) as process:
+            command = 'yara --print-meta --print-strings {} {}'.format(self.signature_path, file_object.file_path)
+            with subprocess.Popen(command, shell=True, stdout=subprocess.PIPE) as process:
                 output = process.stdout.read().decode()
             try:
                 result = self._parse_yara_output(output)
@@ -64,7 +65,7 @@ class YaraBasePlugin(AnalysisBasePlugin):
 
         match_blocks, rules = _split_output_in_rules_and_matches(output)
 
-        matches_regex = re.compile(r'((0x[a-f0-9]*):(\S+):\s(.+))+')
+        matches_regex = re.compile(r'((0x[a-f0-9]*):(\$[a-zA-Z0-9_]+):\s(.+))+')
         for index, rule in enumerate(rules):
             for match in matches_regex.findall(match_blocks[index]):
                 _append_match_to_result(match, resulting_matches, rule)

@@ -22,9 +22,6 @@ repos:
     -   id: file-contents-sorter
         files: src/unpacker/passwords|.gitignore|_list.txt
 
-    -   id: flake8
-        args: [--ignore="E501,W503", --select=W504]
-
     -   id: forbid-new-submodules
 
     -   id: no-commit-to-branch
@@ -35,6 +32,11 @@ repos:
     -   id: trailing-whitespace
         types: [python]
 
+-   repo: https://gitlab.com/pycqa/flake8
+    rev: a7be77f7
+    hooks:
+    -   id: flake8
+        args: [--select=W504, --ignore=E501,W503]
 
 -   repo: https://github.com/pre-commit/mirrors-pylint
     rev: v2.3.1
