@@ -32,7 +32,7 @@ class TestAppAjaxRoutes(WebInterfaceTest):
     def test_ajax_get_system_stats(self):
         result = self.test_client.get('/ajax/stats/system').json
 
-        assert result['backend_cpu_percentage'] == 13.37
+        assert result['backend_cpu_percentage'] == '13.37%'
         assert result['number_of_running_analyses'] == 2
 
 
