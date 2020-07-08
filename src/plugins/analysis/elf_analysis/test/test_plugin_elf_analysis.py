@@ -9,6 +9,8 @@ from test.common_helper import get_config_for_testing, get_test_data_dir
 
 from ..code.elf_analysis import AnalysisPlugin
 
+# pylint: disable=redefined-outer-name,protected-access
+
 TEST_DATA = Path(get_test_data_dir(), 'test_data_file.bin')
 
 
@@ -19,11 +21,14 @@ class MockAdmin:
 
 LiefResult = namedtuple('LiefResult', ['symbols_version', 'libraries', 'imported_functions', 'exported_functions'])
 
-MOCK_DATA = '{"header": {"entrypoint": 109724, "file_type": "DYNAMIC", "header_size": 52, "identity_class": "CLASS32", "identity_data": "LSB", "identity_os_abi": "SYSTEMV"},' \
-            '"dynamic_entries": [{"library": "libdl.so.2", "tag": "NEEDED", "value": 1}, {"library": "libc.so.6", "tag": "NEEDED", "value": 137}, {"tag": "INIT", "value": 99064}],' \
-            '"sections": [{"alignment": 0, "entry_size": 0, "flags": [], "information": 0, "link": 0, "name": "", "offset": 0, "size": 0, "type": "NULL", "virtual_address": 0}],' \
-            '"segments": [{"alignment": 4, "file_offset": 2269, "flags": 4, "physical_address": 2269, "physical_size": 8, "sections": [".ARM.exidx"], "type": "ARM_EXIDX", "virtual_address": 2269, "virtual_size": 8}],' \
-            '"symbols_version": [{"value": 0}, {"symbol_version_auxiliary": "GLIBC_2.4", "value": 2}, {"symbol_version_auxiliary": "GLIBC_2.4", "value": 2}]}'
+MOCK_DATA = (
+    '{"header": {"entrypoint": 109724, "file_type": "DYNAMIC", "header_size": 52, "identity_class": "CLASS32", "identity_data": "LSB", "identity_os_abi": "SYSTEMV"},'
+    '"dynamic_entries": [{"library": "libdl.so.2", "tag": "NEEDED", "value": 1}, {"library": "libc.so.6", "tag": "NEEDED", "value": 137}, {"tag": "INIT", "value": 99064}],'
+    '"sections": [{"alignment": 0, "entry_size": 0, "flags": [], "information": 0, "link": 0, "name": "", "offset": 0, "size": 0, "type": "NULL", "virtual_address": 0}],'
+    '"segments": [{"alignment": 4, "file_offset": 2269, "flags": 4, "physical_address": 2269, "physical_size": 8, '
+    '"sections": [".ARM.exidx"], "type": "ARM_EXIDX", "virtual_address": 2269, "virtual_size": 8}],'
+    '"symbols_version": [{"value": 0}, {"symbol_version_auxiliary": "GLIBC_2.4", "value": 2}, {"symbol_version_auxiliary": "GLIBC_2.4", "value": 2}]}'
+)
 
 MOCK_LIEF_RESULT = LiefResult(
     libraries=['libdl.so.2', 'libc.so.6'],
@@ -149,3 +154,4 @@ def test_plugin(stub_plugin, stub_object, monkeypatch):
     result_summary = sorted(stub_object.processed_analysis[stub_plugin.NAME]['summary'])
     assert result_summary == ['dynamic_entries', 'exported_functions', 'header', 'imported_functions', 'libraries', 'sections', 'segments', 'symbols_version']
     assert 'strcmp' in output['imported_functions']
+    assert output['segments'][0]['virtual_address'].startswith('0x'), 'addresses should be converted to hex'

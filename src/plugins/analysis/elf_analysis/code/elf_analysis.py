@@ -11,6 +11,10 @@ from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.hash import normalize_lief_items
 from helperFunctions.tag import TagColor
 
+LIEF_DATA_ENTRIES = (
+    'dynamic_entries', 'exported_functions', 'header', 'imported_functions', 'libraries', 'sections', 'segments',
+    'symbols_version'
+)
 TEMPLATE_FILE_PATH = os.path.join(get_dir_of_file(__file__), '../internal/matching_template.json')
 
 # pylint: disable=c-extension-no-member
@@ -110,9 +114,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     @staticmethod
     def get_final_analysis_dict(binary_json_dict, elf_dict):
         for key in binary_json_dict:
-            if key in ('header', 'segments', 'sections', 'dynamic_entries', 'exported_functions',
-                       'imported_functions', 'libraries', 'symbols_version')\
-                    and binary_json_dict[key]:
+            if key in LIEF_DATA_ENTRIES and binary_json_dict[key]:
                 elf_dict[key] = binary_json_dict[key]
 
     def _analyze_elf(self, file_object):
@@ -131,4 +133,12 @@ class AnalysisPlugin(AnalysisBasePlugin):
             return elf_dict
 
         self.get_final_analysis_dict(binary_json_dict, elf_dict)
+        self._convert_address_values_to_hex(elf_dict)
         return elf_dict, parsed_binary
+
+    @staticmethod
+    def _convert_address_values_to_hex(elf_dict):
+        for category in {'sections', 'segments'}.intersection(elf_dict):
+            for entry in elf_dict[category]:
+                for key in {'virtual_address', 'offset'}.intersection(entry):
+                    entry[key] = hex(entry[key])
