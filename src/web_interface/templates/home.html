@@ -92,7 +92,7 @@
 
                 let system_data = $.getJSON("/ajax/stats/system")
                 .success(function(system_data) {
-                    document.getElementById("cpu_percentage").innerHTML = system_data.backend_cpu_percentage + " %";
+                    document.getElementById("cpu_percentage").innerHTML = system_data.backend_cpu_percentage;
 
                     let running_node =  document.getElementById("currently_running");
                     if (system_data.number_of_running_analyses > 0) {

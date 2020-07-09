@@ -1,6 +1,7 @@
 import pytest
 
 from test.common_helper import TEST_FW, TEST_FW_2
+from test.mock import mock_patch
 from test.unit.web_interface.base import WebInterfaceTest
 from web_interface.components.ajax_routes import AjaxRoutes
 
@@ -32,8 +33,15 @@ class TestAppAjaxRoutes(WebInterfaceTest):
     def test_ajax_get_system_stats(self):
         result = self.test_client.get('/ajax/stats/system').json
 
-        assert result['backend_cpu_percentage'] == 13.37
+        assert result['backend_cpu_percentage'] == '13.37%'
         assert result['number_of_running_analyses'] == 2
+
+    def test_ajax_get_system_stats_error(self):
+        with mock_patch(self.mocked_interface, 'get_statistic', lambda _: {}):
+            result = self.test_client.get('/ajax/stats/system').json
+
+        assert result['backend_cpu_percentage'] == 'n/a'
+        assert result['number_of_running_analyses'] == 'n/a'
 
 
 @pytest.mark.parametrize('candidate, compare_id, expected_result', [
