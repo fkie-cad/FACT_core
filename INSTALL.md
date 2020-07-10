@@ -2,7 +2,7 @@
 
 FACT consists of three components: frontend, database and backend. All components can be installed on one machine as well as on different machines.
 There is an automated installation program supporting Ubuntu 16.04 and 18.04 host systems.  
-:exclamation: **The automated installation scipt might remove some packages of your ubuntu installation. In some cases FACT relies on newer versions of a software and replaces the old versions provided by the ubuntu repositories.**
+:exclamation: **The automated installation script might remove some packages of your ubuntu installation. In some cases FACT relies on newer versions of a software and replaces the old versions provided by the ubuntu repositories.**
 
 ## TL;DR
 Execute the following commands as user (not `root`!). 
