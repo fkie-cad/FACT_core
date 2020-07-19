@@ -39,7 +39,7 @@ class RestFirmware(Resource):
 
     def _process_data(self, data):
         for field in ['device_name', 'device_class', 'device_part', 'file_name', 'version', 'vendor', 'release_date',
-                      'requested_analysis_systems', 'binary']:
+                      'requested_analysis_systems', 'binary', 'webhook_url']:
             if field not in data.keys():
                 return dict(error_message='{} not found'.format(field))
 
