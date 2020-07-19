@@ -196,7 +196,14 @@
                         <span class="help-block">Optional: Comma separated list (e.g: flashdump,partial)</span>
                     </div>
                 </div>
-
+		
+		<label class="control-label" for="Webhook URL">Webhook URL:</label>
+		<div>
+		    <div>
+		        <input type="text" name="webhook_url" class="form-control" id="webhook_url" placeholder="Webhook URL">
+			<span class="help-block">Optional: Webhook url to be POST'd to after analysis completion</span>
+		    </div>
+		</div>
                 <script>
                 var plugin_dict = {{ analysis_plugin_dict | dict_to_json | safe }};
 

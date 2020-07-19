@@ -17,6 +17,7 @@ class Firmware(FileObject):
         self.vendor = None
         self.part = ''
         self.release_date = None
+        self.webhook_url = None
         self.tags = dict()
         self._update_root_id_and_virtual_path()
 
@@ -45,6 +46,9 @@ class Firmware(FileObject):
 
     def set_release_date(self, release_date):
         self.release_date = release_date
+
+    def set_webhook_url(self, webhook_url):
+        self.webhook_url = webhook_url
 
     def _update_root_id_and_virtual_path(self):
         self.root_uid = self.uid

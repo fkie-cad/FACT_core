@@ -52,7 +52,8 @@ def _get_meta_from_request(request):
         'version': escape(request.form['version']),
         'release_date': escape(request.form['release_date']),
         'requested_analysis_systems': request.form.getlist('analysis_systems'),
-        'tags': escape(request.form['tags'])
+        'tags': escape(request.form['tags']),
+        'webhook_ur;': escape(request.form('webhook_url')
     }
     _get_meta_from_dropdowns(meta, request)
 
@@ -90,6 +91,7 @@ def convert_analysis_task_to_fw_obj(analysis_task):
     fw.set_device_class(analysis_task['device_class'])
     fw.set_vendor(analysis_task['vendor'])
     fw.set_release_date(analysis_task['release_date'])
+    fw.set_webhook_url(analysistask['webhook_url'])
     for tag in _get_tag_list(analysis_task['tags']):
         fw.set_tag(tag)
     return fw

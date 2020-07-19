@@ -1,5 +1,6 @@
 import logging
 import pickle
+import requests
 from multiprocessing import Process, Value
 from time import sleep
 
@@ -115,6 +116,7 @@ class InterComBackEndAnalysisTask(InterComListener):
         self.fs_organizer = FS_Organizer(config=config)
 
     def post_processing(self, task, task_id):
+        requests.post(task.webhook_url, data={ 'task_id': task_id })
         self.fs_organizer.store_file(task)
         return task
 
