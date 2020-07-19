@@ -390,7 +390,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             self._remove_from_current_analyses(fw_object)
             if isinstance(fw_object, Firmware) and fw_object.webhook_url is not None:
                 try:
-                    requests.post(fw_object.webhook_url, data={'device_name': fw_object.device_name, 'version': fw_object.version)
+                    requests.post(fw_object.webhook_url, data={ 'device_name': fw_object.device_name, 'version': fw_object.version })
                 except:
                     logging.info('Problem with webhook request')
 
