@@ -21,7 +21,7 @@ FACT is designed as a multiprocess application, the more Cores and RAM, the bett
 
 Minimal | Recommended | Software
 ------- | ----------- | --------
-4 Cores<br>8GB RAM<br>10 GB disk space | 16 Cores<br>64GB RAM<br>10* GB disk space | git<br>python 3.5 - 3.7<br>OS see below
+4 Cores<br>8GB RAM<br>10 GB disk space | 16 Cores<br>64GB RAM<br>10* GB disk space | git<br>python 3.5 - 3.8<br>OS see below
 
 > ~ 10 GB required to set up FACT code, container and binaries. Additional space is necessary for result storage. That can be on a seperate partition or drive.
 
