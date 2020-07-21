@@ -110,6 +110,8 @@ def welcome():
 def check_python_version():
     if sys.version_info.major != 3 or sys.version_info.minor < 5:
         sys.exit('Error: Incompatible Python version! You need at least version 3.5! Your Version: {}'.format(sys.version))
+    if sys.version_info.minor == 5:
+        logging.warning('Deprecation warning: Python 3.5 support will be discontinued when it hits its End of Life in 09/2020')
 
 
 def check_distribution():

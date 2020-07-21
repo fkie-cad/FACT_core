@@ -27,6 +27,7 @@ Minimal | Recommended | Software
 
 It is possible to install FACT on any Linux distribution but the installer is limited to
 - Ubuntu 16.04, 18.04, 20.04 (stable)
+    - **Deprecation warning**: Ubuntu 16.04 support will be discontinued when Python 3.5 hits its End of Life in 09/2020
 - Ubuntu 19.04 (experimental)
 - Debian 9, 10 (experimental)
 - Kali (tested on 2019.3 and 2019.4) (experimental)
