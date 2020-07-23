@@ -13,12 +13,6 @@ import psutil
 from helperFunctions.logging import TerminalColors, color_string
 
 
-def no_operation(*_):
-    '''
-    No Operation
-    '''
-
-
 def complete_shutdown(message=None):
     if message is not None:
         logging.error(message)
