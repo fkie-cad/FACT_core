@@ -9,10 +9,7 @@ then
 	sudo dnf install -y ShellCheck || exit 1
 
 	echo " Installing lua linter..."
-	sudo dnf install -y lua || exit 1
-	sudo dnf install -y lua-devel || exit 1
-	sudo dnf install -y luarocks || exit 1
-
+	sudo dnf install -y lua lua-devel luarocks || exit 1
 	sudo luarocks install luafilesystem || exit 1
 	sudo luarocks install argparse || exit 1
 	sudo luarocks install luacheck || exit 1
@@ -29,7 +26,7 @@ else
 	sudo apt-get install -y shellcheck || exit 1
 
 	echo " Installing lua linter..."
-	sudo apt-get install -y luarocks || exit 1
+	sudo apt-get install -y luarocks lua5.3 liblua5.3-dev || exit 1
 	sudo luarocks install luafilesystem || exit 1
 	sudo luarocks install argparse || exit 1
 	sudo luarocks install luacheck || exit 1
