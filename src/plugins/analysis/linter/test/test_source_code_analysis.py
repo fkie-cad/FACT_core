@@ -1,8 +1,14 @@
+from pathlib import Path
+
 import pytest
 
 from test.common_helper import create_test_file_object, get_config_for_testing
 
 from ..code.source_code_analysis import AnalysisPlugin
+
+# pylint: disable=redefined-outer-name
+
+PYLINT_TEST_FILE = Path(__file__).parent / 'data' / 'linter_test_file'
 
 
 class MockAdmin:
@@ -73,11 +79,12 @@ def test_process_object_not_supported(stub_plugin, test_object):
 
 
 def test_process_object_this_file(stub_plugin):
-    test_file = create_test_file_object(bin_path=__file__)
+    test_file = create_test_file_object(bin_path=str(PYLINT_TEST_FILE))
     stub_plugin.process_object(test_file)
     result = test_file.processed_analysis[stub_plugin.NAME]
     assert result['full']
     assert result['full'][0]['type'] == 'warning'
+    assert result['full'][0]['symbol'] == 'unused-import'
 
 
 def test_process_object_no_issues(stub_plugin, test_object, monkeypatch):
