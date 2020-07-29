@@ -79,7 +79,7 @@ def test_process_object_not_supported(stub_plugin, test_object):
 
 
 def test_process_object_this_file(stub_plugin):
-    test_file = create_test_file_object(bin_path=PYLINT_TEST_FILE)
+    test_file = create_test_file_object(bin_path=str(PYLINT_TEST_FILE))
     stub_plugin.process_object(test_file)
     result = test_file.processed_analysis[stub_plugin.NAME]
     assert result['full']
