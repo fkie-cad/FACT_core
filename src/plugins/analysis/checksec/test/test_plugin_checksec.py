@@ -10,7 +10,7 @@ FILE_PATH = 'usr/test_dir/path'
 
 
 class TestAnalysisPluginChecksec(AnalysisPluginTest):
-    PLUGIN_NAME = "exploit_mitigations"
+    PLUGIN_NAME = 'exploit_mitigations'
 
     def setUp(self):
         super().setUp()
@@ -90,6 +90,14 @@ class TestAnalysisPluginChecksec(AnalysisPluginTest):
         check_nx_or_canary(FILE_PATH, resD, sumD, readelf, 'Canary')
         self.assertEqual(resD, {'Canary': 'enabled'})
         self.assertEqual(sumD, {'Canary enabled': 'usr/test_dir/path'})
+
+    def test_canaries_and_no_fortify(self):
+        resD, sumD = {}, {}
+        readelf = ' 0x000000000 0xabcdefghi !?* __stack_chk_fail GNU_STACK 0x00000054a 0xabcdefghijk 0x0000000000 RWE'
+        check_nx_or_canary(FILE_PATH, resD, sumD, readelf, 'Canary')
+        check_fortify(FILE_PATH, resD, sumD, readelf)
+        self.assertEqual(resD, {'Canary': 'enabled', 'FORTIFY_SOURCE': 'disabled'})
+        self.assertEqual(sumD, {'Canary enabled': 'usr/test_dir/path', 'FORTIFY_SOURCE disabled': 'usr/test_dir/path'})
 
     def test_fortify_source(self):
         resD, sumD = {}, {}

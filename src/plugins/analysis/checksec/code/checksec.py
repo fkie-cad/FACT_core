@@ -3,15 +3,15 @@ import re
 from common_helper_process import execute_shell_command
 from analysis.PluginBase import AnalysisBasePlugin
 
-READELF_FULL = 'readelf -W -l -d -s -h {} '
+READELF_CALL = 'readelf -W -l -d --dyn-syms -h {} '
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
-    NAME = "exploit_mitigations"
-    DESCRIPTION = "analyses ELF binaries within a firmware for present exploit mitigation techniques"
+    NAME = 'exploit_mitigations'
+    DESCRIPTION = 'analyses ELF binaries within a firmware for present exploit mitigation techniques'
     DEPENDENCIES = ['file_type']
     MIME_WHITELIST = ['application/x-executable', 'application/x-object', 'application/x-sharedlib']
-    VERSION = "0.1.2"
+    VERSION = '0.1.3'
 
     def __init__(self, plugin_administrator, config=None, recursive=True):
         self.config = config
@@ -26,12 +26,14 @@ class AnalysisPlugin(AnalysisBasePlugin):
             else:
                 file_object.processed_analysis[self.NAME]['summary'] = []
         except Exception as e:
-            file_object.processed_analysis[self.NAME]['summary'] = ['Error - Firmware could not be processed properly: {}'.format(e)]
+            file_object.processed_analysis[self.NAME]['summary'] = [
+                'Error - Firmware could not be processed properly: {}'.format(e)
+            ]
         return file_object
 
 
 def get_readelf_result(path):
-    readelf_full = execute_shell_command(READELF_FULL.format(path))
+    readelf_full = execute_shell_command(READELF_CALL.format(path))
     return readelf_full
 
 
@@ -49,7 +51,7 @@ def check_relro(file_path, dict_res, dict_sum, readelf):
 
 
 def check_fortify(file_path, dict_res, dict_sum, readelf):
-    if re.search(r'_chk', readelf):
+    if re.search(r'__\w+_chk@', readelf):
         dict_sum.update({'FORTIFY_SOURCE enabled': file_path})
         dict_res.update({'FORTIFY_SOURCE': 'enabled'})
     else:
@@ -88,6 +90,10 @@ def check_nx_or_canary(file_path, dict_res, dict_sum, readelf, flag):
             mitigation_off = False
     else:
         return None
+    _set_nx_canary_result(dict_res, dict_sum, file_path, flag, mitigation_off)
+
+
+def _set_nx_canary_result(dict_res, dict_sum, file_path, flag, mitigation_off):
     if mitigation_off is True:
         dict_sum.update({'{} disabled'.format(flag): file_path})
         dict_res.update({flag: 'disabled'})
