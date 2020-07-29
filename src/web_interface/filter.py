@@ -228,8 +228,8 @@ def data_to_chart_limited(data, limit=10, color_list=None):
         'datasets': [{
             'data': value_list,
             'backgroundColor': color_list,
-            'borderColor': color_list,
-            'borderWidth': 1
+            'borderColor': '#fff',
+            'borderWidth': 2
         }]
     }
     return result
@@ -248,8 +248,8 @@ def data_to_chart_with_value_percentage_pairs(data, limit=10, color_list=None): 
             'data': value_list,
             'percentage': percentage_list,
             'backgroundColor': color_list,
-            'borderColor': color_list,
-            'borderWidth': 1
+            'borderColor': '#fff',
+            'borderWidth': 2
         }]
     }
     return result

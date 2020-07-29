@@ -100,13 +100,21 @@ function create_pie_chart(canvas_id, chart_data, link, value_percentage_present_
         max = Math.max(...chart_data.datasets[0].data);
     }
     chart_opt.scales.xAxes[0].ticks.max = max * 1.05;
-    chart_data.datasets[0].borderWidth = 3;
 
     var PieChart = new Chart(
         ctx, {
             type: "doughnut",
             data: chart_data,
-            options: Chart.defaults.doughnut
+            options: {
+                legend: {
+                    fullWidth: false,
+                    position: 'right',
+                    labels: {
+                        boxWidth: 20,
+                        fontSize: 10
+                    }
+            }
+        }
         }
     );
 

@@ -148,7 +148,7 @@
     {% if data_set %}
         {% if data_set[key] %}
             {% call macros.stats_panel(title) %}
-                <canvas id="{{ key }}_canvas" width="100%" height="{{ data_set[key] | get_canvas_height }}"></canvas>
+                <canvas id="{{ key }}_canvas" width="80%" height="80%"></canvas>
                 <script>
                     create_pie_chart(
                         canvas_id="{{ key }}_canvas",

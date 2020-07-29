@@ -2,6 +2,8 @@ import json
 import os
 import re
 from datetime import timedelta
+from matplotlib import cm, colors
+
 
 from common_helper_files import get_binary_from_file
 from passlib.context import CryptContext
@@ -22,10 +24,16 @@ BS_SECONDARY = '#6c757d'
 
 def get_color_list(number, limit=15):
     # https://getbootstrap.com/docs/4.5/getting-started/theming/
-    return [
-        '#007bff', '#e83e8c', '#6610f2', '#fd7e14', '#6f42c1', '#20c997',
-        '#dc3545', '#17a2b8', '#ffc107', '#28a745', '#6c757d', '#343a40'
-    ][:number if number <= limit else limit]
+    # return [
+    #    '#007bff', '#e83e8c', '#6610f2', '#fd7e14', '#6f42c1', '#20c997',
+    #    '#dc3545', '#17a2b8', '#ffc107', '#28a745', '#6c757d', '#343a40'
+    # ][:number if number <= limit else limit]
+    color_map = cm.get_cmap('terrain')  # PiYG
+    color_list = []
+    for i in range(15, 256, 16):
+        rgb = color_map(i)
+        color_list.append(colors.rgb2hex(rgb))
+    return color_list[:number if number <= limit else limit]
 
 
 def overwrite_default_plugins(intercom, checked_plugin_list):
