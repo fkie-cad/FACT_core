@@ -96,7 +96,7 @@ class CompareDbInterface(MongoInterfaceCommon):
 
     def get_entropy(self, uid):
         file_object_entry = self.file_objects.find_one({'_id': uid}, {'processed_analysis.unpacker.entropy': 1})
-        return file_object_entry['processed_analysis']['unpacker']['entropy'] if 'unpacker' in file_object_entry['processed_analysis'] else 0.0
+        return file_object_entry['processed_analysis']['unpacker']['entropy'] if 'unpacker' in file_object_entry['processed_analysis'] and 'entropy' in file_object_entry['processed_analysis']['unpacker'] else 0.0
 
     def get_exclusive_files(self, compare_id: str, root_uid: str) -> List[str]:
         if compare_id is None or root_uid is None:

@@ -1,4 +1,5 @@
 !.coveragerc
+.vscode/
 *.log
 *.pyc
 *.yc

@@ -33,7 +33,8 @@ try:
     from install.backend import main as backend
     from install.db import main as db
 except ImportError:
-    sys.exit('Could not import install dependencies. Please (re-)run install/pre_install.sh')
+    logging.critical('Could not import install dependencies. Please (re-)run install/pre_install.sh', exc_info=True)
+    sys.exit(1)
 
 PROGRAM_NAME = 'FACT Installer'
 PROGRAM_VERSION = '1.1'
@@ -44,7 +45,7 @@ INSTALL_CANDIDATES = ['frontend', 'db', 'backend']
 BIONIC_CODE_NAMES = ['bionic', 'tara', 'tessa', 'tina', 'disco']
 XENIAL_CODE_NAMES = ['xenial', 'yakkety', 'sarah', 'serena', 'sonya', 'sylvia']
 DEBIAN_CODE_NAMES = ['buster', 'stretch', 'kali-rolling']
-FOCAL_CODE_NAMES = ['focal']
+FOCAL_CODE_NAMES = ['focal', 'ulyana']
 
 
 def _setup_argparser():
@@ -109,6 +110,8 @@ def welcome():
 def check_python_version():
     if sys.version_info.major != 3 or sys.version_info.minor < 5:
         sys.exit('Error: Incompatible Python version! You need at least version 3.5! Your Version: {}'.format(sys.version))
+    if sys.version_info.minor == 5:
+        logging.warning('Deprecation warning: Python 3.5 support will be discontinued when it hits its End of Life in 09/2020')
 
 
 def check_distribution():
@@ -125,6 +128,9 @@ def check_distribution():
     if codename in DEBIAN_CODE_NAMES:
         logging.debug('Debian/Kali detected')
         return 'debian'
+    if distro.id() == 'fedora':
+        logging.debug('Fedora detected')
+        return 'fedora'
     sys.exit('Your Distribution ({} {}) is not supported. FACT Installer requires Ubuntu 16.04, Ubuntu 18.04 or compatible!'.format(distro.id(), distro.version()))
 
 
@@ -162,7 +168,7 @@ def install():
         if args.db or none_chosen:
             db(distribution)
         if args.backend or none_chosen:
-            backend()
+            backend(distribution)
 
     if args.statistic_cronjob:
         install_statistic_cronjob()

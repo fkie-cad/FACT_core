@@ -3,7 +3,9 @@
 FACTUSER=$(whoami)
 
 CODENAME=$(lsb_release -cs)
-if [ "${CODENAME}" = "tara" ] || [ "${CODENAME}" = "tessa" ] || [ "${CODENAME}" = "tina" ]; then
+if [ "${CODENAME}" = "ulyana" ]; then
+    CODENAME=focal
+elif [ "${CODENAME}" = "tara" ] || [ "${CODENAME}" = "tessa" ] || [ "${CODENAME}" = "tina" ]; then
     CODENAME=bionic
 elif [ "${CODENAME}" = "sarah" ] || [ "${CODENAME}" = "serena" ] || [ "${CODENAME}" = "sonya" ] || [ "${CODENAME}" = "sylvia" ]; then
     CODENAME=xenial
@@ -76,6 +78,7 @@ sudo -EH pip3 install --upgrade virtualenv
 echo "Installing Python Libraries for python based installation"
 sudo -EH pip3 install --upgrade distro
 sudo -EH pip3 install --upgrade python-magic
+sudo -EH pip3 install --upgrade requests
 
 sudo -EH pip3 install --upgrade git+https://github.com/fkie-cad/common_helper_files.git
 sudo -EH pip3 install --upgrade git+https://github.com/fkie-cad/common_helper_process.git

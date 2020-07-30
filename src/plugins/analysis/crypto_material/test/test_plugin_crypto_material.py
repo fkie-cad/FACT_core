@@ -1,4 +1,5 @@
 import os
+
 from common_helper_files import get_dir_of_file
 
 from test.unit.analysis.AbstractSignatureTest import AbstractSignatureTest
@@ -23,6 +24,9 @@ class CryptoCodeMaterialTest(AbstractSignatureTest):
 
     def test_ssh_private(self):
         self._rule_match('id_rsa', 'SshRsaPrivateKeyBlock', expected_number_of_rules=2)
+
+    def test_ssh_private_encrypted(self):
+        self._rule_match('id_rsa_encrypted', 'SshEncryptedRsaPrivateKeyBlock', expected_number_of_rules=2)
 
     def test_PKCS8(self):
         self._rule_match('pkcs', 'Pkcs8PrivateKey', expected_number_of_rules=2)

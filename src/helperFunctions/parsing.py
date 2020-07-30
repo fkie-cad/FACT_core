@@ -25,7 +25,7 @@ def _determine_format_string(length=None):
     return formats[length - 1]
 
 
-def read_asn1_key(binary=None, offset=None):
+def read_asn1_key(binary: bytes, offset: int):
     if binary[offset] not in TLV_KNOWN_STARTS:
         return None
     start, size = _get_start_and_size_of_der_field(binary=binary, offset=offset)
@@ -40,7 +40,7 @@ def read_asn1_key(binary=None, offset=None):
         return None
 
 
-def read_pkcs_cert(binary=None, offset=None):
+def read_pkcs_cert(binary: bytes, offset: int):
     if binary[offset] not in TLV_KNOWN_STARTS:
         return None
     start, size = _get_start_and_size_of_der_field(binary=binary, offset=offset)
@@ -52,7 +52,7 @@ def read_pkcs_cert(binary=None, offset=None):
         return None
 
 
-def read_ssl_cert(binary=None, start=None, end=None):
+def read_ssl_cert(binary: bytes, start: int, end: int):
     try:
         cert = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, binary[start:end + 25])
         return make_unicode_string(OpenSSL.crypto.dump_certificate(OpenSSL.crypto.FILETYPE_TEXT, cert))
