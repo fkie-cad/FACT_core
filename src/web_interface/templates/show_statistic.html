@@ -153,7 +153,7 @@
                     create_pie_chart(
                         canvas_id="{{ key }}_canvas",
                         chart_data={{ data_set[key] | sort_chart_list_by_value | data_to_chart_limited | safe }},
-                        link="{{ query_url + query | json_dumps | urlencode }}",
+                        link="{{ query_url + query | json_dumps | urlencode }}"
                     );
                 </script>
             {% endcall %}

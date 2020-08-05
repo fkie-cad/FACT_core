@@ -26,6 +26,7 @@ def get_color_list(number, limit=10):
 
 def get_alternating_color_list(number, limit=10):
     color_list = get_color_list(8)
+    # color_list[0] is blue, color_list[7] is yellow
     alternating_color_list = [color_list[0], color_list[7]] * (limit // 2 + 1)
     return alternating_color_list[:min(number, limit)]
 
