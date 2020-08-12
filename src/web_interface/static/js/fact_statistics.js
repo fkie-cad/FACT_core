@@ -59,7 +59,7 @@ function _add(a, b){
     return a + b;
 }
 
-function set_links(canvas_id, any_chart) {
+function set_links(canvas_id, any_chart, link) {
 
     document.getElementById(canvas_id).onclick = function(evt){
         var points = any_chart.getElementsAtEvent(evt);
@@ -90,7 +90,7 @@ function create_horizontal_bar_chart(canvas_id, chart_data, link, value_percenta
         }
     );
 
-    set_links(canvas_id, BarChart);
+    set_links(canvas_id, BarChart, link);
 
     return BarChart;
 }
@@ -115,8 +115,8 @@ function create_pie_chart(canvas_id, chart_data, link) {
         }
     );
 
-    set_links(canvas_id, PieChart);
+    set_links(canvas_id, PieChart, link);
 
     return PieChart;
-};
+}
 
