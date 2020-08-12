@@ -4,6 +4,7 @@ import re
 from datetime import timedelta
 
 from common_helper_files import get_binary_from_file
+from matplotlib import cm, colors
 from passlib.context import CryptContext
 from si_prefix import si_format
 
@@ -16,12 +17,18 @@ SPECIAL_CHARACTERS = (
     'ŔŕŘřẞßŚśŜŝŞşŠšȘșŤťŢţÞþȚțÜüÙùÚúÛûŰűŨũŲųŮůŪūŴŵÝýŸÿŶŷŹźŽžŻż'
 )
 
-BS_PRIMARY = '#007bff'
-BS_SECONDARY = '#6c757d'
+
+def get_color_list(number, limit=10):
+    color_map = cm.get_cmap('rainbow')
+    color_list = [colors.rgb2hex(color_map(i)) for i in range(32, 256, 22)]
+    return color_list[:min(number, limit)]
 
 
-def get_color_list(number, limit=15):
-    return ([BS_PRIMARY, BS_SECONDARY, ] * 8)[:number if number <= limit else limit]
+def get_alternating_color_list(number, limit=10):
+    color_list = get_color_list(8)
+    # color_list[0] is blue, color_list[7] is yellow
+    alternating_color_list = [color_list[0], color_list[7]] * (limit // 2 + 1)
+    return alternating_color_list[:min(number, limit)]
 
 
 def overwrite_default_plugins(intercom, checked_plugin_list):
