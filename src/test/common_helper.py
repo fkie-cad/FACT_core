@@ -43,7 +43,7 @@ def create_test_firmware(device_class='Router', device_name='test_router', vendo
     processed_analysis = {
         'dummy': {'summary': ['sum a', 'fw exclusive sum a'], 'content': 'abcd'},
         'unpacker': {'plugin_used': 'used_unpack_plugin'},
-        'file_type': {'mime': 'test_type', 'full': 'Not a PE file'}
+        'file_type': {'mime': 'test_type', 'full': 'Not a PE file', 'summary': ['a summary']}
     }
 
     fw.processed_analysis.update(processed_analysis)
