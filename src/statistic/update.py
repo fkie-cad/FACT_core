@@ -231,7 +231,8 @@ class StatisticUpdater:
         fo_packing_stats = dict(self._get_objects_and_count_of_occurrence_single_db(self.db.file_objects, '$processed_analysis.unpacker.summary', unwind=True))
         firmware_packing_stats = dict(self._get_objects_and_count_of_occurrence_single_db(self.db.file_objects, '$processed_analysis.unpacker.summary', unwind=True))
         return {
-            'used_unpackers': self._get_objects_and_count_of_occurrence('$processed_analysis.unpacker.plugin_used'),
+            'used_unpackers': self._get_objects_and_count_of_occurrence(
+                '$processed_analysis.unpacker.plugin_used', match={'processed_analysis.unpacker.number_of_unpacked_files': {'$gt': 0}}),
             'packed_file_types': self._get_objects_and_count_of_occurrence_single_db(
                 self.db.file_objects, '$processed_analysis.file_type.mime', match={'processed_analysis.unpacker.summary': 'packed'}),
             'data_loss_file_types': self._get_objects_and_count_of_occurrence(
