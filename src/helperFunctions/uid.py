@@ -5,16 +5,16 @@ from helperFunctions.dataConversion import make_bytes
 from helperFunctions.hash import get_sha256
 
 
-def create_uid(input_data: AnyStr) -> str:
+def create_uid(input_data: bytes) -> str:
     '''
-    generate a UID (unique identifier) SHA256_SIZE for a string containing data
+    generate a UID (unique identifier) SHA256_SIZE for a byte string containing data (e.g. a binary)
 
     :param input_data: the data to generate the UID for
     :return: a string containing the UID
     '''
     hash_value = get_sha256(input_data)
     size = len(make_bytes(input_data))
-    return "{}_{}".format(hash_value, size)
+    return '{}_{}'.format(hash_value, size)
 
 
 def is_uid(input_string: AnyStr) -> bool:
