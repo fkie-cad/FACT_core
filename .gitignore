@@ -13,8 +13,8 @@
 .vscode/
 10k-most-common.txt
 coverage.xml
-docs/_build
-docs/_static
+docsrc/_build
+docsrc/_static
 htmlcov
 log/
 nose2-junit.xml
