@@ -12,14 +12,21 @@ jobs:
     # check out repository
     - uses: actions/checkout@v2
 
-    # install deps and trigger docs build
+    - name: Setup Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.8'
+
+    - name: install deps
+      run: |
+        python3 -m pip install --upgrade pip
+        python3 -m pip install -r ./docsrc/doc_dependencies.txt
+
     - name: Build Docs
       run: |
-        pip3 install --user -r ./docsrc/doc_dependencies.txt
         make -C docsrc html
         touch ./docsrc/_build/html/.nojekyll
 
-    # deploy built docs
     - name: Deploy Docs to gh-pages
       uses: peaceiris/actions-gh-pages@v3
       with:
