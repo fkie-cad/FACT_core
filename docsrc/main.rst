@@ -141,3 +141,9 @@ If you have any further questions, write a [mail](mailto:firmware-security@fkie.
 # Authors and Acknowledgment
 FACT is developed by `Fraunhofer FKIE <https://www.fkie.fraunhofer.de>`_ and the FACT community.
 Development is partly financed by `German Federal Office for Information Security (BSI) <https://www.bsi.bund.de>`_ and others.
+
+
+Source Code
+==================================
+
+Source code and issue board live at `GitHub <https://github.com/fkie-cad/FACT_core/wiki>`_.

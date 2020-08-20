@@ -2,6 +2,12 @@
    :width: 625
    :alt: FACT Logo
 
+About
+============
+
+The Firmware Analysis and Comparison Tool (FACT) is intended to automate Firmware Security analysis (Router, IoT, UEFI, Webcams, Drones, …).
+Thereby it shall be easy to use (web UI), extend (plug-in system) and integrate (REST API).
+
 
 Contents
 ============
