@@ -15,8 +15,9 @@ jobs:
     # install deps and trigger docs build
     - name: Build Docs
       run: |
-        pip3 install --user -r docsrc/doc_dependencies.txt
+        pip3 install --user -r ./docsrc/doc_dependencies.txt
         make -C docsrc html
+        touch ./docsrc/_build/html/.nojekyll
 
     # deploy built docs
     - name: Deploy Docs to gh-pages
