@@ -5,7 +5,7 @@ Firmware analysis is a tough challenge with a lot of tasks.
 Many of these tasks can be automated (either with new approaches or incorporation of existing tools) so that a security analyst can focus on his main task: Analyzing the firmware (and finding vulnerabilities).
 FACT implements this automation leading to more complete analysis as well as a massive speedup in vulnerability hunting (see picture blow).
 
-.. image:: ../docs/images/FACT_Vulnerability_Hunting.png
+.. image:: images/FACT_Vulnerability_Hunting.png
    :width: 100%
    :alt: FACT analysis speedup
 
@@ -91,32 +91,32 @@ More Details can be found in our `REST API documentation <https://github.com/fki
 Screenshots
 ==================================
 
-.. image:: ../docs/FACT_screenshots/01_main.png
+.. image:: images/01_main.png
    :width: 30%
-.. image:: ../docs/FACT_screenshots/02_upload.png
+.. image:: images/02_upload.png
    :width: 30%
-.. image:: ../docs/FACT_screenshots/03_firmware_view.png
-   :width: 30%
-
-.. image:: ../docs/FACT_screenshots/04_users_and_passwords.png
-   :width: 30%
-.. image:: ../docs/FACT_screenshots/05_cve_lookup.png
-   :width: 30%
-.. image:: ../docs/FACT_screenshots/06_binwalk.png
+.. image:: images/03_firmware_view.png
    :width: 30%
 
-.. image:: ../docs/FACT_screenshots/07_qemu_exec.png
+.. image:: images/04_users_and_passwords.png
    :width: 30%
-.. image:: ../docs/FACT_screenshots/08_compare.png
+.. image:: images/05_cve_lookup.png
    :width: 30%
-.. image:: ../docs/FACT_screenshots/09_system.png
+.. image:: images/06_binwalk.png
    :width: 30%
 
-.. image:: ../docs/FACT_screenshots/10_user_management.png
+.. image:: images/07_qemu_exec.png
    :width: 30%
-.. image:: ../docs/FACT_screenshots/11_advanced_search_result.png
+.. image:: images/08_compare.png
    :width: 30%
-.. image:: ../docs/FACT_screenshots/12_yara_search.png
+.. image:: images/09_system.png
+   :width: 30%
+
+.. image:: images/10_user_management.png
+   :width: 30%
+.. image:: images/11_advanced_search_result.png
+   :width: 30%
+.. image:: images/12_yara_search.png
    :width: 30%
 
 
