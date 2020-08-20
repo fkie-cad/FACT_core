@@ -15,8 +15,9 @@ sys.path.insert(0, str(FACT_SRC))
 
 # -- Project information -----------------------------------------------------
 
+# pylint: disable=redefined-builtin,invalid-name
 project = 'FACT'
-copyright = '2020, jstucke'
+copyright = '2020, Fraunhofer FKIE'
 author = 'jstucke'
 
 
