@@ -134,11 +134,17 @@ You are welcome to improve the FACT_core as well.
 Please have a look at our `Coding Guidelines <https://github.com/fkie-cad/FACT_core/wiki/coding-guidelines>`_ before creating a pull request.
 No matter how you would like to contribute: If you have any question, do not hesitate to ask.
 
-# Latest News and Contact
-Follow us on Twitter `@FAndCTool <https://twitter.com/FAandCTool>`_ to get the latest news about FACT.
-If you have any further questions, write a [mail](mailto:firmware-security@fkie.fraunhofer.de).
 
-# Authors and Acknowledgment
+Latest News and Contact
+==================================
+
+Follow us on Twitter `@FAndCTool <https://twitter.com/FAandCTool>`_ to get the latest news about FACT.
+If you have any further questions, write a `mail <mailto:firmware-security@fkie.fraunhofer.de>`_.
+
+
+Authors and Acknowledgment
+==================================
+
 FACT is developed by `Fraunhofer FKIE <https://www.fkie.fraunhofer.de>`_ and the FACT community.
 Development is partly financed by `German Federal Office for Information Security (BSI) <https://www.bsi.bund.de>`_ and others.
 
