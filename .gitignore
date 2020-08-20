@@ -17,7 +17,6 @@ docs/.buildinfo
 docs/_sources
 docs/objects.inv
 docsrc/_build
-docsrc/_static
 htmlcov
 log/
 nose2-junit.xml
