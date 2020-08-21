@@ -56,7 +56,14 @@ html_logo = "../src/web_interface/static/FACT_smaller.png"
 
 # This value contains a list of modules to be mocked up. This is useful when some external dependencies
 # are not met at build time and break the building process. You may only specify the root package
-autodoc_mock_imports = ["lief", "ssdeep", "tlsh", "common_helper_files"]
+autodoc_mock_imports = [
+    "common_helper_files",
+    "docker",
+    "lief",
+    "requests",
+    "ssdeep",
+    "tlsh",
+]
 
 # This value controls how to represents typehints. The setting takes the following values:
 #     'signature' – Show typehints as its signature (default)
