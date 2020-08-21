@@ -3,7 +3,6 @@ import pickle
 import unittest
 from tempfile import TemporaryDirectory
 
-from helperFunctions.entropy import generate_random_data
 from intercom.common_mongo_binding import InterComListener
 from storage.MongoMgr import MongoMgr
 from test.common_helper import get_config_for_testing
@@ -45,5 +44,5 @@ class TestInterComListener(unittest.TestCase):
         self.check_file(b'this is a test')
 
     def test_big_file(self):
-        large_test_data = generate_random_data(size=BSON_MAX_FILE_SIZE + 1024)
+        large_test_data = b'\x00' * (BSON_MAX_FILE_SIZE + 1024)
         self.check_file(large_test_data)
