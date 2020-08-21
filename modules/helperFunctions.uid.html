@@ -168,8 +168,59 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="helperfunctions-uid-module">
-<h1>helperFunctions.uid module<a class="headerlink" href="#helperfunctions-uid-module" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-helperFunctions.uid">
+<span id="helperfunctions-uid-module"></span><h1>helperFunctions.uid module<a class="headerlink" href="#module-helperFunctions.uid" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt id="helperFunctions.uid.create_uid">
+<code class="sig-prename descclassname">helperFunctions.uid.</code><code class="sig-name descname">create_uid</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_data</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.uid.create_uid" title="Permalink to this definition">¶</a></dt>
+<dd><p>generate a UID (unique identifier) SHA256_SIZE for a byte string containing data (e.g. a binary)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>input_data</strong> (<em>bytes</em>) – the data to generate the UID for</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a string containing the UID</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="helperFunctions.uid.is_list_of_uids">
+<code class="sig-prename descclassname">helperFunctions.uid.</code><code class="sig-name descname">is_list_of_uids</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_list</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.uid.is_list_of_uids" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if all elements of a list are valid UIDs</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>input_list</strong> (<em>Union</em><em>[</em><em>List</em><em>, </em><em>Set</em><em>]</em>) – the list to check</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>true if input list contains only valid UIDs and false otherwise</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="helperFunctions.uid.is_uid">
+<code class="sig-prename descclassname">helperFunctions.uid.</code><code class="sig-name descname">is_uid</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_string</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.uid.is_uid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if a string is a valid UID</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>input_string</strong> (<em>AnyStr</em>) – the string to check</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>true if input string is a valid uid and false otherwise</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
 </div>
 
 
