@@ -1,0 +1,25 @@
+name: Docs CI
+
+on:
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Setup Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.8'
+
+    - name: install deps
+      run: |
+        python3 -m pip install --upgrade pip
+        python3 -m pip install -r ./docsrc/doc_dependencies.txt
+        
+    - name: Build Docs
+      run: make -C docsrc html
