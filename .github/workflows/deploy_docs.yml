@@ -19,7 +19,7 @@ jobs:
 
     - name: install deps
       run: |
-        python3 -m pip install --upgrade pip
+        python3 -m pip install --upgrade pip wheel setuptools
         python3 -m pip install -r ./docsrc/doc_dependencies.txt
         python3 -m pip install -r ./docsrc/autodoc_dependencies.txt
 
