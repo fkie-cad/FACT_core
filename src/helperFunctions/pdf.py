@@ -6,11 +6,26 @@ from typing import Tuple
 
 from common_helper_encoder import ReportEncoder
 from common_helper_process import execute_shell_command_get_return_code
+
 from helperFunctions.object_conversion import create_meta_dict
 from objects.firmware import Firmware
 
 
 def build_pdf_report(firmware: Firmware, folder: Path) -> Tuple[bytes, Path]:
+    '''
+    Creates a pdf report for the given firmware by calling the fact_pdf_report docker container.
+
+    .. admonition:: About the pdf report
+
+        The pdf report tool is based on the jinja2 templating engine and renders a
+        latex file that is build into a one page overview of the analysis results.
+        For all technical details refer to the
+        `implementation <https://github.com/fkie-cad/fact_pdf_report>`_.
+
+    :param firmware: The firmware to generate the pdf report for
+    :param folder: An empty folder in which to generate the resulting pdf in
+    :return: A tuple containing the pdf as binary and it's file path inside the given folder
+    '''
     _initialize_subfolder(folder, firmware)
 
     output, return_code = execute_shell_command_get_return_code(
