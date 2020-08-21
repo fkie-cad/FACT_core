@@ -1,5 +1,4 @@
 !.coveragerc
-.vscode/
 *.log
 *.pyc
 *.yc
@@ -11,8 +10,13 @@
 .pydevproject
 .pytest_cache
 .settings/
+.vscode/
 10k-most-common.txt
 coverage.xml
+docs/.buildinfo
+docs/_sources
+docs/objects.inv
+docsrc/_build
 htmlcov
 log/
 nose2-junit.xml
