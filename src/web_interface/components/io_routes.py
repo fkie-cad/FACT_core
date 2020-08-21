@@ -115,8 +115,8 @@ class IORoutes(ComponentBase):
             target_link = '{}{}m/'.format(host, response.json()['endpoint'])
             sleep(1)
             return redirect(target_link)
-        except Exception as exception:
-            return render_template('error.html', message=str(exception))
+        except (ConnectionError, TimeoutError, KeyError) as error:
+            return render_template('error.html', message=str(error))
 
     @roles_accepted(*PRIVILEGES['download'])
     def _download_pdf_report(self, uid):
@@ -130,7 +130,8 @@ class IORoutes(ComponentBase):
 
         try:
             with TemporaryDirectory(dir=get_temp_dir_path(self._config)) as folder:
-                binary, pdf_path = build_pdf_report(firmware, folder)
+                pdf_path = build_pdf_report(firmware, folder)
+                binary = pdf_path.read_bytes()
         except RuntimeError as error:
             return render_template('error.html', message=str(error))
 
