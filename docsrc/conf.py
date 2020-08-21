@@ -28,7 +28,6 @@ author = 'jstucke'
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
-    'sphinx_autodoc_typehints',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -54,6 +53,16 @@ html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
 
 html_logo = "../src/web_interface/static/FACT_smaller.png"
+
+# This value contains a list of modules to be mocked up. This is useful when some external dependencies
+# are not met at build time and break the building process. You may only specify the root package
+autodoc_mock_imports = ["lief", "ssdeep", "tlsh"]
+
+# This value controls how to represents typehints. The setting takes the following values:
+#     'signature' – Show typehints as its signature (default)
+#     'description' – Show typehints as content of function or method
+#     'none' – Do not show typehints
+autodoc_typehints = "description"
 
 
 def setup(app):
