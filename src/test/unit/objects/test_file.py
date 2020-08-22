@@ -52,7 +52,7 @@ class TestObjectsFile:  # pylint: disable=no-self-use
     def test_get_virtual_file_path(self):
         fo = FileObject(binary=b'file_object')
         assert fo.uid in fo.get_virtual_file_paths().keys(), 'not correct if path _ name not set'
-        fo.set_name('the_file_name.txt')
+        fo.file_name('the_file_name.txt')
         assert fo.get_virtual_file_paths()[fo.uid][0] == fo.uid, 'not correct if path not set'
         fo.virtual_file_path = {fo.uid: '/foo/bar/the_file_name.txt'}
         assert fo.get_virtual_file_paths()[fo.uid] == '/foo/bar/the_file_name.txt', 'not correct if path set'

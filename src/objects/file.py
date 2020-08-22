@@ -1,5 +1,6 @@
 import logging
-import os
+from pathlib import Path
+from typing import Optional
 
 from common_helper_files import get_binary_from_file
 
@@ -12,12 +13,30 @@ from helperFunctions.virtual_file_path import get_base_of_virtual_path, get_top_
 class FileObject:  # pylint: disable=too-many-instance-attributes
     '''
     This is the base file objects. All files in FACT should be implemented as this object type.
-    '''
 
-    def __init__(self, binary=None, file_name=None, file_path=None, scheduled_analysis=None):
+    :param binary: (Optional) The file in binary representation. Either this or file_path has to be present.
+    :param file_name: (Optional) The file's name.
+    :param file_path: (Optional) The file's path. Either this or binary has to be present.
+    :param scheduled_analysis: (Optional) A list of analysis plugins that should be run on this file.
+    '''
+    def __init__(
+            self,
+            binary: bytes = None,
+            file_name: str = None,
+            file_path: str = None,
+            scheduled_analysis: list = None
+    ):
         self._uid = None
-        self.files_included = set()
-        self.list_of_all_included_files = None
+
+        #: The set of files included in this file. This is usually true for archives.
+        #: Only lists the next layer, not recursively included files on lower extraction layers.
+        self.files_included: set = set()
+
+        #: The list of all recusively included files in this file.
+        #: That means files are included that are themselves included in files contained in this file, and so on.
+        #: This value is not set by default as it's expensive to aggregate and takes up a lot of memory.
+        self.list_of_all_included_files: Optional[list, None] = None
+
         self.parents = []
         self.root_uid = None
         self.depth = 0
@@ -34,14 +53,8 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
             self.binary = None
             self.sha256 = None
             self.size = None
-        if file_name is not None:
-            self.set_name(file_name)
-        else:
-            self.file_name = None
-        if file_path is not None:
-            self.set_file_path(file_path)
-        else:
-            self.file_path = None
+        self.file_name = make_unicode_string(file_name) if file_name is not None else file_name
+        self.set_file_path(file_path)
         self.virtual_file_path = {}
 
     def set_binary(self, binary):
@@ -50,15 +63,13 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
         self.size = len(self.binary)
         self._uid = create_uid(binary)
 
-    def set_name(self, name):
-        self.file_name = make_unicode_string(name)
-
     def set_file_path(self, file_path):
+        if file_path is not None:
+            if self.binary is None:
+                self.create_from_file(file_path)
+            if self.file_name is None:
+                self.file_name = make_unicode_string(Path(file_path).name)
         self.file_path = file_path
-        if self.binary is None:
-            self.create_from_file(file_path)
-        if self.file_name is None:
-            self.set_name(os.path.basename(file_path))
 
     def get_uid(self):
         logging.warning('Deprecation warning: "get_uid()" was replaced by "uid" and will be removed in a future update')
