@@ -137,11 +137,12 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
         '''
         This functions adds a file to this objects list of included files.
         The function also takes care of a number of meta information for the child object:
-        - `parents`: Adds the uid of this file to the parents field of the child.
-        - `root_uid`: Sets the root uid of the child as this files uid.
-        - `depth`: The child inherits the unpacking depth from this file, incremented by one.
-        - `scheduled_analysis`: The child inherits this file's scheduled analysis.
-        - `virtual_file_path`: Sets a new virtual_file_path for the child, being <this_files_current_vfp|child_path>.
+
+        * `parents`: Adds the uid of this file to the parents field of the child.
+        * `root_uid`: Sets the root uid of the child as this files uid.
+        * `depth`: The child inherits the unpacking depth from this file, incremented by one.
+        * `scheduled_analysis`: The child inherits this file's scheduled analysis.
+        * `virtual_file_path`: Sets a new virtual_file_path for the child, being <this_files_current_vfp|child_path>.
 
         :param file_object: File that was extracted from the current file
         '''
