@@ -115,7 +115,7 @@ class IORoutes(ComponentBase):
             target_link = '{}{}m/'.format(host, response.json()['endpoint'])
             sleep(1)
             return redirect(target_link)
-        except (ConnectionError, TimeoutError, KeyError) as error:
+        except (requests.exceptions.ConnectionError, TimeoutError, KeyError) as error:
             return render_template('error.html', message=str(error))
 
     @roles_accepted(*PRIVILEGES['download'])
