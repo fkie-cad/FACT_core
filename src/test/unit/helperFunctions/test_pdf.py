@@ -46,7 +46,7 @@ def test_find_pdf_multiple_pdfs(common_tmpdir, mock_pdf_file):
 def test_initialize_subfolder(tmpdir):
     assert list(Path(str(tmpdir)).iterdir()) == list()
 
-    _initialize_subfolder(Path(tmpdir), TEST_FW)
+    _initialize_subfolder(Path(str(tmpdir)), TEST_FW)
 
     assert Path(str(tmpdir), 'pdf').is_dir()
     assert Path(str(tmpdir), 'data').is_dir()
