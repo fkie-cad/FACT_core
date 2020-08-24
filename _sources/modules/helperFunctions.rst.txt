@@ -6,4 +6,5 @@ helperFunctions
 
    helperFunctions.docker
    helperFunctions.object_storage
+   helperFunctions.pdf
    helperFunctions.uid

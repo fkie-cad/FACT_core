@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>helperFunctions.docker module &mdash; FACT  documentation</title>
+  <title>helperFunctions.pdf module &mdash; FACT  documentation</title>
   
 
   
@@ -37,8 +37,8 @@
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="helperFunctions.object_storage module" href="helperFunctions.object_storage.html" />
-    <link rel="prev" title="helperFunctions" href="helperFunctions.html" /> 
+    <link rel="next" title="helperFunctions.uid module" href="helperFunctions.uid.html" />
+    <link rel="prev" title="helperFunctions.object_storage module" href="helperFunctions.object_storage.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -99,9 +99,9 @@
 <p class="caption"><span class="caption-text">Modules:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="helperFunctions.html">helperFunctions</a><ul class="current">
-<li class="toctree-l2 current"><a class="current reference internal" href="#">helperFunctions.docker module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.docker.html">helperFunctions.docker module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.object_storage.html">helperFunctions.object_storage module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="helperFunctions.pdf.html">helperFunctions.pdf module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">helperFunctions.pdf module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.uid.html">helperFunctions.uid module</a></li>
 </ul>
 </li>
@@ -153,13 +153,13 @@
         
           <li><a href="helperFunctions.html">helperFunctions</a> &raquo;</li>
         
-      <li>helperFunctions.docker module</li>
+      <li>helperFunctions.pdf module</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/modules/helperFunctions.docker.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/modules/helperFunctions.pdf.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -172,30 +172,31 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="module-helperFunctions.docker">
-<span id="helperfunctions-docker-module"></span><h1>helperFunctions.docker module<a class="headerlink" href="#module-helperFunctions.docker" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-helperFunctions.pdf">
+<span id="helperfunctions-pdf-module"></span><h1>helperFunctions.pdf module<a class="headerlink" href="#module-helperFunctions.pdf" title="Permalink to this headline">¶</a></h1>
 <dl class="py function">
-<dt id="helperFunctions.docker.run_docker_container">
-<code class="sig-prename descclassname">helperFunctions.docker.</code><code class="sig-name descname">run_docker_container</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">image</span></em>, <em class="sig-param"><span class="n">timeout</span><span class="o">=</span><span class="default_value">300</span></em>, <em class="sig-param"><span class="n">command</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">reraise</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">mount</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">label</span><span class="o">=</span><span class="default_value">'Docker'</span></em>, <em class="sig-param"><span class="n">include_stderr</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.docker.run_docker_container" title="Permalink to this definition">¶</a></dt>
-<dd><p>Run a docker container and get its output.</p>
+<dt id="helperFunctions.pdf.build_pdf_report">
+<code class="sig-prename descclassname">helperFunctions.pdf.</code><code class="sig-name descname">build_pdf_report</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">firmware</span></em>, <em class="sig-param"><span class="n">folder</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.pdf.build_pdf_report" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a pdf report for the given firmware by calling the fact_pdf_report docker container.</p>
+<div class="admonition-about-the-pdf-report admonition">
+<p class="admonition-title">About the pdf report</p>
+<p>The pdf report tool is based on the jinja2 templating engine and renders a
+latex file that is build into a one page overview of the analysis results.
+For all technical details refer to the
+<a class="reference external" href="https://github.com/fkie-cad/fact_pdf_report">implementation</a>.</p>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>image</strong> (<em>str</em>) – the name of the docker image</p></li>
-<li><p><strong>timeout</strong> (<em>int</em>) – a timeout after which the execution is canceled</p></li>
-<li><p><strong>command</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – the command to run in the container (optional)</p></li>
-<li><p><strong>reraise</strong> (<em>bool</em>) – re-raise exceptions if they occur (timeout and docker exceptions)</p></li>
-<li><p><strong>mount</strong> (<em>Optional</em><em>[</em><em>Tuple</em><em>[</em><em>str</em><em>, </em><em>str</em><em>]</em><em>]</em>) – specifies a directory that gets mounted into the container;
-structure: <cite>(path_inside_container, source_path)</cite></p></li>
-<li><p><strong>label</strong> (<em>str</em>) – label used for logging output</p></li>
-<li><p><strong>include_stderr</strong> (<em>bool</em>) – include stderr of the container in the output</p></li>
+<li><p><strong>firmware</strong> (<em>objects.firmware.Firmware</em>) – The firmware to generate the pdf report for</p></li>
+<li><p><strong>folder</strong> (<em>pathlib.Path</em>) – An empty folder in which to generate the resulting pdf in</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>the output of the docker container</p>
+<dd class="field-even"><p>The path to the generated pdf file inside the given folder</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>str</p>
+<dd class="field-odd"><p>pathlib.Path</p>
 </dd>
 </dl>
 </dd></dl>
@@ -210,10 +211,10 @@ structure: <cite>(path_inside_container, source_path)</cite></p></li>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="helperFunctions.object_storage.html" class="btn btn-neutral float-right" title="helperFunctions.object_storage module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="helperFunctions.uid.html" class="btn btn-neutral float-right" title="helperFunctions.uid module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="helperFunctions.html" class="btn btn-neutral float-left" title="helperFunctions" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="helperFunctions.object_storage.html" class="btn btn-neutral float-left" title="helperFunctions.object_storage module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
