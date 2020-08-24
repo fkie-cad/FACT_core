@@ -26,21 +26,21 @@ def test_find_pdf_no_folder():
 
 
 def test_find_pdf_no_file(common_tmpdir):
-    assert not _find_pdf(Path(common_tmpdir))
+    assert not _find_pdf(Path(str(common_tmpdir)))
 
     Path(str(common_tmpdir), 'pdf', 'anyfile').write_bytes(b'\x00')
-    assert not _find_pdf(Path(common_tmpdir))
+    assert not _find_pdf(Path(str(common_tmpdir)))
 
 
 def test_find_pdf_success(common_tmpdir, mock_pdf_file):
     mock_pdf_file.write_bytes(b'\x00')
-    assert _find_pdf(Path(common_tmpdir)) == mock_pdf_file
+    assert _find_pdf(Path(str(common_tmpdir))) == mock_pdf_file
 
 
 def test_find_pdf_multiple_pdfs(common_tmpdir, mock_pdf_file):
     mock_pdf_file.write_bytes(b'\x00')
     Path(str(common_tmpdir), 'pdf', 'else.pdf').write_bytes(b'\xFF')
-    assert _find_pdf(Path(common_tmpdir))
+    assert _find_pdf(Path(str(common_tmpdir)))
 
 
 def test_initialize_subfolder(tmpdir):
