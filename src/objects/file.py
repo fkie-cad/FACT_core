@@ -71,16 +71,28 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
         #: For files such as symlinks, there can be multiple paths inside a single firmware for one unique file.
         self.virtual_file_path = {}
 
-    def set_binary(self, binary: bytes):
+    def set_binary(self, binary: bytes) -> None:
+        '''
+        Store binary of file as byte string.
+        Additionally set binary related meta data (size, hash) and compute uid after that.
+
+        :param binary: file in binary representation
+        '''
         self.binary = make_bytes(binary)
         self.sha256 = get_sha256(self.binary)
         self.size = len(self.binary)
         self._uid = create_uid(binary)
 
-    def set_file_path(self, file_path: str):
+    # TODO This function is rich of side effects. This could be handled differently.
+    def set_file_path(self, file_path: str) -> None:
+        '''
+        Set the file_path parameter and use it, if necessary, to also compute file name and binary representation.
+
+        :param file_path: Path of file. Has to be a local path if binary is not set.
+        '''
         if file_path is not None:
             if self.binary is None:
-                self.create_from_file(file_path)
+                self._create_from_file(file_path)
             if self.file_name is None:
                 self.file_name = make_unicode_string(Path(file_path).name)
         self.file_path = file_path
@@ -117,11 +129,22 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
         virtual_path = self.get_virtual_paths_for_one_uid(root_uid=root_uid)[0]
         return get_top_of_virtual_path(virtual_path)
 
-    def create_from_file(self, file_path: str):
+    def _create_from_file(self, file_path: str):
         self.set_binary(get_binary_from_file(file_path))
         self.set_file_path(file_path)
 
     def add_included_file(self, file_object) -> None:
+        '''
+        This functions adds a file to this objects list of included files.
+        The function also takes care of a number of meta information for the child object:
+        - `parents`: Adds the uid of this file to the parents field of the child.
+        - `root_uid`: Sets the root uid of the child as this files uid.
+        - `depth`: The child inherits the unpacking depth from this file, incremented by one.
+        - `scheduled_analysis`: The child inherits this file's scheduled analysis.
+        - `virtual_file_path`: Sets a new virtual_file_path for the child, being <this_files_current_vfp|child_path>.
+
+        :param file_object: File that was extracted from the current file
+        '''
         file_object.parents.append(self.uid)
         file_object.root_uid = self.root_uid
         file_object.add_virtual_file_path_if_none_exists(self.get_virtual_paths_for_one_uid(root_uid=self.root_uid), self.uid)
@@ -130,6 +153,12 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
         self.files_included.add(file_object.uid)
 
     def add_virtual_file_path_if_none_exists(self, parent_paths: List[str], parent_uid: str) -> None:
+        '''
+        Add vfps to this file based on an existing list of paths on the parent and the parent's uid as root.
+
+        :param parent_paths: List of virtual paths on parent object.
+        :param parent_uid: uid of parent.
+        '''
         if self.root_uid not in self.virtual_file_path.keys():
             self.virtual_file_path[self.root_uid] = []
             for item in parent_paths:
