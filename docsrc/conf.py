@@ -57,7 +57,9 @@ html_logo = "../src/web_interface/static/FACT_smaller.png"
 # This value contains a list of modules to be mocked up. This is useful when some external dependencies
 # are not met at build time and break the building process. You may only specify the root package
 autodoc_mock_imports = [
+    "common_helper_encoder",
     "common_helper_files",
+    "common_helper_process",
     "docker",
     "lief",
     "requests",

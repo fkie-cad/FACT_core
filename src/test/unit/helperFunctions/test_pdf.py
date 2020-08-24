@@ -2,6 +2,7 @@ from os import makedirs
 from pathlib import Path
 
 import pytest
+
 from helperFunctions.pdf import _find_pdf, _initialize_subfolder, build_pdf_report
 from test.common_helper import TEST_FW
 
@@ -21,31 +22,31 @@ def mock_pdf_file(common_tmpdir):
 
 
 def test_find_pdf_no_folder():
-    assert not _find_pdf('/non/existing/directory')
+    assert not _find_pdf(Path('/non/existing/directory'))
 
 
 def test_find_pdf_no_file(common_tmpdir):
-    assert not _find_pdf(str(common_tmpdir))
+    assert not _find_pdf(Path(str(common_tmpdir)))
 
     Path(str(common_tmpdir), 'pdf', 'anyfile').write_bytes(b'\x00')
-    assert not _find_pdf(str(common_tmpdir))
+    assert not _find_pdf(Path(str(common_tmpdir)))
 
 
 def test_find_pdf_success(common_tmpdir, mock_pdf_file):
     mock_pdf_file.write_bytes(b'\x00')
-    assert _find_pdf(str(common_tmpdir)) == mock_pdf_file
+    assert _find_pdf(Path(str(common_tmpdir))) == mock_pdf_file
 
 
 def test_find_pdf_multiple_pdfs(common_tmpdir, mock_pdf_file):
     mock_pdf_file.write_bytes(b'\x00')
     Path(str(common_tmpdir), 'pdf', 'else.pdf').write_bytes(b'\xFF')
-    assert _find_pdf(str(common_tmpdir))
+    assert _find_pdf(Path(str(common_tmpdir)))
 
 
 def test_initialize_subfolder(tmpdir):
     assert list(Path(str(tmpdir)).iterdir()) == list()
 
-    _initialize_subfolder(str(tmpdir), TEST_FW)
+    _initialize_subfolder(Path(str(tmpdir)), TEST_FW)
 
     assert Path(str(tmpdir), 'pdf').is_dir()
     assert Path(str(tmpdir), 'data').is_dir()
@@ -60,10 +61,10 @@ def test_build_pdf_report(tmpdir, monkeypatch):
 
     monkeypatch.setattr('helperFunctions.pdf.execute_shell_command_get_return_code', create_stub_file)
 
-    binary, pdf_path = build_pdf_report(TEST_FW, Path(str(tmpdir)))
+    pdf_path = build_pdf_report(TEST_FW, Path(str(tmpdir)))
 
-    assert binary == b'\x00'
     assert pdf_path == Path(str(tmpdir), 'pdf', 'any.pdf')
+    assert pdf_path.read_bytes() == b'\x00'
 
 
 def test_build_pdf_error(tmpdir, monkeypatch):
