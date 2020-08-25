@@ -44,6 +44,7 @@ class AnalysisRoutes(ComponentBase):
         self._app.add_url_rule('/analysis/<uid>/<selected_analysis>', '/analysis/<uid>/<selected_analysis>', self._show_analysis_results, methods=['GET', 'POST'])
         self._app.add_url_rule('/analysis/<uid>/<selected_analysis>/ro/<root_uid>', '/analysis/<uid>/<selected_analysis>/<root_uid>', self._show_analysis_results, methods=['GET', 'POST'])
         self._app.add_url_rule('/admin/re-do_analysis/<uid>', '/admin/re-do_analysis/<uid>', self._re_do_analysis, methods=['GET', 'POST'])
+        self._app.add_url_rule('/dependency-graph/<uid>', 'dependency-graph/<uid>', self.show_elf_dependency_graph, methods=['GET'])
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
     def _show_analysis_results(self, uid, selected_analysis=None, root_uid=None):
@@ -167,3 +168,11 @@ class AnalysisRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['delete'])
     def _re_do_analysis(self, uid):
         return self._update_analysis(uid, re_do=True)
+
+    @roles_accepted(*PRIVILEGES['view_analysis'])
+    def show_elf_dependency_graph(self, uid):
+        with ConnectTo(FrontEndDbInterface, self._config) as db:
+            data = db.file_objects.find({'parents': uid}, {'processed_analysis.elf_analysis': 1, 'file_name': 1})
+            print(json.dumps(list(data), indent=2))
+            # ToDo: generate graph
+        return render_template('dependency_graph.html', uid=uid)
