@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>helperFunctions.uid module &mdash; FACT  documentation</title>
+  <title>helperFunctions.compare_sets module &mdash; FACT  documentation</title>
   
 
   
@@ -37,7 +37,8 @@
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="prev" title="helperFunctions.pdf module" href="helperFunctions.pdf.html" /> 
+    <link rel="next" title="helperFunctions.docker module" href="helperFunctions.docker.html" />
+    <link rel="prev" title="helperFunctions" href="helperFunctions.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -98,11 +99,11 @@
 <p class="caption"><span class="caption-text">Modules:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="helperFunctions.html">helperFunctions</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="helperFunctions.compare_sets.html">helperFunctions.compare_sets module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">helperFunctions.compare_sets module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.docker.html">helperFunctions.docker module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.object_storage.html">helperFunctions.object_storage module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.pdf.html">helperFunctions.pdf module</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">helperFunctions.uid module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.uid.html">helperFunctions.uid module</a></li>
 </ul>
 </li>
 </ul>
@@ -153,13 +154,13 @@
         
           <li><a href="helperFunctions.html">helperFunctions</a> &raquo;</li>
         
-      <li>helperFunctions.uid module</li>
+      <li>helperFunctions.compare_sets module</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/modules/helperFunctions.uid.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/modules/helperFunctions.compare_sets.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -172,52 +173,59 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="module-helperFunctions.uid">
-<span id="helperfunctions-uid-module"></span><h1>helperFunctions.uid module<a class="headerlink" href="#module-helperFunctions.uid" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-helperFunctions.compare_sets">
+<span id="helperfunctions-compare-sets-module"></span><h1>helperFunctions.compare_sets module<a class="headerlink" href="#module-helperFunctions.compare_sets" title="Permalink to this headline">¶</a></h1>
 <dl class="py function">
-<dt id="helperFunctions.uid.create_uid">
-<code class="sig-prename descclassname">helperFunctions.uid.</code><code class="sig-name descname">create_uid</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_data</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.uid.create_uid" title="Permalink to this definition">¶</a></dt>
-<dd><p>generate a UID (unique identifier) SHA256_SIZE for a byte string containing data (e.g. a binary)</p>
+<dt id="helperFunctions.compare_sets.iter_element_and_rest">
+<code class="sig-prename descclassname">helperFunctions.compare_sets.</code><code class="sig-name descname">iter_element_and_rest</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">iterable</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.compare_sets.iter_element_and_rest" title="Permalink to this definition">¶</a></dt>
+<dd><p>Iterate over each element of an iterable object (e.g. a list) and also get all other (remaining) elements
+from the object.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>input_data</strong> (<em>bytes</em>) – the data to generate the UID for</p>
+<dd class="field-odd"><p><strong>iterable</strong> (<em>Iterable</em><em>[</em><em>_T</em><em>]</em>) – The object that will be iterated over.</p>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>a string containing the UID</p>
+<dd class="field-even"><p>A generator with tuples containing the item and the rest (all other elements).</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>str</p>
+<dd class="field-odd"><p>Iterator[Tuple[_T, Iterable[_T]]]</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
-<dt id="helperFunctions.uid.is_list_of_uids">
-<code class="sig-prename descclassname">helperFunctions.uid.</code><code class="sig-name descname">is_list_of_uids</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_list</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.uid.is_list_of_uids" title="Permalink to this definition">¶</a></dt>
-<dd><p>Checks if all elements of a list are valid UIDs</p>
+<dt id="helperFunctions.compare_sets.remove_duplicates_from_list">
+<code class="sig-prename descclassname">helperFunctions.compare_sets.</code><code class="sig-name descname">remove_duplicates_from_list</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">list_</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.compare_sets.remove_duplicates_from_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove duplicates from a list.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>input_list</strong> (<em>Union</em><em>[</em><em>List</em><em>, </em><em>Set</em><em>]</em>) – the list to check</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>list</strong> – The input list (possibly) containing duplicates.</p></li>
+<li><p><strong>list_</strong> (<em>List</em><em>[</em><em>_T</em><em>]</em>) – </p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>true if input list contains only valid UIDs and false otherwise</p>
+<dd class="field-even"><p>A new list only containing unique elements.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>bool</p>
+<dd class="field-odd"><p>List[_T]</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
-<dt id="helperFunctions.uid.is_uid">
-<code class="sig-prename descclassname">helperFunctions.uid.</code><code class="sig-name descname">is_uid</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_string</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.uid.is_uid" title="Permalink to this definition">¶</a></dt>
-<dd><p>Check if a string is a valid UID</p>
+<dt id="helperFunctions.compare_sets.substring_is_in_list">
+<code class="sig-prename descclassname">helperFunctions.compare_sets.</code><code class="sig-name descname">substring_is_in_list</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">string</span></em>, <em class="sig-param"><span class="n">substring_list</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.compare_sets.substring_is_in_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if any element in a list of strings is a substring of the provided string.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>input_string</strong> (<em>AnyStr</em>) – the string to check</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>string</strong> (<em>str</em>) – The string that is checked if it contains any of the substrings.</p></li>
+<li><p><strong>substring_list</strong> (<em>List</em><em>[</em><em>str</em><em>]</em>) – A list of possible substrings.</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>true if input string is a valid uid and false otherwise</p>
+<dd class="field-even"><p><cite>True</cite> if a substring is found and <cite>False</cite> otherwise.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>bool</p>
@@ -235,8 +243,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
+        <a href="helperFunctions.docker.html" class="btn btn-neutral float-right" title="helperFunctions.docker module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
-        <a href="helperFunctions.pdf.html" class="btn btn-neutral float-left" title="helperFunctions.pdf module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+        <a href="helperFunctions.html" class="btn btn-neutral float-left" title="helperFunctions" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
