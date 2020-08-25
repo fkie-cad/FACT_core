@@ -61,6 +61,7 @@ autodoc_mock_imports = [
     'common_helper_files',
     'common_helper_process',
     'docker',
+    'flask',
     'lief',
     'requests',
     'ssdeep',
