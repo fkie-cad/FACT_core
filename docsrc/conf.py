@@ -63,6 +63,7 @@ autodoc_mock_imports = [
     'docker',
     'flask',
     'lief',
+    'psutil',
     'requests',
     'ssdeep',
     'tlsh',
