@@ -1,6 +1,6 @@
 import pytest
 
-from helperFunctions.compare_sets import remove_duplicates_from_unhashable, substring_is_in_list
+from helperFunctions.compare_sets import _remove_duplicates_from_unhashable, substring_is_in_list
 
 
 @pytest.mark.parametrize('input_list, expected_output', [
@@ -14,7 +14,7 @@ from helperFunctions.compare_sets import remove_duplicates_from_unhashable, subs
     )
 ])
 def test_remove_duplicates_from_unhashable(input_list, expected_output):
-    assert remove_duplicates_from_unhashable(input_list) == expected_output, 'result not correct'
+    assert _remove_duplicates_from_unhashable(input_list) == expected_output, 'result not correct'
 
 
 def test_substring_is_in_list():
