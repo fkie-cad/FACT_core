@@ -5,7 +5,7 @@ import networkx
 import ssdeep
 
 from compare.PluginBase import CompareBasePlugin
-from helperFunctions.compare_sets import iter_element_and_rest, remove_duplicates_from_unhashable
+from helperFunctions.compare_sets import iter_element_and_rest, remove_duplicates_from_list
 from helperFunctions.dataConversion import convert_uid_list_to_compare_id
 from objects.file import FileObject
 
@@ -85,7 +85,7 @@ class ComparePlugin(CompareBasePlugin):
                 for similar_file_pair, value in self._find_similar_file_for(file_one, parent_one.uid, parent_two):
                     similar_files.append(similar_file_pair)
                     similarity[convert_uid_list_to_compare_id(similar_file_pair)] = value
-        similarity_sets = generate_similarity_sets(remove_duplicates_from_unhashable(similar_files))
+        similarity_sets = generate_similarity_sets(remove_duplicates_from_list(similar_files))
         return similarity_sets, similarity
 
     def _find_similar_file_for(self, file_uid: str, parent_uid: str, comparison_fo: FileObject):
