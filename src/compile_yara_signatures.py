@@ -47,7 +47,7 @@ def _create_compiled_signature_file(directory, tmp_file):
     target_path = os.path.join(SIGNATURE_DIR, '{}.yc'.format(_get_plugin_name(directory)))
     try:
         command = 'yarac -d test_flag=false {} {}'.format(tmp_file.name, target_path)
-        execute_shell_command(command, check=True)
+        execute_shell_command(command, check=True, timeout=10)
     except CalledProcessError:
         print('[ERRROR] Creation of {} failed !!'.format(os.path.split(target_path)[0]))
 

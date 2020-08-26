@@ -17,7 +17,7 @@ COMPOSE_VENV = Path(__file__).parent.absolute() / 'compose-env'
 def execute_commands_and_raise_on_return_code(commands, error=None):  # pylint: disable=invalid-name
     for command in commands:
         bad_return = error if error else 'execute {}'.format(command)
-        output, return_code = execute_shell_command_get_return_code(command)
+        output, return_code = execute_shell_command_get_return_code(command, timeout=10)
         if return_code != 0:
             raise InstallationError('Failed to {}\n{}'.format(bad_return, output))
 
@@ -25,11 +25,11 @@ def execute_commands_and_raise_on_return_code(commands, error=None):  # pylint: 
 def wget_static_web_content(url, target_folder, additional_actions, resource_logging_name=None):
     logging.info('Install static {} content'.format(resource_logging_name if resource_logging_name else url))
     with OperateInDirectory(target_folder):
-        wget_output, wget_code = execute_shell_command_get_return_code('wget -nc {}'.format(url))
+        wget_output, wget_code = execute_shell_command_get_return_code('wget -nc {}'.format(url), timeout=10)
         if wget_code != 0:
             raise InstallationError('Failed to fetch resource at {}\n{}'.format(url, wget_output))
         for action in additional_actions:
-            action_output, action_code = execute_shell_command_get_return_code(action)
+            action_output, action_code = execute_shell_command_get_return_code(action, timeout=10)
             if action_code != 0:
                 raise InstallationError('Problem in processing resource at {}\n{}'.format(url, action_output))
 
@@ -62,8 +62,8 @@ def _create_directory_for_authentication():  # pylint: disable=invalid-name
     dburi = config.get('data_storage', 'user_database')
     factauthdir = '/'.join(dburi.split('/')[:-1])[10:]  # FIXME this should be beautified with pathlib
 
-    mkdir_output, mkdir_code = execute_shell_command_get_return_code('sudo mkdir -p --mode=0744 {}'.format(factauthdir))
-    chown_output, chown_code = execute_shell_command_get_return_code('sudo chown {}:{} {}'.format(os.getuid(), os.getgid(), factauthdir))
+    mkdir_output, mkdir_code = execute_shell_command_get_return_code('sudo mkdir -p --mode=0744 {}'.format(factauthdir), timeout=10)
+    chown_output, chown_code = execute_shell_command_get_return_code('sudo chown {}:{} {}'.format(os.getuid(), os.getgid(), factauthdir), timeout=10)
 
     if not all(return_code == 0 for return_code in [mkdir_code, chown_code]):
         raise InstallationError('Error in creating directory for authentication database.\n{}'.format('\n'.join((mkdir_output, chown_output))))
@@ -73,7 +73,7 @@ def _install_nginx():
     apt_install_packages('nginx')
     _generate_and_install_certificate()
     _configure_nginx()
-    nginx_output, nginx_code = execute_shell_command_get_return_code('sudo nginx -s reload')
+    nginx_output, nginx_code = execute_shell_command_get_return_code('sudo nginx -s reload', timeout=10)
     if nginx_code != 0:
         raise InstallationError('Failed to start nginx\n{}'.format(nginx_output))
 
@@ -174,20 +174,20 @@ def main(radare, nginx):
 
     if radare:
         logging.info('Initializing docker container for radare')
-
-        execute_shell_command_get_return_code('virtualenv {}'.format(COMPOSE_VENV))
-        output, return_code = execute_shell_command_get_return_code('{} install -U docker-compose'.format(COMPOSE_VENV / 'bin' / 'pip'))
+        execute_shell_command_get_return_code
+        execute_shell_command_get_return_code('virtualenv {}'.format(COMPOSE_VENV), timeout=10)
+        output, return_code = execute_shell_command_get_return_code('{} install -U docker-compose'.format(COMPOSE_VENV / 'bin' / 'pip'), timeout=10)
         if return_code != 0:
             raise InstallationError('Failed to set up virtualenv for docker-compose\n{}'.format(output))
 
         with OperateInDirectory('radare'):
-            output, return_code = execute_shell_command_get_return_code('{} build'.format(COMPOSE_VENV / 'bin' / 'docker-compose'))
+            output, return_code = execute_shell_command_get_return_code('{} build'.format(COMPOSE_VENV / 'bin' / 'docker-compose'), timeout=10)
             if return_code != 0:
                 raise InstallationError('Failed to initialize radare container:\n{}'.format(output))
 
     # pull pdf report container
     logging.info('Pulling pdf report container')
-    output, return_code = execute_shell_command_get_return_code('docker pull fkiecad/fact_pdf_report')
+    output, return_code = execute_shell_command_get_return_code('docker pull fkiecad/fact_pdf_report', timeout=10)
     if return_code != 0:
         raise InstallationError('Failed to pull pdf report container:\n{}'.format(output))
 

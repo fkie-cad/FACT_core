@@ -49,12 +49,12 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     @staticmethod
     def _check_docker_installed():
-        _, return_code = execute_shell_command_get_return_code('docker -v')
+        _, return_code = execute_shell_command_get_return_code('docker -v', timeout=10)
         return return_code == 0
 
     def _get_module_versions(self):
         bap_command = self._build_bap_command_for_modules_versions()
-        output, return_code = execute_shell_command_get_return_code(bap_command)
+        output, return_code = execute_shell_command_get_return_code(bap_command, timeout=10)
         if return_code != 0:
             logging.error('Could not get module versions from Bap plugin: {} ({}). I tried the following command: {}'.format(
                 return_code, output, bap_command))

@@ -15,7 +15,7 @@ from helperFunctions.install import (
 def install_pip(python_command):
     logging.info('Installing {} pip'.format(python_command))
     for command in ['wget https://bootstrap.pypa.io/get-pip.py', 'sudo -EH {} get-pip.py'.format(python_command), 'rm get-pip.py']:
-        output, return_code = execute_shell_command_get_return_code(command)
+        output, return_code = execute_shell_command_get_return_code(command, timeout=10)
         if return_code != 0:
             raise InstallationError('Error in pip installation for {}:\n{}'.format(python_command, output))
 
@@ -31,10 +31,10 @@ def main(distribution):  # pylint: disable=too-many-statements
         logging.info('Updating system')
         apt_update_sources()
 
-    _, is_repository = execute_shell_command_get_return_code('git status')
+    _, is_repository = execute_shell_command_get_return_code('git status', timeout=10)
     if is_repository == 0:
         # update submodules
-        git_output, git_code = execute_shell_command_get_return_code('(cd ../../ && git submodule foreach "git pull")')
+        git_output, git_code = execute_shell_command_get_return_code('(cd ../../ && git submodule foreach "git pull")', timeout=10)
         if git_code != 0:
             raise InstallationError('Failed to update submodules\n{}'.format(git_output))
     else:

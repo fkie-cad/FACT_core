@@ -43,7 +43,7 @@ class MongoMgr:
             self.check_file_and_directory_existence_and_permissions()
             auth_option = '--auth ' if _authenticate else ''
             command = 'mongod {}--config {} --fork --logpath {}'.format(auth_option, self.config_path, self.mongo_log_path)
-            output = execute_shell_command(command)
+            output = execute_shell_command(command, timeout=10)
             logging.debug(output)
         else:
             logging.info('using external mongodb: {}:{}'.format(self.config['data_storage']['mongo_server'], self.config['data_storage']['mongo_port']))
@@ -65,7 +65,7 @@ class MongoMgr:
                 self.config['data_storage']['mongo_server'], self.config['data_storage']['mongo_port'],
                 self.config['data_storage']['db_admin_user'], self.config['data_storage']['db_admin_pw']
             )
-            output = execute_shell_command(command)
+            output = execute_shell_command(command, timeout=10)
             logging.debug(output)
 
     def init_users(self):

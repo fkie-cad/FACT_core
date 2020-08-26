@@ -15,7 +15,7 @@ class ShellLinter:
     Wrapper for shellcheck shell linter
     '''
     def do_analysis(self, file_path):
-        linter_output, return_code = execute_shell_command_get_return_code('shellcheck --format=json {}'.format(file_path))
+        linter_output, return_code = execute_shell_command_get_return_code('shellcheck --format=json {}'.format(file_path), timeout=10)
 
         if return_code == 2:
             logging.debug('Failed to execute shellcheck:\n{}'.format(linter_output))

@@ -10,7 +10,7 @@ class LuaLinter:
     Wrapper for luacheck luascript linter
     '''
     def do_analysis(self, file_path):
-        linter_output = execute_shell_command('luacheck -q --ranges --config  {} {}'.format(CONFIG_FILE_PATH, file_path))
+        linter_output = execute_shell_command('luacheck -q --ranges --config  {} {}'.format(CONFIG_FILE_PATH, file_path), timeout=10)
         return self._parse_linter_output(linter_output)
 
     def _parse_linter_output(self, output):

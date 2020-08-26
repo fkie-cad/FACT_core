@@ -32,12 +32,12 @@ class UnpackBase:
         return [item for item in safe_rglob(Path(tmp_dir, 'files')) if not item.is_dir()]
 
     def change_owner_back_to_me(self, directory: str = None, permissions='u+r'):
-        execute_shell_command_get_return_code('sudo chown -R {}:{} {}'.format(getuid(), getgid(), directory))
+        execute_shell_command_get_return_code('sudo chown -R {}:{} {}'.format(getuid(), getgid(), directory), timeout=10)
         self._grant_read_permission(directory, permissions)
 
     @staticmethod
     def _grant_read_permission(directory, permissions):
-        execute_shell_command_get_return_code('chmod --recursive {} {}'.format(permissions, directory))
+        execute_shell_command_get_return_code('chmod --recursive {} {}'.format(permissions, directory), timeout=10)
 
     @staticmethod
     def _initialize_shared_folder(tmp_dir):

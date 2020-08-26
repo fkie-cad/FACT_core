@@ -11,7 +11,7 @@ class JavaScriptLinter:
     Wrapper for jshint javascript linter
     '''
     def do_analysis(self, file_path):
-        linter_output = execute_shell_command('jshint --config={} --verbose {}'.format(CONFIG_FILE_PATH, file_path))
+        linter_output = execute_shell_command('jshint --config={} --verbose {}'.format(CONFIG_FILE_PATH, file_path), timeout=10)
         return self._parse_linter_output(linter_output)
 
     def _parse_linter_output(self, linter_output):

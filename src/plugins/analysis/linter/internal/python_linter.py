@@ -9,7 +9,7 @@ class PythonLinter:
     Wrapper for pylint python linter
     '''
     def do_analysis(self, file_path):
-        pylint_output = execute_shell_command('pylint --output-format=json {}'.format(file_path))
+        pylint_output = execute_shell_command('pylint --output-format=json {}'.format(file_path), timeout=10)
         try:
             pylint_json = json.loads(pylint_output)
         except json.JSONDecodeError:

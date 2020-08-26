@@ -28,19 +28,19 @@ class MountingError(RuntimeError):
 def mount(file_path, fs_type='', mount_path='/tmp'):
     mount_dir = TemporaryDirectory(dir=mount_path)
     try:
-        mount_rv = execute_shell_command('sudo mount {} -v -o ro,loop {} {}'.format(fs_type, file_path, mount_dir.name))
+        mount_rv = execute_shell_command('sudo mount {} -v -o ro,loop {} {}'.format(fs_type, file_path, mount_dir.name), timeout=10)
         if _mount_was_successful(mount_dir.name):
             yield Path(mount_dir.name)
         else:
             logging.error('could not mount {}: {}'.format(file_path, mount_rv))
             raise MountingError('error while mounting fs')
     finally:
-        execute_shell_command('sudo umount -v {}'.format(mount_dir.name))
+        execute_shell_command('sudo umount -v {}'.format(mount_dir.name), timeout=10)
         mount_dir.cleanup()
 
 
 def _mount_was_successful(mount_path: str) -> bool:
-    _, return_code = execute_shell_command_get_return_code('mountpoint {}'.format(mount_path))
+    _, return_code = execute_shell_command_get_return_code('mountpoint {}'.format(mount_path), timeout=10)
     return return_code == 0
 
 

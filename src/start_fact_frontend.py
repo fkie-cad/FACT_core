@@ -60,11 +60,11 @@ def start_uwsgi_server(config_path=None):
 
 
 def start_docker():
-    execute_shell_command('{} -f {}/install/radare/docker-compose.yml up -d'.format(COMPOSE_VENV / 'bin' / 'docker-compose', get_src_dir()))
+    execute_shell_command('{} -f {}/install/radare/docker-compose.yml up -d'.format(COMPOSE_VENV / 'bin' / 'docker-compose', get_src_dir()), timeout=10)
 
 
 def stop_docker():
-    execute_shell_command('{} -f {}/install/radare/docker-compose.yml down'.format(COMPOSE_VENV / 'bin' / 'docker-compose', get_src_dir()))
+    execute_shell_command('{} -f {}/install/radare/docker-compose.yml down'.format(COMPOSE_VENV / 'bin' / 'docker-compose', get_src_dir()), timeout=10)
 
 
 if __name__ == '__main__':

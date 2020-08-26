@@ -33,7 +33,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
 
 def get_readelf_result(path):
-    readelf_full = execute_shell_command(READELF_CALL.format(path))
+    readelf_full = execute_shell_command(READELF_CALL.format(path), timeout=10)
     return readelf_full
 
 

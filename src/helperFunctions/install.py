@@ -33,7 +33,7 @@ def remove_folder(folder_name):
         shutil.rmtree(folder_name)
     except PermissionError:
         logging.debug('Falling back on root permission for deleting {}'.format(folder_name))
-        execute_shell_command_get_return_code('sudo rm -rf {}'.format(folder_name))
+        execute_shell_command_get_return_code('sudo rm -rf {}'.format(folder_name), timeout=10)
     except Exception as exception:
         raise InstallationError(exception)
 
@@ -44,7 +44,7 @@ def log_current_packages(packages, install=True):
 
 
 def run_shell_command_raise_on_return_code(command: str, error: str, add_output_on_error=False) -> str:  # pylint: disable=invalid-name
-    output, return_code = execute_shell_command_get_return_code(command)
+    output, return_code = execute_shell_command_get_return_code(command, timeout=10)
     if return_code != 0:
         if add_output_on_error:
             error = '{}\n{}'.format(error, output)
@@ -123,14 +123,14 @@ def pip2_remove_packages(*args):
 
 
 def check_if_command_in_path(command):
-    _, return_code = execute_shell_command_get_return_code('command -v {}'.format(command))
+    _, return_code = execute_shell_command_get_return_code('command -v {}'.format(command), timeout=10)
     if return_code != 0:
         return False
     return True
 
 
 def check_string_in_command(command, target_string):
-    output, return_code = execute_shell_command_get_return_code(command)
+    output, return_code = execute_shell_command_get_return_code(command, timeout=10)
     return return_code == 0 and target_string in output
 
 
@@ -142,7 +142,7 @@ def install_github_project(project_path: str, commands: List[str]):
     with OperateInDirectory(folder_name, remove=True):
         error = None
         for command in commands:
-            output, return_code = execute_shell_command_get_return_code(command)
+            output, return_code = execute_shell_command_get_return_code(command, timeout=10)
             if return_code != 0:
                 error = 'Error while processing github project {}!\n{}'.format(project_path, output)
                 break
@@ -153,7 +153,7 @@ def install_github_project(project_path: str, commands: List[str]):
 
 def _checkout_github_project(github_path, folder_name):
     clone_url = 'https://www.github.com/{}'.format(github_path)
-    _, return_code = execute_shell_command_get_return_code('git clone {}'.format(clone_url))
+    _, return_code = execute_shell_command_get_return_code('git clone {}'.format(clone_url), timeout=10)
     if return_code != 0:
         raise InstallationError('Cloning from github failed for project {}\n {}'.format(github_path, clone_url))
     if not Path('.', folder_name).exists():

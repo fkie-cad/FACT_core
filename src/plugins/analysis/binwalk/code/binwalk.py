@@ -27,7 +27,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         tmp_dir = TemporaryDirectory(prefix='fact_analysis_binwalk_', dir=get_temp_dir_path(self.config))
         dir_path = tmp_dir.name
 
-        signature_analysis_result = execute_shell_command('(cd {} && xvfb-run -a binwalk -BEJ {})'.format(dir_path, file_object.file_path))
+        signature_analysis_result = execute_shell_command('(cd {} && xvfb-run -a binwalk -BEJ {})'.format(dir_path, file_object.file_path), timeout=10)
         result['signature_analysis'] = make_unicode_string(signature_analysis_result)
 
         result['summary'] = list(set(self._extract_summary(result['signature_analysis'])))

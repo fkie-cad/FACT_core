@@ -73,8 +73,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
         with NamedTemporaryFile() as fp:
             fp.write(b':'.join(passwd_entry[:2]))
             fp.seek(0)
-            result_dict[key]['log'] = execute_shell_command('john --wordlist={} {}'.format(self.wordlist_path, fp.name))
-            output = execute_shell_command('john --show {}'.format(fp.name)).split('\n')
+            result_dict[key]['log'] = execute_shell_command('john --wordlist={} {}'.format(self.wordlist_path, fp.name), timeout=10)
+            output = execute_shell_command('john --show {}'.format(fp.name)).split('\n', timeout=10)
         if len(output) > 2:
             with suppress(KeyError):
                 if '0 password hashes cracked' in output[-2]:

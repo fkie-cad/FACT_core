@@ -26,7 +26,7 @@ class YaraBinarySearchScanner:
         :return: output from yara scan
         '''
         command = 'yara -r {} {}'.format(rule_file_path, self.db_path if target_path is None else target_path)
-        return execute_shell_command(command)
+        return execute_shell_command(command, timeout=10)
 
     def _execute_yara_search_for_single_firmware(self, rule_file_path, firmware_uid):
         with ConnectTo(YaraBinarySearchScannerDbInterface, self.config) as connection:

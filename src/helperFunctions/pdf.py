@@ -54,7 +54,7 @@ def _initialize_subfolder(folder: Path, firmware: Firmware) -> None:
 
 
 def _claim_folder_contents(folder: Path) -> None:
-    execute_shell_command_get_return_code('sudo chown -R {}:{} {}'.format(getuid(), getgid(), folder))
+    execute_shell_command_get_return_code('sudo chown -R {}:{} {}'.format(getuid(), getgid(), folder), timeout=10)
 
 
 def _find_pdf(folder: Path) -> Path:
