@@ -4,10 +4,12 @@ import sys
 from collections import Counter
 from datetime import datetime
 from time import time
+from typing import Optional
 
 from bson.son import SON
 from common_helper_filter.time import time_format
 from common_helper_mongo import get_field_average, get_field_sum, get_objects_and_count_of_occurrence
+from pymongo.collection import Collection
 
 from helperFunctions.dataConversion import build_time_dict
 from helperFunctions.merge_generators import avg, merge_dict, sum_up_lists, sum_up_nested_lists
@@ -73,6 +75,9 @@ class StatisticUpdater:
             stats['number_of_unique_files'] = len(query_result)
             stats['total_file_size'] = sum(query_result)
             stats['average_file_size'] = avg(query_result)
+        stats['device_class_count'] = get_unique_count(self.db.firmwares, '$device_class', match=self.match)
+        stats['vendor_count'] = get_unique_count(self.db.firmwares, '$vendor', match=self.match)
+        stats['device_name_count'] = get_unique_count(self.db.firmwares, '$device_name', match=self.match)
         stats['creation_time'] = time()
 
         benchmark = stats['creation_time'] - self.start_time
@@ -389,3 +394,16 @@ class StatisticUpdater:
             if not is_sanitized_entry(item[0]):
                 out_list.append(item)
         return out_list
+
+
+def get_unique_count(collection: Collection, field: str, match: Optional[dict] = None) -> int:
+    pipeline = [
+        {'$group': {'_id': field}},
+        {'$count': 'count'}
+    ]
+    if match:
+        pipeline.insert(0, {'$match': match})
+    query_result = list(collection.aggregate(pipeline, allowDiskUse=True))
+    if not query_result:
+        return 0
+    return query_result[0]['count']

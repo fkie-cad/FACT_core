@@ -3,7 +3,7 @@ import gc
 import unittest
 
 from helperFunctions.statistic import calculate_total_files
-from statistic.update import StatisticUpdater
+from statistic.update import StatisticUpdater, get_unique_count
 from storage.db_interface_statistic import StatisticDbViewer
 from storage.MongoMgr import MongoMgr
 from test.common_helper import clean_test_database, get_config_for_testing, get_database_names
@@ -198,3 +198,18 @@ class TestStatistic(unittest.TestCase):
 
     def test_known_vulnerabilities_works(self):
         self.assertEqual(self.updater.get_known_vulnerabilities_stats(), {'known_vulnerabilities': []})
+
+    def test_get_unique_count(self):
+        assert get_unique_count(self.updater.db.firmwares, '$vendor') == 0
+        self.updater.db.firmwares.insert_one({'_id': 1, 'vendor': 'foo'})
+        assert get_unique_count(self.updater.db.firmwares, '$vendor') == 1
+        self.updater.db.firmwares.insert_one({'_id': 2, 'vendor': 'foo'})
+        assert get_unique_count(self.updater.db.firmwares, '$vendor') == 1
+        self.updater.db.firmwares.insert_one({'_id': 3, 'vendor': 'bar'})
+        assert get_unique_count(self.updater.db.firmwares, '$vendor') == 2
+
+    def test_get_unique_count_w_match(self):
+        self.updater.db.firmwares.insert_one({'_id': 1, 'device_class': 'A', 'vendor': 'foo'})
+        self.updater.db.firmwares.insert_one({'_id': 2, 'device_class': 'B', 'vendor': 'bar'})
+        assert get_unique_count(self.updater.db.firmwares, '$vendor') == 2
+        assert get_unique_count(self.updater.db.firmwares, '$vendor', match={'device_class': 'A'}) == 1
