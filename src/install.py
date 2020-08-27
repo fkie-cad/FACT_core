@@ -143,7 +143,7 @@ def install_statistic_cronjob():
     cron_content = '0    *    *    *    *    {} > /dev/null 2>&1\n'.format(statistic_update_script_path)
     cron_content += '30    0    *    *    0    {} > /dev/null 2>&1\n'.format(variety_update_script_path)
     crontab_file_path.write_text(cron_content)
-    output, return_code = execute_shell_command_get_return_code('crontab {}'.format(crontab_file_path))
+    output, return_code = execute_shell_command_get_return_code('crontab {}'.format(crontab_file_path), timeout=10)
     if return_code != 0:
         logging.error(output)
     else:
