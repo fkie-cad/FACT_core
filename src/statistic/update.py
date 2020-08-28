@@ -11,8 +11,7 @@ from common_helper_mongo import get_field_average, get_field_sum, get_objects_an
 
 from helperFunctions.dataConversion import build_time_dict
 from helperFunctions.merge_generators import avg, merge_dict, sum_up_lists, sum_up_nested_lists
-from helperFunctions.mongo_task_conversion import is_sanitized_entry
-from helperFunctions.statistic import calculate_total_files
+from helperFunctions.statistic import calculate_total_files, is_sanitized_entry
 from storage.db_interface_statistic import StatisticDbUpdater
 
 

@@ -3,8 +3,8 @@ import unittest
 import pytest
 
 from helperFunctions.mongo_task_conversion import (
-    _get_tag_list, check_for_errors, convert_analysis_task_to_fw_obj, get_uid_of_analysis_task,
-    get_uploaded_file_binary, is_sanitized_entry
+    _get_tag_list, _get_uid_of_analysis_task, _get_uploaded_file_binary, check_for_errors,
+    convert_analysis_task_to_fw_obj
 )
 from objects.firmware import Firmware
 
@@ -42,11 +42,11 @@ class TestMongoTask(unittest.TestCase):
         self.assertEqual(result['b'], 'Please specify the b')
 
     def test_get_uploaded_file_binary_error(self):
-        self.assertEqual(get_uploaded_file_binary(None, None), None, 'missing upload file should lead to None')
+        self.assertEqual(_get_uploaded_file_binary(None, None), None, 'missing upload file should lead to None')
 
     def test_get_uid_of_analysis_task(self):
         analysis_task = {'binary': b'this is a test'}
-        self.assertEqual(get_uid_of_analysis_task(analysis_task), '2e99758548972a8e8822ad47fa1017ff72f06f3ff6a016851f45c398732bc50c_14', 'result is not a uid')
+        self.assertEqual(_get_uid_of_analysis_task(analysis_task), '2e99758548972a8e8822ad47fa1017ff72f06f3ff6a016851f45c398732bc50c_14', 'result is not a uid')
 
     def test_convert_analysis_task_to_firmware_object(self):
         fw_obj = convert_analysis_task_to_fw_obj(TEST_TASK)
@@ -62,9 +62,3 @@ class TestMongoTask(unittest.TestCase):
         self.assertEqual(len(fw_obj.scheduled_analysis), 2)
         self.assertIn('dummy', fw_obj.scheduled_analysis)
         self.assertIsInstance(fw_obj.tags, dict, 'tag type not correct')
-
-    def test_is_sanitized_entry(self):
-        sanitized_example = 'crypto_material_summary_81abfc7a79c8c1ed85f6b9fc2c5d9a3edc4456c4aecb9f95b4d7a2bf9bf652da_76415'
-        normal_example = 'blah'
-        self.assertTrue(is_sanitized_entry(sanitized_example))
-        self.assertFalse(is_sanitized_entry(normal_example))
