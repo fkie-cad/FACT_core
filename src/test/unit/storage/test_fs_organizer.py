@@ -5,8 +5,9 @@ from configparser import ConfigParser
 from tempfile import TemporaryDirectory
 
 from common_helper_files import get_binary_from_file
+
 from objects.file import FileObject
-from storage.fs_organizer import FS_Organizer
+from storage.fsorganizer import FSOrganizer
 
 
 class TestFsOrganizer(unittest.TestCase):
@@ -16,7 +17,7 @@ class TestFsOrganizer(unittest.TestCase):
         config = ConfigParser()
         config.add_section('data_storage')
         config.set('data_storage', 'firmware_file_storage_directory', self.ds_tmp_dir.name)
-        self.fs_organzier = FS_Organizer(config)
+        self.fs_organzier = FSOrganizer(config)
 
     def tearDown(self):
         self.ds_tmp_dir.cleanup()

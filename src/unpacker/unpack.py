@@ -12,14 +12,14 @@ from helperFunctions.fileSystem import file_is_empty, get_object_path_excluding_
 from helperFunctions.tag import TagColor
 from helperFunctions.virtual_file_path import get_base_of_virtual_path, join_virtual_path
 from objects.file import FileObject
-from storage.fs_organizer import FS_Organizer
+from storage.fsorganizer import FSOrganizer
 from unpacker.unpack_base import UnpackBase
 
 
 class Unpacker(UnpackBase):
     def __init__(self, config=None, worker_id=None, db_interface=None):
         super().__init__(config=config, worker_id=worker_id)
-        self.file_storage_system = FS_Organizer(config=self.config)
+        self.file_storage_system = FSOrganizer(config=self.config)
         self.db_interface = db_interface
 
     def unpack(self, current_fo: FileObject):

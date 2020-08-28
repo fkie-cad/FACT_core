@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 from common_helper_files import get_binary_from_file
 
@@ -48,28 +48,75 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
         #: This value might not be set at all times (cf. :func:`get_root_uid`).
         self.root_uid: Optional[str, None] = None
 
+        #: Extraction depth of this object. If outer firmware file, this is 0.
+        #: Every extraction increments this by one.
+        #: For a file inside a squashfs, that is contained inside a tar archive this would be 1 (tar) + 1 (fs) = 2.
         self.depth: int = 0
+
+        #: Analysis results for this file.
+        #:
+        #: Structure of results:
+        #: The first level of this dict is a pair of ``'plugin_name': <result_dict>`` pairs.
+        #: The result dict can have any content, but always has at least the fields:
+        #:
+        #: * analysis_date - float representing the time of analysis in unix time.
+        #: * plugin_version - str defining the version of each plugin at time of analysis.
+        #: * summary - list holding a summary of each files result, that can be aggregated.
         self.processed_analysis: dict = {}
+
+        #: List of plugins that should be run on this file.
         self.scheduled_analysis: List[str] = scheduled_analysis
-        self.comments = []
-        self.parent_firmware_uids = set()
-        self.temporary_data = {}
-        self.analysis_tags = {}
-        self.analysis_exception = None
+
+        #: List of comments that have been made on this file.
+        #: Comments are dicts with the keys time (float), author (str) and comment (str).
+        self.comments: List[dict] = []
+
+        #: Set of parent firmware uids.
+        #: Parent uids are from the root object, this file belongs to, not its direct predecessor.
+        #: This field should be closely related to the keys in the vfp field.
+        self.parent_firmware_uids: set = set()
+
+        #: This field can be used for arbitrary temporary storage.
+        #: It will not be persisted to the database, so it dies after the analysis cycle.
+        self.temporary_data: dict = {}
+
+        #: Analysis tags for this file.
+        #: An analysis tag has the structure
+        #: ``{tag_name: {'value': value, 'color': color, 'propagate': propagate,}, 'root_uid': root uid}``
+        #: while the first layer of this dict is a key for each plugin.
+        #: So in total you have a dict ``{plugin: [tags>, of, plugin], ..}``.
+        self.analysis_tags: Dict[str, List[dict]] = {}
+
+        #: If an exception occured during analysis, this fields stores a tuple
+        #: ``(<plugin name>, <error message>)``
+        #: for debugging purposes and as placeholder in UI.
+        self.analysis_exception: Tuple[str, str] = None
+
         if binary is not None:
             self.set_binary(binary)
         else:
-            self.binary = None
-            self.sha256 = None
-            self.size = None
-        self.file_name = make_unicode_string(file_name) if file_name is not None else file_name
-        self.set_file_path(file_path)
+            #: Binary representation of this file in bytes.
+            self.binary: bytes = None
+
+            #: SHA256 hash of this file.
+            self.sha256: str = None
+
+            #: Size of this file in bytes
+            self.size: int = None
+
+        #: Name of this file. Similar to ``file_path``, this probably is generated for carved objects.
+        self.file_name: str = make_unicode_string(file_name) if file_name is not None else file_name
+
+        #: The path of this file. Has to be a local path if binary is not set.
+        #: For carved objects, this will likely only be a (generated) name.
+        self.file_path: str = file_path
+        self.create_binary_from_path()
 
         #: The virtual file path is not a path on the analysis machine but the full path inside a firmware object.
         #: For a file inside a filesystem, that was itself packed inside an archive this might look like
         #: `firmware_uid|fs_uid|/etc/hosts` with the pipe sign ( | ) separating extraction levels.
         #: For files such as symlinks, there can be multiple paths inside a single firmware for one unique file.
-        self.virtual_file_path = {}
+        self.virtual_file_path: dict = {}
 
     def set_binary(self, binary: bytes) -> None:
         '''
@@ -83,19 +130,12 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
         self.size = len(self.binary)
         self._uid = create_uid(binary)
 
-    # TODO This function is rich of side effects. This could be handled differently.
-    def set_file_path(self, file_path: str) -> None:
-        '''
-        Set the file_path parameter and use it, if necessary, to also compute file name and binary representation.
-
-        :param file_path: Path of file. Has to be a local path if binary is not set.
-        '''
-        if file_path is not None:
+    def create_binary_from_path(self) -> None:
+        if self.file_path is not None:
             if self.binary is None:
-                self._create_from_file(file_path)
+                self._create_from_file(self.file_path)
             if self.file_name is None:
-                self.file_name = make_unicode_string(Path(file_path).name)
-        self.file_path = file_path
+                self.file_name = make_unicode_string(Path(self.file_path).name)
 
     @property
     def uid(self) -> str:
@@ -131,7 +171,7 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
 
     def _create_from_file(self, file_path: str):
         self.set_binary(get_binary_from_file(file_path))
-        self.set_file_path(file_path)
+        self.create_binary_from_path()
 
     def add_included_file(self, file_object) -> None:
         '''
