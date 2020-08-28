@@ -2,7 +2,6 @@
 import gc
 import unittest
 
-from helperFunctions.statistic import calculate_total_files
 from statistic.update import StatisticUpdater
 from storage.db_interface_statistic import StatisticDbViewer
 from storage.MongoMgr import MongoMgr
@@ -48,15 +47,6 @@ class TestStatistic(unittest.TestCase):
         self.assertEqual(result['number_of_firmwares'], 1, 'number of firmwares not correct')
         self.assertEqual(result['number_of_unique_files'], 1, 'number of files not correct')
 
-    def test_convert_dict_list_to_list(self):
-        test_list = [{'count': 1, '_id': 'A'}, {'count': 2, '_id': 'B'}, {'count': 3, '_id': None}]
-        result = self.updater._convert_dict_list_to_list(test_list)
-        self.assertIsInstance(result, list, 'result is not a list')
-        self.assertIn(['A', 1], result)
-        self.assertIn(['B', 2], result)
-        self.assertIn(['not available', 3], result)
-        self.assertEqual(len(result), 3, 'too many keys in the result')
-
     def test_filter_sanitized_entries(self):
         test_list = [['valid', 1], ['sanitized_81abfc7a79c8c1ed85f6b9fc2c5d9a3edc4456c4aecb9f95b4d7a2bf9bf652da_1', 1]]
         result = self.updater._filter_sanitized_objects(test_list)
@@ -85,9 +75,6 @@ class TestStatistic(unittest.TestCase):
         tests_string = 'MIPS (M)'
         result = self.updater._shorten_architecture_string(tests_string)
         self.assertEqual(result, 'MIPS')
-
-    def test_round(self):
-        self.assertEqual(StatisticUpdater._round([('NX enabled', 1696)], 1903), 0.89122)
 
     def test_get_mitigation_data(self):
         result_list = [('PIE enabled', 3), ('Canary enabled', 9), ('RELRO partially enabled', 7),
@@ -125,7 +112,7 @@ class TestStatistic(unittest.TestCase):
         nx_off, nx_on = self.updater.extract_nx_data_from_analysis(result)
         self.assertEqual(nx_off, [('NX disabled', 200)])
         self.assertEqual(nx_on, [('NX enabled', 800)])
-        total_amount_of_files = calculate_total_files([nx_off, nx_on])
+        total_amount_of_files = self.updater._calculate_total_files([nx_off, nx_on])
         self.assertEqual(total_amount_of_files, 1000)
         self.updater.append_nx_stats_to_result_dict(nx_off, nx_on, stats, total_amount_of_files)
         self.assertEqual(stats, {'exploit_mitigations': [('NX enabled', 800, 0.8), ('NX disabled', 200, 0.2)]})
@@ -134,7 +121,7 @@ class TestStatistic(unittest.TestCase):
         canary_off, canary_on = self.updater.extract_canary_data_from_analysis(result)
         self.assertEqual(canary_off, [('Canary disabled', 700)])
         self.assertEqual(canary_on, [('Canary enabled', 1000)])
-        total_amount_of_files = calculate_total_files([canary_off, canary_on])
+        total_amount_of_files = self.updater._calculate_total_files([canary_off, canary_on])
         self.assertEqual(total_amount_of_files, 1700)
         self.updater.append_canary_stats_to_result_dict(canary_off, canary_on, stats, total_amount_of_files)
         self.assertEqual(stats, {'exploit_mitigations': [('Canary enabled', 1000, 0.58824),
@@ -146,7 +133,7 @@ class TestStatistic(unittest.TestCase):
         self.assertEqual(pie_off, [('PIE disabled', 900)])
         self.assertEqual(pie_partial, [('PIE/DSO present', 300)])
         self.assertEqual(pie_on, [('PIE enabled', 500)])
-        total_amount_of_files = calculate_total_files([pie_on, pie_partial, pie_off, pie_invalid])
+        total_amount_of_files = self.updater._calculate_total_files([pie_on, pie_partial, pie_off, pie_invalid])
         self.assertEqual(total_amount_of_files, 1800)
         self.updater.append_pie_stats_to_result_dict(pie_invalid, pie_off, pie_on, pie_partial, stats, total_amount_of_files)
         self.assertEqual(stats, {'exploit_mitigations': [('PIE enabled', 500, 0.27778),
@@ -159,7 +146,7 @@ class TestStatistic(unittest.TestCase):
         self.assertEqual(relro_off, [('RELRO disabled', 1100)])
         self.assertEqual(relro_on, [('RELRO fully enabled', 400)])
         self.assertEqual(relro_partial, [('RELRO partially enabled', 600)])
-        total_amount_of_files = calculate_total_files([relro_off, relro_on, relro_partial])
+        total_amount_of_files = self.updater._calculate_total_files([relro_off, relro_on, relro_partial])
         self.assertEqual(total_amount_of_files, 2100)
         self.updater.append_relro_stats_to_result_dict(relro_off, relro_on, relro_partial, stats, total_amount_of_files)
         self.assertEqual(stats, {'exploit_mitigations': [('RELRO fully enabled', 400, 0.19048),
