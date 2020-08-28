@@ -1,0 +1,389 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>helperFunctions.mongo_task_conversion module &mdash; FACT  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/custom.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="helperFunctions.object_storage module" href="helperFunctions.object_storage.html" />
+    <link rel="prev" title="helperFunctions.docker module" href="helperFunctions.docker.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> FACT
+          
+
+          
+            
+            <img src="../_static/FACT_smaller.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../main.html">Challenges</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#easy-to-install-easy-to-use">Easy to Install! Easy to Use!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#easy-to-extend-easy-to-integrate">Easy to Extend! Easy to Integrate!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#screenshots">Screenshots</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#contributing">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#latest-news-and-contact">Latest News and Contact</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#authors-and-acknowledgment">Authors and Acknowledgment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#source-code">Source Code</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Modules:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="helperFunctions.html">helperFunctions</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.compare_sets.html">helperFunctions.compare_sets module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.docker.html">helperFunctions.docker module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">helperFunctions.mongo_task_conversion module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.object_storage.html">helperFunctions.object_storage module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.pdf.html">helperFunctions.pdf module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.uid.html">helperFunctions.uid module</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">FACT</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="helperFunctions.html">helperFunctions</a> &raquo;</li>
+        
+      <li>helperFunctions.mongo_task_conversion module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/modules/helperFunctions.mongo_task_conversion.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-helperFunctions.mongo_task_conversion">
+<span id="helperfunctions-mongo-task-conversion-module"></span><h1>helperFunctions.mongo_task_conversion module<a class="headerlink" href="#module-helperFunctions.mongo_task_conversion" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt id="helperFunctions.mongo_task_conversion.check_for_errors">
+<code class="sig-prename descclassname">helperFunctions.mongo_task_conversion.</code><code class="sig-name descname">check_for_errors</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">analysis_task</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.mongo_task_conversion.check_for_errors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check an analysis task for missing fields and return a dict with error messages (that are intended to be displayed
+in the webinterface).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>analysis_task</strong> (<em>dict</em>) – The analysis task data.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A dictionary containing error messages in the form <cite>{task_key: error_message}</cite>.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Dict[str, str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="helperFunctions.mongo_task_conversion.convert_analysis_task_to_fw_obj">
+<code class="sig-prename descclassname">helperFunctions.mongo_task_conversion.</code><code class="sig-name descname">convert_analysis_task_to_fw_obj</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">analysis_task</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.mongo_task_conversion.convert_analysis_task_to_fw_obj" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert an analysis task to a firmware object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>analysis_task</strong> (<em>dict</em>) – The analysis task data.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A new <cite>Firmware</cite> object based on the analysis task data.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>objects.firmware.Firmware</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="helperFunctions.mongo_task_conversion.create_analysis_task">
+<code class="sig-prename descclassname">helperFunctions.mongo_task_conversion.</code><code class="sig-name descname">create_analysis_task</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">request</span></em>, <em class="sig-param"><span class="n">config</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.mongo_task_conversion.create_analysis_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create an analysis task from the data stored in the flask request object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>request</strong> (<em>flask.Request</em>) – The flask request object.</p></li>
+<li><p><strong>config</strong> (<em>configparser.ConfigParser</em>) – The FACT configuration.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A dict containing the analysis task data.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Dict[str, Any]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="helperFunctions.mongo_task_conversion.create_re_analyze_task">
+<code class="sig-prename descclassname">helperFunctions.mongo_task_conversion.</code><code class="sig-name descname">create_re_analyze_task</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">request</span></em>, <em class="sig-param"><span class="n">uid</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.mongo_task_conversion.create_re_analyze_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create an analysis task for a file that is already in the database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>request</strong> (<em>flask.Request</em>) – The flask request object.</p></li>
+<li><p><strong>uid</strong> (<em>str</em>) – The unique identifier of the firmware.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A dict containing the analysis task data.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Dict[str, Any]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="helperFunctions.mongo_task_conversion.get_file_name_and_binary_from_request">
+<code class="sig-prename descclassname">helperFunctions.mongo_task_conversion.</code><code class="sig-name descname">get_file_name_and_binary_from_request</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">request</span></em>, <em class="sig-param"><span class="n">config</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.mongo_task_conversion.get_file_name_and_binary_from_request" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves the file name and content from the flask request object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>request</strong> (<em>flask.Request</em>) – The flask request object.</p></li>
+<li><p><strong>config</strong> (<em>configparser.ConfigParser</em>) – The FACT configuration.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A Tuple containing the file name and the file content.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Tuple[str, bytes]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="helperFunctions.mongo_task_conversion.get_uid_of_analysis_task">
+<code class="sig-prename descclassname">helperFunctions.mongo_task_conversion.</code><code class="sig-name descname">get_uid_of_analysis_task</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">analysis_task</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.mongo_task_conversion.get_uid_of_analysis_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a UID (unique identifier) for an analysis task. The UID is generated based on the binary stored in the
+analysis task dict. The return value may be <cite>None</cite> if no binary is contained in the analysis task dict.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>analysis_task</strong> (<em>dict</em>) – The analysis task data.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A UID based on the binary contained in the analysis task or <cite>None</cite> if there is no binary.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Optional[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="helperFunctions.mongo_task_conversion.get_uploaded_file_binary">
+<code class="sig-prename descclassname">helperFunctions.mongo_task_conversion.</code><code class="sig-name descname">get_uploaded_file_binary</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">request_file</span></em>, <em class="sig-param"><span class="n">config</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.mongo_task_conversion.get_uploaded_file_binary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves the binary from the request file storage and returns it as byte string. May return <cite>None</cite> if no
+binary was found or an exception occurred.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>request_file</strong> (<em>werkzeug.datastructures.FileStorage</em>) – A file contained in the flask request object.</p></li>
+<li><p><strong>config</strong> (<em>configparser.ConfigParser</em>) – The FACT configuration.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The binary as byte string or <cite>None</cite> if no binary was found.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Optional[bytes]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="helperFunctions.mongo_task_conversion.is_sanitized_entry">
+<code class="sig-prename descclassname">helperFunctions.mongo_task_conversion.</code><code class="sig-name descname">is_sanitized_entry</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">entry</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.mongo_task_conversion.is_sanitized_entry" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check a database entry if it was sanitized (meaning the database entry was too large for the MongoDB database and
+was swapped to the file system).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>entry</strong> (<em>Any</em>) – A database entry.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><cite>True</cite> if the entry is sanitized and <cite>False</cite> otherwise.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="helperFunctions.object_storage.html" class="btn btn-neutral float-right" title="helperFunctions.object_storage module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="helperFunctions.docker.html" class="btn btn-neutral float-left" title="helperFunctions.docker module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Fraunhofer FKIE
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
