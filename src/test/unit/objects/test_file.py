@@ -8,8 +8,7 @@ class TestObjectsFile:  # pylint: disable=no-self-use
 
     def test_get_file_from_binary(self):
         file_path = '{}/test_data_file.bin'.format(get_test_data_dir())
-        test_object = FileObject()
-        test_object._create_from_file(file_path)  # pylint: disable=protected-access
+        test_object = FileObject(file_path=file_path)
         assert test_object.size == 19, 'correct size'
         assert test_object.binary == b'test string in file', 'correct binary data'
         assert test_object.sha256 == '268d870ffa2b21784e4dc955d8e8b8eb5f3bcddd6720a1e6d31d2cf84bd1bff8', 'correct sha256'

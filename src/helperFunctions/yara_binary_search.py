@@ -99,7 +99,7 @@ def get_yara_error(rules_file):
     try:
         yara.compile(source=rules_file)
         return None
-    except yara.Error as error:
+    except (yara.Error, TypeError) as error:
         return error
 
 
