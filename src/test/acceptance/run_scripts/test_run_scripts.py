@@ -22,7 +22,7 @@ def test_start_script_help_and_version(script):
     assert 'usage: {}'.format(script) in output
 
     output, return_code = execute_shell_command_get_return_code('{} -V'.format(os.path.join(get_src_dir(), script)), timeout=5)
-    assert output[0:5] == 'FACT '
+    assert output[0:5] == 'FACT ', 'Wrong output {}'.format(output)
     assert return_code == 0
 
     gc.collect()
