@@ -69,9 +69,9 @@
                     {{ macros.stats_table_row("unique included files average size", stats["general_stats"]["average_file_size"] | number_format) }}
                 {% endif %}
                 {% if "device_class_count" in stats["general_stats"] %}
-                    {{ macros.stats_table_row("unique device classes", stats["general_stats"]["device_class_count"] | nice_number) }}
-                    {{ macros.stats_table_row("unique vendors", stats["general_stats"]["vendor_count"] | nice_number) }}
-                    {{ macros.stats_table_row("unique device names", stats["general_stats"]["device_name_count"] | nice_number) }}
+                    {{ macros.stats_table_row("device classes", stats["general_stats"]["device_class_count"] | nice_number) }}
+                    {{ macros.stats_table_row("vendors", stats["general_stats"]["vendor_count"] | nice_number) }}
+                    {{ macros.stats_table_row("device names", stats["general_stats"]["device_name_count"] | nice_number) }}
                 {% endif %}
             </table>
         {% endcall %}
