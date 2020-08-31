@@ -15,43 +15,43 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
     FileObject is the primary data structure in FACT.
     It holds all meta information of a file along with analysis results and some internal values for scheduling.
 
-    :param binary: (Optional) The file in binary representation. Either this or `file_path` has to be present.
-    :param file_name: (Optional) The file's name.
-    :param file_path: (Optional) The file's path. Either this or `binary` has to be present.
-    :param scheduled_analysis: (Optional) A list of analysis plugins that should be run on this file.
+    :param binary: The file in binary representation. Either this or `file_path` has to be present.
+    :param file_name: The file's name.
+    :param file_path: The file's path. Either this or `binary` has to be present.
+    :param scheduled_analysis: A list of analysis plugins that should be run on this file.
     '''
     def __init__(
             self,
-            binary: bytes = None,
-            file_name: str = None,
-            file_path: str = None,
+            binary: Optional[bytes] = None,
+            file_name: Optional[str] = None,
+            file_path: Optional[str] = None,
             scheduled_analysis: List[str] = None
     ):
         self._uid = None
 
         #: The set of files included in this file. This is usually true for archives.
         #: Only lists the next layer, not recursively included files on lower extraction layers.
-        self.files_included: set = set()
+        self.files_included = set()
 
         #: The list of all recusively included files in this file.
         #: That means files are included that are themselves included in files contained in this file, and so on.
         #: This value is not set by default as it's expensive to aggregate and takes up a lot of memory.
-        self.list_of_all_included_files: Optional[list, None] = None
+        self.list_of_all_included_files = None
 
         #: List of parent uids.
         #: A parent in this context is the direct predecessor in a firmware tree.
         #: Not necessarily it's root.
-        self.parents: List[str] = []
+        self.parents = []
 
         #: UID of root (i.e. firmware) object for the given file.
         #: Useful to associate results of children with firmware.
         #: This value might not be set at all times (cf. :func:`get_root_uid`).
-        self.root_uid: Optional[str, None] = None
+        self.root_uid = None
 
         #: Extraction depth of this object. If outer firmware file, this is 0.
         #: Every extraction increments this by one.
         #: For a file inside a squashfs, that is contained inside a tar archive this would be 1 (tar) + 1 (fs) = 2.
-        self.depth: int = 0
+        self.depth = 0
 
         #: Analysis results for this file.
         #:
@@ -62,61 +62,61 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
         #: * analysis_date - float representing the time of analysis in unix time.
         #: * plugin_version - str defining the version of each plugin at time of analysis.
         #: * summary - list holding a summary of each files result, that can be aggregated.
-        self.processed_analysis: dict = {}
+        self.processed_analysis = {}
 
         #: List of plugins that should be run on this file.
-        self.scheduled_analysis: List[str] = scheduled_analysis
+        self.scheduled_analysis = scheduled_analysis
 
         #: List of comments that have been made on this file.
         #: Comments are dicts with the keys time (float), author (str) and comment (str).
-        self.comments: List[dict] = []
+        self.comments = []
 
         #: Set of parent firmware uids.
         #: Parent uids are from the root object, this file belongs to, not its direct predecessor.
         #: This field should be closely related to the keys in the vfp field.
-        self.parent_firmware_uids: set = set()
+        self.parent_firmware_uids = set()
 
         #: This field can be used for arbitrary temporary storage.
         #: It will not be persisted to the database, so it dies after the analysis cycle.
-        self.temporary_data: dict = {}
+        self.temporary_data = {}
 
         #: Analysis tags for this file.
         #: An analysis tag has the structure
         #: ``{tag_name: {'value': value, 'color': color, 'propagate': propagate,}, 'root_uid': root uid}``
         #: while the first layer of this dict is a key for each plugin.
         #: So in total you have a dict ``{plugin: [tags>, of, plugin], ..}``.
-        self.analysis_tags: Dict[str, List[dict]] = {}
+        self.analysis_tags = {}
 
         #: If an exception occured during analysis, this fields stores a tuple
         #: ``(<plugin name>, <error message>)``
         #: for debugging purposes and as placeholder in UI.
-        self.analysis_exception: Tuple[str, str] = None
+        self.analysis_exception = None
 
         if binary is not None:
             self.set_binary(binary)
         else:
             #: Binary representation of this file in bytes.
-            self.binary: bytes = None
+            self.binary = None
 
             #: SHA256 hash of this file.
-            self.sha256: str = None
+            self.sha256 = None
 
             #: Size of this file in bytes
-            self.size: int = None
+            self.size = None
 
         #: Name of this file. Similar to ``file_path``, this probably is generated for carved objects.
-        self.file_name: str = make_unicode_string(file_name) if file_name is not None else file_name
+        self.file_name = make_unicode_string(file_name) if file_name is not None else file_name
 
         #: The path of this file. Has to be a local path if binary is not set.
         #: For carved objects, this will likely only be a (generated) name.
-        self.file_path: str = file_path
+        self.file_path = file_path
         self.create_binary_from_path()
 
         #: The virtual file path is not a path on the analysis machine but the full path inside a firmware object.
         #: For a file inside a filesystem, that was itself packed inside an archive this might look like
         #: `firmware_uid|fs_uid|/etc/hosts` with the pipe sign ( | ) separating extraction levels.
         #: For files such as symlinks, there can be multiple paths inside a single firmware for one unique file.
-        self.virtual_file_path: dict = {}
+        self.virtual_file_path = {}
 
     def set_binary(self, binary: bytes) -> None:
         '''
