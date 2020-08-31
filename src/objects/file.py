@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 from common_helper_files import get_binary_from_file
 
@@ -61,10 +61,10 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
         #:
         #: * analysis_date - float representing the time of analysis in unix time.
         #: * plugin_version - str defining the version of each plugin at time of analysis.
-        #: * summary - list holding a summary of each files result, that can be aggregated.
+        #: * summary - list holding a summary of each file's result, that can be aggregated.
         self.processed_analysis = {}
 
-        #: List of plugins that should be run on this file.
+        #: List of plugins that are scheduled to be run on this file.
         self.scheduled_analysis = scheduled_analysis
 
         #: List of comments that have been made on this file.
@@ -73,7 +73,8 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
 
         #: Set of parent firmware uids.
         #: Parent uids are from the root object, this file belongs to, not its direct predecessor.
-        #: This field should be closely related to the keys in the vfp field.
+        #: Thus, as a file can be part of multiple firmware images, this field is a set.
+        #: This field should be closely related to the keys in the virtual file path field.
         self.parent_firmware_uids = set()
 
         #: This field can be used for arbitrary temporary storage.
@@ -112,7 +113,7 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
         self.file_path = file_path
         self.create_binary_from_path()
 
-        #: The virtual file path is not a path on the analysis machine but the full path inside a firmware object.
+        #: The virtual file path (vfp) is not a path on the analysis machine but the full path inside a firmware object.
         #: For a file inside a filesystem, that was itself packed inside an archive this might look like
         #: `firmware_uid|fs_uid|/etc/hosts` with the pipe sign ( | ) separating extraction levels.
         #: For files such as symlinks, there can be multiple paths inside a single firmware for one unique file.
@@ -162,7 +163,7 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
         As files can have different names across occurences, uid of a specific root object can be specified.
 
         :param root_uid: (Optional) root uid to base HID on.
-        :return: String presenting human readable identifier for file.
+        :return: String representing a human readable identifier for this file.
         '''
         if root_uid is None:
             root_uid = self.get_root_uid()
@@ -175,8 +176,8 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
 
     def add_included_file(self, file_object) -> None:
         '''
-        This functions adds a file to this objects list of included files.
-        The function also takes care of a number of meta information for the child object:
+        This functions adds a file to this object's list of included files.
+        The function also takes care of a number of fields for the child object:
 
         * `parents`: Adds the uid of this file to the parents field of the child.
         * `root_uid`: Sets the root uid of the child as this files uid.
@@ -195,7 +196,8 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
 
     def add_virtual_file_path_if_none_exists(self, parent_paths: List[str], parent_uid: str) -> None:
         '''
-        Add vfps to this file based on an existing list of paths on the parent and the parent's uid as root.
+        Add virtual file paths (vfps) to this file based on an existing list of vfps on the parent
+        and the parent's uid as root.
 
         :param parent_paths: List of virtual paths on parent object.
         :param parent_uid: uid of parent.
@@ -210,11 +212,11 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
 
     def get_virtual_paths_for_one_uid(self, root_uid: str = None) -> List[str]:
         '''
-        Get the virtual path of root_uid if argument set.
+        Get the virtual file path (vfp) of root_uid if argument set.
         If not, similar to :func:`get_root_uid` either return paths of `self.root_uid`
         or fall back to first uid of list of all root uids.
 
-        :param root_uid: (Optional) root uid to get virtual file paths for.
+        :param root_uid: (Optional) root uid to get vfps for.
         :return: List of virtual paths.
         '''
         try:
@@ -240,7 +242,7 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
     def get_root_uid(self) -> str:
         '''
         Return `self.root_uid` if set.
-        Else get's uid from root of first virtual file path.
+        Else gets uid from root of first virtual file path.
 
         :return: uid of root firmware as string.
         '''
