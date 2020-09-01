@@ -4,7 +4,7 @@ from pathlib import Path
 from helperFunctions.database import ConnectTo
 from intercom.front_end_binding import InterComFrontEndBinding
 from storage.db_interface_frontend import FrontEndDbInterface
-from storage.fs_organizer import FS_Organizer
+from storage.fsorganizer import FSOrganizer
 from test.acceptance.base_full_start import TestAcceptanceBaseFullStart
 
 
@@ -67,7 +67,7 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBaseFullStart):
         self.assertIn(b'<input type="hidden" name="file_name" id="file_name" value="' + self.test_fw_a.file_name.encode() + b'">', rv.data, 'file name not set in re-do page')
 
     def _delete_firmware(self):
-        fs_backend = FS_Organizer(config=self.config)
+        fs_backend = FSOrganizer(config=self.config)
         local_firmware_path = Path(fs_backend.generate_path_from_uid(self.test_fw_a.uid))
         self.assertTrue(local_firmware_path.exists(), 'file not found before delete')
         rv = self.test_client.get('/admin/delete/{}'.format(self.test_fw_a.uid))

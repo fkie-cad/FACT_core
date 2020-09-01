@@ -8,7 +8,7 @@ from common_helper_process import execute_shell_command
 
 from helperFunctions.database import ConnectTo
 from storage.db_interface_common import MongoInterfaceCommon
-from storage.fs_organizer import FS_Organizer
+from storage.fsorganizer import FSOrganizer
 
 
 class YaraBinarySearchScanner:
@@ -99,8 +99,8 @@ def get_yara_error(rules_file):
     try:
         yara.compile(source=rules_file)
         return None
-    except Exception as exception:
-        return exception
+    except (yara.Error, TypeError) as error:
+        return error
 
 
 class YaraBinarySearchScannerDbInterface(MongoInterfaceCommon):
@@ -108,7 +108,7 @@ class YaraBinarySearchScannerDbInterface(MongoInterfaceCommon):
     READ_ONLY = True
 
     def get_file_paths_of_files_included_in_fo(self, fo_uid: str) -> List[str]:
-        fs_organizer = FS_Organizer(self.config)
+        fs_organizer = FSOrganizer(self.config)
         return [
             fs_organizer.generate_path_from_uid(uid)
             for uid in self.get_uids_of_all_included_files(fo_uid)

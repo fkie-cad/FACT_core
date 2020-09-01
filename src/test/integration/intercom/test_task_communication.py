@@ -10,7 +10,7 @@ from intercom.back_end_binding import (
     InterComBackEndTarRepackTask
 )
 from intercom.front_end_binding import InterComFrontEndBinding
-from storage.fs_organizer import FS_Organizer
+from storage.fsorganizer import FSOrganizer
 from storage.MongoMgr import MongoMgr
 from test.common_helper import create_test_firmware, get_config_for_testing
 
@@ -73,7 +73,7 @@ class TestInterComTaskCommunication(unittest.TestCase):
 
     def test_re_analyze_task(self):
         self.backend = InterComBackEndReAnalyzeTask(config=self.config)
-        fs_organizer = FS_Organizer(config=self.config)
+        fs_organizer = FSOrganizer(config=self.config)
         test_fw = create_test_firmware()
         fs_organizer.store_file(test_fw)
         original_file_path = test_fw.file_path

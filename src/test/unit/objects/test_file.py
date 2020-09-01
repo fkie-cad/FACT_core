@@ -1,5 +1,3 @@
-import logging
-
 from common_helper_files import get_binary_from_file
 
 from objects.file import FileObject
@@ -10,8 +8,7 @@ class TestObjectsFile:  # pylint: disable=no-self-use
 
     def test_get_file_from_binary(self):
         file_path = '{}/test_data_file.bin'.format(get_test_data_dir())
-        test_object = FileObject()
-        test_object.create_from_file(file_path)
+        test_object = FileObject(file_path=file_path)
         assert test_object.size == 19, 'correct size'
         assert test_object.binary == b'test string in file', 'correct binary data'
         assert test_object.sha256 == '268d870ffa2b21784e4dc955d8e8b8eb5f3bcddd6720a1e6d31d2cf84bd1bff8', 'correct sha256'
@@ -52,7 +49,7 @@ class TestObjectsFile:  # pylint: disable=no-self-use
     def test_get_virtual_file_path(self):
         fo = FileObject(binary=b'file_object')
         assert fo.uid in fo.get_virtual_file_paths().keys(), 'not correct if path _ name not set'
-        fo.set_name('the_file_name.txt')
+        fo.file_name = 'the_file_name.txt'
         assert fo.get_virtual_file_paths()[fo.uid][0] == fo.uid, 'not correct if path not set'
         fo.virtual_file_path = {fo.uid: '/foo/bar/the_file_name.txt'}
         assert fo.get_virtual_file_paths()[fo.uid] == '/foo/bar/the_file_name.txt', 'not correct if path set'
@@ -74,9 +71,3 @@ class TestObjectsFile:  # pylint: disable=no-self-use
     def test_get_virtual_path_for_none_existing_uid(self):
         fo = FileObject(binary=b'foo')
         assert fo.get_virtual_paths_for_one_uid(root_uid='none_existing') == ['insufficient information: firmware analysis not complete']
-
-    def test_get_uid_deprecation(self, caplog):
-        fo = FileObject()
-        with caplog.at_level(logging.INFO):
-            fo.get_uid()
-            assert 'Deprecation warning' in caplog.messages[0]
