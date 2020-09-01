@@ -33,7 +33,7 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
         #: Only lists the next layer, not recursively included files on lower extraction layers.
         self.files_included = set()
 
-        #: The list of all recusively included files in this file.
+        #: The list of all recursively included files in this file.
         #: That means files are included that are themselves included in files contained in this file, and so on.
         #: This value is not set by default as it's expensive to aggregate and takes up a lot of memory.
         self.list_of_all_included_files = None
@@ -85,10 +85,10 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
         #: An analysis tag has the structure
         #: ``{tag_name: {'value': value, 'color': color, 'propagate': propagate,}, 'root_uid': root uid}``
         #: while the first layer of this dict is a key for each plugin.
-        #: So in total you have a dict ``{plugin: [tags>, of, plugin], ..}``.
+        #: So in total you have a dict ``{plugin: [tags, of, plugin], ..}``.
         self.analysis_tags = {}
 
-        #: If an exception occured during analysis, this fields stores a tuple
+        #: If an exception occurred during analysis, this fields stores a tuple
         #: ``(<plugin name>, <error message>)``
         #: for debugging purposes and as placeholder in UI.
         self.analysis_exception = None
@@ -121,7 +121,7 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
 
     def set_binary(self, binary: bytes) -> None:
         '''
-        Store binary of file as byte string.
+        Store the binary representation of the file as byte string.
         Additionally set binary related meta data (size, hash) and compute uid after that.
 
         :param binary: file in binary representation
@@ -160,7 +160,7 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
         '''
         Get a human readable identifier for the given file.
         This usually is the file name for extracted files.
-        As files can have different names across occurences, uid of a specific root object can be specified.
+        As files can have different names across occurrences, uid of a specific root object can be specified.
 
         :param root_uid: (Optional) root uid to base HID on.
         :return: String representing a human readable identifier for this file.
