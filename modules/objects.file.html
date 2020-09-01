@@ -1,0 +1,532 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>objects.file module &mdash; FACT  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/custom.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="objects" href="objects.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> FACT
+          
+
+          
+            
+            <img src="../_static/FACT_smaller.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../main.html">Challenges</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#easy-to-install-easy-to-use">Easy to Install! Easy to Use!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#easy-to-extend-easy-to-integrate">Easy to Extend! Easy to Integrate!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#screenshots">Screenshots</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#contributing">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#latest-news-and-contact">Latest News and Contact</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#authors-and-acknowledgment">Authors and Acknowledgment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#source-code">Source Code</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Modules:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="helperFunctions.html">helperFunctions</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="objects.html">objects</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">objects.file module</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">FACT</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="objects.html">objects</a> &raquo;</li>
+        
+      <li>objects.file module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/modules/objects.file.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-objects.file">
+<span id="objects-file-module"></span><h1>objects.file module<a class="headerlink" href="#module-objects.file" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt id="objects.file.FileObject">
+<em class="property">class </em><code class="sig-prename descclassname">objects.file.</code><code class="sig-name descname">FileObject</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">binary</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">file_name</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">file_path</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">scheduled_analysis</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#objects.file.FileObject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>FileObject is the primary data structure in FACT.
+It holds all meta information of a file along with analysis results and some internal values for scheduling.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>binary</strong> – The file in binary representation. Either this or <cite>file_path</cite> has to be present.</p></li>
+<li><p><strong>file_name</strong> – The file’s name.</p></li>
+<li><p><strong>file_path</strong> – The file’s path. Either this or <cite>binary</cite> has to be present.</p></li>
+<li><p><strong>scheduled_analysis</strong> – A list of analysis plugins that should be run on this file.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="objects.file.FileObject.add_included_file">
+<code class="sig-name descname">add_included_file</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_object</span></em><span class="sig-paren">)</span><a class="headerlink" href="#objects.file.FileObject.add_included_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>This functions adds a file to this object’s list of included files.
+The function also takes care of a number of fields for the child object:</p>
+<ul class="simple">
+<li><p><cite>parents</cite>: Adds the uid of this file to the parents field of the child.</p></li>
+<li><p><cite>root_uid</cite>: Sets the root uid of the child as this files uid.</p></li>
+<li><p><cite>depth</cite>: The child inherits the unpacking depth from this file, incremented by one.</p></li>
+<li><p><cite>scheduled_analysis</cite>: The child inherits this file’s scheduled analysis.</p></li>
+<li><p><cite>virtual_file_path</cite>: Sets a new virtual_file_path for the child, being &lt;this_files_current_vfp|child_path&gt;.</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>file_object</strong> – File that was extracted from the current file</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="objects.file.FileObject.add_virtual_file_path_if_none_exists">
+<code class="sig-name descname">add_virtual_file_path_if_none_exists</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">parent_paths</span></em>, <em class="sig-param"><span class="n">parent_uid</span></em><span class="sig-paren">)</span><a class="headerlink" href="#objects.file.FileObject.add_virtual_file_path_if_none_exists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add virtual file paths (vfps) to this file based on an existing list of vfps on the parent
+and the parent’s uid as root.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>parent_paths</strong> (<em>List</em><em>[</em><em>str</em><em>]</em>) – List of virtual paths on parent object.</p></li>
+<li><p><strong>parent_uid</strong> (<em>str</em>) – uid of parent.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="objects.file.FileObject.analysis_exception">
+<code class="sig-name descname">analysis_exception</code><a class="headerlink" href="#objects.file.FileObject.analysis_exception" title="Permalink to this definition">¶</a></dt>
+<dd><p>If an exception occurred during analysis, this fields stores a tuple
+<code class="docutils literal notranslate"><span class="pre">(&lt;plugin</span> <span class="pre">name&gt;,</span> <span class="pre">&lt;error</span> <span class="pre">message&gt;)</span></code>
+for debugging purposes and as placeholder in UI.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="objects.file.FileObject.analysis_tags">
+<code class="sig-name descname">analysis_tags</code><a class="headerlink" href="#objects.file.FileObject.analysis_tags" title="Permalink to this definition">¶</a></dt>
+<dd><p>Analysis tags for this file.
+An analysis tag has the structure
+<code class="docutils literal notranslate"><span class="pre">{tag_name:</span> <span class="pre">{'value':</span> <span class="pre">value,</span> <span class="pre">'color':</span> <span class="pre">color,</span> <span class="pre">'propagate':</span> <span class="pre">propagate,},</span> <span class="pre">'root_uid':</span> <span class="pre">root</span> <span class="pre">uid}</span></code>
+while the first layer of this dict is a key for each plugin.
+So in total you have a dict <code class="docutils literal notranslate"><span class="pre">{plugin:</span> <span class="pre">[tags,</span> <span class="pre">of,</span> <span class="pre">plugin],</span> <span class="pre">..}</span></code>.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="objects.file.FileObject.binary">
+<code class="sig-name descname">binary</code><a class="headerlink" href="#objects.file.FileObject.binary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Binary representation of this file in bytes.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="objects.file.FileObject.comments">
+<code class="sig-name descname">comments</code><a class="headerlink" href="#objects.file.FileObject.comments" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of comments that have been made on this file.
+Comments are dicts with the keys time (float), author (str) and comment (str).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="objects.file.FileObject.create_binary_from_path">
+<code class="sig-name descname">create_binary_from_path</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#objects.file.FileObject.create_binary_from_path" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="objects.file.FileObject.depth">
+<code class="sig-name descname">depth</code><a class="headerlink" href="#objects.file.FileObject.depth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extraction depth of this object. If outer firmware file, this is 0.
+Every extraction increments this by one.
+For a file inside a squashfs, that is contained inside a tar archive this would be 1 (tar) + 1 (fs) = 2.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="objects.file.FileObject.file_name">
+<code class="sig-name descname">file_name</code><a class="headerlink" href="#objects.file.FileObject.file_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Name of this file. Similar to <code class="docutils literal notranslate"><span class="pre">file_path</span></code>, this probably is generated for carved objects.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="objects.file.FileObject.file_path">
+<code class="sig-name descname">file_path</code><a class="headerlink" href="#objects.file.FileObject.file_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>The path of this file. Has to be a local path if binary is not set.
+For carved objects, this will likely only be a (generated) name.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="objects.file.FileObject.files_included">
+<code class="sig-name descname">files_included</code><a class="headerlink" href="#objects.file.FileObject.files_included" title="Permalink to this definition">¶</a></dt>
+<dd><p>The set of files included in this file. This is usually true for archives.
+Only lists the next layer, not recursively included files on lower extraction layers.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="objects.file.FileObject.get_hid">
+<code class="sig-name descname">get_hid</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">root_uid</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#objects.file.FileObject.get_hid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a human readable identifier for the given file.
+This usually is the file name for extracted files.
+As files can have different names across occurrences, uid of a specific root object can be specified.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>root_uid</strong> (<em>str</em>) – (Optional) root uid to base HID on.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>String representing a human readable identifier for this file.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="objects.file.FileObject.get_root_uid">
+<code class="sig-name descname">get_root_uid</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#objects.file.FileObject.get_root_uid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return <cite>self.root_uid</cite> if set.
+Else gets uid from root of first virtual file path.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>uid of root firmware as string.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="objects.file.FileObject.get_virtual_file_paths">
+<code class="sig-name descname">get_virtual_file_paths</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#objects.file.FileObject.get_virtual_file_paths" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get virtual file paths of current file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Dict mapping uids of root objects to lists of paths in each root.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>Dict[str, list]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="objects.file.FileObject.get_virtual_paths_for_one_uid">
+<code class="sig-name descname">get_virtual_paths_for_one_uid</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">root_uid</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#objects.file.FileObject.get_virtual_paths_for_one_uid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the virtual file path (vfp) of root_uid if argument set.
+If not, similar to <a class="reference internal" href="#objects.file.FileObject.get_root_uid" title="objects.file.FileObject.get_root_uid"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_root_uid()</span></code></a> either return paths of <cite>self.root_uid</cite>
+or fall back to first uid of list of all root uids.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>root_uid</strong> (<em>str</em>) – (Optional) root uid to get vfps for.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>List of virtual paths.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>List[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="objects.file.FileObject.list_of_all_included_files">
+<code class="sig-name descname">list_of_all_included_files</code><a class="headerlink" href="#objects.file.FileObject.list_of_all_included_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>The list of all recursively included files in this file.
+That means files are included that are themselves included in files contained in this file, and so on.
+This value is not set by default as it’s expensive to aggregate and takes up a lot of memory.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="objects.file.FileObject.parent_firmware_uids">
+<code class="sig-name descname">parent_firmware_uids</code><a class="headerlink" href="#objects.file.FileObject.parent_firmware_uids" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set of parent firmware uids.
+Parent uids are from the root object, this file belongs to, not its direct predecessor.
+Thus, as a file can be part of multiple firmware images, this field is a set.
+This field should be closely related to the keys in the virtual file path field.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="objects.file.FileObject.parents">
+<code class="sig-name descname">parents</code><a class="headerlink" href="#objects.file.FileObject.parents" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of parent uids.
+A parent in this context is the direct predecessor in a firmware tree.
+Not necessarily it’s root.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="objects.file.FileObject.processed_analysis">
+<code class="sig-name descname">processed_analysis</code><a class="headerlink" href="#objects.file.FileObject.processed_analysis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Analysis results for this file.</p>
+<p>Structure of results:
+The first level of this dict is a pair of <code class="docutils literal notranslate"><span class="pre">'plugin_name':</span> <span class="pre">&lt;result_dict&gt;</span></code> pairs.
+The result dict can have any content, but always has at least the fields:</p>
+<ul class="simple">
+<li><p>analysis_date - float representing the time of analysis in unix time.</p></li>
+<li><p>plugin_version - str defining the version of each plugin at time of analysis.</p></li>
+<li><p>summary - list holding a summary of each file’s result, that can be aggregated.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="objects.file.FileObject.root_uid">
+<code class="sig-name descname">root_uid</code><a class="headerlink" href="#objects.file.FileObject.root_uid" title="Permalink to this definition">¶</a></dt>
+<dd><p>UID of root (i.e. firmware) object for the given file.
+Useful to associate results of children with firmware.
+This value might not be set at all times (cf. <a class="reference internal" href="#objects.file.FileObject.get_root_uid" title="objects.file.FileObject.get_root_uid"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_root_uid()</span></code></a>).</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="objects.file.FileObject.scheduled_analysis">
+<code class="sig-name descname">scheduled_analysis</code><a class="headerlink" href="#objects.file.FileObject.scheduled_analysis" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of plugins that are scheduled to be run on this file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="objects.file.FileObject.set_binary">
+<code class="sig-name descname">set_binary</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">binary</span></em><span class="sig-paren">)</span><a class="headerlink" href="#objects.file.FileObject.set_binary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Store the binary representation of the file as byte string.
+Additionally set binary related meta data (size, hash) and compute uid after that.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>binary</strong> (<em>bytes</em>) – file in binary representation</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="objects.file.FileObject.sha256">
+<code class="sig-name descname">sha256</code><a class="headerlink" href="#objects.file.FileObject.sha256" title="Permalink to this definition">¶</a></dt>
+<dd><p>SHA256 hash of this file.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="objects.file.FileObject.size">
+<code class="sig-name descname">size</code><a class="headerlink" href="#objects.file.FileObject.size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Size of this file in bytes</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="objects.file.FileObject.temporary_data">
+<code class="sig-name descname">temporary_data</code><a class="headerlink" href="#objects.file.FileObject.temporary_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>This field can be used for arbitrary temporary storage.
+It will not be persisted to the database, so it dies after the analysis cycle.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="objects.file.FileObject.uid">
+<em class="property">property </em><code class="sig-name descname">uid</code><a class="headerlink" href="#objects.file.FileObject.uid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unique identifier of this file.
+Consisting of the file’s sha256 hash and it’s length in the form <cite>hash_length</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>uid of this file.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="objects.file.FileObject.virtual_file_path">
+<code class="sig-name descname">virtual_file_path</code><a class="headerlink" href="#objects.file.FileObject.virtual_file_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>The virtual file path (vfp) is not a path on the analysis machine but the full path inside a firmware object.
+For a file inside a filesystem, that was itself packed inside an archive this might look like
+<cite>firmware_uid|fs_uid|/etc/hosts</cite> with the pipe sign ( | ) separating extraction levels.
+For files such as symlinks, there can be multiple paths inside a single firmware for one unique file.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="objects.html" class="btn btn-neutral float-left" title="objects" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Fraunhofer FKIE
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
