@@ -1,7 +1,7 @@
 import json
 import logging
 import pickle
-from typing import Set
+from typing import List, Set
 
 import gridfs
 from common_helper_files import get_safe_name
@@ -95,11 +95,11 @@ class MongoInterfaceCommon(MongoInterface):  # pylint: disable=too-many-instance
         query = {'_id': {'$in': list(uid_list)}}
         return query
 
-    def _convert_to_firmware(self, entry, analysis_filter=None):
+    def _convert_to_firmware(self, entry: dict, analysis_filter: List[str] = None) -> Firmware:
         firmware = Firmware()
         firmware.uid = entry['_id']
         firmware.size = entry['size']
-        firmware.set_name(entry['file_name'])
+        firmware.file_name = entry['file_name']
         firmware.set_device_name(entry['device_name'])
         firmware.set_device_class(entry['device_class'])
         firmware.set_release_date(convert_time_to_str(entry['release_date']))
@@ -120,11 +120,11 @@ class MongoInterfaceCommon(MongoInterface):  # pylint: disable=too-many-instance
             firmware.comments = entry['comments']
         return firmware
 
-    def _convert_to_file_object(self, entry, analysis_filter=None):
+    def _convert_to_file_object(self, entry: dict, analysis_filter: List[str] = None) -> FileObject:
         file_object = FileObject()
         file_object.uid = entry['_id']
         file_object.size = entry['size']
-        file_object.set_name(entry['file_name'])
+        file_object.file_name = entry['file_name']
         file_object.virtual_file_path = entry['virtual_file_path']
         file_object.parents = entry['parents']
         file_object.processed_analysis = self.retrieve_analysis(entry['processed_analysis'], analysis_filter=analysis_filter)
@@ -169,8 +169,8 @@ class MongoInterfaceCommon(MongoInterface):  # pylint: disable=too-many-instance
                     sanitized_dict[key] = self._retrieve_binaries(sanitized_dict, key)
                 else:
                     sanitized_dict[key].pop('file_system_flag')
-            except Exception as err:
-                logging.debug('Could not retrieve information: {} {}'.format(type(err), err))
+            except (KeyError, IndexError, AttributeError, TypeError, pickle.PickleError) as error:
+                logging.debug('Could not retrieve information: {} {}'.format(type(error), error))
         return sanitized_dict
 
     def _extract_binaries(self, analysis_dict, key, uid):
@@ -256,7 +256,7 @@ class MongoInterfaceCommon(MongoInterface):  # pylint: disable=too-many-instance
             if 'summary' in file_object.processed_analysis[selected_analysis].keys():
                 for item in file_object.processed_analysis[selected_analysis]['summary']:
                     summary[item] = [file_object.uid]
-        except Exception as err:
+        except (AttributeError, KeyError) as err:
             logging.warning('Could not get summary: {} {}'.format(type(err), err))
         return summary
 

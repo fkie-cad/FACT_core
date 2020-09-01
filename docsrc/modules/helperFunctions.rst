@@ -5,6 +5,7 @@ helperFunctions
    :maxdepth: 4
 
    helperFunctions.compare_sets
+   helperFunctions.database
    helperFunctions.docker
    helperFunctions.mongo_task_conversion
    helperFunctions.object_storage

@@ -7,8 +7,7 @@ from common_helper_process import execute_shell_command_get_return_code
 
 from helperFunctions.install import (
     InstallationError, OperateInDirectory, apt_install_packages, apt_remove_packages, apt_update_sources,
-    install_github_project, pip3_install_packages,
-    dnf_install_packages, dnf_remove_packages, dnf_update_sources
+    dnf_install_packages, dnf_remove_packages, dnf_update_sources, install_github_project, pip3_install_packages
 )
 
 
@@ -25,7 +24,6 @@ def main(distribution):  # pylint: disable=too-many-statements
     if distribution == 'fedora':
         logging.info('Updating system')
         dnf_update_sources()
-        pass
     else:
         apt_install_packages('apt-transport-https')
         logging.info('Updating system')
@@ -70,6 +68,7 @@ def main(distribution):  # pylint: disable=too-many-statements
         apt_remove_packages('python3-pip', 'python3-setuptools', 'python3-wheel')
 
     install_pip('python3')
+    pip3_install_packages('setuptools==49.6.0')
 
     if distribution == 'fedora':
         pass

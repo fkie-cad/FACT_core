@@ -11,7 +11,7 @@ from helperFunctions.yara_binary_search import YaraBinarySearchScanner
 from intercom.common_mongo_binding import InterComListener, InterComListenerAndResponder, InterComMongoInterface
 from storage.binary_service import BinaryService
 from storage.db_interface_common import MongoInterfaceCommon
-from storage.fs_organizer import FS_Organizer
+from storage.fsorganizer import FSOrganizer
 
 
 class InterComBackEndBinding:
@@ -112,7 +112,7 @@ class InterComBackEndAnalysisTask(InterComListener):
     CONNECTION_TYPE = 'analysis_task'
 
     def additional_setup(self, config=None):
-        self.fs_organizer = FS_Organizer(config=config)
+        self.fs_organizer = FSOrganizer(config=config)
 
     def post_processing(self, task, task_id):
         self.fs_organizer.store_file(task)
@@ -124,11 +124,11 @@ class InterComBackEndReAnalyzeTask(InterComListener):
     CONNECTION_TYPE = 're_analyze_task'
 
     def additional_setup(self, config=None):
-        self.fs_organizer = FS_Organizer(config=config)
+        self.fs_organizer = FSOrganizer(config=config)
 
     def post_processing(self, task, task_id):
-        file_path = self.fs_organizer.generate_path(task)
-        task.set_file_path(file_path)
+        task.file_path = self.fs_organizer.generate_path(task)
+        task.create_binary_from_path()
         return task
 
 
@@ -185,7 +185,7 @@ class InterComBackEndDeleteFile(InterComListener):
     CONNECTION_TYPE = 'file_delete_task'
 
     def additional_setup(self, config=None):
-        self.fs_organizer = FS_Organizer(config=config)
+        self.fs_organizer = FSOrganizer(config=config)
 
     def post_processing(self, task, task_id):
         if self._entry_was_removed_from_db(task['_id']):

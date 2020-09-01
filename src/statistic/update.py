@@ -2,6 +2,7 @@ import itertools
 import logging
 import sys
 from collections import Counter
+from contextlib import suppress
 from datetime import datetime
 from time import time
 
@@ -9,10 +10,9 @@ from bson.son import SON
 from common_helper_filter.time import time_format
 from common_helper_mongo import get_field_average, get_field_sum, get_objects_and_count_of_occurrence
 
+from helperFunctions.database import is_sanitized_entry
 from helperFunctions.dataConversion import build_time_dict
 from helperFunctions.merge_generators import avg, merge_dict, sum_up_lists, sum_up_nested_lists
-from helperFunctions.mongo_task_conversion import is_sanitized_entry
-from helperFunctions.statistic import calculate_total_files
 from storage.db_interface_statistic import StatisticDbUpdater
 
 
@@ -93,7 +93,8 @@ class StatisticUpdater:
             pipeline_group={'_id': '$parent_firmware_uids',
                             'exploit_mitigations': {'$push': '$processed_analysis.exploit_mitigations.summary'}},
             pipeline_match={'processed_analysis.exploit_mitigations.summary': {'$exists': True, '$not': {'$size': 0}}},
-            additional_projection={'processed_analysis.exploit_mitigations.summary': 1})
+            additional_projection={'processed_analysis.exploit_mitigations.summary': 1}
+        )
 
         result_list_of_lists = [list(itertools.chain.from_iterable(d['exploit_mitigations']))
                                 for d in self.db.file_objects.aggregate(aggregation_pipeline, allowDiskUse=True)]
@@ -108,7 +109,7 @@ class StatisticUpdater:
 
     def get_stats_fortify(self, result, stats):
         fortify_off, fortify_on = self.extract_fortify_data_from_analysis(result)
-        total_amount_of_files = calculate_total_files([fortify_off, fortify_on])
+        total_amount_of_files = self._calculate_total_files([fortify_off, fortify_on])
         self.append_nx_stats_to_result_dict(fortify_off, fortify_on, stats, total_amount_of_files)
 
     def extract_fortify_data_from_analysis(self, result):
@@ -118,7 +119,7 @@ class StatisticUpdater:
 
     def get_stats_nx(self, result, stats):
         nx_off, nx_on = self.extract_nx_data_from_analysis(result)
-        total_amount_of_files = calculate_total_files([nx_off, nx_on])
+        total_amount_of_files = self._calculate_total_files([nx_off, nx_on])
         self.append_nx_stats_to_result_dict(nx_off, nx_on, stats, total_amount_of_files)
 
     def extract_nx_data_from_analysis(self, result):
@@ -132,7 +133,7 @@ class StatisticUpdater:
 
     def get_stats_canary(self, result, stats):
         canary_off, canary_on = self.extract_canary_data_from_analysis(result)
-        total_amount_of_files = calculate_total_files([canary_off, canary_on])
+        total_amount_of_files = self._calculate_total_files([canary_off, canary_on])
         self.append_canary_stats_to_result_dict(canary_off, canary_on, stats, total_amount_of_files)
 
     def extract_canary_data_from_analysis(self, result):
@@ -146,7 +147,7 @@ class StatisticUpdater:
 
     def get_stats_relro(self, result, stats):
         relro_off, relro_on, relro_partial = self.extract_relro_data_from_analysis(result)
-        total_amount_of_files = calculate_total_files([relro_off, relro_on, relro_partial])
+        total_amount_of_files = self._calculate_total_files([relro_off, relro_on, relro_partial])
         self.append_relro_stats_to_result_dict(relro_off, relro_on, relro_partial, stats, total_amount_of_files)
 
     def extract_relro_data_from_analysis(self, result):
@@ -162,7 +163,7 @@ class StatisticUpdater:
 
     def get_stats_pie(self, result, stats):
         pie_invalid, pie_off, pie_on, pie_partial = self.extract_pie_data_from_analysis(result)
-        total_amount_of_files = calculate_total_files([pie_off, pie_on, pie_partial, pie_invalid])
+        total_amount_of_files = self._calculate_total_files([pie_off, pie_on, pie_partial, pie_invalid])
         self.append_pie_stats_to_result_dict(pie_invalid, pie_off, pie_on, pie_partial, stats, total_amount_of_files)
 
     def extract_pie_data_from_analysis(self, result):
@@ -389,3 +390,11 @@ class StatisticUpdater:
             if not is_sanitized_entry(item[0]):
                 out_list.append(item)
         return out_list
+
+    @staticmethod
+    def _calculate_total_files(list_of_stat_tuples):
+        total_amount_of_files = 0
+        for item in list_of_stat_tuples:
+            with suppress(IndexError):
+                total_amount_of_files += item[0][1]
+        return total_amount_of_files

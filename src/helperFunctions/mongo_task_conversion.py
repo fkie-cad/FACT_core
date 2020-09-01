@@ -1,7 +1,4 @@
-import logging
 import os
-import re
-import sys
 from configparser import ConfigParser
 from tempfile import TemporaryDirectory
 from typing import Any, Dict, Optional, Tuple
@@ -28,7 +25,7 @@ def create_analysis_task(request: Request, config: ConfigParser) -> Dict[str, An
     task = _get_meta_from_request(request)
     if request.files['file']:
         task['file_name'], task['binary'] = get_file_name_and_binary_from_request(request, config)
-    task['uid'] = get_uid_of_analysis_task(task)
+    task['uid'] = _get_uid_of_analysis_task(task)
     if task['release_date'] == '':
         # set default value if date field is empty
         task['release_date'] = '1970-01-01'
@@ -47,7 +44,7 @@ def get_file_name_and_binary_from_request(request: Request, config: ConfigParser
         file_name = escape(request.files['file'].filename)
     except Exception:
         file_name = 'no name'
-    file_binary = get_uploaded_file_binary(request.files['file'], config)
+    file_binary = _get_uploaded_file_binary(request.files['file'], config)
     return file_name, file_binary
 
 
@@ -124,7 +121,7 @@ def convert_analysis_task_to_fw_obj(analysis_task: dict) -> Firmware:
     return fw
 
 
-def get_uid_of_analysis_task(analysis_task: dict) -> Optional[str]:
+def _get_uid_of_analysis_task(analysis_task: dict) -> Optional[str]:
     '''
     Creates a UID (unique identifier) for an analysis task. The UID is generated based on the binary stored in the
     analysis task dict. The return value may be `None` if no binary is contained in the analysis task dict.
@@ -138,7 +135,7 @@ def get_uid_of_analysis_task(analysis_task: dict) -> Optional[str]:
     return None
 
 
-def get_uploaded_file_binary(request_file: FileStorage, config: ConfigParser) -> Optional[bytes]:
+def _get_uploaded_file_binary(request_file: FileStorage, config: ConfigParser) -> Optional[bytes]:
     '''
     Retrieves the binary from the request file storage and returns it as byte string. May return `None` if no
     binary was found or an exception occurred.
@@ -174,22 +171,3 @@ def check_for_errors(analysis_task: dict) -> Dict[str, str]:
         for key in analysis_task
         if analysis_task[key] in [None, '', b''] and key not in OPTIONAL_FIELDS
     }
-
-
-def is_sanitized_entry(entry: Any) -> bool:
-    '''
-    Check a database entry if it was sanitized (meaning the database entry was too large for the MongoDB database and
-    was swapped to the file system).
-
-    :param entry: A database entry.
-    :return: `True` if the entry is sanitized and `False` otherwise.
-    '''
-    try:
-        if re.search(r'_[0-9a-f]{64}_[0-9]+', entry) is None:
-            return False
-        return True
-    except TypeError:  # DB entry has type other than string (e.g. integer or float)
-        return False
-    except Exception as e_type:
-        logging.error('Could not determine entry sanitization state: {} {}'.format(sys.exc_info()[0].__name__, e_type))
-        return False

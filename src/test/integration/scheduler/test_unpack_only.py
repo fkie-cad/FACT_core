@@ -10,7 +10,7 @@ from test.integration.common import MockFSOrganizer, initialize_config
 
 
 class TestFileAddition(unittest.TestCase):
-    @patch('unpacker.unpack.FS_Organizer', MockFSOrganizer)
+    @patch('unpacker.unpack.FSOrganizer', MockFSOrganizer)
     def setUp(self):
         self._config = initialize_config(tmp_dir=None)
         self._tmp_queue = Queue()
