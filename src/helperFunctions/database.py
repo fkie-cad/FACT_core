@@ -1,6 +1,4 @@
-import logging
 import re
-import sys
 from configparser import ConfigParser
 from typing import Any, Generic, Type, TypeVar
 
@@ -47,7 +45,4 @@ def is_sanitized_entry(entry: Any) -> bool:
             return False
         return True
     except TypeError:  # DB entry has type other than string (e.g. integer or float)
-        return False
-    except Exception as e_type:
-        logging.error('Could not determine entry sanitization state: {} {}'.format(sys.exc_info()[0].__name__, e_type))
         return False
