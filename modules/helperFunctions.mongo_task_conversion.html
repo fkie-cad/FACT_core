@@ -100,6 +100,7 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="helperFunctions.html">helperFunctions</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.compare_sets.html">helperFunctions.compare_sets module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.database.html">helperFunctions.database module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.docker.html">helperFunctions.docker module</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">helperFunctions.mongo_task_conversion module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.object_storage.html">helperFunctions.object_storage module</a></li>
@@ -268,63 +269,6 @@ in the webinterface).</p>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>Tuple[str, bytes]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt id="helperFunctions.mongo_task_conversion.get_uid_of_analysis_task">
-<code class="sig-prename descclassname">helperFunctions.mongo_task_conversion.</code><code class="sig-name descname">get_uid_of_analysis_task</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">analysis_task</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.mongo_task_conversion.get_uid_of_analysis_task" title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates a UID (unique identifier) for an analysis task. The UID is generated based on the binary stored in the
-analysis task dict. The return value may be <cite>None</cite> if no binary is contained in the analysis task dict.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>analysis_task</strong> (<em>dict</em>) – The analysis task data.</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>A UID based on the binary contained in the analysis task or <cite>None</cite> if there is no binary.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>Optional[str]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt id="helperFunctions.mongo_task_conversion.get_uploaded_file_binary">
-<code class="sig-prename descclassname">helperFunctions.mongo_task_conversion.</code><code class="sig-name descname">get_uploaded_file_binary</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">request_file</span></em>, <em class="sig-param"><span class="n">config</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.mongo_task_conversion.get_uploaded_file_binary" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieves the binary from the request file storage and returns it as byte string. May return <cite>None</cite> if no
-binary was found or an exception occurred.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>request_file</strong> (<em>werkzeug.datastructures.FileStorage</em>) – A file contained in the flask request object.</p></li>
-<li><p><strong>config</strong> (<em>configparser.ConfigParser</em>) – The FACT configuration.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>The binary as byte string or <cite>None</cite> if no binary was found.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>Optional[bytes]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt id="helperFunctions.mongo_task_conversion.is_sanitized_entry">
-<code class="sig-prename descclassname">helperFunctions.mongo_task_conversion.</code><code class="sig-name descname">is_sanitized_entry</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">entry</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.mongo_task_conversion.is_sanitized_entry" title="Permalink to this definition">¶</a></dt>
-<dd><p>Check a database entry if it was sanitized (meaning the database entry was too large for the MongoDB database and
-was swapped to the file system).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>entry</strong> (<em>Any</em>) – A database entry.</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><cite>True</cite> if the entry is sanitized and <cite>False</cite> otherwise.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>bool</p>
 </dd>
 </dl>
 </dd></dl>

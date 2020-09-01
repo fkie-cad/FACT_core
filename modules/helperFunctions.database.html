@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>helperFunctions.docker module &mdash; FACT  documentation</title>
+  <title>helperFunctions.database module &mdash; FACT  documentation</title>
   
 
   
@@ -37,8 +37,8 @@
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="helperFunctions.mongo_task_conversion module" href="helperFunctions.mongo_task_conversion.html" />
-    <link rel="prev" title="helperFunctions.database module" href="helperFunctions.database.html" /> 
+    <link rel="next" title="helperFunctions.docker module" href="helperFunctions.docker.html" />
+    <link rel="prev" title="helperFunctions.compare_sets module" href="helperFunctions.compare_sets.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -100,8 +100,8 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="helperFunctions.html">helperFunctions</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.compare_sets.html">helperFunctions.compare_sets module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="helperFunctions.database.html">helperFunctions.database module</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">helperFunctions.docker module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">helperFunctions.database module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.docker.html">helperFunctions.docker module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.mongo_task_conversion.html">helperFunctions.mongo_task_conversion module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.object_storage.html">helperFunctions.object_storage module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.pdf.html">helperFunctions.pdf module</a></li>
@@ -157,13 +157,13 @@
         
           <li><a href="helperFunctions.html">helperFunctions</a> &raquo;</li>
         
-      <li>helperFunctions.docker module</li>
+      <li>helperFunctions.database module</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/modules/helperFunctions.docker.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/modules/helperFunctions.database.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -176,30 +176,43 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="module-helperFunctions.docker">
-<span id="helperfunctions-docker-module"></span><h1>helperFunctions.docker module<a class="headerlink" href="#module-helperFunctions.docker" title="Permalink to this headline">¶</a></h1>
-<dl class="py function">
-<dt id="helperFunctions.docker.run_docker_container">
-<code class="sig-prename descclassname">helperFunctions.docker.</code><code class="sig-name descname">run_docker_container</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">image</span></em>, <em class="sig-param"><span class="n">timeout</span><span class="o">=</span><span class="default_value">300</span></em>, <em class="sig-param"><span class="n">command</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">reraise</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">mount</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">label</span><span class="o">=</span><span class="default_value">'Docker'</span></em>, <em class="sig-param"><span class="n">include_stderr</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.docker.run_docker_container" title="Permalink to this definition">¶</a></dt>
-<dd><p>Run a docker container and get its output.</p>
-<dl class="field-list simple">
+  <div class="section" id="module-helperFunctions.database">
+<span id="helperfunctions-database-module"></span><h1>helperFunctions.database module<a class="headerlink" href="#module-helperFunctions.database" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt id="helperFunctions.database.ConnectTo">
+<em class="property">class </em><code class="sig-prename descclassname">helperFunctions.database.</code><code class="sig-name descname">ConnectTo</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwds</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.database.ConnectTo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">typing.Generic</span></code></p>
+<p>Open a database connection using the interface passed to the constructor. Intended to be used as a context manager.</p>
+<dl class="field-list">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>image</strong> (<em>str</em>) – the name of the docker image</p></li>
-<li><p><strong>timeout</strong> (<em>int</em>) – a timeout after which the execution is canceled</p></li>
-<li><p><strong>command</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – the command to run in the container (optional)</p></li>
-<li><p><strong>reraise</strong> (<em>bool</em>) – re-raise exceptions if they occur (timeout and docker exceptions)</p></li>
-<li><p><strong>mount</strong> (<em>Optional</em><em>[</em><em>Tuple</em><em>[</em><em>str</em><em>, </em><em>str</em><em>]</em><em>]</em>) – specifies a directory that gets mounted into the container;
-structure: <cite>(path_inside_container, source_path)</cite></p></li>
-<li><p><strong>label</strong> (<em>str</em>) – label used for logging output</p></li>
-<li><p><strong>include_stderr</strong> (<em>bool</em>) – include stderr of the container in the output</p></li>
+<li><p><strong>connected_interface</strong> – A database interface from the <cite>storage</cite> module (e.g. <cite>FrontEndDbInterface</cite>)</p></li>
+<li><p><strong>config</strong> – A FACT configuration.</p></li>
 </ul>
 </dd>
+<dt class="field-even">Example</dt>
+<dd class="field-even"><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">ConnectTo</span><span class="p">(</span><span class="n">FrontEndDbInterface</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">)</span> <span class="k">as</span> <span class="n">connection</span><span class="p">:</span>
+     <span class="n">query</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">firmwares</span><span class="o">.</span><span class="n">find</span><span class="p">({})</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="helperFunctions.database.is_sanitized_entry">
+<code class="sig-prename descclassname">helperFunctions.database.</code><code class="sig-name descname">is_sanitized_entry</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">entry</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.database.is_sanitized_entry" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check a database entry if it was sanitized (meaning the database entry was too large for the MongoDB database and
+was swapped to the file system).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>entry</strong> (<em>Any</em>) – A database entry.</p>
+</dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>the output of the docker container</p>
+<dd class="field-even"><p><cite>True</cite> if the entry is sanitized and <cite>False</cite> otherwise.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>str</p>
+<dd class="field-odd"><p>bool</p>
 </dd>
 </dl>
 </dd></dl>
@@ -214,10 +227,10 @@ structure: <cite>(path_inside_container, source_path)</cite></p></li>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="helperFunctions.mongo_task_conversion.html" class="btn btn-neutral float-right" title="helperFunctions.mongo_task_conversion module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="helperFunctions.docker.html" class="btn btn-neutral float-right" title="helperFunctions.docker module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="helperFunctions.database.html" class="btn btn-neutral float-left" title="helperFunctions.database module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="helperFunctions.compare_sets.html" class="btn btn-neutral float-left" title="helperFunctions.compare_sets module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
