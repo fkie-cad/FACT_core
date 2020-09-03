@@ -10,4 +10,5 @@ helperFunctions
    helperFunctions.mongo_task_conversion
    helperFunctions.object_storage
    helperFunctions.pdf
+   helperFunctions.process
    helperFunctions.uid
