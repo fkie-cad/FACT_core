@@ -3,7 +3,7 @@ import os
 from typing import Union
 
 from common_helper_files import get_binary_from_file
-from flask import flash, render_template, render_template_string, request
+from flask import flash, redirect, render_template, render_template_string, request, url_for
 from flask_login.utils import current_user
 
 from helperFunctions.database import ConnectTo
@@ -21,7 +21,7 @@ from storage.db_interface_compare import CompareDbInterface
 from storage.db_interface_frontend import FrontEndDbInterface
 from storage.db_interface_view_sync import ViewReader
 from web_interface.components.compare_routes import get_comparison_uid_list_from_session
-from web_interface.components.component_base import ComponentBase
+from web_interface.components.component_base import ComponentBase, RequestMethod, add_route
 from web_interface.security.authentication import user_has_privilege
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
@@ -33,23 +33,15 @@ def get_analysis_view(view_name):
 
 
 class AnalysisRoutes(ComponentBase):
-
     analysis_generic_view = get_analysis_view('generic')
     analysis_unpacker_view = get_analysis_view('unpacker')
 
-    def _init_component(self):
-        self._app.add_url_rule('/update-analysis/<uid>', 'update-analysis/<uid>', self._update_analysis, methods=['GET', 'POST'])
-        self._app.add_url_rule('/analysis/<uid>', 'analysis/<uid>', self._show_analysis_results, methods=['GET', 'POST'])
-        self._app.add_url_rule('/analysis/<uid>/ro/<root_uid>', '/analysis/<uid>/ro/<root_uid>', self._show_analysis_results, methods=['GET', 'POST'])
-        self._app.add_url_rule('/analysis/<uid>/<selected_analysis>', '/analysis/<uid>/<selected_analysis>', self._show_analysis_results, methods=['GET', 'POST'])
-        self._app.add_url_rule('/analysis/<uid>/<selected_analysis>/ro/<root_uid>', '/analysis/<uid>/<selected_analysis>/<root_uid>', self._show_analysis_results, methods=['GET', 'POST'])
-        self._app.add_url_rule('/admin/re-do_analysis/<uid>', '/admin/re-do_analysis/<uid>', self._re_do_analysis, methods=['GET', 'POST'])
-
     @roles_accepted(*PRIVILEGES['view_analysis'])
+    @add_route('/analysis/<uid>', 'show_analysis', RequestMethod.GET)
+    @add_route('/analysis/<uid>/ro/<root_uid>', 'show_analysis_with_root', RequestMethod.GET)
+    @add_route('/analysis/<uid>/<selected_analysis>', 'show_selected_analysis', RequestMethod.GET)
+    @add_route('/analysis/<uid>/<selected_analysis>/ro/<root_uid>', 'show_selected_analysis_with_root', RequestMethod.GET)
     def _show_analysis_results(self, uid, selected_analysis=None, root_uid=None):
-        if request.method == 'POST':
-            self._start_single_file_analysis(uid)
-
         other_versions = None
         with ConnectTo(CompareDbInterface, self._config) as db_service:
             all_comparisons = db_service.page_compare_results()
@@ -90,7 +82,12 @@ class AnalysisRoutes(ComponentBase):
             return self._get_analysis_view(selected_analysis)
         return get_template_as_string('show_analysis.html')
 
-    def _start_single_file_analysis(self, uid):
+    @roles_accepted(*PRIVILEGES['submit_analysis'])
+    @add_route('/analysis/<uid>', 'single_file_analysis', RequestMethod.POST)
+    @add_route('/analysis/<uid>/ro/<root_uid>', 'single_file_analysis_with_root', RequestMethod.POST)
+    @add_route('/analysis/<uid>/<selected_analysis>', 'single_file_selected_analysis', RequestMethod.POST)
+    @add_route('/analysis/<uid>/<selected_analysis>/ro/<root_uid>', 'single_file_selected_analysis_with_root', RequestMethod.POST)
+    def _start_single_file_analysis(self, uid, selected_analysis=None, root_uid=None):
         if user_has_privilege(current_user, privilege='submit_analysis'):
             with ConnectTo(FrontEndDbInterface, self._config) as database:
                 file_object = database.get_object(uid)
@@ -99,6 +96,7 @@ class AnalysisRoutes(ComponentBase):
                 intercom.add_single_file_task(file_object)
         else:
             flash('You have insufficient rights to add additional analyses')
+        return redirect(url_for('show_analysis', uid=uid, root_uid=root_uid, selected_analysis=selected_analysis))
 
     @staticmethod
     def _get_used_and_unused_plugins(processed_analysis: dict, all_plugins: list) -> dict:
@@ -117,15 +115,8 @@ class AnalysisRoutes(ComponentBase):
         return self.analysis_generic_view
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
-    def _update_analysis(self, uid, re_do=False):
-        error = {}
-        if request.method == 'POST':
-            analysis_task = create_re_analyze_task(request, uid=uid)
-            error = check_for_errors(analysis_task)
-            if not error:
-                self._schedule_re_analysis_task(uid, analysis_task, re_do)
-                return render_template('upload/upload_successful.html', uid=uid)
-
+    @add_route('/update-analysis/<uid>', 'update_analysis_get', RequestMethod.GET)
+    def _update_analysis_get(self, uid, re_do=False, error=None):
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
             old_firmware = sc.get_firmware(uid=uid, analysis_filter=[])
             if old_firmware is None:
@@ -149,12 +140,22 @@ class AnalysisRoutes(ComponentBase):
             'upload/re-analyze.html',
             device_classes=device_class_list,
             vendors=vendor_list,
-            error=error,
+            error=error if error is not None else {},
             device_names=json.dumps(device_name_dict, sort_keys=True),
             firmware=old_firmware,
             analysis_plugin_dict=plugin_dict,
             title=title
         )
+
+    @roles_accepted(*PRIVILEGES['submit_analysis'])
+    @add_route('/update-analysis/<uid>', 'update_analysis_post', RequestMethod.POST)
+    def _update_analysis_post(self, uid, re_do=False):
+        analysis_task = create_re_analyze_task(request, uid=uid)
+        error = check_for_errors(analysis_task)
+        if error:
+            return redirect(url_for('update_analysis_get', uid=uid, re_do=re_do, error=error))
+        self._schedule_re_analysis_task(uid, analysis_task, re_do)
+        return render_template('upload/upload_successful.html', uid=uid)
 
     def _schedule_re_analysis_task(self, uid, analysis_task, re_do):
         fw = convert_analysis_task_to_fw_obj(analysis_task)
@@ -165,5 +166,9 @@ class AnalysisRoutes(ComponentBase):
             sc.add_re_analyze_task(fw)
 
     @roles_accepted(*PRIVILEGES['delete'])
+    @add_route('/admin/re-do_analysis/<uid>', 're-do_analysis_get', RequestMethod.GET)
+    @add_route('/admin/re-do_analysis/<uid>', 're-do_analysis_post', RequestMethod.POST)
     def _re_do_analysis(self, uid):
-        return self._update_analysis(uid, re_do=True)
+        if request.method == 'POST':
+            return self._update_analysis_post(uid, re_do=True)
+        return self._update_analysis_get(uid, re_do=True)
