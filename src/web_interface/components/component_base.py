@@ -8,19 +8,15 @@ POST = 'POST'
 Route = NamedTuple('Route', [('rule', str), ('endpoint', str), ('methods', List[str])])
 
 
-class AddRouteDecorator:
-    def __init__(self, route: Route):
-        self.route = route
+class AppRoute:
+    def __init__(self, rule: str, endpoint: str, methods: List[str]):
+        self.route = Route(rule, endpoint, methods)
 
     def __call__(self, view_function: Callable) -> Callable:
-        if not hasattr(view_function, "routes"):
-            view_function.routes = []
-        view_function.routes.append(self.route)
+        if not hasattr(view_function, "view_routes"):
+            view_function.view_routes = []
+        view_function.view_routes.append(self.route)
         return view_function
-
-
-def add_route(rule: str, endpoint: str, methods: List[str]):
-    return AddRouteDecorator(Route(rule, endpoint, methods))
 
 
 class ComponentBase:
@@ -35,7 +31,7 @@ class ComponentBase:
         for attribute in dir(self):
             method = getattr(self, attribute)
             if _is_view_function(method):
-                for route in method.routes:  # type: Route
+                for route in method.view_routes:  # type: Route
                     self._app.add_url_rule(
                         rule=route.rule,
                         endpoint=route.endpoint,
@@ -45,4 +41,4 @@ class ComponentBase:
 
 
 def _is_view_function(method: Any):
-    return isinstance(method, MethodType) and hasattr(method, 'routes')
+    return isinstance(method, MethodType) and hasattr(method, 'view_routes')
