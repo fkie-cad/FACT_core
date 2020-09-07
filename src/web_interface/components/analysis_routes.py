@@ -39,11 +39,11 @@ class AnalysisRoutes(ComponentBase):
         self.analysis_unpacker_view = get_analysis_view('unpacker')
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
-    @AppRoute('/analysis/<uid>', 'show_analysis', [GET])
-    @AppRoute('/analysis/<uid>/ro/<root_uid>', 'show_analysis_with_root', [GET])
-    @AppRoute('/analysis/<uid>/<selected_analysis>', 'show_selected_analysis', [GET])
-    @AppRoute('/analysis/<uid>/<selected_analysis>/ro/<root_uid>', 'show_selected_analysis_with_root', [GET])
-    def _show_analysis_results(self, uid, selected_analysis=None, root_uid=None):
+    @AppRoute('/analysis/<uid>', GET)
+    @AppRoute('/analysis/<uid>/ro/<root_uid>', GET)
+    @AppRoute('/analysis/<uid>/<selected_analysis>', GET)
+    @AppRoute('/analysis/<uid>/<selected_analysis>/ro/<root_uid>', GET)
+    def show_analysis(self, uid, selected_analysis=None, root_uid=None):
         other_versions = None
         with ConnectTo(CompareDbInterface, self._config) as db_service:
             all_comparisons = db_service.page_compare_results()
@@ -85,10 +85,10 @@ class AnalysisRoutes(ComponentBase):
         return get_template_as_string('show_analysis.html')
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
-    @AppRoute('/analysis/<uid>', 'single_file_analysis', [POST])
-    @AppRoute('/analysis/<uid>/ro/<root_uid>', 'single_file_analysis_with_root', [POST])
-    @AppRoute('/analysis/<uid>/<selected_analysis>', 'single_file_selected_analysis', [POST])
-    @AppRoute('/analysis/<uid>/<selected_analysis>/ro/<root_uid>', 'single_file_selected_analysis_with_root', [POST])
+    @AppRoute('/analysis/<uid>', POST)
+    @AppRoute('/analysis/<uid>/ro/<root_uid>', POST)
+    @AppRoute('/analysis/<uid>/<selected_analysis>', POST)
+    @AppRoute('/analysis/<uid>/<selected_analysis>/ro/<root_uid>', POST)
     def _start_single_file_analysis(self, uid, selected_analysis=None, root_uid=None):
         if user_has_privilege(current_user, privilege='submit_analysis'):
             with ConnectTo(FrontEndDbInterface, self._config) as database:
@@ -98,7 +98,7 @@ class AnalysisRoutes(ComponentBase):
                 intercom.add_single_file_task(file_object)
         else:
             flash('You have insufficient rights to add additional analyses')
-        return redirect(url_for('show_analysis', uid=uid, root_uid=root_uid, selected_analysis=selected_analysis))
+        return redirect(url_for(self.show_analysis.__name__, uid=uid, root_uid=root_uid, selected_analysis=selected_analysis))
 
     @staticmethod
     def _get_used_and_unused_plugins(processed_analysis: dict, all_plugins: list) -> dict:
@@ -117,7 +117,7 @@ class AnalysisRoutes(ComponentBase):
         return self.analysis_generic_view
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
-    @AppRoute('/update-analysis/<uid>', 'update_analysis_get', [GET])
+    @AppRoute('/update-analysis/<uid>', GET)
     def _update_analysis_get(self, uid, re_do=False, error=None):
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
             old_firmware = sc.get_firmware(uid=uid, analysis_filter=[])
@@ -150,12 +150,12 @@ class AnalysisRoutes(ComponentBase):
         )
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
-    @AppRoute('/update-analysis/<uid>', 'update_analysis_post', [POST])
+    @AppRoute('/update-analysis/<uid>', POST)
     def _update_analysis_post(self, uid, re_do=False):
         analysis_task = create_re_analyze_task(request, uid=uid)
         error = check_for_errors(analysis_task)
         if error:
-            return redirect(url_for('update_analysis_get', uid=uid, re_do=re_do, error=error))
+            return redirect(url_for(self._update_analysis_get.__name__, uid=uid, re_do=re_do, error=error))
         self._schedule_re_analysis_task(uid, analysis_task, re_do)
         return render_template('upload/upload_successful.html', uid=uid)
 
@@ -168,7 +168,7 @@ class AnalysisRoutes(ComponentBase):
             sc.add_re_analyze_task(fw)
 
     @roles_accepted(*PRIVILEGES['delete'])
-    @AppRoute('/admin/re-do_analysis/<uid>', 're-do_analysis', [GET, POST])
+    @AppRoute('/admin/re-do_analysis/<uid>', GET, POST)
     def _re_do_analysis(self, uid):
         if request.method == POST:
             return self._update_analysis_post(uid, re_do=True)

@@ -1,21 +1,23 @@
 from types import MethodType
-from typing import Any, Callable, List, NamedTuple
+from typing import Any, Callable, NamedTuple, Tuple
+
+ROUTES_ATTRIBUTE = 'view_routes'
 
 GET = 'GET'
 POST = 'POST'
 
 
-Route = NamedTuple('Route', [('rule', str), ('endpoint', str), ('methods', List[str])])
+Route = NamedTuple('Route', [('rule', str), ('methods', Tuple[str, ...])])
 
 
 class AppRoute:
-    def __init__(self, rule: str, endpoint: str, methods: List[str]):
-        self.route = Route(rule, endpoint, methods)
+    def __init__(self, rule: str, *methods: str):
+        self.route = Route(rule, methods)
 
     def __call__(self, view_function: Callable) -> Callable:
-        if not hasattr(view_function, "view_routes"):
-            view_function.view_routes = []
-        view_function.view_routes.append(self.route)
+        if not hasattr(view_function, ROUTES_ATTRIBUTE):
+            setattr(view_function, ROUTES_ATTRIBUTE, [])
+        getattr(view_function, ROUTES_ATTRIBUTE).append(self.route)
         return view_function
 
 
@@ -31,14 +33,9 @@ class ComponentBase:
         for attribute in dir(self):
             method = getattr(self, attribute)
             if _is_view_function(method):
-                for route in method.view_routes:  # type: Route
-                    self._app.add_url_rule(
-                        rule=route.rule,
-                        endpoint=route.endpoint,
-                        view_func=method,
-                        methods=route.methods
-                    )
+                for route in getattr(method, ROUTES_ATTRIBUTE):  # type: Route
+                    self._app.add_url_rule(rule=route.rule, view_func=method, methods=route.methods)
 
 
-def _is_view_function(method: Any):
-    return isinstance(method, MethodType) and hasattr(method, 'view_routes')
+def _is_view_function(attribute: Any):
+    return isinstance(attribute, MethodType) and hasattr(attribute, ROUTES_ATTRIBUTE)
