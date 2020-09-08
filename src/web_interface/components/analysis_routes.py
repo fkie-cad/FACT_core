@@ -139,7 +139,7 @@ class AnalysisRoutes(ComponentBase):
         title = 're-do analysis' if re_do else 'update analysis'
 
         return render_template(
-            'upload/re-analyze.html',
+            'upload/upload.html',
             device_classes=device_class_list,
             vendors=vendor_list,
             error=error if error is not None else {},
