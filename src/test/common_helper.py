@@ -251,7 +251,8 @@ class DatabaseMock:  # pylint: disable=too-many-public-methods
             'default_plugin': ('default plugin description', False, {'default': True}, *common_fields),
             'mandatory_plugin': ('mandatory plugin description', True, {'default': False}, *common_fields),
             'optional_plugin': ('optional plugin description', False, {'default': False}, *common_fields),
-            'file_type': ('file_type plugin', False, {'default': False}, *common_fields)
+            'file_type': ('file_type plugin', False, {'default': False}, *common_fields),
+            'unpacker': ('Additional information provided by the unpacker', True, False)
         }
 
     def get_binary_and_filename(self, uid):
