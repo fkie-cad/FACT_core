@@ -65,7 +65,7 @@ class InterComFrontEndBinding(InterComMongoInterface):
             timeout = time() + int(self.config['ExpertSettings'].get('communication_timeout', "60"))
         while timeout > time():
             resp = self.connections[response_connection]['fs'].find_one({'filename': '{}'.format(request_id)})
-            if not resp:
+            if resp:
                 output_data = pickle.loads(resp.read())
                 if delete:
                     self.connections[response_connection]['fs'].delete(resp._id)  # pylint: disable=protected-access
