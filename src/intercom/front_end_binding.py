@@ -29,7 +29,7 @@ class InterComFrontEndBinding(InterComMongoInterface):
         self.connections['file_delete_task']['fs'].put(pickle.dumps(fw))
 
     def get_available_analysis_plugins(self):
-        plugin_file = self.connections['analysis_plugins']['fs'].find_one({'filename': 'plugin_dictonary'})
+        plugin_file = self.connections['analysis_plugins']['fs'].find_one({'filename': 'plugin_dictionary'})
         if plugin_file is not None:
             plugin_dict = pickle.loads(plugin_file.read())
             return plugin_dict
@@ -65,13 +65,12 @@ class InterComFrontEndBinding(InterComMongoInterface):
             timeout = time() + int(self.config['ExpertSettings'].get('communication_timeout', "60"))
         while timeout > time():
             resp = self.connections[response_connection]['fs'].find_one({'filename': '{}'.format(request_id)})
-            if resp:
+            if not resp:
                 output_data = pickle.loads(resp.read())
                 if delete:
                     self.connections[response_connection]['fs'].delete(resp._id)  # pylint: disable=protected-access
                 logging.debug('Response received: {} -> {}'.format(response_connection, request_id))
                 break
-            else:
-                logging.debug('No response yet: {} -> {}'.format(response_connection, request_id))
-                sleep(1)
+            logging.debug('No response yet: {} -> {}'.format(response_connection, request_id))
+            sleep(1)
         return output_data
