@@ -1,0 +1,368 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>helperFunctions.process module &mdash; FACT  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/custom.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="helperFunctions.uid module" href="helperFunctions.uid.html" />
+    <link rel="prev" title="helperFunctions.pdf module" href="helperFunctions.pdf.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> FACT
+          
+
+          
+            
+            <img src="../_static/FACT_smaller.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../main.html">Challenges</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#easy-to-install-easy-to-use">Easy to Install! Easy to Use!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#easy-to-extend-easy-to-integrate">Easy to Extend! Easy to Integrate!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#screenshots">Screenshots</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#contributing">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#latest-news-and-contact">Latest News and Contact</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#authors-and-acknowledgment">Authors and Acknowledgment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#source-code">Source Code</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Modules:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="helperFunctions.html">helperFunctions</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.compare_sets.html">helperFunctions.compare_sets module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.database.html">helperFunctions.database module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.docker.html">helperFunctions.docker module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.mongo_task_conversion.html">helperFunctions.mongo_task_conversion module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.object_storage.html">helperFunctions.object_storage module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.pdf.html">helperFunctions.pdf module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">helperFunctions.process module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.uid.html">helperFunctions.uid module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="objects.html">objects</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">FACT</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="helperFunctions.html">helperFunctions</a> &raquo;</li>
+        
+      <li>helperFunctions.process module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/modules/helperFunctions.process.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-helperFunctions.process">
+<span id="helperfunctions-process-module"></span><h1>helperFunctions.process module<a class="headerlink" href="#module-helperFunctions.process" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt id="helperFunctions.process.ExceptionSafeProcess">
+<em class="property">class </em><code class="sig-prename descclassname">helperFunctions.process.</code><code class="sig-name descname">ExceptionSafeProcess</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.process.ExceptionSafeProcess" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">multiprocessing.context.Process</span></code></p>
+<p>ExceptionSafeProcess is a subtype of <code class="docutils literal notranslate"><span class="pre">multiprocessing.Process</span></code> with added exception handling.
+Opposed to what the name may suggest, the class does not make the process impervious to exceptions.
+Instead, it retrieves the exception of the subprocess and re-raises it. This allows reconstructing what
+happened in the subprocess.</p>
+<p>The parameters for creating an instance of the class are the same as for <code class="docutils literal notranslate"><span class="pre">multiprocessing.Process</span></code>
+(see <a class="reference external" href="https://docs.python.org/3/library/multiprocessing.html#multiprocessing.Process">Python docs</a>).</p>
+<dl class="py method">
+<dt id="helperFunctions.process.ExceptionSafeProcess.exception">
+<em class="property">property </em><code class="sig-name descname">exception</code><a class="headerlink" href="#helperFunctions.process.ExceptionSafeProcess.exception" title="Permalink to this definition">¶</a></dt>
+<dd><p>The exception that occurred in the process during execution and the respective stack trace.
+Is <code class="docutils literal notranslate"><span class="pre">None</span></code> if no exception occurred or the process was no yet executed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A tuple containing the exception and the stack trace or  <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="helperFunctions.process.ExceptionSafeProcess.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.process.ExceptionSafeProcess.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Starts the execution of the process. Any exception happening in the process will be reraised and may
+be retrieved by accessing <code class="docutils literal notranslate"><span class="pre">ExceptionSafeProcess.exception</span></code>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="helperFunctions.process.check_worker_exceptions">
+<code class="sig-prename descclassname">helperFunctions.process.</code><code class="sig-name descname">check_worker_exceptions</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">process_list</span></em>, <em class="sig-param"><span class="n">worker_label</span></em>, <em class="sig-param"><span class="n">config</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">worker_function</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.process.check_worker_exceptions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Iterate over the <cite>process_list</cite> and check if exceptions occurred. In case of an exception, the process and its
+children will be terminated. If <code class="docutils literal notranslate"><span class="pre">throw_exceptions</span></code> in the FACT configuration is set to <cite>false</cite>, the worker
+may be restarted by passing a function (if the value is not set, the worker will not be restarted). In this case,
+the function will always return <code class="docutils literal notranslate"><span class="pre">False</span></code>. If <code class="docutils literal notranslate"><span class="pre">throw_exceptions</span></code> is set to <cite>true</cite> and an exception occurs,
+the worker will not be restarted and the return value is <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>process_list</strong> (<em>List</em><em>[</em><a class="reference internal" href="#helperFunctions.process.ExceptionSafeProcess" title="helperFunctions.process.ExceptionSafeProcess"><em>helperFunctions.process.ExceptionSafeProcess</em></a><em>]</em>) – A list of worker processes.</p></li>
+<li><p><strong>worker_label</strong> (<em>str</em>) – A label used for logging (e.g. <cite>Analysis</cite> or <cite>Unpacking</cite>).</p></li>
+<li><p><strong>config</strong> (<em>Optional</em><em>[</em><em>configparser.ConfigParser</em><em>]</em>) – An instance of the FACT configuration.</p></li>
+<li><p><strong>worker_function</strong> (<em>Optional</em><em>[</em><em>Callable</em><em>]</em>) – A function used for restarting the worker (optional).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">True</span></code> if an exception occurred in any process and <code class="docutils literal notranslate"><span class="pre">throw_exceptions</span></code> in the FACT configuration is
+set to <cite>true</cite> and <code class="docutils literal notranslate"><span class="pre">False</span></code> otherwise.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="helperFunctions.process.complete_shutdown">
+<code class="sig-prename descclassname">helperFunctions.process.</code><code class="sig-name descname">complete_shutdown</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">message</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.process.complete_shutdown" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shutdown all FACT processes (of the currently running component) by sending a signal to the process group.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>message</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – Optional message to be displayed before the shutdown.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="helperFunctions.process.new_worker_was_started">
+<code class="sig-prename descclassname">helperFunctions.process.</code><code class="sig-name descname">new_worker_was_started</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">new_process</span></em>, <em class="sig-param"><span class="n">old_process</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.process.new_worker_was_started" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if a worker process was restarted by comparing old and new process.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>new_process</strong> (<a class="reference internal" href="#helperFunctions.process.ExceptionSafeProcess" title="helperFunctions.process.ExceptionSafeProcess"><em>helperFunctions.process.ExceptionSafeProcess</em></a>) – The new process.</p></li>
+<li><p><strong>old_process</strong> (<a class="reference internal" href="#helperFunctions.process.ExceptionSafeProcess" title="helperFunctions.process.ExceptionSafeProcess"><em>helperFunctions.process.ExceptionSafeProcess</em></a>) – The old process.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">True</span></code> if the processes match and <code class="docutils literal notranslate"><span class="pre">False</span></code> otherwise.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="helperFunctions.process.start_single_worker">
+<code class="sig-prename descclassname">helperFunctions.process.</code><code class="sig-name descname">start_single_worker</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">process_index</span></em>, <em class="sig-param"><span class="n">label</span></em>, <em class="sig-param"><span class="n">function</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.process.start_single_worker" title="Permalink to this definition">¶</a></dt>
+<dd><p>Starts a new worker process executing <code class="docutils literal notranslate"><span class="pre">function</span></code> and returns it. Used for unpacking and analysis workers in the
+FACT backend.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>process_index</strong> (<em>int</em>) – The index of the process in the process list of the scheduler.</p></li>
+<li><p><strong>label</strong> (<em>str</em>) – A label used for logging (e.g. <cite>Analysis</cite> or <cite>Unpacking</cite>).</p></li>
+<li><p><strong>function</strong> (<em>Callable</em>) – The function, that gets executed by the worker process.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The running process.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#helperFunctions.process.ExceptionSafeProcess" title="helperFunctions.process.ExceptionSafeProcess">helperFunctions.process.ExceptionSafeProcess</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="helperFunctions.process.terminate_process_and_children">
+<code class="sig-prename descclassname">helperFunctions.process.</code><code class="sig-name descname">terminate_process_and_children</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">process</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.process.terminate_process_and_children" title="Permalink to this definition">¶</a></dt>
+<dd><p>Terminate a process and all of its child processes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>process</strong> (<em>multiprocessing.context.Process</em>) – The process to be terminated.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="helperFunctions.uid.html" class="btn btn-neutral float-right" title="helperFunctions.uid module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="helperFunctions.pdf.html" class="btn btn-neutral float-left" title="helperFunctions.pdf module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Fraunhofer FKIE
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
