@@ -19,7 +19,7 @@ def complete_shutdown(message: Optional[str] = None) -> None:
     :param message: Optional message to be displayed before the shutdown.
     '''
     if message is not None:
-        logging.error(message)
+        logging.warning(message)
     logging.critical('SHUTTING DOWN SYSTEM')
     process_group_id = os.getpgid(os.getpid())
     os.killpg(process_group_id, SIGKILL)
@@ -125,9 +125,8 @@ def check_worker_exceptions(process_list: List[ExceptionSafeProcess], worker_lab
     return_value = False
     for worker_process in process_list:
         if worker_process.exception:
-            logging.error(color_string('Exception in {} process'.format(worker_label), TerminalColors.FAIL))
             _, stack_trace = worker_process.exception
-            logging.error(stack_trace)
+            logging.error(color_string('Exception in {} process:\n{}'.format(worker_label, stack_trace), TerminalColors.FAIL))
             terminate_process_and_children(worker_process)
             process_list.remove(worker_process)
             if config is None or config.getboolean('ExpertSettings', 'throw_exceptions'):
