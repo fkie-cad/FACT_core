@@ -1,10 +1,9 @@
 import logging
-from multiprocessing import TimeoutError as MultiprocessingTimeoutError
 from time import sleep
 
 import pytest
 
-from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions, new_worker_was_started, timeout
+from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions, new_worker_was_started
 from test.common_helper import get_config_for_testing
 
 
@@ -58,17 +57,6 @@ def test_check_worker_restart(caplog):
         assert 'Exception in foo' in caplog.messages[0]
         assert 'restarting foo' in caplog.messages[-1]
         process_list[0].join()
-
-
-def test_timeout():
-    @timeout(0.1)
-    def timeout_function(secs: float):
-        sleep(secs)
-        return True
-
-    with pytest.raises(MultiprocessingTimeoutError):
-        timeout_function(1)
-    assert timeout_function(0.01)
 
 
 def test_new_worker_was_started():
