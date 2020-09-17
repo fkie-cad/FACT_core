@@ -17,7 +17,7 @@ except (ImportError, SystemError):
 
 CPE_FILE = 'official-cpe-dictionary_v2.3.xml'
 CPE_URL = 'https://nvd.nist.gov/feeds/xml/cpe/dictionary/{}.zip'.format(CPE_FILE)
-CVE_URL = 'https://nvd.nist.gov/feeds/json/cve/1.0/nvdcve-1.0-{}.json.zip'
+CVE_URL = 'https://nvd.nist.gov/feeds/json/cve/1.1/nvdcve-1.1-{}.json.zip'
 
 
 def get_cve_links(url: str, selected_years: Optional[List[int]] = None) -> List[str]:
