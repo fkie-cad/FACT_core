@@ -30,7 +30,7 @@ class CompareBasePlugin(BasePlugin):
         '''
         missing_deps = _get_unmatched_dependencies(fo_list, self.DEPENDENCIES)
         if len(missing_deps) > 0:
-            return {'Compare Skipped': {'all': 'Required analysis not present: {}'.format(missing_deps)}}
+            return {'Compare Skipped': {'all': 'Required analysis not present: {}'.format(', '.join(missing_deps))}}
         return self.compare_function(fo_list)
 
 

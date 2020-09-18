@@ -22,7 +22,7 @@ class TestComparePluginBase(ComparePluginTest):
         self.fw_one.processed_analysis['test_ana'] = {}
         self.assertEqual(
             self.c_plugin.compare([self.fw_one, self.fw_two]),
-            {'Compare Skipped': {'all': 'Required analysis not present: [\'test_ana\']'}},
+            {'Compare Skipped': {'all': 'Required analysis not present: test_ana'}},
             'missing dep result not correct'
         )
 
