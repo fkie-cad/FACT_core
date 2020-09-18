@@ -1,6 +1,8 @@
-from test.unit.compare.compare_plugin_test_class import ComparePluginTest
+import pytest
 
 from compare.PluginBase import CompareBasePlugin as ComparePlugin
+from compare.PluginBase import _get_unmatched_dependencies
+from test.unit.compare.compare_plugin_test_class import ComparePluginTest
 
 
 class TestComparePluginBase(ComparePluginTest):
@@ -20,7 +22,7 @@ class TestComparePluginBase(ComparePluginTest):
         self.fw_one.processed_analysis['test_ana'] = {}
         self.assertEqual(
             self.c_plugin.compare([self.fw_one, self.fw_two]),
-            {'Compare Skipped': {'all': 'Required analysis not present: [\'test_ana\']'}},
+            {'Compare Skipped': {'all': 'Required analysis not present: test_ana'}},
             'missing dep result not correct'
         )
 
@@ -30,3 +32,18 @@ class TestComparePluginBase(ComparePluginTest):
             {'dummy': {'all': 'dummy-content', 'collapse': False}},
             'result not correct'
         )
+
+
+class MockFileObject:
+    def __init__(self, processed_analysis_list):
+        self.processed_analysis = processed_analysis_list
+
+
+@pytest.mark.parametrize('fo_list, dependencies, expected_output', [
+    ([MockFileObject([])], ['a'], {'a'}),
+    ([MockFileObject(['a'])], ['a'], set()),
+    ([MockFileObject(['a', 'b'])], ['a', 'b', 'c', 'd'], {'c', 'd'}),
+    ([MockFileObject(['b']), MockFileObject(['a'])], ['a', 'b'], {'a', 'b'}),
+])
+def test_get_unmatched_dependencies(fo_list, dependencies, expected_output):
+    assert _get_unmatched_dependencies(fo_list, dependencies) == expected_output
