@@ -1,0 +1,362 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>helperFunctions.logging module &mdash; FACT  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/custom.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="helperFunctions.mongo_task_conversion module" href="helperFunctions.mongo_task_conversion.html" />
+    <link rel="prev" title="helperFunctions.docker module" href="helperFunctions.docker.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> FACT
+          
+
+          
+            
+            <img src="../_static/FACT_smaller.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../main.html">Challenges</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#easy-to-install-easy-to-use">Easy to Install! Easy to Use!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#easy-to-extend-easy-to-integrate">Easy to Extend! Easy to Integrate!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#screenshots">Screenshots</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#contributing">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#latest-news-and-contact">Latest News and Contact</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#authors-and-acknowledgment">Authors and Acknowledgment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#source-code">Source Code</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Modules:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="helperFunctions.html">helperFunctions</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.compare_sets.html">helperFunctions.compare_sets module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.database.html">helperFunctions.database module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.docker.html">helperFunctions.docker module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">helperFunctions.logging module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.mongo_task_conversion.html">helperFunctions.mongo_task_conversion module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.object_storage.html">helperFunctions.object_storage module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.pdf.html">helperFunctions.pdf module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.process.html">helperFunctions.process module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.uid.html">helperFunctions.uid module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="objects.html">objects</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">FACT</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="helperFunctions.html">helperFunctions</a> &raquo;</li>
+        
+      <li>helperFunctions.logging module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/modules/helperFunctions.logging.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-helperFunctions.logging">
+<span id="helperfunctions-logging-module"></span><h1>helperFunctions.logging module<a class="headerlink" href="#module-helperFunctions.logging" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt id="helperFunctions.logging.ColoringFormatter">
+<em class="property">class </em><code class="sig-prename descclassname">helperFunctions.logging.</code><code class="sig-name descname">ColoringFormatter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fmt</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">datefmt</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">style</span><span class="o">=</span><span class="default_value">'%'</span></em>, <em class="sig-param"><span class="n">validate</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.logging.ColoringFormatter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">logging.Formatter</span></code></p>
+<p>A subclass of <code class="docutils literal notranslate"><span class="pre">Formatter</span></code> that automatically prints the log level in the respective color.</p>
+<dl class="py attribute">
+<dt id="helperFunctions.logging.ColoringFormatter.LOG_LEVEL_COLORS">
+<code class="sig-name descname">LOG_LEVEL_COLORS</code><em class="property"> = [('DEBUG', '\x1b[95m'), ('INFO', '\x1b[94m'), ('WARNING', '\x1b[93m'), ('ERROR', '\x1b[91m'), ('CRITICAL', '\x1b[91m\x1b[1m')]</em><a class="headerlink" href="#helperFunctions.logging.ColoringFormatter.LOG_LEVEL_COLORS" title="Permalink to this definition">¶</a></dt>
+<dd><p>A List of Tuples with log levels and colors/formatting.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="helperFunctions.logging.ColoringFormatter.format">
+<code class="sig-name descname">format</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">record</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.logging.ColoringFormatter.format" title="Permalink to this definition">¶</a></dt>
+<dd><p>Format the specified record as text. The log level is colored in the respective color from <code class="docutils literal notranslate"><span class="pre">TerminalColors</span></code>
+as defined in <code class="docutils literal notranslate"><span class="pre">LOG_LEVEL_COLORS</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>record</strong> (<em>logging.LogRecord</em>) – </p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="helperFunctions.logging.TerminalColors">
+<em class="property">class </em><code class="sig-prename descclassname">helperFunctions.logging.</code><code class="sig-name descname">TerminalColors</code><a class="headerlink" href="#helperFunctions.logging.TerminalColors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>This class contains colors and formatting used for formatting the terminal output. A the terminal output after a
+string from this class will be colored in the respective color. <code class="docutils literal notranslate"><span class="pre">ENDC</span></code> must be used to stop formatting the output.</p>
+<dl class="py attribute">
+<dt id="helperFunctions.logging.TerminalColors.BLUE">
+<code class="sig-name descname">BLUE</code><em class="property"> = '\x1b[94m'</em><a class="headerlink" href="#helperFunctions.logging.TerminalColors.BLUE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="helperFunctions.logging.TerminalColors.BOLD">
+<code class="sig-name descname">BOLD</code><em class="property"> = '\x1b[1m'</em><a class="headerlink" href="#helperFunctions.logging.TerminalColors.BOLD" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="helperFunctions.logging.TerminalColors.ENDC">
+<code class="sig-name descname">ENDC</code><em class="property"> = '\x1b[0m'</em><a class="headerlink" href="#helperFunctions.logging.TerminalColors.ENDC" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="helperFunctions.logging.TerminalColors.FAIL">
+<code class="sig-name descname">FAIL</code><em class="property"> = '\x1b[91m'</em><a class="headerlink" href="#helperFunctions.logging.TerminalColors.FAIL" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="helperFunctions.logging.TerminalColors.GREEN">
+<code class="sig-name descname">GREEN</code><em class="property"> = '\x1b[92m'</em><a class="headerlink" href="#helperFunctions.logging.TerminalColors.GREEN" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="helperFunctions.logging.TerminalColors.HEADER">
+<code class="sig-name descname">HEADER</code><em class="property"> = '\x1b[95m'</em><a class="headerlink" href="#helperFunctions.logging.TerminalColors.HEADER" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="helperFunctions.logging.TerminalColors.OKBLUE">
+<code class="sig-name descname">OKBLUE</code><em class="property"> = '\x1b[94m'</em><a class="headerlink" href="#helperFunctions.logging.TerminalColors.OKBLUE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="helperFunctions.logging.TerminalColors.OKGREEN">
+<code class="sig-name descname">OKGREEN</code><em class="property"> = '\x1b[92m'</em><a class="headerlink" href="#helperFunctions.logging.TerminalColors.OKGREEN" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="helperFunctions.logging.TerminalColors.PURPLE">
+<code class="sig-name descname">PURPLE</code><em class="property"> = '\x1b[95m'</em><a class="headerlink" href="#helperFunctions.logging.TerminalColors.PURPLE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="helperFunctions.logging.TerminalColors.RED">
+<code class="sig-name descname">RED</code><em class="property"> = '\x1b[91m'</em><a class="headerlink" href="#helperFunctions.logging.TerminalColors.RED" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="helperFunctions.logging.TerminalColors.UNDERLINE">
+<code class="sig-name descname">UNDERLINE</code><em class="property"> = '\x1b[4m'</em><a class="headerlink" href="#helperFunctions.logging.TerminalColors.UNDERLINE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="helperFunctions.logging.TerminalColors.WARNING">
+<code class="sig-name descname">WARNING</code><em class="property"> = '\x1b[93m'</em><a class="headerlink" href="#helperFunctions.logging.TerminalColors.WARNING" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="helperFunctions.logging.TerminalColors.YELLOW">
+<code class="sig-name descname">YELLOW</code><em class="property"> = '\x1b[93m'</em><a class="headerlink" href="#helperFunctions.logging.TerminalColors.YELLOW" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="helperFunctions.logging.color_string">
+<code class="sig-prename descclassname">helperFunctions.logging.</code><code class="sig-name descname">color_string</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">string</span></em>, <em class="sig-param"><span class="n">color</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.logging.color_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>Format a string in a color from <code class="docutils literal notranslate"><span class="pre">TerminalColors</span></code> for terminal output.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>string</strong> (<em>str</em>) – The string that will be colored.</p></li>
+<li><p><strong>color</strong> (<em>str</em>) – A color from <code class="docutils literal notranslate"><span class="pre">TerminalColors</span></code> or any other terminal compatible formatting string.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The formatted string.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="helperFunctions.mongo_task_conversion.html" class="btn btn-neutral float-right" title="helperFunctions.mongo_task_conversion module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="helperFunctions.docker.html" class="btn btn-neutral float-left" title="helperFunctions.docker module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Fraunhofer FKIE
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
