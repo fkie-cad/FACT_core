@@ -118,10 +118,12 @@
 	{% if stats["unpacker_stats"]["overall_unpack_ratio"] %}
         {% call macros.stats_panel("Unpacker Stats", "file-archive") %}
             <table class="table table-responsive-md table-hover px-0 mb-0" style="width: 100%;">
-                {{ macros.stats_table_row("Overall Unpack Ratio", stats["unpacker_stats"]["overall_unpack_ratio"] | nice_number, True) }}
-                {{ macros.stats_table_row("Average Packed Entropy", stats["unpacker_stats"]["average_packed_entropy"] | nice_number) }}
-                {{ macros.stats_table_row("Average Unpacked Entropy", stats["unpacker_stats"]["average_unpacked_entropy"] | nice_number) }}
-                {{ macros.stats_table_row("Overall Data Loss Ratio", stats["unpacker_stats"]["overall_data_loss_ratio"] | nice_number, True) }}
+                {{ macros.stats_table_row("Share of not-packed files", (stats["unpacker_stats"]["overall_unpack_ratio"] * 100) | nice_number, percent=True,
+                   tooltip="Percentage of files that could not be further unpacked (outer vertices in the file tree), and are not considered packed") }}
+                {{ macros.stats_table_row("Average packed entropy", stats["unpacker_stats"]["average_packed_entropy"] | nice_number, tooltip="Average byte entropy of files that are considered packed") }}
+                {{ macros.stats_table_row("Average not-packed entropy", stats["unpacker_stats"]["average_unpacked_entropy"] | nice_number, tooltip="Average byte entropy of files that are not considered packed") }}
+                {{ macros.stats_table_row("Ratio of data loss", (stats["unpacker_stats"]["overall_data_loss_ratio"] * 100) | nice_number, percent=True,
+                   tooltip="Percentage of files that were unpacked (inner vertices in the file tree), where some data was probably lost (some files were not unpacked)") }}
             </table>
         {% endcall %}
 	{% endif %}
