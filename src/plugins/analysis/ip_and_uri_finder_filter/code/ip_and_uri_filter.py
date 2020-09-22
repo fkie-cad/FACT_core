@@ -51,11 +51,6 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return clean_api_and_uri_list
 
     @staticmethod
-    def list_to_dict(lst: list) -> dict:
-        res_dict = {lst[i]: lst[i + 1] for i in range(0, len(lst), 2)}
-        return res_dict
-
-    @staticmethod
     def valid_ip_address(ip: str) -> str:
         try:
             return "IPv4" if type(ip_address(ip)) is IPv4Address else "IPv6"
