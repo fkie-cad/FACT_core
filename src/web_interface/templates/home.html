@@ -142,7 +142,7 @@
                                 <a href="/analysis/{{ comment.uid }}" style="color: #515151;">
                                     <div class="p-1" style="width: 100%; height: 100%; font-size: 14px;">
                                         <div class="bubble bubble-triangle mb-2">
-                                            {{ comment.comment | safe }}
+                                            {{ comment.comment }}
                                         </div>
                                         <div class="footnote">
                                             <span style="color: #000;">{{ comment.author }}</span> ‒ <span class="text-muted">{{ comment.time | int | nice_unix_time }}</span>

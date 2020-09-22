@@ -87,7 +87,7 @@ class TestFileAddition(TestCase):  # pylint: disable=too-many-instance-attribute
             },
             'Software': {
                 'Compare Skipped': {
-                    'all': 'Required analysis not present: [\'software_components\', \'software_components\']'
+                    'all': 'Required analysis not present: software_components'
                 }
             }
         }
