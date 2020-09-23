@@ -1,6 +1,7 @@
 from ipaddress import ip_address, IPv4Address
 
 from analysis.PluginBase import AnalysisBasePlugin
+from helperFunctions.compare_sets import substring_is_in_list
 
 WHITELIST = ['get', 'set', 'post', 'send', 'receive', 'firmware', 'router', 'purenetworks.com', 'tplinkwifi.net',
              'tplinklogin.net']
@@ -13,9 +14,10 @@ BLACKLIST = ['dict', 'example', 'lighttpd', 'adobe', 'netscape', 'w3', 'haxx.se'
 
 class AnalysisPlugin(AnalysisBasePlugin):
     '''
-    This plug-in filters found IPs and URIs
+    This plug-in filters out all IPv4 and IPv6 addresses
+    and shows the most interesting/relevant URIs to the user.
     '''
-    NAME = 'ip_and_uri_finder_filter'
+    NAME = 'interesting_uris'
     DEPENDENCIES = ['ip_and_uri_finder']
     MIME_BLACKLIST = []
     DESCRIPTION = 'Filters found IPs and URIs'
@@ -30,36 +32,34 @@ class AnalysisPlugin(AnalysisBasePlugin):
         uris_dict = self.remove_ip_v4_v6_addresses(list_of_ips_and_uris)
         blacklisted = self.blacklist_ip_and_uris(BLACKLIST, uris_dict)
         whitelisted = self.whitelist_ip_and_uris(WHITELIST, blacklisted)
-        file_object.processed_analysis[self.NAME] = {"whitelisted": whitelisted, "summary": whitelisted}
+        file_object.processed_analysis[self.NAME] = {'whitelisted': whitelisted, 'summary': whitelisted}
         return file_object
 
     @staticmethod
-    def blacklist_ip_and_uris(deny_list: list, ip_and_uri_list: list) -> list:
-        for ip_uri in ip_and_uri_list:
-            for entry in deny_list:
-                if entry in ip_uri.lower():
-                    ip_and_uri_list.remove(ip_uri)
+    def blacklist_ip_and_uris(blacklist: list, ip_and_uri_list: list) -> list:
+        for ip_uri in ip_and_uri_list[:]:
+            if substring_is_in_list(ip_uri.lower(), blacklist):
+                ip_and_uri_list.remove(ip_uri)
         return ip_and_uri_list
 
     @staticmethod
-    def whitelist_ip_and_uris(allow_list: list, ip_and_uri_list: list) -> list:
+    def whitelist_ip_and_uris(whitelist: list, ip_and_uri_list: list) -> list:
         clean_api_and_uri_list = []
-        for ip_uri in ip_and_uri_list:
-            for entry in allow_list:
-                if entry in ip_uri.lower():
-                    if ip_uri not in clean_api_and_uri_list:
-                        clean_api_and_uri_list.append(ip_uri)
+        for ip_uri in set(ip_and_uri_list):
+            if substring_is_in_list(ip_uri.lower(), whitelist):
+                clean_api_and_uri_list.append(ip_uri)
         return clean_api_and_uri_list
 
     @staticmethod
-    def valid_ip_address(ip: str) -> str:
+    def is_valid_ip_address(ip: str) -> bool:
         try:
-            return "IPv4" if type(ip_address(ip)) is IPv4Address else "IPv6"
+            ip_address(ip)
+            return True
         except ValueError:
-            return "0"
+            return False
 
     def remove_ip_v4_v6_addresses(self, ip_and_uri_list: list) -> list:
-        for ip_uri in ip_and_uri_list:
-            if self.valid_ip_address(ip_uri) == 'IPv4' or self.valid_ip_address(ip_uri) == 'IPv6':
+        for ip_uri in ip_and_uri_list[:]:
+            if self.is_valid_ip_address(ip_uri):
                 ip_and_uri_list.remove(ip_uri)
         return ip_and_uri_list
