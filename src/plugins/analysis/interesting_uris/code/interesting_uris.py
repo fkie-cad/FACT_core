@@ -13,14 +13,16 @@ BLACKLIST = ['dict', 'example', 'lighttpd', 'adobe', 'netscape', 'w3', 'haxx.se'
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
-    '''
-    This plug-in filters out all IPv4 and IPv6 addresses
-    and shows the most interesting/relevant URIs to the user.
-    '''
     NAME = 'interesting_uris'
     DEPENDENCIES = ['ip_and_uri_finder']
-    MIME_BLACKLIST = []
-    DESCRIPTION = 'Filters found IPs and URIs'
+    MIME_WHITELIST = [
+        'text/plain', 'application/octet-stream', 'application/x-executable', 'application/x-object',
+        'application/x-sharedlib'
+    ]
+    DESCRIPTION = (
+        'This plugins filters all URIs identified inside the file based on relevance.'
+        'The resulting list of URIs has a higher probability of representing important resources.'
+    )
     VERSION = '0.1'
 
     def __init__(self, plugin_administrator, config=None, recursive=True, timeout=300):
