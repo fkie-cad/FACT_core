@@ -11,6 +11,19 @@ Route = NamedTuple('Route', [('rule', str), ('methods', Tuple[str, ...])])
 
 
 class AppRoute:
+    '''
+    A Decorator for web interface view functions that imitates the functionality of Flask's ``app.route()`` .
+
+    :Example:
+
+        .. code-block:: python
+
+           @AppRoute('/analysis/<uid>', 'GET', 'POST')
+           def show_analysis(self, uid):
+
+    :param rule: The endpoint route (e.g. "/about")
+    :param methods: supported HTML Methods (e.g. ``'GET', 'POST'``)
+    '''
     def __init__(self, rule: str, *methods: str):
         self.route = Route(rule, methods)
 

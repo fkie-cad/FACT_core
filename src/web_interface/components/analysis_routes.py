@@ -3,7 +3,7 @@ import os
 from typing import Union
 
 from common_helper_files import get_binary_from_file
-from flask import flash, redirect, render_template, render_template_string, request, url_for
+from flask import redirect, render_template, render_template_string, request, url_for
 from flask_login.utils import current_user
 
 from helperFunctions.database import ConnectTo
@@ -90,14 +90,11 @@ class AnalysisRoutes(ComponentBase):
     @AppRoute('/analysis/<uid>/<selected_analysis>', POST)
     @AppRoute('/analysis/<uid>/<selected_analysis>/ro/<root_uid>', POST)
     def _start_single_file_analysis(self, uid, selected_analysis=None, root_uid=None):
-        if user_has_privilege(current_user, privilege='submit_analysis'):
-            with ConnectTo(FrontEndDbInterface, self._config) as database:
-                file_object = database.get_object(uid)
-            file_object.scheduled_analysis = request.form.getlist('analysis_systems')
-            with ConnectTo(InterComFrontEndBinding, self._config) as intercom:
-                intercom.add_single_file_task(file_object)
-        else:
-            flash('You have insufficient rights to add additional analyses')
+        with ConnectTo(FrontEndDbInterface, self._config) as database:
+            file_object = database.get_object(uid)
+        file_object.scheduled_analysis = request.form.getlist('analysis_systems')
+        with ConnectTo(InterComFrontEndBinding, self._config) as intercom:
+            intercom.add_single_file_task(file_object)
         return redirect(url_for(self.show_analysis.__name__, uid=uid, root_uid=root_uid, selected_analysis=selected_analysis))
 
     @staticmethod
