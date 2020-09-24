@@ -20,7 +20,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         'application/x-sharedlib', 'application/x-dosexec'
     ]
     DESCRIPTION = (
-        'This plugins filters all URIs identified inside the file based on relevance.'
+        'This plugin filters all URIs identified inside the file based on relevance.'
         'The resulting list of URIs has a higher probability of representing important resources.'
     )
     VERSION = '0.1'
