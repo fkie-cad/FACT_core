@@ -1,4 +1,4 @@
-from ipaddress import ip_address, IPv4Address
+from ipaddress import ip_address
 
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.compare_sets import substring_is_in_list
