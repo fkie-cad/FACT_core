@@ -17,7 +17,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     DEPENDENCIES = ['ip_and_uri_finder']
     MIME_WHITELIST = [
         'text/plain', 'application/octet-stream', 'application/x-executable', 'application/x-object',
-        'application/x-sharedlib'
+        'application/x-sharedlib', 'application/x-dosexec'
     ]
     DESCRIPTION = (
         'This plugins filters all URIs identified inside the file based on relevance.'
