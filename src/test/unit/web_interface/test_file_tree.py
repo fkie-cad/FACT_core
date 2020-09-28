@@ -1,11 +1,12 @@
 import pytest
 
-from helperFunctions.file_tree import (
-    FileTreeNode, VirtualPathFileTree, _get_partial_virtual_paths, _get_vpath_relative_to, _root_is_virtual,
+from web_interface.file_tree.file_tree import (
+    VirtualPathFileTree, _get_partial_virtual_paths, _get_vpath_relative_to, _root_is_virtual,
     get_correct_icon_for_mime, remove_virtual_path_from_root
 )
+from web_interface.file_tree.file_tree_node import FileTreeNode
 
-# pylint: disable=
+# pylint: disable=protected-access
 
 NON_VIRTUAL_TREE_ROOT = {
     'a_attr': {'href': '/analysis/someUID/ro/someUID'}, 'children': True, 'data': {'uid': 'someUID'}, 'icon': 'pic.png',
