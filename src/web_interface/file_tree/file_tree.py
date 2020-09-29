@@ -86,8 +86,14 @@ def remove_virtual_path_from_root(root: List[dict]) -> List[dict]:
 
 class VirtualPathFileTree:
     '''
-    This class represents a layer or the  file tree  with a ``Firmware`` or ``FileObject`` as root, directories as
-    inner vertices and  ``FileObject``s as outer vertices. It consists of vertices of type ``FileTreeNode``.
+    This class represents a layer of the file tree (a partial tree) for a ``Firmware`` or ``FileObject`` as root and
+    is based on the virtual file paths of its child objets (unpacked files). This tree may have directories as
+    inner vertices (the inner elements of the virtual file path) and ``FileObject``s as outer vertices (the end of the
+    virtual file path). It consists of vertices of type ``FileTreeNode``.
+
+    :param root_uid: The uid of the root node of the file tree.
+    :param fo_data: The firmware / file object data from the database that is needed to create the file tree.
+    :param whitelist: A whitelist of file names needed to display partial trees in comparisons.
     '''
 
     #: Required fields for a database query to build the file tree.
