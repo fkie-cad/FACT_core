@@ -4,7 +4,7 @@ from queue import Empty
 from time import time
 
 from helperFunctions.process import (
-    ExceptionSafeProcess, check_worker_exceptions, start_single_worker, terminate_process_and_childs
+    ExceptionSafeProcess, check_worker_exceptions, start_single_worker, terminate_process_and_children
 )
 from helperFunctions.tag import TagColor
 from objects.file import FileObject
@@ -70,7 +70,7 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         fo = self._add_plugin_version_and_timestamp_to_analysis_result(fo)
         return fo
 
-    def _add_plugin_version_and_timestamp_to_analysis_result(self, fo):
+    def _add_plugin_version_and_timestamp_to_analysis_result(self, fo):  # pylint: disable=invalid-name
         fo.processed_analysis[self.NAME].update(self.init_dict())
         return fo
 
@@ -142,7 +142,7 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
             logging.debug('Worker {}: Finished {} analysis on {}'.format(worker_id, self.NAME, next_task.uid))
 
     def _handle_failed_analysis(self, fw_object, process, worker_id, cause: str):
-        terminate_process_and_childs(process)
+        terminate_process_and_children(process)
         fw_object.analysis_exception = (self.NAME, '{} occurred during analysis'.format(cause))
         logging.error('Worker {}: {} during analysis {} on {}'.format(worker_id, cause, self.NAME, fw_object.uid))
         self.out_queue.put(fw_object)

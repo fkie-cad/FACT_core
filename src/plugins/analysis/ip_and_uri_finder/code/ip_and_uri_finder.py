@@ -26,13 +26,13 @@ IP_V6_BLACKLIST = [  # trivial adresses
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
-    '''
-    This plug-in finds IPs and URIs
-    '''
     NAME = 'ip_and_uri_finder'
     DEPENDENCIES = []
-    MIME_BLACKLIST = ['filesystem']
-    DESCRIPTION = 'search for IPs and URIs'
+    MIME_WHITELIST = [
+        'text/plain', 'application/octet-stream', 'application/x-executable', 'application/x-object',
+        'application/x-sharedlib', 'application/x-dosexec'
+    ]
+    DESCRIPTION = 'Search file for IP addresses and URIs based on regular expressions.'
     VERSION = '0.4.2'
 
     def __init__(self, plugin_administrator, config=None, recursive=True):
