@@ -2,11 +2,11 @@ import gc
 import unittest
 from tempfile import TemporaryDirectory
 
-from helperFunctions.file_tree import FileTreeNode
 from storage.db_interface_backend import BackEndDbInterface
 from storage.db_interface_frontend import FrontEndDbInterface
 from storage.MongoMgr import MongoMgr
 from test.common_helper import create_test_file_object, create_test_firmware, get_config_for_testing, get_test_data_dir
+from web_interface.file_tree.file_tree_node import FileTreeNode
 
 TESTS_DIR = get_test_data_dir()
 TMP_DIR = TemporaryDirectory(prefix='fact_test_')

@@ -7,12 +7,13 @@ from typing import Dict, List
 from helperFunctions.compare_sets import remove_duplicates_from_list
 from helperFunctions.database_structure import visualize_complete_tree
 from helperFunctions.dataConversion import get_value_of_first_key
-from helperFunctions.file_tree import FileTreeNode, VirtualPathFileTree
 from helperFunctions.merge_generators import merge_generators
 from helperFunctions.tag import TagColor
 from helperFunctions.virtual_file_path import get_top_of_virtual_path
 from objects.firmware import Firmware
 from storage.db_interface_common import MongoInterfaceCommon
+from web_interface.file_tree.file_tree import VirtualPathFileTree
+from web_interface.file_tree.file_tree_node import FileTreeNode
 
 
 class FrontEndDbInterface(MongoInterfaceCommon):

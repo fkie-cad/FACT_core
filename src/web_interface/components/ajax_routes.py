@@ -1,17 +1,18 @@
 import html
 from typing import Dict, List, Set
 
-from common_helper_files import human_readable_file_size
 from flask import jsonify, render_template
 
 from helperFunctions.database import ConnectTo
 from helperFunctions.dataConversion import none_to_none
-from helperFunctions.file_tree import FileTreeNode, get_correct_icon_for_mime, remove_virtual_path_from_root
 from intercom.front_end_binding import InterComFrontEndBinding
 from storage.db_interface_compare import CompareDbInterface
 from storage.db_interface_frontend import FrontEndDbInterface
 from storage.db_interface_statistic import StatisticDbViewer
 from web_interface.components.component_base import ComponentBase
+from web_interface.file_tree.file_tree import remove_virtual_path_from_root
+from web_interface.file_tree.file_tree_node import FileTreeNode
+from web_interface.file_tree.jstree_conversion import convert_to_jstree_node
 from web_interface.filter import bytes_to_str_filter, encode_base64_filter
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
@@ -37,7 +38,7 @@ class AjaxRoutes(ComponentBase):
         exclusive_files = self._get_exclusive_files(compare_id, root_uid)
         tree = self._generate_file_tree(root_uid, uid, exclusive_files)
         children = [
-            self._generate_jstree_node(child_node)
+            convert_to_jstree_node(child_node)
             for child_node in tree.get_list_of_child_nodes()
         ]
         return jsonify(children)
@@ -65,61 +66,9 @@ class AjaxRoutes(ComponentBase):
         root = list()
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
             for node in sc.generate_file_tree_level(uid, root_uid):  # only a single item in this 'iterable'
-                root = [self._generate_jstree_node(node)]
+                root = [convert_to_jstree_node(node)]
         root = remove_virtual_path_from_root(root)
         return jsonify(root)
-
-    @staticmethod
-    def _get_jstree_node_contents(text, a_attr, li_attr, icon):
-        return {
-            'text': text,
-            'a_attr': {'href': a_attr},
-            'li_attr': {'href': li_attr},
-            'icon': icon
-        }
-
-    def _get_virtual_jstree_node_contents(self, node):
-        return self._get_jstree_node_contents('{}'.format(node.name), '#', '#', '/static/file_icons/folder.png')
-
-    def _get_not_analyzed_jstree_node_contents(self, node):
-        return self._get_jstree_node_contents(
-            '{}'.format(node.name), '/analysis/{}/ro/{}'.format(node.uid, node.root_uid), '/analysis/{}/ro/{}'.format(node.uid, node.root_uid), '/static/file_icons/not_analyzed.png'
-        )
-
-    def _get_analyzed_jstree_node_contents(self, node):
-        result = self._get_jstree_node_contents(
-            '<b>{}</b> (<span style="color:gray;">{}</span>)'.format(node.name, human_readable_file_size(node.size)),
-            '/analysis/{}/ro/{}'.format(node.uid, node.root_uid), '/analysis/{}/ro/{}'.format(node.uid, node.root_uid), get_correct_icon_for_mime(node.type)
-        )
-        result['data'] = {'uid': node.uid}
-        return result
-
-    def _get_jstree_child_nodes(self, node):
-        child_nodes = node.get_list_of_child_nodes()
-        if not child_nodes:
-            return True
-        result = []
-        for child in child_nodes:
-            result_child = self._generate_jstree_node(child)
-            if result_child is not None:
-                result.append(result_child)
-        return result
-
-    def _generate_jstree_node(self, node):
-        '''
-        converts a file tree node to a json dict that can be rendered by jstree
-        :param node: the file tree node
-        :return: a json-compatible dict containing the jstree data
-        '''
-        if node.virtual:
-            result = self._get_virtual_jstree_node_contents(node)
-        elif node.not_analyzed:
-            result = self._get_not_analyzed_jstree_node_contents(node)
-        else:
-            result = self._get_analyzed_jstree_node_contents(node)
-        if node.has_children:
-            result['children'] = self._get_jstree_child_nodes(node)
-        return result
 
     @roles_accepted(*PRIVILEGES['compare'])
     def _ajax_get_common_files_for_compare(self, compare_id, feature_id):

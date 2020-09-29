@@ -1,6 +1,7 @@
-import logging
 from itertools import chain
 from typing import Dict, Iterable, List, Optional
+
+from web_interface.file_tree.file_tree_node import FileTreeNode
 
 ARCHIVE_FILE_TYPES = [
     'application/gzip', 'application/java-archive', 'application/rar', 'application/vnd.ms-cab-compressed',
@@ -28,7 +29,13 @@ TYPE_CATEGORY_TO_ICON = {
 }
 
 
-def get_correct_icon_for_mime(mime_type):
+def get_correct_icon_for_mime(mime_type: str) -> str:
+    '''
+    Retrieve the path to appropriate icon for a given mime type. The icons are located in the static folder of the
+    web interface and the paths therefore start with "/static". Archive types all receive the same icon.
+
+    :param mime_type: The MIME type of a file (in the file tree).
+    '''
     if mime_type in ARCHIVE_FILE_TYPES:
         return '/static/file_icons/archive.png'
     if mime_type in TYPE_TO_ICON:
@@ -39,79 +46,28 @@ def get_correct_icon_for_mime(mime_type):
     return '/static/file_icons/unknown.png'
 
 
-def get_partial_virtual_paths(virtual_path: Dict[str, List[str]], root_uid: str) -> List[str]:
+def _get_partial_virtual_paths(virtual_path: Dict[str, List[str]], new_root: str) -> List[str]:
     '''
-    returns a partial virtual path with parameter root as the new root
+    Returns a list of new partial virtual paths with ``new_root`` as the new root element.
+    If no paths containing ``new_root`` are found, a fallback path is created, consisting only of ``new_root``.
     '''
-    relevant_vpaths = {get_vpath_relative_to(vpath, root_uid) for vpath in chain(*virtual_path.values()) if root_uid in vpath}
-    if not relevant_vpaths:
-        return ['|{uid}|'.format(uid=root_uid)]
-    return sorted(relevant_vpaths)
+    paths_with_new_root = {
+        _get_vpath_relative_to(vpath, new_root)
+        for vpath in chain(*virtual_path.values())
+        if new_root in vpath
+    }
+    if not paths_with_new_root:
+        return ['|{uid}|'.format(uid=new_root)]
+    return sorted(paths_with_new_root)
 
 
-def get_vpath_relative_to(virtual_path: str, uid: str):
+def _get_vpath_relative_to(virtual_path: str, uid: str):
     vpath_elements = virtual_path.split('|')
     index = vpath_elements.index(uid)
     return '|'.join([''] + vpath_elements[index:])
 
 
-class FileTreeNode:  # pylint: disable=too-many-instance-attributes,too-many-arguments
-    def __init__(self, uid, root_uid=None, virtual=False, name=None, size=None, mime_type=None, has_children=False,
-                 not_analyzed=False):
-        self.uid = uid
-        self.root_uid = root_uid
-        self.virtual = virtual
-        self.name = name
-        self.size = size
-        self.type = mime_type
-        self.has_children = has_children
-        self.not_analyzed = not_analyzed
-        self.children = {}
-
-    def __str__(self):
-        return 'Node \'{}\' with children {}'.format(self.name, self.get_names_of_children())
-
-    def __repr__(self):
-        return self.__str__()
-
-    def __eq__(self, other):
-        return self.uid == other.uid and self.name == other.name and self.virtual == other.virtual
-
-    def __contains__(self, item):
-        return item.get_id() in self.children
-
-    def print_tree(self, spacer=''):
-        logging.info('{}{} (virtual:{}, has_children:{})'.format(spacer, self.name, self.virtual, self.has_children))
-        for child_node in self.children.values():
-            child_node.print_tree(spacer=spacer + '\t|')
-
-    def merge_node(self, node):
-        current_node = self.children[node.get_id()]
-        for child in node.get_list_of_child_nodes():
-            if child in current_node:
-                current_node.merge_node(child)
-            else:
-                current_node.add_child_node(child)
-
-    def add_child_node(self, node):
-        if node.get_id() in self.children:
-            self.merge_node(node)
-        else:
-            self.has_children = True
-            self.children[node.get_id()] = node
-
-    def get_names_of_children(self):
-        return [n.name for n in self.get_list_of_child_nodes()]
-
-    def get_list_of_child_nodes(self):
-        return list(self.children.values())
-
-    def get_id(self):
-        # files and folders may have the same name but folders are 'virtual' -> take both for unique key
-        return self.name, self.virtual
-
-
-def root_is_virtual(root: List[dict]) -> bool:
+def _root_is_virtual(root: List[dict]) -> bool:
     try:
         return root[0]['a_attr'] == {'href': '#'}
     except (KeyError, IndexError):
@@ -120,15 +76,32 @@ def root_is_virtual(root: List[dict]) -> bool:
 
 def remove_virtual_path_from_root(root: List[dict]) -> List[dict]:
     '''
-    when a file object is the root, the directories that contain the file object need to be removed so that the file
-    tree is displayed correctly in the web interface
+    When a file object is the root, the directories that contain the file object need to be removed so that the file
+    tree is displayed correctly in the web interface.
     '''
-    while root_is_virtual(root):
+    while _root_is_virtual(root):
         root = root[0]['children']
     return root
 
 
 class VirtualPathFileTree:
+    '''
+    This class represents a layer of the file tree (a partial tree) for a ``Firmware`` or ``FileObject`` as root and
+    is based on the virtual file paths of its child objects (unpacked files). "Layer" means that the file tree is
+    created in layers as it is unfolded (one partial tree for each file).
+
+    This partial layer tree has a ``Firmware`` or ``FileObject`` as root, directories as inner nodes (the inner elements
+    of the virtual file path) and ``FileObject``s as outer nodes ("leaves" of the tree, the end of the virtual file
+    path).
+
+    Both ``Firmware`` and ``FileObject`` vertices are represented by ``FileTreeNode`` objects.
+
+    :param root_uid: The uid of the root node of the file tree.
+    :param fo_data: The firmware / file object data from the database that is needed to create the file tree.
+    :param whitelist: A whitelist of file names needed to display partial trees in comparisons.
+    '''
+
+    #: Required fields for a database query to build the file tree.
     FO_DATA_FIELDS = {
         '_id': 1, 'file_name': 1, 'files_included': 1, 'processed_analysis.file_type.mime': 1, 'size': 1,
         'virtual_file_path': 1,
@@ -143,14 +116,20 @@ class VirtualPathFileTree:
 
     def _get_virtual_file_paths(self) -> List[str]:
         if self._file_tree_is_for_file_object():
-            return get_partial_virtual_paths(self.fo_data['virtual_file_path'], self.root_uid)
+            return _get_partial_virtual_paths(self.fo_data['virtual_file_path'], self.root_uid)
         return self.fo_data['virtual_file_path'][self.root_uid]
 
     def _file_tree_is_for_file_object(self) -> bool:
         return self.root_uid not in self.fo_data['virtual_file_path']
 
     def get_file_tree_nodes(self) -> Iterable[FileTreeNode]:
-        # the same file may occur several times with different virtual paths
+        '''
+        Create ``FileTreeNode`` s for the elements of the root's virtual file path. The same file may occur several
+        times with different virtual paths. Returns a sequence of nodes, representing the subsequent layer in the
+        file tree (which themselves may contain child nodes).
+
+        :return: An iterable sequence of nodes of the file tree.
+        '''
         for virtual_path in self.virtual_file_paths:
             yield self._create_node_from_virtual_path(virtual_path.split('/')[1:])
 
