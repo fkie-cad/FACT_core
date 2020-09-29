@@ -37,6 +37,6 @@ class TestAppShowAnalysis(WebInterfaceTest):
         assert not self.mocked_interface.tasks
         post_new = self.test_client.post('/analysis/{}'.format(TEST_FW.uid), content_type='multipart/form-data', data={'analysis_systems': ['plugin_a', 'plugin_b']})
 
-        assert post_new.status_code == 200
+        assert post_new.status_code == 302
         assert self.mocked_interface.tasks
         assert self.mocked_interface.tasks[0].scheduled_analysis == ['plugin_a', 'plugin_b']
