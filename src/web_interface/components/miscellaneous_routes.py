@@ -52,7 +52,7 @@ class MiscellaneousRoutes(ComponentBase):
             author = request.form['author']
             with ConnectTo(FrontendEditingDbInterface, config=self._config) as sc:
                 sc.add_comment_to_object(uid, comment, author, round(time()))
-            return redirect(url_for('analysis/<uid>', uid=uid))
+            return redirect(url_for('show_analysis', uid=uid))
         with ConnectTo(FrontEndDbInterface, config=self._config) as sc:
             if not sc.existence_quick_check(uid):
                 error = True
@@ -62,7 +62,7 @@ class MiscellaneousRoutes(ComponentBase):
     def _app_delete_comment(self, uid, timestamp):
         with ConnectTo(FrontendEditingDbInterface, config=self._config) as sc:
             sc.delete_comment(uid, timestamp)
-        return redirect(url_for('analysis/<uid>', uid=uid))
+        return redirect(url_for('show_analysis', uid=uid))
 
     @roles_accepted(*PRIVILEGES['delete'])
     def _app_delete_firmware(self, uid):
