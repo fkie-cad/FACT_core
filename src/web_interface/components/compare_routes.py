@@ -156,26 +156,26 @@ class CompareRoutes(ComponentBase):
         return page, per_page, offset
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
-    def _add_to_compare_basket(self, uid):
+    def _add_to_compare_basket(self, uid):  # pylint: disable=no-self-use
         compare_uid_list = get_comparison_uid_list_from_session()
         compare_uid_list.append(uid)
         session.modified = True
-        return redirect(url_for('analysis/<uid>', uid=uid))
+        return redirect(url_for('show_analysis', uid=uid))
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
-    def _remove_from_compare_basket(self, analysis_uid, compare_uid):
+    def _remove_from_compare_basket(self, analysis_uid, compare_uid):  # pylint: disable=no-self-use
         compare_uid_list = get_comparison_uid_list_from_session()
         if compare_uid in compare_uid_list:
             session['uids_for_comparison'].remove(compare_uid)
             session.modified = True
-        return redirect(url_for('analysis/<uid>', uid=analysis_uid))
+        return redirect(url_for('show_analysis', uid=analysis_uid))
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
-    def _remove_all_from_compare_basket(self, analysis_uid):
+    def _remove_all_from_compare_basket(self, analysis_uid):  # pylint: disable=no-self-use
         compare_uid_list = get_comparison_uid_list_from_session()
         compare_uid_list.clear()
         session.modified = True
-        return redirect(url_for('analysis/<uid>', uid=analysis_uid))
+        return redirect(url_for('show_analysis', uid=analysis_uid))
 
 
 def get_comparison_uid_list_from_session():

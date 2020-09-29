@@ -72,7 +72,7 @@ class DatabaseRoutes(ComponentBase):
                 only_firmwares=search_parameters['only_firmware'], inverted=search_parameters['inverted']
             )
             if self._query_has_only_one_result(firmware_list, search_parameters['query']):
-                return redirect(url_for('analysis/<uid>', uid=firmware_list[0][0]))
+                return redirect(url_for('show_analysis', uid=firmware_list[0][0]))
         except Exception as err:
             error_message = 'Could not query database: {} {}'.format(type(err), str(err))
             logging.error(error_message)
