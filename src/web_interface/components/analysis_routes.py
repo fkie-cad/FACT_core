@@ -1,6 +1,6 @@
 import json
 import os
-from typing import Union
+from typing import Dict, Union
 
 from common_helper_files import get_binary_from_file
 from flask import redirect, render_template, render_template_string, request, url_for
@@ -12,7 +12,7 @@ from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.mongo_task_conversion import (
     check_for_errors, convert_analysis_task_to_fw_obj, create_re_analyze_task
 )
-from helperFunctions.web_interface import get_template_as_string, overwrite_default_plugins
+from helperFunctions.web_interface import get_template_as_string
 from intercom.front_end_binding import InterComFrontEndBinding
 from objects.file import FileObject
 from objects.firmware import Firmware
@@ -130,13 +130,13 @@ class AnalysisRoutes(ComponentBase):
         device_name_dict[old_firmware.device_class][old_firmware.vendor].remove(old_firmware.device_name)
 
         previously_processed_plugins = list(old_firmware.processed_analysis.keys())
-        with ConnectTo(InterComFrontEndBinding, self._config) as sc:
-            plugin_dict = overwrite_default_plugins(sc, previously_processed_plugins)
+        with ConnectTo(InterComFrontEndBinding, self._config) as intercom:
+            plugin_dict = self._overwrite_default_plugins(intercom.get_available_analysis_plugins(), previously_processed_plugins)
 
         title = 're-do analysis' if re_do else 'update analysis'
 
         return render_template(
-            'upload/re-analyze.html',
+            'upload/upload.html',
             device_classes=device_class_list,
             vendors=vendor_list,
             error=error if error is not None else {},
@@ -145,6 +145,13 @@ class AnalysisRoutes(ComponentBase):
             analysis_plugin_dict=plugin_dict,
             title=title
         )
+
+    @staticmethod
+    def _overwrite_default_plugins(plugin_dict: Dict[str, tuple], checked_plugin_list) -> Dict[str, tuple]:
+        plugin_dict.pop('unpacker')  # FIXME: why is this even in there?
+        for plugin in plugin_dict:
+            plugin_dict[plugin][2]['default'] = plugin in checked_plugin_list
+        return plugin_dict
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @AppRoute('/update-analysis/<uid>', POST)

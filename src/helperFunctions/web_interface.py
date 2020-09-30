@@ -31,18 +31,6 @@ def get_alternating_color_list(number, limit=10):
     return alternating_color_list[:min(number, limit)]
 
 
-def overwrite_default_plugins(intercom, checked_plugin_list):
-    result = intercom.get_available_analysis_plugins()
-    for item in result.keys():
-        tmp = list(result[item])
-        if item in checked_plugin_list:
-            tmp[2] = True
-        else:
-            tmp[2] = False
-        result[item] = tuple(tmp)
-    return result
-
-
 def apply_filters_to_query(request, query):
     query_dict = json.loads(query)
     for key in ['device_class', 'vendor']:
