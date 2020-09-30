@@ -47,7 +47,7 @@
                 {%- endif %}
 
                 <script>
-                    var device_names = eval( {{ device_names | safe }} );
+                    var device_names = {{ device_names | safe }};
 
                     function add_device_class_options(selected_device_class, selected_vendor, data) {
                         $('#device_name').empty();
