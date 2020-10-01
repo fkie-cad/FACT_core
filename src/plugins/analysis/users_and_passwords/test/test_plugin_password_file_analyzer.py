@@ -52,9 +52,9 @@ class TestAnalysisPluginPasswordFileAnalyzer(AnalysisPluginTest):
 
     def test_crack_hash_failure(self):
         passwd_entry = [b'user', b'$6$Ph+uRn1vmQ+pA7Ka$fcn9/Ln3W6c6oT3o8bWoLPrmTUs+NowcKYa52WFVP5qU5jzadqwSq8F+Q4AAr2qOC+Sk5LlHmisri4Eqx7/uDg==']
-        result_dict = {'user': dict()}
-        assert self.analysis_plugin._crack_hash(passwd_entry, result_dict, 'user') is False  # pylint: disable=protected-access
-        assert 'ERROR' in result_dict['user']
+        result_entry = {}
+        assert self.analysis_plugin._crack_hash(passwd_entry, result_entry) is False  # pylint: disable=protected-access
+        assert 'ERROR' in result_entry
 
 
 def test_crack_mosquitto_hash():
