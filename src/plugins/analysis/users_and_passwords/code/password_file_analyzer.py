@@ -1,4 +1,3 @@
-import json
 import logging
 import os
 import re
@@ -119,8 +118,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
         with NamedTemporaryFile() as fp:
             fp.write(passwd_entry.encode())
             fp.seek(0)
-            result_entry['log'] = execute_shell_command('john-the-ripper {} --format=dynamic_82'.format(fp.name))
-            output = execute_shell_command('john-the-ripper --show {}'.format(fp.name)).split('\n')
+            result_entry['log'] = execute_shell_command('john {} --format=dynamic_82'.format(fp.name))
+            output = execute_shell_command('john {} --show --format=dynamic_82'.format(fp.name)).split('\n')
         if len(output) > 2:
             with suppress(KeyError):
                 if '0 password hashes cracked' in output[-2]:
