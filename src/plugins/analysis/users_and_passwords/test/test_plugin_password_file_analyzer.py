@@ -26,12 +26,12 @@ class TestAnalysisPluginPasswordFileAnalyzer(AnalysisPluginTest):
         for item in ['vboxadd', 'mongodb', 'clamav', 'pulse', 'johndoe', 'max']:
             self.assertIn(item, results)
             self.assertIn(item, results['summary'])
-        self.assertIn('password-hash', results['max'])
-        self.assertIn('password', results['max'])
-        self.assertEqual(results['max']['password'], 'dragon')
-        self.assertIn('password-hash', results['johndoe'])
-        self.assertIn('password', results['johndoe'])
-        self.assertEqual(results['johndoe']['password'], '123456')
+        self.assertIn('password-hash', results['max']['passwd'])
+        self.assertIn('password', results['max']['passwd'])
+        self.assertEqual(results['max']['passwd']['password'], 'dragon')
+        self.assertIn('password-hash', results['johndoe']['passwd'])
+        self.assertIn('password', results['johndoe']['passwd'])
+        self.assertEqual(results['johndoe']['passwd']['password'], '123456')
         self.assertEqual(results['tags']['johndoe_123456']['value'], 'Password: johndoe:123456')
 
     def test_process_object_password_in_binary_file(self):
@@ -43,12 +43,12 @@ class TestAnalysisPluginPasswordFileAnalyzer(AnalysisPluginTest):
         for item in ['johndoe', 'max']:
             self.assertIn(item, results)
             self.assertIn(item, results['summary'])
-        self.assertIn('password-hash', results['johndoe'])
-        self.assertIn('password', results['johndoe'])
-        self.assertEqual(results['johndoe']['password'], '123456')
-        self.assertIn('password-hash', results['max'])
-        self.assertIn('password', results['max'])
-        self.assertEqual(results['max']['password'], 'dragon')
+        self.assertIn('password-hash', results['johndoe']['passwd'])
+        self.assertIn('password', results['johndoe']['passwd'])
+        self.assertEqual(results['johndoe']['passwd']['password'], '123456')
+        self.assertIn('password-hash', results['max']['passwd'])
+        self.assertIn('password', results['max']['passwd'])
+        self.assertEqual(results['max']['passwd']['password'], 'dragon')
 
     def test_crack_hash_failure(self):
         passwd_entry = [b'user', b'$6$Ph+uRn1vmQ+pA7Ka$fcn9/Ln3W6c6oT3o8bWoLPrmTUs+NowcKYa52WFVP5qU5jzadqwSq8F+Q4AAr2qOC+Sk5LlHmisri4Eqx7/uDg==']
