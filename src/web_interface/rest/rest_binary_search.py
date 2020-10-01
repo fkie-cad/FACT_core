@@ -1,10 +1,10 @@
 from flask_restful import Resource, request
 
 from helperFunctions.database import ConnectTo
-from helperFunctions.rest import convert_rest_request, error_message, success_message
 from helperFunctions.yara_binary_search import is_valid_yara_rule_file
 from intercom.front_end_binding import InterComFrontEndBinding
 from storage.db_interface_frontend import FrontEndDbInterface
+from web_interface.rest.helper import convert_rest_request, error_message, success_message
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 

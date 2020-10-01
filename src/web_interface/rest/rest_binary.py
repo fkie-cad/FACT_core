@@ -4,9 +4,9 @@ from flask_restful import Resource, request
 
 from helperFunctions.database import ConnectTo
 from helperFunctions.hash import get_sha256
-from helperFunctions.rest import error_message, get_tar_flag, success_message
 from intercom.front_end_binding import InterComFrontEndBinding
 from storage.db_interface_frontend import FrontEndDbInterface
+from web_interface.rest.helper import error_message, get_tar_flag, success_message
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 

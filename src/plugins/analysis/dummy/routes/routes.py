@@ -1,7 +1,7 @@
 from flask_restful import Resource
 
-from helperFunctions.rest import success_message
 from web_interface.components.component_base import ComponentBase
+from web_interface.rest.helper import success_message
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
@@ -12,7 +12,7 @@ class PluginRoutes(ComponentBase):
         self._app.add_url_rule('/plugins/dummy', 'plugins/dummy', self._get_dummy)
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
-    def _get_dummy(self):
+    def _get_dummy(self):  # pylint: disable=no-self-use
         return 'dummy', 200
 
 

@@ -3,8 +3,8 @@ from typing import Dict, List, Set
 from flask_restful import Resource
 
 from helperFunctions.database import ConnectTo
-from helperFunctions.rest import success_message
 from storage.db_interface_frontend import FrontEndDbInterface
+from web_interface.rest.helper import success_message
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 

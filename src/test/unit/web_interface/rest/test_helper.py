@@ -1,6 +1,6 @@
 import pytest
 
-from helperFunctions.rest import (
+from web_interface.rest.helper import (
     convert_rest_request, error_message, get_current_gmt, get_inverted_flag, get_paging, get_query, get_recursive_flag,
     get_summary_flag, get_tar_flag, get_update, success_message
 )
