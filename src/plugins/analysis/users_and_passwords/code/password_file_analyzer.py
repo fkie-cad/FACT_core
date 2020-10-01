@@ -1,7 +1,9 @@
+
 import logging
 import os
 import re
 from contextlib import suppress
+from pathlib import Path
 from tempfile import NamedTemporaryFile
 from base64 import b64decode
 
@@ -59,14 +61,16 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def _add_found_password_tag(self, file_object, result):
         for password_entry in result:
-            if 'password' in result[password_entry]:
-                self.add_analysis_tag(
-                    file_object,
-                    '{}_{}'.format(password_entry, result[password_entry]['password']),
-                    'Password: {}:{}'.format(password_entry, result[password_entry]['password']),
-                    TagColor.RED,
-                    True
-                )
+            for password_type in result[password_entry]:
+                if 'passwd' in result[password_entry] or 'mosquitto' in result[password_entry]:
+                    if 'password' in result[password_entry][password_type]:
+                        self.add_analysis_tag(
+                            file_object,
+                            '{}_{}'.format(password_entry, result[password_entry][password_type]['password']),
+                            'Password: {}:{}'.format(password_entry, result[password_entry][password_type]['password']),
+                            TagColor.RED,
+                            True
+                        )
 
     def _generate_analysis_entry(self, passwd_entries, uid: str):
         result = {}
