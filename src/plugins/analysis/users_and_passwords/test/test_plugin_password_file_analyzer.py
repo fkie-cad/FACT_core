@@ -22,17 +22,21 @@ class TestAnalysisPluginPasswordFileAnalyzer(AnalysisPluginTest):
         processed_object = self.analysis_plugin.process_object(test_file)
         results = processed_object.processed_analysis[self.PLUGIN_NAME]
 
-        self.assertEqual(len(results), 8)
-        for item in ['vboxadd', 'mongodb', 'clamav', 'pulse', 'johndoe', 'max']:
+        print(results)
+        self.assertEqual(len(results), 10)
+        for item in ['vboxadd:unix', 'mongodb:unix', 'clamav:unix', 'pulse:unix', 'johndoe:unix', 'max:unix', 'apson:mosquitto']:
             self.assertIn(item, results)
             self.assertIn(item, results['summary'])
-        self.assertIn('password-hash', results['max']['passwd'])
-        self.assertIn('password', results['max']['passwd'])
-        self.assertEqual(results['max']['passwd']['password'], 'dragon')
-        self.assertIn('password-hash', results['johndoe']['passwd'])
-        self.assertIn('password', results['johndoe']['passwd'])
-        self.assertEqual(results['johndoe']['passwd']['password'], '123456')
-        self.assertEqual(results['tags']['johndoe_123456']['value'], 'Password: johndoe:123456')
+        self.assertIn('password-hash', results['max:unix'])
+        self.assertIn('password', results['max:unix'])
+        self.assertEqual(results['max:unix']['password'], 'dragon')
+        self.assertIn('password-hash', results['johndoe:unix'])
+        self.assertIn('password', results['johndoe:unix'])
+        self.assertIn('password-hash', results['apson:mosquitto'])
+        self.assertIn('password', results['apson:mosquitto'])
+        self.assertEqual(results['johndoe:unix']['password'], '123456')
+        self.assertEqual(results['apson:mosquitto']['password'], 'wrsdd')
+        self.assertEqual(results['tags']['johndoe:unix_123456']['value'], 'Password: johndoe:unix:123456')
 
     def test_process_object_password_in_binary_file(self):
         test_file = FileObject(file_path=str(TEST_DATA_DIR / 'passwd.bin'))
@@ -40,15 +44,15 @@ class TestAnalysisPluginPasswordFileAnalyzer(AnalysisPluginTest):
         results = processed_object.processed_analysis[self.PLUGIN_NAME]
 
         self.assertEqual(len(results), 4)
-        for item in ['johndoe', 'max']:
+        for item in ['johndoe:unix', 'max:unix']:
             self.assertIn(item, results)
             self.assertIn(item, results['summary'])
-        self.assertIn('password-hash', results['johndoe']['passwd'])
-        self.assertIn('password', results['johndoe']['passwd'])
-        self.assertEqual(results['johndoe']['passwd']['password'], '123456')
-        self.assertIn('password-hash', results['max']['passwd'])
-        self.assertIn('password', results['max']['passwd'])
-        self.assertEqual(results['max']['passwd']['password'], 'dragon')
+        self.assertIn('password-hash', results['johndoe:unix'])
+        self.assertIn('password', results['johndoe:unix'])
+        self.assertEqual(results['johndoe:unix']['password'], '123456')
+        self.assertIn('password-hash', results['max:unix'])
+        self.assertIn('password', results['max:unix'])
+        self.assertEqual(results['max:unix']['password'], 'dragon')
 
     def test_crack_hash_failure(self):
         passwd_entry = [b'user', b'$6$Ph+uRn1vmQ+pA7Ka$fcn9/Ln3W6c6oT3o8bWoLPrmTUs+NowcKYa52WFVP5qU5jzadqwSq8F+Q4AAr2qOC+Sk5LlHmisri4Eqx7/uDg==']
