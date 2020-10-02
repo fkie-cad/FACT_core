@@ -22,7 +22,6 @@ class TestAnalysisPluginPasswordFileAnalyzer(AnalysisPluginTest):
         processed_object = self.analysis_plugin.process_object(test_file)
         results = processed_object.processed_analysis[self.PLUGIN_NAME]
 
-        print(results)
         self.assertEqual(len(results), 10)
         for item in ['vboxadd:unix', 'mongodb:unix', 'clamav:unix', 'pulse:unix', 'johndoe:unix', 'max:unix', 'apson:mosquitto']:
             self.assertIn(item, results)
