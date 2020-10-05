@@ -101,7 +101,7 @@ def get_paging(request_parameters: ImmutableMultiDict) -> Tuple[int, int]:
     return offset, limit
 
 
-def get_query(request_parameter: ImmutableMultiDict) -> dict:
+def get_query(request_parameters: ImmutableMultiDict) -> dict:
     '''
     Parse the query parameter from request parameters. Query is a dictionary representing a MongoDB query.
 
@@ -109,7 +109,7 @@ def get_query(request_parameter: ImmutableMultiDict) -> dict:
     :return: The MongoDB query as dict.
     '''
     try:
-        query = request_parameter.get('query')
+        query = request_parameters.get('query')
         query = json.loads(query if query else '{}')
     except (AttributeError, KeyError):
         return dict()
@@ -120,7 +120,14 @@ def get_query(request_parameter: ImmutableMultiDict) -> dict:
     return query if query else dict()
 
 
-def _get_boolean_from_request(request_parameters: ImmutableMultiDict, name: str) -> bool:
+def get_boolean_from_request(request_parameters: ImmutableMultiDict, name: str) -> bool:
+    '''
+    Retrieve a specific flag from the request parameters as a boolean.
+
+    :param request_parameters: dict containing the request parameters.
+    :param name: Identifier of the flag that is to be retrieved.
+    :return: The retrieved flag as boolean.
+    '''
     try:
         parameter = json.loads(request_parameters.get(name, 'false'))
         if not isinstance(parameter, bool):
@@ -132,49 +139,10 @@ def _get_boolean_from_request(request_parameters: ImmutableMultiDict, name: str)
     return parameter
 
 
-def get_tar_flag(request_parameters: ImmutableMultiDict) -> bool:
-    '''
-    Parse the tar flag from request parameters.
-
-    :param request_parameters: dict containing the request parameters.
-    :return: The flag as boolean.
-    '''
-    return _get_boolean_from_request(request_parameters, 'tar')
-
-
-def get_summary_flag(request_parameters: ImmutableMultiDict) -> bool:
-    '''
-    Parse the summary flag from request parameters.
-
-    :param request_parameters: dict containing the request parameters.
-    :return: The flag as boolean.
-    '''
-    return _get_boolean_from_request(request_parameters, 'summary')
-
-
-def get_recursive_flag(request_parameters: ImmutableMultiDict) -> bool:
-    '''
-    Parse the recursive flag from request parameters.
-
-    :param request_parameters: dict containing the request parameters.
-    :return: The flag as boolean.
-    '''
-    return _get_boolean_from_request(request_parameters, 'recursive')
-
-
-def get_inverted_flag(request_parameters: ImmutableMultiDict) -> bool:
-    '''
-    Parse the inverted flag from request parameters.
-
-    :param request_parameters: dict containing the request parameters.
-    :return: The flag as boolean.
-    '''
-    return _get_boolean_from_request(request_parameters, 'inverted')
-
-
 def get_update(request_parameters: ImmutableMultiDict) -> list:
     '''
-    Parse the update parameter from request parameters. Update is a list of analysis plugins that shall be updated.
+    Parse the update parameter from request parameters. Update is a list of analysis plugins whose analysis results
+    shall be updated.
 
     :param request_parameters: dict containing the request parameters.
     :return: The list of analysis plugins.
