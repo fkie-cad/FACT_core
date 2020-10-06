@@ -3,7 +3,7 @@ import os
 import re
 from contextlib import suppress
 from pathlib import Path
-from tempfile import NamedTemporaryFile, TemporaryDirectory
+from tempfile import NamedTemporaryFile
 from base64 import b64decode
 
 from common_helper_process import execute_shell_command
@@ -11,6 +11,8 @@ from common_helper_process import execute_shell_command
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.tag import TagColor
+
+JOHN_PATH = Path(__file__).parent.parent / 'bin' / 'john' / 'run' / 'john'
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
@@ -102,9 +104,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
         with NamedTemporaryFile() as fp:
             fp.write(b':'.join(passwd_entry[:2]))
             fp.seek(0)
-            result_entry['log'] = execute_shell_command('john --wordlist={} {}'.format(self.wordlist_path, fp.name))
-            output = execute_shell_command('john --show {}'.format(fp.name)).split('\n')
-        if len(output) > 2:
+            result_entry['log'] = execute_shell_command('{} --wordlist={} {}'.format(JOHN_PATH, self.wordlist_path, fp.name))
+            output = execute_shell_command('{} --show {}'.format(JOHN_PATH, fp.name)).split('\n')
+        if len(output) > 1:
             with suppress(KeyError):
                 if '0 password hashes cracked' in output[-2]:
                     result_entry['ERROR'] = 'hash type is not supported'
@@ -118,9 +120,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
         with NamedTemporaryFile() as fp:
             fp.write(passwd_entry.encode())
             fp.seek(0)
-            result_entry['log'] = execute_shell_command('john {} --format=dynamic_82'.format(fp.name))
-            output = execute_shell_command('john {} --show --format=dynamic_82'.format(fp.name)).split('\n')
-        if len(output) > 2:
+            result_entry['log'] = execute_shell_command('{} {} --format=dynamic_82'.format(JOHN_PATH, fp.name))
+            output = execute_shell_command('{} {} --show --format=dynamic_82'.format(JOHN_PATH, fp.name)).split('\n')
+        if len(output) > 1:
             with suppress(KeyError):
                 if '0 password hashes cracked' in output[-2]:
                     result_entry['ERROR'] = 'hash type is not supported'
