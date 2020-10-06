@@ -1,0 +1,385 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>web_interface.rest.helper module &mdash; FACT  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/custom.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="web_interface.rest" href="web_interface.rest.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> FACT
+          
+
+          
+            
+            <img src="../_static/FACT_smaller.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../main.html">Challenges</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#easy-to-install-easy-to-use">Easy to Install! Easy to Use!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#easy-to-extend-easy-to-integrate">Easy to Extend! Easy to Integrate!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#screenshots">Screenshots</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#contributing">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#latest-news-and-contact">Latest News and Contact</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#authors-and-acknowledgment">Authors and Acknowledgment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#source-code">Source Code</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Modules:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="helperFunctions.html">helperFunctions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="objects.html">objects</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="web_interface.html">web_interface</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="web_interface.rest.html">web_interface.rest</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">web_interface.rest.helper module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">FACT</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="web_interface.html">web_interface</a> &raquo;</li>
+        
+          <li><a href="web_interface.rest.html">web_interface.rest</a> &raquo;</li>
+        
+      <li>web_interface.rest.helper module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/modules/web_interface.rest.helper.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-web_interface.rest.helper">
+<span id="web-interface-rest-helper-module"></span><h1>web_interface.rest.helper module<a class="headerlink" href="#module-web_interface.rest.helper" title="Permalink to this headline">¶</a></h1>
+<p>This module offers neat wrapper functionality for use in rest endpoints.
+Most wrappers target request and response parsing.</p>
+<dl class="py function">
+<dt id="web_interface.rest.helper.convert_rest_request">
+<code class="sig-prename descclassname">web_interface.rest.helper.</code><code class="sig-name descname">convert_rest_request</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#web_interface.rest.helper.convert_rest_request" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert binary encoded json request to a python dict.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>bytes</em>) – json request as binary encoded string.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>dict containing converted request data.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="web_interface.rest.helper.error_message">
+<code class="sig-prename descclassname">web_interface.rest.helper.</code><code class="sig-name descname">error_message</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">error</span></em>, <em class="sig-param"><span class="n">targeted_url</span></em>, <em class="sig-param"><span class="n">request_data</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">return_code</span><span class="o">=</span><span class="default_value">400</span></em><span class="sig-paren">)</span><a class="headerlink" href="#web_interface.rest.helper.error_message" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create error response including error message and useful meta information, such as the request parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>error</strong> (<em>str</em>) – String containing a reason why the request failed.</p></li>
+<li><p><strong>targeted_url</strong> (<em>str</em>) – Requested URL.</p></li>
+<li><p><strong>request_data</strong> (<em>Optional</em><em>[</em><em>dict</em><em>]</em>) – Parameters of the request.</p></li>
+<li><p><strong>return_code</strong> (<em>int</em>) – HTTP status code for response. Defaults to 400 Bad Request.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>dict containing a response adhering to the FACT rest api guidelines.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Tuple[dict, int]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="web_interface.rest.helper.get_boolean_from_request">
+<code class="sig-prename descclassname">web_interface.rest.helper.</code><code class="sig-name descname">get_boolean_from_request</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">request_parameters</span></em>, <em class="sig-param"><span class="n">name</span></em><span class="sig-paren">)</span><a class="headerlink" href="#web_interface.rest.helper.get_boolean_from_request" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve a specific flag from the request parameters as a boolean.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>request_parameters</strong> (<em>werkzeug.datastructures.ImmutableMultiDict</em>) – dict containing the request parameters.</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – Identifier of the flag that is to be retrieved.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The retrieved flag as boolean.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="web_interface.rest.helper.get_current_gmt">
+<code class="sig-prename descclassname">web_interface.rest.helper.</code><code class="sig-name descname">get_current_gmt</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#web_interface.rest.helper.get_current_gmt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the current unix time. The system value might depend on NTP.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Current time as unix timestamp integer.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="web_interface.rest.helper.get_paging">
+<code class="sig-prename descclassname">web_interface.rest.helper.</code><code class="sig-name descname">get_paging</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">request_parameters</span></em><span class="sig-paren">)</span><a class="headerlink" href="#web_interface.rest.helper.get_paging" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse paging parameter offset and limit from request parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>request_parameters</strong> (<em>werkzeug.datastructures.ImmutableMultiDict</em>) – dict containing the request parameters.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The paging parameters offset and limit as integers.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Tuple[int, int]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="web_interface.rest.helper.get_query">
+<code class="sig-prename descclassname">web_interface.rest.helper.</code><code class="sig-name descname">get_query</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">request_parameters</span></em><span class="sig-paren">)</span><a class="headerlink" href="#web_interface.rest.helper.get_query" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse the query parameter from request parameters. Query is a dictionary representing a MongoDB query.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>request_parameters</strong> (<em>werkzeug.datastructures.ImmutableMultiDict</em>) – dict containing the request parameters.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The MongoDB query as dict.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="web_interface.rest.helper.get_update">
+<code class="sig-prename descclassname">web_interface.rest.helper.</code><code class="sig-name descname">get_update</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">request_parameters</span></em><span class="sig-paren">)</span><a class="headerlink" href="#web_interface.rest.helper.get_update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse the update parameter from request parameters. Update is a list of analysis plugins whose analysis results
+shall be updated.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>request_parameters</strong> (<em>werkzeug.datastructures.ImmutableMultiDict</em>) – dict containing the request parameters.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The list of analysis plugins.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="web_interface.rest.helper.success_message">
+<code class="sig-prename descclassname">web_interface.rest.helper.</code><code class="sig-name descname">success_message</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em>, <em class="sig-param"><span class="n">targeted_url</span></em>, <em class="sig-param"><span class="n">request_data</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">return_code</span><span class="o">=</span><span class="default_value">200</span></em><span class="sig-paren">)</span><a class="headerlink" href="#web_interface.rest.helper.success_message" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create success response including requested data and useful meta information, such as the request parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>dict</em>) – dict containing the requested data.</p></li>
+<li><p><strong>targeted_url</strong> (<em>str</em>) – Requested URL.</p></li>
+<li><p><strong>request_data</strong> (<em>Optional</em><em>[</em><em>dict</em><em>]</em>) – Parameters of the request.</p></li>
+<li><p><strong>return_code</strong> (<em>int</em>) – HTTP status code for response. Defaults to 200 OK.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>dict containing a response adhering to the FACT rest api guidelines.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Tuple[dict, int]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="web_interface.rest.html" class="btn btn-neutral float-left" title="web_interface.rest" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Fraunhofer FKIE
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
