@@ -17,16 +17,7 @@ then
     sudo dnf update
     sudo dnf install git make gcc openssl-devel
     sudo dnf install yasm gmp-devel libpcap-devel bzip2-devel
-
-    # cloning JohnTheRipper from git repository
-    wget -nc https://github.com/openwall/john/archive/1.9.0-Jumbo-1.tar.gz
-    tar xf 1.9.0-Jumbo-1.tar.gz --strip-components 1
-    rm 1.9.0-Jumbo-1.tar.gz
-
-    # building JohnTheRipper
-    cd src/
-    sudo ./configure -disable-openmp && make -s clean && make -sj4
-  ) || exit 1
+  )
 
 else
   mkdir -p bin/john/
@@ -43,7 +34,12 @@ else
     elif [[ ${OPENCL} == *"AMD"* ]]; then
       sudo apt-get -y install ocl-icd-opencl-dev opencl-headers
     fi
+    )
+fi
 
+(
+  cd bin/john
+  (
     # cloning JohnTheRipper from git repository
     wget -nc https://github.com/openwall/john/archive/1.9.0-Jumbo-1.tar.gz
     tar xf 1.9.0-Jumbo-1.tar.gz --strip-components 1
@@ -52,14 +48,8 @@ else
     # building JohnTheRipper
     cd src/
     sudo ./configure -disable-openmp && make -s clean && make -sj4
-  ) || exit 1
-
-	if [[ $(lsb_release -i) == *"Debian" ]]
-	then
-		# link to path since debian does not include /usr/sbin
-		sudo ln -s /usr/sbin/john /usr/local/bin || exit 1
-	fi
-fi
+  )
+) || exit 1
 
 # Add common credentials
 (
