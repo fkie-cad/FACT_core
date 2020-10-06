@@ -1,8 +1,8 @@
 import pytest
 
-from helperFunctions.rest import (
-    convert_rest_request, error_message, get_current_gmt, get_inverted_flag, get_paging, get_query, get_recursive_flag,
-    get_summary_flag, get_tar_flag, get_update, success_message
+from web_interface.rest.helper import (
+    convert_rest_request, error_message, get_boolean_from_request, get_current_gmt, get_paging, get_query, get_update,
+    success_message
 )
 
 
@@ -66,44 +66,22 @@ def test_convert_rest_request_succeeds(data):
     assert isinstance(convert_rest_request(data), dict)
 
 
-def test_get_recursive():
-    assert not get_recursive_flag(None)
+def test_get_boolean_from_request():
+    assert not get_boolean_from_request(None, 'flag')
 
     with pytest.raises(ValueError):
-        get_recursive_flag(dict(recursive='bad_string'))
+        get_boolean_from_request(dict(flag='bad_string'), 'flag')
 
     with pytest.raises(ValueError):
-        get_recursive_flag(dict(recursive='2'))
+        get_boolean_from_request(dict(flag='2'), 'flag')
 
-    no_flag = get_recursive_flag(dict())
+    no_flag = get_boolean_from_request(dict(), 'flag')
     assert not no_flag
 
-    false_result = get_recursive_flag(dict(recursive='false'))
+    false_result = get_boolean_from_request(dict(flag='false'), 'flag')
     assert not false_result
 
-    good_result = get_recursive_flag(dict(recursive='true'))
-    assert good_result
-
-
-@pytest.mark.parametrize('get_request_parameter_function, name', [
-    (get_recursive_flag, 'recursive'),
-    (get_inverted_flag, 'inverted'),
-    (get_summary_flag, 'summary'),
-    (get_tar_flag, 'tar'),
-])
-def test_get_boolean_from_request(get_request_parameter_function, name):
-    assert not get_request_parameter_function(None)
-
-    with pytest.raises(ValueError):
-        get_request_parameter_function({name: 'bad_string'})
-
-    no_flag = get_request_parameter_function(dict())
-    assert not no_flag
-
-    false_result = get_request_parameter_function({name: 'false'})
-    assert not false_result
-
-    good_result = get_request_parameter_function({name: 'true'})
+    good_result = get_boolean_from_request(dict(flag='true'), 'flag')
     assert good_result
 
 

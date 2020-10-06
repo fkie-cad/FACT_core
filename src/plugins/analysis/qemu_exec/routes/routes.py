@@ -6,16 +6,16 @@ from flask_restful import Resource
 
 from helperFunctions.database import ConnectTo
 from helperFunctions.fileSystem import get_src_dir
-from helperFunctions.rest import error_message, success_message
 from storage.db_interface_frontend import FrontEndDbInterface
 from web_interface.components.component_base import ComponentBase
+from web_interface.rest.helper import error_message, success_message
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
 from ..code.qemu_exec import AnalysisPlugin
 
 
-def get_analysis_results_for_included_uid(uid, config):
+def get_analysis_results_for_included_uid(uid, config):  # pylint: disable=invalid-name
     results = {}
     with ConnectTo(FrontEndDbInterface, config) as db:
         this_fo = db.get_object(uid)
