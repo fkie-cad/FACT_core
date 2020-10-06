@@ -9,12 +9,25 @@ echo "------------------------------------"
 sudo -EH pip3 install --upgrade git+https://github.com/fkie-cad/common_helper_passwords.git || exit 1
 
 if [ "$1" = "fedora" ]
-then 
-	# installing JohnTheRipper
-	sudo dnf install -y john || exit 1
+then
+  mkdir -p bin/john/
+  (
+    cd bin/john/
+    # installing  prerequisite applications
+    sudo dnf update
+    sudo dnf install git make gcc openssl-devel
+    sudo dnf install yasm gmp-devel libpcap-devel bzip2-devel
 
-	# link to path since fedora does not include /usr/sbin
-	sudo ln -sfn /usr/sbin/john /usr/local/bin || exit 1
+    # cloning JohnTheRipper from git repository
+    wget -nc https://github.com/openwall/john/archive/1.9.0-Jumbo-1.tar.gz
+    tar xf 1.9.0-Jumbo-1.tar.gz --strip-components 1
+    rm 1.9.0-Jumbo-1.tar.gz
+
+    # building JohnTheRipper
+    cd src/
+    sudo ./configure -disable-openmp && make -s clean && make -sj4
+  ) || exit 1
+
 else
   mkdir -p bin/john/
   (
