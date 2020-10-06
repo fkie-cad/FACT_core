@@ -16,8 +16,30 @@ then
 	# link to path since fedora does not include /usr/sbin
 	sudo ln -sfn /usr/sbin/john /usr/local/bin || exit 1
 else
-	# installing JohnTheRipper
-	sudo apt-get install -y john || exit 1
+  mkdir -p bin/john/
+  (
+    cd bin/john/
+    # installing  prerequisite applications
+    sudo apt-get -y install cmake bison flex libicu-dev
+    sudo apt-get -y install build-essential libssl-dev git zlib1g-dev
+    sudo apt-get -y install yasm libgmp-dev libpcap-dev pkg-config libbz2-dev
+
+    OPENCL=$(sudo lshw -c display)
+    if [[ ${OPENCL} == *"NVIDIA"* ]]; then
+      sudo apt-get -y install nvidia-opencl-dev
+    elif [[ ${OPENCL} == *"AMD"* ]]; then
+      sudo apt-get -y install ocl-icd-opencl-dev opencl-headers
+    fi
+
+    # cloning JohnTheRipper from git repository
+    wget -nc https://github.com/openwall/john/archive/1.9.0-Jumbo-1.tar.gz
+    tar xf 1.9.0-Jumbo-1.tar.gz --strip-components 1
+    rm 1.9.0-Jumbo-1.tar.gz
+
+    # building JohnTheRipper
+    cd src/
+    sudo ./configure -disable-openmp && make -s clean && make -sj4
+  ) || exit 1
 
 	if [[ $(lsb_release -i) == *"Debian" ]]
 	then
