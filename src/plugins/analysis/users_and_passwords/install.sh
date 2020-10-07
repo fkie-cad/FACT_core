@@ -17,8 +17,7 @@ then
     sudo dnf update
     sudo dnf install git make gcc openssl-devel
     sudo dnf install yasm gmp-devel libpcap-devel bzip2-devel
-  )
-
+  ) || exit 1
 else
   mkdir -p bin/john/
   (
@@ -34,7 +33,7 @@ else
     elif [[ ${OPENCL} == *"AMD"* ]]; then
       sudo apt-get -y install ocl-icd-opencl-dev opencl-headers
     fi
-    )
+    ) || exit 1
 fi
 
 (
