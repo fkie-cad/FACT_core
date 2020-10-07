@@ -55,13 +55,12 @@ class TestAnalysisPluginPasswordFileAnalyzer(AnalysisPluginTest):
 
     def test_crack_hash_failure(self):
         passwd_entry = [b'user', b'$6$Ph+uRn1vmQ+pA7Ka$fcn9/Ln3W6c6oT3o8bWoLPrmTUs+NowcKYa52WFVP5qU5jzadqwSq8F+Q4AAr2qOC+Sk5LlHmisri4Eqx7/uDg==']
-        result_entry = {}
+        result_entry = {'type': 'unix'}
         assert self.analysis_plugin._crack_hash(passwd_entry, result_entry) is False  # pylint: disable=protected-access
         assert 'ERROR' in result_entry
 
-
-def test_crack_mosquitto_hash():
-    passwd_entry = 'apson:$dynamic_82$7dc9fdfcb9f75ba73aa13de8f1b5a82cfae64d4b3e368c1c2986b9d961553f9a94e63cda76ac12abc17e438000af6a8e0be4a4e4b9479a2b2b8b812ac7bfee0e$HEX$3e1fae467d6f990fa903b29a'
-    result_entry = {}
-    assert AnalysisPlugin._crack_mosquitto_hash(passwd_entry, result_entry) is True  # pylint: disable=protected-access
-    assert 'password' in result_entry
+    def test_crack_hash_success(self):
+        passwd_entry = 'apson:$dynamic_82$7dc9fdfcb9f75ba73aa13de8f1b5a82cfae64d4b3e368c1c2986b9d961553f9a94e63cda76ac12abc17e438000af6a8e0be4a4e4b9479a2b2b8b812ac7bfee0e$HEX$3e1fae467d6f990fa903b29a'
+        result_entry = {'type': 'mosquitto'}
+        assert self.analysis_plugin._crack_hash(passwd_entry, result_entry) is True  # pylint: disable=protected-access
+        assert 'password' in result_entry
