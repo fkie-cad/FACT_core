@@ -76,6 +76,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         for entry in [e.split(b':') for e in passwd_entries]:
             key = entry[0].decode(encoding='utf_8', errors='replace')
             result_entry = result['{}:unix'.format(key)] = {}
+            result_entry['type'] = 'unix'
             result_entry['entry'] = b':'.join(entry).decode(encoding='utf_8', errors='replace')
             try:
                 if entry[1][0] == ord('$'):
@@ -94,34 +95,25 @@ class AnalysisPlugin(AnalysisBasePlugin):
             passwd_hash = entry[3].decode(encoding='utf_8', errors='replace')
             passwd_entry = '{}:$dynamic_82${}$HEX${}'.format(user, b64decode(passwd_hash).hex(), b64decode(salt_hash).hex())
             result_entry = result['{}:mosquitto'.format(user)] = {}
+            result_entry['type'] = 'mosquitto'
             result_entry['entry'] = b'$'.join(entry).decode(encoding='utf_8', errors='replace')
             result_entry['password-hash'] = passwd_hash
-            cracked_pw = self._crack_mosquitto_hash(passwd_entry, result_entry)
+            cracked_pw = self._crack_hash(passwd_entry, result_entry)
             result_entry['cracked'] = bool(cracked_pw)
         return result
 
     def _crack_hash(self, passwd_entry, result_entry):
         with NamedTemporaryFile() as fp:
-            fp.write(b':'.join(passwd_entry[:2]))
-            fp.seek(0)
-            result_entry['log'] = execute_shell_command('{} --wordlist={} {}'.format(JOHN_PATH, self.wordlist_path, fp.name))
-            output = execute_shell_command('{} --show {}'.format(JOHN_PATH, fp.name)).split('\n')
-        if len(output) > 1:
-            with suppress(KeyError):
-                if '0 password hashes cracked' in output[-2]:
-                    result_entry['ERROR'] = 'hash type is not supported'
-                    return False
-                result_entry['password'] = output[0].split(':')[1]
-                return True
-        return False
-
-    @staticmethod
-    def _crack_mosquitto_hash(passwd_entry, result_entry):
-        with NamedTemporaryFile() as fp:
-            fp.write(passwd_entry.encode())
-            fp.seek(0)
-            result_entry['log'] = execute_shell_command('{} {} --format=dynamic_82'.format(JOHN_PATH, fp.name))
-            output = execute_shell_command('{} {} --show --format=dynamic_82'.format(JOHN_PATH, fp.name)).split('\n')
+            if result_entry['type'] is 'unix':
+                fp.write(b':'.join(passwd_entry[:2]))
+                fp.seek(0)
+                result_entry['log'] = execute_shell_command('{} --wordlist={} {}'.format(JOHN_PATH, self.wordlist_path, fp.name))
+                output = execute_shell_command('{} --show {}'.format(JOHN_PATH, fp.name)).split('\n')
+            elif result_entry['type'] is 'mosquitto':
+                fp.write(passwd_entry.encode())
+                fp.seek(0)
+                result_entry['log'] = execute_shell_command('{} {} --format=dynamic_82'.format(JOHN_PATH, fp.name))
+                output = execute_shell_command('{} {} --show --format=dynamic_82'.format(JOHN_PATH, fp.name)).split('\n')
         if len(output) > 1:
             with suppress(KeyError):
                 if '0 password hashes cracked' in output[-2]:
