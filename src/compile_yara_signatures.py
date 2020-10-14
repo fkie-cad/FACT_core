@@ -21,7 +21,7 @@ import os
 from subprocess import CalledProcessError
 from tempfile import NamedTemporaryFile
 
-from common_helper_files import get_files_in_dir, get_dirs_in_dir
+from common_helper_files import get_dirs_in_dir, get_files_in_dir
 from common_helper_process import execute_shell_command
 
 from helperFunctions.fileSystem import get_src_dir
@@ -49,7 +49,7 @@ def _create_compiled_signature_file(directory, tmp_file):
         command = 'yarac -d test_flag=false {} {}'.format(tmp_file.name, target_path)
         execute_shell_command(command, check=True)
     except CalledProcessError:
-        print('[ERRROR] Creation of {} failed !!'.format(os.path.split(target_path)[0]))
+        print('[ERROR] Creation of {} failed !!'.format(os.path.split(target_path)[0]))
 
 
 def _create_signature_dir():

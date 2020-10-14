@@ -17,7 +17,7 @@ IP_V4_BLACKLIST = [
     r'127.0.[0-9]+.1',  # localhost
     r'255.[0-9]+.[0-9]+.[0-9]+'  # subnetmasks
 ]
-IP_V6_BLACKLIST = [  # trivial adresses
+IP_V6_BLACKLIST = [  # trivial addresses
     r'^[0-9A-Za-z]::$',
     r'^::[0-9A-Za-z]$',
     r'^[0-9A-Za-z]::[0-9A-Za-z]$',
