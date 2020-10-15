@@ -35,11 +35,11 @@ class AnalysisPlugin(AnalysisBasePlugin):
         if self.NAME not in file_object.processed_analysis:
             file_object.processed_analysis[self.NAME] = {}
         file_object.processed_analysis[self.NAME]['summary'] = []
-        self.find_shadow_entries(file_object)
+        self.find_unix_entries(file_object)
         self.find_mosquitto_entries(file_object)
         return file_object
 
-    def find_shadow_entries(self, file_object):
+    def find_unix_entries(self, file_object):
         for passwd_regex in [
                 b'[a-zA-Z][a-zA-Z0-9_-]{2,15}:[^:]?:\\d+:\\d*:[^:]*:[^:]*:[^\n ]*',
                 b'[a-zA-Z][a-zA-Z0-9_-]{2,15}:\\$[^\\$]+\\$[^\\$]+\\$[a-zA-Z0-9\\./+]{16,128}={0,3}'
@@ -47,18 +47,14 @@ class AnalysisPlugin(AnalysisBasePlugin):
             passwd_entries = re.findall(passwd_regex, file_object.binary)
             if passwd_entries:
                 result = self._generate_analysis_entry(passwd_entries, file_object.uid)
-                file_object.processed_analysis[self.NAME].update(result)
-                file_object.processed_analysis[self.NAME]['summary'] += list(result.keys())
-                self._add_found_password_tag(file_object, result)
+                self.update_file_object(file_object, result)
 
     def find_mosquitto_entries(self, file_object):
         for passwd_regex in [br'[a-zA-Z][a-zA-Z0-9_-]{2,15}\:\$6\$[a-zA-Z0-9+/=]+\$[a-zA-Z0-9+/]{86}==']:
             passwd_entries = re.findall(passwd_regex, file_object.binary)
             if passwd_entries:
                 result = self._generate_mosquitto_entry(passwd_entries)
-                file_object.processed_analysis[self.NAME].update(result)
-                file_object.processed_analysis[self.NAME]['summary'] += list(result.keys())
-                self._add_found_password_tag(file_object, result)
+                self.update_file_object(file_object, result)
 
     def _add_found_password_tag(self, file_object, result):
         for password_entry in result:
@@ -70,6 +66,11 @@ class AnalysisPlugin(AnalysisBasePlugin):
                     TagColor.RED,
                     True
                 )
+
+    def update_file_object(self, file_object, result_entry):
+        file_object.processed_analysis[self.NAME].update(result_entry)
+        file_object.processed_analysis[self.NAME]['summary'] += list(result_entry.keys())
+        self._add_found_password_tag(file_object, result_entry)
 
     def _generate_analysis_entry(self, passwd_entries, uid: str):
         result = {}
@@ -104,12 +105,12 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def _crack_hash(self, passwd_entry, result_entry):
         with NamedTemporaryFile() as fp:
-            if result_entry['type'] is 'unix':
+            if result_entry['type'] == 'unix':
                 fp.write(b':'.join(passwd_entry[:2]))
                 fp.seek(0)
                 result_entry['log'] = execute_shell_command('{} --wordlist={} {}'.format(JOHN_PATH, self.wordlist_path, fp.name))
                 output = execute_shell_command('{} --show {}'.format(JOHN_PATH, fp.name)).split('\n')
-            elif result_entry['type'] is 'mosquitto':
+            elif result_entry['type'] == 'mosquitto':
                 fp.write(passwd_entry.encode())
                 fp.seek(0)
                 result_entry['log'] = execute_shell_command('{} {} --format=dynamic_82'.format(JOHN_PATH, fp.name))
