@@ -113,7 +113,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             elif result_entry['type'] == 'mosquitto':
                 fp.write(passwd_entry.encode())
                 fp.seek(0)
-                result_entry['log'] = execute_shell_command('{} {} --format=dynamic_82'.format(JOHN_PATH, fp.name))
+                result_entry['log'] = execute_shell_command('{} --wordlist={} {} --format=dynamic_82'.format(JOHN_PATH, self.wordlist_path, fp.name))
                 output = execute_shell_command('{} {} --show --format=dynamic_82'.format(JOHN_PATH, fp.name)).split('\n')
         if len(output) > 1:
             with suppress(KeyError):
