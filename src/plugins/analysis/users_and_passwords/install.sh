@@ -8,18 +8,17 @@ echo "------------------------------------"
 
 sudo -EH pip3 install --upgrade git+https://github.com/fkie-cad/common_helper_passwords.git || exit 1
 
+mkdir -p bin/john/
 if [ "$1" = "fedora" ]
 then
-  mkdir -p bin/john/
   (
     cd bin/john/
     # installing  prerequisite applications
-    sudo dnf update
-    sudo dnf install git make gcc openssl-devel
-    sudo dnf install yasm gmp-devel libpcap-devel bzip2-devel
+    sudo dnf -y update
+    sudo dnf -y install git make gcc openssl-devel
+    sudo dnf -y install yasm gmp-devel libpcap-devel bzip2-devel
   ) || exit 1
 else
-  mkdir -p bin/john/
   (
     cd bin/john/
     # installing  prerequisite applications
