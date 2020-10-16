@@ -37,3 +37,12 @@ class TestAppShowAnalysis(WebInterfaceTest):
     def test_filter_replace_comparison_uid_with_hid(self):
         one_uid = '{}_1234'.format('a' * 64)
         assert 'TEST_FW_HID  ||  TEST_FW_HID' == self.filter._filter_replace_comparison_uid_with_hid('{};{}'.format(one_uid, one_uid))
+
+
+def test_split_user_and_password_type_entry():
+    new_test_entry_form = {'test:mosquitto': {'password': '123456'}}
+    old_test_entry_form = {'test': {'password': '123456'}}
+    expected_new_entry = {'test': {'mosquitto': {'password': '123456'}}}
+    expected_old_entry = {'test': {'unix': {'password': '123456'}}}
+    assert expected_new_entry == FilterClass._split_user_and_password_type_entry(new_test_entry_form)
+    assert expected_old_entry == FilterClass._split_user_and_password_type_entry(old_test_entry_form)

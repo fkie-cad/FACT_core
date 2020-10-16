@@ -8,23 +8,42 @@ echo "------------------------------------"
 
 sudo -EH pip3 install --upgrade git+https://github.com/fkie-cad/common_helper_passwords.git || exit 1
 
+mkdir -p bin/john/
 if [ "$1" = "fedora" ]
-then 
-	# installing JohnTheRipper
-	sudo dnf install -y john || exit 1
-
-	# link to path since fedora does not include /usr/sbin
-	sudo ln -sfn /usr/sbin/john /usr/local/bin || exit 1
+then
+  (
+    # installing  prerequisite applications
+    sudo dnf -y update
+    sudo dnf -y install git make gcc openssl-devel
+    sudo dnf -y install yasm gmp-devel libpcap-devel bzip2-devel
+  ) || exit 1
 else
-	# installing JohnTheRipper
-	sudo apt-get install -y john || exit 1
+  (
+    # installing  prerequisite applications
+    sudo apt-get -y install cmake bison flex libicu-dev
+    sudo apt-get -y install build-essential libssl-dev git zlib1g-dev
+    sudo apt-get -y install yasm libgmp-dev libpcap-dev pkg-config libbz2-dev
 
-	if [[ $(lsb_release -i) == *"Debian" ]]
-	then
-		# link to path since debian does not include /usr/sbin
-		sudo ln -s /usr/sbin/john /usr/local/bin || exit 1
-	fi
+    OPENCL=$(sudo lshw -c display)
+    if [[ ${OPENCL} == *"NVIDIA"* ]]; then
+      sudo apt-get -y install nvidia-opencl-dev
+    elif [[ ${OPENCL} == *"AMD"* ]]; then
+      sudo apt-get -y install ocl-icd-opencl-dev opencl-headers
+    fi
+    ) || exit 1
 fi
+
+(
+  cd bin/john
+    # cloning JohnTheRipper from git repository
+    wget -nc https://github.com/openwall/john/archive/1.9.0-Jumbo-1.tar.gz
+    tar xf 1.9.0-Jumbo-1.tar.gz --strip-components 1
+    rm 1.9.0-Jumbo-1.tar.gz
+
+    # building JohnTheRipper
+    cd src/
+    sudo ./configure -disable-openmp && make -s clean && make -sj4
+) || exit 1
 
 # Add common credentials
 (
