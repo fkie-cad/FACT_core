@@ -62,13 +62,13 @@ class TestAnalysisPluginPasswordFileAnalyzer(AnalysisPluginTest):
 
     def test_crack_hash_failure(self):
         passwd_entry = [b'user', b'$6$Ph+uRn1vmQ+pA7Ka$fcn9/Ln3W6c6oT3o8bWoLPrmTUs+NowcKYa52WFVP5qU5jzadqwSq8F+Q4AAr2qOC+Sk5LlHmisri4Eqx7/uDg==']
-        result_entry = {'type': 'unix'}
-        assert self.analysis_plugin._crack_hash(passwd_entry, result_entry) is False  # pylint: disable=protected-access
+        result_entry = {}
+        assert self.analysis_plugin._crack_hash(b':'.join(passwd_entry[:2]), result_entry) is False  # pylint: disable=protected-access
         assert 'ERROR' in result_entry
 
     def test_crack_hash_success(self):
         passwd_entry = 'test:$dynamic_82$2c93b2efec757302a527be320b005a935567f370f268a13936fa42ef331cc7036ec75a65f8112ce511ff6088c92a6fe1384fbd0f70a9bc7ac41aa6103384aa8c$HEX$010203040506'
-        result_entry = {'type': 'mosquitto'}
-        assert self.analysis_plugin._crack_hash(passwd_entry, result_entry) is True  # pylint: disable=protected-access
+        result_entry = {}
+        assert self.analysis_plugin._crack_hash(passwd_entry.encode(), result_entry, '--format=dynamic_82') is True  # pylint: disable=protected-access
         assert 'password' in result_entry
         assert result_entry['password'] == '123456'
