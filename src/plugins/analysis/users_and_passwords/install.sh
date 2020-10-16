@@ -12,7 +12,6 @@ mkdir -p bin/john/
 if [ "$1" = "fedora" ]
 then
   (
-    cd bin/john/
     # installing  prerequisite applications
     sudo dnf -y update
     sudo dnf -y install git make gcc openssl-devel
@@ -20,7 +19,6 @@ then
   ) || exit 1
 else
   (
-    cd bin/john/
     # installing  prerequisite applications
     sudo apt-get -y install cmake bison flex libicu-dev
     sudo apt-get -y install build-essential libssl-dev git zlib1g-dev
@@ -37,7 +35,6 @@ fi
 
 (
   cd bin/john
-  (
     # cloning JohnTheRipper from git repository
     wget -nc https://github.com/openwall/john/archive/1.9.0-Jumbo-1.tar.gz
     tar xf 1.9.0-Jumbo-1.tar.gz --strip-components 1
@@ -46,7 +43,6 @@ fi
     # building JohnTheRipper
     cd src/
     sudo ./configure -disable-openmp && make -s clean && make -sj4
-  )
 ) || exit 1
 
 # Add common credentials
