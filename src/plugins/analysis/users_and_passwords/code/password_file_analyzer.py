@@ -82,7 +82,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             try:
                 if entry[1][0] == ord('$'):
                     result_entry['password-hash'] = entry[1].decode(encoding='utf_8', errors='replace')
-                    cracked_pw = self._crack_hash(entry, result_entry)
+                    cracked_pw = self._crack_hash(b':'.join(entry[:2]), result_entry)
                     result_entry['cracked'] = bool(cracked_pw)
             except (IndexError, AttributeError, TypeError):
                 logging.warning('Unsupported Format: {}'.format(uid), exc_info=True)
@@ -99,22 +99,16 @@ class AnalysisPlugin(AnalysisBasePlugin):
             result_entry['type'] = 'mosquitto'
             result_entry['entry'] = b'$'.join(entry).decode(encoding='utf_8', errors='replace')
             result_entry['password-hash'] = passwd_hash
-            cracked_pw = self._crack_hash(passwd_entry, result_entry)
+            cracked_pw = self._crack_hash(passwd_entry.encode(), result_entry, '--format=dynamic_82')
             result_entry['cracked'] = bool(cracked_pw)
         return result
 
-    def _crack_hash(self, passwd_entry, result_entry):
+    def _crack_hash(self, passwd_entry, result_entry, format_term=''):
         with NamedTemporaryFile() as fp:
-            if result_entry['type'] == 'unix':
-                fp.write(b':'.join(passwd_entry[:2]))
-                fp.seek(0)
-                result_entry['log'] = execute_shell_command('{} --wordlist={} {}'.format(JOHN_PATH, self.wordlist_path, fp.name))
-                output = execute_shell_command('{} --show {}'.format(JOHN_PATH, fp.name)).split('\n')
-            elif result_entry['type'] == 'mosquitto':
-                fp.write(passwd_entry.encode())
-                fp.seek(0)
-                result_entry['log'] = execute_shell_command('{} --wordlist={} {} --format=dynamic_82'.format(JOHN_PATH, self.wordlist_path, fp.name))
-                output = execute_shell_command('{} {} --show --format=dynamic_82'.format(JOHN_PATH, fp.name)).split('\n')
+            fp.write(passwd_entry)
+            fp.seek(0)
+            result_entry['log'] = execute_shell_command('{} --wordlist={} {} {}'.format(JOHN_PATH, self.wordlist_path, fp.name, format_term))
+            output = execute_shell_command('{} {} --show {}'.format(JOHN_PATH, fp.name, format_term)).split('\n')
         if len(output) > 1:
             with suppress(KeyError):
                 if '0 password hashes cracked' in output[-2]:
