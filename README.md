@@ -23,7 +23,7 @@ Minimal | Recommended | Software
 ------- | ----------- | --------
 4 Cores<br>8GB RAM<br>10 GB disk space | 16 Cores<br>64GB RAM<br>10* GB disk space | git<br>python 3.5 - 3.8<br>OS see below
 
-> ~ 10 GB required to set up FACT code, container and binaries. Additional space is necessary for result storage. That can be on a seperate partition or drive.
+> ~ 10 GB required to set up FACT code, container and binaries. Additional space is necessary for result storage. That can be on a separate partition or drive.
 
 It is possible to install FACT on any Linux distribution but the installer is limited to
 - Ubuntu 16.04, 18.04, 20.04 (stable)
@@ -49,11 +49,11 @@ $ ./start_all_installed_fact_components
 
 Afterwards FACT can be accessed on <http://localhost:5000> and <https://localhost> (nginx), respectively.  
 
-You can shutdown the system by pressing *Ctrl + c* or by sending a SIGTERM to the *start_all_installed_faf_components* script.
+You can shutdown the system by pressing *Ctrl + c* or by sending a SIGTERM to the *start_all_installed_fact_components* script.
 
 ## Advanced Usage
 
-:fire: We're currently working to improving our documentation, including installation, getting started and alike. Follow progess on our [wiki pages](https://github.com/fkie-cad/FACT_core/wiki/). :v:
+:fire: We're currently working to improving our documentation, including installation, getting started and alike. Follow progress on our [wiki pages](https://github.com/fkie-cad/FACT_core/wiki/). :v:
 
 ### REST API
 FACT provides a REST API. More information can be found [here](https://github.com/fkie-cad/FACT_core/wiki/Rest-API).

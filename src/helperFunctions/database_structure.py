@@ -27,7 +27,7 @@ def _create_tree_structure(list_of_dot_separated_strings):
     for line in list_of_dot_separated_strings:
         _attach_field_to_tree(line, structure_tree)
 
-    _remove_obsolete_leafs(dict(structure_tree))
+    _remove_obsolete_leaves(dict(structure_tree))
 
     return structure_tree
 
@@ -60,16 +60,16 @@ def _visualize_tree_structure_as_strings(level_of_tree, number_of_level=0):
     return tree_structure
 
 
-def _remove_obsolete_leafs(input_dict):
+def _remove_obsolete_leaves(input_dict):
     if not isinstance(input_dict, dict):
         return
     if input_dict[LEAF_MARKER]:
-        bottom_leafs = input_dict[LEAF_MARKER]
-        for leaf in bottom_leafs:
+        bottom_leaves = input_dict[LEAF_MARKER]
+        for leaf in bottom_leaves:
             if leaf in input_dict:
                 input_dict[LEAF_MARKER].remove(leaf)
     for subtree in input_dict.keys():
-        _remove_obsolete_leafs(input_dict[subtree])
+        _remove_obsolete_leaves(input_dict[subtree])
 
 
 def _indent_line(line, level):
