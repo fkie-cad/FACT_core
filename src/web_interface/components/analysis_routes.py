@@ -1,5 +1,6 @@
 import json
 import os
+import random
 from typing import Union
 
 from common_helper_files import get_binary_from_file
@@ -172,7 +173,62 @@ class AnalysisRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['view_analysis'])
     def show_elf_dependency_graph(self, uid):
         with ConnectTo(FrontEndDbInterface, self._config) as db:
-            data = db.file_objects.find({'parents': uid}, {'processed_analysis.elf_analysis': 1, 'file_name': 1})
-            print(json.dumps(list(data), indent=2))
-            # ToDo: generate graph
-        return render_template('dependency_graph.html', uid=uid)
+            data = db.file_objects.find({'parents': uid}, {'processed_analysis.elf_analysis': 1,
+                                                           'processed_analysis.file_type': 1, 'file_name': 1})
+
+            # TODO filter differently? Which mime types?
+            whitelist = ['application/x-executable', 'application/x-sharedlib', 'inode/symlink']
+
+            data_graph = {
+                "nodes": [],
+                "edges": [],
+                "groups": []
+            }
+            groups = []
+
+            for file_object in data:
+                if file_object['processed_analysis']['file_type']['mime'] in whitelist:
+                    node = {"label": file_object['file_name'], "id": file_object['_id'], "group": file_object['processed_analysis']['file_type']['mime']}
+
+                    if file_object['processed_analysis']['file_type']['mime'] not in groups:
+                        groups.append(file_object['processed_analysis']['file_type']['mime'])
+
+                    # TODO: group symlinks with the original - but how, visually?
+                    # if file_object['processed_analysis']['file_type']['mime'] == 'inode/symlink':
+                    #     print('+++ SYMLINK +++\n', file_object['processed_analysis']['file_type'])
+                    #     print('+++ NODE +++ \n', node)
+
+                    data_graph["nodes"].append(node)
+
+            data_graph["groups"] = groups
+
+            if not data_graph["nodes"]:
+                flash('Error: Graph could not be rendered. Try to use a different container as root! ', 'danger')
+                return render_template('dependency_graph.html', **data_graph, uid=uid)
+
+            data.rewind()
+
+            for file_object in data:
+                libraries = []
+                try:
+                    libraries = file_object['processed_analysis']['elf_analysis']['Output']['libraries']
+                except:
+                    continue
+
+                for lib in libraries:
+                    target_id = None
+                    for node in data_graph["nodes"]:
+                        if node["label"] == lib:
+                            target_id = node["id"]
+                    if target_id is not None:
+                        # TODO: add error handling in case id exists
+                        edge_id = random.randint(100000, 1000000)
+                        edge = {"source": file_object['_id'], "target": target_id,
+                                "id": edge_id}
+                        data_graph["edges"].append(edge)
+
+            # TODO: Add a loading icon?
+            # TODO: Add vis.js to deps
+            # TODO: Mark nodes according to neighbourhood on click
+            # TODO: Show additional info/ option to jump to linked file on click - Auf Rechtsklick verlinken
+        return render_template('dependency_graph.html', **data_graph, uid=uid)

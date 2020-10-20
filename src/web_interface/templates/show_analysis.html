@@ -57,6 +57,7 @@
                 <button class="btn btn-secondary">Analysis</button>
 
                 {{ button_tooltip('View in radare', 'radare-button', None, 'terminal', onclick='radare_view()') }}
+                {{ button_tooltip('Show dependency graph', 'graph-button', '/dependency-graph/', 'project-diagram') }}
                 {% if firmware.vendor %}
                     {{ button_tooltip('Update analysis', 'update-button', '/update-analysis/', 'redo-alt') }}
                     {{ button_tooltip('YARA search', 'yara-button', '/database/binary_search?firmware_uid=', 'search') }}
@@ -92,6 +93,7 @@
                     {{ button_collapse('new-compare-button', 'list-ul', 'comparison-list', 'Show firmware selected for comparison') }}
                 {% endif %}
             </div>
+
         </div>
 
         {# Header section #}
