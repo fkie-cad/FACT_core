@@ -4,7 +4,7 @@
 cd "$( dirname "${BASH_SOURCE[0]}" )" || exit 1
 
 if [ "$1" = "fedora" ]
-then 
+then
 	echo "Installing shell linter..."
 	sudo dnf install -y ShellCheck || exit 1
 
@@ -22,6 +22,9 @@ then
 	sudo npm install -g jshint || exit 1
 
 else
+  echo "Installing linguist..."
+  sudo apt-get install -y ruby-github-linguist || exit 1
+
 	echo "Installing shell linter..."
 	sudo apt-get install -y shellcheck || exit 1
 
