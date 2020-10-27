@@ -6,18 +6,19 @@ INDENT = '  '
 
 
 def visualize_complete_tree(list_of_dot_separated_strings):
+    ''' Visualize the structure of the database entries for the advanced search '''
     new_structure = dict()
     structure = _create_tree_structure(list_of_dot_separated_strings)
     for key in structure:
         if key != LEAF_MARKER:
-            new_structure[key] = visualize_sub_tree(list_of_dot_separated_strings, key)
+            new_structure[key] = _visualize_sub_tree(list_of_dot_separated_strings, key)
         else:
             new_structure[key] = structure[key]
 
     return _convert_multilines_to_single_string(new_structure)
 
 
-def visualize_sub_tree(list_of_dot_separated_strings, analysis_plugin):
+def _visualize_sub_tree(list_of_dot_separated_strings, analysis_plugin):
     subset = list(string for string in list_of_dot_separated_strings if string.startswith("{}.".format(analysis_plugin)))
     return _visualize_tree_structure_as_strings(_create_tree_structure(subset))
 
@@ -32,14 +33,14 @@ def _create_tree_structure(list_of_dot_separated_strings):
     return structure_tree
 
 
-def _attach_field_to_tree(field, subtree):
-    splitted_field = field.split('.', 1)
-    if len(splitted_field) == 1:
+def _attach_field_to_tree(field: str, subtree):
+    split_field = field.split('.', 1)
+    if len(split_field) == 1:
         new_parts = list(subtree[LEAF_MARKER])
-        new_parts.extend(splitted_field)
+        new_parts.extend(split_field)
         subtree[LEAF_MARKER] = list(set(new_parts))
     else:
-        node, remainder = splitted_field
+        node, remainder = split_field
         if node not in subtree:
             subtree[node] = defaultdict(dict, LEAF_CONSTRAINT)
         _attach_field_to_tree(remainder, subtree[node])
