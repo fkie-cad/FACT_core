@@ -1,6 +1,10 @@
 import logging
+import string
 import sys
 from pathlib import Path
+from tempfile import NamedTemporaryFile
+
+from common_helper_process import execute_shell_command
 
 from analysis.PluginBase import AnalysisBasePlugin
 from objects.file import FileObject
@@ -20,13 +24,12 @@ class AnalysisPlugin(AnalysisBasePlugin):
     - jshint (javascript)
     - lua (luacheck)
     TODO Implement proper view
-    TODO implement proper language detection
     TODO implement additional linters (ruby, perl, php)
     '''
     NAME = 'source_code_analysis'
     DESCRIPTION = 'This plugin implements static code analysis for multiple scripting languages'
     DEPENDENCIES = ['file_type']
-    VERSION = '0.4'
+    VERSION = '0.5'
     MIME_WHITELIST = ['text/']
     SCRIPT_TYPES = {
         'shell': {'mime': 'shell', 'shebang': 'sh', 'ending': '.sh', 'linter': shell_linter.ShellLinter},
@@ -40,26 +43,19 @@ class AnalysisPlugin(AnalysisBasePlugin):
         super().__init__(plugin_adminstrator, config=config, plugin_path=__file__, recursive=recursive, offline_testing=offline_testing)
 
     def _determine_script_type(self, file_object: FileObject):
-        '''
-        Indicators:
-        1. file_type full includes shell, python etc.
-        2. shebang #!/bin/sh, #!/usr/bin/env python etc.
-        3. file ending *.sh, *.py etc.
-        '''
-        full_file_type = file_object.processed_analysis['file_type']['full'].lower()
-        for script_type in self.SCRIPT_TYPES:
 
-            if self.SCRIPT_TYPES[script_type]['mime'] in full_file_type.lower():
-                return script_type
-
-            first_line = file_object.binary.decode().splitlines(keepends=False)[0]
-            if first_line.find(self.SCRIPT_TYPES[script_type]['shebang']) >= 0:
-                return script_type
-
-            if file_object.file_name.endswith(self.SCRIPT_TYPES[script_type]['ending']):
-                return script_type
-
-        raise NotImplementedError('Unsupported script type, not correctly detected or not a script at all')
+        with NamedTemporaryFile() as fp:
+            fp.write(file_object.binary)
+            fp.seek(0)
+            linguist_output = execute_shell_command('github-linguist {}'.format(fp.name))
+            if 'language' in linguist_output:
+                script_language = linguist_output.split('language:', 1)[1]
+                script_type = script_language.translate({ord(c): None for c in string.whitespace}).lower()
+                if script_type:
+                    file_object.processed_analysis['file_type']['linguist'] = script_type
+                    return script_type
+                else:
+                    raise NotImplementedError('Unsupported script type, not correctly detected or not a script at all')
 
     def process_object(self, file_object):
         '''
@@ -73,6 +69,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             file_object.processed_analysis[self.NAME] = {'summary': []}
         else:
             issues = self.SCRIPT_TYPES[script_type]['linter']().do_analysis(file_object.file_path)
+            print(issues)
             if not issues:
                 file_object.processed_analysis[self.NAME] = {'summary': []}
             else:
