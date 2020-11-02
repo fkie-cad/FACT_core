@@ -22,9 +22,6 @@ then
 	sudo npm install -g jshint || exit 1
 
 else
-  echo "Installing linguist..."
-  sudo apt-get install -y ruby-github-linguist || exit 1
-
 	echo "Installing shell linter..."
 	sudo apt-get install -y shellcheck || exit 1
 
