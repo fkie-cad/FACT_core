@@ -219,15 +219,11 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
         :param root_uid: (Optional) root uid to get vfps for.
         :return: List of virtual paths.
         '''
-        try:
-            file_paths = self.get_virtual_file_paths()
-            req_root_uid = root_uid or self.root_uid
-            if req_root_uid is None:
-                return get_value_of_first_key(file_paths)
+        file_paths = self.get_virtual_file_paths()
+        req_root_uid = root_uid or self.root_uid
+        if req_root_uid in file_paths:
             return file_paths[req_root_uid]
-        except (AttributeError, IndexError, KeyError, TypeError):
-            logging.error('Error on virtual file path retrieval. This should be fixed')
-            return ["insufficient information: firmware analysis not complete"]
+        return get_value_of_first_key(file_paths)  # fallback
 
     def get_virtual_file_paths(self) -> Dict[str, list]:
         '''
