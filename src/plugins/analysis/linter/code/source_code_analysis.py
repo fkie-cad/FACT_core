@@ -62,7 +62,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     def process_object(self, file_object):
         '''
         After only receiving text files thanks to the whitelist, we try to detect the correct scripting language
-        and then call a linter if a supported language is detected
+        and then call a linter if a supported language is detected 
         '''
         try:
             with NamedTemporaryFile() as fp:
