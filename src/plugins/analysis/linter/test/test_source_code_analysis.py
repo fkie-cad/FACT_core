@@ -33,21 +33,21 @@ def stub_plugin(test_config, monkeypatch):
 
 
 @pytest.mark.parametrize('shebang_and_type', [
-    (b'#!/usr/bin/env python3', 'python'),
-    (b'#!/usr/bin/python', 'python'),
-    (b'#!/bin/bash', 'shell'),
-    (b'#!/bin/sh', 'shell')
+    (b'#!/usr/bin/env python3', b'testfile1:4 lines(4 sloc)\r\n  type:Text\r\n  mime type:text/plain\r\n  language:Python\r\n', 'python'),
+    (b'#!/usr/bin/python', b'testfile1:4 lines(4 sloc)\r\n  type:Text\r\n  mime type:text/plain\r\n  language:Python\r\n', 'python'),
+    (b'#!/bin/bash', b'testfile1:4 lines(4 sloc)\r\n  type:Text\r\n  mime type:text/plain\r\n  language:Shell\r\n', 'shell'),
+    (b'#!/bin/sh', b'testfile1:4 lines(4 sloc)\r\n  type:Text\r\n  mime type:text/plain\r\n  language:Shell\r\n', 'shell')
 ])
-def test_determine_script_type_shebang(shebang_and_type, stub_plugin, test_object):
-    shebang, script_type = shebang_and_type
+def test_get_script_type_shebang(shebang_and_type, stub_plugin, test_object):
+    shebang, output, script_type = shebang_and_type
     test_object.binary = shebang + b'\n' + test_object.binary
+    assert stub_plugin._get_script_type(test_object, output.decode()) == script_type
 
-    assert stub_plugin._determine_script_type(test_object) == script_type
 
-
-def test_determine_script_type_raises(stub_plugin, test_object):
+def test_get_script_type_raises(stub_plugin, test_object):
     with pytest.raises(NotImplementedError):
-        stub_plugin._determine_script_type(test_object)
+        output = b'testfile1:3 lines(3 sloc)\r\n  type:Text\r\n  mime type:text/plain\r\n  language:\r\n'
+        stub_plugin._get_script_type(test_object, output.decode())
 
 
 def test_process_object_not_supported(stub_plugin, test_object):
@@ -70,5 +70,4 @@ def test_process_object_no_issues(stub_plugin, test_object, monkeypatch):
                         lambda self, file_path: list())
     stub_plugin.process_object(test_object)
     result = test_object.processed_analysis[stub_plugin.NAME]
-    print(result)
     assert 'full' not in result
