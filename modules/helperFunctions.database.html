@@ -103,6 +103,7 @@
 <li class="toctree-l2 current"><a class="current reference internal" href="#">helperFunctions.database module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.docker.html">helperFunctions.docker module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.logging.html">helperFunctions.logging module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.mongo_config_parser.html">helperFunctions.mongo_config_parser module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.mongo_task_conversion.html">helperFunctions.mongo_task_conversion module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.object_storage.html">helperFunctions.object_storage module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.pdf.html">helperFunctions.pdf module</a></li>
@@ -183,7 +184,7 @@
 <span id="helperfunctions-database-module"></span><h1>helperFunctions.database module<a class="headerlink" href="#module-helperFunctions.database" title="Permalink to this headline">¶</a></h1>
 <dl class="py class">
 <dt id="helperFunctions.database.ConnectTo">
-<em class="property">class </em><code class="sig-prename descclassname">helperFunctions.database.</code><code class="sig-name descname">ConnectTo</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwds</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.database.ConnectTo" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">helperFunctions.database.</code><code class="sig-name descname">ConnectTo</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">connected_interface</span></em>, <em class="sig-param"><span class="n">config</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.database.ConnectTo" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">typing.Generic</span></code></p>
 <p>Open a database connection using the interface passed to the constructor. Intended to be used as a context manager.</p>
 <dl class="field-list">

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>helperFunctions.uid module &mdash; FACT  documentation</title>
+  <title>helperFunctions.mongo_config_parser module &mdash; FACT  documentation</title>
   
 
   
@@ -37,8 +37,8 @@
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="objects" href="objects.html" />
-    <link rel="prev" title="helperFunctions.process module" href="helperFunctions.process.html" /> 
+    <link rel="next" title="helperFunctions.mongo_task_conversion module" href="helperFunctions.mongo_task_conversion.html" />
+    <link rel="prev" title="helperFunctions.logging module" href="helperFunctions.logging.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -103,12 +103,12 @@
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.database.html">helperFunctions.database module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.docker.html">helperFunctions.docker module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.logging.html">helperFunctions.logging module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="helperFunctions.mongo_config_parser.html">helperFunctions.mongo_config_parser module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">helperFunctions.mongo_config_parser module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.mongo_task_conversion.html">helperFunctions.mongo_task_conversion module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.object_storage.html">helperFunctions.object_storage module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.pdf.html">helperFunctions.pdf module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.process.html">helperFunctions.process module</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">helperFunctions.uid module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.uid.html">helperFunctions.uid module</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="objects.html">objects</a></li>
@@ -161,13 +161,13 @@
         
           <li><a href="helperFunctions.html">helperFunctions</a> &raquo;</li>
         
-      <li>helperFunctions.uid module</li>
+      <li>helperFunctions.mongo_config_parser module</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/modules/helperFunctions.uid.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/modules/helperFunctions.mongo_config_parser.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -180,55 +180,21 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="module-helperFunctions.uid">
-<span id="helperfunctions-uid-module"></span><h1>helperFunctions.uid module<a class="headerlink" href="#module-helperFunctions.uid" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-helperFunctions.mongo_config_parser">
+<span id="helperfunctions-mongo-config-parser-module"></span><h1>helperFunctions.mongo_config_parser module<a class="headerlink" href="#module-helperFunctions.mongo_config_parser" title="Permalink to this headline">¶</a></h1>
 <dl class="py function">
-<dt id="helperFunctions.uid.create_uid">
-<code class="sig-prename descclassname">helperFunctions.uid.</code><code class="sig-name descname">create_uid</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_data</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.uid.create_uid" title="Permalink to this definition">¶</a></dt>
-<dd><p>generate a UID (unique identifier) SHA256_SIZE for a byte string containing data (e.g. a binary)</p>
+<dt id="helperFunctions.mongo_config_parser.get_mongo_path">
+<code class="sig-prename descclassname">helperFunctions.mongo_config_parser.</code><code class="sig-name descname">get_mongo_path</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_path</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.mongo_config_parser.get_mongo_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve the MongoDB database path from the (yaml) config file.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>input_data</strong> (<em>bytes</em>) – the data to generate the UID for</p>
+<dd class="field-odd"><p><strong>file_path</strong> (<em>str</em>) – The path to the MongoDB config file.</p>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>a string containing the UID</p>
+<dd class="field-even"><p>The MongoDB database path.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>str</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt id="helperFunctions.uid.is_list_of_uids">
-<code class="sig-prename descclassname">helperFunctions.uid.</code><code class="sig-name descname">is_list_of_uids</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_list</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.uid.is_list_of_uids" title="Permalink to this definition">¶</a></dt>
-<dd><p>Checks if all elements of a list are valid UIDs</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>input_list</strong> (<em>Union</em><em>[</em><em>List</em><em>, </em><em>Set</em><em>]</em>) – the list to check</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>true if input list contains only valid UIDs and false otherwise</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>bool</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt id="helperFunctions.uid.is_uid">
-<code class="sig-prename descclassname">helperFunctions.uid.</code><code class="sig-name descname">is_uid</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_string</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.uid.is_uid" title="Permalink to this definition">¶</a></dt>
-<dd><p>Check if a string is a valid UID</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>input_string</strong> (<em>AnyStr</em>) – the string to check</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>true if input string is a valid uid and false otherwise</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>bool</p>
 </dd>
 </dl>
 </dd></dl>
@@ -243,10 +209,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="objects.html" class="btn btn-neutral float-right" title="objects" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="helperFunctions.mongo_task_conversion.html" class="btn btn-neutral float-right" title="helperFunctions.mongo_task_conversion module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="helperFunctions.process.html" class="btn btn-neutral float-left" title="helperFunctions.process module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="helperFunctions.logging.html" class="btn btn-neutral float-left" title="helperFunctions.logging module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
