@@ -6,7 +6,6 @@ helperFunctions
 
    helperFunctions.compare_sets
    helperFunctions.database
-   helperFunctions.debug
    helperFunctions.docker
    helperFunctions.logging
    helperFunctions.mongo_config_parser
