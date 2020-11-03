@@ -3,7 +3,7 @@ from typing import Union
 import yaml
 
 
-def parse_yaml(file_path: str) -> Union[dict, list, None]:
+def _parse_yaml(file_path: str) -> Union[dict, list, None]:
     '''
     Opens a yaml file, parses its contents and returns a python object or ``None`` if not successful.
 
@@ -22,5 +22,5 @@ def get_mongo_path(file_path: str) -> str:
     :param file_path: The path to the MongoDB config file.
     :return: The MongoDB database path.
     '''
-    data = parse_yaml(file_path)
+    data = _parse_yaml(file_path)
     return data['storage']['dbPath']
