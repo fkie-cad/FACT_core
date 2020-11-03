@@ -1,28 +1,30 @@
 from collections import defaultdict
+from typing import Dict, List
 
 LEAF_MARKER = '<leaf>'
 LEAF_CONSTRAINT = ((LEAF_MARKER, []),)
 INDENT = '  '
 
 
-def visualize_complete_tree(list_of_dot_separated_strings):
+def visualize_complete_tree(list_of_dot_separated_strings: List[str]) -> Dict[str, str]:
+    ''' Visualize the structure of the database entries for the advanced search '''
     new_structure = dict()
     structure = _create_tree_structure(list_of_dot_separated_strings)
     for key in structure:
         if key != LEAF_MARKER:
-            new_structure[key] = visualize_sub_tree(list_of_dot_separated_strings, key)
+            new_structure[key] = _visualize_sub_tree(list_of_dot_separated_strings, key)
         else:
             new_structure[key] = structure[key]
 
     return _convert_multilines_to_single_string(new_structure)
 
 
-def visualize_sub_tree(list_of_dot_separated_strings, analysis_plugin):
-    subset = list(string for string in list_of_dot_separated_strings if string.startswith("{}.".format(analysis_plugin)))
+def _visualize_sub_tree(list_of_dot_separated_strings: List[str], analysis_plugin: str) -> List[str]:
+    subset = list(string for string in list_of_dot_separated_strings if string.startswith('{}.'.format(analysis_plugin)))
     return _visualize_tree_structure_as_strings(_create_tree_structure(subset))
 
 
-def _create_tree_structure(list_of_dot_separated_strings):
+def _create_tree_structure(list_of_dot_separated_strings: List[str]) -> defaultdict:
     structure_tree = defaultdict(dict, LEAF_CONSTRAINT)
     for line in list_of_dot_separated_strings:
         _attach_field_to_tree(line, structure_tree)
@@ -32,20 +34,20 @@ def _create_tree_structure(list_of_dot_separated_strings):
     return structure_tree
 
 
-def _attach_field_to_tree(field, subtree):
-    splitted_field = field.split('.', 1)
-    if len(splitted_field) == 1:
+def _attach_field_to_tree(field: str, subtree: defaultdict):
+    split_field = field.split('.', 1)
+    if len(split_field) == 1:
         new_parts = list(subtree[LEAF_MARKER])
-        new_parts.extend(splitted_field)
+        new_parts.extend(split_field)
         subtree[LEAF_MARKER] = list(set(new_parts))
     else:
-        node, remainder = splitted_field
+        node, remainder = split_field
         if node not in subtree:
             subtree[node] = defaultdict(dict, LEAF_CONSTRAINT)
         _attach_field_to_tree(remainder, subtree[node])
 
 
-def _visualize_tree_structure_as_strings(level_of_tree, number_of_level=0):
+def _visualize_tree_structure_as_strings(level_of_tree: defaultdict, number_of_level: int = 0) -> List[str]:  # pylint: disable=invalid-name
     tree_structure = list()
 
     for treenode, forks in level_of_tree.items():
@@ -72,23 +74,19 @@ def _remove_obsolete_leaves(input_dict):
         _remove_obsolete_leaves(input_dict[subtree])
 
 
-def _indent_line(line, level):
-    return "{}{}".format(INDENT * level, line)
+def _indent_line(line: str, level: int) -> str:
+    return '{}{}'.format(INDENT * level, line)
 
 
-def _convert_multilines_to_single_string(dictionary_of_lists):
-    for key, items in list(dictionary_of_lists.items()):
+def _convert_multilines_to_single_string(dictionary_of_lists: Dict[str, List[str]]) -> Dict[str, str]:  # pylint: disable=invalid-name
+    str_dict = {}
+    for key, items in dictionary_of_lists.items():
         if not key == LEAF_MARKER:
-            dictionary_of_lists[key] = '\n'.join(items)
+            str_dict[key] = '\n'.join(items)
         else:
-            root_nodes = dictionary_of_lists.pop(LEAF_MARKER)
-            for root_node in root_nodes:
-                dictionary_of_lists[root_node] = root_node
+            for root_node in dictionary_of_lists[key]:
+                str_dict[root_node] = root_node
 
-    for key in sorted(dictionary_of_lists.keys()):
-        if 'complete' not in dictionary_of_lists:
-            dictionary_of_lists['complete'] = ""
-        dictionary_of_lists['complete'] += "\n{}".format(dictionary_of_lists[key])
-    dictionary_of_lists['complete'] = dictionary_of_lists['complete'].lstrip('\n')
+    str_dict['complete'] = '\n'.join([str_dict[key] for key in sorted(str_dict)])
 
-    return dictionary_of_lists
+    return str_dict

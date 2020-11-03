@@ -68,6 +68,7 @@ autodoc_mock_imports = [
     'ssdeep',
     'tlsh',
     'werkzeug',
+    'yaml',
 ]
 
 # This value controls how to represents typehints. The setting takes the following values:
