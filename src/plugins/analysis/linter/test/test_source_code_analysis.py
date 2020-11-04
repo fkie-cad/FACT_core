@@ -33,10 +33,10 @@ def stub_plugin(test_config, monkeypatch):
 
 
 @pytest.mark.parametrize('shebang_and_type', [
-    (b'#!/usr/bin/env python3', b'testfile1:4 lines(4 sloc)\r\n  type:Text\r\n  mime type:text/plain\r\n  language:Python\r\n', 'python'),
-    (b'#!/usr/bin/python', b'testfile1:4 lines(4 sloc)\r\n  type:Text\r\n  mime type:text/plain\r\n  language:Python\r\n', 'python'),
-    (b'#!/bin/bash', b'testfile1:4 lines(4 sloc)\r\n  type:Text\r\n  mime type:text/plain\r\n  language:Shell\r\n', 'shell'),
-    (b'#!/bin/sh', b'testfile1:4 lines(4 sloc)\r\n  type:Text\r\n  mime type:text/plain\r\n  language:Shell\r\n', 'shell')
+    (b'#!/usr/bin/env python3', b'testfile1:4 lines(4 sloc)\n  type:Text\n  mime type:text/plain\n  language:Python\n', 'python'),
+    (b'#!/usr/bin/python', b'testfile1:4 lines(4 sloc)\n  type:Text\n  mime type:text/plain\n  language:Python\n', 'python'),
+    (b'#!/bin/bash', b'testfile1:4 lines(4 sloc)\n  type:Text\n  mime type:text/plain\n  language:Shell\n', 'shell'),
+    (b'#!/bin/sh', b'testfile1:4 lines(4 sloc)\n  type:Text\n  mime type:text/plain\n  language:Shell\n', 'shell')
 ])
 def test_get_script_type_shebang(shebang_and_type, stub_plugin, test_object):
     shebang, output, script_type = shebang_and_type
@@ -46,7 +46,7 @@ def test_get_script_type_shebang(shebang_and_type, stub_plugin, test_object):
 
 def test_get_script_type_raises(stub_plugin, test_object):
     with pytest.raises(NotImplementedError):
-        output = b'testfile1:3 lines(3 sloc)\r\n  type:Text\r\n  mime type:text/plain\r\n  language:\r\n'
+        output = b'testfile1:3 lines(3 sloc)\n  type:Text\n  mime type:text/plain\n  language:\n'
         stub_plugin._get_script_type(test_object, output.decode())
 
 
