@@ -1,13 +1,13 @@
 import logging
-import string
+import re
 import sys
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-from subprocess import check_output
 
 from common_helper_process import execute_shell_command_get_return_code
 
 from analysis.PluginBase import AnalysisBasePlugin
+from helperFunctions.docker import run_docker_container
 
 try:
     from ..internal import js_linter, lua_linter, python_linter, shell_linter
@@ -51,26 +51,26 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def _get_script_type(self, file_object, linguist_output):
         if 'language' in linguist_output:
-            script_language = linguist_output.split('language:', 1)[1]
-            script_type = script_language.translate({ord(c): None for c in string.whitespace}).lower()
-            if script_type:
-                file_object.processed_analysis['file_type']['linguist'] = script_type
-                return script_type
+            file_object.processed_analysis['file_type']['linguist'] = linguist_output
+            match = re.search(r'language:\s*(\w+)', linguist_output)
+            if match:
+                return match.groups()[0].lower()
             else:
                 raise NotImplementedError('Unsupported script type, not correctly detected or not a script at all')
 
     def process_object(self, file_object):
         '''
         After only receiving text files thanks to the whitelist, we try to detect the correct scripting language
-        and then call a linter if a supported language is detected 
+        and then call a linter if a supported language is detected
         '''
         try:
             with NamedTemporaryFile() as fp:
                 fp.write(file_object.binary)
                 fp.seek(0)
-                linguist_command = 'docker run -t --rm -v {0}:/repo/{1} crazymax/linguist /repo/{1}'.format(fp.name, file_object.file_name)
-                output = check_output(linguist_command, shell=True)
-            script_type = self._get_script_type(file_object, output.decode())
+                container_path = '/repo/{}'.format(file_object.file_name)
+                output = run_docker_container('crazymax/linguist', 60, container_path, reraise=True,
+                                              mount=(container_path, fp.name), label=self.NAME)
+            script_type = self._get_script_type(file_object, output)
         except (NotImplementedError, UnicodeDecodeError):
             logging.debug('[{}] {} is not a supported script.'.format(self.NAME, file_object.file_name))
             file_object.processed_analysis[self.NAME] = {'summary': []}
