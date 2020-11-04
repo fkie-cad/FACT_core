@@ -5,6 +5,8 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile
 
 from common_helper_process import execute_shell_command_get_return_code
+from docker.errors import DockerException
+from requests.exceptions import ReadTimeout
 
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.docker import run_docker_container
@@ -74,6 +76,10 @@ class AnalysisPlugin(AnalysisBasePlugin):
         except (NotImplementedError, UnicodeDecodeError):
             logging.debug('[{}] {} is not a supported script.'.format(self.NAME, file_object.file_name))
             file_object.processed_analysis[self.NAME] = {'summary': []}
+        except (DockerException, IOError):
+            file_object.processed_analysis[self.NAME]['warning'] = 'Analysis issues. It might not be complete.'
+        except ReadTimeout:
+            file_object.processed_analysis[self.NAME]['warning'] = 'Analysis timed out. It might not be complete.'
         else:
             issues = self.SCRIPT_TYPES[script_type]['linter']().do_analysis(file_object.file_path)
             if not issues:
