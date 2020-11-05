@@ -13,7 +13,7 @@
     {% if 'linguist' in firmware.processed_analysis[selected_analysis] %}
         <tr>
             <td>Linguist script detection</td>
-            <td>{{ firmware.processed_analysis[selected_analysis]['linguist'] }}</td>
+            <td><pre>{{ firmware.processed_analysis[selected_analysis]['linguist'] }}</pre></td>
         </tr>
     {% endif %}
 
