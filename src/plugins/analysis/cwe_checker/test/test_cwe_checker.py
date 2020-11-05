@@ -1,6 +1,6 @@
-from objects.file import FileObject
 from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
-from ..code.cwe_checker import AnalysisPlugin, BAP_TIMEOUT, DOCKER_IMAGE
+from objects.file import FileObject
+from ..code.cwe_checker import AnalysisPlugin
 
 
 class TestCweCheckerFunctions(AnalysisPluginTest):
@@ -31,13 +31,6 @@ class TestCweCheckerFunctions(AnalysisPluginTest):
                            'CWE782': '0.1'}
         res = self.analysis_plugin._parse_module_versions(data)
         self.assertEqual(res, expected_result)
-
-    def test_build_bap_command(self):
-        fo = FileObject(file_path='/foo')
-        expected_result = 'timeout --signal=SIGKILL {}m docker run --rm -v {}:/tmp/input {} bap /tmp/input '\
-                          '--pass=cwe-checker --cwe-checker-json --cwe-checker-no-logging'.format(
-                              BAP_TIMEOUT, fo.file_path, DOCKER_IMAGE)
-        assert self.analysis_plugin._build_bap_command(fo) == expected_result
 
     def test_parse_bap_output(self):
         test_data = """{
