@@ -1,12 +1,14 @@
 from pathlib import Path
 
 import pytest
+from docker.errors import DockerException
+from requests import ReadTimeout
 
 from test.common_helper import create_test_file_object, get_config_for_testing
 
 from ..code.source_code_analysis import AnalysisPlugin
 
-# pylint: disable=redefined-outer-name
+# pylint: disable=redefined-outer-name,unused-argument,protected-access
 
 PYLINT_TEST_FILE = Path(__file__).parent / 'data' / 'linter_test_file'
 
@@ -52,7 +54,7 @@ def test_get_script_type_raises(stub_plugin, test_object):
 
 def test_process_object_not_supported(stub_plugin, test_object):
     result = stub_plugin.process_object(test_object)
-    assert result.processed_analysis[stub_plugin.NAME] == {'summary': []}
+    assert result.processed_analysis[stub_plugin.NAME] == {'summary': [], 'warning': 'Unsupported script type'}
 
 
 def test_process_object_this_file(stub_plugin):
@@ -71,3 +73,29 @@ def test_process_object_no_issues(stub_plugin, test_object, monkeypatch):
     stub_plugin.process_object(test_object)
     result = test_object.processed_analysis[stub_plugin.NAME]
     assert 'full' not in result
+
+
+@pytest.fixture(scope='function')
+def docker_timeout(monkeypatch):
+    def run_timeout(*_, **__):
+        raise ReadTimeout()
+    monkeypatch.setattr('plugins.analysis.linter.code.source_code_analysis.run_docker_container', run_timeout)
+
+
+def test_process_object_timeout(stub_plugin, test_object, docker_timeout):
+    fo = stub_plugin.process_object(test_object)
+    assert 'warning' in fo.processed_analysis[stub_plugin.NAME]
+    assert fo.processed_analysis[stub_plugin.NAME]['warning'] == 'Analysis timed out'
+
+
+@pytest.fixture(scope='function')
+def docker_exception(monkeypatch):
+    def run_exception(*_, **__):
+        raise DockerException
+    monkeypatch.setattr('plugins.analysis.linter.code.source_code_analysis.run_docker_container', run_exception)
+
+
+def test_process_object_exception(stub_plugin, test_object, docker_exception):
+    fo = stub_plugin.process_object(test_object)
+    assert 'warning' in fo.processed_analysis[stub_plugin.NAME]
+    assert fo.processed_analysis[stub_plugin.NAME]['warning'] == 'Error during analysis'

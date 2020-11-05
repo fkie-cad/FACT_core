@@ -51,14 +51,15 @@ class AnalysisPlugin(AnalysisBasePlugin):
         _, return_code = execute_shell_command_get_return_code('docker -v')
         return return_code == 0
 
-    def _get_script_type(self, file_object, linguist_output):
+    @staticmethod
+    def _get_script_type(file_object, linguist_output):
         if 'language' in linguist_output:
             file_object.processed_analysis['file_type']['linguist'] = linguist_output
             match = re.search(r'language:\s*(\w+)', linguist_output)
             if match:
                 return match.groups()[0].lower()
-            else:
-                raise NotImplementedError('Unsupported script type, not correctly detected or not a script at all')
+            raise NotImplementedError('Unsupported script type, not correctly detected or not a script at all')
+        return None
 
     def process_object(self, file_object):
         '''
@@ -73,18 +74,17 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 output = run_docker_container('crazymax/linguist', 60, container_path, reraise=True,
                                               mount=(container_path, fp.name), label=self.NAME)
             script_type = self._get_script_type(file_object, output)
-        except (NotImplementedError, UnicodeDecodeError):
-            logging.debug('[{}] {} is not a supported script.'.format(self.NAME, file_object.file_name))
-            file_object.processed_analysis[self.NAME] = {'summary': []}
-        except (DockerException, IOError):
-            file_object.processed_analysis[self.NAME]['warning'] = 'Analysis issues. It might not be complete.'
-        except ReadTimeout:
-            file_object.processed_analysis[self.NAME]['warning'] = 'Analysis timed out. It might not be complete.'
-        else:
             issues = self.SCRIPT_TYPES[script_type]['linter']().do_analysis(file_object.file_path)
             if not issues:
                 file_object.processed_analysis[self.NAME] = {'summary': []}
             else:
                 file_object.processed_analysis[self.NAME] = {'full': sorted(issues, key=lambda k: k['symbol']),
                                                              'summary': ['Warnings in {} script'.format(script_type)]}
+        except (NotImplementedError, UnicodeDecodeError, KeyError):
+            logging.debug('[{}] {} is not a supported script.'.format(self.NAME, file_object.file_name))
+            file_object.processed_analysis[self.NAME] = {'summary': [], 'warning': 'Unsupported script type'}
+        except ReadTimeout:
+            file_object.processed_analysis[self.NAME] = {'summary': [], 'warning': 'Analysis timed out'}
+        except (DockerException, IOError):
+            file_object.processed_analysis[self.NAME] = {'summary': [], 'warning': 'Error during analysis'}
         return file_object
