@@ -30,7 +30,7 @@ class ComparePlugin(CompareBasePlugin):
         lower_bound = min(min(len(binary) for binary in binaries), BYTES_TO_SHOW)
 
         offsets = self._get_offsets(lower_bound)
-        hexdiff = self._get_hightlighted_hex_string(binaries, lower_bound)
+        hexdiff = self._get_highlighted_hex_string(binaries, lower_bound)
         ascii_representation = self._get_ascii_representation(binaries, lower_bound)
 
         return dict(hexdiff=hexdiff, offsets=offsets, ascii=ascii_representation)
@@ -49,7 +49,7 @@ class ComparePlugin(CompareBasePlugin):
 
         return Markup(ascii_string + '</p>')
 
-    def _get_hightlighted_hex_string(self, binaries, lower_bound):
+    def _get_highlighted_hex_string(self, binaries, lower_bound):
         mask = self._get_byte_mask(binaries, lower_bound)
         if not len(mask) == lower_bound:
             raise RuntimeError('Failure in processing bytes for hex mask')

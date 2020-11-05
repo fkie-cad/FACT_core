@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
-
 import unittest
 
-from helperFunctions.database_structure import visualize_complete_tree, visualize_sub_tree
+from web_interface.database_structure import _visualize_sub_tree, visualize_complete_tree
 
 
 class TestDatabaseStructure(unittest.TestCase):
@@ -14,5 +12,5 @@ class TestDatabaseStructure(unittest.TestCase):
         self.assertCountEqual(full_result["complete"].splitlines(), self._expected_result_lines, "Some nodes are not represented correctly")
 
     def test_partial_tree(self):
-        self.assertCountEqual(visualize_sub_tree(self._test_strings, "node1"), self._expected_result_lines[:7], "Some node1 items are missing")
-        self.assertCountEqual(visualize_sub_tree(self._test_strings, "node3"), self._expected_result_lines[8:], "Some node3 items are missing")
+        self.assertCountEqual(_visualize_sub_tree(self._test_strings, "node1"), self._expected_result_lines[:7], "Some node1 items are missing")
+        self.assertCountEqual(_visualize_sub_tree(self._test_strings, "node3"), self._expected_result_lines[8:], "Some node3 items are missing")
