@@ -4,7 +4,7 @@
 cd "$( dirname "${BASH_SOURCE[0]}" )" || exit 1
 
 if [ "$1" = "fedora" ]
-then 
+then
 	echo "Installing shell linter..."
 	sudo dnf install -y ShellCheck || exit 1
 
@@ -51,5 +51,8 @@ else
 	fi
 	sudo npm install -g jshint || exit 1
 fi
+
+# pull linguist docker image
+docker pull crazymax/linguist
 
 exit 0
