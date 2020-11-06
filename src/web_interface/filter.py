@@ -1,3 +1,4 @@
+import json
 import logging
 import random
 import re
@@ -400,3 +401,11 @@ def elapsed_time(start_time: float) -> int:
 
 def format_duration(duration: float) -> str:
     return str(timedelta(seconds=duration))
+
+
+def render_query_title(query_title: str):
+    if query_title is None:
+        return None
+    if isinstance(query_title, dict):
+        return json.dumps(query_title, indent=2)
+    return query_title

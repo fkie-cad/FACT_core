@@ -68,7 +68,6 @@ class DatabaseRoutes(ComponentBase):
             vendors = connection.get_vendor_list()
 
         pagination = get_pagination(page=page, per_page=per_page, total=total, record_name='firmwares')
-        search_parameters['query_title'] = json.dumps(search_parameters['query_title'], indent=2) if search_parameters['query_title'] else None
         return render_template(
             'database/database_browse.html',
             firmware_list=firmware_list,
@@ -82,6 +81,11 @@ class DatabaseRoutes(ComponentBase):
         )
 
     def _get_search_parameters(self, query, only_firmware, inverted):
+        '''
+        This function prepares the requested search by parsing all necessary parameters.
+        In case of a binary search, indicated by the query being an uid instead of a dict, the cached search result is
+        retrieved.
+        '''
         search_parameters = dict()
         if request.args.get('query'):
             query = request.args.get('query')
