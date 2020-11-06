@@ -5,7 +5,7 @@ from tempfile import TemporaryDirectory
 import pytest
 
 from helperFunctions.install import (
-    InstallationError, OperateInDirectory, check_string_in_command, run_shell_command_raise_on_return_code
+    InstallationError, OperateInDirectory, _run_shell_command_raise_on_return_code, check_string_in_command_output
 )
 
 
@@ -14,19 +14,19 @@ def _patch_shell_command(patch, mock_output: str, mock_return_code: int):
 
 
 def test_run_command_succeeds():
-    output = run_shell_command_raise_on_return_code('true', 'anything')
+    output = _run_shell_command_raise_on_return_code('true', 'anything')
     assert not output
 
 
 def test_run_command_fails():
     with pytest.raises(InstallationError) as installation_error:
-        run_shell_command_raise_on_return_code('false', 'anything')
+        _run_shell_command_raise_on_return_code('false', 'anything')
     assert 'anything' in str(installation_error.value)
 
 
 def test_run_command_append_output():
     with pytest.raises(InstallationError) as installation_error:
-        run_shell_command_raise_on_return_code('echo "additional information" && false', 'anything', True)
+        _run_shell_command_raise_on_return_code('echo "additional information" && false', 'anything', True)
     assert 'anything' in str(installation_error.value)
     assert 'additional information' in str(installation_error.value)
 
@@ -66,4 +66,4 @@ def test_operate_in_directory():
     ('false', 'false', False),
 ])
 def test_check_string_in_command(command, string, expected_output):
-    assert check_string_in_command(command, string) == expected_output
+    assert check_string_in_command_output(command, string) == expected_output

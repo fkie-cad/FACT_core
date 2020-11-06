@@ -7,8 +7,8 @@ from common_helper_process import execute_shell_command_get_return_code
 from compile_yara_signatures import main as compile_signatures
 
 from helperFunctions.install import (
-    InstallationError, OperateInDirectory, apt_install_packages, check_string_in_command, load_main_config,
-    pip3_install_packages, dnf_install_packages
+    InstallationError, OperateInDirectory, apt_install_packages, check_string_in_command_output, dnf_install_packages,
+    load_main_config, pip3_install_packages
 )
 
 
@@ -109,7 +109,7 @@ def _install_plugins(distribution):
             raise InstallationError('Error in installation of {} plugin\n{}'.format(Path(install_script).parent.name, shell_output))
 
 
-def _install_yara(distribution):
+def _install_yara(distribution):  # pylint: disable=too-complex
     logging.info('Installing yara')
 
     # CAUTION: Yara python binding is installed in bootstrap_common, because it is needed in the frontend as well.
@@ -119,7 +119,7 @@ def _install_yara(distribution):
     else:
         apt_install_packages('bison', 'flex')
 
-    if check_string_in_command('yara --version', '3.7.1'):
+    if check_string_in_command_output('yara --version', '3.7.1'):
         logging.info('skipping yara installation (already installed)')
     else:
         broken, output = False, ''
