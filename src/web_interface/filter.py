@@ -8,7 +8,7 @@ from datetime import timedelta
 from operator import itemgetter
 from string import ascii_letters
 from time import localtime, strftime, struct_time, time
-from typing import AnyStr, List, Optional
+from typing import AnyStr, List, Optional, Union
 
 from common_helper_files import human_readable_file_size
 from flask import render_template
@@ -403,7 +403,7 @@ def format_duration(duration: float) -> str:
     return str(timedelta(seconds=duration))
 
 
-def render_query_title(query_title: str):
+def render_query_title(query_title: Union[None, str, dict]):
     if query_title is None:
         return None
     if isinstance(query_title, dict):
