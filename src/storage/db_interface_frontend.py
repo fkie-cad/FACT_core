@@ -277,6 +277,24 @@ class FrontEndDbInterface(MongoInterfaceCommon):
                 parent_to_included.pop(parent_uid)
         return parent_to_included
 
+    def find_orphaned_objects(self):
+        ''' find File Objects whose parent firmware is missing '''
+        query_result = self.file_objects.aggregate([
+            {'$project': {'parent_firmware_uids': 1}},
+            {'$unwind': '$parent_firmware_uids'},
+            {'$lookup': {
+                'from': 'firmwares',
+                'localField': 'parent_firmware_uids',
+                'foreignField': '_id',
+                'as': 'firmware'
+            }},
+            {'$match': {'firmware': {'$size': 0}}}
+        ], allowDiskUse=True)
+        orphans_by_parent = {}
+        for entry in query_result:
+            orphans_by_parent.setdefault(entry['parent_firmware_uids'], []).append(entry['_id'])
+        return orphans_by_parent
+
     def find_missing_analyses(self):
         missing_analyses = {}
         query_result = self.firmwares.aggregate([
