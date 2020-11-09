@@ -17,7 +17,7 @@ class InstallationError(Exception):
 class OperateInDirectory:
     '''
     Context manager allowing to execute a number of commands in a given directory. On exit, the working directory is
-    restored to its previous state.
+    changed back to its previous value.
 
     :param target_directory: Directory path to use as working directory.
     :param remove: Optional boolean to indicate if `target_directory` should be removed on exit.
