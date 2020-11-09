@@ -66,7 +66,7 @@
                         {{ parent_uid }}
                     </td>
                     <td>
-                        {{ uid_list | nice_uid_list | safe }}
+                        {{ uid_list | nice_uid_list(filename_only=True) | safe }}
                     </td>
                 </tr>
                 {%- endfor -%}
