@@ -3,17 +3,26 @@ import logging
 import os
 import shutil
 from pathlib import Path
-from typing import List, Union
+from typing import List, Tuple, Union
 
 from common_helper_process import execute_shell_command_get_return_code
 
 
 class InstallationError(Exception):
-    pass
+    '''
+    Class representing all expected errors that happen during installation, such as timeouts on remote hosts.
+    '''
 
 
 class OperateInDirectory:
-    def __init__(self, target_directory: Union[str, Path], remove=False):
+    '''
+    Context manager allowing to execute a number of commands in a given directory. On exit, the working directory is
+    changed back to its previous value.
+
+    :param target_directory: Directory path to use as working directory.
+    :param remove: Optional boolean to indicate if `target_directory` should be removed on exit.
+    '''
+    def __init__(self, target_directory: Union[str, Path], remove: bool = False):
         self._current_working_dir = None
         self._target_directory = str(target_directory)
         self._remove = remove
@@ -28,22 +37,34 @@ class OperateInDirectory:
             remove_folder(self._target_directory)
 
 
-def remove_folder(folder_name):
+def remove_folder(folder_name: str):
+    '''
+    Python equivalent to `rm -rf`. Remove a directory an all included files. If administrative rights are necessary,
+    this effectively falls back to `sudo rm -rf`.
+
+    :param folder_name: Path to directory to remove.
+    '''
     try:
         shutil.rmtree(folder_name)
     except PermissionError:
         logging.debug('Falling back on root permission for deleting {}'.format(folder_name))
         execute_shell_command_get_return_code('sudo rm -rf {}'.format(folder_name))
     except Exception as exception:
-        raise InstallationError(exception)
+        raise InstallationError(exception) from None
 
 
-def log_current_packages(packages, install=True):
+def log_current_packages(packages: Tuple[str], install: bool = True):
+    '''
+    Log which packages are installed or removed.
+
+    :param packages: List of packages that are affected.
+    :param install: Identifier to distinguish installation from removal.
+    '''
     action = 'Installing' if install else 'Removing'
     logging.info('{} {}'.format(action, ' '.join(packages)))
 
 
-def run_shell_command_raise_on_return_code(command: str, error: str, add_output_on_error=False) -> str:  # pylint: disable=invalid-name
+def _run_shell_command_raise_on_return_code(command: str, error: str, add_output_on_error=False) -> str:  # pylint: disable=invalid-name
     output, return_code = execute_shell_command_get_return_code(command)
     if return_code != 0:
         if add_output_on_error:
@@ -53,89 +74,135 @@ def run_shell_command_raise_on_return_code(command: str, error: str, add_output_
 
 
 def dnf_update_sources():
-    return run_shell_command_raise_on_return_code('sudo dnf update -y', 'Unable to update')
+    '''
+    Update package lists on Fedora / RedHat / Cent systems.
+    '''
+    return _run_shell_command_raise_on_return_code('sudo dnf update -y', 'Unable to update')
 
 
-def dnf_install_packages(*args):
-    log_current_packages(args)
-    return run_shell_command_raise_on_return_code('sudo dnf install -y {}'.format(' '.join(args)), 'Error in installation of package(s) {}'.format(' '.join(args)), True)
+def dnf_install_packages(*packages: str):
+    '''
+    Install packages on Fedora / RedHat / Cent systems.
+
+    :param packages: Iterable containing packages to install.
+    '''
+    log_current_packages(packages)
+    return _run_shell_command_raise_on_return_code('sudo dnf install -y {}'.format(' '.join(packages)), 'Error in installation of package(s) {}'.format(' '.join(packages)), True)
 
 
-def dnf_remove_packages(*args):
-    log_current_packages(args, install=False)
-    return run_shell_command_raise_on_return_code('sudo dnf remove -y {}'.format(' '.join(args)),
-                                                  'Error in removal of package(s) {}'.format(' '.join(args)), True)
+def dnf_remove_packages(*packages: str):
+    '''
+    Remove packages from Fedora / RedHat / Cent systems.
+
+    :param packages: Iterable containing packages to remove.
+    '''
+    log_current_packages(packages, install=False)
+    return _run_shell_command_raise_on_return_code('sudo dnf remove -y {}'.format(' '.join(packages)), 'Error in removal of package(s) {}'.format(' '.join(packages)), True)
 
 
 def apt_update_sources():
-    return run_shell_command_raise_on_return_code('sudo apt-get update', 'Unable to update repository sources. Check network.')
+    '''
+    Update package lists on Ubuntu / Debian / Mint / Kali systems.
+    '''
+    return _run_shell_command_raise_on_return_code('sudo apt-get update', 'Unable to update repository sources. Check network.')
 
 
-def apt_install_packages(*args):
-    log_current_packages(args)
-    return run_shell_command_raise_on_return_code('sudo apt-get install -y {}'.format(' '.join(args)), 'Error in installation of package(s) {}'.format(' '.join(args)), True)
+def apt_install_packages(*packages: str):
+    '''
+    Install packages on Ubuntu / Debian / Mint / Kali systems.
+
+    :param packages: Iterable containing packages to install.
+    '''
+    log_current_packages(packages)
+    return _run_shell_command_raise_on_return_code('sudo apt-get install -y {}'.format(' '.join(packages)), 'Error in installation of package(s) {}'.format(' '.join(packages)), True)
 
 
-def apt_remove_packages(*args):
-    log_current_packages(args, install=False)
-    return run_shell_command_raise_on_return_code('sudo apt-get remove -y {}'.format(' '.join(args)), 'Error in removal of package(s) {}'.format(' '.join(args)), True)
+def apt_remove_packages(*packages: str):
+    '''
+    Remove packages from Ubuntu / Debian / Mint / Kali systems.
+
+    :param packages: Iterable containing packages to remove.
+    '''
+    log_current_packages(packages, install=False)
+    return _run_shell_command_raise_on_return_code('sudo apt-get remove -y {}'.format(' '.join(packages)), 'Error in removal of package(s) {}'.format(' '.join(packages)), True)
 
 
-def _pip_install_packages(version, args):
-    log_current_packages(args)
-    for packet in args:
+def pip3_install_packages(*packages: str):
+    '''
+    Install python packages. Handle problems with packages that are installed using system package managers (apt, dnf).
+
+    :param packages: Iterable containing packages to install.
+    '''
+    log_current_packages(packages)
+    for package in packages:
         try:
-            run_shell_command_raise_on_return_code('sudo -EH pip{} install --upgrade {}'.format(version, packet), 'Error in installation of python package {}'.format(packet), True)
+            _run_shell_command_raise_on_return_code('sudo -EH pip3 install --upgrade {}'.format(package), 'Error in installation of python package {}'.format(package), True)
         except InstallationError as installation_error:
             if 'is a distutils installed project' in str(installation_error):
-                logging.warning('Could not update python packet {}. Was not installed using pip originally'.format(packet))
+                logging.warning('Could not update python package {}. Was not installed using pip originally'.format(package))
             else:
                 raise installation_error
 
 
-def _pip_remove_packages(version, args):
-    log_current_packages(args, install=False)
-    for packet in args:
+def pip3_remove_packages(*packages: str):
+    '''
+    Remove python packages. Handle problems with packages that are installed using system package managers (apt, dnf).
+
+    :param packages: Iterable containing packages to remove.
+    '''
+    log_current_packages(packages, install=False)
+    for package in packages:
         try:
-            run_shell_command_raise_on_return_code('sudo -EH pip{} uninstall {}'.format(version, packet),
-                                                   'Error in removal of python package {}'.format(packet), True)
+            _run_shell_command_raise_on_return_code('sudo -EH pip3 uninstall {}'.format(package), 'Error in removal of python package {}'.format(package), True)
         except InstallationError as installation_error:
             if 'is a distutils installed project' in str(installation_error):
-                logging.warning('Could not remove python packet {}. Was not installed using pip originally'.format(packet))
+                logging.warning('Could not remove python package {}. Was not installed using pip originally'.format(package))
             else:
                 raise installation_error
 
 
-def pip3_install_packages(*args):
-    return _pip_install_packages(3, args)
+def check_if_command_in_path(command: str) -> bool:
+    '''
+    Check if a given command is executable on the current system, i.e. found in systems PATH.
+    Useful to find out if a program is already installed.
 
-
-def pip3_remove_packages(*args):
-    return _pip_remove_packages(3, args)
-
-
-def pip2_install_packages(*args):
-    return _pip_install_packages(2, args)
-
-
-def pip2_remove_packages(*args):
-    return _pip_remove_packages(2, args)
-
-
-def check_if_command_in_path(command):
+    :param command: Command to check.
+    '''
     _, return_code = execute_shell_command_get_return_code('command -v {}'.format(command))
     if return_code != 0:
         return False
     return True
 
 
-def check_string_in_command(command, target_string):
+def check_string_in_command_output(command: str, target_string: str) -> bool:
+    '''
+    Execute command and test if string is contained in its output (i.e. stdout).
+
+    :param command: Command to execute.
+    :param target_string: String to match on output.
+    :return: `True` if string was found and return code was 0, else `False`.
+    '''
     output, return_code = execute_shell_command_get_return_code(command)
     return return_code == 0 and target_string in output
 
 
 def install_github_project(project_path: str, commands: List[str]):
-    log_current_packages([project_path, ])
+    '''
+    Install github project by cloning it, running a set of commands and removing the cloned files afterwards.
+
+    :param project_path: Github path to project. For FACT this is 'fkie-cad/FACT_core'.
+    :param commands: List of commands to run after cloning to install project.
+
+    :Example:
+
+        .. code-block:: python
+
+            install_github_project(
+                'ghusername/c-style-project',
+                ['./configure', 'make', 'sudo make install']
+            )
+    '''
+    log_current_packages((project_path, ))
     folder_name = Path(project_path).name
     _checkout_github_project(project_path, folder_name)
 
@@ -151,7 +218,7 @@ def install_github_project(project_path: str, commands: List[str]):
         raise InstallationError(error)
 
 
-def _checkout_github_project(github_path, folder_name):
+def _checkout_github_project(github_path: str, folder_name: str):
     clone_url = 'https://www.github.com/{}'.format(github_path)
     _, return_code = execute_shell_command_get_return_code('git clone {}'.format(clone_url))
     if return_code != 0:
@@ -160,7 +227,12 @@ def _checkout_github_project(github_path, folder_name):
         raise InstallationError('Repository creation failed on folder {}\n {}'.format(folder_name, clone_url))
 
 
-def load_main_config():
+def load_main_config() -> configparser.ConfigParser:
+    '''
+    Create config object from main.cfg in src/config folder.
+
+    :return: config object.
+    '''
     config = configparser.ConfigParser()
     config_path = Path(Path(__file__).parent.parent, 'config', 'main.cfg')
     if not config_path.is_file():
