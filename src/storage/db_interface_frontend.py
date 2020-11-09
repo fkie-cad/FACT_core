@@ -279,21 +279,25 @@ class FrontEndDbInterface(MongoInterfaceCommon):
 
     def find_orphaned_objects(self):
         ''' find File Objects whose parent firmware is missing '''
-        query_result = self.file_objects.aggregate([
-            {'$project': {'parent_firmware_uids': 1}},
-            {'$unwind': '$parent_firmware_uids'},
-            {'$lookup': {
-                'from': 'firmwares',
-                'localField': 'parent_firmware_uids',
-                'foreignField': '_id',
-                'as': 'firmware'
-            }},
-            {'$match': {'firmware': {'$size': 0}}}
-        ], allowDiskUse=True)
         orphans_by_parent = {}
-        for entry in query_result:
-            orphans_by_parent.setdefault(entry['parent_firmware_uids'], []).append(entry['_id'])
+        query_result = list(self.file_objects.aggregate([
+            {'$unwind': '$parent_firmware_uids'},
+            {'$group': {'_id': 0, 'all_parent_uids': {'$addToSet': '$parent_firmware_uids'}}}
+        ], allowDiskUse=True))
+        if query_result:
+            fo_parent_firmware = set(query_result[0]['all_parent_uids'])
+            missing_uids = fo_parent_firmware.difference(self._get_all_firmware_uids())
+            if missing_uids:
+                query_result = self.file_objects.find({'parent_firmware_uids': {'$in': list(missing_uids)}})
+                for fo_entry in query_result:
+                    for uid in missing_uids:
+                        if uid in fo_entry['parent_firmware_uids']:
+                            orphans_by_parent.setdefault(uid, []).append(fo_entry['_id'])
         return orphans_by_parent
+
+    def _get_all_firmware_uids(self) -> List[str]:
+        query_result = list(self.firmwares.aggregate([{'$group': {'_id': 0, 'firmware_uids': {'$push': '$_id'}}}]))
+        return list(query_result)[0]['firmware_uids'] if query_result else []
 
     def find_missing_analyses(self):
         missing_analyses = {}
