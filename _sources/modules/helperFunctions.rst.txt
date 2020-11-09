@@ -7,6 +7,7 @@ helperFunctions
    helperFunctions.compare_sets
    helperFunctions.database
    helperFunctions.docker
+   helperFunctions.install
    helperFunctions.logging
    helperFunctions.mongo_config_parser
    helperFunctions.mongo_task_conversion

@@ -1,0 +1,442 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>helperFunctions.install module &mdash; FACT  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/custom.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="helperFunctions.logging module" href="helperFunctions.logging.html" />
+    <link rel="prev" title="helperFunctions.docker module" href="helperFunctions.docker.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> FACT
+          
+
+          
+            
+            <img src="../_static/FACT_smaller.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../main.html">Challenges</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#easy-to-install-easy-to-use">Easy to Install! Easy to Use!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#easy-to-extend-easy-to-integrate">Easy to Extend! Easy to Integrate!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#screenshots">Screenshots</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#contributing">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#latest-news-and-contact">Latest News and Contact</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#authors-and-acknowledgment">Authors and Acknowledgment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#source-code">Source Code</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Modules:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="helperFunctions.html">helperFunctions</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.compare_sets.html">helperFunctions.compare_sets module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.database.html">helperFunctions.database module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.docker.html">helperFunctions.docker module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">helperFunctions.install module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.logging.html">helperFunctions.logging module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.mongo_config_parser.html">helperFunctions.mongo_config_parser module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.mongo_task_conversion.html">helperFunctions.mongo_task_conversion module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.object_storage.html">helperFunctions.object_storage module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.pdf.html">helperFunctions.pdf module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.process.html">helperFunctions.process module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.uid.html">helperFunctions.uid module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="objects.html">objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web_interface.html">web_interface</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">FACT</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="helperFunctions.html">helperFunctions</a> &raquo;</li>
+        
+      <li>helperFunctions.install module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/modules/helperFunctions.install.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-helperFunctions.install">
+<span id="helperfunctions-install-module"></span><h1>helperFunctions.install module<a class="headerlink" href="#module-helperFunctions.install" title="Permalink to this headline">¶</a></h1>
+<dl class="py exception">
+<dt id="helperFunctions.install.InstallationError">
+<em class="property">exception </em><code class="sig-prename descclassname">helperFunctions.install.</code><code class="sig-name descname">InstallationError</code><a class="headerlink" href="#helperFunctions.install.InstallationError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>Class representing all expected errors that happen during installation, such as timeouts on remote hosts.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="helperFunctions.install.OperateInDirectory">
+<em class="property">class </em><code class="sig-prename descclassname">helperFunctions.install.</code><code class="sig-name descname">OperateInDirectory</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">target_directory</span></em>, <em class="sig-param"><span class="n">remove</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.OperateInDirectory" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Context manager allowing to execute a number of commands in a given directory. On exit, the working directory is
+changed back to its previous value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>target_directory</strong> – Directory path to use as working directory.</p></li>
+<li><p><strong>remove</strong> – Optional boolean to indicate if <cite>target_directory</cite> should be removed on exit.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="helperFunctions.install.apt_install_packages">
+<code class="sig-prename descclassname">helperFunctions.install.</code><code class="sig-name descname">apt_install_packages</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">packages</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.apt_install_packages" title="Permalink to this definition">¶</a></dt>
+<dd><p>Install packages on Ubuntu / Debian / Mint / Kali systems.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>packages</strong> (<em>str</em>) – Iterable containing packages to install.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="helperFunctions.install.apt_remove_packages">
+<code class="sig-prename descclassname">helperFunctions.install.</code><code class="sig-name descname">apt_remove_packages</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">packages</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.apt_remove_packages" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove packages from Ubuntu / Debian / Mint / Kali systems.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>packages</strong> (<em>str</em>) – Iterable containing packages to remove.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="helperFunctions.install.apt_update_sources">
+<code class="sig-prename descclassname">helperFunctions.install.</code><code class="sig-name descname">apt_update_sources</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.apt_update_sources" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update package lists on Ubuntu / Debian / Mint / Kali systems.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="helperFunctions.install.check_if_command_in_path">
+<code class="sig-prename descclassname">helperFunctions.install.</code><code class="sig-name descname">check_if_command_in_path</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">command</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.check_if_command_in_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if a given command is executable on the current system, i.e. found in systems PATH.
+Useful to find out if a program is already installed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>command</strong> (<em>str</em>) – Command to check.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="helperFunctions.install.check_string_in_command_output">
+<code class="sig-prename descclassname">helperFunctions.install.</code><code class="sig-name descname">check_string_in_command_output</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">command</span></em>, <em class="sig-param"><span class="n">target_string</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.check_string_in_command_output" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute command and test if string is contained in its output (i.e. stdout).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>command</strong> (<em>str</em>) – Command to execute.</p></li>
+<li><p><strong>target_string</strong> (<em>str</em>) – String to match on output.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><cite>True</cite> if string was found and return code was 0, else <cite>False</cite>.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="helperFunctions.install.dnf_install_packages">
+<code class="sig-prename descclassname">helperFunctions.install.</code><code class="sig-name descname">dnf_install_packages</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">packages</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.dnf_install_packages" title="Permalink to this definition">¶</a></dt>
+<dd><p>Install packages on Fedora / RedHat / Cent systems.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>packages</strong> (<em>str</em>) – Iterable containing packages to install.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="helperFunctions.install.dnf_remove_packages">
+<code class="sig-prename descclassname">helperFunctions.install.</code><code class="sig-name descname">dnf_remove_packages</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">packages</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.dnf_remove_packages" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove packages from Fedora / RedHat / Cent systems.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>packages</strong> (<em>str</em>) – Iterable containing packages to remove.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="helperFunctions.install.dnf_update_sources">
+<code class="sig-prename descclassname">helperFunctions.install.</code><code class="sig-name descname">dnf_update_sources</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.dnf_update_sources" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update package lists on Fedora / RedHat / Cent systems.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="helperFunctions.install.install_github_project">
+<code class="sig-prename descclassname">helperFunctions.install.</code><code class="sig-name descname">install_github_project</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">project_path</span></em>, <em class="sig-param"><span class="n">commands</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.install_github_project" title="Permalink to this definition">¶</a></dt>
+<dd><p>Install github project by cloning it, running a set of commands and removing the cloned files afterwards.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>project_path</strong> (<em>str</em>) – Github path to project. For FACT this is ‘fkie-cad/FACT_core’.</p></li>
+<li><p><strong>commands</strong> (<em>List</em><em>[</em><em>str</em><em>]</em>) – List of commands to run after cloning to install project.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Example</dt>
+<dd class="field-even"><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">install_github_project</span><span class="p">(</span>
+    <span class="s1">&#39;ghusername/c-style-project&#39;</span><span class="p">,</span>
+    <span class="p">[</span><span class="s1">&#39;./configure&#39;</span><span class="p">,</span> <span class="s1">&#39;make&#39;</span><span class="p">,</span> <span class="s1">&#39;sudo make install&#39;</span><span class="p">]</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="helperFunctions.install.load_main_config">
+<code class="sig-prename descclassname">helperFunctions.install.</code><code class="sig-name descname">load_main_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.load_main_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create config object from main.cfg in src/config folder.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>config object.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>configparser.ConfigParser</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="helperFunctions.install.log_current_packages">
+<code class="sig-prename descclassname">helperFunctions.install.</code><code class="sig-name descname">log_current_packages</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">packages</span></em>, <em class="sig-param"><span class="n">install</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.log_current_packages" title="Permalink to this definition">¶</a></dt>
+<dd><p>Log which packages are installed or removed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>packages</strong> (<em>Tuple</em><em>[</em><em>str</em><em>]</em>) – List of packages that are affected.</p></li>
+<li><p><strong>install</strong> (<em>bool</em>) – Identifier to distinguish installation from removal.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="helperFunctions.install.pip3_install_packages">
+<code class="sig-prename descclassname">helperFunctions.install.</code><code class="sig-name descname">pip3_install_packages</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">packages</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.pip3_install_packages" title="Permalink to this definition">¶</a></dt>
+<dd><p>Install python packages. Handle problems with packages that are installed using system package managers (apt, dnf).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>packages</strong> (<em>str</em>) – Iterable containing packages to install.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="helperFunctions.install.pip3_remove_packages">
+<code class="sig-prename descclassname">helperFunctions.install.</code><code class="sig-name descname">pip3_remove_packages</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">packages</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.pip3_remove_packages" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove python packages. Handle problems with packages that are installed using system package managers (apt, dnf).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>packages</strong> (<em>str</em>) – Iterable containing packages to remove.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="helperFunctions.install.remove_folder">
+<code class="sig-prename descclassname">helperFunctions.install.</code><code class="sig-name descname">remove_folder</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">folder_name</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.remove_folder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Python equivalent to <cite>rm -rf</cite>. Remove a directory an all included files. If administrative rights are necessary,
+this effectively falls back to <cite>sudo rm -rf</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>folder_name</strong> (<em>str</em>) – Path to directory to remove.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="helperFunctions.logging.html" class="btn btn-neutral float-right" title="helperFunctions.logging module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="helperFunctions.docker.html" class="btn btn-neutral float-left" title="helperFunctions.docker module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Fraunhofer FKIE
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
