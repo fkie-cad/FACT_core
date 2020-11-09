@@ -1,3 +1,4 @@
+import json
 import logging
 import random
 import re
@@ -7,7 +8,7 @@ from datetime import timedelta
 from operator import itemgetter
 from string import ascii_letters
 from time import localtime, strftime, struct_time, time
-from typing import AnyStr, List, Optional
+from typing import AnyStr, List, Optional, Union
 
 from common_helper_files import human_readable_file_size
 from flask import render_template
@@ -400,3 +401,11 @@ def elapsed_time(start_time: float) -> int:
 
 def format_duration(duration: float) -> str:
     return str(timedelta(seconds=duration))
+
+
+def render_query_title(query_title: Union[None, str, dict]):
+    if query_title is None:
+        return None
+    if isinstance(query_title, dict):
+        return json.dumps(query_title, indent=2)
+    return query_title

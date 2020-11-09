@@ -63,7 +63,7 @@
                     Show Search Query <span class="badge badge-primary">{{ search_target }} Search</span>
                 </button>
                 <div id="search_query" class="collapse list-group-item p-0 border-0">
-                    <pre class="bg-light p-2 mb-0 rounded-bottom">{{ search_parameters['query_title'] }}</pre>
+                    <pre class="bg-light p-2 mb-0 rounded-bottom">{{ search_parameters['query_title'] | render_query_title }}</pre>
                 </div>
             </div>
         </div>
