@@ -80,24 +80,24 @@ def dnf_update_sources():
     return _run_shell_command_raise_on_return_code('sudo dnf update -y', 'Unable to update')
 
 
-def dnf_install_packages(*args: str):
+def dnf_install_packages(*packages: str):
     '''
     Install packages on Fedora / RedHat / Cent systems.
 
-    :param args: Iterable containing packages to install.
+    :param packages: Iterable containing packages to install.
     '''
-    log_current_packages(args)
-    return _run_shell_command_raise_on_return_code('sudo dnf install -y {}'.format(' '.join(args)), 'Error in installation of package(s) {}'.format(' '.join(args)), True)
+    log_current_packages(packages)
+    return _run_shell_command_raise_on_return_code('sudo dnf install -y {}'.format(' '.join(packages)), 'Error in installation of package(s) {}'.format(' '.join(packages)), True)
 
 
-def dnf_remove_packages(*args: str):
+def dnf_remove_packages(*packages: str):
     '''
     Remove packages from Fedora / RedHat / Cent systems.
 
-    :param args: Iterable containing packages to remove.
+    :param packages: Iterable containing packages to remove.
     '''
-    log_current_packages(args, install=False)
-    return _run_shell_command_raise_on_return_code('sudo dnf remove -y {}'.format(' '.join(args)), 'Error in removal of package(s) {}'.format(' '.join(args)), True)
+    log_current_packages(packages, install=False)
+    return _run_shell_command_raise_on_return_code('sudo dnf remove -y {}'.format(' '.join(packages)), 'Error in removal of package(s) {}'.format(' '.join(packages)), True)
 
 
 def apt_update_sources():
@@ -107,56 +107,56 @@ def apt_update_sources():
     return _run_shell_command_raise_on_return_code('sudo apt-get update', 'Unable to update repository sources. Check network.')
 
 
-def apt_install_packages(*args: str):
+def apt_install_packages(*packages: str):
     '''
     Install packages on Ubuntu / Debian / Mint / Kali systems.
 
-    :param args: Iterable containing packages to install.
+    :param packages: Iterable containing packages to install.
     '''
-    log_current_packages(args)
-    return _run_shell_command_raise_on_return_code('sudo apt-get install -y {}'.format(' '.join(args)), 'Error in installation of package(s) {}'.format(' '.join(args)), True)
+    log_current_packages(packages)
+    return _run_shell_command_raise_on_return_code('sudo apt-get install -y {}'.format(' '.join(packages)), 'Error in installation of package(s) {}'.format(' '.join(packages)), True)
 
 
-def apt_remove_packages(*args: str):
+def apt_remove_packages(*packages: str):
     '''
     Remove packages from Ubuntu / Debian / Mint / Kali systems.
 
-    :param args: Iterable containing packages to remove.
+    :param packages: Iterable containing packages to remove.
     '''
-    log_current_packages(args, install=False)
-    return _run_shell_command_raise_on_return_code('sudo apt-get remove -y {}'.format(' '.join(args)), 'Error in removal of package(s) {}'.format(' '.join(args)), True)
+    log_current_packages(packages, install=False)
+    return _run_shell_command_raise_on_return_code('sudo apt-get remove -y {}'.format(' '.join(packages)), 'Error in removal of package(s) {}'.format(' '.join(packages)), True)
 
 
-def pip3_install_packages(*args: str):
+def pip3_install_packages(*packages: str):
     '''
     Install python packages. Handle problems with packages that are installed using system package managers (apt, dnf).
 
-    :param args: Iterable containing packages to install.
+    :param packages: Iterable containing packages to install.
     '''
-    log_current_packages(args)
-    for packet in args:
+    log_current_packages(packages)
+    for package in packages:
         try:
-            _run_shell_command_raise_on_return_code('sudo -EH pip3 install --upgrade {}'.format(packet), 'Error in installation of python package {}'.format(packet), True)
+            _run_shell_command_raise_on_return_code('sudo -EH pip3 install --upgrade {}'.format(package), 'Error in installation of python package {}'.format(package), True)
         except InstallationError as installation_error:
             if 'is a distutils installed project' in str(installation_error):
-                logging.warning('Could not update python packet {}. Was not installed using pip originally'.format(packet))
+                logging.warning('Could not update python package {}. Was not installed using pip originally'.format(package))
             else:
                 raise installation_error
 
 
-def pip3_remove_packages(*args: str):
+def pip3_remove_packages(*packages: str):
     '''
     Remove python packages. Handle problems with packages that are installed using system package managers (apt, dnf).
 
-    :param args: Iterable containing packages to remove.
+    :param packages: Iterable containing packages to remove.
     '''
-    log_current_packages(args, install=False)
-    for packet in args:
+    log_current_packages(packages, install=False)
+    for package in packages:
         try:
-            _run_shell_command_raise_on_return_code('sudo -EH pip3 uninstall {}'.format(packet), 'Error in removal of python package {}'.format(packet), True)
+            _run_shell_command_raise_on_return_code('sudo -EH pip3 uninstall {}'.format(package), 'Error in removal of python package {}'.format(package), True)
         except InstallationError as installation_error:
             if 'is a distutils installed project' in str(installation_error):
-                logging.warning('Could not remove python packet {}. Was not installed using pip originally'.format(packet))
+                logging.warning('Could not remove python package {}. Was not installed using pip originally'.format(package))
             else:
                 raise installation_error
 
