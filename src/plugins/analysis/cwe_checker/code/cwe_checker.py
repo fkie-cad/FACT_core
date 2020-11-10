@@ -39,7 +39,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     MIME_WHITELIST = ['application/x-executable', 'application/x-object', 'application/x-sharedlib']
     SUPPORTED_ARCHS = ['arm', 'x86', 'x64', 'mips', 'ppc']
 
-    def __init__(self, plugin_administrator, config=None, recursive=True, timeout=TIMEOUT_IN_SECONDS + 10):
+    def __init__(self, plugin_administrator, config=None, recursive=True, timeout=TIMEOUT_IN_SECONDS + 30):
         self.config = config
         if not self._check_docker_installed():
             raise RuntimeError('Docker is not installed.')
