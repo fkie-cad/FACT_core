@@ -1,11 +1,10 @@
 import logging
-import sys
 from time import time
 
 from pymongo.errors import PyMongoError
 
 from helperFunctions.dataConversion import convert_str_to_time
-from helperFunctions.object_storage import update_virtual_file_path, update_included_files, update_analysis_tags
+from helperFunctions.object_storage import update_analysis_tags, update_included_files, update_virtual_file_path
 from helperFunctions.tag import update_tags
 from objects.file import FileObject
 from objects.firmware import Firmware
@@ -63,18 +62,16 @@ class BackEndDbInterface(MongoInterfaceCommon):
             logging.debug('Update old firmware!')
             try:
                 self.update_object(new_object=firmware, old_object=old_object)
-            except Exception as e:
-                logging.error('[{}] Could not update firmware: {}'.format(type(e), e))
-                return None
+            except Exception:  # pylint: disable=broad-except
+                logging.error('Could not update firmware:', exc_info=True)
         else:
             logging.debug('Detected new firmware!')
             entry = self.build_firmware_dict(firmware)
             try:
                 self.firmwares.insert_one(entry)
                 logging.debug('firmware added to db: {}'.format(firmware.uid))
-            except Exception as e:
-                logging.error('Could not add firmware: {} - {}'.format(sys.exc_info()[0].__name__, e))
-                return None
+            except PyMongoError:
+                logging.error('Could not add firmware:', exc_info=True)
 
     def build_firmware_dict(self, firmware):
         analysis = self.sanitize_analysis(analysis_dict=firmware.processed_analysis, uid=firmware.uid)
@@ -108,18 +105,16 @@ class BackEndDbInterface(MongoInterfaceCommon):
             logging.debug('Update old file_object!')
             try:
                 self.update_object(new_object=file_object, old_object=old_object)
-            except Exception as e:
-                logging.error('[{}] Could not update file object: {}'.format(type(e), e))
-                return None
+            except Exception:  # pylint: disable=broad-except
+                logging.error('Could not update file object:', exc_info=True)
         else:
             logging.debug('Detected new file_object!')
             entry = self.build_file_object_dict(file_object)
             try:
                 self.file_objects.insert_one(entry)
                 logging.debug('file added to db: {}'.format(file_object.uid))
-            except Exception as e:
-                logging.error('Could not update firmware: {} - {}'.format(sys.exc_info()[0].__name__, e))
-                return None
+            except PyMongoError:
+                logging.error('Could not update firmware:', exc_info=True)
 
     def build_file_object_dict(self, file_object):
         analysis = self.sanitize_analysis(analysis_dict=file_object.processed_analysis, uid=file_object.uid)
@@ -144,24 +139,26 @@ class BackEndDbInterface(MongoInterfaceCommon):
 
     def _convert_to_firmware(self, entry, analysis_filter=None):
         firmware = super()._convert_to_firmware(entry, analysis_filter=None)
-        firmware.set_file_path(entry['file_path'])
+        firmware.file_path = entry['file_path']
+        firmware.create_binary_from_path()
         return firmware
 
     def _convert_to_file_object(self, entry, analysis_filter=None):
         file_object = super()._convert_to_file_object(entry, analysis_filter=None)
-        file_object.set_file_path(entry['file_path'])
+        file_object.file_path = entry['file_path']
+        file_object.create_binary_from_path()
         return file_object
 
-    def update_analysis_tags(self, uid, plugin_name, tag_name, tag):
+    def update_analysis_tags(self, uid, plugin_name, tag_name, tag) -> None:
         firmware_object = self.get_object(uid=uid, analysis_filter=[])
         try:
             tags = update_tags(firmware_object.analysis_tags, plugin_name, tag_name, tag)
         except ValueError as value_error:
             logging.error('Plugin {} tried setting a bad tag {}: {}'.format(plugin_name, tag_name, str(value_error)))
-            return None
+            return
         except AttributeError:
             logging.error('Firmware not in database yet: {}'.format(uid))
-            return None
+            return
 
         if isinstance(firmware_object, Firmware):
             try:

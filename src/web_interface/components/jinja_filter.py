@@ -104,6 +104,21 @@ class FilterClass:
             firmware=firmware, other_versions=other_versions, selected_analysis=selected_analysis
         )
 
+    @staticmethod
+    def _split_user_and_password_type_entry(result: dict):
+        new_result = {}
+        for key, value in result.items():
+            if not flt.is_not_mandatory_analysis_entry(key):
+                continue
+            if ':' in key:
+                *user_elements, password_type = key.split(':')
+                user = ':'.join(user_elements)
+            else:  # for backward compatibility
+                user = key
+                password_type = 'unix'
+            new_result.setdefault(user, {})[password_type] = value
+        return new_result
+
     def check_auth(self, _):
         return self._config.getboolean('ExpertSettings', 'authentication')
 
@@ -147,6 +162,7 @@ class FilterClass:
         self._app.jinja_env.filters['remaining_time'] = elapsed_time
         self._app.jinja_env.filters['render_analysis_tags'] = flt.render_analysis_tags
         self._app.jinja_env.filters['render_general_information'] = self._render_general_information_table
+        self._app.jinja_env.filters['render_query_title'] = flt.render_query_title
         self._app.jinja_env.filters['render_tags'] = flt.render_tags
         self._app.jinja_env.filters['replace_comparison_uid_with_hid'] = self._filter_replace_comparison_uid_with_hid
         self._app.jinja_env.filters['replace_uid_with_file_name'] = self._filter_replace_uid_with_file_name
@@ -159,6 +175,7 @@ class FilterClass:
         self._app.jinja_env.filters['sort_privileges'] = lambda privileges: sorted(privileges, key=lambda role: len(privileges[role]), reverse=True)
         self._app.jinja_env.filters['sort_roles'] = flt.sort_roles_by_number_of_privileges
         self._app.jinja_env.filters['sort_users'] = flt.sort_users_by_name
+        self._app.jinja_env.filters['split_user_and_password_type'] = self._split_user_and_password_type_entry
         self._app.jinja_env.filters['text_highlighter'] = flt.text_highlighter
         self._app.jinja_env.filters['uids_to_link'] = flt.uids_to_link
         self._app.jinja_env.filters['user_has_role'] = flt.user_has_role

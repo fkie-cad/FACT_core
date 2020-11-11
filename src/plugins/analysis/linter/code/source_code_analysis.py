@@ -1,9 +1,15 @@
 import logging
+import re
 import sys
 from pathlib import Path
+from tempfile import NamedTemporaryFile
+
+from common_helper_process import execute_shell_command_get_return_code
+from docker.errors import DockerException
+from requests.exceptions import ReadTimeout
 
 from analysis.PluginBase import AnalysisBasePlugin
-from objects.file import FileObject
+from helperFunctions.docker import run_docker_container
 
 try:
     from ..internal import js_linter, lua_linter, python_linter, shell_linter
@@ -20,13 +26,12 @@ class AnalysisPlugin(AnalysisBasePlugin):
     - jshint (javascript)
     - lua (luacheck)
     TODO Implement proper view
-    TODO implement proper language detection
     TODO implement additional linters (ruby, perl, php)
     '''
     NAME = 'source_code_analysis'
     DESCRIPTION = 'This plugin implements static code analysis for multiple scripting languages'
     DEPENDENCIES = ['file_type']
-    VERSION = '0.4'
+    VERSION = '0.5'
     MIME_WHITELIST = ['text/']
     SCRIPT_TYPES = {
         'shell': {'mime': 'shell', 'shebang': 'sh', 'ending': '.sh', 'linter': shell_linter.ShellLinter},
@@ -35,31 +40,26 @@ class AnalysisPlugin(AnalysisBasePlugin):
         'python': {'mime': 'python', 'shebang': 'python', 'ending': '.py', 'linter': python_linter.PythonLinter}
     }
 
-    def __init__(self, plugin_adminstrator, config=None, recursive=True, offline_testing=False):
+    def __init__(self, plugin_administrator, config=None, recursive=True, offline_testing=False):
         self.config = config
-        super().__init__(plugin_adminstrator, config=config, plugin_path=__file__, recursive=recursive, offline_testing=offline_testing)
+        if not self._check_docker_installed():
+            raise RuntimeError('Docker is not installed.')
+        super().__init__(plugin_administrator, config=config, plugin_path=__file__, recursive=recursive, offline_testing=offline_testing)
 
-    def _determine_script_type(self, file_object: FileObject):
-        '''
-        Indicators:
-        1. file_type full includes shell, python etc.
-        2. shebang #!/bin/sh, #!/usr/bin/env python etc.
-        3. file ending *.sh, *.py etc.
-        '''
-        full_file_type = file_object.processed_analysis['file_type']['full'].lower()
-        for script_type in self.SCRIPT_TYPES:
+    @staticmethod
+    def _check_docker_installed():
+        _, return_code = execute_shell_command_get_return_code('docker -v')
+        return return_code == 0
 
-            if self.SCRIPT_TYPES[script_type]['mime'] in full_file_type.lower():
-                return script_type
-
-            first_line = file_object.binary.decode().splitlines(keepends=False)[0]
-            if first_line.find(self.SCRIPT_TYPES[script_type]['shebang']) >= 0:
-                return script_type
-
-            if file_object.file_name.endswith(self.SCRIPT_TYPES[script_type]['ending']):
-                return script_type
-
-        raise NotImplementedError('Unsupported script type, not correctly detected or not a script at all')
+    @staticmethod
+    def _get_script_type(file_object, linguist_output):
+        if 'language' in linguist_output:
+            file_object.processed_analysis['file_type']['linguist'] = linguist_output
+            match = re.search(r'language:\s*(\w+)', linguist_output)
+            if match:
+                return match.groups()[0].lower()
+            raise NotImplementedError('Unsupported script type, not correctly detected or not a script at all')
+        return None
 
     def process_object(self, file_object):
         '''
@@ -67,15 +67,24 @@ class AnalysisPlugin(AnalysisBasePlugin):
         and then call a linter if a supported language is detected
         '''
         try:
-            script_type = self._determine_script_type(file_object)
-        except (NotImplementedError, UnicodeDecodeError):
-            logging.debug('[{}] {} is not a supported script.'.format(self.NAME, file_object.file_name))
-            file_object.processed_analysis[self.NAME] = {'summary': []}
-        else:
+            with NamedTemporaryFile() as fp:
+                fp.write(file_object.binary)
+                fp.seek(0)
+                container_path = '/repo/{}'.format(file_object.file_name)
+                output = run_docker_container('crazymax/linguist', 60, container_path, reraise=True,
+                                              mount=(container_path, fp.name), label=self.NAME)
+            script_type = self._get_script_type(file_object, output)
             issues = self.SCRIPT_TYPES[script_type]['linter']().do_analysis(file_object.file_path)
             if not issues:
                 file_object.processed_analysis[self.NAME] = {'summary': []}
             else:
                 file_object.processed_analysis[self.NAME] = {'full': sorted(issues, key=lambda k: k['symbol']),
                                                              'summary': ['Warnings in {} script'.format(script_type)]}
+        except (NotImplementedError, UnicodeDecodeError, KeyError):
+            logging.debug('[{}] {} is not a supported script.'.format(self.NAME, file_object.file_name))
+            file_object.processed_analysis[self.NAME] = {'summary': [], 'warning': 'Unsupported script type'}
+        except ReadTimeout:
+            file_object.processed_analysis[self.NAME] = {'summary': [], 'warning': 'Analysis timed out'}
+        except (DockerException, IOError):
+            file_object.processed_analysis[self.NAME] = {'summary': [], 'warning': 'Error during analysis'}
         return file_object

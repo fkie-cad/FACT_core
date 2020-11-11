@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from helperFunctions.hash import (
-    get_imphash, get_md5, get_sha256, get_ssdeep, get_ssdeep_comparison, normalize_lief_items
+    _suppress_stdout, get_imphash, get_md5, get_sha256, get_ssdeep, get_ssdeep_comparison, normalize_lief_items
 )
 from test.common_helper import create_test_file_object, get_test_data_dir
 
@@ -61,3 +61,20 @@ def test_normalize_items_from_objects():
 
 def test_normalize_items_empty_list():
     assert normalize_lief_items([]) == []
+
+
+def print_foo():
+    print('foo', end='')
+
+
+def test_suppress_stdout(capsys):
+    print_foo()
+
+    without_decorator = capsys.readouterr()
+    assert without_decorator.out == 'foo'
+
+    with _suppress_stdout():
+        print_foo()
+
+    with_decorator = capsys.readouterr()
+    assert not with_decorator.out

@@ -1,7 +1,16 @@
-from typing import Iterable, List, T, Tuple
+from typing import Iterable, Iterator, List, Tuple, TypeVar
+
+# Generics (not intended for export)
+_T = TypeVar('_T')
 
 
-def remove_duplicates_from_unhashable(unhashable_list: List[T]) -> List[T]:
+def _remove_duplicates_from_unhashable(unhashable_list: List[_T]) -> List[_T]:
+    '''
+    Remove duplicates from a list of unhashable objects (meaning converting to a set and back won't work).
+
+    :param unhashable_list: A list of unhashable objects.
+    :return: A list of unique items.
+    '''
     result = []
     for element in unhashable_list:
         if element not in result:
@@ -9,15 +18,37 @@ def remove_duplicates_from_unhashable(unhashable_list: List[T]) -> List[T]:
     return result
 
 
-def remove_duplicates_from_list(list_):
-    return list(set(list_))
+def remove_duplicates_from_list(list_: List[_T]) -> List[_T]:
+    '''
+    Remove duplicates from a list.
+
+    :param list_: The input list (possibly) containing duplicates.
+    :return: A new list only containing unique elements.
+    '''
+    try:
+        return list(set(list_))
+    except TypeError:
+        return _remove_duplicates_from_unhashable(list_)
 
 
 def substring_is_in_list(string: str, substring_list: List[str]) -> bool:
+    '''
+    Check if any element in a list of strings is a substring of the provided string.
+
+    :param string: The string that is checked if it contains any of the substrings.
+    :param substring_list: A list of possible substrings.
+    :return: `True` if a substring is found and `False` otherwise.
+    '''
     return any(substring in string for substring in substring_list)
 
 
-def iter_element_and_rest(iterable: Iterable[T]) -> Tuple[T, Iterable[T]]:
+def iter_element_and_rest(iterable: Iterable[_T]) -> Iterator[Tuple[_T, Iterable[_T]]]:
+    '''
+    Iterate over each element of an iterable object (e.g. a list) and also get all other (remaining) elements
+    from the object.
+
+    :param iterable: The object that will be iterated over.
+    :return: A generator with tuples containing the item and the rest (all other elements).
+    '''
     for element in iterable:
-        rest = [e for e in iterable if e != element]
-        yield element, rest
+        yield element, [e for e in iterable if e != element]

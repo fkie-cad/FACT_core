@@ -2,16 +2,16 @@ import logging
 import pickle
 from multiprocessing import Process, Value
 from time import sleep
+from typing import Callable, Optional, Type
 
 from common_helper_mongo.gridfs import overwrite_file
 
 from helperFunctions.database import ConnectTo
-from helperFunctions.process import no_operation
 from helperFunctions.yara_binary_search import YaraBinarySearchScanner
 from intercom.common_mongo_binding import InterComListener, InterComListenerAndResponder, InterComMongoInterface
 from storage.binary_service import BinaryService
 from storage.db_interface_common import MongoInterfaceCommon
-from storage.fs_organizer import FS_Organizer
+from storage.fsorganizer import FSOrganizer
 
 
 class InterComBackEndBinding:
@@ -66,30 +66,30 @@ class InterComBackEndBinding:
         self._start_listener(InterComBackEndCompareTask, self.compare_service.add_task)
 
     def start_raw_download_listener(self):
-        self._start_listener(InterComBackEndRawDownloadTask, no_operation)
+        self._start_listener(InterComBackEndRawDownloadTask)
 
     def start_tar_repack_listener(self):
-        self._start_listener(InterComBackEndTarRepackTask, no_operation)
+        self._start_listener(InterComBackEndTarRepackTask)
 
     def start_binary_search_listener(self):
-        self._start_listener(InterComBackEndBinarySearchTask, no_operation)
+        self._start_listener(InterComBackEndBinarySearchTask)
 
     def start_delete_file_listener(self):
-        self._start_listener(InterComBackEndDeleteFile, no_operation)
+        self._start_listener(InterComBackEndDeleteFile)
 
-    def _start_listener(self, communication_backend, do_after_function):
-        process = Process(target=self._backend_worker, args=(communication_backend, do_after_function))
+    def _start_listener(self, listener: Type[InterComListener], do_after_function: Optional[Callable] = None):
+        process = Process(target=self._backend_worker, args=(listener, do_after_function))
         process.start()
         self.process_list.append(process)
 
-    def _backend_worker(self, communication_backend, do_after_function):
-        interface = communication_backend(config=self.config)
+    def _backend_worker(self, listener: Type[InterComListener], do_after_function: Optional[Callable]):
+        interface = listener(config=self.config)
         logging.debug('{} listener started'.format(type(interface).__name__))
         while self.stop_condition.value == 0:
             task = interface.get_next_task()
             if task is None:
                 sleep(self.poll_delay)
-            else:
+            elif do_after_function is not None:
                 do_after_function(task)
         interface.shutdown()
         logging.debug('{} listener stopped'.format(type(interface).__name__))
@@ -104,7 +104,7 @@ class InterComBackEndAnalysisPlugInsPublisher(InterComMongoInterface):
 
     def publish_available_analysis_plugins(self, analysis_service):
         available_plugin_dictionary = analysis_service.get_plugin_dict()
-        overwrite_file(self.connections['analysis_plugins']['fs'], 'plugin_dictonary', pickle.dumps(available_plugin_dictionary))
+        overwrite_file(self.connections['analysis_plugins']['fs'], 'plugin_dictionary', pickle.dumps(available_plugin_dictionary))
 
 
 class InterComBackEndAnalysisTask(InterComListener):
@@ -112,7 +112,7 @@ class InterComBackEndAnalysisTask(InterComListener):
     CONNECTION_TYPE = 'analysis_task'
 
     def additional_setup(self, config=None):
-        self.fs_organizer = FS_Organizer(config=config)
+        self.fs_organizer = FSOrganizer(config=config)
 
     def post_processing(self, task, task_id):
         self.fs_organizer.store_file(task)
@@ -124,11 +124,11 @@ class InterComBackEndReAnalyzeTask(InterComListener):
     CONNECTION_TYPE = 're_analyze_task'
 
     def additional_setup(self, config=None):
-        self.fs_organizer = FS_Organizer(config=config)
+        self.fs_organizer = FSOrganizer(config=config)
 
     def post_processing(self, task, task_id):
-        file_path = self.fs_organizer.generate_path(task)
-        task.set_file_path(file_path)
+        task.file_path = self.fs_organizer.generate_path(task)
+        task.create_binary_from_path()
         return task
 
 
@@ -185,7 +185,7 @@ class InterComBackEndDeleteFile(InterComListener):
     CONNECTION_TYPE = 'file_delete_task'
 
     def additional_setup(self, config=None):
-        self.fs_organizer = FS_Organizer(config=config)
+        self.fs_organizer = FSOrganizer(config=config)
 
     def post_processing(self, task, task_id):
         if self._entry_was_removed_from_db(task['_id']):

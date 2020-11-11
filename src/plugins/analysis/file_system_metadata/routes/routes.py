@@ -6,9 +6,9 @@ from flask import render_template_string
 from flask_restful import Resource
 
 from helperFunctions.database import ConnectTo
-from helperFunctions.rest import error_message, success_message
 from objects.file import FileObject
 from web_interface.components.component_base import ComponentBase
+from web_interface.rest.helper import error_message, success_message
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 

@@ -1,9 +1,17 @@
 import logging
+import sys
+from pathlib import Path
 from typing import Callable, List, NamedTuple, Optional
 
 from analysis.YaraPluginBase import YaraBasePlugin
-from helperFunctions.parsing import read_asn1_key, read_pkcs_cert, read_ssl_cert
 from helperFunctions.tag import TagColor
+
+try:
+    from ..internal.key_parser import read_asn1_key, read_pkcs_cert, read_ssl_cert
+except ImportError:
+    sys.path.append(str(Path(__file__).parent.parent / 'internal'))
+    from key_parser import read_asn1_key, read_pkcs_cert, read_ssl_cert
+
 
 Match = NamedTuple('Match', [('offset', int), ('label', str), ('matched_string', bytes)])
 

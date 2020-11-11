@@ -8,4 +8,10 @@
             <td><pre class="border rounded p-2 bg-light">{{ issue['line'] }}:{{ issue['column'] }} {{ issue['message'] | safe}}</pre></td>
         </tr>
     {% endfor %}
+    {% if 'warning' in firmware.processed_analysis[selected_analysis] %}
+        <tr class="table-warning">
+            <td>Warning</td>
+            <td>{{ firmware.processed_analysis[selected_analysis]['warning'] }}</td>
+        </tr>
+    {% endif %}
 {% endblock %}

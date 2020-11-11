@@ -8,13 +8,12 @@ from pymongo.errors import PyMongoError
 from helperFunctions.database import ConnectTo
 from helperFunctions.mongo_task_conversion import convert_analysis_task_to_fw_obj
 from helperFunctions.object_conversion import create_meta_dict
-from helperFunctions.rest import (
-    convert_rest_request, error_message, get_inverted_flag, get_paging, get_query, get_recursive_flag, get_summary_flag,
-    get_update, success_message
-)
 from intercom.front_end_binding import InterComFrontEndBinding
 from objects.firmware import Firmware
 from storage.db_interface_frontend import FrontEndDbInterface
+from web_interface.rest.helper import (
+    convert_rest_request, error_message, get_boolean_from_request, get_paging, get_query, get_update, success_message
+)
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
@@ -98,8 +97,8 @@ class RestFirmware(Resource):
     @staticmethod
     def _get_parameters_from_request(request_parameters):
         query = get_query(request_parameters)
-        recursive = get_recursive_flag(request_parameters)
-        inverted = get_inverted_flag(request_parameters)
+        recursive = get_boolean_from_request(request_parameters, 'recursive')
+        inverted = get_boolean_from_request(request_parameters, 'inverted')
         offset, limit = get_paging(request.args)
         if recursive and not query:
             raise ValueError('Recursive search is only permissible with non-empty query')
@@ -108,7 +107,7 @@ class RestFirmware(Resource):
         return query, recursive, inverted, offset, limit
 
     def _get_with_uid(self, uid):
-        summary = get_summary_flag(request.args)
+        summary = get_boolean_from_request(request.args, 'summary')
         if summary:
             with ConnectTo(FrontEndDbInterface, self.config) as connection:
                 firmware = connection.get_complete_object_including_all_summaries(uid)

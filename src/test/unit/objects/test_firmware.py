@@ -48,8 +48,7 @@ def test_create_firmware_container_raw():
 
 
 def test_create_firmware_from_file():
-    test_object = Firmware()
-    test_object.create_from_file('{}/test_data_file.bin'.format(get_test_data_dir()))
+    test_object = Firmware(file_path='{}/test_data_file.bin'.format(get_test_data_dir()))
     assert test_object.device_name is None
     assert test_object.size == 19
     assert test_object.binary == b'test string in file'

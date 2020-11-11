@@ -5,7 +5,6 @@ from itertools import chain
 
 from dateutil.relativedelta import relativedelta
 from flask import redirect, render_template, request, url_for
-from flask_paginate import Pagination
 
 from helperFunctions.config import read_list_from_config
 from helperFunctions.database import ConnectTo
@@ -18,6 +17,7 @@ from intercom.front_end_binding import InterComFrontEndBinding
 from storage.db_interface_frontend import FrontEndDbInterface
 from storage.db_interface_frontend_editing import FrontendEditingDbInterface
 from web_interface.components.component_base import ComponentBase
+from web_interface.pagination import extract_pagination_from_request, get_pagination
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
@@ -31,22 +31,6 @@ class DatabaseRoutes(ComponentBase):
         self._app.add_url_rule('/database/binary_search', 'database/binary_search', self._app_start_binary_search, methods=['GET', 'POST'])
         self._app.add_url_rule('/database/quick_search', 'database/quick_search', self._app_start_quick_search, methods=['GET'])
         self._app.add_url_rule('/database/database_binary_search_results.html', 'database/database_binary_search_results.html', self._app_get_binary_search_results)
-
-    def _get_page_items(self):
-        page = int(request.args.get('page', 1))
-        per_page = request.args.get('per_page')
-        if not per_page:
-            per_page = int(self._config['database']['results_per_page'])
-        else:
-            per_page = int(per_page)
-        offset = (page - 1) * per_page
-        return page, per_page, offset
-
-    @staticmethod
-    def _get_pagination(**kwargs):
-        kwargs.setdefault('record_name', 'records')
-        return Pagination(css_framework='bootstrap4', link_size='sm', show_single_page=False,
-                          format_total=True, format_number=True, **kwargs)
 
     @staticmethod
     def _add_date_to_query(query, date):
@@ -64,7 +48,7 @@ class DatabaseRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['basic_search'])
     def _app_show_browse_database(self, query: str = '{}', only_firmwares=False, inverted=False):
-        page, per_page = self._get_page_items()[0:2]
+        page, per_page = extract_pagination_from_request(request, self._config)[0:2]
         search_parameters = self._get_search_parameters(query, only_firmwares, inverted)
         try:
             firmware_list = self._search_database(
@@ -72,7 +56,7 @@ class DatabaseRoutes(ComponentBase):
                 only_firmwares=search_parameters['only_firmware'], inverted=search_parameters['inverted']
             )
             if self._query_has_only_one_result(firmware_list, search_parameters['query']):
-                return redirect(url_for('analysis/<uid>', uid=firmware_list[0][0]))
+                return redirect(url_for('show_analysis', uid=firmware_list[0][0]))
         except Exception as err:
             error_message = 'Could not query database: {} {}'.format(type(err), str(err))
             logging.error(error_message)
@@ -83,8 +67,7 @@ class DatabaseRoutes(ComponentBase):
             device_classes = connection.get_device_class_list()
             vendors = connection.get_vendor_list()
 
-        pagination = self._get_pagination(page=page, per_page=per_page, total=total, record_name='firmwares')
-        search_parameters['query_title'] = json.dumps(search_parameters['query_title'], indent=2) if search_parameters['query_title'] else None
+        pagination = get_pagination(page=page, per_page=per_page, total=total, record_name='firmwares')
         return render_template(
             'database/database_browse.html',
             firmware_list=firmware_list,
@@ -98,6 +81,11 @@ class DatabaseRoutes(ComponentBase):
         )
 
     def _get_search_parameters(self, query, only_firmware, inverted):
+        '''
+        This function prepares the requested search by parsing all necessary parameters.
+        In case of a binary search, indicated by the query being an uid instead of a dict, the cached search result is
+        retrieved.
+        '''
         search_parameters = dict()
         if request.args.get('query'):
             query = request.args.get('query')

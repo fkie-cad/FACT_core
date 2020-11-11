@@ -2,7 +2,6 @@ import logging
 from contextlib import suppress
 
 from flask import redirect, render_template, render_template_string, request, session, url_for
-from flask_paginate import Pagination
 
 from helperFunctions.database import ConnectTo
 from helperFunctions.dataConversion import (
@@ -13,6 +12,7 @@ from intercom.front_end_binding import InterComFrontEndBinding
 from storage.db_interface_compare import CompareDbInterface, FactCompareException
 from storage.db_interface_view_sync import ViewReader
 from web_interface.components.component_base import ComponentBase
+from web_interface.pagination import extract_pagination_from_request, get_pagination
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
@@ -124,7 +124,7 @@ class CompareRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['compare'])
     def _app_show_browse_compare(self):
-        page, per_page = self._get_page_items()[0:2]
+        page, per_page = extract_pagination_from_request(request, self._config)[0:2]
         try:
             with ConnectTo(CompareDbInterface, self._config) as db_service:
                 compare_list = db_service.page_compare_results(skip=per_page * (page - 1), limit=per_page)
@@ -136,49 +136,33 @@ class CompareRoutes(ComponentBase):
         with ConnectTo(CompareDbInterface, self._config) as connection:
             total = connection.get_total_number_of_results()
 
-        pagination = self._get_pagination(page=page, per_page=per_page, total=total, record_name='compare results', )
+        pagination = get_pagination(page=page, per_page=per_page, total=total, record_name='compare results')
         return render_template('database/compare_browse.html', compare_list=compare_list, page=page, per_page=per_page, pagination=pagination)
 
-    @staticmethod
-    def _get_pagination(**kwargs):
-        kwargs.setdefault('record_name', 'records')
-        return Pagination(css_framework='bootstrap3', link_size='sm', show_single_page=False,
-                          format_total=True, format_number=True, **kwargs)
-
-    def _get_page_items(self):
-        page = int(request.args.get('page', 1))
-        per_page = request.args.get('per_page')
-        if not per_page:
-            per_page = int(self._config['database']['results_per_page'])
-        else:
-            per_page = int(per_page)
-        offset = (page - 1) * per_page
-        return page, per_page, offset
-
     @roles_accepted(*PRIVILEGES['submit_analysis'])
-    def _add_to_compare_basket(self, uid):
+    def _add_to_compare_basket(self, uid):  # pylint: disable=no-self-use
         compare_uid_list = get_comparison_uid_list_from_session()
         compare_uid_list.append(uid)
         session.modified = True
-        return redirect(url_for('analysis/<uid>', uid=uid))
+        return redirect(url_for('show_analysis', uid=uid))
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
-    def _remove_from_compare_basket(self, analysis_uid, compare_uid):
+    def _remove_from_compare_basket(self, analysis_uid, compare_uid):  # pylint: disable=no-self-use
         compare_uid_list = get_comparison_uid_list_from_session()
         if compare_uid in compare_uid_list:
             session['uids_for_comparison'].remove(compare_uid)
             session.modified = True
-        return redirect(url_for('analysis/<uid>', uid=analysis_uid))
+        return redirect(url_for('show_analysis', uid=analysis_uid))
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
-    def _remove_all_from_compare_basket(self, analysis_uid):
+    def _remove_all_from_compare_basket(self, analysis_uid):  # pylint: disable=no-self-use
         compare_uid_list = get_comparison_uid_list_from_session()
         compare_uid_list.clear()
         session.modified = True
-        return redirect(url_for('analysis/<uid>', uid=analysis_uid))
+        return redirect(url_for('show_analysis', uid=analysis_uid))
 
 
-def get_comparison_uid_list_from_session():
+def get_comparison_uid_list_from_session():  # pylint: disable=invalid-name
     if 'uids_for_comparison' not in session or not isinstance(session['uids_for_comparison'], list):
         session['uids_for_comparison'] = []
     return session['uids_for_comparison']

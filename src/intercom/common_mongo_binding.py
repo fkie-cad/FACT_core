@@ -85,7 +85,7 @@ class InterComListener(InterComMongoInterface):
 
 class InterComListenerAndResponder(InterComListener):
     '''
-    CONNECTION_TYPE and OUTGOING_CONNECTION_TYPE must be implmented by the sub_class
+    CONNECTION_TYPE and OUTGOING_CONNECTION_TYPE must be implemented by the sub_class
     '''
 
     CONNECTION_TYPE = 'test'

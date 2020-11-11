@@ -1,8 +1,11 @@
-{% extends "base.html" %}
+{%- extends "base.html" -%}
 
-{% set active_page = "Upload" %}
+{%- import 'macros.html' as macros -%}
 
-{% block styles %}
+{%- set active_page = "Upload" -%}
+{%- set is_reanalysis = True if firmware else False -%}
+
+{%- block styles -%}
 <style>
     .search {
         text-align: right;
@@ -12,15 +15,19 @@
         overflow: hidden;
     }
 </style>
-{% endblock %}
+{%- endblock -%}
 
-{% block body %}
+{%- block body -%}
 
 <div class="row justify-content-center">
     <div class="col-xl-6 col-lg-8 mt-4">
-        <h3 class="mb-3">Upload Firmware</h3>
+        {%- if is_reanalysis %}
+            <h3 class="mb-3">{{ title }} of {{ firmware.uid | replace_uid_with_hid }}</h3>
+        {%- else %}
+            <h3 class="mb-3">Upload Firmware</h3>
+        {%- endif %}
 
-        <img id="map_img" src="{{url_for('.static', filename='Pacman.gif')}}" style="display: none;"/>
+        <img id="map_img" src="{{ url_for('.static', filename='Pacman.gif') }}" style="display: none;"/>
         <script>
             function showImg() {
                 document.getElementById("form").style.display = "";
@@ -30,229 +37,212 @@
         <div id="form">
             <form class="form-horizontal" action="" method=post enctype=multipart/form-data>
 
-                <label class="control-label" for="selectFile">File:</label>
-                <div class="form-group">
-                    <div{% if 'file' in error.keys() %} class="has-error"{% endif %}>
-                        <input class="form-control-file" id="selectFile" type="file" name=file required>
-                        {% if "file" in error.keys() %}
-                            <span class="help-block">{{ error["file"] }}</span>
-                        {% endif %}
-                    </div>
-                </div>
+                {# File #}
+                {%- if not is_reanalysis %}
+                    {% call macros.upload_input("file", "File", error) %}
+                        <input class="form-control-file" id="file" type="file" name=file required>
+                    {% endcall %}
+                {%- else %}
+                    <input type="hidden" name="file_name" id="file_name" value="{{ firmware.file_name }}">
+                {%- endif %}
 
                 <script>
-                    var device_class_dropdown = document.getElementById('device_class_dropdown');
-                    var vendor_dropdown = document.getElementById('vendor_dropdown');
+                    var device_names = {{ device_names | safe }};
+
                     function add_device_class_options(selected_device_class, selected_vendor, data) {
-                        $('#device_name_dropdown').empty();
+                        $('#device_name').empty();
                         if (data.hasOwnProperty(selected_device_class)) {
                             if (data[selected_device_class].hasOwnProperty(selected_vendor)) {
                                 var device_classes = data[selected_device_class][selected_vendor];
                                 device_classes.sort();
                                 for (var key in device_classes) {
                                     if (device_classes.hasOwnProperty(key)) {
-                                        $('#device_name_dropdown').append('<option>' + device_classes[key] + '</option>');
+                                        $('#device_name').append('<option>' + device_classes[key] + '</option>');
                                     }
                                 }
                             }
                         }
-                        $('#device_name_dropdown').append('<option>' + 'new entry' + '</option>');
+                        $('#device_name').append('<option>' + 'new entry' + '</option>');
                     }
-                    function update_text_input(this_select, this_text_input) {
-                        if (this_select.options[this_select.selectedIndex].value == 'new entry') {
+                    function update_text_input(element, this_text_input) {
+                        if (element.options[element.selectedIndex].value == 'new entry') {
                             this_text_input.style.display = 'initial';
                             this_text_input.value = ''
-                        }
-                        else {
+                        } else {
                             this_text_input.style.display = 'none';
-                            this_text_input.value = this_select.options[this_select.selectedIndex].value
+                            this_text_input.value = element.options[element.selectedIndex].value
+                        }
+                    }
+                    function update_device_names() {
+                        var vendor_dropdown = document.getElementById('vendor');
+                        var device_class_dropdown = document.getElementById('device_class');
+                        if ((vendor_dropdown.selectedIndex != -1) && (device_class_dropdown.selectedIndex != -1)) {
+                            document.getElementById('device_name').disabled = false;
+                            var selected_device_class = device_class_dropdown.options[device_class_dropdown.selectedIndex].value;
+                            var selected_vendor = vendor_dropdown.options[vendor_dropdown.selectedIndex].value;
+                            add_device_class_options(selected_device_class, selected_vendor, device_names);
                         }
                     }
                 </script>
 
-                <label class="control-label" for="device_class_dropdown">Device Class:</label>
-                <div class="form-group">
-                    <div{% if 'device_class' in error.keys() %} class="has-error"{% endif %}>
-                        <select class="form-control" id="device_class_dropdown" name='device_class_dropdown' size="4" required
-                                onchange="update_text_input(this, document.getElementById('class_text'));
-                                          if (vendor_dropdown.selectedIndex != -1){
-                                              document.getElementById('device_name_dropdown').disabled = false;
-                                              var selected_device_class = this.options[this.selectedIndex].value;
-                                              var selected_vendor = vendor_dropdown.options[vendor_dropdown.selectedIndex].value;
-                                              var data = eval({{ device_names }});
-                                              add_device_class_options(selected_device_class, selected_vendor, data);
-                                          }">
-                        {% for class in device_classes | sort %}
-                            <option value='{{ class }}'>{{ class }}</option>
-                        {% endfor %}
-                            <option value='new entry'>new entry</option>
-                        </select>
-                        <input type="text" name="device_class" class="form-control" id="class_text" placeholder="New Device Class" style="display: none;">
-                        {% if 'device_class' in error.keys() %}
-                            <span class="help-block">{{ error['device_class'] }}</span>
-                        {% endif %}
-                    </div>
-                </div>
+                {# Device Class #}
+                {%- call macros.upload_input("device_class", "Device Class", error) %}
+                    <select class="form-control" id="device_class" name='device_class_dropdown' size="4" required
+                            onchange="update_text_input(this, document.getElementById('class_text')); update_device_names();">
+                    {%- if is_reanalysis %}
+                        <option value='{{ firmware.device_class }}' selected>{{ firmware.device_class }}</option>
+                    {%- endif -%}
+                    {%- for class in device_classes | sort %}
+                        <option value='{{ class }}'>{{ class }}</option>
+                    {%- endfor %}
+                        <option value='new entry'>new entry</option>
+                    </select>
+                    <input type="text" name="device_class" class="form-control" id="class_text" placeholder="New Device Class" style="display: none;">
+                {%- endcall %}
 
-                <label class="control-label" for="vendor_dropdown">Vendor:</label>
-                <div class="form-group">
-                    <div{% if 'vendor' in error.keys() %} class="has-error"{% endif %}>
-                        <select class="form-control" id="vendor_dropdown" name='vendor_dropdown' size="4" required
-                                onchange="update_text_input(this, document.getElementById('vendor_text'));
-                                          if (device_class_dropdown.selectedIndex != -1){
-                                              document.getElementById('device_name_dropdown').disabled = false;
-                                              var selected_device_class = device_class_dropdown.options[device_class_dropdown.selectedIndex].value;
-                                              var selected_vendor = this.options[vendor_dropdown.selectedIndex].value;
-                                              var data = eval({{ device_names }});
-                                              add_device_class_options(selected_device_class, selected_vendor, data);
-                                          }">
-                        {% for vendor in vendors | sort %}
-                            <option value='{{ vendor }}'>{{ vendor }}</option>
-                        {% endfor %}
-                            <option value='new entry'>new entry</option>
-                        </select>
-                        <input type="text" name="vendor" class="form-control" id="vendor_text" placeholder="New Vendor" style="display: none;">
-                        {% if 'vendor' in error.keys() %}
-                            <span class="help-block">{{ error['vendor'] }}</span>
-                        {% endif %}
-                    </div>
-                </div>
+                {# Vendor #}
+                {%- call macros.upload_input("vendor", "Vendor", error) %}
+                    <select class="form-control" id="vendor" name='vendor_dropdown' size="4" required
+                            onchange="update_text_input(this, document.getElementById('vendor_text')); update_device_names()">
+                    {%- if is_reanalysis %}
+                        <option value='{{ firmware.vendor }}' selected>{{ firmware.vendor }}</option>
+                    {%- endif -%}
+                    {% for vendor in vendors | sort %}
+                        <option value='{{ vendor }}'>{{ vendor }}</option>
+                    {% endfor %}
+                        <option value='new entry'>new entry</option>
+                    </select>
+                    <input type="text" name="vendor" class="form-control" id="vendor_text" placeholder="New Vendor" style="display: none;">
+                {%- endcall %}
 
-                <label class="control-label" for="device_name_dropdown">Device Name:</label>
-                <div class="form-group">
-                    <div{% if 'device_name' in error.keys() %} class="has-error"{% endif %}>
-                        <select class="form-control" id="device_name_dropdown" name='device_name_dropdown' size="4" required disabled
-                                onchange="update_text_input(this, document.getElementById('device_name_text'));
-                                          if (device_name_dropdown.selectedIndex != -1){
-                                              document.getElementById('device_part_dropdown').disabled = false;
-                                          }
-                                ">
+                {# Device Name #}
+                {%- call macros.upload_input("device_name", "Device Name", error) %}
+                    <select class="form-control" id="device_name" name='device_name_dropdown' size="4" required
+                            {%- if not is_reanalysis %} disabled {% endif -%}
+                            onchange="update_text_input(this, document.getElementById('device_name_text'));
+                                      if (this.selectedIndex != -1){document.getElementById('device_part').disabled = false;}">
+                        {% if not is_reanalysis %}
                             <option value='new entry'>Please select device class and vendor</option>
-                        </select>
-                        <input type="text" name="device_name" class="form-control" id="device_name_text" placeholder="New Device Name" style="display: none;">
-                        {% if 'vendor' in error.keys() %}
-                            <span class="help-block">{{ error['vendor'] }}</span>
+                        {% else %}
+                            <option value='{{ firmware.device_name }}' selected>{{ firmware.device_name }}</option>
+                            <option value='new entry'>new entry</option>
                         {% endif %}
-                    </div>
-                </div>
+                    </select>
+                    <input type="text" name="device_name" class="form-control" id="device_name_text" placeholder="New Device Name" style="display: none;">
+                {%- endcall %}
 
-                <label class="control-label" for="device_part_dropdown">Device Part:</label>
-                <div class="form-group">
-                    <div{% if 'device_name' in error.keys() %} class="has-error"{% endif %}>
-                        <select class="form-control" id="device_part_dropdown" name='device_part_dropdown' size="4" required disabled
-                                onchange="update_text_input(this, document.getElementById('device_part_text'));">
-                            <option value='complete' selected='selected'>complete</option>
+                {# Device Part #}
+                {%- call macros.upload_input("device_part", "Device Part", error) %}
+                    <select class="form-control" id="device_part" name='device_part_dropdown' size="4" required
+                            {%- if not is_reanalysis %} disabled {% endif -%}
+                            onchange="update_text_input(this, document.getElementById('device_part_text'));">
+                        {%- if not is_reanalysis %}
+                            <option value='complete' selected>complete</option>
                             <option value='kernel'>kernel</option>
                             <option value='bootloader'>bootloader</option>
                             <option value='root-fs'>root-fs</option>
-                            <option value='new entry'>new entry</option>
-                        </select>
-                        <input type="text" name="device_part" class="form-control" id="device_part_text" placeholder="New Device Part" style="display: none;">
-                        {% if 'vendor' in error.keys() %}
-                            <span class="help-block">{{ error['vendor'] }}</span>
-                        {% endif %}
-                    </div>
-                </div>
+                        {%- else %}
+                            <option value='{{ firmware.part }}' selected>{{ firmware.part }}</option>
+                        {%- endif %}
+                        <option value='new entry'>new entry</option>
+                    </select>
+                    <input type="text" name="device_part" class="form-control" id="device_part_text" placeholder="New Device Part" style="display: none;">
+                {%- endcall %}
 
+                {# Version #}
+                {%- call macros.upload_input("version", "Version", error) %}
+                    <input type="text" name="version" class="form-control" id="version" required
+                           {%- if is_reanalysis %} value="{{ firmware.version }}" {% else %} placeholder="Version" {% endif -%}>
+                {%- endcall %}
 
-                {% set input_form_text = [
-                    ("Version", "version")
-                ] -%}
-                {% for label, id in input_form_text %}
-                    <label class="control-label" for="{{ id }}">{{ label }}:</label>
-                    <div class="form-group">
-                        <div{% if id in error.keys() %} class="has-error"{% endif %}>
-                            <input type="text" name="{{ id }}" class="form-control" id="{{ id }}" placeholder="{{ label }}" required>
-                            {% if id in error.keys() %}
-                                <span class="help-block">{{ error[id] }}</span>
-                            {% endif %}
-                        </div>
-                    </div>
-                {% endfor %}
-
-                <label for="datetimepicker2">Release Date:</label>
-                <div class="input-group{% if 'release_date' in error.keys() %} has-error{% endif %}">
+                {# Release Date #}
+                {%- call macros.upload_input("release_date", "Release Date", error, additional_classes='input-group') %}
                     <div class="input-group-prepend">
                         <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
                     </div>
-                    <input type="text" name="release_date" placeholder="Release Date" class="form-control" id="datetimepicker2">
+                    <input type="text" name="release_date" class="form-control" id="release_date"
+                           {%- if is_reanalysis %} value="{{ firmware.release_date }}"{% else %} placeholder="Release Date" {% endif %}>
                     <script type="text/javascript">
                         $(function () {
-                            $('#datetimepicker2').datepicker({
+                            $('#release_date').datepicker({
                                 format: 'yyyy-mm-dd',
                                 todayHighlight: true
                             });
                         });
                     </script>
-                    {% if 'release_date' in error.keys() %}
-                        <span class="help-block">{{ error['release_date'] }}</span>
-                    {% endif %}
-                </div>
+                {%- endcall %}
 
+                {# Tags #}
                 <label class="control-label" for="tags">Tags:</label>
                 <div class="form-group">
                     <div>
-                        <input type="text" name="tags" class="form-control" id="tags" placeholder="tags">
+                        <input type="text" name="tags" class="form-control" id="tags"
+                               {%- if is_reanalysis %} value="{{ ','.join(firmware.tags.keys()) }}"{% else %} placeholder="tags"{% endif %}>
                         <span class="help-block">Optional: Comma separated list (e.g: flashdump,partial)</span>
                     </div>
                 </div>
 
-                <script>
-                var plugin_dict = {{ analysis_plugin_dict | dict_to_json | safe }};
-
-                function change_selected_plugins(selected_theme) {
-                    var plugin;
-                    for(plugin in plugin_dict) {
-                        if(plugin_dict.hasOwnProperty(plugin)) {
-                            plugin_checkbox = document.getElementById(plugin);
-                            if (plugin_checkbox != null){
-                                if(plugin_dict[plugin][2][selected_theme] == true){
-                                    plugin_checkbox.firstElementChild.firstElementChild.checked = true;
-                                } else {
-                                    plugin_checkbox.firstElementChild.firstElementChild.checked = false;
-                                }
-                            }
-                        }
-                    }
-                }
-                </script>
-
+                {# Analysis Preset #}
                 <label class="control-label">Analysis Preset:</label>
                 <div class="form-group">
-                    <div class="col-lg-12 px-0">
-                        <select class="form-control" name='analysis_dropdown' id="analysis" onchange="change_selected_plugins(this.value);">
-                            {% for preset in analysis_presets %}
-                                <option value="{{ preset }}">{{ preset }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
+                    {%- if not is_reanalysis %}
+                        <script>
+                            var plugin_dict = {{ analysis_plugin_dict | dict_to_json | safe }};
+
+                            function change_selected_plugins(selected_theme) {
+                                for (var plugin in plugin_dict) {
+                                    if (plugin_dict.hasOwnProperty(plugin)) {
+                                        plugin_checkbox = document.getElementById(plugin);
+                                        if (plugin_checkbox != null) {
+                                            if (plugin_dict[plugin][2][selected_theme] == true) {
+                                                plugin_checkbox.firstElementChild.firstElementChild.checked = true;
+                                            } else {
+                                                plugin_checkbox.firstElementChild.firstElementChild.checked = false;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        </script>
+                        <div class="col-lg-12 px-0">
+                            <select class="form-control" name='analysis_dropdown' id="analysis" onchange="change_selected_plugins(this.value);">
+                                {% for preset in analysis_presets %}
+                                    <option value="{{ preset }}">{{ preset }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    {%- endif %}
                     <div class="col-lg-12 mt-4 px-0" style="column-count: 2;column-rule: 1px hidden black; column-gap:50px">
                         {% for system in analysis_plugin_dict.keys() | sort %}
                             {% if not analysis_plugin_dict[system][1] %}
-                            {# show if plug-in is not mandatory #}
-                            <div id="{{ system }}">
-                                <label class="checkbox-inline" data-toggle="tooltip" title="{{ analysis_plugin_dict[system][0] | safe }}">
-                                    {% if analysis_plugin_dict[system][2]['default'] %}
-                                        <input type=checkbox name="analysis_systems" value="{{ system }}" checked>
-                                    {% endif %}
-                                    {% if not analysis_plugin_dict[system][2]['default'] %}
-                                        <input type=checkbox name="analysis_systems" value="{{ system }}" unchecked>
-                                    {% endif %}
-                                    <font face="courier">{{ system | replace_underscore }}</font>
-                                    <br>
-                                </label>
-                            </div>
-                            {% endif %}
-                        {% endfor %}
+                                {# show if plug-in is not mandatory #}
+                                <div id="{{ system }}">
+                                    <label class="checkbox-inline" data-toggle="tooltip" title="{{ analysis_plugin_dict[system][0] | safe }}">
+                                        {% if analysis_plugin_dict[system][2]['default'] %}
+                                            <input type=checkbox name="analysis_systems" value="{{ system }}" checked>
+                                        {% endif %}
+                                        {% if not analysis_plugin_dict[system][2]['default'] %}
+                                            <input type=checkbox name="analysis_systems" value="{{ system }}" unchecked>
+                                        {% endif %}
+                                        <font face="courier">{{ system | replace_underscore }}</font>
+                                        <br>
+                                    </label>
+                                </div>
+                            {%- endif %}
+                        {%- endfor %}
                     </div>
                 </div>
 
                 <button type="submit" value=submit class="btn btn-primary" id="input_submit" onclick='showImg()'>
-                    <i class="fas fa-upload"></i> Submit
+                    {%- if is_reanalysis %}
+                        <i class="fas fa-redo-alt"></i> {{ title }}
+                    {%- else %}
+                        <i class="fas fa-upload"></i> Submit
+                    {%- endif %}
                 </button>
             </form>
         </div>
     </div>
 </div>
 
-{% endblock %}
+{%- endblock -%}

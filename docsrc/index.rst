@@ -24,6 +24,8 @@ Contents
    :caption: Modules:
 
    modules/helperFunctions
+   modules/objects
+   modules/web_interface
 
 
 Indices and tables

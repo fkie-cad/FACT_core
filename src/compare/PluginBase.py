@@ -1,6 +1,8 @@
-from helperFunctions.dependency import get_unmatched_dependencies
-from plugins.base import BasePlugin
 from abc import abstractmethod
+from typing import List, Set
+
+from objects.file import FileObject
+from plugins.base import BasePlugin
 
 
 class CompareBasePlugin(BasePlugin):
@@ -26,8 +28,16 @@ class CompareBasePlugin(BasePlugin):
         '''
         This function is called by the compare module.
         '''
-        missing_deps = get_unmatched_dependencies(fo_list, self.DEPENDENCIES)
+        missing_deps = _get_unmatched_dependencies(fo_list, self.DEPENDENCIES)
         if len(missing_deps) > 0:
-            return {'Compare Skipped': {'all': 'Required analysis not present: {}'.format(missing_deps)}}
-        else:
-            return self.compare_function(fo_list)
+            return {'Compare Skipped': {'all': 'Required analysis not present: {}'.format(', '.join(missing_deps))}}
+        return self.compare_function(fo_list)
+
+
+def _get_unmatched_dependencies(fo_list: List[FileObject], dependency_list: List[str]) -> Set[str]:
+    return {
+        dependency
+        for dependency in dependency_list
+        for fo in fo_list
+        if dependency not in fo.processed_analysis
+    }

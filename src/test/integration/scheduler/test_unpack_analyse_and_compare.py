@@ -16,9 +16,9 @@ from test.common_helper import clean_test_database, get_database_names, get_test
 from test.integration.common import MockFSOrganizer, initialize_config
 
 
-class TestFileAddition(TestCase):
+class TestFileAddition(TestCase):  # pylint: disable=too-many-instance-attributes
 
-    @mock.patch('unpacker.unpack.FS_Organizer', MockFSOrganizer)
+    @mock.patch('unpacker.unpack.FSOrganizer', MockFSOrganizer)
     def setUp(self):
         self._tmp_dir = TemporaryDirectory()
         self._config = initialize_config(self._tmp_dir)
@@ -87,7 +87,7 @@ class TestFileAddition(TestCase):
             },
             'Software': {
                 'Compare Skipped': {
-                    'all': 'Required analysis not present: [\'software_components\', \'software_components\']'
+                    'all': 'Required analysis not present: software_components'
                 }
             }
         }

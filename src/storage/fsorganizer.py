@@ -1,16 +1,15 @@
 import logging
-import os
+from pathlib import Path
 
-from common_helper_files import write_binary_to_file, create_dir_for_file, delete_file
+from common_helper_files import create_dir_for_file, delete_file, write_binary_to_file
 
 from helperFunctions.fileSystem import get_absolute_path
 
 
-class FS_Organizer(object):
+class FSOrganizer:
     '''
     This module organizes file system storage
     '''
-
     def __init__(self, config=None):
         self.config = config
         self.data_storage_path = get_absolute_path(self.config['data_storage']['firmware_file_storage_directory'])
@@ -22,7 +21,8 @@ class FS_Organizer(object):
         else:
             destination_path = self.generate_path(file_object)
             write_binary_to_file(file_object.binary, destination_path, overwrite=False)
-            file_object.set_file_path(destination_path)
+            file_object.file_path = destination_path
+            file_object.create_binary_from_path()
 
     def delete_file(self, uid):
         local_file_path = self.generate_path_from_uid(uid)
@@ -32,4 +32,4 @@ class FS_Organizer(object):
         return self.generate_path_from_uid(file_object.uid)
 
     def generate_path_from_uid(self, uid):
-        return os.path.join(self.data_storage_path, uid[0:2], uid)
+        return str(Path(self.data_storage_path) / uid[0:2] / uid)

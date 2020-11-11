@@ -11,7 +11,7 @@ from test.integration.common import MockDbInterface, MockFSOrganizer, initialize
 
 
 class TestFileAddition(unittest.TestCase):
-    @patch('unpacker.unpack.FS_Organizer', MockFSOrganizer)
+    @patch('unpacker.unpack.FSOrganizer', MockFSOrganizer)
     def setUp(self):
         self.mocked_interface = DatabaseMock()
         self.enter_patch = unittest.mock.patch(target='helperFunctions.database.ConnectTo.__enter__', new=lambda _: self.mocked_interface)

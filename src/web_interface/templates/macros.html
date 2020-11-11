@@ -10,9 +10,26 @@
     </div>
 {% endmacro %}
 
-{% macro stats_table_row(label, value, percent=False, link=None) %}
+{% macro stats_table_row(label, value, percent=False, link=None, tooltip=None) %}
     <tr>
-        <td style="text-align: left; padding:5px" {% if link %}onclick="location.href='{{ link }}'"{% endif %}>{{ label }}</td>
+        <td style="text-align: left; padding:5px"
+            {%- if link %} onclick="location.href='{{ link }}'"{% endif -%}
+            {%- if tooltip %} data-toggle="tooltip" title="{{ tooltip }}"{% endif -%}
+        >
+            {{ label }}
+        </td>
         <td style="text-align: right; padding:5px">{{ value }}{% if percent %}%{% endif %}</td>
     </tr>
+{%- endmacro %}
+
+{% macro upload_input(key, label, error, additional_classes='') %}
+    <label class="control-label" for="{{ key }}">{{ label }}:</label>
+    <div class="form-group">
+        <div class="{% if key in error.keys() %}has-error {% endif %}{{ additional_classes }}">
+            {{ caller() }}
+            {% if key in error.keys() %}
+                <span class="help-block">{{ error[key] }}</span>
+            {% endif %}
+        </div>
+    </div>
 {%- endmacro %}

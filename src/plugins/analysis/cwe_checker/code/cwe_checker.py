@@ -15,13 +15,13 @@ lifts to the following architectures:
 import json
 import logging
 from collections import defaultdict
-from subprocess import DEVNULL, PIPE, Popen
 
 from common_helper_process import execute_shell_command_get_return_code
+from helperFunctions.docker import run_docker_container
 
 from analysis.PluginBase import AnalysisBasePlugin
 
-BAP_TIMEOUT = 10  # in minutes
+TIMEOUT_IN_SECONDS = 600  # 10 minutes
 DOCKER_IMAGE = 'fkiecad/cwe_checker:latest'
 
 
@@ -39,13 +39,13 @@ class AnalysisPlugin(AnalysisBasePlugin):
     MIME_WHITELIST = ['application/x-executable', 'application/x-object', 'application/x-sharedlib']
     SUPPORTED_ARCHS = ['arm', 'x86', 'x64', 'mips', 'ppc']
 
-    def __init__(self, plugin_adminstrator, config=None, recursive=True, timeout=BAP_TIMEOUT * 60 + 10):
+    def __init__(self, plugin_administrator, config=None, recursive=True, timeout=TIMEOUT_IN_SECONDS + 30):
         self.config = config
         if not self._check_docker_installed():
             raise RuntimeError('Docker is not installed.')
         self._module_versions = self._get_module_versions()
         logging.info('Module versions are {}'.format(str(self._module_versions)))
-        super().__init__(plugin_adminstrator, config=config, plugin_path=__file__, recursive=recursive, timeout=timeout)
+        super().__init__(plugin_administrator, config=config, plugin_path=__file__, recursive=recursive, timeout=timeout)
 
     @staticmethod
     def _check_docker_installed():
@@ -53,11 +53,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return return_code == 0
 
     def _get_module_versions(self):
-        bap_command = self._build_bap_command_for_modules_versions()
-        output, return_code = execute_shell_command_get_return_code(bap_command)
-        if return_code != 0:
-            logging.error('Could not get module versions from Bap plugin: {} ({}). I tried the following command: {}'.format(
-                return_code, output, bap_command))
+        output = self._run_cwe_checker_to_get_module_versions()
+        if output is None:
+            logging.error('Could not get module versions from Bap plugin.')
             return {}
         return self._parse_module_versions(output)
 
@@ -71,14 +69,16 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return module_versions
 
     @staticmethod
-    def _build_bap_command_for_modules_versions():
+    def _run_cwe_checker_to_get_module_versions():
         # unfortunately, there must be a dummy file passed to BAP, I chose /bin/true because it is damn small
-        return 'docker run --rm {} bap /bin/true --pass=cwe-checker --cwe-checker-module-versions'.format(DOCKER_IMAGE)
+        return run_docker_container(DOCKER_IMAGE, timeout=60,
+                                    command='bap /bin/true --pass=cwe-checker --cwe-checker-module-versions')
 
     @staticmethod
-    def _build_bap_command(file_object):
-        return 'timeout --signal=SIGKILL {}m docker run --rm -v {}:/tmp/input {} bap /tmp/input '\
-               '--pass=cwe-checker --cwe-checker-json --cwe-checker-no-logging'.format(BAP_TIMEOUT, file_object.file_path, DOCKER_IMAGE)
+    def _run_cwe_checker_in_docker(file_object):
+        return run_docker_container(DOCKER_IMAGE, timeout=TIMEOUT_IN_SECONDS,
+                                    command='bap /tmp/input --pass=cwe-checker --cwe-checker-json --cwe-checker-no-logging',
+                                    mount=('/tmp/input', file_object.file_path))
 
     @staticmethod
     def _parse_bap_output(output):
@@ -106,18 +106,16 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return any(supported_arch in arch_type for supported_arch in self.SUPPORTED_ARCHS)
 
     def _do_full_analysis(self, file_object):
-        bap_command = self._build_bap_command(file_object)
-        pl = Popen(bap_command, shell=True, stdout=PIPE, stderr=DEVNULL)
-        output = pl.communicate()[0].decode('utf-8', errors='replace')
-        return_code = pl.returncode
-        if return_code in [0, 124, 128 + 9]:
-            cwe_messages = self._parse_bap_output(output)
-            file_object.processed_analysis[self.NAME] = {'full': cwe_messages, 'summary': list(cwe_messages.keys())}
-            if return_code in [124, 128 + 9]:
-                logging.warning('CWE-Checker timed out on {}. Warnings might not be complete.'.format(file_object.uid))
-                file_object.processed_analysis[self.NAME]['warning'] = 'Analysis timed out. Warnings might not be complete.'
+        output = self._run_cwe_checker_in_docker(file_object)
+        if output is not None:
+            try:
+                cwe_messages = self._parse_bap_output(output)
+                file_object.processed_analysis[self.NAME] = {'full': cwe_messages, 'summary': list(cwe_messages.keys())}
+            except json.JSONDecodeError:
+                logging.error('cwe_checker execution failed: {}\nUID: {}'.format(output, file_object.uid))
+                file_object.processed_analysis[self.NAME] = {'summary': []}
         else:
-            logging.error('Could not communicate with Bap plugin: {} ({})\nUID: {}'.format(return_code, output, file_object.uid))
+            logging.error('Timeout or error during cwe_checker execution.\nUID: {}'.format(file_object.uid))
             file_object.processed_analysis[self.NAME] = {'summary': []}
         return file_object
 

@@ -3,8 +3,8 @@ from pymongo.errors import PyMongoError
 
 from helperFunctions.database import ConnectTo
 from helperFunctions.object_conversion import create_meta_dict
-from helperFunctions.rest import error_message, get_paging, get_query, success_message
 from storage.db_interface_frontend import FrontEndDbInterface
+from web_interface.rest.helper import error_message, get_paging, get_query, success_message
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
