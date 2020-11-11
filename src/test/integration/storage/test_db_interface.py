@@ -136,10 +136,12 @@ class TestMongoInterface(unittest.TestCase):
         assert self.db_interface.sanitize_fs.find({'filename': gridfs_file_name}).count() == 1
         self.db_interface.sanitize_analysis(self.test_firmware.processed_analysis, self.test_firmware.uid)
         assert self.db_interface.sanitize_fs.find({'filename': gridfs_file_name}).count() == 1, 'duplicate entry was created'
+        md5 = self.db_interface.sanitize_fs.find_one({'filename': gridfs_file_name}).md5
 
         long_dict['stub_plugin']['result'] += 1  # new analysis result
         self.db_interface.sanitize_analysis(self.test_firmware.processed_analysis, self.test_firmware.uid)
         assert self.db_interface.sanitize_fs.find({'filename': gridfs_file_name}).count() == 1, 'duplicate entry was created'
+        assert self.db_interface.sanitize_fs.find_one({'filename': gridfs_file_name}).md5 != md5, 'hash of new file did not change'
 
     def test_retrieve_analysis(self):
         self.db_interface.sanitize_fs.put(pickle.dumps('This is a test!'), filename='test_file_path')
