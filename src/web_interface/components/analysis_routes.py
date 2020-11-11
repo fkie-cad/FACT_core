@@ -185,18 +185,16 @@ class AnalysisRoutes(ComponentBase):
                 "groups": []
             }
             groups = []
+            edge_id = 0
 
             for file_object in data:
                 if file_object['processed_analysis']['file_type']['mime'] in whitelist:
-                    node = {"label": file_object['file_name'], "id": file_object['_id'], "group": file_object['processed_analysis']['file_type']['mime']}
+                    node = {"label": file_object['file_name'], "id": file_object['_id'],
+                            "group": file_object['processed_analysis']['file_type']['mime'],
+                            "full_file_type": file_object['processed_analysis']['file_type']['full']}
 
                     if file_object['processed_analysis']['file_type']['mime'] not in groups:
                         groups.append(file_object['processed_analysis']['file_type']['mime'])
-
-                    # TODO: group symlinks with the original - but how, visually?
-                    # if file_object['processed_analysis']['file_type']['mime'] == 'inode/symlink':
-                    #     print('+++ SYMLINK +++\n', file_object['processed_analysis']['file_type'])
-                    #     print('+++ NODE +++ \n', node)
 
                     data_graph["nodes"].append(node)
 
@@ -206,13 +204,25 @@ class AnalysisRoutes(ComponentBase):
                 flash('Error: Graph could not be rendered. Try to use a different container as root! ', 'danger')
                 return render_template('dependency_graph.html', **data_graph, uid=uid)
 
+            for node in data_graph["nodes"]:
+                if node['group'] == 'inode/symlink':
+                    link_to = node['full_file_type'].split(' ')[3].split('\'')[1]
+                    for match in data_graph["nodes"]:
+                        if match['label'] == link_to:
+                            print('+++ NODE +++ \n', node['full_file_type'])
+                            print('+++ MATCHED +++ \n', match['label'])
+                            edge = {"source": match['id'], "target": node['id'],
+                                    "id": edge_id}
+                            data_graph['edges'].append(edge)
+                            edge_id += 1
+
             data.rewind()
 
             for file_object in data:
                 libraries = []
                 try:
                     libraries = file_object['processed_analysis']['elf_analysis']['Output']['libraries']
-                except:
+                except (IndexError, KeyError):
                     continue
 
                 for lib in libraries:
@@ -221,14 +231,11 @@ class AnalysisRoutes(ComponentBase):
                         if node["label"] == lib:
                             target_id = node["id"]
                     if target_id is not None:
-                        # TODO: add error handling in case id exists
-                        edge_id = random.randint(100000, 1000000)
                         edge = {"source": file_object['_id'], "target": target_id,
                                 "id": edge_id}
                         data_graph["edges"].append(edge)
+                        edge_id += 1
 
             # TODO: Add a loading icon?
-            # TODO: Add vis.js to deps
-            # TODO: Mark nodes according to neighbourhood on click
-            # TODO: Show additional info/ option to jump to linked file on click - Auf Rechtsklick verlinken
+            # TODO: Add vis.js to deps - download from cdn
         return render_template('dependency_graph.html', **data_graph, uid=uid)

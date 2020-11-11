@@ -16,15 +16,53 @@
             height: 800px;
             border: 3px solid lightgray;
         }
+
+        #mynetwork {
+            width: 600px;
+            height: 400px;
+            border: 1px solid lightgray;
+        }
+
+        .custom-menu {
+            display: none;
+            z-index: 1000;
+            position: absolute;
+            overflow: hidden;
+            border: 1px solid #CCC;
+            white-space: nowrap;
+            font-family: sans-serif;
+            background: #FFF;
+            color: #333;
+            border-radius: 5px;
+        }
+
+        .custom-menu li {
+            padding: 8px 12px;
+            cursor: pointer;
+        }
+
+        .custom-menu li:hover {
+            background-color: #DEF;
+        }
     </style>
-    <script src="{{ url_for('static', filename='vis/dist/vis.js') }}"></script>
+    <script src="{{ url_for('static', filename='node_modules/vis-network/dist/vis-network.js') }}"></script>
     <script src="{{ url_for('static', filename='js/districts.js') }}"></script>
-    <link href="{{ url_for('static', filename='vis/dist/vis.css') }}" rel="stylesheet" type="text/css" />
+    <link href="{{ url_for('static', filename='node_modules/vis-network/dist/dist/vis-network.min.css') }}" rel="stylesheet" type="text/css" />
 {% endblock %}
 
 
 {% block body %}
     <h3>Dependency Graph for File {{ uid }}</h3>
+    <div id='context-menu' class='custom-menu'>
+        <b>Additional information:</b>
+        <br>
+        <br>
+        Node:
+        <p id='node-link'>No node selected.</p>
+        <br>
+        File type:
+        <p id='file-type'>No node selected.</p>
+    </div>
     <table class="view">
         <tbody>
             <tr>
@@ -58,7 +96,7 @@
     var legend_container = document.getElementById("dependencyGraphLegend");
 
     for (i in get_nodes) {
-        my_nodes[i] = {id: get_nodes[i].id, label: get_nodes[i].label, group: get_nodes[i].group}
+        my_nodes[i] = {id: get_nodes[i].id, label: get_nodes[i].label, group: get_nodes[i].group, full_file_type: get_nodes[i].full_file_type}
     }
     for (i in get_edges) {
         my_edges[i] = {id: get_edges[i].id, from: get_edges[i].source, to: get_edges[i].target}
@@ -159,6 +197,11 @@
 
         allNodes = nodes.get({ returnType: "Object" });
         network.on("click", neighbourhoodHighlight);
+        network.on("click", function(properties) {
+            $(".custom-menu").hide(100);
+        });
+
+        network.on("oncontext", contextMenu);
 
         network.on("stabilizationIterationsDone", function (params) {
             network.stopSimulation();
@@ -209,8 +252,25 @@
         legend_network.stabilize(100);
     };
 
+    function contextMenu(params) {
+        params.event.preventDefault();
+        $(".custom-menu").finish().toggle(100);
+        $(".custom-menu").css({
+            top: params.event.pageY + "px",
+            left: params.event.pageX + "px"
+        });
+        var nodeId = network.getNodeAt(params.pointer.DOM);
+        var href = '/analysis/' + nodeId;
+        var nodeLabel = allNodes[nodeId].label;
+        var link = '<a href="' + href + '">' + nodeLabel + '</a>';
+        var fileType = allNodes[nodeId].full_file_type;
+        document.getElementById('node-link').innerHTML = link;
+        document.getElementById('file-type').innerHTML = fileType;
+    };
+
+
+
     function neighbourhoodHighlight(params) {
-        // console.log(params);
         // if something is selected:
         if (params.nodes.length > 0) {
             highlightActive = true;
@@ -219,8 +279,6 @@
             var degrees = 1;
 
             // mark all nodes as hard to read.
-            console.log("For 1");
-            console.log(allNodes);
             for (var nodeId in allNodes) {
                 allNodes[nodeId].color = "rgba(200,200,200,0.5)";
                 if (allNodes[nodeId].hiddenLabel === undefined) {
@@ -230,7 +288,6 @@
             }
 
             var connectedNodes = network.getConnectedNodes(selectedNode);
-            // console.log(connectedNodes);
             var allConnectedNodes = [];
 
             // get the second degree nodes
@@ -243,8 +300,6 @@
             }
 
             // all second degree nodes get a different color and their label back
-            console.log("For 2");
-            console.log(allNodes);
             for (i = 0; i < allConnectedNodes.length; i++) {
                 allNodes[allConnectedNodes[i]].color = "rgba(150,150,150,0.75)";
                 if (allNodes[allConnectedNodes[i]].hiddenLabel !== undefined) {
@@ -255,8 +310,6 @@
             }
 
             // all first degree nodes get their own color and their label back
-            console.log("For 3");
-            console.log(allNodes);
             for (i = 0; i < connectedNodes.length; i++) {
                 allNodes[connectedNodes[i]].color = undefined;
                 if (allNodes[connectedNodes[i]].hiddenLabel !== undefined) {
@@ -267,8 +320,6 @@
             }
 
             // the main node gets its own color and its label back.
-            console.log("Last");
-            console.log(allNodes);
             allNodes[selectedNode].color = undefined;
             if (allNodes[selectedNode].hiddenLabel !== undefined) {
                 allNodes[selectedNode].label = allNodes[selectedNode].hiddenLabel;
@@ -276,8 +327,6 @@
             }
         } else if (highlightActive === true) {
             // reset all nodes
-            console.log("Highlight active");
-            console.log(allNodes);
             for (var nodeId in allNodes) {
                 allNodes[nodeId].color = undefined;
                 if (allNodes[nodeId].hiddenLabel !== undefined) {
@@ -290,7 +339,6 @@
 
         // transform the object into an array
         var updateArray = [];
-        console.log(allNodes);
         for (nodeId in allNodes) {
             if (allNodes.hasOwnProperty(nodeId)) {
                 updateArray.push(allNodes[nodeId]);
