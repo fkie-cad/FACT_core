@@ -53,15 +53,21 @@
 
 {% block body %}
     <h3>Dependency Graph for File {{ uid }}</h3>
-    <div id='context-menu' class='custom-menu'>
-        <b>Additional information:</b>
-        <br>
-        <br>
-        Node:
-        <p id='node-link'>No node selected.</p>
-        <br>
-        File type:
-        <p id='file-type'>No node selected.</p>
+    <div id='context-menu' class='modal'>
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5>Additional information</h5>
+                </div>
+                <div class="modal-body">
+                    Node:
+                    <p id='node-link'>No node selected.</p>
+                    <br>
+                    File type:
+                    <p id='file-type'>No node selected.</p>
+                </div>
+            </div>
+        </div>
     </div>
     <table class="view">
         <tbody>
@@ -198,7 +204,7 @@
         allNodes = nodes.get({ returnType: "Object" });
         network.on("click", neighbourhoodHighlight);
         network.on("click", function(properties) {
-            $(".custom-menu").hide(100);
+            $(".modal").hide(100);
         });
 
         network.on("oncontext", contextMenu);
@@ -254,8 +260,8 @@
 
     function contextMenu(params) {
         params.event.preventDefault();
-        $(".custom-menu").finish().toggle(100);
-        $(".custom-menu").css({
+        $(".modal").finish().toggle(100);
+        $(".modal").css({
             top: params.event.pageY + "px",
             left: params.event.pageX + "px"
         });
