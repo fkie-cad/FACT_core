@@ -37,6 +37,7 @@ src/web_interface/static/entropy
 src/web_interface/static/google_charts
 src/web_interface/static/highlight.js
 src/web_interface/static/raw
+src/web_interface/static/vis
 src/web_interface/static/web_css
 src/web_interface/static/web_js
 start_all_installed_fact_components

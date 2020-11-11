@@ -182,8 +182,10 @@ class AnalysisRoutes(ComponentBase):
     @AppRoute('/dependency-graph/<uid>', GET)
     def show_elf_dependency_graph(self, uid):
         with ConnectTo(FrontEndDbInterface, self._config) as db:
-            data = db.file_objects.find({'parents': uid}, {'processed_analysis.elf_analysis': 1,
-                                                           'processed_analysis.file_type': 1, 'file_name': 1})
+            data = (
+                db.get_object(uid=entry['_id'], analysis_filter=['elf_analysis', 'file_type'])
+                for entry in db.file_objects.find({'parents': uid}, {'_id': 1})
+            )
 
             # TODO filter differently? Which mime types?
             whitelist = ['application/x-executable', 'application/x-sharedlib', 'inode/symlink']
@@ -197,13 +199,13 @@ class AnalysisRoutes(ComponentBase):
             edge_id = 0
 
             for file_object in data:
-                if file_object['processed_analysis']['file_type']['mime'] in whitelist:
-                    node = {"label": file_object['file_name'], "id": file_object['_id'],
-                            "group": file_object['processed_analysis']['file_type']['mime'],
-                            "full_file_type": file_object['processed_analysis']['file_type']['full']}
+                if file_object.processed_analysis['file_type']['mime'] in whitelist:
+                    node = {"label": file_object.file_name, "id": file_object.uid,
+                            "group": file_object.processed_analysis['file_type']['mime'],
+                            "full_file_type": file_object.processed_analysis['file_type']['full']}
 
-                    if file_object['processed_analysis']['file_type']['mime'] not in groups:
-                        groups.append(file_object['processed_analysis']['file_type']['mime'])
+                    if file_object.processed_analysis['file_type']['mime'] not in groups:
+                        groups.append(file_object.processed_analysis['file_type']['mime'])
 
                     data_graph["nodes"].append(node)
 
@@ -225,14 +227,19 @@ class AnalysisRoutes(ComponentBase):
                             data_graph['edges'].append(edge)
                             edge_id += 1
 
-            data.rewind()
+            data = (
+                db.get_object(uid=entry['_id'], analysis_filter=['elf_analysis', 'file_type'])
+                for entry in db.file_objects.find({'parents': uid}, {'_id': 1})
+            )
 
             for file_object in data:
-                libraries = []
                 try:
-                    libraries = file_object['processed_analysis']['elf_analysis']['Output']['libraries']
+                    libraries = file_object.processed_analysis['elf_analysis']['Output']['libraries']
                 except (IndexError, KeyError):
                     continue
+                except TypeError:
+                    print(file_object.processed_analysis['elf_analysis']['Output'])
+                    raise
 
                 for lib in libraries:
                     target_id = None
@@ -240,7 +247,7 @@ class AnalysisRoutes(ComponentBase):
                         if node["label"] == lib:
                             target_id = node["id"]
                     if target_id is not None:
-                        edge = {"source": file_object['_id'], "target": target_id,
+                        edge = {"source": file_object.uid, "target": target_id,
                                 "id": edge_id}
                         data_graph["edges"].append(edge)
                         edge_id += 1

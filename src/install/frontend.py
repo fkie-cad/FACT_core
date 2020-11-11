@@ -107,7 +107,7 @@ def _install_css_and_js_files():
         wget_static_web_content('https://github.com/vakata/jstree/zipball/3.3.9', '.', ['unzip 3.3.9', 'rm 3.3.9', 'rm -rf ./web_js/jstree/vakata*', 'mv vakata* web_js/jstree'], 'jstree')
         wget_static_web_content('https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js', '.', [], 'angularJS')
         wget_static_web_content('https://github.com/chartjs/Chart.js/releases/download/v2.3.0/Chart.js', '.', [], 'charts.js')
-        wget_static_web_content('https://github.com/almende/vis/archive/v4.21.0.zip', '.', ['unzip v4.21.0.zip', 'rm v4.21.0.zip', 'mv vis-4.21.0 vis'], 'vis')
+        wget_static_web_content('https://registry.npmjs.org/vis-network/-/vis-network-8.5.2.tgz', '.', ['tar xf vis-network-8.5.2.tgz', 'mv package/dist vis'], 'vis-network')
 
         _build_highlight_js()
 
