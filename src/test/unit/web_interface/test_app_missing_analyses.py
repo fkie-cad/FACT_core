@@ -14,6 +14,9 @@ class MissingAnalysesDbMock(DatabaseMock):
     def find_failed_analyses(self):
         return self.result
 
+    def find_orphaned_objects(self):
+        return self.result
+
 
 class TestAppMissingAnalyses(WebInterfaceTest):
     def setUp(self, db_mock=None):
