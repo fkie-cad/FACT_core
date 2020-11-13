@@ -1,6 +1,7 @@
 import json
 import logging
 import pickle
+from hashlib import md5
 from typing import List, Set
 
 import gridfs
@@ -178,11 +179,21 @@ class MongoInterfaceCommon(MongoInterface):  # pylint: disable=too-many-instance
         for analysis_key in analysis_dict[key].keys():
             if analysis_key != 'summary':
                 file_name = '{}_{}_{}'.format(get_safe_name(key), get_safe_name(analysis_key), uid)
-                self.sanitize_fs.put(pickle.dumps(analysis_dict[key][analysis_key]), filename=file_name)
+                self._store_in_sanitize_db(pickle.dumps(analysis_dict[key][analysis_key]), file_name)
                 tmp_dict[analysis_key] = file_name
             else:
                 tmp_dict[analysis_key] = analysis_dict[key][analysis_key]
         return tmp_dict
+
+    def _store_in_sanitize_db(self, content: bytes, file_name: str):
+        if self.sanitize_fs.exists({'filename': file_name}):
+            md5_hash = md5(content).hexdigest()
+            if self.sanitize_fs.exists({'md5': md5_hash}):
+                return  # there is already an up to date entry -> do nothing
+            for old_entry in self.sanitize_fs.find({'filename': file_name}):  # delete old entries first
+                logging.debug('deleting old sanitize db entry of {} with id {}'.format(file_name, old_entry._id))  # pylint: disable=protected-access
+                self.sanitize_fs.delete(old_entry._id)  # pylint: disable=protected-access
+        self.sanitize_fs.put(content, filename=file_name)
 
     def _retrieve_binaries(self, sanitized_dict, key):
         tmp_dict = {}
