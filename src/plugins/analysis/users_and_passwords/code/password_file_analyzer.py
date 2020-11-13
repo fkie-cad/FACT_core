@@ -1,10 +1,10 @@
 import logging
 import os
 import re
+from base64 import b64decode
 from contextlib import suppress
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-from base64 import b64decode
 
 from common_helper_process import execute_shell_command
 
@@ -59,10 +59,11 @@ class AnalysisPlugin(AnalysisBasePlugin):
     def _add_found_password_tag(self, file_object, result):
         for password_entry in result:
             if 'password' in result[password_entry]:
+                username = password_entry.split(':', 1)[0]
                 self.add_analysis_tag(
                     file_object,
-                    '{}_{}'.format(password_entry, result[password_entry]['password']),
-                    'Password: {}:{}'.format(password_entry, result[password_entry]['password']),
+                    '{}_{}'.format(username, result[password_entry]['password']),
+                    'Password: {}:{}'.format(username, result[password_entry]['password']),
                     TagColor.RED,
                     True
                 )
