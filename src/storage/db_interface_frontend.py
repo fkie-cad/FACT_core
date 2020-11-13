@@ -277,27 +277,29 @@ class FrontEndDbInterface(MongoInterfaceCommon):
                 parent_to_included.pop(parent_uid)
         return parent_to_included
 
-    def find_orphaned_objects(self):
+    def find_orphaned_objects(self) -> Dict[str, List[str]]:
         ''' find File Objects whose parent firmware is missing '''
         orphans_by_parent = {}
-        query_result = list(self.file_objects.aggregate([
+        fo_parent_uids = list(self.file_objects.aggregate([
             {'$unwind': '$parent_firmware_uids'},
             {'$group': {'_id': 0, 'all_parent_uids': {'$addToSet': '$parent_firmware_uids'}}}
         ], allowDiskUse=True))
-        if query_result:
-            fo_parent_firmware = set(query_result[0]['all_parent_uids'])
+        if fo_parent_uids:
+            fo_parent_firmware = set(fo_parent_uids[0]['all_parent_uids'])
             missing_uids = fo_parent_firmware.difference(self._get_all_firmware_uids())
             if missing_uids:
-                query_result = self.file_objects.find({'parent_firmware_uids': {'$in': list(missing_uids)}})
-                for fo_entry in query_result:
+                for fo_entry in self.file_objects.find({'parent_firmware_uids': {'$in': list(missing_uids)}}):
                     for uid in missing_uids:
                         if uid in fo_entry['parent_firmware_uids']:
                             orphans_by_parent.setdefault(uid, []).append(fo_entry['_id'])
         return orphans_by_parent
 
     def _get_all_firmware_uids(self) -> List[str]:
-        query_result = list(self.firmwares.aggregate([{'$group': {'_id': 0, 'firmware_uids': {'$push': '$_id'}}}]))
-        return list(query_result)[0]['firmware_uids'] if query_result else []
+        pipeline = [{'$group': {'_id': 0, 'firmware_uids': {'$push': '$_id'}}}]
+        try:
+            return list(self.firmwares.aggregate(pipeline, allowDiskUse=True))[0]['firmware_uids']
+        except IndexError:  # DB is empty
+            return []
 
     def find_missing_analyses(self):
         missing_analyses = {}
