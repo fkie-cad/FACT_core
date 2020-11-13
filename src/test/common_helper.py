@@ -371,6 +371,9 @@ class DatabaseMock:  # pylint: disable=too-many-public-methods
     def find_failed_analyses(self):
         return {'plugin': ['missing_child_uid']}
 
+    def find_orphaned_objects(self):
+        return {'root_fw_uid': ['missing_child_uid']}
+
 
 def fake_exit(self, *args):
     pass
