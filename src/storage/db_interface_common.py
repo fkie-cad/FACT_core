@@ -188,7 +188,7 @@ class MongoInterfaceCommon(MongoInterface):  # pylint: disable=too-many-instance
     def _store_in_sanitize_db(self, content: bytes, file_name: str):
         if self.sanitize_fs.exists({'filename': file_name}):
             md5_hash = md5(content).hexdigest()
-            if self.sanitize_fs.exists({'md5': md5_hash, 'filename': file_name}):
+            if self.sanitize_fs.exists({'md5': md5_hash}):
                 return  # there is already an up to date entry -> do nothing
             for old_entry in self.sanitize_fs.find({'filename': file_name}):  # delete old entries first
                 logging.debug('deleting old sanitize db entry of {} with id {}'.format(file_name, old_entry._id))  # pylint: disable=protected-access
