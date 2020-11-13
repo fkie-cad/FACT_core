@@ -23,7 +23,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     DEPENDENCIES = []
     MIME_BLACKLIST = ['audio', 'filesystem', 'image', 'video']
     DESCRIPTION = 'search for UNIX, httpd, and mosquitto password files, parse them and try to crack the passwords'
-    VERSION = '0.4.5'
+    VERSION = '0.4.6'
 
     wordlist_path = os.path.join(get_src_dir(), 'bin/passwords.txt')
 
