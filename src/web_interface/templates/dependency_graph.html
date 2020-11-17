@@ -16,35 +16,6 @@
             height: 800px;
             border: 3px solid lightgray;
         }
-
-        #mynetwork {
-            width: 600px;
-            height: 400px;
-            border: 1px solid lightgray;
-        }
-
-        .custom-menu {
-            display: none;
-            z-index: 1000;
-            position: absolute;
-            overflow: hidden;
-            border: 1px solid #CCC;
-            white-space: nowrap;
-            font-family: sans-serif;
-            background: #FFF;
-            color: #333;
-            border-radius: 5px;
-        }
-
-        .custom-menu li {
-            padding: 8px 12px;
-            cursor: pointer;
-        }
-
-
-        .custom-menu li:hover {
-            background-color: #DEF;
-        }
     </style>
     <script src="{{ url_for('static', filename='vis/vis-network.js') }}"></script>
     <link href="{{ url_for('static', filename='vis/dist/vis-network.min.css') }}" rel="stylesheet" type="text/css" />
