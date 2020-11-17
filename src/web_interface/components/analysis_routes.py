@@ -22,7 +22,7 @@ from storage.db_interface_frontend import FrontEndDbInterface
 from storage.db_interface_view_sync import ViewReader
 from web_interface.components.compare_routes import get_comparison_uid_list_from_session
 from web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
-# from web_interface.components.dependency_graph import *
+from web_interface.components.dependency_graph import create_data_graph_nodes_and_groups, create_data_graph_edges
 from web_interface.security.authentication import user_has_privilege
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
@@ -190,66 +190,18 @@ class AnalysisRoutes(ComponentBase):
 
             whitelist = ['application/x-executable', 'application/x-sharedlib', 'inode/symlink']
 
-            data_graph = {
-                'nodes': [],
-                'edges': [],
-                'groups': []
-            }
-            groups = []
-            edge_id = 0
+            data_graph_part = create_data_graph_nodes_and_groups(data, whitelist)
 
-            for file_object in data:
-                if file_object.processed_analysis['file_type']['mime'] in whitelist:
-                    node = {
-                        'label': file_object.file_name,
-                        'id': file_object.uid,
-                        'group': file_object.processed_analysis['file_type']['mime'],
-                        'full_file_type': file_object.processed_analysis['file_type']['full']
-                    }
-
-                    if file_object.processed_analysis['file_type']['mime'] not in groups:
-                        groups.append(file_object.processed_analysis['file_type']['mime'])
-
-                    data_graph['nodes'].append(node)
-
-            data_graph['groups'] = groups
-
-            if not data_graph['nodes']:
+            if not data_graph_part['nodes']:
                 flash('Error: Graph could not be rendered. Try to use a different container as root! ', 'danger')
-                return render_template('dependency_graph.html', **data_graph, uid=uid)
-
-            for node in data_graph['nodes']:
-                if node['group'] == 'inode/symlink':
-                    link_to = node['full_file_type'].split(' ')[3].split('\'')[1]
-                    for match in data_graph['nodes']:
-                        if match['label'] == link_to:
-                            edge = {'source': match['id'], 'target': node['id'], 'id': edge_id}
-                            data_graph['edges'].append(edge)
-                            edge_id += 1
+                return render_template('dependency_graph.html', **data_graph_part, uid=uid)
 
             data = (
                 db.get_object(uid=entry['_id'], analysis_filter=['elf_analysis', 'file_type'])
                 for entry in db.file_objects.find({'parents': uid}, {'_id': 1})
             )
 
-            for file_object in data:
-                try:
-                    libraries = file_object.processed_analysis['elf_analysis']['Output']['libraries']
-                except (IndexError, KeyError):
-                    continue
-                except TypeError:
-                    print(file_object.processed_analysis['elf_analysis']['Output'])
-                    raise
-
-                for lib in libraries:
-                    target_id = None
-                    for node in data_graph['nodes']:
-                        if node['label'] == lib:
-                            target_id = node['id']
-                    if target_id is not None:
-                        edge = {'source': file_object.uid, 'target': target_id, 'id': edge_id}
-                        data_graph['edges'].append(edge)
-                        edge_id += 1
+            data_graph = create_data_graph_edges(data, data_graph_part)
 
             # TODO: Add a loading icon?
         return render_template('dependency_graph.html', **data_graph, uid=uid)
