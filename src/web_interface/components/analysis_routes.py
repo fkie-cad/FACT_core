@@ -22,6 +22,7 @@ from storage.db_interface_frontend import FrontEndDbInterface
 from storage.db_interface_view_sync import ViewReader
 from web_interface.components.compare_routes import get_comparison_uid_list_from_session
 from web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
+# from web_interface.components.dependency_graph import *
 from web_interface.security.authentication import user_has_privilege
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
@@ -187,7 +188,6 @@ class AnalysisRoutes(ComponentBase):
                 for entry in db.file_objects.find({'parents': uid}, {'_id': 1})
             )
 
-            # TODO filter differently? Which mime types?
             whitelist = ['application/x-executable', 'application/x-sharedlib', 'inode/symlink']
 
             data_graph = {
