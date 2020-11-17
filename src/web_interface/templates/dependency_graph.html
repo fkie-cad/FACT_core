@@ -52,12 +52,14 @@
 
 
 {% block body %}
-    <h3>Dependency Graph for File {{ uid }}</h3>
-    <div id='context-menu' class='modal'>
-        <div class="modal-dialog">
+    <div class="modal" id="context-menu" tabindex="-1" role="dialog" aria-labelledby="contextLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5>Additional information</h5>
+                    <h5 class="modal-title" id="contextLabel">Additional information</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
                 </div>
                 <div class="modal-body">
                     Node:
@@ -69,6 +71,7 @@
             </div>
         </div>
     </div>
+    <h3>Dependency Graph for File {{ uid }}</h3>
     <table class="view">
         <tbody>
             <tr>
@@ -203,9 +206,6 @@
 
         allNodes = nodes.get({ returnType: "Object" });
         network.on("click", neighbourhoodHighlight);
-        network.on("click", function(properties) {
-            $(".modal").hide(100);
-        });
 
         network.on("oncontext", contextMenu);
 
@@ -260,11 +260,7 @@
 
     function contextMenu(params) {
         params.event.preventDefault();
-        $(".modal").finish().toggle(100);
-        $(".modal").css({
-            top: params.event.pageY + "px",
-            left: params.event.pageX + "px"
-        });
+        $('#context-menu').modal()
         var nodeId = network.getNodeAt(params.pointer.DOM);
         var href = '/analysis/' + nodeId;
         var nodeLabel = allNodes[nodeId].label;
