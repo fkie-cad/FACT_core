@@ -50,13 +50,16 @@ class AdminDbInterface(MongoInterfaceCommon):
         for key in fo_entry['processed_analysis']:
             try:
                 if fo_entry['processed_analysis'][key]['file_system_flag']:
-                    for analysis_key in fo_entry['processed_analysis'][key].keys():
-                        if analysis_key != 'file_system_flag' and isinstance(fo_entry['processed_analysis'][key][analysis_key], str):
-                            sanitize_id = fo_entry['processed_analysis'][key][analysis_key]
-                            entry = self.sanitize_fs.find_one({'filename': sanitize_id})
-                            self.sanitize_fs.delete(entry._id)
+                    self._delete_sanitized_entry(fo_entry, key)
             except KeyError:
                 logging.warning('key error while deleting analysis for {}:{}'.format(fo_entry['_id'], key))
+
+    def _delete_sanitized_entry(self, fo_entry, key):
+        for analysis_key in fo_entry['processed_analysis'][key].keys():
+            if analysis_key != 'file_system_flag' and isinstance(fo_entry['processed_analysis'][key][analysis_key], str):
+                sanitize_id = fo_entry['processed_analysis'][key][analysis_key]
+                for entry in self.sanitize_fs.find({'filename': sanitize_id}):  # could be multiple
+                    self.sanitize_fs.delete(entry._id)  # pylint: disable=protected-access
 
     def _remove_virtual_path_entries(self, root_uid, fo_uid):
         '''

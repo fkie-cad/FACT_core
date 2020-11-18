@@ -78,6 +78,7 @@ class MiscellaneousRoutes(ComponentBase):
     def _app_find_missing_analyses(self):
         template_data = {
             'missing_files': self._find_missing_files(),
+            'orphaned_files': self._find_orphaned_files(),
             'missing_analyses': self._find_missing_analyses(),
             'failed_analyses': self._find_failed_analyses(),
         }
@@ -87,6 +88,16 @@ class MiscellaneousRoutes(ComponentBase):
         start = time()
         with ConnectTo(FrontEndDbInterface, config=self._config) as db:
             parent_to_included = db.find_missing_files()
+        return {
+            'tuples': list(parent_to_included.items()),
+            'count': self._count_values(parent_to_included),
+            'duration': format_time(time() - start),
+        }
+
+    def _find_orphaned_files(self):
+        start = time()
+        with ConnectTo(FrontEndDbInterface, config=self._config) as db:
+            parent_to_included = db.find_orphaned_objects()
         return {
             'tuples': list(parent_to_included.items()),
             'count': self._count_values(parent_to_included),

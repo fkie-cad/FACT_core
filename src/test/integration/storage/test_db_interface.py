@@ -13,6 +13,8 @@ from storage.db_interface_common import MongoInterfaceCommon
 from storage.MongoMgr import MongoMgr
 from test.common_helper import create_test_file_object, create_test_firmware, get_config_for_testing, get_test_data_dir
 
+# pylint: disable=protected-access,attribute-defined-outside-init
+
 TESTS_DIR = get_test_data_dir()
 test_file_one = path.join(TESTS_DIR, 'get_files_test/testfile1')
 TMP_DIR = TemporaryDirectory(prefix='fact_test_')
@@ -123,6 +125,23 @@ class TestMongoInterface(unittest.TestCase):
         self.assertIn('file_system_flag', sanitized_dict['stub_plugin'].keys())
         self.assertTrue(sanitized_dict['stub_plugin']['file_system_flag'])
         self.assertEqual(type(sanitized_dict['stub_plugin']['summary']), list)
+
+    def test_sanitize_db_duplicates(self):
+        long_dict = {'stub_plugin': {'result': 10000000000, 'misc': 'Bananarama', 'summary': []}}
+        gridfs_file_name = 'stub_plugin_result_{}'.format(self.test_firmware.uid)
+
+        self.test_firmware.processed_analysis = long_dict
+        assert self.db_interface.sanitize_fs.find({'filename': gridfs_file_name}).count() == 0
+        self.db_interface.sanitize_analysis(self.test_firmware.processed_analysis, self.test_firmware.uid)
+        assert self.db_interface.sanitize_fs.find({'filename': gridfs_file_name}).count() == 1
+        self.db_interface.sanitize_analysis(self.test_firmware.processed_analysis, self.test_firmware.uid)
+        assert self.db_interface.sanitize_fs.find({'filename': gridfs_file_name}).count() == 1, 'duplicate entry was created'
+        md5 = self.db_interface.sanitize_fs.find_one({'filename': gridfs_file_name}).md5
+
+        long_dict['stub_plugin']['result'] += 1  # new analysis result
+        self.db_interface.sanitize_analysis(self.test_firmware.processed_analysis, self.test_firmware.uid)
+        assert self.db_interface.sanitize_fs.find({'filename': gridfs_file_name}).count() == 1, 'duplicate entry was created'
+        assert self.db_interface.sanitize_fs.find_one({'filename': gridfs_file_name}).md5 != md5, 'hash of new file did not change'
 
     def test_retrieve_analysis(self):
         self.db_interface.sanitize_fs.put(pickle.dumps('This is a test!'), filename='test_file_path')
@@ -273,14 +292,14 @@ class TestSummary(unittest.TestCase):
         self.assertIn(self.test_fw.uid, result_set_fw, 'fw not in result set firmware')
 
     def test_get_uids_of_all_included_files(self):
-        def add_test_file_to_db_with_parent_uids(uid, parent_uids: Set[str]):
+        def add_test_file_to_db(uid, parent_uids: Set[str]):
             test_fo = create_test_file_object()
             test_fo.parent_firmware_uids = parent_uids
             test_fo.uid = uid
             self.db_interface_backend.add_object(test_fo)
-        add_test_file_to_db_with_parent_uids('uid1', {'foo'})
-        add_test_file_to_db_with_parent_uids('uid2', {'foo', 'bar'})
-        add_test_file_to_db_with_parent_uids('uid3', {'bar'})
+        add_test_file_to_db('uid1', {'foo'})
+        add_test_file_to_db('uid2', {'foo', 'bar'})
+        add_test_file_to_db('uid3', {'bar'})
         result = self.db_interface.get_uids_of_all_included_files('foo')
         assert result == {'uid1', 'uid2'}
 

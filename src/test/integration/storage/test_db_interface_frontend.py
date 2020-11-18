@@ -218,6 +218,22 @@ class TestStorageDbInterfaceFrontend(unittest.TestCase):
         missing_files = self.db_frontend_interface.find_missing_files()
         assert missing_files == {}
 
+    def test_find_orphaned_objects(self):
+        test_fo = create_test_file_object()
+        test_fo.uid = 'fo_uid'
+        test_fo.parent_firmware_uids = ['missing_parent_uid']
+        self.db_backend_interface.add_file_object(test_fo)
+        orphans = self.db_frontend_interface.find_orphaned_objects()
+        assert 'missing_parent_uid' in orphans
+        assert orphans['missing_parent_uid'] == ['fo_uid']
+
+        test_fw = create_test_firmware()
+        test_fw.uid = 'missing_parent_uid'
+        self.db_backend_interface.add_firmware(test_fw)
+
+        orphans = self.db_frontend_interface.find_orphaned_objects()
+        assert len(orphans) == 0
+
     def test_find_missing_analyses(self):
         test_fw_1 = create_test_firmware()
         test_fo = create_test_file_object()
