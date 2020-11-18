@@ -6,15 +6,11 @@
     <title>Dependency Graph</title>
     <style type="text/css">
         #dependencyGraph {
-            width: 1200px;
             height: 800px;
-            border: 3px solid lightgray;
         }
 
         #dependencyGraphLegend {
-            width: 400px;
-            height: 800px;
-            border: 3px solid lightgray;
+            height: 500px;
         }
     </style>
     <script src="{{ url_for('static', filename='vis/vis-network.js') }}"></script>
@@ -42,19 +38,32 @@
             </div>
         </div>
     </div>
-    <h3>Dependency Graph for File {{ uid }}</h3>
-    <table class="view">
-        <tbody>
-            <tr>
-                <td>
-                    <div id="dependencyGraph"></div>
-                </td>
-                <td>
-                    <div id="dependencyGraphLegend"></div>
-                </td>
-            </tr>
-        </tbody>
-    </table>
+    <div class="header mb-4" style="word-wrap: break-word">
+        <h3>
+            Dependency Graph for File {{ uid | replace_uid_with_hid }}
+            <br>
+            <span style="font-size: 15px"><strong>UID:</strong> {{ uid }}</span>
+        </h3>
+    </div>
+
+
+
+
+    <div class="row mb-3">
+        <div class="col-md-8">
+            <div id="dependencyGraph"></div>
+        </div>
+        <div class="col-md-4">
+            <div class="header mb-4" style="word-wrap: break-word">
+                <h4 style="text-align: center">Legend</h4>
+            </div>
+            <div id="dependencyGraphLegend"></div>
+            <span style="font-size: 15px">
+                A context menu providing additional information about the nodes is available on right click.
+            </span>
+        </div>
+    </div>
+
 <!--  insert js graph magic here  -->
 <script>
     var nodes, groups, edges, network, legend_network, allNodes;
@@ -87,17 +96,21 @@
 
     // create an array with nodes
     nodes = new vis.DataSet();
-    // computeNodesPositionsDistricts(my_nodes, groups);
     nodes.add(my_nodes);
 
     // create a legend
+    // and change group colors
     var legend_nodes = new vis.DataSet();
     var legend_nodes_array = [];
     var x = 0;
     var y = 0;
     var step = 60;
 
-    var group;
+    var group_options = {};
+    // bootstrap colors cyan, yellow, pink, blue, purple, orange
+    var available_colors = ['#17a2b8', '#ffc107', '#e83e8c', '#007bff', '#6f42c1', '#fd7e14'];
+    color_i = 0;
+
     var id = 1;
     var step_i = 0;
     for (j in groups) {
@@ -113,6 +126,8 @@
         });
         id = id + 1;
         step_i = step_i + 1;
+        group_options [groups[j]] = {color: available_colors[color_i]};
+        color_i = (color_i + 1)%available_colors.length;
     }
     legend_nodes.add(legend_nodes_array);
 
@@ -148,6 +163,7 @@
                     face: 'Tahoma'
                 }
             },
+            groups: group_options,
             edges: {
                 color:{inherit:true},
                 width: 0.15,
@@ -202,6 +218,7 @@
                     face: 'Tahoma'
                 }
             },
+            groups: group_options,
             interaction: {
                 hideEdgesOnDrag: true,
                 tooltipDelay: 200

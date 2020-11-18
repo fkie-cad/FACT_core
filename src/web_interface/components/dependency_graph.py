@@ -53,7 +53,7 @@ def create_symbolic_link_edges(data_graph):
             link_to = node['full_file_type'].split(' ')[3].split('\'')[1]
             for match in data_graph['nodes']:
                 if match['label'] == link_to:
-                    edge = {'source': match['id'], 'target': node['id'], 'id': edge_id}
+                    edge = {'source': node['id'], 'target': match['id'], 'id': edge_id}
                     data_graph['edges'].append(edge)
                     edge_id += 1
     return data_graph, edge_id
