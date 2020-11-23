@@ -68,6 +68,8 @@ class TestObjectsFile:  # pylint: disable=no-self-use
         fo.root_uid = 'uid_c'
         assert fo.get_virtual_paths_for_one_uid() == ['test_file_path_c']
 
-    def test_get_virtual_path_for_none_existing_uid(self):
-        fo = FileObject(binary=b'foo')
-        assert fo.get_virtual_paths_for_one_uid(root_uid='none_existing') == ['insufficient information: firmware analysis not complete']
+    def test_get_virtual_path_for_non_existing_root(self):
+        fo = FileObject(binary=b'foo')  # fo.virtual_file_path is empty
+        assert fo.get_virtual_paths_for_one_uid(root_uid='non_existing') == [fo.uid]
+        fo.virtual_file_path = {'other_root': ['some_vfp']}
+        assert fo.get_virtual_paths_for_one_uid(root_uid='non_existing') == ['some_vfp']

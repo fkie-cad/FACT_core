@@ -174,6 +174,7 @@ class FilterClass:
         self._app.jinja_env.filters['remaining_time'] = elapsed_time
         self._app.jinja_env.filters['render_analysis_tags'] = flt.render_analysis_tags
         self._app.jinja_env.filters['render_general_information'] = self._render_general_information_table
+        self._app.jinja_env.filters['render_query_title'] = flt.render_query_title
         self._app.jinja_env.filters['render_tags'] = flt.render_tags
         self._app.jinja_env.filters['replace_comparison_uid_with_hid'] = self._filter_replace_comparison_uid_with_hid
         self._app.jinja_env.filters['replace_uid_with_file_name'] = self._filter_replace_uid_with_file_name

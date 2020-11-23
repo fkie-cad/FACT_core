@@ -18,9 +18,13 @@ class RestMissingAnalyses(Resource):
     @roles_accepted(*PRIVILEGES['delete'])
     def get(self):
         with ConnectTo(FrontEndDbInterface, self.config) as db:
-            missing_files = self._make_json_serializable(db.find_missing_files())
-            missing_analyses = self._make_json_serializable(db.find_missing_analyses())
-        return success_message(dict(missing_files=missing_files, missing_analyses=missing_analyses), self.URL)
+            missing_analyses_data = {
+                'missing_files': self._make_json_serializable(db.find_missing_files()),
+                'missing_analyses': self._make_json_serializable(db.find_missing_analyses()),
+                'failed_analyses': db.find_failed_analyses(),
+                'orphaned_objects': db.find_orphaned_objects(),
+            }
+        return success_message(missing_analyses_data, self.URL)
 
     @staticmethod
     def _make_json_serializable(set_dict: Dict[str, Set[str]]) -> Dict[str, List[str]]:

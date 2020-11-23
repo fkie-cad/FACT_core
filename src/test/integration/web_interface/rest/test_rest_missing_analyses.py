@@ -42,3 +42,24 @@ class TestRestMissingAnalyses(RestTestBase):
         assert test_fw.uid in response['missing_analyses']
         assert test_fo.uid in response['missing_analyses'][test_fw.uid]
         assert response['missing_files'] == {}
+
+    def test_rest_get_failed_analyses(self):
+        test_fo = create_test_file_object()
+        test_fo.processed_analysis['some_analysis'] = {'failed': 'oops'}
+        self.db_backend.add_file_object(test_fo)
+
+        response = json.loads(self.test_client.get('/rest/missing', follow_redirects=True).data.decode())
+        assert 'failed_analyses' in response
+        assert 'some_analysis' in response['failed_analyses']
+        assert test_fo.uid in response['failed_analyses']['some_analysis']
+
+    def test_rest_get_orphaned_objects(self):
+        test_fo = create_test_file_object()
+        test_fo.parent_firmware_uids = ['missing_uid']
+        self.db_backend.add_file_object(test_fo)
+
+        response = json.loads(self.test_client.get('/rest/missing', follow_redirects=True).data.decode())
+        assert 'orphaned_objects' in response
+        assert response['orphaned_objects'] == {
+            'missing_uid': ['d558c9339cb967341d701e3184f863d3928973fccdc1d96042583730b5c7b76a_62']
+        }

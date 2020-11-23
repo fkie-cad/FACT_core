@@ -58,6 +58,20 @@
                 {% endfor %}
 {% endcall %}
 
+{# orphaned_files #}
+{% call missing_analyses_block(orphaned_files, "Orphaned Files", "Missing Parent Firmware UID", "File UID") %}
+                {%- for parent_uid, uid_list in orphaned_files.tuples | sort -%}
+                <tr>
+                    <td>
+                        {{ parent_uid }}
+                    </td>
+                    <td>
+                        {{ uid_list | nice_uid_list(filename_only=True) | safe }}
+                    </td>
+                </tr>
+                {%- endfor -%}
+{% endcall %}
+
 {# missing_analyses #}
 {% call missing_analyses_block(missing_analyses, "Missing Analyses", "Parent Firmware", "Files Missing Analyses") %}
                 {% for parent_uid, uid_list in missing_analyses.tuples | sort -%}
