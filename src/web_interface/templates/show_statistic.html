@@ -183,6 +183,25 @@
 {% endif %}
 
 
+{# ------ ELF Executable Stats ------ #}
+
+{% if stats["elf_executable_stats"] %}
+    {% if stats["elf_executable_stats"]["executable_stats"] %}
+        {% call macros.stats_panel("ELF Executables") %}
+            <canvas id="elf_executable_canvas" width="100%" height="{{ stats['elf_executable_stats']['executable_stats'] | get_canvas_height }}"></canvas>
+            <script>
+                create_horizontal_bar_chart(
+                    canvas_id="elf_executable_canvas",
+                    chart_data={{ stats["elf_executable_stats"]["executable_stats"] | data_to_chart_with_value_percentage_pairs(limit=11) | safe }},
+                    link="{{ query_url + {'processed_analysis.file_type.full': {'$regex': 'PLACEHOLDER'}} | json_dumps | urlencode }}",
+                    value_percentage_present_flag=true, links_in_data=true
+                );
+            </script>
+        {% endcall %}
+    {% endif %}
+{% endif %}
+
+
 {# ------ Malware Stats ------ #}
 
 	{% if (stats["malware_stats"]["malware"] | length) > 0 %}
