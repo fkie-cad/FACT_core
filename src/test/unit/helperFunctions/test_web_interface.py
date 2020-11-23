@@ -3,10 +3,8 @@ from flask_security.core import AnonymousUser, RoleMixin, UserMixin
 from werkzeug.local import LocalProxy
 
 from helperFunctions.web_interface import (
-    cap_length_of_element, filter_out_illegal_characters, format_si_prefix, format_time, get_radare_endpoint,
-    password_is_legal, virtual_path_element_to_span
+    _format_si_prefix, cap_length_of_element, filter_out_illegal_characters, format_time, password_is_legal
 )
-from test.common_helper import get_config_for_testing
 from web_interface.security.authentication import user_has_privilege
 
 
@@ -56,25 +54,6 @@ def test_password_is_legal(input_data, expected):
     assert password_is_legal(input_data) == expected
 
 
-def test_get_radare_endpoint():
-    config = get_config_for_testing()
-
-    assert config.get('ExpertSettings', 'nginx') == 'false'
-    assert get_radare_endpoint(config) == 'http://localhost:8000'
-
-    config.set('ExpertSettings', 'nginx', 'true')
-    assert get_radare_endpoint(config) == 'https://localhost/radare'
-
-
-@pytest.mark.parametrize('hid, uid, expected_output', [
-    ('foo', 'bar', 'badge-secondary">foo'),
-    ('foo', 'a152ccc610b53d572682583e778e43dc1f24ddb6577255bff61406bc4fb322c3_21078024', 'badge-primary">    <a'),
-    ('suuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuper/long/human_readable_id', 'bar', '~uuuuuuuuuuuuuuuuuuuuuuuuuuuuper/long/human_readable_id'),
-])
-def test_virtual_path_element_to_span(hid, uid, expected_output):
-    assert expected_output in virtual_path_element_to_span(hid, uid, 'root_uid')
-
-
 @pytest.mark.parametrize('element_in, element_out', [
     ('A' * 55, 'A' * 55),
     ('A' * 56, '~' + 'A' * 54),
@@ -94,7 +73,7 @@ def test_cap_length_of_element_short():
     (1234.5, 'm', '1.23 km'),
 ])
 def test_format_si_prefix(number, unit, expected_output):
-    assert format_si_prefix(number, unit) == expected_output
+    assert _format_si_prefix(number, unit) == expected_output
 
 
 @pytest.mark.parametrize('seconds, expected_output', [
