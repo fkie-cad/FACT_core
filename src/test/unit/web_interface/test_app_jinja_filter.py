@@ -4,10 +4,12 @@ from flask import render_template_string
 from test.unit.web_interface.base import WebInterfaceTest
 from web_interface.components.jinja_filter import FilterClass
 
+# pylint: disable=protected-access
+
 
 class TestAppShowAnalysis(WebInterfaceTest):
 
-    def setUp(self):
+    def setUp(self):  # pylint: disable=arguments-differ
         super().setUp()
         self.filter = FilterClass(self.frontend.app, '', self.config)
 
@@ -33,14 +35,14 @@ class TestAppShowAnalysis(WebInterfaceTest):
 
     def test_filter_replace_uid_with_hid(self):
         one_uid = '{}_1234'.format('a' * 64)
-        assert 'TEST_FW_HID_TEST_FW_HID' == self.filter._filter_replace_uid_with_hid('{}_{}'.format(one_uid, one_uid))
+        assert self.filter._filter_replace_uid_with_hid('{0}_{0}'.format(one_uid)) == 'TEST_FW_HID_TEST_FW_HID'
 
     def test_filter_replace_comparison_uid_with_hid(self):
         one_uid = '{}_1234'.format('a' * 64)
-        assert 'TEST_FW_HID  ||  TEST_FW_HID' == self.filter._filter_replace_comparison_uid_with_hid('{};{}'.format(one_uid, one_uid))
+        assert self.filter._filter_replace_comparison_uid_with_hid('{0};{0}'.format(one_uid)) == 'TEST_FW_HID  ||  TEST_FW_HID'
 
 
-def test_split_user_and_password_type_entry():
+def test_split_user_and_password_type_entry():  # pylint: disable=invalid-name
     new_test_entry_form = {'test:mosquitto': {'password': '123456'}}
     old_test_entry_form = {'test': {'password': '123456'}}
     expected_new_entry = {'test': {'mosquitto': {'password': '123456'}}}
