@@ -121,7 +121,7 @@ def _format_si_prefix(number: float, unit: str) -> str:
 
 def format_time(seconds: float) -> str:
     '''
-    Format a duration value for display in the web interface.
+    Format a duration value to be displayed in the web interface.
 
     :param seconds: The duration in seconds.
     :return: The formatted duration.
