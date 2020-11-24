@@ -1,3 +1,8 @@
+from itertools import chain, islice, repeat
+
+from helperFunctions.web_interface import get_color_list
+
+
 def create_data_graph_nodes_and_groups(data, whitelist):
 
     data_graph = {
@@ -71,3 +76,9 @@ def find_edges(data_graph, edge_id, lib, file_object):
         edge_id += 1
 
     return data_graph, edge_id
+
+
+def get_graph_colors():
+    available_colors = get_color_list(10)
+    color_list = list(islice(chain(*repeat(available_colors, 3)), None, None, 4))
+    return color_list

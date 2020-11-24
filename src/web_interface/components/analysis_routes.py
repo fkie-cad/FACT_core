@@ -22,7 +22,9 @@ from storage.db_interface_frontend import FrontEndDbInterface
 from storage.db_interface_view_sync import ViewReader
 from web_interface.components.compare_routes import get_comparison_uid_list_from_session
 from web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
-from web_interface.components.dependency_graph import create_data_graph_nodes_and_groups, create_data_graph_edges
+from web_interface.components.dependency_graph import (
+    create_data_graph_edges, create_data_graph_nodes_and_groups, get_graph_colors
+)
 from web_interface.security.authentication import user_has_privilege
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
@@ -183,10 +185,7 @@ class AnalysisRoutes(ComponentBase):
     @AppRoute('/dependency-graph/<uid>', GET)
     def show_elf_dependency_graph(self, uid):
         with ConnectTo(FrontEndDbInterface, self._config) as db:
-            data = (
-                db.get_object(uid=entry['_id'], analysis_filter=['elf_analysis', 'file_type'])
-                for entry in db.file_objects.find({'parents': uid}, {'_id': 1})
-            )
+            data = db.get_data_for_dependency_graph(uid)
 
             whitelist = ['application/x-executable', 'application/x-sharedlib', 'inode/symlink']
 
@@ -196,12 +195,11 @@ class AnalysisRoutes(ComponentBase):
                 flash('Error: Graph could not be rendered. Try to use a different container as root! ', 'danger')
                 return render_template('dependency_graph.html', **data_graph_part, uid=uid)
 
-            data = (
-                db.get_object(uid=entry['_id'], analysis_filter=['elf_analysis', 'file_type'])
-                for entry in db.file_objects.find({'parents': uid}, {'_id': 1})
-            )
+            data = db.get_data_for_dependency_graph(uid)
 
             data_graph = create_data_graph_edges(data, data_graph_part)
 
+            color_list = get_graph_colors()
+
             # TODO: Add a loading icon?
-        return render_template('dependency_graph.html', **data_graph, uid=uid)
+        return render_template('dependency_graph.html', **data_graph, uid=uid, color_list=color_list)

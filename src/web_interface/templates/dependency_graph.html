@@ -107,8 +107,14 @@
     var step = 60;
 
     var group_options = {};
-    // bootstrap colors cyan, yellow, pink, blue, purple, orange
-    var available_colors = ['#17a2b8', '#ffc107', '#e83e8c', '#007bff', '#6f42c1', '#fd7e14'];
+    var color_list = []
+    if (typeof {{ color_list | safe }} !== 'undefined' && {{ color_list | safe }}.length > 0) {
+        color_list = {{ color_list | safe }}
+    } else {
+        // bootstrap colors cyan, yellow, pink, blue, purple, orange
+        color_list = ['#17a2b8', '#ffc107', '#e83e8c', '#007bff', '#6f42c1', '#fd7e14'];
+    }
+    console.log(color_list);
     color_i = 0;
 
     var id = 1;
@@ -126,8 +132,8 @@
         });
         id = id + 1;
         step_i = step_i + 1;
-        group_options [groups[j]] = {color: available_colors[color_i]};
-        color_i = (color_i + 1)%available_colors.length;
+        group_options [groups[j]] = {color: color_list[color_i]};
+        color_i = (color_i + 1)%color_list.length;
     }
     legend_nodes.add(legend_nodes_array);
 
