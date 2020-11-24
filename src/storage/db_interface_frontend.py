@@ -327,3 +327,8 @@ class FrontEndDbInterface(MongoInterfaceCommon):
             {'$group': {'_id': '$analysis.k', 'UIDs': {'$addToSet': '$_id'}}},
         ], allowDiskUse=True)
         return {entry['_id']: entry['UIDs'] for entry in query_result}
+
+    def get_data_for_dependency_graph(self, uid):
+        data = (self.get_object(uid=entry['_id'], analysis_filter=['elf_analysis', 'file_type'])
+                for entry in self.file_objects.find({'parents': uid}, {'_id': 1}))
+        return data
