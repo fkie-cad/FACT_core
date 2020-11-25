@@ -13,16 +13,16 @@ def create_data_graph_nodes_and_groups(data, whitelist):
     groups = []
 
     for file_object in data:
-        if file_object.processed_analysis['file_type']['mime'] in whitelist:
+        if file_object['processed_analysis']['file_type']['mime'] in whitelist:
             node = {
-                'label': file_object.file_name,
-                'id': file_object.uid,
-                'group': file_object.processed_analysis['file_type']['mime'],
-                'full_file_type': file_object.processed_analysis['file_type']['full']
+                'label': file_object['file_name'],
+                'id': file_object['_id'],
+                'group': file_object['processed_analysis']['file_type']['mime'],
+                'full_file_type': file_object['processed_analysis']['file_type']['full']
             }
 
-            if file_object.processed_analysis['file_type']['mime'] not in groups:
-                groups.append(file_object.processed_analysis['file_type']['mime'])
+            if file_object['processed_analysis']['file_type']['mime'] not in groups:
+                groups.append(file_object['processed_analysis']['file_type']['mime'])
 
             data_graph['nodes'].append(node)
 
@@ -37,11 +37,11 @@ def create_data_graph_edges(data, data_graph):
 
     for file_object in data:
         try:
-            libraries = file_object.processed_analysis['elf_analysis']['Output']['libraries']
+            libraries = file_object['processed_analysis']['elf_analysis']['Output']['libraries']
         except (IndexError, KeyError):
             continue
         except TypeError:
-            print(file_object.processed_analysis['elf_analysis']['Output'])
+            print(file_object['processed_analysis']['elf_analysis']['Output'])
             raise
 
         for lib in libraries:
@@ -71,7 +71,7 @@ def find_edges(data_graph, edge_id, lib, file_object):
         if node['label'] == lib:
             target_id = node['id']
     if target_id is not None:
-        edge = {'source': file_object.uid, 'target': target_id, 'id': edge_id}
+        edge = {'source': file_object['_id'], 'target': target_id, 'id': edge_id}
         data_graph['edges'].append(edge)
         edge_id += 1
 

@@ -195,8 +195,6 @@ class AnalysisRoutes(ComponentBase):
                 flash('Error: Graph could not be rendered. Try to use a different container as root! ', 'danger')
                 return render_template('dependency_graph.html', **data_graph_part, uid=uid)
 
-            data = db.get_data_for_dependency_graph(uid)
-
             data_graph = create_data_graph_edges(data, data_graph_part)
 
             color_list = get_graph_colors()
