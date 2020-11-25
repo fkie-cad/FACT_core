@@ -36,13 +36,13 @@ class TestAnalysisPluginPasswordFileAnalyzer(AnalysisPluginTest):
         self.assertIn('password', results['johndoe:unix'])
         self.assertEqual(results['johndoe:unix']['type'], 'unix')
         self.assertEqual(results['johndoe:unix']['password'], '123456')
-        self.assertEqual(results['tags']['johndoe:unix_123456']['value'], 'Password: johndoe:unix:123456')
+        self.assertEqual(results['tags']['johndoe_123456']['value'], 'Password: johndoe:123456')
         self.assertIn('type', results['test:mosquitto'])
         self.assertIn('password-hash', results['test:mosquitto'])
         self.assertIn('password', results['test:mosquitto'])
         self.assertEqual(results['test:mosquitto']['type'], 'mosquitto')
         self.assertEqual(results['test:mosquitto']['password'], '123456')
-        self.assertEqual(results['tags']['test:mosquitto_123456']['value'], 'Password: test:mosquitto:123456')
+        self.assertEqual(results['tags']['test_123456']['value'], 'Password: test:123456')
 
     def test_process_object_password_in_binary_file(self):
         test_file = FileObject(file_path=str(TEST_DATA_DIR / 'passwd.bin'))
