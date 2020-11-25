@@ -90,8 +90,8 @@ def get_template_as_string(view_name: str) -> str:
 
 def password_is_legal(pw: str) -> bool:
     '''
-    Check if a given password is not erroneously identified as an hashed password string (which might cause
-    unexpected behavior.
+    Check whether a given password is erroneously identified as an hashed password string (which might cause
+    unexpected behavior).
 
     :param pw: The password string.
     :return: ``True`` if the password is accepted and ``False`` otherwise.
