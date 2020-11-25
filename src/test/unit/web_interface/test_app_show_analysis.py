@@ -40,3 +40,9 @@ class TestAppShowAnalysis(WebInterfaceTest):
         assert post_new.status_code == 302
         assert self.mocked_interface.tasks
         assert self.mocked_interface.tasks[0].scheduled_analysis == ['plugin_a', 'plugin_b']
+
+    def test_app_dependency_graph(self):
+        result = self.test_client.get('/dependency-graph/{}'.format('testgraph'))
+        print(result.data)
+        assert b'<strong>UID:</strong> ' + make_bytes('testgraph') in result.data
+        assert b'Error: Graph could not be rendered. Try to use a different container as root!' not in result.data
