@@ -80,5 +80,5 @@ def find_edges(data_graph, edge_id, lib, file_object):
 
 def get_graph_colors():
     available_colors = get_color_list(10)
-    color_list = list(islice(chain(*repeat(available_colors, 3)), None, None, 4))
+    color_list = list(islice(chain(*repeat(available_colors, 4)), None, None, 4))
     return color_list
