@@ -329,9 +329,10 @@ class FrontEndDbInterface(MongoInterfaceCommon):
         return {entry['_id']: entry['UIDs'] for entry in query_result}
 
     def get_data_for_dependency_graph(self, uid):
-        data = list(self.file_objects.find({'parents': uid},
-                                           {'_id': 1, 'processed_analysis.elf_analysis': 1,
-                                            'processed_analysis.file_type': 1, 'file_name': 1}))
+        data = list(self.file_objects.find(
+            {'parents': uid}, 
+            {'_id': 1, 'processed_analysis.elf_analysis': 1, 'processed_analysis.file_type': 1, 'file_name': 1})
+        )
         for entry in data:
             self.retrieve_analysis(entry['processed_analysis'])
         return data
