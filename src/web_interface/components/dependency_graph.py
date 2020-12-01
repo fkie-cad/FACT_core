@@ -61,7 +61,7 @@ def create_symbolic_link_edges(data_graph):
                     edge = {'source': node['id'], 'target': match['id'], 'id': edge_id}
                     data_graph['edges'].append(edge)
                     edge_id += 1
-    return data_graph, edge_id
+    return edge_id
 
 
 def find_edges(data_graph, edge_id, lib, file_object):
