@@ -61,7 +61,7 @@ def create_symbolic_link_edges(data_graph):
                     edge = {'source': node['id'], 'target': match['id'], 'id': edge_id}
                     data_graph['edges'].append(edge)
                     edge_id += 1
-    return data_graph, edge_id
+    return edge_id
 
 
 def find_edges(data_graph, edge_id, lib, file_object):
@@ -76,10 +76,10 @@ def find_edges(data_graph, edge_id, lib, file_object):
         data_graph['edges'].append(edge)
         edge_id += 1
 
-    return data_graph, edge_id
+    return edge_id
 
 
 def get_graph_colors():
     available_colors = get_color_list(10)
-    color_list = list(islice(chain(*repeat(available_colors, 3)), None, None, 4))
+    color_list = list(islice(chain(*repeat(available_colors, 4)), None, None, 4))
     return color_list
