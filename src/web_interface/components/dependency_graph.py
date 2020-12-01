@@ -33,7 +33,7 @@ def create_data_graph_nodes_and_groups(data, whitelist):
 
 def create_data_graph_edges(data, data_graph):
 
-    data_graph, edge_id = create_symbolic_link_edges(data_graph)
+    edge_id = create_symbolic_link_edges(data_graph)
 
     for file in data:
         try:
@@ -45,7 +45,7 @@ def create_data_graph_edges(data, data_graph):
             raise
 
         for lib in libraries:
-            data_graph, edge_id = find_edges(data_graph, edge_id, lib, file)
+            edge_id = find_edges(data_graph, edge_id, lib, file)
 
     return data_graph
 
