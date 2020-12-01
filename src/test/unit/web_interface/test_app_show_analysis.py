@@ -43,6 +43,5 @@ class TestAppShowAnalysis(WebInterfaceTest):
 
     def test_app_dependency_graph(self):
         result = self.test_client.get('/dependency-graph/{}'.format('testgraph'))
-        print(result.data)
-        assert b'<strong>UID:</strong> ' + make_bytes('testgraph') in result.data
+        assert b'<strong>UID:</strong> testgraph' in result.data
         assert b'Error: Graph could not be rendered. Try to use a different container as root!' not in result.data

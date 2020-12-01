@@ -74,9 +74,9 @@
         return JSON.stringify(obj, null, 4);
     }
 
-    var get_nodes = eval( {{ nodes | safe }} )
-    var get_edges = eval( {{ edges | safe }} )
-    var get_groups = eval( {{ groups | safe }} )
+    var get_nodes = {{ nodes | safe }}
+    var get_edges = {{ edges | safe }}
+    var get_groups = {{ groups | safe }}
     var my_nodes = []
     var my_edges = []
     groups = []
@@ -107,14 +107,11 @@
     var step = 60;
 
     var group_options = {};
-    var color_list = []
-    if (typeof {{ color_list | safe }} !== 'undefined' && {{ color_list | safe }}.length > 0) {
-        color_list = {{ color_list | safe }}
-    } else {
+    var color_list = {{ color_list | safe }}
+    if (typeof color_list === 'undefined' || color_list.length <= 0) {
         // bootstrap colors cyan, yellow, pink, blue, purple, orange
         color_list = ['#17a2b8', '#ffc107', '#e83e8c', '#007bff', '#6f42c1', '#fd7e14'];
     }
-    console.log(color_list);
     color_i = 0;
 
     var id = 1;
@@ -137,9 +134,6 @@
     }
     legend_nodes.add(legend_nodes_array);
 
-    var legend_edges = new vis.DataSet();
-    legend_edges.add([]);
-
     // create an array with edges
     edges = new vis.DataSet();
     edges.add(my_edges);
@@ -152,7 +146,6 @@
 
     var legend_data = {
         nodes: legend_nodes,
-        edges: legend_edges,
     };
 
     function draw_network() {
