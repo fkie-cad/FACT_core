@@ -14,9 +14,11 @@ from test.common_helper import clean_test_database, get_database_names, get_test
 from test.integration.common import initialize_config
 from web_interface.frontend_main import WebFrontEnd
 
-first_root_id = '5fadb36c49961981f8d87cc21fc6df73a1b90aa1857621f2405d317afb994b64_68415'
-second_root_id = '0383cac1dd8fbeb770559163edbd571c21696c435a4942bec6df151983719731_52143'
-target_uid = '49543bc7128542b062d15419c90459be65ca93c3134554bc6224e307b359c021_9968'
+# pylint: disable=redefined-outer-name
+
+FIRST_ROOT_ID = '5fadb36c49961981f8d87cc21fc6df73a1b90aa1857621f2405d317afb994b64_68415'
+SECOND_ROOT_ID = '0383cac1dd8fbeb770559163edbd571c21696c435a4942bec6df151983719731_52143'
+TARGET_UID = '49543bc7128542b062d15419c90459be65ca93c3134554bc6224e307b359c021_9968'
 TMP_DIR = TemporaryDirectory(prefix="fact_test_")
 
 
@@ -96,8 +98,8 @@ def test_check_collision(test_app, test_scheduler, finished_event, intermediate_
 
     finished_event.wait(timeout=30)
 
-    first_response = test_app.get('/analysis/{}/ro/{}'.format(target_uid, first_root_id))
+    first_response = test_app.get('/analysis/{}/ro/{}'.format(TARGET_UID, FIRST_ROOT_ID))
     assert b'insufficient information' not in first_response.data
 
-    second_response = test_app.get('/analysis/{}/ro/{}'.format(target_uid, second_root_id))
+    second_response = test_app.get('/analysis/{}/ro/{}'.format(TARGET_UID, SECOND_ROOT_ID))
     assert b'insufficient information' not in second_response.data
