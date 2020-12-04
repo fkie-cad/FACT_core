@@ -40,9 +40,6 @@ def create_data_graph_edges(data, data_graph):
             libraries = file['processed_analysis']['elf_analysis']['Output']['libraries']
         except (IndexError, KeyError):
             continue
-        except TypeError:
-            print(file['processed_analysis']['elf_analysis']['Output'])
-            raise
 
         for lib in libraries:
             edge_id = find_edges(data_graph, edge_id, lib, file)
