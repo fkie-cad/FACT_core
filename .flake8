@@ -1,0 +1,12 @@
+[flake8]
+ignore = E501,W503
+select = E504
+exclude =
+    .git,
+    __pycache__,
+    src/bin,
+    src/install/compose-env
+per-file-ignores =
+    src/plugins/*: E402
+    install.py: E402
+    */bin/*: ALL
