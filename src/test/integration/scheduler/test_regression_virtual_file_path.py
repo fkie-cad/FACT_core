@@ -81,18 +81,18 @@ def test_scheduler(test_config, finished_event, intermediate_event):
     analyzer.shutdown()
 
 
-def add_test_file_and_wait(test_scheduler, path_in_test_dir):
+def add_test_file(scheduler, path_in_test_dir):
     firmware = Firmware(file_path=str(Path(get_test_data_dir(), path_in_test_dir)))
     firmware.set_release_date('1990-01-16')
-    test_scheduler.add_task(firmware)
+    scheduler.add_task(firmware)
 
 
 def test_check_collision(test_app, test_scheduler, finished_event, intermediate_event):
-    add_test_file_and_wait(test_scheduler, 'regression_one')
+    add_test_file(test_scheduler, 'regression_one')
 
     intermediate_event.wait(timeout=30)
 
-    add_test_file_and_wait(test_scheduler, 'regression_two')
+    add_test_file(test_scheduler, 'regression_two')
 
     finished_event.wait(timeout=30)
 
