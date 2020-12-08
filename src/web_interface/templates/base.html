@@ -164,8 +164,10 @@
                 </div>
             </li>
             {% elif caption == "Feedback" %}
-            <a {% if caption== active_page %}style="color: #fff; font-weight: 500;" {% endif %}
-               data-toggle="modal" data-target="#staticBackdrop"> <i class="fas fa-bullhorn"></i> Feedback </a>
+            <li class="pr-3">
+                <a {% if caption== active_page %}style="color: #fff; font-weight: 500;" {% endif %}
+                    data-toggle="modal" data-target="#staticBackdrop"> <i class="fas fa-bullhorn"></i> Feedback </a>
+            </li>
             <div class="modal fade" id="staticBackdrop" data-backdrop="static" data-keyboard="false" tabindex="-1"
                  aria-labelledby="staticBackdropLabel" aria-hidden="true">
                 <div class="modal-dialog">
