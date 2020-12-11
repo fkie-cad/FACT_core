@@ -34,17 +34,20 @@ def create_data_graph_nodes_and_groups(data, whitelist):
 def create_data_graph_edges(data, data_graph):
 
     edge_id = create_symbolic_link_edges(data_graph)
+    elf_analysis_missing_from_files = 0
 
     for file in data:
         try:
             libraries = file['processed_analysis']['elf_analysis']['Output']['libraries']
         except (IndexError, KeyError):
+            if 'elf_analysis' not in file['processed_analysis']:
+                elf_analysis_missing_from_files += 1
             continue
 
         for lib in libraries:
             edge_id = find_edges(data_graph, edge_id, lib, file)
 
-    return data_graph
+    return data_graph, elf_analysis_missing_from_files
 
 
 def create_symbolic_link_edges(data_graph):

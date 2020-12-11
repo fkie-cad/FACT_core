@@ -82,9 +82,9 @@ def test_create_graph_nodes_and_groups(list_of_objects, whitelist, expected_resu
     assert create_data_graph_nodes_and_groups(list_of_objects, whitelist) == expected_result
 
 
-@pytest.mark.parametrize('list_of_objects, graph_part, expected_result', [
-    ([FILE_ONE, FILE_TWO], GRAPH_PART, GRAPH_RES),
-    ([FILE_ONE, FILE_TWO, FILE_THREE], GRAPH_PART_SYMLINK, GRAPH_RES_SYMLINK),
+@pytest.mark.parametrize('list_of_objects, graph_part, expected_graph, expected_missing_analysis', [
+    ([FILE_ONE, FILE_TWO], GRAPH_PART, GRAPH_RES, 1),
+    ([FILE_ONE, FILE_TWO, FILE_THREE], GRAPH_PART_SYMLINK, GRAPH_RES_SYMLINK, 2),
 ])
-def test_create_graph_edges(list_of_objects, graph_part, expected_result):
-    assert create_data_graph_edges(list_of_objects, graph_part) == expected_result
+def test_create_graph_edges(list_of_objects, graph_part, expected_graph, expected_missing_analysis):
+    assert create_data_graph_edges(list_of_objects, graph_part) == (expected_graph, expected_missing_analysis)

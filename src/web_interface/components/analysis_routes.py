@@ -192,10 +192,14 @@ class AnalysisRoutes(ComponentBase):
             data_graph_part = create_data_graph_nodes_and_groups(data, whitelist)
 
             if not data_graph_part['nodes']:
-                flash('Error: Graph could not be rendered. Try to use a different container as root! ', 'danger')
+                flash('Error: Graph could not be rendered. '
+                      'The file chosen as root must contain a filesystem with binaries.', 'danger')
                 return render_template('dependency_graph.html', **data_graph_part, uid=uid)
 
-            data_graph = create_data_graph_edges(data, data_graph_part)
+            data_graph, elf_analysis_missing_from_files = create_data_graph_edges(data, data_graph_part)
+
+            if elf_analysis_missing_from_files > 0:
+                flash('Warning: Elf analysis plugin result is missing for {} files'.format(elf_analysis_missing_from_files), 'warning')
 
             color_list = get_graph_colors()
 
