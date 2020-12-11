@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>helperFunctions.object_storage module &mdash; FACT  documentation</title>
+  <title>helperFunctions.yara_binary_search module &mdash; FACT  documentation</title>
   
 
   
@@ -37,8 +37,8 @@
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="helperFunctions.pdf module" href="helperFunctions.pdf.html" />
-    <link rel="prev" title="helperFunctions.mongo_task_conversion module" href="helperFunctions.mongo_task_conversion.html" /> 
+    <link rel="next" title="objects" href="objects.html" />
+    <link rel="prev" title="helperFunctions.uid web_interface" href="helperFunctions.web_interface.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -106,12 +106,12 @@
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.logging.html">helperFunctions.logging module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.mongo_config_parser.html">helperFunctions.mongo_config_parser module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.mongo_task_conversion.html">helperFunctions.mongo_task_conversion module</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">helperFunctions.object_storage module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.object_storage.html">helperFunctions.object_storage module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.pdf.html">helperFunctions.pdf module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.process.html">helperFunctions.process module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.uid.html">helperFunctions.uid module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.web_interface.html">helperFunctions.uid web_interface</a></li>
-<li class="toctree-l2"><a class="reference internal" href="helperFunctions.yara_binary_search.html">helperFunctions.yara_binary_search module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">helperFunctions.yara_binary_search module</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="objects.html">objects</a></li>
@@ -164,13 +164,13 @@
         
           <li><a href="helperFunctions.html">helperFunctions</a> &raquo;</li>
         
-      <li>helperFunctions.object_storage module</li>
+      <li>helperFunctions.yara_binary_search module</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/modules/helperFunctions.object_storage.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/modules/helperFunctions.yara_binary_search.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -183,70 +183,73 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="module-helperFunctions.object_storage">
-<span id="helperfunctions-object-storage-module"></span><h1>helperFunctions.object_storage module<a class="headerlink" href="#module-helperFunctions.object_storage" title="Permalink to this headline">¶</a></h1>
-<dl class="py function">
-<dt id="helperFunctions.object_storage.update_analysis_tags">
-<code class="sig-prename descclassname">helperFunctions.object_storage.</code><code class="sig-name descname">update_analysis_tags</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">new_object</span></em>, <em class="sig-param"><span class="n">old_object</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.object_storage.update_analysis_tags" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get updated tags of a file object by adding new tags and overwriting existing ones if outdated.
-Not outdated tags are kept.</p>
+  <div class="section" id="module-helperFunctions.yara_binary_search">
+<span id="helperfunctions-yara-binary-search-module"></span><h1>helperFunctions.yara_binary_search module<a class="headerlink" href="#module-helperFunctions.yara_binary_search" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt id="helperFunctions.yara_binary_search.YaraBinarySearchScanner">
+<em class="property">class </em><code class="sig-prename descclassname">helperFunctions.yara_binary_search.</code><code class="sig-name descname">YaraBinarySearchScanner</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.yara_binary_search.YaraBinarySearchScanner" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>This class provides functionality to scan files in the database for yara patterns. The public method allows to
+either match a given set of patterns on all files in the database or focus only on files included in a single
+firmware.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>new_object</strong> (<a class="reference internal" href="objects.file.html#objects.file.FileObject" title="objects.file.FileObject"><em>objects.file.FileObject</em></a>) – Current file object with up to date tags</p></li>
-<li><p><strong>old_object</strong> (<em>dict</em>) – Current database state of same object with existing tags</p></li>
-</ul>
+<dd class="field-odd"><p><strong>config</strong> – The FACT configuration.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="helperFunctions.yara_binary_search.YaraBinarySearchScanner.get_binary_search_result">
+<code class="sig-name descname">get_binary_search_result</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">task</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.yara_binary_search.YaraBinarySearchScanner.get_binary_search_result" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform a yara search on the files in the database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>task</strong> (<em>Tuple</em><em>[</em><em>bytes</em><em>, </em><em>Optional</em><em>[</em><em>str</em><em>]</em><em>]</em>) – A tuple containing the yara_rules (byte string with the contents of the yara rule file) and
+optionally a firmware uid if only the contents of a single firmware are to be scanned.</p>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>a dict containing new tags and old - not outdated - tags</p>
+<dd class="field-even"><p>dict of matching rules with lists of (unique) matched UIDs as values or an error message.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>dict</p>
+<dd class="field-odd"><p>Union[Dict[str, List[str]], str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="helperFunctions.yara_binary_search.get_yara_error">
+<code class="sig-prename descclassname">helperFunctions.yara_binary_search.</code><code class="sig-name descname">get_yara_error</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rules_file</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.yara_binary_search.get_yara_error" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the exception that is caused by trying to compile <code class="docutils literal notranslate"><span class="pre">rules_file</span></code> with yara or <code class="docutils literal notranslate"><span class="pre">None</span></code> if there is none.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>rules_file</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>bytes</em><em>]</em>) – A string containing yara rules.</p>
+</dd>
+<dt class="field-even">Result</dt>
+<dd class="field-even"><p>The exception if compiling the rules causes an exception or <code class="docutils literal notranslate"><span class="pre">None</span></code> otherwise.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Optional[Exception]</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
-<dt id="helperFunctions.object_storage.update_included_files">
-<code class="sig-prename descclassname">helperFunctions.object_storage.</code><code class="sig-name descname">update_included_files</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">new_object</span></em>, <em class="sig-param"><span class="n">old_object</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.object_storage.update_included_files" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get updated list of included files of an object.
-This is done by joining newfound included files with already found included files.</p>
+<dt id="helperFunctions.yara_binary_search.is_valid_yara_rule_file">
+<code class="sig-prename descclassname">helperFunctions.yara_binary_search.</code><code class="sig-name descname">is_valid_yara_rule_file</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">yara_rules</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.yara_binary_search.is_valid_yara_rule_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if <code class="docutils literal notranslate"><span class="pre">yara_rules</span></code> is a valid set of yara rules.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>new_object</strong> (<a class="reference internal" href="objects.file.html#objects.file.FileObject" title="objects.file.FileObject"><em>objects.file.FileObject</em></a>) – Current file object with newly discovered included files</p></li>
-<li><p><strong>old_object</strong> (<em>dict</em>) – Current database state of same object with existing included files</p></li>
-</ul>
+<dt class="field-odd">Param</dt>
+<dd class="field-odd"><p>A string containing yara rules.</p>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>a list containing all included files</p>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">True</span></code> if the rules are valid and <code class="docutils literal notranslate"><span class="pre">False</span></code> otherwise.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>list</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt id="helperFunctions.object_storage.update_virtual_file_path">
-<code class="sig-prename descclassname">helperFunctions.object_storage.</code><code class="sig-name descname">update_virtual_file_path</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">new_object</span></em>, <em class="sig-param"><span class="n">old_object</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.object_storage.update_virtual_file_path" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get updated dict of virtual file paths.
-A file object can exist only once, multiple times inside the same firmware (e.g. sym links) or
-even in multiple different firmware images (e.g. common files across patch levels).
-Thus updating the virtual file paths dict requires some logic.
-This function returns the combined dict across newfound virtual paths and existing ones.</p>
-<dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>new_object</strong> (<a class="reference internal" href="objects.file.html#objects.file.FileObject" title="objects.file.FileObject"><em>objects.file.FileObject</em></a>) – Current file object with newly discovered virtual paths</p></li>
-<li><p><strong>old_object</strong> (<em>dict</em>) – Current database state of same object with existing virtual paths</p></li>
-</ul>
+<dd class="field-odd"><p><strong>yara_rules</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>bytes</em><em>]</em>) – </p>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>a dict containing all virtual paths</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>dict</p>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>bool</p>
 </dd>
 </dl>
 </dd></dl>
@@ -261,10 +264,10 @@ This function returns the combined dict across newfound virtual paths and existi
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="helperFunctions.pdf.html" class="btn btn-neutral float-right" title="helperFunctions.pdf module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="objects.html" class="btn btn-neutral float-right" title="objects" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="helperFunctions.mongo_task_conversion.html" class="btn btn-neutral float-left" title="helperFunctions.mongo_task_conversion module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="helperFunctions.web_interface.html" class="btn btn-neutral float-left" title="helperFunctions.uid web_interface" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
