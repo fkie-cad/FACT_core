@@ -1,12 +1,15 @@
+import pytest
 from flask import render_template_string
 
 from test.unit.web_interface.base import WebInterfaceTest
 from web_interface.components.jinja_filter import FilterClass
 
+# pylint: disable=protected-access
+
 
 class TestAppShowAnalysis(WebInterfaceTest):
 
-    def setUp(self):
+    def setUp(self):  # pylint: disable=arguments-differ
         super().setUp()
         self.filter = FilterClass(self.frontend.app, '', self.config)
 
@@ -32,17 +35,26 @@ class TestAppShowAnalysis(WebInterfaceTest):
 
     def test_filter_replace_uid_with_hid(self):
         one_uid = '{}_1234'.format('a' * 64)
-        assert 'TEST_FW_HID_TEST_FW_HID' == self.filter._filter_replace_uid_with_hid('{}_{}'.format(one_uid, one_uid))
+        assert self.filter._filter_replace_uid_with_hid('{0}_{0}'.format(one_uid)) == 'TEST_FW_HID_TEST_FW_HID'
 
     def test_filter_replace_comparison_uid_with_hid(self):
         one_uid = '{}_1234'.format('a' * 64)
-        assert 'TEST_FW_HID  ||  TEST_FW_HID' == self.filter._filter_replace_comparison_uid_with_hid('{};{}'.format(one_uid, one_uid))
+        assert self.filter._filter_replace_comparison_uid_with_hid('{0};{0}'.format(one_uid)) == 'TEST_FW_HID  ||  TEST_FW_HID'
 
 
-def test_split_user_and_password_type_entry():
+def test_split_user_and_password_type_entry():  # pylint: disable=invalid-name
     new_test_entry_form = {'test:mosquitto': {'password': '123456'}}
     old_test_entry_form = {'test': {'password': '123456'}}
     expected_new_entry = {'test': {'mosquitto': {'password': '123456'}}}
     expected_old_entry = {'test': {'unix': {'password': '123456'}}}
     assert expected_new_entry == FilterClass._split_user_and_password_type_entry(new_test_entry_form)
     assert expected_old_entry == FilterClass._split_user_and_password_type_entry(old_test_entry_form)
+
+
+@pytest.mark.parametrize('hid, uid, expected_output', [
+    ('foo', 'bar', 'badge-secondary">foo'),
+    ('foo', 'a152ccc610b53d572682583e778e43dc1f24ddb6577255bff61406bc4fb322c3_21078024', 'badge-primary">    <a'),
+    ('suuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuper/long/human_readable_id', 'bar', '~uuuuuuuuuuuuuuuuuuuuuuuuuuuuper/long/human_readable_id'),
+])
+def test_virtual_path_element_to_span(hid, uid, expected_output):
+    assert expected_output in FilterClass._virtual_path_element_to_span(hid, uid, 'root_uid')

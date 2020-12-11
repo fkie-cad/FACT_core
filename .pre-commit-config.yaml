@@ -36,7 +36,6 @@ repos:
     rev: a7be77f7
     hooks:
     -   id: flake8
-        args: [--select=W504, --ignore=E501,W503]
 
 -   repo: https://github.com/pre-commit/mirrors-pylint
     rev: v2.3.1

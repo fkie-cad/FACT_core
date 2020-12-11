@@ -1,7 +1,8 @@
 import json
-import os
 import re
 from datetime import timedelta
+from pathlib import Path
+from typing import List, Optional
 
 from common_helper_files import get_binary_from_file
 from matplotlib import cm, colors
@@ -9,7 +10,6 @@ from passlib.context import CryptContext
 from si_prefix import si_format
 
 from helperFunctions.fileSystem import get_template_dir
-from helperFunctions.uid import is_uid
 
 SPECIAL_CHARACTERS = (
     'ÄäÀàÁáÂâÃãÅåǍǎĄąĂăÆæĀāÇçĆćĈĉČčĎđĐďðÈèÉéÊêËëĚěĘęĖėĒē'
@@ -18,20 +18,42 @@ SPECIAL_CHARACTERS = (
 )
 
 
-def get_color_list(number, limit=10):
+def get_color_list(number: int, limit: int = 10) -> List[str]:
+    '''
+    Get a list of (different) color values as a hexadecimal string compatible to HTML (e.g. ``#00ff00`` for green).
+
+    :param number: The number of colors in the returned list (with a cap of ``limit``).
+    :param limit: The maximum number of returned colors.
+    :return: A list of hex color values.
+    '''
     color_map = cm.get_cmap('rainbow')
     color_list = [colors.rgb2hex(color_map(i)) for i in range(32, 256, 22)]
     return color_list[:min(number, limit)]
 
 
-def get_alternating_color_list(number, limit=10):
+def get_alternating_color_list(number: int, limit: int = 10) -> List[str]:
+    '''
+    Get a list of alternating color values (beginning with blue and alternating with yellow) as a hexadecimal string
+    compatible to HTML.
+
+    :param number: The number of colors in the returned list (with a cap of ``limit``).
+    :param limit: The maximum number of returned colors.
+    :return: A list of alternating hex color values.
+    '''
     color_list = get_color_list(8)
-    # color_list[0] is blue, color_list[7] is yellow
     alternating_color_list = [color_list[0], color_list[7]] * (limit // 2 + 1)
     return alternating_color_list[:min(number, limit)]
 
 
-def apply_filters_to_query(request, query):
+def apply_filters_to_query(request, query: str) -> dict:
+    '''
+    Add a filter, selected in the web interface (vendor or device class), to the given query and return it.
+    If the filter was already present in the query, it is updated.
+
+    :param request: A given request (represented by the Flask object).
+    :param query: A JSON MongoDB query.
+    :return: The updated query.
+    '''
     query_dict = json.loads(query)
     for key in ['device_class', 'vendor']:
         if request.args.get(key):
@@ -43,25 +65,37 @@ def apply_filters_to_query(request, query):
     return query_dict
 
 
-def filter_out_illegal_characters(string):
+def filter_out_illegal_characters(string: Optional[str]) -> Optional[str]:
+    '''
+    Filter out any illegal characters from a given string.
+
+    :param string: The string to be filtered.
+    :return: The filtered string.
+    '''
     if string is None:
         return string
     return re.sub('[^\\w {}!.-]'.format(SPECIAL_CHARACTERS), '', string)
 
 
-def get_template_as_string(view_name):
-    path = os.path.join(get_template_dir(), view_name)
-    return get_binary_from_file(path).decode('utf-8')
+def get_template_as_string(view_name: str) -> str:
+    '''
+    Get the content of template ``view_name`` from the template directory as string.
 
-
-def get_radare_endpoint(config):
-    radare2_host = config['ExpertSettings']['radare2_host']
-    if config.getboolean('ExpertSettings', 'nginx'):
-        return 'https://{}/radare'.format(radare2_host)
-    return 'http://{}:8000'.format(radare2_host)
+    :param view_name: The name of the template file.
+    :return: The contents of the template file as string.
+    '''
+    path = Path(get_template_dir()) / view_name
+    return get_binary_from_file(str(path)).decode('utf-8')
 
 
 def password_is_legal(pw: str) -> bool:
+    '''
+    Check whether a given password is erroneously identified as an hashed password string (which might cause
+    unexpected behavior).
+
+    :param pw: The password string.
+    :return: ``True`` if the password is accepted and ``False`` otherwise.
+    '''
     if not pw:
         return False
     schemes = ['bcrypt', 'des_crypt', 'pbkdf2_sha256', 'pbkdf2_sha512', 'sha256_crypt', 'sha512_crypt', 'plaintext']
@@ -69,27 +103,29 @@ def password_is_legal(pw: str) -> bool:
     return ctx.identify(pw) == 'plaintext'
 
 
-def virtual_path_element_to_span(hid_element: str, uid_element, root_uid) -> str:
-    if is_uid(uid_element):
-        return (
-            '<span class="badge badge-primary">'
-            '    <a style="color: #fff" href="/analysis/{uid}/ro/{root_uid}">'
-            '        {hid}'
-            '    </a>'
-            '</span>'.format(uid=uid_element, root_uid=root_uid, hid=cap_length_of_element(hid_element))
-        )
-    return '<span class="badge badge-secondary">{}</span>'.format(cap_length_of_element(hid_element))
+def cap_length_of_element(hid_element: str, maximum: int = 55) -> str:
+    '''
+    Limit the length of an HID element of the "Virtual File Path", so that it can be displayed in the web interface
+    without errors
 
-
-def cap_length_of_element(hid_element, maximum=55):
+    :param hid_element: An element of the virtual file path.
+    :param maximum: The length after witch the element is capped.
+    :return: The capped string.
+    '''
     return '~{}'.format(hid_element[-(maximum - 1):]) if len(hid_element) > maximum else hid_element
 
 
-def format_si_prefix(number: float, unit: str) -> str:
+def _format_si_prefix(number: float, unit: str) -> str:
     return '{number}{unit}'.format(number=si_format(number, precision=2), unit=unit)
 
 
-def format_time(seconds: float):
+def format_time(seconds: float) -> str:
+    '''
+    Format a duration value to be displayed in the web interface.
+
+    :param seconds: The duration in seconds.
+    :return: The formatted duration.
+    '''
     if seconds < 60:
-        return format_si_prefix(seconds, 's')
+        return _format_si_prefix(seconds, 's')
     return str(timedelta(seconds=seconds))

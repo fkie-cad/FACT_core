@@ -8,9 +8,9 @@ import web_interface.filter as flt
 from helperFunctions.database import ConnectTo
 from helperFunctions.dataConversion import none_to_none
 from helperFunctions.hash import get_md5
-from helperFunctions.uid import is_list_of_uids
+from helperFunctions.uid import is_list_of_uids, is_uid
 from helperFunctions.virtual_file_path import split_virtual_path
-from helperFunctions.web_interface import virtual_path_element_to_span
+from helperFunctions.web_interface import cap_length_of_element
 from storage.db_interface_frontend import FrontEndDbInterface
 from web_interface.filter import elapsed_time, random_collapse_id
 
@@ -87,11 +87,23 @@ class FilterClass:
         for virtual_path in virtual_path_list:
             uid_list = split_virtual_path(virtual_path)
             components = [
-                virtual_path_element_to_span(hid, uid, root_uid=uid_list[0])
+                self._virtual_path_element_to_span(hid, uid, root_uid=uid_list[0])
                 for hid, uid in zip(split_virtual_path(self._filter_replace_uid_with_hid(virtual_path)), uid_list)
             ]
             path_list.append(' '.join(components))
         return path_list
+
+    @staticmethod
+    def _virtual_path_element_to_span(hid_element: str, uid_element, root_uid) -> str:
+        if is_uid(uid_element):
+            return (
+                '<span class="badge badge-primary">'
+                '    <a style="color: #fff" href="/analysis/{uid}/ro/{root_uid}">'
+                '        {hid}'
+                '    </a>'
+                '</span>'.format(uid=uid_element, root_uid=root_uid, hid=cap_length_of_element(hid_element))
+            )
+        return '<span class="badge badge-secondary">{}</span>'.format(cap_length_of_element(hid_element))
 
     @staticmethod
     def _render_firmware_detail_tabular_field(firmware_meta_data):
