@@ -14,8 +14,9 @@ from storage.fsorganizer import FSOrganizer
 
 class YaraBinarySearchScanner:
     '''
-    A scanner for searching with YARA rules on the binaries belonging to the firmware and file objects contained
-    in the database.
+    This class provides functionality to scan files in the database for yara patterns. The public method allows to
+    either match a given set of patterns on all files in the database or focus only on files included in a single
+    firmware.
 
     :param config: The FACT configuration.
     '''
