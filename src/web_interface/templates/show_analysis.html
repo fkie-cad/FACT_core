@@ -8,11 +8,11 @@
     </button>
 {% endmacro %}
 
-{% macro button_tooltip(tooltip, id, url, icon, onclick=None, danger=False) %}
+{% macro button_tooltip(tooltip, id, url, icon, onclick=None, danger=False, disabled=False) %}
     {% set button_class = "btn-danger" if danger else "btn-outline-secondary" %}
     {% set onclick_value = onclick if onclick else "window.location.href = '" + url + firmware.uid + "'" %}
 
-    <button id="{{ id }}" class="btn {{ button_class }}" onclick="{{ onclick_value }}" data-toggle="tooltip" data-placement="bottom" title="{{ tooltip }}">
+    <button id="{{ id }}" class="btn {{ button_class }}" onclick="{{ onclick_value }}" data-toggle="tooltip" data-placement="bottom" title="{{ tooltip }}" {% if disabled %}disabled{% endif %}>
         <i class="fas fa-{{ icon }}"></i>
     </button>
 {% endmacro %}
@@ -57,6 +57,11 @@
                 <button class="btn btn-secondary">Analysis</button>
 
                 {{ button_tooltip('View in radare', 'radare-button', None, 'terminal', onclick='radare_view()') }}
+                {% if not firmware.files_included %}
+                    {{ button_tooltip('Show dependency graph', 'graph-button', '/dependency-graph/', 'project-diagram', danger=False, disabled=True) }}
+                {% else %}
+                    {{ button_tooltip('Show dependency graph', 'graph-button', '/dependency-graph/', 'project-diagram') }}
+                {% endif %}
                 {% if firmware.vendor %}
                     {{ button_tooltip('Update analysis', 'update-button', '/update-analysis/', 'redo-alt') }}
                     {{ button_tooltip('YARA search', 'yara-button', '/database/binary_search?firmware_uid=', 'search') }}
@@ -92,6 +97,7 @@
                     {{ button_collapse('new-compare-button', 'list-ul', 'comparison-list', 'Show firmware selected for comparison') }}
                 {% endif %}
             </div>
+
         </div>
 
         {# Header section #}

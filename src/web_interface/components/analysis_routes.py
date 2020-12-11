@@ -3,7 +3,7 @@ import os
 from typing import Dict, Union
 
 from common_helper_files import get_binary_from_file
-from flask import redirect, render_template, render_template_string, request, url_for
+from flask import flash, redirect, render_template, render_template_string, request, url_for
 from flask_login.utils import current_user
 
 from helperFunctions.database import ConnectTo
@@ -22,6 +22,9 @@ from storage.db_interface_frontend import FrontEndDbInterface
 from storage.db_interface_view_sync import ViewReader
 from web_interface.components.compare_routes import get_comparison_uid_list_from_session
 from web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
+from web_interface.components.dependency_graph import (
+    create_data_graph_edges, create_data_graph_nodes_and_groups, get_graph_colors
+)
 from web_interface.security.authentication import user_has_privilege
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
@@ -177,3 +180,28 @@ class AnalysisRoutes(ComponentBase):
         if request.method == POST:
             return self._update_analysis_post(uid, re_do=True)
         return self._update_analysis_get(uid, re_do=True)
+
+    @roles_accepted(*PRIVILEGES['view_analysis'])
+    @AppRoute('/dependency-graph/<uid>', GET)
+    def show_elf_dependency_graph(self, uid):
+        with ConnectTo(FrontEndDbInterface, self._config) as db:
+            data = db.get_data_for_dependency_graph(uid)
+
+            whitelist = ['application/x-executable', 'application/x-sharedlib', 'inode/symlink']
+
+            data_graph_part = create_data_graph_nodes_and_groups(data, whitelist)
+
+            if not data_graph_part['nodes']:
+                flash('Error: Graph could not be rendered. '
+                      'The file chosen as root must contain a filesystem with binaries.', 'danger')
+                return render_template('dependency_graph.html', **data_graph_part, uid=uid)
+
+            data_graph, elf_analysis_missing_from_files = create_data_graph_edges(data, data_graph_part)
+
+            if elf_analysis_missing_from_files > 0:
+                flash('Warning: Elf analysis plugin result is missing for {} files'.format(elf_analysis_missing_from_files), 'warning')
+
+            color_list = get_graph_colors()
+
+            # TODO: Add a loading icon?
+        return render_template('dependency_graph.html', **data_graph, uid=uid, color_list=color_list)
