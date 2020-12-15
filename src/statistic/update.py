@@ -292,7 +292,7 @@ class StatisticUpdater:
             ('64-bit', 'ELF 64-bit.*executable'),
             ('dynamically linked', 'ELF.*executable.*dynamically linked'),
             ('statically linked', 'ELF.*executable.*statically linked'),
-            ('missing section info', 'ELF.*executable.*section header'),
+            ('section info missing', 'ELF.*executable.*section header'),
         ]:
             count = self.db.file_objects.count_documents({'processed_analysis.file_type.full': {'$regex': query_match}})
             stats.append((label, count, count / (total if total else 1), query_match))

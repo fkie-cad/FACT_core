@@ -218,7 +218,9 @@ class TestStatisticWithDb(TestStatisticBase):
         expected = [
             ('big endian', 1, 0.25), ('little endian', 3, 0.75), ('stripped', 1, 0.25), ('not stripped', 2, 0.5),
             ('32-bit', 1, 0.25), ('64-bit', 3, 0.75), ('dynamically linked', 2, 0.5), ('statically linked', 1, 0.25),
-            ('missing section info', 1, 0.25)
+            ('section info missing', 1, 0.25)
         ]
-        for expected_item, stat_item in zip(expected, stats):
-            assert stat_item[:-1] == expected_item
+        for (expected_label, expected_count, expected_percentage), (label, count, percentage, _) in zip(expected, stats):
+            assert label == expected_label
+            assert count == expected_count
+            assert percentage == expected_percentage
