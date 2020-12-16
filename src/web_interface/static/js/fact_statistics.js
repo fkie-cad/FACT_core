@@ -70,7 +70,7 @@ function set_links(canvas_id, any_chart, link) {
 
 }
 
-function set_links_from_data(canvas_id, chart) {
+function set_links_from_data(canvas_id, chart, link) {
 
     document.getElementById(canvas_id).onclick = function(evt){
         var points = chart.getElementsAtEvent(evt);
@@ -103,7 +103,7 @@ function create_horizontal_bar_chart(canvas_id, chart_data, link, value_percenta
     );
 
     if (links_in_data) {
-        set_links_from_data(canvas_id, BarChart);
+        set_links_from_data(canvas_id, BarChart, link);
     } else {
         set_links(canvas_id, BarChart, link);
     }
