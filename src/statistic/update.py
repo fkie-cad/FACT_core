@@ -47,6 +47,7 @@ class StatisticUpdater:
         self.db.update_statistic('exploit_mitigations', self.get_exploit_mitigations_stats())
         self.db.update_statistic('known_vulnerabilities', self.get_known_vulnerabilities_stats())
         self.db.update_statistic('software_components', self.get_software_components_stats())
+        self.db.update_statistic('elf_executable', self.get_executable_stats())
         # should always be the last, because of the benchmark
         self.db.update_statistic('general', self.get_general_stats())
 
@@ -278,6 +279,24 @@ class StatisticUpdater:
             for item in query_result
         ]
         return {'cpu_architecture': self._count_occurrences(result)}
+
+    def get_executable_stats(self):
+        total = self.db.file_objects.count_documents({'processed_analysis.file_type.full': {'$regex': 'ELF.*executable'}})
+        stats = []
+        for label, query_match in [
+            ('big endian', 'ELF.*MSB.*executable'),
+            ('little endian', 'ELF.*LSB.*executable'),
+            ('stripped', 'ELF.*executable.*, stripped'),
+            ('not stripped', 'ELF.*executable.*, not stripped'),
+            ('32-bit', 'ELF 32-bit.*executable'),
+            ('64-bit', 'ELF 64-bit.*executable'),
+            ('dynamically linked', 'ELF.*executable.*dynamically linked'),
+            ('statically linked', 'ELF.*executable.*statically linked'),
+            ('section info missing', 'ELF.*executable.*section header'),
+        ]:
+            count = self.db.file_objects.count_documents({'processed_analysis.file_type.full': {'$regex': query_match}})
+            stats.append((label, count, count / (total if total else 1), query_match))
+        return {'executable_stats': stats}
 
     def _find_most_frequent_architecture(self, arch_list):
         try:
