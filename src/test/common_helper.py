@@ -455,6 +455,7 @@ def get_config_for_testing(temp_dir=None):
     config.set('data_storage', 'mongo_port', '27018')
     config.set('data_storage', 'report_threshold', '2048')
     config.set('data_storage', 'password_salt', '1234')
+    config.set('data_storage', 'firmware_file_storage_directory', '')
     config.add_section('unpack')
     config.set('unpack', 'whitelist', '')
     config.set('unpack', 'max_depth', '10')
