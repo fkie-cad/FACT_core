@@ -37,7 +37,8 @@ def test_set_limit_for_data_to_chart():
                 'data': [1696, 207, 9],
                 'percentage': [0.89122, 0.10878, 0.00473],
                 'backgroundColor': ['#4062fa', '#f4c069', '#4062fa'],
-                'borderWidth': 0
+                'borderWidth': 0,
+                'links': 'null'
             }]
         }
     ),

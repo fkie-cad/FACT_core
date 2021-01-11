@@ -238,7 +238,7 @@ def data_to_chart_limited(data, limit=10, color_list=None):
 
 def data_to_chart_with_value_percentage_pairs(data, limit=10):  # pylint: disable=invalid-name
     try:
-        label_list, value_list, percentage_list = [list(d) for d in zip(*data)]
+        label_list, value_list, percentage_list, *links = [list(d) for d in zip(*data)]
     except ValueError:
         return None
     label_list, value_list = set_limit_for_data_to_chart(label_list, limit, value_list)
@@ -249,7 +249,8 @@ def data_to_chart_with_value_percentage_pairs(data, limit=10):  # pylint: disabl
             'data': value_list,
             'percentage': percentage_list,
             'backgroundColor': color_list,
-            'borderWidth': 0
+            'borderWidth': 0,
+            'links': links[0] if links else 'null'
         }]
     }
     return result

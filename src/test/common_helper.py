@@ -374,6 +374,34 @@ class DatabaseMock:  # pylint: disable=too-many-public-methods
     def find_orphaned_objects(self):
         return {'root_fw_uid': ['missing_child_uid']}
 
+    def get_data_for_dependency_graph(self, uid):
+        if uid == 'testgraph':
+            file_object_one = {
+                'processed_analysis': {
+                    'file_type': {
+                        'mime': 'application/x-executable', 'full': 'test text'
+                    }
+                },
+                '_id': '1234567',
+                'file_name': 'file one'
+            }
+            file_object_two = {
+                'processed_analysis': {
+                    'file_type': {
+                        'mime': 'application/x-executable', 'full': 'test text'
+                    },
+                    'elf_analysis': {
+                        'Output': {
+                            'libraries': ['file one']
+                        }
+                    }
+                },
+                '_id': '7654321',
+                'file_name': 'file two'
+            }
+            return [file_object_one, file_object_two]
+        return []
+
 
 def fake_exit(self, *args):
     pass

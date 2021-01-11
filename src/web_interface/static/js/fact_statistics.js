@@ -70,7 +70,19 @@ function set_links(canvas_id, any_chart, link) {
 
 }
 
-function create_horizontal_bar_chart(canvas_id, chart_data, link, value_percentage_present_flag) {
+function set_links_from_data(canvas_id, chart, link) {
+
+    document.getElementById(canvas_id).onclick = function(evt){
+        var points = chart.getElementsAtEvent(evt);
+        if (chart.data.datasets[0].links !== undefined) {
+            var key = chart.data.datasets[0].links[points[0]._index];
+            window.location = link.replace("PLACEHOLDER", key);
+        }
+    };
+
+}
+
+function create_horizontal_bar_chart(canvas_id, chart_data, link, value_percentage_present_flag = false, links_in_data = false) {
     var ctx = document.getElementById(canvas_id);
 
     if (value_percentage_present_flag) {
@@ -90,7 +102,11 @@ function create_horizontal_bar_chart(canvas_id, chart_data, link, value_percenta
         }
     );
 
-    set_links(canvas_id, BarChart, link);
+    if (links_in_data) {
+        set_links_from_data(canvas_id, BarChart, link);
+    } else {
+        set_links(canvas_id, BarChart, link);
+    }
 
     return BarChart;
 }

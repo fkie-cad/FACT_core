@@ -18,3 +18,4 @@ helperFunctions
    helperFunctions.tag
    helperFunctions.uid
    helperFunctions.web_interface
+   helperFunctions.yara_binary_search
