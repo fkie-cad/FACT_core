@@ -84,7 +84,7 @@ class InterComBackEndBinding:
 
     def _backend_worker(self, listener: Type[InterComListener], do_after_function: Optional[Callable]):
         interface = listener(config=self.config)
-        logging.debug('{} listener started'.format(type(interface).__name__))
+        logging.debug('{} listener started'.format(listener.__name__))
         while self.stop_condition.value == 0:
             task = interface.get_next_task()
             if task is None:
@@ -92,7 +92,7 @@ class InterComBackEndBinding:
             elif do_after_function is not None:
                 do_after_function(task)
         interface.shutdown()
-        logging.debug('{} listener stopped'.format(type(interface).__name__))
+        logging.debug('{} listener stopped'.format(listener.__name__))
 
 
 class InterComBackEndAnalysisPlugInsPublisher(InterComMongoInterface):
@@ -152,10 +152,11 @@ class InterComBackEndRawDownloadTask(InterComListenerAndResponder):
     CONNECTION_TYPE = 'raw_download_task'
     OUTGOING_CONNECTION_TYPE = 'raw_download_task_resp'
 
+    def additional_setup(self, config=None):
+        self.binary_service = BinaryService(config=self.config)
+
     def get_response(self, task):
-        binary_service = BinaryService(config=self.config)
-        result = binary_service.get_binary_and_file_name(task)
-        return result
+        return self.binary_service.get_binary_and_file_name(task)
 
 
 class InterComBackEndTarRepackTask(InterComListenerAndResponder):
@@ -163,10 +164,11 @@ class InterComBackEndTarRepackTask(InterComListenerAndResponder):
     CONNECTION_TYPE = 'tar_repack_task'
     OUTGOING_CONNECTION_TYPE = 'tar_repack_task_resp'
 
+    def additional_setup(self, config=None):
+        self.binary_service = BinaryService(config=self.config)
+
     def get_response(self, task):
-        binary_service = BinaryService(config=self.config)
-        result = binary_service.get_repacked_binary_and_file_name(task)
-        return result
+        return self.binary_service.get_repacked_binary_and_file_name(task)
 
 
 class InterComBackEndBinarySearchTask(InterComListenerAndResponder):

@@ -1,7 +1,6 @@
 # pylint: disable=attribute-defined-outside-init
 
 import gc
-from pathlib import Path
 from tempfile import TemporaryDirectory
 
 import magic
@@ -9,7 +8,7 @@ import magic
 from storage.binary_service import BinaryService
 from storage.db_interface_backend import BackEndDbInterface
 from storage.MongoMgr import MongoMgr
-from test.common_helper import create_test_firmware, get_config_for_testing
+from test.common_helper import create_test_firmware, get_config_for_testing, put_binary_for_binary_service
 
 TEST_FW = create_test_firmware()
 
@@ -26,9 +25,7 @@ class TestBinaryService:
     def _init_test_data(self):
         self.backend_db_interface = BackEndDbInterface(config=self.config)
         self.backend_db_interface.add_firmware(TEST_FW)
-        fw_storage_path = (Path(self.tmp_dir.name) / TEST_FW.uid[:2])
-        fw_storage_path.mkdir()
-        (fw_storage_path / TEST_FW.uid).write_bytes(TEST_FW.binary)
+        put_binary_for_binary_service(self.tmp_dir.name, TEST_FW)
         self.backend_db_interface.shutdown()
 
     def teardown(self):
