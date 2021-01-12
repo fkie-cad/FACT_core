@@ -1,7 +1,6 @@
 import json
 import re
 from datetime import timedelta
-from pathlib import Path
 from typing import List, Optional
 
 from common_helper_files import get_binary_from_file
@@ -84,8 +83,8 @@ def get_template_as_string(view_name: str) -> str:
     :param view_name: The name of the template file.
     :return: The contents of the template file as string.
     '''
-    path = Path(get_template_dir()) / view_name
-    return get_binary_from_file(str(path)).decode('utf-8')
+    template_path = get_template_dir() / view_name
+    return get_binary_from_file(str(template_path)).decode('utf-8')
 
 
 def password_is_legal(pw: str) -> bool:
