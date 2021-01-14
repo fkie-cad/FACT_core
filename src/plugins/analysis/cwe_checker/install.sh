@@ -8,7 +8,7 @@ echo " Installing cwe_checker Plugin "
 echo "------------------------------------"
 
 echo "Trying to pull cwe_checker Docker image"
-docker pull fkiecad/cwe_checker:latest
+docker pull fkiecad/cwe_checker:stable
 return_code=$?
 
 if [[ ${return_code} -eq 0 ]]; then
