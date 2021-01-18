@@ -4,7 +4,7 @@ from typing import Dict, List, Optional
 
 from common_helper_files import get_binary_from_file
 
-from helperFunctions.dataConversion import get_value_of_first_key, make_bytes, make_unicode_string
+from helperFunctions.data_conversion import get_value_of_first_key, make_bytes, make_unicode_string
 from helperFunctions.hash import get_sha256
 from helperFunctions.uid import create_uid
 from helperFunctions.virtual_file_path import get_base_of_virtual_path, get_top_of_virtual_path

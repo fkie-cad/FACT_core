@@ -3,8 +3,8 @@ from contextlib import suppress
 from flask import request
 from flask_restful import Resource
 
+from helperFunctions.data_conversion import normalize_compare_id
 from helperFunctions.database import ConnectTo
-from helperFunctions.dataConversion import normalize_compare_id
 from intercom.front_end_binding import InterComFrontEndBinding
 from storage.db_interface_compare import CompareDbInterface, FactCompareException
 from web_interface.rest.helper import convert_rest_request, error_message, success_message

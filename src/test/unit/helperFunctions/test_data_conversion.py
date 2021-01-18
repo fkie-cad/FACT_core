@@ -2,7 +2,7 @@ from datetime import datetime
 
 import pytest
 
-from helperFunctions.dataConversion import (
+from helperFunctions.data_conversion import (
     convert_compare_id_to_list, convert_time_to_str, get_value_of_first_key, make_bytes, make_unicode_string,
     none_to_none, normalize_compare_id
 )

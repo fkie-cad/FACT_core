@@ -3,7 +3,7 @@ from multiprocessing import Queue, Value
 from queue import Empty
 
 from compare.compare import Compare
-from helperFunctions.dataConversion import convert_compare_id_to_list
+from helperFunctions.data_conversion import convert_compare_id_to_list
 from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions, new_worker_was_started
 from storage.db_interface_compare import CompareDbInterface, FactCompareException
 

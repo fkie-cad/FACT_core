@@ -8,7 +8,7 @@ import gridfs
 from common_helper_files import get_safe_name
 from common_helper_mongo.aggregate import get_all_value_combinations_of_fields, get_list_of_all_values
 
-from helperFunctions.dataConversion import convert_time_to_str, get_dict_size
+from helperFunctions.data_conversion import convert_time_to_str, get_dict_size
 from objects.file import FileObject
 from objects.firmware import Firmware
 from storage.mongo_interface import MongoInterface

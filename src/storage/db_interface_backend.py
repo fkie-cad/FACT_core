@@ -3,7 +3,7 @@ from time import time
 
 from pymongo.errors import PyMongoError
 
-from helperFunctions.dataConversion import convert_str_to_time
+from helperFunctions.data_conversion import convert_str_to_time
 from helperFunctions.object_storage import update_analysis_tags, update_included_files, update_virtual_file_path
 from helperFunctions.tag import update_tags
 from objects.file import FileObject

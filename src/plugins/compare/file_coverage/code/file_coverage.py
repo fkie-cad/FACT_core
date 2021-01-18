@@ -6,7 +6,7 @@ import ssdeep
 
 from compare.PluginBase import CompareBasePlugin
 from helperFunctions.compare_sets import iter_element_and_rest, remove_duplicates_from_list
-from helperFunctions.dataConversion import convert_uid_list_to_compare_id
+from helperFunctions.data_conversion import convert_uid_list_to_compare_id
 from objects.file import FileObject
 
 

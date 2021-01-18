@@ -14,7 +14,7 @@ from common_helper_files import human_readable_file_size
 from flask import render_template
 
 from helperFunctions.compare_sets import remove_duplicates_from_list
-from helperFunctions.dataConversion import make_unicode_string
+from helperFunctions.data_conversion import make_unicode_string
 from helperFunctions.tag import TagColor
 from helperFunctions.web_interface import get_alternating_color_list, get_color_list
 from web_interface.security.authentication import user_has_privilege

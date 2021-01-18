@@ -7,7 +7,7 @@ import lief
 import ssdeep
 import tlsh
 
-from helperFunctions.dataConversion import make_bytes
+from helperFunctions.data_conversion import make_bytes
 
 ELF_MIME_TYPES = ['application/x-executable', 'application/x-object', 'application/x-sharedlib']
 
