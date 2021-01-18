@@ -1,18 +1,29 @@
 from datetime import datetime
-from itertools import combinations
 from pickle import dumps
-from typing import KT, VT, Dict, Iterable, List, Optional, Set
+from typing import Any, AnyStr, Dict, Iterable, List, Optional, TypeVar, Union
+
+_KT = TypeVar('_KT')  # Key type
+_VT = TypeVar('_VT')  # Value type
 
 
-def make_bytes(code):
-    if isinstance(code, bytes):
-        return code
-    if isinstance(code, str):
-        return code.encode('utf-8')
-    return bytes(code)
+def make_bytes(data: Union[AnyStr, List[int]]) -> bytes:
+    '''
+    Convert `data` into bytes (if necessary).
+
+    :param data: Some sort of data that can be converted to bytes.
+    :return: The data as bytes.
+    '''
+    if isinstance(data, bytes):
+        return data
+    if isinstance(data, str):
+        return data.encode('utf-8')
+    return bytes(data)
 
 
-def make_unicode_string(code):
+def make_unicode_string(code: Any) -> str:
+    '''
+    Convert a (byte) string or some arbitrary object into a string.
+    '''
     if isinstance(code, str):
         return code.encode(errors='replace').decode()
     if isinstance(code, bytes):
@@ -20,66 +31,73 @@ def make_unicode_string(code):
     return code.__str__()
 
 
-def make_list_from_dict(dict_object):
-    return list(dict_object.values())
+def get_dict_size(dict_object: dict) -> int:
+    '''
+    Get the size of a dict, measured as length of the pickled dict.
 
-
-def get_dict_size(dict_object):
+    :param dict_object: The dict to calculate the size of.
+    :return: The size.
+    '''
     return len(dumps(dict_object))
 
 
-def list_of_lists_to_list_of_sets(list_of_lists):
-    tmp = []
-    for item in list_of_lists:
-        tmp.append(set(item))
-    return tmp
-
-
-def list_of_sets_to_list_of_lists(list_of_sets: List[Set]) -> List[List]:
-    if not list_of_sets:
-        return []
-    return [sorted(item) for item in list_of_sets]
-
-
 def convert_uid_list_to_compare_id(uid_list: Iterable[str]) -> str:
+    '''
+    Convert a list of UIDs to a compare ID (which is a unique string consisting of UIDs separated by semi-colons, used
+    to identify a FACT `Firmware` or `FileObject` comparison).
+
+    :param uid_list: A list of `FileObject` or `Firmware` UIDs.
+    :return: The compare ID.
+    '''
     return ';'.join(sorted(uid_list))
 
 
 def convert_compare_id_to_list(compare_id: str) -> List[str]:
+    '''
+    Convert a compare ID back to a list of UIDs.
+
+    :param compare_id: The compare ID.
+    :return: The according UID list.
+    '''
     return compare_id.split(';')
 
 
 def normalize_compare_id(compare_id: str) -> str:
+    '''
+    Sort the UIDs in a compare ID (so that it is unique) and return it.
+
+    :param compare_id: The compare ID.
+    :return: The according unique compare ID with reordered UIDs.
+    '''
     uids = convert_compare_id_to_list(compare_id)
     return convert_uid_list_to_compare_id(uids)
 
 
-def get_value_of_first_key(input_dict: Dict[KT, VT]) -> Optional[VT]:
+def get_value_of_first_key(input_dict: Dict[_KT, _VT]) -> Optional[_VT]:
+    '''
+    Get the value of the first key in a dictionary. If the dict is empty, return `None`.
+
+    :param input_dict: The dictionary to get the value from.
+    :return: The value of the first key in the dictionary or `None` if it is empty.
+    '''
     return input_dict[sorted(input_dict.keys())[0]] if input_dict else None
 
 
-def none_to_none(input_data):
-    if input_data == 'None':
-        input_data = None
-    return input_data
+def none_to_none(input_data: Optional[str]) -> Optional[str]:
+    '''
+    Convert a string to `None` if it consists of the word `"None"` or return the input data otherwise.
+    Used to convert a string coming from the web interface to a NoneType object if necessary.
 
-
-def remove_subsets_from_list_of_sets(list_of_sets: List[set]):
-    sets_to_delete = []
-    for set1, set2 in combinations(list_of_sets, 2):
-        if set1.issubset(set2):
-            sets_to_delete.append(set1)
-        elif set2.issubset(set1):
-            sets_to_delete.append(set2)
-    for subset in sets_to_delete:
-        if subset in list_of_sets:
-            list_of_sets.remove(subset)
+    :param input_data: A string that may
+    '''
+    return None if input_data == 'None' else input_data
 
 
 def convert_str_to_time(string):
     '''
-    firmware release dates are entered in the form 'YYYY-MM-DD' and need to be converted to MongoDB date objects
-    in order to be stored in the database
+    Firmware release dates are entered in the form 'YYYY-MM-DD' and need to be converted to MongoDB date objects
+    in order to be stored in the database.
+
     :param string: date string of the form 'YYYY-MM-DD'
     :return: datetime object (compatible with pymongo)
     '''
@@ -89,39 +107,16 @@ def convert_str_to_time(string):
         return datetime.fromtimestamp(0)
 
 
-def convert_time_to_str(time_obj):
+def convert_time_to_str(time_obj: Any) -> str:
+    '''
+    Convert a time object to a string. The time object may be a datetime object or a string. If it is anything else,
+    the output defaults to `"1970-01-01"`.
+
+    :param time_obj: The time object, that is converted to string.
+    :return: The converted time object as string or a default date (if the conversion fails).
+    '''
     if isinstance(time_obj, datetime):
         return time_obj.strftime('%Y-%m-%d')
     if isinstance(time_obj, str):
         return time_obj
     return '1970-01-01'
-
-
-def build_time_dict(query):
-    result = {}
-    for item in query:
-        year = item['_id']['year']
-        month = item['_id']['month']
-        count = item['count']
-        if year > 1970:
-            if year not in result:
-                result[year] = {}
-            result[year][month] = count
-    _fill_in_time_gaps(result)
-    return result
-
-
-def _fill_in_time_gaps(time_dict):
-    if time_dict:
-        start_year = min(time_dict.keys())
-        start_month = min(time_dict[start_year].keys())
-        end_year = max(time_dict.keys())
-        end_month = max(time_dict[end_year].keys())
-        for year in range(start_year, end_year + 1):
-            if year not in time_dict:
-                time_dict[year] = {}
-            min_month = start_month if year == start_year else 1
-            max_month = end_month if year == end_year else 12
-            for month in range(min_month, max_month + 1):
-                if month not in time_dict[year]:
-                    time_dict[year][month] = 0
