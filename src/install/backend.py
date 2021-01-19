@@ -18,12 +18,10 @@ def main(distribution):
 
     if distribution == 'fedora':
         dnf_install_packages('python-devel', 'python-setuptools')
-        dnf_install_packages('cmake')
         dnf_install_packages('libjpeg-devel')
         dnf_install_packages('openssl-devel', 'python3-tkinter')
     else:
         apt_install_packages('python-dev', 'python-setuptools')
-        apt_install_packages('cmake')
         apt_install_packages('libjpeg-dev')
         apt_install_packages('libssl-dev', 'python3-tk')
 
