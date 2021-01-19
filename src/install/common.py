@@ -95,7 +95,8 @@ def main(distribution):  # pylint: disable=too-many-statements
     pip3_install_packages('psutil')
     pip3_install_packages('pytest==6.1.2', 'pytest-cov', 'pylint', 'python-magic', 'xmltodict', 'yara-python==3.7.0', 'appdirs')
 
-    pip3_install_packages('lief')
+    # FIXME: nightly build to fix install bug
+    pip3_install_packages('--index-url https://lief-project.github.io/packages lief')
 
     pip3_install_packages('requests')
 
