@@ -20,7 +20,7 @@ then
 else
   (
     # installing  prerequisite applications
-    sudo apt-get -y install cmake bison flex libicu-dev
+    sudo apt-get -y install bison flex libicu-dev
     sudo apt-get -y install build-essential libssl-dev git zlib1g-dev
     sudo apt-get -y install yasm libgmp-dev libpcap-dev pkg-config libbz2-dev
 
