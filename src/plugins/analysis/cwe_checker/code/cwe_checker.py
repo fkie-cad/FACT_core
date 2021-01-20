@@ -35,7 +35,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
                   'CWE-676 (Use of Potentially Dangerous Function).'\
                   'Due to the nature of static analysis, this plugin may run for a long time.'
     DEPENDENCIES = ['cpu_architecture', 'file_type']
-    VERSION = '0.5.0-dev'
+    VERSION = '0.5.0'
     MIME_WHITELIST = ['application/x-executable', 'application/x-object', 'application/x-sharedlib']
     SUPPORTED_ARCHS = ['arm', 'x86', 'x64', 'mips', 'ppc']
 
