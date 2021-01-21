@@ -62,7 +62,7 @@ def main(distribution):  # pylint: disable=too-many-statements
     pip3_install_packages('pytest==3.5.1', 'pytest-cov', 'pytest-flake8', 'pylint', 'python-magic', 'xmltodict', 'yara-python==3.7.0', 'appdirs')
     pip3_install_packages('ssdeep')
 
-    pip3_install_packages('lief')
+    pip3_install_packages('lief==0.10.1')
 
     pip3_install_packages('requests')
 
