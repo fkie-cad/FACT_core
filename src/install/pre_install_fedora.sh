@@ -4,7 +4,7 @@ FACTUSER=$(whoami)
 
 echo "Install Pre-Install Requirements"
 
-sudo dnf install -y python3-pip git libffi-devel ca-certificates curl
+sudo dnf install -y python3-pip git libffi-devel ca-certificates grubby curl
 
 echo "Installing Docker"
 
