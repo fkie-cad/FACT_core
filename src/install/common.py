@@ -70,13 +70,6 @@ def main(distribution):  # pylint: disable=too-many-statements
     install_pip('python3')
     pip3_install_packages('setuptools==49.6.0')
 
-    if distribution != 'fedora':
-        # install python2
-        apt_install_packages('python', 'python-dev')
-        with suppress(InstallationError):
-            apt_remove_packages('python-pip')
-        install_pip('python2')
-
     if distribution == 'fedora':
         dnf_install_packages('file-devel')
         dnf_install_packages('libffi-devel')
