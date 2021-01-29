@@ -32,10 +32,10 @@ class AnalysisPlugin(AnalysisBasePlugin):
     NAME = 'cwe_checker'
     DESCRIPTION = 'This plugin checks ELF binaries for several CWEs (Common Weakness Enumeration) like'\
                   'CWE-243 (Creation of chroot Jail Without Changing Working Directory) and'\
-                  'CWE-676 (Use of Potentially Dangerous Function). Internally it uses BAP, which currently supports ARM, x86/x64, PPC and MIPS.'\
+                  'CWE-676 (Use of Potentially Dangerous Function).'\
                   'Due to the nature of static analysis, this plugin may run for a long time.'
     DEPENDENCIES = ['cpu_architecture', 'file_type']
-    VERSION = '0.4.0'
+    VERSION = '0.5.0'
     MIME_WHITELIST = ['application/x-executable', 'application/x-object', 'application/x-sharedlib']
     SUPPORTED_ARCHS = ['arm', 'x86', 'x64', 'mips', 'ppc']
 
@@ -43,8 +43,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         self.config = config
         if not self._check_docker_installed():
             raise RuntimeError('Docker is not installed.')
-        self._module_versions = self._get_module_versions()
-        logging.info('Module versions are {}'.format(str(self._module_versions)))
+        self._log_version_string()
         super().__init__(plugin_administrator, config=config, plugin_path=__file__, recursive=recursive, timeout=timeout)
 
     @staticmethod
@@ -52,41 +51,31 @@ class AnalysisPlugin(AnalysisBasePlugin):
         _, return_code = execute_shell_command_get_return_code('docker -v')
         return return_code == 0
 
-    def _get_module_versions(self):
-        output = self._run_cwe_checker_to_get_module_versions()
+    def _log_version_string(self):
+        output = self._run_cwe_checker_to_get_version_string()
         if output is None:
-            logging.error('Could not get module versions from Bap plugin.')
-            return {}
-        return self._parse_module_versions(output)
+            logging.error('Could not get version string from cwe_checker.')
+        else:
+            logging.info('Version is {}'.format(str(output)))
+        return output
 
     @staticmethod
-    def _parse_module_versions(bap_output):
-        module_versions = {}
-        for line in bap_output.splitlines():
-            if 'module_versions:' in line:
-                version_json = line.split('module_versions:')[-1].strip()
-                module_versions = json.loads(version_json)
-        return module_versions
-
-    @staticmethod
-    def _run_cwe_checker_to_get_module_versions():
-        # unfortunately, there must be a dummy file passed to BAP, I chose /bin/true because it is damn small
+    def _run_cwe_checker_to_get_version_string():
         return run_docker_container(DOCKER_IMAGE, timeout=60,
-                                    command='bap /bin/true --pass=cwe-checker --cwe-checker-module-versions')
+                                    command='--version')
 
     @staticmethod
     def _run_cwe_checker_in_docker(file_object):
         return run_docker_container(DOCKER_IMAGE, timeout=TIMEOUT_IN_SECONDS,
-                                    command='bap /tmp/input --pass=cwe-checker --cwe-checker-json --cwe-checker-no-logging',
-                                    mount=('/tmp/input', file_object.file_path))
+                                    command='/input --json --quiet',
+                                    mount=('/input', file_object.file_path))
 
     @staticmethod
-    def _parse_bap_output(output):
+    def _parse_cwe_checker_output(output):
         tmp = defaultdict(list)
         j_doc = json.loads(output)
-        if 'warnings' in j_doc:
-            for warning in j_doc['warnings']:
-                tmp[warning['name']] = tmp[warning['name']] + [warning, ]
+        for warning in j_doc:
+            tmp[warning['name']] = tmp[warning['name']] + [warning, ]
 
         res = {}
         for key, values in tmp.items():
@@ -109,7 +98,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         output = self._run_cwe_checker_in_docker(file_object)
         if output is not None:
             try:
-                cwe_messages = self._parse_bap_output(output)
+                cwe_messages = self._parse_cwe_checker_output(output)
                 file_object.processed_analysis[self.NAME] = {'full': cwe_messages, 'summary': list(cwe_messages.keys())}
             except json.JSONDecodeError:
                 logging.error('cwe_checker execution failed: {}\nUID: {}'.format(output, file_object.uid))
@@ -121,8 +110,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def process_object(self, file_object):
         '''
-        This function handles only ELF executable. Otherwise it returns an empty dictionary.
-        It calls the external BAP plugin cwe_checker.
+        This function handles only ELF executables. Otherwise it returns an empty dictionary.
+        It calls the cwe_checker docker container.
         '''
         if not self._is_supported_arch(file_object):
             logging.debug('{}\'s arch is not supported ({})'.format(
