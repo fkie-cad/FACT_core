@@ -142,16 +142,10 @@ class FilterClass:
             return None
         label_list, value_list = flt.set_limit_for_data_to_chart(label_list, limit, value_list)
         color_list = flt.set_color_list_for_data_to_chart(color_list, value_list, limit)
-        result = {
+        return {
             'labels': label_list,
-            'datasets': [{
-                'data': value_list,
-                'backgroundColor': color_list,
-                'borderColor': '#fff',
-                'borderWidth': 2
-            }]
+            'datasets': [{'data': value_list, 'backgroundColor': color_list, 'borderColor': '#fff', 'borderWidth': 2}]
         }
-        return result
 
     def data_to_chart(self, data):
         color_list = get_color_list(1) * len(data)
