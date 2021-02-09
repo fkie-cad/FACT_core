@@ -2,7 +2,7 @@ import json
 
 from common_helper_encoder import ReportEncoder
 from flask import make_response
-from flask_restful import Api
+from flask_restx import Api
 
 from web_interface.rest.rest_binary import RestBinary
 from web_interface.rest.rest_binary_search import RestBinarySearch
@@ -15,7 +15,7 @@ from web_interface.rest.rest_statistic import RestStatus
 
 class RestBase:
     def __init__(self, app=None, config=None):
-        self.api = Api(app)
+        self.api = Api(app, doc='/doc/')
         self.api.add_resource(RestBinary, '/rest/binary/<uid>', methods=['GET'], resource_class_kwargs={'config': config})
         self.api.add_resource(RestBinarySearch, '/rest/binary_search', '/rest/binary_search/<search_id>', methods=['GET', 'POST'], resource_class_kwargs={'config': config})
         self.api.add_resource(RestCompare, '/rest/compare', '/rest/compare/<compare_id>', methods=['GET', 'PUT'], resource_class_kwargs={'config': config})

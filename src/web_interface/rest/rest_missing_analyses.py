@@ -1,6 +1,6 @@
 from typing import Dict, List, Set
 
-from flask_restful import Resource
+from flask_restx import Resource
 
 from helperFunctions.database import ConnectTo
 from storage.db_interface_frontend import FrontEndDbInterface

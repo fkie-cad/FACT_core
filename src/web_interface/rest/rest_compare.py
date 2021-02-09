@@ -1,7 +1,7 @@
 from contextlib import suppress
 
 from flask import request
-from flask_restful import Resource
+from flask_restx import Resource
 
 from helperFunctions.database import ConnectTo
 from helperFunctions.dataConversion import normalize_compare_id

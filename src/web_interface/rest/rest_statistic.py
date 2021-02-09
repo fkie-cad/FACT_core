@@ -1,4 +1,4 @@
-from flask_restful import Resource
+from flask_restx import Resource
 
 from helperFunctions.database import ConnectTo
 from intercom.front_end_binding import InterComFrontEndBinding

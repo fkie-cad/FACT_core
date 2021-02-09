@@ -1,4 +1,4 @@
-from flask_restful import Resource
+from flask_restx import Resource
 
 from web_interface.components.component_base import ComponentBase
 from web_interface.rest.helper import success_message

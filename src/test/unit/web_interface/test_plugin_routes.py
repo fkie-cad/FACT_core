@@ -3,7 +3,7 @@ from itertools import chain
 from unittest import TestCase
 
 from flask import Flask
-from flask_restful import Api
+from flask_restx import Api
 
 from helperFunctions.fileSystem import get_src_dir
 from test.common_helper import get_config_for_testing

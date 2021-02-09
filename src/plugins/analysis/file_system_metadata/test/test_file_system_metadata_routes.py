@@ -3,7 +3,7 @@ from base64 import b64encode
 from unittest import TestCase
 
 from flask import Flask
-from flask_restful import Api
+from flask_restx import Api
 
 from helperFunctions.database import ConnectTo
 from test.common_helper import create_test_file_object, create_test_firmware, get_config_for_testing

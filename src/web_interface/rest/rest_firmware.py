@@ -2,7 +2,7 @@ import logging
 from base64 import standard_b64decode
 
 from flask import request
-from flask_restful import Resource
+from flask_restx import Resource
 from pymongo.errors import PyMongoError
 
 from helperFunctions.database import ConnectTo

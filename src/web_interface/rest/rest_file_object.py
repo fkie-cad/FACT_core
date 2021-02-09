@@ -1,4 +1,5 @@
-from flask_restful import Resource, request
+from flask import request
+from flask_restx import Resource
 from pymongo.errors import PyMongoError
 
 from helperFunctions.database import ConnectTo

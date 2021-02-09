@@ -151,7 +151,7 @@ def main(radare, nginx):
     pip3_install_packages('werkzeug==0.16.1')  # Multiple flask plugins break on werkzeug > 0.16.1
     pip3_install_packages(
         'flask',
-        'flask_restful',
+        'flask_restx',
         'flask_security',
         'flask_sqlalchemy',
         'flask-paginate',
