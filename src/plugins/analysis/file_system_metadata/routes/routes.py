@@ -71,7 +71,8 @@ class PluginRoutes(ComponentBase):
 class FSMetadataRoutesRest(Resource):
     ENDPOINTS = [('/plugins/file_system_metadata/rest/<uid>', ['GET'])]
 
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.config = kwargs.get('config', None)
 
     @roles_accepted(*PRIVILEGES['view_analysis'])

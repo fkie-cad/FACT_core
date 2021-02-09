@@ -18,7 +18,8 @@ class RestBinarySearchException(Exception):
 class RestBinarySearch(Resource):
     URL = '/rest/binary_search'
 
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.config = kwargs.get('config', None)
 
     @roles_accepted(*PRIVILEGES['pattern_search'])

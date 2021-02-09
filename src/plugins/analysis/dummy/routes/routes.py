@@ -19,7 +19,8 @@ class PluginRoutes(ComponentBase):
 class DummyRoutesRest(Resource):
     ENDPOINTS = [('/plugins/dummy/rest', ['GET'])]
 
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.config = kwargs.get('config', None)
 
     @roles_accepted(*PRIVILEGES['view_analysis'])

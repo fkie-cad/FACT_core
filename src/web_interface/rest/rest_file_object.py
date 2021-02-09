@@ -13,7 +13,8 @@ from web_interface.security.privileges import PRIVILEGES
 class RestFileObject(Resource):
     URL = '/rest/file_object'
 
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.config = kwargs.get('config', None)
 
     @roles_accepted(*PRIVILEGES['view_analysis'])

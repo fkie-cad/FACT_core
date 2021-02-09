@@ -11,7 +11,8 @@ from web_interface.security.privileges import PRIVILEGES
 class RestStatus(Resource):
     URL = '/rest/status'
 
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.config = kwargs.get('config', None)
 
     @roles_accepted(*PRIVILEGES['status'])
