@@ -22,7 +22,7 @@ class TestAnalysisPluginPasswordFileAnalyzer(AnalysisPluginTest):
         processed_object = self.analysis_plugin.process_object(test_file)
         results = processed_object.processed_analysis[self.PLUGIN_NAME]
 
-        self.assertEqual(len(results), 14)
+        assert len(results) == 14
         for item in [
             'vboxadd:unix', 'mongodb:unix', 'clamav:unix', 'pulse:unix', 'johndoe:unix', 'max:htpasswd',
             'test:mosquitto', 'admin:htpasswd', 'root:unix', 'user:unix', 'user2:unix'
@@ -36,6 +36,13 @@ class TestAnalysisPluginPasswordFileAnalyzer(AnalysisPluginTest):
         self._assert_pw_match(results, 'root:unix', 'root')  # DES
         self._assert_pw_match(results, 'user:unix', '1234')  # Blowfish / bcrypt
         self._assert_pw_match(results, 'user2:unix', 'secret')  # MD5
+
+    def test_process_object_fp_file(self):
+        test_file = FileObject(file_path=str(TEST_DATA_DIR / 'passwd_FP_test'))
+        processed_object = self.analysis_plugin.process_object(test_file)
+        results = processed_object.processed_analysis[self.PLUGIN_NAME]
+        assert len(results) == 1
+        assert 'summary' in results and results['summary'] == []
 
     def test_process_object_password_in_binary_file(self):
         test_file = FileObject(file_path=str(TEST_DATA_DIR / 'passwd.bin'))
