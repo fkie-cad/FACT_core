@@ -1,7 +1,9 @@
-# pylint: disable=no-self-use,protected-access
+# pylint: disable=no-self-use,protected-access,wrong-import-order
 from base64 import b64encode
 from pathlib import Path
 from typing import Optional
+
+from flaky import flaky
 
 from test.common_helper import TEST_FW, TEST_FW_2, DatabaseMock, create_test_file_object
 from test.mock import mock_patch
@@ -79,6 +81,7 @@ class TestFileSystemMetadata(AnalysisPluginTest):
             self.analysis_plugin._extract_metadata(fo)
             assert self.result == 'fs'
 
+    @flaky(max_runs=2, min_passes=1)  # test may fail once on a new system
     def test_extract_metadata_from_file_system(self):
         fo = FoMock(self.test_file_fs, 'filesystem/squashfs')
         self.analysis_plugin._extract_metadata_from_file_system(fo)
@@ -118,6 +121,7 @@ class TestFileSystemMetadata(AnalysisPluginTest):
         assert result[testfile_sticky_key][FsKeys.GID] == 0
         assert result[testfile_sticky_key][FsKeys.M_TIME] == 1518167842.0
 
+    @flaky(max_runs=2, min_passes=1)  # test may fail once on a new system
     def test_extract_metadata_from_cramfs(self):
         fo = FoMock(self.test_file_fs2, 'filesystem/cramfs')
         self.analysis_plugin._extract_metadata_from_file_system(fo)
