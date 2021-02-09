@@ -60,7 +60,6 @@ class TestFileSystemMetadata(AnalysisPluginTest):
         plugin.ConnectTo.__exit__ = lambda *_: None
         self.test_file_tar = TEST_DATA_DIR / 'test.tar'
         self.test_file_fs = TEST_DATA_DIR / 'squashfs.img'
-        self.test_file_fs2 = TEST_DATA_DIR / 'cramfs.img'
 
     def _extract_metadata_from_archive_mock(self, _):
         self.result = 'archive'
@@ -120,22 +119,6 @@ class TestFileSystemMetadata(AnalysisPluginTest):
         assert result[testfile_sticky_key][FsKeys.UID] == 0
         assert result[testfile_sticky_key][FsKeys.GID] == 0
         assert result[testfile_sticky_key][FsKeys.M_TIME] == 1518167842.0
-
-    @flaky(max_runs=2, min_passes=1)  # test may fail once on a new system
-    def test_extract_metadata_from_cramfs(self):
-        fo = FoMock(self.test_file_fs2, 'filesystem/cramfs')
-        self.analysis_plugin._extract_metadata_from_file_system(fo)
-        result = self.analysis_plugin.result
-        key = _b64_encode('testfile1')
-
-        assert all(key in result for key in [key, _b64_encode('testfile2'), _b64_encode('test file 3_.txt')])
-        assert result[key][FsKeys.MODE] == '664'
-        assert result[key][FsKeys.STICKY] is False
-        assert result[key][FsKeys.SGID] is False
-        assert result[key][FsKeys.SUID] is False
-        assert result[key][FsKeys.NAME] == 'testfile1'
-        assert result[key][FsKeys.UID] == 1000
-        assert result[key][FsKeys.GID] == 232
 
     def test_extract_metadata_from_file_system__unmountable(self):
         fo = FoMock(self.test_file_tar, 'application/x-tar')
