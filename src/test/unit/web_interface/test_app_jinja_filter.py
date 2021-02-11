@@ -1,10 +1,10 @@
+# pylint: disable=protected-access,wrong-import-order
+
 import pytest
 from flask import render_template_string
 
 from test.unit.web_interface.base import WebInterfaceTest
 from web_interface.components.jinja_filter import FilterClass
-
-# pylint: disable=protected-access
 
 
 class TestAppShowAnalysis(WebInterfaceTest):
@@ -60,14 +60,10 @@ def test_virtual_path_element_to_span(hid, uid, expected_output):
     assert expected_output in FilterClass._virtual_path_element_to_span(hid, uid, 'root_uid')
 
 
-class MockConfig:
-    pass
-
-
 class FilterClassMock:
-    def __init__(self, value=None):
-        self._config = MockConfig()
-        setattr(self._config, 'getint', lambda *_, **__: value if value is not None else 10)
+    @staticmethod
+    def _get_chart_element_count():
+        return 10
 
 
 @pytest.mark.parametrize('input_data, limit, expected_result', [

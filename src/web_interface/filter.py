@@ -16,7 +16,7 @@ from flask import render_template
 from helperFunctions.compare_sets import remove_duplicates_from_list
 from helperFunctions.dataConversion import make_unicode_string
 from helperFunctions.tag import TagColor
-from helperFunctions.web_interface import get_alternating_color_list, get_color_list
+from helperFunctions.web_interface import get_alternating_color_list
 from web_interface.security.authentication import user_has_privilege
 from web_interface.security.privileges import PRIVILEGES
 
@@ -235,12 +235,6 @@ def data_to_chart_with_value_percentage_pairs(data, limit=10):  # pylint: disabl
         }]
     }
     return result
-
-
-def set_color_list_for_data_to_chart(color_list, value_list, limit: int):
-    if not color_list:
-        color_list = get_color_list(len(value_list), limit=limit)
-    return color_list
 
 
 def set_limit_for_data_to_chart(label_list, limit, value_list):

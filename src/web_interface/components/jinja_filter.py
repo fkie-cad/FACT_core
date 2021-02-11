@@ -1,4 +1,5 @@
 import json
+import logging
 from typing import List, Optional
 
 from common_helper_filter.time import time_format
@@ -135,17 +136,24 @@ class FilterClass:
         return self._config.getboolean('ExpertSettings', 'authentication')
 
     def data_to_chart_limited(self, data, limit: Optional[int] = None, color_list=None):
-        limit = self._config.getint('statistics', 'max_elements_per_chart', fallback=10) if limit is None else limit
+        limit = self._get_chart_element_count() if limit is None else limit
         try:
             label_list, value_list = [list(d) for d in zip(*data)]
         except ValueError:
             return None
         label_list, value_list = flt.set_limit_for_data_to_chart(label_list, limit, value_list)
-        color_list = flt.set_color_list_for_data_to_chart(color_list, value_list, limit)
+        color_list = get_color_list(len(value_list), limit=limit) if color_list is None else color_list
         return {
             'labels': label_list,
             'datasets': [{'data': value_list, 'backgroundColor': color_list, 'borderColor': '#fff', 'borderWidth': 2}]
         }
+
+    def _get_chart_element_count(self):
+        limit = self._config.getint('statistics', 'max_elements_per_chart', fallback=10)
+        if limit > 100:
+            logging.warning('Value of "max_elements_per_chart" in configuration is too large.')
+            return 100
+        return limit
 
     def data_to_chart(self, data):
         color_list = get_color_list(1) * len(data)
