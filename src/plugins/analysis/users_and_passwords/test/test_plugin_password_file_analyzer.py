@@ -3,7 +3,7 @@ from pathlib import Path
 from objects.file import FileObject
 from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
 
-from ..code.password_file_analyzer import AnalysisPlugin
+from ..code.password_file_analyzer import AnalysisPlugin, crack_hash
 
 TEST_DATA_DIR = Path(__file__).parent / 'data'
 
@@ -22,53 +22,61 @@ class TestAnalysisPluginPasswordFileAnalyzer(AnalysisPluginTest):
         processed_object = self.analysis_plugin.process_object(test_file)
         results = processed_object.processed_analysis[self.PLUGIN_NAME]
 
-        self.assertEqual(len(results), 10)
-        for item in ['vboxadd:unix', 'mongodb:unix', 'clamav:unix', 'pulse:unix', 'johndoe:unix', 'max:unix', 'test:mosquitto']:
-            self.assertIn(item, results)
-            self.assertIn(item, results['summary'])
-        self.assertIn('type', results['max:unix'])
-        self.assertIn('password-hash', results['max:unix'])
-        self.assertIn('password', results['max:unix'])
-        self.assertEqual(results['max:unix']['type'], 'unix')
-        self.assertEqual(results['max:unix']['password'], 'dragon')
-        self.assertIn('type', results['johndoe:unix'])
-        self.assertIn('password-hash', results['johndoe:unix'])
-        self.assertIn('password', results['johndoe:unix'])
-        self.assertEqual(results['johndoe:unix']['type'], 'unix')
-        self.assertEqual(results['johndoe:unix']['password'], '123456')
-        self.assertEqual(results['tags']['johndoe_123456']['value'], 'Password: johndoe:123456')
-        self.assertIn('type', results['test:mosquitto'])
-        self.assertIn('password-hash', results['test:mosquitto'])
-        self.assertIn('password', results['test:mosquitto'])
-        self.assertEqual(results['test:mosquitto']['type'], 'mosquitto')
-        self.assertEqual(results['test:mosquitto']['password'], '123456')
-        self.assertEqual(results['tags']['test_123456']['value'], 'Password: test:123456')
+        assert len(results) == 14
+        for item in [
+            'vboxadd:unix', 'mongodb:unix', 'clamav:unix', 'pulse:unix', 'johndoe:unix', 'max:htpasswd',
+            'test:mosquitto', 'admin:htpasswd', 'root:unix', 'user:unix', 'user2:unix'
+        ]:
+            assert item in results
+            assert item in results['summary']
+        self._assert_pw_match(results, 'max:htpasswd', 'dragon')  # MD5 apr1
+        self._assert_pw_match(results, 'johndoe:unix', '123456')
+        self._assert_pw_match(results, 'test:mosquitto', '123456')
+        self._assert_pw_match(results, 'admin:htpasswd', 'admin')  # SHA-1
+        self._assert_pw_match(results, 'root:unix', 'root')  # DES
+        self._assert_pw_match(results, 'user:unix', '1234')  # Blowfish / bcrypt
+        self._assert_pw_match(results, 'user2:unix', 'secret')  # MD5
+
+    def test_process_object_fp_file(self):
+        test_file = FileObject(file_path=str(TEST_DATA_DIR / 'passwd_FP_test'))
+        processed_object = self.analysis_plugin.process_object(test_file)
+        results = processed_object.processed_analysis[self.PLUGIN_NAME]
+        assert len(results) == 1
+        assert 'summary' in results and results['summary'] == []
 
     def test_process_object_password_in_binary_file(self):
         test_file = FileObject(file_path=str(TEST_DATA_DIR / 'passwd.bin'))
         processed_object = self.analysis_plugin.process_object(test_file)
         results = processed_object.processed_analysis[self.PLUGIN_NAME]
 
-        self.assertEqual(len(results), 4)
-        for item in ['johndoe:unix', 'max:unix']:
-            self.assertIn(item, results)
-            self.assertIn(item, results['summary'])
-        self.assertIn('password-hash', results['johndoe:unix'])
-        self.assertIn('password', results['johndoe:unix'])
-        self.assertEqual(results['johndoe:unix']['password'], '123456')
-        self.assertIn('password-hash', results['max:unix'])
-        self.assertIn('password', results['max:unix'])
-        self.assertEqual(results['max:unix']['password'], 'dragon')
+        assert len(results) == 4
+        for item in ['johndoe:unix', 'max:htpasswd']:
+            assert item in results
+            assert item in results['summary']
+        self._assert_pw_match(results, 'johndoe:unix', '123456')
+        self._assert_pw_match(results, 'max:htpasswd', 'dragon')
 
-    def test_crack_hash_failure(self):
-        passwd_entry = [b'user', b'$6$Ph+uRn1vmQ+pA7Ka$fcn9/Ln3W6c6oT3o8bWoLPrmTUs+NowcKYa52WFVP5qU5jzadqwSq8F+Q4AAr2qOC+Sk5LlHmisri4Eqx7/uDg==']
-        result_entry = {}
-        assert self.analysis_plugin._crack_hash(b':'.join(passwd_entry[:2]), result_entry) is False  # pylint: disable=protected-access
-        assert 'ERROR' in result_entry
+    @staticmethod
+    def _assert_pw_match(results: dict, key: str, pw: str):
+        user, type_ = key.split(':')
+        assert 'type' in results[key]
+        assert 'password-hash' in results[key]
+        assert 'password' in results[key]
+        assert results[key]['type'] == type_
+        assert results[key]['password'] == pw
+        assert results['tags'][f'{user}_{pw}']['value'] == f'Password: {user}:{pw}'
 
-    def test_crack_hash_success(self):
-        passwd_entry = 'test:$dynamic_82$2c93b2efec757302a527be320b005a935567f370f268a13936fa42ef331cc7036ec75a65f8112ce511ff6088c92a6fe1384fbd0f70a9bc7ac41aa6103384aa8c$HEX$010203040506'
-        result_entry = {}
-        assert self.analysis_plugin._crack_hash(passwd_entry.encode(), result_entry, '--format=dynamic_82') is True  # pylint: disable=protected-access
-        assert 'password' in result_entry
-        assert result_entry['password'] == '123456'
+
+def test_crack_hash_failure():
+    passwd_entry = [b'user', b'$6$Ph+uRn1vmQ+pA7Ka$fcn9/Ln3W6c6oT3o8bWoLPrmTUs+NowcKYa52WFVP5qU5jzadqwSq8F+Q4AAr2qOC+Sk5LlHmisri4Eqx7/uDg==']
+    result_entry = {}
+    assert crack_hash(b':'.join(passwd_entry[:2]), result_entry) is False
+    assert 'ERROR' in result_entry
+
+
+def test_crack_hash_success():
+    passwd_entry = 'test:$dynamic_82$2c93b2efec757302a527be320b005a935567f370f268a13936fa42ef331cc7036ec75a65f8112ce511ff6088c92a6fe1384fbd0f70a9bc7ac41aa6103384aa8c$HEX$010203040506'
+    result_entry = {}
+    assert crack_hash(passwd_entry.encode(), result_entry, '--format=dynamic_82') is True
+    assert 'password' in result_entry
+    assert result_entry['password'] == '123456'

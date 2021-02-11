@@ -5,4 +5,7 @@ johndoe:$6$HcGU0JUp$LbTjc1Ai4TcTwZRi5sRyObUUHsRHtEj6YXTgduYpESFRYMZrfzZCspg2flG7
 pulse:*:16980:0:99999:7:::
 max:$apr1$nMebU24m$ofpVAehRJU5Jq8KUcsVYj1
 test:$6$AQIDBAUG$LJOy7+x1cwKlJ74yCwBak1Vn83DyaKE5NvpC7zMcxwNux1pl+BEs5RH/YIjJKm/hOE+9D3CpvHrEGqYQM4SqjA==
-
+admin:{SHA}0DPiKuNIrrVmD8IUCuw1hQxNqZc=
+root:ST0P8z9dZb6Jg:17073:0:::::
+user:$2y$05$Eoj2qF43EErrJix4Gtmuq..0FA8AFdqUUmjEqlWsUFzda8.n6OFgW:17073::::::
+user2:$1$12345678$hj0uLpdidjPhbMMZeno8X/:17073:2:::::
