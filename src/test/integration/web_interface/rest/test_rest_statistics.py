@@ -28,7 +28,6 @@ class TestRestStatistics(RestTestBase):
 
     def test_rest_request_non_existent_statistic(self):
         st = self.test_client.get('/rest/statistics/non_existent_stat', follow_redirects=True)
-        print(st.data)
 
         assert b'No statistic with the ID non_existent_stat found' in st.data
 
