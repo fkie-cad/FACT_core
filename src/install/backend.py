@@ -14,7 +14,6 @@ from helperFunctions.install import (
 
 def main():
     # dependencies
-    apt_install_packages('python-dev', 'python-setuptools')
     apt_install_packages('libjpeg-dev')
     apt_install_packages('libssl-dev', 'python3-tk')
     pip3_install_packages('pluginbase', 'Pillow', 'cryptography', 'pyopenssl', 'matplotlib', 'docker', 'networkx')

@@ -47,12 +47,6 @@ def main(distribution):  # pylint: disable=too-many-statements
     apt_remove_packages('python3-pip', 'python3-setuptools', 'python3-wheel')
     install_pip('python3')
 
-    # install python2
-    apt_install_packages('python', 'python-dev')
-    with suppress(InstallationError):
-        apt_remove_packages('python-pip')
-    install_pip('python2')
-
     # install general python dependencies
     apt_install_packages('libmagic-dev')
     apt_install_packages('libfuzzy-dev')

@@ -99,14 +99,6 @@ def pip3_remove_packages(*args):
     return _pip_remove_packages(3, args)
 
 
-def pip2_install_packages(*args):
-    return _pip_install_packages(2, args)
-
-
-def pip2_remove_packages(*args):
-    return _pip_remove_packages(2, args)
-
-
 def check_if_command_in_path(command):
     _, return_code = execute_shell_command_get_return_code('command -v {}'.format(command))
     if return_code != 0:
