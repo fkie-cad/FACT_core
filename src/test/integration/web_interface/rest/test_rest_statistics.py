@@ -19,7 +19,7 @@ class TestRestStatistics(RestTestBase):
         st = self.test_client.get('/rest/statistics', follow_redirects=True)
 
         assert b'file_type' in st.data
-        assert b'malware' not in st.data
+        assert b'malware' in st.data
 
     def test_rest_request_single_statistic(self):
         st = self.test_client.get('/rest/statistics/known_vulnerabilities', follow_redirects=True)
@@ -29,7 +29,7 @@ class TestRestStatistics(RestTestBase):
     def test_rest_request_non_existent_statistic(self):
         st = self.test_client.get('/rest/statistics/non_existent_stat', follow_redirects=True)
 
-        assert b'No statistic with the ID non_existent_stat found' in st.data
+        assert b'A statistic with the ID non_existent_stat does not exist' in st.data
 
     def test_rest_request_invalid_data(self):
         st = self.test_client.get('/rest/statistics/', follow_redirects=True)
