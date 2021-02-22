@@ -25,6 +25,7 @@ class TestRestStatistics(RestTestBase):
         st = self.test_client.get('/rest/statistics/known_vulnerabilities', follow_redirects=True)
 
         assert b'known_vulnerabilities' in st.data
+        assert b'file_type' not in st.data
 
     def test_rest_request_non_existent_statistic(self):
         st = self.test_client.get('/rest/statistics/non_existent_stat', follow_redirects=True)
