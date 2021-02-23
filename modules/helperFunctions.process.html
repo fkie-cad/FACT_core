@@ -191,7 +191,7 @@
 <span id="helperfunctions-process-module"></span><h1>helperFunctions.process module<a class="headerlink" href="#module-helperFunctions.process" title="Permalink to this headline">¶</a></h1>
 <dl class="py class">
 <dt id="helperFunctions.process.ExceptionSafeProcess">
-<em class="property">class </em><code class="sig-prename descclassname">helperFunctions.process.</code><code class="sig-name descname">ExceptionSafeProcess</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.process.ExceptionSafeProcess" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">helperFunctions.process.</span></code><code class="sig-name descname"><span class="pre">ExceptionSafeProcess</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.process.ExceptionSafeProcess" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">multiprocessing.context.Process</span></code></p>
 <p>ExceptionSafeProcess is a subtype of <code class="docutils literal notranslate"><span class="pre">multiprocessing.Process</span></code> with added exception handling.
 Opposed to what the name may suggest, the class does not make the process impervious to exceptions.
@@ -201,7 +201,7 @@ happened in the subprocess.</p>
 (see <a class="reference external" href="https://docs.python.org/3/library/multiprocessing.html#multiprocessing.Process">Python docs</a>).</p>
 <dl class="py method">
 <dt id="helperFunctions.process.ExceptionSafeProcess.exception">
-<em class="property">property </em><code class="sig-name descname">exception</code><a class="headerlink" href="#helperFunctions.process.ExceptionSafeProcess.exception" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">exception</span></code><a class="headerlink" href="#helperFunctions.process.ExceptionSafeProcess.exception" title="Permalink to this definition">¶</a></dt>
 <dd><p>The exception that occurred in the process during execution and the respective stack trace.
 Is <code class="docutils literal notranslate"><span class="pre">None</span></code> if no exception occurred or the process was no yet executed.</p>
 <dl class="field-list simple">
@@ -213,7 +213,7 @@ Is <code class="docutils literal notranslate"><span class="pre">None</span></cod
 
 <dl class="py method">
 <dt id="helperFunctions.process.ExceptionSafeProcess.run">
-<code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.process.ExceptionSafeProcess.run" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">run</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.process.ExceptionSafeProcess.run" title="Permalink to this definition">¶</a></dt>
 <dd><p>Starts the execution of the process. Any exception happening in the process will be reraised and may
 be retrieved by accessing <code class="docutils literal notranslate"><span class="pre">ExceptionSafeProcess.exception</span></code>.</p>
 </dd></dl>
@@ -222,7 +222,7 @@ be retrieved by accessing <code class="docutils literal notranslate"><span class
 
 <dl class="py function">
 <dt id="helperFunctions.process.check_worker_exceptions">
-<code class="sig-prename descclassname">helperFunctions.process.</code><code class="sig-name descname">check_worker_exceptions</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">process_list</span></em>, <em class="sig-param"><span class="n">worker_label</span></em>, <em class="sig-param"><span class="n">config</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">worker_function</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.process.check_worker_exceptions" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">helperFunctions.process.</span></code><code class="sig-name descname"><span class="pre">check_worker_exceptions</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">process_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">worker_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">worker_function</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.process.check_worker_exceptions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Iterate over the <cite>process_list</cite> and check if exceptions occurred. In case of an exception, the process and its
 children will be terminated. If <code class="docutils literal notranslate"><span class="pre">throw_exceptions</span></code> in the FACT configuration is set to <cite>false</cite>, the worker
 may be restarted by passing a function (if the value is not set, the worker will not be restarted). In this case,
@@ -249,7 +249,7 @@ set to <cite>true</cite> and <code class="docutils literal notranslate"><span cl
 
 <dl class="py function">
 <dt id="helperFunctions.process.complete_shutdown">
-<code class="sig-prename descclassname">helperFunctions.process.</code><code class="sig-name descname">complete_shutdown</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">message</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.process.complete_shutdown" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">helperFunctions.process.</span></code><code class="sig-name descname"><span class="pre">complete_shutdown</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.process.complete_shutdown" title="Permalink to this definition">¶</a></dt>
 <dd><p>Shutdown all FACT processes (of the currently running component) by sending a signal to the process group.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -263,7 +263,7 @@ set to <cite>true</cite> and <code class="docutils literal notranslate"><span cl
 
 <dl class="py function">
 <dt id="helperFunctions.process.new_worker_was_started">
-<code class="sig-prename descclassname">helperFunctions.process.</code><code class="sig-name descname">new_worker_was_started</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">new_process</span></em>, <em class="sig-param"><span class="n">old_process</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.process.new_worker_was_started" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">helperFunctions.process.</span></code><code class="sig-name descname"><span class="pre">new_worker_was_started</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_process</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">old_process</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.process.new_worker_was_started" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check if a worker process was restarted by comparing old and new process.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -283,7 +283,7 @@ set to <cite>true</cite> and <code class="docutils literal notranslate"><span cl
 
 <dl class="py function">
 <dt id="helperFunctions.process.start_single_worker">
-<code class="sig-prename descclassname">helperFunctions.process.</code><code class="sig-name descname">start_single_worker</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">process_index</span></em>, <em class="sig-param"><span class="n">label</span></em>, <em class="sig-param"><span class="n">function</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.process.start_single_worker" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">helperFunctions.process.</span></code><code class="sig-name descname"><span class="pre">start_single_worker</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">process_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">function</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.process.start_single_worker" title="Permalink to this definition">¶</a></dt>
 <dd><p>Starts a new worker process executing <code class="docutils literal notranslate"><span class="pre">function</span></code> and returns it. Used for unpacking and analysis workers in the
 FACT backend.</p>
 <dl class="field-list simple">
@@ -305,7 +305,7 @@ FACT backend.</p>
 
 <dl class="py function">
 <dt id="helperFunctions.process.terminate_process_and_children">
-<code class="sig-prename descclassname">helperFunctions.process.</code><code class="sig-name descname">terminate_process_and_children</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">process</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.process.terminate_process_and_children" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">helperFunctions.process.</span></code><code class="sig-name descname"><span class="pre">terminate_process_and_children</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">process</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.process.terminate_process_and_children" title="Permalink to this definition">¶</a></dt>
 <dd><p>Terminate a process and all of its child processes.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>

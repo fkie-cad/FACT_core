@@ -191,7 +191,7 @@
 <span id="helperfunctions-database-module"></span><h1>helperFunctions.database module<a class="headerlink" href="#module-helperFunctions.database" title="Permalink to this headline">¶</a></h1>
 <dl class="py class">
 <dt id="helperFunctions.database.ConnectTo">
-<em class="property">class </em><code class="sig-prename descclassname">helperFunctions.database.</code><code class="sig-name descname">ConnectTo</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">connected_interface</span></em>, <em class="sig-param"><span class="n">config</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.database.ConnectTo" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">helperFunctions.database.</span></code><code class="sig-name descname"><span class="pre">ConnectTo</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">connected_interface</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.database.ConnectTo" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Generic</span></code>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">helperFunctions.database.DatabaseInterface</span></code>]</p>
 <p>Open a database connection using the interface passed to the constructor. Intended to be used as a context manager.</p>
 <dl class="field-list">
@@ -212,7 +212,7 @@
 
 <dl class="py function">
 <dt id="helperFunctions.database.is_sanitized_entry">
-<code class="sig-prename descclassname">helperFunctions.database.</code><code class="sig-name descname">is_sanitized_entry</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">entry</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.database.is_sanitized_entry" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">helperFunctions.database.</span></code><code class="sig-name descname"><span class="pre">is_sanitized_entry</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entry</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.database.is_sanitized_entry" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check a database entry if it was sanitized (meaning the database entry was too large for the MongoDB database and
 was swapped to the file system).</p>
 <dl class="field-list simple">

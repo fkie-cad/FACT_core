@@ -191,7 +191,7 @@
 <span id="helperfunctions-yara-binary-search-module"></span><h1>helperFunctions.yara_binary_search module<a class="headerlink" href="#module-helperFunctions.yara_binary_search" title="Permalink to this headline">¶</a></h1>
 <dl class="py class">
 <dt id="helperFunctions.yara_binary_search.YaraBinarySearchScanner">
-<em class="property">class </em><code class="sig-prename descclassname">helperFunctions.yara_binary_search.</code><code class="sig-name descname">YaraBinarySearchScanner</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.yara_binary_search.YaraBinarySearchScanner" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">helperFunctions.yara_binary_search.</span></code><code class="sig-name descname"><span class="pre">YaraBinarySearchScanner</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.yara_binary_search.YaraBinarySearchScanner" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>This class provides functionality to scan files in the database for yara patterns. The public method allows to
 either match a given set of patterns on all files in the database or focus only on files included in a single
@@ -203,7 +203,7 @@ firmware.</p>
 </dl>
 <dl class="py method">
 <dt id="helperFunctions.yara_binary_search.YaraBinarySearchScanner.get_binary_search_result">
-<code class="sig-name descname">get_binary_search_result</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">task</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.yara_binary_search.YaraBinarySearchScanner.get_binary_search_result" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">get_binary_search_result</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.yara_binary_search.YaraBinarySearchScanner.get_binary_search_result" title="Permalink to this definition">¶</a></dt>
 <dd><p>Perform a yara search on the files in the database.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -223,7 +223,7 @@ optionally a firmware uid if only the contents of a single firmware are to be sc
 
 <dl class="py function">
 <dt id="helperFunctions.yara_binary_search.get_yara_error">
-<code class="sig-prename descclassname">helperFunctions.yara_binary_search.</code><code class="sig-name descname">get_yara_error</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rules_file</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.yara_binary_search.get_yara_error" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">helperFunctions.yara_binary_search.</span></code><code class="sig-name descname"><span class="pre">get_yara_error</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rules_file</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.yara_binary_search.get_yara_error" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the exception that is caused by trying to compile <code class="docutils literal notranslate"><span class="pre">rules_file</span></code> with yara or <code class="docutils literal notranslate"><span class="pre">None</span></code> if there is none.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -240,7 +240,7 @@ optionally a firmware uid if only the contents of a single firmware are to be sc
 
 <dl class="py function">
 <dt id="helperFunctions.yara_binary_search.is_valid_yara_rule_file">
-<code class="sig-prename descclassname">helperFunctions.yara_binary_search.</code><code class="sig-name descname">is_valid_yara_rule_file</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">yara_rules</span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.yara_binary_search.is_valid_yara_rule_file" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">helperFunctions.yara_binary_search.</span></code><code class="sig-name descname"><span class="pre">is_valid_yara_rule_file</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">yara_rules</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.yara_binary_search.is_valid_yara_rule_file" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check if <code class="docutils literal notranslate"><span class="pre">yara_rules</span></code> is a valid set of yara rules.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Param</dt>

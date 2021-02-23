@@ -179,7 +179,7 @@
 <span id="objects-file-module"></span><h1>objects.file module<a class="headerlink" href="#module-objects.file" title="Permalink to this headline">¶</a></h1>
 <dl class="py class">
 <dt id="objects.file.FileObject">
-<em class="property">class </em><code class="sig-prename descclassname">objects.file.</code><code class="sig-name descname">FileObject</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">binary</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">file_name</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">file_path</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">scheduled_analysis</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#objects.file.FileObject" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">objects.file.</span></code><code class="sig-name descname"><span class="pre">FileObject</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">binary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scheduled_analysis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#objects.file.FileObject" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>FileObject is the primary data structure in FACT.
 It holds all meta information of a file along with analysis results and some internal values for scheduling.</p>
@@ -195,7 +195,7 @@ It holds all meta information of a file along with analysis results and some int
 </dl>
 <dl class="py method">
 <dt id="objects.file.FileObject.add_included_file">
-<code class="sig-name descname">add_included_file</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_object</span></em><span class="sig-paren">)</span><a class="headerlink" href="#objects.file.FileObject.add_included_file" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">add_included_file</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_object</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#objects.file.FileObject.add_included_file" title="Permalink to this definition">¶</a></dt>
 <dd><p>This functions adds a file to this object’s list of included files.
 The function also takes care of a number of fields for the child object:</p>
 <ul class="simple">
@@ -217,7 +217,7 @@ The function also takes care of a number of fields for the child object:</p>
 
 <dl class="py method">
 <dt id="objects.file.FileObject.add_virtual_file_path_if_none_exists">
-<code class="sig-name descname">add_virtual_file_path_if_none_exists</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">parent_paths</span></em>, <em class="sig-param"><span class="n">parent_uid</span></em><span class="sig-paren">)</span><a class="headerlink" href="#objects.file.FileObject.add_virtual_file_path_if_none_exists" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">add_virtual_file_path_if_none_exists</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent_paths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_uid</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#objects.file.FileObject.add_virtual_file_path_if_none_exists" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add virtual file paths (vfps) to this file based on an existing list of vfps on the parent
 and the parent’s uid as root.</p>
 <dl class="field-list simple">
@@ -235,7 +235,7 @@ and the parent’s uid as root.</p>
 
 <dl class="py attribute">
 <dt id="objects.file.FileObject.analysis_exception">
-<code class="sig-name descname">analysis_exception</code><a class="headerlink" href="#objects.file.FileObject.analysis_exception" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">analysis_exception</span></code><a class="headerlink" href="#objects.file.FileObject.analysis_exception" title="Permalink to this definition">¶</a></dt>
 <dd><p>If an exception occurred during analysis, this fields stores a tuple
 <code class="docutils literal notranslate"><span class="pre">(&lt;plugin</span> <span class="pre">name&gt;,</span> <span class="pre">&lt;error</span> <span class="pre">message&gt;)</span></code>
 for debugging purposes and as placeholder in UI.</p>
@@ -243,7 +243,7 @@ for debugging purposes and as placeholder in UI.</p>
 
 <dl class="py attribute">
 <dt id="objects.file.FileObject.analysis_tags">
-<code class="sig-name descname">analysis_tags</code><a class="headerlink" href="#objects.file.FileObject.analysis_tags" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">analysis_tags</span></code><a class="headerlink" href="#objects.file.FileObject.analysis_tags" title="Permalink to this definition">¶</a></dt>
 <dd><p>Analysis tags for this file.
 An analysis tag has the structure
 <code class="docutils literal notranslate"><span class="pre">{tag_name:</span> <span class="pre">{'value':</span> <span class="pre">value,</span> <span class="pre">'color':</span> <span class="pre">color,</span> <span class="pre">'propagate':</span> <span class="pre">propagate,},</span> <span class="pre">'root_uid':</span> <span class="pre">root</span> <span class="pre">uid}</span></code>
@@ -253,20 +253,20 @@ So in total you have a dict <code class="docutils literal notranslate"><span cla
 
 <dl class="py attribute">
 <dt id="objects.file.FileObject.binary">
-<code class="sig-name descname">binary</code><a class="headerlink" href="#objects.file.FileObject.binary" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">binary</span></code><a class="headerlink" href="#objects.file.FileObject.binary" title="Permalink to this definition">¶</a></dt>
 <dd><p>Binary representation of this file in bytes.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt id="objects.file.FileObject.comments">
-<code class="sig-name descname">comments</code><a class="headerlink" href="#objects.file.FileObject.comments" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">comments</span></code><a class="headerlink" href="#objects.file.FileObject.comments" title="Permalink to this definition">¶</a></dt>
 <dd><p>List of comments that have been made on this file.
 Comments are dicts with the keys time (float), author (str) and comment (str).</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="objects.file.FileObject.create_binary_from_path">
-<code class="sig-name descname">create_binary_from_path</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#objects.file.FileObject.create_binary_from_path" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">create_binary_from_path</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#objects.file.FileObject.create_binary_from_path" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>None</p>
@@ -276,7 +276,7 @@ Comments are dicts with the keys time (float), author (str) and comment (str).</
 
 <dl class="py attribute">
 <dt id="objects.file.FileObject.depth">
-<code class="sig-name descname">depth</code><a class="headerlink" href="#objects.file.FileObject.depth" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">depth</span></code><a class="headerlink" href="#objects.file.FileObject.depth" title="Permalink to this definition">¶</a></dt>
 <dd><p>Extraction depth of this object. If outer firmware file, this is 0.
 Every extraction increments this by one.
 For a file inside a squashfs, that is contained inside a tar archive this would be 1 (tar) + 1 (fs) = 2.</p>
@@ -284,27 +284,27 @@ For a file inside a squashfs, that is contained inside a tar archive this would 
 
 <dl class="py attribute">
 <dt id="objects.file.FileObject.file_name">
-<code class="sig-name descname">file_name</code><a class="headerlink" href="#objects.file.FileObject.file_name" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">file_name</span></code><a class="headerlink" href="#objects.file.FileObject.file_name" title="Permalink to this definition">¶</a></dt>
 <dd><p>Name of this file. Similar to <code class="docutils literal notranslate"><span class="pre">file_path</span></code>, this probably is generated for carved objects.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt id="objects.file.FileObject.file_path">
-<code class="sig-name descname">file_path</code><a class="headerlink" href="#objects.file.FileObject.file_path" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">file_path</span></code><a class="headerlink" href="#objects.file.FileObject.file_path" title="Permalink to this definition">¶</a></dt>
 <dd><p>The path of this file. Has to be a local path if binary is not set.
 For carved objects, this will likely only be a (generated) name.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt id="objects.file.FileObject.files_included">
-<code class="sig-name descname">files_included</code><a class="headerlink" href="#objects.file.FileObject.files_included" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">files_included</span></code><a class="headerlink" href="#objects.file.FileObject.files_included" title="Permalink to this definition">¶</a></dt>
 <dd><p>The set of files included in this file. This is usually true for archives.
 Only lists the next layer, not recursively included files on lower extraction layers.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="objects.file.FileObject.get_hid">
-<code class="sig-name descname">get_hid</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">root_uid</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#objects.file.FileObject.get_hid" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">get_hid</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root_uid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#objects.file.FileObject.get_hid" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get a human readable identifier for the given file.
 This usually is the file name for extracted files.
 As files can have different names across occurrences, uid of a specific root object can be specified.</p>
@@ -323,7 +323,7 @@ As files can have different names across occurrences, uid of a specific root obj
 
 <dl class="py method">
 <dt id="objects.file.FileObject.get_root_uid">
-<code class="sig-name descname">get_root_uid</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#objects.file.FileObject.get_root_uid" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">get_root_uid</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#objects.file.FileObject.get_root_uid" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return <cite>self.root_uid</cite> if set.
 Else gets uid from root of first virtual file path.</p>
 <dl class="field-list simple">
@@ -338,7 +338,7 @@ Else gets uid from root of first virtual file path.</p>
 
 <dl class="py method">
 <dt id="objects.file.FileObject.get_virtual_file_paths">
-<code class="sig-name descname">get_virtual_file_paths</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#objects.file.FileObject.get_virtual_file_paths" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">get_virtual_file_paths</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#objects.file.FileObject.get_virtual_file_paths" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get virtual file paths of current file.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -352,7 +352,7 @@ Else gets uid from root of first virtual file path.</p>
 
 <dl class="py method">
 <dt id="objects.file.FileObject.get_virtual_paths_for_one_uid">
-<code class="sig-name descname">get_virtual_paths_for_one_uid</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">root_uid</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#objects.file.FileObject.get_virtual_paths_for_one_uid" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">get_virtual_paths_for_one_uid</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root_uid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#objects.file.FileObject.get_virtual_paths_for_one_uid" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the virtual file path (vfp) of root_uid if argument set.
 If not, similar to <a class="reference internal" href="#objects.file.FileObject.get_root_uid" title="objects.file.FileObject.get_root_uid"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_root_uid()</span></code></a> either return paths of <cite>self.root_uid</cite>
 or fall back to first uid of list of all root uids.</p>
@@ -371,7 +371,7 @@ or fall back to first uid of list of all root uids.</p>
 
 <dl class="py attribute">
 <dt id="objects.file.FileObject.list_of_all_included_files">
-<code class="sig-name descname">list_of_all_included_files</code><a class="headerlink" href="#objects.file.FileObject.list_of_all_included_files" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">list_of_all_included_files</span></code><a class="headerlink" href="#objects.file.FileObject.list_of_all_included_files" title="Permalink to this definition">¶</a></dt>
 <dd><p>The list of all recursively included files in this file.
 That means files are included that are themselves included in files contained in this file, and so on.
 This value is not set by default as it’s expensive to aggregate and takes up a lot of memory.</p>
@@ -379,7 +379,7 @@ This value is not set by default as it’s expensive to aggregate and takes up a
 
 <dl class="py attribute">
 <dt id="objects.file.FileObject.parent_firmware_uids">
-<code class="sig-name descname">parent_firmware_uids</code><a class="headerlink" href="#objects.file.FileObject.parent_firmware_uids" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">parent_firmware_uids</span></code><a class="headerlink" href="#objects.file.FileObject.parent_firmware_uids" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set of parent firmware uids.
 Parent uids are from the root object, this file belongs to, not its direct predecessor.
 Thus, as a file can be part of multiple firmware images, this field is a set.
@@ -388,7 +388,7 @@ This field should be closely related to the keys in the virtual file path field.
 
 <dl class="py attribute">
 <dt id="objects.file.FileObject.parents">
-<code class="sig-name descname">parents</code><a class="headerlink" href="#objects.file.FileObject.parents" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">parents</span></code><a class="headerlink" href="#objects.file.FileObject.parents" title="Permalink to this definition">¶</a></dt>
 <dd><p>List of parent uids.
 A parent in this context is the direct predecessor in a firmware tree.
 Not necessarily it’s root.</p>
@@ -396,7 +396,7 @@ Not necessarily it’s root.</p>
 
 <dl class="py attribute">
 <dt id="objects.file.FileObject.processed_analysis">
-<code class="sig-name descname">processed_analysis</code><a class="headerlink" href="#objects.file.FileObject.processed_analysis" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">processed_analysis</span></code><a class="headerlink" href="#objects.file.FileObject.processed_analysis" title="Permalink to this definition">¶</a></dt>
 <dd><p>Analysis results for this file.</p>
 <p>Structure of results:
 The first level of this dict is a pair of <code class="docutils literal notranslate"><span class="pre">'plugin_name':</span> <span class="pre">&lt;result_dict&gt;</span></code> pairs.
@@ -410,7 +410,7 @@ The result dict can have any content, but always has at least the fields:</p>
 
 <dl class="py attribute">
 <dt id="objects.file.FileObject.root_uid">
-<code class="sig-name descname">root_uid</code><a class="headerlink" href="#objects.file.FileObject.root_uid" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">root_uid</span></code><a class="headerlink" href="#objects.file.FileObject.root_uid" title="Permalink to this definition">¶</a></dt>
 <dd><p>UID of root (i.e. firmware) object for the given file.
 Useful to associate results of children with firmware.
 This value might not be set at all times (cf. <a class="reference internal" href="#objects.file.FileObject.get_root_uid" title="objects.file.FileObject.get_root_uid"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_root_uid()</span></code></a>).</p>
@@ -418,13 +418,13 @@ This value might not be set at all times (cf. <a class="reference internal" href
 
 <dl class="py attribute">
 <dt id="objects.file.FileObject.scheduled_analysis">
-<code class="sig-name descname">scheduled_analysis</code><a class="headerlink" href="#objects.file.FileObject.scheduled_analysis" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">scheduled_analysis</span></code><a class="headerlink" href="#objects.file.FileObject.scheduled_analysis" title="Permalink to this definition">¶</a></dt>
 <dd><p>List of plugins that are scheduled to be run on this file.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="objects.file.FileObject.set_binary">
-<code class="sig-name descname">set_binary</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">binary</span></em><span class="sig-paren">)</span><a class="headerlink" href="#objects.file.FileObject.set_binary" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">set_binary</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">binary</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#objects.file.FileObject.set_binary" title="Permalink to this definition">¶</a></dt>
 <dd><p>Store the binary representation of the file as byte string.
 Additionally set binary related meta data (size, hash) and compute uid after that.</p>
 <dl class="field-list simple">
@@ -439,26 +439,26 @@ Additionally set binary related meta data (size, hash) and compute uid after tha
 
 <dl class="py attribute">
 <dt id="objects.file.FileObject.sha256">
-<code class="sig-name descname">sha256</code><a class="headerlink" href="#objects.file.FileObject.sha256" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">sha256</span></code><a class="headerlink" href="#objects.file.FileObject.sha256" title="Permalink to this definition">¶</a></dt>
 <dd><p>SHA256 hash of this file.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt id="objects.file.FileObject.size">
-<code class="sig-name descname">size</code><a class="headerlink" href="#objects.file.FileObject.size" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">size</span></code><a class="headerlink" href="#objects.file.FileObject.size" title="Permalink to this definition">¶</a></dt>
 <dd><p>Size of this file in bytes</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt id="objects.file.FileObject.temporary_data">
-<code class="sig-name descname">temporary_data</code><a class="headerlink" href="#objects.file.FileObject.temporary_data" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">temporary_data</span></code><a class="headerlink" href="#objects.file.FileObject.temporary_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>This field can be used for arbitrary temporary storage.
 It will not be persisted to the database, so it dies after the analysis cycle.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="objects.file.FileObject.uid">
-<em class="property">property </em><code class="sig-name descname">uid</code><a class="headerlink" href="#objects.file.FileObject.uid" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">uid</span></code><a class="headerlink" href="#objects.file.FileObject.uid" title="Permalink to this definition">¶</a></dt>
 <dd><p>Unique identifier of this file.
 Consisting of the file’s sha256 hash and it’s length in the form <cite>hash_length</cite>.</p>
 <dl class="field-list simple">
@@ -470,7 +470,7 @@ Consisting of the file’s sha256 hash and it’s length in the form <cite>hash_
 
 <dl class="py attribute">
 <dt id="objects.file.FileObject.virtual_file_path">
-<code class="sig-name descname">virtual_file_path</code><a class="headerlink" href="#objects.file.FileObject.virtual_file_path" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">virtual_file_path</span></code><a class="headerlink" href="#objects.file.FileObject.virtual_file_path" title="Permalink to this definition">¶</a></dt>
 <dd><p>The virtual file path (vfp) is not a path on the analysis machine but the full path inside a firmware object.
 For a file inside a filesystem, that was itself packed inside an archive this might look like
 <cite>firmware_uid|fs_uid|/etc/hosts</cite> with the pipe sign ( | ) separating extraction levels.
