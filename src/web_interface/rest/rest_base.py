@@ -10,7 +10,8 @@ from web_interface.rest.rest_compare import RestCompare
 from web_interface.rest.rest_file_object import RestFileObject
 from web_interface.rest.rest_firmware import RestFirmware
 from web_interface.rest.rest_missing_analyses import RestMissingAnalyses
-from web_interface.rest.rest_statistic import RestStatus
+from web_interface.rest.rest_status import RestStatus
+from web_interface.rest.rest_statistics import RestStatistics
 
 
 class RestBase:
@@ -23,6 +24,8 @@ class RestBase:
         self.api.add_resource(RestFirmware, '/rest/firmware', '/rest/firmware/<uid>', methods=['GET', 'PUT'], resource_class_kwargs={'config': config})
         self.api.add_resource(RestMissingAnalyses, RestMissingAnalyses.URL, methods=['GET'], resource_class_kwargs={'config': config})
         self.api.add_resource(RestStatus, '/rest/status', methods=['GET'], resource_class_kwargs={'config': config})
+        self.api.add_resource(RestStatistics, '/rest/statistics', '/rest/statistics/<stat_name>', methods=['GET'], resource_class_kwargs={'config': config})
+
 
         self._wrap_response(self.api)
 
