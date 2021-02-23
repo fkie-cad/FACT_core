@@ -8,7 +8,7 @@ import magic
 from storage.binary_service import BinaryService
 from storage.db_interface_backend import BackEndDbInterface
 from storage.MongoMgr import MongoMgr
-from test.common_helper import create_test_firmware, get_config_for_testing, put_binary_for_binary_service
+from test.common_helper import create_test_firmware, get_config_for_testing, store_binary_on_file_system
 
 TEST_FW = create_test_firmware()
 
@@ -25,7 +25,7 @@ class TestBinaryService:
     def _init_test_data(self):
         self.backend_db_interface = BackEndDbInterface(config=self.config)
         self.backend_db_interface.add_firmware(TEST_FW)
-        put_binary_for_binary_service(self.tmp_dir.name, TEST_FW)
+        store_binary_on_file_system(self.tmp_dir.name, TEST_FW)
         self.backend_db_interface.shutdown()
 
     def teardown(self):

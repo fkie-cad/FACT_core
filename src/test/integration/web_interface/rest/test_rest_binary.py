@@ -5,7 +5,7 @@ from multiprocessing import Queue
 
 from intercom.back_end_binding import InterComBackEndBinding
 from storage.db_interface_backend import BackEndDbInterface
-from test.common_helper import create_test_firmware, put_binary_for_binary_service
+from test.common_helper import create_test_firmware, store_binary_on_file_system
 from test.integration.intercom import test_backend_scheduler
 from test.integration.web_interface.rest.base import RestTestBase
 
@@ -24,12 +24,13 @@ class TestRestDownload(RestTestBase):
 
     def test_rest_download_valid(self):
         backend_binding = InterComBackEndBinding(
-            self.config, analysis_service=test_backend_scheduler.AnalysisServiceMock(),
+            config=self.config,
+            analysis_service=test_backend_scheduler.AnalysisServiceMock(),
             compare_service=test_backend_scheduler.ServiceMock(self.test_queue),
             unpacking_service=test_backend_scheduler.ServiceMock(self.test_queue)
         )
         test_firmware = create_test_firmware(device_class='test class', device_name='test device', vendor='test vendor')
-        put_binary_for_binary_service(self.tmp_dir.name, test_firmware)
+        store_binary_on_file_system(self.tmp_dir.name, test_firmware)
         self.db_interface.add_firmware(test_firmware)
 
         try:

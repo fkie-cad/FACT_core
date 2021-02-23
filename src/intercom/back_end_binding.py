@@ -111,7 +111,8 @@ class InterComBackEndAnalysisTask(InterComListener):
 
     CONNECTION_TYPE = 'analysis_task'
 
-    def additional_setup(self, config=None):
+    def __init__(self, config=None):
+        super().__init__(config)
         self.fs_organizer = FSOrganizer(config=config)
 
     def post_processing(self, task, task_id):
@@ -123,7 +124,8 @@ class InterComBackEndReAnalyzeTask(InterComListener):
 
     CONNECTION_TYPE = 're_analyze_task'
 
-    def additional_setup(self, config=None):
+    def __init__(self, config=None):
+        super().__init__(config)
         self.fs_organizer = FSOrganizer(config=config)
 
     def post_processing(self, task, task_id):
@@ -152,7 +154,8 @@ class InterComBackEndRawDownloadTask(InterComListenerAndResponder):
     CONNECTION_TYPE = 'raw_download_task'
     OUTGOING_CONNECTION_TYPE = 'raw_download_task_resp'
 
-    def additional_setup(self, config=None):
+    def __init__(self, config=None):
+        super().__init__(config)
         self.binary_service = BinaryService(config=self.config)
 
     def get_response(self, task):
@@ -164,7 +167,8 @@ class InterComBackEndTarRepackTask(InterComListenerAndResponder):
     CONNECTION_TYPE = 'tar_repack_task'
     OUTGOING_CONNECTION_TYPE = 'tar_repack_task_resp'
 
-    def additional_setup(self, config=None):
+    def __init__(self, config=None):
+        super().__init__(config)
         self.binary_service = BinaryService(config=self.config)
 
     def get_response(self, task):
@@ -186,7 +190,8 @@ class InterComBackEndDeleteFile(InterComListener):
 
     CONNECTION_TYPE = 'file_delete_task'
 
-    def additional_setup(self, config=None):
+    def __init__(self, config=None):
+        super().__init__(config)
         self.fs_organizer = FSOrganizer(config=config)
 
     def post_processing(self, task, task_id):
