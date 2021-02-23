@@ -25,11 +25,9 @@ class TestRestStatistics(RestTestBase):
         assert bool(st_dict['file_type'])
         assert 'file_types' in st_dict['file_type']
         assert 'firmware_container' in st_dict['file_type']
-
         assert b'known_vulnerabilities' in st.data
         assert bool(st_dict['known_vulnerabilities'])
         assert 'known_vulnerabilities' in st_dict['known_vulnerabilities']
-
         assert b'malware' in st.data
         assert not bool(st_dict['malware'])
         assert b'exploit_mitigations' in st.data
@@ -42,7 +40,6 @@ class TestRestStatistics(RestTestBase):
         assert b'file_type' in st.data
         assert 'file_types' in st_dict['file_type']
         assert 'firmware_container' in st_dict['file_type']
-
         assert b'known_vulnerabilities' not in st.data
 
     def test_rest_request_non_existent_statistic(self):
