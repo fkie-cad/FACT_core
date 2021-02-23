@@ -42,7 +42,7 @@ class TestRestStatistics(RestTestBase):
         assert b'file_type' in st.data
         assert 'file_types' in st_dict['file_type']
         assert 'firmware_container' in st_dict['file_type']
-        
+
         assert b'known_vulnerabilities' not in st.data
 
     def test_rest_request_non_existent_statistic(self):
