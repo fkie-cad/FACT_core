@@ -1,11 +1,10 @@
-from flask_restful import Resource
+from flask_restx import Resource
 
 from helperFunctions.database import ConnectTo
 from storage.db_interface_statistic import StatisticDbViewer
-
+from web_interface.rest.helper import error_message
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
-from web_interface.rest.helper import error_message
 
 
 class RestStatistics(Resource):
@@ -14,7 +13,8 @@ class RestStatistics(Resource):
                   'architecture', 'release_date', 'exploit_mitigations', 'known_vulnerabilities', 'software_components',
                   'elf_executable']
 
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.config = kwargs.get('config', None)
 
     @roles_accepted(*PRIVILEGES['status'])
