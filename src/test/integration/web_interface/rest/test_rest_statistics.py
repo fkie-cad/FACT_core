@@ -1,3 +1,5 @@
+import json
+
 from storage.db_interface_statistic import StatisticDbUpdater
 from test.integration.web_interface.rest.base import RestTestBase
 
@@ -17,15 +19,31 @@ class TestRestStatistics(RestTestBase):
 
     def test_rest_request_all_statistics(self):
         st = self.test_client.get('/rest/statistics', follow_redirects=True)
+        st_dict = json.loads(st.data)
 
         assert b'file_type' in st.data
-        assert b'malware' in st.data
-
-    def test_rest_request_single_statistic(self):
-        st = self.test_client.get('/rest/statistics/known_vulnerabilities', follow_redirects=True)
+        assert bool(st_dict['file_type'])
+        assert 'file_types' in st_dict['file_type']
+        assert 'firmware_container' in st_dict['file_type']
 
         assert b'known_vulnerabilities' in st.data
-        assert b'file_type' not in st.data
+        assert bool(st_dict['known_vulnerabilities'])
+        assert 'known_vulnerabilities' in st_dict['known_vulnerabilities']
+
+        assert b'malware' in st.data
+        assert not bool(st_dict['malware'])
+        assert b'exploit_mitigations' in st.data
+        assert not bool(st_dict['exploit_mitigations'])
+
+    def test_rest_request_single_statistic(self):
+        st = self.test_client.get('/rest/statistics/file_type', follow_redirects=True)
+        st_dict = json.loads(st.data)
+
+        assert b'file_type' in st.data
+        assert 'file_types' in st_dict['file_type']
+        assert 'firmware_container' in st_dict['file_type']
+        
+        assert b'known_vulnerabilities' not in st.data
 
     def test_rest_request_non_existent_statistic(self):
         st = self.test_client.get('/rest/statistics/non_existent_stat', follow_redirects=True)
