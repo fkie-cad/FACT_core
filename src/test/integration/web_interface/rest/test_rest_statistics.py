@@ -29,9 +29,9 @@ class TestRestStatistics(RestTestBase):
         assert bool(st_dict['known_vulnerabilities'])
         assert 'known_vulnerabilities' in st_dict['known_vulnerabilities']
         assert b'malware' in st.data
-        assert not bool(st_dict['malware'])
+        assert not st_dict['malware']
         assert b'exploit_mitigations' in st.data
-        assert not bool(st_dict['exploit_mitigations'])
+        assert not st_dict['exploit_mitigations']
 
     def test_rest_request_single_statistic(self):
         st = self.test_client.get('/rest/statistics/file_type', follow_redirects=True)
