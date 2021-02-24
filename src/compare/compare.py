@@ -58,7 +58,7 @@ class Compare(object):
                 self._add_content_to_general_dict(general, 'firmwares_including_this_file', fo.uid, list(fo.get_virtual_file_paths().keys()))
             self._add_content_to_general_dict(general, 'hid', fo.uid, fo.get_hid())
             self._add_content_to_general_dict(general, 'size', fo.uid, fo.size)
-            self._add_content_to_general_dict(general, 'virtual_file_path', fo.uid, fo.get_virtual_paths_for_one_uid())
+            self._add_content_to_general_dict(general, 'virtual_file_path', fo.uid, fo.get_virtual_paths_for_all_uids())
             self._add_content_to_general_dict(general, 'number_of_files', fo.uid, len(fo.list_of_all_included_files))
         return general
 
