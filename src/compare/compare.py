@@ -6,7 +6,7 @@ from objects.firmware import Firmware
 from storage.binary_service import BinaryService
 
 
-class Compare(object):
+class Compare:
     '''
     This Module compares firmware images
     '''
@@ -76,7 +76,7 @@ class Compare(object):
         self._init_plugins()
 
     def _init_plugins(self):
-        self.source = import_plugins('compare.plugins', 'plugins/compare')
+        self.source = import_plugins('compare.plugins', 'plugins/compare')  # pylint: disable=attribute-defined-outside-init
         for plugin_name in self.source.list_plugins():
             plugin = self.source.load_plugin(plugin_name)
             plugin.ComparePlugin(self, config=self.config, db_interface=self.db_interface)
