@@ -110,10 +110,10 @@ class FilterClass:
         return render_template('generic_view/firmware_detail_tabular_field.html', firmware=firmware_meta_data)
 
     @staticmethod
-    def _render_general_information_table(firmware, other_versions, selected_analysis):
+    def _render_general_information_table(firmware, root_uid, other_versions, selected_analysis):
         return render_template(
             'generic_view/general_information.html',
-            firmware=firmware, other_versions=other_versions, selected_analysis=selected_analysis
+            firmware=firmware, root_uid=root_uid, other_versions=other_versions, selected_analysis=selected_analysis
         )
 
     @staticmethod
