@@ -214,7 +214,7 @@ class Choice(Enum):
         return self.value in [self.cve.value, self.both.value]
 
     def __str__(self):
-        return self.value
+        return str(self.value)
 
 
 def update_repository(extraction_path: str, choice: Choice):

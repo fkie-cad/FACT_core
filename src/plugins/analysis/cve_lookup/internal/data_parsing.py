@@ -31,8 +31,8 @@ def get_cve_links(url: str, selected_years: Optional[List[int]] = None) -> List[
 def process_url(download_url: str, path: str):
     try:
         request = _retrieve_url(download_url)
-    except requests.exceptions.RequestException:
-        raise CveLookupException(f'URL {download_url} not found. URL might have changed.')
+    except RequestException as exception:
+        raise CveLookupException(f'URL {download_url} not found. URL might have changed.') from exception
 
     zipped_data = ZipFile(BytesIO(request.content))
     zipped_data.extractall(path)
@@ -80,8 +80,8 @@ def extract_cve_impact(entry: dict) -> dict:
         return {}
     impact = {}
     for version in [2, 3]:
-        metric_key = 'baseMetricV{}'.format(version)
-        cvss_key = 'cvssV{}'.format(version)
+        metric_key = f'baseMetricV{version}'
+        cvss_key = f'cvssV{version}'
         if metric_key in entry and cvss_key in entry[metric_key]:
             impact[cvss_key] = entry[metric_key][cvss_key]['baseScore']
     return impact
@@ -108,8 +108,8 @@ def extract_cve(cve_file: str) -> Tuple[List[CveEntry], List[CveSummaryEntry]]:
 def extract_cpe(file: str) -> list:
     try:
         tree = parse(file)
-    except ParseError:
-        raise CveLookupException('could not extract CPE file: {}'.format(file))
+    except ParseError as error:
+        raise CveLookupException(f'could not extract CPE file: {file}') from error
     return [
         item.attrib['name']
         for entry in tree.getroot()
