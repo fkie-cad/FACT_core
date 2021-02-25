@@ -8,6 +8,8 @@ from xml.etree.ElementTree import ParseError, parse
 from zipfile import ZipFile
 
 import requests
+from requests.exceptions import RequestException
+from retry import retry
 
 try:
     from ..internal.helper_functions import CveEntry, CveSummaryEntry, CveLookupException
@@ -28,12 +30,17 @@ def get_cve_links(url: str, selected_years: Optional[List[int]] = None) -> List[
 
 def process_url(download_url: str, path: str):
     try:
-        request = requests.get(download_url, allow_redirects=True)
-    except requests.exceptions.RequestException:
-        raise CveLookupException('URLs are invalid. URL format might have been changed or website might have moved.')
+        request = _retrieve_url(download_url)
+    except RequestException as exception:
+        raise CveLookupException(f'URL {download_url} not found. URL might have changed.') from exception
 
     zipped_data = ZipFile(BytesIO(request.content))
     zipped_data.extractall(path)
+
+
+@retry(RequestException, tries=3, delay=5, backoff=2)
+def _retrieve_url(download_url):
+    return requests.get(download_url, allow_redirects=True)
 
 
 def download_cve(download_path: str, years: Optional[List[int]] = None, update: bool = False):
@@ -73,8 +80,8 @@ def extract_cve_impact(entry: dict) -> dict:
         return {}
     impact = {}
     for version in [2, 3]:
-        metric_key = 'baseMetricV{}'.format(version)
-        cvss_key = 'cvssV{}'.format(version)
+        metric_key = f'baseMetricV{version}'
+        cvss_key = f'cvssV{version}'
         if metric_key in entry and cvss_key in entry[metric_key]:
             impact[cvss_key] = entry[metric_key][cvss_key]['baseScore']
     return impact
@@ -101,8 +108,8 @@ def extract_cve(cve_file: str) -> Tuple[List[CveEntry], List[CveSummaryEntry]]:
 def extract_cpe(file: str) -> list:
     try:
         tree = parse(file)
-    except ParseError:
-        raise CveLookupException('could not extract CPE file: {}'.format(file))
+    except ParseError as error:
+        raise CveLookupException(f'could not extract CPE file: {file}') from error
     return [
         item.attrib['name']
         for entry in tree.getroot()
