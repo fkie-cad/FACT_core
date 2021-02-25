@@ -107,9 +107,10 @@ class VirtualPathFileTree:
         'virtual_file_path': 1,
     }
 
-    def __init__(self, root_uid: str, fo_data: dict, whitelist: Optional[List[str]] = None):
+    def __init__(self, root_uid: str, parent_uid: str, fo_data: dict, whitelist: Optional[List[str]] = None):
         self.uid = fo_data['_id']
         self.root_uid = root_uid if root_uid else list(fo_data['virtual_file_path'])[0]
+        self.parent_uid = parent_uid
         self.fo_data = fo_data
         self.whitelist = whitelist
         self.virtual_file_paths = self._get_virtual_file_paths()
@@ -131,7 +132,10 @@ class VirtualPathFileTree:
         :return: An iterable sequence of nodes of the file tree.
         '''
         for virtual_path in self.virtual_file_paths:
-            yield self._create_node_from_virtual_path(virtual_path.split('/')[1:])
+            containers, *path_elements = virtual_path.split('/')
+            containers = [c for c in containers.split('|') if c]
+            if self.parent_uid is None or containers[-1] == self.parent_uid:
+                yield self._create_node_from_virtual_path(path_elements)
 
     def _create_node_from_virtual_path(self, current_virtual_path: List[str]) -> FileTreeNode:
         if len(current_virtual_path) > 1:
