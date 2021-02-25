@@ -8,6 +8,8 @@ from xml.etree.ElementTree import ParseError, parse
 from zipfile import ZipFile
 
 import requests
+from requests.exceptions import RequestException
+from retry import retry
 
 try:
     from ..internal.helper_functions import CveEntry, CveSummaryEntry, CveLookupException
@@ -28,12 +30,17 @@ def get_cve_links(url: str, selected_years: Optional[List[int]] = None) -> List[
 
 def process_url(download_url: str, path: str):
     try:
-        request = requests.get(download_url, allow_redirects=True)
+        request = _retrieve_url(download_url)
     except requests.exceptions.RequestException:
-        raise CveLookupException('URLs are invalid. URL format might have been changed or website might have moved.')
+        raise CveLookupException(f'URL {download_url} not found. URL might have changed.')
 
     zipped_data = ZipFile(BytesIO(request.content))
     zipped_data.extractall(path)
+
+
+@retry(RequestException, tries=3, delay=5, backoff=2)
+def _retrieve_url(download_url):
+    return requests.get(download_url, allow_redirects=True)
 
 
 def download_cve(download_path: str, years: Optional[List[int]] = None, update: bool = False):
