@@ -1,3 +1,5 @@
+# pylint: disable=attribute-defined-outside-init,wrong-import-order
+
 import json
 
 from storage.db_interface_statistic import StatisticDbUpdater
@@ -6,16 +8,16 @@ from test.integration.web_interface.rest.base import RestTestBase
 
 class TestRestStatistics(RestTestBase):
 
-    def setUp(self):
-        super().setUp()
+    def setup(self):
+        super().setup()
         self.stats_updater = StatisticDbUpdater(config=self.config)
         self.stats_updater.update_statistic('file_type', {'file_types': [['application/gzip', 3454]],
                                                           'firmware_container': [['application/zip', 3], ['firmware/foo', 1]]})
         self.stats_updater.update_statistic('known_vulnerabilities', {'known_vulnerabilities': [['BackDoor_String', 1]]})
 
-    def tearDown(self):
+    def teardown(self):
         self.stats_updater.shutdown()
-        super().tearDown()
+        super().teardown()
 
     def test_rest_request_all_statistics(self):
         st = self.test_client.get('/rest/statistics', follow_redirects=True)
