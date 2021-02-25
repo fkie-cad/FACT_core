@@ -2,42 +2,17 @@
 
 FACTUSER=$(whoami)
 
-sudo dnf install -y redhat-lsb
-sudo dnf install -y grubby
-
-CODENAME=$(lsb_release -cs)
-if [ "${CODENAME}" = "ThirtyOne" ]; then
-  CODENAME=ThirtyOne
-elif [ "${CODENAME}" = "ThirtyTwo" ]; then
-  CODENAME=ThirtyOne
-fi
-
 echo "Install Pre-Install Requirements"
 
-sudo dnf install -y python3-pip
-sudo dnf install -y git
-sudo dnf install -y libffi-devel
-sudo dnf install -y ca-certificates
-sudo dnf install -y curl
+sudo dnf install -y python3-pip git libffi-devel ca-certificates grubby curl
 
 echo "Installing Docker"
 
-if [ "${CODENAME}" = "ThirtyOne" ]; then
-  sudo dnf -y install dnf-plugins-core
-  sudo dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+rm get-docker.sh
 
-  sudo dnf config-manager --set-disabled docker-ce-nightly
-  sudo dnf config-manager --set-disabled docker-ce-test
-
-  sudo dnf install -y docker-ce docker-ce-cli containerd.io
-
-  sudo grubby --update-kernel=ALL --args="systemd.unified_cgroup_hierarchy=0"
-
-elif [ "${CODENAME}" = "ThirtyTwo" ]; then
-  echo "NO SUPPORT YET"
-  exit 1
-fi
-
+sudo grubby --update-kernel=ALL --args="systemd.unified_cgroup_hierarchy=0"
 sudo systemctl start docker
 sudo systemctl enable docker
 
@@ -60,20 +35,15 @@ sudo usermod -aG docker "$FACTUSER"
 
 if [ "$(pip3 freeze | grep enum34)" ]
 then
-        echo "Please uninstall the enum34 pypi package before continuing as it is not compatible with python >3.6 anymore"
-        exit 1
+  echo "Please uninstall the enum34 pypi package before continuing as it is not compatible with python >3.6 anymore"
+  exit 1
 fi
 
-sudo -EH pip3 install --upgrade pip
-sudo -EH pip3 install --upgrade virtualenv
 
 echo "Installing Python Libraries for python based installation"
-sudo -EH pip3 install --upgrade distro
-sudo -EH pip3 install --upgrade python-magic
-sudo -EH pip3 install --upgrade requests
-
-sudo -EH pip3 install --upgrade git+https://github.com/fkie-cad/common_helper_files.git
-sudo -EH pip3 install --upgrade git+https://github.com/fkie-cad/common_helper_process.git
+sudo -EH pip3 install --upgrade pip virtualenv distro python-magic requests \
+  git+https://github.com/fkie-cad/common_helper_files.git \
+  git+https://github.com/fkie-cad/common_helper_process.git
 
 echo -e "Pre-Install-Routine complete! \\033[31mPlease reboot before running install.py\\033[0m"
 
