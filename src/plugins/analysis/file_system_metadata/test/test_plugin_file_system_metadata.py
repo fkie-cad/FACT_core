@@ -2,6 +2,7 @@
 from base64 import b64encode
 from pathlib import Path
 from typing import Optional
+from unittest import mock
 
 from flaky import flaky
 
@@ -55,11 +56,34 @@ class TestFileSystemMetadata(AnalysisPluginTest):
         super().setUp()
         config = self.init_basic_config()
         self.analysis_plugin = plugin.AnalysisPlugin(self, config=config)
-        plugin.FsMetadataDbInterface.__bases__ = (DatabaseMock,)
-        plugin.ConnectTo.__enter__ = mock_connect_to_enter
-        plugin.ConnectTo.__exit__ = lambda *_: None
+        self._setup_patches()
         self.test_file_tar = TEST_DATA_DIR / 'test.tar'
         self.test_file_fs = TEST_DATA_DIR / 'squashfs.img'
+
+    def _setup_patches(self):
+        self.patches = [
+            mock.patch.object(
+                target=plugin.FsMetadataDbInterface,
+                attribute='__bases__',
+                new=(DatabaseMock,)
+            ),
+            mock.patch(
+                target='helperFunctions.database.ConnectTo.__enter__',
+                new=mock_connect_to_enter
+            ),
+            mock.patch(
+                target='helperFunctions.database.ConnectTo.__exit__',
+                new=lambda *_: None
+            )
+        ]
+        for patch in self.patches:
+            patch.start()
+        self.patches[0].is_local = True  # shameless hack to prevent mock.patch from calling delattr
+
+    def tearDown(self):
+        for patch in self.patches:
+            patch.stop()
+        super().tearDown()
 
     def _extract_metadata_from_archive_mock(self, _):
         self.result = 'archive'

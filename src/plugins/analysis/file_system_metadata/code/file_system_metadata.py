@@ -1,6 +1,5 @@
+import json
 import logging
-import os
-import pickle
 import stat
 import tarfile
 import zlib
@@ -8,7 +7,7 @@ from base64 import b64encode
 from contextlib import suppress
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import List, Tuple
+from typing import List, NamedTuple, Tuple
 
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.database import ConnectTo
@@ -18,6 +17,10 @@ from objects.file import FileObject
 from storage.db_interface_common import MongoInterfaceCommon
 
 DOCKER_IMAGE = 'fs_metadata_mounting'
+StatResult = NamedTuple(
+    'StatEntry',
+    [('uid', int), ('gid', int), ('mode', int), ('a_time', float), ('c_time', float), ('m_time', float)]
+)
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
@@ -89,7 +92,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             output = self._mount_in_docker(tmp_dir)
             output_file = Path(tmp_dir) / "output.pickle"
             if output_file.is_file():
-                self._analyze_metadata_of_mounted_dir(pickle.loads(output_file.read_bytes()))
+                self._analyze_metadata_of_mounted_dir(json.loads(output_file.read_bytes()))
             else:
                 message = 'mount failed:\n{}'.format(output)
                 logging.warning('[{}] {}'.format(self.NAME, message))
@@ -104,23 +107,23 @@ class AnalysisPlugin(AnalysisBasePlugin):
             privileged=True
         )
 
-    def _analyze_metadata_of_mounted_dir(self, docker_results: Tuple[str, str, os.stat_result]):
+    def _analyze_metadata_of_mounted_dir(self, docker_results: Tuple[str, str, dict]):
         for file_name, file_path, file_stats in docker_results:
-            self._enter_results_for_mounted_file(file_name, file_path, file_stats)
+            self._enter_results_for_mounted_file(file_name, file_path, StatResult(**file_stats))
 
-    def _enter_results_for_mounted_file(self, file_name: str, file_path: str, stats: os.stat_result):
+    def _enter_results_for_mounted_file(self, file_name: str, file_path: str, stats: StatResult):
         result = self.result[b64encode(file_name.encode()).decode()] = {}
         result[FsKeys.MODE] = self._get_mounted_file_mode(stats)
-        result[FsKeys.MODE_HR] = stat.filemode(stats.st_mode)
+        result[FsKeys.MODE_HR] = stat.filemode(stats.mode)
         result[FsKeys.NAME] = file_name
         result[FsKeys.PATH] = file_path
-        result[FsKeys.UID] = stats.st_uid
-        result[FsKeys.GID] = stats.st_gid
-        result[FsKeys.USER] = 'root' if stats.st_uid == 0 else ''
-        result[FsKeys.GROUP] = 'root' if stats.st_gid == 0 else ''
-        result[FsKeys.M_TIME] = stats.st_mtime
-        result[FsKeys.A_TIME] = stats.st_atime
-        result[FsKeys.C_TIME] = stats.st_ctime
+        result[FsKeys.UID] = stats.uid
+        result[FsKeys.GID] = stats.gid
+        result[FsKeys.USER] = 'root' if stats.uid == 0 else ''
+        result[FsKeys.GROUP] = 'root' if stats.gid == 0 else ''
+        result[FsKeys.M_TIME] = stats.m_time
+        result[FsKeys.A_TIME] = stats.a_time
+        result[FsKeys.C_TIME] = stats.c_time
         result[FsKeys.SUID], result[FsKeys.SGID], result[FsKeys.STICKY] = self._get_extended_file_permissions(result[FsKeys.MODE])
 
     def _extract_metadata_from_tar(self, file_object: FileObject):
@@ -160,8 +163,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return oct(file_info.mode)[2:]
 
     @staticmethod
-    def _get_mounted_file_mode(stats):
-        return oct(stat.S_IMODE(stats.st_mode))[2:]
+    def _get_mounted_file_mode(stats: StatResult):
+        return oct(stat.S_IMODE(stats.mode))[2:]
 
     def _add_tag(self, file_object: FileObject, results: dict):
         if self._tag_should_be_set(results):

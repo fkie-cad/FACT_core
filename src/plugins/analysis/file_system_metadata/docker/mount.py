@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 
+import json
 import logging
 import os
-import pickle
 from contextlib import contextmanager
 from pathlib import Path
 from subprocess import CalledProcessError, check_call
+from typing import Dict, Union
 
 INPUT_DIR = Path("/work")
 INPUT_FILE = INPUT_DIR / "input.img"
@@ -39,14 +40,25 @@ def _get_mounted_file_stats():
     for file in MOUNT_DIR.rglob("*"):
         try:
             if not file.is_symlink() and file.is_file():
-                result.append((file.name, str(file.relative_to(MOUNT_DIR)), file.lstat()))
+                result.append((file.name, str(file.relative_to(MOUNT_DIR)), _stat_to_dict(file.lstat())))
         except PermissionError:
             continue
     return result
 
 
+def _stat_to_dict(stat_result: os.stat_result) -> Dict[str, Union[int, float]]:
+    return {
+        'uid': stat_result.st_uid,
+        'gid': stat_result.st_gid,
+        'mode': stat_result.st_mode,
+        'a_time': stat_result.st_atime,
+        'c_time': stat_result.st_ctime,
+        'm_time': stat_result.st_mtime,
+    }
+
+
 def _save_results(result, uid, gid):
-    OUTPUT_FILE.write_bytes(pickle.dumps(result))
+    OUTPUT_FILE.write_text(json.dumps(result))
     os.chown(OUTPUT_FILE, uid, gid)
 
 
