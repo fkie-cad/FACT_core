@@ -1,8 +1,10 @@
 import json
+from configparser import ConfigParser
 
 from common_helper_encoder import ReportEncoder
 from flask import make_response
 from flask_restx import Api
+from flask_restx.namespace import Namespace
 
 from web_interface.rest.rest_binary import RestBinary
 from web_interface.rest.rest_binary_search import RestBinarySearch
@@ -10,13 +12,16 @@ from web_interface.rest.rest_compare import RestCompare
 from web_interface.rest.rest_file_object import RestFileObject
 from web_interface.rest.rest_firmware import RestFirmware
 from web_interface.rest.rest_missing_analyses import RestMissingAnalyses
+from web_interface.rest.rest_statistics import api as stats_api
 from web_interface.rest.rest_status import RestStatus
-from web_interface.rest.rest_statistics import RestStatistics
 
 
 class RestBase:
     def __init__(self, app=None, config=None):
         self.api = Api(app, doc='/doc/')
+        for api in [stats_api]:
+            self._pass_config_to_init(config, api)
+            self.api.add_namespace(api)
         self.api.add_resource(RestBinary, '/rest/binary/<uid>', methods=['GET'], resource_class_kwargs={'config': config})
         self.api.add_resource(RestBinarySearch, '/rest/binary_search', '/rest/binary_search/<search_id>', methods=['GET', 'POST'], resource_class_kwargs={'config': config})
         self.api.add_resource(RestCompare, '/rest/compare', '/rest/compare/<compare_id>', methods=['GET', 'PUT'], resource_class_kwargs={'config': config})
@@ -24,10 +29,13 @@ class RestBase:
         self.api.add_resource(RestFirmware, '/rest/firmware', '/rest/firmware/<uid>', methods=['GET', 'PUT'], resource_class_kwargs={'config': config})
         self.api.add_resource(RestMissingAnalyses, RestMissingAnalyses.URL, methods=['GET'], resource_class_kwargs={'config': config})
         self.api.add_resource(RestStatus, '/rest/status', methods=['GET'], resource_class_kwargs={'config': config})
-        self.api.add_resource(RestStatistics, '/rest/statistics', '/rest/statistics/<stat_name>', methods=['GET'], resource_class_kwargs={'config': config})
-
 
         self._wrap_response(self.api)
+
+    @staticmethod
+    def _pass_config_to_init(config: ConfigParser, api: Namespace):
+        for _, _, _, kwargs in api.resources:
+            kwargs['resource_class_kwargs'] = {'config': config}
 
     @staticmethod
     def _wrap_response(api):
