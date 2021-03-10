@@ -11,22 +11,16 @@ from storage.db_interface_admin import AdminDbInterface
 from storage.db_interface_compare import CompareDbInterface
 from storage.db_interface_frontend import FrontEndDbInterface
 from storage.db_interface_frontend_editing import FrontendEditingDbInterface
-from web_interface.components.component_base import ComponentBase
+from web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
 
 class MiscellaneousRoutes(ComponentBase):
-    def _init_component(self):
-        self._app.add_url_rule('/', 'home', self._app_home)
-        self._app.add_url_rule('/about', 'about', self._app_about)
-        self._app.add_url_rule('/comment/<uid>', 'comment/<uid>', self._app_add_comment, methods=['GET', 'POST'])
-        self._app.add_url_rule('/admin/delete_comment/<uid>/<timestamp>', '/admin/delete_comment/<uid>/<timestamp>', self._app_delete_comment)
-        self._app.add_url_rule('/admin/delete/<uid>', '/admin/delete/<uid>', self._app_delete_firmware)
-        self._app.add_url_rule('/admin/missing_analyses', 'admin/missing_analyses', self._app_find_missing_analyses, methods=['GET'])
 
     @login_required
     @roles_accepted(*PRIVILEGES['status'])
+    @AppRoute('/', GET)
     def _app_home(self):
         stats = StatisticUpdater(config=self._config)
         with ConnectTo(FrontEndDbInterface, config=self._config) as sc:
@@ -37,14 +31,21 @@ class MiscellaneousRoutes(ComponentBase):
         ajax_stats_reload_time = int(self._config['database']['ajax_stats_reload_time'])
         general_stats = stats.get_general_stats()
         stats.shutdown()
-        return render_template('home.html', general_stats=general_stats, latest_firmware_submissions=latest_firmware_submissions,
-                               latest_comments=latest_comments, latest_comparison_results=latest_comparison_results, ajax_stats_reload_time=ajax_stats_reload_time)
+        return render_template(
+            'home.html',
+            general_stats=general_stats,
+            latest_firmware_submissions=latest_firmware_submissions,
+            latest_comments=latest_comments,
+            latest_comparison_results=latest_comparison_results,
+            ajax_stats_reload_time=ajax_stats_reload_time
+        )
 
-    @staticmethod
-    def _app_about():
+    @AppRoute('/about', GET)
+    def show_about(self):  # pylint: disable=no-self-use
         return render_template('about.html')
 
     @roles_accepted(*PRIVILEGES['comment'])
+    @AppRoute('/comment/<uid>', GET, POST)
     def _app_add_comment(self, uid):
         error = False
         if request.method == 'POST':
@@ -59,12 +60,14 @@ class MiscellaneousRoutes(ComponentBase):
         return render_template('add_comment.html', uid=uid, error=error)
 
     @roles_accepted(*PRIVILEGES['delete'])
+    @AppRoute('/admin/delete_comment/<uid>/<timestamp>', GET)
     def _app_delete_comment(self, uid, timestamp):
         with ConnectTo(FrontendEditingDbInterface, config=self._config) as sc:
             sc.delete_comment(uid, timestamp)
         return redirect(url_for('show_analysis', uid=uid))
 
     @roles_accepted(*PRIVILEGES['delete'])
+    @AppRoute('/admin/delete/<uid>', GET)
     def _app_delete_firmware(self, uid):
         with ConnectTo(FrontEndDbInterface, config=self._config) as sc:
             is_firmware = sc.is_firmware(uid)
@@ -75,6 +78,7 @@ class MiscellaneousRoutes(ComponentBase):
         return render_template('delete_firmware.html', deleted_vps=deleted_virtual_path_entries, deleted_files=deleted_files, uid=uid)
 
     @roles_accepted(*PRIVILEGES['delete'])
+    @AppRoute('/admin/missing_analyses', GET)
     def _app_find_missing_analyses(self):
         template_data = {
             'missing_files': self._find_missing_files(),

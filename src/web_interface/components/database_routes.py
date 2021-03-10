@@ -16,21 +16,13 @@ from helperFunctions.yara_binary_search import get_yara_error, is_valid_yara_rul
 from intercom.front_end_binding import InterComFrontEndBinding
 from storage.db_interface_frontend import FrontEndDbInterface
 from storage.db_interface_frontend_editing import FrontendEditingDbInterface
-from web_interface.components.component_base import ComponentBase
+from web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
 from web_interface.pagination import extract_pagination_from_request, get_pagination
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
 
 class DatabaseRoutes(ComponentBase):
-
-    def _init_component(self):
-        self._app.add_url_rule('/database/browse', 'database/browse', self._app_show_browse_database)
-        self._app.add_url_rule('/database/search', 'database/search', self._app_show_search_database, methods=['GET', 'POST'])
-        self._app.add_url_rule('/database/advanced_search', 'database/advanced_search', self._app_show_advanced_search, methods=['GET', 'POST'])
-        self._app.add_url_rule('/database/binary_search', 'database/binary_search', self._app_start_binary_search, methods=['GET', 'POST'])
-        self._app.add_url_rule('/database/quick_search', 'database/quick_search', self._app_start_quick_search, methods=['GET'])
-        self._app.add_url_rule('/database/database_binary_search_results.html', 'database/database_binary_search_results.html', self._app_get_binary_search_results)
 
     @staticmethod
     def _add_date_to_query(query, date):
@@ -47,7 +39,8 @@ class DatabaseRoutes(ComponentBase):
             return query
 
     @roles_accepted(*PRIVILEGES['basic_search'])
-    def _app_show_browse_database(self, query: str = '{}', only_firmwares=False, inverted=False):
+    @AppRoute('/database/browse', GET)
+    def browse_database(self, query: str = '{}', only_firmwares=False, inverted=False):
         page, per_page = extract_pagination_from_request(request, self._config)[0:2]
         search_parameters = self._get_search_parameters(query, only_firmwares, inverted)
         try:
@@ -138,16 +131,18 @@ class DatabaseRoutes(ComponentBase):
         query.update({'$or': hash_query})
 
     @roles_accepted(*PRIVILEGES['basic_search'])
+    @AppRoute('/database/search', GET, POST)
     def _app_show_search_database(self):
         if request.method == 'POST':
             query = self._build_search_query()
-            return redirect(url_for('database/browse', query=query))
+            return redirect(url_for('browse_database', query=query))
         with ConnectTo(FrontEndDbInterface, self._config) as connection:
             device_classes = connection.get_device_class_list()
             vendors = connection.get_vendor_list()
         return render_template('database/database_search.html', device_classes=device_classes, vendors=vendors)
 
     @roles_accepted(*PRIVILEGES['advanced_search'])
+    @AppRoute('/database/advanced_search', GET, POST)
     def _app_show_advanced_search(self, error=None):
         with ConnectTo(FrontEndDbInterface, self._config) as connection:
             database_structure = connection.create_analysis_structure()
@@ -158,12 +153,13 @@ class DatabaseRoutes(ComponentBase):
                 inverted = request.form.get('inverted') is not None
                 if not isinstance(query, dict):
                     raise Exception('Error: search query invalid (wrong type)')
-                return redirect(url_for('database/browse', query=json.dumps(query), only_firmwares=only_firmwares, inverted=inverted))
+                return redirect(url_for('browse_database', query=json.dumps(query), only_firmwares=only_firmwares, inverted=inverted))
             except Exception as err:
                 error = err
         return render_template('database/database_advanced_search.html', error=error, database_structure=database_structure)
 
     @roles_accepted(*PRIVILEGES['pattern_search'])
+    @AppRoute('/database/binary_search', GET, POST)
     def _app_start_binary_search(self):
         error = None
         if request.method == 'POST':
@@ -174,7 +170,7 @@ class DatabaseRoutes(ComponentBase):
                 if is_valid_yara_rule_file(yara_rule_file):
                     with ConnectTo(InterComFrontEndBinding, self._config) as connection:
                         request_id = connection.add_binary_search_request(yara_rule_file, firmware_uid)
-                    return redirect(url_for('database/database_binary_search_results.html', request_id=request_id, only_firmware=only_firmware))
+                    return redirect(url_for('get_binary_search_results', request_id=request_id, only_firmware=only_firmware))
                 error = 'Error in YARA rules: {}'.format(get_yara_error(yara_rule_file))
             else:
                 error = 'please select a file or enter rules in the text area'
@@ -195,7 +191,8 @@ class DatabaseRoutes(ComponentBase):
             return connection.is_firmware(firmware_uid)
 
     @roles_accepted(*PRIVILEGES['pattern_search'])
-    def _app_get_binary_search_results(self):
+    @AppRoute('/database/binary_search_results', GET)
+    def get_binary_search_results(self):
         firmware_dict, error, yara_rules = None, None, None
         if request.args.get('request_id'):
             request_id = request.args.get('request_id')
@@ -207,12 +204,14 @@ class DatabaseRoutes(ComponentBase):
                 yara_rules = make_unicode_string(yara_rules[0])
                 joined_results = self._join_results(result)
                 query_uid = self._store_binary_search_query(joined_results, yara_rules)
-                return redirect(url_for('database/browse', query=query_uid, only_firmwares=request.args.get('only_firmware')))
+                return redirect(url_for('browse_database', query=query_uid, only_firmwares=request.args.get('only_firmware')))
         else:
             error = 'No request ID found'
             request_id = None
-        return render_template('database/database_binary_search_results.html', result=firmware_dict, error=error,
-                               request_id=request_id, yara_rules=yara_rules)
+        return render_template(
+            'database/database_binary_search_results.html',
+            result=firmware_dict, error=error, request_id=request_id, yara_rules=yara_rules
+        )
 
     def _store_binary_search_query(self, binary_search_results: list, yara_rules: str) -> str:
         query = '{"_id": {"$in": ' + str(binary_search_results).replace('\'', '"') + '}}'
@@ -225,6 +224,7 @@ class DatabaseRoutes(ComponentBase):
         return list(set(chain(*result_dict.values())))
 
     @roles_accepted(*PRIVILEGES['basic_search'])
+    @AppRoute('/database/quick_search', GET)
     def _app_start_quick_search(self):
         search_term = filter_out_illegal_characters(request.args.get('search_term'))
         if search_term is None:
@@ -237,4 +237,4 @@ class DatabaseRoutes(ComponentBase):
             {'file_name': {'$options': 'si', '$regex': search_term}}
         ])
         query = json.dumps(query)
-        return redirect(url_for('database/browse', query=query))
+        return redirect(url_for('browse_database', query=query))

@@ -9,7 +9,7 @@ from intercom.front_end_binding import InterComFrontEndBinding
 from storage.db_interface_compare import CompareDbInterface
 from storage.db_interface_frontend import FrontEndDbInterface
 from storage.db_interface_statistic import StatisticDbViewer
-from web_interface.components.component_base import ComponentBase
+from web_interface.components.component_base import GET, AppRoute, ComponentBase
 from web_interface.file_tree.file_tree import remove_virtual_path_from_root
 from web_interface.file_tree.file_tree_node import FileTreeNode
 from web_interface.file_tree.jstree_conversion import convert_to_jstree_node
@@ -19,20 +19,10 @@ from web_interface.security.privileges import PRIVILEGES
 
 
 class AjaxRoutes(ComponentBase):
-    def _init_component(self):
-        self._app.add_url_rule('/ajax_tree/<uid>/<root_uid>', '/ajax_tree/<uid>/<root_uid>', self._ajax_get_tree_children)
-        self._app.add_url_rule('/ajax_root/<uid>/<root_uid>', 'ajax_root/<uid>/<root_uid>', self._ajax_get_tree_root)
-        self._app.add_url_rule('/compare/ajax_tree/<compare_id>/<root_uid>/<uid>', 'compare/ajax_tree/<compare_id>/<root_uid>/<uid>',
-                               self._ajax_get_tree_children)
-        self._app.add_url_rule('/compare/ajax_common_files/<compare_id>/<feature_id>/', 'compare/ajax_common_files/<compare_id>/<feature_id>/',
-                               self._ajax_get_common_files_for_compare)
-        self._app.add_url_rule('/ajax_get_binary/<mime_type>/<uid>', 'ajax_get_binary/<type>/<uid>', self._ajax_get_binary)
-        self._app.add_url_rule('/ajax_get_summary/<uid>/<selected_analysis>', 'ajax_get_summary/<uid>/<selected_analysis>', self._ajax_get_summary)
-
-        self._app.add_url_rule('/ajax/stats/general', 'ajax/stats/general', self._get_general_stats)
-        self._app.add_url_rule('/ajax/stats/system', 'ajax/stats/system', self._get_system_stats)
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
+    @AppRoute('/ajax_tree/<uid>/<root_uid>', GET)
+    @AppRoute('/compare/ajax_tree/<compare_id>/<root_uid>/<uid>', GET)
     def _ajax_get_tree_children(self, uid, root_uid=None, compare_id=None):
         root_uid, compare_id = none_to_none(root_uid), none_to_none(compare_id)
         exclusive_files = self._get_exclusive_files(compare_id, root_uid)
@@ -62,6 +52,7 @@ class AjaxRoutes(ComponentBase):
         return root
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
+    @AppRoute('/ajax_root/<uid>/<root_uid>', GET)
     def _ajax_get_tree_root(self, uid, root_uid):
         root = list()
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
@@ -71,6 +62,7 @@ class AjaxRoutes(ComponentBase):
         return jsonify(root)
 
     @roles_accepted(*PRIVILEGES['compare'])
+    @AppRoute('/compare/ajax_common_files/<compare_id>/<feature_id>/', GET)
     def _ajax_get_common_files_for_compare(self, compare_id, feature_id):
         with ConnectTo(CompareDbInterface, self._config) as sc:
             result = sc.get_compare_result(compare_id)
@@ -98,6 +90,7 @@ class AjaxRoutes(ComponentBase):
         )
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
+    @AppRoute('/ajax_get_binary/<mime_type>/<uid>', GET)
     def _ajax_get_binary(self, mime_type, uid):
         mime_type = mime_type.replace('_', '/')
         div = '<div style="display: block; border: 1px solid; border-color: #dddddd; padding: 5px; text-align: center">'
@@ -110,6 +103,7 @@ class AjaxRoutes(ComponentBase):
         return None
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
+    @AppRoute('/ajax_get_summary/<uid>/<selected_analysis>', GET)
     def _ajax_get_summary(self, uid, selected_analysis):
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
             firmware = sc.get_object(uid, analysis_filter=selected_analysis)
@@ -117,6 +111,7 @@ class AjaxRoutes(ComponentBase):
         return render_template('summary.html', summary_of_included_files=summary_of_included_files, root_uid=uid, selected_analysis=selected_analysis)
 
     @roles_accepted(*PRIVILEGES['status'])
+    @AppRoute('/ajax/stats/general', GET)
     def _get_general_stats(self):
         with ConnectTo(FrontEndDbInterface, self._config) as db:
             missing_files = self._make_json_serializable(db.find_missing_files())
@@ -127,6 +122,7 @@ class AjaxRoutes(ComponentBase):
         }
 
     @roles_accepted(*PRIVILEGES['status'])
+    @AppRoute('/ajax/stats/system', GET)
     def _get_system_stats(self):
         with ConnectTo(StatisticDbViewer, self._config) as stats_db:
             backend_data = stats_db.get_statistic("backend")

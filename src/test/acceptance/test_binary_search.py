@@ -32,7 +32,7 @@ class TestAcceptanceBinarySearch(TestAcceptanceBaseFullStart):
         assert b'testfile2' not in rv.data
 
     def _get_without_request_id(self):
-        rv = self.test_client.get('/database/database_binary_search_results.html')
+        rv = self.test_client.get('/database/binary_search_results')
         assert b'No request ID found' in rv.data
 
     def test_binary_search(self):

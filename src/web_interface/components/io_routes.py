@@ -15,22 +15,17 @@ from helperFunctions.pdf import build_pdf_report
 from intercom.front_end_binding import InterComFrontEndBinding
 from storage.db_interface_compare import CompareDbInterface, FactCompareException
 from storage.db_interface_frontend import FrontEndDbInterface
-from web_interface.components.component_base import ComponentBase
+from web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
 
 class IORoutes(ComponentBase):
-    def _init_component(self):
-        self._app.add_url_rule('/upload', 'upload', self._app_upload, methods=['GET', 'POST'])
-        self._app.add_url_rule('/download/<uid>', 'download/<uid>', self._app_download_binary)
-        self._app.add_url_rule('/tar-download/<uid>', 'tar-download/<uid>', self._app_download_tar)
-        self._app.add_url_rule('/ida-download/<compare_id>', 'ida-download/<compare_id>', self._download_ida_file)
-        self._app.add_url_rule('/radare-view/<uid>', 'radare-view/<uid>', self._show_radare)
-        self._app.add_url_rule('/pdf-download/<uid>', 'pdf-download/<uid>', self._download_pdf_report)
 
     # ---- upload
+
     @roles_accepted(*PRIVILEGES['submit_analysis'])
+    @AppRoute('/upload', GET, POST)
     def _app_upload(self):
         error = {}
         if request.method == 'POST':
@@ -55,13 +50,15 @@ class IORoutes(ComponentBase):
             device_names=json.dumps(device_name_dict, sort_keys=True), analysis_plugin_dict=analysis_plugins
         )
 
-        # ---- file download
+    # ---- file download
 
     @roles_accepted(*PRIVILEGES['download'])
+    @AppRoute('/download/<uid>', GET)
     def _app_download_binary(self, uid):
         return self._prepare_file_download(uid, packed=False)
 
     @roles_accepted(*PRIVILEGES['download'])
+    @AppRoute('/tar-download/<uid>', GET)
     def _app_download_tar(self, uid):
         return self._prepare_file_download(uid, packed=True)
 
@@ -83,6 +80,7 @@ class IORoutes(ComponentBase):
         return response
 
     @roles_accepted(*PRIVILEGES['download'])
+    @AppRoute('/ida-download/<compare_id>', GET)
     def _download_ida_file(self, compare_id):
         try:
             with ConnectTo(CompareDbInterface, self._config) as sc:
@@ -97,6 +95,7 @@ class IORoutes(ComponentBase):
         return response
 
     @roles_accepted(*PRIVILEGES['download'])
+    @AppRoute('/radare-view/<uid>', GET)
     def _show_radare(self, uid):
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
             object_exists = sc.existence_quick_check(uid)
@@ -126,6 +125,7 @@ class IORoutes(ComponentBase):
         return 'http://{}:8000'.format(radare2_host)
 
     @roles_accepted(*PRIVILEGES['download'])
+    @AppRoute('/pdf-download/<uid>', GET)
     def _download_pdf_report(self, uid):
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
             object_exists = sc.existence_quick_check(uid)
