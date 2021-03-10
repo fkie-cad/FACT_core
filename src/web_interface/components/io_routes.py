@@ -1,5 +1,6 @@
 import json
 from configparser import ConfigParser
+from pathlib import Path
 from tempfile import TemporaryDirectory
 from time import sleep
 
@@ -137,7 +138,7 @@ class IORoutes(ComponentBase):
 
         try:
             with TemporaryDirectory(dir=get_temp_dir_path(self._config)) as folder:
-                pdf_path = build_pdf_report(firmware, folder)
+                pdf_path = build_pdf_report(firmware, Path(folder))
                 binary = pdf_path.read_bytes()
         except RuntimeError as error:
             return render_template('error.html', message=str(error))
