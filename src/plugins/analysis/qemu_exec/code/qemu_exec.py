@@ -353,5 +353,5 @@ def merge_identical_results(results: Dict[str, Dict[str, str]]):
 
 
 def docker_is_running() -> bool:
-    _, return_code = execute_shell_command_get_return_code('pgrep dockerd')
+    _, return_code = execute_shell_command_get_return_code('docker info')
     return return_code == 0
