@@ -1,10 +1,13 @@
 import json
+import logging
 from configparser import ConfigParser
+from pathlib import Path
 from tempfile import TemporaryDirectory
 from time import sleep
 
 import requests
-from flask import make_response, redirect, render_template, request
+from flask import flash, make_response, redirect, render_template, request
+from werkzeug.utils import secure_filename
 
 from helperFunctions.config import get_temp_dir_path
 from helperFunctions.database import ConnectTo
@@ -19,10 +22,14 @@ from web_interface.components.component_base import ComponentBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
+UPLOAD_DIR = Path("/tmp/FACT/uploads")
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
 
 class IORoutes(ComponentBase):
     def _init_component(self):
         self._app.add_url_rule('/upload', 'upload', self._app_upload, methods=['GET', 'POST'])
+        self._app.add_url_rule('/upload-file', 'upload-file', self.upload_file, methods=['POST'])
         self._app.add_url_rule('/download/<uid>', 'download/<uid>', self._app_download_binary)
         self._app.add_url_rule('/tar-download/<uid>', 'tar-download/<uid>', self._app_download_tar)
         self._app.add_url_rule('/ida-download/<compare_id>', 'ida-download/<compare_id>', self._download_ida_file)
@@ -31,16 +38,50 @@ class IORoutes(ComponentBase):
 
     # ---- upload
     @roles_accepted(*PRIVILEGES['submit_analysis'])
+    def upload_file(self):
+        file = request.files['file']
+        save_path = UPLOAD_DIR / secure_filename(file.filename)
+        current_chunk = self._get_int_from_form('dzchunkindex')
+        if save_path.exists() and current_chunk == 0:
+            return make_response('File already exists', 400)
+        try:
+            with save_path.open('ab') as fp:
+                fp.seek(self._get_int_from_form('dzchunkbyteoffset'))
+                fp.write(file.stream.read())
+        except OSError as error:
+            logging.error('Could not write to file to disk: {}'.format(error), exc_info=True)
+            return make_response('Error while uploading file', 500)
+
+        if current_chunk + 1 == self._get_int_from_form('dztotalchunkcount'):
+            actual_size = save_path.stat().st_size
+            expected_size = self._get_int_from_form('dztotalfilesize')
+            if actual_size != expected_size:
+                logging.error(f'Size mismatch of uploaded file {file.filename} (expected {expected_size} but got {actual_size})')  # pylint: disable=logging-fstring-interpolation
+                return make_response('Size mismatch', 500)
+            logging.info('File upload of {} complete'.format(file.filename))
+        return make_response('Chunk upload successful', 200)
+
+    @staticmethod
+    def _get_int_from_form(key: str) -> int:
+        return int(request.form.get(key))
+
+    @roles_accepted(*PRIVILEGES['submit_analysis'])
     def _app_upload(self):
         error = {}
         if request.method == 'POST':
-            analysis_task = create_analysis_task(request, self._config)
-            error = check_for_errors(analysis_task)
-            if not error:
-                fw = convert_analysis_task_to_fw_obj(analysis_task)
-                with ConnectTo(InterComFrontEndBinding, self._config) as sc:
-                    sc.add_analysis_task(fw)
-                return render_template('upload/upload_successful.html', uid=analysis_task['uid'])
+            file = UPLOAD_DIR / secure_filename(request.form.get('file_name'))
+            if file.is_file():
+                analysis_task = create_analysis_task(request, file)
+                file.unlink()
+                error = check_for_errors(analysis_task)
+                if not error:
+                    fw = convert_analysis_task_to_fw_obj(analysis_task)
+                    with ConnectTo(InterComFrontEndBinding, self._config) as sc:
+                        sc.add_analysis_task(fw)
+                    return render_template('upload/upload_successful.html', uid=analysis_task['uid'])
+            else:
+                logging.error('Uploaded file {} not found'.format(file))
+                flash('Error: Uploaded file not found')
 
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
             device_class_list = sc.get_device_class_list()
@@ -50,7 +91,7 @@ class IORoutes(ComponentBase):
             analysis_plugins = sc.get_available_analysis_plugins()
         return render_template(
             'upload/upload.html',
-            device_classes=device_class_list, vendors=vendor_list, error=error,
+            device_classes=device_class_list, vendors=vendor_list, error=error, firmware=None,
             analysis_presets=list(self._config['default_plugins']),
             device_names=json.dumps(device_name_dict, sort_keys=True), analysis_plugin_dict=analysis_plugins
         )

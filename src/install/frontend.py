@@ -137,6 +137,16 @@ def _install_css_and_js_files():
                 ]
             )
 
+        if not Path('dropzone-5.7.0').exists():
+            wget_static_web_content(
+                'https://github.com/enyo/dropzone/archive/v5.7.0.zip',
+                '.',
+                [
+                    'unzip v5.7.0.zip',
+                    'rm v5.7.0.zip',
+                ]
+            )
+
         if not Path('bootstrap3-editable').exists():
             wget_static_web_content(
                 'https://vitalets.github.io/x-editable/assets/zip/bootstrap3-editable-1.5.1.zip',

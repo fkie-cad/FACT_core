@@ -1,7 +1,8 @@
+from pathlib import Path
 from time import time
 from typing import Dict, Sized
 
-from flask import redirect, render_template, request, url_for
+from flask import redirect, render_template, request, send_from_directory, url_for
 from flask_security import login_required
 
 from helperFunctions.database import ConnectTo
@@ -18,12 +19,16 @@ from web_interface.security.privileges import PRIVILEGES
 
 class MiscellaneousRoutes(ComponentBase):
     def _init_component(self):
+        self._app.add_url_rule('/favicon.ico', 'fav_icon', self.fav_icon)
         self._app.add_url_rule('/', 'home', self._app_home)
         self._app.add_url_rule('/about', 'about', self._app_about)
         self._app.add_url_rule('/comment/<uid>', 'comment/<uid>', self._app_add_comment, methods=['GET', 'POST'])
         self._app.add_url_rule('/admin/delete_comment/<uid>/<timestamp>', '/admin/delete_comment/<uid>/<timestamp>', self._app_delete_comment)
         self._app.add_url_rule('/admin/delete/<uid>', '/admin/delete/<uid>', self._app_delete_firmware)
         self._app.add_url_rule('/admin/missing_analyses', 'admin/missing_analyses', self._app_find_missing_analyses, methods=['GET'])
+
+    def fav_icon(self):
+        return send_from_directory(Path(self._app.root_path) / 'static', 'fact_icon.ico', mimetype='image/vnd.microsoft.icon')
 
     @login_required
     @roles_accepted(*PRIVILEGES['status'])

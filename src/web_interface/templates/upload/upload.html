@@ -14,8 +14,21 @@
         position: relative;
         overflow: hidden;
     }
+    .dropzone {
+        border: 1px solid #ced4da;
+        border-radius: .25rem;
+        margin-bottom: 16px;
+    }
 </style>
 {%- endblock -%}
+
+
+{%- block head -%}
+    <link rel="stylesheet" href="{{ url_for('static', filename='dropzone-5.7.0/dist/min/dropzone.min.css') }}"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='dropzone-5.7.0/dist/min/basic.min.css') }}"/>
+    <script type="application/javascript" src="{{ url_for('static', filename='dropzone-5.7.0/dist/min/dropzone.min.js') }}"></script>
+{%- endblock -%}
+
 
 {%- block body -%}
 
@@ -35,16 +48,53 @@
         </script>
 
         <div id="form">
-            <form class="form-horizontal" action="" method=post enctype=multipart/form-data>
 
-                {# File #}
-                {%- if not is_reanalysis %}
-                    {% call macros.upload_input("file", "File", error) %}
-                        <input class="form-control-file" id="file" type="file" name=file required>
-                    {% endcall %}
-                {%- else %}
-                    <input type="hidden" name="file_name" id="file_name" value="{{ firmware.file_name }}">
-                {%- endif %}
+            {%- if not is_reanalysis %}
+                <!-- DropzoneJS -->
+                <form method="POST" action='/upload-file' class="dropzone dz-clickable" id="dropper" enctype="multipart/form-data"></form>
+                <script type="application/javascript">
+                    var upload_complete = false;
+                    var file_name = null;
+
+                    Dropzone.options.dropper = {
+                        init: function() {
+                            this.on('addedfile', function(file) {
+                                if (this.files.length > 1) {
+                                    this.removeFile(this.files[0]);
+                                }
+                                file_name = file.name;
+                            });
+                        },
+                        chunksUploaded: function (file, done) {
+                            // File upload complete
+                            upload_complete = true;
+                            document.getElementById("file_name").value = file_name;
+                        },
+                        paramName: 'file',
+                        chunking: true,
+                        forceChunking: true,
+                        uploadMultiple: false,
+                        url: '/upload-file',
+                        chunkSize: 1048576, // 1 MiB
+                        maxFilesize: 10000 // 10 GB
+                    }
+                    function submit_if_ready() {
+                        if (upload_complete) {
+                            document.getElementById('upload-form').submit();
+                        } else {
+                            alert("no file selected or upload incomplete");
+                        };
+                    }
+                </script>
+            {%- endif %}
+
+            <form class="form-horizontal" action="" method=post enctype=multipart/form-data id="upload-form">
+
+            {%- if is_reanalysis %}
+                <input type="hidden" name="file_name" id="file_name" value="{{ firmware.file_name }}">
+            {%- else %}
+                <input type="hidden" name="file_name" id="file_name" required hidden>
+            {%- endif %}
 
                 <script>
                     var device_names = {{ device_names | safe }};
@@ -233,7 +283,7 @@
                     </div>
                 </div>
 
-                <button type="submit" value=submit class="btn btn-primary" id="input_submit" onclick='showImg()'>
+                <button class="btn btn-primary" id="input_submit" onclick="submit_if_ready();">
                     {%- if is_reanalysis %}
                         <i class="fas fa-redo-alt"></i> {{ title }}
                     {%- else %}

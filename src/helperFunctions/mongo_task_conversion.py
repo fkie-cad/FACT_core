@@ -1,5 +1,6 @@
 import os
 from configparser import ConfigParser
+from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Any, Dict, Optional, Tuple
 
@@ -14,17 +15,16 @@ OPTIONAL_FIELDS = ['tags', 'device_part']
 DROPDOWN_FIELDS = ['device_class', 'vendor', 'device_name', 'device_part']
 
 
-def create_analysis_task(request: Request, config: ConfigParser) -> Dict[str, Any]:
+def create_analysis_task(request: Request, file: Path) -> Dict[str, Any]:
     '''
     Create an analysis task from the data stored in the flask request object.
 
     :param request: The flask request object.
-    :param config: The FACT configuration.
+    :param file: The uploaded file.
     :return: A dict containing the analysis task data.
     '''
     task = _get_meta_from_request(request)
-    if request.files['file']:
-        task['file_name'], task['binary'] = get_file_name_and_binary_from_request(request, config)
+    task['file_name'], task['binary'] = file.name, file.read_bytes()
     task['uid'] = _get_uid_of_analysis_task(task)
     if task['release_date'] == '':
         # set default value if date field is empty
