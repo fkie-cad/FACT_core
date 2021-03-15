@@ -69,6 +69,9 @@ FACT provides an optional basic authentication, role and user management. More i
   * [FACT Search and Download](https://github.com/fkie-cad/FACT_Search_and_Download)
   * [PDF Report Generator](https://github.com/fkie-cad/fact_pdf_report)
 
+## Vagrant
+Thanks to @botlabsDev for providing a [Vagrantfile](https://github.com/botlabsDev/FACTbox) to test and evaluate FACT.
+
 ## Contribute
 The easiest way to contribute is writing your own plug-in.
 Our Developers Manual can be found [here](https://github.com/fkie-cad/FACT_core/wiki/).
