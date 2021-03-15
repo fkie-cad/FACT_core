@@ -18,13 +18,11 @@
 '''
 
 import logging
-import os
-import signal
 from time import sleep
 
 from analysis.PluginBase import PluginInitException
 from helperFunctions.process import complete_shutdown
-from helperFunctions.program_setup import program_setup, was_started_by_start_fact
+from helperFunctions.program_setup import program_setup, set_signals
 from intercom.back_end_binding import InterComBackEndBinding
 from scheduler.Analysis import AnalysisScheduler
 from scheduler.analysis_tag import TaggingDaemon
@@ -32,50 +30,72 @@ from scheduler.Compare import CompareScheduler
 from scheduler.Unpacking import UnpackingScheduler
 from statistic.work_load import WorkLoadStatistic
 
-PROGRAM_NAME = 'FACT Backend'
-PROGRAM_DESCRIPTION = 'Firmware Analysis and Compare Tool (FACT) Backend'
 
+class FactBackend:  # pylint: disable=too-many-instance-attributes
+    PROGRAM_NAME = 'FACT Backend'
+    PROGRAM_DESCRIPTION = 'Firmware Analysis and Compare Tool (FACT) Backend'
 
-def shutdown(signum, _):
-    global run
-    logging.info('received {signum}. shutting down {name}...'.format(signum=signum, name=PROGRAM_NAME))
-    run = False
+    def __init__(self):
+        self.run = True
+        set_signals(self.shutdown_listener)
+        self.args, config = program_setup(self.PROGRAM_NAME, self.PROGRAM_DESCRIPTION)
+
+        try:
+            self.analysis_service = AnalysisScheduler(config=config)
+        except PluginInitException as error:
+            logging.critical('Error during initialization of plugin {}. Shutting down FACT backend'.format(error.plugin.NAME))
+            complete_shutdown()
+        self.tagging_service = TaggingDaemon(analysis_scheduler=self.analysis_service)
+        self.unpacking_service = UnpackingScheduler(
+            config=config,
+            post_unpack=self.analysis_service.start_analysis_of_object,
+            analysis_workload=self.analysis_service.get_scheduled_workload
+        )
+        self.compare_service = CompareScheduler(config=config)
+        self.intercom = InterComBackEndBinding(
+            config=config,
+            analysis_service=self.analysis_service,
+            compare_service=self.compare_service,
+            unpacking_service=self.unpacking_service
+        )
+        self.work_load_stats = WorkLoadStatistic(config=config)
+
+    def shutdown_listener(self, signum, _):
+        logging.info('received {signum}. shutting down {name}...'.format(signum=signum, name=self.PROGRAM_NAME))
+        self.run = False
+
+    def main(self):
+        while self.run:
+            self.work_load_stats.update(
+                unpacking_workload=self.unpacking_service.get_scheduled_workload(),
+                analysis_workload=self.analysis_service.get_scheduled_workload()
+            )
+            if self._exception_occurred():
+                break
+            sleep(5)
+            if self.args.testing:
+                break
+
+        self._shutdown()
+
+    def _shutdown(self):
+        logging.info('Shutting down components')
+        self.work_load_stats.shutdown()
+        self.intercom.shutdown()
+        self.compare_service.shutdown()
+        self.unpacking_service.shutdown()
+        self.tagging_service.shutdown()
+        self.analysis_service.shutdown()
+        if not self.args.testing:
+            complete_shutdown()
+
+    def _exception_occurred(self):
+        return any((
+            self.unpacking_service.check_exceptions(),
+            self.compare_service.check_exceptions(),
+            self.analysis_service.check_exceptions()
+        ))
 
 
 if __name__ == '__main__':
-    if was_started_by_start_fact():
-        signal.signal(signal.SIGUSR1, shutdown)
-        signal.signal(signal.SIGINT, lambda *_: None)
-        os.setpgid(os.getpid(), os.getpid())  # reset pgid to self so that "complete_shutdown" doesn't run amok
-    else:
-        signal.signal(signal.SIGINT, shutdown)
-    args, config = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION)
-    try:
-        analysis_service = AnalysisScheduler(config=config)
-    except PluginInitException as error:
-        logging.critical('Error during initialization of plugin {}. Shutting down FACT backend'.format(error.plugin.NAME))
-        complete_shutdown()
-    tagging_service = TaggingDaemon(analysis_scheduler=analysis_service)
-    unpacking_service = UnpackingScheduler(config=config, post_unpack=analysis_service.start_analysis_of_object, analysis_workload=analysis_service.get_scheduled_workload)
-    compare_service = CompareScheduler(config=config)
-    intercom = InterComBackEndBinding(config=config, analysis_service=analysis_service, compare_service=compare_service, unpacking_service=unpacking_service)
-    work_load_stat = WorkLoadStatistic(config=config)
-
-    run = True
-    while run:
-        work_load_stat.update(unpacking_workload=unpacking_service.get_scheduled_workload(), analysis_workload=analysis_service.get_scheduled_workload())
-        if any((unpacking_service.check_exceptions(), compare_service.check_exceptions(), analysis_service.check_exceptions())):
-            break
-        sleep(5)
-        if args.testing:
-            break
-
-    logging.info('Shutting down components')
-    work_load_stat.shutdown()
-    intercom.shutdown()
-    compare_service.shutdown()
-    unpacking_service.shutdown()
-    tagging_service.shutdown()
-    analysis_service.shutdown()
-    if not args.testing:
-        complete_shutdown()
+    FactBackend().main()

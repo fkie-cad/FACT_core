@@ -18,43 +18,42 @@
 '''
 
 import logging
-import signal
 import sys
 from time import sleep
 
-from helperFunctions.program_setup import program_setup, was_started_by_start_fact
+from helperFunctions.program_setup import program_setup, set_signals
 from statistic.work_load import WorkLoadStatistic
 from storage.MongoMgr import MongoMgr
 
-PROGRAM_NAME = 'FACT DB-Service'
-PROGRAM_DESCRIPTION = 'Firmware Analysis and Compare Tool (FACT) DB-Service'
 
+class FactDb:
+    PROGRAM_NAME = 'FACT DB-Service'
+    PROGRAM_DESCRIPTION = 'Firmware Analysis and Compare Tool (FACT) DB-Service'
 
-def shutdown(*_):
-    global run
-    logging.info('shutting down {}...'.format(PROGRAM_NAME))
-    run = False
+    def __init__(self):
+        self.run = True
+        set_signals(self.shutdown_listener)
+
+        self.args, self.config = program_setup(self.PROGRAM_NAME, self.PROGRAM_DESCRIPTION)
+        self.mongo_server = MongoMgr(config=self.config)
+        self.work_load_stat = WorkLoadStatistic(config=self.config, component='database')
+
+    def shutdown_listener(self, *_):
+        logging.info('shutting down {}...'.format(self.PROGRAM_NAME))
+        self.run = False
+
+    def main(self):
+        while self.run:
+            self.work_load_stat.update()
+            sleep(5)
+            if self.args.testing:
+                break
+
+    def shutdown(self):
+        self.work_load_stat.shutdown()
+        self.mongo_server.shutdown()
 
 
 if __name__ == '__main__':
-    if was_started_by_start_fact():
-        signal.signal(signal.SIGUSR1, shutdown)
-        signal.signal(signal.SIGINT, lambda *_: None)
-    else:
-        signal.signal(signal.SIGINT, shutdown)
-
-    args, config = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION)
-    mongo_server = MongoMgr(config=config)
-    work_load_stat = WorkLoadStatistic(config=config, component='database')
-
-    run = True
-    while run:
-        work_load_stat.update()
-        sleep(5)
-        if args.testing:
-            break
-
-    work_load_stat.shutdown()
-    mongo_server.shutdown()
-
+    FactDb().main()
     sys.exit()

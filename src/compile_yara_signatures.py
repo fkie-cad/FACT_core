@@ -18,6 +18,7 @@
 '''
 
 import os
+import sys
 from subprocess import CalledProcessError
 from tempfile import NamedTemporaryFile
 
@@ -71,4 +72,4 @@ def main():
 
 
 if __name__ == '__main__':
-    exit(main())
+    sys.exit(main())
