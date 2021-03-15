@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 '''
     Firmware Analysis and Comparison Tool (FACT)
-    Copyright (C) 2015-2020  Fraunhofer FKIE
+    Copyright (C) 2015-2021  Fraunhofer FKIE
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,9 +22,9 @@ import signal
 import sys
 from time import sleep
 
+from helperFunctions.program_setup import program_setup, was_started_by_start_fact
 from statistic.work_load import WorkLoadStatistic
 from storage.MongoMgr import MongoMgr
-from helperFunctions.program_setup import program_setup, was_started_by_start_fact
 
 PROGRAM_NAME = 'FACT DB-Service'
 PROGRAM_DESCRIPTION = 'Firmware Analysis and Compare Tool (FACT) DB-Service'
