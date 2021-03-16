@@ -1,3 +1,4 @@
+from io import BytesIO
 from pathlib import Path
 
 from test.unit.web_interface.base import WebInterfaceTest
@@ -49,3 +50,32 @@ class TestAppUpload(WebInterfaceTest):
         assert self.mocked_interface.tasks[0].uid == 'c1f95369a99b765e93c335067e77a7d91af3076d2d3d64aacd04e1e0a810b3ed_17', 'fw not added to intercom'
         assert 'dummy' in self.mocked_interface.tasks[0].scheduled_analysis, 'analysis system not added'
         assert self.mocked_interface.tasks[0].file_name == 'test_file.txt', 'file name not correct'
+
+    def test_upload_file(self):
+        data = self._get_file_upload_data()
+        response = self.test_client.post('/upload-file', content_type='multipart/form-data', data=data, follow_redirects=True)
+        assert response.status_code == 200
+        assert response.data == b'Chunk upload successful'
+
+    def test_upload_file_size_mismatch(self):
+        data = self._get_file_upload_data(dzchunkindex=9)
+        response = self.test_client.post('/upload-file', content_type='multipart/form-data', data=data, follow_redirects=True)
+        assert response.status_code == 500
+        assert response.data == b'Size mismatch'
+
+    def test_upload_file_exists(self):
+        self._put_file_in_upload_dir('test_file.txt')
+        data = self._get_file_upload_data()
+        response = self.test_client.post('/upload-file', content_type='multipart/form-data', data=data, follow_redirects=True)
+        assert response.status_code == 400
+        assert response.data == b'File already exists'
+
+    @staticmethod
+    def _get_file_upload_data(dzchunkindex=0):
+        return {
+            'file': (BytesIO(b'test_file_content'), 'test_file.txt'),
+            'dzchunkindex': dzchunkindex,
+            'dzchunkbyteoffset': 0,
+            'dztotalchunkcount': 10,
+            'dztotalfilesize': 1000,
+        }
