@@ -79,7 +79,7 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBaseFullStart):
 
     def test_run_from_upload_via_show_analysis_to_delete(self):
         self._upload_firmware_get()
-        self.upload_test_firmware(self.test_fw_a)
+        self.upload_firmware(self.test_fw_a, release_date='1970-01-01')
         self.analysis_finished_event.wait(timeout=15)
         self._show_analysis_page()
         self._show_analysis_details_file_type()

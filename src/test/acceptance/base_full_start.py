@@ -1,10 +1,8 @@
 import time
 from multiprocessing import Event, Value
-from pathlib import Path
 
 from storage.db_interface_backend import BackEndDbInterface
 from test.acceptance.base import TestAcceptanceBase
-from test.common_helper import get_test_data_dir
 
 
 class TestAcceptanceBaseFullStart(TestAcceptanceBase):
@@ -34,21 +32,3 @@ class TestAcceptanceBaseFullStart(TestAcceptanceBase):
 
     def _compare_callback(self):
         self.compare_finished_event.set()
-
-    def upload_test_firmware(self, test_fw):
-        testfile_path = Path(get_test_data_dir()) / test_fw.path
-        with open(str(testfile_path), 'rb') as fp:
-            data = {
-                'file': (fp, test_fw.file_name),
-                'device_name': test_fw.name,
-                'device_part': 'test_part',
-                'device_class': 'test_class',
-                'version': '1.0',
-                'vendor': 'test_vendor',
-                'release_date': '1970-01-01',
-                'tags': '',
-                'analysis_systems': []
-            }
-            rv = self.test_client.post('/upload', content_type='multipart/form-data', data=data, follow_redirects=True)
-        self.assertIn(b'Upload Successful', rv.data, 'upload not successful')
-        self.assertIn(test_fw.uid.encode(), rv.data, 'uid not found on upload success page')

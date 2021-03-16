@@ -22,11 +22,13 @@ from web_interface.components.component_base import ComponentBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
-UPLOAD_DIR = Path("/tmp/FACT/uploads")
-UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-
 
 class IORoutes(ComponentBase):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.upload_dir = Path(self._config.get('data_storage', 'upload_storage_dir', fallback='/tmp/FACT/uploads'))
+        self.upload_dir.mkdir(parents=True, exist_ok=True)
+
     def _init_component(self):
         self._app.add_url_rule('/upload', 'upload', self._app_upload, methods=['GET', 'POST'])
         self._app.add_url_rule('/upload-file', 'upload-file', self.upload_file, methods=['POST'])
@@ -40,7 +42,7 @@ class IORoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     def upload_file(self):
         file = request.files['file']
-        save_path = UPLOAD_DIR / secure_filename(file.filename)
+        save_path = self.upload_dir / secure_filename(file.filename)
         current_chunk = self._get_int_from_form('dzchunkindex')
         if save_path.exists() and current_chunk == 0:
             return make_response('File already exists', 400)
@@ -69,7 +71,7 @@ class IORoutes(ComponentBase):
     def _app_upload(self):
         error = {}
         if request.method == 'POST':
-            file = UPLOAD_DIR / secure_filename(request.form.get('file_name'))
+            file = self.upload_dir / secure_filename(request.form.get('file_name'))
             if file.is_file():
                 analysis_task = create_analysis_task(request, file)
                 file.unlink()

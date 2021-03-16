@@ -1,9 +1,27 @@
-from io import BytesIO
+from pathlib import Path
 
 from test.unit.web_interface.base import WebInterfaceTest
 
 
 class TestAppUpload(WebInterfaceTest):
+
+    def _put_file_in_upload_dir(self, file_name):
+        upload_dir = self.config.get('data_storage', 'upload_storage_dir')
+        (Path(upload_dir) / file_name).write_bytes(b'test_file_content')
+
+    @staticmethod
+    def _get_test_data(version='1.0'):
+        return {
+            'file_name': 'test_file.txt',
+            'device_name': 'test_device',
+            'device_part': 'kernel',
+            'device_class': 'test_class',
+            'version': version,
+            'vendor': 'test_vendor',
+            'release_date': '01.01.1970',
+            'tags': '',
+            'analysis_systems': ['dummy']
+        }
 
     def test_app_upload_get(self):
         rv = self.test_client.get('/upload')
@@ -12,33 +30,22 @@ class TestAppUpload(WebInterfaceTest):
         assert b'value="mandatory_plugin"' not in rv.data
         assert b'value="optional_plugin" unchecked' in rv.data
 
+    def test_app_upload_missing_file(self):
+        rv = self.test_client.post('/upload', content_type='multipart/form-data', follow_redirects=True, data=self._get_test_data())
+        assert b'Uploaded file not found' in rv.data
+        assert len(self.mocked_interface.tasks) == 0, 'task added to intercom but should not'
+
     def test_app_upload_invalid_firmware(self):
-        rv = self.test_client.post('/upload', content_type='multipart/form-data', data={
-            'file': (BytesIO(b'test_file_content'), 'test_file.txt'),
-            'device_name': 'test_device',
-            'device_part': 'kernel',
-            'device_class': 'test_class',
-            'version': '',
-            'vendor': 'test_vendor',
-            'release_date': '01.01.1970',
-            'tags': '',
-            'analysis_systems': ['dummy']}, follow_redirects=True)
+        self._put_file_in_upload_dir('test_file.txt')
+        rv = self.test_client.post('/upload', content_type='multipart/form-data', follow_redirects=True, data=self._get_test_data(version=''))
         assert b'Please specify the version' in rv.data
-        self.assertEqual(len(self.mocked_interface.tasks), 0, 'task added to intercom but should not')
+        assert len(self.mocked_interface.tasks) == 0, 'task added to intercom but should not'
 
     def test_app_upload_valid_firmware(self):
-        rv = self.test_client.post('/upload', content_type='multipart/form-data', data={
-            'file': (BytesIO(b'test_file_content'), 'test_file.txt'),
-            'device_name': 'test_device',
-            'device_part': 'complete',
-            'device_class': 'test_class',
-            'version': '1.0',
-            'vendor': 'test_vendor',
-            'release_date': '01.01.1970',
-            'tags': 'tag1,tag2',
-            'analysis_systems': ['dummy']}, follow_redirects=True)
+        self._put_file_in_upload_dir('test_file.txt')
+        rv = self.test_client.post('/upload', content_type='multipart/form-data', data=self._get_test_data(), follow_redirects=True)
         assert b'Upload Successful' in rv.data
         assert b'c1f95369a99b765e93c335067e77a7d91af3076d2d3d64aacd04e1e0a810b3ed_17' in rv.data
-        self.assertEqual(self.mocked_interface.tasks[0].uid, 'c1f95369a99b765e93c335067e77a7d91af3076d2d3d64aacd04e1e0a810b3ed_17', 'fw not added to intercom')
-        self.assertIn('dummy', self.mocked_interface.tasks[0].scheduled_analysis, 'analysis system not added')
-        self.assertEqual(self.mocked_interface.tasks[0].file_name, 'test_file.txt', 'file name not correct')
+        assert self.mocked_interface.tasks[0].uid == 'c1f95369a99b765e93c335067e77a7d91af3076d2d3d64aacd04e1e0a810b3ed_17', 'fw not added to intercom'
+        assert 'dummy' in self.mocked_interface.tasks[0].scheduled_analysis, 'analysis system not added'
+        assert self.mocked_interface.tasks[0].file_name == 'test_file.txt', 'file name not correct'

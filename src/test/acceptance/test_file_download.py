@@ -1,10 +1,10 @@
-import time
-import tarfile
 import io
+import tarfile
+import time
 
+from storage.db_interface_backend import BackEndDbInterface
 from test.acceptance.base import TestAcceptanceBase
 from test.common_helper import create_test_firmware
-from storage.db_interface_backend import BackEndDbInterface
 
 
 class TestAcceptanceDownloadFile(TestAcceptanceBase):
@@ -44,6 +44,7 @@ class TestAcceptanceDownloadFile(TestAcceptanceBase):
         test_fw.processed_analysis.pop('dummy')
         test_fw.uid = test_fw.uid
         self.db_backend.add_firmware(test_fw)
+        self.store_binary(test_fw)
         self.assertIsNotNone(self.db_backend.firmwares.find_one(test_fw.uid))
 
         self._show_analysis_page(test_fw)

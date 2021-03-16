@@ -54,7 +54,7 @@ class TestAcceptanceAuthentication(TestAuthenticatedAcceptanceBase):
                     if b'404 Not Found' in response.data or b'405 Method Not Allowed' in response.data:
                         response = self.test_client.post(endpoint, follow_redirects=True)
 
-                if endpoint.startswith('/static') or endpoint.startswith('/about'):
+                if endpoint.startswith('/static') or endpoint.startswith('/about') or endpoint == '/favicon.ico':
                     pass  # static and about routes should be served without auth so that css and logos are shown in login screen and imprint can be accessed
                 else:
                     self.assertIn(self.UNIQUE_LOGIN_STRING, response.data, 'no authorization required {}'.format(endpoint))

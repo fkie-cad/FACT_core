@@ -1,4 +1,3 @@
-import os
 import time
 from multiprocessing import Event, Value
 
@@ -6,7 +5,6 @@ from statistic.update import StatisticUpdater
 from statistic.work_load import WorkLoadStatistic
 from storage.db_interface_backend import BackEndDbInterface
 from test.acceptance.base import TestAcceptanceBase
-from test.common_helper import get_test_data_dir
 
 
 class TestAcceptanceMisc(TestAcceptanceBase):
@@ -45,24 +43,6 @@ class TestAcceptanceMisc(TestAcceptanceBase):
         rv = self.test_client.get('/upload')
         self.assertIn(b'<h3 class="mb-3">Upload Firmware</h3>', rv.data, 'upload page not displayed correctly')
 
-    def _upload_firmware_put(self, path, device_name, uid):
-        testfile_path = os.path.join(get_test_data_dir(), path)
-        with open(testfile_path, 'rb') as fp:
-            data = {
-                'file': fp,
-                'device_name': device_name,
-                'device_part': 'full',
-                'device_class': 'test_class',
-                'version': '1.0',
-                'vendor': 'test_vendor',
-                'release_date': '2009-01-01',
-                'tags': '',
-                'analysis_systems': []
-            }
-            rv = self.test_client.post('/upload', content_type='multipart/form-data', data=data, follow_redirects=True)
-        self.assertIn(b'Upload Successful', rv.data, 'upload not successful')
-        self.assertIn(uid.encode(), rv.data, 'uid not found on upload success page')
-
     def _show_stats(self):
         rv = self.test_client.get('/statistic')
         self.assertIn(b'Firmware Container', rv.data)
@@ -98,7 +78,7 @@ class TestAcceptanceMisc(TestAcceptanceBase):
     def test_misc(self):
         self._upload_firmware_get()
         for fw in [self.test_fw_a, self.test_fw_c]:
-            self._upload_firmware_put(fw.path, fw.name, fw.uid)
+            self.upload_firmware(fw)
         self._show_about()
         time.sleep(4)
         self.workload.update(unpacking_workload=self.unpacking_service.get_scheduled_workload(), analysis_workload=self.analysis_service.get_scheduled_workload())
