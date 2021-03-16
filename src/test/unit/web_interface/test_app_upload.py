@@ -31,6 +31,10 @@ class TestAppUpload(WebInterfaceTest):
         assert b'value="mandatory_plugin"' not in rv.data
         assert b'value="optional_plugin" unchecked' in rv.data
 
+    def test_dropzone_is_installed(self):
+        rv = self.test_client.get('/static/dropzone-5.7.0/dist/min/basic.min.css')
+        assert b'dropzone' in rv.data
+
     def test_app_upload_missing_file(self):
         rv = self.test_client.post('/upload', content_type='multipart/form-data', follow_redirects=True, data=self._get_test_data())
         assert b'Uploaded file not found' in rv.data
