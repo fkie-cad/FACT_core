@@ -1,5 +1,5 @@
 from flask import request
-from flask_restx import Resource
+from flask_restx import Resource, Namespace
 from pymongo.errors import PyMongoError
 
 from helperFunctions.database import ConnectTo
@@ -9,7 +9,15 @@ from web_interface.rest.helper import error_message, get_paging, get_query, succ
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
+api = Namespace('rest/file_object', description='Browse the file database or request specific file')
 
+
+@api.route('/', doc={'description': 'Browse the file database'})
+@api.route('/<string:uid>',
+           doc={'description': 'Request specific file by providing the uid of the corresponding object',
+                'params': {'uid': 'File UID'}
+                }
+           )
 class RestFileObject(Resource):
     URL = '/rest/file_object'
 
@@ -18,6 +26,7 @@ class RestFileObject(Resource):
         self.config = kwargs.get('config', None)
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
+    @api.doc(responses={200: 'Success', 400: 'Unknown file object'})
     def get(self, uid=None):
         if not uid:
             return self._get_without_uid()

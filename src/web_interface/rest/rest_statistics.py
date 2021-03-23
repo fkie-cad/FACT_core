@@ -13,14 +13,15 @@ STATISTICS = [
     'general', 'ips_and_uris', 'known_vulnerabilities', 'malware', 'release_date', 'software_components', 'unpacking',
 ]
 
-api = Namespace('rest/statistics', description='FACT statistics')
+api = Namespace('rest/statistics', description='Query all FACT statistics or a certain one')
 
 
 @api.route('/', doc={'description': 'Retrieves all statistics from the FACT database as raw JSON data.'})
-@api.route(
-    '/<string:stat_name>',
-    doc={'description': 'Retrieves statistics for a specific category.', 'params': {'stat_name': 'A stats category'}}
-)
+@api.route('/<string:stat_name>',
+           doc={'description': 'Retrieves statistics for a specific category',
+                'params': {'stat_name': 'Statistic\'s name'}
+                }
+           )
 class RestStatistics(Resource):
     URL = '/rest/statistics'
 

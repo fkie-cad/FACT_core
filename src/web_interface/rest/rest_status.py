@@ -1,4 +1,4 @@
-from flask_restx import Resource
+from flask_restx import Resource, Namespace
 
 from helperFunctions.database import ConnectTo
 from intercom.front_end_binding import InterComFrontEndBinding
@@ -7,7 +7,10 @@ from web_interface.rest.helper import error_message, success_message
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
+api = Namespace('rest/status', description='Request FACT\'s system status')
 
+
+@api.route('/', doc={'description': 'Request a json document showing the system state of FACT'})
 class RestStatus(Resource):
     URL = '/rest/status'
 
@@ -16,6 +19,7 @@ class RestStatus(Resource):
         self.config = kwargs.get('config', None)
 
     @roles_accepted(*PRIVILEGES['status'])
+    @api.doc(responses={200: 'Success', 400: 'Unknown system status'})
     def get(self):
         components = ["frontend", "database", "backend"]
         status = {}

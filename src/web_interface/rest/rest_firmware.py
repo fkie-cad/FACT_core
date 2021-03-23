@@ -2,7 +2,7 @@ import logging
 from base64 import standard_b64decode
 
 from flask import request
-from flask_restx import Resource
+from flask_restx import Resource, Namespace, fields, Model
 from pymongo.errors import PyMongoError
 
 from helperFunctions.database import ConnectTo
@@ -18,6 +18,29 @@ from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
 
+api = Namespace('rest/firmware', description='Query the firmware database or upload a firmware')
+
+
+put_firmware_model = api.model('PutFirmware', {
+    'device_name': fields.String(description='Device Name'),
+    'device_part': fields.String(description='Device Part'),
+    'device_class': fields.String(description='Device Class'),
+    'file_name':  fields.String(description='File Name', required=True),
+    'version':  fields.String(description='Version', required=True),
+    'vendor':  fields.String(description='Vendor', required=True),
+    'release_date':  fields.String(description='Release Date'),
+    'tags':  fields.String(description='Tags'),
+    'requested_analysis_systems': fields.List(description='Analyses', cls_or_instance=fields.String),
+    'binary': fields.String(description='Base64 string representing the raw binary')
+})
+
+
+@api.route('/', doc={'description': 'desc'})
+@api.route('/<string:uid>',
+           doc={'description': 'Request specific file by providing the uid of the corresponding object',
+                'params': {'uid': 'File UID'}
+                }
+           )
 class RestFirmware(Resource):
     URL = '/rest/firmware'
 
@@ -26,12 +49,15 @@ class RestFirmware(Resource):
         self.config = kwargs.get('config', None)
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
+    @api.doc(responses={200: 'Success', 400: 'Unknown file object'})
     def get(self, uid=None):
         if not uid:
             return self._get_without_uid()
         return self._get_with_uid(uid)
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
+    @api.expect(put_firmware_model)
+    # @api.marshal_with(put_firmware_model, code=201)
     def put(self, uid=None):
         if not uid:
             return self._put_without_uid()

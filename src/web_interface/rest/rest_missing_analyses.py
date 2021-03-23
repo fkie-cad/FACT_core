@@ -1,6 +1,6 @@
 from typing import Dict, List, Set
 
-from flask_restx import Resource
+from flask_restx import Resource, Namespace
 
 from helperFunctions.database import ConnectTo
 from storage.db_interface_frontend import FrontEndDbInterface
@@ -9,6 +9,10 @@ from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
 
+api = Namespace('rest/missing', description='Search the database for missing entries')
+
+
+@api.route('/', doc={'description': 'Search database for missing entries'})
 class RestMissingAnalyses(Resource):
     URL = '/rest/missing'
 
@@ -17,6 +21,7 @@ class RestMissingAnalyses(Resource):
         self.config = kwargs.get('config', None)
 
     @roles_accepted(*PRIVILEGES['delete'])
+    @api.doc(responses={200: 'Success', 400: 'Unknown'})
     def get(self):
         with ConnectTo(FrontEndDbInterface, self.config) as db:
             missing_analyses_data = {
