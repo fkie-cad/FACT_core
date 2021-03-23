@@ -3,7 +3,7 @@ from base64 import b64encode
 
 from common_helper_files.fail_safe_file_operations import get_dir_of_file
 from flask import render_template_string
-from flask_restx import Resource
+from flask_restx import Resource, Namespace
 
 from helperFunctions.database import ConnectTo
 from objects.file import FileObject
@@ -68,6 +68,10 @@ class PluginRoutes(ComponentBase):
             return fp.read()
 
 
+api = Namespace('/plugins/file_system_metadata/rest')
+
+
+@api.hide
 class FSMetadataRoutesRest(Resource):
     ENDPOINTS = [('/plugins/file_system_metadata/rest/<uid>', ['GET'])]
 

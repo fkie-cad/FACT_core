@@ -1,4 +1,4 @@
-from flask_restx import Resource
+from flask_restx import Resource, Namespace
 
 from web_interface.components.component_base import ComponentBase
 from web_interface.rest.helper import success_message
@@ -16,6 +16,10 @@ class PluginRoutes(ComponentBase):
         return 'dummy', 200
 
 
+api = Namespace('/plugins/dummy/rest')
+
+
+@api.hide
 class DummyRoutesRest(Resource):
     ENDPOINTS = [('/plugins/dummy/rest', ['GET'])]
 
