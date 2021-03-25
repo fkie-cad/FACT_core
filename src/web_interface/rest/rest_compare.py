@@ -1,7 +1,7 @@
 from contextlib import suppress
 
 from flask import request
-from flask_restx import Resource, Namespace
+from flask_restx import Resource, Namespace, fields
 
 from helperFunctions.database import ConnectTo
 from helperFunctions.dataConversion import normalize_compare_id
@@ -14,7 +14,13 @@ from web_interface.security.privileges import PRIVILEGES
 api = Namespace('rest/compare', description='Issue compares and retrieve compare results')
 
 
-@api.route('/', doc={'description': 'Browse the file database or request specific file'})
+compare_model = api.model('Compare Firmware', {
+    'uid_list': fields.List(description='List of UIDs', cls_or_instance=fields.String, required=True),
+    'redo': fields.Boolean(description='Redo', default=False)
+})
+
+
+@api.route('', doc={'description': 'Browse the file database or request specific file'})
 @api.route('/<string:compare_id>',
            doc={'description': 'Request specific file by providing the uid of the corresponding object',
                 'params': {'compare_id': 'Firmware UID'}
@@ -28,7 +34,7 @@ class RestCompare(Resource):
         self.config = kwargs.get('config', None)
 
     @roles_accepted(*PRIVILEGES['compare'])
-    @api.doc(responses={200: 'Success', 400: 'Unknown file object'})
+    @api.expect(compare_model)
     def put(self):
         '''
         The request data should have the form
@@ -62,6 +68,7 @@ class RestCompare(Resource):
         return success_message({'message': 'Compare started. Please use GET to get the results.'}, self.URL, request_data=data, return_code=202)
 
     @roles_accepted(*PRIVILEGES['compare'])
+    @api.doc(responses={200: 'Success', 400: 'Unknown file object'})
     def get(self, compare_id=None):
         '''
         The request data should have the form

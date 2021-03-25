@@ -2,7 +2,7 @@ import logging
 from base64 import standard_b64decode
 
 from flask import request
-from flask_restx import Resource, Namespace, fields, Model
+from flask_restx import Resource, Namespace, fields
 from pymongo.errors import PyMongoError
 
 from helperFunctions.database import ConnectTo
@@ -21,9 +21,9 @@ from web_interface.security.privileges import PRIVILEGES
 api = Namespace('rest/firmware', description='Query the firmware database or upload a firmware')
 
 
-put_firmware_model = api.model('PutFirmware', {
+firmware_model = api.model('Upload Firmware', {
     'device_name': fields.String(description='Device Name'),
-    'device_part': fields.String(description='Device Part'),
+    'device_part': fields.String(description='Device Part', required=True),
     'device_class': fields.String(description='Device Class'),
     'file_name':  fields.String(description='File Name', required=True),
     'version':  fields.String(description='Version', required=True),
@@ -35,9 +35,9 @@ put_firmware_model = api.model('PutFirmware', {
 })
 
 
-@api.route('/', doc={'description': 'desc'})
+@api.route('', doc={'description': ''})
 @api.route('/<string:uid>',
-           doc={'description': 'Request specific file by providing the uid of the corresponding object',
+           doc={'description': 'Request/upload specific file by providing the uid of the corresponding object',
                 'params': {'uid': 'File UID'}
                 }
            )
@@ -56,7 +56,7 @@ class RestFirmware(Resource):
         return self._get_with_uid(uid)
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
-    @api.expect(put_firmware_model)
+    @api.expect(firmware_model)
     # @api.marshal_with(put_firmware_model, code=201)
     def put(self, uid=None):
         if not uid:

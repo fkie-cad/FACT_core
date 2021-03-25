@@ -1,5 +1,5 @@
 from flask import request
-from flask_restx import Resource, Namespace
+from flask_restx import Resource, Namespace, fields
 
 from helperFunctions.database import ConnectTo
 from helperFunctions.yara_binary_search import is_valid_yara_rule_file
@@ -18,7 +18,13 @@ class RestBinarySearchException(Exception):
 api = Namespace('rest/binary_search', description='Conduct a binary search on the binary database and fetch the results')
 
 
-@api.route('/', doc={'description': 'Binary search on the binary database (or a single firmware)'})
+binary_search_model = api.model('Binary Search', {
+    'rule_file': fields.String(description='YARA rules', required=True),
+    'uid': fields.Boolean(description='Firmware UID')
+}, description='Expected value')
+
+
+@api.route('', doc={'description': 'Binary search on the binary database (or a single firmware)'})
 @api.route('/<string:search_id>',
            doc={'description': 'Request specific file by providing the uid of the corresponding object.',
                 'params': {'search_id': 'Search ID'}
@@ -32,7 +38,7 @@ class RestBinarySearch(Resource):
         self.config = kwargs.get('config', None)
 
     @roles_accepted(*PRIVILEGES['pattern_search'])
-    @api.doc(responses={200: 'Success', 400: 'Unknown file object'})
+    @api.expect(binary_search_model)
     def post(self):
         '''
         The request data should have the form
@@ -59,6 +65,7 @@ class RestBinarySearch(Resource):
         )
 
     @roles_accepted(*PRIVILEGES['pattern_search'])
+    @api.doc(responses={200: 'Success', 400: 'Unknown file object'})
     def get(self, search_id=None):
         '''
         The search_id is needed to fetch the corresponding search result.
