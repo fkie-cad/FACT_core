@@ -40,7 +40,6 @@ class RestBase:
         self.pass_config_and_add_namespace(missing_analyses_api, config)
         # self.api.add_resource(RestMissingAnalyses, RestMissingAnalyses.URL, methods=['GET'], resource_class_kwargs={'config': config})
 
-
         self._wrap_response(self.api)
 
     @staticmethod

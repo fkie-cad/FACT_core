@@ -12,7 +12,7 @@ from web_interface.security.privileges import PRIVILEGES
 api = Namespace('rest/file_object', description='Browse the file database or request specific file')
 
 
-@api.route('/', doc={'description': 'Browse the file database'})
+@api.route('', doc={'description': 'Browse the file database'})
 @api.route('/<string:uid>',
            doc={'description': 'Request specific file by providing the uid of the corresponding object',
                 'params': {'uid': 'File UID'}

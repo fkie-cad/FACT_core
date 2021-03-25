@@ -10,7 +10,7 @@ from web_interface.security.privileges import PRIVILEGES
 api = Namespace('rest/status', description='Request FACT\'s system status')
 
 
-@api.route('/', doc={'description': 'Request a json document showing the system state of FACT'})
+@api.route('', doc={'description': 'Request a json document showing the system state of FACT'})
 class RestStatus(Resource):
     URL = '/rest/status'
 

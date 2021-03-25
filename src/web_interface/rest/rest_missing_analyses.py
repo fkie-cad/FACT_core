@@ -12,7 +12,7 @@ from web_interface.security.privileges import PRIVILEGES
 api = Namespace('rest/missing', description='Search the database for missing entries')
 
 
-@api.route('/', doc={'description': 'Search database for missing entries'})
+@api.route('', doc={'description': 'Search database for missing entries'})
 class RestMissingAnalyses(Resource):
     URL = '/rest/missing'
 
