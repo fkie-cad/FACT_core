@@ -15,7 +15,7 @@ class RestBinarySearchException(Exception):
         return ", ".join(self.args)
 
 
-api = Namespace('rest/binary_search', description='Conduct a binary search on the binary database and fetch the results')
+api = Namespace('rest/binary_search', description='Initiate a binary search on the binary database and fetch the results')
 
 
 binary_search_model = api.model('Binary Search', {
@@ -24,27 +24,23 @@ binary_search_model = api.model('Binary Search', {
 }, description='Expected value')
 
 
-@api.route('', doc={'description': 'Binary search on the binary database (or a single firmware)'})
-@api.route('/<string:search_id>',
-           doc={'description': 'Request specific file by providing the uid of the corresponding object.',
-                'params': {'search_id': 'Search ID'}
-                }
-           )
-class RestBinarySearch(Resource):
+class RestBinarySearchBase(Resource):
     URL = '/rest/binary_search'
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.config = kwargs.get('config', None)
 
+
+@api.route('', doc={'description': 'Binary search on the binary database (or a single firmware)'})
+class RestBinarySearchPost(RestBinarySearchBase):
     @roles_accepted(*PRIVILEGES['pattern_search'])
     @api.expect(binary_search_model)
     def post(self):
         '''
-        The request data should have the form
-        {"rule_file": rule_string, 'uid': firmware_uid}
-        The uid parameter is optional and can be specified if the user want's to search in the files of a single firmware.
-        rule_string can be something like "rule rule_name {strings: $a = \"foobar\" condition: $a}"
+        Conduct a binary search
+        The uid parameter is optional and can be specified if the user want's to search in the files of a single firmware
+        rule_file can be something like "rule rule_name {strings: $a = \"foobar\" condition: $a}"
         '''
         try:
             data = convert_rest_request(request.data)
@@ -63,27 +59,6 @@ class RestBinarySearch(Resource):
             self.URL,
             request_data={'search_id': search_id}
         )
-
-    @roles_accepted(*PRIVILEGES['pattern_search'])
-    @api.doc(responses={200: 'Success', 400: 'Unknown file object'})
-    def get(self, search_id=None):
-        '''
-        The search_id is needed to fetch the corresponding search result.
-        The result of the search request can only be fetched once. After this the search needs to be started again.
-        The results have the form:
-        {'binary_search_results': {'<rule_name_1>': ['<matching_uid_1>', ...], '<rule_name_2>': [...], ...}
-        '''
-
-        if search_id is None:
-            return error_message('The request is missing a search_id (.../binary_search/<search_id>).', self.URL)
-
-        with ConnectTo(InterComFrontEndBinding, self.config) as intercom:
-            result, _ = intercom.get_binary_search_result(search_id)
-
-        if result is None:
-            return error_message('The result is not ready yet or it has already been fetched', self.URL)
-
-        return success_message({'binary_search_results': result}, self.URL)
 
     @staticmethod
     def _get_yara_rules(request_data):
@@ -105,6 +80,36 @@ class RestBinarySearch(Resource):
 
         with ConnectTo(FrontEndDbInterface, self.config) as db_interface:
             if not db_interface.is_firmware(request_data['uid']):
-                raise RestBinarySearchException('Firmware with UID {uid} not found in database'.format(uid=request_data['uid']))
+                raise RestBinarySearchException(
+                    'Firmware with UID {uid} not found in database'.format(uid=request_data['uid']))
 
         return request_data['uid']
+
+
+@api.route('/<string:search_id>',
+           doc={'description': 'Get the results of a previously initiated binary search',
+                'params': {'search_id': 'Search ID'}
+                }
+           )
+class RestBinarySearchGet(RestBinarySearchBase):
+
+    @roles_accepted(*PRIVILEGES['pattern_search'])
+    @api.doc(responses={200: 'Success', 400: 'Unknown file object'})
+    def get(self, search_id=None):
+        '''
+        Get the results of a previously initiated binary search
+        The search_id is needed to fetch the corresponding search result
+        The result of the search request can only be fetched once
+        After this the search needs to be started again.
+        '''
+
+        if search_id is None:
+            return error_message('The request is missing a search_id (.../binary_search/<search_id>).', self.URL)
+
+        with ConnectTo(InterComFrontEndBinding, self.config) as intercom:
+            result, _ = intercom.get_binary_search_result(search_id)
+
+        if result is None:
+            return error_message('The result is not ready yet or it has already been fetched', self.URL)
+
+        return success_message({'binary_search_results': result}, self.URL)

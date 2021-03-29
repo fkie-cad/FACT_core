@@ -28,16 +28,16 @@ class RestCompareBase(Resource):
         self.config = kwargs.get('config', None)
 
 
-@api.route('', doc={'description': 'Browse the file database or request specific file'})
+@api.route('', doc={'description': 'Initiate a comparison'})
 class RestComparePut(RestCompareBase):
 
     @roles_accepted(*PRIVILEGES['compare'])
     @api.expect(compare_model)
     def put(self):
         '''
-        The request data should have the form
-        {"uid_list": uid_list, "<optional>redo": True}
-        return value: the result dict from the compare
+        Start a comparison
+        For this sake a list of uids of the files, which should be compared, is needed
+        The uid_list shall contain uids of already analysed FileObjects or Firmware objects
         '''
         try:
             data = convert_rest_request(request.data)
@@ -69,7 +69,7 @@ class RestComparePut(RestCompareBase):
 @api.route(
     '/<string:compare_id>',
     doc={
-        'description': 'Request specific file by providing the uid of the corresponding object',
+        'description': 'Retrieve compare results',
         'params': {'compare_id': 'Firmware UID'}
     }
 )
@@ -79,9 +79,10 @@ class RestCompareGet(RestCompareBase):
     @api.doc(responses={200: 'Success', 400: 'Unknown file object'})
     def get(self, compare_id=None):
         '''
-        The request data should have the form
-        {"uid_list": uid_list, "<optional>redo": True}
-        return value: the result dict from the compare
+        Request results from a comparisons
+        The result can be requested by providing a semicolon separated list of uids as compare_id
+        The response will contain a json_document with the compare result, along with the fields status, timestamp,
+        request_resource and request as meta data
         '''
         try:
             compare_id = normalize_compare_id(compare_id)
