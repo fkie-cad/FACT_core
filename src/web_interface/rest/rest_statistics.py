@@ -1,5 +1,3 @@
-from typing import Optional
-
 from flask_restx import Namespace, Resource
 
 from helperFunctions.database import ConnectTo
