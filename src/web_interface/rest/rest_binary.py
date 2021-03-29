@@ -15,7 +15,7 @@ api = Namespace('rest/binary', description='Request the binary of a given firmwa
 
 
 @api.route('/<string:uid>',
-           doc={'description': 'Request a binary by providing the UID of the corresponding object',
+           doc={'description': 'Request a binary by providing the uid of the corresponding object',
                 'params': {'uid': 'Firmware UID'}
                 }
            )
@@ -30,6 +30,7 @@ class RestBinary(Resource):
     @api.doc(responses={200: 'Success', 400: 'Unknown binary'})
     def get(self, uid):
         '''
+        Request a binary
         The uid of the file_object in question has to be given in the url
         The return format will be {"binary": b64_encoded_binary, "file_name": file_name}
         '''

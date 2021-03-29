@@ -10,7 +10,7 @@ from web_interface.security.privileges import PRIVILEGES
 api = Namespace('rest/status', description='Request FACT\'s system status')
 
 
-@api.route('', doc={'description': 'Request a json document showing the system state of FACT'})
+@api.route('', doc={'description': ''})
 class RestStatus(Resource):
     URL = '/rest/status'
 
@@ -21,6 +21,10 @@ class RestStatus(Resource):
     @roles_accepted(*PRIVILEGES['status'])
     @api.doc(responses={200: 'Success', 400: 'Unknown system status'})
     def get(self):
+        '''
+        Request system status
+        Request a json document showing the system state of FACT, similar to the system health page of the GUI
+        '''
         components = ["frontend", "database", "backend"]
         status = {}
         with ConnectTo(StatisticDbViewer, self.config) as stats_db:

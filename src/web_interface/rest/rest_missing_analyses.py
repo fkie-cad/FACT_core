@@ -12,7 +12,7 @@ from web_interface.security.privileges import PRIVILEGES
 api = Namespace('rest/missing', description='Search the database for missing entries')
 
 
-@api.route('', doc={'description': 'Search database for missing entries'})
+@api.route('', doc={'description': ''})
 class RestMissingAnalyses(Resource):
     URL = '/rest/missing'
 
@@ -23,6 +23,10 @@ class RestMissingAnalyses(Resource):
     @roles_accepted(*PRIVILEGES['delete'])
     @api.doc(responses={200: 'Success', 400: 'Unknown'})
     def get(self):
+        '''
+        Search for missing entries
+        Search for missing files or missing analyses
+        '''
         with ConnectTo(FrontEndDbInterface, self.config) as db:
             missing_analyses_data = {
                 'missing_files': self._make_json_serializable(db.find_missing_files()),
