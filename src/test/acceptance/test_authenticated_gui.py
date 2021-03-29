@@ -1,5 +1,7 @@
 from test.acceptance.auth_base import TestAuthenticatedAcceptanceBase
 
+NO_AUTH_ENDPOINTS = ['/about', '/doc', '/static', '/swagger']
+
 
 class TestAcceptanceAuthentication(TestAuthenticatedAcceptanceBase):
     UNIQUE_LOGIN_STRING = b'<h3 class="mx-3 mt-4">Login</h3>'
@@ -54,7 +56,7 @@ class TestAcceptanceAuthentication(TestAuthenticatedAcceptanceBase):
                     if b'404 Not Found' in response.data or b'405 Method Not Allowed' in response.data:
                         response = self.test_client.post(endpoint, follow_redirects=True)
 
-                if endpoint.startswith('/static') or endpoint.startswith('/about'):
+                if any(endpoint.startswith(allowed_endpoint) for allowed_endpoint in NO_AUTH_ENDPOINTS):
                     pass  # static and about routes should be served without auth so that css and logos are shown in login screen and imprint can be accessed
                 else:
-                    self.assertIn(self.UNIQUE_LOGIN_STRING, response.data, 'no authorization required {}'.format(endpoint))
+                    assert self.UNIQUE_LOGIN_STRING in response.data, f'no authorization required {endpoint}'
