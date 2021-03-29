@@ -1,7 +1,7 @@
 from contextlib import suppress
 
 from flask import request
-from flask_restx import Resource, Namespace, fields
+from flask_restx import Namespace, Resource, fields
 
 from helperFunctions.database import ConnectTo
 from helperFunctions.dataConversion import normalize_compare_id
@@ -20,18 +20,16 @@ compare_model = api.model('Compare Firmware', {
 })
 
 
-@api.route('', doc={'description': 'Browse the file database or request specific file'})
-@api.route('/<string:compare_id>',
-           doc={'description': 'Request specific file by providing the uid of the corresponding object',
-                'params': {'compare_id': 'Firmware UID'}
-                }
-           )
-class RestCompare(Resource):
+class RestCompareBase(Resource):
     URL = '/rest/compare'
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.config = kwargs.get('config', None)
+
+
+@api.route('', doc={'description': 'Browse the file database or request specific file'})
+class RestComparePut(RestCompareBase):
 
     @roles_accepted(*PRIVILEGES['compare'])
     @api.expect(compare_model)
@@ -66,6 +64,16 @@ class RestCompare(Resource):
         with ConnectTo(InterComFrontEndBinding, self.config) as intercom:
             intercom.add_compare_task(compare_id, force=redo)
         return success_message({'message': 'Compare started. Please use GET to get the results.'}, self.URL, request_data=data, return_code=202)
+
+
+@api.route(
+    '/<string:compare_id>',
+    doc={
+        'description': 'Request specific file by providing the uid of the corresponding object',
+        'params': {'compare_id': 'Firmware UID'}
+    }
+)
+class RestCompareGet(RestCompareBase):
 
     @roles_accepted(*PRIVILEGES['compare'])
     @api.doc(responses={200: 'Success', 400: 'Unknown file object'})

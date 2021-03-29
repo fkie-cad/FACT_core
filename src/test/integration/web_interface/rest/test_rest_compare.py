@@ -55,4 +55,4 @@ class TestRestStartCompare(RestTestBase):
         self.db_backend.add_firmware(test_firmware)
 
         rv = self.test_client.get('/rest/compare', follow_redirects=True)
-        assert b"Compare ID must be of the form" in rv.data
+        assert b"The method is not allowed for the requested URL" in rv.data
