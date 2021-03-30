@@ -100,10 +100,9 @@ def main(distribution):  # pylint: disable=too-many-statements
 
 
 def _update_package_sources(distribution):
+    logging.info('Updating system')
     if distribution == 'fedora':
-        logging.info('Updating system')
         dnf_update_sources()
     else:
         apt_install_packages('apt-transport-https')
-        logging.info('Updating system')
         apt_update_sources()

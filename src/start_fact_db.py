@@ -17,40 +17,26 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import logging
 import sys
-from time import sleep
 
-from helperFunctions.program_setup import program_setup, set_signals
-from statistic.work_load import WorkLoadStatistic
+from fact_base import FactBase
+
+from helperFunctions.program_setup import program_setup
 from storage.MongoMgr import MongoMgr
 
 
-class FactDb:
+class FactDb(FactBase):
     PROGRAM_NAME = 'FACT DB-Service'
     PROGRAM_DESCRIPTION = 'Firmware Analysis and Compare Tool (FACT) DB-Service'
+    COMPONENT = 'database'
 
     def __init__(self):
-        self.run = True
-        set_signals(self.shutdown_listener)
-
-        self.args, self.config = program_setup(self.PROGRAM_NAME, self.PROGRAM_DESCRIPTION)
-        self.mongo_server = MongoMgr(config=self.config)
-        self.work_load_stat = WorkLoadStatistic(config=self.config, component='database')
-
-    def shutdown_listener(self, *_):
-        logging.info('shutting down {}...'.format(self.PROGRAM_NAME))
-        self.run = False
-
-    def main(self):
-        while self.run:
-            self.work_load_stat.update()
-            sleep(5)
-            if self.args.testing:
-                break
+        _, config = program_setup(self.PROGRAM_NAME, self.PROGRAM_DESCRIPTION)
+        self.mongo_server = MongoMgr(config=config)
+        super().__init__()
 
     def shutdown(self):
-        self.work_load_stat.shutdown()
+        super().shutdown()
         self.mongo_server.shutdown()
 
 

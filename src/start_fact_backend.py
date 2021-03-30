@@ -20,53 +20,47 @@
 import logging
 from time import sleep
 
+from fact_base import FactBase
+
 from analysis.PluginBase import PluginInitException
 from helperFunctions.process import complete_shutdown
-from helperFunctions.program_setup import program_setup, set_signals
 from intercom.back_end_binding import InterComBackEndBinding
 from scheduler.Analysis import AnalysisScheduler
 from scheduler.analysis_tag import TaggingDaemon
 from scheduler.Compare import CompareScheduler
 from scheduler.Unpacking import UnpackingScheduler
-from statistic.work_load import WorkLoadStatistic
 
 
-class FactBackend:  # pylint: disable=too-many-instance-attributes
+class FactBackend(FactBase):
     PROGRAM_NAME = 'FACT Backend'
     PROGRAM_DESCRIPTION = 'Firmware Analysis and Compare Tool (FACT) Backend'
+    COMPONENT = 'backend'
 
     def __init__(self):
-        self.run = True
-        set_signals(self.shutdown_listener)
-        self.args, config = program_setup(self.PROGRAM_NAME, self.PROGRAM_DESCRIPTION)
+        super().__init__()
 
         try:
-            self.analysis_service = AnalysisScheduler(config=config)
+            self.analysis_service = AnalysisScheduler(config=self.config)
         except PluginInitException as error:
-            logging.critical('Error during initialization of plugin {}. Shutting down FACT backend'.format(error.plugin.NAME))
+            logging.critical(f'Error during initialization of plugin {error.plugin.NAME}. Shutting down FACT backend')
             complete_shutdown()
         self.tagging_service = TaggingDaemon(analysis_scheduler=self.analysis_service)
         self.unpacking_service = UnpackingScheduler(
-            config=config,
+            config=self.config,
             post_unpack=self.analysis_service.start_analysis_of_object,
             analysis_workload=self.analysis_service.get_scheduled_workload
         )
-        self.compare_service = CompareScheduler(config=config)
+        self.compare_service = CompareScheduler(config=self.config)
         self.intercom = InterComBackEndBinding(
-            config=config,
+            config=self.config,
             analysis_service=self.analysis_service,
             compare_service=self.compare_service,
             unpacking_service=self.unpacking_service
         )
-        self.work_load_stats = WorkLoadStatistic(config=config)
-
-    def shutdown_listener(self, signum, _):
-        logging.info('received {signum}. shutting down {name}...'.format(signum=signum, name=self.PROGRAM_NAME))
-        self.run = False
 
     def main(self):
         while self.run:
-            self.work_load_stats.update(
+            self.work_load_stat.update(
                 unpacking_workload=self.unpacking_service.get_scheduled_workload(),
                 analysis_workload=self.analysis_service.get_scheduled_workload()
             )
@@ -76,11 +70,10 @@ class FactBackend:  # pylint: disable=too-many-instance-attributes
             if self.args.testing:
                 break
 
-        self._shutdown()
+        self.shutdown()
 
-    def _shutdown(self):
-        logging.info('Shutting down components')
-        self.work_load_stats.shutdown()
+    def shutdown(self):
+        super().shutdown()
         self.intercom.shutdown()
         self.compare_service.shutdown()
         self.unpacking_service.shutdown()
