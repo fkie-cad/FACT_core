@@ -12,6 +12,9 @@ elif [ "${CODENAME}" = "rebecca" ] || [ "${CODENAME}" = "rafaela" ] || [ "${CODE
     sudo apt-get -y install "linux-image-extra-$(uname -r)" linux-image-extra-virtual
 elif  [ "${CODENAME}" = "kali-rolling" ]; then
     CODENAME=buster
+elif [ -z "${CODENAME}" ]; then
+	echo "Could not get Ubuntu codename. Please make sure that lsb-release is installed."
+	exit 1
 fi
 
 echo "Install Pre-Install Requirements"

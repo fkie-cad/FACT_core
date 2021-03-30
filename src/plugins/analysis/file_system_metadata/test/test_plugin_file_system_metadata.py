@@ -1,23 +1,29 @@
-# pylint: disable=no-self-use,protected-access
-import os
+# pylint: disable=no-self-use,protected-access,wrong-import-order
 from base64 import b64encode
+from pathlib import Path
+from typing import Optional
+from unittest import mock
 
-from common_helper_files.fail_safe_file_operations import get_dir_of_file
+from flaky import flaky
 
 from test.common_helper import TEST_FW, TEST_FW_2, DatabaseMock, create_test_file_object
+from test.mock import mock_patch
 from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
+
 from ..code import file_system_metadata as plugin
 from ..code.file_system_metadata import FsKeys
 
-TEST_DATA_DIR = os.path.join(get_dir_of_file(__file__), 'data')
+PLUGIN_NAME = 'file_system_metadata'
+TEST_DATA_DIR = Path(__file__).parent / 'data'
 
 
 class FoMock:
-    def __init__(self, file_path, file_type, parent_fo_type=''):
+    def __init__(self, file_path: Optional[Path], file_type: Optional[str], parent_fo_type=''):
         self.file_path = file_path
-        self.processed_analysis = {'file_type': {'mime': file_type}}
+        self.processed_analysis = {'file_type': {'mime': file_type}, PLUGIN_NAME: {}}
         self.virtual_file_path = {}
         self.file_name = 'test'
+        self.binary = file_path.read_bytes() if file_path is not None else None
         if parent_fo_type:
             self.temporary_data = {'parent_fo_type': parent_fo_type}
 
@@ -43,42 +49,65 @@ def mock_connect_to_enter(_, config=None):
 
 class TestFileSystemMetadata(AnalysisPluginTest):
 
-    PLUGIN_NAME = 'file_system_metadata'
+    PLUGIN_NAME = PLUGIN_NAME
     result = None
 
     def setUp(self):
         super().setUp()
         config = self.init_basic_config()
         self.analysis_plugin = plugin.AnalysisPlugin(self, config=config)
-        plugin.FsMetadataDbInterface.__bases__ = (DatabaseMock,)
-        plugin.ConnectTo.__enter__ = mock_connect_to_enter
-        plugin.ConnectTo.__exit__ = lambda _, __, ___, ____: None
-        self.test_file_tar = os.path.join(TEST_DATA_DIR, 'test.tar')
-        self.test_file_fs = os.path.join(TEST_DATA_DIR, 'squashfs.img')
+        self._setup_patches()
+        self.test_file_tar = TEST_DATA_DIR / 'test.tar'
+        self.test_file_fs = TEST_DATA_DIR / 'squashfs.img'
+
+    def _setup_patches(self):
+        self.patches = [
+            mock.patch.object(
+                target=plugin.FsMetadataDbInterface,
+                attribute='__bases__',
+                new=(DatabaseMock,)
+            ),
+            mock.patch(
+                target='helperFunctions.database.ConnectTo.__enter__',
+                new=mock_connect_to_enter
+            ),
+            mock.patch(
+                target='helperFunctions.database.ConnectTo.__exit__',
+                new=lambda *_: None
+            )
+        ]
+        for patch in self.patches:
+            patch.start()
+        self.patches[0].is_local = True  # shameless hack to prevent mock.patch from calling delattr
+
+    def tearDown(self):
+        for patch in self.patches:
+            patch.stop()
+        super().tearDown()
 
     def _extract_metadata_from_archive_mock(self, _):
         self.result = 'archive'
 
-    def _extract_metadata_from_file_system_mock(self, _, __):
+    def _extract_metadata_from_file_system_mock(self, _):
         self.result = 'fs'
 
     def test_extract_metadata__correct_method_is_called(self):
-        self.analysis_plugin._extract_metadata_from_tar = self._extract_metadata_from_archive_mock
-        self.analysis_plugin._extract_metadata_from_file_system = self._extract_metadata_from_file_system_mock
+        with mock_patch(self.analysis_plugin, '_extract_metadata_from_tar', self._extract_metadata_from_archive_mock):
+            self.result = None
+            fo = FoMock(None, 'application/x-tar')
+            self.analysis_plugin._extract_metadata(fo)
+            assert self.result == 'archive'
 
-        self.result = None
-        fo = FoMock(None, 'application/x-tar')
-        self.analysis_plugin._extract_metadata(fo)
-        assert self.result == 'archive'
+        with mock_patch(self.analysis_plugin, '_extract_metadata_from_file_system', self._extract_metadata_from_file_system_mock):
+            self.result = None
+            fo = FoMock(None, 'filesystem/ext4')
+            self.analysis_plugin._extract_metadata(fo)
+            assert self.result == 'fs'
 
-        self.result = None
-        fo = FoMock(None, 'filesystem/ext4')
-        self.analysis_plugin._extract_metadata(fo)
-        assert self.result == 'fs'
-
+    @flaky(max_runs=2, min_passes=1)  # test may fail once on a new system
     def test_extract_metadata_from_file_system(self):
         fo = FoMock(self.test_file_fs, 'filesystem/squashfs')
-        self.analysis_plugin._extract_metadata_from_file_system(fo, 'filesystem/squashfs')
+        self.analysis_plugin._extract_metadata_from_file_system(fo)
         result = self.analysis_plugin.result
 
         testfile_sticky_key = _b64_encode('testfile_sticky')
@@ -117,9 +146,10 @@ class TestFileSystemMetadata(AnalysisPluginTest):
 
     def test_extract_metadata_from_file_system__unmountable(self):
         fo = FoMock(self.test_file_tar, 'application/x-tar')
-        self.analysis_plugin._extract_metadata_from_file_system(fo, 'filesystem/test')
+        self.analysis_plugin._extract_metadata_from_file_system(fo)
 
         assert self.analysis_plugin.result == {}
+        assert 'failed' in fo.processed_analysis[PLUGIN_NAME]
 
     def test_extract_metadata_from_tar(self):
         fo = FoMock(self.test_file_tar, 'application/x-tar')
@@ -161,7 +191,7 @@ class TestFileSystemMetadata(AnalysisPluginTest):
         assert result[testfile_sticky_key][FsKeys.M_TIME] == 1518167842
 
     def test_extract_metadata_from_tar__packed_tar_gz(self):
-        test_file_tar_gz = os.path.join(TEST_DATA_DIR, 'test.tar.gz')
+        test_file_tar_gz = TEST_DATA_DIR / 'test.tar.gz'
         fo = FoMock(test_file_tar_gz, 'application/gzip')
         self.analysis_plugin._extract_metadata_from_tar(fo)
         result = self.analysis_plugin.result
@@ -171,7 +201,7 @@ class TestFileSystemMetadata(AnalysisPluginTest):
         )
 
     def test_extract_metadata_from_tar__packed_tar_bz(self):
-        test_file_tar_bz = os.path.join(TEST_DATA_DIR, 'test.tar.bz2')
+        test_file_tar_bz = TEST_DATA_DIR / 'test.tar.bz2'
         fo = FoMock(test_file_tar_bz, 'application/x-bzip2')
         self.analysis_plugin._extract_metadata_from_tar(fo)
         result = self.analysis_plugin.result
@@ -181,14 +211,14 @@ class TestFileSystemMetadata(AnalysisPluginTest):
         )
 
     def test_extract_metadata_from_tar__tar_unreadable(self):
-        test_file = os.path.join(TEST_DATA_DIR, 'squashfs.img')
+        test_file = TEST_DATA_DIR / 'squashfs.img'
         fo = FoMock(test_file, 'application/gzip')
         self.analysis_plugin._extract_metadata_from_tar(fo)
         result = self.analysis_plugin.result
         assert result == {}
 
     def test_extract_metadata_from_tar__eof_error(self):
-        test_file_tar_gz = os.path.join(TEST_DATA_DIR, 'broken.tar.gz')
+        test_file_tar_gz = TEST_DATA_DIR / 'broken.tar.gz'
         fo = FoMock(test_file_tar_gz, 'application/gzip')
         self.analysis_plugin._extract_metadata_from_tar(fo)
         result = self.analysis_plugin.result
@@ -214,7 +244,7 @@ class TestFileSystemMetadata(AnalysisPluginTest):
         fo = FoMock(None, None, parent_fo_type='filesystem/ext2')
         assert self.analysis_plugin._parent_has_file_system_metadata(fo) is True
 
-    def test_parent_has_file_system_metadata__no_temporary_data(self):
+    def test_no_temporary_data(self):
         fo = FoMock(None, None)
 
         fo.virtual_file_path['some_uid'] = ['|some_uid|{}|/some_file'.format(TEST_FW.uid)]
