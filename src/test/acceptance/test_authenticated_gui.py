@@ -1,6 +1,7 @@
 from test.acceptance.auth_base import TestAuthenticatedAcceptanceBase
 
 NO_AUTH_ENDPOINTS = ['/about', '/doc', '/static', '/swagger']
+REQUEST_FAILS = [b'404 Not Found', b'405 Method Not Allowed', b'The method is not allowed']
 
 
 class TestAcceptanceAuthentication(TestAuthenticatedAcceptanceBase):
@@ -46,17 +47,26 @@ class TestAcceptanceAuthentication(TestAuthenticatedAcceptanceBase):
         pass  # pylint: disable=unnecessary-pass
 
     def test_all_endpoints_need_authentication(self):
+        fails = []
         for endpoint_rule in list(self.frontend.app.url_map.iter_rules()):
             endpoint = endpoint_rule.rule.replace('<>', '')
 
-            with self.subTest(endpoint=endpoint):
-                response = self.test_client.get(endpoint, follow_redirects=True)
-                if b'404 Not Found' in response.data or b'405 Method Not Allowed' in response.data:
-                    response = self.test_client.put(endpoint, follow_redirects=True)
-                    if b'404 Not Found' in response.data or b'405 Method Not Allowed' in response.data:
-                        response = self.test_client.post(endpoint, follow_redirects=True)
+            response = self.test_client.get(endpoint, follow_redirects=True)
+            if self._request_is_unsuccessful(response.data):
+                response = self.test_client.put(endpoint, follow_redirects=True)
+                if self._request_is_unsuccessful(response.data):
+                    response = self.test_client.post(endpoint, follow_redirects=True)
 
-                if any(endpoint.startswith(allowed_endpoint) for allowed_endpoint in NO_AUTH_ENDPOINTS):
-                    pass  # static and about routes should be served without auth so that css and logos are shown in login screen and imprint can be accessed
-                else:
-                    assert self.UNIQUE_LOGIN_STRING in response.data, f'no authorization required {endpoint}'
+            if self._endpoint_does_need_auth(endpoint) and self.UNIQUE_LOGIN_STRING not in response.data:
+                # static and about routes should be served without auth so that css and logos are shown in login
+                # screen and imprint can be accessed
+                fails.append(endpoint)
+        assert fails == [], f'endpoints are missing authentication: {fails}'
+
+    @staticmethod
+    def _request_is_unsuccessful(response: bytes) -> bool:
+        return any(fail in response for fail in REQUEST_FAILS)
+
+    @staticmethod
+    def _endpoint_does_need_auth(endpoint):
+        return not any(endpoint.startswith(allowed_endpoint) for allowed_endpoint in NO_AUTH_ENDPOINTS)
