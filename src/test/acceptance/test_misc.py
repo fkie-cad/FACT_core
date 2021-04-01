@@ -1,3 +1,5 @@
+# pylint: disable=wrong-import-order
+
 import os
 import time
 from multiprocessing import Event, Value
@@ -22,7 +24,7 @@ class TestAcceptanceMisc(TestAcceptanceBase):
         super().setUp()
         self._start_backend(post_analysis=self._analysis_callback)
         self.updater = StatisticUpdater(config=self.config)
-        self.workload = WorkLoadStatistic(config=self.config)
+        self.workload = WorkLoadStatistic(config=self.config, component='backend')
         time.sleep(2)  # wait for systems to start
 
     def tearDown(self):
