@@ -46,7 +46,7 @@ optimize-ast=no
 confidence=
 
 # Disable the message, report, category or checker with the given id(s)
-disable=missing-docstring,locally-disabled,logging-format-interpolation
+disable=missing-docstring,locally-disabled,logging-format-interpolation,logging-fstring-interpolation
 
 
 [REPORTS]

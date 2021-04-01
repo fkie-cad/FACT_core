@@ -160,6 +160,7 @@ def main(radare, nginx):
         'bcrypt',
         'python-dateutil',
         'si-prefix',
+        '"sqlalchemy>=1.2,<1.4"',  # FIXME: unpin when flask_sqlalchemy works with sqlalchemy >= 1.4
         'email-validator',
         'matplotlib'
     )

@@ -15,7 +15,7 @@ from version import __VERSION__
 
 class WorkLoadStatistic:
 
-    def __init__(self, config=None, component='backend'):
+    def __init__(self, config, component):
         self.config = config
         self.component = component
         self.db = StatisticDbUpdater(config=self.config)
