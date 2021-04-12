@@ -8,7 +8,7 @@ sudo dnf install -y python3-pip git libffi-devel ca-certificates grubby curl
 
 echo "Installing Docker"
 
-curl -fsSL https://get.docker.com -o get-docker.sh
+proxychains curl -fsSL https://get.docker.com -o get-docker.sh
 sudo sh get-docker.sh
 rm get-docker.sh
 

@@ -11,7 +11,7 @@ from helperFunctions.install import (
 
 MONGO_MIRROR_COMMANDS = {
     'debian': {
-        'key': 'wget -qO - https://www.mongodb.org/static/pgp/server-3.6.asc | sudo apt-key add -',
+        'key': 'proxychains wget-qO - https://www.mongodb.org/static/pgp/server-3.6.asc | sudo apt-key add -',
         'sources': 'echo "deb http://repo.mongodb.org/apt/debian stretch/mongodb-org/3.6 main" | sudo tee /etc/apt/sources.list.d/mongo.list'
     },
 }

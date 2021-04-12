@@ -15,7 +15,7 @@ if [[ ! -e test/data/test_tmp_dir/lib/libc.so.6 ]]; then
     mkdir -p tmp
     (
         cd tmp
-        wget http://de.archive.ubuntu.com/ubuntu/pool/universe/c/cross-toolchain-base-ports/libc6-mips-cross_2.23-0ubuntu3cross1_all.deb
+        proxychains wgethttp://de.archive.ubuntu.com/ubuntu/pool/universe/c/cross-toolchain-base-ports/libc6-mips-cross_2.23-0ubuntu3cross1_all.deb
         ar x libc6-mips-cross_2.23-0ubuntu3cross1_all.deb
         tar xf data.tar.xz
         mkdir -p ../test/data/test_tmp_dir/lib

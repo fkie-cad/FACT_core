@@ -36,7 +36,7 @@ fi
 (
   cd bin/john
     # cloning JohnTheRipper from git repository
-    wget -nc https://github.com/openwall/john/archive/1.9.0-Jumbo-1.tar.gz
+    proxychains wget-nc https://github.com/openwall/john/archive/1.9.0-Jumbo-1.tar.gz
     tar xf 1.9.0-Jumbo-1.tar.gz --strip-components 1
     rm 1.9.0-Jumbo-1.tar.gz
 
@@ -50,7 +50,7 @@ fi
 	cd internal
 	(
 		cd passwords
-		wget -N https://raw.githubusercontent.com/danielmiessler/SecLists/f9c1ec678c1cae461f1dc8b654ceb6719fd03d33/Passwords/Common-Credentials/10k-most-common.txt
+		proxychains wget-N https://raw.githubusercontent.com/danielmiessler/SecLists/f9c1ec678c1cae461f1dc8b654ceb6719fd03d33/Passwords/Common-Credentials/10k-most-common.txt
 	)
 	python3 update_password_list.py
 ) || exit 1

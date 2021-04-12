@@ -21,7 +21,7 @@ then
     mkdir -p bin
     (
         cd bin
-        wget -nc https://github.com/codeqq/geolite2-city-mirror/raw/master/GeoLite2-City.tar.gz
+        proxychains wget-nc https://github.com/codeqq/geolite2-city-mirror/raw/master/GeoLite2-City.tar.gz
         mkdir -p GeoLite2-City
         tar xf GeoLite2-City.tar.gz -C GeoLite2-City --strip-components 1
         rm GeoLite2-City.tar.gz

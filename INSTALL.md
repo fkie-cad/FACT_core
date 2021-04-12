@@ -8,7 +8,7 @@ There is an automated installation program supporting Ubuntu 16.04 and 18.04 hos
 Execute the following commands as user (not `root`!). 
 ```sh
 $ sudo apt update && sudo apt upgrade && sudo apt install git
-$ git clone https://github.com/fkie-cad/FACT_core.git ~/FACT_core
+$ proxychains git clone https://github.com/fkie-cad/FACT_core.git ~/FACT_core
 $ ~/FACT_core/src/install/pre_install.sh && sudo mkdir /media/data && sudo chown -R $USER /media/data
 $ sudo reboot
 $ ~/FACT_core/src/install.py
@@ -27,7 +27,7 @@ The following lines will handle the first half of the installation (based on git
 
 ```sh
 $ sudo apt update && sudo apt upgrade && sudo apt install git
-$ git clone https://github.com/fkie-cad/FACT_core.git
+$ proxychains git clone https://github.com/fkie-cad/FACT_core.git
 $ cd FACT_core
 $ src/install/pre_install.sh
 ```

@@ -124,7 +124,7 @@ def _install_yara(distribution):  # pylint: disable=too-complex
     else:
         broken, output = False, ''
 
-        wget_output, wget_code = execute_shell_command_get_return_code('wget https://github.com/VirusTotal/yara/archive/v3.7.1.zip')
+        wget_output, wget_code = execute_shell_command_get_return_code('proxychains wgethttps://github.com/VirusTotal/yara/archive/v3.7.1.zip')
         if wget_code != 0:
             raise InstallationError('Error on yara download.\n{}'.format(wget_output))
         zip_output, zip_code = execute_shell_command_get_return_code('unzip v3.7.1.zip')
