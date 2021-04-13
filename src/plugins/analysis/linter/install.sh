@@ -40,6 +40,6 @@ else
 fi
 
 # pull linguist docker image
-docker pull crazymax/linguist
+proxychains docker pull crazymax/linguist
 
 exit 0

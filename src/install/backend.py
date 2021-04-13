@@ -33,7 +33,7 @@ def main(distribution):
     # build extraction docker container
     logging.info('Building fact extraction container')
 
-    output, return_code = execute_shell_command_get_return_code('docker pull fkiecad/fact_extractor')
+    output, return_code = execute_shell_command_get_return_code('proxychains docker pull fkiecad/fact_extractor')
     if return_code != 0:
         raise InstallationError('Failed to pull extraction container:\n{}'.format(output))
 

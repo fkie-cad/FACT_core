@@ -189,7 +189,7 @@ def main(radare, nginx):
 
     # pull pdf report container
     logging.info('Pulling pdf report container')
-    output, return_code = execute_shell_command_get_return_code('docker pull fkiecad/fact_pdf_report')
+    output, return_code = execute_shell_command_get_return_code('proxychains docker pull fkiecad/fact_pdf_report')
     if return_code != 0:
         raise InstallationError('Failed to pull pdf report container:\n{}'.format(output))
 
