@@ -6,21 +6,21 @@ from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
 
 from ..code.checksec import (
     AnalysisPlugin, check_canary, check_clang_cfi, check_clang_safestack, check_fortify_source, check_mitigations,
-    check_nx, check_pie, check_relro, check_rpath, check_runpath, check_stripped_symbols, load_information
+    check_nx, check_pie, check_relro, check_rpath, check_runpath, check_stripped_symbols, execute_checksec_script
 )
 
-dir_checksec = Path(__file__).parent.parent
-FILE_PATH_EXE = dir_checksec/'test/data/Hallo.out'
-FILE_PATH_OBJECT = dir_checksec/'test/data/Hallo.o'
-FILE_PATH_SHAREDLIB = dir_checksec/'test/data/Hallo.so'
+PLUGIN_DIR = Path(__file__).parent.parent
+FILE_PATH_EXE = PLUGIN_DIR / 'test/data/Hallo.out'
+FILE_PATH_OBJECT = PLUGIN_DIR / 'test/data/Hallo.o'
+FILE_PATH_SHAREDLIB = PLUGIN_DIR / 'test/data/Hallo.so'
 
-FILE_PATH_EXE_CANARY = dir_checksec/'test/data/Hallo_Canary'
-FILE_PATH_EXE_SAFESTACK = dir_checksec/'test/data/Hallo_SafeStack'
-FILE_PATH_EXE_NO_PIE = dir_checksec/'test/data/Hallo_no_pie'
-FILE_PATH_EXE_FORTIFY = dir_checksec/'test/data/Hallo_Fortify'
-FILE_PATH_EXE_RUNPATH = dir_checksec/'test/data/Hallo_runpath'
-FILE_PATH_EXE_RPATH = dir_checksec/'test/data/Hallo_rpath'
-FILE_PATH_EXE_STRIPPED = dir_checksec/'test/data/Hallo_stripped'
+FILE_PATH_EXE_CANARY = PLUGIN_DIR / 'test/data/Hallo_Canary'
+FILE_PATH_EXE_SAFESTACK = PLUGIN_DIR / 'test/data/Hallo_SafeStack'
+FILE_PATH_EXE_NO_PIE = PLUGIN_DIR / 'test/data/Hallo_no_pie'
+FILE_PATH_EXE_FORTIFY = PLUGIN_DIR / 'test/data/Hallo_Fortify'
+FILE_PATH_EXE_RUNPATH = PLUGIN_DIR / 'test/data/Hallo_runpath'
+FILE_PATH_EXE_RPATH = PLUGIN_DIR / 'test/data/Hallo_rpath'
+FILE_PATH_EXE_STRIPPED = PLUGIN_DIR / 'test/data/Hallo_stripped'
 
 
 class TestAnalysisPluginChecksec(AnalysisPluginTest):
@@ -34,25 +34,25 @@ class TestAnalysisPluginChecksec(AnalysisPluginTest):
     @staticmethod
     def test_check_pie():
         dict_result, dict_summary = {}, {}
-        dict_file_info = load_information(FILE_PATH_EXE)
+        dict_file_info = execute_checksec_script(FILE_PATH_EXE)
         check_pie(FILE_PATH_EXE, dict_result, dict_summary, dict_file_info)
         assert dict_result == {'PIE': 'enabled'}
         assert dict_summary == {'PIE enabled': FILE_PATH_EXE}
 
         dict_result, dict_summary = {}, {}
-        dict_file_info = load_information(FILE_PATH_OBJECT)
+        dict_file_info = execute_checksec_script(FILE_PATH_OBJECT)
         check_pie(FILE_PATH_OBJECT, dict_result, dict_summary, dict_file_info)
         assert dict_result == {'PIE': 'REL'}
         assert dict_summary == {'PIE/REL present': FILE_PATH_OBJECT}
 
         dict_result, dict_summary = {}, {}
-        dict_file_info = load_information(FILE_PATH_SHAREDLIB)
+        dict_file_info = execute_checksec_script(FILE_PATH_SHAREDLIB)
         check_pie(FILE_PATH_SHAREDLIB, dict_result, dict_summary, dict_file_info)
         assert dict_result == {'PIE': 'DSO'}
         assert dict_summary == {'PIE/DSO present': FILE_PATH_SHAREDLIB}
 
         dict_result, dict_summary = {}, {}
-        dict_file_info = load_information(FILE_PATH_EXE_NO_PIE)
+        dict_file_info = execute_checksec_script(FILE_PATH_EXE_NO_PIE)
         check_pie(FILE_PATH_EXE_NO_PIE, dict_result, dict_summary, dict_file_info)
         assert dict_result == {'PIE': 'disabled'}
         assert dict_summary == {'PIE disabled': FILE_PATH_EXE_NO_PIE}
@@ -62,19 +62,19 @@ class TestAnalysisPluginChecksec(AnalysisPluginTest):
     @staticmethod
     def test_check_relro():
         dict_result, dict_summary = {}, {}
-        dict_file_info = load_information(FILE_PATH_EXE)
+        dict_file_info = execute_checksec_script(FILE_PATH_EXE)
         check_relro(FILE_PATH_EXE, dict_result, dict_summary, dict_file_info)
         assert dict_result == {'RELRO': 'fully enabled'}
         assert dict_summary == {'RELRO fully enabled': FILE_PATH_EXE}
 
         dict_result, dict_summary = {}, {}
-        dict_file_info = load_information(FILE_PATH_OBJECT)
+        dict_file_info = execute_checksec_script(FILE_PATH_OBJECT)
         check_relro(FILE_PATH_OBJECT, dict_result, dict_summary, dict_file_info)
         assert dict_result == {'RELRO': 'disabled'}
         assert dict_summary == {'RELRO disabled': FILE_PATH_OBJECT}
 
         dict_result, dict_summary = {}, {}
-        dict_file_info = load_information(FILE_PATH_SHAREDLIB)
+        dict_file_info = execute_checksec_script(FILE_PATH_SHAREDLIB)
         check_relro(FILE_PATH_SHAREDLIB, dict_result, dict_summary, dict_file_info)
         assert dict_result == {'RELRO': 'partially enabled'}
         assert dict_summary == {'RELRO partially enabled': FILE_PATH_SHAREDLIB}
@@ -82,13 +82,13 @@ class TestAnalysisPluginChecksec(AnalysisPluginTest):
     @staticmethod
     def test_check_nx():
         dict_result, dict_summary = {}, {}
-        dict_file_info = load_information(FILE_PATH_EXE)
+        dict_file_info = execute_checksec_script(FILE_PATH_EXE)
         check_nx(FILE_PATH_EXE, dict_result, dict_summary, dict_file_info)
         assert dict_result == {'NX': 'enabled'}
         assert dict_summary == {'NX enabled': FILE_PATH_EXE}
 
         dict_result, dict_summary = {}, {}
-        dict_file_info = load_information(FILE_PATH_OBJECT)
+        dict_file_info = execute_checksec_script(FILE_PATH_OBJECT)
         check_nx(FILE_PATH_OBJECT, dict_result, dict_summary, dict_file_info)
         assert dict_result == {'NX': 'disabled'}
         assert dict_summary == {'NX disabled': FILE_PATH_OBJECT}
@@ -96,13 +96,13 @@ class TestAnalysisPluginChecksec(AnalysisPluginTest):
     @staticmethod
     def test_check_canary():
         dict_result, dict_summary = {}, {}
-        dict_file_info = load_information(FILE_PATH_EXE)
+        dict_file_info = execute_checksec_script(FILE_PATH_EXE)
         check_canary(FILE_PATH_EXE, dict_result, dict_summary, dict_file_info)
         assert dict_result == {'CANARY': 'disabled'}
         assert dict_summary == {'CANARY disabled': FILE_PATH_EXE}
 
         dict_result, dict_summary = {}, {}
-        dict_file_info = load_information(FILE_PATH_EXE_CANARY)
+        dict_file_info = execute_checksec_script(FILE_PATH_EXE_CANARY)
         check_canary(FILE_PATH_EXE_CANARY, dict_result, dict_summary, dict_file_info)
         assert dict_result == {'CANARY': 'enabled'}
         assert dict_summary == {'CANARY enabled': FILE_PATH_EXE_CANARY}
@@ -110,13 +110,13 @@ class TestAnalysisPluginChecksec(AnalysisPluginTest):
     @staticmethod
     def test_check_fortify_source():
         dict_result, dict_summary = {}, {}
-        dict_file_info = load_information(FILE_PATH_EXE)
+        dict_file_info = execute_checksec_script(FILE_PATH_EXE)
         check_fortify_source(FILE_PATH_EXE, dict_result, dict_summary, dict_file_info)
         assert dict_result == {'FORTIFY_SOURCE': 'disabled'}
         assert dict_summary == {'FORTIFY_SOURCE disabled': FILE_PATH_EXE}
 
         dict_result, dict_summary = {}, {}
-        dict_file_info = load_information(FILE_PATH_EXE_FORTIFY)
+        dict_file_info = execute_checksec_script(FILE_PATH_EXE_FORTIFY)
         check_fortify_source(FILE_PATH_EXE_FORTIFY, dict_result, dict_summary, dict_file_info)
         assert dict_result == {'FORTIFY_SOURCE': 'enabled'}
         assert dict_summary == {'FORTIFY_SOURCE enabled': FILE_PATH_EXE_FORTIFY}
@@ -124,7 +124,7 @@ class TestAnalysisPluginChecksec(AnalysisPluginTest):
     @staticmethod
     def test_check_clang_cfi():
         dict_result, dict_summary = {}, {}
-        dict_file_info = load_information(FILE_PATH_EXE)
+        dict_file_info = execute_checksec_script(FILE_PATH_EXE)
         check_clang_cfi(FILE_PATH_EXE, dict_result, dict_summary, dict_file_info)
         assert dict_result == {'CLANGCFI': 'disabled'}
         assert dict_summary == {'CLANGCFI disabled': FILE_PATH_EXE}
@@ -134,13 +134,13 @@ class TestAnalysisPluginChecksec(AnalysisPluginTest):
     @staticmethod
     def test_check_clang_safestack():
         dict_result, dict_summary = {}, {}
-        dict_file_info = load_information(FILE_PATH_EXE)
+        dict_file_info = execute_checksec_script(FILE_PATH_EXE)
         check_clang_safestack(FILE_PATH_EXE, dict_result, dict_summary, dict_file_info)
         assert dict_result == {'SAFESTACK': 'disabled'}
         assert dict_summary == {'SAFESTACK disabled': FILE_PATH_EXE}
 
         dict_result, dict_summary = {}, {}
-        dict_file_info = load_information(FILE_PATH_EXE_SAFESTACK)
+        dict_file_info = execute_checksec_script(FILE_PATH_EXE_SAFESTACK)
         check_clang_safestack(FILE_PATH_EXE_SAFESTACK, dict_result, dict_summary, dict_file_info)
         assert dict_result == {'SAFESTACK': 'enabled'}
         assert dict_summary == {'SAFESTACK enabled': FILE_PATH_EXE_SAFESTACK}
@@ -148,13 +148,13 @@ class TestAnalysisPluginChecksec(AnalysisPluginTest):
     @staticmethod
     def test_check_rpath():
         dict_result, dict_summary = {}, {}
-        dict_file_info = load_information(FILE_PATH_EXE)
+        dict_file_info = execute_checksec_script(FILE_PATH_EXE)
         check_rpath(FILE_PATH_EXE, dict_result, dict_summary, dict_file_info)
         assert dict_result == {'RPATH': 'disabled'}
         assert dict_summary == {'RPATH disabled': FILE_PATH_EXE}
 
         dict_result, dict_summary = {}, {}
-        dict_file_info = load_information(FILE_PATH_EXE_RPATH)
+        dict_file_info = execute_checksec_script(FILE_PATH_EXE_RPATH)
         check_rpath(FILE_PATH_EXE_RPATH, dict_result, dict_summary, dict_file_info)
         assert dict_result == {'RPATH': 'enabled'}
         assert dict_summary == {'RPATH enabled': FILE_PATH_EXE_RPATH}
@@ -162,13 +162,13 @@ class TestAnalysisPluginChecksec(AnalysisPluginTest):
     @staticmethod
     def test_check_runpath():
         dict_result, dict_summary = {}, {}
-        dict_file_info = load_information(FILE_PATH_EXE)
+        dict_file_info = execute_checksec_script(FILE_PATH_EXE)
         check_runpath(FILE_PATH_EXE, dict_result, dict_summary, dict_file_info)
         assert dict_result == {'RUNPATH': 'disabled'}
         assert dict_summary == {'RUNPATH disabled': FILE_PATH_EXE}
 
         dict_result, dict_summary = {}, {}
-        dict_file_info = load_information(FILE_PATH_EXE_RUNPATH)
+        dict_file_info = execute_checksec_script(FILE_PATH_EXE_RUNPATH)
         check_runpath(FILE_PATH_EXE_RUNPATH, dict_result, dict_summary, dict_file_info)
         assert dict_result == {'RUNPATH': 'enabled'}
         assert dict_summary == {'RUNPATH enabled': FILE_PATH_EXE_RUNPATH}
@@ -176,13 +176,13 @@ class TestAnalysisPluginChecksec(AnalysisPluginTest):
     @staticmethod
     def test_check_stripped_symbols_in_the_binary():
         dict_result, dict_summary = {}, {}
-        dict_file_info = load_information(FILE_PATH_EXE)
+        dict_file_info = execute_checksec_script(FILE_PATH_EXE)
         check_stripped_symbols(FILE_PATH_EXE, dict_result, dict_summary, dict_file_info)
         assert dict_result == {'STRIPPED SYMBOLS IN THE BINARY': 'disabled'}
         assert dict_summary == {'STRIPPED SYMBOLS IN THE BINARY disabled': FILE_PATH_EXE}
 
         dict_result, dict_summary = {}, {}
-        dict_file_info = load_information(FILE_PATH_EXE_STRIPPED)
+        dict_file_info = execute_checksec_script(FILE_PATH_EXE_STRIPPED)
         check_stripped_symbols(FILE_PATH_EXE_STRIPPED, dict_result, dict_summary, dict_file_info)
         assert dict_result == {'STRIPPED SYMBOLS IN THE BINARY': 'enabled'}
         assert dict_summary == {'STRIPPED SYMBOLS IN THE BINARY enabled': FILE_PATH_EXE_STRIPPED}

@@ -6,16 +6,22 @@ from common_helper_process import execute_shell_command
 
 from analysis.PluginBase import AnalysisBasePlugin
 
+SHELL_SCRIPT = Path(__file__).parent.parent / 'bin' / 'checksec'
+
 
 class AnalysisPlugin(AnalysisBasePlugin):
     NAME = 'exploit_mitigations'
     DESCRIPTION = 'analyses ELF binaries within a firmware for present exploit mitigation techniques'
     DEPENDENCIES = ['file_type']
     MIME_WHITELIST = ['application/x-executable', 'application/x-object', 'application/x-sharedlib']
-    VERSION = '0.1.3'
+    VERSION = '0.1.4'
 
     def __init__(self, plugin_administrator, config=None, recursive=True):
         self.config = config
+
+        if not SHELL_SCRIPT.exists():
+            raise RuntimeError(f'{SHELL_SCRIPT} not present. Re-run the plugin or backend installation.')
+
         super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__)
 
     def process_object(self, file_object):
@@ -34,27 +40,14 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return file_object
 
 
-def load_information(file_path):
-    dir_checksec = Path(__file__).parent.parent
-    print(str(dir_checksec))
-    shell_skript = dir_checksec/'shell_skript/checksec'
-    print(str(shell_skript))
-    install_shell_skript = dir_checksec/'install.sh'
-    print(str(install_shell_skript))
-
-    if not shell_skript.exists():
-        execute_shell_command([str(install_shell_skript)])
-
-    json_file_information = execute_shell_command(str(shell_skript) + ' --file=' + str(file_path) + ' --format=json --extended')
-
-    dict_file_information = json.loads(json_file_information)
-
-    return dict_file_information
+def execute_checksec_script(file_path):  # TODO Error handling on non-zero return code and JsonDecodeError
+    checksec_results = execute_shell_command(f'{SHELL_SCRIPT} --file={file_path} --format=json --extended')
+    return json.loads(checksec_results)
 
 
 def check_mitigations(file_path):
     dict_res, dict_sum = {}, {}
-    dict_file_info = load_information(file_path)
+    dict_file_info = execute_checksec_script(file_path)
 
     check_relro(file_path, dict_res, dict_sum, dict_file_info)
     check_nx(file_path, dict_res, dict_sum, dict_file_info)

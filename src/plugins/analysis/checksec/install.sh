@@ -7,7 +7,7 @@ echo "------------------------------------"
 echo "        Install checksec.sh        "
 echo "------------------------------------"
 
-rm -rf shell_skript
-git clone https://github.com/slimm609/checksec.sh.git shell_skript || exit 1
+rm -rf bin
+git clone https://github.com/slimm609/checksec.sh.git bin || exit 1
 	
 exit 0
