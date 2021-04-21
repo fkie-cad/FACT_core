@@ -2,7 +2,7 @@ import json
 import re
 from pathlib import Path
 
-from common_helper_process import execute_shell_command
+from common_helper_process import execute_shell_command_get_return_code
 
 from analysis.PluginBase import AnalysisBasePlugin
 
@@ -33,148 +33,149 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 file_object.processed_analysis[self.NAME]['summary'] = list(mitigation_dict_summary.keys())
             else:
                 file_object.processed_analysis[self.NAME]['summary'] = []
-        except Exception as error:
+        except (IndexError, json.JSONDecodeError, ValueError) as error:
             file_object.processed_analysis[self.NAME]['summary'] = [
                 'Error - Firmware could not be processed properly: {}'.format(error)
             ]
         return file_object
 
 
-def execute_checksec_script(file_path):  # TODO Error handling on non-zero return code and JsonDecodeError
-    checksec_results = execute_shell_command(f'{SHELL_SCRIPT} --file={file_path} --format=json --extended')
-    return json.loads(checksec_results)
+def execute_checksec_script(file_path):
+    checksec_result, return_code = execute_shell_command_get_return_code(f'{SHELL_SCRIPT} --file={file_path} --format=json --extended')
+    if return_code != 0:
+        raise ValueError(f'Checksec script exited with non-zero return code {return_code}')
+    return json.loads(checksec_result)[str(file_path)]
 
 
 def check_mitigations(file_path):
-    dict_res, dict_sum = {}, {}
-    dict_file_info = execute_checksec_script(file_path)
+    mitigations, summary = {}, {}
+    checksec_result = execute_checksec_script(file_path)
 
-    check_relro(file_path, dict_res, dict_sum, dict_file_info)
-    check_nx(file_path, dict_res, dict_sum, dict_file_info)
-    check_canary(file_path, dict_res, dict_sum, dict_file_info)
-    check_pie(file_path, dict_res, dict_sum, dict_file_info)
-    check_fortify_source(file_path, dict_res, dict_sum, dict_file_info)
-    # check_selfrando(file_path, dict_res, dict_sum, dict_file_info) # konnte nicht gefunden werden
-    check_clang_cfi(file_path, dict_res, dict_sum, dict_file_info)
-    check_clang_safestack(file_path, dict_res, dict_sum, dict_file_info)
-    check_stripped_symbols(file_path, dict_res, dict_sum, dict_file_info)
-    check_runpath(file_path, dict_res, dict_sum, dict_file_info)
-    check_rpath(file_path, dict_res, dict_sum, dict_file_info)
+    check_relro(file_path, mitigations, summary, checksec_result)
+    check_nx(file_path, mitigations, summary, checksec_result)
+    check_canary(file_path, mitigations, summary, checksec_result)
+    check_pie(file_path, mitigations, summary, checksec_result)
+    check_fortify_source(file_path, mitigations, summary, checksec_result)
+    check_clang_cfi(file_path, mitigations, summary, checksec_result)
+    check_clang_safestack(file_path, mitigations, summary, checksec_result)
+    check_stripped_symbols(file_path, mitigations, summary, checksec_result)
+    check_runpath(file_path, mitigations, summary, checksec_result)
+    check_rpath(file_path, mitigations, summary, checksec_result)
 
-    return dict_res, dict_sum
-
-
-def check_relro(file_path, dict_res, dict_sum, dict_file_info):
-    if dict_file_info[str(file_path)]['relro'] == "full":
-        dict_sum.update({'RELRO fully enabled': file_path})
-        dict_res.update({'RELRO': 'fully enabled'})
-
-    elif dict_file_info[str(file_path)]['relro'] == "partial":
-        dict_sum.update({'RELRO partially enabled': file_path})
-        dict_res.update({'RELRO': 'partially enabled'})
-
-    elif dict_file_info[str(file_path)]['relro'] == "no":
-        dict_sum.update({'RELRO disabled': file_path})
-        dict_res.update({'RELRO': 'disabled'})
+    return mitigations, summary
 
 
-def check_fortify_source(file_path, dict_res, dict_sum, dict_file_info):
-    if dict_file_info[str(file_path)]['fortify_source'] == "yes":
-        dict_sum.update({'FORTIFY_SOURCE enabled': file_path})
-        dict_res.update({'FORTIFY_SOURCE': 'enabled'})
+def check_relro(file_path, mitigations, summary, checksec_result):
+    if checksec_result['relro'] == 'full':
+        summary.update({'RELRO fully enabled': file_path})
+        mitigations.update({'RELRO': 'fully enabled'})
 
-    elif dict_file_info[str(file_path)]['fortify_source'] == "no":
-        dict_sum.update({'FORTIFY_SOURCE disabled': file_path})
-        dict_res.update({'FORTIFY_SOURCE': 'disabled'})
+    elif checksec_result['relro'] == 'partial':
+        summary.update({'RELRO partially enabled': file_path})
+        mitigations.update({'RELRO': 'partially enabled'})
+
+    elif checksec_result['relro'] == 'no':
+        summary.update({'RELRO disabled': file_path})
+        mitigations.update({'RELRO': 'disabled'})
 
 
-def check_pie(file_path, dict_res, dict_sum, dict_file_info):
-    if dict_file_info[str(file_path)]['pie'] == "yes":
-        dict_sum.update({'PIE enabled': file_path})
-        dict_res.update({'PIE': 'enabled'})
+def check_fortify_source(file_path, mitigations, summary, checksec_result):
+    if checksec_result['fortify_source'] == 'yes':
+        summary.update({'FORTIFY_SOURCE enabled': file_path})
+        mitigations.update({'FORTIFY_SOURCE': 'enabled'})
 
-    elif dict_file_info[str(file_path)]['pie'] == "no":
-        dict_sum.update({'PIE disabled': file_path})
-        dict_res.update({'PIE': 'disabled'})
+    elif checksec_result['fortify_source'] == 'no':
+        summary.update({'FORTIFY_SOURCE disabled': file_path})
+        mitigations.update({'FORTIFY_SOURCE': 'disabled'})
 
-    elif dict_file_info[str(file_path)]['pie'] == "dso":
-        dict_sum.update({'PIE/DSO present': file_path})
-        dict_res.update({'PIE': 'DSO'})
 
-    elif dict_file_info[str(file_path)]['pie'] == "rel":
-        dict_sum.update({'PIE/REL present': file_path})
-        dict_res.update({'PIE': 'REL'})
+def check_pie(file_path, mitigations, summary, checksec_result):
+    if checksec_result['pie'] == 'yes':
+        summary.update({'PIE enabled': file_path})
+        mitigations.update({'PIE': 'enabled'})
+
+    elif checksec_result['pie'] == 'no':
+        summary.update({'PIE disabled': file_path})
+        mitigations.update({'PIE': 'disabled'})
+
+    elif checksec_result['pie'] == 'dso':
+        summary.update({'PIE/DSO present': file_path})
+        mitigations.update({'PIE': 'DSO'})
+
+    elif checksec_result['pie'] == 'rel':
+        summary.update({'PIE/REL present': file_path})
+        mitigations.update({'PIE': 'REL'})
 
     else:
-        dict_sum.update({'PIE - invalid ELF file': file_path})
-        dict_res.update({'PIE': 'invalid ELF file'})
+        summary.update({'PIE - invalid ELF file': file_path})
+        mitigations.update({'PIE': 'invalid ELF file'})
 
 
-def check_nx(file_path, dict_res, dict_sum, dict_file_info):
-    if dict_file_info[str(file_path)]['nx'] == "yes":
-        dict_sum.update({'NX enabled': file_path})
-        dict_res.update({'NX': 'enabled'})
+def check_nx(file_path, mitigations, summary, checksec_result):
+    if checksec_result['nx'] == 'yes':
+        summary.update({'NX enabled': file_path})
+        mitigations.update({'NX': 'enabled'})
 
-    elif dict_file_info[str(file_path)]['nx'] == "no":
-        dict_sum.update({'NX disabled': file_path})
-        dict_res.update({'NX': 'disabled'})
-
-
-def check_canary(file_path, dict_res, dict_sum, dict_file_info):
-    if dict_file_info[str(file_path)]['canary'] == "yes":
-        dict_sum.update({'CANARY enabled': file_path})
-        dict_res.update({'CANARY': 'enabled'})
-
-    elif dict_file_info[str(file_path)]['canary'] == "no":
-        dict_sum.update({'CANARY disabled': file_path})
-        dict_res.update({'CANARY': 'disabled'})
+    elif checksec_result['nx'] == 'no':
+        summary.update({'NX disabled': file_path})
+        mitigations.update({'NX': 'disabled'})
 
 
-def check_clang_cfi(file_path, dict_res, dict_sum, dict_file_info):
-    if dict_file_info[str(file_path)]['clangcfi'] == "yes":
-        dict_sum.update({'CLANGCFI enabled': file_path})
-        dict_res.update({'CLANGCFI': 'enabled'})
+def check_canary(file_path, mitigations, summary, checksec_result):
+    if checksec_result['canary'] == 'yes':
+        summary.update({'CANARY enabled': file_path})
+        mitigations.update({'CANARY': 'enabled'})
 
-    elif dict_file_info[str(file_path)]['clangcfi'] == "no":
-        dict_sum.update({'CLANGCFI disabled': file_path})
-        dict_res.update({'CLANGCFI': 'disabled'})
-
-
-def check_clang_safestack(file_path, dict_res, dict_sum, dict_file_info):
-    if dict_file_info[str(file_path)]['safestack'] == "yes":
-        dict_sum.update({'SAFESTACK enabled': file_path})
-        dict_res.update({'SAFESTACK': 'enabled'})
-
-    elif dict_file_info[str(file_path)]['safestack'] == "no":
-        dict_sum.update({'SAFESTACK disabled': file_path})
-        dict_res.update({'SAFESTACK': 'disabled'})
+    elif checksec_result['canary'] == 'no':
+        summary.update({'CANARY disabled': file_path})
+        mitigations.update({'CANARY': 'disabled'})
 
 
-def check_rpath(file_path, dict_res, dict_sum, dict_file_info):
-    if dict_file_info[str(file_path)]['rpath'] == "yes":
-        dict_sum.update({'RPATH enabled': file_path})
-        dict_res.update({'RPATH': 'enabled'})
+def check_clang_cfi(file_path, mitigations, summary, checksec_result):
+    if checksec_result['clangcfi'] == 'yes':
+        summary.update({'CLANGCFI enabled': file_path})
+        mitigations.update({'CLANGCFI': 'enabled'})
 
-    elif dict_file_info[str(file_path)]['rpath'] == "no":
-        dict_sum.update({'RPATH disabled': file_path})
-        dict_res.update({'RPATH': 'disabled'})
-
-
-def check_runpath(file_path, dict_res, dict_sum, dict_file_info):
-    if dict_file_info[str(file_path)]['runpath'] == "yes":
-        dict_sum.update({'RUNPATH enabled': file_path})
-        dict_res.update({'RUNPATH': 'enabled'})
-
-    elif dict_file_info[str(file_path)]['runpath'] == "no":
-        dict_sum.update({'RUNPATH disabled': file_path})
-        dict_res.update({'RUNPATH': 'disabled'})
+    elif checksec_result['clangcfi'] == 'no':
+        summary.update({'CLANGCFI disabled': file_path})
+        mitigations.update({'CLANGCFI': 'disabled'})
 
 
-def check_stripped_symbols(file_path, dict_res, dict_sum, dict_file_info):
-    if dict_file_info[str(file_path)]['symbols'] == "yes":
-        dict_sum.update({'STRIPPED SYMBOLS IN THE BINARY disabled': file_path})
-        dict_res.update({'STRIPPED SYMBOLS IN THE BINARY': 'disabled'})
+def check_clang_safestack(file_path, mitigations, summary, checksec_result):
+    if checksec_result['safestack'] == 'yes':
+        summary.update({'SAFESTACK enabled': file_path})
+        mitigations.update({'SAFESTACK': 'enabled'})
 
-    elif dict_file_info[str(file_path)]['symbols'] == "no":
-        dict_sum.update({'STRIPPED SYMBOLS IN THE BINARY enabled': file_path})
-        dict_res.update({'STRIPPED SYMBOLS IN THE BINARY': 'enabled'})
+    elif checksec_result['safestack'] == 'no':
+        summary.update({'SAFESTACK disabled': file_path})
+        mitigations.update({'SAFESTACK': 'disabled'})
+
+
+def check_rpath(file_path, mitigations, summary, checksec_result):
+    if checksec_result['rpath'] == 'yes':
+        summary.update({'RPATH enabled': file_path})
+        mitigations.update({'RPATH': 'enabled'})
+
+    elif checksec_result['rpath'] == 'no':
+        summary.update({'RPATH disabled': file_path})
+        mitigations.update({'RPATH': 'disabled'})
+
+
+def check_runpath(file_path, mitigations, summary, checksec_result):
+    if checksec_result['runpath'] == 'yes':
+        summary.update({'RUNPATH enabled': file_path})
+        mitigations.update({'RUNPATH': 'enabled'})
+
+    elif checksec_result['runpath'] == 'no':
+        summary.update({'RUNPATH disabled': file_path})
+        mitigations.update({'RUNPATH': 'disabled'})
+
+
+def check_stripped_symbols(file_path, mitigations, summary, checksec_result):
+    if checksec_result['symbols'] == 'yes':
+        summary.update({'STRIPPED SYMBOLS disabled': file_path})
+        mitigations.update({'STRIPPED SYMBOLS': 'disabled'})
+
+    elif checksec_result['symbols'] == 'no':
+        summary.update({'STRIPPED SYMBOLS enabled': file_path})
+        mitigations.update({'STRIPPED SYMBOLS': 'enabled'})

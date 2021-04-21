@@ -178,14 +178,14 @@ class TestAnalysisPluginChecksec(AnalysisPluginTest):
         dict_result, dict_summary = {}, {}
         dict_file_info = execute_checksec_script(FILE_PATH_EXE)
         check_stripped_symbols(FILE_PATH_EXE, dict_result, dict_summary, dict_file_info)
-        assert dict_result == {'STRIPPED SYMBOLS IN THE BINARY': 'disabled'}
-        assert dict_summary == {'STRIPPED SYMBOLS IN THE BINARY disabled': FILE_PATH_EXE}
+        assert dict_result == {'STRIPPED SYMBOLS': 'disabled'}
+        assert dict_summary == {'STRIPPED SYMBOLS disabled': FILE_PATH_EXE}
 
         dict_result, dict_summary = {}, {}
         dict_file_info = execute_checksec_script(FILE_PATH_EXE_STRIPPED)
         check_stripped_symbols(FILE_PATH_EXE_STRIPPED, dict_result, dict_summary, dict_file_info)
-        assert dict_result == {'STRIPPED SYMBOLS IN THE BINARY': 'enabled'}
-        assert dict_summary == {'STRIPPED SYMBOLS IN THE BINARY enabled': FILE_PATH_EXE_STRIPPED}
+        assert dict_result == {'STRIPPED SYMBOLS': 'enabled'}
+        assert dict_summary == {'STRIPPED SYMBOLS enabled': FILE_PATH_EXE_STRIPPED}
 
     @staticmethod
     def test_check_mitigations():
