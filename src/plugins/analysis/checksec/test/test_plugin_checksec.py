@@ -1,6 +1,6 @@
-#!/usr/bin/env python3
-
 from pathlib import Path
+
+import pytest
 
 from objects.file import FileObject
 from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
@@ -43,52 +43,22 @@ class TestAnalysisPluginChecksec(AnalysisPluginTest):
         assert 'NX enabled' in result['summary']
 
 
-def test_check_pie():
-    dict_result, dict_summary = {}, {}
-    dict_file_info = execute_checksec_script(FILE_PATH_EXE)
-    check_pie(FILE_PATH_EXE, dict_result, dict_summary, dict_file_info)
-    assert dict_result == {'PIE': 'enabled'}
-    assert dict_summary == {'PIE enabled': FILE_PATH_EXE}
-
-    dict_result, dict_summary = {}, {}
-    dict_file_info = execute_checksec_script(FILE_PATH_OBJECT)
-    check_pie(FILE_PATH_OBJECT, dict_result, dict_summary, dict_file_info)
-    assert dict_result == {'PIE': 'REL'}
-    assert dict_summary == {'PIE/REL present': FILE_PATH_OBJECT}
-
-    dict_result, dict_summary = {}, {}
-    dict_file_info = execute_checksec_script(FILE_PATH_SHAREDLIB)
-    check_pie(FILE_PATH_SHAREDLIB, dict_result, dict_summary, dict_file_info)
-    assert dict_result == {'PIE': 'DSO'}
-    assert dict_summary == {'PIE/DSO present': FILE_PATH_SHAREDLIB}
-
-    dict_result, dict_summary = {}, {}
-    dict_file_info = execute_checksec_script(FILE_PATH_EXE_NO_PIE)
-    check_pie(FILE_PATH_EXE_NO_PIE, dict_result, dict_summary, dict_file_info)
-    assert dict_result == {'PIE': 'disabled'}
-    assert dict_summary == {'PIE disabled': FILE_PATH_EXE_NO_PIE}
-
+@pytest.mark.parametrize('file_path, check, expected_result, expected_summary', [
+    (FILE_PATH_EXE, check_pie, {'PIE': 'enabled'}, {'PIE enabled': FILE_PATH_EXE}),
+    (FILE_PATH_OBJECT, check_pie, {'PIE': 'REL'}, {'PIE/REL present': FILE_PATH_OBJECT}),
+    (FILE_PATH_SHAREDLIB, check_pie, {'PIE': 'DSO'}, {'PIE/DSO present': FILE_PATH_SHAREDLIB}),
+    (FILE_PATH_EXE_NO_PIE, check_pie, {'PIE': 'disabled'}, {'PIE disabled': FILE_PATH_EXE_NO_PIE}),
     # Test PIE: invalid ELF-File
-
-
-def test_check_relro():
-    dict_result, dict_summary = {}, {}
-    dict_file_info = execute_checksec_script(FILE_PATH_EXE)
-    check_relro(FILE_PATH_EXE, dict_result, dict_summary, dict_file_info)
-    assert dict_result == {'RELRO': 'fully enabled'}
-    assert dict_summary == {'RELRO fully enabled': FILE_PATH_EXE}
-
-    dict_result, dict_summary = {}, {}
-    dict_file_info = execute_checksec_script(FILE_PATH_OBJECT)
-    check_relro(FILE_PATH_OBJECT, dict_result, dict_summary, dict_file_info)
-    assert dict_result == {'RELRO': 'disabled'}
-    assert dict_summary == {'RELRO disabled': FILE_PATH_OBJECT}
-
-    dict_result, dict_summary = {}, {}
-    dict_file_info = execute_checksec_script(FILE_PATH_SHAREDLIB)
-    check_relro(FILE_PATH_SHAREDLIB, dict_result, dict_summary, dict_file_info)
-    assert dict_result == {'RELRO': 'partially enabled'}
-    assert dict_summary == {'RELRO partially enabled': FILE_PATH_SHAREDLIB}
+    (FILE_PATH_EXE, check_relro, {'RELRO': 'fully enabled'}, {'RELRO fully enabled': FILE_PATH_EXE}),
+    (FILE_PATH_OBJECT, check_relro, {'RELRO': 'disabled'}, {'RELRO disabled': FILE_PATH_OBJECT}),
+    (FILE_PATH_SHAREDLIB, check_relro, {'RELRO': 'partially enabled'}, {'RELRO partially enabled': FILE_PATH_SHAREDLIB}),
+])
+def test_all_checks(file_path, check, expected_result, expected_summary):
+    result, dict_summary = {}, {}
+    dict_file_info = execute_checksec_script(file_path)
+    check(file_path, result, dict_summary, dict_file_info)
+    assert result == expected_result
+    assert dict_summary == expected_summary
 
 
 def test_check_nx():
