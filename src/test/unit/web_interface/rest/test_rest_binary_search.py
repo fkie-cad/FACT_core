@@ -43,7 +43,8 @@ def test_start_binary_search_with_uid(test_app):
 
 def test_get_result_without_search_id(test_app):
     result = decode_response(test_app.get('/rest/binary_search'))
-    assert 'request is missing a search_id' in result['error_message']
+    print(result)
+    assert 'The method is not allowed for the requested URL' in result['message']
 
 
 def test_get_result_non_existent_id(test_app):

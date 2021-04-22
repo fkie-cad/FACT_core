@@ -17,7 +17,7 @@ def test_empty_data(test_app):
     assert 'Request should be of the form' in result['error_message']
 
     result = decode_response(test_app.get('/rest/compare'))
-    assert 'Compare ID must be of the form' in result['error_message']
+    assert 'The method is not allowed for the requested URL' in result['message']
 
 
 def test_get_unknown_compare(test_app):
