@@ -226,9 +226,11 @@ CVE_TABLE = [
 ]
 
 # contain input and expected results of the setup_cpe_format function
-CPE_LIST = ['cpe:2.3:a:\\$0.99_kindle_books_project:\\$0.99_kindle_books:6:*:*:*:*:android:*:*',
-            'cpe:2.3:a:1000guess:1000_guess:-:*:*:*:*:*:*:*', 'cpe:2.3:a:1024cms:1024_cms:0.7:*:*:*:*:*:*:*',
-            'cpe:2.3:a:1024cms:1024_cms:1.2.5:*:*:*:*:*:*:*', 'cpe:2.3:a:1024cms:1024_cms:1.3.1:*:*:*:*:*:*:*']
+CPE_LIST = [
+    'cpe:2.3:a:\\$0.99_kindle_books_project:\\$0.99_kindle_books:6:*:*:*:*:android:*:*',
+    'cpe:2.3:a:1000guess:1000_guess:-:*:*:*:*:*:*:*', 'cpe:2.3:a:1024cms:1024_cms:0.7:*:*:*:*:*:*:*',
+    'cpe:2.3:a:1024cms:1024_cms:1.2.5:*:*:*:*:*:*:*', 'cpe:2.3:a:1024cms:1024_cms:1.3.1:*:*:*:*:*:*:*'
+]
 CPE_TABLE = [
     ('cpe:2.3:a:\\$0.99_kindle_books_project:\\$0.99_kindle_books:6:*:*:*:*:android:*:*', 'a',
      '\\$0\\.99_kindle_books_project', '\\$0\\.99_kindle_books', '6', 'ANY', 'ANY', 'ANY', 'ANY', 'android', 'ANY', 'ANY'),
@@ -518,4 +520,22 @@ def test_setup_cve_summary_table():
 
 def test_setup_cpe_table():
     result = sr.setup_cpe_table(CPE_LIST)
-    assert CPE_TABLE == result
+    for entry in result:
+        assert len(entry) == 12
+    for actual, expected in zip(result, CPE_TABLE):
+        assert actual == expected
+
+
+def test_setup_cpe_entry_with_colons():
+    result = sr.setup_cpe_table([
+        'cpe:2.3:a:net::netmask_project:net::netmask:*:*:*:*:*:perl:*:*',
+        'cpe:2.3:a:lemonldap-ng:lemonldap\\:\\::1.0.3:*:*:*:*:*:*:*'
+    ])
+    expected_result = [
+        ('cpe:2.3:a:net::netmask_project:net::netmask:*:*:*:*:*:perl:*:*', 'a', 'net::netmask_project', 'net::netmask', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'perl', 'ANY', 'ANY'),
+        ('cpe:2.3:a:lemonldap-ng:lemonldap\\:\\::1.0.3:*:*:*:*:*:*:*', 'a', 'lemonldap\\-ng', 'lemonldap\\:\\:', '1\\.0\\.3', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY', 'ANY')
+    ]
+    for entry in result:
+        assert len(entry) == 12
+    for actual, expected in zip(result, expected_result):
+        assert actual == expected
