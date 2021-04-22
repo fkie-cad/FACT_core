@@ -80,40 +80,39 @@ class RestFirmwareGetWithoutUid(RestFirmwareBase):
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @api.expect(firmware_model)
-    def put(self, uid):
+    def put(self):
         '''
-        Upload a firmware
-        The HTTP body shall contain a json document of the structure shown below
-        Important: The binary has to be a base64 string representing the raw binary you want to submit
+        Update existing firmware analysis
+        You can use this endpoint to update a firmware analysis which is already existing
         '''
         try:
-            update = get_update(request.args)
-        except ValueError as value_error:
-            return error_message(str(value_error), self.URL, request_data={'uid': uid})
-        return self._update_analysis(uid, update)
+            data = convert_rest_request(request.data)
+        except TypeError as type_error:
+            return error_message(str(type_error), self.URL, request_data=request.data)
 
-    def _update_analysis(self, uid, update):
-        with ConnectTo(FrontEndDbInterface, self.config) as connection:
-            firmware = connection.get_firmware(uid)
-        if not firmware:
-            return error_message('No firmware with UID {} found'.format(uid), self.URL, dict(uid=uid))
+        result = self._process_data(data)
+        if 'error_message' in result:
+            logging.warning('Submission not according to API guidelines! (data could not be parsed)')
+            return error_message(result['error_message'], self.URL, request_data=data)
 
-        unpack = 'unpacker' in update
-        while 'unpacker' in update:
-            update.remove('unpacker')
+        logging.debug('Upload Successful!')
+        return success_message(result, self.URL, request_data=data)
 
-        firmware.scheduled_analysis = update
+    def _process_data(self, data):
+        for field in ['device_name', 'device_class', 'device_part', 'file_name', 'version', 'vendor', 'release_date',
+                      'requested_analysis_systems', 'binary']:
+            if field not in data.keys():
+                return dict(error_message='{} not found'.format(field))
 
+        data['binary'] = standard_b64decode(data['binary'])
+        firmware_object = convert_analysis_task_to_fw_obj(data)
         with ConnectTo(InterComFrontEndBinding, self.config) as intercom:
-            supported_plugins = intercom.get_available_analysis_plugins().keys()
-            for item in update:
-                if item not in supported_plugins:
-                    return error_message('Unknown analysis system \'{}\''.format(item), self.URL, dict(uid=uid, update=update))
-            intercom.add_re_analyze_task(firmware, unpack)
+            intercom.add_analysis_task(firmware_object)
+        data.pop('binary')
 
-        if unpack:
-            update.append('unpacker')
-        return success_message({}, self.URL, dict(uid=uid, update=update))
+        return dict(uid=firmware_object.uid)
+
+
 
 
 @api.route('/<string:uid>',
@@ -150,34 +149,37 @@ class RestFirmwareGetWithUid(RestFirmwareBase):
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @api.expect(firmware_model)
-    def put(self):
+    def put(self, uid):
         '''
-        Update existing firmware analysis
-        You can use this endpoint to update a firmware analysis which is already existing
+        Upload a firmware
+        The HTTP body shall contain a json document of the structure shown below
+        Important: The binary has to be a base64 string representing the raw binary you want to submit
         '''
         try:
-            data = convert_rest_request(request.data)
-        except TypeError as type_error:
-            return error_message(str(type_error), self.URL, request_data=request.data)
+            update = get_update(request.args)
+        except ValueError as value_error:
+            return error_message(str(value_error), self.URL, request_data={'uid': uid})
+        return self._update_analysis(uid, update)
 
-        result = self._process_data(data)
-        if 'error_message' in result:
-            logging.warning('Submission not according to API guidelines! (data could not be parsed)')
-            return error_message(result['error_message'], self.URL, request_data=data)
+    def _update_analysis(self, uid, update):
+        with ConnectTo(FrontEndDbInterface, self.config) as connection:
+            firmware = connection.get_firmware(uid)
+        if not firmware:
+            return error_message('No firmware with UID {} found'.format(uid), self.URL, dict(uid=uid))
 
-        logging.debug('Upload Successful!')
-        return success_message(result, self.URL, request_data=data)
+        unpack = 'unpacker' in update
+        while 'unpacker' in update:
+            update.remove('unpacker')
 
-    def _process_data(self, data):
-        for field in ['device_name', 'device_class', 'device_part', 'file_name', 'version', 'vendor', 'release_date',
-                      'requested_analysis_systems', 'binary']:
-            if field not in data.keys():
-                return dict(error_message='{} not found'.format(field))
+        firmware.scheduled_analysis = update
 
-        data['binary'] = standard_b64decode(data['binary'])
-        firmware_object = convert_analysis_task_to_fw_obj(data)
         with ConnectTo(InterComFrontEndBinding, self.config) as intercom:
-            intercom.add_analysis_task(firmware_object)
-        data.pop('binary')
+            supported_plugins = intercom.get_available_analysis_plugins().keys()
+            for item in update:
+                if item not in supported_plugins:
+                    return error_message('Unknown analysis system \'{}\''.format(item), self.URL, dict(uid=uid, update=update))
+            intercom.add_re_analyze_task(firmware, unpack)
 
-        return dict(uid=firmware_object.uid)
+        if unpack:
+            update.append('unpacker')
+        return success_message({}, self.URL, dict(uid=uid, update=update))
