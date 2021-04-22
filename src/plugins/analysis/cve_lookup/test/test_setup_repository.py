@@ -295,7 +295,7 @@ def test_exists(monkeypatch):
 
 def test_extract_relevant_feeds():
     sr.DATABASE = sr.DatabaseInterface(PATH_TO_TEST + 'test_update.db')
-    assert [('CVE-2018-0002', 2018), ('CVE-2018-0003', 2018)] == sr.extract_relevant_feeds(from_table='new', where_table='outdated')
+    assert [('CVE-2018-0002', 2018), ('CVE-2018-0003', 2018)] == sorted(sr.extract_relevant_feeds(from_table='new', where_table='outdated'))
 
 
 def test_delete_outdated_feeds():
@@ -311,7 +311,7 @@ def test_create():
 
 def test_insert_into():
     sr.insert_into(query='test_insert', table_name='test', input_data=[(1,), (2,)])
-    assert [(1,), (2,)] == list(sr.DATABASE.fetch_multiple(query=QUERIES['select_all'].format('test')))
+    assert [(1,), (2,)] == sorted(sr.DATABASE.fetch_multiple(query=QUERIES['select_all'].format('test')))
 
 
 def test_drop_table():
