@@ -58,14 +58,14 @@ class RestStatisticsWithoutName(RestStatisticsBase):
 class RestStatisticsWithName(RestStatisticsBase):
     @roles_accepted(*PRIVILEGES['status'])
     @api.doc(responses={200: 'Success', 400: 'Unknown stats category'})
-    def get(self, statistic_name):
+    def get(self, stat_name):
         '''
         Get specific statistic
         '''
         with ConnectTo(StatisticDbViewer, self.config) as stats_db:
-            statistic_dict = {statistic_name: stats_db.get_statistic(statistic_name)}
+            statistic_dict = {stat_name: stats_db.get_statistic(stat_name)}
             self._delete_id_and_check_empty_stat(statistic_dict)
-        if statistic_name not in STATISTICS:
-            return error_message('A statistic with the ID {} does not exist'.format(statistic_name), self.URL, dict(stat_name=statistic_name))
+        if stat_name not in STATISTICS:
+            return error_message('A statistic with the ID {} does not exist'.format(stat_name), self.URL, dict(stat_name=stat_name))
 
         return statistic_dict
