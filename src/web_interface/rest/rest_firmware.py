@@ -113,8 +113,6 @@ class RestFirmwareGetWithoutUid(RestFirmwareBase):
         return dict(uid=firmware_object.uid)
 
 
-
-
 @api.route('/<string:uid>',
            doc={'description': '',
                 'params': {'uid': 'File UID'}
