@@ -62,8 +62,8 @@ class DatabaseInterface:
         self.connection = None
         try:
             self.connection = connect(db_path)
-        except SqliteException as exception:
-            logging.warning(f'Could not connect to CPE database: {exception}', exc_info=True)
+        except SqliteException:
+            logging.error('Could not connect to CPE database.')
             raise
 
     def execute_query(self, query: str):
@@ -89,7 +89,7 @@ class DatabaseInterface:
         with self.get_cursor() as cursor:
             wrong_entries = {e for e in input_data if len(e) != query.count('?')}
             if wrong_entries:
-                logging.warning(f"Ignoring possibly wrong entries: {[e[2] for e in wrong_entries]}")
+                logging.warning(f'Ignoring possibly wrong entries: {[e[2] for e in wrong_entries]}')
             cursor.executemany(query, list(set(input_data) - wrong_entries))
             self.connection.commit()
 
