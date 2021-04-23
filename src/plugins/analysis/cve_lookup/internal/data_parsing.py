@@ -5,7 +5,7 @@ from io import BytesIO
 from pathlib import Path
 from typing import List, Optional, Tuple
 from xml.etree.ElementTree import ParseError, parse
-from zipfile import ZipFile
+from zipfile import BadZipFile, ZipFile
 
 import requests
 from requests.exceptions import RequestException
@@ -31,10 +31,12 @@ def get_cve_links(url: str, selected_years: Optional[List[int]] = None) -> List[
 def process_url(download_url: str, path: str):
     try:
         request = _retrieve_url(download_url)
+        zipped_data = ZipFile(BytesIO(request.content))
     except RequestException as exception:
         raise CveLookupException(f'URL {download_url} not found. URL might have changed.') from exception
+    except BadZipFile as exception:
+        raise CveLookupException(f'Could not retrieve file from URL {download_url} (bad zip file)') from exception
 
-    zipped_data = ZipFile(BytesIO(request.content))
     zipped_data.extractall(path)
 
 
@@ -65,7 +67,7 @@ def extract_cpe_data_from_cve(nodes: List[dict]) -> List[Tuple[str, str, str, st
     for dicts in nodes:
         if 'cpe_match' in dicts.keys():
             for cpe in dicts['cpe_match']:
-                if cpe['vulnerable']:
+                if 'cpe23Uri' in cpe and cpe['vulnerable']:
                     cpe_entries.append((
                         cpe['cpe23Uri'], cpe.get('versionStartIncluding', ''), cpe.get('versionStartExcluding', ''),
                         cpe.get('versionEndIncluding', ''), cpe.get('versionEndExcluding', '')
