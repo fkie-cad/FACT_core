@@ -10,7 +10,7 @@
 [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/FACT_core/community)
 
 The Firmware Analysis and Comparison Tool (formerly known as Fraunhofer's Firmware Analysis Framework (FAF)) is intended to automate most of the firmware analysis process. 
-It unpacks arbitrary firmware files and processes several analysis.
+It unpacks arbitrary firmware files and processes several analyses.
 Additionally, it can compare several images or single files.  
 Furthermore, Unpacking, analysis and compares are based on plug-ins guaranteeing maximal flexibility and expandability.  
 More details and some screenshots can be found on our [project page](https://fkie-cad.github.io/FACT_core/).
@@ -21,16 +21,16 @@ FACT is designed as a multiprocess application, the more Cores and RAM, the bett
 
 Minimal | Recommended | Software
 ------- | ----------- | --------
-4 Cores<br>8GB RAM<br>10 GB disk space | 16 Cores<br>64GB RAM<br>10* GB disk space | git<br>python 3.5 - 3.8<br>OS see below
+4 Cores<br>8GB RAM<br>10 GB disk space | 16 Cores<br>64GB RAM<br>10* GB disk space | git<br>python 3.6 - 3.9<br>OS see below
 
 > ~ 10 GB required to set up FACT code, container and binaries. Additional space is necessary for result storage. That can be on a separate partition or drive.
 
-It is possible to install FACT on any Linux distribution but the installer is limited to
-- Ubuntu 16.04, 18.04, 20.04 (stable)
-    - **Deprecation warning**: Ubuntu 16.04 support will be discontinued when Python 3.5 hits its End of Life in 09/2020
+It is possible to install FACT on any Linux distribution, but the installer is limited to
+- Ubuntu 18.04, 20.04 (stable)
 - Ubuntu 19.04 (experimental)
 - Debian 9, 10 (experimental)
 - Kali (tested on 2019.3 and 2019.4) (experimental)
+- Fedora (tested on 31 and 33) (experimental)
 
 :exclamation: **Caution: FACT is not intended to be used as public internet service. The GUI is not a hardened WEB-application and it may take your server at risk!**
 
@@ -49,7 +49,7 @@ $ ./start_all_installed_fact_components
 
 Afterwards FACT can be accessed on <http://localhost:5000> and <https://localhost> (nginx), respectively.  
 
-You can shutdown the system by pressing *Ctrl + c* or by sending a SIGTERM to the *start_all_installed_fact_components* script.
+You can shut down the system by pressing *Ctrl + c* or by sending a SIGTERM to the *start_all_installed_fact_components* script.
 
 ## Advanced Usage
 
@@ -68,6 +68,9 @@ FACT provides an optional basic authentication, role and user management. More i
 * REST
   * [FACT Search and Download](https://github.com/fkie-cad/FACT_Search_and_Download)
   * [PDF Report Generator](https://github.com/fkie-cad/fact_pdf_report)
+
+## Vagrant
+Thanks to @botlabsDev for providing a [Vagrantfile](https://github.com/botlabsDev/FACTbox) to test and evaluate FACT.
 
 ## Contribute
 The easiest way to contribute is writing your own plug-in.

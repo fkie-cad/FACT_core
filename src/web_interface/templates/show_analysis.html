@@ -120,7 +120,7 @@
 
     {# General info section #}
     <div class="col-lg-6">
-        {{ firmware | render_general_information(other_versions, selected_analysis) | safe }}
+        {{ firmware | render_general_information(root_uid, other_versions, selected_analysis) | safe }}
     </div>
 
 </div>

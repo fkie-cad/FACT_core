@@ -6,7 +6,7 @@ import pytest
 
 from web_interface.filter import (
     _get_sorted_list, byte_number_filter, comment_out_regex_meta_chars, create_firmware_version_links,
-    data_to_chart_limited, data_to_chart_with_value_percentage_pairs, decompress, elapsed_time, encode_base64_filter,
+    data_to_chart_with_value_percentage_pairs, decompress, elapsed_time, encode_base64_filter,
     filter_format_string_list_with_offset, fix_cwe, format_duration, generic_nice_representation,
     get_all_uids_in_string, get_unique_keys_from_list_of_dicts, infection_color, is_not_mandatory_analysis_entry,
     list_group, list_to_line_break_string, list_to_line_break_string_no_sort, nice_number_filter, nice_unix_time,
@@ -46,25 +46,6 @@ def test_set_limit_for_data_to_chart():
 ])
 def test_data_to_chart_with_value_percentage_pairs(input_data, expected_result):
     assert data_to_chart_with_value_percentage_pairs(input_data) == expected_result
-
-
-@pytest.mark.parametrize('input_data, expected_result', [
-    (
-        [('NX enabled', 1696), ('NX disabled', 207), ('Canary enabled', 9)],
-        {
-            'labels': ['NX enabled', 'NX disabled', 'Canary enabled'],
-            'datasets': [{
-                'data': [1696, 207, 9],
-                'backgroundColor': ['#4062fa', '#149df1', '#18cde4'],
-                'borderColor': '#fff',
-                'borderWidth': 2
-            }]
-        }
-    ),
-    ([()], None)
-])
-def test_data_to_chart_limited(input_data, expected_result):
-    assert data_to_chart_limited(input_data) == expected_result
 
 
 def test_get_all_uids_in_string():
