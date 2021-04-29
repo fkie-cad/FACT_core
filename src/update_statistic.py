@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 '''
     Firmware Analysis and Comparison Tool (FACT)
-    Copyright (C) 2015-2020  Fraunhofer FKIE
+    Copyright (C) 2015-2021  Fraunhofer FKIE
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,9 +20,9 @@
 import logging
 import sys
 
-from storage.MongoMgr import MongoMgr
-from statistic.update import StatisticUpdater
 from helperFunctions.program_setup import program_setup
+from statistic.update import StatisticUpdater
+from storage.MongoMgr import MongoMgr
 
 PROGRAM_NAME = 'FACT Statistic Updater'
 PROGRAM_DESCRIPTION = 'Initialize or update FACT statistic'

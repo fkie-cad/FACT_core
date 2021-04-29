@@ -1,47 +1,26 @@
+import json
 import logging
-import os
 import stat
 import tarfile
 import zlib
 from base64 import b64encode
-from contextlib import contextmanager, suppress
+from contextlib import suppress
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import List
-
-from common_helper_files import safe_rglob
-from common_helper_process import execute_shell_command, execute_shell_command_get_return_code
+from typing import List, NamedTuple, Tuple
 
 from analysis.PluginBase import AnalysisBasePlugin
-from helperFunctions.config import get_temp_dir_path
 from helperFunctions.database import ConnectTo
+from helperFunctions.docker import run_docker_container
 from helperFunctions.tag import TagColor
 from objects.file import FileObject
 from storage.db_interface_common import MongoInterfaceCommon
 
-
-class MountingError(RuntimeError):
-    pass
-
-
-@contextmanager
-def mount(file_path, fs_type='', mount_path='/tmp'):
-    mount_dir = TemporaryDirectory(dir=mount_path)
-    try:
-        mount_rv = execute_shell_command('sudo mount {} -v -o ro,loop {} {}'.format(fs_type, file_path, mount_dir.name))
-        if _mount_was_successful(mount_dir.name):
-            yield Path(mount_dir.name)
-        else:
-            logging.error('could not mount {}: {}'.format(file_path, mount_rv))
-            raise MountingError('error while mounting fs')
-    finally:
-        execute_shell_command('sudo umount -v {}'.format(mount_dir.name))
-        mount_dir.cleanup()
-
-
-def _mount_was_successful(mount_path: str) -> bool:
-    _, return_code = execute_shell_command_get_return_code('mountpoint {}'.format(mount_path))
-    return return_code == 0
+DOCKER_IMAGE = 'fs_metadata_mounting'
+StatResult = NamedTuple(
+    'StatEntry',
+    [('uid', int), ('gid', int), ('mode', int), ('a_time', float), ('c_time', float), ('m_time', float)]
+)
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
@@ -49,7 +28,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
     NAME = 'file_system_metadata'
     DEPENDENCIES = ['file_type']
     DESCRIPTION = 'extract file system metadata (e.g. owner, group, etc.) from file system images contained in firmware'
-    VERSION = '0.1'
+    VERSION = '0.2'
+    timeout = 600
 
     ARCHIVE_MIME_TYPES = [
         'application/gzip',
@@ -98,38 +78,52 @@ class AnalysisPlugin(AnalysisBasePlugin):
     def _extract_metadata(self, file_object: FileObject):
         file_type = file_object.processed_analysis['file_type']['mime']
         if file_type in self.FS_MIME_TYPES:
-            self._extract_metadata_from_file_system(file_object, file_type)
+            self._extract_metadata_from_file_system(file_object)
         elif file_type in self.ARCHIVE_MIME_TYPES:
             self._extract_metadata_from_tar(file_object)
         if self.result:
-            file_object.processed_analysis['file_system_metadata'] = {'files': self.result}
+            file_object.processed_analysis[self.NAME] = {'files': self.result}
             self._add_tag(file_object, self.result)
 
-    def _extract_metadata_from_file_system(self, file_object: FileObject, file_type: str):
-        type_parameter = '-t {}'.format(file_type.split('/')[1])
-        with suppress(MountingError):
-            with mount(file_object.file_path, type_parameter, get_temp_dir_path(self.config)) as mounted_path:
-                self._analyze_metadata_of_mounted_dir(mounted_path)
+    def _extract_metadata_from_file_system(self, file_object: FileObject):
+        with TemporaryDirectory() as tmp_dir:
+            input_file = Path(tmp_dir) / "input.img"
+            input_file.write_bytes(file_object.binary or Path(file_object.file_path).read_bytes())
+            output = self._mount_in_docker(tmp_dir)
+            output_file = Path(tmp_dir) / "output.pickle"
+            if output_file.is_file():
+                self._analyze_metadata_of_mounted_dir(json.loads(output_file.read_bytes()))
+            else:
+                message = 'mount failed:\n{}'.format(output)
+                logging.warning('[{}] {}'.format(self.NAME, message))
+                file_object.processed_analysis[self.NAME]['failed'] = message
 
-    def _analyze_metadata_of_mounted_dir(self, mounted_dir: Path):
-        for file_ in safe_rglob(mounted_dir, False, False):  # FIXME files with PermissionError could be ignored
-            if file_.is_file() and not file_.is_symlink():
-                self._enter_results_for_mounted_file(file_)
+    def _mount_in_docker(self, input_dir: str) -> str:
+        return run_docker_container(
+            DOCKER_IMAGE,
+            mount=('/work', input_dir),
+            label=self.NAME,
+            timeout=int(self.timeout * .8),
+            privileged=True
+        )
 
-    def _enter_results_for_mounted_file(self, file_: Path):
-        result = self.result[b64encode(file_.name.encode()).decode()] = {}
-        stats = os.lstat(str(file_))
+    def _analyze_metadata_of_mounted_dir(self, docker_results: Tuple[str, str, dict]):
+        for file_name, file_path, file_stats in docker_results:
+            self._enter_results_for_mounted_file(file_name, file_path, StatResult(**file_stats))
+
+    def _enter_results_for_mounted_file(self, file_name: str, file_path: str, stats: StatResult):
+        result = self.result[b64encode(file_name.encode()).decode()] = {}
         result[FsKeys.MODE] = self._get_mounted_file_mode(stats)
-        result[FsKeys.MODE_HR] = stat.filemode(stats.st_mode)
-        result[FsKeys.NAME] = file_.name
-        result[FsKeys.PATH] = str(file_)
-        result[FsKeys.UID] = stats.st_uid
-        result[FsKeys.GID] = stats.st_gid
-        result[FsKeys.USER] = 'root' if stats.st_uid == 0 else ''
-        result[FsKeys.GROUP] = 'root' if stats.st_gid == 0 else ''
-        result[FsKeys.M_TIME] = stats.st_mtime
-        result[FsKeys.A_TIME] = stats.st_atime
-        result[FsKeys.C_TIME] = stats.st_ctime
+        result[FsKeys.MODE_HR] = stat.filemode(stats.mode)
+        result[FsKeys.NAME] = file_name
+        result[FsKeys.PATH] = file_path
+        result[FsKeys.UID] = stats.uid
+        result[FsKeys.GID] = stats.gid
+        result[FsKeys.USER] = 'root' if stats.uid == 0 else ''
+        result[FsKeys.GROUP] = 'root' if stats.gid == 0 else ''
+        result[FsKeys.M_TIME] = stats.m_time
+        result[FsKeys.A_TIME] = stats.a_time
+        result[FsKeys.C_TIME] = stats.c_time
         result[FsKeys.SUID], result[FsKeys.SGID], result[FsKeys.STICKY] = self._get_extended_file_permissions(result[FsKeys.MODE])
 
     def _extract_metadata_from_tar(self, file_object: FileObject):
@@ -169,8 +163,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return oct(file_info.mode)[2:]
 
     @staticmethod
-    def _get_mounted_file_mode(stats):
-        return oct(stat.S_IMODE(stats.st_mode))[2:]
+    def _get_mounted_file_mode(stats: StatResult):
+        return oct(stat.S_IMODE(stats.mode))[2:]
 
     def _add_tag(self, file_object: FileObject, results: dict):
         if self._tag_should_be_set(results):

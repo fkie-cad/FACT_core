@@ -1,5 +1,6 @@
 import json
-from typing import List
+import logging
+from typing import List, Optional
 
 from common_helper_filter.time import time_format
 from flask import render_template
@@ -10,7 +11,7 @@ from helperFunctions.database import ConnectTo
 from helperFunctions.hash import get_md5
 from helperFunctions.uid import is_list_of_uids, is_uid
 from helperFunctions.virtual_file_path import split_virtual_path
-from helperFunctions.web_interface import cap_length_of_element
+from helperFunctions.web_interface import cap_length_of_element, get_color_list
 from storage.db_interface_frontend import FrontEndDbInterface
 from web_interface.filter import elapsed_time, random_collapse_id
 
@@ -110,10 +111,10 @@ class FilterClass:
         return render_template('generic_view/firmware_detail_tabular_field.html', firmware=firmware_meta_data)
 
     @staticmethod
-    def _render_general_information_table(firmware, other_versions, selected_analysis):
+    def _render_general_information_table(firmware, root_uid, other_versions, selected_analysis):
         return render_template(
             'generic_view/general_information.html',
-            firmware=firmware, other_versions=other_versions, selected_analysis=selected_analysis
+            firmware=firmware, root_uid=root_uid, other_versions=other_versions, selected_analysis=selected_analysis
         )
 
     @staticmethod
@@ -134,6 +135,30 @@ class FilterClass:
     def check_auth(self, _):
         return self._config.getboolean('ExpertSettings', 'authentication')
 
+    def data_to_chart_limited(self, data, limit: Optional[int] = None, color_list=None):
+        limit = self._get_chart_element_count() if limit is None else limit
+        try:
+            label_list, value_list = [list(d) for d in zip(*data)]
+        except ValueError:
+            return None
+        label_list, value_list = flt.set_limit_for_data_to_chart(label_list, limit, value_list)
+        color_list = get_color_list(len(value_list), limit=limit) if color_list is None else color_list
+        return {
+            'labels': label_list,
+            'datasets': [{'data': value_list, 'backgroundColor': color_list, 'borderColor': '#fff', 'borderWidth': 2}]
+        }
+
+    def _get_chart_element_count(self):
+        limit = self._config.getint('statistics', 'max_elements_per_chart', fallback=10)
+        if limit > 100:
+            logging.warning('Value of "max_elements_per_chart" in configuration is too large.')
+            return 100
+        return limit
+
+    def data_to_chart(self, data):
+        color_list = get_color_list(1) * len(data)
+        return self.data_to_chart_limited(data, limit=0, color_list=color_list)
+
     def _setup_filters(self):  # pylint: disable=too-many-statements
         self._app.jinja_env.add_extension('jinja2.ext.do')
 
@@ -141,8 +166,8 @@ class FilterClass:
         self._app.jinja_env.filters['auth_enabled'] = self.check_auth
         self._app.jinja_env.filters['base64_encode'] = flt.encode_base64_filter
         self._app.jinja_env.filters['bytes_to_str'] = flt.bytes_to_str_filter
-        self._app.jinja_env.filters['data_to_chart'] = flt.data_to_chart
-        self._app.jinja_env.filters['data_to_chart_limited'] = flt.data_to_chart_limited
+        self._app.jinja_env.filters['data_to_chart'] = self.data_to_chart
+        self._app.jinja_env.filters['data_to_chart_limited'] = self.data_to_chart_limited
         self._app.jinja_env.filters['data_to_chart_with_value_percentage_pairs'] = flt.data_to_chart_with_value_percentage_pairs
         self._app.jinja_env.filters['decompress'] = flt.decompress
         self._app.jinja_env.filters['dict_to_json'] = json.dumps

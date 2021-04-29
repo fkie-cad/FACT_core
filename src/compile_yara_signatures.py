@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 '''
     Firmware Analysis and Comparison Tool (FACT)
-    Copyright (C) 2015-2020  Fraunhofer FKIE
+    Copyright (C) 2015-2021  Fraunhofer FKIE
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,6 +18,7 @@
 '''
 
 import os
+import sys
 from subprocess import CalledProcessError
 from tempfile import NamedTemporaryFile
 
@@ -71,4 +72,4 @@ def main():
 
 
 if __name__ == '__main__':
-    exit(main())
+    sys.exit(main())

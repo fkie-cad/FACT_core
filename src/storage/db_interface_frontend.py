@@ -203,20 +203,20 @@ class FrontEndDbInterface(MongoInterfaceCommon):
 
     # --- file tree
 
-    def generate_file_tree_nodes_for_uid_list(self, uid_list, root_uid, whitelist=None):
+    def generate_file_tree_nodes_for_uid_list(self, uid_list: List[str], root_uid: str, parent_uid, whitelist=None):
         query = self._build_search_query_for_uid_list(uid_list)
         fo_data = self.file_objects.find(query, VirtualPathFileTree.FO_DATA_FIELDS)
         fo_data_dict = {entry['_id']: entry for entry in fo_data}
         for uid in uid_list:
             fo_data_entry = fo_data_dict[uid] if uid in fo_data_dict else {}
-            for node in self.generate_file_tree_level(uid, root_uid, whitelist, fo_data_entry):
+            for node in self.generate_file_tree_level(uid, root_uid, parent_uid, whitelist, fo_data_entry):
                 yield node
 
-    def generate_file_tree_level(self, uid, root_uid, whitelist=None, fo_data=None):
+    def generate_file_tree_level(self, uid, root_uid, parent_uid=None, whitelist=None, fo_data=None):
         if fo_data is None:
             fo_data = self.get_specific_fields_of_db_entry({'_id': uid}, VirtualPathFileTree.FO_DATA_FIELDS)
         try:
-            for node in VirtualPathFileTree(root_uid, fo_data, whitelist).get_file_tree_nodes():
+            for node in VirtualPathFileTree(root_uid, parent_uid, fo_data, whitelist).get_file_tree_nodes():
                 yield node
         except (KeyError, TypeError):  # the requested data is not in the DB aka the file has not been analyzed yet
             yield FileTreeNode(uid, root_uid, not_analyzed=True, name='{uid} (not analyzed yet)'.format(uid=uid))

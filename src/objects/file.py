@@ -225,6 +225,18 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
             return file_paths[req_root_uid]
         return get_value_of_first_key(file_paths)  # fallback
 
+    def get_virtual_paths_for_all_uids(self) -> List[str]:
+        '''
+        Get all virtual file paths (VFPs) of the file in all firmware containers.
+
+        :return: List of virtual paths.
+        '''
+        return [
+            vfp
+            for vfp_list in self.get_virtual_file_paths().values()
+            for vfp in vfp_list
+        ]
+
     def get_virtual_file_paths(self) -> Dict[str, list]:
         '''
         Get virtual file paths of current file.
