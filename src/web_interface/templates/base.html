@@ -1,53 +1,57 @@
 <!DOCTYPE html>
 {% set navigation_bar = [
-    ("Home", "/", '<i class="fas fa-home"></i>'),
-    ("Database", None, None),
-    ("Upload", "/upload", '<i class="fas fa-upload"></i>'),
-    ("Info", None, '<i class="fas fa-info-circle"></i>'),
-    ("Admin", None, '<i class="fas fa-users-cog"></i>')
+("Home", "/", '<i class="fas fa-home"></i>'),
+("Database", None, None),
+("Upload", "/upload", '<i class="fas fa-upload"></i>'),
+("Info", None, '<i class="fas fa-info-circle"></i>'),
+("Feedback", None, '<i class="fas fa-bullhorn"></i>'),
+("Admin", None, '<i class="fas fa-users-cog"></i>')
 ] -%}
 
 {% if ("string only here to have input to " | auth_enabled) %}
-    {% do navigation_bar.append(("Login", None, None)) %}
+{% do navigation_bar.append(("Login", None, None)) %}
 {% endif %}
 
 {% set active_page = active_page | default('Home') %}
 
 <html>
-    <head lang="en">
-        <meta charset="UTF-8">
-        <title>FACT</title>
-        <link rel="shortcut icon" href="{{ url_for('static', filename='fact_icon.ico') }}">
-        <!-- Bootstrap -->
-        <link rel="stylesheet" href="{{ url_for('static', filename='web_css/bootstrap.min.css') }}">
-        <link rel="stylesheet" href="{{ url_for('static', filename='web_css/fontawesome/css/all.css') }}">
-        <script type="text/javascript" src="{{ url_for('static', filename='web_js/jquery.min.js') }}"></script>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>FACT</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='fact_icon.ico') }}">
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='web_css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='web_css/fontawesome/css/all.css') }}">
+    <script type="text/javascript" src="{{ url_for('static', filename='web_js/jquery.min.js') }}"></script>
 
-        <script type="text/javascript" src="{{ url_for('static', filename='web_js/popper.min.js') }}"></script>
-        <script type="text/javascript" src="{{ url_for('static', filename='web_js/bootstrap.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='web_js/popper.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='web_js/bootstrap.min.js') }}"></script>
 
-        <script type="text/javascript" src="{{ url_for('static', filename='web_js/moment.js') }}"></script>
-        <link rel="stylesheet" href="{{ url_for('static', filename='web_css/bootstrap-datepicker.standalone.css') }}">
+    <script type="text/javascript" src="{{ url_for('static', filename='web_js/moment.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='web_css/bootstrap-datepicker.standalone.css') }}">
 
-        <script type="text/javascript" src="{{ url_for('static', filename='web_js/bootstrap-datepicker.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='web_js/bootstrap-datepicker.js') }}"></script>
 
-        <script>
+    <script>
             $(document).ready(function(){
-              $('[data-toggle="tooltip"]').tooltip();
-              $(".toggle").click(function(){
-                $(".expand").toggle();
-              });
+                $('[data-toggle="tooltip"]').tooltip();
+                $(".toggle").click(function(){
+                    $(".expand").toggle();
+                });
             });
             function quickSearch() {
                 let search_input = document.getElementById('quick_search_input').value;
                 window.location = '/database/quick_search?search_term=' + search_input;
             }
-        </script>
-        
-        {% block head %}
-        {% endblock %}
-        
-        <style>
+
+
+
+    </script>
+
+    {% block head %}
+    {% endblock %}
+
+    <style>
             a:link{
                 color:#2b669a;
                 text-decoration:none;
@@ -104,123 +108,182 @@
                 font-family: 'Courier New', Courier, monospace;
                 font-size: 10px;
             }
-        </style>
-        {% block styles %}{% endblock %}
-    </head>
 
-    <body>
 
-    <nav role="navigation" class="navbar navbar-expand navbar-light flex-column flex-md-row bg-fact">
-        <button type="button" data-target="#navbarCollapse" data-toggle="collapse" class="navbar-toggler">
-            <span class="sr-only">Toggle navigation</span>
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="navbar-brand d-none d-md-block mr-0 mr-md-2" style="vertical-align: middle; margin-left: 15px">
-            <span><img height="25px" src="{{ url_for('static', filename='fact_logo_inv.svg') }}"></span>
-        </div>
-        <div class="navbar-brand d-none d-xl-block" style="vertical-align: middle">
-            Firmware Analysis and Comparison Tool
-        </div>
-        <div id="navbarCollapse" class="collapse navbar-collapse">
-            <!-- Navbar Elements -->
-            <ul class="navbar-nav" style="padding-right: 5px">
-                {% for caption, href, icon in navigation_bar %}
-                    {% if caption == "Database" %}
-                        <li class="dropdown pr-3">
-                            <a {% if caption == active_page %}style="color: #fff; font-weight: 500;"{% endif  %} class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="fas fa-tasks"></i>&nbsp;Database<span class="caret"></span></a>
-                            <div class="dropdown-menu">
-                                <a class="dropdown-item" href="/database/browse" style="font-size: 14px"><i class="fas fa-list-ul"></i> Browse Firmware</a>
-                                <a class="dropdown-item" href="/database/browse_compare" style="font-size: 14px"><i class="far fa-copy"></i> Browse Compares</a>
-                                <a class="dropdown-item" href="/database/search" style="font-size: 14px"><i class="fas fa-search"></i> Basic Search</a>
-                                <a class="dropdown-item" href="/database/advanced_search" style="font-size: 14px"><i class="fas fa-search-plus"></i> Advanced Search</a>
-                                <a class="dropdown-item" href="/database/binary_search" style="font-size: 14px"><i class="fas fa-search-dollar"></i> Binary Pattern Search</a>
-                            </div>
-                        </li>
-                    {% elif caption == "Info" %}
-                        <li class="dropdown pr-3">
-                            <a {% if caption == active_page %}style="color: #fff; font-weight: 500;"{% endif  %} class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="fas fa-info-circle"></i>&nbsp;{{ caption }}<span class="caret"></span></a>
-                            <div class="dropdown-menu">
-                                <a class="dropdown-item" href="/statistic" style="font-size: 14px"><i class="fas fa-chart-bar"></i> Statistics</a>
-                                <a class="dropdown-item" href="/system_health" style="font-size: 14px"><i class="fas fa-heartbeat"></i> System</a>
-                                <a class="dropdown-item" href="/about" style="font-size: 14px"><i class="fas fa-beer"></i> About</a>
-                            </div>
-                        </li>
-                    {% elif caption == "Admin" %}
-                        {% if current_user | user_has_role('manage_users') %}
-                            <li class="dropdown pr-3">
-                                <a {% if caption == active_page %}style="color: #fff; font-weight: 500;"{% endif  %} class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="fas fa-user-shield"></i>&nbsp;{{ caption }}<span class="caret"></span></a>
-                                <div class="dropdown-menu">
-                                    <a class="dropdown-item" href="/admin/manage_users" style="font-size: 14px"><i class="fas fa-users-cog"></i> Manage Users</a>
-                                    <a class="dropdown-item" href="/admin/missing_analyses" style="font-size: 14px"><i class="fas fa-search"></i> Find Missing Analyses</a>
-                                </div>
-                            </li>
-                        {% endif %}
-                    {% elif caption == "Login" %}
-                            {% if current_user.is_authenticated %}
-                                <li class="dropdown pr-3">
-                                    <a {% if caption == active_page %}style="color: #fff; font-weight: 500;"{% endif  %} class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="fas fa-user"></i>&nbsp;{{ current_user.email }}<span class="caret"></span></a>
-                                    <div class="dropdown-menu">
-                                        <a class="dropdown-item" href="/user_profile" style="font-size: 14px"><i class="fas fa-user-cog"></i> Profile</a>
-                                        <a class="dropdown-item" href="/logout" style="font-size: 14px"><i class="fas fa-sign-out-alt"></i> Logout</a>
-                                    </div>
-                                </li>
-                            {% else %}
-                                <li>
-                                    <a {% if caption == active_page %}style="color: #fff; font-weight: 500;"{% endif  %} href="/login"><i class="fas fa-sign-in-alt"></i> Login</a>
-                                </li>
-                            {% endif %}
-                    {% else %}
-                        <li class="pr-3">
-                            <a {% if caption == active_page %}style="color: #fff; font-weight: 500;"{% endif  %} href={{ href }}>{{ icon|safe }} {{ caption }}</a>
-                        </li>
-                    {% endif %}
-                {% endfor %}
-            </ul>
 
-            <!-- Navbar Quick Search Input -->
-            <div id="quick_search_div" class="nav navbar-nav ml-md-auto d-none d-md-block">
-                <div class="input-group mr-sm-2">
-                    <input type="text" class="form-control" placeholder="Quick search name, vendor and hash values" id="quick_search_input" onKeyDown="if(event.keyCode==13) quickSearch();" style="margin: 0; background-color: #e7e7e7; border-radius: 0; border-top-left-radius: .25rem; border-bottom-left-radius: .25rem;">
-                    <div class="input-group-append">
-                        <button class="btn btn-secondary" type="button" onclick="quickSearch()">
-                            <i class="fas fa-search"></i>
-                        </button>
-                    </div>
+    </style>
+    {% block styles %}{% endblock %}
+</head>
+
+<body>
+
+<nav role="navigation" class="navbar navbar-expand navbar-light flex-column flex-md-row bg-fact">
+    <button type="button" data-target="#navbarCollapse" data-toggle="collapse" class="navbar-toggler">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="navbar-brand d-none d-md-block mr-0 mr-md-2" style="vertical-align: middle; margin-left: 15px">
+        <span><img height="25px" src="{{ url_for('static', filename='fact_logo_inv.svg') }}"></span>
+    </div>
+    <div class="navbar-brand d-none d-xl-block" style="vertical-align: middle">
+        Firmware Analysis and Comparison Tool
+    </div>
+    <div id="navbarCollapse" class="collapse navbar-collapse">
+        <!-- Navbar Elements -->
+        <ul class="navbar-nav" style="padding-right: 5px">
+            {% for caption, href, icon in navigation_bar %}
+            {% if caption == "Database" %}
+            <li class="dropdown pr-3">
+                <a {% if caption== active_page %}style="color: #fff; font-weight: 500;" {% endif %}
+                   class="dropdown-toggle" data-toggle="dropdown" href="#"><i
+                        class="fas fa-tasks"></i>&nbsp;Database<span class="caret"></span></a>
+                <div class="dropdown-menu">
+                    <a class="dropdown-item" href="/database/browse" style="font-size: 14px"><i
+                            class="fas fa-list-ul"></i> Browse Firmware</a>
+                    <a class="dropdown-item" href="/database/browse_compare" style="font-size: 14px"><i
+                            class="far fa-copy"></i> Browse Compares</a>
+                    <a class="dropdown-item" href="/database/search" style="font-size: 14px"><i
+                            class="fas fa-search"></i> Basic Search</a>
+                    <a class="dropdown-item" href="/database/advanced_search" style="font-size: 14px"><i
+                            class="fas fa-search-plus"></i> Advanced Search</a>
+                    <a class="dropdown-item" href="/database/binary_search" style="font-size: 14px"><i
+                            class="fas fa-search-dollar"></i> Binary Pattern Search</a>
                 </div>
-            </div>
-
-        </div>
-    </nav>
-
-    <div class="container-fluid" style="width: 90%">
-        <!-- flash messages -->
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-            <div class="row justify-content-center">
-                <div class="col-xl-8 col-lg-12">
-                    {% for category, message in messages %}
-                        {% set flash_categories = ['danger', 'warning', 'info', 'success'] %}
-                        <div class="my-3 alert alert-{{ category if category in flash_categories else 'danger' }} alert-dismissible fade show" role="alert">
-                            {{ message }}
-                            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                        </div>
-                    {% endfor %}
+            </li>
+            {% elif caption == "Info" %}
+            <li class="dropdown pr-3">
+                <a {% if caption== active_page %}style="color: #fff; font-weight: 500;" {% endif %}
+                   class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="fas fa-info-circle"></i>&nbsp;{{
+                    caption }}<span class="caret"></span></a>
+                <div class="dropdown-menu">
+                    <a class="dropdown-item" href="/statistic" style="font-size: 14px"><i class="fas fa-chart-bar"></i>
+                        Statistics</a>
+                    <a class="dropdown-item" href="/system_health" style="font-size: 14px"><i
+                            class="fas fa-heartbeat"></i> System</a>
+                    <a class="dropdown-item" href="/about" style="font-size: 14px"><i class="fas fa-beer"></i> About</a>
                 </div>
-            </div>
+            </li>
+            {% elif caption == "Feedback" %}
+            <li class="pr-3">
+                <a {% if caption== active_page %}style="color: #fff; font-weight: 500;" {% endif %}
+                    data-toggle="modal" data-target="#feedbackModal" href="#"> <i class="fas fa-bullhorn"></i> Feedback </a>
+            </li>
+            {% elif caption == "Admin" %}
+            {% if current_user | user_has_role('manage_users') %}
+            <li class="dropdown pr-3">
+                <a {% if caption== active_page %}style="color: #fff; font-weight: 500;" {% endif %}
+                   class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="fas fa-user-shield"></i>&nbsp;{{
+                    caption }}<span class="caret"></span></a>
+                <div class="dropdown-menu">
+                    <a class="dropdown-item" href="/admin/manage_users" style="font-size: 14px"><i
+                            class="fas fa-users-cog"></i> Manage Users</a>
+                    <a class="dropdown-item" href="/admin/missing_analyses" style="font-size: 14px"><i
+                            class="fas fa-search"></i> Find Missing Analyses</a>
+                </div>
+            </li>
             {% endif %}
-        {% endwith %}
+            {% elif caption == "Login" %}
+            {% if current_user.is_authenticated %}
+            <li class="dropdown pr-3">
+                <a {% if caption== active_page %}style="color: #fff; font-weight: 500;" {% endif %}
+                   class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="fas fa-user"></i>&nbsp;{{
+                    current_user.email }}<span class="caret"></span></a>
+                <div class="dropdown-menu">
+                    <a class="dropdown-item" href="/user_profile" style="font-size: 14px"><i
+                            class="fas fa-user-cog"></i> Profile</a>
+                    <a class="dropdown-item" href="/logout" style="font-size: 14px"><i class="fas fa-sign-out-alt"></i>
+                        Logout</a>
+                </div>
+            </li>
+            {% else %}
+            <li>
+                <a {% if caption== active_page %}style="color: #fff; font-weight: 500;" {% endif %} href="/login"><i
+                        class="fas fa-sign-in-alt"></i> Login</a>
+            </li>
+            {% endif %}
+            {% else %}
+            <li class="pr-3">
+                <a {% if caption== active_page %}style="color: #fff; font-weight: 500;" {% endif %} href={{ href }}>{{
+                    icon|safe }} {{ caption }}</a>
+            </li>
+            {% endif %}
+            {% endfor %}
+        </ul>
 
-        {% block body %}{% endblock %}
+        <!-- Navbar Quick Search Input -->
+        <div id="quick_search_div" class="nav navbar-nav ml-md-auto d-none d-md-block">
+            <div class="input-group mr-sm-2">
+                <input type="text" class="form-control" placeholder="Quick search name, vendor and hash values"
+                       id="quick_search_input" onKeyDown="if(event.keyCode==13) quickSearch();"
+                       style="margin: 0; background-color: #e7e7e7; border-radius: 0; border-top-left-radius: .25rem; border-bottom-left-radius: .25rem;">
+                <div class="input-group-append">
+                    <button class="btn btn-secondary" type="button" onclick="quickSearch()">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
 
-        <hr class="mt-5" />
+    </div>
+</nav>
 
-        <div class="row justify-content-center mb-2">
-            <div class="col-md-4 text-center">
-                powered by <a href="https://fkie-cad.github.io/FACT_core/">FACT {{ "" | print_program_version }}</a><br />
-                &copy; <a href="http://www.fkie.fraunhofer.de">Fraunhofer FKIE</a> 2015-2020
+<div class="container-fluid" style="width: 90%">
+    <!-- flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="row justify-content-center">
+        <div class="col-xl-8 col-lg-12">
+            {% for category, message in messages %}
+            {% set flash_categories = ['danger', 'warning', 'info', 'success'] %}
+            <div class="my-3 alert alert-{{ category if category in flash_categories else 'danger' }} alert-dismissible fade show"
+                 role="alert">
+                {{ message }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    {% block body %}{% endblock %}
+
+    <hr class="mt-5"/>
+
+    <div class="row justify-content-center mb-2">
+        <div class="col-md-4 text-center">
+            powered by <a href="https://fkie-cad.github.io/FACT_core/">FACT {{ "" | print_program_version }}</a><br/>
+            &copy; <a href="http://www.fkie.fraunhofer.de">Fraunhofer FKIE</a> 2015-2020
+        </div>
+    </div>
+</div>
+
+<!-- Feedback Modal Content -->
+<div class="modal fade" id="feedbackModal" data-backdrop="static" data-keyboard="false" tabindex="-1"
+                 aria-labelledby="feedbackModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="feedbackModalLabel">Feedback Options</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <ul>
+                    <li> The easiest way to connect with us is on our <a href="https://gitter.im/FACT_core/community" target="_blank" rel="noopener noreferrer">Gitter channel</a></li>
+                    <li> You can contact us by writing an email to <br> <a href="mailto:firmware-security@fkie.fraunhofer.de">firmware-security@fkie.fraunhofer.de</a> </li>
+                    <li> You can also open an issue on <a href="https://github.com/fkie-cad/FACT_core/issues/new" target="_blank" rel="noopener noreferrer">FACT's GitHub page</a></li>
+                    <li> If you like, you can follow us on <a href="https://twitter.com/faandctool" target="_blank" rel="noopener noreferrer">Twitter</a> as well</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
+</div>
 
-    </body>
+</body>
 </html>

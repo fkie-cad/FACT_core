@@ -1,5 +1,4 @@
 import logging
-import os
 from contextlib import suppress
 from pathlib import Path
 
@@ -9,6 +8,8 @@ from helperFunctions.install import (
     InstallationError, OperateInDirectory, apt_install_packages, apt_remove_packages, apt_update_sources,
     dnf_install_packages, dnf_remove_packages, dnf_update_sources, install_github_project, pip3_install_packages
 )
+
+BIN_DIR = Path(__file__).parent.parent / 'bin'
 
 
 def install_pip(python_command):
@@ -39,8 +40,7 @@ def main(distribution):  # pylint: disable=too-many-statements
         logging.warning('FACT is not set up using git. Note that *adding submodules* won\'t work!!')
 
     # make bin dir
-    with suppress(FileExistsError):
-        os.mkdir('../bin')
+    BIN_DIR.mkdir(exist_ok=True)
 
     if distribution == 'fedora':
         dnf_install_packages('python3')
@@ -71,15 +71,6 @@ def main(distribution):  # pylint: disable=too-many-statements
     pip3_install_packages('setuptools==49.6.0')
 
     if distribution == 'fedora':
-        pass
-    else:
-        # install python2
-        apt_install_packages('python', 'python-dev')
-        with suppress(InstallationError):
-            apt_remove_packages('python-pip')
-        install_pip('python2')
-
-    if distribution == 'fedora':
         dnf_install_packages('file-devel')
         dnf_install_packages('libffi-devel')
         dnf_install_packages('python3-tlsh')
@@ -93,9 +84,9 @@ def main(distribution):  # pylint: disable=too-many-statements
 
     pip3_install_packages('git+https://github.com/fkie-cad/fact_helper_file.git')
     pip3_install_packages('psutil')
-    pip3_install_packages('pytest==3.5.1', 'pytest-cov', 'pytest-flake8', 'pylint', 'python-magic', 'xmltodict', 'yara-python==3.7.0', 'appdirs')
+    pip3_install_packages('pytest==6.1.2', 'pytest-cov', 'pylint', 'python-magic', 'xmltodict', 'yara-python==3.7.0', 'appdirs')
 
-    pip3_install_packages('lief')
+    pip3_install_packages('lief==0.10.1')  # FIXME: unpin version when install bug is fixed
 
     pip3_install_packages('requests')
 
@@ -103,7 +94,7 @@ def main(distribution):  # pylint: disable=too-many-statements
     pip3_install_packages('pymongo', 'pyyaml')
 
     # VarietyJS (is executed by update_statistic.py)
-    if Path('../bin/spec').exists():
+    if (BIN_DIR / 'spec').exists():
         logging.warning('variety spec not overwritten')
     else:
         install_github_project('variety/variety', ['git checkout 2f4d815', 'mv -f variety.js ../../bin', 'mv -f spec ../../bin'])

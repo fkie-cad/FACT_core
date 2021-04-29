@@ -59,19 +59,23 @@ html_logo = '../src/web_interface/static/FACT_smaller.png'
 autodoc_mock_imports = [
     'common_helper_encoder',
     'common_helper_files',
+    'common_helper_mongo',
     'common_helper_process',
     'docker',
     'flask',
+    'gridfs',
     'lief',
     'matplotlib',
     'passlib',
     'psutil',
+    'pymongo',
     'requests',
     'si_prefix',
     'ssdeep',
     'tlsh',
     'werkzeug',
     'yaml',
+    'yara',
 ]
 
 # This value controls how to represents typehints. The setting takes the following values:

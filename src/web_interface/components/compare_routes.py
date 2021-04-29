@@ -3,10 +3,10 @@ from contextlib import suppress
 
 from flask import redirect, render_template, render_template_string, request, session, url_for
 
-from helperFunctions.database import ConnectTo
-from helperFunctions.dataConversion import (
+from helperFunctions.data_conversion import (
     convert_compare_id_to_list, convert_uid_list_to_compare_id, normalize_compare_id
 )
+from helperFunctions.database import ConnectTo
 from helperFunctions.web_interface import get_template_as_string
 from intercom.front_end_binding import InterComFrontEndBinding
 from storage.db_interface_compare import CompareDbInterface, FactCompareException

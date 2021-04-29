@@ -3,7 +3,6 @@ import logging
 import sys
 from collections import Counter
 from contextlib import suppress
-from datetime import datetime
 from time import time
 
 from bson.son import SON
@@ -11,8 +10,8 @@ from common_helper_filter.time import time_format
 from common_helper_mongo import get_field_average, get_field_sum, get_objects_and_count_of_occurrence
 
 from helperFunctions.database import is_sanitized_entry
-from helperFunctions.dataConversion import build_time_dict
 from helperFunctions.merge_generators import avg, merge_dict, sum_up_lists, sum_up_nested_lists
+from statistic.time_stats import build_stats_entry_from_date_query
 from storage.db_interface_statistic import StatisticDbUpdater
 
 
@@ -47,6 +46,7 @@ class StatisticUpdater:
         self.db.update_statistic('exploit_mitigations', self.get_exploit_mitigations_stats())
         self.db.update_statistic('known_vulnerabilities', self.get_known_vulnerabilities_stats())
         self.db.update_statistic('software_components', self.get_software_components_stats())
+        self.db.update_statistic('elf_executable', self.get_executable_stats())
         # should always be the last, because of the benchmark
         self.db.update_statistic('general', self.get_general_stats())
 
@@ -279,6 +279,24 @@ class StatisticUpdater:
         ]
         return {'cpu_architecture': self._count_occurrences(result)}
 
+    def get_executable_stats(self):
+        total = self.db.file_objects.count_documents({'processed_analysis.file_type.full': {'$regex': 'ELF.*executable'}})
+        stats = []
+        for label, query_match in [
+            ('big endian', 'ELF.*MSB.*executable'),
+            ('little endian', 'ELF.*LSB.*executable'),
+            ('stripped', 'ELF.*executable.*, stripped'),
+            ('not stripped', 'ELF.*executable.*, not stripped'),
+            ('32-bit', 'ELF 32-bit.*executable'),
+            ('64-bit', 'ELF 64-bit.*executable'),
+            ('dynamically linked', 'ELF.*executable.*dynamically linked'),
+            ('statically linked', 'ELF.*executable.*statically linked'),
+            ('section info missing', 'ELF.*executable.*section header'),
+        ]:
+            count = self.db.file_objects.count_documents({'processed_analysis.file_type.full': {'$regex': query_match}})
+            stats.append((label, count, count / (total if total else 1), query_match))
+        return {'executable_stats': stats}
+
     def _find_most_frequent_architecture(self, arch_list):
         try:
             arch_frequency = sorted(self._count_occurrences(arch_list), key=lambda x: x[1], reverse=True)
@@ -326,12 +344,8 @@ class StatisticUpdater:
     def get_time_stats(self):
         projection = {'month': {'$month': '$release_date'}, 'year': {'$year': '$release_date'}}
         query = get_objects_and_count_of_occurrence(self.db.firmwares, projection, match=self.match)
-        histogram_data = self._build_stats_entry_from_date_query(query)
+        histogram_data = build_stats_entry_from_date_query(query)
         return {'date_histogram_data': histogram_data}
-
-    @staticmethod
-    def _get_month_name(month_int):
-        return datetime(1900, month_int, 1).strftime('%B')
 
     def get_software_components_stats(self):
         query_result = self.db.file_objects.aggregate([
@@ -348,14 +362,6 @@ class StatisticUpdater:
         ]}
 
 # ---- internal stuff
-
-    def _build_stats_entry_from_date_query(self, date_query):
-        time_dict = build_time_dict(date_query)
-        result = []
-        for year in sorted(time_dict.keys()):
-            for month in sorted(time_dict[year].keys()):
-                result.append(('{} {}'.format(self._get_month_name(month), year), time_dict[year][month]))
-        return result
 
     @staticmethod
     def _convert_dict_list_to_list(input_list):

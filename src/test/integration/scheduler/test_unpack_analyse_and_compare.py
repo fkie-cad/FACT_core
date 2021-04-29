@@ -3,8 +3,8 @@ from multiprocessing import Event, Value
 from tempfile import TemporaryDirectory
 from unittest import TestCase, mock
 
+from helperFunctions.data_conversion import normalize_compare_id
 from helperFunctions.database import ConnectTo
-from helperFunctions.dataConversion import normalize_compare_id
 from objects.firmware import Firmware
 from scheduler.Analysis import AnalysisScheduler
 from scheduler.Compare import CompareScheduler

@@ -3,8 +3,8 @@ from typing import Dict, List, Set
 
 from flask import jsonify, render_template
 
+from helperFunctions.data_conversion import none_to_none
 from helperFunctions.database import ConnectTo
-from helperFunctions.dataConversion import none_to_none
 from intercom.front_end_binding import InterComFrontEndBinding
 from storage.db_interface_compare import CompareDbInterface
 from storage.db_interface_frontend import FrontEndDbInterface

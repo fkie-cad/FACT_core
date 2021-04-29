@@ -7,7 +7,7 @@ from typing import List
 from fact_helper_file import get_file_type_from_path
 
 from helperFunctions.config import get_temp_dir_path
-from helperFunctions.dataConversion import make_list_from_dict, make_unicode_string
+from helperFunctions.data_conversion import make_unicode_string
 from helperFunctions.fileSystem import file_is_empty, get_object_path_excluding_fact_dirs
 from helperFunctions.tag import TagColor
 from helperFunctions.virtual_file_path import get_base_of_virtual_path, join_virtual_path
@@ -94,7 +94,7 @@ class Unpacker(UnpackBase):
     def remove_duplicates(extracted_fo_dict, parent_fo):
         if parent_fo.uid in extracted_fo_dict:
             del extracted_fo_dict[parent_fo.uid]
-        return make_list_from_dict(extracted_fo_dict)
+        return list(extracted_fo_dict.values())
 
     def _generate_local_file_path(self, file_object: FileObject):
         if not Path(file_object.file_path).exists():

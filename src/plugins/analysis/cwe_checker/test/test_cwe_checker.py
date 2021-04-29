@@ -10,47 +10,37 @@ class TestCweCheckerFunctions(AnalysisPluginTest):
     def setUp(self):
         super().setUp()
         config = self.init_basic_config()
-        # TODO: Mock calls to BAP
-        AnalysisPlugin._get_module_versions = lambda self: {}
+        # TODO: Mock calls to cwe_checker
         self.analysis_plugin = AnalysisPlugin(self, config=config)
 
-    def test_parse_module_version(self):
-        data = 'INFO: [cwe_checker] module_versions: {"CWE190": "0.1", "CWE215": "0.1", "CWE243": "0.1", "CWE248": "0.1", "CWE332": "0.1", "CWE367": "0.1", "CWE426": "0.1", "CWE457": "0.1", "CWE467": "0.1", "CWE476": "0.2", "CWE560": "0.1", "CWE676": "0.1", "CWE782": "0.1"}'
-        expected_result = {'CWE190': '0.1',
-                           'CWE215': '0.1',
-                           'CWE243': '0.1',
-                           'CWE248': '0.1',
-                           'CWE332': '0.1',
-                           'CWE367': '0.1',
-                           'CWE426': '0.1',
-                           'CWE457': '0.1',
-                           'CWE467': '0.1',
-                           'CWE476': '0.2',
-                           'CWE560': '0.1',
-                           'CWE676': '0.1',
-                           'CWE782': '0.1'}
-        res = self.analysis_plugin._parse_module_versions(data)
-        self.assertEqual(res, expected_result)
-
-    def test_parse_bap_output(self):
-        test_data = """{
-        "binary": "test/artificial_samples/build/cwe_190_x86_gcc.out",
-        "time": 1564489060.0,
-        "warnings": [
-        {
-        "name": "CWE190",
-        "version": "0.1",
-        "addresses": [ "0x6BC:32u" ],
-        "symbols": [ "malloc" ],
-        "other": [],
-        "description":
-        "(Integer Overflow or Wraparound) Potential overflow due to multiplication at 0x6BC:32u (malloc)"
-        }]}"""
-        result = self.analysis_plugin._parse_bap_output(test_data)
+    def test_parse_cwe_checker_output(self):
+        test_data = """[
+            {
+                "name": "CWE676",
+                "version": "0.1",
+                "addresses": [
+                    "00103042"
+                ],
+                "tids": [
+                    "instr_00103042_2"
+                ],
+                "symbols": [
+                    "FUN_00102ef0"
+                ],
+                "other": [
+                    [
+                        "dangerous_function",
+                        "strlen"
+                    ]
+                ],
+                "description": "(Use of Potentially Dangerous Function) FUN_00102ef0 (00103042) -> strlen"
+            }
+        ]"""
+        result = self.analysis_plugin._parse_cwe_checker_output(test_data)
         print(result)
         assert isinstance(result, dict)
         assert len(result.keys()) == 1
-        assert isinstance(result['CWE190'], dict)
+        assert isinstance(result['CWE676'], dict)
 
     def test_is_supported_arch(self):
         fo = FileObject()

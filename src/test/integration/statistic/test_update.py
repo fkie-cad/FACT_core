@@ -3,12 +3,13 @@ import gc
 import unittest
 
 from statistic.update import StatisticUpdater
+from storage.db_interface_backend import BackEndDbInterface
 from storage.db_interface_statistic import StatisticDbViewer
 from storage.MongoMgr import MongoMgr
-from test.common_helper import clean_test_database, get_config_for_testing, get_database_names
+from test.common_helper import clean_test_database, create_test_file_object, get_config_for_testing, get_database_names
 
 
-class TestStatistic(unittest.TestCase):
+class TestStatisticBase(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -28,6 +29,9 @@ class TestStatistic(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         cls.mongo_server.shutdown()
+
+
+class TestStatistic(TestStatisticBase):
 
     def test_update_and_get_statistic(self):
         self.updater.db.update_statistic('test', {'test1': 1})
@@ -185,3 +189,38 @@ class TestStatistic(unittest.TestCase):
 
     def test_known_vulnerabilities_works(self):
         self.assertEqual(self.updater.get_known_vulnerabilities_stats(), {'known_vulnerabilities': []})
+
+
+class TestStatisticWithDb(TestStatisticBase):
+    def setUp(self):
+        super().setUp()
+        self.db_backend_interface = BackEndDbInterface(config=self.config)
+
+    def tearDown(self):
+        self.db_backend_interface.client.drop_database(self.config.get('data_storage', 'main_database'))
+        self.db_backend_interface.shutdown()
+        super().tearDown()
+
+    def test_get_executable_stats(self):
+        for i, file_str in enumerate([
+            'ELF 64-bit LSB executable, x86-64, dynamically linked, for GNU/Linux 2.6.32, not stripped',
+            'ELF 32-bit MSB executable, MIPS, MIPS32 rel2 version 1 (SYSV), statically linked, not stripped',
+            'ELF 64-bit LSB executable, x86-64, (SYSV), corrupted section header size',
+            'ELF 64-bit LSB executable, aarch64, dynamically linked, stripped',
+            'ELF 64-bit LSB shared object, x86-64, version 1 (SYSV), dynamically linked, stripped'
+        ]):
+            fo = create_test_file_object()
+            fo.processed_analysis['file_type'] = {'full': file_str}
+            fo.uid = str(i)
+            self.db_backend_interface.add_file_object(fo)
+
+        stats = self.updater.get_executable_stats().get('executable_stats')
+        expected = [
+            ('big endian', 1, 0.25), ('little endian', 3, 0.75), ('stripped', 1, 0.25), ('not stripped', 2, 0.5),
+            ('32-bit', 1, 0.25), ('64-bit', 3, 0.75), ('dynamically linked', 2, 0.5), ('statically linked', 1, 0.25),
+            ('section info missing', 1, 0.25)
+        ]
+        for (expected_label, expected_count, expected_percentage), (label, count, percentage, _) in zip(expected, stats):
+            assert label == expected_label
+            assert count == expected_count
+            assert percentage == expected_percentage

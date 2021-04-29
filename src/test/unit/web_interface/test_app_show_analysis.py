@@ -1,4 +1,4 @@
-from helperFunctions.dataConversion import make_bytes
+from helperFunctions.data_conversion import make_bytes
 from test.common_helper import TEST_FW, TEST_FW_2, TEST_TEXT_FILE
 from test.unit.web_interface.base import WebInterfaceTest
 
@@ -40,3 +40,11 @@ class TestAppShowAnalysis(WebInterfaceTest):
         assert post_new.status_code == 302
         assert self.mocked_interface.tasks
         assert self.mocked_interface.tasks[0].scheduled_analysis == ['plugin_a', 'plugin_b']
+
+    def test_app_dependency_graph(self):
+        result = self.test_client.get('/dependency-graph/{}'.format('testgraph'))
+        assert b'<strong>UID:</strong> testgraph' in result.data
+        assert b'Error: Graph could not be rendered. The file chosen as root must contain a filesystem with binaries.' not in result.data
+        assert b'Warning: Elf analysis plugin result is missing for 1 files' in result.data
+        result_error = self.test_client.get('/dependency-graph/{}'.format('1234567'))
+        assert b'Error: Graph could not be rendered. The file chosen as root must contain a filesystem with binaries.' in result_error.data
