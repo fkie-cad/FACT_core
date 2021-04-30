@@ -7,13 +7,14 @@ if [ "${CODENAME}" = "ulyana" ]; then
     CODENAME=focal
 elif [ "${CODENAME}" = "tara" ] || [ "${CODENAME}" = "tessa" ] || [ "${CODENAME}" = "tina" ]; then
     CODENAME=bionic
-elif [ "${CODENAME}" = "sarah" ] || [ "${CODENAME}" = "serena" ] || [ "${CODENAME}" = "sonya" ] || [ "${CODENAME}" = "sylvia" ]; then
-    CODENAME=xenial
 elif [ "${CODENAME}" = "rebecca" ] || [ "${CODENAME}" = "rafaela" ] || [ "${CODENAME}" = "rosa" ]; then
     CODENAME=trusty
     sudo apt-get -y install "linux-image-extra-$(uname -r)" linux-image-extra-virtual
 elif  [ "${CODENAME}" = "kali-rolling" ]; then
     CODENAME=buster
+elif [ -z "${CODENAME}" ]; then
+	echo "Could not get Ubuntu codename. Please make sure that lsb-release is installed."
+	exit 1
 fi
 
 echo "Install Pre-Install Requirements"
@@ -66,10 +67,10 @@ then
 fi
 sudo usermod -aG docker "$FACTUSER"
 
-if [ "$(pip3 freeze | grep enum34)" ]
+if pip3 freeze 2>/dev/null | grep -q enum34
 then
-        echo "Please uninstall the enum34 pypi package before continuing as it is not compatible with python >3.6 anymore"
-        exit 1
+  echo "Please uninstall the enum34 pypi package before continuing as it is not compatible with python >3.6 anymore"
+  exit 1
 fi
 
 sudo -EH pip3 install --upgrade pip

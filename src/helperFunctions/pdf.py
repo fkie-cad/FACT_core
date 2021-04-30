@@ -1,6 +1,5 @@
 import json
 import logging
-from os import getgid, getuid, makedirs
 from pathlib import Path
 
 from common_helper_encoder import ReportEncoder
@@ -28,14 +27,13 @@ def build_pdf_report(firmware: Firmware, folder: Path) -> Path:
     _initialize_subfolder(folder, firmware)
 
     output, return_code = execute_shell_command_get_return_code(
-        'docker run -m 512m -v {}:/tmp/interface --rm fkiecad/fact_pdf_report'.format(folder)
+        f'docker run -m 512m -v {folder}:/tmp/interface --rm fkiecad/fact_pdf_report'
     )
 
     if return_code != 0:
         logging.error('Failed to execute pdf generator with code {}:\n{}'.format(return_code, output))
         raise RuntimeError('Could not create PDF report')
 
-    _claim_folder_contents(folder)
     pdf_path = _find_pdf(folder)
 
     return pdf_path
@@ -43,23 +41,19 @@ def build_pdf_report(firmware: Firmware, folder: Path) -> Path:
 
 def _initialize_subfolder(folder: Path, firmware: Firmware) -> None:
     for subpath in ['data', 'pdf']:
-        makedirs(str(Path(folder, subpath)), exist_ok=True)
+        (folder / subpath).mkdir(parents=True, exist_ok=True)
 
-    Path(folder, 'data', 'meta.json').write_text(
+    (folder / 'data' / 'meta.json').write_text(
         json.dumps(create_meta_dict(firmware), cls=ReportEncoder)
     )
-    Path(folder, 'data', 'analysis.json').write_text(
+    (folder / 'data' / 'analysis.json').write_text(
         json.dumps(firmware.processed_analysis, cls=ReportEncoder)
     )
 
 
-def _claim_folder_contents(folder: Path) -> None:
-    execute_shell_command_get_return_code('sudo chown -R {}:{} {}'.format(getuid(), getgid(), folder))
-
-
 def _find_pdf(folder: Path) -> Path:
     pdf_path = None
-    for file_path in Path(folder, 'pdf').rglob('*.pdf'):
+    for file_path in (folder / 'pdf').rglob('*.pdf'):
         if pdf_path:
             logging.warning('Indistinct pdf name. Found: {}'.format(file_path.name))
         pdf_path = file_path

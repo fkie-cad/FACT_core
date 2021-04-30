@@ -57,7 +57,7 @@ class AjaxRoutes(ComponentBase):
                 for child_uid in sc.get_specific_fields_of_db_entry(uid, {'files_included': 1})['files_included']
                 if whitelist is None or child_uid in whitelist
             ]
-            for node in sc.generate_file_tree_nodes_for_uid_list(child_uids, root_uid, whitelist):
+            for node in sc.generate_file_tree_nodes_for_uid_list(child_uids, root_uid, uid, whitelist):
                 root.add_child_node(node)
         return root
 
@@ -135,7 +135,7 @@ class AjaxRoutes(ComponentBase):
                 'backend_cpu_percentage': '{}%'.format(backend_data['system']['cpu_percentage']),
                 'number_of_running_analyses': len(backend_data['analysis']['current_analyses'])
             }
-        except KeyError:
+        except (KeyError, TypeError):
             return {'backend_cpu_percentage': 'n/a', 'number_of_running_analyses': 'n/a'}
 
     @staticmethod

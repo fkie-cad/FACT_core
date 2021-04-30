@@ -26,7 +26,7 @@ def get_color_list(number: int, limit: int = 10) -> List[str]:
     :return: A list of hex color values.
     '''
     color_map = cm.get_cmap('rainbow')
-    color_list = [colors.rgb2hex(color_map(i)) for i in range(32, 256, 22)]
+    color_list = [colors.rgb2hex(color_map(i)) for i in range(32, 256, (256 - 32)//limit)]
     return color_list[:min(number, limit)]
 
 
@@ -39,7 +39,7 @@ def get_alternating_color_list(number: int, limit: int = 10) -> List[str]:
     :param limit: The maximum number of returned colors.
     :return: A list of alternating hex color values.
     '''
-    color_list = get_color_list(8)
+    color_list = get_color_list(8, limit=10)
     alternating_color_list = [color_list[0], color_list[7]] * (limit // 2 + 1)
     return alternating_color_list[:min(number, limit)]
 

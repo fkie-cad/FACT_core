@@ -1,3 +1,5 @@
+# pylint: disable=attribute-defined-outside-init
+
 from storage.db_interface_backend import BackEndDbInterface
 from test.common_helper import create_test_file_object
 from test.integration.web_interface.rest.base import RestTestBase
@@ -5,13 +7,13 @@ from test.integration.web_interface.rest.base import RestTestBase
 
 class TestRestFileObject(RestTestBase):
 
-    def setUp(self):
-        super().setUp()
+    def setup(self):
+        super().setup()
         self.db_backend = BackEndDbInterface(config=self.config)
 
-    def tearDown(self):
+    def teardown(self):
         self.db_backend.shutdown()
-        super().tearDown()
+        super().teardown()
 
     def test_rest_download_valid(self):
         test_file_object = create_test_file_object()

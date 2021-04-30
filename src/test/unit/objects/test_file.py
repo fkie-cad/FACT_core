@@ -73,3 +73,8 @@ class TestObjectsFile:  # pylint: disable=no-self-use
         assert fo.get_virtual_paths_for_one_uid(root_uid='non_existing') == [fo.uid]
         fo.virtual_file_path = {'other_root': ['some_vfp']}
         assert fo.get_virtual_paths_for_one_uid(root_uid='non_existing') == ['some_vfp']
+
+    def test_get_virtual_paths_for_all_uids(self):
+        fo = FileObject(binary=b'foo')
+        fo.virtual_file_path = {'root_uid_1': ['vfp1', 'vfp2'], 'root_uid_2': ['vfp3']}
+        assert sorted(fo.get_virtual_paths_for_all_uids()) == ['vfp1', 'vfp2', 'vfp3']

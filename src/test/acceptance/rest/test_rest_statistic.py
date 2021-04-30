@@ -1,3 +1,5 @@
+# pylint: disable=wrong-import-order
+
 from time import sleep
 
 from statistic.work_load import WorkLoadStatistic
@@ -9,7 +11,7 @@ class TestRestStatistic(TestAcceptanceBase):
     def setUp(self):
         super().setUp()
         self._start_backend()
-        self.workload = WorkLoadStatistic(config=self.config)
+        self.workload = WorkLoadStatistic(config=self.config, component='backend')
         sleep(1)  # wait for systems to start
 
     def tearDown(self):

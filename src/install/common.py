@@ -1,5 +1,4 @@
 import logging
-import os
 from contextlib import suppress
 from pathlib import Path
 
@@ -9,6 +8,8 @@ from helperFunctions.install import (
     InstallationError, OperateInDirectory, apt_install_packages, apt_remove_packages, apt_update_sources,
     dnf_install_packages, dnf_remove_packages, dnf_update_sources, install_github_project, pip3_install_packages
 )
+
+BIN_DIR = Path(__file__).parent.parent / 'bin'
 
 
 def install_pip(python_command):
@@ -21,13 +22,7 @@ def install_pip(python_command):
 
 def main(distribution):  # pylint: disable=too-many-statements
 
-    if distribution == 'fedora':
-        logging.info('Updating system')
-        dnf_update_sources()
-    else:
-        apt_install_packages('apt-transport-https')
-        logging.info('Updating system')
-        apt_update_sources()
+    _update_package_sources(distribution)
 
     _, is_repository = execute_shell_command_get_return_code('git status')
     if is_repository == 0:
@@ -39,63 +34,42 @@ def main(distribution):  # pylint: disable=too-many-statements
         logging.warning('FACT is not set up using git. Note that *adding submodules* won\'t work!!')
 
     # make bin dir
-    with suppress(FileExistsError):
-        os.mkdir('../bin')
+    BIN_DIR.mkdir(exist_ok=True)
 
+    # install python3 and general build stuff
     if distribution == 'fedora':
-        dnf_install_packages('python3')
-        dnf_install_packages('python3-devel')
+        dnf_install_packages('python3', 'python3-devel', 'automake', 'autoconf', 'libtool', 'git', 'unzip')
         # build-essential not available on fedora, getting equivalent
-        dnf_install_packages('gcc')
-        dnf_install_packages('gcc-c++')
-        dnf_install_packages('make')
-        dnf_install_packages('automake')
-        dnf_install_packages('kernel-devel')
-        dnf_install_packages('autoconf')
-        dnf_install_packages('libtool')
-        dnf_install_packages('git')
-        dnf_install_packages('unzip')
+        dnf_install_packages('gcc', 'gcc-c++', 'make', 'kernel-devel')
     else:
-        # install python3 and general build stuff
         apt_install_packages('python3', 'python3-dev', 'build-essential', 'automake', 'autoconf', 'libtool', 'git', 'unzip')
-        if not distribution == 'xenial':
-            pip3_install_packages('testresources')
+        pip3_install_packages('testresources')
 
+    # get a bug free recent pip version
     if distribution == 'fedora':
         dnf_remove_packages('python3-pip', 'python3-setuptools', 'python3-wheel')
     else:
-        # get a bug free recent pip version
         apt_remove_packages('python3-pip', 'python3-setuptools', 'python3-wheel')
 
     install_pip('python3')
-    pip3_install_packages('setuptools==49.6.0')
+    pip3_install_packages('setuptools')
 
-    if distribution == 'fedora':
-        pass
-    else:
-        # install python2
-        apt_install_packages('python', 'python-dev')
-        with suppress(InstallationError):
-            apt_remove_packages('python-pip')
-        install_pip('python2')
-
+    # install general python dependencies
     if distribution == 'fedora':
         dnf_install_packages('file-devel')
         dnf_install_packages('libffi-devel')
         dnf_install_packages('python3-tlsh')
         dnf_install_packages('python3-ssdeep')
     else:
-        # install general python dependencies
         apt_install_packages('libmagic-dev')
         apt_install_packages('libfuzzy-dev')
         apt_install_packages('python3-tlsh')
         pip3_install_packages('ssdeep')
 
     pip3_install_packages('git+https://github.com/fkie-cad/fact_helper_file.git')
-    pip3_install_packages('psutil')
-    pip3_install_packages('pytest==6.1.2', 'pytest-cov', 'pylint', 'python-magic', 'xmltodict', 'yara-python==3.7.0', 'appdirs')
+    pip3_install_packages('psutil', 'pytest', 'pytest-cov', 'pylint', 'python-magic', 'xmltodict', 'yara-python==3.7.0', 'appdirs', 'flaky')
 
-    pip3_install_packages('lief')
+    pip3_install_packages('lief==0.10.1')  # FIXME: unpin version when install bug is fixed
 
     pip3_install_packages('requests')
 
@@ -103,7 +77,7 @@ def main(distribution):  # pylint: disable=too-many-statements
     pip3_install_packages('pymongo', 'pyyaml')
 
     # VarietyJS (is executed by update_statistic.py)
-    if Path('../bin/spec').exists():
+    if (BIN_DIR / 'spec').exists():
         logging.warning('variety spec not overwritten')
     else:
         install_github_project('variety/variety', ['git checkout 2f4d815', 'mv -f variety.js ../../bin', 'mv -f spec ../../bin'])
@@ -122,3 +96,12 @@ def main(distribution):  # pylint: disable=too-many-statements
         Path('start_all_installed_fact_components').symlink_to('src/start_fact.py')
 
     return 0
+
+
+def _update_package_sources(distribution):
+    logging.info('Updating system')
+    if distribution == 'fedora':
+        dnf_update_sources()
+    else:
+        apt_install_packages('apt-transport-https')
+        apt_update_sources()

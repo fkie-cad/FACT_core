@@ -62,9 +62,9 @@ class DatabaseInterface:
         self.connection = None
         try:
             self.connection = connect(db_path)
-        except SqliteException as exception:
-            logging.warning('Could not connect to CPE database: {} {}'.format(type(exception).__name__, exception))
-            raise exception
+        except SqliteException:
+            logging.error('Could not connect to CPE database.')
+            raise
 
     def execute_query(self, query: str):
         with self.get_cursor() as cursor:
@@ -87,7 +87,10 @@ class DatabaseInterface:
 
     def insert_rows(self, query: str, input_data: list):
         with self.get_cursor() as cursor:
-            cursor.executemany(query, input_data)
+            wrong_entries = {e for e in input_data if len(e) != query.count('?')}
+            if wrong_entries:
+                logging.warning(f'Ignoring possibly wrong entries: {[e[2] for e in wrong_entries]}')
+            cursor.executemany(query, list(set(input_data) - wrong_entries))
             self.connection.commit()
 
     @contextmanager
@@ -97,7 +100,7 @@ class DatabaseInterface:
             cursor = self.connection.cursor()
             yield cursor
         except SqliteException as error:
-            logging.error('[cve_lookup]: encountered error while accessing DB: {} {}'.format(type(error).__name__, error))
+            logging.error(f'[cve_lookup]: Encountered error while accessing DB: {error}', exc_info=True)
         finally:
             with suppress(AttributeError, SqliteException):
                 cursor.close()
