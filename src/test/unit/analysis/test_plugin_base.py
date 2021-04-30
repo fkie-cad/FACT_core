@@ -1,14 +1,17 @@
-# pylint: disable=protected-access
+# pylint: disable=protected-access,redefined-outer-name,unused-argument
+
 import gc
-import os
 import unittest
 from configparser import ConfigParser
+from pathlib import Path
 from time import sleep
 
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.fileSystem import get_src_dir
 from objects.file import FileObject
 from plugins.analysis.dummy.code.dummy import AnalysisPlugin as DummyPlugin
+
+PLUGIN_PATH = Path(get_src_dir()) / 'plugins' / 'analysis'
 
 
 class TestPluginBase(unittest.TestCase):
@@ -44,7 +47,7 @@ class TestPluginBaseCore(TestPluginBase):
     def test_start_stop_workers():
         sleep(2)
 
-    def test_object_processing_no_childs(self):
+    def test_object_processing_no_children(self):
         root_object = FileObject(binary=b'root_file')
         self.base_plugin.in_queue.put(root_object)
         processed_object = self.base_plugin.out_queue.get()
@@ -66,7 +69,7 @@ class TestPluginBaseCore(TestPluginBase):
 class TestPluginBaseAddJob(TestPluginBase):
 
     def test_analysis_depth_not_reached_yet(self):
-        fo = FileObject(binary='test', scheduled_analysis=[])
+        fo = FileObject(binary=b'test', scheduled_analysis=[])
 
         fo.depth = 1
         self.base_plugin.recursive = False
@@ -85,7 +88,7 @@ class TestPluginBaseAddJob(TestPluginBase):
         self.assertTrue(self.base_plugin._analysis_depth_not_reached_yet(fo))
 
     def test__add_job__recursive_is_set(self):
-        fo = FileObject(binary='test', scheduled_analysis=[])
+        fo = FileObject(binary=b'test', scheduled_analysis=[])
         fo.depth = 1
         self.base_plugin.recursive = False
         self.base_plugin.add_job(fo)
@@ -101,14 +104,13 @@ class TestPluginBaseOffline(TestPluginBase):
         self.base_plugin = AnalysisBasePlugin(self, config=self.set_up_base_config(), offline_testing=True)
 
     def test_get_view_file_path(self):
-        plugin_path = os.path.join(get_src_dir(), 'plugins/analysis/file_type/')
-        code_path = os.path.join(plugin_path, 'code/file_type.py')
-        estimated_view_path = os.path.join(plugin_path, 'view/file_type.html')
+        code_path = PLUGIN_PATH / 'file_type' / 'code' / 'file_type.py'
+        expected_view_path = PLUGIN_PATH / 'file_type' / 'view' / 'file_type.html'
 
-        assert self.base_plugin._get_view_file_path(code_path) == estimated_view_path
+        assert self.base_plugin._get_view_file_path(str(code_path)) == expected_view_path
 
-        plugin_path_without_view = os.path.join(get_src_dir(), 'plugins/analysis/dummy/code/dummy.py')
-        assert self.base_plugin._get_view_file_path(plugin_path_without_view) is None
+        without_view = PLUGIN_PATH / 'dummy' / 'code' / 'dummy.py'
+        assert self.base_plugin._get_view_file_path(str(without_view)) is None
 
 
 class TestPluginNotRunning(TestPluginBase):
@@ -151,7 +153,7 @@ class TestPluginTimeout(TestPluginBase):
 
     def test_timeout(self):
         self.p_base = DummyPlugin(self, self.config, timeout=0)
-        fo_in = FileObject(binary='test', scheduled_analysis=[])
+        fo_in = FileObject(binary=b'test', scheduled_analysis=[])
         self.p_base.add_job(fo_in)
         fo_out = self.p_base.out_queue.get(timeout=5)
         self.p_base.shutdown()
