@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>helperFunctions.uid module &mdash; FACT  documentation</title>
+  <title>helperFunctions.fileSystem module &mdash; FACT  documentation</title>
   
 
   
@@ -39,8 +39,8 @@
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="helperFunctions.uid web_interface" href="helperFunctions.web_interface.html" />
-    <link rel="prev" title="helperFunctions.tag module" href="helperFunctions.tag.html" /> 
+    <link rel="next" title="helperFunctions.install module" href="helperFunctions.install.html" />
+    <link rel="prev" title="helperFunctions.docker module" href="helperFunctions.docker.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -104,7 +104,7 @@
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.compare_sets.html">helperFunctions.compare_sets module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.database.html">helperFunctions.database module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.docker.html">helperFunctions.docker module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="helperFunctions.fileSystem.html">helperFunctions.fileSystem module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">helperFunctions.fileSystem module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.install.html">helperFunctions.install module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.logging.html">helperFunctions.logging module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.mongo_config_parser.html">helperFunctions.mongo_config_parser module</a></li>
@@ -113,7 +113,7 @@
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.pdf.html">helperFunctions.pdf module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.process.html">helperFunctions.process module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.tag.html">helperFunctions.tag module</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">helperFunctions.uid module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.uid.html">helperFunctions.uid module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.web_interface.html">helperFunctions.uid web_interface</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.yara_binary_search.html">helperFunctions.yara_binary_search module</a></li>
 </ul>
@@ -170,13 +170,13 @@
         
           <li><a href="helperFunctions.html">helperFunctions</a> &raquo;</li>
         
-      <li>helperFunctions.uid module</li>
+      <li>helperFunctions.fileSystem module</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
           
-            <a href="../_sources/modules/helperFunctions.uid.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/modules/helperFunctions.fileSystem.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -189,18 +189,40 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="module-helperFunctions.uid">
-<span id="helperfunctions-uid-module"></span><h1>helperFunctions.uid module<a class="headerlink" href="#module-helperFunctions.uid" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-helperFunctions.fileSystem">
+<span id="helperfunctions-filesystem-module"></span><h1>helperFunctions.fileSystem module<a class="headerlink" href="#module-helperFunctions.fileSystem" title="Permalink to this headline">¶</a></h1>
 <dl class="py function">
-<dt id="helperFunctions.uid.create_uid">
-<code class="sig-prename descclassname"><span class="pre">helperFunctions.uid.</span></code><code class="sig-name descname"><span class="pre">create_uid</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.uid.create_uid" title="Permalink to this definition">¶</a></dt>
-<dd><p>generate a UID (unique identifier) SHA256_SIZE for a byte string containing data (e.g. a binary)</p>
+<dt id="helperFunctions.fileSystem.file_is_empty">
+<code class="sig-prename descclassname"><span class="pre">helperFunctions.fileSystem.</span></code><code class="sig-name descname"><span class="pre">file_is_empty</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.fileSystem.file_is_empty" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if a file is empty (i.e. has a size of 0 bytes).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>input_data</strong> (<em>bytes</em>) – the data to generate the UID for</p>
+<dd class="field-odd"><p><strong>file_path</strong> (<em>pathlib.Path</em>) – The file to check.</p>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>a string containing the UID</p>
+<dd class="field-even"><p>True if the file is empty and False otherwise.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="helperFunctions.fileSystem.get_relative_object_path">
+<code class="sig-prename descclassname"><span class="pre">helperFunctions.fileSystem.</span></code><code class="sig-name descname"><span class="pre">get_relative_object_path</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.fileSystem.get_relative_object_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>FACT extraction unpacks files into a temporary directory. These files have to be offset to get the path relative
+to the firmware filesystem root. Additionally, some filesystem extractors create an intermediate directory
+‘fact_extracted’ that has to be removed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<em>pathlib.Path</em>) – The absolute path of the file related to the firmware or file object.</p></li>
+<li><p><strong>offset_path</strong> (<em>pathlib.Path</em>) – The path of the unpacking directory (that needs to be removed from the file’s path).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The relative path.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>str</p>
@@ -209,35 +231,29 @@
 </dd></dl>
 
 <dl class="py function">
-<dt id="helperFunctions.uid.is_list_of_uids">
-<code class="sig-prename descclassname"><span class="pre">helperFunctions.uid.</span></code><code class="sig-name descname"><span class="pre">is_list_of_uids</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_list</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.uid.is_list_of_uids" title="Permalink to this definition">¶</a></dt>
-<dd><p>Checks if all elements of a list are valid UIDs</p>
+<dt id="helperFunctions.fileSystem.get_src_dir">
+<code class="sig-prename descclassname"><span class="pre">helperFunctions.fileSystem.</span></code><code class="sig-name descname"><span class="pre">get_src_dir</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.fileSystem.get_src_dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves the absolute path of the src directory.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>input_list</strong> (<em>Union</em><em>[</em><em>List</em><em>, </em><em>Set</em><em>]</em>) – the list to check</p>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The (absolute) path of the src directory.</p>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>true if input list contains only valid UIDs and false otherwise</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>bool</p>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
-<dt id="helperFunctions.uid.is_uid">
-<code class="sig-prename descclassname"><span class="pre">helperFunctions.uid.</span></code><code class="sig-name descname"><span class="pre">is_uid</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_string</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.uid.is_uid" title="Permalink to this definition">¶</a></dt>
-<dd><p>Check if a string is a valid UID</p>
+<dt id="helperFunctions.fileSystem.get_template_dir">
+<code class="sig-prename descclassname"><span class="pre">helperFunctions.fileSystem.</span></code><code class="sig-name descname"><span class="pre">get_template_dir</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.fileSystem.get_template_dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves the absolute path of the template directory.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>input_string</strong> (<em>AnyStr</em>) – the string to check</p>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The (absolute) path of the template directory.</p>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>true if input string is a valid uid and false otherwise</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>bool</p>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>pathlib.Path</p>
 </dd>
 </dl>
 </dd></dl>
@@ -250,8 +266,8 @@
           </div>
           <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="helperFunctions.web_interface.html" class="btn btn-neutral float-right" title="helperFunctions.uid web_interface" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
-        <a href="helperFunctions.tag.html" class="btn btn-neutral float-left" title="helperFunctions.tag module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="helperFunctions.install.html" class="btn btn-neutral float-right" title="helperFunctions.install module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="helperFunctions.docker.html" class="btn btn-neutral float-left" title="helperFunctions.docker module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>
