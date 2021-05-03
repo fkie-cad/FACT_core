@@ -1,7 +1,7 @@
 import re
 
 from analysis.PluginBase import AnalysisBasePlugin
-from helperFunctions.dataConversion import make_unicode_string
+from helperFunctions.data_conversion import make_unicode_string
 from helperFunctions.virtual_file_path import get_top_of_virtual_path
 
 FILE_IGNORES = ['README', 'README.md', 'README.txt', 'INSTALL', 'VERSION']

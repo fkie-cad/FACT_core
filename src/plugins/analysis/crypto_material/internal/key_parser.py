@@ -3,7 +3,7 @@ from struct import unpack
 
 import OpenSSL
 
-from helperFunctions.dataConversion import make_unicode_string
+from helperFunctions.data_conversion import make_unicode_string
 
 TLV_KNOWN_STARTS = [0x30]
 

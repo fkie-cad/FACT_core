@@ -1,4 +1,4 @@
-from helperFunctions.dataConversion import make_bytes
+from helperFunctions.data_conversion import make_bytes
 from test.common_helper import TEST_FW, TEST_FW_2, TEST_TEXT_FILE
 from test.unit.web_interface.base import WebInterfaceTest
 

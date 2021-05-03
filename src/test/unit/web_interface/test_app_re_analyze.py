@@ -1,4 +1,4 @@
-from helperFunctions.dataConversion import make_bytes
+from helperFunctions.data_conversion import make_bytes
 from test.common_helper import TEST_FW
 from test.unit.web_interface.base import WebInterfaceTest
 from web_interface.components.analysis_routes import AnalysisRoutes

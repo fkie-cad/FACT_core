@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Union
 
 from helperFunctions.config import load_config
-from helperFunctions.dataConversion import get_value_of_first_key, normalize_compare_id
+from helperFunctions.data_conversion import get_value_of_first_key, normalize_compare_id
 from helperFunctions.fileSystem import get_src_dir
 from intercom.common_mongo_binding import InterComMongoInterface
 from objects.file import FileObject
