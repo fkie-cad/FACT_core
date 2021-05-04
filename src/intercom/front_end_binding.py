@@ -11,7 +11,7 @@ class InterComFrontEndBinding(InterComMongoInterface):
     '''
 
     def add_analysis_task(self, fw):
-        self.connections['analysis_task']['fs'].put(pickle.dumps(fw), filename=fw.uid)
+        self.connections['analysis_task']['fs'].put(pickle.dumps(fw, protocol=4), filename=fw.uid)
 
     def add_re_analyze_task(self, fw, unpack=True):
         if unpack:
