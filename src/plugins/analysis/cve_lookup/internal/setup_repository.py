@@ -287,8 +287,8 @@ def main():
             init_repository(extraction_path, args.target, years=years)
     except CveLookupException as exception:
         logging.error(exception.message)
-        if not args.update:
-            Path(DB_PATH).unlink(missing_ok=True)  # remove broken partial DB so that next install won't fail
+        if not args.update and Path(DB_PATH).is_file():
+            Path(DB_PATH).unlink()  # remove broken partial DB so that next install won't fail
         sys.exit(1)
     finally:
         rmtree(extraction_path, ignore_errors=True)
