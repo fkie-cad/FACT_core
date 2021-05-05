@@ -33,7 +33,6 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 self.add_kernel_config_to_analysis(file_object, maybe_config)
                 return
 
-
     def add_kernel_config_to_analysis(self, file_object, config_bytes):
         file_object.processed_analysis[self.NAME]['is_kernel_config'] = True
         file_object.processed_analysis[self.NAME]['kernel_config'] = config_bytes.decode('utf-8')
