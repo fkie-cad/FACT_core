@@ -110,7 +110,7 @@ class MongoInterfaceCommon(MongoInterface):  # pylint: disable=too-many-instance
         firmware.files_included = set(entry['files_included'])
         firmware.virtual_file_path = entry['virtual_file_path']
         firmware.tags = entry['tags'] if 'tags' in entry else dict()
-        firmware.analysis_tags = entry['analysis_tags'] if 'analysis_tags' in entry else dict()
+        firmware.analysis_tags = self._collect_analysis_tags_from_children(firmware.uid)
 
         try:  # for backwards compatibility
             firmware.set_part_name(entry['device_part'])
@@ -310,3 +310,33 @@ class MongoInterfaceCommon(MongoInterface):  # pylint: disable=too-many-instance
 
     def drop_unpacking_locks(self):
         self.main.drop_collection('locks')
+
+    def _collect_analysis_tags_from_children(self, uid):
+        PLUGINS_WITH_TAG_PROPAGATION = [
+            'crypto_material', 'cve_lookup', 'known_vulnerabilities', 'qemu_exec', 'software_components',
+            'users_and_passwords'
+        ]
+        uids = set()
+        for plugin in PLUGINS_WITH_TAG_PROPAGATION:
+            uids.update(
+                set(
+                    get_list_of_all_values(
+                        self.file_objects,
+                        '$_id',
+                        match={
+                            'virtual_file_path.{}'.format(uid): {'$exists': 'true'},
+                            f'processed_analysis.{plugin}.tags': {'$exists': 'true'}
+                        }
+                    )
+                )
+            )
+        children = self.get_objects_by_uid_list(uids, analysis_filter=PLUGINS_WITH_TAG_PROPAGATION)
+        tags = []
+        for child in children:
+            for analysis in child.processed_analysis:
+                for tag in child.processed_analysis[analysis]['tags']:
+                    for key in tag:
+                        if key != 'root_uid':
+                            if tag[key]['propagate']:
+                                tags.append(tag)
+        return tags

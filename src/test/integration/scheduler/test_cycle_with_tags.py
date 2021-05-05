@@ -4,9 +4,11 @@ from multiprocessing import Event
 from tempfile import TemporaryDirectory
 from time import sleep
 
+import pytest
+
 from objects.firmware import Firmware
 from scheduler.Analysis import AnalysisScheduler
-from scheduler.analysis_tag import TaggingDaemon
+# from scheduler.analysis_tag import TaggingDaemon FIXME Remove this legacy code
 from scheduler.Unpacking import UnpackingScheduler
 from storage.db_interface_backend import BackEndDbInterface
 from storage.MongoMgr import MongoMgr
@@ -26,7 +28,7 @@ class TestTagPropagation(unittest.TestCase):
         self.backend_interface = BackEndDbInterface(config=self._config)
 
         self._analysis_scheduler = AnalysisScheduler(config=self._config, pre_analysis=self.backend_interface.add_object, post_analysis=self.count_analysis_finished_event)
-        self._tagging_scheduler = TaggingDaemon(analysis_scheduler=self._analysis_scheduler)
+        # self._tagging_scheduler = TaggingDaemon(analysis_scheduler=self._analysis_scheduler)
         self._unpack_scheduler = UnpackingScheduler(config=self._config, post_unpack=self._analysis_scheduler.start_analysis_of_object)
 
     def count_analysis_finished_event(self, fw_object):
@@ -50,6 +52,7 @@ class TestTagPropagation(unittest.TestCase):
         self._tmp_dir.cleanup()
         gc.collect()
 
+    @pytest.skip(reason='Tag scheduler feature was removed')
     def test_run_analysis_with_tag(self):
         test_fw = Firmware(file_path='{}/container/with_key.7z'.format(get_test_data_dir()))
         test_fw.release_date = '2017-01-01'
