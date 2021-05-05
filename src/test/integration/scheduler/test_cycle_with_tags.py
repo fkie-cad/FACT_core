@@ -52,7 +52,7 @@ class TestTagPropagation(unittest.TestCase):
         self._tmp_dir.cleanup()
         gc.collect()
 
-    @pytest.skip(reason='Tag scheduler feature was removed')
+    @pytest.mark.skip('Tag scheduler feature was removed')
     def test_run_analysis_with_tag(self):
         test_fw = Firmware(file_path='{}/container/with_key.7z'.format(get_test_data_dir()))
         test_fw.release_date = '2017-01-01'
