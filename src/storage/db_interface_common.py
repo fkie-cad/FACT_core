@@ -3,7 +3,7 @@ import logging
 import pickle
 import random
 from hashlib import md5
-from typing import List, Set
+from typing import Dict, List, Set
 
 import gridfs
 from common_helper_files import get_safe_name
@@ -313,12 +313,22 @@ class MongoInterfaceCommon(MongoInterface):  # pylint: disable=too-many-instance
         self.main.drop_collection('locks')
 
     def _collect_analysis_tags_from_children(self, uid):
-        PLUGINS_WITH_TAG_PROPAGATION = [
+        children = self._fetch_children_with_tags(uid)
+        unique_tags = {}
+        for child in children:
+            for name, analysis in [(n, a) for n, a in child.processed_analysis.items() if 'tags' in a]:
+                for tag_type, tag in analysis['tags'].items():
+                    if tag_type != 'root_uid' and tag['propagate']:
+                        append_unique_tag(unique_tags, tag, name, tag_type)
+        return unique_tags
+
+    def _fetch_children_with_tags(self, uid):
+        plugins_with_tag_propagation = [  # FIXME This should be inferred in a sensible way. This is not possible yet.
             'crypto_material', 'cve_lookup', 'known_vulnerabilities', 'qemu_exec', 'software_components',
             'users_and_passwords'
         ]
         uids = set()
-        for plugin in PLUGINS_WITH_TAG_PROPAGATION:
+        for plugin in plugins_with_tag_propagation:
             uids.update(
                 set(
                     get_list_of_all_values(
@@ -331,22 +341,14 @@ class MongoInterfaceCommon(MongoInterface):  # pylint: disable=too-many-instance
                     )
                 )
             )
-        children = self.get_objects_by_uid_list(uids, analysis_filter=PLUGINS_WITH_TAG_PROPAGATION)
-        tags = {}
-        for child in children:
-            for name, analysis in child.processed_analysis.items():
-                if 'tags' in analysis:
-                    for key, tag in analysis['tags'].items():
-                        if key != 'root_uid' and tag['propagate']:
-                            append_unique_tag(key, name, tag, tags)
-        return tags
+        return self.get_objects_by_uid_list(uids, analysis_filter=plugins_with_tag_propagation)
 
 
-def append_unique_tag(key, name, tag, tags):
-    if name in tags:
-        if key in tags[name] and tag != tags[name][key]:
-            tags[name][f'{key}-alt-{random.randint(0,1000)}'] = tag
+def append_unique_tag(unique_tags: Dict[dict], tag: dict, plugin_name: str, tag_type: str) -> None:
+    if plugin_name in unique_tags:
+        if tag_type in unique_tags[plugin_name] and tag not in unique_tags[plugin_name].values():
+            unique_tags[plugin_name][f'{tag_type}-alt-{random.randint(0, 1000)}'] = tag
         else:
-            tags[name][key] = tag
+            unique_tags[plugin_name][tag_type] = tag
     else:
-        tags[name] = {key: tag}
+        unique_tags[plugin_name] = {tag_type: tag}
