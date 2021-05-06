@@ -1,6 +1,7 @@
 import json
 import logging
 import pickle
+import random
 from hashlib import md5
 from typing import List, Set
 
@@ -337,8 +338,15 @@ class MongoInterfaceCommon(MongoInterface):  # pylint: disable=too-many-instance
                 if 'tags' in analysis:
                     for key, tag in analysis['tags'].items():
                         if key != 'root_uid' and tag['propagate']:
-                            if name in tags:
-                                tags[name][key] = tag
-                            else:
-                                tags[name] = {key: tag}
+                            append_unique_tag(key, name, tag, tags)
         return tags
+
+
+def append_unique_tag(key, name, tag, tags):
+    if name in tags:
+        if key in tags[name] and tag != tags[name][key]:
+            tags[name][f'{key}-alt-{random.randint(0,1000)}'] = tag
+        else:
+            tags[name][key] = tag
+    else:
+        tags[name] = {key: tag}
