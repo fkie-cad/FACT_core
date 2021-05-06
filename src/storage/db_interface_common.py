@@ -331,11 +331,14 @@ class MongoInterfaceCommon(MongoInterface):  # pylint: disable=too-many-instance
                 )
             )
         children = self.get_objects_by_uid_list(uids, analysis_filter=PLUGINS_WITH_TAG_PROPAGATION)
-        tags = []
+        tags = {}
         for child in children:
-            for analysis in child.processed_analysis.values():
+            for name, analysis in child.processed_analysis.items():
                 if 'tags' in analysis:
                     for key, tag in analysis['tags'].items():
                         if key != 'root_uid' and tag['propagate']:
-                            tags.append(tag)
+                            if name in tags:
+                                tags[name][key] = tag
+                            else:
+                                tags[name] = {key: tag}
         return tags
