@@ -132,7 +132,8 @@ class MongoInterfaceCommon(MongoInterface):  # pylint: disable=too-many-instance
         file_object.processed_analysis = self.retrieve_analysis(entry['processed_analysis'], analysis_filter=analysis_filter)
         file_object.files_included = set(entry['files_included'])
         file_object.parent_firmware_uids = set(entry['parent_firmware_uids'])
-        file_object.analysis_tags = entry['analysis_tags'] if 'analysis_tags' in entry else dict()
+        file_object.analysis_tags = {}
+        self._collect_analysis_tags(file_object, file_object.analysis_tags)
 
         for attribute in ['comments']:  # for backwards compatibility
             if attribute in entry:
@@ -232,8 +233,7 @@ class MongoInterfaceCommon(MongoInterface):  # pylint: disable=too-many-instance
         the set includes fo uid as well
         '''
         if fo is not None:
-            files = set()
-            files.add(fo.uid)
+            files = {fo.uid}
             included_files = self.get_objects_by_uid_list(fo.files_included, analysis_filter=[])
             for item in included_files:
                 files.update(self.get_set_of_all_included_files(item))
@@ -316,14 +316,17 @@ class MongoInterfaceCommon(MongoInterface):  # pylint: disable=too-many-instance
         children = self._fetch_children_with_tags(uid)
         unique_tags = {}
         for child in children:
-            for name, analysis in [(n, a) for n, a in child.processed_analysis.items() if 'tags' in a]:
-                if 'file_system_flag' in analysis and analysis['file_system_flag']:
-                    analysis = self.retrieve_analysis(child.processed_analysis, analysis_filter=[name,])[name]
-
-                for tag_type, tag in analysis['tags'].items():
-                    if tag_type != 'root_uid' and tag['propagate']:
-                        append_unique_tag(unique_tags, tag, name, tag_type)
+            self._collect_analysis_tags(child, unique_tags)
         return unique_tags
+
+    def _collect_analysis_tags(self, file_object, analysis_tags):
+        for name, analysis in [(n, a) for n, a in file_object.processed_analysis.items() if 'tags' in a]:
+            if 'file_system_flag' in analysis and analysis['file_system_flag']:
+                analysis = self.retrieve_analysis(file_object.processed_analysis, analysis_filter=[name, ])[name]
+
+            for tag_type, tag in analysis['tags'].items():
+                if tag_type != 'root_uid' and tag['propagate']:
+                    append_unique_tag(analysis_tags, tag, name, tag_type)
 
     def _fetch_children_with_tags(self, uid):
         plugins_with_tag_propagation = [  # FIXME This should be inferred in a sensible way. This is not possible yet.
