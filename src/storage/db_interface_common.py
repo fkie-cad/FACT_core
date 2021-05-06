@@ -344,7 +344,7 @@ class MongoInterfaceCommon(MongoInterface):  # pylint: disable=too-many-instance
         return self.get_objects_by_uid_list(uids, analysis_filter=plugins_with_tag_propagation)
 
 
-def append_unique_tag(unique_tags: Dict[dict], tag: dict, plugin_name: str, tag_type: str) -> None:
+def append_unique_tag(unique_tags: Dict[str, dict], tag: dict, plugin_name: str, tag_type: str) -> None:
     if plugin_name in unique_tags:
         if tag_type in unique_tags[plugin_name] and tag not in unique_tags[plugin_name].values():
             unique_tags[plugin_name][f'{tag_type}-alt-{random.randint(0, 1000)}'] = tag
