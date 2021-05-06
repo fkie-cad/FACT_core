@@ -1,14 +1,12 @@
+# pylint: disable=wrong-import-order,too-many-instance-attributes
 import gc
 import unittest
 from multiprocessing import Event
 from tempfile import TemporaryDirectory
 from time import sleep
 
-import pytest
-
 from objects.firmware import Firmware
 from scheduler.Analysis import AnalysisScheduler
-# from scheduler.analysis_tag import TaggingDaemon FIXME Remove this legacy code
 from scheduler.Unpacking import UnpackingScheduler
 from storage.db_interface_backend import BackEndDbInterface
 from storage.MongoMgr import MongoMgr
@@ -28,7 +26,6 @@ class TestTagPropagation(unittest.TestCase):
         self.backend_interface = BackEndDbInterface(config=self._config)
 
         self._analysis_scheduler = AnalysisScheduler(config=self._config, pre_analysis=self.backend_interface.add_object, post_analysis=self.count_analysis_finished_event)
-        # self._tagging_scheduler = TaggingDaemon(analysis_scheduler=self._analysis_scheduler)
         self._unpack_scheduler = UnpackingScheduler(config=self._config, post_unpack=self._analysis_scheduler.start_analysis_of_object)
 
     def count_analysis_finished_event(self, fw_object):
@@ -37,13 +34,8 @@ class TestTagPropagation(unittest.TestCase):
             sleep(1)
             self.analysis_finished_event.set()
 
-    def _wait_for_empty_tag_queue(self):
-        while not self._analysis_scheduler.tag_queue.empty():
-            sleep(0.1)
-
     def tearDown(self):
         self._unpack_scheduler.shutdown()
-        self._tagging_scheduler.shutdown()
         self._analysis_scheduler.shutdown()
 
         clean_test_database(self._config, get_database_names(self._config))
@@ -52,7 +44,6 @@ class TestTagPropagation(unittest.TestCase):
         self._tmp_dir.cleanup()
         gc.collect()
 
-    @pytest.mark.skip('Tag scheduler feature was removed')
     def test_run_analysis_with_tag(self):
         test_fw = Firmware(file_path='{}/container/with_key.7z'.format(get_test_data_dir()))
         test_fw.release_date = '2017-01-01'
@@ -64,8 +55,6 @@ class TestTagPropagation(unittest.TestCase):
 
         processed_fo = self.backend_interface.get_object(self.uid_of_key_file, analysis_filter=['crypto_material'])
         assert processed_fo.processed_analysis['crypto_material']['tags'], 'no tags set in analysis'
-
-        self._wait_for_empty_tag_queue()
 
         processed_fw = self.backend_interface.get_object(test_fw.uid, analysis_filter=['crypto_material'])
         assert processed_fw.analysis_tags, 'tags not propagated properly'
