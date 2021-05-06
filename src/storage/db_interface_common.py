@@ -333,10 +333,9 @@ class MongoInterfaceCommon(MongoInterface):  # pylint: disable=too-many-instance
         children = self.get_objects_by_uid_list(uids, analysis_filter=PLUGINS_WITH_TAG_PROPAGATION)
         tags = []
         for child in children:
-            for analysis in child.processed_analysis:
-                for tag in child.processed_analysis[analysis]['tags']:
-                    for key in tag:
-                        if key != 'root_uid':
-                            if tag[key]['propagate']:
-                                tags.append(tag)
+            for analysis in child.processed_analysis.values():
+                if 'tags' in analysis:
+                    for key, tag in analysis['tags'].items():
+                        if key != 'root_uid' and tag['propagate']:
+                            tags.append(tag)
         return tags
