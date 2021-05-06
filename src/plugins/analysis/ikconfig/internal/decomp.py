@@ -3,9 +3,10 @@ import gzip
 import io
 import lzma
 import zlib
+from typing import List
 
 
-class GZDecompressor(object):
+class GZDecompressor:
     @staticmethod
     def decompress(raw: bytes):
         with gzip.GzipFile(fileobj=io.BytesIO(raw)) as stream:
@@ -17,9 +18,7 @@ class GZDecompressor(object):
                     if not chunk:
                         break
                     decompressed += chunk
-            except zlib.error:
-                return b''
-            except (gzip.BadGzipFile, EOFError):
+            except (OSError, EOFError):
                 pass
 
         return decompressed
@@ -32,10 +31,10 @@ _COMPRESSIONS = [
     {'magic': b'BZh', 'cls': bz2.BZ2Decompressor}
 ]
 
-DECOMPRESS_CHUNK_SIZE = 8388608  # 8 MB
+DECOMPRESS_CHUNK_SIZE = 8388608  # 8 MiB
 
 
-def _collect_compression_indices(raw, magic_word: bytes) -> list:
+def _collect_compression_indices(raw, magic_word: bytes) -> List[int]:
     indices = list()
 
     raw_offset = 0
@@ -49,20 +48,20 @@ def _collect_compression_indices(raw, magic_word: bytes) -> list:
     return indices
 
 
-def _decompress_indices(raw: bytes, indices: list, decompressor: object) -> list:
+def _decompress_indices(raw: bytes, indices: List[int], decompressor: object) -> List[bytes]:
     result = list()
     for index in indices:
         try:
             decompressed = decompressor.decompress(raw[index:])
             if len(decompressed) > 0:
                 result.append(decompressed)
-        except Exception:
+        except (lzma.LZMAError, zlib.error, ValueError, OSError):
             pass
 
     return result
 
 
-def decompress(raw: bytes) -> list:
+def decompress(raw: bytes) -> List[bytes]:
     result = list()
 
     for compression in _COMPRESSIONS:
