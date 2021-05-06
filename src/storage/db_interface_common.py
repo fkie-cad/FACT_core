@@ -317,6 +317,9 @@ class MongoInterfaceCommon(MongoInterface):  # pylint: disable=too-many-instance
         unique_tags = {}
         for child in children:
             for name, analysis in [(n, a) for n, a in child.processed_analysis.items() if 'tags' in a]:
+                if 'file_system_flag' in analysis and analysis['file_system_flag']:
+                    analysis = self.retrieve_analysis(child.processed_analysis, analysis_filter=[name,])[name]
+
                 for tag_type, tag in analysis['tags'].items():
                     if tag_type != 'root_uid' and tag['propagate']:
                         append_unique_tag(unique_tags, tag, name, tag_type)
