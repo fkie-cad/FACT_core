@@ -4,7 +4,6 @@ from pathlib import Path
 from typing import List
 
 from analysis.PluginBase import AnalysisBasePlugin
-from helperFunctions.tag import TagColor
 from objects.file import FileObject
 
 try:
@@ -55,7 +54,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     def add_kernel_config_to_analysis(self, file_object: FileObject, config_bytes: bytes):
         file_object.processed_analysis[self.NAME]['is_kernel_config'] = True
         file_object.processed_analysis[self.NAME]['kernel_config'] = config_bytes.decode()
-        self.add_analysis_tag(file_object, 'IKCONFIG', 'Kernel Configuration', TagColor.GREEN, True)
+        self.add_analysis_tag(file_object, 'IKCONFIG', 'Kernel Configuration')
 
     def probably_kernel_config(self, raw_data: bytes) -> bool:
         try:
