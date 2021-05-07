@@ -26,8 +26,7 @@ MOCK_DATA = (
     '"dynamic_entries": [{"library": "libdl.so.2", "tag": "NEEDED", "value": 1}, {"library": "libc.so.6", "tag": "NEEDED", "value": 137}, {"tag": "INIT", "value": 99064}],'
     '"sections": [{"alignment": 0, "entry_size": 0, "flags": [], "information": 0, "link": 0, "name": "", "offset": 0, "size": 0, "type": "NULL", "virtual_address": 0}],'
     '"segments": [{"alignment": 4, "file_offset": 2269, "flags": 4, "physical_address": 2269, "physical_size": 8, '
-    '"sections": [".ARM.exidx"], "type": "ARM_EXIDX", "virtual_address": 2269, "virtual_size": 8}],'
-    '"symbols_version": [{"value": 0}, {"symbol_version_auxiliary": "GLIBC_2.4", "value": 2}, {"symbol_version_auxiliary": "GLIBC_2.4", "value": 2}]}'
+    '"sections": [".ARM.exidx"], "type": "ARM_EXIDX", "virtual_address": 2269, "virtual_size": 8}]}'
 )
 
 MOCK_LIEF_RESULT = LiefResult(
@@ -152,6 +151,6 @@ def test_plugin(stub_plugin, stub_object, monkeypatch):
     output = stub_object.processed_analysis[stub_plugin.NAME]['Output']
     assert output != {}
     result_summary = sorted(stub_object.processed_analysis[stub_plugin.NAME]['summary'])
-    assert result_summary == ['dynamic_entries', 'exported_functions', 'header', 'imported_functions', 'libraries', 'sections', 'segments', 'symbols_version']
+    assert result_summary == ['dynamic_entries', 'header', 'imported_functions', 'libraries', 'sections', 'segments']
     assert 'strcmp' in output['imported_functions']
     assert output['segments'][0]['virtual_address'].startswith('0x'), 'addresses should be converted to hex'

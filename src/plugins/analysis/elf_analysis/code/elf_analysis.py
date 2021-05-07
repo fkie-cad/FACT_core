@@ -12,8 +12,7 @@ from helperFunctions.hash import normalize_lief_items
 from helperFunctions.tag import TagColor
 
 LIEF_DATA_ENTRIES = (
-    'dynamic_entries', 'exported_functions', 'header', 'imported_functions', 'libraries', 'sections', 'segments',
-    'symbols_version'
+    'dynamic_entries', 'header', 'imported_functions', 'libraries', 'sections', 'segments', 'symbols_version'
 )
 TEMPLATE_FILE_PATH = os.path.join(get_dir_of_file(__file__), '../internal/matching_template.json')
 
@@ -25,7 +24,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     NAME = 'elf_analysis'
     DESCRIPTION = 'Analyzes and tags ELF executables and libraries'
     DEPENDENCIES = ['file_type']
-    VERSION = '0.3'
+    VERSION = '0.3.1'
     MIME_WHITELIST = ['application/x-executable', 'application/x-object', 'application/x-sharedlib']
 
     def __init__(self, plugin_administrator, config=None, recursive=True, offline_testing=False):
@@ -37,6 +36,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             elf_dict, parsed_binary = self._analyze_elf(file_object)
             file_object.processed_analysis[self.NAME] = {'Output': elf_dict}
             self.create_tags(parsed_binary, file_object)
+            file_object.processed_analysis[self.NAME]['Output'].pop('symbols_version', None)
             file_object.processed_analysis[self.NAME]['summary'] = list(elf_dict.keys())
         except RuntimeError:
             logging.error('lief could not parse {}'.format(file_object.uid))
@@ -63,7 +63,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def _get_tags(self, libraries: list, functions: list) -> list:
         behaviour_classes = self._load_template_file_as_json_obj(TEMPLATE_FILE_PATH)
-        tags = list()
+        tags = []
         for behaviour_class in behaviour_classes:
             if behaviour_class not in tags:
                 behaviour_indicators = behaviour_classes[behaviour_class]
@@ -73,11 +73,11 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     @staticmethod
     def _get_symbols_version_entries(symbol_versions):
-        imported_libs = []
-        for sv in symbol_versions:
-            if str(sv) != '* Local *' and str(sv) != "* Global *":
-                imported_libs.append(str(sv).split('(')[0])
-        return list(set(imported_libs))
+        return list({
+            str(symbol_version).split('(')[0]
+            for symbol_version in symbol_versions
+            if str(symbol_version) not in ['* Local *', '* Global *']
+        })
 
     @staticmethod
     def _get_relevant_imp_functions(imp_functions):
@@ -122,8 +122,6 @@ class AnalysisPlugin(AnalysisBasePlugin):
         try:
             parsed_binary = lief.parse(file_object.file_path)
             binary_json_dict = json.loads(lief.to_json_from_abstract(parsed_binary))
-            if parsed_binary.exported_functions:
-                binary_json_dict['exported_functions'] = normalize_lief_items(parsed_binary.exported_functions)
             if parsed_binary.imported_functions:
                 binary_json_dict['imported_functions'] = normalize_lief_items(parsed_binary.imported_functions)
             if parsed_binary.libraries:
