@@ -1,7 +1,6 @@
 import json
 import logging
 import pickle
-import random
 from hashlib import md5
 from typing import Dict, List, Set
 
@@ -13,6 +12,8 @@ from helperFunctions.data_conversion import convert_time_to_str, get_dict_size
 from objects.file import FileObject
 from objects.firmware import Firmware
 from storage.mongo_interface import MongoInterface
+
+FIELDS_SAVED_FROM_SANITIZATION = ['summary', 'tags']
 
 
 class MongoInterfaceCommon(MongoInterface):  # pylint: disable=too-many-instance-attributes
@@ -33,9 +34,7 @@ class MongoInterfaceCommon(MongoInterface):  # pylint: disable=too-many-instance
     def existence_quick_check(self, uid):
         if self.is_firmware(uid):
             return True
-        if self.is_file_object(uid):
-            return True
-        return False
+        return self.is_file_object(uid)
 
     def is_firmware(self, uid):
         return self.firmwares.count_documents({'_id': uid}) > 0
@@ -64,7 +63,7 @@ class MongoInterfaceCommon(MongoInterface):  # pylint: disable=too-many-instance
         '''
         fo = self.get_object(uid)
         if fo is None:
-            raise Exception('UID not found: {}'.format(uid))
+            raise Exception(f'UID not found: {uid}')
         fo.list_of_all_included_files = self.get_list_of_all_included_files(fo)
         for analysis in fo.processed_analysis:
             fo.processed_analysis[analysis]['summary'] = self.get_summary(fo, analysis)
@@ -74,14 +73,14 @@ class MongoInterfaceCommon(MongoInterface):  # pylint: disable=too-many-instance
         firmware_entry = self.firmwares.find_one(uid)
         if firmware_entry:
             return self._convert_to_firmware(firmware_entry, analysis_filter=analysis_filter)
-        logging.debug('No firmware with UID {} found.'.format(uid))
+        logging.debug(f'No firmware with UID {uid} found.')
         return None
 
     def get_file_object(self, uid, analysis_filter=None):
         file_entry = self.file_objects.find_one(uid)
         if file_entry:
             return self._convert_to_file_object(file_entry, analysis_filter=analysis_filter)
-        logging.debug('No FileObject with UID {} found.'.format(uid))
+        logging.debug(f'No FileObject with UID {uid} found.')
         return None
 
     def get_objects_by_uid_list(self, uid_list, analysis_filter=None):
@@ -94,8 +93,7 @@ class MongoInterfaceCommon(MongoInterface):  # pylint: disable=too-many-instance
 
     @staticmethod
     def _build_search_query_for_uid_list(uid_list):
-        query = {'_id': {'$in': list(uid_list)}}
-        return query
+        return {'_id': {'$in': list(uid_list)}}
 
     def _convert_to_firmware(self, entry: dict, analysis_filter: List[str] = None) -> Firmware:
         firmware = Firmware()
@@ -144,7 +142,7 @@ class MongoInterfaceCommon(MongoInterface):  # pylint: disable=too-many-instance
         sanitized_dict = {}
         for key in analysis_dict.keys():
             if get_dict_size(analysis_dict[key]) > self.report_threshold:
-                logging.debug('Extracting analysis {} to file (Size: {})'.format(key, get_dict_size(analysis_dict[key])))
+                logging.debug(f'Extracting analysis {key} to file (Size: {get_dict_size(analysis_dict[key])})')
                 sanitized_dict[key] = self._extract_binaries(analysis_dict, key, uid)
                 sanitized_dict[key]['file_system_flag'] = True
             else:
@@ -167,20 +165,20 @@ class MongoInterfaceCommon(MongoInterface):  # pylint: disable=too-many-instance
         for key in analysis_filter:
             try:
                 if sanitized_dict[key]['file_system_flag']:
-                    logging.debug('Retrieving stored file {}'.format(key))
+                    logging.debug(f'Retrieving stored file {key}')
                     sanitized_dict[key].pop('file_system_flag')
                     sanitized_dict[key] = self._retrieve_binaries(sanitized_dict, key)
                 else:
                     sanitized_dict[key].pop('file_system_flag')
             except (KeyError, IndexError, AttributeError, TypeError, pickle.PickleError) as error:
-                logging.debug('Could not retrieve information: {} {}'.format(type(error), error))
+                logging.debug(f'Could not retrieve information: {type(error)} {error}')
         return sanitized_dict
 
     def _extract_binaries(self, analysis_dict, key, uid):
         tmp_dict = {}
         for analysis_key in analysis_dict[key].keys():
-            if analysis_key != 'summary':
-                file_name = '{}_{}_{}'.format(get_safe_name(key), get_safe_name(analysis_key), uid)
+            if analysis_key not in FIELDS_SAVED_FROM_SANITIZATION:
+                file_name = f'{get_safe_name(key)}_{get_safe_name(analysis_key)}_{uid}'
                 self._store_in_sanitize_db(pickle.dumps(analysis_dict[key][analysis_key]), file_name)
                 tmp_dict[analysis_key] = file_name
             else:
@@ -193,22 +191,22 @@ class MongoInterfaceCommon(MongoInterface):  # pylint: disable=too-many-instance
             if self.sanitize_fs.exists({'md5': md5_hash}):
                 return  # there is already an up to date entry -> do nothing
             for old_entry in self.sanitize_fs.find({'filename': file_name}):  # delete old entries first
-                logging.debug('deleting old sanitize db entry of {} with id {}'.format(file_name, old_entry._id))  # pylint: disable=protected-access
+                logging.debug(f'deleting old sanitize db entry of {file_name} with id {old_entry._id}')  # pylint: disable=protected-access
                 self.sanitize_fs.delete(old_entry._id)  # pylint: disable=protected-access
         self.sanitize_fs.put(content, filename=file_name)
 
     def _retrieve_binaries(self, sanitized_dict, key):
         tmp_dict = {}
         for analysis_key in sanitized_dict[key].keys():
-            if analysis_key == 'summary' and not isinstance(sanitized_dict[key][analysis_key], str):
+            if is_not_sanitized(analysis_key, sanitized_dict[key]):
                 tmp_dict[analysis_key] = sanitized_dict[key][analysis_key]
             else:
-                logging.debug('Retrieving {}'.format(analysis_key))
+                logging.debug(f'Retrieving {analysis_key}')
                 tmp = self.sanitize_fs.get_last_version(sanitized_dict[key][analysis_key])
                 if tmp is not None:
                     report = pickle.loads(tmp.read())
                 else:
-                    logging.error('sanitized file not found: {}'.format(sanitized_dict[key][analysis_key]))
+                    logging.error(f'sanitized file not found: {sanitized_dict[key][analysis_key]}')
                     report = {}
                 tmp_dict[analysis_key] = report
         return tmp_dict
@@ -221,7 +219,7 @@ class MongoInterfaceCommon(MongoInterface):  # pylint: disable=too-many-instance
     def get_list_of_all_included_files(self, fo):
         if isinstance(fo, Firmware):
             fo.list_of_all_included_files = get_list_of_all_values(
-                self.file_objects, '$_id', match={'virtual_file_path.{}'.format(fo.uid): {'$exists': 'true'}})
+                self.file_objects, '$_id', match={f'virtual_file_path.{fo.uid}': {'$exists': 'true'}})
         if fo.list_of_all_included_files is None:
             fo.list_of_all_included_files = list(self.get_set_of_all_included_files(fo))
         fo.list_of_all_included_files.sort()
@@ -248,15 +246,15 @@ class MongoInterfaceCommon(MongoInterface):  # pylint: disable=too-many-instance
 
     def get_summary(self, fo, selected_analysis):
         if selected_analysis not in fo.processed_analysis:
-            logging.warning('Analysis {} not available on {}'.format(selected_analysis, fo.uid))
+            logging.warning(f'Analysis {selected_analysis} not available on {fo.uid}')
             return None
         if 'summary' not in fo.processed_analysis[selected_analysis]:
             return None
         if not isinstance(fo, Firmware):
             return self._collect_summary(fo.list_of_all_included_files, selected_analysis)
         summary = get_all_value_combinations_of_fields(
-            self.file_objects, '$processed_analysis.{}.summary'.format(selected_analysis), '$_id',
-            unwind=True, match={'virtual_file_path.{}'.format(fo.uid): {'$exists': 'true'}})
+            self.file_objects, f'$processed_analysis.{selected_analysis}.summary', '$_id',
+            unwind=True, match={f'virtual_file_path.{fo.uid}': {'$exists': 'true'}})
         fo_summary = self._get_summary_of_one(fo, selected_analysis)
         self._update_summary(summary, fo_summary)
         return summary
@@ -269,7 +267,7 @@ class MongoInterfaceCommon(MongoInterface):  # pylint: disable=too-many-instance
                 for item in file_object.processed_analysis[selected_analysis]['summary']:
                     summary[item] = [file_object.uid]
         except (AttributeError, KeyError) as err:
-            logging.warning('Could not get summary: {} {}'.format(type(err), err))
+            logging.warning(f'Could not get summary: {type(err)} {err}')
         return summary
 
     def _collect_summary(self, uid_list, selected_analysis):
@@ -320,8 +318,8 @@ class MongoInterfaceCommon(MongoInterface):  # pylint: disable=too-many-instance
         return unique_tags
 
     def _collect_analysis_tags(self, file_object, analysis_tags):
-        for name, analysis in [(n, a) for n, a in file_object.processed_analysis.items() if 'tags' in a]:
-            if 'file_system_flag' in analysis and analysis['file_system_flag']:
+        for name, analysis in ((n, a) for n, a in file_object.processed_analysis.items() if 'tags' in a):
+            if not is_not_sanitized('tags', analysis):
                 analysis = self.retrieve_analysis(file_object.processed_analysis, analysis_filter=[name, ])[name]
 
             for tag_type, tag in analysis['tags'].items():
@@ -341,7 +339,7 @@ class MongoInterfaceCommon(MongoInterface):  # pylint: disable=too-many-instance
                         self.file_objects,
                         '$_id',
                         match={
-                            'virtual_file_path.{}'.format(uid): {'$exists': 'true'},
+                            f'virtual_file_path.{uid}': {'$exists': 'true'},
                             f'processed_analysis.{plugin}.tags': {'$exists': 'true'}
                         }
                     )
@@ -350,10 +348,15 @@ class MongoInterfaceCommon(MongoInterface):  # pylint: disable=too-many-instance
         return self.get_objects_by_uid_list(uids, analysis_filter=plugins_with_tag_propagation)
 
 
+def is_not_sanitized(field, analysis_result):
+    # As of now, all _saved_ fields are dictionaries, so the str check ensures it's not a reference to gridFS
+    return field in FIELDS_SAVED_FROM_SANITIZATION and not isinstance(analysis_result[field], str)
+
+
 def append_unique_tag(unique_tags: Dict[str, dict], tag: dict, plugin_name: str, tag_type: str) -> None:
     if plugin_name in unique_tags:
         if tag_type in unique_tags[plugin_name] and tag not in unique_tags[plugin_name].values():
-            unique_tags[plugin_name][f'{tag_type}-alt-{random.randint(0, 1000)}'] = tag
+            unique_tags[plugin_name][f'{tag_type}-{len(unique_tags[plugin_name])}'] = tag
         else:
             unique_tags[plugin_name][tag_type] = tag
     else:
