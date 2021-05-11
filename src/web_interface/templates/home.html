@@ -68,10 +68,6 @@
                             <td style="text-align: right; padding:5px">{{ general_stats['benchmark'] | nice_number }} s</td>
                         </tr>
                         <tr>
-                            <td style="text-align: left; padding:5px">incompletely analyzed firmware</td>
-                            <td id="missing_files" style="text-align: right; padding:5px">n/a</td>
-                        </tr>
-                        <tr>
                             <td style="text-align: left; padding:5px">backend cpu load</td>
                             <td id="cpu_percentage" style="text-align: right; padding:5px">n/a</td>
                         </tr>
@@ -85,11 +81,6 @@
     	</div>
         <script>
             function load_ajax_stats(){
-                let data = $.getJSON("/ajax/stats/general")
-                .success(function(data) {
-                    document.getElementById("missing_files").innerHTML = data.missing_files;
-                });
-
                 let system_data = $.getJSON("/ajax/stats/system")
                 .success(function(system_data) {
                     document.getElementById("cpu_percentage").innerHTML = system_data.backend_cpu_percentage;

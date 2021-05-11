@@ -28,8 +28,6 @@ class AjaxRoutes(ComponentBase):
                                self._ajax_get_common_files_for_compare)
         self._app.add_url_rule('/ajax_get_binary/<mime_type>/<uid>', 'ajax_get_binary/<type>/<uid>', self._ajax_get_binary)
         self._app.add_url_rule('/ajax_get_summary/<uid>/<selected_analysis>', 'ajax_get_summary/<uid>/<selected_analysis>', self._ajax_get_summary)
-
-        self._app.add_url_rule('/ajax/stats/general', 'ajax/stats/general', self._get_general_stats)
         self._app.add_url_rule('/ajax/stats/system', 'ajax/stats/system', self._get_system_stats)
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
