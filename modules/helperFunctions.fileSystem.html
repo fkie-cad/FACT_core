@@ -13,6 +13,8 @@
   
   <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../_static/css/custom.css" type="text/css" />
 
   
@@ -30,6 +32,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
@@ -192,8 +195,8 @@
   <div class="section" id="module-helperFunctions.fileSystem">
 <span id="helperfunctions-filesystem-module"></span><h1>helperFunctions.fileSystem module<a class="headerlink" href="#module-helperFunctions.fileSystem" title="Permalink to this headline">¶</a></h1>
 <dl class="py function">
-<dt id="helperFunctions.fileSystem.file_is_empty">
-<code class="sig-prename descclassname"><span class="pre">helperFunctions.fileSystem.</span></code><code class="sig-name descname"><span class="pre">file_is_empty</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.fileSystem.file_is_empty" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="helperFunctions.fileSystem.file_is_empty">
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.fileSystem.</span></span><span class="sig-name descname"><span class="pre">file_is_empty</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.fileSystem.file_is_empty" title="Permalink to this definition">¶</a></dt>
 <dd><p>Checks if a file is empty (i.e. has a size of 0 bytes).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -209,8 +212,8 @@
 </dd></dl>
 
 <dl class="py function">
-<dt id="helperFunctions.fileSystem.get_relative_object_path">
-<code class="sig-prename descclassname"><span class="pre">helperFunctions.fileSystem.</span></code><code class="sig-name descname"><span class="pre">get_relative_object_path</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.fileSystem.get_relative_object_path" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="helperFunctions.fileSystem.get_relative_object_path">
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.fileSystem.</span></span><span class="sig-name descname"><span class="pre">get_relative_object_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.fileSystem.get_relative_object_path" title="Permalink to this definition">¶</a></dt>
 <dd><p>FACT extraction unpacks files into a temporary directory. These files have to be offset to get the path relative
 to the firmware filesystem root. Additionally, some filesystem extractors create an intermediate directory
 ‘fact_extracted’ that has to be removed.</p>
@@ -231,8 +234,8 @@ to the firmware filesystem root. Additionally, some filesystem extractors create
 </dd></dl>
 
 <dl class="py function">
-<dt id="helperFunctions.fileSystem.get_src_dir">
-<code class="sig-prename descclassname"><span class="pre">helperFunctions.fileSystem.</span></code><code class="sig-name descname"><span class="pre">get_src_dir</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.fileSystem.get_src_dir" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="helperFunctions.fileSystem.get_src_dir">
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.fileSystem.</span></span><span class="sig-name descname"><span class="pre">get_src_dir</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.fileSystem.get_src_dir" title="Permalink to this definition">¶</a></dt>
 <dd><p>Retrieves the absolute path of the src directory.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -245,8 +248,8 @@ to the firmware filesystem root. Additionally, some filesystem extractors create
 </dd></dl>
 
 <dl class="py function">
-<dt id="helperFunctions.fileSystem.get_template_dir">
-<code class="sig-prename descclassname"><span class="pre">helperFunctions.fileSystem.</span></code><code class="sig-name descname"><span class="pre">get_template_dir</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.fileSystem.get_template_dir" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="helperFunctions.fileSystem.get_template_dir">
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.fileSystem.</span></span><span class="sig-name descname"><span class="pre">get_template_dir</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.fileSystem.get_template_dir" title="Permalink to this definition">¶</a></dt>
 <dd><p>Retrieves the absolute path of the template directory.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>

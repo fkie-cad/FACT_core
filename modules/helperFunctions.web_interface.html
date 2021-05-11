@@ -13,6 +13,8 @@
   
   <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../_static/css/custom.css" type="text/css" />
 
   
@@ -30,6 +32,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
@@ -192,8 +195,8 @@
   <div class="section" id="module-helperFunctions.web_interface">
 <span id="helperfunctions-uid-web-interface"></span><h1>helperFunctions.uid web_interface<a class="headerlink" href="#module-helperFunctions.web_interface" title="Permalink to this headline">¶</a></h1>
 <dl class="py function">
-<dt id="helperFunctions.web_interface.apply_filters_to_query">
-<code class="sig-prename descclassname"><span class="pre">helperFunctions.web_interface.</span></code><code class="sig-name descname"><span class="pre">apply_filters_to_query</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">query</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.web_interface.apply_filters_to_query" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="helperFunctions.web_interface.apply_filters_to_query">
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.web_interface.</span></span><span class="sig-name descname"><span class="pre">apply_filters_to_query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">query</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.web_interface.apply_filters_to_query" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add a filter, selected in the web interface (vendor or device class), to the given query and return it.
 If the filter was already present in the query, it is updated.</p>
 <dl class="field-list simple">
@@ -213,8 +216,8 @@ If the filter was already present in the query, it is updated.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="helperFunctions.web_interface.cap_length_of_element">
-<code class="sig-prename descclassname"><span class="pre">helperFunctions.web_interface.</span></code><code class="sig-name descname"><span class="pre">cap_length_of_element</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hid_element</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maximum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">55</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.web_interface.cap_length_of_element" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="helperFunctions.web_interface.cap_length_of_element">
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.web_interface.</span></span><span class="sig-name descname"><span class="pre">cap_length_of_element</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hid_element</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maximum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">55</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.web_interface.cap_length_of_element" title="Permalink to this definition">¶</a></dt>
 <dd><p>Limit the length of an HID element of the “Virtual File Path”, so that it can be displayed in the web interface
 without errors</p>
 <dl class="field-list simple">
@@ -234,8 +237,8 @@ without errors</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="helperFunctions.web_interface.filter_out_illegal_characters">
-<code class="sig-prename descclassname"><span class="pre">helperFunctions.web_interface.</span></code><code class="sig-name descname"><span class="pre">filter_out_illegal_characters</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">string</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.web_interface.filter_out_illegal_characters" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="helperFunctions.web_interface.filter_out_illegal_characters">
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.web_interface.</span></span><span class="sig-name descname"><span class="pre">filter_out_illegal_characters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">string</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.web_interface.filter_out_illegal_characters" title="Permalink to this definition">¶</a></dt>
 <dd><p>Filter out any illegal characters from a given string.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -251,8 +254,8 @@ without errors</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="helperFunctions.web_interface.format_time">
-<code class="sig-prename descclassname"><span class="pre">helperFunctions.web_interface.</span></code><code class="sig-name descname"><span class="pre">format_time</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seconds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.web_interface.format_time" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="helperFunctions.web_interface.format_time">
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.web_interface.</span></span><span class="sig-name descname"><span class="pre">format_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seconds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.web_interface.format_time" title="Permalink to this definition">¶</a></dt>
 <dd><p>Format a duration value to be displayed in the web interface.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -268,8 +271,8 @@ without errors</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="helperFunctions.web_interface.get_alternating_color_list">
-<code class="sig-prename descclassname"><span class="pre">helperFunctions.web_interface.</span></code><code class="sig-name descname"><span class="pre">get_alternating_color_list</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.web_interface.get_alternating_color_list" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="helperFunctions.web_interface.get_alternating_color_list">
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.web_interface.</span></span><span class="sig-name descname"><span class="pre">get_alternating_color_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.web_interface.get_alternating_color_list" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get a list of alternating color values (beginning with blue and alternating with yellow) as a hexadecimal string
 compatible to HTML.</p>
 <dl class="field-list simple">
@@ -289,8 +292,8 @@ compatible to HTML.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="helperFunctions.web_interface.get_color_list">
-<code class="sig-prename descclassname"><span class="pre">helperFunctions.web_interface.</span></code><code class="sig-name descname"><span class="pre">get_color_list</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.web_interface.get_color_list" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="helperFunctions.web_interface.get_color_list">
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.web_interface.</span></span><span class="sig-name descname"><span class="pre">get_color_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.web_interface.get_color_list" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get a list of (different) color values as a hexadecimal string compatible to HTML (e.g. <code class="docutils literal notranslate"><span class="pre">#00ff00</span></code> for green).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -309,8 +312,8 @@ compatible to HTML.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="helperFunctions.web_interface.get_template_as_string">
-<code class="sig-prename descclassname"><span class="pre">helperFunctions.web_interface.</span></code><code class="sig-name descname"><span class="pre">get_template_as_string</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">view_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.web_interface.get_template_as_string" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="helperFunctions.web_interface.get_template_as_string">
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.web_interface.</span></span><span class="sig-name descname"><span class="pre">get_template_as_string</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">view_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.web_interface.get_template_as_string" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the content of template <code class="docutils literal notranslate"><span class="pre">view_name</span></code> from the template directory as string.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -326,8 +329,8 @@ compatible to HTML.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="helperFunctions.web_interface.password_is_legal">
-<code class="sig-prename descclassname"><span class="pre">helperFunctions.web_interface.</span></code><code class="sig-name descname"><span class="pre">password_is_legal</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pw</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.web_interface.password_is_legal" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="helperFunctions.web_interface.password_is_legal">
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.web_interface.</span></span><span class="sig-name descname"><span class="pre">password_is_legal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pw</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.web_interface.password_is_legal" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check whether a given password is erroneously identified as an hashed password string (which might cause
 unexpected behavior).</p>
 <dl class="field-list simple">

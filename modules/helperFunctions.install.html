@@ -13,6 +13,8 @@
   
   <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../_static/css/custom.css" type="text/css" />
 
   
@@ -30,6 +32,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
@@ -192,31 +195,31 @@
   <div class="section" id="module-helperFunctions.install">
 <span id="helperfunctions-install-module"></span><h1>helperFunctions.install module<a class="headerlink" href="#module-helperFunctions.install" title="Permalink to this headline">¶</a></h1>
 <dl class="py exception">
-<dt id="helperFunctions.install.InstallationError">
-<em class="property"><span class="pre">exception</span> </em><code class="sig-prename descclassname"><span class="pre">helperFunctions.install.</span></code><code class="sig-name descname"><span class="pre">InstallationError</span></code><a class="headerlink" href="#helperFunctions.install.InstallationError" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="helperFunctions.install.InstallationError">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">helperFunctions.install.</span></span><span class="sig-name descname"><span class="pre">InstallationError</span></span><a class="headerlink" href="#helperFunctions.install.InstallationError" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
 <p>Class representing all expected errors that happen during installation, such as timeouts on remote hosts.</p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="helperFunctions.install.OperateInDirectory">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">helperFunctions.install.</span></code><code class="sig-name descname"><span class="pre">OperateInDirectory</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_directory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.OperateInDirectory" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="helperFunctions.install.OperateInDirectory">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">helperFunctions.install.</span></span><span class="sig-name descname"><span class="pre">OperateInDirectory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_directory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.OperateInDirectory" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Context manager allowing to execute a number of commands in a given directory. On exit, the working directory is
 changed back to its previous value.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>target_directory</strong> – Directory path to use as working directory.</p></li>
-<li><p><strong>remove</strong> – Optional boolean to indicate if <cite>target_directory</cite> should be removed on exit.</p></li>
+<li><p><strong>target_directory</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>pathlib.Path</em><em>]</em>) – Directory path to use as working directory.</p></li>
+<li><p><strong>remove</strong> (<em>bool</em>) – Optional boolean to indicate if <cite>target_directory</cite> should be removed on exit.</p></li>
 </ul>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
-<dt id="helperFunctions.install.apt_install_packages">
-<code class="sig-prename descclassname"><span class="pre">helperFunctions.install.</span></code><code class="sig-name descname"><span class="pre">apt_install_packages</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">packages</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.apt_install_packages" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="helperFunctions.install.apt_install_packages">
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.install.</span></span><span class="sig-name descname"><span class="pre">apt_install_packages</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">packages</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.apt_install_packages" title="Permalink to this definition">¶</a></dt>
 <dd><p>Install packages on Ubuntu / Debian / Mint / Kali systems.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -226,8 +229,8 @@ changed back to its previous value.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="helperFunctions.install.apt_remove_packages">
-<code class="sig-prename descclassname"><span class="pre">helperFunctions.install.</span></code><code class="sig-name descname"><span class="pre">apt_remove_packages</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">packages</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.apt_remove_packages" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="helperFunctions.install.apt_remove_packages">
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.install.</span></span><span class="sig-name descname"><span class="pre">apt_remove_packages</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">packages</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.apt_remove_packages" title="Permalink to this definition">¶</a></dt>
 <dd><p>Remove packages from Ubuntu / Debian / Mint / Kali systems.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -237,14 +240,14 @@ changed back to its previous value.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="helperFunctions.install.apt_update_sources">
-<code class="sig-prename descclassname"><span class="pre">helperFunctions.install.</span></code><code class="sig-name descname"><span class="pre">apt_update_sources</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.apt_update_sources" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="helperFunctions.install.apt_update_sources">
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.install.</span></span><span class="sig-name descname"><span class="pre">apt_update_sources</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.apt_update_sources" title="Permalink to this definition">¶</a></dt>
 <dd><p>Update package lists on Ubuntu / Debian / Mint / Kali systems.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="helperFunctions.install.check_if_command_in_path">
-<code class="sig-prename descclassname"><span class="pre">helperFunctions.install.</span></code><code class="sig-name descname"><span class="pre">check_if_command_in_path</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.check_if_command_in_path" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="helperFunctions.install.check_if_command_in_path">
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.install.</span></span><span class="sig-name descname"><span class="pre">check_if_command_in_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.check_if_command_in_path" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check if a given command is executable on the current system, i.e. found in systems PATH.
 Useful to find out if a program is already installed.</p>
 <dl class="field-list simple">
@@ -258,8 +261,8 @@ Useful to find out if a program is already installed.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="helperFunctions.install.check_string_in_command_output">
-<code class="sig-prename descclassname"><span class="pre">helperFunctions.install.</span></code><code class="sig-name descname"><span class="pre">check_string_in_command_output</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_string</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.check_string_in_command_output" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="helperFunctions.install.check_string_in_command_output">
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.install.</span></span><span class="sig-name descname"><span class="pre">check_string_in_command_output</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_string</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.check_string_in_command_output" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute command and test if string is contained in its output (i.e. stdout).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -278,8 +281,8 @@ Useful to find out if a program is already installed.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="helperFunctions.install.dnf_install_packages">
-<code class="sig-prename descclassname"><span class="pre">helperFunctions.install.</span></code><code class="sig-name descname"><span class="pre">dnf_install_packages</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">packages</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.dnf_install_packages" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="helperFunctions.install.dnf_install_packages">
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.install.</span></span><span class="sig-name descname"><span class="pre">dnf_install_packages</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">packages</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.dnf_install_packages" title="Permalink to this definition">¶</a></dt>
 <dd><p>Install packages on Fedora / RedHat / Cent systems.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -289,8 +292,8 @@ Useful to find out if a program is already installed.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="helperFunctions.install.dnf_remove_packages">
-<code class="sig-prename descclassname"><span class="pre">helperFunctions.install.</span></code><code class="sig-name descname"><span class="pre">dnf_remove_packages</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">packages</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.dnf_remove_packages" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="helperFunctions.install.dnf_remove_packages">
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.install.</span></span><span class="sig-name descname"><span class="pre">dnf_remove_packages</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">packages</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.dnf_remove_packages" title="Permalink to this definition">¶</a></dt>
 <dd><p>Remove packages from Fedora / RedHat / Cent systems.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -300,14 +303,14 @@ Useful to find out if a program is already installed.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="helperFunctions.install.dnf_update_sources">
-<code class="sig-prename descclassname"><span class="pre">helperFunctions.install.</span></code><code class="sig-name descname"><span class="pre">dnf_update_sources</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.dnf_update_sources" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="helperFunctions.install.dnf_update_sources">
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.install.</span></span><span class="sig-name descname"><span class="pre">dnf_update_sources</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.dnf_update_sources" title="Permalink to this definition">¶</a></dt>
 <dd><p>Update package lists on Fedora / RedHat / Cent systems.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="helperFunctions.install.install_github_project">
-<code class="sig-prename descclassname"><span class="pre">helperFunctions.install.</span></code><code class="sig-name descname"><span class="pre">install_github_project</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">commands</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.install_github_project" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="helperFunctions.install.install_github_project">
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.install.</span></span><span class="sig-name descname"><span class="pre">install_github_project</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">commands</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.install_github_project" title="Permalink to this definition">¶</a></dt>
 <dd><p>Install github project by cloning it, running a set of commands and removing the cloned files afterwards.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters</dt>
@@ -328,8 +331,8 @@ Useful to find out if a program is already installed.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="helperFunctions.install.load_main_config">
-<code class="sig-prename descclassname"><span class="pre">helperFunctions.install.</span></code><code class="sig-name descname"><span class="pre">load_main_config</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.load_main_config" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="helperFunctions.install.load_main_config">
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.install.</span></span><span class="sig-name descname"><span class="pre">load_main_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.load_main_config" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create config object from main.cfg in src/config folder.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -342,8 +345,8 @@ Useful to find out if a program is already installed.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="helperFunctions.install.log_current_packages">
-<code class="sig-prename descclassname"><span class="pre">helperFunctions.install.</span></code><code class="sig-name descname"><span class="pre">log_current_packages</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">packages</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">install</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.log_current_packages" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="helperFunctions.install.log_current_packages">
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.install.</span></span><span class="sig-name descname"><span class="pre">log_current_packages</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">packages</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">install</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.log_current_packages" title="Permalink to this definition">¶</a></dt>
 <dd><p>Log which packages are installed or removed.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -356,8 +359,8 @@ Useful to find out if a program is already installed.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="helperFunctions.install.pip3_install_packages">
-<code class="sig-prename descclassname"><span class="pre">helperFunctions.install.</span></code><code class="sig-name descname"><span class="pre">pip3_install_packages</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">packages</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.pip3_install_packages" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="helperFunctions.install.pip3_install_packages">
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.install.</span></span><span class="sig-name descname"><span class="pre">pip3_install_packages</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">packages</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.pip3_install_packages" title="Permalink to this definition">¶</a></dt>
 <dd><p>Install python packages. Handle problems with packages that are installed using system package managers (apt, dnf).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -367,8 +370,8 @@ Useful to find out if a program is already installed.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="helperFunctions.install.pip3_remove_packages">
-<code class="sig-prename descclassname"><span class="pre">helperFunctions.install.</span></code><code class="sig-name descname"><span class="pre">pip3_remove_packages</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">packages</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.pip3_remove_packages" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="helperFunctions.install.pip3_remove_packages">
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.install.</span></span><span class="sig-name descname"><span class="pre">pip3_remove_packages</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">packages</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.pip3_remove_packages" title="Permalink to this definition">¶</a></dt>
 <dd><p>Remove python packages. Handle problems with packages that are installed using system package managers (apt, dnf).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -378,8 +381,8 @@ Useful to find out if a program is already installed.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="helperFunctions.install.remove_folder">
-<code class="sig-prename descclassname"><span class="pre">helperFunctions.install.</span></code><code class="sig-name descname"><span class="pre">remove_folder</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">folder_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.remove_folder" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="helperFunctions.install.remove_folder">
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.install.</span></span><span class="sig-name descname"><span class="pre">remove_folder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">folder_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.remove_folder" title="Permalink to this definition">¶</a></dt>
 <dd><p>Python equivalent to <cite>rm -rf</cite>. Remove a directory an all included files. If administrative rights are necessary,
 this effectively falls back to <cite>sudo rm -rf</cite>.</p>
 <dl class="field-list simple">
