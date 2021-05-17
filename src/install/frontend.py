@@ -156,6 +156,7 @@ def main(radare, nginx):
         'flask_sqlalchemy',
         'flask-paginate',
         'Flask-API',
+        'itsdangerous==1.1.0',  # FIXME: remove pin when not needed anymore (used by flask_security)
         'uwsgi',
         'bcrypt',
         'python-dateutil',
