@@ -1,3 +1,5 @@
+# pylint: disable=attribute-defined-outside-init
+
 import json
 import urllib.parse
 from base64 import standard_b64encode
@@ -11,13 +13,13 @@ from test.integration.web_interface.rest.base import RestTestBase
 
 class TestRestFirmware(RestTestBase):
 
-    def setUp(self):
-        super().setUp()
+    def setup(self):
+        super().setup()
         self.db_backend = BackEndDbInterface(config=self.config)
 
-    def tearDown(self):
+    def teardown(self):
         self.db_backend.shutdown()
-        super().tearDown()
+        super().teardown()
 
     def test_rest_firmware_existing(self):
         test_firmware = create_test_firmware(device_class='test class', device_name='test device', vendor='test vendor')

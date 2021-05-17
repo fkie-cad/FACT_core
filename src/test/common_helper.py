@@ -4,6 +4,8 @@ import os
 from base64 import standard_b64encode
 from configparser import ConfigParser
 from copy import deepcopy
+from pathlib import Path
+from typing import Union
 
 from helperFunctions.config import load_config
 from helperFunctions.dataConversion import get_value_of_first_key, normalize_compare_id
@@ -455,6 +457,7 @@ def get_config_for_testing(temp_dir=None):
     config.set('data_storage', 'mongo_port', '27018')
     config.set('data_storage', 'report_threshold', '2048')
     config.set('data_storage', 'password_salt', '1234')
+    config.set('data_storage', 'firmware_file_storage_directory', '/tmp/fact_test_fs_directory')
     config.add_section('unpack')
     config.set('unpack', 'whitelist', '')
     config.set('unpack', 'max_depth', '10')
@@ -482,3 +485,9 @@ def load_users_from_main_config(config: ConfigParser):
     config.set('data_storage', 'db_admin_pw', fact_config['data_storage']['db_admin_pw'])
     config.set('data_storage', 'db_readonly_user', fact_config['data_storage']['db_readonly_user'])
     config.set('data_storage', 'db_readonly_pw', fact_config['data_storage']['db_readonly_pw'])
+
+
+def store_binary_on_file_system(tmp_dir: str, test_object: Union[FileObject, Firmware]):
+    binary_dir = Path(tmp_dir) / test_object.uid[:2]
+    binary_dir.mkdir(parents=True)
+    (binary_dir / test_object.uid).write_bytes(test_object.binary)

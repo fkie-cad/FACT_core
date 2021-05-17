@@ -1,29 +1,36 @@
+# pylint: disable=attribute-defined-outside-init
+
 from base64 import standard_b64encode
 from multiprocessing import Queue
 
 from intercom.back_end_binding import InterComBackEndBinding
 from storage.db_interface_backend import BackEndDbInterface
-from test.common_helper import create_test_firmware
+from test.common_helper import create_test_firmware, store_binary_on_file_system
 from test.integration.intercom import test_backend_scheduler
 from test.integration.web_interface.rest.base import RestTestBase
 
 
 class TestRestDownload(RestTestBase):
 
-    def setUp(self):
-        super().setUp()
+    def setup(self):
+        super().setup()
         self.db_interface = BackEndDbInterface(self.config)
         self.test_queue = Queue()
 
-    def tearDown(self):
+    def teardown(self):
         self.test_queue.close()
         self.db_interface.shutdown()
-        super().tearDown()
+        super().teardown()
 
     def test_rest_download_valid(self):
-        backend_binding = InterComBackEndBinding(self.config, analysis_service=test_backend_scheduler.AnalysisServiceMock(), compare_service=test_backend_scheduler.ServiceMock(self.test_queue), unpacking_service=test_backend_scheduler.ServiceMock(self.test_queue))
-
+        backend_binding = InterComBackEndBinding(
+            config=self.config,
+            analysis_service=test_backend_scheduler.AnalysisServiceMock(),
+            compare_service=test_backend_scheduler.ServiceMock(self.test_queue),
+            unpacking_service=test_backend_scheduler.ServiceMock(self.test_queue)
+        )
         test_firmware = create_test_firmware(device_class='test class', device_name='test device', vendor='test vendor')
+        store_binary_on_file_system(self.tmp_dir.name, test_firmware)
         self.db_interface.add_firmware(test_firmware)
 
         try:

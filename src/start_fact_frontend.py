@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 '''
     Firmware Analysis and Comparison Tool (FACT)
-    Copyright (C) 2015-2020  Fraunhofer FKIE
+    Copyright (C) 2015-2021  Fraunhofer FKIE
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,82 +19,75 @@
 
 import logging
 import pickle
-import signal
 import sys
 import tempfile
 from shlex import split
 from subprocess import Popen, TimeoutExpired
-from time import sleep
 
 from common_helper_process import execute_shell_command
+from fact_base import FactBase
 
 from helperFunctions.config import get_config_dir
 from helperFunctions.fileSystem import get_src_dir
-from helperFunctions.program_setup import program_setup, was_started_by_start_fact
 from install.frontend import COMPOSE_VENV
-from statistic.work_load import WorkLoadStatistic
 
-PROGRAM_NAME = 'FACT Frontend'
-PROGRAM_DESCRIPTION = 'Firmware Analysis and Compare Tool Frontend'
-
-
-def shutdown(*_):
-    global run  # pylint: disable=invalid-name,global-statement
-    logging.debug('shutting down frontend')
-    run = False
+DOCKER_COMPOSE = COMPOSE_VENV / 'bin' / 'docker-compose'
+COMPOSE_YAML = f'{get_src_dir()}/install/radare/docker-compose.yml'
 
 
-def _shutdown_uwsgi_server(process):
-    try:
-        process.wait(timeout=30)
-    except TimeoutExpired:
-        logging.error('frontend did not stop in time -> kill')
-        process.kill()
+class UwsgiServer:
+    def __init__(self, config_path: str = None):
+        self.config_path = config_path
+        self.process = None
 
+    def start(self):
+        config_parameter = f' --pyargv {self.config_path}' if self.config_path else ''
+        command = f'uwsgi --thunder-lock --ini  {get_config_dir()}/uwsgi_config.ini{config_parameter}'
+        self.process = Popen(split(command), cwd=get_src_dir())
 
-def start_uwsgi_server(config_path=None):
-    config_parameter = ' --pyargv {}'.format(config_path) if config_path else ''
-    command = 'uwsgi --thunder-lock --ini  {}/uwsgi_config.ini{}'.format(get_config_dir(), config_parameter)
-    process = Popen(split(command), cwd=get_src_dir())
-    return process
+    def shutdown(self):
+        if self.process:
+            try:
+                self.process.wait(timeout=30)
+            except TimeoutExpired:
+                logging.error('frontend did not stop in time -> kill')
+                self.process.kill()
 
 
 def start_docker():
-    execute_shell_command('{} -f {}/install/radare/docker-compose.yml up -d'.format(COMPOSE_VENV / 'bin' / 'docker-compose', get_src_dir()))
+    execute_shell_command(f'{DOCKER_COMPOSE} -f {COMPOSE_YAML} up -d')
 
 
 def stop_docker():
-    execute_shell_command('{} -f {}/install/radare/docker-compose.yml down'.format(COMPOSE_VENV / 'bin' / 'docker-compose', get_src_dir()))
+    execute_shell_command(f'{DOCKER_COMPOSE} -f {COMPOSE_YAML} down')
+
+
+class FactFrontend(FactBase):
+    PROGRAM_NAME = 'FACT Frontend'
+    PROGRAM_DESCRIPTION = 'Firmware Analysis and Compare Tool Frontend'
+    COMPONENT = 'frontend'
+
+    def __init__(self):
+        super().__init__()
+        self.server = None
+        start_docker()
+
+    def main(self):
+        with tempfile.NamedTemporaryFile() as fp:
+            fp.write(pickle.dumps(self.args))
+            fp.flush()
+            self.server = UwsgiServer(fp.name)
+            self.server.start()
+
+            super().main()
+
+    def shutdown(self):
+        super().shutdown()
+        if self.server:
+            self.server.shutdown()
+        stop_docker()
 
 
 if __name__ == '__main__':
-    if was_started_by_start_fact():
-        signal.signal(signal.SIGUSR1, shutdown)
-        signal.signal(signal.SIGINT, lambda *_: None)
-    else:
-        signal.signal(signal.SIGINT, shutdown)
-
-    run = True  # pylint: disable=invalid-name
-    ARGS, CONFIG = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION)
-
-    start_docker()
-
-    work_load_stat = WorkLoadStatistic(config=CONFIG, component='frontend')
-
-    with tempfile.NamedTemporaryFile() as fp:
-        fp.write(pickle.dumps(ARGS))
-        fp.flush()
-        uwsgi_process = start_uwsgi_server(fp.name)
-
-        while run:
-            work_load_stat.update()
-            sleep(5)
-            if ARGS.testing:
-                break
-
-        work_load_stat.shutdown()
-        _shutdown_uwsgi_server(uwsgi_process)
-
-    stop_docker()
-
+    FactFrontend().main()
     sys.exit()

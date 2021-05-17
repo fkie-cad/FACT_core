@@ -12,19 +12,19 @@ from typing import List, Tuple
 
 try:
     from ..internal import data_parsing as dp
-    from ..internal.database_interface import DatabaseInterface, QUERIES
+    from ..internal.database_interface import DatabaseInterface, QUERIES, DB_PATH
     from ..internal.helper_functions import (
         CveEntry, CveSummaryEntry, replace_characters_and_wildcards, CveLookupException
     )
 except (ImportError, ValueError, SystemError):
     sys.path.append(str(Path(__file__).parent.parent / 'internal'))
     import data_parsing as dp
-    from database_interface import DatabaseInterface, QUERIES
+    from database_interface import DatabaseInterface, QUERIES, DB_PATH
     from helper_functions import CveEntry, CveSummaryEntry, replace_characters_and_wildcards, CveLookupException
 
 CURRENT_YEAR = datetime.now().year
 DATABASE = DatabaseInterface()
-SPLIT_REGEX = r'(?<!\\)[:]'
+CPE_SPLIT_REGEX = r'(?<![\\:]):(?!:)|(?<=\\:):'  # don't split on '::' or '\:' but split on '\::'
 
 Years = namedtuple('Years', 'start_year end_year')
 
@@ -186,7 +186,7 @@ def setup_cve_feeds_table(cve_list: List[CveEntry]) -> List[Tuple[str, ...]]:
             year = entry.cve_id.split('-')[1]
             score_v2 = entry.impact.get('cvssV2', 'N/A')
             score_v3 = entry.impact.get('cvssV3', 'N/A')
-            cpe_elements = replace_characters_and_wildcards(re.split(SPLIT_REGEX, cpe_id)[2:])
+            cpe_elements = replace_characters_and_wildcards(re.split(CPE_SPLIT_REGEX, cpe_id)[2:])
             row = (
                 entry.cve_id, year, cpe_id, score_v2, score_v3, *cpe_elements,
                 version_start_including, version_start_excluding, version_end_including, version_end_excluding
@@ -197,15 +197,15 @@ def setup_cve_feeds_table(cve_list: List[CveEntry]) -> List[Tuple[str, ...]]:
 
 def setup_cpe_table(cpe_list: list) -> list:
     return [
-        (cpe, *replace_characters_and_wildcards(re.split(SPLIT_REGEX, cpe)[2:]))
+        (cpe, *replace_characters_and_wildcards(re.split(CPE_SPLIT_REGEX, cpe)[2:]))
         for cpe in cpe_list
     ]
 
 
 class Choice(Enum):
-    cpe = 'cpe'
-    cve = 'cve'
-    both = 'both'
+    cpe = 'cpe'  # pylint: disable=invalid-name
+    cve = 'cve'  # pylint: disable=invalid-name
+    both = 'both'  # pylint: disable=invalid-name
 
     def cpe_was_chosen(self):
         return self.value in [self.cpe.value, self.both.value]
@@ -214,7 +214,7 @@ class Choice(Enum):
         return self.value in [self.cve.value, self.both.value]
 
     def __str__(self):
-        return self.value
+        return str(self.value)
 
 
 def update_repository(extraction_path: str, choice: Choice):
@@ -242,9 +242,8 @@ def setup_argparser():
     )
     parser.add_argument(
         '--update', '-u',
-        help='Boolean which specifies if the DATABASE should be updated. Default: False',
-        type=bool,
-        default=False
+        help='specifies if the DATABASE should be updated. Default: False',
+        action='store_true'
     )
     parser.add_argument(
         '--years', '-y',
@@ -288,9 +287,11 @@ def main():
             init_repository(extraction_path, args.target, years=years)
     except CveLookupException as exception:
         logging.error(exception.message)
+        if not args.update:
+            Path(DB_PATH).unlink(missing_ok=True)  # remove broken partial DB so that next install won't fail
         sys.exit(1)
-
-    rmtree(extraction_path)
+    finally:
+        rmtree(extraction_path, ignore_errors=True)
 
 
 if __name__ == '__main__':

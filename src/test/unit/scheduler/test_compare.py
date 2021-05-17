@@ -11,6 +11,8 @@ from scheduler.Compare import CompareScheduler
 from storage.db_interface_compare import FactCompareException
 from test.common_helper import create_test_file_object
 
+# pylint: disable=unused-argument,protected-access,no-member
+
 
 @pytest.fixture(autouse=True)
 def no_compare_views(monkeypatch):
@@ -22,13 +24,15 @@ class MockDbInterface:
         self.test_object = create_test_file_object()
         self.test_object.list_of_all_included_files = [self.test_object.uid]
 
-    def check_objects_exist(self, compare_id):
+    @staticmethod
+    def check_objects_exist(compare_id):
         if not compare_id == 'existing_id':
             raise FactCompareException('{} not found in database'.format(compare_id))
 
     def get_complete_object_including_all_summaries(self, uid):
         if uid == self.test_object.uid:
             return self.test_object
+        return None
 
 
 class TestSchedulerCompare(unittest.TestCase):
@@ -39,14 +43,17 @@ class TestSchedulerCompare(unittest.TestCase):
         self.config.set('ExpertSettings', 'block_delay', '2')
         self.config.set('ExpertSettings', 'ssdeep_ignore', '80')
 
-        self.bs_patch = unittest.mock.patch(target='storage.binary_service.BinaryService', new=lambda _: MockDbInterface)
-        self.bs_patch.start()
+        self.bs_patch_new = unittest.mock.patch(target='storage.binary_service.BinaryService.__new__', new=lambda *_, **__: MockDbInterface())
+        self.bs_patch_init = unittest.mock.patch(target='storage.binary_service.BinaryService.__init__', new=lambda _: None)
+        self.bs_patch_new.start()
+        self.bs_patch_init.start()
 
         self.compare_scheduler = CompareScheduler(config=self.config, db_interface=MockDbInterface(config=self.config), testing=True)
 
     def tearDown(self):
         self.compare_scheduler.shutdown()
-        self.bs_patch.stop()
+        self.bs_patch_new.stop()
+        self.bs_patch_init.stop()
 
         gc.collect()
 

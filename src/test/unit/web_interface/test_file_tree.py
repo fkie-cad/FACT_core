@@ -124,13 +124,42 @@ def test_remove_virtual_path_from_root(input_data, expected_output):
     assert remove_virtual_path_from_root(input_data) == expected_output
 
 
-def test_virtual_path_file_tree():
-    fo_data = {
-        '_id': 'uid', 'virtual_file_path': {'root_uid': ['root_uid|uid|/foo/bar', 'root_uid|uid|/foobar']}, 'size': 1,
-        'files_included': [], 'processed_analysis': {'file_type': {'mime': 'footype'}}, 'file_name': 'foo.exe',
-    }
-    nodes = {node.name: node for node in VirtualPathFileTree('uid', fo_data).get_file_tree_nodes()}
-    assert len(nodes) == 2, 'wrong number of nodes created'
-    assert 'foo' in nodes and 'foobar' in nodes
-    assert len(nodes['foo'].children) == 1
-    assert nodes['foo'].get_names_of_children() == ['bar']
+class TestVirtualPathFileTree:
+    @staticmethod
+    def test_multiple_paths():
+        fo_data = {
+            '_id': 'uid', 'file_name': 'foo.exe', 'processed_analysis': {'file_type': {'mime': 'footype'}},
+            'size': 1, 'files_included': [], 'virtual_file_path': {'root_uid': [
+                'root_uid|/foo/bar',
+                'root_uid|/other/path'
+            ]}
+        }
+        nodes = {node.name: node for node in VirtualPathFileTree('root_uid', 'root_uid', fo_data).get_file_tree_nodes()}
+        assert len(nodes) == 2, 'wrong number of nodes created'
+        assert 'foo' in nodes and 'other' in nodes
+        assert len(nodes['foo'].children) == 1
+        assert nodes['foo'].get_names_of_children() == ['bar']
+
+    @staticmethod
+    def test_multiple_occurrences():
+        fo_data = {
+            '_id': 'uid', 'file_name': 'foo.exe', 'processed_analysis': {'file_type': {'mime': 'footype'}},
+            'size': 1, 'files_included': [], 'virtual_file_path': {'root_uid': [
+                'root_uid|parent_uid|/foo/bar',
+                'root_uid|other_uid|/other/path'
+            ]},
+        }
+        nodes = {node.name: node for node in VirtualPathFileTree('root_uid', 'parent_uid', fo_data).get_file_tree_nodes()}
+        assert len(nodes) == 1, 'includes duplicates'
+        assert 'foo' in nodes and 'other' not in nodes
+
+    @staticmethod
+    def test_fo_root():
+        fo_data = {
+            '_id': 'uid', 'file_name': 'foo.exe', 'processed_analysis': {'file_type': {'mime': 'footype'}},
+            'size': 1, 'files_included': [], 'virtual_file_path': {'fw_uid': [
+                'fw_uid|fo_root_uid|parent_uid|/foo/bar',
+            ]},
+        }
+        tree = VirtualPathFileTree('fo_root_uid', 'parent_uid', fo_data)
+        assert tree.virtual_file_paths[0].startswith('|fo_root_uid'), 'incorrect partial vfp'

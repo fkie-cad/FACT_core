@@ -51,10 +51,6 @@ class InterComListener(InterComMongoInterface):
 
     CONNECTION_TYPE = 'test'  # unique for each listener
 
-    def __init__(self, config=None):
-        super().__init__(config=config)
-        self.additional_setup(config=config)
-
     def get_next_task(self):
         try:
             task_obj = self.connections[self.CONNECTION_TYPE]['fs'].find_one()
@@ -64,17 +60,11 @@ class InterComListener(InterComMongoInterface):
         if task_obj is not None:
             task = pickle.loads(task_obj.read())
             task_id = task_obj.filename
-            self.connections[self.CONNECTION_TYPE]['fs'].delete(task_obj._id)
+            self.connections[self.CONNECTION_TYPE]['fs'].delete(task_obj._id)  # pylint: disable=protected-access
             task = self.post_processing(task, task_id)
             logging.debug('{}: New task received: {}'.format(self.CONNECTION_TYPE, task))
             return task
         return None
-
-    def additional_setup(self, config=None):
-        '''
-        optional additional setup
-        '''
-        pass  # pylint: disable=unnecessary-pass
 
     def post_processing(self, task, task_id):  # pylint: disable=no-self-use,unused-argument
         '''

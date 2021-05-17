@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 '''
     FACT Installer
-    Copyright (C) 2015-2020  Fraunhofer FKIE
+    Copyright (C) 2015-2021  Fraunhofer FKIE
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -37,13 +37,12 @@ except ImportError:
     sys.exit(1)
 
 PROGRAM_NAME = 'FACT Installer'
-PROGRAM_VERSION = '1.1'
+PROGRAM_VERSION = '1.2'
 PROGRAM_DESCRIPTION = 'Firmware Analysis and Comparison Tool (FACT) installation script'
 
 INSTALL_CANDIDATES = ['frontend', 'db', 'backend']
 
 BIONIC_CODE_NAMES = ['bionic', 'tara', 'tessa', 'tina', 'disco']
-XENIAL_CODE_NAMES = ['xenial', 'yakkety', 'sarah', 'serena', 'sonya', 'sylvia']
 DEBIAN_CODE_NAMES = ['buster', 'stretch', 'kali-rolling']
 FOCAL_CODE_NAMES = ['focal', 'ulyana']
 
@@ -108,17 +107,12 @@ def welcome():
 
 
 def check_python_version():
-    if sys.version_info.major != 3 or sys.version_info.minor < 5:
-        sys.exit('Error: Incompatible Python version! You need at least version 3.5! Your Version: {}'.format(sys.version))
-    if sys.version_info.minor == 5:
-        logging.warning('Deprecation warning: Python 3.5 support will be discontinued when it hits its End of Life in 09/2020')
+    if sys.version_info.major != 3 or sys.version_info.minor < 6:
+        sys.exit('Error: Incompatible Python version! You need at least version 3.6! Your Version: {}'.format(sys.version))
 
 
 def check_distribution():
     codename = distro.codename().lower()
-    if codename in XENIAL_CODE_NAMES:
-        logging.debug('Ubuntu 16.04 detected')
-        return 'xenial'
     if codename in BIONIC_CODE_NAMES:
         logging.debug('Ubuntu 18.04 detected')
         return 'bionic'
@@ -131,7 +125,7 @@ def check_distribution():
     if distro.id() == 'fedora':
         logging.debug('Fedora detected')
         return 'fedora'
-    sys.exit('Your Distribution ({} {}) is not supported. FACT Installer requires Ubuntu 16.04, Ubuntu 18.04 or compatible!'.format(distro.id(), distro.version()))
+    sys.exit('Your Distribution ({} {}) is not supported. FACT Installer requires Ubuntu 18.04, 20.04 or compatible!'.format(distro.id(), distro.version()))
 
 
 def install_statistic_cronjob():
