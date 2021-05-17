@@ -22,16 +22,16 @@ api = Namespace('rest/firmware', description='Query the firmware database or upl
 
 
 firmware_model = api.model('Upload Firmware', {
-    'device_name': fields.String(description='Device Name'),
+    'device_name': fields.String(description='Device Name', required=True),
     'device_part': fields.String(description='Device Part', required=True),
-    'device_class': fields.String(description='Device Class'),
+    'device_class': fields.String(description='Device Class', required=True),
     'file_name':  fields.String(description='File Name', required=True),
     'version':  fields.String(description='Version', required=True),
     'vendor':  fields.String(description='Vendor', required=True),
     'release_date':  fields.String(description='Release Date'),
     'tags':  fields.String(description='Tags'),
-    'requested_analysis_systems': fields.List(description='Analyses', cls_or_instance=fields.String),
-    'binary': fields.String(description='Base64 string representing the raw binary')
+    'requested_analysis_systems': fields.List(description='Selected Analysis Systems', cls_or_instance=fields.String),
+    'binary': fields.String(description='Base64 String Representing the Raw Binary', required=True)
 })
 
 
@@ -50,7 +50,7 @@ class RestFirmwareGetWithoutUid(RestFirmwareBase):
     def get(self):
         '''
         Browse the database
-        List all available firmwares in the database
+        List all available firmware in the database
         '''
         try:
             query, recursive, inverted, offset, limit = self._get_parameters_from_request(request.args)
@@ -79,11 +79,12 @@ class RestFirmwareGetWithoutUid(RestFirmwareBase):
         return query, recursive, inverted, offset, limit
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
-    @api.expect(firmware_model)
+    @api.expect(firmware_model, validate=True)
     def put(self):
         '''
-        Update existing firmware analysis
-        You can use this endpoint to update a firmware analysis which is already existing
+        Upload a firmware
+        The HTTP body must contain a json document of the structure shown below
+        Important: The binary has to be a base64 string representing the raw binary you want to submit
         '''
         try:
             data = convert_rest_request(request.data)
@@ -115,12 +116,12 @@ class RestFirmwareGetWithoutUid(RestFirmwareBase):
 
 @api.route('/<string:uid>',
            doc={'description': '',
-                'params': {'uid': 'File UID'}
+                'params': {'uid': 'Firmware UID'}
                 }
            )
 class RestFirmwareGetWithUid(RestFirmwareBase):
     @roles_accepted(*PRIVILEGES['view_analysis'])
-    @api.doc(responses={200: 'Success', 400: 'Unknown file object'})
+    @api.doc(responses={200: 'Success', 400: 'Unknown UID'})
     def get(self, uid):
         '''
         Request a specific file
@@ -149,9 +150,8 @@ class RestFirmwareGetWithUid(RestFirmwareBase):
     @api.expect(firmware_model)
     def put(self, uid):
         '''
-        Upload a firmware
-        The HTTP body shall contain a json document of the structure shown below
-        Important: The binary has to be a base64 string representing the raw binary you want to submit
+        Update existing firmware analysis
+        You can use this endpoint to update a firmware analysis which is already existing
         '''
         try:
             update = get_update(request.args)

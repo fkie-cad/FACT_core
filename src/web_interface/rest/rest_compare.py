@@ -11,7 +11,7 @@ from web_interface.rest.helper import convert_rest_request, error_message, succe
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
-api = Namespace('rest/compare', description='Issue compares and retrieve compare results')
+api = Namespace('rest/compare', description='Start comparisons and retrieve results')
 
 
 compare_model = api.model('Compare Firmware', {
@@ -32,7 +32,7 @@ class RestCompareBase(Resource):
 class RestComparePut(RestCompareBase):
 
     @roles_accepted(*PRIVILEGES['compare'])
-    @api.expect(compare_model)
+    @api.expect(compare_model, validate=True)
     def put(self):
         '''
         Start a comparison
@@ -69,19 +69,19 @@ class RestComparePut(RestCompareBase):
 @api.route(
     '/<string:compare_id>',
     doc={
-        'description': 'Retrieve compare results',
+        'description': 'Retrieve comparison results',
         'params': {'compare_id': 'Firmware UID'}
     }
 )
 class RestCompareGet(RestCompareBase):
 
     @roles_accepted(*PRIVILEGES['compare'])
-    @api.doc(responses={200: 'Success', 400: 'Unknown file object'})
+    @api.doc(responses={200: 'Success', 400: 'Unknown comparison ID'})
     def get(self, compare_id=None):
         '''
         Request results from a comparisons
         The result can be requested by providing a semicolon separated list of uids as compare_id
-        The response will contain a json_document with the compare result, along with the fields status, timestamp,
+        The response will contain a json_document with the comparison result, along with the fields status, timestamp,
         request_resource and request as meta data
         '''
         try:

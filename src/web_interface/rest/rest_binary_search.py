@@ -20,7 +20,7 @@ api = Namespace('rest/binary_search', description='Initiate a binary search on t
 
 binary_search_model = api.model('Binary Search', {
     'rule_file': fields.String(description='YARA rules', required=True),
-    'uid': fields.Boolean(description='Firmware UID')
+    'uid': fields.String(description='Firmware UID')
 }, description='Expected value')
 
 
@@ -35,7 +35,7 @@ class RestBinarySearchBase(Resource):
 @api.route('', doc={'description': 'Binary search on the binary database (or a single firmware)'})
 class RestBinarySearchPost(RestBinarySearchBase):
     @roles_accepted(*PRIVILEGES['pattern_search'])
-    @api.expect(binary_search_model)
+    @api.expect(binary_search_model, validate=True)
     def post(self):
         '''
         Conduct a binary search
@@ -94,7 +94,7 @@ class RestBinarySearchPost(RestBinarySearchBase):
 class RestBinarySearchGet(RestBinarySearchBase):
 
     @roles_accepted(*PRIVILEGES['pattern_search'])
-    @api.doc(responses={200: 'Success', 400: 'Unknown file object'})
+    @api.doc(responses={200: 'Success', 400: 'Unknown search ID'})
     def get(self, search_id=None):
         '''
         Get the results of a previously initiated binary search

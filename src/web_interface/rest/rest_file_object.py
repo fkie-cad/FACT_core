@@ -23,7 +23,7 @@ class RestFileObjectBase(Resource):
 @api.route('', doc={'description': 'Browse the file database'})
 class RestFileObjectWithoutUid(RestFileObjectBase):
     @roles_accepted(*PRIVILEGES['view_analysis'])
-    @api.doc(responses={200: 'Success', 400: 'Unknown file object'})
+    @api.doc(responses={200: 'Success', 400: 'Error'})
     def get(self):
         '''
         Browse FACT database

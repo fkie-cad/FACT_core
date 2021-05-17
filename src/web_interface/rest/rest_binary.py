@@ -27,12 +27,13 @@ class RestBinary(Resource):
         self.config = kwargs.get('config', None)
 
     @roles_accepted(*PRIVILEGES['download'])
-    @api.doc(responses={200: 'Success', 400: 'Unknown binary'})
+    @api.doc(responses={200: 'Success', 404: 'Unknown UID'})
     def get(self, uid):
         '''
         Request a binary
         The uid of the file_object in question has to be given in the url
-        The return format will be {"binary": b64_encoded_binary, "file_name": file_name}
+        Alternatively the tar parameter can be used to get the target archive as its content repacked into a .tar.gz.
+        The return format will be {"binary": b64_encoded_binary_or_tar_gz, "file_name": file_name}
         '''
         with ConnectTo(FrontEndDbInterface, self.config) as db_service:
             existence = db_service.existence_quick_check(uid)

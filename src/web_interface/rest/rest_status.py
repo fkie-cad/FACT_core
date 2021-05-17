@@ -10,7 +10,7 @@ from web_interface.security.privileges import PRIVILEGES
 api = Namespace('rest/status', description='Request FACT\'s system status')
 
 
-@api.route('', doc={'description': ''})
+@api.route('')
 class RestStatus(Resource):
     URL = '/rest/status'
 
@@ -19,7 +19,7 @@ class RestStatus(Resource):
         self.config = kwargs.get('config', None)
 
     @roles_accepted(*PRIVILEGES['status'])
-    @api.doc(responses={200: 'Success', 400: 'Unknown system status'})
+    @api.doc(responses={200: 'Success', 400: 'Error'})
     def get(self):
         '''
         Request system status

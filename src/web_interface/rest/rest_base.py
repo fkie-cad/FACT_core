@@ -49,6 +49,5 @@ class RestBase:
             return resp
 
     def pass_config_and_add_namespace(self, imported_api, config: ConfigParser):
-        for api in [imported_api]:
-            self._pass_config_to_init(config, api)
-            self.api.add_namespace(api)
+        self._pass_config_to_init(config, imported_api)
+        self.api.add_namespace(imported_api)
