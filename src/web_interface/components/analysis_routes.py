@@ -6,8 +6,8 @@ from common_helper_files import get_binary_from_file
 from flask import flash, redirect, render_template, render_template_string, request, url_for
 from flask_login.utils import current_user
 
+from helperFunctions.data_conversion import none_to_none
 from helperFunctions.database import ConnectTo
-from helperFunctions.dataConversion import none_to_none
 from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.mongo_task_conversion import (
     check_for_errors, convert_analysis_task_to_fw_obj, create_re_analyze_task

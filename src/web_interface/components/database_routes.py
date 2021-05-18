@@ -7,8 +7,8 @@ from dateutil.relativedelta import relativedelta
 from flask import redirect, render_template, request, url_for
 
 from helperFunctions.config import read_list_from_config
+from helperFunctions.data_conversion import make_unicode_string
 from helperFunctions.database import ConnectTo
-from helperFunctions.dataConversion import make_unicode_string
 from helperFunctions.mongo_task_conversion import get_file_name_and_binary_from_request
 from helperFunctions.uid import is_uid
 from helperFunctions.web_interface import apply_filters_to_query, filter_out_illegal_characters

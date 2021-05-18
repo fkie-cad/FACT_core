@@ -1,5 +1,6 @@
 import logging
 from pathlib import Path
+from typing import List
 
 from common_helper_files import get_dirs_in_dir
 from pluginbase import PluginBase
@@ -13,7 +14,7 @@ def import_plugins(plugin_mount, plugin_base_dir):
     return plugin_base.make_plugin_source(searchpath=plugin_src_dirs)
 
 
-def _get_plugin_src_dirs(base_dir):
+def _get_plugin_src_dirs(base_dir: str) -> List[str]:
     plug_in_base_path = Path(get_src_dir(), base_dir)
     plugin_dirs = get_dirs_in_dir(str(plug_in_base_path))
     plugins = []

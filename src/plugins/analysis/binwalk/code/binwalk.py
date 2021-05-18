@@ -7,7 +7,7 @@ from common_helper_process import execute_shell_command
 
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.config import get_temp_dir_path
-from helperFunctions.dataConversion import make_unicode_string
+from helperFunctions.data_conversion import make_unicode_string
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
