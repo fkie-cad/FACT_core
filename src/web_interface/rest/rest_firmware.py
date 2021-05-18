@@ -2,7 +2,7 @@ import logging
 from base64 import standard_b64decode
 
 from flask import request
-from flask_restx import Resource, Namespace, fields
+from flask_restx import Namespace, Resource, fields
 from pymongo.errors import PyMongoError
 
 from helperFunctions.database import ConnectTo
@@ -16,7 +16,6 @@ from web_interface.rest.helper import (
 )
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
-
 
 api = Namespace('rest/firmware', description='Query the firmware database or upload a firmware')
 
@@ -46,10 +45,26 @@ class RestFirmwareBase(Resource):
 @api.route('', doc={'description': ''})
 class RestFirmwareGetWithoutUid(RestFirmwareBase):
     @roles_accepted(*PRIVILEGES['view_analysis'])
-    @api.doc(responses={200: 'Success', 400: 'Unknown file object'})
+    @api.doc(
+        responses={200: 'Success', 400: 'Unknown file object'},
+        params={
+            'offset': {'description': 'offset of results (paging)', 'in': 'query', 'type': 'int'},
+            'limit': {'description': 'number of results (paging)', 'in': 'query', 'type': 'int'},
+            'query': {'description': 'MongoDB style query', 'in': 'query', 'type': 'dict'},
+            'recursive': {
+                'description': 'Query for parent firmware of matching objects (requires query)',
+                'in': 'query', 'type': 'boolean', 'default': 'false'
+            },
+            'inverted': {
+                'description': 'Query for parent firmware that does not include the matching objects (Requires query '
+                               'and recursive)',
+                'in': 'query', 'type': 'boolean', 'default': 'false'
+            },
+        }
+    )
     def get(self):
         '''
-        Browse the database
+        Browse the firmware database
         List all available firmware in the database
         '''
         try:
@@ -114,18 +129,17 @@ class RestFirmwareGetWithoutUid(RestFirmwareBase):
         return dict(uid=firmware_object.uid)
 
 
-@api.route('/<string:uid>',
-           doc={'description': '',
-                'params': {'uid': 'Firmware UID'}
-                }
-           )
+@api.route('/<string:uid>', doc={'description': '', 'params': {'uid': 'Firmware UID'}})
 class RestFirmwareGetWithUid(RestFirmwareBase):
     @roles_accepted(*PRIVILEGES['view_analysis'])
-    @api.doc(responses={200: 'Success', 400: 'Unknown UID'})
+    @api.doc(
+        responses={200: 'Success', 400: 'Unknown UID'},
+        params={'summary': {'description': 'include summary in result', 'in': 'query', 'type': 'boolean', 'default': 'false'}}
+    )
     def get(self, uid):
         '''
-        Request a specific file
-        Get a specific file by providing the uid of the corresponding firmware
+        Request a specific firmware
+        Get the analysis results of a specific firmware by providing the corresponding uid
         '''
         summary = get_boolean_from_request(request.args, 'summary')
         if summary:

@@ -1,7 +1,7 @@
 from base64 import standard_b64encode
 
 from flask import request
-from flask_restx import Resource, Namespace
+from flask_restx import Namespace, Resource
 
 from helperFunctions.database import ConnectTo
 from helperFunctions.hash import get_sha256
@@ -14,11 +14,16 @@ from web_interface.security.privileges import PRIVILEGES
 api = Namespace('rest/binary', description='Request the binary of a given firmware or file object')
 
 
-@api.route('/<string:uid>',
-           doc={'description': 'Request a binary by providing the uid of the corresponding object',
-                'params': {'uid': 'Firmware UID'}
-                }
-           )
+@api.route(
+    '/<string:uid>',
+    doc={
+        'description': 'Request a binary by providing the uid of the corresponding object',
+        'params': {
+            'uid': 'Firmware UID',
+            'tar': {'description': 'Get tar.gz packed contents of target', 'in': 'query', 'type': 'boolean', 'default': 'false'}
+        }
+    }
+)
 class RestBinary(Resource):
     URL = '/rest/binary'
 

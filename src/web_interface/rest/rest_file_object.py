@@ -1,5 +1,5 @@
 from flask import request
-from flask_restx import Resource, Namespace
+from flask_restx import Namespace, Resource
 from pymongo.errors import PyMongoError
 
 from helperFunctions.database import ConnectTo
@@ -23,10 +23,17 @@ class RestFileObjectBase(Resource):
 @api.route('', doc={'description': 'Browse the file database'})
 class RestFileObjectWithoutUid(RestFileObjectBase):
     @roles_accepted(*PRIVILEGES['view_analysis'])
-    @api.doc(responses={200: 'Success', 400: 'Error'})
+    @api.doc(
+        responses={200: 'Success', 400: 'Error'},
+        params={
+            'offset': {'description': 'offset of results (paging)', 'in': 'query', 'type': 'int'},
+            'limit': {'description': 'number of results (paging)', 'in': 'query', 'type': 'int'},
+            'query': {'description': 'MongoDB style query', 'in': 'query', 'type': 'dict'}
+        }
+    )
     def get(self):
         '''
-        Browse FACT database
+        Browse the file database
         '''
         try:
             query = get_query(request.args)
@@ -44,17 +51,23 @@ class RestFileObjectWithoutUid(RestFileObjectBase):
             return error_message('Unknown exception on request', self.URL, parameters)
 
 
-@api.route('/<string:uid>',
-           doc={'description': 'Request specific file by providing the uid of the corresponding object',
-                'params': {'uid': 'File UID'}
-                }
-           )
+@api.route(
+    '/<string:uid>',
+    doc={
+        'description': 'Request specific file by providing the uid of the corresponding object',
+        'params': {
+            'uid': 'File UID',
+            'summary': {'description': 'include summary in result', 'in': 'query', 'type': 'boolean', 'default': 'false'}
+        }
+    }
+)
 class RestFileObjectWithUid(RestFileObjectBase):
     @roles_accepted(*PRIVILEGES['view_analysis'])
     @api.doc(responses={200: 'Success', 400: 'Unknown file object'})
     def get(self, uid):
         '''
-        Request specific file
+        Request a specific file
+        Get the analysis results of a specific file by providing the corresponding uid
         '''
         with ConnectTo(FrontEndDbInterface, self.config) as connection:
             file_object = connection.get_file_object(uid)
