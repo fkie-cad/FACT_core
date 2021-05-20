@@ -56,12 +56,12 @@ def test_successful_uid_request(test_app):
 
 def test_bad_put_request(test_app):
     result = decode_response(test_app.put('/rest/firmware'))
-    assert 'Request should be' in result['error_message']
+    assert 'Input payload validation failed' in result['message']
 
 
 def test_submit_empty_data(test_app):
     result = decode_response(test_app.put('/rest/firmware', data=json.dumps(dict())))
-    assert result['status'] == 1
+    assert 'Input payload validation failed' in result['message']
 
 
 def test_submit_missing_item(test_app):
@@ -69,13 +69,14 @@ def test_submit_missing_item(test_app):
         'binary': standard_b64encode(b'\x01\x23\x45\x67\x89').decode(),
         'file_name': 'no_real_file',
         'device_name': 'no real device',
+        'device_part': 'no real part',
         'device_class': 'no real class',
         'version': 'no.real.version',
         'release_date': '01.01.1970',
         'requested_analysis_systems': ['file_type']
     }  # vendor missing
     result = decode_response(test_app.put('/rest/firmware', data=json.dumps(request_data)))
-    assert result['status'] == 1
+    assert 'Input payload validation failed' in result['message']
 
 
 def test_submit_success(test_app):
@@ -92,6 +93,7 @@ def test_submit_success(test_app):
         'requested_analysis_systems': ['file_type']
     }
     result = decode_response(test_app.put('/rest/firmware', data=json.dumps(request_data)))
+    print(result)
     assert result['status'] == 0
 
 

@@ -6,7 +6,7 @@ from .conftest import decode_response
 
 def test_bad_request(test_app):
     result = decode_response(test_app.put('/rest/compare'))
-    assert 'Request should be a dict' in result['error_message']
+    assert 'Input payload validation failed' in result['message']
 
     result = test_app.get('/rest/compare/').data
     assert b'404 Not Found' in result
@@ -14,7 +14,7 @@ def test_bad_request(test_app):
 
 def test_empty_data(test_app):
     result = decode_response(test_app.put('/rest/compare', data=json.dumps(dict())))
-    assert 'Request should be of the form' in result['error_message']
+    assert 'Input payload validation failed' in result['message']
 
     result = decode_response(test_app.get('/rest/compare'))
     assert 'The method is not allowed for the requested URL' in result['message']
@@ -36,8 +36,7 @@ def test_get_success(test_app):
 def test_put_unknown_objects(test_app):
     data = {'uid_list': ['someid_size', 'anotherid_size']}
     result = decode_response(test_app.put('/rest/compare', data=json.dumps(data)))
-    assert result['status'] == 1
-    assert result['error_message'] == 'bla'
+    assert 'Input payload validation failed' in result['message']
 
 
 def test_put_pre_existing(test_app):
