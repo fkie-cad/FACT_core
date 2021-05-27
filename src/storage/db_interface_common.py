@@ -32,9 +32,7 @@ class MongoInterfaceCommon(MongoInterface):  # pylint: disable=too-many-instance
         self.sanitize_fs = gridfs.GridFS(self.sanitize_storage)
 
     def existence_quick_check(self, uid):
-        if self.is_firmware(uid):
-            return True
-        return self.is_file_object(uid)
+        return self.is_firmware(uid) or self.is_file_object(uid)
 
     def is_firmware(self, uid):
         return self.firmwares.count_documents({'_id': uid}) > 0
@@ -170,8 +168,8 @@ class MongoInterfaceCommon(MongoInterface):  # pylint: disable=too-many-instance
                     sanitized_dict[key] = self._retrieve_binaries(sanitized_dict, key)
                 else:
                     sanitized_dict[key].pop('file_system_flag')
-            except (KeyError, IndexError, AttributeError, TypeError, pickle.PickleError) as error:
-                logging.debug(f'Could not retrieve information: {type(error)} {error}')
+            except (KeyError, IndexError, AttributeError, TypeError, pickle.PickleError):
+                logging.error('Could not retrieve information:', exc_info=True)
         return sanitized_dict
 
     def _extract_binaries(self, analysis_dict, key, uid):
