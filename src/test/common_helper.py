@@ -28,7 +28,11 @@ def get_test_data_dir():
 class CommonDbInterfaceMock(MongoInterfaceCommon):
 
     def __init__(self):  # pylint: disable=super-init-not-called
-        pass
+        class Collection:
+            def aggregate(self, *_, **__):
+                return []
+
+        self.file_objects = Collection()
 
     def retrieve_analysis(self, sanitized_dict, analysis_filter=None):
         return {}

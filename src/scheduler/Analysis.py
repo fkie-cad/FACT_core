@@ -15,7 +15,6 @@ from helperFunctions.logging import TerminalColors, color_string
 from helperFunctions.merge_generators import shuffled
 from helperFunctions.plugin import import_plugins
 from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions
-from helperFunctions.tag import add_tags_to_object, check_tags
 from objects.file import FileObject
 from objects.firmware import Firmware
 from storage.db_interface_backend import BackEndDbInterface
@@ -37,7 +36,6 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         self.load_plugins()
         self.stop_condition = Value('i', 0)
         self.process_queue = Queue()
-        self.tag_queue = Queue()
         self.manager = Manager()
         self.currently_running = self.manager.dict()
         self.recently_finished = self.manager.dict()
@@ -64,7 +62,6 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
                 executor.submit(self.analysis_plugins[plugin].shutdown)
         if getattr(self.db_backend_service, 'shutdown', False):
             self.db_backend_service.shutdown()
-        self.tag_queue.close()
         self.process_queue.close()
         logging.info('Analysis System offline')
 
@@ -366,7 +363,6 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             for plugin in self.analysis_plugins:
                 try:
                     fw = self.analysis_plugins[plugin].out_queue.get_nowait()
-                    fw = self._handle_analysis_tags(fw, plugin)
                 except Empty:
                     pass
                 else:
@@ -379,10 +375,6 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
                     self.check_further_process_or_complete(fw)
             if nop:
                 sleep(float(self.config['ExpertSettings']['block_delay']))
-
-    def _handle_analysis_tags(self, fw, plugin):
-        self.tag_queue.put(check_tags(fw, plugin))
-        return add_tags_to_object(fw, plugin)
 
     def check_further_process_or_complete(self, fw_object):
         if not fw_object.scheduled_analysis:
