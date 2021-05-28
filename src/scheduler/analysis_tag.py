@@ -1,6 +1,7 @@
 import logging
-from queue import Empty
 from multiprocessing import Value
+from queue import Empty
+
 from helperFunctions.process import ExceptionSafeProcess
 
 
@@ -34,7 +35,7 @@ class TaggingDaemon:
             return
 
         if not tags['notags']:
-            if self.db_interface.existence_quick_check(tags['uid']):
+            if self.db_interface.exists(tags['uid']):
                 self._process_tags(tags)
             else:
                 self.parent.tag_queue.put(tags)

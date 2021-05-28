@@ -68,7 +68,7 @@ class IORoutes(ComponentBase):
 
     def _prepare_file_download(self, uid, packed=False):
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
-            object_exists = sc.existence_quick_check(uid)
+            object_exists = sc.exists(uid)
         if not object_exists:
             return render_template('uid_not_found.html', uid=uid)
         with ConnectTo(InterComFrontEndBinding, self._config) as sc:
@@ -100,7 +100,7 @@ class IORoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['download'])
     def _show_radare(self, uid):
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
-            object_exists = sc.existence_quick_check(uid)
+            object_exists = sc.exists(uid)
         if not object_exists:
             return render_template('uid_not_found.html', uid=uid)
         with ConnectTo(InterComFrontEndBinding, self._config) as sc:
@@ -129,7 +129,7 @@ class IORoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['download'])
     def _download_pdf_report(self, uid):
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
-            object_exists = sc.existence_quick_check(uid)
+            object_exists = sc.exists(uid)
         if not object_exists:
             return render_template('uid_not_found.html', uid=uid)
 

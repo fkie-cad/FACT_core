@@ -201,7 +201,7 @@ class InterComBackEndDeleteFile(InterComListener):
 
     def _entry_was_removed_from_db(self, uid):
         with ConnectTo(MongoInterfaceCommon, self.config) as db:
-            if db.existence_quick_check(uid):
+            if db.exists(uid):
                 logging.debug('file not removed, because database entry exists: {}'.format(uid))
                 return False
             if db.check_unpacking_lock(uid):

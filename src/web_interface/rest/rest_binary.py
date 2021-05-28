@@ -24,7 +24,7 @@ class RestBinary(Resource):
         The return format will be {"binary": b64_encoded_binary, "file_name": file_name}
         '''
         with ConnectTo(FrontEndDbInterface, self.config) as db_service:
-            existence = db_service.existence_quick_check(uid)
+            existence = db_service.exists(uid)
         if not existence:
             return error_message('No firmware with UID {} found in database'.format(uid), self.URL, request_data={'uid': uid}, return_code=404)
 

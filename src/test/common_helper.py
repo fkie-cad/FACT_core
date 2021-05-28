@@ -166,7 +166,7 @@ class DatabaseMock:  # pylint: disable=too-many-public-methods
             return {'this_is': 'a_compare_result'}
         return 'generic error'
 
-    def existence_quick_check(self, uid):
+    def exists(self, uid):
         return uid in (self.fw_uid, self.fo_uid, self.fw2_uid, 'error')
 
     def check_objects_exist(self, compare_id):
