@@ -246,68 +246,6 @@
 
 </dd></dl>
 
-<dl class="py function">
-<dt class="sig sig-object py" id="helperFunctions.tag.add_tags_to_object">
-<span class="sig-prename descclassname"><span class="pre">helperFunctions.tag.</span></span><span class="sig-name descname"><span class="pre">add_tags_to_object</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">analysis_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.tag.add_tags_to_object" title="Permalink to this definition">¶</a></dt>
-<dd><p>Adds the tags from an analysis plugin to the analysis tags of a file object.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>file_object</strong> (<a class="reference internal" href="objects.file.html#objects.file.FileObject" title="objects.file.FileObject"><em>objects.file.FileObject</em></a>) – The file object.</p></li>
-<li><p><strong>analysis_name</strong> (<em>str</em>) – The analysis plugin.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>The updated file object.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference internal" href="objects.file.html#objects.file.FileObject" title="objects.file.FileObject">objects.file.FileObject</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="helperFunctions.tag.check_tags">
-<span class="sig-prename descclassname"><span class="pre">helperFunctions.tag.</span></span><span class="sig-name descname"><span class="pre">check_tags</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">analysis_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.tag.check_tags" title="Permalink to this definition">¶</a></dt>
-<dd><p>Checks if a file object has tags associated with a specific analysis plugin.
-Returns a dictionary with <cite>notags</cite> set to <cite>False</cite> and containing the tags, plugin and uid if yes, or a dictionary
-with <cite>notags</cite> set to <cite>True</cite> otherwise.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>file_object</strong> (<a class="reference internal" href="objects.file.html#objects.file.FileObject" title="objects.file.FileObject"><em>objects.file.FileObject</em></a>) – The file object.</p></li>
-<li><p><strong>analysis_name</strong> (<em>str</em>) – The analysis plugin.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>A dictionary with the tag data.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>Dict</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="helperFunctions.tag.update_tags">
-<span class="sig-prename descclassname"><span class="pre">helperFunctions.tag.</span></span><span class="sig-name descname"><span class="pre">update_tags</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">old_tags</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plugin_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.tag.update_tags" title="Permalink to this definition">¶</a></dt>
-<dd><p>Updates the plugin <cite>plugin_name</cite> of a tag dictionary <cite>old_tags</cite> with a new entry with key <cite>tag_name</cite> and
-value <cite>tag</cite>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>old_tags</strong> (<em>dict</em>) – The tag dictionary that is updated.</p></li>
-<li><p><strong>plugin_name</strong> (<em>str</em>) – The analysis plugin.</p></li>
-<li><p><strong>tag_name</strong> (<em>str</em>) – The tag label.</p></li>
-<li><p><strong>tag</strong> (<em>dict</em>) – The new tag entry.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>dict</p>
-</dd>
-</dl>
-</dd></dl>
-
 </div>
 
 

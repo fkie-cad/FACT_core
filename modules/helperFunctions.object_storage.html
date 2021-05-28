@@ -195,27 +195,6 @@
   <div class="section" id="module-helperFunctions.object_storage">
 <span id="helperfunctions-object-storage-module"></span><h1>helperFunctions.object_storage module<a class="headerlink" href="#module-helperFunctions.object_storage" title="Permalink to this headline">¶</a></h1>
 <dl class="py function">
-<dt class="sig sig-object py" id="helperFunctions.object_storage.update_analysis_tags">
-<span class="sig-prename descclassname"><span class="pre">helperFunctions.object_storage.</span></span><span class="sig-name descname"><span class="pre">update_analysis_tags</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">old_object</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.object_storage.update_analysis_tags" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get updated tags of a file object by adding new tags and overwriting existing ones if outdated.
-Not outdated tags are kept.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>new_object</strong> (<a class="reference internal" href="objects.file.html#objects.file.FileObject" title="objects.file.FileObject"><em>objects.file.FileObject</em></a>) – Current file object with up to date tags</p></li>
-<li><p><strong>old_object</strong> (<em>dict</em>) – Current database state of same object with existing tags</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>a dict containing new tags and old - not outdated - tags</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>dict</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
 <dt class="sig sig-object py" id="helperFunctions.object_storage.update_included_files">
 <span class="sig-prename descclassname"><span class="pre">helperFunctions.object_storage.</span></span><span class="sig-name descname"><span class="pre">update_included_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">old_object</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.object_storage.update_included_files" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get updated list of included files of an object.
