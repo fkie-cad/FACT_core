@@ -2,21 +2,6 @@ from helperFunctions.virtual_file_path import merge_vfp_lists
 from objects.file import FileObject
 
 
-def update_analysis_tags(new_object: FileObject, old_object: dict) -> dict:
-    '''
-    Get updated tags of a file object by adding new tags and overwriting existing ones if outdated.
-    Not outdated tags are kept.
-
-    :param new_object: Current file object with up to date tags
-    :param old_object: Current database state of same object with existing tags
-    :return: a dict containing new tags and old - not outdated - tags
-    '''
-    old_tags = old_object['analysis_tags'] if 'analysis_tags' in old_object else {}
-    for key in new_object.analysis_tags.keys():
-        old_tags[key] = new_object.analysis_tags[key]
-    return old_tags
-
-
 def update_included_files(new_object: FileObject, old_object: dict) -> list:
     '''
     Get updated list of included files of an object.

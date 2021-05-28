@@ -1,3 +1,4 @@
+# pylint: disable=protected-access,attribute-defined-outside-init,wrong-import-order
 import gc
 import json
 import pickle
@@ -12,8 +13,6 @@ from storage.db_interface_backend import BackEndDbInterface
 from storage.db_interface_common import MongoInterfaceCommon
 from storage.MongoMgr import MongoMgr
 from test.common_helper import create_test_file_object, create_test_firmware, get_config_for_testing, get_test_data_dir
-
-# pylint: disable=protected-access,attribute-defined-outside-init
 
 TESTS_DIR = get_test_data_dir()
 test_file_one = path.join(TESTS_DIR, 'get_files_test/testfile1')
@@ -256,6 +255,77 @@ class TestMongoInterface(unittest.TestCase):
 
         self.db_interface_backend.add_file_object(self.test_fo)
         assert self.db_interface.is_file_object(self.test_fo.uid) is True
+
+    def test_collect_analysis_tags_propagate(self):
+        tag = {'OS Version': {'color': 'success', 'value': 'FactOS', 'propagate': True}}
+        self.test_fo.processed_analysis['software_components'] = {
+            'summary': [], 'tags': tag
+        }
+        self.test_firmware.add_included_file(self.test_fo)
+        self.db_interface_backend.add_firmware(self.test_firmware)
+        self.db_interface_backend.add_file_object(self.test_fo)
+        assert self.db_interface._collect_analysis_tags_from_children(self.test_firmware.uid) == {'software_components': tag}
+
+    def test_collect_analysis_tags_no_propagate(self):
+        tag = {'OS Version': {'color': 'success', 'value': 'FactOS', 'propagate': False}}
+        self.test_fo.processed_analysis['software_components'] = {
+            'summary': [], 'tags': tag
+        }
+        self.test_firmware.add_included_file(self.test_fo)
+        self.db_interface_backend.add_firmware(self.test_firmware)
+        self.db_interface_backend.add_file_object(self.test_fo)
+        assert self.db_interface._collect_analysis_tags_from_children(self.test_firmware.uid) == {}
+
+    def test_collect_analysis_tags_no_tags(self):
+        self.test_fo.processed_analysis['software_components'] = {
+            'summary': []
+        }
+        self.test_firmware.add_included_file(self.test_fo)
+        self.db_interface_backend.add_firmware(self.test_firmware)
+        self.db_interface_backend.add_file_object(self.test_fo)
+        assert self.db_interface._collect_analysis_tags_from_children(self.test_firmware.uid) == {}
+
+    def test_collect_analysis_tags_duplicate(self):
+        tag = {'OS Version': {'color': 'success', 'value': 'FactOS 1.1', 'propagate': True}}
+
+        self.test_fo.processed_analysis['software_components'] = {
+            'summary': [],
+            'tags': tag
+        }
+        self.test_firmware.add_included_file(self.test_fo)
+
+        test_fo_2 = create_test_file_object('get_files_test/testfile2')
+        test_fo_2.processed_analysis['software_components'] = {
+            'summary': [],
+            'tags': tag
+        }
+        self.test_firmware.add_included_file(test_fo_2)
+
+        self.db_interface_backend.add_firmware(self.test_firmware)
+        self.db_interface_backend.add_file_object(self.test_fo)
+        self.db_interface_backend.add_file_object(test_fo_2)
+
+        assert self.db_interface._collect_analysis_tags_from_children(self.test_firmware.uid) == {'software_components': tag}
+
+    def test_collect_analysis_tags_unique_tags(self):
+        self.test_fo.processed_analysis['software_components'] = {
+            'summary': [],
+            'tags': {'OS Version': {'color': 'success', 'value': 'FactOS 1.1', 'propagate': True}}
+        }
+        self.test_firmware.add_included_file(self.test_fo)
+
+        test_fo_2 = create_test_file_object('get_files_test/testfile2')
+        test_fo_2.processed_analysis['software_components'] = {
+            'summary': [],
+            'tags': {'OS Version': {'color': 'success', 'value': 'OtherOS 0.2', 'propagate': True}}
+        }
+        self.test_firmware.add_included_file(test_fo_2)
+
+        self.db_interface_backend.add_firmware(self.test_firmware)
+        self.db_interface_backend.add_file_object(self.test_fo)
+        self.db_interface_backend.add_file_object(test_fo_2)
+
+        assert len(self.db_interface._collect_analysis_tags_from_children(self.test_firmware.uid)['software_components']) == 2
 
 
 class TestSummary(unittest.TestCase):
