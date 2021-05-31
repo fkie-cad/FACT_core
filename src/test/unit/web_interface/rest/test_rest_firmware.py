@@ -86,7 +86,7 @@ def test_submit_missing_item(test_app):
 
 
 def test_submit_invalid_binary(test_app):
-    request_data = {**TEST_FW_PAYLOAD, 'binary': b'invalid_base64'}
+    request_data = {**TEST_FW_PAYLOAD, 'binary': 'invalid_base64'}
     result = decode_response(test_app.put('/rest/firmware', json=request_data))
     assert 'Could not parse binary (must be valid base64!)' in result['error_message']
 
