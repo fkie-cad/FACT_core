@@ -10,12 +10,6 @@ from web_interface.rest.rest_resource_base import RestResourceBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
-
-class RestBinarySearchException(Exception):
-    def get_message(self):
-        return ", ".join(self.args)
-
-
 api = Namespace('rest/binary_search', description='Initiate a binary search on the binary database and fetch the results')
 
 binary_search_model = api.model('Binary Search', {
@@ -80,10 +74,6 @@ class RestBinarySearchGet(RestResourceBase):
         The result of the search request can only be fetched once
         After this the search needs to be started again.
         '''
-
-        if search_id is None:
-            return error_message('The request is missing a search_id (.../binary_search/<search_id>).', self.URL)
-
         with ConnectTo(InterComFrontEndBinding, self.config) as intercom:
             result, _ = intercom.get_binary_search_result(search_id)
 

@@ -4,6 +4,8 @@ from storage.db_interface_backend import BackEndDbInterface
 from test.common_helper import create_test_firmware
 from test.integration.web_interface.rest.base import RestTestBase
 
+TEST_UID = 'deadbeef' * 8 + '_1'
+
 
 class TestRestStartCompare(RestTestBase):
 
@@ -50,7 +52,7 @@ class TestRestStartCompare(RestTestBase):
         assert b'Compare not found in database.' in rv.data
 
     def test_rest_get_compare_invalid_uid(self):
-        rv = self.test_client.get('/rest/compare/123;456', follow_redirects=True)
+        rv = self.test_client.get(f'/rest/compare/{TEST_UID};{TEST_UID}', follow_redirects=True)
         assert b'not found in database' in rv.data
 
     def test_rest_get_compare_invalid_data(self):

@@ -5,6 +5,19 @@ from urllib.parse import quote
 from test.common_helper import TEST_FW
 from test.unit.web_interface.rest.conftest import decode_response
 
+TEST_FW_PAYLOAD = {
+    'binary': standard_b64encode(b'\x01\x23\x45\x67\x89').decode(),
+    'file_name': 'no_real_file',
+    'device_part': 'kernel',
+    'device_name': 'no real device',
+    'device_class': 'no real class',
+    'version': 'no.real.version',
+    'release_date': '01.01.1970',
+    'vendor': 'no real vendor',
+    'tags': 'tag1,tag2',
+    'requested_analysis_systems': ['file_type']
+}
+
 
 def test_successful_request(test_app):
     response = decode_response(test_app.get('/rest/firmware'))
@@ -65,35 +78,21 @@ def test_submit_empty_data(test_app):
 
 
 def test_submit_missing_item(test_app):
-    request_data = {
-        'binary': standard_b64encode(b'\x01\x23\x45\x67\x89').decode(),
-        'file_name': 'no_real_file',
-        'device_name': 'no real device',
-        'device_part': 'no real part',
-        'device_class': 'no real class',
-        'version': 'no.real.version',
-        'release_date': '01.01.1970',
-        'requested_analysis_systems': ['file_type']
-    }  # vendor missing
+    request_data = {**TEST_FW_PAYLOAD}
+    request_data.pop('vendor')
     result = decode_response(test_app.put('/rest/firmware', json=request_data))
     assert 'Input payload validation failed' in result['message']
     assert 'vendor' in result['errors']
 
 
-def test_submit_success(test_app):
-    request_data = {
-        'binary': standard_b64encode(b'\x01\x23\x45\x67\x89').decode(),
-        'file_name': 'no_real_file',
-        'device_part': 'kernel',
-        'device_name': 'no real device',
-        'device_class': 'no real class',
-        'version': 'no.real.version',
-        'release_date': '01.01.1970',
-        'vendor': 'no real vendor',
-        'tags': 'tag1,tag2',
-        'requested_analysis_systems': ['file_type']
-    }
+def test_submit_invalid_binary(test_app):
+    request_data = {**TEST_FW_PAYLOAD, 'binary': b'invalid_base64'}
     result = decode_response(test_app.put('/rest/firmware', json=request_data))
+    assert 'Could not parse binary (must be valid base64!)' in result['error_message']
+
+
+def test_submit_success(test_app):
+    result = decode_response(test_app.put('/rest/firmware', json=TEST_FW_PAYLOAD))
     assert result['status'] == 0
 
 

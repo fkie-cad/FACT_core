@@ -22,7 +22,7 @@ class RestStatus(RestResourceBase):
         Request system status
         Request a json document showing the system state of FACT, similar to the system health page of the GUI
         '''
-        components = ["frontend", "database", "backend"]
+        components = ['frontend', 'database', 'backend']
         status = {}
         with ConnectTo(StatisticDbViewer, self.config) as stats_db:
             for component in components:
@@ -31,8 +31,8 @@ class RestStatus(RestResourceBase):
         with ConnectTo(InterComFrontEndBinding, self.config) as sc:
             plugins = sc.get_available_analysis_plugins()
 
-        if not status:
-            return error_message('Unknown Issue. Cannot Stat FACT.', self.URL, return_code=404)
+        if not any(bool(status[component]) for component in components):
+            return error_message('Cannot get FACT component status: Database may be down', self.URL, return_code=404)
 
         response = {
             'system_status': status,
