@@ -1,5 +1,4 @@
 import json
-
 from time import sleep
 
 from test.acceptance.base import TestAcceptanceBase
@@ -25,12 +24,12 @@ class TestRestBinarySearch(TestAcceptanceBase):
 
     def _upload_firmware(self):
         data = get_firmware_for_rest_upload_test()
-        rv = self.test_client.put('/rest/firmware', data=json.dumps(data), follow_redirects=True)
+        rv = self.test_client.put('/rest/firmware', json=data, follow_redirects=True)
         self.assertIn(b'"status": 0', rv.data, 'rest upload not successful')
 
     def _post_binary_search(self):
         data = {'rule_file': 'rule rulename {strings: $a = "MyTestRule" condition: $a }'}
-        rv = self.test_client.post('/rest/binary_search', data=json.dumps(data), follow_redirects=True)
+        rv = self.test_client.post('/rest/binary_search', json=data, follow_redirects=True)
         result = json.loads(rv.data.decode())
         assert 'message' in result
         assert 'Started binary search' in result['message']
@@ -38,7 +37,7 @@ class TestRestBinarySearch(TestAcceptanceBase):
         return result['request']['search_id']
 
     def _get_binary_search_result(self, search_id):
-        rv = self.test_client.get('/rest/binary_search/{}'.format(search_id), follow_redirects=True)
+        rv = self.test_client.get(f'/rest/binary_search/{search_id}', follow_redirects=True)
         results = json.loads(rv.data.decode())
         assert 'binary_search_results' in results
         assert 'rulename' in results['binary_search_results']

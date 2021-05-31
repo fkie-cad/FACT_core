@@ -51,16 +51,14 @@ class TestAcceptanceAuthentication(TestAuthenticatedAcceptanceBase):
         for endpoint_rule in list(self.frontend.app.url_map.iter_rules()):
             endpoint = endpoint_rule.rule.replace('<>', '')
 
-            response = self.test_client.get(endpoint, follow_redirects=True)
-            if self._request_is_unsuccessful(response.data):
-                response = self.test_client.put(endpoint, follow_redirects=True)
-                if self._request_is_unsuccessful(response.data):
-                    response = self.test_client.post(endpoint, follow_redirects=True)
-
-            if self._endpoint_does_need_auth(endpoint) and self.UNIQUE_LOGIN_STRING not in response.data:
-                # static and about routes should be served without auth so that css and logos are shown in login
-                # screen and imprint can be accessed
-                fails.append(endpoint)
+            for method in [self.test_client.get, self.test_client.put, self.test_client.post]:
+                response = method(endpoint, follow_redirects=True)
+                if response.status_code in [405]:  # method not allowed
+                    continue
+                if self._endpoint_does_need_auth(endpoint) and self.UNIQUE_LOGIN_STRING not in response.data:
+                    # static and about routes should be served without auth so that css and logos are shown in login
+                    # screen and imprint can be accessed
+                    fails.append(endpoint)
         assert fails == [], f'endpoints are missing authentication: {fails}'
 
     @staticmethod

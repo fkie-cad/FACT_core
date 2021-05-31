@@ -16,14 +16,14 @@ def test_successful_request(test_app):
 def test_request_with_query(test_app):
     query = {'vendor': 'no real vendor'}
     quoted_query = quote(json.dumps(query))
-    response = decode_response(test_app.get('/rest/firmware?query={}'.format(quoted_query)))
+    response = decode_response(test_app.get(f'/rest/firmware?query={quoted_query}'))
     assert 'query' in response['request'].keys()
     assert response['request']['query'] == query
 
 
 def test_bad_query(test_app):
     search_query = quote('{\'vendor\': \'no real vendor\'}')
-    result = decode_response(test_app.get('/rest/firmware?query={}'.format(search_query)))
+    result = decode_response(test_app.get(f'/rest/firmware?query={search_query}'))
     assert 'Query must be a json' in result['error_message']
 
 
@@ -49,7 +49,7 @@ def test_non_existing_uid(test_app):
 
 
 def test_successful_uid_request(test_app):
-    result = decode_response(test_app.get('/rest/firmware/{}'.format(TEST_FW.uid)))
+    result = decode_response(test_app.get(f'/rest/firmware/{TEST_FW.uid}'))
     assert 'firmware' in result
     assert all(section in result['firmware'] for section in ['meta_data', 'analysis'])
 
@@ -75,8 +75,9 @@ def test_submit_missing_item(test_app):
         'release_date': '01.01.1970',
         'requested_analysis_systems': ['file_type']
     }  # vendor missing
-    result = decode_response(test_app.put('/rest/firmware', data=json.dumps(request_data)))
+    result = decode_response(test_app.put('/rest/firmware', json=request_data))
     assert 'Input payload validation failed' in result['message']
+    assert 'vendor' in result['errors']
 
 
 def test_submit_success(test_app):
@@ -92,25 +93,24 @@ def test_submit_success(test_app):
         'tags': 'tag1,tag2',
         'requested_analysis_systems': ['file_type']
     }
-    result = decode_response(test_app.put('/rest/firmware', data=json.dumps(request_data)))
-    print(result)
+    result = decode_response(test_app.put('/rest/firmware', json=request_data))
     assert result['status'] == 0
 
 
 def test_request_update(test_app):
     requested_analysis = json.dumps(['optional_plugin'])
-    result = decode_response(test_app.put('/rest/firmware/{}?update={}'.format(TEST_FW.uid, quote(requested_analysis))))
+    result = decode_response(test_app.put(f'/rest/firmware/{TEST_FW.uid}?update={quote(requested_analysis)}'))
     assert result['status'] == 0
 
 
 def test_request_update_bad_parameter(test_app):
-    result = decode_response(test_app.put('/rest/firmware/{}?update=no_list'.format(TEST_FW.uid)))
+    result = decode_response(test_app.put(f'/rest/firmware/{TEST_FW.uid}?update=no_list'))
     assert result['status'] == 1
     assert 'has to be a list' in result['error_message']
 
 
 def test_request_update_missing_parameter(test_app):  # pylint: disable=invalid-name
-    result = decode_response(test_app.put('/rest/firmware/{}'.format(TEST_FW.uid)))
+    result = decode_response(test_app.put(f'/rest/firmware/{TEST_FW.uid}'))
     assert result['status'] == 1
     assert 'missing parameter: update' in result['error_message']
 
@@ -118,7 +118,7 @@ def test_request_update_missing_parameter(test_app):  # pylint: disable=invalid-
 def test_request_with_unpacking(test_app):
     scheduled_analysis = ['unpacker', 'optional_plugin']
     requested_analysis = json.dumps(scheduled_analysis)
-    result = decode_response(test_app.put('/rest/firmware/{}?update={}'.format(TEST_FW.uid, quote(requested_analysis))))
+    result = decode_response(test_app.put(f'/rest/firmware/{TEST_FW.uid}?update={quote(requested_analysis)}'))
     assert result['status'] == 0
     assert sorted(result['request']['update']) == sorted(scheduled_analysis)
     assert 'unpacker' in result['request']['update']
@@ -130,7 +130,7 @@ def test_request_with_bad_recursive_flag(test_app):  # pylint: disable=invalid-n
     assert 'only permissible with non-empty query' in result['error_message']
 
     query = json.dumps({'processed_analysis.file_type.full': {'$regex': 'arm', '$options': 'si'}})
-    result = decode_response(test_app.get('/rest/firmware?recursive=true&query={}'.format(quote(query))))
+    result = decode_response(test_app.get(f'/rest/firmware?recursive=true&query={quote(query)}'))
     assert result['status'] == 0
 
 
@@ -144,5 +144,5 @@ def test_request_with_inverted_flag(test_app):
 
 
 def test_request_with_summary_parameter(test_app):  # pylint: disable=invalid-name
-    result = decode_response(test_app.get('/rest/firmware/{}?summary=true'.format(TEST_FW.uid)))
+    result = decode_response(test_app.get(f'/rest/firmware/{TEST_FW.uid}?summary=true'))
     assert 'firmware' in result

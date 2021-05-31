@@ -7,14 +7,14 @@ def test_no_data(test_app):
     result = decode_response(test_app.post('/rest/binary_search'))
     assert 'Input payload validation failed' in result['message']
     assert 'errors' in result
-    assert 'YARA rules Missing required parameter in the JSON body' in result['errors']['rule_file']
+    assert 'is a required property' in result['errors']['rule_file']
 
 
 def test_no_rule_file(test_app):
     result = decode_response(test_app.post('/rest/binary_search', json=dict()))
     assert 'Input payload validation failed' in result['message']
     assert 'errors' in result
-    assert 'YARA rules Missing required parameter in the JSON body' in result['errors']['rule_file']
+    assert '\'rule_file\' is a required property' in result['errors']['rule_file']
 
 
 def test_wrong_rule_file_format(test_app):
