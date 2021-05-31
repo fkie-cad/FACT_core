@@ -1,27 +1,22 @@
 from flask import request
-from flask_restx import Namespace, Resource
+from flask_restx import Namespace
 from pymongo.errors import PyMongoError
 
 from helperFunctions.database import ConnectTo
 from helperFunctions.object_conversion import create_meta_dict
 from storage.db_interface_frontend import FrontEndDbInterface
 from web_interface.rest.helper import error_message, get_paging, get_query, success_message
+from web_interface.rest.rest_resource_base import RestResourceBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
 api = Namespace('rest/file_object', description='Browse the file database or request specific file')
 
 
-class RestFileObjectBase(Resource):
+@api.route('', doc={'description': 'Browse the file database'})
+class RestFileObjectWithoutUid(RestResourceBase):
     URL = '/rest/file_object'
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.config = kwargs.get('config', None)
-
-
-@api.route('', doc={'description': 'Browse the file database'})
-class RestFileObjectWithoutUid(RestFileObjectBase):
     @roles_accepted(*PRIVILEGES['view_analysis'])
     @api.doc(
         responses={200: 'Success', 400: 'Error'},
@@ -61,7 +56,9 @@ class RestFileObjectWithoutUid(RestFileObjectBase):
         }
     }
 )
-class RestFileObjectWithUid(RestFileObjectBase):
+class RestFileObjectWithUid(RestResourceBase):
+    URL = '/rest/file_object'
+
     @roles_accepted(*PRIVILEGES['view_analysis'])
     @api.doc(responses={200: 'Success', 400: 'Unknown file object'})
     def get(self, uid):

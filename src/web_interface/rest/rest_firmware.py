@@ -1,8 +1,9 @@
+import binascii
 import logging
 from base64 import standard_b64decode
 
 from flask import request
-from flask_restx import Namespace, Resource, fields
+from flask_restx import Namespace, fields
 from pymongo.errors import PyMongoError
 
 from helperFunctions.database import ConnectTo
@@ -12,8 +13,9 @@ from intercom.front_end_binding import InterComFrontEndBinding
 from objects.firmware import Firmware
 from storage.db_interface_frontend import FrontEndDbInterface
 from web_interface.rest.helper import (
-    convert_rest_request, error_message, get_boolean_from_request, get_paging, get_query, get_update, success_message
+    error_message, get_boolean_from_request, get_paging, get_query, get_update, success_message
 )
+from web_interface.rest.rest_resource_base import RestResourceBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
@@ -34,16 +36,10 @@ firmware_model = api.model('Upload Firmware', {
 })
 
 
-class RestFirmwareBase(Resource):
+@api.route('', doc={'description': ''})
+class RestFirmwareGetWithoutUid(RestResourceBase):
     URL = '/rest/firmware'
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.config = kwargs.get('config', None)
-
-
-@api.route('', doc={'description': ''})
-class RestFirmwareGetWithoutUid(RestFirmwareBase):
     @roles_accepted(*PRIVILEGES['view_analysis'])
     @api.doc(
         responses={200: 'Success', 400: 'Unknown file object'},
@@ -94,18 +90,14 @@ class RestFirmwareGetWithoutUid(RestFirmwareBase):
         return query, recursive, inverted, offset, limit
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
-    @api.expect(firmware_model, validate=True)
+    @api.expect(firmware_model)
     def put(self):
         '''
         Upload a firmware
         The HTTP body must contain a json document of the structure shown below
         Important: The binary has to be a base64 string representing the raw binary you want to submit
         '''
-        try:
-            data = convert_rest_request(request.data)
-        except TypeError as type_error:
-            return error_message(str(type_error), self.URL, request_data=request.data)
-
+        data = self.validate_payload_data(firmware_model)
         result = self._process_data(data)
         if 'error_message' in result:
             logging.warning('Submission not according to API guidelines! (data could not be parsed)')
@@ -115,12 +107,10 @@ class RestFirmwareGetWithoutUid(RestFirmwareBase):
         return success_message(result, self.URL, request_data=data)
 
     def _process_data(self, data):
-        for field in ['device_name', 'device_class', 'device_part', 'file_name', 'version', 'vendor', 'release_date',
-                      'requested_analysis_systems', 'binary']:
-            if field not in data.keys():
-                return dict(error_message='{} not found'.format(field))
-
-        data['binary'] = standard_b64decode(data['binary'])
+        try:
+            data['binary'] = standard_b64decode(data['binary'])
+        except binascii.Error:
+            return dict(error_message='Could not parse binary (must be valid base64!)')
         firmware_object = convert_analysis_task_to_fw_obj(data)
         with ConnectTo(InterComFrontEndBinding, self.config) as intercom:
             intercom.add_analysis_task(firmware_object)
@@ -130,7 +120,9 @@ class RestFirmwareGetWithoutUid(RestFirmwareBase):
 
 
 @api.route('/<string:uid>', doc={'description': '', 'params': {'uid': 'Firmware UID'}})
-class RestFirmwareGetWithUid(RestFirmwareBase):
+class RestFirmwareGetWithUid(RestResourceBase):
+    URL = '/rest/firmware'
+
     @roles_accepted(*PRIVILEGES['view_analysis'])
     @api.doc(
         responses={200: 'Success', 400: 'Unknown UID'},
@@ -149,7 +141,7 @@ class RestFirmwareGetWithUid(RestFirmwareBase):
             with ConnectTo(FrontEndDbInterface, self.config) as connection:
                 firmware = connection.get_firmware(uid)
         if not firmware or not isinstance(firmware, Firmware):
-            return error_message('No firmware with UID {} found'.format(uid), self.URL, dict(uid=uid))
+            return error_message(f'No firmware with UID {uid} found', self.URL, dict(uid=uid))
 
         fitted_firmware = self._fit_firmware(firmware)
         return success_message(dict(firmware=fitted_firmware), self.URL, request_data=dict(uid=uid))
@@ -177,7 +169,7 @@ class RestFirmwareGetWithUid(RestFirmwareBase):
         with ConnectTo(FrontEndDbInterface, self.config) as connection:
             firmware = connection.get_firmware(uid)
         if not firmware:
-            return error_message('No firmware with UID {} found'.format(uid), self.URL, dict(uid=uid))
+            return error_message(f'No firmware with UID {uid} found', self.URL, dict(uid=uid))
 
         unpack = 'unpacker' in update
         while 'unpacker' in update:
@@ -189,7 +181,7 @@ class RestFirmwareGetWithUid(RestFirmwareBase):
             supported_plugins = intercom.get_available_analysis_plugins().keys()
             for item in update:
                 if item not in supported_plugins:
-                    return error_message('Unknown analysis system \'{}\''.format(item), self.URL, dict(uid=uid, update=update))
+                    return error_message(f'Unknown analysis system \'{item}\'', self.URL, dict(uid=uid, update=update))
             intercom.add_re_analyze_task(firmware, unpack)
 
         if unpack:

@@ -1,11 +1,12 @@
 from flask import request
-from flask_restx import Namespace, Resource, reqparse
+from flask_restx import Namespace, fields
 
 from helperFunctions.database import ConnectTo
 from helperFunctions.yara_binary_search import is_valid_yara_rule_file
 from intercom.front_end_binding import InterComFrontEndBinding
 from storage.db_interface_frontend import FrontEndDbInterface
 from web_interface.rest.helper import error_message, success_message
+from web_interface.rest.rest_resource_base import RestResourceBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
@@ -17,41 +18,35 @@ class RestBinarySearchException(Exception):
 
 api = Namespace('rest/binary_search', description='Initiate a binary search on the binary database and fetch the results')
 
-post_arguments = reqparse.RequestParser(bundle_errors=True)
-post_arguments.add_argument('rule_file', type=str, required=True, help='YARA rules', location='json')
-post_arguments.add_argument('uid', type=str, help='optional Firmware UID', location='json', default=None)
-
-
-class RestBinarySearchBase(Resource):
-    URL = '/rest/binary_search'
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.config = kwargs.get('config', None)
+binary_search_model = api.model('Binary Search', {
+    'rule_file': fields.String(description='YARA rules', required=True),
+    'uid': fields.String(description='Firmware UID (optional)')
+}, description='Expected value')
 
 
 @api.route('', doc={'description': 'Binary search on all files in the database (or files of a single firmware)'})
-class RestBinarySearchPost(RestBinarySearchBase):
+class RestBinarySearchPost(RestResourceBase):
+    URL = '/rest/binary_search'
 
     @roles_accepted(*PRIVILEGES['pattern_search'])
-    @api.expect(post_arguments)
+    @api.expect(binary_search_model)
     def post(self):
         '''
         Start a binary search
         The parameter `uid` is optional and can be specified if the user wants to search the files of a single firmware
         `rule_file` can be something like `rule rule_name {strings: $a = \"foobar\" condition: $a}`
         '''
-        args = post_arguments.parse_args()
-        if not is_valid_yara_rule_file(args.rule_file):
+        payload_data = self.validate_payload_data(binary_search_model)
+        if not is_valid_yara_rule_file(payload_data["rule_file"]):
             return error_message('Error in YARA rule file', self.URL, request_data=request.data)
-        if args.uid and not self._is_firmware(args.uid):
+        if payload_data["uid"] and not self._is_firmware(payload_data["uid"]):
             return error_message(
-                f'Firmware with UID {args.uid} not found in database',
+                f'Firmware with UID {payload_data["uid"]} not found in database',
                 self.URL, request_data=request.data
             )
 
         with ConnectTo(InterComFrontEndBinding, self.config) as intercom:
-            search_id = intercom.add_binary_search_request(args.rule_file.encode(), args.uid)
+            search_id = intercom.add_binary_search_request(payload_data["rule_file"].encode(), payload_data["uid"])
 
         return success_message(
             {'message': 'Started binary search. Please use GET and the search_id to get the results'},
@@ -73,7 +68,8 @@ class RestBinarySearchPost(RestBinarySearchBase):
         'params': {'search_id': 'Search ID'}
     }
 )
-class RestBinarySearchGet(RestBinarySearchBase):
+class RestBinarySearchGet(RestResourceBase):
+    URL = '/rest/binary_search'
 
     @roles_accepted(*PRIVILEGES['pattern_search'])
     @api.doc(responses={200: 'Success', 400: 'Unknown search ID'})

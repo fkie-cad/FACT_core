@@ -1,13 +1,14 @@
 from base64 import standard_b64encode
 
 from flask import request
-from flask_restx import Namespace, Resource
+from flask_restx import Namespace
 
 from helperFunctions.database import ConnectTo
 from helperFunctions.hash import get_sha256
 from intercom.front_end_binding import InterComFrontEndBinding
 from storage.db_interface_frontend import FrontEndDbInterface
 from web_interface.rest.helper import error_message, get_boolean_from_request, success_message
+from web_interface.rest.rest_resource_base import RestResourceBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
@@ -24,12 +25,8 @@ api = Namespace('rest/binary', description='Request the binary of a given firmwa
         }
     }
 )
-class RestBinary(Resource):
+class RestBinary(RestResourceBase):
     URL = '/rest/binary'
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.config = kwargs.get('config', None)
 
     @roles_accepted(*PRIVILEGES['download'])
     @api.doc(responses={200: 'Success', 404: 'Unknown UID'})

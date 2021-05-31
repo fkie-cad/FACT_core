@@ -1,9 +1,10 @@
-from flask_restx import Resource, Namespace
+from flask_restx import Namespace
 
 from helperFunctions.database import ConnectTo
 from intercom.front_end_binding import InterComFrontEndBinding
 from storage.db_interface_statistic import StatisticDbViewer
 from web_interface.rest.helper import error_message, success_message
+from web_interface.rest.rest_resource_base import RestResourceBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
@@ -11,12 +12,8 @@ api = Namespace('rest/status', description='Request FACT\'s system status')
 
 
 @api.route('')
-class RestStatus(Resource):
+class RestStatus(RestResourceBase):
     URL = '/rest/status'
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.config = kwargs.get('config', None)
 
     @roles_accepted(*PRIVILEGES['status'])
     @api.doc(responses={200: 'Success', 400: 'Error'})
