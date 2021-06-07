@@ -4,8 +4,7 @@ from time import time
 from pymongo.errors import PyMongoError
 
 from helperFunctions.data_conversion import convert_str_to_time
-from helperFunctions.object_storage import update_analysis_tags, update_included_files, update_virtual_file_path
-from helperFunctions.tag import update_tags
+from helperFunctions.object_storage import update_included_files, update_virtual_file_path
 from objects.file import FileObject
 from objects.firmware import Firmware
 from storage.db_interface_common import MongoInterfaceCommon
@@ -28,7 +27,6 @@ class BackEndDbInterface(MongoInterfaceCommon):
             'processed_analysis': self._update_processed_analysis(new_object, old_object),
             'files_included': update_included_files(new_object, old_object),
             'virtual_file_path': update_virtual_file_path(new_object, old_object),
-            'analysis_tags': update_analysis_tags(new_object, old_object),
         }
 
         if isinstance(new_object, Firmware):
@@ -149,25 +147,6 @@ class BackEndDbInterface(MongoInterfaceCommon):
         file_object.create_binary_from_path()
         return file_object
 
-    def update_analysis_tags(self, uid, plugin_name, tag_name, tag) -> None:
-        firmware_object = self.get_object(uid=uid, analysis_filter=[])
-        try:
-            tags = update_tags(firmware_object.analysis_tags, plugin_name, tag_name, tag)
-        except ValueError as value_error:
-            logging.error('Plugin {} tried setting a bad tag {}: {}'.format(plugin_name, tag_name, str(value_error)))
-            return
-        except AttributeError:
-            logging.error('Firmware not in database yet: {}'.format(uid))
-            return
-
-        if isinstance(firmware_object, Firmware):
-            try:
-                self.firmwares.update_one({'_id': uid}, {'$set': {'analysis_tags': tags}})
-            except (TypeError, ValueError, PyMongoError) as exception:
-                logging.error('Could not update firmware: {} - {}'.format(type(exception), str(exception)))
-        else:
-            logging.warning('Propagating tag only allowed for firmware. Given: {}')
-
     def add_analysis(self, file_object: FileObject):
         if isinstance(file_object, (Firmware, FileObject)):
             processed_analysis = self.sanitize_analysis(file_object.processed_analysis, file_object.uid)
@@ -180,13 +159,10 @@ class BackEndDbInterface(MongoInterfaceCommon):
         try:
             collection = self.firmwares if isinstance(file_object, Firmware) else self.file_objects
 
-            entry_with_tags = collection.find_one({'_id': file_object.uid}, {'analysis_tags': 1})
-
             collection.update_one(
                 {'_id': file_object.uid},
                 {'$set': {
-                    'processed_analysis.{}'.format(analysis_system): result,
-                    'analysis_tags': update_analysis_tags(file_object, entry_with_tags)
+                    'processed_analysis.{}'.format(analysis_system): result
                 }}
             )
         except Exception as exception:

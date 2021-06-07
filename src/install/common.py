@@ -69,7 +69,7 @@ def main(distribution):  # pylint: disable=too-many-statements
     pip3_install_packages('git+https://github.com/fkie-cad/fact_helper_file.git')
     pip3_install_packages('psutil', 'pytest', 'pytest-cov', 'pylint', 'python-magic', 'xmltodict', 'yara-python==3.7.0', 'appdirs', 'flaky')
 
-    pip3_install_packages('lief==0.10.1')  # FIXME: unpin version when install bug is fixed
+    pip3_install_packages('lief')
 
     pip3_install_packages('requests')
 

@@ -150,12 +150,13 @@ def _install_css_and_js_files():
 def main(radare, nginx):
     pip3_install_packages('werkzeug==0.16.1')  # Multiple flask plugins break on werkzeug > 0.16.1
     pip3_install_packages(
-        'flask',
+        'flask==1.1.2',  # FIXME: unpin when flask-restful / flask-restx works with flask 2.0
         'flask_restful',
         'flask_security',
         'flask_sqlalchemy',
         'flask-paginate',
         'Flask-API',
+        'itsdangerous==1.1.0',  # FIXME: remove pin when not needed anymore (used by flask_security)
         'uwsgi',
         'bcrypt',
         'python-dateutil',
