@@ -5,7 +5,7 @@ from pathlib import Path
 from objects.file import FileObject
 from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
 
-from ..code.ikconfig import AnalysisPlugin
+from ..code.kernel_config import AnalysisPlugin
 
 try:
     from ..internal.decomp import GZDecompressor
@@ -18,7 +18,7 @@ TEST_DATA_DIR = Path(__file__).parent / 'data'
 
 
 class ExtractIKConfigTest(AnalysisPluginTest):
-    PLUGIN_NAME = 'ikconfig'
+    PLUGIN_NAME = 'kernel_config'
 
     def setUp(self):
         super().setUp()
