@@ -1,10 +1,13 @@
+import json
 import re
 import sys
 from pathlib import Path
+from tempfile import NamedTemporaryFile
 from typing import List
 
 from analysis.PluginBase import AnalysisBasePlugin
 from objects.file import FileObject
+from common_helper_process import execute_shell_command
 
 try:
     from ..internal.decomp import decompress
@@ -14,6 +17,7 @@ except ImportError:
 
 
 MAGIC_WORD = b'IKCFG_ST\037\213'
+CHECKSEC_PATH = Path(__file__).parent / '../../checksec/bin/checksec'
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
@@ -42,6 +46,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 self.add_kernel_config_to_analysis(file_object, maybe_config)
 
         file_object.processed_analysis[self.NAME]['summary'] = self._get_summary(file_object.processed_analysis[self.NAME])
+
+        if 'kernel_config' in file_object.processed_analysis[self.NAME]:
+            file_object.processed_analysis[self.NAME]['checksec'] = self.check_kernel_config(file_object.processed_analysis[self.NAME]['kernel_config'])
 
         return file_object
 
@@ -100,3 +107,16 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return 'software_components' in file_object.processed_analysis and \
                'summary' in file_object.processed_analysis['software_components'] and \
                any('linux kernel' in component.lower() for component in file_object.processed_analysis['software_components']['summary'])
+
+    @staticmethod
+    def check_kernel_config(kernel_config: str):
+        with NamedTemporaryFile() as fp:
+            fp.write(kernel_config.encode())
+            fp.seek(0)
+            command = f'{CHECKSEC_PATH} --kernel={fp.name} --output=json 2>/dev/null'
+            output = execute_shell_command(command)
+            result = json.loads(output)
+            if 'boot' not in result['kernel']['KernelConfig']:
+                return result
+            else:
+                return {}
