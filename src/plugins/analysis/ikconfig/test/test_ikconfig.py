@@ -169,3 +169,28 @@ def test_gz_break_on_true():
     test_file = FileObject(file_path=str(TEST_DATA_DIR / 'configs/CONFIG.gz'))
     decompressor = GZDecompressor()
     assert decompressor.decompress(test_file.binary) != b''
+
+
+def test_checksec_existing_config():
+    test_file = TEST_DATA_DIR / 'configs/CONFIG'
+    kernel_config = test_file.read_text()
+    result = AnalysisPlugin.check_kernel_config(kernel_config)
+    assert result != {}
+    assert 'kernel' in result
+    assert result['kernel']['randomize_va_space'] == 'full'
+
+
+class TempfileMock:
+    name = 'not/existing/path'
+
+    def write(self, _):
+        pass
+
+    def seek(self, _):
+        pass
+
+
+def test_checksec_non_existing_config(monkeypatch):
+    monkeypatch.setattr('tempfile._TemporaryFileWrapper.__enter__', lambda _: TempfileMock())
+    result = AnalysisPlugin.check_kernel_config('no_real_config')
+    assert result == {}
