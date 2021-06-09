@@ -108,47 +108,48 @@ class AnalysisPlugin(AnalysisBasePlugin):
                'summary' in file_object.processed_analysis['software_components'] and \
                any('linux kernel' in component.lower() for component in file_object.processed_analysis['software_components']['summary'])
 
-    def check_kernel_config(self, kernel_config: str) -> dict:
+    @staticmethod
+    def check_kernel_config(kernel_config: str) -> dict:
         with NamedTemporaryFile() as fp:
             fp.write(kernel_config.encode())
             fp.seek(0)
             command = f'{CHECKSEC_PATH} --kernel={fp.name} --output=json 2>/dev/null'
             output = execute_shell_command(command)
             result = json.loads(output)
-            self.whitelist_configs(result)
+            whitelist_configs(result)
             if 'boot' not in result['kernel']['KernelConfig']:
                 return result
             else:
                 return {}
 
-    @staticmethod
-    def whitelist_configs(config_results: dict) -> dict:
-        kernel_whitelist = ['KernelConfig', 'kernel_heap_randomization', 'gcc_stack_protector',
-                            'gcc_stack_protector_strong', 'gcc_structleak', 'gcc_structleak_byref',
-                            'slab_freelist_randomization', 'cpu_sw_domain', 'virtually_mapped_stack',
-                            'restrict_dev_mem_access', 'restrict_io_dev_mem_access', 'ro_kernel_data', 'ro_module_data',
-                            'full_refcount_validation', 'hardened_usercopy', 'fortify_source',
-                            'restrict_dev_kmem_access', 'strict_user_copy_check', 'random_address_space_layout',
-                            'arm_kernmem_perms', 'arm_strict_rodata', 'unmap_kernel_in_userspace',
-                            'harden_branch_predictor', 'harden_el2_vector_mapping', 'speculative_store_bypass_disable',
-                            'emulate_privileged_access_never', 'randomize_kernel_address', 'randomize_module_region_full']
 
-        grsecurity_whitelist = ['grsecurity_config', 'config_pax_kernexec', 'config_pax_noexec', 'config_pax_pageexec',
-                                'config_pax_mprotect', 'config_pax_aslr', 'config_pax_randkstack',
-                                'config_pax_randustack', 'config_pax_randmmap', 'config_pax_memory_sanitize',
-                                'config_pax_memory_stackleak', 'config_pax_memory_uderef', 'config_pax_refcount',
-                                'config_pax_usercopy', 'config_grkernsec_jit_harden', 'config_bpf_jit',
-                                'config_grkernsec_rand_threadstack', 'config_grkernsec_kmem', 'config_grkernsec_io',
-                                'config_grkernsec_modharden', 'config_modules', 'config_grkernsec_chroot',
-                                'config_grkernsec_harden_ptrace', 'config_grkernsec_randnet',
-                                'config_grkernsec_blackhole', 'config_grkernsec_brute', 'config_grkernsec_hidesym']
+def whitelist_configs(config_results: dict) -> dict:
+    kernel_whitelist = ['KernelConfig', 'kernel_heap_randomization', 'gcc_stack_protector', 'gcc_stack_protector_strong',
+                        'gcc_structleak', 'gcc_structleak_byref', 'slab_freelist_randomization', 'cpu_sw_domain',
+                        'virtually_mapped_stack', 'restrict_dev_mem_access', 'restrict_io_dev_mem_access',
+                        'ro_kernel_data', 'ro_module_data', 'full_refcount_validation', 'hardened_usercopy',
+                        'fortify_source', 'restrict_dev_kmem_access', 'strict_user_copy_check',
+                        'random_address_space_layout', 'arm_kernmem_perms', 'arm_strict_rodata',
+                        'unmap_kernel_in_userspace', 'harden_branch_predictor', 'harden_el2_vector_mapping',
+                        'speculative_store_bypass_disable', 'emulate_privileged_access_never',
+                        'randomize_kernel_address', 'randomize_module_region_full']
 
-        for key in config_results['kernel'].copy():
-            if key not in kernel_whitelist:
-                del config_results['kernel'][key]
+    grsecurity_whitelist = ['grsecurity_config', 'config_pax_kernexec', 'config_pax_noexec', 'config_pax_pageexec',
+                            'config_pax_mprotect', 'config_pax_aslr', 'config_pax_randkstack', 'config_pax_randustack',
+                            'config_pax_randmmap', 'config_pax_memory_sanitize', 'config_pax_memory_stackleak',
+                            'config_pax_memory_uderef', 'config_pax_refcount', 'config_pax_usercopy',
+                            'config_grkernsec_jit_harden', 'config_bpf_jit', 'config_grkernsec_rand_threadstack',
+                            'config_grkernsec_kmem', 'config_grkernsec_io', 'config_grkernsec_modharden',
+                            'config_modules', 'config_grkernsec_chroot', 'config_grkernsec_harden_ptrace',
+                            'config_grkernsec_randnet', 'config_grkernsec_blackhole', 'config_grkernsec_brute',
+                            'config_grkernsec_hidesym']
 
-        for key in config_results['grsecurity'].copy():
-            if key not in grsecurity_whitelist:
-                del config_results['grsecurity'][key]
+    for key in config_results['kernel'].copy():
+        if key not in kernel_whitelist:
+            del config_results['kernel'][key]
 
-        return config_results
+    for key in config_results['grsecurity'].copy():
+        if key not in grsecurity_whitelist:
+            del config_results['grsecurity'][key]
+
+    return config_results
