@@ -110,15 +110,6 @@ class ExtractIKConfigTest(AnalysisPluginTest):
             assert 'is_kernel_config' not in test_file.processed_analysis[self.PLUGIN_NAME]
             assert 'kernel_config' not in test_file.processed_analysis[self.PLUGIN_NAME]
 
-    def test_checksec_existing_config(self):
-        test_file = TEST_DATA_DIR / 'configs/CONFIG'
-        kernel_config = test_file.read_text()
-        result = self.analysis_plugin.check_kernel_config(kernel_config)
-        assert result != {}
-        assert 'kernel' in result
-        assert 'randomize_va_space' not in result['kernel']
-        assert result['kernel']['kernel_heap_randomization'] == 'yes'
-
 
 def test_plaintext_mime_true():
     test_file = FileObject(file_path=str(TEST_DATA_DIR / 'configs/CONFIG'))
@@ -178,6 +169,16 @@ def test_gz_break_on_true():
     test_file = FileObject(file_path=str(TEST_DATA_DIR / 'configs/CONFIG.gz'))
     decompressor = GZDecompressor()
     assert decompressor.decompress(test_file.binary) != b''
+
+
+def test_checksec_existing_config():
+    test_file = TEST_DATA_DIR / 'configs/CONFIG'
+    kernel_config = test_file.read_text()
+    result = AnalysisPlugin.check_kernel_config(kernel_config)
+    assert result != {}
+    assert 'kernel' in result
+    assert 'randomize_va_space' not in result['kernel']
+    assert result['kernel']['kernel_heap_randomization'] == 'yes'
 
 
 class TempfileMock:
