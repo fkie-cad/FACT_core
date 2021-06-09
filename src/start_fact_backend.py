@@ -26,7 +26,6 @@ from analysis.PluginBase import PluginInitException
 from helperFunctions.process import complete_shutdown
 from intercom.back_end_binding import InterComBackEndBinding
 from scheduler.Analysis import AnalysisScheduler
-from scheduler.analysis_tag import TaggingDaemon
 from scheduler.Compare import CompareScheduler
 from scheduler.Unpacking import UnpackingScheduler
 
@@ -44,7 +43,6 @@ class FactBackend(FactBase):
         except PluginInitException as error:
             logging.critical(f'Error during initialization of plugin {error.plugin.NAME}. Shutting down FACT backend')
             complete_shutdown()
-        self.tagging_service = TaggingDaemon(analysis_scheduler=self.analysis_service)
         self.unpacking_service = UnpackingScheduler(
             config=self.config,
             post_unpack=self.analysis_service.start_analysis_of_object,
@@ -77,7 +75,6 @@ class FactBackend(FactBase):
         self.intercom.shutdown()
         self.compare_service.shutdown()
         self.unpacking_service.shutdown()
-        self.tagging_service.shutdown()
         self.analysis_service.shutdown()
         if not self.args.testing:
             complete_shutdown()

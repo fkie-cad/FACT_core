@@ -6,7 +6,9 @@ from time import time
 from storage.db_interface_backend import BackEndDbInterface
 from storage.db_interface_common import MongoInterfaceCommon
 from storage.MongoMgr import MongoMgr
-from test.common_helper import create_test_file_object, create_test_firmware, get_config_for_testing, get_test_data_dir
+from test.common_helper import (  # pylint: disable=wrong-import-order
+    create_test_file_object, create_test_firmware, get_config_for_testing, get_test_data_dir
+)
 
 TESTS_DIR = get_test_data_dir()
 TMP_DIR = TemporaryDirectory(prefix='fact_test_')
@@ -120,37 +122,6 @@ class TestStorageDbInterfaceBackend(unittest.TestCase):
         self.assertEqual(author, retrieved_comment['author'])
         self.assertEqual(comment, retrieved_comment['comment'])
         self.assertEqual(date, retrieved_comment['time'])
-
-    def test_update_analysis_tag_no_firmware(self):
-        self.db_interface_backend.add_file_object(self.test_fo)
-        tag = {'value': 'yay', 'color': 'default', 'propagate': True}
-
-        self.db_interface_backend.update_analysis_tags(self.test_fo.uid, plugin_name='dummy', tag_name='some_tag', tag=tag)
-        processed_fo = self.db_interface_backend.get_object(self.test_fo.uid)
-
-        assert not processed_fo.analysis_tags
-
-    def test_update_analysis_tag_uid_not_found(self):
-        self.db_interface_backend.update_analysis_tags(self.test_fo.uid, plugin_name='dummy', tag_name='some_tag', tag='should not matter')
-        assert not self.db_interface_backend.get_object(self.test_fo.uid)
-
-    def test_update_analysis_tag_bad_tag(self):
-        self.db_interface_backend.add_firmware(self.test_firmware)
-
-        self.db_interface_backend.update_analysis_tags(self.test_firmware.uid, plugin_name='dummy', tag_name='some_tag', tag='bad_tag')
-        processed_firmware = self.db_interface_backend.get_object(self.test_firmware.uid)
-
-        assert not processed_firmware.analysis_tags
-
-    def test_update_analysis_tag_success(self):
-        self.db_interface_backend.add_firmware(self.test_firmware)
-        tag = {'value': 'yay', 'color': 'primary', 'propagate': True}
-
-        self.db_interface_backend.update_analysis_tags(self.test_firmware.uid, plugin_name='dummy', tag_name='some_tag', tag=tag)
-        processed_firmware = self.db_interface_backend.get_object(self.test_firmware.uid)
-
-        assert processed_firmware.analysis_tags
-        assert processed_firmware.analysis_tags['dummy']['some_tag'] == tag
 
     def test_add_analysis_firmware(self):
         self.db_interface_backend.add_object(self.test_firmware)

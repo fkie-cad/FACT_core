@@ -21,7 +21,7 @@ CHECKSEC_PATH = Path(__file__).parent / '../../checksec/bin/checksec'
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
-    NAME = 'ikconfig'
+    NAME = 'kernel_config'
     DESCRIPTION = 'Heuristics to find plaintext and image-embedded kernel configurations (IKCONFIG=[y|m])'
     MIME_BLACKLIST = ['audio', 'filesystem', 'image', 'video']
     DEPENDENCIES = ['file_type', 'software_components']
