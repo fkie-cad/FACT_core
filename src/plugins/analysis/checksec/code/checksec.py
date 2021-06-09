@@ -5,8 +5,9 @@ from pathlib import Path
 from common_helper_process import execute_shell_command_get_return_code
 
 from analysis.PluginBase import AnalysisBasePlugin
+from helperFunctions.fileSystem import get_src_dir
 
-SHELL_SCRIPT = Path(__file__).parent.parent / 'bin' / 'checksec'
+SHELL_SCRIPT = Path(get_src_dir()) / 'bin' / 'checksec'
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
@@ -14,13 +15,13 @@ class AnalysisPlugin(AnalysisBasePlugin):
     DESCRIPTION = 'analyses ELF binaries within a firmware for present exploit mitigation techniques'
     DEPENDENCIES = ['file_type']
     MIME_WHITELIST = ['application/x-executable', 'application/x-object', 'application/x-sharedlib']
-    VERSION = '0.1.4'
+    VERSION = '0.1.5'
 
     def __init__(self, plugin_administrator, config=None, recursive=True):
         self.config = config
 
-        if not SHELL_SCRIPT.exists():
-            raise RuntimeError(f'{SHELL_SCRIPT} not present. Re-run the plugin or backend installation.')
+        if not SHELL_SCRIPT.is_file():
+            raise RuntimeError(f'checksec not found at path {SHELL_SCRIPT}. Please re-run the backend installation.')
 
         super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__)
 

@@ -5,9 +5,11 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import List
 
-from analysis.PluginBase import AnalysisBasePlugin
-from objects.file import FileObject
 from common_helper_process import execute_shell_command
+
+from analysis.PluginBase import AnalysisBasePlugin
+from helperFunctions.fileSystem import get_src_dir
+from objects.file import FileObject
 
 try:
     from ..internal.decomp import decompress
@@ -17,7 +19,7 @@ except ImportError:
 
 
 MAGIC_WORD = b'IKCFG_ST\037\213'
-CHECKSEC_PATH = Path(__file__).parent / '../../checksec/bin/checksec'
+CHECKSEC_PATH = Path(get_src_dir()) / 'bin' / 'checksec'
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
@@ -29,6 +31,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def __init__(self, plugin_administrator, config=None, recursive=True):
         self.config = config
+
+        if not CHECKSEC_PATH.is_file():
+            raise RuntimeError(f'checksec not found at path {CHECKSEC_PATH}. Please re-run the backend installation.')
 
         self.config_pattern = re.compile(r'^(CONFIG|# CONFIG)_\w+=(\d+|[ymn])$', re.MULTILINE)
         self.kernel_pattern = re.compile(r'^# Linux.* Kernel Configuration$', re.MULTILINE)
@@ -119,8 +124,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             whitelist_configs(result)
             if 'boot' not in result['kernel']['KernelConfig']:
                 return result
-            else:
-                return {}
+            return {}
 
 
 def whitelist_configs(config_results: dict) -> dict:
