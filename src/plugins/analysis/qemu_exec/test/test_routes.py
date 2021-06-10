@@ -2,7 +2,7 @@
 from unittest import TestCase
 
 from flask import Flask
-from flask_restful import Api
+from flask_restx import Api
 
 from test.common_helper import create_test_file_object, create_test_firmware, get_config_for_testing
 from test.unit.web_interface.rest.conftest import decode_response

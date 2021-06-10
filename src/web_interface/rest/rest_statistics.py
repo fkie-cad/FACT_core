@@ -1,51 +1,68 @@
-from flask_restful import Resource
+from flask_restx import Namespace
 
 from helperFunctions.database import ConnectTo
 from storage.db_interface_statistic import StatisticDbViewer
-
+from web_interface.rest.helper import error_message
+from web_interface.rest.rest_resource_base import RestResourceBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
-from web_interface.rest.helper import error_message
+
+STATISTICS = [
+    'architecture', 'crypto_material', 'elf_executable', 'exploit_mitigations', 'file_type', 'firmware_meta',
+    'general', 'ips_and_uris', 'known_vulnerabilities', 'malware', 'release_date', 'software_components', 'unpacking',
+]
+
+api = Namespace('rest/statistics', description='Query all FACT statistics or a certain one')
 
 
-class RestStatistics(Resource):
+def _delete_id_and_check_empty_stat(stats_dict):
+    for stat in stats_dict.copy():
+        if stats_dict[stat] is not None:
+            del stats_dict[stat]['_id']
+        if stats_dict[stat] is None:
+            stats_dict[stat] = {}
+
+
+@api.route('', doc={'description': 'Retrieves all statistics from the FACT database as raw JSON data.'})
+class RestStatisticsWithoutName(RestResourceBase):
     URL = '/rest/statistics'
-    STATISTICS = ['general', 'firmware_meta', 'file_type', 'malware', 'crypto_material', 'unpacking', 'ips_and_uris',
-                  'architecture', 'release_date', 'exploit_mitigations', 'known_vulnerabilities', 'software_components',
-                  'elf_executable']
-
-    def __init__(self, **kwargs):
-        self.config = kwargs.get('config', None)
 
     @roles_accepted(*PRIVILEGES['status'])
-    def get(self, stat_name=None):
-        if not stat_name:
-            return self._get_all_stats_from_db()
-        return self._get_certain_stats_from_db(stat_name)
-
-    def _get_all_stats_from_db(self):
+    @api.doc(responses={200: 'Success', 400: 'Unknown stats category'})
+    def get(self):
+        '''
+        Get all statistics
+        '''
         with ConnectTo(StatisticDbViewer, self.config) as stats_db:
             statistics_dict = {}
-            for stat in self.STATISTICS:
+            for stat in STATISTICS:
                 statistics_dict[stat] = stats_db.get_statistic(stat)
 
-            self._delete_id_and_check_empty_stat(statistics_dict)
+            _delete_id_and_check_empty_stat(statistics_dict)
 
         return statistics_dict
 
-    def _get_certain_stats_from_db(self, statistic_name):
+
+@api.route(
+    '/<string:stat_name>',
+    doc={
+        'description': 'Retrieves statistics for a specific category',
+        'params': {'stat_name': 'Statistic\'s name'}
+    }
+)
+class RestStatisticsWithName(RestResourceBase):
+    URL = '/rest/statistics'
+
+    @roles_accepted(*PRIVILEGES['status'])
+    @api.doc(responses={200: 'Success', 400: 'Unknown stats category'})
+    def get(self, stat_name):
+        '''
+        Get specific statistic
+        '''
         with ConnectTo(StatisticDbViewer, self.config) as stats_db:
-            statistic_dict = {statistic_name: stats_db.get_statistic(statistic_name)}
-            self._delete_id_and_check_empty_stat(statistic_dict)
-        if statistic_name not in self.STATISTICS:
-            return error_message('A statistic with the ID {} does not exist'.format(statistic_name), self.URL, dict(stat_name=statistic_name))
+            statistic_dict = {stat_name: stats_db.get_statistic(stat_name)}
+            _delete_id_and_check_empty_stat(statistic_dict)
+        if stat_name not in STATISTICS:
+            return error_message(f'A statistic with the ID {stat_name} does not exist', self.URL, dict(stat_name=stat_name))
 
         return statistic_dict
-
-    @staticmethod
-    def _delete_id_and_check_empty_stat(stats_dict):
-        for stat in stats_dict.copy():
-            if stats_dict[stat] is not None:
-                del stats_dict[stat]['_id']
-            if stats_dict[stat] is None:
-                stats_dict[stat] = {}

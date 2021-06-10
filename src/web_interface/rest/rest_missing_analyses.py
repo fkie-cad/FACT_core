@@ -1,22 +1,28 @@
 from typing import Dict, List, Set
 
-from flask_restful import Resource
+from flask_restx import Namespace
 
 from helperFunctions.database import ConnectTo
 from storage.db_interface_frontend import FrontEndDbInterface
 from web_interface.rest.helper import success_message
+from web_interface.rest.rest_resource_base import RestResourceBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
+api = Namespace('rest/missing', description='Search the database for missing entries')
 
-class RestMissingAnalyses(Resource):
+
+@api.route('')
+class RestMissingAnalyses(RestResourceBase):
     URL = '/rest/missing'
 
-    def __init__(self, **kwargs):
-        self.config = kwargs.get('config', None)
-
     @roles_accepted(*PRIVILEGES['delete'])
+    @api.doc(responses={200: 'Success', 400: 'Unknown'})
     def get(self):
+        '''
+        Search for missing files or missing analyses
+        Search for missing or orphaned files and missing or failed analyses
+        '''
         with ConnectTo(FrontEndDbInterface, self.config) as db:
             missing_analyses_data = {
                 'missing_files': self._make_json_serializable(db.find_missing_files()),

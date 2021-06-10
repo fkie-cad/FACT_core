@@ -1,8 +1,9 @@
+import binascii
 import logging
 from base64 import standard_b64decode
 
 from flask import request
-from flask_restful import Resource
+from flask_restx import Namespace, fields
 from pymongo.errors import PyMongoError
 
 from helperFunctions.database import ConnectTo
@@ -12,74 +13,56 @@ from intercom.front_end_binding import InterComFrontEndBinding
 from objects.firmware import Firmware
 from storage.db_interface_frontend import FrontEndDbInterface
 from web_interface.rest.helper import (
-    convert_rest_request, error_message, get_boolean_from_request, get_paging, get_query, get_update, success_message
+    error_message, get_boolean_from_request, get_paging, get_query, get_update, success_message
 )
+from web_interface.rest.rest_resource_base import RestResourceBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
+api = Namespace('rest/firmware', description='Query the firmware database or upload a firmware')
 
-class RestFirmware(Resource):
+
+firmware_model = api.model('Upload Firmware', {
+    'device_name': fields.String(description='Device Name', required=True),
+    'device_part': fields.String(description='Device Part', required=True),
+    'device_class': fields.String(description='Device Class', required=True),
+    'file_name':  fields.String(description='File Name', required=True),
+    'version':  fields.String(description='Version', required=True),
+    'vendor':  fields.String(description='Vendor', required=True),
+    'release_date':  fields.String(description='Release Date'),
+    'tags':  fields.String(description='Tags'),
+    'requested_analysis_systems': fields.List(description='Selected Analysis Systems', cls_or_instance=fields.String),
+    'binary': fields.String(description='Base64 String Representing the Raw Binary', required=True)
+})
+
+
+@api.route('', doc={'description': ''})
+class RestFirmwareGetWithoutUid(RestResourceBase):
     URL = '/rest/firmware'
 
-    def __init__(self, **kwargs):
-        self.config = kwargs.get('config', None)
-
     @roles_accepted(*PRIVILEGES['view_analysis'])
-    def get(self, uid=None):
-        if not uid:
-            return self._get_without_uid()
-        return self._get_with_uid(uid)
-
-    @roles_accepted(*PRIVILEGES['submit_analysis'])
-    def put(self, uid=None):
-        if not uid:
-            return self._put_without_uid()
-        return self._put_with_uid(uid)
-
-    def _process_data(self, data):
-        for field in ['device_name', 'device_class', 'device_part', 'file_name', 'version', 'vendor', 'release_date',
-                      'requested_analysis_systems', 'binary']:
-            if field not in data.keys():
-                return dict(error_message='{} not found'.format(field))
-
-        data['binary'] = standard_b64decode(data['binary'])
-        firmware_object = convert_analysis_task_to_fw_obj(data)
-        with ConnectTo(InterComFrontEndBinding, self.config) as intercom:
-            intercom.add_analysis_task(firmware_object)
-        data.pop('binary')
-
-        return dict(uid=firmware_object.uid)
-
-    @staticmethod
-    def _fit_firmware(firmware):
-        meta = create_meta_dict(firmware)
-        analysis = firmware.processed_analysis
-        return dict(meta_data=meta, analysis=analysis)
-
-    def _update_analysis(self, uid, update):
-        with ConnectTo(FrontEndDbInterface, self.config) as connection:
-            firmware = connection.get_firmware(uid)
-        if not firmware:
-            return error_message('No firmware with UID {} found'.format(uid), self.URL, dict(uid=uid))
-
-        unpack = 'unpacker' in update
-        while 'unpacker' in update:
-            update.remove('unpacker')
-
-        firmware.scheduled_analysis = update
-
-        with ConnectTo(InterComFrontEndBinding, self.config) as intercom:
-            supported_plugins = intercom.get_available_analysis_plugins().keys()
-            for item in update:
-                if item not in supported_plugins:
-                    return error_message('Unknown analysis system \'{}\''.format(item), self.URL, dict(uid=uid, update=update))
-            intercom.add_re_analyze_task(firmware, unpack)
-
-        if unpack:
-            update.append('unpacker')
-        return success_message({}, self.URL, dict(uid=uid, update=update))
-
-    def _get_without_uid(self):
+    @api.doc(
+        responses={200: 'Success', 400: 'Unknown file object'},
+        params={
+            'offset': {'description': 'offset of results (paging)', 'in': 'query', 'type': 'int'},
+            'limit': {'description': 'number of results (paging)', 'in': 'query', 'type': 'int'},
+            'query': {'description': 'MongoDB style query', 'in': 'query', 'type': 'dict'},
+            'recursive': {
+                'description': 'Query for parent firmware of matching objects (requires query)',
+                'in': 'query', 'type': 'boolean', 'default': 'false'
+            },
+            'inverted': {
+                'description': 'Query for parent firmware that does not include the matching objects (Requires query '
+                               'and recursive)',
+                'in': 'query', 'type': 'boolean', 'default': 'false'
+            },
+        }
+    )
+    def get(self):
+        '''
+        Browse the firmware database
+        List all available firmware in the database
+        '''
         try:
             query, recursive, inverted, offset, limit = self._get_parameters_from_request(request.args)
         except ValueError as value_error:
@@ -106,26 +89,15 @@ class RestFirmware(Resource):
             raise ValueError('Inverted flag can only be used with recursive')
         return query, recursive, inverted, offset, limit
 
-    def _get_with_uid(self, uid):
-        summary = get_boolean_from_request(request.args, 'summary')
-        if summary:
-            with ConnectTo(FrontEndDbInterface, self.config) as connection:
-                firmware = connection.get_complete_object_including_all_summaries(uid)
-        else:
-            with ConnectTo(FrontEndDbInterface, self.config) as connection:
-                firmware = connection.get_firmware(uid)
-        if not firmware or not isinstance(firmware, Firmware):
-            return error_message('No firmware with UID {} found'.format(uid), self.URL, dict(uid=uid))
-
-        fitted_firmware = self._fit_firmware(firmware)
-        return success_message(dict(firmware=fitted_firmware), self.URL, request_data=dict(uid=uid))
-
-    def _put_without_uid(self):
-        try:
-            data = convert_rest_request(request.data)
-        except TypeError as type_error:
-            return error_message(str(type_error), self.URL, request_data=request.data)
-
+    @roles_accepted(*PRIVILEGES['submit_analysis'])
+    @api.expect(firmware_model)
+    def put(self):
+        '''
+        Upload a firmware
+        The HTTP body must contain a json document of the structure shown below
+        Important: The binary has to be a base64 string representing the raw binary you want to submit
+        '''
+        data = self.validate_payload_data(firmware_model)
         result = self._process_data(data)
         if 'error_message' in result:
             logging.warning('Submission not according to API guidelines! (data could not be parsed)')
@@ -134,9 +106,84 @@ class RestFirmware(Resource):
         logging.debug('Upload Successful!')
         return success_message(result, self.URL, request_data=data)
 
-    def _put_with_uid(self, uid):
+    def _process_data(self, data):
+        try:
+            data['binary'] = standard_b64decode(data['binary'])
+        except binascii.Error:
+            return dict(error_message='Could not parse binary (must be valid base64!)')
+        firmware_object = convert_analysis_task_to_fw_obj(data)
+        with ConnectTo(InterComFrontEndBinding, self.config) as intercom:
+            intercom.add_analysis_task(firmware_object)
+        data.pop('binary')
+
+        return dict(uid=firmware_object.uid)
+
+
+@api.route('/<string:uid>', doc={'description': '', 'params': {'uid': 'Firmware UID'}})
+class RestFirmwareGetWithUid(RestResourceBase):
+    URL = '/rest/firmware'
+
+    @roles_accepted(*PRIVILEGES['view_analysis'])
+    @api.doc(
+        responses={200: 'Success', 400: 'Unknown UID'},
+        params={'summary': {'description': 'include summary in result', 'in': 'query', 'type': 'boolean', 'default': 'false'}}
+    )
+    def get(self, uid):
+        '''
+        Request a specific firmware
+        Get the analysis results of a specific firmware by providing the corresponding uid
+        '''
+        summary = get_boolean_from_request(request.args, 'summary')
+        if summary:
+            with ConnectTo(FrontEndDbInterface, self.config) as connection:
+                firmware = connection.get_complete_object_including_all_summaries(uid)
+        else:
+            with ConnectTo(FrontEndDbInterface, self.config) as connection:
+                firmware = connection.get_firmware(uid)
+        if not firmware or not isinstance(firmware, Firmware):
+            return error_message(f'No firmware with UID {uid} found', self.URL, dict(uid=uid))
+
+        fitted_firmware = self._fit_firmware(firmware)
+        return success_message(dict(firmware=fitted_firmware), self.URL, request_data=dict(uid=uid))
+
+    @staticmethod
+    def _fit_firmware(firmware):
+        meta = create_meta_dict(firmware)
+        analysis = firmware.processed_analysis
+        return dict(meta_data=meta, analysis=analysis)
+
+    @roles_accepted(*PRIVILEGES['submit_analysis'])
+    @api.expect(firmware_model)
+    def put(self, uid):
+        '''
+        Update existing firmware analysis
+        You can use this endpoint to update a firmware analysis which is already existing
+        '''
         try:
             update = get_update(request.args)
         except ValueError as value_error:
             return error_message(str(value_error), self.URL, request_data={'uid': uid})
         return self._update_analysis(uid, update)
+
+    def _update_analysis(self, uid, update):
+        with ConnectTo(FrontEndDbInterface, self.config) as connection:
+            firmware = connection.get_firmware(uid)
+        if not firmware:
+            return error_message(f'No firmware with UID {uid} found', self.URL, dict(uid=uid))
+
+        unpack = 'unpacker' in update
+        while 'unpacker' in update:
+            update.remove('unpacker')
+
+        firmware.scheduled_analysis = update
+
+        with ConnectTo(InterComFrontEndBinding, self.config) as intercom:
+            supported_plugins = intercom.get_available_analysis_plugins().keys()
+            for item in update:
+                if item not in supported_plugins:
+                    return error_message(f'Unknown analysis system \'{item}\'', self.URL, dict(uid=uid, update=update))
+            intercom.add_re_analyze_task(firmware, unpack)
+
+        if unpack:
+            update.append('unpacker')
+        return success_message({}, self.URL, dict(uid=uid, update=update))

@@ -25,6 +25,7 @@ class FactBase:
         self.work_load_stat.shutdown()
 
     def main(self):
+        logging.info(f'Successfully started {self.PROGRAM_NAME}')
         while self.run:
             self.work_load_stat.update()
             sleep(5)
