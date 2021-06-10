@@ -21,6 +21,8 @@ TMP_DIR = TemporaryDirectory(prefix='fact_test_')
 
 class TestMongoInterface(unittest.TestCase):
 
+    mongo_server = None
+
     @classmethod
     def setUpClass(cls):
         cls._config = get_config_for_testing(TMP_DIR)
@@ -63,18 +65,14 @@ class TestMongoInterface(unittest.TestCase):
         TMP_DIR.cleanup()
 
     def _get_all_firmware_uids(self):
-        uid_list = []
-        tmp = self.db_interface.firmwares.find()
-        for item in tmp:
-            uid_list.append(item['_id'])
-        return uid_list
+        return [item['_id'] for item in self.db_interface.firmwares.find()]
 
-    def test_existence_quick_check(self):
-        self.assertFalse(self.db_interface.existence_quick_check('none_existing'), 'none existing firmware found')
+    def test_exists(self):
+        self.assertFalse(self.db_interface.exists('none_existing'), 'none existing firmware found')
         self.db_interface_backend.add_firmware(self.test_firmware)
-        self.assertTrue(self.db_interface.existence_quick_check(self.test_firmware.uid), 'existing firmware not found')
+        self.assertTrue(self.db_interface.exists(self.test_firmware.uid), 'existing firmware not found')
         self.db_interface_backend.add_file_object(self.test_fo)
-        self.assertTrue(self.db_interface.existence_quick_check(self.test_fo.uid), 'existing file not found')
+        self.assertTrue(self.db_interface.exists(self.test_fo.uid), 'existing file not found')
 
     def test_get_firmware(self):
         self.db_interface_backend.add_firmware(self.test_firmware)
@@ -145,8 +143,13 @@ class TestMongoInterface(unittest.TestCase):
     def test_retrieve_analysis(self):
         self.db_interface.sanitize_fs.put(pickle.dumps('This is a test!'), filename='test_file_path')
 
-        sanitized_dict = {'stub_plugin': {'result': 'test_file_path', 'file_system_flag': True}}
-        sanitized_dict['inbound_result'] = {'result': 'inbound result', 'file_system_flag': False}
+        sanitized_dict = {
+            'stub_plugin': {'result': 'test_file_path', 'file_system_flag': True},
+            'inbound_result': {
+                'result': 'inbound result',
+                'file_system_flag': False,
+            },
+        }
         retrieved_dict = self.db_interface.retrieve_analysis(sanitized_dict)
 
         self.assertNotIn('file_system_flag', retrieved_dict['stub_plugin'].keys())
@@ -157,9 +160,16 @@ class TestMongoInterface(unittest.TestCase):
 
     def test_retrieve_analysis_filter(self):
         self.db_interface.sanitize_fs.put(pickle.dumps('This is a test!'), filename='test_file_path')
-        sanitized_dict = {'selected_plugin': {'result': 'test_file_path', 'file_system_flag': True}}
-        sanitized_dict['other_plugin'] = {'result': 'test_file_path', 'file_system_flag': True}
+
+        sanitized_dict = {
+            'selected_plugin': {
+                'result': 'test_file_path',
+                'file_system_flag': True,
+            },
+            'other_plugin': {'result': 'test_file_path', 'file_system_flag': True},
+        }
         retrieved_dict = self.db_interface.retrieve_analysis(sanitized_dict, analysis_filter=['selected_plugin'])
+
         self.assertEqual(retrieved_dict['selected_plugin']['result'], 'This is a test!')
         self.assertIn('file_system_flag', retrieved_dict['other_plugin'])
 

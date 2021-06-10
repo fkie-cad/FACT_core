@@ -41,7 +41,7 @@ def test_delete_file_success(mock_listener):
 
 
 def test_delete_file_entry_exists(mock_listener, monkeypatch):
-    monkeypatch.setattr('test.common_helper.DatabaseMock.existence_quick_check', lambda self, uid: True)
+    monkeypatch.setattr('test.common_helper.DatabaseMock.exists', lambda self, uid: True)
     mock_listener.post_processing(dict(_id='AnyID'), None)
     assert 'entry exists: AnyID' in LOGGING_OUTPUT
 

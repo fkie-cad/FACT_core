@@ -31,7 +31,7 @@ class MongoInterfaceCommon(MongoInterface):  # pylint: disable=too-many-instance
         self.sanitize_storage = self.client[sanitize_db]
         self.sanitize_fs = gridfs.GridFS(self.sanitize_storage)
 
-    def existence_quick_check(self, uid):
+    def exists(self, uid):
         return self.is_firmware(uid) or self.is_file_object(uid)
 
     def is_firmware(self, uid):
