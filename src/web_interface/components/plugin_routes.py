@@ -3,7 +3,8 @@ import importlib
 import inspect
 import pkgutil
 
-from flask_restful import Resource
+from flask_restx import Resource
+
 from helperFunctions.fileSystem import get_src_dir
 from web_interface.components.component_base import ComponentBase
 

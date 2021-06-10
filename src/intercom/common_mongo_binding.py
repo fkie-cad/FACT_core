@@ -1,6 +1,7 @@
 import logging
 import pickle
 from time import time
+from typing import Any
 
 import gridfs
 
@@ -8,9 +9,9 @@ from helperFunctions.hash import get_sha256
 from storage.mongo_interface import MongoInterface
 
 
-def generate_task_id(input_data):
+def generate_task_id(input_data: Any) -> str:
     serialized_data = pickle.dumps(input_data)
-    task_id = '{}_{}'.format(get_sha256(serialized_data), time())
+    task_id = f'{get_sha256(serialized_data)}_{time()}'
     return task_id
 
 

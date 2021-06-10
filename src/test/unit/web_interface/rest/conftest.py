@@ -1,3 +1,5 @@
+# pylint: disable=wrong-import-order
+
 from tempfile import TemporaryDirectory
 
 import pytest
@@ -19,8 +21,9 @@ def test_config():
 
 @pytest.fixture(scope='module')
 def test_app(test_config):  # pylint: disable=redefined-outer-name
-    client = WebFrontEnd(config=test_config)
-    return client.app.test_client()
+    frontend = WebFrontEnd(config=test_config)
+    with frontend.app.test_client() as client:
+        yield client
 
 
 def decode_response(response):
