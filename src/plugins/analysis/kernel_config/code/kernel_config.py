@@ -1,6 +1,8 @@
+import logging
 import json
 import re
 import sys
+from json import JSONDecodeError
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import List
@@ -115,20 +117,23 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     @staticmethod
     def check_kernel_config(kernel_config: str) -> dict:
-        with NamedTemporaryFile() as fp:
-            fp.write(kernel_config.encode())
-            fp.seek(0)
-            command = f'{CHECKSEC_PATH} --kernel={fp.name} --output=json 2>/dev/null'
-            output = execute_shell_command(command)
-            result = json.loads(output)
-            whitelist_configs(result)
-            if 'boot' not in result['kernel']['KernelConfig']:
+        try:
+            with NamedTemporaryFile() as fp:
+                fp.write(kernel_config.encode())
+                fp.seek(0)
+                command = f'{CHECKSEC_PATH} --kernel={fp.name} --output=json 2>/dev/null'
+                output = execute_shell_command(command)
+                result = json.loads(output)
+                whitelist_configs(result)
                 return result
-            return {}
+
+        except (JSONDecodeError, KeyError):
+            logging.debug('Checksec kernel analysis failed')
+        return {}
 
 
 def whitelist_configs(config_results: dict) -> dict:
-    kernel_whitelist = ['KernelConfig', 'kernel_heap_randomization', 'gcc_stack_protector', 'gcc_stack_protector_strong',
+    kernel_whitelist = ['kernel_heap_randomization', 'gcc_stack_protector', 'gcc_stack_protector_strong',
                         'gcc_structleak', 'gcc_structleak_byref', 'slab_freelist_randomization', 'cpu_sw_domain',
                         'virtually_mapped_stack', 'restrict_dev_mem_access', 'restrict_io_dev_mem_access',
                         'ro_kernel_data', 'ro_module_data', 'full_refcount_validation', 'hardened_usercopy',

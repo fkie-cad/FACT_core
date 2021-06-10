@@ -177,21 +177,14 @@ def test_checksec_existing_config():
     result = AnalysisPlugin.check_kernel_config(kernel_config)
     assert result != {}
     assert 'kernel' in result
+    assert 'selinux' in result
+    assert 'grsecurity' in result
     assert 'randomize_va_space' not in result['kernel']
     assert result['kernel']['kernel_heap_randomization'] == 'yes'
 
 
-class TempfileMock:
-    name = 'not/existing/path'
-
-    def write(self, _):
-        pass
-
-    def seek(self, _):
-        pass
-
-
-def test_checksec_non_existing_config(monkeypatch):
-    monkeypatch.setattr('tempfile._TemporaryFileWrapper.__enter__', lambda _: TempfileMock())
+def test_checksec_no_valid_json(monkeypatch):
+    invalid_json = 'invalid_json'
+    monkeypatch.setattr('plugins.analysis.kernel_config.code.kernel_config.execute_shell_command', lambda _: invalid_json)
     result = AnalysisPlugin.check_kernel_config('no_real_config')
     assert result == {}

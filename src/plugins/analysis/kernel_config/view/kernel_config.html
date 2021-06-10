@@ -7,29 +7,30 @@
             <td>Kernel Config</td>
             <td><pre class="border rounded p-2 bg-light" style="white-space: pre-wrap; height: 450px; overflow: scroll;"><code>{{ firmware.processed_analysis[selected_analysis]['kernel_config'] | safe }}</code></pre></td>
         </tr>
-        <tr>
-            <td>checksec</td>
-            <td style="padding: 0">
-                <table style="width: 100%">
-                    {% for category, checksec_data in firmware.processed_analysis[selected_analysis]['checksec'].items() %}
-                        <tr>
-                            <td>{{ category }}</td>
-                            <td style="padding: 0">
-                                <table style="width: 100%">
-                                    {% for key, value in checksec_data.items() %}
-                                    <tr>
-                                        <td style="width: 33%">{{ key }}</td>
-                                        <td>{{ value }}</td>
-                                    </tr>
-                                    {% endfor %}
-                                </table>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </table>
-            </td>
-        </tr>
-
+        {% if 'checksec' in firmware.processed_analysis[selected_analysis] and firmware.processed_analysis[selected_analysis]['checksec'] != {} %}
+            <tr>
+                <td>checksec</td>
+                <td style="padding: 0">
+                    <table style="width: 100%">
+                        {% for category, checksec_data in firmware.processed_analysis[selected_analysis]['checksec'].items() %}
+                            <tr>
+                                <td>{{ category }}</td>
+                                <td style="padding: 0">
+                                    <table style="width: 100%">
+                                        {% for key, value in checksec_data.items() %}
+                                        <tr>
+                                            <td style="width: 33%">{{ key }}</td>
+                                            <td>{{ value }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </table>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+                </td>
+            </tr>
+        {% endif %}
 
     {% endif %}
 
