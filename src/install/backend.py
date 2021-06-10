@@ -29,7 +29,7 @@ def main(distribution):
     _install_yara(distribution)
 
     # install checksec.sh
-    _install_checksec()
+    _install_checksec(distribution)
 
     # build extraction docker container
     logging.info('Building fact extraction container')
@@ -125,11 +125,17 @@ def _install_yara(distribution):  # pylint: disable=too-complex
                 raise InstallationError(f'Error in yara installation.\n{output}')
 
 
-def _install_checksec():
+def _install_checksec(distribution):
     checksec_path = BIN_DIR / 'checksec'
     if checksec_path.is_file():
         logging.info('Skipping checksec.sh installation (already installed)')
         return
+
+    # dependencies
+    if distribution != 'fedora':
+        apt_install_packages('binutils', 'openssl', 'file')
+    else:
+        dnf_install_packages('binutils', 'openssl', 'file')
 
     logging.info('Installing checksec.sh')
     checksec_url = "https://raw.githubusercontent.com/slimm609/checksec.sh/master/checksec"

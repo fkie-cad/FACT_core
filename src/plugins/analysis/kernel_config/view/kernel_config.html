@@ -11,7 +11,7 @@
             <td>checksec</td>
             <td style="padding: 0">
                 <table style="width: 100%">
-                    {% for category, checksec_data in firmware.processed_analysis['ikconfig']['checksec'].items() %}
+                    {% for category, checksec_data in firmware.processed_analysis[selected_analysis]['checksec'].items() %}
                         <tr>
                             <td>{{ category }}</td>
                             <td style="padding: 0">
