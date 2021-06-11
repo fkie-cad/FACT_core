@@ -132,10 +132,8 @@ def _install_checksec(distribution):
         return
 
     # dependencies
-    if distribution != 'fedora':
-        apt_install_packages('binutils', 'openssl', 'file')
-    else:
-        dnf_install_packages('binutils', 'openssl', 'file')
+    install_function = apt_install_packages if distribution != 'fedora' else dnf_install_packages
+    install_function('binutils', 'openssl', 'file')
 
     logging.info('Installing checksec.sh')
     checksec_url = "https://raw.githubusercontent.com/slimm609/checksec.sh/master/checksec"

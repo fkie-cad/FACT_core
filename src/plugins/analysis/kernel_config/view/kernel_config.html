@@ -9,7 +9,7 @@
         </tr>
         {% if 'checksec' in firmware.processed_analysis[selected_analysis] and firmware.processed_analysis[selected_analysis]['checksec'] != {} %}
             <tr>
-                <td>checksec</td>
+                <td>Exploit Mitigations</td>
                 <td style="padding: 0">
                     <table style="width: 100%">
                         {% for category, checksec_data in firmware.processed_analysis[selected_analysis]['checksec'].items() %}
