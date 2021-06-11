@@ -17,7 +17,7 @@ def get_top_of_virtual_path(virtual_path: str) -> str:
     return split_virtual_path(virtual_path)[-1] if virtual_path else ''
 
 
-def merge_vfp_lists(old_vfp_list, new_vfp_list):
+def merge_vfp_lists(old_vfp_list: List[str], new_vfp_list: List[str]) -> List[str]:
     '''
     virtual file paths (VFPs) with the same base are updated and should be replaced
     VFPs with different bases correspond to different archives in the firmware and should be kept

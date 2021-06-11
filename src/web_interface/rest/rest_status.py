@@ -1,22 +1,28 @@
-from flask_restful import Resource
+from flask_restx import Namespace
 
 from helperFunctions.database import ConnectTo
 from intercom.front_end_binding import InterComFrontEndBinding
 from storage.db_interface_statistic import StatisticDbViewer
 from web_interface.rest.helper import error_message, success_message
+from web_interface.rest.rest_resource_base import RestResourceBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
+api = Namespace('rest/status', description='Request FACT\'s system status')
 
-class RestStatus(Resource):
+
+@api.route('')
+class RestStatus(RestResourceBase):
     URL = '/rest/status'
 
-    def __init__(self, **kwargs):
-        self.config = kwargs.get('config', None)
-
     @roles_accepted(*PRIVILEGES['status'])
+    @api.doc(responses={200: 'Success', 400: 'Error'})
     def get(self):
-        components = ["frontend", "database", "backend"]
+        '''
+        Request system status
+        Request a json document showing the system state of FACT, similar to the system health page of the GUI
+        '''
+        components = ['frontend', 'database', 'backend']
         status = {}
         with ConnectTo(StatisticDbViewer, self.config) as stats_db:
             for component in components:
@@ -25,8 +31,8 @@ class RestStatus(Resource):
         with ConnectTo(InterComFrontEndBinding, self.config) as sc:
             plugins = sc.get_available_analysis_plugins()
 
-        if not status:
-            return error_message('Unknown Issue. Cannot Stat FACT.', self.URL, return_code=404)
+        if not any(bool(status[component]) for component in components):
+            return error_message('Cannot get FACT component status: Database may be down', self.URL, return_code=404)
 
         response = {
             'system_status': status,

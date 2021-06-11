@@ -1,32 +1,47 @@
 from base64 import standard_b64encode
 
-from flask_restful import Resource, request
+from flask import request
+from flask_restx import Namespace
 
 from helperFunctions.database import ConnectTo
 from helperFunctions.hash import get_sha256
 from intercom.front_end_binding import InterComFrontEndBinding
 from storage.db_interface_frontend import FrontEndDbInterface
 from web_interface.rest.helper import error_message, get_boolean_from_request, success_message
+from web_interface.rest.rest_resource_base import RestResourceBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
+api = Namespace('rest/binary', description='Request the binary of a given firmware or file object')
 
-class RestBinary(Resource):
+
+@api.route(
+    '/<string:uid>',
+    doc={
+        'description': 'Request a binary by providing the uid of the corresponding object',
+        'params': {
+            'uid': 'Firmware UID',
+            'tar': {'description': 'Get tar.gz packed contents of target', 'in': 'query', 'type': 'boolean', 'default': 'false'}
+        }
+    }
+)
+class RestBinary(RestResourceBase):
     URL = '/rest/binary'
 
-    def __init__(self, **kwargs):
-        self.config = kwargs.get('config', None)
-
     @roles_accepted(*PRIVILEGES['download'])
+    @api.doc(responses={200: 'Success', 404: 'Unknown UID'})
     def get(self, uid):
         '''
+        Request a binary
         The uid of the file_object in question has to be given in the url
-        The return format will be {"binary": b64_encoded_binary, "file_name": file_name}
+        Alternatively the tar parameter can be used to get the target archive as its content repacked into a .tar.gz.
+        The return format will be {"binary": b64_encoded_binary_or_tar_gz, "file_name": file_name}
         '''
         with ConnectTo(FrontEndDbInterface, self.config) as db_service:
-            existence = db_service.existence_quick_check(uid)
+            existence = db_service.exists(uid)
         if not existence:
-            return error_message('No firmware with UID {} found in database'.format(uid), self.URL, request_data={'uid': uid}, return_code=404)
+            return error_message('No firmware with UID {} found in database'.format(uid), self.URL,
+                                 request_data={'uid': uid}, return_code=404)
 
         try:
             tar_flag = get_boolean_from_request(request.args, 'tar')

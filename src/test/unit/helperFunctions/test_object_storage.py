@@ -1,9 +1,9 @@
-# pylint: disable=invalid-name,redefined-outer-name
+# pylint: disable=invalid-name,redefined-outer-name,wrong-import-order
 from copy import deepcopy
 
 import pytest
 
-from helperFunctions.object_storage import update_analysis_tags, update_included_files, update_virtual_file_path
+from helperFunctions.object_storage import update_included_files, update_virtual_file_path
 from test.common_helper import TEST_TEXT_FILE
 
 
@@ -19,20 +19,6 @@ def mongo_entry():
         'files_included': ['legacy_file', 'duplicated_entry'],
         'virtual_file_path': {'any': ['any|virtual|path']}
     }
-
-
-def test_update_analysis_tags_normal(mutable_test_file, mongo_entry):
-    mutable_test_file.analysis_tags = {'new_tag': 'hurray'}
-    analysis_tags = update_analysis_tags(mutable_test_file, mongo_entry)
-    assert all(key in analysis_tags for key in ['existing_tag', 'new_tag']), 'not both tags found'
-    assert len(analysis_tags.keys()) == 2, 'unaccounted tag'
-
-
-def test_update_analysis_tags_overwrite(mutable_test_file, mongo_entry):
-    mutable_test_file.analysis_tags = {'new_tag': 'hurray', 'existing_tag': 'overwrite'}
-    analysis_tags = update_analysis_tags(mutable_test_file, mongo_entry)
-    assert len(analysis_tags.keys()) == 2, 'unaccounted tag'
-    assert analysis_tags['existing_tag'] == 'overwrite'
 
 
 def test_update_included_files_normal(mutable_test_file, mongo_entry):

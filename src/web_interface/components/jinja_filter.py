@@ -6,8 +6,8 @@ from common_helper_filter.time import time_format
 from flask import render_template
 
 import web_interface.filter as flt
+from helperFunctions.data_conversion import none_to_none
 from helperFunctions.database import ConnectTo
-from helperFunctions.dataConversion import none_to_none
 from helperFunctions.hash import get_md5
 from helperFunctions.uid import is_list_of_uids, is_uid
 from helperFunctions.virtual_file_path import split_virtual_path

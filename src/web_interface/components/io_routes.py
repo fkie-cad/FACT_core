@@ -1,5 +1,6 @@
 import json
 from configparser import ConfigParser
+from pathlib import Path
 from tempfile import TemporaryDirectory
 from time import sleep
 
@@ -64,7 +65,7 @@ class IORoutes(ComponentBase):
 
     def _prepare_file_download(self, uid, packed=False):
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
-            object_exists = sc.existence_quick_check(uid)
+            object_exists = sc.exists(uid)
         if not object_exists:
             return render_template('uid_not_found.html', uid=uid)
         with ConnectTo(InterComFrontEndBinding, self._config) as sc:
@@ -98,7 +99,7 @@ class IORoutes(ComponentBase):
     @AppRoute('/radare-view/<uid>', GET)
     def _show_radare(self, uid):
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
-            object_exists = sc.existence_quick_check(uid)
+            object_exists = sc.exists(uid)
         if not object_exists:
             return render_template('uid_not_found.html', uid=uid)
         with ConnectTo(InterComFrontEndBinding, self._config) as sc:
@@ -128,7 +129,7 @@ class IORoutes(ComponentBase):
     @AppRoute('/pdf-download/<uid>', GET)
     def _download_pdf_report(self, uid):
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
-            object_exists = sc.existence_quick_check(uid)
+            object_exists = sc.exists(uid)
         if not object_exists:
             return render_template('uid_not_found.html', uid=uid)
 
@@ -137,7 +138,7 @@ class IORoutes(ComponentBase):
 
         try:
             with TemporaryDirectory(dir=get_temp_dir_path(self._config)) as folder:
-                pdf_path = build_pdf_report(firmware, folder)
+                pdf_path = build_pdf_report(firmware, Path(folder))
                 binary = pdf_path.read_bytes()
         except RuntimeError as error:
             return render_template('error.html', message=str(error))

@@ -8,7 +8,7 @@ from common_helper_files import get_dir_of_file
 
 from analysis.YaraPluginBase import YaraBasePlugin
 from helperFunctions.config import get_temp_dir_path
-from helperFunctions.dataConversion import make_unicode_string
+from helperFunctions.data_conversion import make_unicode_string
 from helperFunctions.tag import TagColor
 from objects.file import FileObject
 from plugins.analysis.software_components.bin import OS_LIST

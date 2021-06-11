@@ -2,7 +2,7 @@ import os
 from contextlib import suppress
 
 from flask import render_template_string
-from flask_restful import Resource
+from flask_restx import Resource, Namespace
 
 from helperFunctions.database import ConnectTo
 from helperFunctions.fileSystem import get_src_dir
@@ -63,10 +63,15 @@ class PluginRoutes(ComponentBase):
             return fp.read()
 
 
+api = Namespace('/plugins/qemu_exec/rest')
+
+
+@api.hide
 class QemuExecRoutesRest(Resource):
     ENDPOINTS = [('/plugins/qemu_exec/rest/<uid>', ['GET'])]
 
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.config = kwargs.get('config', None)
 
     @roles_accepted(*PRIVILEGES['view_analysis'])

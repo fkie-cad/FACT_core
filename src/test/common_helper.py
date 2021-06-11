@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Union
 
 from helperFunctions.config import load_config
-from helperFunctions.dataConversion import get_value_of_first_key, normalize_compare_id
+from helperFunctions.data_conversion import get_value_of_first_key, normalize_compare_id
 from helperFunctions.fileSystem import get_src_dir
 from intercom.common_mongo_binding import InterComMongoInterface
 from objects.file import FileObject
@@ -28,7 +28,11 @@ def get_test_data_dir():
 class CommonDbInterfaceMock(MongoInterfaceCommon):
 
     def __init__(self):  # pylint: disable=super-init-not-called
-        pass
+        class Collection:
+            def aggregate(self, *_, **__):
+                return []
+
+        self.file_objects = Collection()
 
     def retrieve_analysis(self, sanitized_dict, analysis_filter=None):
         return {}
@@ -166,7 +170,7 @@ class DatabaseMock:  # pylint: disable=too-many-public-methods
             return {'this_is': 'a_compare_result'}
         return 'generic error'
 
-    def existence_quick_check(self, uid):
+    def exists(self, uid):
         return uid in (self.fw_uid, self.fo_uid, self.fw2_uid, 'error')
 
     def check_objects_exist(self, compare_id):

@@ -1,9 +1,7 @@
 import logging
 from pathlib import Path
 
-from common_helper_files import create_dir_for_file, delete_file, write_binary_to_file
-
-from helperFunctions.fileSystem import get_absolute_path
+from common_helper_files import delete_file, write_binary_to_file
 
 
 class FSOrganizer:
@@ -12,8 +10,8 @@ class FSOrganizer:
     '''
     def __init__(self, config=None):
         self.config = config
-        self.data_storage_path = get_absolute_path(self.config['data_storage']['firmware_file_storage_directory'])
-        create_dir_for_file(self.data_storage_path)
+        self.data_storage_path = Path(self.config['data_storage']['firmware_file_storage_directory']).absolute()
+        self.data_storage_path.parent.mkdir(parents=True, exist_ok=True)
 
     def store_file(self, file_object):
         if file_object.binary is None:
@@ -32,4 +30,4 @@ class FSOrganizer:
         return self.generate_path_from_uid(file_object.uid)
 
     def generate_path_from_uid(self, uid):
-        return str(Path(self.data_storage_path) / uid[0:2] / uid)
+        return str(self.data_storage_path / uid[0:2] / uid)

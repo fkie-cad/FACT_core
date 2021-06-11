@@ -1,7 +1,7 @@
 import re
 from typing import AnyStr, List, Set, Union
 
-from helperFunctions.dataConversion import make_bytes
+from helperFunctions.data_conversion import make_bytes
 from helperFunctions.hash import get_sha256
 
 

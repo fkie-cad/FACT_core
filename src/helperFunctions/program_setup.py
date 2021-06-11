@@ -20,7 +20,9 @@ import argparse
 import configparser
 import logging
 import os
+import signal
 import sys
+from typing import Callable
 
 import psutil
 from common_helper_files import create_dir_for_file
@@ -83,6 +85,15 @@ def _load_config(args):
     if args.log_level is not None:
         config['Logging']['logLevel'] = args.log_level
     return config
+
+
+def set_signals(listener: Callable):
+    if was_started_by_start_fact():
+        signal.signal(signal.SIGUSR1, listener)
+        signal.signal(signal.SIGINT, lambda *_: None)
+        os.setpgid(os.getpid(), os.getpid())  # reset pgid to self so that "complete_shutdown" doesn't run amok
+    else:
+        signal.signal(signal.SIGINT, listener)
 
 
 def was_started_by_start_fact():

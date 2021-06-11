@@ -50,7 +50,7 @@ def test_select_functionality():
 
 def test_insert_functionality():
     with DatabaseInterface(TEST_DB_PATH) as db:
-        db.insert_rows(TEST_QUERIES['test_insert'].format('test_table'), [[34]])
+        db.insert_rows(TEST_QUERIES['test_insert'].format('test_table'), [(34,)])
         test_insert_output = list(db.fetch_multiple(query=QUERIES['select_all'].format('test_table')))
         assert test_insert_output == [(23,), (34,)]
 
