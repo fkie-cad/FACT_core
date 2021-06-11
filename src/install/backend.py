@@ -1,5 +1,6 @@
 import logging
 import os
+import stat
 from contextlib import suppress
 from pathlib import Path
 
@@ -10,6 +11,8 @@ from helperFunctions.install import (
     InstallationError, OperateInDirectory, apt_install_packages, check_string_in_command_output, dnf_install_packages,
     load_main_config, pip3_install_packages
 )
+
+BIN_DIR = Path(__file__).parent.parent / 'bin'
 
 
 def main(distribution):
@@ -24,6 +27,9 @@ def main(distribution):
 
     # install yara
     _install_yara(distribution)
+
+    # install checksec.sh
+    _install_checksec(distribution)
 
     # build extraction docker container
     logging.info('Building fact extraction container')
@@ -117,3 +123,21 @@ def _install_yara(distribution):  # pylint: disable=too-complex
             output, return_code = execute_shell_command_get_return_code(command)
             if return_code != 0:
                 raise InstallationError(f'Error in yara installation.\n{output}')
+
+
+def _install_checksec(distribution):
+    checksec_path = BIN_DIR / 'checksec'
+    if checksec_path.is_file():
+        logging.info('Skipping checksec.sh installation (already installed)')
+        return
+
+    # dependencies
+    install_function = apt_install_packages if distribution != 'fedora' else dnf_install_packages
+    install_function('binutils', 'openssl', 'file')
+
+    logging.info('Installing checksec.sh')
+    checksec_url = "https://raw.githubusercontent.com/slimm609/checksec.sh/master/checksec"
+    output, return_code = execute_shell_command_get_return_code(f'wget -P {BIN_DIR} {checksec_url}')
+    if return_code != 0:
+        raise InstallationError(f'Error during installation of checksec.sh\n{output}')
+    checksec_path.chmod(checksec_path.stat().st_mode | stat.S_IEXEC)  # chmod +x

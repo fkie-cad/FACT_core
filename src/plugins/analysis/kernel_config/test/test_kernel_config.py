@@ -169,3 +169,22 @@ def test_gz_break_on_true():
     test_file = FileObject(file_path=str(TEST_DATA_DIR / 'configs/CONFIG.gz'))
     decompressor = GZDecompressor()
     assert decompressor.decompress(test_file.binary) != b''
+
+
+def test_checksec_existing_config():
+    test_file = TEST_DATA_DIR / 'configs/CONFIG'
+    kernel_config = test_file.read_text()
+    result = AnalysisPlugin.check_kernel_config(kernel_config)
+    assert result != {}
+    assert 'kernel' in result
+    assert 'selinux' in result
+    assert 'grsecurity' in result
+    assert 'randomize_va_space' not in result['kernel']
+    assert result['kernel']['kernel_heap_randomization'] == 'yes'
+
+
+def test_checksec_no_valid_json(monkeypatch):
+    invalid_json = 'invalid_json'
+    monkeypatch.setattr('plugins.analysis.kernel_config.code.kernel_config.execute_shell_command', lambda _: invalid_json)
+    result = AnalysisPlugin.check_kernel_config('no_real_config')
+    assert result == {}
