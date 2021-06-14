@@ -147,7 +147,29 @@ def _install_css_and_js_files():
                 'x-editable')
 
 
-def main(radare, nginx):
+def _install_docker_images(radare):
+    if radare:
+        logging.info('Initializing docker container for radare')
+
+        execute_shell_command_get_return_code('virtualenv {}'.format(COMPOSE_VENV))
+        # We use the pip from the Venv for docker-compose
+        output, return_code = execute_shell_command_get_return_code('{} install -U docker-compose'.format(COMPOSE_VENV / 'bin' / 'pip'))
+        if return_code != 0:
+            raise InstallationError('Failed to set up virtualenv for docker-compose\n{}'.format(output))
+
+        with OperateInDirectory('radare'):
+            output, return_code = execute_shell_command_get_return_code('{} build'.format(COMPOSE_VENV / 'bin' / 'docker-compose'))
+            if return_code != 0:
+                raise InstallationError('Failed to initialize radare container:\n{}'.format(output))
+
+    # pull pdf report container
+    logging.info('Pulling pdf report container')
+    output, return_code = execute_shell_command_get_return_code('docker pull fkiecad/fact_pdf_report')
+    if return_code != 0:
+        raise InstallationError('Failed to pull pdf report container:\n{}'.format(output))
+
+
+def main(skip_docker, radare, nginx):
     pip3_install_packages('werkzeug==0.16.1')  # Multiple flask plugins break on werkzeug > 0.16.1
     pip3_install_packages(
         'flask==1.1.2',  # FIXME: unpin when flask-restful / flask-restx works with flask 2.0
@@ -175,24 +197,8 @@ def main(radare, nginx):
     if nginx:
         _install_nginx()
 
-    if radare:
-        logging.info('Initializing docker container for radare')
-
-        execute_shell_command_get_return_code('virtualenv {}'.format(COMPOSE_VENV))
-        output, return_code = execute_shell_command_get_return_code('{} install -U docker-compose'.format(COMPOSE_VENV / 'bin' / 'pip'))
-        if return_code != 0:
-            raise InstallationError('Failed to set up virtualenv for docker-compose\n{}'.format(output))
-
-        with OperateInDirectory('radare'):
-            output, return_code = execute_shell_command_get_return_code('{} build'.format(COMPOSE_VENV / 'bin' / 'docker-compose'))
-            if return_code != 0:
-                raise InstallationError('Failed to initialize radare container:\n{}'.format(output))
-
-    # pull pdf report container
-    logging.info('Pulling pdf report container')
-    output, return_code = execute_shell_command_get_return_code('docker pull fkiecad/fact_pdf_report')
-    if return_code != 0:
-        raise InstallationError('Failed to pull pdf report container:\n{}'.format(output))
+    if not skip_docker:
+        _install_docker_images(radare)
 
     with OperateInDirectory('../../'):
         with suppress(FileNotFoundError):
