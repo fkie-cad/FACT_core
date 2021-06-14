@@ -1,11 +1,7 @@
 #!/usr/bin/env bash
 
-# change cwd to current file's directory
+# change cwd to this file's directory
 cd "$( dirname "${BASH_SOURCE[0]}" )" || exit 1
-
-echo "------------------------------------"
-echo " Installing cwe_checker Plugin "
-echo "------------------------------------"
 
 echo "Trying to pull cwe_checker Docker image"
 docker pull fkiecad/cwe_checker:latest
