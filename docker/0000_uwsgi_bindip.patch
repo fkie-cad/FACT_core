@@ -1,0 +1,13 @@
+diff --git a/src/config/uwsgi_config.ini b/src/config/uwsgi_config.ini
+index 0bce9016..bda83cc1 100644
+--- a/src/config/uwsgi_config.ini
++++ b/src/config/uwsgi_config.ini
+@@ -1,7 +1,7 @@
+ [uwsgi]
+ 
+ # bind to the specified UNIX/TCP socket using HTTP protocol
+-http-socket = 127.0.0.1:5000
++http-socket = 0.0.0.0:5000
+ 
+ # enable the stats server on the specified address
+ # (allows you to export uWSGI’s internal statistics as JSON)

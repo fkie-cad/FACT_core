@@ -1,0 +1,19 @@
+diff --git a/src/config/main.cfg b/src/config/main.cfg
+index 55bf730d..4a363cc6 100644
+--- a/src/config/main.cfg
++++ b/src/config/main.cfg
+@@ -26,11 +26,11 @@ variety_path = bin/variety.js
+ structural_threshold = 40
+ 
+ # Temporary Directory Path
+-temp_dir_path = /tmp
++temp_dir_path = /tmp/fact-docker-tmp
+ 
+ [Logging]
+-logFile=/tmp/fact_main.log
+-mongoDbLogFile=/tmp/fact_mongo.log
++logFile=/var/log/fact/main.log
++mongoDbLogFile=/var/log/fact/mongo.log
+ logLevel=WARNING
+ 
+ 
