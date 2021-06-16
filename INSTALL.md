@@ -17,6 +17,9 @@ $ ~/FACT_core/start_all_installed_fact_components
 Wait a few seconds, open your browser and go to `localhost:5000`  
 Use `Ctrl + c` in your terminal to shutdown FACT.
 
+## Docker installation
+See [docker instructions](docker/README.md).
+
 ## Simple One System Setup
 
 ### Pre-Install
