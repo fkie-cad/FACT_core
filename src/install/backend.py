@@ -9,7 +9,7 @@ from compile_yara_signatures import main as compile_signatures
 
 from helperFunctions.install import (
     InstallationError, OperateInDirectory, apt_install_packages, check_string_in_command_output, dnf_install_packages,
-    load_main_config, pip3_install_packages
+    load_main_config
 )
 
 BIN_DIR = Path(__file__).parent.parent / 'bin'
@@ -23,17 +23,11 @@ def main(skip_docker, distribution):
     else:
         apt_install_packages('libjpeg-dev', 'libssl-dev', 'python3-tk')
 
-    pip3_install_packages('pluginbase', 'Pillow', 'cryptography', 'pyopenssl', 'matplotlib', 'docker', 'networkx')
-
     # install yara
     _install_yara(distribution)
 
     # install checksec.sh
     _install_checksec(distribution)
-
-    # installing common code modules
-    pip3_install_packages('git+https://github.com/fkie-cad/common_helper_yara.git')
-    pip3_install_packages('git+https://github.com/mass-project/common_analysis_base.git')
 
     if not skip_docker:
         _install_docker_images()
