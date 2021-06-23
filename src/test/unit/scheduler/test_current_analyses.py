@@ -1,4 +1,4 @@
-# pylint: disable=protected-access
+# pylint: disable=protected-access,wrong-import-order
 import logging
 from time import time
 
@@ -75,7 +75,8 @@ class TestCurrentAnalyses(UtilityBase):
 
     def test_remove_fully_from_current_analyses(self):
         self.scheduler.currently_running = {'parent_uid': {
-            'files_to_unpack': [], 'files_to_analyze': ['foo'], 'analyzed_files_count': 1, 'start_time': 0, 'total_files_count': 2
+            'files_to_unpack': [], 'files_to_analyze': ['foo'], 'analyzed_files_count': 1, 'start_time': 0,
+            'total_files_count': 2, 'hid': 'FooBar 1.0'
         }}
         self.scheduler.recently_finished = {}
         fo = FileObject(binary=b'foo')
