@@ -1,6 +1,5 @@
 const BOOTSTRAP_DANGER_COLOR = "#dc3545";
-const BOOTSTRAP_WARNING_COLOR = "#ffc107";
-const BOOTSTRAP_SUCCESS_COLOR = "#28a745";
+const BOOTSTRAP_PRIMARY_COLOR = "#007bff";
 
 function change_button(button_id) {
     element = document.getElementById(button_id);
@@ -77,24 +76,18 @@ function updatePluginCard(pluginName, pluginData) {
     const queueElement = document.getElementById(`${pluginName}-queue`);
     if (pluginData.active > 0) {
         activeIndicatorElement.classList.add("fa-spin");
+        activeIndicatorElement.style.color = BOOTSTRAP_PRIMARY_COLOR;
+        activeElement.style.color = BOOTSTRAP_PRIMARY_COLOR;
     } else {
         activeIndicatorElement.classList.remove("fa-spin");
-    }
-    if (pluginData.queue > 150) {
-        activeIndicatorElement.style.color = BOOTSTRAP_DANGER_COLOR;
-        activeElement.style.color = BOOTSTRAP_DANGER_COLOR;
-    } else if (pluginData.queue > 50) {
-        activeIndicatorElement.style.color = BOOTSTRAP_WARNING_COLOR;
-        activeElement.style.color = BOOTSTRAP_WARNING_COLOR;
-    } else if (pluginData.active > 0) {
-        activeIndicatorElement.style.color = BOOTSTRAP_SUCCESS_COLOR;
-        activeElement.style.color = BOOTSTRAP_SUCCESS_COLOR;
-    } else {
         activeIndicatorElement.style.color = "darkgrey";
         activeElement.style.color = "darkgrey";
     }
     activeElement.innerText = pluginData.active.toString();
-    if (pluginData.queue > 0) {
+    if (pluginData.queue > 100) {
+        queueIndicatorElement.style.color = BOOTSTRAP_DANGER_COLOR;
+        queueElement.style.color = BOOTSTRAP_DANGER_COLOR;
+    } else if (pluginData.queue > 0) {
         queueIndicatorElement.style.color = "black";
         queueElement.style.color = "black";
     } else {
