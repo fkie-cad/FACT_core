@@ -22,7 +22,7 @@ from storage.db_interface_backend import BackEndDbInterface
 MANDATORY_PLUGINS = ['file_type', 'file_hashes']
 
 
-RECENTLY_FINISHED_DISPLAY_TIME_IN_SEC = 60
+RECENTLY_FINISHED_DISPLAY_TIME_IN_SEC = 300
 
 
 class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
@@ -193,6 +193,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
                 'analyzed_count': stats_dict['analyzed_files_count'],
                 'start_time': stats_dict['start_time'],
                 'total_count': stats_dict['total_files_count'],
+                'hid': stats_dict['hid'],
             }
             for uid, stats_dict in self.currently_running.items()
         }
@@ -442,7 +443,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             self.currently_running[parent] = updated_dict
 
     @staticmethod
-    def _init_current_analysis(fw_object):
+    def _init_current_analysis(fw_object: Firmware):
         return {
             'files_to_unpack': list(fw_object.files_included),
             'files_to_analyze': [fw_object.uid],
@@ -450,6 +451,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             'unpacked_files_count': 1,
             'analyzed_files_count': 0,
             'total_files_count': 1 + len(fw_object.files_included),
+            'hid': fw_object.get_hid(),
         }
 
     def _remove_from_current_analyses(self, fw_object: Union[Firmware, FileObject]):
@@ -477,6 +479,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             'duration': time() - analysis_data['start_time'],
             'total_files_count': analysis_data['total_files_count'],
             'time_finished': time(),
+            'hid': analysis_data['hid'],
         }
 
     def _find_currently_analyzed_parents(self, fw_object: Union[Firmware, FileObject]) -> Set[str]:

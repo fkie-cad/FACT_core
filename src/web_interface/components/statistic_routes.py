@@ -26,22 +26,20 @@ class StatisticRoutes(ComponentBase):
         with ConnectTo(FrontEndDbInterface, self._config) as connection:
             device_classes = connection.get_device_class_list()
             vendors = connection.get_vendor_list()
-        return render_template('show_statistic.html', stats=stats, device_classes=device_classes,
-                               vendors=vendors, current_class=str(request.args.get('device_class')),
-                               current_vendor=str(request.args.get('vendor')))
+        return render_template(
+            'show_statistic.html',
+            stats=stats,
+            device_classes=device_classes,
+            vendors=vendors,
+            current_class=str(request.args.get('device_class')),
+            current_vendor=str(request.args.get('vendor'))
+        )
 
     @roles_accepted(*PRIVILEGES['status'])
     def _show_system_health(self):
-        components = ['frontend', 'database', 'backend']
-        status = []
-        with ConnectTo(StatisticDbViewer, self._config) as stats_db:
-            for component in components:
-                status.append(stats_db.get_statistic(component))
-
         with ConnectTo(InterComFrontEndBinding, self._config) as sc:
             plugin_dict = sc.get_available_analysis_plugins()
-
-        return render_template('system_health.html', status=status, analysis_plugin_info=plugin_dict)
+        return render_template('system_health.html', analysis_plugin_info=plugin_dict)
 
     def _get_stats_from_db(self):
         with ConnectTo(StatisticDbViewer, self._config) as stats_db:
