@@ -1,4 +1,4 @@
-# pylint: disable=protected-access,invalid-name
+# pylint: disable=protected-access,invalid-name,wrong-import-order
 import gc
 import os
 from multiprocessing import Manager, Queue
@@ -393,3 +393,11 @@ class TestAnalysisSkipping:
         self.scheduler.db_backend_service = self.BackendMock(analysis_entry)
         self.scheduler.analysis_plugins['plugin'] = self.PluginMock(version='1.0', system_version='1.0')
         assert self.scheduler._analysis_is_already_in_db_and_up_to_date('plugin', '') is False
+
+    def test_is_forced_update(self):
+        fo = MockFileObject()
+        assert self.scheduler._is_forced_update(fo) is False
+        fo.force_update = False
+        assert self.scheduler._is_forced_update(fo) is False
+        fo.force_update = True
+        assert self.scheduler._is_forced_update(fo) is True
