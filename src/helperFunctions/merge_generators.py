@@ -41,6 +41,11 @@ def sum_up_nested_lists(list_a, nested_list_b):
 
 
 def merge_dict(d1, d2):
+    '''
+    Merges d1 with d2 and returns the result.
+
+    :return: A new dictionary containing d1 merged with d2
+    '''
     if d1 is None or d2 is None:
         return d1 or d2
     result = deepcopy(d1)
@@ -48,11 +53,20 @@ def merge_dict(d1, d2):
     return result
 
 
-def avg(list_: Sequence[float]) -> float:
-    if len(list_) == 0:
+def avg(seq: Sequence[float]) -> float:
+    '''
+    Returns the average of seq.
+    '''
+    if len(seq) == 0:
         return 0
-    return sum(list_) / len(list_)
+    return sum(seq) / len(seq)
 
 
 def shuffled(sequence):
+    '''
+    Copies and shuffles an array.
+
+    :param sequence: The array to be shuffled
+    :return: A shuffled copy of `sequence`
+    '''
     return sample(sequence, len(sequence))
