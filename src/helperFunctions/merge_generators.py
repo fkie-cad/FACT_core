@@ -6,13 +6,6 @@ from typing import Sequence
 seed()
 
 
-def merge_generators(*generators):
-    for values in zip_longest(*generators):
-        for value in values:
-            if value is not None:
-                yield value
-
-
 def _add_list_to_dict(input_list, input_dict):
     for item in input_list:
         if item[0] in input_dict.keys():
