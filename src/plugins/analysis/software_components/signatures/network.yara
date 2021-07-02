@@ -102,8 +102,9 @@ rule dnsmasq
 	strings:
 		$a = /dnsmasq-\d+\.\d+/ nocase ascii wide
 		$b = "dnsmasq-%s"
+		$c = "dnsmasq version %s"
 	condition:
-		($a or $b) and no_text_file
+		($a or $b or $c) and no_text_file
 }
 
 rule Dropbear
