@@ -54,3 +54,60 @@ rule jQuery
 		$a
 }
 
+rule Perl
+{
+	meta:
+		software_name = "Perl"
+		open_source = true
+		website = "https://www.perl.org/"
+		description = "Perl scripting language interpreter"
+	strings:
+		$a = "This is perl"
+		$b = /perl\d?\/\d\.\d+\.\d+/ ascii
+	condition:
+		$a and $b
+}
+
+rule PHP
+{
+	meta:
+		software_name = "PHP"
+		open_source = true
+		website = "https://www.php.net/"
+		description = "PHP scripting language interpreter"
+	strings:
+		$a = "PHP %s (%s) (built: %s %s)"
+		$b = /X-Powered-By: PHP\/\d+\.\d+\.\d+/ ascii
+	condition:
+		$a or $b
+}
+
+rule Realtek_SDK
+{
+	meta:
+		software_name = "Realtek SDK"
+		open_source = false
+		website = "http://www.realtek.com.tw"
+		description = "Realtek IoT Software Development Kit"
+	strings:
+		$a =  /MiniIGD %s (%s)./ ascii
+	condition:
+		$a
+}
+
+rule redis
+{
+    meta:
+        software_name = "redis"
+		open_source = true
+		website = "https://redis.io/"
+		description = "Redis is an open source in-memory data structure store"
+		format_string = true
+    strings:
+        $a = "redis_version:%s"
+        $b = "Redis version=%s"
+        $c = "Redis needs to enable the AOF"
+    condition:
+        ($a or $b) and $c and no_text_file
+}
+

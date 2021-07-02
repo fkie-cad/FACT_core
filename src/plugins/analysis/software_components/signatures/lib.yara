@@ -62,3 +62,16 @@ rule FileX
 	condition:
 		$a
 }
+
+rule liblua
+{
+	meta:
+		software_name = "Lua"
+		open_source = true
+		website = "https://www.lua.org/"
+		description = "Shared library for the Lua interpreter"
+	strings:
+		$a = /Lua: Lua \d\.\d+(\.\d+)? Copyright \(C\) 1994-\d+/ nocase ascii wide
+	condition:
+		$a
+}
