@@ -19,6 +19,7 @@
 
 import logging
 import pickle
+import signal
 import sys
 import tempfile
 from shlex import split
@@ -48,6 +49,7 @@ class UwsgiServer:
     def shutdown(self):
         if self.process:
             try:
+                self.process.send_signal(signal.SIGINT)
                 self.process.wait(timeout=30)
             except TimeoutExpired:
                 logging.error('frontend did not stop in time -> kill')
