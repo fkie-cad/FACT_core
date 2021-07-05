@@ -19,12 +19,8 @@
 import argparse
 import configparser
 import logging
-import os
-import signal
 import sys
-from typing import Callable
 
-import psutil
 from common_helper_files import create_dir_for_file
 
 from helperFunctions.config import get_config_dir
@@ -32,8 +28,13 @@ from helperFunctions.logging import ColoringFormatter
 from version import __VERSION__
 
 
-def program_setup(name, description, version=__VERSION__, command_line_options=None):
-    command_line_options = sys.argv if not command_line_options else command_line_options
+def program_setup(name, description, version=__VERSION__, command_line_options=sys.argv):
+    '''
+    Creates an ArgumentParser with some default options and parse command_line_options.
+
+    :param command_line_options: The arguments to parse
+    :return: A tuple (args, config) containing the parsed args from argparser and the config read
+    '''
     args = _setup_argparser(name, description, command_line_options=command_line_options, version=version)
     config = _load_config(args)
     _setup_logging(config, args)
@@ -41,6 +42,13 @@ def program_setup(name, description, version=__VERSION__, command_line_options=N
 
 
 def _setup_argparser(name, description, command_line_options, version=__VERSION__):
+    '''
+    Sets up an ArgumentParser with some default flags and parses
+    command_line_options.
+
+    :return: The populated namespace from ArgumentParser.parse_args
+    '''
+
     parser = argparse.ArgumentParser(description='{} - {}'.format(name, description))
     parser.add_argument('-V', '--version', action='version', version='{} {}'.format(name, version))
     parser.add_argument('-l', '--log_file', help='path to log file', default=None)
@@ -78,6 +86,13 @@ def _setup_logging(config, args):
 
 
 def _load_config(args):
+    '''
+    Loads the config from args.config_file
+
+    :param args: The parsed args returned from Argparser
+    :return: A dictionary containing the parsed config
+    '''
+
     config = configparser.ConfigParser()
     config.read(args.config_file)
     if args.log_file is not None:
@@ -85,17 +100,3 @@ def _load_config(args):
     if args.log_level is not None:
         config['Logging']['logLevel'] = args.log_level
     return config
-
-
-def set_signals(listener: Callable):
-    if was_started_by_start_fact():
-        signal.signal(signal.SIGUSR1, listener)
-        signal.signal(signal.SIGINT, lambda *_: None)
-        os.setpgid(os.getpid(), os.getpid())  # reset pgid to self so that "complete_shutdown" doesn't run amok
-    else:
-        signal.signal(signal.SIGINT, listener)
-
-
-def was_started_by_start_fact():
-    parent = ' '.join(psutil.Process(os.getppid()).cmdline())
-    return 'start_fact.py' in parent or 'start_all_installed_fact_components' in parent

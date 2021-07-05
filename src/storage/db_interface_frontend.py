@@ -3,10 +3,10 @@ import logging
 import sys
 from copy import deepcopy
 from typing import Dict, List
+from itertools import chain
 
 from helperFunctions.compare_sets import remove_duplicates_from_list
 from helperFunctions.data_conversion import get_value_of_first_key
-from helperFunctions.merge_generators import merge_generators
 from helperFunctions.tag import TagColor
 from helperFunctions.virtual_file_path import get_top_of_virtual_path
 from objects.firmware import Firmware
@@ -53,7 +53,7 @@ class FrontEndDbInterface(MongoInterfaceCommon):
 
     def get_data_for_nice_list(self, uid_list, root_uid):
         query = self._build_search_query_for_uid_list(uid_list)
-        result = self.generate_nice_list_data(merge_generators(self.firmwares.find(query), self.file_objects.find(query)), root_uid)
+        result = self.generate_nice_list_data(chain(self.firmwares.find(query), self.file_objects.find(query)), root_uid)
         return result
 
     def get_query_from_cache(self, query):
@@ -174,7 +174,7 @@ class FrontEndDbInterface(MongoInterfaceCommon):
         query = self._build_search_query_for_uid_list(uid_list)
         file_object_iterator = self.file_objects.find(query, field_dict)
         firmware_iterator = self.firmwares.find(query, field_dict)
-        return merge_generators(firmware_iterator, file_object_iterator)
+        return chain(firmware_iterator, file_object_iterator)
 
     # --- statistics
 
