@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>helperFunctions.pdf module &mdash; FACT  documentation</title>
+  <title>helperFunctions.hash module &mdash; FACT  documentation</title>
   
 
   
@@ -42,8 +42,8 @@
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="helperFunctions.plugin module" href="helperFunctions.plugin.html" />
-    <link rel="prev" title="helperFunctions.object_storage module" href="helperFunctions.object_storage.html" /> 
+    <link rel="next" title="helperFunctions.install module" href="helperFunctions.install.html" />
+    <link rel="prev" title="helperFunctions.fileSystem module" href="helperFunctions.fileSystem.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -109,7 +109,7 @@
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.database.html">helperFunctions.database module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.docker.html">helperFunctions.docker module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.fileSystem.html">helperFunctions.fileSystem module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="helperFunctions.hash.html">helperFunctions.hash module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">helperFunctions.hash module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.install.html">helperFunctions.install module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.logging.html">helperFunctions.logging module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.merge_generators.html">helperFunctions.merge_generators module</a></li>
@@ -117,7 +117,7 @@
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.mongo_task_conversion.html">helperFunctions.mongo_task_conversion module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.object_conversion.html">helperFunctions.object_conversion module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.object_storage.html">helperFunctions.object_storage module</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">helperFunctions.pdf module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.pdf.html">helperFunctions.pdf module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.plugin.html">helperFunctions.plugin module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.process.html">helperFunctions.process module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.program_setup.html">helperFunctions.program_setup module</a></li>
@@ -179,13 +179,13 @@
         
           <li><a href="helperFunctions.html">helperFunctions</a> &raquo;</li>
         
-      <li>helperFunctions.pdf module</li>
+      <li>helperFunctions.hash module</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
           
-            <a href="../_sources/modules/helperFunctions.pdf.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/modules/helperFunctions.hash.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -198,33 +198,73 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="module-helperFunctions.pdf">
-<span id="helperfunctions-pdf-module"></span><h1>helperFunctions.pdf module<a class="headerlink" href="#module-helperFunctions.pdf" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-helperFunctions.hash">
+<span id="helperfunctions-hash-module"></span><h1>helperFunctions.hash module<a class="headerlink" href="#module-helperFunctions.hash" title="Permalink to this headline">¶</a></h1>
 <dl class="py function">
-<dt class="sig sig-object py" id="helperFunctions.pdf.build_pdf_report">
-<span class="sig-prename descclassname"><span class="pre">helperFunctions.pdf.</span></span><span class="sig-name descname"><span class="pre">build_pdf_report</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">firmware</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">folder</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.pdf.build_pdf_report" title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates a pdf report for the given firmware by calling the fact_pdf_report docker container.</p>
-<div class="admonition-about-the-pdf-report admonition">
-<p class="admonition-title">About the pdf report</p>
-<p>The pdf report tool is based on the jinja2 templating engine and renders a
-latex file that is build into a one page overview of the analysis results.
-For all technical details refer to the
-<a class="reference external" href="https://github.com/fkie-cad/fact_pdf_report">implementation</a>.</p>
-</div>
+<dt class="sig sig-object py" id="helperFunctions.hash.get_hash">
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.hash.</span></span><span class="sig-name descname"><span class="pre">get_hash</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hash_function</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">binary</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.hash.get_hash" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hashes binary with hash_function.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>firmware</strong> (<em>objects.firmware.Firmware</em>) – The firmware to generate the pdf report for</p></li>
-<li><p><strong>folder</strong> (<em>pathlib.Path</em>) – An empty folder in which to generate the resulting pdf in</p></li>
+<li><p><strong>hash_function</strong> – The hash function to use. See hashlib for more</p></li>
+<li><p><strong>binary</strong> – The data to hash, either as string or array of Integers</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>The path to the generated pdf file inside the given folder</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>pathlib.Path</p>
+<dd class="field-even"><p>The hash as hexstring</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="helperFunctions.hash.get_imphash">
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.hash.</span></span><span class="sig-name descname"><span class="pre">get_imphash</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_object</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.hash.get_imphash" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates and returns the md5 hash of the imported functions of an ELF file
+represented by <cite>file_object</cite>.
+The imports are sorted before the hex is generated so the order of imports
+does not matter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>file_object</strong> – The FileObject of which the imphash shall be computed</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="helperFunctions.hash.get_md5">
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.hash.</span></span><span class="sig-name descname"><span class="pre">get_md5</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">code</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.hash.get_md5" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="helperFunctions.hash.get_sha256">
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.hash.</span></span><span class="sig-name descname"><span class="pre">get_sha256</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">code</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.hash.get_sha256" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="helperFunctions.hash.get_ssdeep">
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.hash.</span></span><span class="sig-name descname"><span class="pre">get_ssdeep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">code</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.hash.get_ssdeep" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="helperFunctions.hash.get_ssdeep_comparison">
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.hash.</span></span><span class="sig-name descname"><span class="pre">get_ssdeep_comparison</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">first</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">second</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.hash.get_ssdeep_comparison" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="helperFunctions.hash.get_tlsh">
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.hash.</span></span><span class="sig-name descname"><span class="pre">get_tlsh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">code</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.hash.get_tlsh" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="helperFunctions.hash.get_tlsh_comparison">
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.hash.</span></span><span class="sig-name descname"><span class="pre">get_tlsh_comparison</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">first</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">second</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.hash.get_tlsh_comparison" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="helperFunctions.hash.normalize_lief_items">
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.hash.</span></span><span class="sig-name descname"><span class="pre">normalize_lief_items</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">functions</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.hash.normalize_lief_items" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shorthand to convert a list of objects to a list of strings</p>
 </dd></dl>
 
 </div>
@@ -235,8 +275,8 @@ For all technical details refer to the
           </div>
           <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="helperFunctions.plugin.html" class="btn btn-neutral float-right" title="helperFunctions.plugin module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
-        <a href="helperFunctions.object_storage.html" class="btn btn-neutral float-left" title="helperFunctions.object_storage module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="helperFunctions.install.html" class="btn btn-neutral float-right" title="helperFunctions.install module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="helperFunctions.fileSystem.html" class="btn btn-neutral float-left" title="helperFunctions.fileSystem module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>helperFunctions.pdf module &mdash; FACT  documentation</title>
+  <title>helperFunctions.config module &mdash; FACT  documentation</title>
   
 
   
@@ -42,8 +42,8 @@
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="helperFunctions.plugin module" href="helperFunctions.plugin.html" />
-    <link rel="prev" title="helperFunctions.object_storage module" href="helperFunctions.object_storage.html" /> 
+    <link rel="next" title="helperFunctions.database module" href="helperFunctions.database.html" />
+    <link rel="prev" title="helperFunctions.compare_sets module" href="helperFunctions.compare_sets.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -105,7 +105,7 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="helperFunctions.html">helperFunctions</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.compare_sets.html">helperFunctions.compare_sets module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="helperFunctions.config.html">helperFunctions.config module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">helperFunctions.config module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.database.html">helperFunctions.database module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.docker.html">helperFunctions.docker module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.fileSystem.html">helperFunctions.fileSystem module</a></li>
@@ -117,7 +117,7 @@
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.mongo_task_conversion.html">helperFunctions.mongo_task_conversion module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.object_conversion.html">helperFunctions.object_conversion module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.object_storage.html">helperFunctions.object_storage module</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">helperFunctions.pdf module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.pdf.html">helperFunctions.pdf module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.plugin.html">helperFunctions.plugin module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.process.html">helperFunctions.process module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.program_setup.html">helperFunctions.program_setup module</a></li>
@@ -179,13 +179,13 @@
         
           <li><a href="helperFunctions.html">helperFunctions</a> &raquo;</li>
         
-      <li>helperFunctions.pdf module</li>
+      <li>helperFunctions.config module</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
           
-            <a href="../_sources/modules/helperFunctions.pdf.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/modules/helperFunctions.config.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -198,31 +198,52 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="module-helperFunctions.pdf">
-<span id="helperfunctions-pdf-module"></span><h1>helperFunctions.pdf module<a class="headerlink" href="#module-helperFunctions.pdf" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-helperFunctions.config">
+<span id="helperfunctions-config-module"></span><h1>helperFunctions.config module<a class="headerlink" href="#module-helperFunctions.config" title="Permalink to this headline">¶</a></h1>
 <dl class="py function">
-<dt class="sig sig-object py" id="helperFunctions.pdf.build_pdf_report">
-<span class="sig-prename descclassname"><span class="pre">helperFunctions.pdf.</span></span><span class="sig-name descname"><span class="pre">build_pdf_report</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">firmware</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">folder</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.pdf.build_pdf_report" title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates a pdf report for the given firmware by calling the fact_pdf_report docker container.</p>
-<div class="admonition-about-the-pdf-report admonition">
-<p class="admonition-title">About the pdf report</p>
-<p>The pdf report tool is based on the jinja2 templating engine and renders a
-latex file that is build into a one page overview of the analysis results.
-For all technical details refer to the
-<a class="reference external" href="https://github.com/fkie-cad/fact_pdf_report">implementation</a>.</p>
-</div>
+<dt class="sig sig-object py" id="helperFunctions.config.get_config_dir">
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.config.</span></span><span class="sig-name descname"><span class="pre">get_config_dir</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.config.get_config_dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the absolute path of the config directory</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="helperFunctions.config.get_temp_dir_path">
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.config.</span></span><span class="sig-name descname"><span class="pre">get_temp_dir_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.config.get_temp_dir_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns temp_dir_path from the section “data_storage” if it is a valid directory.
+If it does not exist it will be created.
+If the directory does not exist and can not be created or if config is None
+then fallback to “/tmp”</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>config</strong> (<em>Optional</em><em>[</em><em>configparser.ConfigParser</em><em>]</em>) – The FACT configuration</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="helperFunctions.config.load_config">
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.config.</span></span><span class="sig-name descname"><span class="pre">load_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_file_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.config.load_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>loads config of CONFIG_DIR/config_file_name
+Returns config object</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="helperFunctions.config.read_list_from_config">
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.config.</span></span><span class="sig-name descname"><span class="pre">read_list_from_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">section</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.config.read_list_from_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parses a comma separated list in section <cite>section</cite> with key <cite>key</cite>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>firmware</strong> (<em>objects.firmware.Firmware</em>) – The firmware to generate the pdf report for</p></li>
-<li><p><strong>folder</strong> (<em>pathlib.Path</em>) – An empty folder in which to generate the resulting pdf in</p></li>
+<li><p><strong>config_file</strong> (<em>configparser.ConfigParser</em>) – The FACT configuration</p></li>
+<li><p><strong>section</strong> (<em>str</em>) – The section to read from</p></li>
+<li><p><strong>key</strong> (<em>str</em>) – The key holding the list</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>The path to the generated pdf file inside the given folder</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>pathlib.Path</p>
+<dd class="field-even"><p>A list holding the values defined in the config</p>
 </dd>
 </dl>
 </dd></dl>
@@ -235,8 +256,8 @@ For all technical details refer to the
           </div>
           <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="helperFunctions.plugin.html" class="btn btn-neutral float-right" title="helperFunctions.plugin module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
-        <a href="helperFunctions.object_storage.html" class="btn btn-neutral float-left" title="helperFunctions.object_storage module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="helperFunctions.database.html" class="btn btn-neutral float-right" title="helperFunctions.database module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="helperFunctions.compare_sets.html" class="btn btn-neutral float-left" title="helperFunctions.compare_sets module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>

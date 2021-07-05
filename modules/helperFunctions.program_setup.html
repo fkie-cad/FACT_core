@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>helperFunctions.pdf module &mdash; FACT  documentation</title>
+  <title>helperFunctions.program_setup module &mdash; FACT  documentation</title>
   
 
   
@@ -42,8 +42,8 @@
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="helperFunctions.plugin module" href="helperFunctions.plugin.html" />
-    <link rel="prev" title="helperFunctions.object_storage module" href="helperFunctions.object_storage.html" /> 
+    <link rel="next" title="helperFunctions.tag module" href="helperFunctions.tag.html" />
+    <link rel="prev" title="helperFunctions.process module" href="helperFunctions.process.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -117,10 +117,10 @@
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.mongo_task_conversion.html">helperFunctions.mongo_task_conversion module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.object_conversion.html">helperFunctions.object_conversion module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.object_storage.html">helperFunctions.object_storage module</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">helperFunctions.pdf module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="helperFunctions.pdf.html">helperFunctions.pdf module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.plugin.html">helperFunctions.plugin module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.process.html">helperFunctions.process module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="helperFunctions.program_setup.html">helperFunctions.program_setup module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">helperFunctions.program_setup module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.tag.html">helperFunctions.tag module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.uid.html">helperFunctions.uid module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="helperFunctions.web_interface.html">helperFunctions.uid web_interface</a></li>
@@ -179,13 +179,13 @@
         
           <li><a href="helperFunctions.html">helperFunctions</a> &raquo;</li>
         
-      <li>helperFunctions.pdf module</li>
+      <li>helperFunctions.program_setup module</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
           
-            <a href="../_sources/modules/helperFunctions.pdf.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/modules/helperFunctions.program_setup.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -198,31 +198,30 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="module-helperFunctions.pdf">
-<span id="helperfunctions-pdf-module"></span><h1>helperFunctions.pdf module<a class="headerlink" href="#module-helperFunctions.pdf" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-helperFunctions.program_setup">
+<span id="helperfunctions-program-setup-module"></span><h1>helperFunctions.program_setup module<a class="headerlink" href="#module-helperFunctions.program_setup" title="Permalink to this headline">¶</a></h1>
+<p>Firmware Analysis and Comparison Tool (FACT)
+Copyright (C) 2015-2019  Fraunhofer FKIE</p>
+<p>This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.</p>
+<p>This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.</p>
+<p>You should have received a copy of the GNU General Public License
+along with this program.  If not, see &lt;<a class="reference external" href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>&gt;.</p>
 <dl class="py function">
-<dt class="sig sig-object py" id="helperFunctions.pdf.build_pdf_report">
-<span class="sig-prename descclassname"><span class="pre">helperFunctions.pdf.</span></span><span class="sig-name descname"><span class="pre">build_pdf_report</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">firmware</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">folder</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.pdf.build_pdf_report" title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates a pdf report for the given firmware by calling the fact_pdf_report docker container.</p>
-<div class="admonition-about-the-pdf-report admonition">
-<p class="admonition-title">About the pdf report</p>
-<p>The pdf report tool is based on the jinja2 templating engine and renders a
-latex file that is build into a one page overview of the analysis results.
-For all technical details refer to the
-<a class="reference external" href="https://github.com/fkie-cad/fact_pdf_report">implementation</a>.</p>
-</div>
+<dt class="sig sig-object py" id="helperFunctions.program_setup.program_setup">
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.program_setup.</span></span><span class="sig-name descname"><span class="pre">program_setup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'3.3-dev'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">command_line_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['/opt/hostedtoolcache/Python/3.8.10/x64/bin/sphinx-build',</span> <span class="pre">'-M',</span> <span class="pre">'html',</span> <span class="pre">'.',</span> <span class="pre">'_build',</span> <span class="pre">'-W']</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.program_setup.program_setup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates an ArgumentParser with some default options and parse command_line_options.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>firmware</strong> (<em>objects.firmware.Firmware</em>) – The firmware to generate the pdf report for</p></li>
-<li><p><strong>folder</strong> (<em>pathlib.Path</em>) – An empty folder in which to generate the resulting pdf in</p></li>
-</ul>
+<dd class="field-odd"><p><strong>command_line_options</strong> – The arguments to parse</p>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>The path to the generated pdf file inside the given folder</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>pathlib.Path</p>
+<dd class="field-even"><p>A tuple (args, config) containing the parsed args from argparser and the config read</p>
 </dd>
 </dl>
 </dd></dl>
@@ -235,8 +234,8 @@ For all technical details refer to the
           </div>
           <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="helperFunctions.plugin.html" class="btn btn-neutral float-right" title="helperFunctions.plugin module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
-        <a href="helperFunctions.object_storage.html" class="btn btn-neutral float-left" title="helperFunctions.object_storage module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="helperFunctions.tag.html" class="btn btn-neutral float-right" title="helperFunctions.tag module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="helperFunctions.process.html" class="btn btn-neutral float-left" title="helperFunctions.process module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>
