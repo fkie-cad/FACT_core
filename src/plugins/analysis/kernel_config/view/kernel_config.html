@@ -7,6 +7,8 @@
             <td>Kernel Config</td>
             <td><pre class="border rounded p-2 bg-light" style="white-space: pre-wrap; height: 450px; overflow: scroll;"><code>{{ firmware.processed_analysis[selected_analysis]['kernel_config'] | safe }}</code></pre></td>
         </tr>
+
+        {# checksec kernel check result #}
         {% if 'checksec' in firmware.processed_analysis[selected_analysis] and firmware.processed_analysis[selected_analysis]['checksec'] != {} %}
             <tr>
                 <td>Exploit Mitigations</td>
@@ -24,6 +26,51 @@
                                         </tr>
                                         {% endfor %}
                                     </table>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+                </td>
+            </tr>
+        {% endif %}
+
+        {# kconfig-hardened-check result #}
+        {% if 'hardening' in firmware.processed_analysis[selected_analysis] and firmware.processed_analysis[selected_analysis]['hardening'] != [] %}
+            <tr>
+                <td>Hardening Check</td>
+                <td style="padding: 0">
+                    <table style="width: 100%">
+                        <tr>
+                            <td class="table-head-light">Config Item</td>
+                            <td class="table-head-light">Check Result</td>
+                            <td class="table-head-light">Desired Value</td>
+                            <td class="table-head-light">Reasoning</td>
+                            <td class="table-head-light">Should Protect Against</td>
+                        </tr>
+                        {% for cfg_item, desired_value, _, reason, check_result, protects_against in firmware.processed_analysis[selected_analysis]['hardening'] %}
+                            <tr>
+                                <td>
+                                    <a href="https://www.kernelconfig.io/search?q={{ cfg_item }}">
+                                        {{ cfg_item }}
+                                    </a>
+                                </td>
+                                {% set cell_class = 'table-success' if 'OK' in check_result else 'table-danger' if 'FAIL' in check_result else '' %}
+                                {% if check_result.startswith('FAIL:') or check_result.startswith('OK:') %}
+                                    {% set split_result = check_result.split(':') %}
+                                    <td class="{{ cell_class }}">{{ split_result[0] }} (reason: {{ ':'.join(split_result[1:]) }})</td>
+                                {% else %}
+                                    <td class="{{ cell_class }}">{{ check_result }}</td>
+                                {% endif %}
+                                <td>{{ desired_value }}</td>
+                                <td>{{ reason | replace_underscore }}</td>
+                                <td>
+                                    {% if protects_against %}
+                                        <ul style="margin-bottom: 0;">
+                                            {% for item in protects_against %}
+                                                <li>{{ item | link_cve | link_cwe | safe }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    {% endif %}
                                 </td>
                             </tr>
                         {% endfor %}
