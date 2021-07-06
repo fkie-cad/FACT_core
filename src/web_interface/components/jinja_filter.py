@@ -181,6 +181,8 @@ class FilterClass:
         self._app.jinja_env.filters['is_list'] = lambda item: isinstance(item, list)
         self._app.jinja_env.filters['is_not_mandatory_analysis_entry'] = flt.is_not_mandatory_analysis_entry
         self._app.jinja_env.filters['json_dumps'] = json.dumps
+        self._app.jinja_env.filters['link_cve'] = flt.replace_cve_with_link
+        self._app.jinja_env.filters['link_cwe'] = flt.replace_cwe_with_link
         self._app.jinja_env.filters['list_group'] = flt.list_group
         self._app.jinja_env.filters['list_group_collapse'] = flt.list_group_collapse
         self._app.jinja_env.filters['list_to_line_break_string'] = flt.list_to_line_break_string

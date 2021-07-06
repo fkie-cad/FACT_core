@@ -380,3 +380,19 @@ def render_query_title(query_title: Union[None, str, dict]):
     if isinstance(query_title, dict):
         return json.dumps(query_title, indent=2)
     return query_title
+
+
+def replace_cve_with_link(string: str) -> str:
+    return re.sub(r'CVE-\d+-\d+', _link_to_cve, string)
+
+
+def _link_to_cve(match: re.Match) -> str:
+    return f'<a href="https://nvd.nist.gov/vuln/detail/{match.group(0)}">{match.group(0)}</a>'
+
+
+def replace_cwe_with_link(string: str) -> str:
+    return re.sub(r'CWE-(\d+)', _link_to_cwe, string)
+
+
+def _link_to_cwe(match: re.Match) -> str:
+    return f'<a href="https://cwe.mitre.org/data/definitions/{match.group(1)}.html">{match.group(0)}</a>'
