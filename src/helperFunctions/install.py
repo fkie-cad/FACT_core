@@ -127,40 +127,6 @@ def apt_remove_packages(*packages: str):
     return _run_shell_command_raise_on_return_code('sudo apt-get remove -y {}'.format(' '.join(packages)), 'Error in removal of package(s) {}'.format(' '.join(packages)), True)
 
 
-def pip3_install_packages(*packages: str):
-    '''
-    Install python packages. Handle problems with packages that are installed using system package managers (apt, dnf).
-
-    :param packages: Iterable containing packages to install.
-    '''
-    log_current_packages(packages)
-    for package in packages:
-        try:
-            _run_shell_command_raise_on_return_code('sudo -EH pip3 install --upgrade {}'.format(package), 'Error in installation of python package {}'.format(package), True)
-        except InstallationError as installation_error:
-            if 'is a distutils installed project' in str(installation_error):
-                logging.warning('Could not update python package {}. Was not installed using pip originally'.format(package))
-            else:
-                raise installation_error
-
-
-def pip3_remove_packages(*packages: str):
-    '''
-    Remove python packages. Handle problems with packages that are installed using system package managers (apt, dnf).
-
-    :param packages: Iterable containing packages to remove.
-    '''
-    log_current_packages(packages, install=False)
-    for package in packages:
-        try:
-            _run_shell_command_raise_on_return_code('sudo -EH pip3 uninstall {}'.format(package), 'Error in removal of python package {}'.format(package), True)
-        except InstallationError as installation_error:
-            if 'is a distutils installed project' in str(installation_error):
-                logging.warning('Could not remove python package {}. Was not installed using pip originally'.format(package))
-            else:
-                raise installation_error
-
-
 def check_if_command_in_path(command: str) -> bool:
     '''
     Check if a given command is executable on the current system, i.e. found in systems PATH.
