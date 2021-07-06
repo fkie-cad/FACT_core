@@ -8,7 +8,7 @@ from datetime import timedelta
 from operator import itemgetter
 from string import ascii_letters
 from time import localtime, strftime, struct_time, time
-from typing import AnyStr, List, Optional, Union
+from typing import AnyStr, Dict, List, Optional, Union
 
 from common_helper_files import human_readable_file_size
 from flask import render_template
@@ -380,3 +380,30 @@ def render_query_title(query_title: Union[None, str, dict]):
     if isinstance(query_title, dict):
         return json.dumps(query_title, indent=2)
     return query_title
+
+
+def sort_cve_result(cve_results: Dict[str, Dict[str, str]]) -> Dict[str, Dict[str, str]]:
+    # results structure: {'cve_id': {'score2': '6.4', 'score3': 'N/A'}}
+
+    dict_sorted_cve_results = {}
+    sort_list = []
+
+    for cve_id in cve_results:
+
+        sort_list.append(cve_results[cve_id]['score2'])
+
+    sort_list.sort(reverse=True)
+
+    for list_item in sort_list:
+
+        for cve_id in cve_results:
+
+            if list_item in cve_results[cve_id]['score2']:
+
+                dict_sorted_cve_results.update({cve_id: cve_results[cve_id]})
+
+    if cve_results == dict_sorted_cve_results:
+        return dict_sorted_cve_results
+
+    logging.warning("Sorting of cve entries failed")
+    return cve_results

@@ -218,3 +218,4 @@ class FilterClass:
         self._app.jinja_env.filters['user_has_role'] = flt.user_has_role
         self._app.jinja_env.filters['version_links'] = flt.create_firmware_version_links
         self._app.jinja_env.filters['vulnerability_class'] = flt.vulnerability_class
+        self._app.jinja_env.filters['sort_cve'] = flt.sort_cve_result

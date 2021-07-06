@@ -11,8 +11,9 @@ from web_interface.filter import (
     get_all_uids_in_string, get_unique_keys_from_list_of_dicts, infection_color, is_not_mandatory_analysis_entry,
     list_group, list_to_line_break_string, list_to_line_break_string_no_sort, nice_number_filter, nice_unix_time,
     random_collapse_id, render_analysis_tags, render_tags, replace_underscore_filter, set_limit_for_data_to_chart,
-    sort_chart_list_by_name, sort_chart_list_by_value, sort_comments, sort_roles_by_number_of_privileges,
-    sort_users_by_name, text_highlighter, uids_to_link, user_has_role, vulnerability_class
+    sort_chart_list_by_name, sort_chart_list_by_value, sort_comments, sort_cve_result,
+    sort_roles_by_number_of_privileges, sort_users_by_name, text_highlighter, uids_to_link, user_has_role,
+    vulnerability_class
 )
 
 UNSORTABLE_LIST = [[], ()]
@@ -367,3 +368,26 @@ def test_random_collapse_id():
 ])
 def test_remaining_time(time_diff, expected_result):
     assert format_duration(elapsed_time(time() - time_diff)) == expected_result
+
+
+@pytest.mark.parametrize('input_dict, expected_result', [
+    ({}, {}),
+    (
+        {
+            'cve_id1': {'score2': '6.4', 'score3': 'N/A'},
+            'cve_id4': {'score2': '3.5', 'score3': 'N/A'},
+            'cve_id5': {'score2': '7.4', 'score3': 'N/A'}
+        },
+        {
+            'cve_id5': {'score2': '7.4', 'score3': 'N/A'},
+            'cve_id1': {'score2': '6.4', 'score3': 'N/A'},
+            'cve_id4': {'score2': '3.5', 'score3': 'N/A'}
+        }
+    )
+])
+def test_sort_cve_result(input_dict, expected_result):
+    result = sort_cve_result(input_dict)
+    assert result == expected_result
+
+    for item1, item2 in zip(result, expected_result):
+        assert item1 == item2
