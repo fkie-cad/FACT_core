@@ -22,6 +22,8 @@ import logging
 import os
 import signal
 import sys
+from configparser import ConfigParser
+from pathlib import Path
 from typing import Callable
 
 import psutil
@@ -32,11 +34,11 @@ from helperFunctions.logging import ColoringFormatter
 from version import __VERSION__
 
 
-def program_setup(name, description, version=__VERSION__, command_line_options=None):
+def program_setup(name, description, component=None, version=__VERSION__, command_line_options=None):
     command_line_options = sys.argv if not command_line_options else command_line_options
     args = _setup_argparser(name, description, command_line_options=command_line_options, version=version)
     config = _load_config(args)
-    _setup_logging(config, args)
+    _setup_logging(config, args, component)
     return args, config
 
 
@@ -58,14 +60,15 @@ def _get_console_output_level(debug_flag):
     return logging.INFO
 
 
-def _setup_logging(config, args):
+def _setup_logging(config, args, component):
     log_level = getattr(logging, config['Logging']['logLevel'], None)
     log_format = dict(fmt='[%(asctime)s][%(module)s][%(levelname)s]: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
     logger = logging.getLogger('')
     logger.setLevel(logging.DEBUG)
 
-    create_dir_for_file(config['Logging']['logFile'])
-    file_log = logging.FileHandler(config['Logging']['logFile'])
+    log_file = get_log_file_for_component(component, config)
+    create_dir_for_file(log_file)
+    file_log = logging.FileHandler(log_file)
     file_log.setLevel(log_level)
     file_log.setFormatter(logging.Formatter(**log_format))
     logger.addHandler(file_log)
@@ -75,6 +78,13 @@ def _setup_logging(config, args):
         console_log.setLevel(_get_console_output_level(args.debug))
         console_log.setFormatter(ColoringFormatter(**log_format))
         logger.addHandler(console_log)
+
+
+def get_log_file_for_component(component: str, config: ConfigParser) -> str:
+    log_file = Path(config['Logging']['logFile'])
+    if component is None:
+        return config['Logging']['logFile']
+    return f"{log_file.parent}/{log_file.stem}_{component}{log_file.suffix}"
 
 
 def _load_config(args):

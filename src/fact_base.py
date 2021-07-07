@@ -13,7 +13,7 @@ class FactBase:
     def __init__(self):
         self.run = True
         set_signals(self.shutdown_listener)
-        self.args, self.config = program_setup(self.PROGRAM_NAME, self.PROGRAM_DESCRIPTION)
+        self.args, self.config = program_setup(self.PROGRAM_NAME, self.PROGRAM_DESCRIPTION, self.COMPONENT)
         self.work_load_stat = WorkLoadStatistic(config=self.config, component=self.COMPONENT)
 
     def shutdown_listener(self, signum, _):

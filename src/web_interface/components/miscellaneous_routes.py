@@ -1,3 +1,4 @@
+from pathlib import Path
 from time import time
 from typing import Dict, Sized
 
@@ -5,7 +6,9 @@ from flask import redirect, render_template, request, url_for
 from flask_security import login_required
 
 from helperFunctions.database import ConnectTo
+from helperFunctions.program_setup import get_log_file_for_component
 from helperFunctions.web_interface import format_time
+from intercom.front_end_binding import InterComFrontEndBinding
 from statistic.update import StatisticUpdater
 from storage.db_interface_admin import AdminDbInterface
 from storage.db_interface_compare import CompareDbInterface
@@ -24,6 +27,7 @@ class MiscellaneousRoutes(ComponentBase):
         self._app.add_url_rule('/admin/delete_comment/<uid>/<timestamp>', '/admin/delete_comment/<uid>/<timestamp>', self._app_delete_comment)
         self._app.add_url_rule('/admin/delete/<uid>', '/admin/delete/<uid>', self._app_delete_firmware)
         self._app.add_url_rule('/admin/missing_analyses', 'admin/missing_analyses', self._app_find_missing_analyses, methods=['GET'])
+        self._app.add_url_rule('/admin/logs', '/admin/logs', self._app_find_logs)
 
     @login_required
     @roles_accepted(*PRIVILEGES['status'])
@@ -127,3 +131,17 @@ class MiscellaneousRoutes(ComponentBase):
             'count': self._count_values(failed_analyses),
             'duration': format_time(time() - start),
         }
+
+    @roles_accepted(*PRIVILEGES['view_logs'])
+    def _app_find_logs(self):
+        with ConnectTo(InterComFrontEndBinding, self._config) as sc:
+            backend_logs = '\n'.join(sc.get_backend_logs())
+        frontend_logs = '\n'.join(self.get_frontend_logs())
+
+        return render_template('logs.html', backend_logs=backend_logs, frontend_logs=frontend_logs)
+
+    def get_frontend_logs(self):
+        backend_logs = Path(get_log_file_for_component('frontend', self._config))
+        if backend_logs.is_file():
+            return backend_logs.read_text().splitlines()[-100:]
+        return []
