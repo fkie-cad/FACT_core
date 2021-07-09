@@ -37,6 +37,9 @@ run: ## Run container
 
 	# TODO remove -v $(FACT_DOCKER_DIR):$(FACT_DOCKER_DIR)
 	# It is needed in some places e.g. src/unpacker/unpack_base.py:23-27
+
+	touch $(FACT_WT_MONGODB_PATH)/REINITIALIZE_DB
+
 	docker run \
 		-it \
 		--name $(CONTAINER_NAME) \

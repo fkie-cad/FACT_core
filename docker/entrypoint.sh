@@ -8,7 +8,8 @@ case "$1" in
         # It is not really necessary to make it configurable since there is no
         # usecase to change the database path inside the docker container
         if [ -e /media/data/fact_wt_mongodb/REINITIALIZE_DB ]; then
-            python3 /opt/FACT_core/src/init_database.py
+            python3 /opt/FACT_core/src/init_database.py && \
+                rm /media/data/fact_wt_mongodb/REINITIALIZE_DB
         fi
         exec /opt/FACT_core/start_all_installed_fact_components "$@"
     ;;
