@@ -72,7 +72,6 @@ def _install_docker_images():
 
 
 def _install_plugin_docker_images():
-    # TODO cosider whether this should replace "source install_docker.sh" in the install.sh files
     logging.info('Installing plugin docker dependecies')
     find_output, return_code = execute_shell_command_get_return_code('find ../plugins -iname "install_docker.sh"')
     if return_code != 0:

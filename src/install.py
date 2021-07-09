@@ -159,7 +159,6 @@ def install():
     welcome()
     distribution = check_distribution()
     none_chosen = not (args.frontend or args.db or args.backend)
-    # TODO maybe replace this with and arugment for argparser as it is not needed in the sh scripts
     skip_docker = FACT_INSTALLER_SKIP_DOCKER is not None
     # Note that the skip_docker environment variable overrides the cli argument
     only_docker = not skip_docker and none_chosen and (args.backend_docker_images or args.frontend_docker_images)

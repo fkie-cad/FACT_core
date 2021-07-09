@@ -4,7 +4,7 @@
 case "$1" in
     "start")
         shift 1
-        # TODO this path could be configurable
+        # This path could be configurable
         # It is not really necessary to make it configurable since there is no
         # usecase to change the database path inside the docker container
         if [ -e /media/data/fact_wt_mongodb/REINITIALIZE_DB ]; then
