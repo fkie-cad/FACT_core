@@ -32,7 +32,7 @@ pull: ## Pull or build all neccessary docker containers required to run FACT
 		fkiecad/fact pull-containers
 
 run: ## Run container
-	# --group-add is needed to give the user inside the contianer
+	# --group-add is needed to give the user inside the container
 	# permission to read&write to the docker socket
 
 	touch $(FACT_WT_MONGODB_PATH)/REINITIALIZE_DB

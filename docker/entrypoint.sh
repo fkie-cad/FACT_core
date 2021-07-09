@@ -14,7 +14,7 @@ case "$1" in
         exec /opt/FACT_core/start_all_installed_fact_components "$@"
     ;;
     "pull-containers")
-        # We cant to this in the Dockerfile, because the docker socket is not shared to there
+        # We can't to this in the Dockerfile, because the docker socket is not shared to there
         exec /opt/FACT_core/src/install.py \
             --backend-docker-images \
             --frontend-docker-images
