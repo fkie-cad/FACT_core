@@ -1,7 +1,7 @@
 # Docker image for FACT_core
 The docker image provides an installation of all fact components (db, frontend,
 backend). Currently you have to build it yourself but we plan to provide a
-prebuild image via Dockerhub. For instructions see [Advanced usage][#advanced-usage].
+prebuild image via Dockerhub. For instructions see [Advanced usage](#advanced-usage).
 
 Because FACT uses docker itself, the docker socket from the host will be
 passed to the container. Please make sure that your user is a member of the
@@ -13,7 +13,7 @@ Be aware that all state of FACT is only in the container so if you pull a new
 FACT version everything (most importantly you database) will be lost.
 
 > Note that the image is currently not uploaded so you have to
-[build][#advanced-usage] it yourself
+[build](#advanced-usage) it yourself
 
 Simply run
 ```bash
@@ -47,7 +47,7 @@ If your usecase is not supported feel free to open a PR or hack it up privatly.
 To build the image run `make build`.
 All other commands can be shown with `make help`.
 
-The Makefile can be configured with some [environment variables][#environment-variables]
+The Makefile can be configured with some [environment variables](#environment-variables)
 
 If you use `FACT_CONFIG_DIR` and change anything related to the mongodb
 database run `touch $FACT_WT_MONGODB_PATH/REINITIALIZE_DB`.
