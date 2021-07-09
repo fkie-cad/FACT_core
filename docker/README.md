@@ -108,5 +108,5 @@ This means that when FACT runs inside an container it must have access to
 `PATH_ON_DOCKER_HOST`.
 Currently `PATH_ON_DOCKER_HOST` is always a subdirectory of `temp_dir_path` but
 created dynamically (similar to `mktemp`). This means that we can't know in
-advance what directorys on the host will be needed in the container. To work
+advance what directories on the host will be needed in the container. To work
 around this we simply mount `temp_dir_path` in the container.
