@@ -45,7 +45,9 @@ For more advanced usage we provide a Makefile to cover most usecases.
 If your usecase is not supported feel free to open a PR or hack it up privately.
 
 To build the image run `make build`.
-All other commands can be shown with `make help`.
+All avaiable commands are: `build`, `pull`, `run`, `start`, `stop`, `remove` and
+`help`.
+A short help for these commands can be shown with `make help`.
 
 The Makefile can be configured with some [environment variables](#environment-variables)
 
