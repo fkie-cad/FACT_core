@@ -43,30 +43,28 @@
                         <tr>
                             <td class="table-head-light">Config Item</td>
                             <td class="table-head-light">Check Result</td>
+                            <td class="table-head-light">Actual Value</td>
                             <td class="table-head-light">Desired Value</td>
                             <td class="table-head-light">Reasoning</td>
                             <td class="table-head-light">Should Protect Against</td>
                         </tr>
-                        {% for cfg_item, desired_value, _, reason, check_result, protects_against in firmware.processed_analysis[selected_analysis]['hardening'] %}
+                        {% for option_name, desired_value, _, reason, check_result, actual_value, vulnerabilities in firmware.processed_analysis[selected_analysis]['hardening'] %}
+                        {# option_name, desired_value, _, reason, check_result, actual_value, vulnerabilities  #}
                             <tr>
                                 <td>
                                     <a href="https://www.kernelconfig.io/search?q={{ cfg_item }}">
-                                        {{ cfg_item }}
+                                        {{ option_name }}
                                     </a>
                                 </td>
                                 {% set cell_class = 'table-success' if 'OK' in check_result else 'table-danger' if 'FAIL' in check_result else '' %}
-                                {% if check_result.startswith('FAIL:') or check_result.startswith('OK:') %}
-                                    {% set split_result = check_result.split(':') %}
-                                    <td class="{{ cell_class }}">{{ split_result[0] }} (reason: {{ ':'.join(split_result[1:]) }})</td>
-                                {% else %}
-                                    <td class="{{ cell_class }}">{{ check_result }}</td>
-                                {% endif %}
+                                <td class="{{ cell_class }}">{{ check_result }}</td>
+                                <td>{{ actual_value }}</td>
                                 <td>{{ desired_value }}</td>
                                 <td>{{ reason | replace_underscore }}</td>
                                 <td>
-                                    {% if protects_against %}
+                                    {% if vulnerabilities %}
                                         <ul style="margin-bottom: 0;">
-                                            {% for item in protects_against %}
+                                            {% for item in vulnerabilities %}
                                                 <li>{{ item | link_cve | link_cwe | safe }}</li>
                                             {% endfor %}
                                         </ul>

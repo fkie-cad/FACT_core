@@ -201,7 +201,7 @@ def test_check_kernel_hardening():
     assert isinstance(result, list)
     assert all(isinstance(tup, tuple) for tup in result)
     assert len(result) > 50
-    assert all(len(tup) == 6 for tup in result), 'all results should have 6 elements'
+    assert all(len(tup) == 7 for tup in result), 'all results should have 6 elements'
     assert any(len(tup[5]) > 0 for tup in result), 'some "protection against" info shouldn\'t be empty'
 
 

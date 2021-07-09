@@ -2,7 +2,7 @@ import json
 import logging
 from json import JSONDecodeError
 from tempfile import NamedTemporaryFile
-from typing import List, Tuple
+from typing import List, NamedTuple
 
 from common_helper_process import execute_shell_command
 
@@ -81,10 +81,22 @@ PROTECTS_AGAINST = {
     'CONFIG_SECURITY_LOCKDOWN_LSM': ['Changing Kernel Image'],
 }
 
+HardeningCheckResult = NamedTuple(
+    'HardeningCheckResult', [
+        ('option_name', str),
+        ('desired_value', str),
+        ('decision', str),
+        ('reason', str),
+        ('check_result', str),
+        ('actual_value', str),
+        ('vulnerabilities', List[str]),
+    ])
 
-def check_kernel_hardening(kernel_config: str) -> List[Tuple[str, str, str, str, str, List[str]]]:
+
+def check_kernel_hardening(kernel_config: str) -> List[HardeningCheckResult]:
     hardening_data = _get_kernel_hardening_data(kernel_config)
-    return _add_protection_info(hardening_data)
+    result = _add_protection_info(hardening_data)
+    return [item for item in result if 'CONFIG_' not in item.actual_value]  # filter redundant entries
 
 
 def _get_kernel_hardening_data(kernel_config: str) -> List[List[str]]:
@@ -99,10 +111,22 @@ def _get_kernel_hardening_data(kernel_config: str) -> List[List[str]]:
     return []
 
 
-def _add_protection_info(hardening_result: List[List[str]]) -> List[Tuple[str, str, str, str, str, List[str]]]:
+def _add_protection_info(hardening_result: List[List[str]]) -> List[HardeningCheckResult]:
     full_result = []
     for single_result in hardening_result:
         config_key = single_result[0]
+        actual_value = _detach_actual_value_from_result(single_result)
         protection_info = PROTECTS_AGAINST[config_key] if config_key in PROTECTS_AGAINST else []
-        full_result.append((*single_result, protection_info))
+        full_result.append(HardeningCheckResult(*single_result, actual_value, protection_info))
     return full_result
+
+
+def _detach_actual_value_from_result(single_result: List[str]) -> str:
+    '''
+    the result may contain the actual value after a colon
+    e.g. 'FAIL: not found' or 'FAIL: "y"'
+    removes actual value and returns it (or empty string if missing)
+    '''
+    split_result = single_result[4].split(': ')
+    single_result[4] = split_result[0]
+    return ': '.join(split_result[1:])

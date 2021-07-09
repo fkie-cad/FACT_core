@@ -22,7 +22,7 @@ MAGIC_WORD = b'IKCFG_ST\037\213'
 
 class AnalysisPlugin(AnalysisBasePlugin):
     NAME = 'kernel_config'
-    DESCRIPTION = 'Heuristics to find plaintext and image-embedded kernel configurations (IKCONFIG=[y|m])'
+    DESCRIPTION = 'Heuristics to find and analyze Linux Kernel configurations via checksec and kconfig-hardened-check'
     MIME_BLACKLIST = ['audio', 'filesystem', 'image', 'video']
     DEPENDENCIES = ['file_type', 'software_components']
     VERSION = '0.3'
