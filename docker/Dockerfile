@@ -1,10 +1,9 @@
 FROM ubuntu:focal
 
 RUN apt -y update && apt -y upgrade
-RUN DEBIAN_FRONTEND="noninteractive" apt -y install tzdata
+RUN DEBIAN_FRONTEND="noninteractive" apt -y install --no-install-recommends tzdata
 # Install deps that are not automatically installed by pre_install.sh
-# TODO use "--no-install-recommends" here. git has some optional deps that prevent it from cloning
-RUN apt -y install git sudo lsb-release wget
+RUN apt -y install --no-install-recommends git sudo ca-certificates patch lsb-release wget
 
 RUN useradd -r fact
 RUN printf 'fact	ALL=(ALL:ALL) NOPASSWD: ALL\n' > /etc/sudoers.d/99_fact
