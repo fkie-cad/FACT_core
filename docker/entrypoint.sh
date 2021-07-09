@@ -7,7 +7,7 @@ case "$1" in
         # TODO this path could be configurable
         # It is not really necessary to make it configurable since there is no
         # usecase to change the database path inside the docker container
-        if [ -e /media/data/fact_fw_data/REINITIALIZE_DB ]; then
+        if [ -e /media/data/fact_wt_mongodb/REINITIALIZE_DB ]; then
             python3 /opt/FACT_core/src/init_database.py
         fi
         exec /opt/FACT_core/start_all_installed_fact_components "$@"
