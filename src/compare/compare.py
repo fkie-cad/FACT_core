@@ -78,8 +78,17 @@ class Compare:
     def _init_plugins(self):
         self.source = import_plugins('compare.plugins', 'plugins/compare')  # pylint: disable=attribute-defined-outside-init
         for plugin_name in self.source.list_plugins():
-            plugin = self.source.load_plugin(plugin_name)
-            plugin.ComparePlugin(self, config=self.config, db_interface=self.db_interface)
+            try:
+                plugin = self.source.load_plugin(plugin_name)
+            except Exception as e:
+                # This exception could be caused by invalid syntax
+                # Invalid syntax may be caused by plugin dependencies that got
+                # upgraded to incompatible versions
+                logging.error(f'Could not import plugin {plugin_name} due to Exception: {e}')
+            else:
+                plugin.ComparePlugin(self, config=self.config, db_interface=self.db_interface)
+
+
 
     def register_plugin(self, name, c_plugin_instance):
         self.compare_plugins[name] = c_plugin_instance

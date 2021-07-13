@@ -206,8 +206,15 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
     def load_plugins(self):
         source = import_plugins('analysis.plugins', 'plugins/analysis')
         for plugin_name in source.list_plugins():
-            plugin = source.load_plugin(plugin_name)
-            plugin.AnalysisPlugin(self, config=self.config)
+            try:
+                plugin = source.load_plugin(plugin_name)
+            except Exception as e:
+                # This exception could be caused by invalid syntax
+                # Invalid syntax may be caused by plugin dependencies that got
+                # upgraded to incompatible versions
+                logging.error(f'Could not import plugin {plugin_name} due to Exception: {e}')
+            else:
+                plugin.AnalysisPlugin(self, config=self.config)
 
     def start_scheduling_process(self):
         logging.debug('Starting scheduler...')
