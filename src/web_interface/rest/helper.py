@@ -5,7 +5,6 @@ Most wrappers target request and response parsing.
 
 import calendar
 import json
-import logging
 import time
 from copy import deepcopy
 from typing import Optional, Tuple

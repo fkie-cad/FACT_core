@@ -13,12 +13,12 @@ class IntercomMock:
         pass
 
 
-class TestShowStatistic(WebInterfaceTest):
+class TestShowLogs(WebInterfaceTest):
     def setUp(self, db_mock=None):
         super().setUp(db_mock=IntercomMock)
-        self.config['Logging']['logFile'] = 'NonExistentFile'
 
-    def test_logs_available(self):
+    def test_backend_available(self):
+        self.config['Logging']['logFile'] = 'NonExistentFile'
         rv = self.test_client.get('/admin/logs')
         assert b'String1' in rv.data
 

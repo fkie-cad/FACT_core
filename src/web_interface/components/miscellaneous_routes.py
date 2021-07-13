@@ -141,7 +141,7 @@ class MiscellaneousRoutes(ComponentBase):
         return render_template('logs.html', backend_logs=backend_logs, frontend_logs=frontend_logs)
 
     def get_frontend_logs(self):
-        backend_logs = Path(get_log_file_for_component('frontend', self._config))
-        if backend_logs.is_file():
-            return backend_logs.read_text().splitlines()[-100:]
+        frontend_logs = Path(get_log_file_for_component('frontend', self._config))
+        if frontend_logs.is_file():
+            return frontend_logs.read_text().splitlines()[-100:]
         return []

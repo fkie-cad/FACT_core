@@ -12,7 +12,7 @@ TMP_DIR = TemporaryDirectory(prefix='fact_test_')
 
 
 # This number must be changed, whenever a listener is added or removed
-NUMBER_OF_LISTENERS = 9
+NUMBER_OF_LISTENERS = 10
 
 
 class ServiceMock:
