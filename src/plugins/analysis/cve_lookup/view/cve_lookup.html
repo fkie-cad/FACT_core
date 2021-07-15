@@ -15,7 +15,7 @@
                             <th style="width: 130px">CVSS v3 score</th>
                             <th style="width: 200px">Affected versions</th>
                         </tr>
-                        {% for cve_id, entry in result.items()|sort %}
+                        {% for cve_id, entry in result | sort_cve() %}
                         <tr>
                             <td>
                                 <a href="https://nvd.nist.gov/vuln/detail/{{ cve_id }}">{{ cve_id }}</a>

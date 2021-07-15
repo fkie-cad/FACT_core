@@ -11,11 +11,13 @@ from web_interface.filter import (
     get_all_uids_in_string, get_unique_keys_from_list_of_dicts, infection_color, is_not_mandatory_analysis_entry,
     list_group, list_to_line_break_string, list_to_line_break_string_no_sort, nice_number_filter, nice_unix_time,
     random_collapse_id, render_analysis_tags, render_tags, replace_underscore_filter, set_limit_for_data_to_chart,
-    sort_chart_list_by_name, sort_chart_list_by_value, sort_comments, sort_roles_by_number_of_privileges,
-    sort_users_by_name, text_highlighter, uids_to_link, user_has_role, vulnerability_class
+    sort_chart_list_by_name, sort_chart_list_by_value, sort_comments, sort_cve_results,
+    sort_roles_by_number_of_privileges, sort_users_by_name, text_highlighter, uids_to_link, user_has_role,
+    vulnerability_class
 )
 
 UNSORTABLE_LIST = [[], ()]
+
 
 # pylint: disable=invalid-name
 
@@ -30,17 +32,17 @@ def test_set_limit_for_data_to_chart():
 
 @pytest.mark.parametrize('input_data, expected_result', [
     (
-        [('NX enabled', 1696, 0.89122), ('NX disabled', 207, 0.10878), ('Canary enabled', 9, 0.00473)],
-        {
-            'labels': ['NX enabled', 'NX disabled', 'Canary enabled'],
-            'datasets': [{
-                'data': [1696, 207, 9],
-                'percentage': [0.89122, 0.10878, 0.00473],
-                'backgroundColor': ['#4062fa', '#f4c069', '#4062fa'],
-                'borderWidth': 0,
-                'links': 'null'
-            }]
-        }
+            [('NX enabled', 1696, 0.89122), ('NX disabled', 207, 0.10878), ('Canary enabled', 9, 0.00473)],
+            {
+                'labels': ['NX enabled', 'NX disabled', 'Canary enabled'],
+                'datasets': [{
+                    'data': [1696, 207, 9],
+                    'percentage': [0.89122, 0.10878, 0.00473],
+                    'backgroundColor': ['#4062fa', '#f4c069', '#4062fa'],
+                    'borderWidth': 0,
+                    'links': 'null'
+                }]
+            }
     ),
     ([()], None)
 ])
@@ -182,7 +184,8 @@ def test_nice_number(input_data, expected):
 @pytest.mark.parametrize('input_data, expected', [
     (b'abc', 'abc'),
     (1234, '1,234'),
-    ([1, 3], '<ul class="list-group list-group-flush">\n\t<li class="list-group-item">1</li>\n\t<li class="list-group-item">3</li>\n</ul>\n'),
+    ([1, 3],
+     '<ul class="list-group list-group-flush">\n\t<li class="list-group-item">1</li>\n\t<li class="list-group-item">3</li>\n</ul>\n'),
     ({'a': 1}, 'a: 1<br />'),
     (gmtime(0), '1970-01-01 - 00:00:00'),
     ('a_b', 'a b'),
@@ -195,9 +198,9 @@ def test_generic_nice_representation(input_data, expected):
 @pytest.mark.parametrize('tag_dict, output', [
     ({'a': 'danger'}, '<span class="badge badge-danger " style="font-size: 14px;">a</span>\n'),
     (
-        {'a': 'danger', 'b': 'primary'},
-        '<span class="badge badge-danger " style="font-size: 14px;">a</span>\n'
-        '<span class="badge badge-primary " style="font-size: 14px;">b</span>\n'
+            {'a': 'danger', 'b': 'primary'},
+            '<span class="badge badge-danger " style="font-size: 14px;">a</span>\n'
+            '<span class="badge badge-primary " style="font-size: 14px;">b</span>\n'
     ),
     (None, '')
 ])
@@ -351,7 +354,8 @@ def test_version_links_no_analysis():
 
 
 def test_version_links_with_analysis():
-    links = create_firmware_version_links([{'version': '1.0', '_id': 'uid_123'}, {'version': '1.1', '_id': 'uid_234'}], 'foo')
+    links = create_firmware_version_links([{'version': '1.0', '_id': 'uid_123'}, {'version': '1.1', '_id': 'uid_234'}],
+                                          'foo')
     assert '<a href="/analysis/uid_123/foo">1.0</a>' in links
     assert '<a href="/analysis/uid_234/foo">1.1</a>' in links
 
@@ -367,3 +371,26 @@ def test_random_collapse_id():
 ])
 def test_remaining_time(time_diff, expected_result):
     assert format_duration(elapsed_time(time() - time_diff)) == expected_result
+
+
+@pytest.mark.parametrize('input_dict, expected_result', [
+    ({}, {}),
+    (
+            {
+                'cve_id1': {'score2': '6.4', 'score3': 'N/A'},
+                'cve_id4': {'score2': '3.5', 'score3': 'N/A'},
+                'cve_id5': {'score2': '7.4', 'score3': 'N/A'}
+            },
+            {
+                'cve_id5': {'score2': '7.4', 'score3': 'N/A'},
+                'cve_id1': {'score2': '6.4', 'score3': 'N/A'},
+                'cve_id4': {'score2': '3.5', 'score3': 'N/A'}
+            }
+    )
+])
+def test_sort_cve_result(input_dict, expected_result):
+    result = dict(sort_cve_results(input_dict))
+    assert result == expected_result
+
+    for item1, item2 in zip(result, expected_result):
+        assert item1 == item2
