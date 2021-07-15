@@ -43,7 +43,6 @@
                         <tr>
                             <td class="table-head-light">Config Item</td>
                             <td class="table-head-light">Check Result</td>
-                            <td class="table-head-light">Actual Value</td>
                             <td class="table-head-light">Desired Value</td>
                             <td class="table-head-light">Reasoning</td>
                             <td class="table-head-light">Should Protect Against</td>
@@ -58,7 +57,6 @@
                                 </td>
                                 {% set cell_class = 'table-success' if 'OK' in check_result else 'table-danger' if 'FAIL' in check_result else '' %}
                                 <td class="{{ cell_class }}">{{ check_result }}</td>
-                                <td>{{ actual_value }}</td>
                                 <td>{{ desired_value }}</td>
                                 <td>{{ reason | replace_underscore }}</td>
                                 <td>
