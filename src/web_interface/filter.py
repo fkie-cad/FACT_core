@@ -8,7 +8,7 @@ from datetime import timedelta
 from operator import itemgetter
 from string import ascii_letters
 from time import localtime, strftime, struct_time, time
-from typing import AnyStr, List, Match, Optional, Union
+from typing import AnyStr, Dict, List, Match, Optional, Tuple, Union
 
 from common_helper_files import human_readable_file_size
 from flask import render_template
@@ -396,3 +396,7 @@ def replace_cwe_with_link(string: str) -> str:
 
 def _link_to_cwe(match: Match) -> str:
     return f'<a href="https://cwe.mitre.org/data/definitions/{match.group(1)}.html">{match.group(0)}</a>'
+
+
+def sort_cve_results(cve_result: Dict[str, Dict[str, str]]) -> List[Tuple[str, Dict[str, str]]]:
+    return sorted(cve_result.items(), key=lambda item: item[1]['score2'], reverse=True)
