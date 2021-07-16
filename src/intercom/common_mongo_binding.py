@@ -34,7 +34,9 @@ class InterComMongoInterface(MongoInterface):
         'tar_repack_task_resp',
         'binary_search_task',
         'binary_search_task_resp',
-        'single_file_task'
+        'single_file_task',
+        'logs_task',
+        'logs_task_resp'
     ]
 
     def _setup_database_mapping(self):

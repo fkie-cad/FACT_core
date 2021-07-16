@@ -1,9 +1,9 @@
 import logging
 import os
-import psutil
 import signal
-
 from time import sleep
+
+import psutil
 
 from helperFunctions.program_setup import program_setup
 from statistic.work_load import WorkLoadStatistic
@@ -16,7 +16,6 @@ class FactBase:
 
     def __init__(self):
         self.run = True
-
         # Check whether the process was started by start_fact.py
         parent = ' '.join(psutil.Process(os.getppid()).cmdline())
         started_by_start_fact_py = 'start_fact.py' in parent or 'start_all_installed_fact_components' in parent
@@ -28,7 +27,7 @@ class FactBase:
         else:
             signal.signal(signal.SIGINT, self.shutdown_listener)
 
-        self.args, self.config = program_setup(self.PROGRAM_NAME, self.PROGRAM_DESCRIPTION)
+        self.args, self.config = program_setup(self.PROGRAM_NAME, self.PROGRAM_DESCRIPTION, self.COMPONENT)
         self.work_load_stat = WorkLoadStatistic(config=self.config, component=self.COMPONENT)
 
     def shutdown_listener(self, signum, _):

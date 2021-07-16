@@ -75,3 +75,6 @@ class InterComFrontEndBinding(InterComMongoInterface):
             logging.debug('No response yet: {} -> {}'.format(response_connection, request_id))
             sleep(1)
         return output_data
+
+    def get_backend_logs(self):
+        return self._request_response_listener(None, 'logs_task', 'logs_task_resp')
