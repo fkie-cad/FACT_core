@@ -45,7 +45,7 @@
                             <td class="table-head-light">Check Result</td>
                             <td class="table-head-light">Desired Value</td>
                             <td class="table-head-light">Reasoning</td>
-                            <td class="table-head-light">Should Protect Against</td>
+                            <td class="table-head-light">Relates to</td>
                         </tr>
                         {% for option_name, desired_value, _, reason, check_result, actual_value, vulnerabilities in firmware.processed_analysis[selected_analysis]['hardening'] %}
                         {# option_name, desired_value, _, reason, check_result, actual_value, vulnerabilities  #}
