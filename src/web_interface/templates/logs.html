@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% set active_page = "Logs" %}
+
+{% block styles %}
+<style>
+    .logs-pre {
+        padding: 5px;
+        width: 100%;
+        white-space: pre-wrap;
+        overflow-y: scroll;
+        overflow-x: hidden;
+        display: block;
+        font-family: monospace;
+        margin: 0 0;
+        color: #f8f8f8;
+        background-color: #333;
+        max-height: 500px;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="row justify-content-center mt-4">
+    <div class="col-xl-8 col-lg-12">
+        <h3 class="mb-3">Logs</h3>
+        <ul class="nav nav-tabs">
+            <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#backend">Backend</a></li>
+            <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#frontend">Frontend</a></li>
+        </ul>
+        <div class="tab-content">
+            <div id="backend" class="tab-pane container active">
+                {% if backend_logs %}
+                    <pre class="logs-pre mt-4">{{ backend_logs }}</pre>
+                {% else %}
+                    <h5 class="mt-4">No logs found</h5>
+                {% endif %}
+            </div>
+            <div id="frontend" class="tab-pane container fade">
+                {% if frontend_logs %}
+                    <pre class="logs-pre mt-4">{{ frontend_logs }}</pre>
+                {% else %}
+                    <h5 class="mt-4">No logs found</h5>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -31,7 +31,7 @@ class FactDb(FactBase):
     COMPONENT = 'database'
 
     def __init__(self):
-        _, config = program_setup(self.PROGRAM_NAME, self.PROGRAM_DESCRIPTION)
+        _, config = program_setup(self.PROGRAM_NAME, self.PROGRAM_DESCRIPTION, self.COMPONENT)
         self.mongo_server = MongoMgr(config=config)
         super().__init__()
 

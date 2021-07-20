@@ -1,3 +1,5 @@
+# pylint: disable=wrong-import-order
+
 import glob
 import sys
 from pathlib import Path
@@ -9,9 +11,13 @@ from ..code.kernel_config import AnalysisPlugin
 
 try:
     from ..internal.decomp import GZDecompressor
+    from ..internal.kernel_config_hardening_check import check_kernel_hardening
+    from ..internal.checksec_check_kernel import check_kernel_config
 except ImportError:
     sys.path.append(str(Path(__file__).parent.parent / 'internal'))
     from decomp import GZDecompressor
+    from kernel_config_hardening_check import check_kernel_hardening
+    from checksec_check_kernel import check_kernel_config
 
 
 TEST_DATA_DIR = Path(__file__).parent / 'data'
@@ -174,7 +180,7 @@ def test_gz_break_on_true():
 def test_checksec_existing_config():
     test_file = TEST_DATA_DIR / 'configs/CONFIG'
     kernel_config = test_file.read_text()
-    result = AnalysisPlugin.check_kernel_config(kernel_config)
+    result = check_kernel_config(kernel_config)
     assert result != {}
     assert 'kernel' in result
     assert 'selinux' in result
@@ -184,7 +190,20 @@ def test_checksec_existing_config():
 
 
 def test_checksec_no_valid_json(monkeypatch):
-    invalid_json = 'invalid_json'
-    monkeypatch.setattr('plugins.analysis.kernel_config.code.kernel_config.execute_shell_command', lambda _: invalid_json)
-    result = AnalysisPlugin.check_kernel_config('no_real_config')
-    assert result == {}
+    monkeypatch.setattr('plugins.analysis.kernel_config.internal.checksec_check_kernel.execute_shell_command', lambda _: 'invalid json')
+    assert check_kernel_config('no_real_config') == {}
+
+
+def test_check_kernel_hardening():
+    test_file = TEST_DATA_DIR / 'configs/CONFIG'
+    kernel_config = test_file.read_text()
+    result = check_kernel_hardening(kernel_config)
+    assert isinstance(result, list)
+    assert all(isinstance(tup, tuple) for tup in result)
+    assert len(result) > 50
+    assert all(len(tup) == 7 for tup in result), 'all results should have 6 elements'
+    assert any(len(tup[5]) > 0 for tup in result), 'some "protection against" info shouldn\'t be empty'
+
+
+def test_check_hardening_no_results():
+    assert check_kernel_hardening('CONFIG_FOOBAR=y') == []
