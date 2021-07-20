@@ -39,7 +39,7 @@ class TestAppAjaxRoutes(WebInterfaceTest):
         assert result['number_of_running_analyses'] == 'n/a'
 
     def test_ajax_system_health(self):
-        self.mocked_interface.get_statistics = lambda *_: [{'foo': 'bar'}]
+        self.mocked_interface.get_stats_list = lambda *_: [{'foo': 'bar'}]
         result = self.test_client.get('/ajax/system_health').json
         assert 'systemHealth' in result
         assert result['systemHealth'] == [{'foo': 'bar'}]

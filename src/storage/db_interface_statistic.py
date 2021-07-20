@@ -49,5 +49,5 @@ class StatisticDbViewer(StatisticDb):
     def get_statistic(self, identifier):
         return self.statistic.find_one({'_id': identifier})
 
-    def get_statistics(self, *identifiers: str) -> List[dict]:
+    def get_stats_list(self, *identifiers: str) -> List[dict]:
         return list(self.statistic.find({'_id': {'$in': identifiers}}))

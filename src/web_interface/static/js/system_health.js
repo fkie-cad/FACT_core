@@ -3,13 +3,7 @@ const BOOTSTRAP_PRIMARY_COLOR = "#007bff";
 
 function change_button(button_id) {
     element = document.getElementById(button_id);
-    if (element.classList.contains("fa-caret-down")) {
-        element.classList.remove("fa-caret-down");
-        element.classList.add("fa-caret-up");
-    } else {
-        element.classList.remove("fa-caret-up");
-        element.classList.add("fa-caret-down");
-    }
+    ["fa-caret-down", "fa-caret-up"].forEach(class_name => element.classList.toggle(class_name));
 }
 
 async function getSystemHealthData() {
@@ -24,28 +18,28 @@ async function updateSystemHealth() {
         if (entry.status == "offline") {
             statusElement.classList.add('text-danger');
             statusElement.classList.remove('text-success');
-        } else {
-            statusElement.classList.remove('text-danger');
-            statusElement.classList.add('text-success');
-            document.getElementById(`${entry._id}-os`).innerText = entry.platform.os;
-            document.getElementById(`${entry._id}-python`).innerText = entry.platform.python;
-            document.getElementById(`${entry._id}-version`).innerText = entry.platform.fact_version;
-            document.getElementById(`${entry._id}-cpu`).innerText = `${entry.system.cpu_cores} cores (${entry.system.virtual_cpu_cores} threads) @ ${entry.system.cpu_percentage}%`;
-            updateProgressBarElement(`${entry._id}-memory`, entry.system.memory_percent, entry.system.memory_used, entry.system.memory_total);
-            updateProgressBarElement(`${entry._id}-disk`, entry.system.disk_percent, entry.system.disk_used, entry.system.disk_total);
-            if (entry._id == "backend") {
-                const queueElement = document.getElementById("backend-unpacking-queue");
-                if (entry.unpacking.unpacking_queue > 500) {
-                    queueElement.classList.add("text-warning");
-                }
-                queueElement.innerText = entry.unpacking.unpacking_queue.toString();
-                Object.entries(entry.analysis.plugins).map(([pluginName, pluginData], index) => {
-                    if (!pluginName.includes("dummy")){
-                        updatePluginCard(pluginName, pluginData);
-                    }
-                });
-                updateCurrentAnalyses(entry.analysis);
+            return;
+        }
+        statusElement.classList.remove('text-danger');
+        statusElement.classList.add('text-success');
+        document.getElementById(`${entry._id}-os`).innerText = entry.platform.os;
+        document.getElementById(`${entry._id}-python`).innerText = entry.platform.python;
+        document.getElementById(`${entry._id}-version`).innerText = entry.platform.fact_version;
+        document.getElementById(`${entry._id}-cpu`).innerText = `${entry.system.cpu_cores} cores (${entry.system.virtual_cpu_cores} threads) @ ${entry.system.cpu_percentage}%`;
+        updateProgressBarElement(`${entry._id}-memory`, entry.system.memory_percent, entry.system.memory_used, entry.system.memory_total);
+        updateProgressBarElement(`${entry._id}-disk`, entry.system.disk_percent, entry.system.disk_used, entry.system.disk_total);
+        if (entry._id == "backend") {
+            const queueElement = document.getElementById("backend-unpacking-queue");
+            if (entry.unpacking.unpacking_queue > 500) {
+                queueElement.classList.add("text-warning");
             }
+            queueElement.innerText = entry.unpacking.unpacking_queue.toString();
+            Object.entries(entry.analysis.plugins).map(([pluginName, pluginData], index) => {
+                if (!pluginName.includes("dummy")){
+                    updatePluginCard(pluginName, pluginData);
+                }
+            });
+            updateCurrentAnalyses(entry.analysis);
         }
     }));
 }

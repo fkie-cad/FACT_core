@@ -130,7 +130,7 @@ class AjaxRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['status'])
     def _get_system_health_update(self):
         with ConnectTo(StatisticDbViewer, self._config) as stats_db:
-            return {'systemHealth': stats_db.get_statistics('backend', 'frontend', 'database')}
+            return {'systemHealth': stats_db.get_stats_list('backend', 'frontend', 'database')}
 
     @staticmethod
     def _make_json_serializable(set_dict: Dict[str, Set[str]]) -> Dict[str, List[str]]:
