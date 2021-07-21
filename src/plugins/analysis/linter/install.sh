@@ -39,7 +39,4 @@ else
 	sudo npm install -g jshint || exit 1
 fi
 
-# pull linguist docker image
-docker pull crazymax/linguist
-
 exit 0
