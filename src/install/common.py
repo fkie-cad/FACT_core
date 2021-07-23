@@ -5,8 +5,8 @@ from pathlib import Path
 from common_helper_process import execute_shell_command_get_return_code
 
 from helperFunctions.install import (
-    InstallationError, OperateInDirectory, apt_install_packages, apt_remove_packages, apt_update_sources,
-    dnf_install_packages, dnf_remove_packages, dnf_update_sources, install_github_project
+    InstallationError, OperateInDirectory, apt_update_sources,
+    dnf_update_sources, install_github_project
 )
 
 BIN_DIR = Path(__file__).parent.parent / 'bin'
@@ -36,31 +36,7 @@ def main(distribution):  # pylint: disable=too-many-statements
     # make bin dir
     BIN_DIR.mkdir(exist_ok=True)
 
-    # install python3 and general build stuff
-    if distribution == 'fedora':
-        dnf_install_packages('python3', 'python3-devel', 'automake', 'autoconf', 'libtool', 'git', 'unzip')
-        # build-essential not available on fedora, getting equivalent
-        dnf_install_packages('gcc', 'gcc-c++', 'make', 'kernel-devel')
-    else:
-        apt_install_packages('python3', 'python3-dev', 'build-essential', 'automake', 'autoconf', 'libtool', 'git', 'unzip')
-
-    # get a bug free recent pip version
-    if distribution == 'fedora':
-        dnf_remove_packages('python3-pip', 'python3-setuptools', 'python3-wheel')
-    else:
-        apt_remove_packages('python3-pip', 'python3-setuptools', 'python3-wheel')
-
     install_pip('python3')
-
-    # install general python dependencies
-    if distribution == 'fedora':
-        dnf_install_packages('file-devel')
-        dnf_install_packages('libffi-devel')
-        dnf_install_packages('python3-tlsh')
-    else:
-        apt_install_packages('libmagic-dev')
-        apt_install_packages('libfuzzy-dev')
-        apt_install_packages('python3-tlsh')
 
     # VarietyJS (is executed by update_statistic.py)
     if (BIN_DIR / 'spec').exists():
@@ -81,5 +57,4 @@ def _update_package_sources(distribution):
     if distribution == 'fedora':
         dnf_update_sources()
     else:
-        apt_install_packages('apt-transport-https')
         apt_update_sources()

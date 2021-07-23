@@ -1,0 +1,14 @@
+autoconf
+automake
+file-devel
+gcc
+gcc-c++
+git
+kernel-devel
+libffi-devel
+libtool
+make
+python3
+python3-devel
+python3-tlsh
+unzip
