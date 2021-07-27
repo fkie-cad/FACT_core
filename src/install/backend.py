@@ -8,20 +8,13 @@ from common_helper_process import execute_shell_command_get_return_code
 from compile_yara_signatures import main as compile_signatures
 
 from helperFunctions.install import (
-    InstallationError, OperateInDirectory, apt_install_packages, check_string_in_command_output, dnf_install_packages,
-    load_main_config
+    InstallationError, OperateInDirectory, check_string_in_command_output, load_main_config
 )
 
 BIN_DIR = Path(__file__).parent.parent / 'bin'
 
 
 def main(skip_docker, distribution):
-
-    # dependencies
-    if distribution == 'fedora':
-        dnf_install_packages('libjpeg-devel', 'openssl-devel', 'python3-tkinter')
-    else:
-        apt_install_packages('libjpeg-dev', 'libssl-dev', 'python3-tk')
 
     # install yara
     _install_yara(distribution)
@@ -115,9 +108,6 @@ def _install_yara(distribution):  # pylint: disable=too-complex
 
     # CAUTION: Yara python binding is installed in install/common.py, because it is needed in the frontend as well.
 
-    if distribution != 'fedora':
-        apt_install_packages('bison', 'flex')
-
     if check_string_in_command_output('yara --version', '3.7.1'):
         logging.info('skipping yara installation (already installed)')
         return
@@ -144,9 +134,6 @@ def _install_checksec(distribution):
         logging.info('Skipping checksec.sh installation (already installed)')
         return
 
-    # dependencies
-    install_function = apt_install_packages if distribution != 'fedora' else dnf_install_packages
-    install_function('binutils', 'openssl', 'file')
 
     logging.info('Installing checksec.sh')
     checksec_url = "https://raw.githubusercontent.com/slimm609/checksec.sh/master/checksec"

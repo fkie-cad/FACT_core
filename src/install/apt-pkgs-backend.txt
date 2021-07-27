@@ -1,0 +1,8 @@
+binutils
+bison
+file
+flex
+libjpeg-dev
+libssl-dev
+openssl
+python3-tk
