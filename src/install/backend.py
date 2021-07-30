@@ -8,13 +8,29 @@ from common_helper_process import execute_shell_command_get_return_code
 from compile_yara_signatures import main as compile_signatures
 
 from helperFunctions.install import (
-    InstallationError, OperateInDirectory, check_string_in_command_output, load_main_config
+    InstallationError, OperateInDirectory, check_string_in_command_output,
+    load_main_config, apt_install_packages, dnf_install_packages,
+    run_cmd_with_logging
 )
 
 BIN_DIR = Path(__file__).parent.parent / 'bin'
 
 
 def main(skip_docker, distribution):
+    # We expect the cwd to be src/install
+    apt_pkgs_path = "./apt-pkgs-backend.txt"
+    dnf_pkgs_path = "./dnf-pkgs-backend.txt"
+
+    if distribution != "fedora":
+        with open(apt_pkgs_path) as pkgs_f:
+            pkgs = pkgs_f.read().splitlines()
+            apt_install_packages(*pkgs)
+    else:
+        with open(dnf_pkgs_path) as pkgs_f:
+            pkgs = pkgs_f.read().splitlines()
+            dnf_install_packages(*pkgs)
+
+    run_cmd_with_logging("sudo pip3 install -r ./requirements_backend.txt")
 
     # install yara
     _install_yara(distribution)
@@ -133,7 +149,6 @@ def _install_checksec(distribution):
     if checksec_path.is_file():
         logging.info('Skipping checksec.sh installation (already installed)')
         return
-
 
     logging.info('Installing checksec.sh')
     checksec_url = "https://raw.githubusercontent.com/slimm609/checksec.sh/master/checksec"
