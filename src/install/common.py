@@ -6,7 +6,8 @@ from common_helper_process import execute_shell_command_get_return_code
 
 from helperFunctions.install import (
     InstallationError, OperateInDirectory, apt_update_sources,
-    dnf_update_sources, install_github_project
+    apt_install_packages, dnf_update_sources, dnf_install_packages,
+    install_github_project, run_cmd_with_logging
 )
 
 BIN_DIR = Path(__file__).parent.parent / 'bin'
@@ -21,8 +22,23 @@ def install_pip(python_command):
 
 
 def main(distribution):  # pylint: disable=too-many-statements
-
     _update_package_sources(distribution)
+
+    # We expect the cwd to be src/install
+    apt_pkgs_path = "./apt-pkgs-common.txt"
+    dnf_pkgs_path = "./dnf-pkgs-common.txt"
+
+    if distribution != "fedora":
+        with open(apt_pkgs_path) as pkgs_f:
+            pkgs = pkgs_f.read().splitlines()
+            apt_install_packages(*pkgs)
+
+    else:
+        with open(dnf_pkgs_path) as pkgs_f:
+            pkgs = pkgs_f.read().splitlines()
+            dnf_install_packages(*pkgs)
+
+    run_cmd_with_logging("sudo pip3 install -r ./requirements_common.txt")
 
     _, is_repository = execute_shell_command_get_return_code('git status')
     if is_repository == 0:
