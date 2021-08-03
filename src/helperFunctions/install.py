@@ -2,7 +2,9 @@ import configparser
 import logging
 import os
 import shutil
+import subprocess
 from pathlib import Path
+from subprocess import CalledProcessError
 from typing import List, Tuple, Union
 
 from common_helper_process import execute_shell_command_get_return_code
@@ -205,3 +207,24 @@ def load_main_config() -> configparser.ConfigParser:
         raise InstallationError('Could not load config at path {}'.format(config_path))
     config.read(str(config_path))
     return config
+
+
+def run_cmd_with_logging(cmd: str, raise_error=True, shell=False, **kwargs):
+    """
+    Runs `cmd` with subprocess.run, logs the command it executes and logs
+    stderr on non-zero returncode.
+    All keyword arguments are passed to subprocess.run.
+    """
+    # Keep in sync with run_cmd_with_logging in helperFunctions
+    # FIXME deduplicate this function
+    # We need to have shell explicitly to determine whether to split cmd or not
+    logging.info(f"Running: {cmd}")
+    try:
+        cmd_ = cmd if shell else cmd.split()
+        subprocess.run(cmd_, capture_output=True, encoding='UTF-8', shell=shell, **kwargs).check_returncode()
+    except CalledProcessError as err:
+        if raise_error:
+            logging.error(f"Failed to run {err.cmd}:\n{err.stderr}")
+            raise err
+        else:
+            logging.debug(f"Failed to run {err.cmd}:\n{err.stderr}\n\nIgnoring")
