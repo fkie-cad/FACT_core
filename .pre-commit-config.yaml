@@ -44,11 +44,6 @@ repos:
         language: system
         args: [--rcfile=.pylintrc]
 
--   repo: https://github.com/jumanjihouse/pre-commit-hooks
-    rev: 1.11.0
-    hooks:
-    -   id: shellcheck
-
 -   repo: https://github.com/pryorda/dockerfilelint-precommit-hooks
     rev: v0.1.0
     hooks:
