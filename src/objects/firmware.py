@@ -6,17 +6,35 @@ from contextlib import suppress
 
 class Firmware(FileObject):
     '''
-    This objects represents a firmware
+    This class represents a firmware.
+    It is a specialization of :class:`~objects.file.FileObject` that adds a
+    variety of firmware-specific attributes.
+    All constructor arguments are passed to the
+    :class:`~objects.file.FileObject` constructor
     '''
 
-    def __init__(self, binary=None, file_name=None, file_path=None, scheduled_analysis=None):
-        super().__init__(binary=binary, file_name=file_name, file_path=file_path, scheduled_analysis=scheduled_analysis)
-        self.device_name = None
-        self.version = None
-        self.device_class = None
-        self.vendor = None
-        self.part = ''
-        self.release_date = None
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        #: The name of the device that the firmware runs on
+        self.device_name: str = None
+        #: The version of the firmware in no specific format
+        self.version: str = None
+        #: The type of device that the firmware runs on.
+        #: E.g. "router"
+        self.device_class: str = None
+        #: The vendor of the firmware that this object represents.
+        self.vendor: str = None
+        #: The part of the firmware that this object represents.
+        #: Specifies the parts of an embedded system that are contained in the firmware.
+        #: While this meta data string can be freely defined during firmware upload,
+        #: FACT provides a preset of frequently used values: 'complete', 'kernel', ' bootloader', and 'root-fs'.
+        #: The firmware image is assumed to be 'complete' if the assigned value is an empty string.
+        self.part: str = ''
+        # The release date of the firmware in the format "YYYY-MM-DD".
+        self.release_date: str = None
+        #: A dict where the keys represent tags and the values represent the
+        #: colors of the tags.
+        #: Possible values are defined in :class:`helperFunctions.tag.TagColor`.
         self.tags = dict()
         self._update_root_id_and_virtual_path()
 
@@ -24,6 +42,9 @@ class Firmware(FileObject):
         self.device_name = device_name
 
     def set_part_name(self, part):
+        '''
+        Setter for `self.part_name`.
+        '''
         if part == 'complete':
             self.part = ''
         else:
@@ -36,6 +57,9 @@ class Firmware(FileObject):
         self.device_class = device_class
 
     def set_binary(self, binary):
+        '''
+        See :meth:`objects.file.FileObject.set_binary`.
+        '''
         super().set_binary(binary)
         self._update_root_id_and_virtual_path()
         self.md5 = get_md5(binary)
@@ -50,10 +74,19 @@ class Firmware(FileObject):
         self.root_uid = self.uid
         self.virtual_file_path = {self.uid: [self.uid]}
 
-    def set_tag(self, tag, tag_color=TagColor.GRAY):
+    def set_tag(self, tag: str, tag_color=TagColor.GRAY):
+        '''
+        Set a tag with color.
+
+        :param tag: The tag name
+        :param tag_color: A tag color from :class:`~helperFunctions.tag.TagColor`
+        '''
         self.tags[tag] = tag_color
 
     def remove_tag(self, tag):
+        '''
+        Remove a tag.
+        '''
         with suppress(KeyError):
             self.tags.pop(tag)
 
