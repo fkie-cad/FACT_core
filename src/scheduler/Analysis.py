@@ -206,8 +206,16 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
     def load_plugins(self):
         source = import_plugins('analysis.plugins', 'plugins/analysis')
         for plugin_name in source.list_plugins():
-            plugin = source.load_plugin(plugin_name)
-            plugin.AnalysisPlugin(self, config=self.config)
+            try:
+                plugin = source.load_plugin(plugin_name)
+            except Exception:
+                # This exception could be caused by upgrading dependencies to
+                # incopmatible versions.
+                # Another cause could be missing dependencies.
+                # So if anything goes wrong we want to inform the user about it
+                logging.error(f'Could not import plugin {plugin_name} due to exception', exc_info=True)
+            else:
+                plugin.AnalysisPlugin(self, config=self.config)
 
     def start_scheduling_process(self):
         logging.debug('Starting scheduler...')
