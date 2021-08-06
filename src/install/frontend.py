@@ -7,8 +7,7 @@ import requests
 from common_helper_process import execute_shell_command_get_return_code
 
 from helperFunctions.install import (
-    InstallationError, OperateInDirectory, apt_install_packages,
-    load_main_config, remove_folder, run_cmd_with_logging
+    InstallationError, OperateInDirectory, apt_install_packages, load_main_config, remove_folder, run_cmd_with_logging
 )
 
 DEFAULT_CERT = '.\n.\n.\n.\n.\nexample.com\n.\n\n\n'
@@ -61,6 +60,7 @@ def _create_directory_for_authentication():  # pylint: disable=invalid-name
 
     config = load_main_config()
     dburi = config.get('data_storage', 'user_database')
+    # pylint: disable=fixme
     factauthdir = '/'.join(dburi.split('/')[:-1])[10:]  # FIXME this should be beautified with pathlib
 
     mkdir_output, mkdir_code = execute_shell_command_get_return_code('sudo mkdir -p --mode=0744 {}'.format(factauthdir))
@@ -171,7 +171,7 @@ def _install_docker_images(radare):
 
 
 def main(skip_docker, radare, nginx):
-    run_cmd_with_logging("sudo pip3 install -r ./requirements_frontend.txt")
+    run_cmd_with_logging("sudo -EH pip3 install -r ./requirements_frontend.txt")
 
     # installing web/js-frameworks
     _install_css_and_js_files()

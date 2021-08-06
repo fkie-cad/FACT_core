@@ -34,7 +34,7 @@ def main(distribution):  # pylint: disable=too-many-statements
         pkgs = read_package_list_from_file(dnf_packages_path)
         dnf_install_packages(*pkgs)
 
-    run_cmd_with_logging("sudo pip3 install -r ./requirements_common.txt")
+    run_cmd_with_logging("sudo -EH pip3 install -r ./requirements_common.txt")
 
     _, is_repository = execute_shell_command_get_return_code('git status')
     if is_repository == 0:
