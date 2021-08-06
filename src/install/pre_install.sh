@@ -78,7 +78,7 @@ fi
 
 sudo -EH pip3 install --upgrade pip
 
-sudo -EH pip install -r ./requirements.txt
+sudo -EH pip install -r ./requirements_pre_install.txt
 
 echo -e "Pre-Install-Routine complete! \\033[31mPlease reboot before running install.py\\033[0m"
 
