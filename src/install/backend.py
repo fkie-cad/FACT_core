@@ -8,35 +8,32 @@ from common_helper_process import execute_shell_command_get_return_code
 from compile_yara_signatures import main as compile_signatures
 
 from helperFunctions.install import (
-    InstallationError, OperateInDirectory, check_string_in_command_output,
-    load_main_config, apt_install_packages, dnf_install_packages,
-    run_cmd_with_logging
+    InstallationError, OperateInDirectory, apt_install_packages, check_string_in_command_output, dnf_install_packages,
+    load_main_config, read_package_list_from_file, run_cmd_with_logging
 )
 
 BIN_DIR = Path(__file__).parent.parent / 'bin'
+INSTALL_DIR = Path(__file__).parent
 
 
 def main(skip_docker, distribution):
-    # We expect the cwd to be src/install
-    apt_pkgs_path = "./apt-pkgs-backend.txt"
-    dnf_pkgs_path = "./dnf-pkgs-backend.txt"
+    apt_packages_path = INSTALL_DIR / "apt-pkgs-backend.txt"
+    dnf_packages_path = INSTALL_DIR / "dnf-pkgs-backend.txt"
 
     if distribution != "fedora":
-        with open(apt_pkgs_path) as pkgs_f:
-            pkgs = pkgs_f.read().splitlines()
-            apt_install_packages(*pkgs)
+        pkgs = read_package_list_from_file(apt_packages_path)
+        apt_install_packages(*pkgs)
     else:
-        with open(dnf_pkgs_path) as pkgs_f:
-            pkgs = pkgs_f.read().splitlines()
-            dnf_install_packages(*pkgs)
+        pkgs = read_package_list_from_file(dnf_packages_path)
+        dnf_install_packages(*pkgs)
 
     run_cmd_with_logging("sudo pip3 install -r ./requirements_backend.txt")
 
     # install yara
-    _install_yara(distribution)
+    _install_yara()
 
     # install checksec.sh
-    _install_checksec(distribution)
+    _install_checksec()
 
     if not skip_docker:
         _install_docker_images()
@@ -119,7 +116,7 @@ def _install_plugins(distribution):
                 f'Error in installation of {Path(install_script).parent.name} plugin\n{shell_output}')
 
 
-def _install_yara(distribution):  # pylint: disable=too-complex
+def _install_yara():  # pylint: disable=too-complex
     logging.info('Installing yara')
 
     # CAUTION: Yara python binding is installed in install/common.py, because it is needed in the frontend as well.
@@ -144,7 +141,7 @@ def _install_yara(distribution):  # pylint: disable=too-complex
                 raise InstallationError(f'Error in yara installation.\n{output}')
 
 
-def _install_checksec(distribution):
+def _install_checksec():
     checksec_path = BIN_DIR / 'checksec'
     if checksec_path.is_file():
         logging.info('Skipping checksec.sh installation (already installed)')

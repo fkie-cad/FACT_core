@@ -229,3 +229,24 @@ def run_cmd_with_logging(cmd: str, raise_error=True, shell=False, **kwargs):
             raise err
         else:
             logging.debug(f"Failed to run {err.cmd} (ignoring):\n{err.stderr}\n")
+
+
+def read_package_list_from_file(path: Path):
+    """
+    Reads the file at `path` into a list.
+    Each line in the file should be either a comment (starts with #) or a
+    package name.
+    There may not be multiple packages in one line.
+
+    :param path: The path to the file.
+    :return: A list of package names contained in the file.
+    """
+    packages = []
+    for line_ in path.read_text().splitlines():
+        line = line_.strip(" \t")
+        # Skip comments and empty lines
+        if line.startswith("#") or len(line) == 0:
+            continue
+        packages.append(line)
+
+    return packages
