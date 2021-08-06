@@ -1,8 +1,12 @@
-binutils
-bison
-file
-flex
 libjpeg-dev
 libssl-dev
-openssl
 python3-tk
+
+# checksec dependencies
+binutils
+file
+openssl
+
+# Yara dependencies
+bison
+flex
