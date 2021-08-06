@@ -1,6 +1,7 @@
 import configparser
 import logging
 import os
+import shlex
 import shutil
 import subprocess
 from pathlib import Path
@@ -213,18 +214,18 @@ def run_cmd_with_logging(cmd: str, raise_error=True, shell=False, **kwargs):
     """
     Runs `cmd` with subprocess.run, logs the command it executes and logs
     stderr on non-zero returncode.
-    All keyword arguments are passed to subprocess.run.
+    All keyword arguments are execpt `raise_error` passed to subprocess.run.
+
+    :param raise_error: Whether or not an error should be raised when `cmd` fails
     """
-    # Keep in sync with run_cmd_with_logging in helperFunctions
-    # FIXME deduplicate this function
-    # We need to have shell explicitly to determine whether to split cmd or not
     logging.info(f"Running: {cmd}")
     try:
-        cmd_ = cmd if shell else cmd.split()
-        subprocess.run(cmd_, capture_output=True, encoding='UTF-8', shell=shell, **kwargs).check_returncode()
+        cmd_ = cmd if shell else shlex.split(cmd)
+        subprocess.run(cmd_, capture_output=True, encoding='UTF-8', shell=shell, check=True, **kwargs)
     except CalledProcessError as err:
+        # pylint:disable=no-else-raise
         if raise_error:
             logging.error(f"Failed to run {err.cmd}:\n{err.stderr}")
             raise err
         else:
-            logging.debug(f"Failed to run {err.cmd}:\n{err.stderr}\n\nIgnoring")
+            logging.debug(f"Failed to run {err.cmd} (ignoring):\n{err.stderr}\n")
