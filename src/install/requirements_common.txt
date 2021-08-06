@@ -24,8 +24,6 @@ pymongo
 pyyaml
 
 # Common code modules
-hurry.filesize
-
 git+https://github.com/fkie-cad/common_helper_files.git
 git+https://github.com/fkie-cad/common_helper_filter.git
 git+https://github.com/fkie-cad/common_helper_mongo.git
