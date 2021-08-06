@@ -21,7 +21,7 @@ class CompareRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['compare'])
     @AppRoute('/compare/<compare_id>', GET)
-    def show_compare_result(self, compare_id):
+    def _show_compare_result(self, compare_id):
         compare_id = normalize_compare_id(compare_id)
         try:
             with ConnectTo(CompareDbInterface, self._config) as sc:
@@ -99,7 +99,7 @@ class CompareRoutes(ComponentBase):
         with ConnectTo(CompareDbInterface, self._config) as sc:
             compare_exists = sc.compare_result_is_in_db(compare_id)
         if compare_exists and not redo:
-            return redirect(url_for('show_compare_result', compare_id=compare_id))
+            return redirect(url_for('_show_compare_result', compare_id=compare_id))
 
         try:
             with ConnectTo(CompareDbInterface, self._config) as sc:

@@ -40,7 +40,7 @@ class DatabaseRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['basic_search'])
     @AppRoute('/database/browse', GET)
-    def browse_database(self, query: str = '{}', only_firmwares=False, inverted=False):
+    def _browse_database(self, query: str = '{}', only_firmwares=False, inverted=False):
         page, per_page = extract_pagination_from_request(request, self._config)[0:2]
         search_parameters = self._get_search_parameters(query, only_firmwares, inverted)
         try:
@@ -135,7 +135,7 @@ class DatabaseRoutes(ComponentBase):
     def _app_show_search_database(self):
         if request.method == 'POST':
             query = self._build_search_query()
-            return redirect(url_for('browse_database', query=query))
+            return redirect(url_for('_browse_database', query=query))
         with ConnectTo(FrontEndDbInterface, self._config) as connection:
             device_classes = connection.get_device_class_list()
             vendors = connection.get_vendor_list()
@@ -153,7 +153,7 @@ class DatabaseRoutes(ComponentBase):
                 inverted = request.form.get('inverted') is not None
                 if not isinstance(query, dict):
                     raise Exception('Error: search query invalid (wrong type)')
-                return redirect(url_for('browse_database', query=json.dumps(query), only_firmwares=only_firmwares, inverted=inverted))
+                return redirect(url_for('_browse_database', query=json.dumps(query), only_firmwares=only_firmwares, inverted=inverted))
             except Exception as err:
                 error = err
         return render_template('database/database_advanced_search.html', error=error, database_structure=database_structure)
@@ -204,7 +204,7 @@ class DatabaseRoutes(ComponentBase):
                 yara_rules = make_unicode_string(yara_rules[0])
                 joined_results = self._join_results(result)
                 query_uid = self._store_binary_search_query(joined_results, yara_rules)
-                return redirect(url_for('browse_database', query=query_uid, only_firmwares=request.args.get('only_firmware')))
+                return redirect(url_for('_browse_database', query=query_uid, only_firmwares=request.args.get('only_firmware')))
         else:
             error = 'No request ID found'
             request_id = None
@@ -237,4 +237,4 @@ class DatabaseRoutes(ComponentBase):
             {'file_name': {'$options': 'si', '$regex': search_term}}
         ])
         query = json.dumps(query)
-        return redirect(url_for('browse_database', query=query))
+        return redirect(url_for('_browse_database', query=query))
