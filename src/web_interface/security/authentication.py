@@ -1,7 +1,7 @@
 import base64
 import os
 
-from flask_security import Security, UserMixin, RoleMixin, AnonymousUser
+from flask_security import AnonymousUser, RoleMixin, Security, UserMixin
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.local import LocalProxy
 
@@ -37,6 +37,8 @@ def create_user_interface(db):
         active = db.Column(db.Boolean())
         confirmed_at = db.Column(db.DateTime())
         roles = db.relationship('Role', secondary=roles_users, backref=db.backref('users', lazy='dynamic'))
+        # See flask_security.models.fsqla.FsUserMixin
+        fs_uniquifier = db.Column(db.String(64), unique=True, nullable=False)
 
     return UserRoleDbInterface(db, User, Role)
 

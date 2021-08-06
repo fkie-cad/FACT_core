@@ -27,10 +27,11 @@ class WebFrontEnd:
         logging.info("Web front end online")
 
     def _setup_app(self):
+        # FIXME replace __name__ see Flask constructor docs
         self.app = Flask(__name__)
         self.app.config.from_object(__name__)
 
-        Flask.secret_key = os.urandom(24)
+        self.app.secret_key = os.urandom(24)
         user_db, user_interface = add_flask_security_to_app(self.app, self.config)
 
         AjaxRoutes(self.app, self.config)

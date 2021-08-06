@@ -9,7 +9,7 @@ from flask_security import Security
 from flask_sqlalchemy import SQLAlchemy
 
 from config.ascii import FACT_ASCII_ART
-from helperFunctions.config import load_config, get_config_dir
+from helperFunctions.config import get_config_dir, load_config
 from helperFunctions.web_interface import password_is_legal
 from version import __VERSION__
 from web_interface.frontend_main import WebFrontEnd
@@ -161,8 +161,8 @@ def prompt_for_actions(app, store, db):
 
 def start_user_management(app):
     db = SQLAlchemy(app)
-    Security(app)
     store = create_user_interface(db)
+    Security(app)
 
     db.create_all()
 
