@@ -29,6 +29,7 @@ class AjaxRoutes(ComponentBase):
         self._app.add_url_rule('/ajax_get_binary/<mime_type>/<uid>', 'ajax_get_binary/<type>/<uid>', self._ajax_get_binary)
         self._app.add_url_rule('/ajax_get_summary/<uid>/<selected_analysis>', 'ajax_get_summary/<uid>/<selected_analysis>', self._ajax_get_summary)
         self._app.add_url_rule('/ajax/stats/system', 'ajax/stats/system', self._get_system_stats)
+        self._app.add_url_rule('/ajax/system_health', 'ajax/system_health', self._get_system_health_update)
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
     def _ajax_get_tree_children(self, uid, root_uid=None, compare_id=None):
@@ -125,6 +126,11 @@ class AjaxRoutes(ComponentBase):
             }
         except (KeyError, TypeError):
             return {'backend_cpu_percentage': 'n/a', 'number_of_running_analyses': 'n/a'}
+
+    @roles_accepted(*PRIVILEGES['status'])
+    def _get_system_health_update(self):
+        with ConnectTo(StatisticDbViewer, self._config) as stats_db:
+            return {'systemHealth': stats_db.get_stats_list('backend', 'frontend', 'database')}
 
     @staticmethod
     def _make_json_serializable(set_dict: Dict[str, Set[str]]) -> Dict[str, List[str]]:
