@@ -102,8 +102,9 @@ rule dnsmasq
 	strings:
 		$a = /dnsmasq-\d+\.\d+/ nocase ascii wide
 		$b = "dnsmasq-%s"
+		$c = "dnsmasq version %s"
 	condition:
-		($a or $b) and no_text_file
+		($a or $b or $c) and no_text_file
 }
 
 rule Dropbear
@@ -141,6 +142,19 @@ rule iptables
 		description = "iptables is the userspace command line program used to configure the Linux 2.4.x and later packet filtering ruleset."
     strings:
         $a = /iptables-\d+\.\d+\.\d+(\.\d+)?/ nocase ascii wide
+    condition:
+        $a and no_text_file
+}
+
+rule l2tpd
+{
+	meta:
+		software_name = "l2tpd"
+		open_source = true
+		website = "http://l2tpd.sourceforge.net/"
+		description = "the original Layer 2 Tunnelling Protocol Daemon"
+    strings:
+        $a = /l2tpd version 0.\d+/ ascii
     condition:
         $a and no_text_file
 }
@@ -223,6 +237,19 @@ rule OpenSSH
         $a and no_text_file
 }
 
+rule OpenVPN
+{
+	meta:
+		software_name = "OpenVPN"
+		open_source = true
+		website = "https://pupnp.sourceforge.io"
+		description = "open source virtual private network (VPN) system"
+	strings:
+		$a = /OpenVPN \d\.\d+(\.\d+) .{0,100}built on/
+	condition:
+		$a
+}
+
 rule pppd_format_string
 {
     meta:
@@ -261,7 +288,20 @@ rule ProFTPD
 		website = "http://www.proftpd.org/"
 		description = "Highly configurable FTP Server"
     strings:
-        $a = /ProFTPD \d+\.\d+\.\d/ nocase ascii wide
+        $a = /ProFTPD \d+\.\d+\.\d+/ nocase ascii wide
+    condition:
+        $a and no_text_file
+}
+
+rule Pure_FTPd
+{
+	meta:
+		software_name = "Pure-FTPd"
+		open_source = true
+		website = "https://www.pureftpd.org/"
+		description = "free (BSD), secure, production-quality and standard-conformant FTP server"
+    strings:
+        $a = /pure-ftpd v\d\.\d+\.\d+(\-\d)?/ ascii
     condition:
         $a and no_text_file
 }
@@ -321,6 +361,21 @@ rule readymedia
 		$a and no_text_file
 }
 
+rule RP_L2TP
+{
+	meta:
+		software_name = "RP-L2TP"
+		open_source = true
+		website = "https://sourceforge.net/projects/rp-l2tp/"
+		description = "user-space implementation of L2TP for Linux and other UNIX systems"
+		format_string = true
+		version_regex = "0\\.\\d"
+    strings:
+        $a = /l2tpd Version %s Copyright \d+ Roaring Penguin/ ascii
+    condition:
+        $a and no_text_file
+}
+
 rule samba
 {
 	meta:
@@ -347,6 +402,19 @@ rule telnetd
 		$a and no_text_file
 }
 
+rule tinyproxy
+{
+	meta:
+		software_name = "tinyproxy"
+		open_source = true
+		website = "http://tinyproxy.github.io/"
+		description = "lightweight http(s) proxy daemon"
+	strings:
+		$a = /(Proxy-agent|Server): tinyproxy\/\d\.\d+\.\d+(pre\d|rc\d|-rc\d)?/ ascii
+	condition:
+		$a and no_text_file
+}
+
 rule udhcp
 {
 	meta:
@@ -356,6 +424,33 @@ rule udhcp
 		description = "udhcp is a lightweight dhcp server/client. It is part of Busybox by now."
     strings:
         $a = /udhcp \d+\.\d+\.\d+/ nocase ascii wide
+    condition:
+        $a and no_text_file
+}
+
+rule upnp_portable_sdk
+{
+	meta:
+		software_name = "portable SDK for UPnP"
+		open_source = true
+		website = "https://pupnp.sourceforge.io"
+		description = "Portable UPnP library"
+		version_regex = "\\d\\.\\d\\.\\d+"
+	strings:
+		$a = /UPnP\/1.0, Portable SDK for UPnP devices\/\d\.\d\.\d+/
+	condition:
+		$a and no_text_file
+}
+
+rule vsftpd
+{
+	meta:
+		software_name = "vsftpd"
+		open_source = true
+		website = "https://security.appspot.com/vsftpd.html"
+		description = "very secure FTP server for UNIX systems"
+    strings:
+        $a = /vsftpd: version \d\.\d+(\.\d+)?/ nocase ascii
     condition:
         $a and no_text_file
 }
@@ -394,7 +489,7 @@ rule zebra
 		website = "https://www.gnu.org/software/zebra/"
 		description = "multi-server routing software which provides TCP/IP based routing protocols"
     strings:
-        $a = /Hello, this is zebra \(version 0.\d+.*\)./ nocase ascii wide
+        $a = /Hello, this is zebra \(version 0.\d+.{0,10}\)./ nocase ascii wide
     condition:
         $a and no_text_file
 }

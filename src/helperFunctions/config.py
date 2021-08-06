@@ -2,7 +2,6 @@ import configparser
 import logging
 from configparser import ConfigParser, NoOptionError, NoSectionError
 from pathlib import Path
-from typing import Optional
 
 from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.process import complete_shutdown
@@ -29,6 +28,15 @@ def get_config_dir():
 
 
 def read_list_from_config(config_file: ConfigParser, section: str, key: str, default=None):
+    '''
+    Parses a comma separated list in section `section` with key `key`.
+
+    :param config_file: The FACT configuration
+    :param section: The section to read from
+    :param key: The key holding the list
+
+    :return: A list holding the values defined in the config
+    '''
     if default is None:
         default = []
 
@@ -45,7 +53,16 @@ def read_list_from_config(config_file: ConfigParser, section: str, key: str, def
     return [item.strip() for item in config_entry.split(',') if item]
 
 
-def get_temp_dir_path(config: Optional[ConfigParser] = None) -> str:
+def get_temp_dir_path(config: ConfigParser = None) -> str:
+    '''
+    Returns temp_dir_path from the section "data_storage" if it is a valid directory.
+    If it does not exist it will be created.
+    If the directory does not exist and can not be created or if config is None
+    then fallback to "/tmp"
+
+    :param config: The FACT configuration
+    '''
+
     temp_dir_path = config.get('data_storage', 'temp_dir_path', fallback='/tmp') if config else '/tmp'
     if not Path(temp_dir_path).is_dir():
         try:

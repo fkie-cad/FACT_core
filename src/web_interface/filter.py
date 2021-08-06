@@ -8,7 +8,7 @@ from datetime import timedelta
 from operator import itemgetter
 from string import ascii_letters
 from time import localtime, strftime, struct_time, time
-from typing import AnyStr, List, Optional, Union
+from typing import AnyStr, Dict, List, Match, Optional, Tuple, Union
 
 from common_helper_files import human_readable_file_size
 from flask import render_template
@@ -380,3 +380,23 @@ def render_query_title(query_title: Union[None, str, dict]):
     if isinstance(query_title, dict):
         return json.dumps(query_title, indent=2)
     return query_title
+
+
+def replace_cve_with_link(string: str) -> str:
+    return re.sub(r'CVE-\d+-\d+', _link_to_cve, string)
+
+
+def _link_to_cve(match: Match) -> str:
+    return f'<a href="https://nvd.nist.gov/vuln/detail/{match.group(0)}">{match.group(0)}</a>'
+
+
+def replace_cwe_with_link(string: str) -> str:
+    return re.sub(r'CWE-(\d+)', _link_to_cwe, string)
+
+
+def _link_to_cwe(match: Match) -> str:
+    return f'<a href="https://cwe.mitre.org/data/definitions/{match.group(1)}.html">{match.group(0)}</a>'
+
+
+def sort_cve_results(cve_result: Dict[str, Dict[str, str]]) -> List[Tuple[str, Dict[str, str]]]:
+    return sorted(cve_result.items(), key=lambda item: item[1]['score2'], reverse=True)

@@ -1,5 +1,5 @@
 import html
-from typing import Dict, List, Set
+from typing import List
 
 from flask import jsonify, render_template
 
@@ -122,6 +122,8 @@ class AjaxRoutes(ComponentBase):
         except (KeyError, TypeError):
             return {'backend_cpu_percentage': 'n/a', 'number_of_running_analyses': 'n/a'}
 
-    @staticmethod
-    def _make_json_serializable(set_dict: Dict[str, Set[str]]) -> Dict[str, List[str]]:
-        return {k: list(v) for k, v in set_dict.items()}
+    @roles_accepted(*PRIVILEGES['status'])
+    @AppRoute('/ajax/system_health', GET)
+    def _get_system_health_update(self):
+        with ConnectTo(StatisticDbViewer, self._config) as stats_db:
+            return {'systemHealth': stats_db.get_stats_list('backend', 'frontend', 'database')}

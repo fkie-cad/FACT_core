@@ -10,9 +10,10 @@ from web_interface.filter import (
     filter_format_string_list_with_offset, fix_cwe, format_duration, generic_nice_representation,
     get_all_uids_in_string, get_unique_keys_from_list_of_dicts, infection_color, is_not_mandatory_analysis_entry,
     list_group, list_to_line_break_string, list_to_line_break_string_no_sort, nice_number_filter, nice_unix_time,
-    random_collapse_id, render_analysis_tags, render_tags, replace_underscore_filter, set_limit_for_data_to_chart,
-    sort_chart_list_by_name, sort_chart_list_by_value, sort_comments, sort_roles_by_number_of_privileges,
-    sort_users_by_name, text_highlighter, uids_to_link, user_has_role, vulnerability_class
+    random_collapse_id, render_analysis_tags, render_tags, replace_cve_with_link, replace_cwe_with_link,
+    replace_underscore_filter, set_limit_for_data_to_chart, sort_chart_list_by_name, sort_chart_list_by_value,
+    sort_comments, sort_cve_results, sort_roles_by_number_of_privileges, sort_users_by_name, text_highlighter,
+    uids_to_link, user_has_role, vulnerability_class
 )
 
 UNSORTABLE_LIST = [[], ()]
@@ -30,17 +31,17 @@ def test_set_limit_for_data_to_chart():
 
 @pytest.mark.parametrize('input_data, expected_result', [
     (
-        [('NX enabled', 1696, 0.89122), ('NX disabled', 207, 0.10878), ('Canary enabled', 9, 0.00473)],
-        {
-            'labels': ['NX enabled', 'NX disabled', 'Canary enabled'],
-            'datasets': [{
-                'data': [1696, 207, 9],
-                'percentage': [0.89122, 0.10878, 0.00473],
-                'backgroundColor': ['#4062fa', '#f4c069', '#4062fa'],
-                'borderWidth': 0,
-                'links': 'null'
-            }]
-        }
+            [('NX enabled', 1696, 0.89122), ('NX disabled', 207, 0.10878), ('Canary enabled', 9, 0.00473)],
+            {
+                'labels': ['NX enabled', 'NX disabled', 'Canary enabled'],
+                'datasets': [{
+                    'data': [1696, 207, 9],
+                    'percentage': [0.89122, 0.10878, 0.00473],
+                    'backgroundColor': ['#4062fa', '#f4c069', '#4062fa'],
+                    'borderWidth': 0,
+                    'links': 'null'
+                }]
+            }
     ),
     ([()], None)
 ])
@@ -367,3 +368,44 @@ def test_random_collapse_id():
 ])
 def test_remaining_time(time_diff, expected_result):
     assert format_duration(elapsed_time(time() - time_diff)) == expected_result
+
+
+@pytest.mark.parametrize('input_string, expected_result', [
+    ('foo_bar-1-23', 'foo_bar-1-23'),
+    ('CVE-1-2', '<a href="https://nvd.nist.gov/vuln/detail/CVE-1-2">CVE-1-2</a>'),
+    ('a CVE-1-2 b CVE-3-4 c', 'a <a href="https://nvd.nist.gov/vuln/detail/CVE-1-2">CVE-1-2</a> b <a href="https://nvd.nist.gov/vuln/detail/CVE-3-4">CVE-3-4</a> c'),
+])
+def test_replace_cve_with_link(input_string, expected_result):
+    assert replace_cve_with_link(input_string) == expected_result
+
+
+@pytest.mark.parametrize('input_string, expected_result', [
+    ('foo_bar-1', 'foo_bar-1'),
+    ('CWE-123', '<a href="https://cwe.mitre.org/data/definitions/123.html">CWE-123</a>'),
+    ('a CWE-1 b CWE-1234 c', 'a <a href="https://cwe.mitre.org/data/definitions/1.html">CWE-1</a> b <a href="https://cwe.mitre.org/data/definitions/1234.html">CWE-1234</a> c'),
+])
+def test_replace_cwe_with_link(input_string, expected_result):
+    assert replace_cwe_with_link(input_string) == expected_result
+
+
+@pytest.mark.parametrize('input_dict, expected_result', [
+    ({}, {}),
+    (
+            {
+                'cve_id1': {'score2': '6.4', 'score3': 'N/A'},
+                'cve_id4': {'score2': '3.5', 'score3': 'N/A'},
+                'cve_id5': {'score2': '7.4', 'score3': 'N/A'}
+            },
+            {
+                'cve_id5': {'score2': '7.4', 'score3': 'N/A'},
+                'cve_id1': {'score2': '6.4', 'score3': 'N/A'},
+                'cve_id4': {'score2': '3.5', 'score3': 'N/A'}
+            }
+    )
+])
+def test_sort_cve_result(input_dict, expected_result):
+    result = dict(sort_cve_results(input_dict))
+    assert result == expected_result
+
+    for item1, item2 in zip(result, expected_result):
+        assert item1 == item2

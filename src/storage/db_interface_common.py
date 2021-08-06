@@ -2,7 +2,7 @@ import json
 import logging
 import pickle
 from hashlib import md5
-from typing import Dict, List, Set
+from typing import Dict, Iterable, List, Optional, Set
 
 import gridfs
 from common_helper_files import get_safe_name
@@ -12,6 +12,11 @@ from helperFunctions.data_conversion import convert_time_to_str, get_dict_size
 from objects.file import FileObject
 from objects.firmware import Firmware
 from storage.mongo_interface import MongoInterface
+
+PLUGINS_WITH_TAG_PROPAGATION = [  # FIXME This should be inferred in a sensible way. This is not possible yet.
+    'crypto_material', 'cve_lookup', 'known_vulnerabilities', 'qemu_exec', 'software_components',
+    'users_and_passwords'
+]
 
 FIELDS_SAVED_FROM_SANITIZATION = ['summary', 'tags']
 
@@ -67,30 +72,36 @@ class MongoInterfaceCommon(MongoInterface):  # pylint: disable=too-many-instance
             fo.processed_analysis[analysis]['summary'] = self.get_summary(fo, analysis)
         return fo
 
-    def get_firmware(self, uid, analysis_filter=None):
+    def get_firmware(self, uid: str, analysis_filter: Optional[List[str]] = None) -> Optional[Firmware]:
         firmware_entry = self.firmwares.find_one(uid)
         if firmware_entry:
             return self._convert_to_firmware(firmware_entry, analysis_filter=analysis_filter)
         logging.debug(f'No firmware with UID {uid} found.')
         return None
 
-    def get_file_object(self, uid, analysis_filter=None):
+    def get_file_object(self, uid: str, analysis_filter: Optional[List[str]] = None) -> Optional[FileObject]:
         file_entry = self.file_objects.find_one(uid)
         if file_entry:
             return self._convert_to_file_object(file_entry, analysis_filter=analysis_filter)
         logging.debug(f'No FileObject with UID {uid} found.')
         return None
 
-    def get_objects_by_uid_list(self, uid_list, analysis_filter=None):
+    def get_objects_by_uid_list(self, uid_list: Iterable[str], analysis_filter: Optional[List[str]] = None) -> List[FileObject]:
         if not uid_list:
             return []
         query = self._build_search_query_for_uid_list(uid_list)
-        results = [self._convert_to_firmware(i, analysis_filter=analysis_filter) for i in self.firmwares.find(query) if i is not None]
-        results.extend([self._convert_to_file_object(i, analysis_filter=analysis_filter) for i in self.file_objects.find(query) if i is not None])
-        return results
+        file_objects = (
+            self._convert_to_file_object(fo, analysis_filter=analysis_filter)
+            for fo in self.file_objects.find(query) if fo is not None
+        )
+        firmwares = (
+            self._convert_to_firmware(fw, analysis_filter=analysis_filter)
+            for fw in self.firmwares.find(query) if fw is not None
+        )
+        return [*file_objects, *firmwares]
 
     @staticmethod
-    def _build_search_query_for_uid_list(uid_list):
+    def _build_search_query_for_uid_list(uid_list: Iterable[str]) -> dict:
         return {'_id': {'$in': list(uid_list)}}
 
     def _convert_to_firmware(self, entry: dict, analysis_filter: List[str] = None) -> Firmware:
@@ -118,7 +129,7 @@ class MongoInterfaceCommon(MongoInterface):  # pylint: disable=too-many-instance
             firmware.comments = entry['comments']
         return firmware
 
-    def _convert_to_file_object(self, entry: dict, analysis_filter: List[str] = None) -> FileObject:
+    def _convert_to_file_object(self, entry: dict, analysis_filter: Optional[List[str]] = None) -> FileObject:
         file_object = FileObject()
         file_object.uid = entry['_id']
         file_object.size = entry['size']
@@ -148,7 +159,7 @@ class MongoInterfaceCommon(MongoInterface):  # pylint: disable=too-many-instance
                 sanitized_dict[key]['file_system_flag'] = False
         return sanitized_dict
 
-    def retrieve_analysis(self, sanitized_dict, analysis_filter=None):
+    def retrieve_analysis(self, sanitized_dict: dict, analysis_filter: Optional[List[str]] = None) -> dict:
         '''
         retrieves analysis including sanitized entries
         :param sanitized_dict: processed analysis dictionary including references to sanitized entries
@@ -159,8 +170,11 @@ class MongoInterfaceCommon(MongoInterface):  # pylint: disable=too-many-instance
         :return: dict
         '''
         if analysis_filter is None:
-            analysis_filter = sanitized_dict.keys()
-        for key in analysis_filter:
+            plugins = sanitized_dict.keys()
+        else:
+            # only use the plugins from analysis_filter that are actually in the results
+            plugins = set(sanitized_dict.keys()).intersection(analysis_filter)
+        for key in plugins:
             try:
                 if sanitized_dict[key]['file_system_flag']:
                     logging.debug(f'Retrieving stored file {key}')
@@ -308,7 +322,7 @@ class MongoInterfaceCommon(MongoInterface):  # pylint: disable=too-many-instance
     def drop_unpacking_locks(self):
         self.main.drop_collection('locks')
 
-    def _collect_analysis_tags_from_children(self, uid):
+    def _collect_analysis_tags_from_children(self, uid: str) -> dict:
         children = self._fetch_children_with_tags(uid)
         unique_tags = {}
         for child in children:
@@ -324,13 +338,9 @@ class MongoInterfaceCommon(MongoInterface):  # pylint: disable=too-many-instance
                 if tag_type != 'root_uid' and tag['propagate']:
                     append_unique_tag(analysis_tags, tag, name, tag_type)
 
-    def _fetch_children_with_tags(self, uid):
-        plugins_with_tag_propagation = [  # FIXME This should be inferred in a sensible way. This is not possible yet.
-            'crypto_material', 'cve_lookup', 'known_vulnerabilities', 'qemu_exec', 'software_components',
-            'users_and_passwords'
-        ]
+    def _fetch_children_with_tags(self, uid: str) -> List[FileObject]:
         uids = set()
-        for plugin in plugins_with_tag_propagation:
+        for plugin in PLUGINS_WITH_TAG_PROPAGATION:
             uids.update(
                 set(
                     get_list_of_all_values(
@@ -343,7 +353,7 @@ class MongoInterfaceCommon(MongoInterface):  # pylint: disable=too-many-instance
                     )
                 )
             )
-        return self.get_objects_by_uid_list(uids, analysis_filter=plugins_with_tag_propagation)
+        return self.get_objects_by_uid_list(uids, analysis_filter=PLUGINS_WITH_TAG_PROPAGATION)
 
 
 def is_not_sanitized(field, analysis_result):

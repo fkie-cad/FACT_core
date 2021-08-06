@@ -36,16 +36,9 @@ class StatisticRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['status'])
     @AppRoute('/system_health', GET)
     def _show_system_health(self):
-        components = ['frontend', 'database', 'backend']
-        status = []
-        with ConnectTo(StatisticDbViewer, self._config) as stats_db:
-            for component in components:
-                status.append(stats_db.get_statistic(component))
-
         with ConnectTo(InterComFrontEndBinding, self._config) as sc:
             plugin_dict = sc.get_available_analysis_plugins()
-
-        return render_template('system_health.html', status=status, analysis_plugin_info=plugin_dict)
+        return render_template('system_health.html', analysis_plugin_info=plugin_dict)
 
     def _get_stats_from_db(self):
         with ConnectTo(StatisticDbViewer, self._config) as stats_db:

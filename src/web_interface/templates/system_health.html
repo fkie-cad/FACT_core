@@ -3,28 +3,12 @@
 {% set active_page = "Info" %}
 
 {% block head %}
-    <meta http-equiv="refresh" content="20" />
+    <script type="text/javascript" src="{{ url_for('static', filename='js/system_health.js') }}"></script>
     <script>
-        function change_button(button_id) {
-            element = document.getElementById(button_id);
-            if (element.classList.contains("fa-caret-down")) {
-                element.classList.remove("fa-caret-down");
-                element.classList.add("fa-caret-up");
-            } else {
-                element.classList.remove("fa-caret-up");
-                element.classList.add("fa-caret-down");
-            }
-        }
+        setInterval(updateSystemHealth, 5000);
+        updateSystemHealth();
     </script>
 {% endblock %}
-
-{% macro mem_label(component) %}
-    {{ component['system']['memory_used'] | number_format }} / {{ component['system']['memory_total'] | number_format }}
-{% endmacro %}
-
-{% macro disk_label(component) %}
-    {{ component['system']['disk_used'] | number_format }} / {{ component['system']['disk_total'] | number_format }}
-{% endmacro %}
 
 {% macro icon_tooltip_desk(icon, tooltip, icon_class=None) %}
     {% set icon_class = icon_class if icon_class else 'fas' %}
@@ -33,53 +17,42 @@
     </td>
 {% endmacro %}
 
-{% macro component_card(component, backend=False) %}
+{% macro component_card(component) %}
     <div class="card m-2" style="width: 430px;">
         <div class="card-body">
-            <h5 class="card-title">{{ component['name'] }} status</h5>
-            <h6 class="card-subtitle mb-2 {% if component['status'] == 'offline'%}text-danger{% else %}text-success{% endif %}">
-                {{ component['status'] }}
+            <h5 class="card-title">{{ component }} status</h5>
+            <h6 class="card-subtitle mb-2" id="{{ component }}-status">
+                unknown
             </h6>
             <table class="table table-borderless mb-0">
                 <tr>
                     {{ icon_tooltip_desk('linux', 'Operating system', icon_class='fab') }}
-                    <td>{{ component['platform']['os'] }}</td>
+                    <td id="{{ component }}-os"></td>
                     {{ icon_tooltip_desk('python', 'Python version', icon_class='fab') }}
-                    <td>{{ component['platform']['python'] }}</td>
+                    <td id="{{ component }}-python"></td>
                     {{ icon_tooltip_desk('code-branch', 'FACT version') }}
-                    <td>{{ component['platform']['fact_version'] }}</td>
+                    <td id="{{ component }}-version"></td>
                 </tr>
                 <tr>
                     {{ icon_tooltip_desk('microchip', 'CPU status') }}
-                    <td colspan="5">{{ component['system']['cpu_cores'] }} cores ({{ component['system']['virtual_cpu_cores'] }} threads) @ {{ component['system']['cpu_percentage'] | nice_number }}%</td>
+                    <td colspan="5" id="{{ component }}-cpu"></td>
                 </tr>
                 <tr>
                     {{ icon_tooltip_desk('memory', 'Memory status') }}
                     <td colspan="5" class="align-middle">
-                        <div class="progress" style="height: 20px;">
-                            <div class="progress-bar text-center {% if component['system']['memory_percent'] > 80.0 %}bg-warning{% endif %}" role="progressbar" style="width: {{ component['system']['memory_percent'] }}%">
-                                {% if component['system']['memory_percent'] >= 50.0 %}{{ mem_label(component) }}{% endif %}
-                            </div>
-                            &nbsp;&nbsp;{% if component['system']['memory_percent'] < 50.0 %}{{ mem_label(component) }}{% endif %}
-                        </div>
+                        <div class="progress" style="height: 20px;" id="{{ component }}-memory"></div>
                     </td>
                 </tr>
                 <tr>
                     {{ icon_tooltip_desk('hdd', 'Disk status') }}
                     <td colspan="5" class="align-middle">
-                        <div class="progress" style="height: 20px;">
-                            <div class="progress-bar text-center {% if component['system']['disk_percent'] > 80.0 %}bg-warning{% endif %}" role="progressbar" style="width: {{ component['system']['disk_percent'] }}%">
-                                {% if component['system']['disk_percent'] >= 50.0 %}{{ disk_label(component) }}{% endif %}
-                            </div>
-                            &nbsp;&nbsp;{% if component['system']['disk_percent'] < 50.0 %}{{ disk_label(component) }}{% endif %}
-                        </div>
+                        <div class="progress" style="height: 20px;" id="{{ component }}-disk"></div>
                     </td>
                 </tr>
-                {% if backend %}
+                {% if component == "backend" %}
                     <tr>
-                        {% set unpacking_class = "text-warning" if component['unpacking']['unpacking_queue'] > 500 else "" %}
                         {{ icon_tooltip_desk('box-open', 'Pending items for extraction') }}
-                        <td colspan="5" class="{{ unpacking_class }}">{{ component['unpacking']['unpacking_queue'] | nice_number }}</td>
+                        <td colspan="5" id="backend-unpacking-queue"></td>
                     </tr>
                 {% endif %}
             </table>
@@ -87,7 +60,7 @@
     </div>
 {% endmacro %}
 
-{% macro plugin_card(plugin_name, plugin_data) %}
+{% macro plugin_card(plugin_name) %}
     {% set description, _, __, version, dependencies, blacklist, whitelist, threads = analysis_plugin_info[plugin_name] %}
     <div class="card m-2" style="width: 430px;">
         <div class="card-body">
@@ -98,21 +71,13 @@
                     {{ icon_tooltip_desk('align-justify', 'Concurrent threads') }}
                     <td style="width: 46px;">{{ threads }}</td>
                     <td style="width: 30px;" data-toggle="tooltip" data-placement="bottom" title="Currently processing">
-                        {% set span_class = " fa-spin" if plugin_data['active'] else "" %}
-                        {% set span_style = "color: green" if plugin_data['active'] else "color: darkgrey" %}
-                        {% set span_style = "color: yellow" if plugin_data.queue > 150 else span_style %}
-                        <i class="fas fa-cog{{ span_class }}" style="{{ span_style }}"></i>
+                        <i class="fas fa-cog" style="color: darkgrey" id="{{ plugin_name }}-active-indicator"></i>
                     </td>
-                    <td style="width: 46px; {{ span_style }}">
-                        {{ plugin_data.active | nice_number }}
-                    </td>
+                    <td style="width: 46px;" id="{{ plugin_name }}-active"></td>
                     <td style="width: 30px;" data-toggle="tooltip" data-placement="bottom" title="Pending tasks">
-                        {% set span_style = "color: black" if plugin_data['queue'] else "color: darkgrey" %}
-                        <i class="fas fa-sign-in-alt" style="{{ span_style }}"></i>
+                        <i class="fas fa-sign-in-alt" style="color: darkgrey" id="{{ plugin_name }}-queue-indicator"></i>
                     </td>
-                    <td style="{{ span_style }}">
-                        {{ plugin_data.queue | nice_number }}
-                    </td>
+                    <td id="{{ plugin_name }}-queue"></td>
                 </tr>
             </table>
 
@@ -122,7 +87,7 @@
                 </span>
                 <table class="table table-borderless mb-0">
                     <tr>
-                        {{ icon_tooltip_desk('project-diagram', 'Plugin dependecies') }}
+                        {{ icon_tooltip_desk('project-diagram', 'Plugin dependencies') }}
                         <td>{{ dependencies | list_group_collapse | safe}}</td>
                     </tr>
                     <tr>
@@ -148,64 +113,28 @@
 {% block body %}
 
 <div class="row justify-content-center mt-4">
-    {% for component in status %}
-        {% if component and component['platform'] and component['system'] %}
-            {{ component_card(component, backend=component['analysis']) }}
-		{% endif %}
+    {% for component in ["frontend", "backend" ,"database"] %}
+        {{ component_card(component) }}
 	{% endfor %}
 </div>
 
 <!-- Current Analyses -->
-{% for component in status %}
-    {% if component and component['analysis'] %}
-        {% set current_analyses = component['analysis']['current_analyses'] %}
-        {% set recently_finished_analyses = component['analysis']['recently_finished_analyses'] %}
-        {% if current_analyses or recently_finished_analyses %}
-            <div class="row justify-content-center">
-                <div class="card m-2" style="width: 430px;">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center" style="width: 100%">
-                            <h5 class="card-title">Currently analyzed firmware</h5>
-                            <button type="button" class="btn btn-outline-primary btn-sm" data-toggle="modal" data-target="#currentAnalysesLegend" style="margin-top: -15px; margin-right: -5px">
-                                <i class="fa fa-question-circle" aria-hidden="true"></i>
-                            </button>
-                        </div>
-                        <div class="list-group list-group-flush">
-                            {% for firmware_uid, data in current_analyses.items() %}
-                                <div class="list-group-item border-top-0 clickable" onclick="location.href='/analysis/{{ firmware_uid }}/ro/{{ firmware_uid }}'">
-                                    {{ firmware_uid | replace_uid_with_hid | safe }}
-                                    <div class="progress mt-2" style="height: 20px;">
-                                        {% set current_analysis_progress = data.analyzed_count / data.total_count %}
-                                        <div class="progress-bar progress-bar-striped progress-bar-animated text-center" role="progressbar" style="width: {{ current_analysis_progress * 100 }}%">
-                                            {% if current_analysis_progress >= 0.5 %}
-                                                {{ data.analyzed_count }} / {{ data.total_count }} (Elapsed: {{ data.start_time | remaining_time | format_duration }})
-                                            {% endif %}
-                                        </div>
-                                        {% set current_unpacking_progress = (data.unpacked_count - data.analyzed_count) / data.total_count %}
-                                        <div class="progress-bar progress-bar-striped progress-bar-animated bg-warning text-center" role="progressbar" style="width: {{ current_unpacking_progress * 100 }}%"></div>
-                                        {% if current_analysis_progress < 0.5 %}
-                                            <div class="justify-content-center d-flex w-100">{{ data.analyzed_count }} / {{ data.total_count }} (Elapsed: {{ data.start_time | remaining_time | format_duration }})</div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            {% endfor %}
-                            {% for firmware_uid, data in recently_finished_analyses.items() %}
-                                <div class="list-group-item border-top-0 clickable" onclick="location.href='/analysis/{{ firmware_uid }}/ro/{{ firmware_uid }}'">
-                                    {{ firmware_uid | replace_uid_with_hid | safe }}
-                                    <div class="progress mt-2" style="height: 20px;">
-                                        <div class="progress-bar progress-bar-striped bg-success text-center" role="progressbar" style="width: 100%">
-                                            {{ data.total_files_count }} / {{ data.total_files_count }} (Finished in: {{ data.duration | round(0) | int | format_duration }})
-                                        </div>
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
+<div class="row justify-content-center">
+    <div class="card m-2" style="width: 430px;">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center" style="width: 100%">
+                <h5 class="card-title">Currently analyzed firmware</h5>
+                <button type="button" class="btn btn-outline-primary btn-sm" data-toggle="modal" data-target="#currentAnalysesLegend" style="margin-top: -15px; margin-right: -5px">
+                    <i class="fa fa-question-circle" aria-hidden="true"></i>
+                </button>
             </div>
-        {% endif %}
-    {% endif %}
-{% endfor %}
+            <div class="list-group list-group-flush" id="current-analyses">
+                <!-- Filled with JavaScript -->
+            </div>
+        </div>
+    </div>
+</div>
+
 
 
 <div class="modal" id="currentAnalysesLegend"  tabindex="-1" role="dialog">
@@ -240,21 +169,19 @@
 </div>
 
 
-{% for component in status %}
-    {% if component and component['analysis'] %}
-        <div class="row justify-content-center my-3">
-            <div style="width: 430px;" class="border-secondary border-top border-bottom align-middle">
-                <h5 class="d-flex justify-content-center mb-0 p-2">Analysis Plugins</h5>
-            </div>
+{% if analysis_plugin_info %}
+    <div class="row justify-content-center my-3">
+        <div style="width: 430px;" class="border-secondary border-top border-bottom align-middle">
+            <h5 class="d-flex justify-content-center mb-0 p-2">Analysis Plugins</h5>
         </div>
-        <div class="row justify-content-center">
-            {% for plugin_name, plugin_data in component['analysis']['plugins'].items() | sort %}
-                {% if "dummy" not in plugin_name %}  {# {% if plugin != "analysis_main_scheduler" %} #}
-                    {{ plugin_card(plugin_name, plugin_data) }}
-                {% endif %}
-            {% endfor %}
-        </div>
-    {% endif %}
-{% endfor %}
+    </div>
+    <div class="row justify-content-center">
+        {% for plugin_name in analysis_plugin_info | sort %}
+            {% if plugin_name != "unpacker" %}
+                {{ plugin_card(plugin_name) }}
+            {% endif %}
+        {% endfor %}
+    </div>
+{% endif %}
 
 {% endblock %}

@@ -19,6 +19,7 @@
 
 import argparse
 import logging
+import os
 import sys
 from pathlib import Path
 
@@ -30,7 +31,10 @@ try:
     from helperFunctions.install import OperateInDirectory
     from install.common import main as common
     from install.frontend import main as frontend
+    from install.frontend import _install_docker_images as frontend_install_docker_images
     from install.backend import main as backend
+    from install.backend import _install_docker_images as backend_install_docker_images
+    from install.backend import _install_plugin_docker_images as backend_install_plugin_docker_images
     from install.db import main as db
 except ImportError:
     logging.critical('Could not import install dependencies. Please (re-)run install/pre_install.sh', exc_info=True)
@@ -46,6 +50,8 @@ BIONIC_CODE_NAMES = ['bionic', 'tara', 'tessa', 'tina', 'disco']
 DEBIAN_CODE_NAMES = ['buster', 'stretch', 'kali-rolling']
 FOCAL_CODE_NAMES = ['focal', 'ulyana']
 
+FACT_INSTALLER_SKIP_DOCKER = os.getenv("FACT_INSTALLER_SKIP_DOCKER")
+
 
 def _setup_argparser():
     parser = argparse.ArgumentParser(description='{} - {}'.format(PROGRAM_NAME, PROGRAM_DESCRIPTION))
@@ -53,6 +59,8 @@ def _setup_argparser():
     install_options = parser.add_argument_group('Install Options', 'Choose which components should be installed')
     for item in INSTALL_CANDIDATES:
         install_options.add_argument('-{}'.format(item[0].upper()), '--{}'.format(item), action='store_true', default=False, help='install {}'.format(item))
+    install_options.add_argument('--backend-docker-images', action='store_true', default=False, help='pull/build docker images required to run the backend')
+    install_options.add_argument('--frontend-docker-images', action='store_true', default=False, help='pull/build docker images required to run the frontend')
     install_options.add_argument('-N', '--nginx', action='store_true', default=False, help='install and configure nginx')
     install_options.add_argument('-R', '--no_radare', action='store_true', default=False, help='do not install radare view container')
     install_options.add_argument('-U', '--statistic_cronjob', action='store_true', default=False, help='install cronjob to update statistics hourly and variety data once a week.')
@@ -151,18 +159,30 @@ def install():
     welcome()
     distribution = check_distribution()
     none_chosen = not (args.frontend or args.db or args.backend)
+    # TODO maybe replace this with an cli arugment
+    skip_docker = FACT_INSTALLER_SKIP_DOCKER is not None
+    # Note that the skip_docker environment variable overrides the cli argument
+    only_docker = not skip_docker and none_chosen and (args.backend_docker_images or args.frontend_docker_images)
 
     installation_directory = get_directory_of_current_file() / 'install'
 
     with OperateInDirectory(str(installation_directory)):
-        common(distribution)
+        if not only_docker:
+            common(distribution)
 
-        if args.frontend or none_chosen:
-            frontend(not args.no_radare, args.nginx)
-        if args.db or none_chosen:
-            db(distribution)
-        if args.backend or none_chosen:
-            backend(distribution)
+            if args.frontend or none_chosen:
+                frontend(skip_docker, not args.no_radare, args.nginx)
+            if args.db or none_chosen:
+                db(distribution)
+            if args.backend or none_chosen:
+                backend(skip_docker, distribution)
+        else:
+            if args.backend_docker_images:
+                backend_install_docker_images()
+                backend_install_plugin_docker_images()
+
+            if args.frontend_docker_images:
+                frontend_install_docker_images(not args.no_radare)
 
     if args.statistic_cronjob:
         install_statistic_cronjob()
