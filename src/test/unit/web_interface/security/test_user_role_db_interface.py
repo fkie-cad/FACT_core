@@ -14,6 +14,7 @@ class TestUserRoleDbInterface(TestCase):
         self.test_app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///'
         self.test_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
         self.test_app.config['SECURITY_PASSWORD_SALT'] = 'salt123'
+        self.test_app.config['SECRET_KEY'] = 'key123'
         db = SQLAlchemy(self.test_app)
         self.db_interface = create_user_interface(db)
         Security(self.test_app, self.db_interface)
