@@ -5,7 +5,8 @@ from tempfile import TemporaryDirectory
 import pytest
 
 from helperFunctions.install import (
-    InstallationError, OperateInDirectory, _run_shell_command_raise_on_return_code, check_string_in_command_output
+    InstallationError, OperateInDirectory, _run_shell_command_raise_on_return_code, check_string_in_command_output,
+    read_package_list_from_file
 )
 
 
@@ -67,3 +68,13 @@ def test_operate_in_directory():
 ])
 def test_check_string_in_command(command, string, expected_output):
     assert check_string_in_command_output(command, string) == expected_output
+
+
+def test_read_package_list_from_file():
+    # Note that we can't use tempfile.NamedTemporaryFile here because it is not
+    # guaranteed that it can be opened a second time
+    expected_packages = ["foo", "bar", "foobar"]
+    path = Path(__file__).parent / "test_pkglist.txt"
+    packages = read_package_list_from_file(path)
+
+    assert set(packages) == set(expected_packages)
