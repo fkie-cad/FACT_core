@@ -32,7 +32,7 @@ class UserManagementRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['manage_users'])
     @AppRoute('/admin/manage_users', GET, POST)
-    def _manage_users(self):
+    def manage_users(self):
         if request.method == 'POST':
             self._add_user()
         user_list = self._user_db_interface.list_users()
@@ -57,11 +57,11 @@ class UserManagementRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['manage_users'])
     @AppRoute('/admin/user/<user_id>', GET, POST)
-    def _app_edit_user(self, user_id):
+    def edit_user(self, user_id):
         user = self._user_db_interface.find_user(id=user_id)
         if not user:
             flash('Error: user with ID {} not found'.format(user_id), 'danger')
-            return redirect(url_for('_manage_users'))
+            return redirect(url_for('manage_users'))
         if request.method == 'POST':
             self._change_user_password(user_id)
         available_roles = sorted(ROLES)
@@ -89,7 +89,7 @@ class UserManagementRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['manage_users'])
     @AppRoute('/admin/edit_user', POST)
-    def _ajax_edit_user(self):
+    def ajax_edit_user(self):
         element_name = request.values['name']
         if element_name == 'roles':
             return self._edit_roles()
@@ -131,16 +131,16 @@ class UserManagementRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['manage_users'])
     @AppRoute('/admin/delete_user/<user_name>', GET)
-    def _app_delete_user(self, user_name):
+    def delete_user(self, user_name):
         with self.user_db_session('Error: could not delete user'):
             user = self._user_db_interface.find_user(email=user_name)
             self._user_db_interface.delete_user(user=user)
-            flash('Successfully deleted user "{}"'.format(user_name), 'success')
-        return redirect(url_for('_manage_users'))
+            flash(f'Successfully deleted user "{user_name}"', 'success')
+        return redirect(url_for('manage_users'))
 
     @roles_accepted(*PRIVILEGES['view_profile'])
     @AppRoute('/user_profile', GET, POST)
-    def _app_show_profile(self):
+    def show_profile(self):
         if request.method == 'POST':
             self._change_own_password()
         return render_template('user_management/user_profile.html', user=current_user)

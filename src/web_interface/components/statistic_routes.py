@@ -15,7 +15,7 @@ class StatisticRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['status'])
     @AppRoute('/statistic', GET)
-    def _show_statistic(self):
+    def show_statistics(self):
         filter_query = apply_filters_to_query(request, '{}')
         if filter_query == {}:
             stats = self._get_stats_from_db()
@@ -35,7 +35,7 @@ class StatisticRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['status'])
     @AppRoute('/system_health', GET)
-    def _show_system_health(self):
+    def show_system_health(self):
         with ConnectTo(InterComFrontEndBinding, self._config) as sc:
             plugin_dict = sc.get_available_analysis_plugins()
         return render_template('system_health.html', analysis_plugin_info=plugin_dict)

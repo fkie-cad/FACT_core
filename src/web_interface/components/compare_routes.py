@@ -21,7 +21,7 @@ class CompareRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['compare'])
     @AppRoute('/compare/<compare_id>', GET)
-    def _show_compare_result(self, compare_id):
+    def show_compare_result(self, compare_id):
         compare_id = normalize_compare_id(compare_id)
         try:
             with ConnectTo(CompareDbInterface, self._config) as sc:
@@ -89,7 +89,7 @@ class CompareRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @AppRoute('/compare', GET)
-    def _app_show_start_compare(self):
+    def start_compare(self):
         if 'uids_for_comparison' not in session or not isinstance(session['uids_for_comparison'], list) or len(session['uids_for_comparison']) < 2:
             return render_template('compare/error.html', error='No UIDs found for comparison')
         compare_id = convert_uid_list_to_compare_id(session['uids_for_comparison'])
@@ -99,7 +99,7 @@ class CompareRoutes(ComponentBase):
         with ConnectTo(CompareDbInterface, self._config) as sc:
             compare_exists = sc.compare_result_is_in_db(compare_id)
         if compare_exists and not redo:
-            return redirect(url_for('_show_compare_result', compare_id=compare_id))
+            return redirect(url_for('show_compare_result', compare_id=compare_id))
 
         try:
             with ConnectTo(CompareDbInterface, self._config) as sc:
@@ -119,7 +119,7 @@ class CompareRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['compare'])
     @AppRoute('/database/browse_compare', GET)
-    def _app_show_browse_compare(self):
+    def browse_comparisons(self):
         page, per_page = extract_pagination_from_request(request, self._config)[0:2]
         try:
             with ConnectTo(CompareDbInterface, self._config) as db_service:
@@ -137,7 +137,7 @@ class CompareRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @AppRoute('/comparison/add/<uid>', GET)
-    def _add_to_compare_basket(self, uid):  # pylint: disable=no-self-use
+    def add_to_compare_basket(self, uid):  # pylint: disable=no-self-use
         compare_uid_list = get_comparison_uid_list_from_session()
         compare_uid_list.append(uid)
         session.modified = True
@@ -145,7 +145,7 @@ class CompareRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @AppRoute('/comparison/remove/<analysis_uid>/<compare_uid>', GET)
-    def _remove_from_compare_basket(self, analysis_uid, compare_uid):  # pylint: disable=no-self-use
+    def remove_from_compare_basket(self, analysis_uid, compare_uid):  # pylint: disable=no-self-use
         compare_uid_list = get_comparison_uid_list_from_session()
         if compare_uid in compare_uid_list:
             session['uids_for_comparison'].remove(compare_uid)
@@ -154,7 +154,7 @@ class CompareRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @AppRoute('/comparison/remove_all/<analysis_uid>', GET)
-    def _remove_all_from_compare_basket(self, analysis_uid):  # pylint: disable=no-self-use
+    def remove_all_from_compare_basket(self, analysis_uid):  # pylint: disable=no-self-use
         compare_uid_list = get_comparison_uid_list_from_session()
         compare_uid_list.clear()
         session.modified = True

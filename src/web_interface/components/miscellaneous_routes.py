@@ -23,7 +23,7 @@ class MiscellaneousRoutes(ComponentBase):
     @login_required
     @roles_accepted(*PRIVILEGES['status'])
     @AppRoute('/', GET)
-    def _app_home(self):
+    def show_home(self):
         stats = StatisticUpdater(config=self._config)
         with ConnectTo(FrontEndDbInterface, config=self._config) as sc:
             latest_firmware_submissions = sc.get_last_added_firmwares(int(self._config['database'].get('number_of_latest_firmwares_to_display', '10')))
@@ -47,41 +47,46 @@ class MiscellaneousRoutes(ComponentBase):
         return render_template('about.html')
 
     @roles_accepted(*PRIVILEGES['comment'])
-    @AppRoute('/comment/<uid>', GET, POST)
-    def _app_add_comment(self, uid):
-        error = False
-        if request.method == 'POST':
-            comment = request.form['comment']
-            author = request.form['author']
-            with ConnectTo(FrontendEditingDbInterface, config=self._config) as sc:
-                sc.add_comment_to_object(uid, comment, author, round(time()))
-            return redirect(url_for('show_analysis', uid=uid))
+    @AppRoute('/comment/<uid>', POST)
+    def post_comment(self, uid):
+        comment = request.form['comment']
+        author = request.form['author']
+        with ConnectTo(FrontendEditingDbInterface, config=self._config) as sc:
+            sc.add_comment_to_object(uid, comment, author, round(time()))
+        return redirect(url_for('show_analysis', uid=uid))
+
+    @roles_accepted(*PRIVILEGES['comment'])
+    @AppRoute('/comment/<uid>', GET)
+    def show_add_comment(self, uid):
         with ConnectTo(FrontEndDbInterface, config=self._config) as sc:
-            if not sc.exists(uid):
-                error = True
+            error = not sc.exists(uid)
         return render_template('add_comment.html', uid=uid, error=error)
 
     @roles_accepted(*PRIVILEGES['delete'])
     @AppRoute('/admin/delete_comment/<uid>/<timestamp>', GET)
-    def _app_delete_comment(self, uid, timestamp):
+    def delete_comment(self, uid, timestamp):
         with ConnectTo(FrontendEditingDbInterface, config=self._config) as sc:
             sc.delete_comment(uid, timestamp)
         return redirect(url_for('show_analysis', uid=uid))
 
     @roles_accepted(*PRIVILEGES['delete'])
     @AppRoute('/admin/delete/<uid>', GET)
-    def _app_delete_firmware(self, uid):
+    def delete_firmware(self, uid):
         with ConnectTo(FrontEndDbInterface, config=self._config) as sc:
-            is_firmware = sc.is_firmware(uid)
-        if not is_firmware:
-            return render_template('error.html', message='Firmware not found in database: {}'.format(uid))
+            if not sc.is_firmware(uid):
+                return render_template('error.html', message=f'Firmware not found in database: {uid}')
         with ConnectTo(AdminDbInterface, config=self._config) as sc:
             deleted_virtual_path_entries, deleted_files = sc.delete_firmware(uid)
-        return render_template('delete_firmware.html', deleted_vps=deleted_virtual_path_entries, deleted_files=deleted_files, uid=uid)
+        return render_template(
+            'delete_firmware.html',
+            deleted_vps=deleted_virtual_path_entries,
+            deleted_files=deleted_files,
+            uid=uid
+        )
 
     @roles_accepted(*PRIVILEGES['delete'])
     @AppRoute('/admin/missing_analyses', GET)
-    def _app_find_missing_analyses(self):
+    def find_missing_analyses(self):
         template_data = {
             'missing_files': self._find_missing_files(),
             'orphaned_files': self._find_orphaned_files(),
@@ -136,14 +141,13 @@ class MiscellaneousRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['view_logs'])
     @AppRoute('/admin/logs', GET)
-    def _app_find_logs(self):
+    def show_logs(self):
         with ConnectTo(InterComFrontEndBinding, self._config) as sc:
             backend_logs = '\n'.join(sc.get_backend_logs())
-        frontend_logs = '\n'.join(self.get_frontend_logs())
-
+        frontend_logs = '\n'.join(self._get_frontend_logs())
         return render_template('logs.html', backend_logs=backend_logs, frontend_logs=frontend_logs)
 
-    def get_frontend_logs(self):
+    def _get_frontend_logs(self):
         frontend_logs = Path(get_log_file_for_component('frontend', self._config))
         if frontend_logs.is_file():
             return frontend_logs.read_text().splitlines()[-100:]

@@ -40,7 +40,7 @@ class DatabaseRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['basic_search'])
     @AppRoute('/database/browse', GET)
-    def _browse_database(self, query: str = '{}', only_firmwares=False, inverted=False):
+    def browse_database(self, query: str = '{}', only_firmwares=False, inverted=False):
         page, per_page = extract_pagination_from_request(request, self._config)[0:2]
         search_parameters = self._get_search_parameters(query, only_firmwares, inverted)
         try:
@@ -51,8 +51,8 @@ class DatabaseRoutes(ComponentBase):
             if self._query_has_only_one_result(firmware_list, search_parameters['query']):
                 return redirect(url_for('show_analysis', uid=firmware_list[0][0]))
         except Exception as err:
-            error_message = 'Could not query database: {} {}'.format(type(err), str(err))
-            logging.error(error_message)
+            error_message = f'Could not query database: {str(err)}'
+            logging.error(error_message, exc_info=True)
             return render_template('error.html', message=error_message)
 
         with ConnectTo(FrontEndDbInterface, self._config) as connection:
@@ -127,51 +127,57 @@ class DatabaseRoutes(ComponentBase):
 
     def _add_hash_query_to_query(self, query, value):
         hash_types = read_list_from_config(self._config, 'file_hashes', 'hashes')
-        hash_query = [{'processed_analysis.file_hashes.{}'.format(hash_type): value} for hash_type in hash_types]
+        hash_query = [{f'processed_analysis.file_hashes.{hash_type}': value} for hash_type in hash_types]
         query.update({'$or': hash_query})
 
     @roles_accepted(*PRIVILEGES['basic_search'])
-    @AppRoute('/database/search', GET, POST)
-    def _app_show_search_database(self):
-        if request.method == 'POST':
-            query = self._build_search_query()
-            return redirect(url_for('_browse_database', query=query))
+    @AppRoute('/database/search', POST)
+    def start_basic_search(self):
+        query = self._build_search_query()
+        return redirect(url_for('browse_database', query=query))
+
+    @roles_accepted(*PRIVILEGES['basic_search'])
+    @AppRoute('/database/search', GET)
+    def show_basic_search(self):
         with ConnectTo(FrontEndDbInterface, self._config) as connection:
             device_classes = connection.get_device_class_list()
             vendors = connection.get_vendor_list()
         return render_template('database/database_search.html', device_classes=device_classes, vendors=vendors)
 
     @roles_accepted(*PRIVILEGES['advanced_search'])
-    @AppRoute('/database/advanced_search', GET, POST)
-    def _app_show_advanced_search(self, error=None):
+    @AppRoute('/database/advanced_search', POST)
+    def start_advanced_search(self):
+        try:
+            query = json.loads(request.form['advanced_search'])  # check for syntax errors
+            only_firmwares = request.form.get('only_firmwares') is not None
+            inverted = request.form.get('inverted') is not None
+            if not isinstance(query, dict):
+                raise Exception('Error: search query invalid (wrong type)')
+            return redirect(url_for('browse_database', query=json.dumps(query), only_firmwares=only_firmwares, inverted=inverted))
+        except Exception as error:
+            return self.show_advanced_search(error=error)
+
+    @roles_accepted(*PRIVILEGES['advanced_search'])
+    @AppRoute('/database/advanced_search', GET)
+    def show_advanced_search(self, error=None):
         with ConnectTo(FrontEndDbInterface, self._config) as connection:
             database_structure = connection.create_analysis_structure()
-        if request.method == 'POST':
-            try:
-                query = json.loads(request.form['advanced_search'])  # check for syntax errors
-                only_firmwares = request.form.get('only_firmwares') is not None
-                inverted = request.form.get('inverted') is not None
-                if not isinstance(query, dict):
-                    raise Exception('Error: search query invalid (wrong type)')
-                return redirect(url_for('_browse_database', query=json.dumps(query), only_firmwares=only_firmwares, inverted=inverted))
-            except Exception as err:
-                error = err
         return render_template('database/database_advanced_search.html', error=error, database_structure=database_structure)
 
     @roles_accepted(*PRIVILEGES['pattern_search'])
     @AppRoute('/database/binary_search', GET, POST)
-    def _app_start_binary_search(self):
+    def start_binary_search(self):
         error = None
         if request.method == 'POST':
             yara_rule_file, firmware_uid, only_firmware = self._get_items_from_binary_search_request(request)
             if firmware_uid and not self._firmware_is_in_db(firmware_uid):
-                error = 'Error: Firmware with UID {} not found in database'.format(repr(firmware_uid))
+                error = f'Error: Firmware with UID {repr(firmware_uid)} not found in database'
             elif yara_rule_file is not None:
                 if is_valid_yara_rule_file(yara_rule_file):
                     with ConnectTo(InterComFrontEndBinding, self._config) as connection:
                         request_id = connection.add_binary_search_request(yara_rule_file, firmware_uid)
                     return redirect(url_for('get_binary_search_results', request_id=request_id, only_firmware=only_firmware))
-                error = 'Error in YARA rules: {}'.format(get_yara_error(yara_rule_file))
+                error = f'Error in YARA rules: {get_yara_error(yara_rule_file)}'
             else:
                 error = 'please select a file or enter rules in the text area'
         return render_template('database/database_binary_search.html', error=error)
@@ -204,7 +210,7 @@ class DatabaseRoutes(ComponentBase):
                 yara_rules = make_unicode_string(yara_rules[0])
                 joined_results = self._join_results(result)
                 query_uid = self._store_binary_search_query(joined_results, yara_rules)
-                return redirect(url_for('_browse_database', query=query_uid, only_firmwares=request.args.get('only_firmware')))
+                return redirect(url_for('browse_database', query=query_uid, only_firmwares=request.args.get('only_firmware')))
         else:
             error = 'No request ID found'
             request_id = None
@@ -225,7 +231,7 @@ class DatabaseRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['basic_search'])
     @AppRoute('/database/quick_search', GET)
-    def _app_start_quick_search(self):
+    def start_quick_search(self):
         search_term = filter_out_illegal_characters(request.args.get('search_term'))
         if search_term is None:
             return render_template('error.html', message='Search string not found')
@@ -237,4 +243,4 @@ class DatabaseRoutes(ComponentBase):
             {'file_name': {'$options': 'si', '$regex': search_term}}
         ])
         query = json.dumps(query)
-        return redirect(url_for('_browse_database', query=query))
+        return redirect(url_for('browse_database', query=query))

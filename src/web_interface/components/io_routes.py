@@ -26,18 +26,21 @@ class IORoutes(ComponentBase):
     # ---- upload
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
-    @AppRoute('/upload', GET, POST)
-    def _app_upload(self):
-        error = {}
-        if request.method == 'POST':
-            analysis_task = create_analysis_task(request, self._config)
-            error = check_for_errors(analysis_task)
-            if not error:
-                fw = convert_analysis_task_to_fw_obj(analysis_task)
-                with ConnectTo(InterComFrontEndBinding, self._config) as sc:
-                    sc.add_analysis_task(fw)
-                return render_template('upload/upload_successful.html', uid=analysis_task['uid'])
+    @AppRoute('/upload', POST)
+    def post_upload(self):
+        analysis_task = create_analysis_task(request, self._config)
+        error = check_for_errors(analysis_task)
+        if error:
+            return self.get_upload(error=error)
+        fw = convert_analysis_task_to_fw_obj(analysis_task)
+        with ConnectTo(InterComFrontEndBinding, self._config) as sc:
+            sc.add_analysis_task(fw)
+        return render_template('upload/upload_successful.html', uid=analysis_task['uid'])
 
+    @roles_accepted(*PRIVILEGES['submit_analysis'])
+    @AppRoute('/upload', GET)
+    def get_upload(self, error=None):
+        error = error or {}
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
             device_class_list = sc.get_device_class_list()
             vendor_list = sc.get_vendor_list()
@@ -55,12 +58,12 @@ class IORoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['download'])
     @AppRoute('/download/<uid>', GET)
-    def _app_download_binary(self, uid):
+    def download_binary(self, uid):
         return self._prepare_file_download(uid, packed=False)
 
     @roles_accepted(*PRIVILEGES['download'])
     @AppRoute('/tar-download/<uid>', GET)
-    def _app_download_tar(self, uid):
+    def download_tar(self, uid):
         return self._prepare_file_download(uid, packed=True)
 
     def _prepare_file_download(self, uid, packed=False):
@@ -82,7 +85,7 @@ class IORoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['download'])
     @AppRoute('/ida-download/<compare_id>', GET)
-    def _download_ida_file(self, compare_id):
+    def download_ida_file(self, compare_id):
         try:
             with ConnectTo(CompareDbInterface, self._config) as sc:
                 result = sc.get_compare_result(compare_id)
@@ -97,7 +100,7 @@ class IORoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['download'])
     @AppRoute('/radare-view/<uid>', GET)
-    def _show_radare(self, uid):
+    def show_radare(self, uid):
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
             object_exists = sc.exists(uid)
         if not object_exists:
@@ -127,7 +130,7 @@ class IORoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['download'])
     @AppRoute('/pdf-download/<uid>', GET)
-    def _download_pdf_report(self, uid):
+    def download_pdf_report(self, uid):
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
             object_exists = sc.exists(uid)
         if not object_exists:
