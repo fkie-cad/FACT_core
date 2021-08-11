@@ -1,13 +1,12 @@
-# -*- coding: utf-8 -*-
 import logging
 from contextlib import contextmanager
 
-from flask import render_template, request, flash, redirect, url_for
+from flask import flash, redirect, render_template, request, url_for
 from flask_security import current_user
 from sqlalchemy.exc import SQLAlchemyError
 
 from helperFunctions.web_interface import password_is_legal
-from web_interface.components.component_base import ComponentBase
+from web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES, ROLES
 
@@ -18,13 +17,6 @@ class UserManagementRoutes(ComponentBase):
         super().__init__(app, config, api=api)
         self._user_db = user_db
         self._user_db_interface = user_db_interface
-
-    def _init_component(self):
-        self._app.add_url_rule('/admin/manage_users', 'admin/manage_users', self._app_manage_users, methods=['GET', 'POST'])
-        self._app.add_url_rule('/admin/user/<user_id>', 'admin/user/<user_id>', self._app_edit_user, methods=['GET', 'POST'])
-        self._app.add_url_rule('/admin/edit_user', 'admin/edit_user', self._ajax_edit_user, methods=['POST'])
-        self._app.add_url_rule('/admin/delete_user/<user_name>', 'admin/delete_user/<user_name>', self._app_delete_user)
-        self._app.add_url_rule('/user_profile', 'user_profile', self._app_show_profile, methods=['GET', 'POST'])
 
     @contextmanager
     def user_db_session(self, error_message=None):
@@ -39,7 +31,8 @@ class UserManagementRoutes(ComponentBase):
                 flash(error_message)
 
     @roles_accepted(*PRIVILEGES['manage_users'])
-    def _app_manage_users(self):
+    @AppRoute('/admin/manage_users', GET, POST)
+    def manage_users(self):
         if request.method == 'POST':
             self._add_user()
         user_list = self._user_db_interface.list_users()
@@ -63,11 +56,12 @@ class UserManagementRoutes(ComponentBase):
                 logging.info('Created user: {}'.format(name))
 
     @roles_accepted(*PRIVILEGES['manage_users'])
-    def _app_edit_user(self, user_id):
+    @AppRoute('/admin/user/<user_id>', GET, POST)
+    def edit_user(self, user_id):
         user = self._user_db_interface.find_user(id=user_id)
         if not user:
             flash('Error: user with ID {} not found'.format(user_id), 'danger')
-            return redirect(url_for('admin/manage_users'))
+            return redirect(url_for('manage_users'))
         if request.method == 'POST':
             self._change_user_password(user_id)
         available_roles = sorted(ROLES)
@@ -94,7 +88,8 @@ class UserManagementRoutes(ComponentBase):
                 flash('password change successful', 'success')
 
     @roles_accepted(*PRIVILEGES['manage_users'])
-    def _ajax_edit_user(self):
+    @AppRoute('/admin/edit_user', POST)
+    def ajax_edit_user(self):
         element_name = request.values['name']
         if element_name == 'roles':
             return self._edit_roles()
@@ -135,15 +130,17 @@ class UserManagementRoutes(ComponentBase):
         return added_roles, removed_roles
 
     @roles_accepted(*PRIVILEGES['manage_users'])
-    def _app_delete_user(self, user_name):
+    @AppRoute('/admin/delete_user/<user_name>', GET)
+    def delete_user(self, user_name):
         with self.user_db_session('Error: could not delete user'):
             user = self._user_db_interface.find_user(email=user_name)
             self._user_db_interface.delete_user(user=user)
-            flash('Successfully deleted user "{}"'.format(user_name), 'success')
-        return redirect(url_for('admin/manage_users'))
+            flash(f'Successfully deleted user "{user_name}"', 'success')
+        return redirect(url_for('manage_users'))
 
     @roles_accepted(*PRIVILEGES['view_profile'])
-    def _app_show_profile(self):
+    @AppRoute('/user_profile', GET, POST)
+    def show_profile(self):
         if request.method == 'POST':
             self._change_own_password()
         return render_template('user_management/user_profile.html', user=current_user)

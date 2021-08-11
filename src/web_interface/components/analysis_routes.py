@@ -31,7 +31,7 @@ from web_interface.security.privileges import PRIVILEGES
 
 
 def get_analysis_view(view_name):
-    view_path = os.path.join(get_src_dir(), 'web_interface/templates/analysis_plugins/{}.html'.format(view_name))
+    view_path = os.path.join(get_src_dir(), f'web_interface/templates/analysis_plugins/{view_name}.html')
     return get_binary_from_file(view_path).decode('utf-8')
 
 
@@ -92,7 +92,7 @@ class AnalysisRoutes(ComponentBase):
     @AppRoute('/analysis/<uid>/ro/<root_uid>', POST)
     @AppRoute('/analysis/<uid>/<selected_analysis>', POST)
     @AppRoute('/analysis/<uid>/<selected_analysis>/ro/<root_uid>', POST)
-    def _start_single_file_analysis(self, uid, selected_analysis=None, root_uid=None):
+    def start_single_file_analysis(self, uid, selected_analysis=None, root_uid=None):
         with ConnectTo(FrontEndDbInterface, self._config) as database:
             file_object = database.get_object(uid)
         file_object.scheduled_analysis = request.form.getlist('analysis_systems')
@@ -118,7 +118,7 @@ class AnalysisRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @AppRoute('/update-analysis/<uid>', GET)
-    def _update_analysis_get(self, uid, re_do=False, error=None):
+    def get_update_analysis(self, uid, re_do=False, error=None):
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
             old_firmware = sc.get_firmware(uid=uid, analysis_filter=[])
             if old_firmware is None:
@@ -158,11 +158,11 @@ class AnalysisRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @AppRoute('/update-analysis/<uid>', POST)
-    def _update_analysis_post(self, uid, re_do=False):
+    def post_update_analysis(self, uid, re_do=False):
         analysis_task = create_re_analyze_task(request, uid=uid)
         error = check_for_errors(analysis_task)
         if error:
-            return redirect(url_for(self._update_analysis_get.__name__, uid=uid, re_do=re_do, error=error))
+            return redirect(url_for('get_update_analysis', uid=uid, re_do=re_do, error=error))
         self._schedule_re_analysis_task(uid, analysis_task, re_do)
         return render_template('upload/upload_successful.html', uid=uid)
 
@@ -176,10 +176,10 @@ class AnalysisRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['delete'])
     @AppRoute('/admin/re-do_analysis/<uid>', GET, POST)
-    def _re_do_analysis(self, uid):
+    def redo_analysis(self, uid):
         if request.method == POST:
-            return self._update_analysis_post(uid, re_do=True)
-        return self._update_analysis_get(uid, re_do=True)
+            return self.post_update_analysis(uid, re_do=True)
+        return self.get_update_analysis(uid, re_do=True)
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
     @AppRoute('/dependency-graph/<uid>', GET)
@@ -199,7 +199,7 @@ class AnalysisRoutes(ComponentBase):
             data_graph, elf_analysis_missing_from_files = create_data_graph_edges(data, data_graph_part)
 
             if elf_analysis_missing_from_files > 0:
-                flash('Warning: Elf analysis plugin result is missing for {} files'.format(elf_analysis_missing_from_files), 'warning')
+                flash(f'Warning: Elf analysis plugin result is missing for {elf_analysis_missing_from_files} files', 'warning')
 
             color_list = get_graph_colors()
 

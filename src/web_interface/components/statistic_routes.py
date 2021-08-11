@@ -6,18 +6,16 @@ from intercom.front_end_binding import InterComFrontEndBinding
 from statistic.update import StatisticUpdater
 from storage.db_interface_frontend import FrontEndDbInterface
 from storage.db_interface_statistic import StatisticDbViewer
-from web_interface.components.component_base import ComponentBase
+from web_interface.components.component_base import GET, AppRoute, ComponentBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
 
 class StatisticRoutes(ComponentBase):
-    def _init_component(self):
-        self._app.add_url_rule('/statistic', 'statistic', self._show_statistic, methods=['GET'])
-        self._app.add_url_rule('/system_health', 'system_health', self._show_system_health, methods=['GET'])
 
     @roles_accepted(*PRIVILEGES['status'])
-    def _show_statistic(self):
+    @AppRoute('/statistic', GET)
+    def show_statistics(self):
         filter_query = apply_filters_to_query(request, '{}')
         if filter_query == {}:
             stats = self._get_stats_from_db()
@@ -36,7 +34,8 @@ class StatisticRoutes(ComponentBase):
         )
 
     @roles_accepted(*PRIVILEGES['status'])
-    def _show_system_health(self):
+    @AppRoute('/system_health', GET)
+    def show_system_health(self):
         with ConnectTo(InterComFrontEndBinding, self._config) as sc:
             plugin_dict = sc.get_available_analysis_plugins()
         return render_template('system_health.html', analysis_plugin_info=plugin_dict)
