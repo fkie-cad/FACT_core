@@ -19,9 +19,9 @@ def main(skip_docker, distribution):
 
     # dependencies
     if distribution == 'fedora':
-        dnf_install_packages('libjpeg-devel', 'openssl-devel', 'python3-tkinter')
+        dnf_install_packages('libjpeg-devel', 'openssl-devel')
     else:
-        apt_install_packages('libjpeg-dev', 'libssl-dev', 'python3-tk')
+        apt_install_packages('libjpeg-dev', 'libssl-dev')
 
     pip3_install_packages('pluginbase', 'Pillow', 'cryptography', 'pyopenssl', 'matplotlib', 'docker', 'networkx')
 

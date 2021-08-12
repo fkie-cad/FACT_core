@@ -2,6 +2,7 @@ import configparser
 import logging
 import os
 import shutil
+import sys
 from pathlib import Path
 from typing import List, Tuple, Union
 
@@ -239,3 +240,7 @@ def load_main_config() -> configparser.ConfigParser:
         raise InstallationError('Could not load config at path {}'.format(config_path))
     config.read(str(config_path))
     return config
+
+
+def is_virtualenv() -> bool:
+    return sys.prefix != getattr(sys, 'base_prefix', getattr(sys, 'real_prefix', None))
