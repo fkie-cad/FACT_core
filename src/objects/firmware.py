@@ -1,7 +1,8 @@
-from objects.file import FileObject
+from contextlib import suppress
+
 from helperFunctions.hash import get_md5
 from helperFunctions.tag import TagColor
-from contextlib import suppress
+from objects.file import FileObject
 
 
 class Firmware(FileObject):
@@ -38,9 +39,6 @@ class Firmware(FileObject):
         self.tags = dict()
         self._update_root_id_and_virtual_path()
 
-    def set_device_name(self, device_name):
-        self.device_name = device_name
-
     def set_part_name(self, part):
         '''
         Setter for `self.part_name`.
@@ -50,12 +48,6 @@ class Firmware(FileObject):
         else:
             self.part = part
 
-    def set_firmware_version(self, version):
-        self.version = version
-
-    def set_device_class(self, device_class):
-        self.device_class = device_class
-
     def set_binary(self, binary):
         '''
         See :meth:`objects.file.FileObject.set_binary`.
@@ -63,12 +55,6 @@ class Firmware(FileObject):
         super().set_binary(binary)
         self._update_root_id_and_virtual_path()
         self.md5 = get_md5(binary)
-
-    def set_vendor(self, vendor):
-        self.vendor = vendor
-
-    def set_release_date(self, release_date):
-        self.release_date = release_date
 
     def _update_root_id_and_virtual_path(self):
         self.root_uid = self.uid

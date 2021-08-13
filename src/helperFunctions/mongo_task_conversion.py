@@ -110,12 +110,12 @@ def convert_analysis_task_to_fw_obj(analysis_task: dict) -> Firmware:
         if 'file_name' in analysis_task.keys():
             fw.file_name = analysis_task['file_name']
         fw.uid = analysis_task['uid']
-    fw.set_device_name(analysis_task['device_name'])
+    fw.device_name = analysis_task['device_name']
     fw.set_part_name(analysis_task['device_part'])
-    fw.set_firmware_version(analysis_task['version'])
-    fw.set_device_class(analysis_task['device_class'])
-    fw.set_vendor(analysis_task['vendor'])
-    fw.set_release_date(analysis_task['release_date'])
+    fw.firmware_version = analysis_task['version']
+    fw.device_class = analysis_task['device_class']
+    fw.vendor = analysis_task['vendor']
+    fw.release_date = analysis_task['release_date']
     for tag in _get_tag_list(analysis_task['tags']):
         fw.set_tag(tag)
     return fw
