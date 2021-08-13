@@ -5,7 +5,7 @@ import shlex
 import shutil
 import subprocess
 from pathlib import Path
-from subprocess import CalledProcessError
+from subprocess import PIPE, CalledProcessError
 from typing import List, Tuple, Union
 
 from common_helper_process import execute_shell_command_get_return_code
@@ -221,7 +221,7 @@ def run_cmd_with_logging(cmd: str, raise_error=True, shell=False, **kwargs):
     logging.info(f"Running: {cmd}")
     try:
         cmd_ = cmd if shell else shlex.split(cmd)
-        subprocess.run(cmd_, capture_output=True, encoding='UTF-8', shell=shell, check=True, **kwargs)
+        subprocess.run(cmd_, stdout=PIPE, stderr=PIPE, encoding='UTF-8', shell=shell, check=True, **kwargs)
     except CalledProcessError as err:
         # pylint:disable=no-else-raise
         if raise_error:
