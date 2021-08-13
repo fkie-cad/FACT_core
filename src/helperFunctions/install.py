@@ -4,10 +4,12 @@ import os
 import shlex
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 from subprocess import CalledProcessError
 from typing import List, Tuple, Union
 
+import distro
 from common_helper_process import execute_shell_command_get_return_code
 
 
@@ -263,3 +265,29 @@ def run_cmd_with_logging(cmd: str, raise_error=True, shell=False, **kwargs):
             raise err
         else:
             logging.debug(f'Failed to run {err.cmd} (ignoring):\n{err.stderr}\n')
+
+
+def check_distribution():
+    '''
+    Check if the distribution is supported by the installer.
+
+    :return: The codename of the distribution
+    '''
+    BIONIC_CODE_NAMES = ['bionic', 'tara', 'tessa', 'tina', 'disco']
+    DEBIAN_CODE_NAMES = ['buster', 'stretch', 'kali-rolling']
+    FOCAL_CODE_NAMES = ['focal', 'ulyana']
+
+    codename = distro.codename().lower()
+    if codename in BIONIC_CODE_NAMES:
+        logging.debug('Ubuntu 18.04 detected')
+        return 'bionic'
+    if codename in FOCAL_CODE_NAMES:
+        logging.debug('Ubuntu 20.04 detected')
+        return 'focal'
+    if codename in DEBIAN_CODE_NAMES:
+        logging.debug('Debian/Kali detected')
+        return 'debian'
+    if distro.id() == 'fedora':
+        logging.debug('Fedora detected')
+        return 'fedora'
+    sys.exit('Your Distribution ({} {}) is not supported. FACT Installer requires Ubuntu 18.04, 20.04 or compatible!'.format(distro.id(), distro.version()))
