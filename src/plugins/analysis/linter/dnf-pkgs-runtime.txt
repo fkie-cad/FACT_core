@@ -1,0 +1,6 @@
+lua
+lua-devel
+luarocks
+nodejs
+npm
+ShellCheck
