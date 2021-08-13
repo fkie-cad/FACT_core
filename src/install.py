@@ -34,7 +34,6 @@ try:
     from install.frontend import _install_docker_images as frontend_install_docker_images
     from install.backend import main as backend
     from install.backend import _install_docker_images as backend_install_docker_images
-    from install.backend import _install_plugin_docker_images as backend_install_plugin_docker_images
     from install.db import main as db
 except ImportError:
     logging.critical('Could not import install dependencies. Please (re-)run install/pre_install.sh', exc_info=True)
@@ -179,7 +178,6 @@ def install():
         else:
             if args.backend_docker_images:
                 backend_install_docker_images()
-                backend_install_plugin_docker_images()
 
             if args.frontend_docker_images:
                 frontend_install_docker_images(not args.no_radare)
