@@ -6,7 +6,7 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
-from subprocess import CalledProcessError
+from subprocess import PIPE, CalledProcessError
 from typing import List, Tuple, Union
 
 import distro
@@ -256,7 +256,7 @@ def run_cmd_with_logging(cmd: str, raise_error=True, shell=False, **kwargs):
     try:
         # Split with shlex to have shell commands work as intendet
         cmd_ = cmd if shell else shlex.split(cmd)
-        subprocess.run(cmd_, capture_output=True, encoding='UTF-8', shell=shell, check=True, **kwargs)
+        subprocess.run(cmd_, stdout=PIPE, stderr=PIPE, encoding='UTF-8', shell=shell, check=True, **kwargs)
     except CalledProcessError as err:
         # pylint fails to understand this code properly
         # pylint:disable=no-else-raise
