@@ -1,8 +1,11 @@
 import configparser
 import logging
 import os
+import shlex
 import shutil
+import subprocess
 from pathlib import Path
+from subprocess import CalledProcessError
 from typing import List, Tuple, Union
 
 from common_helper_process import execute_shell_command_get_return_code
@@ -239,3 +242,24 @@ def load_main_config() -> configparser.ConfigParser:
         raise InstallationError('Could not load config at path {}'.format(config_path))
     config.read(str(config_path))
     return config
+
+
+def run_cmd_with_logging(cmd: str, raise_error=True, shell=False, **kwargs):
+    '''
+    Runs `cmd` with subprocess.run, logs the command it executes and logs
+    stderr on non-zero returncode.
+    All keyword arguments are passed to subprocess.run.
+    '''
+    logging.info(f'Running: {cmd}')
+    try:
+        # Split with shlex to have shell commands work as intendet
+        cmd_ = cmd if shell else shlex.split(cmd)
+        subprocess.run(cmd_, capture_output=True, encoding='UTF-8', shell=shell, check=True, **kwargs)
+    except CalledProcessError as err:
+        # pylint fails to understand this code properly
+        # pylint:disable=no-else-raise
+        if raise_error:
+            logging.error(f'Failed to run {err.cmd}:\n{err.stderr}')
+            raise err
+        else:
+            logging.debug(f'Failed to run {err.cmd} (ignoring):\n{err.stderr}\n')
