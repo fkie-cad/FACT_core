@@ -49,7 +49,7 @@ BIONIC_CODE_NAMES = ['bionic', 'tara', 'tessa', 'tina', 'disco']
 DEBIAN_CODE_NAMES = ['buster', 'stretch', 'kali-rolling']
 FOCAL_CODE_NAMES = ['focal', 'ulyana']
 
-FACT_INSTALLER_SKIP_DOCKER = os.getenv("FACT_INSTALLER_SKIP_DOCKER")
+FACT_INSTALLER_SKIP_DOCKER = os.getenv('FACT_INSTALLER_SKIP_DOCKER')
 
 
 def _setup_argparser():

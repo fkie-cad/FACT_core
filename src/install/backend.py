@@ -145,7 +145,7 @@ def _install_checksec(distribution):
     install_function('binutils', 'openssl', 'file')
 
     logging.info('Installing checksec.sh')
-    checksec_url = "https://raw.githubusercontent.com/slimm609/checksec.sh/master/checksec"
+    checksec_url = 'https://raw.githubusercontent.com/slimm609/checksec.sh/master/checksec'
     output, return_code = execute_shell_command_get_return_code(f'wget -P {BIN_DIR} {checksec_url}')
     if return_code != 0:
         raise InstallationError(f'Error during installation of checksec.sh\n{output}')
