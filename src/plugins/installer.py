@@ -8,7 +8,10 @@ class AbstractPluginInstaller:
     # Even if some functoins don't need self we want to have them nicely
     # grouped in this class
     # pylint:disable=no-self-use
-    def __init__(self, base_path: pathlib.Path, distribution, skip_docker=False):
+
+    skip_docker_env = os.getenv('FACT_INSTALLER_SKIP_DOCKER') is not None
+
+    def __init__(self, base_path: pathlib.Path, distribution, skip_docker=skip_docker_env):
         self.base_path = base_path
         self.distribution = distribution
         self.build_path = base_path / 'build'
