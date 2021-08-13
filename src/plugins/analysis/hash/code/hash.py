@@ -38,7 +38,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             if hash_ in algorithms_available:
                 file_object.processed_analysis[self.NAME][hash_] = get_hash(hash_, file_object.binary)
             else:
-                logging.debug('algorithm {} not available'.format(hash_))
+                logging.debug(f'algorithm {hash_} not available')
         file_object.processed_analysis[self.NAME]['ssdeep'] = get_ssdeep(file_object.binary)
         file_object.processed_analysis[self.NAME]['imphash'] = get_imphash(file_object)
 
@@ -49,8 +49,5 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return file_object
 
     def _get_hash_list_from_config(self):
-        try:
-            return read_list_from_config(self.config, self.NAME, 'hashes', default=['sha256'])
-        except Exception:
-            logging.warning("'file_hashes' -> 'hashes' not set in config")
-            return ['sha256']
+        hash_list = read_list_from_config(self.config, self.NAME, 'hashes', default=['sha256'])
+        return hash_list if hash_list else ['sha256']
