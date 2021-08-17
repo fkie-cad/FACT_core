@@ -25,17 +25,16 @@ from pathlib import Path
 
 try:
     import distro
-
     from common_helper_process import execute_shell_command_get_return_code
 
     from helperFunctions.install import OperateInDirectory
-    from install.common import main as common
-    from install.frontend import main as frontend
-    from install.frontend import _install_docker_images as frontend_install_docker_images
-    from install.backend import main as backend
     from install.backend import _install_docker_images as backend_install_docker_images
     from install.backend import _install_plugin_docker_images as backend_install_plugin_docker_images
+    from install.backend import main as backend
+    from install.common import main as common
     from install.db import main as db
+    from install.frontend import _install_docker_images as frontend_install_docker_images
+    from install.frontend import main as frontend
 except ImportError:
     logging.critical('Could not import install dependencies. Please (re-)run install/pre_install.sh', exc_info=True)
     sys.exit(1)
@@ -48,7 +47,7 @@ INSTALL_CANDIDATES = ['frontend', 'db', 'backend']
 
 BIONIC_CODE_NAMES = ['bionic', 'tara', 'tessa', 'tina', 'disco']
 DEBIAN_CODE_NAMES = ['buster', 'stretch', 'kali-rolling']
-FOCAL_CODE_NAMES = ['focal', 'ulyana']
+FOCAL_CODE_NAMES = ['focal', 'ulyana', 'ulyssa', 'uma']
 
 FACT_INSTALLER_SKIP_DOCKER = os.getenv("FACT_INSTALLER_SKIP_DOCKER")
 
@@ -92,8 +91,9 @@ def _setup_logging(log_level, log_file, debug_flag=False):
         console_log.setFormatter(log_format)
         logger.addHandler(file_log)
         logger.addHandler(console_log)
-    except Exception as exception:
-        sys.exit('Error: Could not setup logging: {} {}'.format(type(exception).__name__, exception))
+    except (KeyError, TypeError, ValueError) as exception:
+        logging.critical('Could not setup logging: {}'.format(exception), exc_info=True)
+        sys.exit(1)
 
 
 def create_dir_for_file(file_path: str, dir_description='directory'):
@@ -102,8 +102,9 @@ def create_dir_for_file(file_path: str, dir_description='directory'):
     '''
     try:
         Path(file_path).absolute().parent.mkdir(parents=True, exist_ok=True)
-    except Exception as exception:
-        sys.exit('Error: Could not create {}: {} {}'.format(dir_description, type(exception).__name__, exception))
+    except OSError:
+        logging.critical('Could not create {}'.format(dir_description), exc_info=True)
+        sys.exit(1)
 
 
 def get_directory_of_current_file() -> Path:
@@ -116,7 +117,8 @@ def welcome():
 
 def check_python_version():
     if sys.version_info.major != 3 or sys.version_info.minor < 6:
-        sys.exit('Error: Incompatible Python version! You need at least version 3.6! Your Version: {}'.format(sys.version))
+        logging.critical('Incompatible Python version! You need at least version 3.6! Your Version: {}'.format(sys.version))
+        sys.exit(1)
 
 
 def check_distribution():
@@ -133,7 +135,11 @@ def check_distribution():
     if distro.id() == 'fedora':
         logging.debug('Fedora detected')
         return 'fedora'
-    sys.exit('Your Distribution ({} {}) is not supported. FACT Installer requires Ubuntu 18.04, 20.04 or compatible!'.format(distro.id(), distro.version()))
+    logging.critical(
+        'Your Distribution ({} {}) is not supported. '
+        'FACT Installer requires Ubuntu 18.04, 20.04 or compatible!'.format(distro.id(), distro.version())
+    )
+    sys.exit(1)
 
 
 def install_statistic_cronjob():
@@ -168,21 +174,9 @@ def install():
 
     with OperateInDirectory(str(installation_directory)):
         if not only_docker:
-            common(distribution)
-
-            if args.frontend or none_chosen:
-                frontend(skip_docker, not args.no_radare, args.nginx)
-            if args.db or none_chosen:
-                db(distribution)
-            if args.backend or none_chosen:
-                backend(skip_docker, distribution)
+            install_fact_components(args, distribution, none_chosen, skip_docker)
         else:
-            if args.backend_docker_images:
-                backend_install_docker_images()
-                backend_install_plugin_docker_images()
-
-            if args.frontend_docker_images:
-                frontend_install_docker_images(not args.no_radare)
+            install_docker_images(args)
 
     if args.statistic_cronjob:
         install_statistic_cronjob()
@@ -190,7 +184,25 @@ def install():
     logging.info('installation complete')
     logging.warning('If FACT does not start, reload the environment variables with: source /etc/profile')
 
-    sys.exit()
+    sys.exit(0)
+
+
+def install_fact_components(args, distribution, none_chosen, skip_docker):
+    common(distribution)
+    if args.frontend or none_chosen:
+        frontend(skip_docker, not args.no_radare, args.nginx)
+    if args.db or none_chosen:
+        db(distribution)
+    if args.backend or none_chosen:
+        backend(skip_docker, distribution)
+
+
+def install_docker_images(args):
+    if args.backend_docker_images:
+        backend_install_docker_images()
+        backend_install_plugin_docker_images()
+    if args.frontend_docker_images:
+        frontend_install_docker_images(not args.no_radare)
 
 
 if __name__ == '__main__':
