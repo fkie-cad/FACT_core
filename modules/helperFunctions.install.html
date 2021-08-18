@@ -365,23 +365,18 @@ Useful to find out if a program is already installed.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="helperFunctions.install.pip3_install_packages">
-<span class="sig-prename descclassname"><span class="pre">helperFunctions.install.</span></span><span class="sig-name descname"><span class="pre">pip3_install_packages</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">packages</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.pip3_install_packages" title="Permalink to this definition">¶</a></dt>
-<dd><p>Install python packages. Handle problems with packages that are installed using system package managers (apt, dnf).</p>
+<dt class="sig sig-object py" id="helperFunctions.install.read_package_list_from_file">
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.install.</span></span><span class="sig-name descname"><span class="pre">read_package_list_from_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.read_package_list_from_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads the file at <cite>path</cite> into a list.
+Each line in the file should be either a comment (starts with #) or a
+package name.
+There may not be multiple packages in one line.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>packages</strong> (<em>str</em>) – Iterable containing packages to install.</p>
+<dd class="field-odd"><p><strong>path</strong> (<em>pathlib.Path</em>) – The path to the file.</p>
 </dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="helperFunctions.install.pip3_remove_packages">
-<span class="sig-prename descclassname"><span class="pre">helperFunctions.install.</span></span><span class="sig-name descname"><span class="pre">pip3_remove_packages</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">packages</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.pip3_remove_packages" title="Permalink to this definition">¶</a></dt>
-<dd><p>Remove python packages. Handle problems with packages that are installed using system package managers (apt, dnf).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>packages</strong> (<em>str</em>) – Iterable containing packages to remove.</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A list of package names contained in the file.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -394,6 +389,22 @@ this effectively falls back to <cite>sudo rm -rf</cite>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>folder_name</strong> (<em>str</em>) – Path to directory to remove.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="helperFunctions.install.run_cmd_with_logging">
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.install.</span></span><span class="sig-name descname"><span class="pre">run_cmd_with_logging</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cmd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">raise_error</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shell</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.run_cmd_with_logging" title="Permalink to this definition">¶</a></dt>
+<dd><p>Runs <cite>cmd</cite> with subprocess.run, logs the command it executes and logs
+stderr on non-zero returncode.
+All keyword arguments are execpt <cite>raise_error</cite> passed to subprocess.run.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>raise_error</strong> – Whether or not an error should be raised when <cite>cmd</cite> fails</p></li>
+<li><p><strong>cmd</strong> (<em>str</em>) – </p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
