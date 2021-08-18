@@ -1,0 +1,32 @@
+# General build stuff
+testresources
+
+setuptools
+
+# General python dependencies
+appdirs
+flaky
+lief
+psutil
+pylint
+pytest
+pytest-cov
+python-magic
+requests
+ssdeep
+xmltodict
+yara-python==3.7.0
+
+git+https://github.com/fkie-cad/fact_helper_file.git
+
+# Python MongoDB bindings
+pymongo
+pyyaml
+
+# Common code modules
+git+https://github.com/fkie-cad/common_helper_files.git
+git+https://github.com/fkie-cad/common_helper_filter.git
+git+https://github.com/fkie-cad/common_helper_mongo.git
+git+https://github.com/fkie-cad/common_helper_process.git
+git+https://github.com/mass-project/common_helper_encoder.git
+

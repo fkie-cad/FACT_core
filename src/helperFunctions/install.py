@@ -1,8 +1,11 @@
 import configparser
 import logging
 import os
+import shlex
 import shutil
+import subprocess
 from pathlib import Path
+from subprocess import PIPE, CalledProcessError
 from typing import List, Tuple, Union
 
 from common_helper_process import execute_shell_command_get_return_code
@@ -127,40 +130,6 @@ def apt_remove_packages(*packages: str):
     return _run_shell_command_raise_on_return_code('sudo apt-get remove -y {}'.format(' '.join(packages)), 'Error in removal of package(s) {}'.format(' '.join(packages)), True)
 
 
-def pip3_install_packages(*packages: str):
-    '''
-    Install python packages. Handle problems with packages that are installed using system package managers (apt, dnf).
-
-    :param packages: Iterable containing packages to install.
-    '''
-    log_current_packages(packages)
-    for package in packages:
-        try:
-            _run_shell_command_raise_on_return_code('sudo -EH pip3 install --upgrade {}'.format(package), 'Error in installation of python package {}'.format(package), True)
-        except InstallationError as installation_error:
-            if 'is a distutils installed project' in str(installation_error):
-                logging.warning('Could not update python package {}. Was not installed using pip originally'.format(package))
-            else:
-                raise installation_error
-
-
-def pip3_remove_packages(*packages: str):
-    '''
-    Remove python packages. Handle problems with packages that are installed using system package managers (apt, dnf).
-
-    :param packages: Iterable containing packages to remove.
-    '''
-    log_current_packages(packages, install=False)
-    for package in packages:
-        try:
-            _run_shell_command_raise_on_return_code('sudo -EH pip3 uninstall {}'.format(package), 'Error in removal of python package {}'.format(package), True)
-        except InstallationError as installation_error:
-            if 'is a distutils installed project' in str(installation_error):
-                logging.warning('Could not remove python package {}. Was not installed using pip originally'.format(package))
-            else:
-                raise installation_error
-
-
 def check_if_command_in_path(command: str) -> bool:
     '''
     Check if a given command is executable on the current system, i.e. found in systems PATH.
@@ -239,3 +208,45 @@ def load_main_config() -> configparser.ConfigParser:
         raise InstallationError('Could not load config at path {}'.format(config_path))
     config.read(str(config_path))
     return config
+
+
+def run_cmd_with_logging(cmd: str, raise_error=True, shell=False, **kwargs):
+    """
+    Runs `cmd` with subprocess.run, logs the command it executes and logs
+    stderr on non-zero returncode.
+    All keyword arguments are execpt `raise_error` passed to subprocess.run.
+
+    :param raise_error: Whether or not an error should be raised when `cmd` fails
+    """
+    logging.info(f"Running: {cmd}")
+    try:
+        cmd_ = cmd if shell else shlex.split(cmd)
+        subprocess.run(cmd_, stdout=PIPE, stderr=PIPE, encoding='UTF-8', shell=shell, check=True, **kwargs)
+    except CalledProcessError as err:
+        # pylint:disable=no-else-raise
+        if raise_error:
+            logging.error(f"Failed to run {err.cmd}:\n{err.stderr}")
+            raise err
+        else:
+            logging.debug(f"Failed to run {err.cmd} (ignoring):\n{err.stderr}\n")
+
+
+def read_package_list_from_file(path: Path):
+    """
+    Reads the file at `path` into a list.
+    Each line in the file should be either a comment (starts with #) or a
+    package name.
+    There may not be multiple packages in one line.
+
+    :param path: The path to the file.
+    :return: A list of package names contained in the file.
+    """
+    packages = []
+    for line_ in path.read_text().splitlines():
+        line = line_.strip(" \t")
+        # Skip comments and empty lines
+        if line.startswith("#") or len(line) == 0:
+            continue
+        packages.append(line)
+
+    return packages
