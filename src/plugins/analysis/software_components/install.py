@@ -3,8 +3,10 @@
 import logging
 import pathlib
 
+from .internal.extract_os_names import extract_names
+
 try:
-    from helperFunctions.install import run_cmd_with_logging, check_distribution
+    from helperFunctions.install import check_distribution, run_cmd_with_logging
 
     from ...installer import AbstractPluginInstaller
 except ImportError:
@@ -25,8 +27,6 @@ class SoftwareComponentsInstaller(AbstractPluginInstaller):
         run_cmd_with_logging('docker build -t fact/format_string_resolver docker', shell=True)
 
     def install_files(self):
-        # pylint:disable=import-outside-toplevel
-        from .internal.extract_os_names import extract_names
         extract_names()
 
 
