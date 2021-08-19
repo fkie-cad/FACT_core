@@ -1,7 +1,7 @@
 import os
 import pathlib
 
-from helperFunctions.install import run_cmd_with_logging
+from helperFunctions.install import read_package_list_from_file, run_cmd_with_logging
 
 
 class AbstractPluginInstaller:
@@ -48,23 +48,13 @@ class AbstractPluginInstaller:
         '''
         Install packages with apt/dnf
         '''
-        build_pkg_path = './apt-pkgs-build.txt' if self.distribution != 'fedora' else './dnf-pkgs-build.txt'
-        runtime_pkg_path = './apt-pkgs-runtime.txt' if self.distribution != 'fedora' else './dnf-pkgs-runtime.txt'
+        build_pkg_path = pathlib.Path('./apt-pkgs-build.txt' if self.distribution != 'fedora' else './dnf-pkgs-build.txt')
+        runtime_pkg_path = pathlib.Path('./apt-pkgs-runtime.txt' if self.distribution != 'fedora' else './dnf-pkgs-runtime.txt')
 
-        build_list = []
-        # TODO use read_package_list_from_file when #618 is merged
-        if os.access(build_pkg_path, os.R_OK):
-            with open(build_pkg_path) as build_f:
-                build_list = build_f.read().splitlines()
-
-        runtime_list = []
-        # TODO use read_package_list_from_file when #618 is merged
-        if os.access(runtime_pkg_path, os.R_OK):
-            with open(runtime_pkg_path) as runtime_f:
-                runtime_list = runtime_f.read().splitlines()
+        pkg_list = read_package_list_from_file(build_pkg_path) + read_package_list_from_file(runtime_pkg_path)
 
         pgk_mgr_cmd = 'apt install -y' if self.distribution != 'fedora' else 'dnf install -y'
-        pkgs_to_install = ' '.join(build_list + runtime_list)
+        pkgs_to_install = ' '.join(pkg_list)
 
         if len(pkgs_to_install) == 0:
             return
