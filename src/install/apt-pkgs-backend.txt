@@ -1,0 +1,12 @@
+libjpeg-dev
+libssl-dev
+python3-tk
+
+# checksec dependencies
+binutils
+file
+openssl
+
+# Yara dependencies
+bison
+flex

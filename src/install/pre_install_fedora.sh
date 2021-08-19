@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# cd in this files directory for relative paths to work
+cd "$( dirname "${BASH_SOURCE[0]}" )"
+
 FACTUSER=$(whoami)
 
 echo "Install Pre-Install Requirements"
@@ -41,9 +44,8 @@ fi
 
 
 echo "Installing Python Libraries for python based installation"
-sudo -EH pip3 install --upgrade pip virtualenv distro python-magic requests \
-  git+https://github.com/fkie-cad/common_helper_files.git \
-  git+https://github.com/fkie-cad/common_helper_process.git
+sudo -EH pip install -r ./requirements_pre_install.txt
+
 
 echo -e "Pre-Install-Routine complete! \\033[31mPlease reboot before running install.py\\033[0m"
 

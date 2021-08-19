@@ -14,24 +14,16 @@ from storage.db_interface_admin import AdminDbInterface
 from storage.db_interface_compare import CompareDbInterface
 from storage.db_interface_frontend import FrontEndDbInterface
 from storage.db_interface_frontend_editing import FrontendEditingDbInterface
-from web_interface.components.component_base import ComponentBase
+from web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
 
 class MiscellaneousRoutes(ComponentBase):
-    def _init_component(self):
-        self._app.add_url_rule('/', 'home', self._app_home)
-        self._app.add_url_rule('/about', 'about', self._app_about)
-        self._app.add_url_rule('/comment/<uid>', 'comment/<uid>', self._app_add_comment, methods=['GET', 'POST'])
-        self._app.add_url_rule('/admin/delete_comment/<uid>/<timestamp>', '/admin/delete_comment/<uid>/<timestamp>', self._app_delete_comment)
-        self._app.add_url_rule('/admin/delete/<uid>', '/admin/delete/<uid>', self._app_delete_firmware)
-        self._app.add_url_rule('/admin/missing_analyses', 'admin/missing_analyses', self._app_find_missing_analyses, methods=['GET'])
-        self._app.add_url_rule('/admin/logs', '/admin/logs', self._app_find_logs)
-
     @login_required
     @roles_accepted(*PRIVILEGES['status'])
-    def _app_home(self):
+    @AppRoute('/', GET)
+    def show_home(self):
         stats = StatisticUpdater(config=self._config)
         with ConnectTo(FrontEndDbInterface, config=self._config) as sc:
             latest_firmware_submissions = sc.get_last_added_firmwares(int(self._config['database'].get('number_of_latest_firmwares_to_display', '10')))
@@ -41,45 +33,60 @@ class MiscellaneousRoutes(ComponentBase):
         ajax_stats_reload_time = int(self._config['database']['ajax_stats_reload_time'])
         general_stats = stats.get_general_stats()
         stats.shutdown()
-        return render_template('home.html', general_stats=general_stats, latest_firmware_submissions=latest_firmware_submissions,
-                               latest_comments=latest_comments, latest_comparison_results=latest_comparison_results, ajax_stats_reload_time=ajax_stats_reload_time)
+        return render_template(
+            'home.html',
+            general_stats=general_stats,
+            latest_firmware_submissions=latest_firmware_submissions,
+            latest_comments=latest_comments,
+            latest_comparison_results=latest_comparison_results,
+            ajax_stats_reload_time=ajax_stats_reload_time
+        )
 
-    @staticmethod
-    def _app_about():
+    @AppRoute('/about', GET)
+    def show_about(self):  # pylint: disable=no-self-use
         return render_template('about.html')
 
     @roles_accepted(*PRIVILEGES['comment'])
-    def _app_add_comment(self, uid):
-        error = False
-        if request.method == 'POST':
-            comment = request.form['comment']
-            author = request.form['author']
-            with ConnectTo(FrontendEditingDbInterface, config=self._config) as sc:
-                sc.add_comment_to_object(uid, comment, author, round(time()))
-            return redirect(url_for('show_analysis', uid=uid))
+    @AppRoute('/comment/<uid>', POST)
+    def post_comment(self, uid):
+        comment = request.form['comment']
+        author = request.form['author']
+        with ConnectTo(FrontendEditingDbInterface, config=self._config) as sc:
+            sc.add_comment_to_object(uid, comment, author, round(time()))
+        return redirect(url_for('show_analysis', uid=uid))
+
+    @roles_accepted(*PRIVILEGES['comment'])
+    @AppRoute('/comment/<uid>', GET)
+    def show_add_comment(self, uid):
         with ConnectTo(FrontEndDbInterface, config=self._config) as sc:
-            if not sc.exists(uid):
-                error = True
+            error = not sc.exists(uid)
         return render_template('add_comment.html', uid=uid, error=error)
 
     @roles_accepted(*PRIVILEGES['delete'])
-    def _app_delete_comment(self, uid, timestamp):
+    @AppRoute('/admin/delete_comment/<uid>/<timestamp>', GET)
+    def delete_comment(self, uid, timestamp):
         with ConnectTo(FrontendEditingDbInterface, config=self._config) as sc:
             sc.delete_comment(uid, timestamp)
         return redirect(url_for('show_analysis', uid=uid))
 
     @roles_accepted(*PRIVILEGES['delete'])
-    def _app_delete_firmware(self, uid):
+    @AppRoute('/admin/delete/<uid>', GET)
+    def delete_firmware(self, uid):
         with ConnectTo(FrontEndDbInterface, config=self._config) as sc:
-            is_firmware = sc.is_firmware(uid)
-        if not is_firmware:
-            return render_template('error.html', message='Firmware not found in database: {}'.format(uid))
+            if not sc.is_firmware(uid):
+                return render_template('error.html', message=f'Firmware not found in database: {uid}')
         with ConnectTo(AdminDbInterface, config=self._config) as sc:
             deleted_virtual_path_entries, deleted_files = sc.delete_firmware(uid)
-        return render_template('delete_firmware.html', deleted_vps=deleted_virtual_path_entries, deleted_files=deleted_files, uid=uid)
+        return render_template(
+            'delete_firmware.html',
+            deleted_vps=deleted_virtual_path_entries,
+            deleted_files=deleted_files,
+            uid=uid
+        )
 
     @roles_accepted(*PRIVILEGES['delete'])
-    def _app_find_missing_analyses(self):
+    @AppRoute('/admin/missing_analyses', GET)
+    def find_missing_analyses(self):
         template_data = {
             'missing_files': self._find_missing_files(),
             'orphaned_files': self._find_orphaned_files(),
@@ -133,14 +140,14 @@ class MiscellaneousRoutes(ComponentBase):
         }
 
     @roles_accepted(*PRIVILEGES['view_logs'])
-    def _app_find_logs(self):
+    @AppRoute('/admin/logs', GET)
+    def show_logs(self):
         with ConnectTo(InterComFrontEndBinding, self._config) as sc:
             backend_logs = '\n'.join(sc.get_backend_logs())
-        frontend_logs = '\n'.join(self.get_frontend_logs())
-
+        frontend_logs = '\n'.join(self._get_frontend_logs())
         return render_template('logs.html', backend_logs=backend_logs, frontend_logs=frontend_logs)
 
-    def get_frontend_logs(self):
+    def _get_frontend_logs(self):
         frontend_logs = Path(get_log_file_for_component('frontend', self._config))
         if frontend_logs.is_file():
             return frontend_logs.read_text().splitlines()[-100:]

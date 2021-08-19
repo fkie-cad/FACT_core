@@ -4,8 +4,6 @@ from test.common_helper import TEST_FW, TEST_FW_2
 from test.unit.web_interface.base import WebInterfaceTest
 from web_interface.components.compare_routes import CompareRoutes, get_comparison_uid_list_from_session
 
-# pylint: disable=protected-access
-
 
 class AppMock:
     def add_url_rule(self, *_, **__):
@@ -70,7 +68,7 @@ class TestAppCompare(WebInterfaceTest):
         with self.frontend.app.test_request_context():
             assert 'uids_for_comparison' not in session
 
-            CompareRoutes._add_to_compare_basket(self.frontend, 'test')
+            CompareRoutes.add_to_compare_basket(self.frontend, 'test')
             assert 'uids_for_comparison' in session
             assert isinstance(session['uids_for_comparison'], list)
             assert 'test' in session['uids_for_comparison']
@@ -83,7 +81,7 @@ class TestAppCompare(WebInterfaceTest):
             assert TEST_FW.uid in session['uids_for_comparison']
             assert TEST_FW_2.uid in session['uids_for_comparison']
 
-            CompareRoutes._remove_from_compare_basket(self.frontend, 'some_uid', TEST_FW.uid)
+            CompareRoutes.remove_from_compare_basket(self.frontend, 'some_uid', TEST_FW.uid)
             assert TEST_FW.uid not in session['uids_for_comparison']
             assert TEST_FW_2.uid in session['uids_for_comparison']
 
@@ -95,7 +93,7 @@ class TestAppCompare(WebInterfaceTest):
             assert TEST_FW.uid in session['uids_for_comparison']
             assert TEST_FW_2.uid in session['uids_for_comparison']
 
-            CompareRoutes._remove_all_from_compare_basket(self.frontend, 'some_uid')
+            CompareRoutes.remove_all_from_compare_basket(self.frontend, 'some_uid')
             assert TEST_FW.uid not in session['uids_for_comparison']
             assert TEST_FW_2.uid not in session['uids_for_comparison']
 
