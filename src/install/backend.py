@@ -72,6 +72,12 @@ def _install_docker_images():
         raise InstallationError(f'Failed to pull extraction container:\n{output}')
 
 
+def install_plugin_docker_images():
+    # Distribution can be None here since it will not be used for installing
+    # docker images
+    _install_plugins(None, skip_docker=False, only_docker=True)
+
+
 def _edit_environment():
     logging.info('set environment variables...')
     for command in ['sudo cp -f fact_env.sh /etc/profile.d/', 'sudo chmod 755 /etc/profile.d/fact_env.sh', '. /etc/profile']:
@@ -91,7 +97,7 @@ def _create_firmware_directory():
         raise InstallationError(f'Failed to create directories for binary storage\n{mkdir_output}\n{chown_output}')
 
 
-def _install_plugins(distribution, skip_docker):
+def _install_plugins(distribution, skip_docker, only_docker=False):
     installer_paths = Path(get_src_dir() + '/plugins/').glob('*/*/install.py')
 
     for install_script in installer_paths:
@@ -102,7 +108,10 @@ def _install_plugins(distribution, skip_docker):
 
         plugin_installer = plugin.Installer(plugin.base_path, distribution, skip_docker=skip_docker)
         logging.info(f'Installing {plugin_name} plugin.')
-        plugin_installer.install()
+        if not only_docker:
+            plugin_installer.install()
+        else:
+            plugin_installer.install_docker()
         logging.info(f'Finished installing {plugin_name} plugin.\n')
 
 
