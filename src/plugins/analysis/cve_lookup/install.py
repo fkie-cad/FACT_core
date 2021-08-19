@@ -23,7 +23,7 @@ base_path = pathlib.Path(__file__).resolve().parent
 
 class CveLookupInstaller(AbstractPluginInstaller):
     def install_files(self):
-        # TODO expose a function in setup_repository to to this directily
+        # FIXME expose a function in setup_repository to to this directily
         # from python instead of executing the script
         os.chdir('internal')
         if not os.access('cve_cpe.db', os.R_OK):
