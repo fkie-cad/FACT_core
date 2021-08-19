@@ -19,17 +19,17 @@ INSTALL_DIR = Path(__file__).parent
 
 
 def main(skip_docker, distribution):
-    apt_packages_path = INSTALL_DIR / "apt-pkgs-backend.txt"
-    dnf_packages_path = INSTALL_DIR / "dnf-pkgs-backend.txt"
+    apt_packages_path = INSTALL_DIR / 'apt-pkgs-backend.txt'
+    dnf_packages_path = INSTALL_DIR / 'dnf-pkgs-backend.txt'
 
-    if distribution != "fedora":
+    if distribution != 'fedora':
         pkgs = read_package_list_from_file(apt_packages_path)
         apt_install_packages(*pkgs)
     else:
         pkgs = read_package_list_from_file(dnf_packages_path)
         dnf_install_packages(*pkgs)
 
-    run_cmd_with_logging("sudo -EH pip3 install -r ./requirements_backend.txt")
+    run_cmd_with_logging('sudo -EH pip3 install -r ./requirements_backend.txt')
 
     # install yara
     _install_yara()

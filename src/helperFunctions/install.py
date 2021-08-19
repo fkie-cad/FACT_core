@@ -260,7 +260,7 @@ def check_distribution():
 
 
 def read_package_list_from_file(path: Path):
-    """
+    '''
     Reads the file at `path` into a list.
     Each line in the file should be either a comment (starts with #) or a
     package name.
@@ -268,12 +268,12 @@ def read_package_list_from_file(path: Path):
 
     :param path: The path to the file.
     :return: A list of package names contained in the file.
-    """
+    '''
     packages = []
     for line_ in path.read_text().splitlines():
-        line = line_.strip(" \t")
+        line = line_.strip(' \t')
         # Skip comments and empty lines
-        if line.startswith("#") or len(line) == 0:
+        if line.startswith('#') or len(line) == 0:
             continue
         packages.append(line)
 
