@@ -51,7 +51,8 @@ class AbstractPluginInstaller:
         build_pkg_path = pathlib.Path('./apt-pkgs-build.txt' if self.distribution != 'fedora' else './dnf-pkgs-build.txt')
         runtime_pkg_path = pathlib.Path('./apt-pkgs-runtime.txt' if self.distribution != 'fedora' else './dnf-pkgs-runtime.txt')
 
-        pkg_list = read_package_list_from_file(build_pkg_path) + read_package_list_from_file(runtime_pkg_path)
+        pkg_list = read_package_list_from_file(build_pkg_path) if build_pkg_path.exists() else [] \
+            + read_package_list_from_file(runtime_pkg_path) if runtime_pkg_path.exists() else []
 
         pgk_mgr_cmd = 'apt install -y' if self.distribution != 'fedora' else 'dnf install -y'
         pkgs_to_install = ' '.join(pkg_list)
