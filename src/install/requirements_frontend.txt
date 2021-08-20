@@ -3,7 +3,6 @@ werkzeug==0.16.1 # Multiple flask plugins break on werkzeug > 0.16.1
 bcrypt
 email-validator
 flask==1.1.2 # FIXME: unpin when flask-restful / flask-restx works with flask 2.0
-Flask-API
 flask-paginate
 flask_restx
 flask_security
