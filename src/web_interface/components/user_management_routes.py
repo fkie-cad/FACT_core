@@ -65,12 +65,11 @@ class UserManagementRoutes(ComponentBase):
         if request.method == 'POST':
             self._change_user_password(user_id)
         available_roles = sorted(ROLES)
-        role_indexes = [available_roles.index(r.name) for r in user.roles if r.name in ROLES]
         return render_template(
             'user_management/edit_user.html',
             available_roles=available_roles,
             user=user,
-            role_indexes=role_indexes,
+            user_id=user_id,
             privileges=PRIVILEGES
         )
 
@@ -88,45 +87,43 @@ class UserManagementRoutes(ComponentBase):
                 flash('password change successful', 'success')
 
     @roles_accepted(*PRIVILEGES['manage_users'])
-    @AppRoute('/admin/edit_user', POST)
-    def ajax_edit_user(self):
-        element_name = request.values['name']
-        if element_name == 'roles':
-            return self._edit_roles()
-        return 'Not found', 400
+    @AppRoute('/admin/edit_user/<user_id>', POST)
+    def ajax_edit_user(self, user_id):
+        if 'input_roles' not in request.form:
+            return 'Bad Request', 400
+        self._edit_roles(user_id)
+        return redirect(url_for('edit_user', user_id=user_id))
 
-    def _edit_roles(self):
-        user_name = request.form['pk']
-        selected_role_indexes = sorted(request.form.getlist('value[]'))
-
+    def _edit_roles(self, user_id):
         try:
-            user = self._user_db_interface.find_user(email=user_name)
+            user = self._user_db_interface.find_user(id=user_id)
         except SQLAlchemyError:
-            return 'Not found', 400
+            flash('Error when trying to change user roles')
+            return
+        if user is None:
+            flash(f'Error: user with id {user_id} not found')
+            return
 
-        added_roles, removed_roles = self._determine_role_changes(user.roles, selected_role_indexes)
+        selected_roles = request.form.getlist('input_roles')
+        added_roles, removed_roles = self._determine_role_changes(user.roles, set(selected_roles))
 
         with self.user_db_session('Error: while changing roles'):
             for role in added_roles:
                 if not self._user_db_interface.role_exists(role):
                     self._user_db_interface.create_role(name=role)
-                    logging.info('Creating user role "{}"'.format(role))
+                    logging.info(f'Creating user role "{role}"')
                 self._user_db_interface.add_role_to_user(user=user, role=role)
 
             for role in removed_roles:
                 self._user_db_interface.remove_role_from_user(user=user, role=role)
 
-        logging.info('Changed roles of user {}: added roles {}, removed roles {}'.format(user_name, added_roles, removed_roles))
-        return 'OK', 200
+        logging.info(f'Changed roles of user {user.email}: added roles {added_roles}, removed roles {removed_roles}')
 
     @staticmethod
-    def _determine_role_changes(user_roles, selected_role_indexes):
-        available_roles = sorted(ROLES)
-        selected_roles = [available_roles[int(i)] for i in selected_role_indexes]
-        current_roles = [r.name for r in user_roles if r.name in ROLES]
-
-        added_roles = [r for r in selected_roles if r not in current_roles]
-        removed_roles = [r for r in current_roles if r not in selected_roles]
+    def _determine_role_changes(user_roles, selected_roles: set):
+        current_roles = {r.name for r in user_roles if r.name in ROLES}
+        added_roles = selected_roles - current_roles
+        removed_roles = current_roles - selected_roles
         return added_roles, removed_roles
 
     @roles_accepted(*PRIVILEGES['manage_users'])
