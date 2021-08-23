@@ -69,7 +69,6 @@ class UserManagementRoutes(ComponentBase):
             'user_management/edit_user.html',
             available_roles=available_roles,
             user=user,
-            user_id=user_id,
             privileges=PRIVILEGES
         )
 

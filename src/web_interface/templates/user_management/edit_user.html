@@ -58,7 +58,7 @@
                     </div>
 
                     <div class="modal-body">
-                        <form action="/admin/edit_user/{{ user_id }}" method="post">
+                        <form action="/admin/edit_user/{{ user.id }}" method="post">
                             <div class="form-group">
                                 {% for role in available_roles %}
                                     <div class="custom-control custom-switch" id="user_roles">
