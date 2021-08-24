@@ -248,7 +248,7 @@ def test_edit_roles(test_client, caplog):
     # user 0 should have roles 0 and 1
     # this request should change the roles to 0 and 2 (add 2 and remove 1)
     with caplog.at_level(logging.INFO):
-        test_client.post('/admin/edit_user/0', follow_redirects=True, data={
+        test_client.post('/admin/user/0', follow_redirects=True, data={
             'input_roles': [roles[0], roles[2]]
         })
         assert 'Creating user role' in caplog.messages[0]
@@ -256,15 +256,15 @@ def test_edit_roles(test_client, caplog):
 
 
 def test_edit_roles__error(test_client):
-    response = test_client.post('/admin/edit_user/0', follow_redirects=True, data={})
-    assert b'Bad Request' in response.data
+    response = test_client.post('/admin/user/0', follow_redirects=True, data={})
+    assert b'unknown request' in response.data
 
 
 def test_edit_roles__unknown_element(test_client):
-    response = test_client.post('/admin/edit_user/9999', follow_redirects=True, data={
+    response = test_client.post('/admin/user/9999', follow_redirects=True, data={
         'input_roles': [roles[0]]
     })
-    assert b'user with id 9999 not found' in response.data
+    assert b'user with ID 9999 not found' in response.data
 
 
 @pytest.mark.parametrize('user_roles, role_indexes, expected_added_roles, expected_removed_roles', [

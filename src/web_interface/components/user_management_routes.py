@@ -24,8 +24,8 @@ class UserManagementRoutes(ComponentBase):
         try:
             yield session
             session.commit()
-        except (SQLAlchemyError, TypeError) as exception:
-            logging.error('error while accessing user db: {}'.format(exception))
+        except (SQLAlchemyError, TypeError):
+            logging.error('error while accessing user db:', exc_info=True)
             session.rollback()
             if error_message:
                 flash(error_message)
@@ -56,14 +56,12 @@ class UserManagementRoutes(ComponentBase):
                 logging.info('Created user: {}'.format(name))
 
     @roles_accepted(*PRIVILEGES['manage_users'])
-    @AppRoute('/admin/user/<user_id>', GET, POST)
-    def edit_user(self, user_id):
+    @AppRoute('/admin/user/<user_id>', GET)
+    def show_user(self, user_id):
         user = self._user_db_interface.find_user(id=user_id)
         if not user:
-            flash('Error: user with ID {} not found'.format(user_id), 'danger')
+            flash(f'Error: user with ID {user_id} not found', 'danger')
             return redirect(url_for('manage_users'))
-        if request.method == 'POST':
-            self._change_user_password(user_id)
         available_roles = sorted(ROLES)
         return render_template(
             'user_management/edit_user.html',
@@ -72,36 +70,34 @@ class UserManagementRoutes(ComponentBase):
             privileges=PRIVILEGES
         )
 
+    @roles_accepted(*PRIVILEGES['manage_users'])
+    @AppRoute('/admin/user/<user_id>', POST)
+    def edit_user(self, user_id):
+        if 'admin_change_password' in request.form:
+            self._change_user_password(user_id)
+        elif 'input_roles' in request.form:
+            self._edit_roles(user_id)
+        else:
+            flash('Error: unknown request', 'danger')
+        return redirect(url_for('show_user', user_id=user_id))
+
     def _change_user_password(self, user_id):
         new_password = request.form['admin_change_password']
         retype_password = request.form['admin_confirm_password']
         if not new_password == retype_password:
-            flash('Error: passwords do not match')
+            flash('Error: passwords do not match', 'danger')
         elif not password_is_legal(new_password):
-            flash('Error: password is not legal. Please choose another password.')
+            flash('Error: password is not legal. Please choose another password.', 'danger')
         else:
             user = self._user_db_interface.find_user(id=user_id)
             with self.user_db_session('Error: could not change password'):
                 self._user_db_interface.change_password(user.email, new_password)
                 flash('password change successful', 'success')
 
-    @roles_accepted(*PRIVILEGES['manage_users'])
-    @AppRoute('/admin/edit_user/<user_id>', POST)
-    def ajax_edit_user(self, user_id):
-        if 'input_roles' not in request.form:
-            return 'Bad Request', 400
-        self._edit_roles(user_id)
-        return redirect(url_for('edit_user', user_id=user_id))
-
     def _edit_roles(self, user_id):
-        try:
-            user = self._user_db_interface.find_user(id=user_id)
-        except SQLAlchemyError:
-            flash('Error when trying to change user roles')
-            return
+        user = self._user_db_interface.find_user(id=user_id)
         if user is None:
-            flash(f'Error: user with id {user_id} not found')
-            return
+            return  # Error will flash from redirect to `show_user`
 
         selected_roles = request.form.getlist('input_roles')
         added_roles, removed_roles = self._determine_role_changes(user.roles, set(selected_roles))

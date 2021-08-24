@@ -36,7 +36,7 @@
                     Roles
                 </th>
                 <td>
-                    <ul class="list-group">
+                    <ul class="list-group list-group-flush">
                         {% for role in user.roles %}
                             <li class="list-group-item">{{ role.name | replace_underscore }}</li>
                         {% endfor %}
@@ -58,7 +58,7 @@
                     </div>
 
                     <div class="modal-body">
-                        <form action="/admin/edit_user/{{ user.id }}" method="post">
+                        <form method="post">
                             <div class="form-group">
                                 {% for role in available_roles %}
                                     <div class="custom-control custom-switch" id="user_roles">
@@ -93,7 +93,7 @@
                             <tr>
                                 <th></th>
                                 {% for role in available_roles | sort_roles %}
-                                    <th>
+                                    <th style="text-align: center;">
                                         {{ role | replace_underscore }}
                                     </th>
                                 {% endfor %}
@@ -102,7 +102,7 @@
                                 <tr>
                                     <th style="text-align: right">{{ privilege | replace_underscore }}</th>
                                     {% for role in available_roles | sort_roles %}
-                                        <td class="align-middle">
+                                        <td class="align-middle" style="text-align: center;">
                                             {% if role in privileges[privilege] %}
                                                 <i class="fas fa-check text-success"></i>
                                             {% else %}
