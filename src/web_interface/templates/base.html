@@ -117,12 +117,13 @@
 
 <body>
 
-<nav role="navigation" class="navbar navbar-expand navbar-light flex-column flex-md-row bg-fact">
+<nav role="navigation" class="navbar navbar-expand-lg navbar-light flex-column flex-md-row bg-fact">
     <button type="button" data-target="#navbarCollapse" data-toggle="collapse" class="navbar-toggler">
         <span class="sr-only">Toggle navigation</span>
         <span class="navbar-toggler-icon"></span>
     </button>
-    <div class="navbar-brand d-none d-md-block ml-3" data-toggle="tooltip" data-placement="bottom" title="Firmware Analysis and Comparison Tool" style="vertical-align: middle;">
+    <div class="navbar-brand d-none d-md-block ml-3" data-toggle="tooltip" data-placement="bottom" data-delay='{"show": 500, "hide": 100}'
+         title="Firmware Analysis and Comparison Tool" style="vertical-align: middle;">
         <span><img height="25px" src="{{ url_for('static', filename='fact_logo_inv.svg') }}"></span>
     </div>
     <div id="navbarCollapse" class="collapse navbar-collapse">
@@ -211,7 +212,7 @@
         </ul>
 
         <!-- Navbar Quick Search Input -->
-        <div id="quick_search_div" class="nav navbar-nav ml-md-auto d-none d-md-block">
+        <div id="quick_search_div" class="nav navbar-nav ml-md-auto d-block">
             <div class="input-group mr-sm-2">
                 <input type="text" class="form-control" placeholder="Quick search name, vendor or hash"
                        id="quick_search_input" onKeyDown="if(event.keyCode==13) quickSearch();"
