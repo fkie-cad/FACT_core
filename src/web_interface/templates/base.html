@@ -33,19 +33,22 @@
     <script type="text/javascript" src="{{ url_for('static', filename='web_js/bootstrap-datepicker.js') }}"></script>
 
     <script>
-            $(document).ready(function(){
-                $('[data-toggle="tooltip"]').tooltip();
-                $(".toggle").click(function(){
-                    $(".expand").toggle();
-                });
+        $(document).ready(function(){
+            $('[data-toggle="tooltip"]').tooltip();
+            $(".toggle").click(function(){
+                $(".expand").toggle();
             });
-            function quickSearch() {
-                let search_input = document.getElementById('quick_search_input').value;
-                window.location = '/database/quick_search?search_term=' + search_input;
-            }
-
-
-
+        });
+        function quickSearch() {
+            let search_input = document.getElementById('quick_search_input').value;
+            window.location = '/database/quick_search?search_term=' + search_input;
+        }
+        function expandQuickSearch() {
+            document.getElementById("quick_search_input").style.width = "300px";
+        }
+        function shrinkQuickSearch() {
+            document.getElementById("quick_search_input").style.width = "112px";
+        }
     </script>
 
     {% block head %}
@@ -108,9 +111,6 @@
                 font-family: 'Courier New', Courier, monospace;
                 font-size: 10px;
             }
-
-
-
     </style>
     {% block styles %}{% endblock %}
 </head>
@@ -122,11 +122,8 @@
         <span class="sr-only">Toggle navigation</span>
         <span class="navbar-toggler-icon"></span>
     </button>
-    <div class="navbar-brand d-none d-md-block mr-0 mr-md-2" style="vertical-align: middle; margin-left: 15px">
+    <div class="navbar-brand d-none d-md-block ml-3" data-toggle="tooltip" data-placement="bottom" title="Firmware Analysis and Comparison Tool" style="vertical-align: middle;">
         <span><img height="25px" src="{{ url_for('static', filename='fact_logo_inv.svg') }}"></span>
-    </div>
-    <div class="navbar-brand d-none d-xl-block" style="vertical-align: middle">
-        Firmware Analysis and Comparison Tool
     </div>
     <div id="navbarCollapse" class="collapse navbar-collapse">
         <!-- Navbar Elements -->
@@ -216,9 +213,10 @@
         <!-- Navbar Quick Search Input -->
         <div id="quick_search_div" class="nav navbar-nav ml-md-auto d-none d-md-block">
             <div class="input-group mr-sm-2">
-                <input type="text" class="form-control" placeholder="Quick search name, vendor and hash values"
+                <input type="text" class="form-control" placeholder="Quick search name, vendor or hash"
                        id="quick_search_input" onKeyDown="if(event.keyCode==13) quickSearch();"
-                       style="margin: 0; background-color: #e7e7e7; border-radius: 0; border-top-left-radius: .25rem; border-bottom-left-radius: .25rem;">
+                       onfocus="expandQuickSearch();" onblur="shrinkQuickSearch();"
+                       style="margin: 0; background-color: #e7e7e7; border-radius: 0; border-top-left-radius: .25rem; border-bottom-left-radius: .25rem; width: 112px; transition: width 0.5s ease-in-out;">
                 <div class="input-group-append">
                     <button class="btn btn-secondary" type="button" onclick="quickSearch()">
                         <i class="fas fa-search"></i>
