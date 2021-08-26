@@ -1,0 +1,16 @@
+/home/user/test/urandom
+/home/user/urandom
+/home/user/test/urandom_sehr_sehr_sehr-lang.txt
+/proc/athversion
+/proc/simple_config/simple_config_led
+/sys/class/net/%s/brport/bridge
+/sys/class/net/%s/phy80211
+/sys/class/net/%s/phy80211/name
+/var/log/%s.log
+/var/tmp/me_
+/dev/urandom.
+/proc/ath_pktlog/%s
+/proc/ath_pktlog/system
+/proc/sys/ath_pktlog/%s/enable
+/var/log/%s.log
+/usr/lua
