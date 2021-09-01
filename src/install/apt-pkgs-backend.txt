@@ -1,6 +1,5 @@
 libjpeg-dev
 libssl-dev
-python3-tk
 
 # checksec dependencies
 binutils
