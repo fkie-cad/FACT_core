@@ -15,7 +15,7 @@ fi
 
 sudo -EH pip3 install matplotlib cstruct==1.0 capstone || exit 1
 
-git clone -b fix-entropy-graph-legend --single-branch https://github.com/jstucke/binwalk.git
+git clone --single-branch https://github.com/ReFirmLabs/binwalk.git
 (
     cd binwalk
     python3 setup.py build
