@@ -1,6 +1,5 @@
 libjpeg-devel
 openssl-devel
-python3-tkinter
 
 # checksec dependencies
 binutils
