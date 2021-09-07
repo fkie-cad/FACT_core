@@ -204,6 +204,7 @@ class InterComBackEndDeleteFile(InterComListener):
         if self._entry_was_removed_from_db(task['_id']):
             logging.info('remove file: {}'.format(task['_id']))
             self.fs_organizer.delete_file(task['_id'])
+        return task
 
     def _entry_was_removed_from_db(self, uid):
         with ConnectTo(MongoInterfaceCommon, self.config) as db:
