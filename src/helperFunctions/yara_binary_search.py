@@ -115,12 +115,12 @@ def get_yara_error(rules_file: Union[str, bytes]) -> Optional[Exception]:
     :param rules_file: A string containing yara rules.
     :result: The exception if compiling the rules causes an exception or ``None`` otherwise.
     '''
-    if isinstance(rules_file, bytes):
-        rules_file = rules_file.decode()
     try:
+        if isinstance(rules_file, bytes):
+            rules_file = rules_file.decode()
         yara.compile(source=rules_file)
         return None
-    except (yara.Error, TypeError) as error:
+    except (yara.Error, TypeError, UnicodeDecodeError) as error:
         return error
 
 
