@@ -24,9 +24,9 @@ class YaraBasePlugin(AnalysisBasePlugin):
         self.config = config
         self.signature_path = self._get_signature_file(plugin_path) if plugin_path else None
         if self.signature_path and not Path(self.signature_path).exists():
-            logging.error('Signature file {} not found. Did you run "compile_yara_signatures.py"?'.format(self.signature_path))
+            logging.error(f'Signature file {self.signature_path} not found. Did you run "compile_yara_signatures.py"?')
             raise PluginInitException(plugin=self)
-        self.SYSTEM_VERSION = self.get_yara_system_version()
+        self.SYSTEM_VERSION = self.get_yara_system_version()  # pylint: disable=invalid-name
         super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=plugin_path)
 
     def get_yara_system_version(self):
@@ -34,13 +34,15 @@ class YaraBasePlugin(AnalysisBasePlugin):
             yara_version = process.stdout.readline().decode().strip()
 
         access_time = int(Path(self.signature_path).stat().st_mtime)
-        return '{}_{}'.format(yara_version, access_time)
+        return f'{yara_version}_{access_time}'
 
     def process_object(self, file_object):
         if self.signature_path is not None:
-            command = 'yara --print-meta --print-strings {} {}'.format(self.signature_path, file_object.file_path)
+            compiled_flag = '-C' if Path(self.signature_path).read_bytes().startswith(b"YARA") else ''
+            command = f'yara {compiled_flag} --print-meta --print-strings {self.signature_path} {file_object.file_path}'
             with subprocess.Popen(command, shell=True, stdout=subprocess.PIPE) as process:
                 output = process.stdout.read().decode()
+            print(f"\n\ncommand: {command}")
             try:
                 result = self._parse_yara_output(output)
                 file_object.processed_analysis[self.NAME] = result
@@ -110,5 +112,5 @@ def _parse_meta_data(meta_data_string):
             value = json.loads(value) if value in ['true', 'false'] else value.strip('"')
             meta_data[key] = value
         else:
-            logging.warning('Malformed meta string \'{}\''.format(meta_data_string))
+            logging.warning(f'Malformed meta string \'{meta_data_string}\'')
     return meta_data

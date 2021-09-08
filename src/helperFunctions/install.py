@@ -143,18 +143,6 @@ def check_if_command_in_path(command: str) -> bool:
     return True
 
 
-def check_string_in_command_output(command: str, target_string: str) -> bool:
-    '''
-    Execute command and test if string is contained in its output (i.e. stdout).
-
-    :param command: Command to execute.
-    :param target_string: String to match on output.
-    :return: `True` if string was found and return code was 0, else `False`.
-    '''
-    output, return_code = execute_shell_command_get_return_code(command)
-    return return_code == 0 and target_string in output
-
-
 def install_github_project(project_path: str, commands: List[str]):
     '''
     Install github project by cloning it, running a set of commands and removing the cloned files afterwards.
