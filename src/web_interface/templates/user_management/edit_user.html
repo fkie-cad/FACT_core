@@ -3,42 +3,6 @@
 {% set active_page = "Admin" %}
 
 
-{% block styles %}
-<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bootstrap3-editable/css/bootstrap-editable.css') }}">
-<script type="text/javascript" src="{{ url_for('static', filename='bootstrap3-editable/js/bootstrap-editable.min.js') }}"></script>
-
-<style>
-    .glyphicon-ok:before {
-        content: "\2714";
-    }
-    .glyphicon-remove:before {
-        content: "\2718";
-    }
-    .glyphicon {
-        display: inline-block;
-        font-size: inherit;
-        text-rendering: auto;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-    }
-</style>
-
-<script>
-    $.fn.editable.defaults.mode = 'inline';
-    $(document).ready(function() {
-        $('#roles').editable({
-            value: {{ role_indexes }},
-            source: [
-                {% for r in available_roles %}
-                    {value: {{ available_roles.index(r) }}, text: '{{ r | replace_underscore }}'},
-                {% endfor %}
-            ]
-        });
-    });
-</script>
-{% endblock %}
-
-
 {% block body %}
 
 <div class="row justify-content-center">
@@ -72,16 +36,53 @@
                     Roles
                 </th>
                 <td>
-                    <a href="#" id="roles" data-type="checklist" data-pk="{{ user.email }}" data-url="/admin/edit_user" data-title="Select User Groups"></a>
+                    <ul class="list-group list-group-flush">
+                        {% for role in user.roles %}
+                            <li class="list-group-item">{{ role.name | replace_underscore }}</li>
+                        {% endfor %}
+                    </ul>
+                    <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#change_user_roles_modal" style="width: 100%">
+                        Edit Roles
+                    </button>
                 </td>
             </tr>
         </table>
 
-        <!-- role help -->
-        <div id="user_role_help_modal" class="modal" role="dialog" data-backdrop="false">
+        <!-- change user roles modal -->
+        <div id="change_user_roles_modal" class="modal fade" role="dialog">
             <div class="modal-dialog">
                 <div class="modal-content">
+                    <div class="modal-header d-flex justify-content-between align-items-center">
+                        <h5 class="modal-title">Select User roles</h5>
+                        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
+                    </div>
 
+                    <div class="modal-body">
+                        <form method="post">
+                            <div class="form-group">
+                                {% for role in available_roles %}
+                                    <div class="custom-control custom-switch" id="user_roles">
+                                        <input type="checkbox" class="custom-control-input" id="{{ role }}" value="{{ role }}" name="input_roles"
+                                               {% if role in user.roles %} checked {% endif %}>
+                                        <label class="custom-control-label" for="{{ role }}">{{ role | replace_underscore }}</label>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            <button class="btn btn-primary btn-sm" type="submit" style="width: 100%" id="input_roles" value=submit>
+                                Submit
+                            </button>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+
+        <!-- role help -->
+        <div id="user_role_help_modal" class="modal" role="dialog" data-backdrop="false">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
                     <div class="modal-header d-flex justify-content-between align-items-center">
                         <h5 class="modal-title">User roles</h5>
                         <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
@@ -92,7 +93,7 @@
                             <tr>
                                 <th></th>
                                 {% for role in available_roles | sort_roles %}
-                                    <th>
+                                    <th style="text-align: center;">
                                         {{ role | replace_underscore }}
                                     </th>
                                 {% endfor %}
@@ -101,7 +102,7 @@
                                 <tr>
                                     <th style="text-align: right">{{ privilege | replace_underscore }}</th>
                                     {% for role in available_roles | sort_roles %}
-                                        <td class="align-middle">
+                                        <td class="align-middle" style="text-align: center;">
                                             {% if role in privileges[privilege] %}
                                                 <i class="fas fa-check text-success"></i>
                                             {% else %}

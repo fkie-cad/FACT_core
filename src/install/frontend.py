@@ -138,15 +138,6 @@ def _install_css_and_js_files():
                 ]
             )
 
-        if not Path('bootstrap3-editable').exists():
-            wget_static_web_content(
-                'https://vitalets.github.io/x-editable/assets/zip/bootstrap3-editable-1.5.1.zip',
-                '.',
-                ['unzip -o bootstrap3-editable-1.5.1.zip',
-                 'rm bootstrap3-editable-1.5.1.zip CHANGELOG.txt LICENSE-MIT README.md',
-                 'rm -rf inputs-ext'],
-                'x-editable')
-
 
 def _install_docker_images(radare):
     if radare:
