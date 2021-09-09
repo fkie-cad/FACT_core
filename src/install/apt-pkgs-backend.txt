@@ -1,0 +1,11 @@
+libjpeg-dev
+libssl-dev
+
+# checksec dependencies
+binutils
+file
+openssl
+
+# Yara dependencies
+bison
+flex
