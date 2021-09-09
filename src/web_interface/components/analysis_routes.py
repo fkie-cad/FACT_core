@@ -1,5 +1,4 @@
 import json
-import logging
 import os
 from typing import Dict, Union
 
@@ -177,7 +176,6 @@ class AnalysisRoutes(ComponentBase):
                 olf_fw_obj = db.get_firmware(uid)
         fw = convert_analysis_task_to_fw_obj(analysis_task, base_fw=olf_fw_obj)
         with ConnectTo(InterComFrontEndBinding, self._config) as sc:
-            logging.warning(f"unpack=re_do: {re_do}")
             sc.add_re_analyze_task(fw, unpack=re_do)
 
     @roles_accepted(*PRIVILEGES['delete'])
