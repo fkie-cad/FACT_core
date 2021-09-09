@@ -7,7 +7,7 @@ import requests
 from common_helper_process import execute_shell_command_get_return_code
 
 from helperFunctions.install import (
-    InstallationError, OperateInDirectory, apt_install_packages, load_main_config, pip3_install_packages, remove_folder
+    InstallationError, OperateInDirectory, apt_install_packages, load_main_config, remove_folder, run_cmd_with_logging
 )
 
 DEFAULT_CERT = '.\n.\n.\n.\n.\nexample.com\n.\n\n\n'
@@ -60,6 +60,7 @@ def _create_directory_for_authentication():  # pylint: disable=invalid-name
 
     config = load_main_config()
     dburi = config.get('data_storage', 'user_database')
+    # pylint: disable=fixme
     factauthdir = '/'.join(dburi.split('/')[:-1])[10:]  # FIXME this should be beautified with pathlib
 
     mkdir_output, mkdir_code = execute_shell_command_get_return_code('sudo mkdir -p --mode=0744 {}'.format(factauthdir))
@@ -137,47 +138,13 @@ def _install_css_and_js_files():
                 ]
             )
 
-        if not Path('bootstrap3-editable').exists():
-            wget_static_web_content(
-                'https://vitalets.github.io/x-editable/assets/zip/bootstrap3-editable-1.5.1.zip',
-                '.',
-                ['unzip -o bootstrap3-editable-1.5.1.zip',
-                 'rm bootstrap3-editable-1.5.1.zip CHANGELOG.txt LICENSE-MIT README.md',
-                 'rm -rf inputs-ext'],
-                'x-editable')
 
-
-def main(radare, nginx):
-    pip3_install_packages('werkzeug==0.16.1')  # Multiple flask plugins break on werkzeug > 0.16.1
-    pip3_install_packages(
-        'flask',
-        'flask_restful',
-        'flask_security',
-        'flask_sqlalchemy',
-        'flask-paginate',
-        'Flask-API',
-        'uwsgi',
-        'bcrypt',
-        'python-dateutil',
-        'si-prefix',
-        '"sqlalchemy>=1.2,<1.4"',  # FIXME: unpin when flask_sqlalchemy works with sqlalchemy >= 1.4
-        'email-validator',
-        'matplotlib'
-    )
-
-    # installing web/js-frameworks
-    _install_css_and_js_files()
-
-    # create user database
-    _create_directory_for_authentication()
-
-    if nginx:
-        _install_nginx()
-
+def _install_docker_images(radare):
     if radare:
         logging.info('Initializing docker container for radare')
 
         execute_shell_command_get_return_code('virtualenv {}'.format(COMPOSE_VENV))
+        # We use the pip from the Venv for docker-compose
         output, return_code = execute_shell_command_get_return_code('{} install -U docker-compose'.format(COMPOSE_VENV / 'bin' / 'pip'))
         if return_code != 0:
             raise InstallationError('Failed to set up virtualenv for docker-compose\n{}'.format(output))
@@ -192,6 +159,22 @@ def main(radare, nginx):
     output, return_code = execute_shell_command_get_return_code('docker pull fkiecad/fact_pdf_report')
     if return_code != 0:
         raise InstallationError('Failed to pull pdf report container:\n{}'.format(output))
+
+
+def main(skip_docker, radare, nginx):
+    run_cmd_with_logging("sudo -EH pip3 install -r ./requirements_frontend.txt")
+
+    # installing web/js-frameworks
+    _install_css_and_js_files()
+
+    # create user database
+    _create_directory_for_authentication()
+
+    if nginx:
+        _install_nginx()
+
+    if not skip_docker:
+        _install_docker_images(radare)
 
     with OperateInDirectory('../../'):
         with suppress(FileNotFoundError):

@@ -16,4 +16,4 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-__VERSION__ = '3.2-dev'
+__VERSION__ = '3.3-dev'

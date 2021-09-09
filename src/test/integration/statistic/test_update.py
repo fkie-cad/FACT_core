@@ -41,6 +41,12 @@ class TestStatistic(TestStatisticBase):
         result = self.frontend_db_interface.get_statistic('test')
         self.assertEqual(result['test1'], 2, 'result not correct')
 
+    def test_update_and_get_statistics(self):
+        self.updater.db.update_statistic('stat_1', {'foo': 1})
+        self.updater.db.update_statistic('stat_2', {'foo': 2})
+        result = self.frontend_db_interface.get_stats_list('stat_1', 'stat_2')
+        assert all(any(e['_id'] == k for e in result) for k in ['stat_1', 'stat_2'])
+
     def test_get_general_stats(self):
         result = self.updater.get_general_stats()
         self.assertEqual(result['number_of_firmwares'], 0, 'number of firmwares not correct')

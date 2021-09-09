@@ -1,0 +1,15 @@
+werkzeug==0.16.1 # Multiple flask plugins break on werkzeug > 0.16.1
+
+bcrypt
+email-validator
+flask==1.1.2 # FIXME: unpin when flask-restful / flask-restx works with flask 2.0
+flask-paginate
+flask_restx
+flask_security
+flask_sqlalchemy
+itsdangerous==1.1.0 # FIXME: remove pin when not needed anymore (used by flask_security)
+matplotlib
+python-dateutil
+si-prefix
+sqlalchemy>=1.2,<1.4 # FIXME: unpin when flask_sqlalchemy works with sqlalchemy >= 1.4
+uwsgi

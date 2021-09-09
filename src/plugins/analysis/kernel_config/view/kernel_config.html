@@ -1,0 +1,80 @@
+{% extends "analysis_plugins/general_information.html" %}
+
+{% block analysis_result_details %}
+
+    {% if 'kernel_config' in firmware.processed_analysis[selected_analysis] | sort %}
+        <tr>
+            <td>Kernel Config</td>
+            <td><pre class="border rounded p-2 bg-light" style="white-space: pre-wrap; height: 450px; overflow: scroll;"><code>{{ firmware.processed_analysis[selected_analysis]['kernel_config'] | safe }}</code></pre></td>
+        </tr>
+
+        {# checksec kernel check result #}
+        {% if 'checksec' in firmware.processed_analysis[selected_analysis] and firmware.processed_analysis[selected_analysis]['checksec'] != {} %}
+            <tr>
+                <td>Exploit Mitigations</td>
+                <td style="padding: 0">
+                    <table style="width: 100%">
+                        {% for category, checksec_data in firmware.processed_analysis[selected_analysis]['checksec'].items() %}
+                            <tr>
+                                <td>{{ category }}</td>
+                                <td style="padding: 0">
+                                    <table style="width: 100%">
+                                        {% for key, value in checksec_data.items() %}
+                                        <tr>
+                                            <td style="width: 33%">{{ key }}</td>
+                                            <td>{{ value }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </table>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+                </td>
+            </tr>
+        {% endif %}
+
+        {# kconfig-hardened-check result #}
+        {% if 'hardening' in firmware.processed_analysis[selected_analysis] and firmware.processed_analysis[selected_analysis]['hardening'] != [] %}
+            <tr>
+                <td>Hardening Check</td>
+                <td style="padding: 0">
+                    <table style="width: 100%">
+                        <tr>
+                            <td class="table-head-light">Config Item</td>
+                            <td class="table-head-light">Check Result</td>
+                            <td class="table-head-light">Desired Value</td>
+                            <td class="table-head-light">Reasoning</td>
+                            <td class="table-head-light">Relates to</td>
+                        </tr>
+                        {% for option_name, desired_value, _, reason, check_result, actual_value, vulnerabilities in firmware.processed_analysis[selected_analysis]['hardening'] %}
+                        {# option_name, desired_value, _, reason, check_result, actual_value, vulnerabilities  #}
+                            <tr>
+                                <td>
+                                    <a href="https://www.kernelconfig.io/search?q={{ option_name }}">
+                                        {{ option_name }}
+                                    </a>
+                                </td>
+                                {% set cell_class = 'table-success' if 'OK' in check_result else 'table-danger' if 'FAIL' in check_result else '' %}
+                                <td class="{{ cell_class }}">{{ check_result }}</td>
+                                <td>{{ desired_value }}</td>
+                                <td>{{ reason | replace_underscore }}</td>
+                                <td>
+                                    {% if vulnerabilities %}
+                                        <ul style="margin-bottom: 0;">
+                                            {% for item in vulnerabilities %}
+                                                <li>{{ item | link_cve | link_cwe | safe }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+                </td>
+            </tr>
+        {% endif %}
+
+    {% endif %}
+
+{% endblock %}

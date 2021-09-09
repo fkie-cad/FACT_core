@@ -35,8 +35,9 @@ It is possible to install FACT on any Linux distribution, but the installer is l
 :exclamation: **Caution: FACT is not intended to be used as public internet service. The GUI is not a hardened WEB-application and it may take your server at risk!**
 
 ## Installation
+FACT can be installed and run via docker. See the [FACT_docker](https://github.com/fkie-cad/FACT_docker) repo for more.
 
-The installation is generally wrapped in a single script. Some features can be selected specifically though.
+The traditional installation is generally wrapped in a single script. Some features can be selected specifically though.
 See [INSTALL.md](https://github.com/fkie-cad/FACT_core/blob/master/INSTALL.md) for details.
 
 ## Usage

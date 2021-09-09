@@ -13,6 +13,13 @@ ELF_MIME_TYPES = ['application/x-executable', 'application/x-object', 'applicati
 
 
 def get_hash(hash_function, binary):
+    '''
+    Hashes binary with hash_function.
+
+    :param hash_function: The hash function to use. See hashlib for more
+    :param binary: The data to hash, either as string or array of Integers
+    :return: The hash as hexstring
+    '''
     binary = make_bytes(binary)
     raw_hash = new(hash_function)
     raw_hash.update(binary)
@@ -48,6 +55,14 @@ def get_tlsh_comparison(first, second):
 
 
 def get_imphash(file_object):
+    '''
+    Generates and returns the md5 hash of the imported functions of an ELF file
+    represented by `file_object`.
+    The imports are sorted before the hex is generated so the order of imports
+    does not matter.
+
+    :param file_object: The FileObject of which the imphash shall be computed
+    '''
     if _is_elf_file(file_object):
         try:
             with _suppress_stdout():
@@ -63,9 +78,10 @@ def _is_elf_file(file_object):
 
 
 def normalize_lief_items(functions):
-    if functions and not isinstance(functions[0], str):
-        return [str(function) for function in functions]
-    return list(functions)
+    '''
+    Shorthand to convert a list of objects to a list of strings
+    '''
+    return [str(function) for function in functions]
 
 
 class _StandardOutWriter:

@@ -43,6 +43,7 @@ class MongoMgr:
             self.check_file_and_directory_existence_and_permissions()
             auth_option = '--auth ' if _authenticate else ''
             command = 'mongod {}--config {} --fork --logpath {}'.format(auth_option, self.config_path, self.mongo_log_path)
+            logging.info(f'Starting DB: {command}')
             output = execute_shell_command(command)
             logging.debug(output)
         else:

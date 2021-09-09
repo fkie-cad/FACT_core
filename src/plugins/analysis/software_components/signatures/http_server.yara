@@ -24,6 +24,19 @@ rule GoAhead
 		$a and no_text_file
 }
 
+rule mini_httpd
+{
+	meta:
+		software_name = "mini_httpd"
+		open_source = true
+		website = "https://acme.com"
+		description = "small HTTP server"
+	strings:
+		$a = /mini_httpd\/\d\.\d+ \d{2}[a-z]{3}\d{4}/ ascii wide
+	condition:
+		$a and no_text_file
+}
+
 rule nginx
 {
 	meta:

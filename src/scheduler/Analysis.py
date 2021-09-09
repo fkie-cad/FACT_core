@@ -15,7 +15,6 @@ from helperFunctions.logging import TerminalColors, color_string
 from helperFunctions.merge_generators import shuffled
 from helperFunctions.plugin import import_plugins
 from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions
-from helperFunctions.tag import add_tags_to_object, check_tags
 from objects.file import FileObject
 from objects.firmware import Firmware
 from storage.db_interface_backend import BackEndDbInterface
@@ -23,7 +22,7 @@ from storage.db_interface_backend import BackEndDbInterface
 MANDATORY_PLUGINS = ['file_type', 'file_hashes']
 
 
-RECENTLY_FINISHED_DISPLAY_TIME_IN_SEC = 60
+RECENTLY_FINISHED_DISPLAY_TIME_IN_SEC = 300
 
 
 class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
@@ -37,7 +36,6 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         self.load_plugins()
         self.stop_condition = Value('i', 0)
         self.process_queue = Queue()
-        self.tag_queue = Queue()
         self.manager = Manager()
         self.currently_running = self.manager.dict()
         self.recently_finished = self.manager.dict()
@@ -64,7 +62,6 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
                 executor.submit(self.analysis_plugins[plugin].shutdown)
         if getattr(self.db_backend_service, 'shutdown', False):
             self.db_backend_service.shutdown()
-        self.tag_queue.close()
         self.process_queue.close()
         logging.info('Analysis System offline')
 
@@ -196,6 +193,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
                 'analyzed_count': stats_dict['analyzed_files_count'],
                 'start_time': stats_dict['start_time'],
                 'total_count': stats_dict['total_files_count'],
+                'hid': stats_dict['hid'],
             }
             for uid, stats_dict in self.currently_running.items()
         }
@@ -209,8 +207,16 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
     def load_plugins(self):
         source = import_plugins('analysis.plugins', 'plugins/analysis')
         for plugin_name in source.list_plugins():
-            plugin = source.load_plugin(plugin_name)
-            plugin.AnalysisPlugin(self, config=self.config)
+            try:
+                plugin = source.load_plugin(plugin_name)
+            except Exception:
+                # This exception could be caused by upgrading dependencies to
+                # incopmatible versions.
+                # Another cause could be missing dependencies.
+                # So if anything goes wrong we want to inform the user about it
+                logging.error(f'Could not import plugin {plugin_name} due to exception', exc_info=True)
+            else:
+                plugin.AnalysisPlugin(self, config=self.config)
 
     def start_scheduling_process(self):
         logging.debug('Starting scheduler...')
@@ -366,7 +372,6 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             for plugin in self.analysis_plugins:
                 try:
                     fw = self.analysis_plugins[plugin].out_queue.get_nowait()
-                    fw = self._handle_analysis_tags(fw, plugin)
                 except Empty:
                     pass
                 else:
@@ -379,10 +384,6 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
                     self.check_further_process_or_complete(fw)
             if nop:
                 sleep(float(self.config['ExpertSettings']['block_delay']))
-
-    def _handle_analysis_tags(self, fw, plugin):
-        self.tag_queue.put(check_tags(fw, plugin))
-        return add_tags_to_object(fw, plugin)
 
     def check_further_process_or_complete(self, fw_object):
         if not fw_object.scheduled_analysis:
@@ -450,7 +451,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             self.currently_running[parent] = updated_dict
 
     @staticmethod
-    def _init_current_analysis(fw_object):
+    def _init_current_analysis(fw_object: Firmware):
         return {
             'files_to_unpack': list(fw_object.files_included),
             'files_to_analyze': [fw_object.uid],
@@ -458,6 +459,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             'unpacked_files_count': 1,
             'analyzed_files_count': 0,
             'total_files_count': 1 + len(fw_object.files_included),
+            'hid': fw_object.get_hid(),
         }
 
     def _remove_from_current_analyses(self, fw_object: Union[Firmware, FileObject]):
@@ -485,6 +487,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             'duration': time() - analysis_data['start_time'],
             'total_files_count': analysis_data['total_files_count'],
             'time_finished': time(),
+            'hid': analysis_data['hid'],
         }
 
     def _find_currently_analyzed_parents(self, fw_object: Union[Firmware, FileObject]) -> Set[str]:

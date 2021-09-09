@@ -1,5 +1,7 @@
 import logging
-import sys
+from typing import List
+
+from pymongo.errors import PyMongoError
 
 from storage.mongo_interface import MongoInterface
 
@@ -33,8 +35,8 @@ class StatisticDbUpdater(StatisticDb):
             self.statistic.delete_many({'_id': identifier})
             content_dict['_id'] = identifier
             self.statistic.insert_one(content_dict)
-        except Exception as e:
-            logging.error("Could not store statistic {}: {} - {}".format(identifier, sys.exc_info()[0].__name__, e))
+        except PyMongoError as err:
+            logging.error(f"Could not store statistic {identifier} ({err})", exc_info=True)
 
 
 class StatisticDbViewer(StatisticDb):
@@ -46,3 +48,6 @@ class StatisticDbViewer(StatisticDb):
 
     def get_statistic(self, identifier):
         return self.statistic.find_one({'_id': identifier})
+
+    def get_stats_list(self, *identifiers: str) -> List[dict]:
+        return list(self.statistic.find({'_id': {'$in': identifiers}}))

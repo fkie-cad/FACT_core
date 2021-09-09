@@ -67,6 +67,7 @@ autodoc_mock_imports = [
     'lief',
     'matplotlib',
     'passlib',
+    'pluginbase',
     'psutil',
     'pymongo',
     'requests',

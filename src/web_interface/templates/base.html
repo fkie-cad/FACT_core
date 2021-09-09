@@ -160,6 +160,7 @@
                         Statistics</a>
                     <a class="dropdown-item" href="/system_health" style="font-size: 14px"><i
                             class="fas fa-heartbeat"></i> System</a>
+                    <a class="dropdown-item" href="/doc" style="font-size: 14px"><i class="fas fa-terminal"></i> Rest API</a>
                     <a class="dropdown-item" href="/about" style="font-size: 14px"><i class="fas fa-beer"></i> About</a>
                 </div>
             </li>
@@ -169,19 +170,21 @@
                     data-toggle="modal" data-target="#feedbackModal" href="#"> <i class="fas fa-bullhorn"></i> Feedback </a>
             </li>
             {% elif caption == "Admin" %}
-            {% if current_user | user_has_role('manage_users') %}
             <li class="dropdown pr-3">
                 <a {% if caption== active_page %}style="color: #fff; font-weight: 500;" {% endif %}
                    class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="fas fa-user-shield"></i>&nbsp;{{
                     caption }}<span class="caret"></span></a>
                 <div class="dropdown-menu">
-                    <a class="dropdown-item" href="/admin/manage_users" style="font-size: 14px"><i
-                            class="fas fa-users-cog"></i> Manage Users</a>
+                    {% if current_user | user_has_role('manage_users') %}
+                        <a class="dropdown-item" href="/admin/manage_users" style="font-size: 14px"><i
+                                class="fas fa-users-cog"></i> Manage Users</a>
+                    {% endif %}
                     <a class="dropdown-item" href="/admin/missing_analyses" style="font-size: 14px"><i
                             class="fas fa-search"></i> Find Missing Analyses</a>
+                    <a class="dropdown-item" href="/admin/logs" style="font-size: 14px"><i
+                            class="fas fa-exclamation-circle"></i> Logs</a>
                 </div>
             </li>
-            {% endif %}
             {% elif caption == "Login" %}
             {% if current_user.is_authenticated %}
             <li class="dropdown pr-3">

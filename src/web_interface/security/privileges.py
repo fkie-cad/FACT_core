@@ -12,7 +12,8 @@ PRIVILEGES = {
     'download': ['superuser', 'senior_analyst'],
     'delete': ['superuser'],
     'manage_users': ['superuser'],
-    'view_profile': ['superuser', 'senior_analyst', 'analyst']
+    'view_profile': ['superuser', 'senior_analyst', 'analyst'],
+    'view_logs': ['superuser']
 }
 
 for privilege in PRIVILEGES:

@@ -58,6 +58,11 @@ $ src/install.py
 
 More advanced setup options can be viewed using the help function of the installer `$ src/install.py --help` and are explained in some detailed in the following paragraphs.
 
+If the environment variable `FACT_INSTALLER_SKIP_DOCKER` is set the installer
+will skip all pulling/building of docker images.
+This is primarily used for the docker container of FACT but can also be used to
+save some time when you already have the images.
+
 ## Multi system setup (**--backend**, **--frontend**, **--db**)
 
 The three components db, backend and frontend can be installed independently to create a distributed installation.

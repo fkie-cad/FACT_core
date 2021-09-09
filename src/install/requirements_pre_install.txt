@@ -1,0 +1,9 @@
+virtualenv
+
+# Python Libraries for python based installation
+distro
+python-magic
+requests
+
+git+https://github.com/fkie-cad/common_helper_files.git
+git+https://github.com/fkie-cad/common_helper_process.git

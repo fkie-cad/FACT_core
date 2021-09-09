@@ -1,0 +1,13 @@
+# dependencies
+cryptography
+docker
+matplotlib
+networkx
+Pillow
+pluginbase
+pyopenssl
+
+# installing common code modules
+git+https://github.com/fkie-cad/common_helper_yara.git
+git+https://github.com/mass-project/common_analysis_base.git
+

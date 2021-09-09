@@ -1,12 +1,14 @@
 import logging
 import pickle
 from multiprocessing import Process, Value
+from pathlib import Path
 from time import sleep
 from typing import Callable, Optional, Type
 
 from common_helper_mongo.gridfs import overwrite_file
 
 from helperFunctions.database import ConnectTo
+from helperFunctions.program_setup import get_log_file_for_component
 from helperFunctions.yara_binary_search import YaraBinarySearchScanner
 from intercom.common_mongo_binding import InterComListener, InterComListenerAndResponder, InterComMongoInterface
 from storage.binary_service import BinaryService
@@ -43,6 +45,7 @@ class InterComBackEndBinding:
         self.start_update_listener()
         self.start_delete_file_listener()
         self.start_single_analysis_listener()
+        self.start_logs_listener()
 
     def shutdown(self):
         self.stop_condition.value = 1
@@ -93,6 +96,9 @@ class InterComBackEndBinding:
                 do_after_function(task)
         interface.shutdown()
         logging.debug('{} listener stopped'.format(listener.__name__))
+
+    def start_logs_listener(self):
+        self._start_listener(InterComBackEndLogsTask)
 
 
 class InterComBackEndAnalysisPlugInsPublisher(InterComMongoInterface):
@@ -198,13 +204,26 @@ class InterComBackEndDeleteFile(InterComListener):
         if self._entry_was_removed_from_db(task['_id']):
             logging.info('remove file: {}'.format(task['_id']))
             self.fs_organizer.delete_file(task['_id'])
+        return task
 
     def _entry_was_removed_from_db(self, uid):
         with ConnectTo(MongoInterfaceCommon, self.config) as db:
-            if db.existence_quick_check(uid):
+            if db.exists(uid):
                 logging.debug('file not removed, because database entry exists: {}'.format(uid))
                 return False
             if db.check_unpacking_lock(uid):
                 logging.debug('file not removed, because it is processed by unpacker: {}'.format(uid))
                 return False
         return True
+
+
+class InterComBackEndLogsTask(InterComListenerAndResponder):
+
+    CONNECTION_TYPE = 'logs_task'
+    OUTGOING_CONNECTION_TYPE = 'logs_task_resp'
+
+    def get_response(self, task):
+        backend_logs = Path(get_log_file_for_component('backend', self.config))
+        if backend_logs.is_file():
+            return backend_logs.read_text().splitlines()[-100:]
+        return []

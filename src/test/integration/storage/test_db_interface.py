@@ -1,3 +1,4 @@
+# pylint: disable=protected-access,attribute-defined-outside-init,wrong-import-order
 import gc
 import json
 import pickle
@@ -13,14 +14,14 @@ from storage.db_interface_common import MongoInterfaceCommon
 from storage.MongoMgr import MongoMgr
 from test.common_helper import create_test_file_object, create_test_firmware, get_config_for_testing, get_test_data_dir
 
-# pylint: disable=protected-access,attribute-defined-outside-init
-
 TESTS_DIR = get_test_data_dir()
 test_file_one = path.join(TESTS_DIR, 'get_files_test/testfile1')
 TMP_DIR = TemporaryDirectory(prefix='fact_test_')
 
 
 class TestMongoInterface(unittest.TestCase):
+
+    mongo_server = None
 
     @classmethod
     def setUpClass(cls):
@@ -64,18 +65,14 @@ class TestMongoInterface(unittest.TestCase):
         TMP_DIR.cleanup()
 
     def _get_all_firmware_uids(self):
-        uid_list = []
-        tmp = self.db_interface.firmwares.find()
-        for item in tmp:
-            uid_list.append(item['_id'])
-        return uid_list
+        return [item['_id'] for item in self.db_interface.firmwares.find()]
 
-    def test_existence_quick_check(self):
-        self.assertFalse(self.db_interface.existence_quick_check('none_existing'), 'none existing firmware found')
+    def test_exists(self):
+        self.assertFalse(self.db_interface.exists('none_existing'), 'none existing firmware found')
         self.db_interface_backend.add_firmware(self.test_firmware)
-        self.assertTrue(self.db_interface.existence_quick_check(self.test_firmware.uid), 'existing firmware not found')
+        self.assertTrue(self.db_interface.exists(self.test_firmware.uid), 'existing firmware not found')
         self.db_interface_backend.add_file_object(self.test_fo)
-        self.assertTrue(self.db_interface.existence_quick_check(self.test_fo.uid), 'existing file not found')
+        self.assertTrue(self.db_interface.exists(self.test_fo.uid), 'existing file not found')
 
     def test_get_firmware(self):
         self.db_interface_backend.add_firmware(self.test_firmware)
@@ -146,8 +143,13 @@ class TestMongoInterface(unittest.TestCase):
     def test_retrieve_analysis(self):
         self.db_interface.sanitize_fs.put(pickle.dumps('This is a test!'), filename='test_file_path')
 
-        sanitized_dict = {'stub_plugin': {'result': 'test_file_path', 'file_system_flag': True}}
-        sanitized_dict['inbound_result'] = {'result': 'inbound result', 'file_system_flag': False}
+        sanitized_dict = {
+            'stub_plugin': {'result': 'test_file_path', 'file_system_flag': True},
+            'inbound_result': {
+                'result': 'inbound result',
+                'file_system_flag': False,
+            },
+        }
         retrieved_dict = self.db_interface.retrieve_analysis(sanitized_dict)
 
         self.assertNotIn('file_system_flag', retrieved_dict['stub_plugin'].keys())
@@ -158,9 +160,16 @@ class TestMongoInterface(unittest.TestCase):
 
     def test_retrieve_analysis_filter(self):
         self.db_interface.sanitize_fs.put(pickle.dumps('This is a test!'), filename='test_file_path')
-        sanitized_dict = {'selected_plugin': {'result': 'test_file_path', 'file_system_flag': True}}
-        sanitized_dict['other_plugin'] = {'result': 'test_file_path', 'file_system_flag': True}
+
+        sanitized_dict = {
+            'selected_plugin': {
+                'result': 'test_file_path',
+                'file_system_flag': True,
+            },
+            'other_plugin': {'result': 'test_file_path', 'file_system_flag': True},
+        }
         retrieved_dict = self.db_interface.retrieve_analysis(sanitized_dict, analysis_filter=['selected_plugin'])
+
         self.assertEqual(retrieved_dict['selected_plugin']['result'], 'This is a test!')
         self.assertIn('file_system_flag', retrieved_dict['other_plugin'])
 
@@ -256,6 +265,77 @@ class TestMongoInterface(unittest.TestCase):
 
         self.db_interface_backend.add_file_object(self.test_fo)
         assert self.db_interface.is_file_object(self.test_fo.uid) is True
+
+    def test_collect_analysis_tags_propagate(self):
+        tag = {'OS Version': {'color': 'success', 'value': 'FactOS', 'propagate': True}}
+        self.test_fo.processed_analysis['software_components'] = {
+            'summary': [], 'tags': tag
+        }
+        self.test_firmware.add_included_file(self.test_fo)
+        self.db_interface_backend.add_firmware(self.test_firmware)
+        self.db_interface_backend.add_file_object(self.test_fo)
+        assert self.db_interface._collect_analysis_tags_from_children(self.test_firmware.uid) == {'software_components': tag}
+
+    def test_collect_analysis_tags_no_propagate(self):
+        tag = {'OS Version': {'color': 'success', 'value': 'FactOS', 'propagate': False}}
+        self.test_fo.processed_analysis['software_components'] = {
+            'summary': [], 'tags': tag
+        }
+        self.test_firmware.add_included_file(self.test_fo)
+        self.db_interface_backend.add_firmware(self.test_firmware)
+        self.db_interface_backend.add_file_object(self.test_fo)
+        assert self.db_interface._collect_analysis_tags_from_children(self.test_firmware.uid) == {}
+
+    def test_collect_analysis_tags_no_tags(self):
+        self.test_fo.processed_analysis['software_components'] = {
+            'summary': []
+        }
+        self.test_firmware.add_included_file(self.test_fo)
+        self.db_interface_backend.add_firmware(self.test_firmware)
+        self.db_interface_backend.add_file_object(self.test_fo)
+        assert self.db_interface._collect_analysis_tags_from_children(self.test_firmware.uid) == {}
+
+    def test_collect_analysis_tags_duplicate(self):
+        tag = {'OS Version': {'color': 'success', 'value': 'FactOS 1.1', 'propagate': True}}
+
+        self.test_fo.processed_analysis['software_components'] = {
+            'summary': [],
+            'tags': tag
+        }
+        self.test_firmware.add_included_file(self.test_fo)
+
+        test_fo_2 = create_test_file_object('get_files_test/testfile2')
+        test_fo_2.processed_analysis['software_components'] = {
+            'summary': [],
+            'tags': tag
+        }
+        self.test_firmware.add_included_file(test_fo_2)
+
+        self.db_interface_backend.add_firmware(self.test_firmware)
+        self.db_interface_backend.add_file_object(self.test_fo)
+        self.db_interface_backend.add_file_object(test_fo_2)
+
+        assert self.db_interface._collect_analysis_tags_from_children(self.test_firmware.uid) == {'software_components': tag}
+
+    def test_collect_analysis_tags_unique_tags(self):
+        self.test_fo.processed_analysis['software_components'] = {
+            'summary': [],
+            'tags': {'OS Version': {'color': 'success', 'value': 'FactOS 1.1', 'propagate': True}}
+        }
+        self.test_firmware.add_included_file(self.test_fo)
+
+        test_fo_2 = create_test_file_object('get_files_test/testfile2')
+        test_fo_2.processed_analysis['software_components'] = {
+            'summary': [],
+            'tags': {'OS Version': {'color': 'success', 'value': 'OtherOS 0.2', 'propagate': True}}
+        }
+        self.test_firmware.add_included_file(test_fo_2)
+
+        self.db_interface_backend.add_firmware(self.test_firmware)
+        self.db_interface_backend.add_file_object(self.test_fo)
+        self.db_interface_backend.add_file_object(test_fo_2)
+
+        assert len(self.db_interface._collect_analysis_tags_from_children(self.test_firmware.uid)['software_components']) == 2
 
 
 class TestSummary(unittest.TestCase):
