@@ -95,14 +95,16 @@ def _get_tag_list(tag_string):
     return tag_string.split(',')
 
 
-def convert_analysis_task_to_fw_obj(analysis_task: dict) -> Firmware:
+def convert_analysis_task_to_fw_obj(analysis_task: dict, base_fw: Optional[Firmware] = None) -> Firmware:
     '''
     Convert an analysis task to a firmware object.
 
     :param analysis_task: The analysis task data.
-    :return: A new `Firmware` object based on the analysis task data.
+    :param base_fw: The existing `Firmware` object in case of analysis update.
+    :return: A `Firmware` object based on the analysis task data.
     '''
-    fw = Firmware(scheduled_analysis=analysis_task['requested_analysis_systems'])
+    fw = base_fw or Firmware()
+    fw.scheduled_analysis = analysis_task['requested_analysis_systems']
     if 'binary' in analysis_task.keys():
         fw.set_binary(analysis_task['binary'])
         fw.file_name = analysis_task['file_name']
