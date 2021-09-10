@@ -1,0 +1,83 @@
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+# Byte-compiled / optimized / DLL files
+# C extensions
+# Distribution / packaging
+# Django stuff:
+# Flask stuff:
+# IDE
+# Installer logs
+# Jupyter Notebook
+# PyBuilder
+# PyInstaller
+# Rope project settings
+# SageMath parsed files
+# Scrapy stuff:
+# Sphinx documentation
+# Spyder project settings
+# Translations
+# Unit test / coverage reports
+# celery beat schedule file
+# dotenv
+# mkdocs documentation
+# mypy
+# pyenv
+# virtualenv
+*$py.class
+*.cover
+*.egg
+*.egg-info/
+*.log
+*.manifest
+*.mo
+*.pot
+*.py[cod]
+*.sage.py
+*.so
+*.spec
+.Python
+.cache
+.coverage
+.coverage.*
+.eggs/
+.env
+.hypothesis/
+.installed.cfg
+.ipynb_checkpoints
+.mypy_cache/
+.project
+.pydevproject
+.python-version
+.ropeproject
+.scrapy
+.spyderproject
+.spyproject
+.tox/
+.venv
+.webassets-cache
+/site
+ENV/
+__pycache__/
+build/
+celerybeat-schedule
+coverage.xml
+develop-eggs/
+dist/
+docs/_build/
+downloads/
+eggs/
+env/
+htmlcov/
+instance/
+lib/
+lib64/
+local_settings.py
+nosetests.xml
+parts/
+pip-delete-this-directory.txt
+pip-log.txt
+sdist/
+target/
+var/
+venv/
+wheels/
