@@ -42,7 +42,6 @@ class YaraBasePlugin(AnalysisBasePlugin):
             command = f'yara {compiled_flag} --print-meta --print-strings {self.signature_path} {file_object.file_path}'
             with subprocess.Popen(command, shell=True, stdout=subprocess.PIPE) as process:
                 output = process.stdout.read().decode()
-            print(f"\n\ncommand: {command}")
             try:
                 result = self._parse_yara_output(output)
                 file_object.processed_analysis[self.NAME] = result
