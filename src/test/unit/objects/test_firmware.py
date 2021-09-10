@@ -72,7 +72,7 @@ def test_get_hid(input_data, expected_output):
     test_fw = Firmware(binary=b'foo')
     test_fw.device_name = 'test_device'
     test_fw.vendor = 'foo'
-    test_fw.firmware_version = '1.0'
+    test_fw.version = '1.0'
     test_fw.set_part_name(input_data)
     assert test_fw.get_hid() == expected_output
 

@@ -112,7 +112,7 @@ def convert_analysis_task_to_fw_obj(analysis_task: dict) -> Firmware:
         fw.uid = analysis_task['uid']
     fw.device_name = analysis_task['device_name']
     fw.set_part_name(analysis_task['device_part'])
-    fw.firmware_version = analysis_task['version']
+    fw.version = analysis_task['version']
     fw.device_class = analysis_task['device_class']
     fw.vendor = analysis_task['vendor']
     fw.release_date = analysis_task['release_date']

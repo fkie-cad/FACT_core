@@ -113,7 +113,7 @@ class MongoInterfaceCommon(MongoInterface):  # pylint: disable=too-many-instance
         firmware.device_class = entry['device_class']
         firmware.release_date = convert_time_to_str(entry['release_date'])
         firmware.vendor = entry['vendor']
-        firmware.firmware_version = entry['version']
+        firmware.version = entry['version']
         firmware.processed_analysis = self.retrieve_analysis(entry['processed_analysis'], analysis_filter=analysis_filter)
         firmware.files_included = set(entry['files_included'])
         firmware.virtual_file_path = entry['virtual_file_path']
