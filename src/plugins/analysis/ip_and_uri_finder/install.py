@@ -6,7 +6,7 @@ import urllib.request
 from tempfile import TemporaryDirectory
 
 try:
-    from helperFunctions.install import run_cmd_with_logging, check_distribution
+    from helperFunctions.install import check_distribution, run_cmd_with_logging
 
     from ...installer import AbstractPluginInstaller
 except ImportError:
@@ -24,7 +24,7 @@ base_path = pathlib.Path(__file__).resolve().parent
 
 class IpAndUriFinderInstaller(AbstractPluginInstaller):
     def install_files(self):
-        with TemporaryDirectory() as tmp_dir:
+        with TemporaryDirectory(dir=str(self.base_path)) as tmp_dir:
             # We use a mirror of an old database that should not change
             if pathlib.Path(f'{self.base_path}/bin/GeoLite2-City/').exists():
                 return

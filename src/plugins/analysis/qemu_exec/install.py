@@ -6,7 +6,7 @@ import urllib.request
 from tempfile import TemporaryDirectory
 
 try:
-    from helperFunctions.install import OperateInDirectory, run_cmd_with_logging, check_distribution
+    from helperFunctions.install import OperateInDirectory, check_distribution, run_cmd_with_logging
 
     from ...installer import AbstractPluginInstaller
 except ImportError:
@@ -29,7 +29,7 @@ class QemuExecInstaller(AbstractPluginInstaller):
             shell=True)
 
     def install_files(self):
-        with TemporaryDirectory() as tmp_dir:
+        with TemporaryDirectory(dir=str(self.base_path)) as tmp_dir:
             # We download a specific version of the package so no need to
             # update downloaded files
             if (pathlib.Path(f'{self.base_path}/test/data/test_tmp_dir/lib/libc.so.6').exists() and
