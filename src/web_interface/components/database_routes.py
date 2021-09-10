@@ -1,5 +1,6 @@
 import json
 import logging
+import re
 from datetime import datetime
 from itertools import chain
 
@@ -71,6 +72,33 @@ class DatabaseRoutes(ComponentBase):
             current_class=str(request.args.get('device_class')),
             current_vendor=str(request.args.get('vendor')),
             search_parameters=search_parameters
+        )
+
+    @roles_accepted(*PRIVILEGES['pattern_search'])
+    @AppRoute('/database/browse_binary_search_history', GET)
+    def browse_searches(self):
+        page, per_page, offset = extract_pagination_from_request(request, self._config)
+        all_searches = []
+
+        try:
+            with ConnectTo(FrontEndDbInterface, self._config) as conn:
+                # FIXME Use a proper yara parser
+                rule_name_regex = re.compile(r'rule\s+([[a-zA-Z_]\w*)')
+                all_searches = [(r['_id'], r['query_title'], rule_name_regex.findall(r['query_title']))
+                    for r in conn.search_query_cache.find(skip=per_page * (page - 1), limit=per_page)]
+                total = conn.search_query_cache.find().count()
+        except Exception as exception:
+            error_message = 'Could not query database: {} {}'.format(type(exception), str(exception))
+            logging.error(error_message)
+            return render_template('error.html', message=error_message)
+
+        pagination = get_pagination(page=page, per_page=per_page, total=total)
+        return render_template(
+            'database/database_binary_search_history.html',
+            searches_list=all_searches,
+            page=page,
+            per_page=per_page,
+            pagination=pagination
         )
 
     def _get_search_parameters(self, query, only_firmware, inverted):
