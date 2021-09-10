@@ -34,8 +34,8 @@ class IpAndUriFinderInstaller(AbstractPluginInstaller):
             dest_geolite = f'{tmp_dir}/GeoLite2-City.tar.gz'
             urllib.request.urlretrieve(url_geolite, dest_geolite)
 
-            run_cmd_with_logging(f'tar -xf {dest_geolite} --strip-components 1 -C {tmp_dir}', shell=True)
-            run_cmd_with_logging(f'mv {tmp_dir} {self.base_path}/bin/GeoLite2-City', shell=True)
+            run_cmd_with_logging(f'tar -xf {dest_geolite} -C {tmp_dir}', shell=True)
+            run_cmd_with_logging(f'mv {tmp_dir}/GeoLite2-City_20191029 {self.base_path}/bin/GeoLite2-City', shell=True)
 
 
 # Alias for generic use
