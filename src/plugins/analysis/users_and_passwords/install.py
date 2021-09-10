@@ -6,9 +6,10 @@ import pathlib
 import shutil
 import subprocess
 import urllib.request
+from subprocess import PIPE
 
 try:
-    from helperFunctions.install import run_cmd_with_logging, check_distribution
+    from helperFunctions.install import check_distribution, run_cmd_with_logging
 
     from ...installer import AbstractPluginInstaller
 except ImportError:
@@ -29,7 +30,7 @@ class UsersAndPasswordsInstaller(AbstractPluginInstaller):
     def install_system_packages(self):
         super().install_system_packages()
 
-        lshw_p = subprocess.run('lshw -c display'.split(), capture_output=True, check=True)
+        lshw_p = subprocess.run('lshw -c display'.split(), stdout=PIPE, stderr=PIPE, check=True)
         opencl_pkgs = []
         if lshw_p.stdout == 'NVIDIA':
             opencl_pkgs = ['nvidia-opencl-dev']
