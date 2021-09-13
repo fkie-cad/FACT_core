@@ -1,5 +1,5 @@
 from contextlib import suppress
-from typing import Optional
+from typing import Dict, Optional
 
 from helperFunctions.hash import get_md5
 from helperFunctions.tag import TagColor
@@ -80,18 +80,18 @@ class Firmware(FileObject):  # pylint: disable=too-many-instance-attributes
         #: FACT provides a preset of frequently used values: `complete`, `kernel`, `bootloader`, and `root-fs`.
         #:
         #: This attribute is **optional**. The firmware image is assumed to be `complete` if the assigned/default value is an empty string.
-        self.part: str = ''
+        self.part: Optional[str] = ''
 
         #: Release date string of this firmware version in `ISO 8601 <https://en.wikipedia.org/wiki/ISO_8601>`_ `YYYY-MM-DD` format.
         #:
-        #: This attribute is **optional** and may be `None`.
-        self.release_date: str = None
+        #: This attribute is **optional**. The release date is assumed to be the start of UNIX epoch time (`1970-01-01`) if not specificed.
+        self.release_date: Optional[str] = None
 
         #: User-defined firmware tags for advanced grouping and filtering of firmware images, saved as {'tag': :class:`helperFunctions.tag.TagColor`} dictionary.
         #: It is important to understand that these tags are **separately stored** from the :attr:`objects.file.FileObject.analysis_tags`, which are propagated by analysis plugins.
         #:
         #: This attribute is **optional**, the dict may be empty.
-        self.tags: dict = dict()
+        self.tags: Optional[Dict[str, TagColor]] = dict()
 
         self._update_root_id_and_virtual_path()
 
