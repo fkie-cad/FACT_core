@@ -150,8 +150,12 @@ class Firmware(FileObject):  # pylint: disable=too-many-instance-attributes
         part = ' - {}'.format(self.part) if self.part else ''
         return '{} {}{} v. {}'.format(self.vendor, self.device_name, part, self.version)
 
-    def __str__(self):
-        return '{}\nProcessed Analysis: {}\nScheduled Analysis: {}'.format(self.get_hid(), list(self.processed_analysis.keys()), self.scheduled_analysis)
+    def __str__(self) -> str:
+        return (
+                f'{self.get_hid()}\n'
+                f'Processed Analysis: {list(self.processed_analysis.keys())}\n'
+                f'Scheduled Analysis: {self.scheduled_analysis}'
+            )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.__str__()
