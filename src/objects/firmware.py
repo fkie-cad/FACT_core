@@ -56,31 +56,31 @@ class Firmware(FileObject):  # pylint: disable=too-many-instance-attributes
         #: Can be freely defined during upload.
         #:
         #: This attribute is **mandatory** and shall never be `None`.
-        self.device_name: str = None
+        self.device_name: Optional[str] = None
 
         #: Firmware version string identifier.
         #: Can be freely defined during upload.
         #:
         #: This attribute is **mandatory** and shall never be `None`.
-        self.version: str = None
+        self.version: Optional[str] = None
 
         #: Device class string identifier.
         #: Not all embedded appliances are the same: There are routers, IP cameras, entertainment systems, printers, and a plethora of other classes.
         #: FACT requires a user to categorize analyzed firmware images by this attribute.
         #: While this attribute is **mandatory**, it can be freely defined during upload.
-        self.device_class: str = None
+        self.device_class: Optional[str] = None
 
         #: Device vendor string identifier.
         #:
         #: This attribute is **mandatory** and shall never be `None`.
-        self.vendor: str = None
+        self.vendor: Optional[str] = None
 
         #: Specifies the parts of an embedded system that are contained in this firmware.
         #: While this meta data string can be freely defined during firmware upload,
         #: FACT provides a preset of frequently used values: `complete`, `kernel`, `bootloader`, and `root-fs`.
         #:
         #: This attribute is **optional**. The firmware image is assumed to be `complete` if the assigned/default value is an empty string.
-        self.part: Optional[str] = ''
+        self.part: str = ''
 
         #: Release date string of this firmware version in `ISO 8601 <https://en.wikipedia.org/wiki/ISO_8601>`_ `YYYY-MM-DD` format.
         #:
@@ -91,7 +91,7 @@ class Firmware(FileObject):  # pylint: disable=too-many-instance-attributes
         #: It is important to understand that these tags are **separately stored** from the :attr:`objects.file.FileObject.analysis_tags`, which are propagated by analysis plugins.
         #:
         #: This attribute is **optional**, the dict may be empty.
-        self.tags: Optional[Dict[str, TagColor]] = dict()
+        self.tags: Dict[str, TagColor] = dict()
 
         self._update_root_id_and_virtual_path()
 
