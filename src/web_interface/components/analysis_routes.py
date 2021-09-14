@@ -96,6 +96,7 @@ class AnalysisRoutes(ComponentBase):
         with ConnectTo(FrontEndDbInterface, self._config) as database:
             file_object = database.get_object(uid)
         file_object.scheduled_analysis = request.form.getlist('analysis_systems')
+        file_object.force_update = request.form.get('force_update') == 'true'
         with ConnectTo(InterComFrontEndBinding, self._config) as intercom:
             intercom.add_single_file_task(file_object)
         return redirect(url_for(self.show_analysis.__name__, uid=uid, root_uid=root_uid, selected_analysis=selected_analysis))

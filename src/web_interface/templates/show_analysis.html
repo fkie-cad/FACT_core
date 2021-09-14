@@ -285,7 +285,12 @@
                                 </label>
                             {% endfor %}
                             <hr />
-                            <button class="btn btn-primary" type="submit" id="add_single_file_analysis" value=submit><i class="fas fa-play-circle"></i> Add</button>
+                            <label class="checkbox-inline" data-toggle="tooltip" title="disable smart analysis skipping" style="display: block;">
+                                <input type=checkbox name="force_update" value="true" unchecked>&nbsp;force analysis update<br />
+                            </label>
+                            <button class="btn btn-primary" type="submit" id="add_single_file_analysis" value=submit>
+                                <i class="fas fa-play-circle"></i> Add
+                            </button>
                         </form>
                     </div>
                 </div>

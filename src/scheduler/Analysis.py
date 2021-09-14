@@ -255,7 +255,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             self._start_or_skip_analysis(analysis_to_do, fw_object)
 
     def _start_or_skip_analysis(self, analysis_to_do: str, file_object: FileObject):
-        if self._analysis_is_already_in_db_and_up_to_date(analysis_to_do, file_object.uid):
+        if not self._is_forced_update(file_object) and self._analysis_is_already_in_db_and_up_to_date(analysis_to_do, file_object.uid):
             logging.debug(f'skipping analysis "{analysis_to_do}" for {file_object.uid} (analysis already in DB)')
             if analysis_to_do in self._get_cumulative_remaining_dependencies(file_object.scheduled_analysis):
                 self._add_completed_analysis_results_to_file_object(analysis_to_do, file_object)
@@ -311,6 +311,14 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             logging.error(f'plug-in or system version of "{analysis_plugin.NAME}" plug-in is or was invalid!')
             return False
         return True
+
+    @staticmethod
+    def _is_forced_update(file_object: FileObject) -> bool:
+        try:
+            logging.warning('This feature is deprecated and will be removed when analysis scheduling is fixed.')
+            return bool(getattr(file_object, 'force_update'))
+        except AttributeError:
+            return False
 
 # ---- blacklist and whitelist ----
 
