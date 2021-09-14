@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>objects.firmware module &mdash; FACT  documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/custom.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="web_interface" href="web_interface.html" />
+    <link rel="prev" title="objects.file module" href="objects.file.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> FACT
+            <img src="../_static/FACT_smaller.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../main.html">Challenges</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#easy-to-install-easy-to-use">Easy to Install! Easy to Use!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#easy-to-extend-easy-to-integrate">Easy to Extend! Easy to Integrate!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#screenshots">Screenshots</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#contributing">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#latest-news-and-contact">Latest News and Contact</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#authors-and-acknowledgment">Authors and Acknowledgment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html#source-code">Source Code</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Modules:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="helperFunctions.html">helperFunctions</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="objects.html">objects</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="objects.file.html">objects.file module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">objects.firmware module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="web_interface.html">web_interface</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">FACT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="objects.html">objects</a> &raquo;</li>
+      <li>objects.firmware module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/modules/objects.firmware.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-objects.firmware">
+<span id="objects-firmware-module"></span><h1>objects.firmware module<a class="headerlink" href="#module-objects.firmware" title="Permalink to this headline"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="objects.firmware.Firmware">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">objects.firmware.</span></span><span class="sig-name descname"><span class="pre">Firmware</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#objects.firmware.Firmware" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="objects.file.html#objects.file.FileObject" title="objects.file.FileObject"><code class="xref py py-class docutils literal notranslate"><span class="pre">objects.file.FileObject</span></code></a></p>
+<p>Uploaded firmware image representation.</p>
+<p>In FACT, we represent an uploaded firmware image as specialized <a class="reference internal" href="objects.file.html#objects.file.FileObject" title="objects.file.FileObject"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileObject</span></code></a> with supplementary meta data.
+This class is the root of a virtual path tree with all extracted folders and files as branch- and leaf-instances of the <a class="reference internal" href="objects.file.html#objects.file.FileObject" title="objects.file.FileObject"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileObject</span></code></a> class:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>                          ┌────────────┐
+                          │  Firmware  │
+                          │(Root Image)│
+                          └──────┬─────┘
+                                 │
+                 ┌───────────────┼───────────────┐
+                 │               │               │
+                 ▼               ▼               ▼
+          ┌────────────┐  ┌────────────┐  ┌────────────┐
+          │    /etc    │  │    /var    │  │    ...     │
+          │(FileObject)│  │(FileObject)│  │(FileObject)│
+          └──────┬─────┘  └──────┬─────┘  └────────────┘
+                 │               │
+       ┌─────────┴────┐       ┌──┼──┐
+       │              │       │  │  │
+       ▼              ▼       ▼  ▼  ▼
+┌────────────┐ ┌────────────┐   ...
+│   passwd   │ │    ...     │
+│(FileObject)│ │(FileObject)│
+└────────────┘ └────────────┘
+</pre></div>
+</div>
+<p>For each uploaded firmware, FACT can hold meta data that associates the analyzed image with its corresponding embedded device.
+This meta data includes the…</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#objects.firmware.Firmware.device_class" title="objects.firmware.Firmware.device_class"><code class="xref py py-attr docutils literal notranslate"><span class="pre">device_class</span></code></a>,</p></li>
+<li><p>device <a class="reference internal" href="#objects.firmware.Firmware.vendor" title="objects.firmware.Firmware.vendor"><code class="xref py py-attr docutils literal notranslate"><span class="pre">vendor</span></code></a>,</p></li>
+<li><p><a class="reference internal" href="#objects.firmware.Firmware.device_name" title="objects.firmware.Firmware.device_name"><code class="xref py py-attr docutils literal notranslate"><span class="pre">device_name</span></code></a>,</p></li>
+<li><p>firmware <a class="reference internal" href="#objects.firmware.Firmware.version" title="objects.firmware.Firmware.version"><code class="xref py py-attr docutils literal notranslate"><span class="pre">version</span></code></a>,</p></li>
+<li><p>firmware <a class="reference internal" href="#objects.firmware.Firmware.release_date" title="objects.firmware.Firmware.release_date"><code class="xref py py-attr docutils literal notranslate"><span class="pre">release_date</span></code></a>, and</p></li>
+<li><p>image-contained <a class="reference internal" href="#objects.firmware.Firmware.part" title="objects.firmware.Firmware.part"><code class="xref py py-attr docutils literal notranslate"><span class="pre">part</span></code></a>.</p></li>
+</ul>
+<p>Additionally, each Firmware can hold user-defined tags that may be used in advanced queries to categorize and filter all firmwares present in the database.
+It is important to understand that said tags are <strong>separately stored</strong> from the <a class="reference internal" href="objects.file.html#objects.file.FileObject.analysis_tags" title="objects.file.FileObject.analysis_tags"><code class="xref py py-attr docutils literal notranslate"><span class="pre">objects.file.FileObject.analysis_tags</span></code></a>, which are propagated by analysis plugins.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="objects.firmware.Firmware.device_class">
+<span class="sig-name descname"><span class="pre">device_class</span></span><em class="property"><span class="pre">:</span> <span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#objects.firmware.Firmware.device_class" title="Permalink to this definition"></a></dt>
+<dd><p>Device class string identifier.
+Not all embedded appliances are the same: There are routers, IP cameras, entertainment systems, printers, and a plethora of other classes.
+FACT requires a user to categorize analyzed firmware images by this attribute.
+While this attribute is <strong>mandatory</strong>, it can be freely defined during upload.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="objects.firmware.Firmware.device_name">
+<span class="sig-name descname"><span class="pre">device_name</span></span><em class="property"><span class="pre">:</span> <span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#objects.firmware.Firmware.device_name" title="Permalink to this definition"></a></dt>
+<dd><p>Device name string identifier.
+Can be freely defined during upload.</p>
+<p>This attribute is <strong>mandatory</strong> and shall never be <cite>None</cite>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="objects.firmware.Firmware.get_hid">
+<span class="sig-name descname"><span class="pre">get_hid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root_uid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#objects.firmware.Firmware.get_hid" title="Permalink to this definition"></a></dt>
+<dd><p>See <a class="reference internal" href="objects.file.html#objects.file.FileObject.get_hid" title="objects.file.FileObject.get_hid"><code class="xref py py-meth docutils literal notranslate"><span class="pre">objects.file.FileObject.get_hid()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>root_uid</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – </p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="objects.firmware.Firmware.part">
+<span class="sig-name descname"><span class="pre">part</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#objects.firmware.Firmware.part" title="Permalink to this definition"></a></dt>
+<dd><p>Specifies the parts of an embedded system that are contained in this firmware.
+While this meta data string can be freely defined during firmware upload,
+FACT provides a preset of frequently used values: <cite>complete</cite>, <cite>kernel</cite>, <cite>bootloader</cite>, and <cite>root-fs</cite>.</p>
+<p>This attribute is <strong>optional</strong>. The firmware image is assumed to be <cite>complete</cite> if the assigned/default value is an empty string.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="objects.firmware.Firmware.release_date">
+<span class="sig-name descname"><span class="pre">release_date</span></span><em class="property"><span class="pre">:</span> <span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#objects.firmware.Firmware.release_date" title="Permalink to this definition"></a></dt>
+<dd><p>Release date string of this firmware version in <a class="reference external" href="https://en.wikipedia.org/wiki/ISO_8601">ISO 8601</a> <cite>YYYY-MM-DD</cite> format.</p>
+<p>This attribute is <strong>optional</strong>. The release date is assumed to be the start of UNIX epoch time (<cite>1970-01-01</cite>) if not specificed.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="objects.firmware.Firmware.remove_tag">
+<span class="sig-name descname"><span class="pre">remove_tag</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tag</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#objects.firmware.Firmware.remove_tag" title="Permalink to this definition"></a></dt>
+<dd><p>Remove a user-defined tag.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>tag</strong> (<em>str</em>) – Tag identifier</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="objects.firmware.Firmware.set_binary">
+<span class="sig-name descname"><span class="pre">set_binary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">binary</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#objects.firmware.Firmware.set_binary" title="Permalink to this definition"></a></dt>
+<dd><p>See <a class="reference internal" href="objects.file.html#objects.file.FileObject.set_binary" title="objects.file.FileObject.set_binary"><code class="xref py py-meth docutils literal notranslate"><span class="pre">objects.file.FileObject.set_binary()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>binary</strong> (<em>bytes</em>) – binary data of the file object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="objects.firmware.Firmware.set_part_name">
+<span class="sig-name descname"><span class="pre">set_part_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">part</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#objects.firmware.Firmware.set_part_name" title="Permalink to this definition"></a></dt>
+<dd><p>Setter for <cite>self.part_name</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>part</strong> (<em>str</em>) – part identifier, defaults to <cite>complete</cite> if empty string is passed.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="objects.firmware.Firmware.set_tag">
+<span class="sig-name descname"><span class="pre">set_tag</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tag</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'secondary'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#objects.firmware.Firmware.set_tag" title="Permalink to this definition"></a></dt>
+<dd><p>Set a user-defined tag with color.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tag</strong> (<em>str</em>) – Tag identifier</p></li>
+<li><p><strong>tag_color</strong> (str from <a class="reference internal" href="helperFunctions.tag.html#helperFunctions.tag.TagColor" title="helperFunctions.tag.TagColor"><code class="xref py py-class docutils literal notranslate"><span class="pre">TagColor</span></code></a>) – The tag’s color, defaults to <a class="reference internal" href="helperFunctions.tag.html#helperFunctions.tag.TagColor.GRAY" title="helperFunctions.tag.TagColor.GRAY"><code class="xref py py-class docutils literal notranslate"><span class="pre">GRAY</span></code></a></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="objects.firmware.Firmware.tags">
+<span class="sig-name descname"><span class="pre">tags</span></span><em class="property"><span class="pre">:</span> <span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="helperFunctions.tag.html#helperFunctions.tag.TagColor" title="helperFunctions.tag.TagColor"><span class="pre">helperFunctions.tag.TagColor</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#objects.firmware.Firmware.tags" title="Permalink to this definition"></a></dt>
+<dd><p>User-defined firmware tags for advanced grouping and filtering of firmware images, saved as {‘tag’: <a class="reference internal" href="helperFunctions.tag.html#helperFunctions.tag.TagColor" title="helperFunctions.tag.TagColor"><code class="xref py py-class docutils literal notranslate"><span class="pre">helperFunctions.tag.TagColor</span></code></a>} dictionary.
+It is important to understand that these tags are <strong>separately stored</strong> from the <a class="reference internal" href="objects.file.html#objects.file.FileObject.analysis_tags" title="objects.file.FileObject.analysis_tags"><code class="xref py py-attr docutils literal notranslate"><span class="pre">objects.file.FileObject.analysis_tags</span></code></a>, which are propagated by analysis plugins.</p>
+<p>This attribute is <strong>optional</strong>, the dict may be empty.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="objects.firmware.Firmware.vendor">
+<span class="sig-name descname"><span class="pre">vendor</span></span><em class="property"><span class="pre">:</span> <span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#objects.firmware.Firmware.vendor" title="Permalink to this definition"></a></dt>
+<dd><p>Device vendor string identifier.</p>
+<p>This attribute is <strong>mandatory</strong> and shall never be <cite>None</cite>.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="objects.firmware.Firmware.version">
+<span class="sig-name descname"><span class="pre">version</span></span><em class="property"><span class="pre">:</span> <span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#objects.firmware.Firmware.version" title="Permalink to this definition"></a></dt>
+<dd><p>Firmware version string identifier.
+Can be freely defined during upload.</p>
+<p>This attribute is <strong>mandatory</strong> and shall never be <cite>None</cite>.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="objects.file.html" class="btn btn-neutral float-left" title="objects.file module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="web_interface.html" class="btn btn-neutral float-right" title="web_interface" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Fraunhofer FKIE.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
