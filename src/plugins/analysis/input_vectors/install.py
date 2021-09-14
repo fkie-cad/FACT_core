@@ -4,7 +4,7 @@ import logging
 import pathlib
 
 try:
-    from helperFunctions.install import run_cmd_with_logging, check_distribution
+    from helperFunctions.install import check_distribution, run_cmd_with_logging
 
     from ...installer import AbstractPluginInstaller
 except ImportError:
@@ -22,8 +22,8 @@ base_path = pathlib.Path(__file__).resolve().parent
 
 class InputVectorsInstaller(AbstractPluginInstaller):
     def install_docker_images(self):
-        run_cmd_with_logging('docker build -t input-vectors .', shell=True)
-        run_cmd_with_logging('docker pull fkiecad/radare-web-gui:latest', shell=True)
+        run_cmd_with_logging('docker build -t input-vectors .')
+        run_cmd_with_logging('docker pull fkiecad/radare-web-gui:latest')
 
 
 # Alias for generic use

@@ -44,9 +44,9 @@ class QemuExecInstaller(AbstractPluginInstaller):
             # We can't use `ar --output` because it was added in 2.34 but
             # debian buster uses 2.31
             with OperateInDirectory(tmp_dir):
-                run_cmd_with_logging(f'ar x {dest_libc6_mips} data.tar.xz', shell=True)
+                run_cmd_with_logging(f'ar x {dest_libc6_mips} data.tar.xz')
 
-            run_cmd_with_logging(f'tar -xf {tmp_dir}/data.tar.xz -C {tmp_dir}', shell=True)
+            run_cmd_with_logging(f'tar -xf {tmp_dir}/data.tar.xz -C {tmp_dir}')
             pathlib.Path('test/data/test_tmp_dir/lib').mkdir(exist_ok=True,
                                                              parents=True)
             pathlib.Path('test/data/test_tmp_dir_2/fact_extracted/lib').mkdir(

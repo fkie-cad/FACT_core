@@ -4,7 +4,7 @@ import logging
 import pathlib
 
 try:
-    from helperFunctions.install import run_cmd_with_logging, check_distribution
+    from helperFunctions.install import check_distribution, run_cmd_with_logging
 
     from ...installer import AbstractPluginInstaller
 except ImportError:
@@ -22,7 +22,7 @@ base_path = pathlib.Path(__file__).resolve().parent
 
 class CweCheckerInstaller(AbstractPluginInstaller):
     def install_docker_images(self):
-        run_cmd_with_logging('docker pull fkiecad/cwe_checker:latest', shell=True)
+        run_cmd_with_logging('docker pull fkiecad/cwe_checker:latest')
 
 
 # Alias for generic use

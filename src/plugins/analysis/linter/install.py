@@ -4,7 +4,7 @@ import logging
 import pathlib
 
 try:
-    from helperFunctions.install import run_cmd_with_logging, check_distribution
+    from helperFunctions.install import check_distribution, run_cmd_with_logging
 
     from ...installer import AbstractPluginInstaller
 except ImportError:
@@ -22,14 +22,14 @@ base_path = pathlib.Path(__file__).resolve().parent
 
 class LinterInstaller(AbstractPluginInstaller):
     def install_other_packages(self):
-        run_cmd_with_logging('sudo luarocks install argparse', shell=True)
-        run_cmd_with_logging('sudo luarocks install luacheck', shell=True)
-        run_cmd_with_logging('sudo luarocks install luafilesystem', shell=True)
+        run_cmd_with_logging('sudo luarocks install argparse')
+        run_cmd_with_logging('sudo luarocks install luacheck')
+        run_cmd_with_logging('sudo luarocks install luafilesystem')
 
-        run_cmd_with_logging('sudo npm install -g jshint', shell=True)
+        run_cmd_with_logging('sudo npm install -g jshint')
 
     def install_docker_images(self):
-        run_cmd_with_logging('docker pull crazymax/linguist', shell=True)
+        run_cmd_with_logging('docker pull crazymax/linguist')
 
 
 # Alias for generic use

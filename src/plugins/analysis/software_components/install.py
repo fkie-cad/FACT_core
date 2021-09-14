@@ -24,7 +24,7 @@ base_path = pathlib.Path(__file__).resolve().parent
 
 class SoftwareComponentsInstaller(AbstractPluginInstaller):
     def install_docker_images(self):
-        run_cmd_with_logging('docker build -t fact/format_string_resolver docker', shell=True)
+        run_cmd_with_logging('docker build -t fact/format_string_resolver docker')
 
     def install_files(self):
         extract_names()

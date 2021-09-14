@@ -4,7 +4,7 @@ import logging
 import pathlib
 
 try:
-    from helperFunctions.install import run_cmd_with_logging, check_distribution
+    from helperFunctions.install import check_distribution, run_cmd_with_logging
 
     from ...installer import AbstractPluginInstaller
 except ImportError:
@@ -24,7 +24,7 @@ class OmsInstaller(AbstractPluginInstaller):
     def do_last(self):
         # We dont care about the return value here
         # TODO why?
-        run_cmd_with_logging('sudo -E freshclam', raise_error=False, shell=True)
+        run_cmd_with_logging('sudo -E freshclam', raise_error=False)
 
 
 # Alias for generic use

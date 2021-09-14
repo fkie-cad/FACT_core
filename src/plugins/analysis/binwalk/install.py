@@ -29,11 +29,11 @@ class BinwalkInstaller(AbstractPluginInstaller):
         dest_binwalk = 'binwalk-v2.3.1.tar.gz'
         urllib.request.urlretrieve(url_binwalk, dest_binwalk)
 
-        run_cmd_with_logging(f'tar -xf {dest_binwalk}', shell=True)
+        run_cmd_with_logging(f'tar -xf {dest_binwalk}')
 
         with OperateInDirectory('binwalk-2.3.1'):
-            run_cmd_with_logging('python3 setup.py build', shell=True)
-            run_cmd_with_logging('sudo python3 setup.py install', shell=True)
+            run_cmd_with_logging('python3 setup.py build')
+            run_cmd_with_logging('sudo python3 setup.py install')
 
 
 # Alias for generic use

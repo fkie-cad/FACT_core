@@ -47,7 +47,7 @@ class UsersAndPasswordsInstaller(AbstractPluginInstaller):
         urllib.request.urlretrieve(url_john, dest_john)
 
         pathlib.Path('john').mkdir(exist_ok=True)
-        run_cmd_with_logging(f'tar -xf {dest_john} -C john --strip-components 1', shell=True)
+        run_cmd_with_logging(f'tar -xf {dest_john} -C john --strip-components 1')
 
         os.chdir('john/src')
         run_cmd_with_logging('sudo ./configure -disable-openmp', shell=True)
