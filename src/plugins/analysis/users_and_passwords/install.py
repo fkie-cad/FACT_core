@@ -9,7 +9,8 @@ import urllib.request
 from subprocess import PIPE
 
 try:
-    from helperFunctions.install import check_distribution, run_cmd_with_logging
+    from helperFunctions.install import (check_distribution,
+                                         run_cmd_with_logging)
 
     from ...installer import AbstractPluginInstaller
 except ImportError:
@@ -62,6 +63,8 @@ class UsersAndPasswordsInstaller(AbstractPluginInstaller):
         url_10_k_most_common = 'https://raw.githubusercontent.com/danielmiessler/SecLists/master/Passwords/Common-Credentials/10k-most-common.txt'
         dest_10_k_most_common = f'{self.base_path}/internal/passwords/10k-most-common.txt'
         urllib.request.urlretrieve(url_10_k_most_common, dest_10_k_most_common)
+        # FIXME This should be imported rather then executed
+        run_cmd_with_logging(f'python3 {self.base_path}/internal/update_password_list.py')
 
 
 # Alias for generic use
