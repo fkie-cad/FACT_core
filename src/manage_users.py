@@ -6,6 +6,7 @@ import os
 import sys
 
 from flask_security import Security
+from flask_security.utils import hash_password
 from flask_sqlalchemy import SQLAlchemy
 
 from config.ascii import FACT_ASCII_ART
@@ -71,7 +72,7 @@ class Actions:
         password = getpass.getpass('password: ')
         assert password_is_legal(password), 'password is illegal'
         with app.app_context():
-            interface.create_user(email=user, password=password)
+            interface.create_user(email=user, password=hash_password(password))
             db.session.commit()
 
     @staticmethod
