@@ -6,16 +6,14 @@ import pathlib
 
 try:
     from helperFunctions.install import check_distribution, run_cmd_with_logging
-
-    from ...installer import AbstractPluginInstaller
+    from plugins.installer import AbstractPluginInstaller
 except ImportError:
     import sys
-    print(
-        'Could not import dependencies.\n' +
-        'Try starting with "python3 -m plugins.analysis.PLUGIN_NAME.install" from the FACT_core/src directory',
-        file=sys.stderr
-    )
-    sys.exit(1)
+    SRC_PATH = pathlib.Path(__file__).absolute().parent.parent.parent.parent
+    sys.path.append(str(SRC_PATH))
+
+    from helperFunctions.install import check_distribution, run_cmd_with_logging
+    from plugins.installer import AbstractPluginInstaller
 
 # The base directory of the plugin
 base_path = pathlib.Path(__file__).resolve().parent
