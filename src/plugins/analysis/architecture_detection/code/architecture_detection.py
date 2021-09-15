@@ -11,6 +11,18 @@ class AnalysisPlugin(AnalysisBasePlugin):
     DEPENDENCIES = ['file_type']
     DESCRIPTION = 'identify CPU architecture'
     VERSION = '0.3.3'
+    MIME_BLACKLIST = [
+        'application/msword',
+        'application/pdf',
+        'application/postscript',
+        'application/x-dvi',
+        'application/x-httpd-php',
+        'application/xhtml+xml',
+        'application/xml',
+        'image',
+        'text',
+        'video',
+    ]
 
     def __init__(self, plugin_administrator, config=None, recursive=True):
         '''
@@ -19,18 +31,6 @@ class AnalysisPlugin(AnalysisBasePlugin):
         default flags should be edited above. Otherwise the scheduler cannot overwrite them.
         '''
         self.config = config
-        self.MIME_BLACKLIST = [  # pylint: disable=invalid-name
-            'application/msword',
-            'application/pdf',
-            'application/postscript',
-            'application/x-dvi',
-            'application/x-httpd-php',
-            'application/xhtml+xml',
-            'application/xml',
-            'image',
-            'text',
-            'video',
-        ]
         self.detectors = [MetaDataDetector()]
         super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__)
 
@@ -77,8 +77,8 @@ class MetaDataDetector:
     bitness = {
         '8-bit': ['8-bit'],
         '16-bit': ['16-bit'],
-        '32-bit': ['32-bit', 'PE32'],
-        '64-bit': ['64-bit', 'aarch64', 'x86-64', 'MIPS32', 'MIPS64', '80860']
+        '32-bit': ['32-bit', 'PE32', 'MIPS32'],
+        '64-bit': ['64-bit', 'aarch64', 'x86-64', 'MIPS64', '80860']
     }
     endianness = {
         'little endian': ['LSB', '80386', '80486', 'x86'],
