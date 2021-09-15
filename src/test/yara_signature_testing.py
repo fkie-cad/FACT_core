@@ -15,6 +15,7 @@ class SignatureTestingMatching:
         self.strings_to_match = None
 
     def check(self, signature_path: Path, test_file: Path):
+        self.test_file = test_file
         self.signature_path = signature_path
         self.strings_to_match = test_file.read_text().strip().split('\n')
         self._execute_yara_matching()
