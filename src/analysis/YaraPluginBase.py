@@ -26,7 +26,7 @@ class YaraBasePlugin(AnalysisBasePlugin):
         if self.signature_path and not Path(self.signature_path).exists():
             logging.error('Signature file {} not found. Did you run "compile_yara_signatures.py"?'.format(self.signature_path))
             raise PluginInitException(plugin=self)
-        self.SYSTEM_VERSION = self.get_yara_system_version()
+        self.SYSTEM_VERSION = self.get_yara_system_version()  # pylint: disable=invalid-name
         super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=plugin_path)
 
     def get_yara_system_version(self):
@@ -46,9 +46,9 @@ class YaraBasePlugin(AnalysisBasePlugin):
                 file_object.processed_analysis[self.NAME] = result
                 file_object.processed_analysis[self.NAME]['summary'] = list(result.keys())
             except (ValueError, TypeError):
-                file_object.processed_analysis[self.NAME] = {'ERROR': 'Processing corrupted. Likely bad call to yara.'}
+                file_object.processed_analysis[self.NAME] = {'failed': 'Processing corrupted. Likely bad call to yara.'}
         else:
-            file_object.processed_analysis[self.NAME] = {'ERROR': 'Signature path not set'}
+            file_object.processed_analysis[self.NAME] = {'failed': 'Signature path not set'}
         return file_object
 
     @staticmethod

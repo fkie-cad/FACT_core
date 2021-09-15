@@ -1,3 +1,5 @@
+# pylint: disable=redefined-outer-name,unused-argument,protected-access,wrong-import-order
+
 from pathlib import Path
 
 import pytest
@@ -7,8 +9,6 @@ from requests import ReadTimeout
 from test.common_helper import create_test_file_object, get_config_for_testing
 
 from ..code.source_code_analysis import AnalysisPlugin
-
-# pylint: disable=redefined-outer-name,unused-argument,protected-access
 
 PYLINT_TEST_FILE = Path(__file__).parent / 'data' / 'linter_test_file'
 
@@ -54,7 +54,7 @@ def test_get_script_type_raises(stub_plugin, test_object):
 
 def test_process_object_not_supported(stub_plugin, test_object):
     result = stub_plugin.process_object(test_object)
-    assert result.processed_analysis[stub_plugin.NAME] == {'summary': [], 'warning': 'Unsupported script type'}
+    assert result.processed_analysis[stub_plugin.NAME] == {'summary': [], 'failed': 'Unsupported script type'}
 
 
 def test_process_object_this_file(stub_plugin):
@@ -84,8 +84,8 @@ def docker_timeout(monkeypatch):
 
 def test_process_object_timeout(stub_plugin, test_object, docker_timeout):
     fo = stub_plugin.process_object(test_object)
-    assert 'warning' in fo.processed_analysis[stub_plugin.NAME]
-    assert fo.processed_analysis[stub_plugin.NAME]['warning'] == 'Analysis timed out'
+    assert 'failed' in fo.processed_analysis[stub_plugin.NAME]
+    assert fo.processed_analysis[stub_plugin.NAME]['failed'] == 'Analysis timed out'
 
 
 @pytest.fixture(scope='function')
@@ -97,5 +97,5 @@ def docker_exception(monkeypatch):
 
 def test_process_object_exception(stub_plugin, test_object, docker_exception):
     fo = stub_plugin.process_object(test_object)
-    assert 'warning' in fo.processed_analysis[stub_plugin.NAME]
-    assert fo.processed_analysis[stub_plugin.NAME]['warning'] == 'Error during analysis'
+    assert 'failed' in fo.processed_analysis[stub_plugin.NAME]
+    assert fo.processed_analysis[stub_plugin.NAME]['failed'] == 'Error during analysis'

@@ -17,9 +17,9 @@ import logging
 from collections import defaultdict
 
 from common_helper_process import execute_shell_command_get_return_code
-from helperFunctions.docker import run_docker_container
 
 from analysis.PluginBase import AnalysisBasePlugin
+from helperFunctions.docker import run_docker_container
 
 TIMEOUT_IN_SECONDS = 600  # 10 minutes
 DOCKER_IMAGE = 'fkiecad/cwe_checker:latest'
@@ -101,11 +101,13 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 cwe_messages = self._parse_cwe_checker_output(output)
                 file_object.processed_analysis[self.NAME] = {'full': cwe_messages, 'summary': list(cwe_messages.keys())}
             except json.JSONDecodeError:
-                logging.error('cwe_checker execution failed: {}\nUID: {}'.format(output, file_object.uid))
-                file_object.processed_analysis[self.NAME] = {'summary': []}
+                message = f'cwe_checker execution failed: {output}'
+                logging.error(f'{message}\nUID: {file_object.uid}', exc_info=True)
+                file_object.processed_analysis[self.NAME] = {'summary': [], 'failed': message}
         else:
-            logging.error('Timeout or error during cwe_checker execution.\nUID: {}'.format(file_object.uid))
-            file_object.processed_analysis[self.NAME] = {'summary': []}
+            message = 'Timeout or error during cwe_checker execution.'
+            logging.error(f'{message}\nUID: {file_object.uid}')
+            file_object.processed_analysis[self.NAME] = {'summary': [], 'failed': message}
         return file_object
 
     def process_object(self, file_object):

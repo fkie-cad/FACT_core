@@ -31,7 +31,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     NAME = 'source_code_analysis'
     DESCRIPTION = 'This plugin implements static code analysis for multiple scripting languages'
     DEPENDENCIES = ['file_type']
-    VERSION = '0.5'
+    VERSION = '0.5.1'
     MIME_WHITELIST = ['text/']
     SCRIPT_TYPES = {
         'shell': {'mime': 'shell', 'shebang': 'sh', 'ending': '.sh', 'linter': shell_linter.ShellLinter},
@@ -82,9 +82,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
                                                              'summary': ['Warnings in {} script'.format(script_type)]}
         except (NotImplementedError, UnicodeDecodeError, KeyError):
             logging.debug('[{}] {} is not a supported script.'.format(self.NAME, file_object.file_name))
-            file_object.processed_analysis[self.NAME] = {'summary': [], 'warning': 'Unsupported script type'}
+            file_object.processed_analysis[self.NAME] = {'summary': [], 'failed': 'Unsupported script type'}
         except ReadTimeout:
-            file_object.processed_analysis[self.NAME] = {'summary': [], 'warning': 'Analysis timed out'}
+            file_object.processed_analysis[self.NAME] = {'summary': [], 'failed': 'Analysis timed out'}
         except (DockerException, IOError):
-            file_object.processed_analysis[self.NAME] = {'summary': [], 'warning': 'Error during analysis'}
+            file_object.processed_analysis[self.NAME] = {'summary': [], 'failed': 'Error during analysis'}
         return file_object

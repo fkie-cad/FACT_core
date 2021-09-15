@@ -25,7 +25,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     NAME = 'elf_analysis'
     DESCRIPTION = 'Analyzes and tags ELF executables and libraries'
     DEPENDENCIES = ['file_type']
-    VERSION = '0.3'
+    VERSION = '0.3.1'
     MIME_WHITELIST = ['application/x-executable', 'application/x-object', 'application/x-sharedlib']
 
     def __init__(self, plugin_administrator, config=None, recursive=True, offline_testing=False):
@@ -39,8 +39,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
             self.create_tags(parsed_binary, file_object)
             file_object.processed_analysis[self.NAME]['summary'] = list(elf_dict.keys())
         except RuntimeError:
-            logging.error('lief could not parse {}'.format(file_object.uid))
-            file_object.processed_analysis[self.NAME] = {'Output': {}}
+            logging.error(f'lief could not parse {file_object.uid}', exc_info=True)
+            file_object.processed_analysis[self.NAME] = {'failed': 'Error: lief could not parse the file'}
         return file_object
 
     @staticmethod
@@ -128,8 +128,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 binary_json_dict['imported_functions'] = normalize_lief_items(parsed_binary.imported_functions)
             if parsed_binary.libraries:
                 binary_json_dict['libraries'] = normalize_lief_items(parsed_binary.libraries)
-        except (TypeError, lief.bad_file) as error:
-            logging.error('Bad file for lief/elf analysis {}. {}'.format(file_object.uid, error))
+        except (TypeError, lief.bad_file):
+            logging.error(f'Bad file for lief/elf analysis {file_object.uid}.', exc_info=True)
             return elf_dict
 
         self.get_final_analysis_dict(binary_json_dict, elf_dict)
