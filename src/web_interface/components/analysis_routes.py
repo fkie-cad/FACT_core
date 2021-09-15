@@ -169,13 +169,13 @@ class AnalysisRoutes(ComponentBase):
 
     def _schedule_re_analysis_task(self, uid, analysis_task, re_do):
         if re_do:
-            olf_fw_obj = None
+            base_fw = None
             with ConnectTo(AdminDbInterface, self._config) as sc:
                 sc.delete_firmware(uid, delete_root_file=False)
         else:
             with ConnectTo(FrontEndDbInterface, self._config) as db:
-                olf_fw_obj = db.get_firmware(uid)
-        fw = convert_analysis_task_to_fw_obj(analysis_task, base_fw=olf_fw_obj)
+                base_fw = db.get_firmware(uid)
+        fw = convert_analysis_task_to_fw_obj(analysis_task, base_fw=base_fw)
         with ConnectTo(InterComFrontEndBinding, self._config) as sc:
             sc.add_re_analyze_task(fw, unpack=re_do)
 
