@@ -33,31 +33,64 @@
     <script type="text/javascript" src="{{ url_for('static', filename='web_js/bootstrap-datepicker.js') }}"></script>
 
     <script>
+        function observe_visibility(element, callback) {
+            // binary-state element visibility observer
+            var options = {
+                root: document.documentElement,
+            };
+
+            var observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    callback(entry.intersectionRatio > 0);
+                });
+            }, options);
+
+            observer.observe(element);
+        }
+
+        function quickSearch() {
+            let search_input = document.getElementById('quick_search_input').value;
+            window.location = '/database/quick_search?search_term=' + search_input;
+        }
+
+        function expandQuickSearch(ev) {
+            // fade out navbar texts, let quicksearch bar grow
+            $('.hideable_caption').fadeOut(250);
+            $("#quick_search_input").css('width', '500px');
+        }
+
+        function shrinkQuickSearch(ev) {
+            // fade in navbar texts, let quicksearch bar grow
+            $('.hideable_caption').fadeIn(250);
+            $("#quick_search_input").css('width', '112px');
+        }
+
+        function animated_quicksearch(dropdown_visible) {
+            // for both state changes, assert that quicksearch is deselected and potentially faded out text is visible
+            $('#quick_search_input').trigger('blur');
+            $('.hideable_caption').show();
+            // set animation events depending on the visibility of the navbar's dropdown menu
+            if(dropdown_visible) {
+                $('#quick_search_input').css('position', ''); // adhere to bootstrap styling
+                $('#quick_search_input').css('right', '');
+                $('#quick_search_input').off('focus.search_expand');
+                $('#quick_search_input').off('blur.search_shrink');
+            } else {
+                $('#quick_search_input').css('position', 'absolute'); // float above all other nav items
+                $('#quick_search_input').css('right', '50px');
+                $('#quick_search_input').on('focus.search_expand', expandQuickSearch);
+                $('#quick_search_input').on('blur.search_shrink', shrinkQuickSearch);
+            }
+        }
+
         $(document).ready(function(){
             $('[data-toggle="tooltip"]').tooltip();
             $(".toggle").click(function(){
                 $(".expand").toggle();
             });
-            $('.navbar-collapse').on('show.bs.collapse', function() {
-                $('.hideable_caption').css('display', 'inline');
-            });
+
+            observe_visibility($('.navbar-toggler')[0], animated_quicksearch);
         });
-        function quickSearch() {
-            let search_input = document.getElementById('quick_search_input').value;
-            window.location = '/database/quick_search?search_term=' + search_input;
-        }
-        function expandQuickSearch() {
-            $('.hideable_caption').fadeOut(250, function() {
-                document.getElementById("quick_search_input").style.width = "500px";
-            });
-        }
-        function shrinkQuickSearch() {
-            $("#quick_search_input").on('transitionend webkitTransitionEnd oTransitionEnd otransitionend MSTransitionEnd', function() {
-                $('.hideable_caption').fadeIn(250);
-                $(this).off();
-            });
-            document.getElementById("quick_search_input").style.width = "112px";
-        }
     </script>
 
     {% block head %}
@@ -222,10 +255,9 @@
 
         <!-- Navbar Quick Search Input -->
         <div id="quick_search_div" class="nav navbar-nav ml-md-auto d-block">
-            <div class="input-group mr-sm-2">
+            <div class="input-group mr-sm-2" style="z-index: 100;" >
                 <input type="text" class="form-control" placeholder="Quick search name, vendor or hash"
                        id="quick_search_input" onKeyDown="if(event.keyCode==13) quickSearch();"
-                       onfocus="expandQuickSearch();" onblur="shrinkQuickSearch();"
                        style="margin: 0; background-color: #e7e7e7; border-radius: 0; border-top-left-radius: .25rem; border-bottom-left-radius: .25rem; width: 112px; transition: width 0.5s ease-in-out;">
                 <div class="input-group-append">
                     <button class="btn btn-secondary" type="button" onclick="quickSearch()">
