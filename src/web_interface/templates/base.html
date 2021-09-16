@@ -38,18 +38,25 @@
             $(".toggle").click(function(){
                 $(".expand").toggle();
             });
+            $('.navbar-collapse').on('show.bs.collapse', function() {
+                $('.hideable_caption').css('display', 'inline');
+            });
         });
         function quickSearch() {
             let search_input = document.getElementById('quick_search_input').value;
             window.location = '/database/quick_search?search_term=' + search_input;
         }
         function expandQuickSearch() {
-            document.getElementById("quick_search_input").style.width = "500px";
-            $('.hideable_caption').css('display', 'none');
+            $('.hideable_caption').fadeOut(250, function() {
+                document.getElementById("quick_search_input").style.width = "500px";
+            });
         }
         function shrinkQuickSearch() {
+            $("#quick_search_input").on('transitionend webkitTransitionEnd oTransitionEnd otransitionend MSTransitionEnd', function() {
+                $('.hideable_caption').fadeIn(250);
+                $(this).off();
+            });
             document.getElementById("quick_search_input").style.width = "112px";
-            $('.hideable_caption').css('display', 'inline');
         }
     </script>
 
