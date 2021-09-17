@@ -2,10 +2,10 @@
 
 import logging
 import os
-import pathlib
 import shutil
 import subprocess
 import urllib.request
+from pathlib import Path
 from subprocess import PIPE
 
 try:
@@ -13,7 +13,7 @@ try:
     from plugins.installer import AbstractPluginInstaller
 except ImportError:
     import sys
-    SRC_PATH = pathlib.Path(__file__).absolute().parent.parent.parent.parent
+    SRC_PATH = Path(__file__).absolute().parent.parent.parent.parent
     sys.path.append(str(SRC_PATH))
 
     from helperFunctions.install import check_distribution, run_cmd_with_logging
@@ -22,7 +22,7 @@ except ImportError:
 
 class UsersAndPasswordsInstaller(AbstractPluginInstaller):
     # The base directory of the plugin
-    base_path = pathlib.Path(__file__).resolve().parent
+    base_path = Path(__file__).resolve().parent
 
     def install_system_packages(self):
         super().install_system_packages()
@@ -43,7 +43,7 @@ class UsersAndPasswordsInstaller(AbstractPluginInstaller):
         dest_john = '1.9.0-Jumbo-1.tar.gz'
         urllib.request.urlretrieve(url_john, dest_john)
 
-        pathlib.Path('john').mkdir(exist_ok=True)
+        Path('john').mkdir(exist_ok=True)
         run_cmd_with_logging(f'tar -xf {dest_john} -C john --strip-components 1')
 
         os.chdir('john/src')

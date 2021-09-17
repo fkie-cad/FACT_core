@@ -2,14 +2,14 @@
 
 import logging
 import os
-import pathlib
+from pathlib import Path
 
 try:
     from helperFunctions.install import check_distribution, run_cmd_with_logging
     from plugins.installer import AbstractPluginInstaller
 except ImportError:
     import sys
-    SRC_PATH = pathlib.Path(__file__).absolute().parent.parent.parent.parent
+    SRC_PATH = Path(__file__).absolute().parent.parent.parent.parent
     sys.path.append(str(SRC_PATH))
 
     from helperFunctions.install import check_distribution, run_cmd_with_logging
@@ -18,7 +18,7 @@ except ImportError:
 
 class CveLookupInstaller(AbstractPluginInstaller):
     # The base directory of the plugin
-    base_path = pathlib.Path(__file__).resolve().parent
+    base_path = Path(__file__).resolve().parent
 
     def install_files(self):
         # FIXME expose a function in setup_repository to to this directily

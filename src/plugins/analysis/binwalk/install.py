@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 
 import logging
-import pathlib
 import urllib.request
+from pathlib import Path
 
 try:
     from helperFunctions.install import OperateInDirectory, check_distribution, run_cmd_with_logging
     from plugins.installer import AbstractPluginInstaller
 except ImportError:
     import sys
-    SRC_PATH = pathlib.Path(__file__).absolute().parent.parent.parent.parent
+    SRC_PATH = Path(__file__).absolute().parent.parent.parent.parent
     sys.path.append(str(SRC_PATH))
 
     from helperFunctions.install import OperateInDirectory, check_distribution, run_cmd_with_logging
@@ -18,7 +18,7 @@ except ImportError:
 
 class BinwalkInstaller(AbstractPluginInstaller):
     # The base directory of the plugin
-    base_path = pathlib.Path(__file__).resolve().parent
+    base_path = Path(__file__).resolve().parent
 
     def build(self):
         # We need a version >=2.3.0 because of 1534001b96b8d543dcbb52845526326b61119f8c

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 import logging
-import pathlib
 import urllib.request
+from pathlib import Path
 from tempfile import TemporaryDirectory
 
 try:
@@ -10,7 +10,7 @@ try:
     from plugins.installer import AbstractPluginInstaller
 except ImportError:
     import sys
-    SRC_PATH = pathlib.Path(__file__).absolute().parent.parent.parent.parent
+    SRC_PATH = Path(__file__).absolute().parent.parent.parent.parent
     sys.path.append(str(SRC_PATH))
 
     from helperFunctions.install import OperateInDirectory, check_distribution, run_cmd_with_logging
@@ -19,7 +19,7 @@ except ImportError:
 
 class QemuExecInstaller(AbstractPluginInstaller):
     # The base directory of the plugin
-    base_path = pathlib.Path(__file__).resolve().parent
+    base_path = Path(__file__).resolve().parent
 
     def install_docker_images(self):
         run_cmd_with_logging(
@@ -30,10 +30,10 @@ class QemuExecInstaller(AbstractPluginInstaller):
         with TemporaryDirectory(dir=str(self.base_path)) as tmp_dir:
             # We download a specific version of the package so no need to
             # update downloaded files
-            if (pathlib.Path(f'{self.base_path}/test/data/test_tmp_dir/lib/libc.so.6').exists() and
-                    pathlib.Path(f'{self.base_path}/test/data/test_tmp_dir/lib/ld.so.1').exists() and
-                    pathlib.Path(f'{self.base_path}/test/data/test_tmp_dir_2/lib/libc.so.6').exists() and
-                    pathlib.Path(f'{self.base_path}/test/data/test_tmp_dir_2/lib/ld.so.1').exists()):
+            if (Path(f'{self.base_path}/test/data/test_tmp_dir/lib/libc.so.6').exists() and
+                    Path(f'{self.base_path}/test/data/test_tmp_dir/lib/ld.so.1').exists() and
+                    Path(f'{self.base_path}/test/data/test_tmp_dir_2/lib/libc.so.6').exists() and
+                    Path(f'{self.base_path}/test/data/test_tmp_dir_2/lib/ld.so.1').exists()):
                 return
 
             url_libc6_mips = 'http://de.archive.ubuntu.com/ubuntu/pool/universe/c/cross-toolchain-base-ports/libc6-mips-cross_2.23-0ubuntu3cross1_all.deb'
@@ -45,9 +45,9 @@ class QemuExecInstaller(AbstractPluginInstaller):
                 run_cmd_with_logging(f'ar x {dest_libc6_mips} data.tar.xz')
 
             run_cmd_with_logging(f'tar -xf {tmp_dir}/data.tar.xz -C {tmp_dir}')
-            pathlib.Path('test/data/test_tmp_dir/lib').mkdir(exist_ok=True,
+            Path('test/data/test_tmp_dir/lib').mkdir(exist_ok=True,
                                                              parents=True)
-            pathlib.Path('test/data/test_tmp_dir_2/fact_extracted/lib').mkdir(
+            Path('test/data/test_tmp_dir_2/fact_extracted/lib').mkdir(
                 exist_ok=True, parents=True)
 
             run_cmd_with_logging(
