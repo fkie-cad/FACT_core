@@ -39,7 +39,7 @@ class ElementVisibilityObserver extends IntersectionObserver {
 
 function quickSearch() {
     // search fact db
-    let searchInput = quickbar[0].value
+    let searchInput = nav.quickSearch[0].value
     window.location = '/database/quick_search?search_term=' + searchInput;
 }
 
