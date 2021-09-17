@@ -27,11 +27,13 @@ class AbstractPluginInstaller:
 
         self.install_files()
 
-        self.build_path.mkdir(exist_ok=True)
-        os.chdir(self.build_path)
-        self.build()
-        run_cmd_with_logging(f'sudo rm -rf {self.build_path}')
-        os.chdir(self.base_path)
+        try:
+            self.build_path.mkdir(exist_ok=True)
+            os.chdir(self.build_path)
+            self.build()
+        finally:
+            run_cmd_with_logging(f'sudo rm -rf {self.build_path}')
+            os.chdir(self.base_path)
 
         if not self.skip_docker:
             self.install_docker_images()
