@@ -14,12 +14,10 @@ except ImportError:
     from helperFunctions.install import check_distribution
     from plugins.installer import AbstractPluginInstaller
 
-# The base directory of the plugin
-base_path = pathlib.Path(__file__).resolve().parent
-
 
 class KernelConfigInstaller(AbstractPluginInstaller):
-    pass
+    # The base directory of the plugin
+    base_path = pathlib.Path(__file__).resolve().parent
 
 
 # Alias for generic use
@@ -28,5 +26,5 @@ Installer = KernelConfigInstaller
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     distribution = check_distribution()
-    installer = Installer(base_path, distribution)
+    installer = Installer(distribution)
     installer.install()

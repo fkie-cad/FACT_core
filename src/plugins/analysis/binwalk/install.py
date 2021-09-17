@@ -15,11 +15,11 @@ except ImportError:
     from helperFunctions.install import OperateInDirectory, check_distribution, run_cmd_with_logging
     from plugins.installer import AbstractPluginInstaller
 
-# The base directory of the plugin
-base_path = pathlib.Path(__file__).resolve().parent
-
 
 class BinwalkInstaller(AbstractPluginInstaller):
+    # The base directory of the plugin
+    base_path = pathlib.Path(__file__).resolve().parent
+
     def build(self):
         # We need a version >=2.3.0 because of 1534001b96b8d543dcbb52845526326b61119f8c
         # Ubuntu 20.04 is currently on 2.2.0
@@ -40,5 +40,5 @@ Installer = BinwalkInstaller
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     distribution = check_distribution()
-    installer = Installer(base_path, distribution)
+    installer = Installer(distribution)
     installer.install()

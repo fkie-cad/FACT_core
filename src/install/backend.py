@@ -106,7 +106,7 @@ def _install_plugins(distribution, skip_docker, only_docker=False):
 
         plugin = importlib.import_module(f'plugins.{analysis_compare}.{plugin_name}.install')
 
-        plugin_installer = plugin.Installer(plugin.base_path, distribution, skip_docker=skip_docker)
+        plugin_installer = plugin.Installer(distribution, skip_docker=skip_docker)
         logging.info(f'Installing {plugin_name} plugin.')
         if not only_docker:
             plugin_installer.install()

@@ -10,11 +10,12 @@ class AbstractPluginInstaller:
     # pylint:disable=no-self-use
 
     skip_docker_env = os.getenv('FACT_INSTALLER_SKIP_DOCKER') is not None
+    # Must be overwritten by a class variable of a child class
+    base_path = None
 
-    def __init__(self, base_path: pathlib.Path, distribution, skip_docker=skip_docker_env):
-        self.base_path = base_path
+    def __init__(self, distribution, skip_docker=skip_docker_env):
         self.distribution = distribution
-        self.build_path = base_path / 'build'
+        self.build_path = self.base_path / 'build'
         self.skip_docker = skip_docker
 
     def install(self):

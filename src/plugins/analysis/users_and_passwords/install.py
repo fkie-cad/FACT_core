@@ -19,11 +19,10 @@ except ImportError:
     from helperFunctions.install import check_distribution, run_cmd_with_logging
     from plugins.installer import AbstractPluginInstaller
 
-# The base directory of the plugin
-base_path = pathlib.Path(__file__).resolve().parent
-
 
 class UsersAndPasswordsInstaller(AbstractPluginInstaller):
+    # The base directory of the plugin
+    base_path = pathlib.Path(__file__).resolve().parent
 
     def install_system_packages(self):
         super().install_system_packages()
@@ -70,5 +69,5 @@ Installer = UsersAndPasswordsInstaller
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     distribution = check_distribution()
-    installer = Installer(base_path, distribution)
+    installer = Installer(distribution)
     installer.install()

@@ -14,11 +14,11 @@ except ImportError:
     from helperFunctions.install import check_distribution, run_cmd_with_logging
     from plugins.installer import AbstractPluginInstaller
 
-# The base directory of the plugin
-base_path = pathlib.Path(__file__).resolve().parent
-
 
 class OmsInstaller(AbstractPluginInstaller):
+    # The base directory of the plugin
+    base_path = pathlib.Path(__file__).resolve().parent
+
     def do_last(self):
         # We dont care about the return value here
         # TODO why?
@@ -31,5 +31,5 @@ Installer = OmsInstaller
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     distribution = check_distribution()
-    installer = Installer(base_path, distribution)
+    installer = Installer(distribution)
     installer.install()

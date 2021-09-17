@@ -16,11 +16,11 @@ except ImportError:
     from helperFunctions.install import check_distribution, run_cmd_with_logging
     from plugins.installer import AbstractPluginInstaller
 
-# The base directory of the plugin
-base_path = pathlib.Path(__file__).resolve().parent
-
 
 class IpAndUriFinderInstaller(AbstractPluginInstaller):
+    # The base directory of the plugin
+    base_path = pathlib.Path(__file__).resolve().parent
+
     def install_files(self):
         with TemporaryDirectory(dir=str(self.base_path)) as tmp_dir:
             # We use a mirror of an old database that should not change
@@ -42,5 +42,5 @@ Installer = IpAndUriFinderInstaller
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     distribution = check_distribution()
-    installer = Installer(base_path, distribution)
+    installer = Installer(distribution)
     installer.install()

@@ -16,11 +16,11 @@ except ImportError:
     from helperFunctions.install import OperateInDirectory, check_distribution, run_cmd_with_logging
     from plugins.installer import AbstractPluginInstaller
 
-# The base directory of the plugin
-base_path = pathlib.Path(__file__).resolve().parent
-
 
 class QemuExecInstaller(AbstractPluginInstaller):
+    # The base directory of the plugin
+    base_path = pathlib.Path(__file__).resolve().parent
+
     def install_docker_images(self):
         run_cmd_with_logging(
             'docker build --build-arg=http{,s}_proxy --build-arg=HTTP{,S}_PROXY -t fact/qemu:latest docker',
@@ -70,5 +70,5 @@ Installer = QemuExecInstaller
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     distribution = check_distribution()
-    installer = Installer(base_path, distribution)
+    installer = Installer(distribution)
     installer.install()

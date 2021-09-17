@@ -16,11 +16,11 @@ except ImportError:
     from helperFunctions.install import check_distribution, run_cmd_with_logging
     from plugins.installer import AbstractPluginInstaller
 
-# The base directory of the plugin
-base_path = pathlib.Path(__file__).resolve().parent
-
 
 class SoftwareComponentsInstaller(AbstractPluginInstaller):
+    # The base directory of the plugin
+    base_path = pathlib.Path(__file__).resolve().parent
+
     def install_docker_images(self):
         run_cmd_with_logging('docker build -t fact/format_string_resolver docker')
 
@@ -34,5 +34,5 @@ Installer = SoftwareComponentsInstaller
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     distribution = check_distribution()
-    installer = Installer(base_path, distribution)
+    installer = Installer(distribution)
     installer.install()
