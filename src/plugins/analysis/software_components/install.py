@@ -3,10 +3,9 @@
 import logging
 from pathlib import Path
 
-from .internal.extract_os_names import extract_names
-
 try:
     from helperFunctions.install import check_distribution, run_cmd_with_logging
+    from plugins.analysis.software_components.internal.extract_os_names import extract_names
     from plugins.installer import AbstractPluginInstaller
 except ImportError:
     import sys
@@ -14,6 +13,7 @@ except ImportError:
     sys.path.append(str(SRC_PATH))
 
     from helperFunctions.install import check_distribution, run_cmd_with_logging
+    from plugins.analysis.software_components.internal.extract_os_names import extract_names
     from plugins.installer import AbstractPluginInstaller
 
 
