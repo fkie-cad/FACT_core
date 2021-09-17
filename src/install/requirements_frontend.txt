@@ -13,3 +13,6 @@ python-dateutil
 si-prefix
 sqlalchemy
 uwsgi
+
+# Used for username validation by flask-security
+bleach
