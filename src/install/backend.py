@@ -102,9 +102,9 @@ def _install_plugins(distribution, skip_docker, only_docker=False):
 
     for install_script in installer_paths:
         plugin_name = install_script.parent.name
-        analysis_compare = install_script.parent.parent.name
+        plutin_type = install_script.parent.parent.name
 
-        plugin = importlib.import_module(f'plugins.{analysis_compare}.{plugin_name}.install')
+        plugin = importlib.import_module(f'plugins.{plutin_type}.{plugin_name}.install')
 
         plugin_installer = plugin.Installer(distribution, skip_docker=skip_docker)
         logging.info(f'Installing {plugin_name} plugin.')
