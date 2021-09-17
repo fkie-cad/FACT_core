@@ -1,5 +1,5 @@
 import os
-import pathlib
+from pathlib import Path
 
 from helperFunctions.install import read_package_list_from_file, run_cmd_with_logging
 
@@ -51,11 +51,10 @@ class AbstractPluginInstaller:
         '''
         Install packages with apt/dnf
         '''
-        build_pkg_path = pathlib.Path('./apt-pkgs-build.txt' if self.distribution != 'fedora' else './dnf-pkgs-build.txt')
-        runtime_pkg_path = pathlib.Path('./apt-pkgs-runtime.txt' if self.distribution != 'fedora' else './dnf-pkgs-runtime.txt')
+        build_pkg_path = Path('./apt-pkgs-build.txt' if self.distribution != 'fedora' else './dnf-pkgs-build.txt')
+        runtime_pkg_path = Path('./apt-pkgs-runtime.txt' if self.distribution != 'fedora' else './dnf-pkgs-runtime.txt')
 
-        pkg_list = read_package_list_from_file(build_pkg_path) if build_pkg_path.exists() else [] \
-            + read_package_list_from_file(runtime_pkg_path) if runtime_pkg_path.exists() else []
+        pkg_list = _read_packages(build_pkg_path) + _read_packages(runtime_pkg_path)
 
         pgk_mgr_cmd = 'apt install -y' if self.distribution != 'fedora' else 'dnf install -y'
         pkgs_to_install = ' '.join(pkg_list)
@@ -69,7 +68,7 @@ class AbstractPluginInstaller:
         '''
         Install packages with pip
         '''
-        if pathlib.Path('./requirements.txt').exists():
+        if Path('./requirements.txt').exists():
             run_cmd_with_logging('sudo pip3 install -r ./requirements.txt')
 
     def install_other_packages(self):
@@ -93,3 +92,7 @@ class AbstractPluginInstaller:
         # This function is kind of ugly
         # It esentially does what a Makefile should do but worse
         # In the future we hope to not need to build things ourself
+
+
+def _read_packages(package_file: Path):
+    return read_package_list_from_file(package_file) if package_file.exists() else []
