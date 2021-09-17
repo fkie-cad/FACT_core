@@ -45,23 +45,13 @@ class QemuExecInstaller(AbstractPluginInstaller):
                 run_cmd_with_logging(f'ar x {dest_libc6_mips} data.tar.xz')
 
             run_cmd_with_logging(f'tar -xf {tmp_dir}/data.tar.xz -C {tmp_dir}')
-            Path('test/data/test_tmp_dir/lib').mkdir(exist_ok=True,
-                                                             parents=True)
-            Path('test/data/test_tmp_dir_2/fact_extracted/lib').mkdir(
-                exist_ok=True, parents=True)
+            Path('test/data/test_tmp_dir/lib').mkdir(exist_ok=True, parents=True)
+            Path('test/data/test_tmp_dir_2/fact_extracted/lib').mkdir(exist_ok=True, parents=True)
 
-            run_cmd_with_logging(
-                f'cp {tmp_dir}/usr/mips-linux-gnu/lib/libc-2.23.so test/data/test_tmp_dir/lib/libc.so.6',
-                shell=True)
-            run_cmd_with_logging(
-                f'cp {tmp_dir}/usr/mips-linux-gnu/lib/ld-2.23.so test/data/test_tmp_dir/lib/ld.so.1',
-                shell=True)
-            run_cmd_with_logging(
-                f'mv {tmp_dir}/usr/mips-linux-gnu/lib/libc-2.23.so test/data/test_tmp_dir_2/fact_extracted/lib/libc.so.6',
-                shell=True)
-            run_cmd_with_logging(
-                f'mv {tmp_dir}/usr/mips-linux-gnu/lib/ld-2.23.so test/data/test_tmp_dir_2/fact_extracted/lib/ld.so.1',
-                shell=True)
+            run_cmd_with_logging(f'cp {tmp_dir}/usr/mips-linux-gnu/lib/libc-2.23.so test/data/test_tmp_dir/lib/libc.so.6')
+            run_cmd_with_logging(f'cp {tmp_dir}/usr/mips-linux-gnu/lib/ld-2.23.so test/data/test_tmp_dir/lib/ld.so.1')
+            run_cmd_with_logging(f'mv {tmp_dir}/usr/mips-linux-gnu/lib/libc-2.23.so test/data/test_tmp_dir_2/fact_extracted/lib/libc.so.6')
+            run_cmd_with_logging(f'mv {tmp_dir}/usr/mips-linux-gnu/lib/ld-2.23.so test/data/test_tmp_dir_2/fact_extracted/lib/ld.so.1')
 
 
 # Alias for generic use
