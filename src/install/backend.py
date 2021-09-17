@@ -111,7 +111,7 @@ def _install_plugins(distribution, skip_docker, only_docker=False):
         if not only_docker:
             plugin_installer.install()
         else:
-            plugin_installer.install_docker()
+            plugin_installer.install_docker_images()
         logging.info(f'Finished installing {plugin_name} plugin.\n')
 
 
