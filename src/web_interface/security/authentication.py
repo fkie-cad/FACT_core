@@ -11,24 +11,25 @@ from web_interface.security.privileges import PRIVILEGES
 from web_interface.security.user_role_db_interface import UserRoleDbInterface
 
 
-def add_flask_security_to_app(app, config):
-    _add_configuration_to_app(app, config)
+def add_config_from_configparser_to_app(app, config):
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['SECURITY_PASSWORD_SALT'] = config.get('data_storage', 'password_salt').encode()
+    app.config['SQLALCHEMY_DATABASE_URI'] = config.get('data_storage', 'user_database', fallback='sqlite:///')
+    # TODO fix redirect loop here
+    app.config['SECURITY_UNAUTHORIZED_VIEW'] = '/login'
+    app.config['LOGIN_DISABLED'] = not config.getboolean('ExpertSettings', 'authentication')
+
+    # As we want to use ONLY usernames and no emails but email is hardcoded in
+    # flask-security we change the validation mapper of 'email'.
+    app.config['SECURITY_USER_IDENTITY_ATTRIBUTES'] = [{'email': {"mapper": uia_username_mapper, "case_insensitive": True}}]
+
+
+def add_flask_security_to_app(app):
+    # db.Table etc cause errors but are correct
+    # pylint: disable=no-member
 
     db = SQLAlchemy(app)
 
-    user_interface = create_user_interface(db)
-
-    # See _add_configuration_to_app for explanation
-    class CustomLoginForm(LoginForm):
-        email = StringField('username', [DataRequired()])
-
-    security = Security(app, user_interface, login_form=CustomLoginForm)
-
-    _add_apikey_handler(security, user_interface)
-    return db, user_interface
-
-
-def create_user_interface(db):
     roles_users = db.Table('roles_users', db.Column('user_id', db.Integer(), db.ForeignKey('user.id')), db.Column('role_id', db.Integer(), db.ForeignKey('role.id')))
 
     class Role(db.Model, RoleMixin):
@@ -47,7 +48,16 @@ def create_user_interface(db):
         # See flask_security.models.fsqla.FsUserMixin
         fs_uniquifier = db.Column(db.String(64), unique=True, nullable=False)
 
-    return UserRoleDbInterface(db, User, Role)
+    user_datastore = UserRoleDbInterface(db, User, Role)
+
+    # See add_config_from_configparser_to_app for explanation
+    class CustomLoginForm(LoginForm):
+        email = StringField('username', [DataRequired()])
+
+    security = Security(app, user_datastore, login_form=CustomLoginForm)
+
+    _add_apikey_handler(security, user_datastore)
+    return db, user_datastore
 
 
 def _add_apikey_handler(security, user_datastore):
@@ -59,19 +69,6 @@ def _add_apikey_handler(security, user_datastore):
             if user:
                 return user
         return None
-
-
-def _add_configuration_to_app(app, config):
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.config['SECURITY_PASSWORD_SALT'] = config.get('data_storage', 'password_salt').encode()
-    app.config['SQLALCHEMY_DATABASE_URI'] = config.get('data_storage', 'user_database', fallback='sqlite:///')
-    # TODO fix redirect loop here
-    app.config['SECURITY_UNAUTHORIZED_VIEW'] = '/login'
-    app.config['LOGIN_DISABLED'] = not config.getboolean('ExpertSettings', 'authentication')
-
-    # As we want to use ONLY usernames and no emails but email is hardcoded in
-    # flask-security we change the validation mapper of 'email'.
-    app.config['SECURITY_USER_IDENTITY_ATTRIBUTES'] = [{'email': {"mapper": uia_username_mapper, "case_insensitive": True}}]
 
 
 def _build_api_key():
