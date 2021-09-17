@@ -239,18 +239,18 @@ def check_distribution():
 
     :return: The codename of the distribution
     '''
-    BIONIC_CODE_NAMES = ['bionic', 'tara', 'tessa', 'tina', 'disco']
-    DEBIAN_CODE_NAMES = ['buster', 'stretch', 'kali-rolling']
-    FOCAL_CODE_NAMES = ['focal', 'ulyana']
+    bionic_code_names = ['bionic', 'tara', 'tessa', 'tina', 'disco']
+    debian_code_names = ['buster', 'stretch', 'kali-rolling']
+    focal_code_names = ['focal', 'ulyana', 'ulyssa', 'uma']
 
     codename = distro.codename().lower()
-    if codename in BIONIC_CODE_NAMES:
+    if codename in bionic_code_names:
         logging.debug('Ubuntu 18.04 detected')
         return 'bionic'
-    if codename in FOCAL_CODE_NAMES:
+    if codename in focal_code_names:
         logging.debug('Ubuntu 20.04 detected')
         return 'focal'
-    if codename in DEBIAN_CODE_NAMES:
+    if codename in debian_code_names:
         logging.debug('Debian/Kali detected')
         return 'debian'
     if distro.id() == 'fedora':
