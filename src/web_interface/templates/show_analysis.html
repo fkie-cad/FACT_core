@@ -24,8 +24,8 @@
     <script type="text/javascript" src="{{ url_for('static', filename='web_js/jstree/dist/jstree.min.js') }}"></script>
 
     {# highlight.js import #}
-    <script src="{{ url_for('static', filename='highlight.js/highlight.pack.js') }}"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='highlight.js/styles/github.css') }}" />
+    <script src="{{ url_for('static', filename='highlight.js/highlight.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='highlight.js/styles/github.min.css') }}" />
 
     {# line_numbering.js import #}
     <script type="text/javascript" src="{{ url_for('static', filename='js/line_numbering.js') }}"></script>
@@ -358,7 +358,7 @@
                             }
                             function highlight_code() {
                                 const block = $('div#preview-div pre')[0];
-                                hljs.highlightBlock(block);
+                                hljs.highlightElement(block);
                                 line_numbering();
                             }
                             function load_preview(){
