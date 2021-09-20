@@ -126,14 +126,17 @@ in the webinterface).</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="helperFunctions.mongo_task_conversion.convert_analysis_task_to_fw_obj">
-<span class="sig-prename descclassname"><span class="pre">helperFunctions.mongo_task_conversion.</span></span><span class="sig-name descname"><span class="pre">convert_analysis_task_to_fw_obj</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">analysis_task</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.mongo_task_conversion.convert_analysis_task_to_fw_obj" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.mongo_task_conversion.</span></span><span class="sig-name descname"><span class="pre">convert_analysis_task_to_fw_obj</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">analysis_task</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_fw</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.mongo_task_conversion.convert_analysis_task_to_fw_obj" title="Permalink to this definition"></a></dt>
 <dd><p>Convert an analysis task to a firmware object.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>analysis_task</strong> (<em>dict</em>) – The analysis task data.</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>analysis_task</strong> (<em>dict</em>) – The analysis task data.</p></li>
+<li><p><strong>base_fw</strong> (<em>Optional</em><em>[</em><a class="reference internal" href="objects.firmware.html#objects.firmware.Firmware" title="objects.firmware.Firmware"><em>objects.firmware.Firmware</em></a><em>]</em>) – The existing <cite>Firmware</cite> object in case of analysis update.</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>A new <cite>Firmware</cite> object based on the analysis task data.</p>
+<dd class="field-even"><p>A <cite>Firmware</cite> object based on the analysis task data.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p><a class="reference internal" href="objects.firmware.html#objects.firmware.Firmware" title="objects.firmware.Firmware">objects.firmware.Firmware</a></p>
