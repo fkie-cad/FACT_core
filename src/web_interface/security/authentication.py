@@ -21,7 +21,7 @@ def add_config_from_configparser_to_app(app, config):
 
     # As we want to use ONLY usernames and no emails but email is hardcoded in
     # flask-security we change the validation mapper of 'email'.
-    app.config['SECURITY_USER_IDENTITY_ATTRIBUTES'] = [{'email': {"mapper": uia_username_mapper, "case_insensitive": True}}]
+    app.config['SECURITY_USER_IDENTITY_ATTRIBUTES'] = [{'email': {'mapper': uia_username_mapper, 'case_insensitive': True}}]
 
 
 def add_flask_security_to_app(app):
