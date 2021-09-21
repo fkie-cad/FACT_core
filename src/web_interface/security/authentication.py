@@ -25,10 +25,23 @@ def add_config_from_configparser_to_app(app, config):
 
 
 def add_flask_security_to_app(app):
+    db = SQLAlchemy(app)
+    user_datastore = create_user_datastore(db)
+
+    # Allow users to enter non-emails in the html form
+    # See add_config_from_configparser_to_app for explanation why we need this
+    class CustomLoginForm(LoginForm):
+        email = StringField('username', [DataRequired()])
+
+    security = Security(app, user_datastore, login_form=CustomLoginForm)
+
+    _add_apikey_handler(security, user_datastore)
+    return db, user_datastore
+
+
+def create_user_datastore(db):
     # db.Table etc cause errors but are correct
     # pylint: disable=no-member
-
-    db = SQLAlchemy(app)
 
     roles_users = db.Table('roles_users', db.Column('user_id', db.Integer(), db.ForeignKey('user.id')), db.Column('role_id', db.Integer(), db.ForeignKey('role.id')))
 
@@ -48,16 +61,7 @@ def add_flask_security_to_app(app):
         # See flask_security.models.fsqla.FsUserMixin
         fs_uniquifier = db.Column(db.String(64), unique=True, nullable=False)
 
-    user_datastore = UserRoleDbInterface(db, User, Role)
-
-    # See add_config_from_configparser_to_app for explanation
-    class CustomLoginForm(LoginForm):
-        email = StringField('username', [DataRequired()])
-
-    security = Security(app, user_datastore, login_form=CustomLoginForm)
-
-    _add_apikey_handler(security, user_datastore)
-    return db, user_datastore
+    return UserRoleDbInterface(db, User, Role)
 
 
 def _add_apikey_handler(security, user_datastore):

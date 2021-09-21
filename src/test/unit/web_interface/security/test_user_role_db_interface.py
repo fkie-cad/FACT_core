@@ -4,7 +4,7 @@ from flask import Flask
 from flask_security import Security
 from flask_sqlalchemy import SQLAlchemy
 
-from web_interface.security.authentication import create_user_interface
+from web_interface.security.authentication import create_user_datastore
 
 
 class TestUserRoleDbInterface(TestCase):
@@ -16,7 +16,7 @@ class TestUserRoleDbInterface(TestCase):
         self.test_app.config['SECURITY_PASSWORD_SALT'] = 'salt123'
         self.test_app.config['SECRET_KEY'] = 'key123'
         db = SQLAlchemy(self.test_app)
-        self.db_interface = create_user_interface(db)
+        self.db_interface = create_user_datastore(db)
         Security(self.test_app, self.db_interface)
         db.create_all()
 
