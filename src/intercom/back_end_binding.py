@@ -3,7 +3,7 @@ import pickle
 from multiprocessing import Process, Value
 from pathlib import Path
 from time import sleep
-from typing import Callable, Optional, Type
+from typing import Callable, Optional, Tuple, Type
 
 from common_helper_mongo.gridfs import overwrite_file
 
@@ -31,54 +31,28 @@ class InterComBackEndBinding:
         self.stop_condition = Value('i', 0)
         self.process_list = []
         if not testing:
-            self.startup()
+            self.start_listeners()
         logging.info('InterCom started')
 
-    def startup(self):
+    def start_listeners(self):
         InterComBackEndAnalysisPlugInsPublisher(config=self.config, analysis_service=self.analysis_service)
-        self.start_analysis_listener()
-        self.start_re_analyze_listener()
-        self.start_compare_listener()
-        self.start_raw_download_listener()
-        self.start_tar_repack_listener()
-        self.start_binary_search_listener()
-        self.start_update_listener()
-        self.start_delete_file_listener()
-        self.start_single_analysis_listener()
-        self.start_logs_listener()
+        self._start_listener(InterComBackEndAnalysisTask, self.unpacking_service.add_task)
+        self._start_listener(InterComBackEndReAnalyzeTask, self.unpacking_service.add_task)
+        self._start_listener(InterComBackEndCompareTask, self.compare_service.add_task)
+        self._start_listener(InterComBackEndRawDownloadTask)
+        self._start_listener(InterComBackEndTarRepackTask)
+        self._start_listener(InterComBackEndBinarySearchTask)
+        self._start_listener(InterComBackEndUpdateTask, self.analysis_service.update_analysis_of_object_and_children)
+        self._start_listener(InterComBackEndDeleteFile)
+        self._start_listener(InterComBackEndSingleFileTask, self.analysis_service.update_analysis_of_single_object)
+        self._start_listener(InterComBackEndPeekBinaryTask)
+        self._start_listener(InterComBackEndLogsTask)
 
     def shutdown(self):
         self.stop_condition.value = 1
         for item in self.process_list:
             item.join()
         logging.info('InterCom down')
-
-    def start_analysis_listener(self):
-        self._start_listener(InterComBackEndAnalysisTask, self.unpacking_service.add_task)
-
-    def start_re_analyze_listener(self):
-        self._start_listener(InterComBackEndReAnalyzeTask, self.unpacking_service.add_task)
-
-    def start_update_listener(self):
-        self._start_listener(InterComBackEndUpdateTask, self.analysis_service.update_analysis_of_object_and_children)
-
-    def start_single_analysis_listener(self):
-        self._start_listener(InterComBackEndSingleFileTask, self.analysis_service.update_analysis_of_single_object)
-
-    def start_compare_listener(self):
-        self._start_listener(InterComBackEndCompareTask, self.compare_service.add_task)
-
-    def start_raw_download_listener(self):
-        self._start_listener(InterComBackEndRawDownloadTask)
-
-    def start_tar_repack_listener(self):
-        self._start_listener(InterComBackEndTarRepackTask)
-
-    def start_binary_search_listener(self):
-        self._start_listener(InterComBackEndBinarySearchTask)
-
-    def start_delete_file_listener(self):
-        self._start_listener(InterComBackEndDeleteFile)
 
     def _start_listener(self, listener: Type[InterComListener], do_after_function: Optional[Callable] = None):
         process = Process(target=self._backend_worker, args=(listener, do_after_function))
@@ -87,7 +61,7 @@ class InterComBackEndBinding:
 
     def _backend_worker(self, listener: Type[InterComListener], do_after_function: Optional[Callable]):
         interface = listener(config=self.config)
-        logging.debug('{} listener started'.format(listener.__name__))
+        logging.debug(f'{listener.__name__} listener started')
         while self.stop_condition.value == 0:
             task = interface.get_next_task()
             if task is None:
@@ -95,10 +69,7 @@ class InterComBackEndBinding:
             elif do_after_function is not None:
                 do_after_function(task)
         interface.shutdown()
-        logging.debug('{} listener stopped'.format(listener.__name__))
-
-    def start_logs_listener(self):
-        self._start_listener(InterComBackEndLogsTask)
+        logging.debug(f'{listener.__name__} listener stopped')
 
 
 class InterComBackEndAnalysisPlugInsPublisher(InterComMongoInterface):
@@ -166,6 +137,19 @@ class InterComBackEndRawDownloadTask(InterComListenerAndResponder):
 
     def get_response(self, task):
         return self.binary_service.get_binary_and_file_name(task)
+
+
+class InterComBackEndPeekBinaryTask(InterComListenerAndResponder):
+
+    CONNECTION_TYPE = 'binary_peek_task'
+    OUTGOING_CONNECTION_TYPE = 'binary_peek_task_resp'
+
+    def __init__(self, config=None):
+        super().__init__(config)
+        self.binary_service = BinaryService(config=self.config)
+
+    def get_response(self, task: Tuple[str, int, int]) -> bytes:
+        return self.binary_service.read_partial_binary(*task)
 
 
 class InterComBackEndTarRepackTask(InterComListenerAndResponder):

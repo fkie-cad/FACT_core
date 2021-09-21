@@ -34,10 +34,14 @@ class InterComFrontEndBinding(InterComMongoInterface):
         if plugin_file is not None:
             plugin_dict = pickle.loads(plugin_file.read())
             return plugin_dict
-        raise Exception("No available plug-ins found. FACT backend might be down!")
+        raise Exception('No available plug-ins found. FACT backend might be down!')
 
     def get_binary_and_filename(self, uid):
         return self._request_response_listener(uid, 'raw_download_task', 'raw_download_task_resp')
+
+    def peek_in_binary(self, uid: str, offset: int, length: int) -> bytes:
+        ''' Return part of the content from file `uid` from offset `offset` with length `length`. '''
+        return self._request_response_listener((uid, offset, length), 'binary_peek_task', 'binary_peek_task_resp')
 
     def get_repacked_binary_and_file_name(self, uid):
         return self._request_response_listener(uid, 'tar_repack_task', 'tar_repack_task_resp')
@@ -55,7 +59,7 @@ class InterComFrontEndBinding(InterComMongoInterface):
     def _request_response_listener(self, input_data, request_connection, response_connection):
         serialized_request = pickle.dumps(input_data)
         request_id = generate_task_id(input_data)
-        self.connections[request_connection]['fs'].put(serialized_request, filename="{}".format(request_id))
+        self.connections[request_connection]['fs'].put(serialized_request, filename='{}'.format(request_id))
         logging.debug('Request sent: {} -> {}'.format(request_connection, request_id))
         sleep(1)
         return self._response_listener(response_connection, request_id)
