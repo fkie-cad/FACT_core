@@ -14,7 +14,9 @@ def upgrade(cur):
     for uid in users:
         cur.execute('UPDATE user SET fs_uniquifier = ? WHERE user.id = ?', (uuid.uuid4().hex, uid))
 
-    # Due to limitiations in SQLite we have to create a temporary table
+    # Due to limitations in SQLite we have to create a temporary table
+    # We can't use ALTER TABLE to change fs_uniquifier from beeing NULLable to
+    # NOT NULL
     cur.execute('''
         CREATE TABLE "user_tmp" (
             "id"			INTEGER NOT NULL,
@@ -23,7 +25,7 @@ def upgrade(cur):
             "password"		VARCHAR(255),
             "active"		BOOLEAN,
             "confirmed_at"	DATETIME,
-            "fs_uniquifier"	VARCHAR(64)	NOT NULL,
+            "fs_uniquifier"	VARCHAR(64)	NOT NULL	UNIQUE,
             CHECK(active IN (0,1)),
             PRIMARY KEY("id")
         );''')
@@ -31,9 +33,12 @@ def upgrade(cur):
     cur.execute('DROP TABLE "user"')
     cur.execute('ALTER TABLE "user_tmp" RENAME TO "user"')
 
+    print('Successfully upgraded the database')
+
 
 def downgrade(cur):
-    # Due to limitiations in SQLite we have to create a temporary table
+    # Due to limitations in SQLite we have to create a temporary table
+    # We can't DROP COLUMN fs_uniquifier because it is unique
     cur.execute('''
         CREATE TABLE "user_tmp" (
             "id"			INTEGER NOT NULL,
@@ -48,6 +53,8 @@ def downgrade(cur):
     cur.execute('INSERT INTO "user_tmp" SELECT id, api_key, email, password, active, confirmed_at FROM "user" WHERE true')
     cur.execute('DROP TABLE "user"')
     cur.execute('ALTER TABLE "user_tmp" RENAME TO "user"')
+
+    print('Successfully downgraded the database')
 
 
 def main():
