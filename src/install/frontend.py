@@ -162,6 +162,11 @@ def _install_docker_images(radare):
 
 
 def main(skip_docker, radare, nginx):
+    # flask-security is not maintainted anymore and replaced by
+    # flask-security-too.
+    # Since python packages can't conflict with eachother remove flask-security
+    # manually.
+    run_cmd_with_logging("sudo -EH pip3 uninstall flask-security")
     run_cmd_with_logging("sudo -EH pip3 install -r ./requirements_frontend.txt")
 
     # installing web/js-frameworks
