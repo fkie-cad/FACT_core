@@ -20,12 +20,12 @@ def upgrade(cur):
     cur.execute('''
         CREATE TABLE "user_tmp" (
             "id"			INTEGER NOT NULL,
-            "api_key"		VARCHAR(255),
-            "email"			VARCHAR(255),
+            "api_key"		VARCHAR(255) UNIQUE,
+            "email"			VARCHAR(255) UNIQUE,
             "password"		VARCHAR(255),
             "active"		BOOLEAN,
             "confirmed_at"	DATETIME,
-            "fs_uniquifier"	VARCHAR(64)	NOT NULL	UNIQUE,
+            "fs_uniquifier"	VARCHAR(64) NOT NULL UNIQUE,
             CHECK(active IN (0,1)),
             PRIMARY KEY("id")
         );''')
@@ -42,8 +42,8 @@ def downgrade(cur):
     cur.execute('''
         CREATE TABLE "user_tmp" (
             "id"			INTEGER NOT NULL,
-            "api_key"		VARCHAR(255),
-            "email"			VARCHAR(255),
+            "api_key"		VARCHAR(255) UNIQUE,
+            "email"			VARCHAR(255) UNIQUE,
             "password"		VARCHAR(255),
             "active"		BOOLEAN,
             "confirmed_at"	DATETIME,
