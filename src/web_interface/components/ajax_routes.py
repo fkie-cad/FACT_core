@@ -1,6 +1,7 @@
 import html
 from typing import List
 
+import hexdump
 from flask import jsonify, render_template
 
 from helperFunctions.data_conversion import none_to_none
@@ -95,11 +96,19 @@ class AjaxRoutes(ComponentBase):
         with ConnectTo(InterComFrontEndBinding, self._config) as sc:
             binary = sc.get_binary_and_filename(uid)[0]
         if 'text/' in mime_type:
-            return '<pre style="white-space: pre-wrap">{}</pre>'.format(html.escape(bytes_to_str_filter(binary)))
+            return '<pre class="line_numbering" style="white-space: pre-wrap">{}</pre>'.format(html.escape(bytes_to_str_filter(binary)))
         if 'image/' in mime_type:
             div = '<div style="display: block; border: 1px solid; border-color: #dddddd; padding: 5px; text-align: center">'
             return '{}<img src="data:image/{} ;base64,{}" style="max-width:100%"></div>'.format(div, mime_type[6:], encode_base64_filter(binary))
         return None
+
+    @roles_accepted(*PRIVILEGES['view_analysis'])
+    @AppRoute('/ajax_get_hex_preview/<string:uid>/<int:offset>/<int:length>', GET)
+    def ajax_get_hex_preview(self, uid: str, offset: int, length: int) -> str:
+        with ConnectTo(InterComFrontEndBinding, self._config) as sc:
+            partial_binary = sc.peek_in_binary(uid, offset, length)
+        hex_dump = hexdump.hexdump(partial_binary, result='return')
+        return f'<pre style="white-space: pre-wrap; margin-bottom: 0;">\n{hex_dump}\n</pre>'
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
     @AppRoute('/ajax_get_summary/<uid>/<selected_analysis>', GET)
