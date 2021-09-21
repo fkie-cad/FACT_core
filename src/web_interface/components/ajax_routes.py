@@ -11,6 +11,7 @@ from storage.db_interface_compare import CompareDbInterface
 from storage.db_interface_frontend import FrontEndDbInterface
 from storage.db_interface_statistic import StatisticDbViewer
 from web_interface.components.component_base import GET, AppRoute, ComponentBase
+from web_interface.components.hex_highlighting import highlight_hex
 from web_interface.file_tree.file_tree import remove_virtual_path_from_root
 from web_interface.file_tree.file_tree_node import FileTreeNode
 from web_interface.file_tree.jstree_conversion import convert_to_jstree_node
@@ -107,7 +108,7 @@ class AjaxRoutes(ComponentBase):
     def ajax_get_hex_preview(self, uid: str, offset: int, length: int) -> str:
         with ConnectTo(InterComFrontEndBinding, self._config) as sc:
             partial_binary = sc.peek_in_binary(uid, offset, length)
-        hex_dump = hexdump.hexdump(partial_binary, result='return')
+        hex_dump = highlight_hex(hexdump.hexdump(partial_binary, result='return'))
         return f'<pre style="white-space: pre-wrap; margin-bottom: 0;">\n{hex_dump}\n</pre>'
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
