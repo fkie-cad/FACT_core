@@ -5,6 +5,12 @@ import getpass
 import os
 import sys
 
+from prompt_toolkit import PromptSession
+from prompt_toolkit import print_formatted_text as print_
+from helperFunctions.terminal import SESSION, YesNoValidator, RangeValidator, NumberValidator, FileValidator, \
+    ActionValidator
+from prompt_toolkit.completion import PathCompleter, WordCompleter
+
 from flask_security import Security
 from flask_sqlalchemy import SQLAlchemy
 
@@ -18,8 +24,10 @@ from web_interface.security.authentication import create_user_interface
 
 def setup_argparse():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-v', '--version', action='version', version='FACT User Management (FACTUM) {}'.format(__VERSION__))
-    parser.add_argument('-C', '--config_file', help='set path to config File', default='{}/main.cfg'.format(get_config_dir()))
+    parser.add_argument('-v', '--version', action='version',
+                        version='FACT User Management (FACTUM) {}'.format(__VERSION__))
+    parser.add_argument('-C', '--config_file', help='set path to config File',
+                        default='{}/main.cfg'.format(get_config_dir()))
     return parser.parse_args()
 
 
@@ -159,6 +167,33 @@ def prompt_for_actions(app, store, db):
     print('\nQuitting ..')
 
 
+def promt_toolkit_stuff(app, store, db):
+    print(FACT_ASCII_ART)
+
+    print('\nWelcome to the FACT User Management (FACTUM)\n')
+    while True:
+        try:
+            action_completer = WordCompleter(LEGAL_ACTIONS)
+            action = SESSION.prompt(
+                'Please choose an action to perform: ',
+                validator=ActionValidator(LEGAL_ACTIONS),
+                completer=action_completer
+            )
+        except (EOFError, KeyboardInterrupt):
+            break
+        try:
+            acting_function = getattr(Actions, action)
+            acting_function(app, store, db)
+        except AssertionError as assertion_error:
+            print('error: {}'.format(assertion_error))
+        except EOFError:
+            break
+
+    print('\nQuitting ..')
+
+    pass
+
+
 def start_user_management(app):
     db = SQLAlchemy(app)
     Security(app)
@@ -166,11 +201,13 @@ def start_user_management(app):
 
     db.create_all()
 
-    prompt_for_actions(app, store, db)
+    promt_toolkit_stuff(app, store, db)
+    #prompt_for_actions(app, store, db)
 
 
 def main():
     args = setup_argparse()
+
     file_name = os.path.basename(args.config_file)
 
     config = load_config(file_name)
