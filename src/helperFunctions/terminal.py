@@ -63,7 +63,7 @@ class ActionValidator(Validator):
 
     def validate(self, document):
         if document.text not in self.actions:
-            raise ValidationError(message='This is not a valid action.')
+            raise ValidationError(message=self.message)
 
 
 class ActionValidatorReverse(Validator):
