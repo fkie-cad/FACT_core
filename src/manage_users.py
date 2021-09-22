@@ -64,21 +64,21 @@ class Actions:
         return True if user else False
 
     @staticmethod
-    def _get_user_lst(app, interface):
+    def _get_user_list(app, interface):
         with app.app_context():
             return [x.email for x in interface.list_users()]
 
     @staticmethod
     def _get_role_list(app, interface):
         with app.app_context():
-            return []
+            return [x.name for x in interface.list_roles()]
 
     @staticmethod
     def exit(*_):
         raise EOFError('Quitting ..')
 
     @staticmethod
-    def old_create_user(app, interface, db):
+    def _old_create_user(app, interface, db):
         user = get_input('username: ')
         assert not Actions._user_exists(app, interface, user), 'user must not exist'
 
@@ -88,17 +88,19 @@ class Actions:
             interface.create_user(email=user, password=password)
             db.session.commit()
 
-    def create_user(self, app, interface, db):
-        user_list = self._get_user_lst(app, interface)
+    @staticmethod
+    def create_user(app, interface, db):
+        user_list = Actions._get_user_list(app, interface)
         try:
             user = SESSION.prompt(
                 'username: ',
-                validator=ActionValidatorReverse([x.email for x in user_list], message='user must not exist')
+                validator=ActionValidatorReverse(user_list, message='user must not exist')
             )
             password = getpass.getpass('password: ')
             assert password_is_legal(password), 'password is illegal'
         except KeyboardInterrupt:
             print('returning to action selection\n\n')
+            return
         with app.app_context():
             interface.create_user(email=user, password=password)
             db.session.commit()
@@ -114,8 +116,9 @@ class Actions:
         apikey = user.api_key
         print('key: {}'.format(apikey))
 
-    def get_apikey_for_user(self, app, interface, db):
-        user_list = self._get_user_lst(app, interface)
+    @staticmethod
+    def get_apikey_for_user(app, interface, db):
+        user_list = Actions._get_user_list(app, interface)
         action_completer = WordCompleter(user_list)
         try:
             user = SESSION.prompt(
@@ -125,6 +128,7 @@ class Actions:
             )
         except KeyboardInterrupt:
             print('returning to action selection\n\n')
+            return
         with app.app_context():
             user = interface.find_user(email=user)
 
@@ -144,16 +148,21 @@ class Actions:
             interface.create_role(name=role)
             db.session.commit()
 
-    def create_role(self, app, interface, db):
+    @staticmethod
+    def create_role(app, interface, db):
         # no duplicate roles?
+        role_list = Actions._get_role_list(app, interface)
+        action_completer = WordCompleter(role_list)
         try:
             role = SESSION.prompt(
-                'role name: '
+                'role name: ',
+                validator=ActionValidatorReverse(role_list, message='role must not exist')
             )
         except KeyboardInterrupt:
             print('returning to action selection\n\n')
+            return
         with app.app_context():
-            if not self._role_exists(app, interface, role):
+            if not Actions._role_exists(app, interface, role):
                 interface.create_role(name=role)
                 db.session.commit()
 
@@ -169,9 +178,10 @@ class Actions:
             interface.add_role_to_user(user=interface.find_user(email=user), role=role)
             db.session.commit()
 
-    def add_role_to_user(self, app, interface, db):
-        user_list = self._get_user_lst(app, interface)
-        role_list = []
+    @staticmethod
+    def add_role_to_user(app, interface, db):
+        user_list = Actions._get_user_list(app, interface)
+        role_list = Actions._get_role_list(app,interface)
         user_completer = WordCompleter(user_list)
         role_completer = WordCompleter(role_list)
         try:
@@ -187,11 +197,10 @@ class Actions:
             )
         except KeyboardInterrupt:
             print('returning to action selection\n\n')
+            return
         with app.app_context():
             interface.add_role_to_user(user=interface.find_user(email=user), role=role)
             db.session.commit()
-
-
 
     @staticmethod
     def remove_role_from_user(app, interface, db):
@@ -214,8 +223,9 @@ class Actions:
             interface.delete_user(user=interface.find_user(email=user))
             db.session.commit()
 
-    def delete_user(self, app, interface, db):
-        user_list = self._get_user_lst(app, interface)
+    @staticmethod
+    def delete_user(app, interface, db):
+        user_list = Actions._get_user_list(app, interface)
         action_completer = WordCompleter(user_list)
         try:
             user = SESSION.prompt(
@@ -223,11 +233,12 @@ class Actions:
                 validator=ActionValidator(user_list, message='user must exist before deleting'),
                 completer=action_completer
             )
-            with app.app_context():
-                interface.delete_user(user=interface.find_user(email=user))
-                db.session.commit()
         except KeyboardInterrupt:
             print('returning to action selection\n\n')
+            return
+        with app.app_context():
+            interface.delete_user(user=interface.find_user(email=user))
+            db.session.commit()
 
 
 LEGAL_ACTIONS = [action for action in dir(Actions) if not action.startswith('_')]
@@ -259,7 +270,6 @@ def _old_prompt_for_actions(app, store, db):
 
 def promt_toolkit_stuff(app, store, db):
     print(FACT_ASCII_ART)
-
     print('\nWelcome to the FACT User Management (FACTUM)\n')
     while True:
         try:
