@@ -188,8 +188,7 @@ def initialise_roles(app, interface, db):
                 db.session.commit()
 
 
-def prompt_toolkit_stuff(app, store, db):
-    # TODO rename function
+def prompt_loop(app, store, db):
     print(FACT_ASCII_ART)
     print('\nWelcome to the FACT User Management (FACTUM)\n')
     initialise_roles(app, store, db)
@@ -223,7 +222,7 @@ def start_user_management(app):
 
     db.create_all()
 
-    prompt_toolkit_stuff(app, store, db)
+    prompt_loop(app, store, db)
 
 
 def main():
