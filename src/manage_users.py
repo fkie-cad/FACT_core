@@ -189,6 +189,7 @@ def initialise_roles(app, interface, db):
 
 
 def prompt_toolkit_stuff(app, store, db):
+    # TODO rename function
     print(FACT_ASCII_ART)
     print('\nWelcome to the FACT User Management (FACTUM)\n')
     initialise_roles(app, store, db)
