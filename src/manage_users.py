@@ -22,9 +22,9 @@ from web_interface.security.privileges import ROLES
 def setup_argparse():
     parser = argparse.ArgumentParser()
     parser.add_argument('-v', '--version', action='version',
-                        version='FACT User Management (FACTUM) {}'.format(__VERSION__))
+                        version=f'FACT User Management (FACTUM) {__VERSION__}')
     parser.add_argument('-C', '--config_file', help='set path to config File',
-                        default='{}/main.cfg'.format(get_config_dir()))
+                        default=f'{get_config_dir()}/main.cfg')
     return parser.parse_args()
 
 
@@ -32,9 +32,8 @@ def get_input(message, max_len=25):
     while True:
         user_input = input(message)
         if len(user_input) > max_len:
-            raise ValueError('Error: input too long (max length: {})'.format(max_len))
-        else:
-            return user_input
+            raise ValueError('Error: input too long (max length: {max_len})')
+        return user_input
 
 
 def choose_action():
@@ -62,13 +61,13 @@ class Actions:
     def _user_exists(app, interface, name):
         with app.app_context():
             user = interface.find_user(email=name)
-        return True if user else False
+        return bool(user)
 
     @staticmethod
     def _role_exists(app, interface, role):
         with app.app_context():
             exists = interface.find_role(role)
-        return True if exists else False
+        return bool(exists)
 
     @staticmethod
     def _get_user_list(app, interface):
@@ -98,7 +97,7 @@ class Actions:
             db.session.commit()
 
     @staticmethod
-    def get_apikey_for_user(app, interface, db):
+    def get_apikey_for_user(app, interface, _):
         user_list = Actions._get_user_list(app, interface)
         action_completer = WordCompleter(user_list)
         user = SESSION.prompt(
@@ -110,7 +109,7 @@ class Actions:
             user = interface.find_user(email=user)
 
         apikey = user.api_key
-        print('key: {}'.format(apikey))
+        print(f'key: {apikey}')
 
     @staticmethod
     def create_role(app, interface, db):
@@ -127,7 +126,7 @@ class Actions:
     @staticmethod
     def add_role_to_user(app, interface, db):
         user_list = Actions._get_user_list(app, interface)
-        role_list = Actions._get_role_list(app,interface)
+        role_list = Actions._get_role_list(app, interface)
         user_completer = WordCompleter(user_list)
         role_completer = WordCompleter(role_list)
         user = SESSION.prompt(
@@ -208,16 +207,12 @@ def prompt_toolkit_stuff(app, store, db):
             acting_function = getattr(Actions, action)
             acting_function(app, store, db)
 
-        except KeyboardInterrupt:
+        except (EOFError, KeyboardInterrupt):
             print('returning to action selection')
         except AssertionError as assertion_error:
-            print('error: {}'.format(assertion_error))
-        except EOFError:
-            break
+            print(f'error: {assertion_error}')
 
     print('\nQuitting ..')
-
-    pass
 
 
 def start_user_management(app):
