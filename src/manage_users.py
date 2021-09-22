@@ -5,17 +5,13 @@ import getpass
 import os
 import sys
 
-from prompt_toolkit import PromptSession
-from prompt_toolkit import print_formatted_text as print_
-from helperFunctions.terminal import SESSION, YesNoValidator, RangeValidator, NumberValidator, FileValidator, \
-    ActionValidator
-from prompt_toolkit.completion import PathCompleter, WordCompleter
-
 from flask_security import Security
 from flask_sqlalchemy import SQLAlchemy
+from prompt_toolkit.completion import WordCompleter
 
 from config.ascii import FACT_ASCII_ART
 from helperFunctions.config import load_config, get_config_dir
+from helperFunctions.terminal import SESSION, ActionValidator, ActionValidatorReverse
 from helperFunctions.web_interface import password_is_legal
 from version import __VERSION__
 from web_interface.frontend_main import WebFrontEnd
@@ -50,7 +46,7 @@ class Actions:
     @staticmethod
     def help(*_):
         print(
-            '\nPlease choose an action:\n'
+            '\nOne of the following actions can be chosen:\n'
             '\n\t[create_user]\t\tcreate new user'
             '\n\t[delete_user]\t\tdelete a user'
             '\n\t[create_role]\t\tcreate new role'
@@ -68,11 +64,21 @@ class Actions:
         return True if user else False
 
     @staticmethod
+    def _get_user_lst(app, interface):
+        with app.app_context():
+            return [x.email for x in interface.list_users()]
+
+    @staticmethod
+    def _get_role_list(app, interface):
+        with app.app_context():
+            return []
+
+    @staticmethod
     def exit(*_):
         raise EOFError('Quitting ..')
 
     @staticmethod
-    def create_user(app, interface, db):
+    def old_create_user(app, interface, db):
         user = get_input('username: ')
         assert not Actions._user_exists(app, interface, user), 'user must not exist'
 
@@ -82,11 +88,43 @@ class Actions:
             interface.create_user(email=user, password=password)
             db.session.commit()
 
+    def create_user(self, app, interface, db):
+        user_list = self._get_user_lst(app, interface)
+        try:
+            user = SESSION.prompt(
+                'username: ',
+                validator=ActionValidatorReverse([x.email for x in user_list], message='user must not exist')
+            )
+            password = getpass.getpass('password: ')
+            assert password_is_legal(password), 'password is illegal'
+        except KeyboardInterrupt:
+            print('returning to action selection\n\n')
+        with app.app_context():
+            interface.create_user(email=user, password=password)
+            db.session.commit()
+
     @staticmethod
-    def get_apikey_for_user(app, interface, _):
+    def _old_get_apikey_for_user(app, interface, _):
         user = get_input('username: ')
         assert Actions._user_exists(app, interface, user), 'user must exist to retrieve apikey'
 
+        with app.app_context():
+            user = interface.find_user(email=user)
+
+        apikey = user.api_key
+        print('key: {}'.format(apikey))
+
+    def get_apikey_for_user(self, app, interface, db):
+        user_list = self._get_user_lst(app, interface)
+        action_completer = WordCompleter(user_list)
+        try:
+            user = SESSION.prompt(
+                'username: ',
+                validator=ActionValidator(user_list, message='user must exist to retrieve apikey.'),
+                completer=action_completer
+            )
+        except KeyboardInterrupt:
+            print('returning to action selection\n\n')
         with app.app_context():
             user = interface.find_user(email=user)
 
@@ -100,14 +138,27 @@ class Actions:
         return True if exists else False
 
     @staticmethod
-    def create_role(app, interface, db):
+    def _old_create_role(app, interface, db):
         role = get_input('role name: ')
         with app.app_context():
             interface.create_role(name=role)
             db.session.commit()
 
+    def create_role(self, app, interface, db):
+        # no duplicate roles?
+        try:
+            role = SESSION.prompt(
+                'role name: '
+            )
+        except KeyboardInterrupt:
+            print('returning to action selection\n\n')
+        with app.app_context():
+            if not self._role_exists(app, interface, role):
+                interface.create_role(name=role)
+                db.session.commit()
+
     @staticmethod
-    def add_role_to_user(app, interface, db):
+    def _old_add_role_to_user(app, interface, db):
         user = get_input('username: ')
         assert Actions._user_exists(app, interface, user), 'user must exists before adding it to role'
 
@@ -117,6 +168,30 @@ class Actions:
         with app.app_context():
             interface.add_role_to_user(user=interface.find_user(email=user), role=role)
             db.session.commit()
+
+    def add_role_to_user(self, app, interface, db):
+        user_list = self._get_user_lst(app, interface)
+        role_list = []
+        user_completer = WordCompleter(user_list)
+        role_completer = WordCompleter(role_list)
+        try:
+            user = SESSION.prompt(
+                'username: ',
+                validator=ActionValidator(user_list, message='user must exists before adding it to a role'),
+                completer=user_completer
+            )
+            role = SESSION.prompt(
+                'rolename: ',
+                validator=ActionValidator(role_list, message='role must exists before user can be added'),
+                completer=role_completer
+            )
+        except KeyboardInterrupt:
+            print('returning to action selection\n\n')
+        with app.app_context():
+            interface.add_role_to_user(user=interface.find_user(email=user), role=role)
+            db.session.commit()
+
+
 
     @staticmethod
     def remove_role_from_user(app, interface, db):
@@ -131,19 +206,34 @@ class Actions:
             db.session.commit()
 
     @staticmethod
-    def delete_user(app, interface, db):
+    def _old_delete_user(app, interface, db):
         user = get_input('username: ')
-        assert Actions._user_exists(app, interface, user), 'user must exists before adding it to role'
+        assert Actions._user_exists(app, interface, user), 'user must exists'
 
         with app.app_context():
             interface.delete_user(user=interface.find_user(email=user))
             db.session.commit()
 
+    def delete_user(self, app, interface, db):
+        user_list = self._get_user_lst(app, interface)
+        action_completer = WordCompleter(user_list)
+        try:
+            user = SESSION.prompt(
+                'username: ',
+                validator=ActionValidator(user_list, message='user must exist before deleting'),
+                completer=action_completer
+            )
+            with app.app_context():
+                interface.delete_user(user=interface.find_user(email=user))
+                db.session.commit()
+        except KeyboardInterrupt:
+            print('returning to action selection\n\n')
+
 
 LEGAL_ACTIONS = [action for action in dir(Actions) if not action.startswith('_')]
 
 
-def prompt_for_actions(app, store, db):
+def _old_prompt_for_actions(app, store, db):
     print(FACT_ASCII_ART)
 
     print('\nWelcome to the FACT User Management (FACTUM)\n')
@@ -202,7 +292,6 @@ def start_user_management(app):
     db.create_all()
 
     promt_toolkit_stuff(app, store, db)
-    #prompt_for_actions(app, store, db)
 
 
 def main():
