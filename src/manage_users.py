@@ -153,13 +153,15 @@ class Actions:
             validator=ActionValidator(user_list, message='user must exist'),
             completer=user_completer
         )
+        user = interface.find_user(email=user)
+        user_roles = [role.name for role in user.roles]
         role = SESSION.prompt(
             'rolename: ',
-            validator=ActionValidator(user.roles, message='user must have that role before it can be removed'),
-            completer=WordCompleter(user.roles)
+            validator=ActionValidator(user_roles, message='user must have that role before it can be removed'),
+            completer=WordCompleter(user_roles)
         )
         with app.app_context():
-            interface.remove_role_from_user(user=interface.find_user(email=user), role=role)
+            interface.remove_role_from_user(user=interface.find_user(email=user.email), role=role)
             db.session.commit()
 
     @staticmethod
@@ -207,7 +209,7 @@ def prompt_toolkit_stuff(app, store, db):
             acting_function(app, store, db)
 
         except KeyboardInterrupt:
-            print('returning to action selection\n\n')
+            print('returning to action selection')
         except AssertionError as assertion_error:
             print('error: {}'.format(assertion_error))
         except EOFError:
