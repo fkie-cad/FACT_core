@@ -1,21 +1,14 @@
-import pytest
-
-from web_interface.components.hex_highlighting import highlight_hex
+from web_interface.components.hex_highlighting import preview_data_as_hex
 
 
-@pytest.mark.parametrize('test_input, expected_output', [
-    (
-        ' 61 62 63 ',  # abc
-        ' <span class="hljs-number">61</span> <span class="hljs-number">62</span> <span class="hljs-number">63</span> '
-    ),
-    (
-        ' 00 31 FF ',  # \x00 1 \xff
-        ' <span class="hljs-comment">00</span> <span class="hljs-built_in">31</span> <span class="hljs-comment">FF</span> '
-    ),
-    (
-        ' F0 D3 01 ',
-        ' <span class="hljs-keyword">F0</span> <span class="hljs-keyword">D3</span> 01 '
-    ),
-])
-def test_highlight_hex(test_input, expected_output):
-    assert highlight_hex(test_input) == expected_output
+def test_hex_preview_merge():
+    test_input = b'\x01abc\x02\x00\xff\x00\x03'
+    highlighted = preview_data_as_hex(test_input, chunk_size=16)
+    assert highlighted.count('<span') == 4, 'highlight zones should be merged'
+
+
+def test_hex_preview_data_rows():
+    test_input = b'abc1\x00\x00\xff\x01\x02'
+    highlighted = preview_data_as_hex(test_input, chunk_size=4)
+    assert highlighted.count('\n') == 4  # 2 header lines and 3 rows (len(input) // 4)
+    assert len(highlighted.split('\n')[-1].split('|')[2]) == 14, 'partial rows should be filled up'  # pylint: disable=use-maxsplit-arg
