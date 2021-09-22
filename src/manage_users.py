@@ -85,17 +85,6 @@ class Actions:
         raise EOFError('Quitting ..')
 
     @staticmethod
-    def _old_create_user(app, interface, db):
-        user = get_input('username: ')
-        assert not Actions._user_exists(app, interface, user), 'user must not exist'
-
-        password = getpass.getpass('password: ')
-        assert password_is_legal(password), 'password is illegal'
-        with app.app_context():
-            interface.create_user(email=user, password=password)
-            db.session.commit()
-
-    @staticmethod
     def create_user(app, interface, db):
         user_list = Actions._get_user_list(app, interface)
         user = SESSION.prompt(
@@ -107,17 +96,6 @@ class Actions:
         with app.app_context():
             interface.create_user(email=user, password=password, roles=['guest'])
             db.session.commit()
-
-    @staticmethod
-    def _old_get_apikey_for_user(app, interface, _):
-        user = get_input('username: ')
-        assert Actions._user_exists(app, interface, user), 'user must exist to retrieve apikey'
-
-        with app.app_context():
-            user = interface.find_user(email=user)
-
-        apikey = user.api_key
-        print('key: {}'.format(apikey))
 
     @staticmethod
     def get_apikey_for_user(app, interface, db):
@@ -135,13 +113,6 @@ class Actions:
         print('key: {}'.format(apikey))
 
     @staticmethod
-    def _old_create_role(app, interface, db):
-        role = get_input('role name: ')
-        with app.app_context():
-            interface.create_role(name=role)
-            db.session.commit()
-
-    @staticmethod
     def create_role(app, interface, db):
         role_list = Actions._get_role_list(app, interface)
         role = SESSION.prompt(
@@ -152,18 +123,6 @@ class Actions:
             if not Actions._role_exists(app, interface, role):
                 interface.create_role(name=role)
                 db.session.commit()
-
-    @staticmethod
-    def _old_add_role_to_user(app, interface, db):
-        user = get_input('username: ')
-        assert Actions._user_exists(app, interface, user), 'user must exists before adding it to role'
-
-        role = get_input('role name: ')
-        assert Actions._role_exists(app, interface, role), 'role must exists before user can be added'
-
-        with app.app_context():
-            interface.add_role_to_user(user=interface.find_user(email=user), role=role)
-            db.session.commit()
 
     @staticmethod
     def add_role_to_user(app, interface, db):
@@ -186,18 +145,6 @@ class Actions:
             db.session.commit()
 
     @staticmethod
-    def _old_remove_role_from_user(app, interface, db):
-        user = get_input('username: ')
-        assert Actions._user_exists(app, interface, user), 'user must exists before adding it to role'
-
-        role = get_input('role name: ')
-        assert Actions._role_exists(app, interface, role), 'role must exists before user can be added'
-
-        with app.app_context():
-            interface.remove_role_from_user(user=interface.find_user(email=user), role=role)
-            db.session.commit()
-
-    @staticmethod
     def remove_role_from_user(app, interface, db):
         user_list = Actions._get_user_list(app, interface)
         user_completer = WordCompleter(user_list)
@@ -213,15 +160,6 @@ class Actions:
         )
         with app.app_context():
             interface.remove_role_from_user(user=interface.find_user(email=user), role=role)
-            db.session.commit()
-
-    @staticmethod
-    def _old_delete_user(app, interface, db):
-        user = get_input('username: ')
-        assert Actions._user_exists(app, interface, user), 'user must exists'
-
-        with app.app_context():
-            interface.delete_user(user=interface.find_user(email=user))
             db.session.commit()
 
     @staticmethod
@@ -247,30 +185,6 @@ def initialise_roles(app, interface, db):
             with app.app_context():
                 interface.create_role(name=role)
                 db.session.commit()
-
-
-def _old_prompt_for_actions(app, store, db):
-    print(FACT_ASCII_ART)
-
-    print('\nWelcome to the FACT User Management (FACTUM)\n')
-
-    while True:
-        try:
-            action = choose_action()
-        except (EOFError, KeyboardInterrupt):
-            break
-        if action not in LEGAL_ACTIONS:
-            print('error: please choose a legal action.')
-        else:
-            try:
-                acting_function = getattr(Actions, action)
-                acting_function(app, store, db)
-            except AssertionError as assertion_error:
-                print('error: {}'.format(assertion_error))
-            except EOFError:
-                break
-
-    print('\nQuitting ..')
 
 
 def prompt_toolkit_stuff(app, store, db):
