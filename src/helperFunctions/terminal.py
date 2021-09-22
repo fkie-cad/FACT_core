@@ -57,13 +57,23 @@ class FileValidator(Validator):
 
 
 class ActionValidator(Validator):
-    def __init__(self, actions: list):
+    def __init__(self, actions: list, message='This is not a valid action.'):
         self.actions = actions
+        self.message = message
 
     def validate(self, document):
         if document.text not in self.actions:
             raise ValidationError(message='This is not a valid action.')
 
+
+class ActionValidatorReverse(Validator):
+    def __init__(self, actions: list, message='This is not a valid action.'):
+        self.actions = actions
+        self.message = message
+
+    def validate(self, document):
+        if document.text in self.actions:
+            raise ValidationError(message=self.message)
 
 
 def make_decision(question: str, default: Optional[bool] = None) -> bool:
