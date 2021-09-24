@@ -27,7 +27,6 @@ class WebFrontEnd:
         logging.info("Web front end online")
 
     def _setup_app(self):
-        # FIXME replace __name__ see Flask constructor docs
         self.app = Flask(__name__)
         self.app.config.from_object(__name__)
 
