@@ -1,6 +1,12 @@
 {% extends "base.html" %}
 
-{% set active_page = "TODO" %}
+{% set active_page = "Database" %}
+
+
+{% block head %}
+    <link rel="stylesheet" type="text/css" href="/static/css/pagination.css">
+{% endblock %}
+
 
 {% block body %}
 <script type="text/javascript" src="{{ url_for('static', filename='js/update_url_variables.js') }}"></script>
@@ -17,22 +23,23 @@
             {% for id, query_title, rule_names in searches_list %}
                 <tr>
                     {% if pagination is defined %}
-                    <th>{{ loop.index + (page - 1) * per_page }}</th>
+                        <th style="vertical-align: middle;">{{ loop.index + (page - 1) * per_page }}</th>
                     {% endif %}
-                    <td>
-                        <button data-toggle="collapse" data-target="#search_query_{{id}}" class="list-group-item list-group-item-primary d-flex justify-content-center align-items-center" style="border: 0; width:100%; text-align: center;">
+                    <td style="width: 100%">
+                        <button data-toggle="collapse" data-target="#search_query_{{ id }}" class="list-group-item list-group-item-primary d-flex justify-content-center align-items-center p-2" style="border: 0; width:100%; text-align: center;">
+                            <i class="fas fa-caret-down"></i>&nbsp;
                             <ul class="mb-0 p-0" style="list-style-type:none">
-                            {%for rule_name in rule_names %}
-                            <li>{{rule_name}}</li>
-                            {% endfor %}
+                                {%for rule_name in rule_names %}
+                                    <li>{{ rule_name }}</li>
+                                {% endfor %}
                             </ul>
                         </button>
-                        <div id="search_query_{{id}}" class="collapse list-group-item p-0 border-0">
+                        <div id="search_query_{{ id }}" class="collapse list-group-item p-0 border-0">
                             <pre class="bg-light p-2 mb-0 rounded-bottom">{{ query_title | render_query_title }}</pre>
                         </div>
                     </td>
                     <td>
-                        <button onclick="location.href='/database/browse?query={{ id| urlencode }}'" class="btn btn-secondary">View</button>
+                        <button onclick="location.href='/database/browse?query={{ id | urlencode }}'" class="btn btn-secondary p-2 pl-3 pr-3 border-0">View</button>
                     </td>
                 </tr>
             {% else %}
