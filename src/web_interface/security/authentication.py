@@ -15,12 +15,14 @@ def add_config_from_configparser_to_app(app, config):
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SECURITY_PASSWORD_SALT'] = config.get('data_storage', 'password_salt').encode()
     app.config['SQLALCHEMY_DATABASE_URI'] = config.get('data_storage', 'user_database', fallback='sqlite:///')
-    # TODO fix redirect loop here
+    # FIXME fix redirect loop here
     app.config['SECURITY_UNAUTHORIZED_VIEW'] = '/login'
     app.config['LOGIN_DISABLED'] = not config.getboolean('ExpertSettings', 'authentication')
 
     # As we want to use ONLY usernames and no emails but email is hardcoded in
     # flask-security we change the validation mapper of 'email'.
+    # Note that from the perspective of flask-security we still use emails.
+    # This means that we do not want to enable SECURITY_USERNAME_ENABLE
     app.config['SECURITY_USER_IDENTITY_ATTRIBUTES'] = [{'email': {'mapper': uia_username_mapper, 'case_insensitive': True}}]
 
 
@@ -40,7 +42,6 @@ def add_flask_security_to_app(app):
 
 
 def create_user_datastore(db):
-    # db.Table etc cause errors but are correct
     # pylint: disable=no-member
 
     roles_users = db.Table('roles_users', db.Column('user_id', db.Integer(), db.ForeignKey('user.id')), db.Column('role_id', db.Integer(), db.ForeignKey('role.id')))
@@ -58,7 +59,6 @@ def create_user_datastore(db):
         active = db.Column(db.Boolean())
         confirmed_at = db.Column(db.DateTime())
         roles = db.relationship('Role', secondary=roles_users, backref=db.backref('users', lazy='dynamic'))
-        # See flask_security.models.fsqla.FsUserMixin
         fs_uniquifier = db.Column(db.String(64), unique=True, nullable=False)
 
     return UserRoleDbInterface(db, User, Role)
