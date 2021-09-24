@@ -19,8 +19,9 @@ class OmsInstaller(AbstractPluginInstaller):
     base_path = Path(__file__).resolve().parent
 
     def do_last(self):
-        # We dont care about the return value here
-        # TODO why?
+        # We don't care about the return value here, e.g. on Ubunut clamav-freshclam.service already runs freshclam,
+        # this will cause another invocation of freshclam to fail.
+        # FIXME Are there other reasons?
         run_cmd_with_logging('sudo -E freshclam', raise_error=False)
 
 
