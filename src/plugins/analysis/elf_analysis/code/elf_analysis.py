@@ -77,7 +77,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     def _get_symbols_version_entries(symbol_versions):
         imported_libs = []
         for sv in symbol_versions:
-            if str(sv) != '* Local *' and str(sv) != "* Global *":
+            if str(sv) != '* Local *' and str(sv) != '* Global *':
                 imported_libs.append(str(sv).split('(')[0])
         return list(set(imported_libs))
 
@@ -149,7 +149,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         # getting the information from the *.ko files .modinfo
         modinfo = str(file_object.file_name)
 
-        if not modinfo.endswith(".ko"):
+        if not modinfo.endswith('.ko'):
             modinfo = None
 
         else:
@@ -158,9 +158,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
             if not isinstance(binary, type(None)):
 
                 for section in binary.sections:
-                    if section.name == ".modinfo":
+                    if section.name == '.modinfo':
                         modinfo = bytes(section.content).decode()
-                        modinfo = modinfo.replace("\x00", "\n")
+                        modinfo = modinfo.replace('\x00', '\n')
                         break
 
                     # no .modinfo
