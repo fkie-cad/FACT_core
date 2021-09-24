@@ -6,12 +6,32 @@ import pytest
 from helperFunctions.tag import TagColor
 from objects.file import FileObject
 from test.common_helper import get_config_for_testing, get_test_data_dir
+from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
 
 from ..code.elf_analysis import AnalysisPlugin
 
 # pylint: disable=redefined-outer-name,protected-access
 
 TEST_DATA = Path(get_test_data_dir(), 'test_data_file.bin')
+
+TEST_DATA_DIR = Path(__file__).parent / 'data'
+
+
+class test_hardware_analysis_plugin(AnalysisPluginTest):
+
+    PLUGIN_NAME = 'elf_analysis'
+
+    def setUp(self):
+        super().setUp()
+        config = self.init_basic_config()
+
+        self.analysis_plugin = AnalysisPlugin(self, config=config)
+
+    def test_modinfo(self):
+        test_file = FileObject(file_path=str(TEST_DATA_DIR / 'test_data.ko'))
+        result = self.analysis_plugin.filter_modinfo(test_file)
+
+        assert result == "this are test data\n"
 
 
 class MockAdmin:

@@ -1,4 +1,4 @@
-import lief
+from typing import Optional
 
 from analysis.PluginBase import AnalysisBasePlugin
 
@@ -10,106 +10,79 @@ class AnalysisPlugin(AnalysisBasePlugin):
     NAME = 'hardware_analysis'
     DESCRIPTION = 'Hardware Analysis Plug-in'
     DEPENDENCIES = ['cpu_architecture', 'elf_analysis', 'kernel_config']
-    VERSION = '0.2.1'
+    VERSION = '0.2'
 
     def __init__(self, plugin_adminstrator, config=None, recursive=True):
-        '''
-        recursive flag: If True recursively analyze included files
-        '''
+
         self.config = config
 
         super().__init__(plugin_adminstrator, config=config, recursive=recursive, plugin_path=__file__)
 
     def process_object(self, file_object):
 
-        # init the data
-
-        cpu_architecture_dict = file_object.processed_analysis['cpu_architecture']
-        kernel_config_dict = file_object.processed_analysis['kernel_config']
-
-        # getting the cpu architecture (test needed?)
-        cpu_architecture = list(cpu_architecture_dict.keys())[0]
-
-        if cpu_architecture == "summary":
-            cpu_architecture = "no information"
-
-        # getting the information from the *.ko files .modinfo
-        elf_analysis = str(file_object.file_name)
-
-        if elf_analysis.endswith(".ko"):
-
-            binary = lief.parse(file_object.file_path)
-
-            if isinstance(binary, type(None)):
-
-                for section in binary.sections:
-
-                    if section.name == ".modinfo":
-
-                        elf_analysis = bytes(section.content).decode()
-                        elf_analysis = elf_analysis.replace("\x00", "\n")
-                        break
-                    
-                    # no .modinfo
-                    elf_analysis = "no information"
-
-            else:
-                # binary is nonetype
-                elf_analysis = "no information"
-
-        else:
-            elf_analysis = "no information"
-
-        # getting the kernel configs
-        kernel_config = kernel_config_dict.get("kernel_config")
-
-        if isinstance(kernel_config, str):
-
-            kernel_config_list = kernel_config.splitlines()
-
-            kernel_config = ""
-
-            for line in kernel_config_list:
-
-                if not line.startswith("#"):
-                    kernel_config = kernel_config + line + "\n"
-
-        else:
-            kernel_config = "no information"
+        # search for important information
+        cpu_architecture = self.cpu_architecture_analysis(file_object)
+        modinfo = self.filter_modinfo(file_object)
+        kernel_config = self.filter_kernel_config(file_object)
 
         # store the results
         file_object.processed_analysis[self.NAME] = dict()
         file_object.processed_analysis[self.NAME]['cpu architecture'] = cpu_architecture
-        file_object.processed_analysis[self.NAME]['*.ko ".modinfo"'] = elf_analysis
+        file_object.processed_analysis[self.NAME]['*.ko ".modinfo"'] = modinfo
         file_object.processed_analysis[self.NAME]['kernel configuration'] = kernel_config
 
-        # propagate some summary to parent objects
-
-        if cpu_architecture != "no information":
-
-            if (elf_analysis == "no information") & (kernel_config == "no information"):
-                file_object.processed_analysis[self.NAME]['summary'] = [f'{cpu_architecture}']
-
-            elif (elf_analysis != "no information") & (kernel_config != "no information"):
-                file_object.processed_analysis[self.NAME]['summary'] = [f'{cpu_architecture} - .modinfo available - kernel configuration available']
-
-            elif (elf_analysis != "no information") & (kernel_config == "no information"):
-                file_object.processed_analysis[self.NAME]['summary'] = [f'{cpu_architecture} - .modinfo available']
-
-            elif (elf_analysis == "no information") & (kernel_config != "no information"):
-                file_object.processed_analysis[self.NAME]['summary'] = [f'{cpu_architecture} - kernel configuration available']
-
-        else:
-            if (elf_analysis == "no information") & (kernel_config == "no information"):
-                file_object.processed_analysis[self.NAME]['summary'] = ['']
-
-            elif (elf_analysis != "no information") & (kernel_config != "no information"):
-                file_object.processed_analysis[self.NAME]['summary'] = ['.modinfo available - kernel configuration available']
-
-            elif (elf_analysis != "no information") & (kernel_config == "no information"):
-                file_object.processed_analysis[self.NAME]['summary'] = ['.modinfo available']
-
-            elif (elf_analysis == "no information") & (kernel_config != "no information"):
-                file_object.processed_analysis[self.NAME]['summary'] = ['kernel configuration available']
+        # propagate summary to parent objects
+        file_object.processed_analysis[self.NAME]['summary'] = self.make_summary(cpu_architecture, modinfo, kernel_config)
 
         return file_object
+
+    def cpu_architecture_analysis(self, file_object) -> Optional[str]:
+        cpu_architecture_dict = file_object.processed_analysis['cpu_architecture']
+        cpu_architecture = cpu_architecture_dict["summary"]
+
+        if cpu_architecture == []:
+            cpu_architecture = None
+        else:
+            cpu_architecture = cpu_architecture[0]
+
+        return cpu_architecture
+
+    def filter_modinfo(self, file_object):
+        # getting the information from the *.ko files .modinfo
+        if "modinfo" in file_object.processed_analysis['elf_analysis'].keys():
+            modinfo = file_object.processed_analysis['elf_analysis']['modinfo']
+        else:
+            modinfo = None
+
+        return modinfo
+
+    def filter_kernel_config(self, file_object):
+        kernel_config_dict = file_object.processed_analysis['kernel_config']
+        kernel_config = kernel_config_dict.get("kernel_config")
+
+        if isinstance(kernel_config, str):
+            kernel_config_list = kernel_config.splitlines()
+            kernel_config = "\n".join([
+                line
+                for line in kernel_config_list
+                if not line.startswith("#")
+            ])
+
+        else:
+            kernel_config = None
+
+        return kernel_config
+
+    def make_summary(self, cpu_architecture, modinfo, kernel_config):
+        summary = []
+
+        if cpu_architecture is not None:
+            summary.append(cpu_architecture)
+
+        if modinfo is not None:
+            summary.append('modinfo available')
+
+        if kernel_config is not None:
+            summary.append('kernel_config available')
+
+        return summary

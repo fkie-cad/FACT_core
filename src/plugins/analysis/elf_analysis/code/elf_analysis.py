@@ -3,6 +3,7 @@ import logging
 import os
 import re
 from difflib import SequenceMatcher
+from typing import Optional
 
 import lief
 from common_helper_files import get_dir_of_file
@@ -25,7 +26,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     NAME = 'elf_analysis'
     DESCRIPTION = 'Analyzes and tags ELF executables and libraries'
     DEPENDENCIES = ['file_type']
-    VERSION = '0.3'
+    VERSION = '0.3.1.2.0.0.1'
     MIME_WHITELIST = ['application/x-executable', 'application/x-object', 'application/x-sharedlib']
 
     def __init__(self, plugin_administrator, config=None, recursive=True, offline_testing=False):
@@ -38,6 +39,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             file_object.processed_analysis[self.NAME] = {'Output': elf_dict}
             self.create_tags(parsed_binary, file_object)
             file_object.processed_analysis[self.NAME]['summary'] = list(elf_dict.keys())
+            file_object.processed_analysis[self.NAME]['modinfo'] = self.filter_modinfo(file_object)
         except RuntimeError:
             logging.error('lief could not parse {}'.format(file_object.uid))
             file_object.processed_analysis[self.NAME] = {'Output': {}}
@@ -142,3 +144,30 @@ class AnalysisPlugin(AnalysisBasePlugin):
             for entry in elf_dict[category]:
                 for key in {'virtual_address', 'offset'}.intersection(entry):
                     entry[key] = hex(entry[key])
+
+    def filter_modinfo(self, file_object) -> Optional[str]:
+        # getting the information from the *.ko files .modinfo
+        modinfo = str(file_object.file_name)
+
+        if not modinfo.endswith(".ko"):
+            modinfo = None
+
+        else:
+            binary = lief.parse(file_object.file_path)
+
+            if not isinstance(binary, type(None)):
+
+                for section in binary.sections:
+                    if section.name == ".modinfo":
+                        modinfo = bytes(section.content).decode()
+                        modinfo = modinfo.replace("\x00", "\n")
+                        break
+
+                    # no .modinfo
+                    modinfo = None
+
+            else:
+                # binary is nonetype
+                modinfo = None
+
+        return modinfo
