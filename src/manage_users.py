@@ -88,7 +88,8 @@ class Actions:
         user_list = Actions._get_user_list(app, interface)
         user = SESSION.prompt(
             'username: ',
-            validator=ActionValidatorReverse(user_list, message='user must not exist')
+            validator=ActionValidatorReverse(user_list, message='user must not exist'),
+            completer=None
         )
         password = getpass.getpass('password: ')
         assert password_is_legal(password), 'password is illegal'
@@ -207,10 +208,12 @@ def prompt_loop(app, store, db):
             acting_function = getattr(Actions, action)
             acting_function(app, store, db)
 
-        except (EOFError, KeyboardInterrupt):
+        except KeyboardInterrupt:
             print('returning to action selection')
         except AssertionError as assertion_error:
             print(f'error: {assertion_error}')
+        except EOFError:
+            break
 
     print('\nQuitting ..')
 
@@ -229,7 +232,6 @@ def main():
     args = setup_argparse()
 
     file_name = os.path.basename(args.config_file)
-    print(file_name)
     config = load_config(file_name)
     frontend = WebFrontEnd(config)
 
