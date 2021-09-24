@@ -10,6 +10,7 @@ class AbstractPluginInstaller:
     # pylint:disable=no-self-use
 
     skip_docker_env = os.getenv('FACT_INSTALLER_SKIP_DOCKER') is not None
+    # The base directory of the plugin
     # Must be overwritten by a class variable of a child class
     base_path = None
 

@@ -18,7 +18,6 @@ except ImportError:
 
 
 class QemuExecInstaller(AbstractPluginInstaller):
-    # The base directory of the plugin
     base_path = Path(__file__).resolve().parent
 
     def install_docker_images(self):

@@ -17,7 +17,6 @@ except ImportError:
 
 
 class BinwalkInstaller(AbstractPluginInstaller):
-    # The base directory of the plugin
     base_path = Path(__file__).resolve().parent
 
     def build(self):

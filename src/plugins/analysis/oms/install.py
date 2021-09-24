@@ -16,7 +16,6 @@ except ImportError:
 
 
 class OmsInstaller(AbstractPluginInstaller):
-    # The base directory of the plugin
     base_path = Path(__file__).resolve().parent
 
     def do_last(self):

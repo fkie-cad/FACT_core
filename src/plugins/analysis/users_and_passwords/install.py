@@ -21,7 +21,6 @@ except ImportError:
 
 
 class UsersAndPasswordsInstaller(AbstractPluginInstaller):
-    # The base directory of the plugin
     base_path = Path(__file__).resolve().parent
 
     def install_system_packages(self):

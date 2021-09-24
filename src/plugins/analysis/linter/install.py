@@ -16,7 +16,6 @@ except ImportError:
 
 
 class LinterInstaller(AbstractPluginInstaller):
-    # The base directory of the plugin
     base_path = Path(__file__).resolve().parent
 
     def install_other_packages(self):
