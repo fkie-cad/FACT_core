@@ -1,4 +1,3 @@
-import pytest
 from fact_helper_file import get_file_type_from_binary
 
 from storage.db_interface_backend import BackEndDbInterface
@@ -36,8 +35,6 @@ class TestAcceptanceIoRoutes(TestAcceptanceBase):
         self._stop_backend()
         super().tearDown()
 
-    # FIXME: fix handling of localhost in CI for this to work
-    @pytest.mark.skip('Does currently not work in the CI')
     def test_radare_button(self):
         response = self.test_client.get('/radare-view/{uid}'.format(uid=self.test_fw.uid))
         self.assertIn('200', response.status, 'radare view link failed')
