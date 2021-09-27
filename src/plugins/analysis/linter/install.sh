@@ -17,9 +17,10 @@ then
 	echo " Installing python linter..."
 	sudo -EH pip3 install --upgrade pylint || exit 1
 
-	echo " Installing javascript linter..."
-	sudo dnf install -y nodejs npm
-	sudo npm install -g jshint || exit 1
+# FIXME: deactivated because of npm installation issues
+#	echo " Installing javascript linter..."
+#	sudo dnf install -y nodejs npm
+#	sudo npm install -g jshint || exit 1
 
 else
 	echo "Installing shell linter..."
