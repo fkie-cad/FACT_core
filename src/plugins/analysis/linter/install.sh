@@ -35,9 +35,10 @@ else
 	echo " Installing python linter..."
 	sudo -EH pip3 install --upgrade pylint || exit 1
 
-	echo " Installing javascript linter..."
-	sudo apt-get -y install npm || exit 1
-	sudo npm install -g jshint || exit 1
+# FIXME: deactivated because of npm installation issues
+#	echo " Installing javascript linter..."
+#	sudo apt-get -y install npm || exit 1
+#	sudo npm install -g jshint || exit 1
 fi
 
 exit 0
