@@ -5,7 +5,7 @@ from helperFunctions.install import read_package_list_from_file, run_cmd_with_lo
 
 
 class AbstractPluginInstaller:
-    # Even if some functoins don't need self we want to have them nicely
+    # Even if some functions don't need self we want to have them nicely
     # grouped in this class
     # pylint:disable=no-self-use
 
@@ -90,9 +90,6 @@ class AbstractPluginInstaller:
         Build and install projects that can't be installed through a package
         manager
         '''
-        # This function is kind of ugly
-        # It esentially does what a Makefile should do but worse
-        # In the future we hope to not need to build things ourself
 
 
 def _read_packages(package_file: Path):
