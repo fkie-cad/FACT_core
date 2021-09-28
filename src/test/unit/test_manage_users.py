@@ -57,17 +57,16 @@ def test_integration_try_actions(monkeypatch, action_and_inputs):
     test_app.config['SECRET_KEY'] = 'secret_key'
     parser = ConfigParser()
     # See add_config_from_configparser_to_app for needed values
-    parser.read_dict(
-        {'data_storage': {
+    parser.read_dict({
+        'data_storage': {
             # We want an in memory database for testing
             'user_database': 'sqlite://',
             'password_salt': "salt"
-            },
+        },
         'ExpertSettings': {
             'authentication': 'true'
-            },
-        }
-    )
+        },
+    })
 
     add_config_from_configparser_to_app(test_app, parser)
     db, store = add_flask_security_to_app(test_app)
