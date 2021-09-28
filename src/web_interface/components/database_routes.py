@@ -88,8 +88,8 @@ class DatabaseRoutes(ComponentBase):
                     for r in conn.search_query_cache.find(skip=per_page * (page - 1), limit=per_page)]
                 total = conn.search_query_cache.find().count()
         except Exception as exception:
-            error_message = 'Could not query database: {} {}'.format(type(exception), str(exception))
-            logging.error(error_message)
+            error_message = f'Could not query database: {exception}'
+            logging.error(error_message, exc_info=True)
             return render_template('error.html', message=error_message)
 
         pagination = get_pagination(page=page, per_page=per_page, total=total)
