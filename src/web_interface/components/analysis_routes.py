@@ -168,12 +168,16 @@ class AnalysisRoutes(ComponentBase):
         return render_template('upload/upload_successful.html', uid=uid)
 
     def _schedule_re_analysis_task(self, uid, analysis_task, re_do):
-        fw = convert_analysis_task_to_fw_obj(analysis_task)
         if re_do:
+            base_fw = None
             with ConnectTo(AdminDbInterface, self._config) as sc:
                 sc.delete_firmware(uid, delete_root_file=False)
+        else:
+            with ConnectTo(FrontEndDbInterface, self._config) as db:
+                base_fw = db.get_firmware(uid)
+        fw = convert_analysis_task_to_fw_obj(analysis_task, base_fw=base_fw)
         with ConnectTo(InterComFrontEndBinding, self._config) as sc:
-            sc.add_re_analyze_task(fw)
+            sc.add_re_analyze_task(fw, unpack=re_do)
 
     @roles_accepted(*PRIVILEGES['delete'])
     @AppRoute('/admin/re-do_analysis/<uid>', GET, POST)
