@@ -80,7 +80,7 @@ def _install_nginx():
 
 
 def _generate_and_install_certificate():
-    logging.info("Generating self-signed certificate")
+    logging.info('Generating self-signed certificate')
     execute_commands_and_raise_on_return_code([
         'openssl genrsa -out fact.key 4096',
         'echo "{}" | openssl req -new -key fact.key -out fact.csr'.format(DEFAULT_CERT),
@@ -90,7 +90,7 @@ def _generate_and_install_certificate():
 
 
 def _configure_nginx():
-    logging.info("Configuring nginx")
+    logging.info('Configuring nginx')
     execute_commands_and_raise_on_return_code([
         'sudo cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak',
         'sudo rm /etc/nginx/nginx.conf',
@@ -108,22 +108,23 @@ def _install_css_and_js_files():
         wget_static_web_content('https://github.com/vakata/jstree/zipball/3.3.9', '.', ['unzip 3.3.9', 'rm 3.3.9', 'rm -rf ./web_js/jstree/vakata*', 'mv vakata* web_js/jstree'], 'jstree')
         wget_static_web_content('https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js', '.', [], 'angularJS')
         wget_static_web_content('https://github.com/chartjs/Chart.js/releases/download/v2.3.0/Chart.js', '.', [], 'charts.js')
-        wget_static_web_content('https://registry.npmjs.org/vis-network/-/vis-network-8.5.2.tgz', '.', ['tar xf vis-network-8.5.2.tgz', 'rm -rf vis', 'mv package/dist vis'], 'vis-network')
 
         _build_highlight_js()
 
         for css_url in [
-                'https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css',
-                'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.8.0/css/bootstrap-datepicker.standalone.css'
+            'https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css',
+            'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.8.0/css/bootstrap-datepicker.standalone.css',
+            'https://unpkg.com/vis-network@8.5.6/styles/vis-network.min.css',
         ]:
             wget_static_web_content(css_url, 'web_css', [])
 
         for js_url in [
-                'https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.1/jquery.min.js',
-                'https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js',
-                'https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js',
-                'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.8.0/js/bootstrap-datepicker.js',
-                'https://raw.githubusercontent.com/moment/moment/develop/moment.js'
+            'https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.1/jquery.min.js',
+            'https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js',
+            'https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js',
+            'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.8.0/js/bootstrap-datepicker.js',
+            'https://raw.githubusercontent.com/moment/moment/develop/moment.js',
+            'https://unpkg.com/vis-network@8.5.6/standalone/umd/vis-network.min.js',
         ]:
             wget_static_web_content(js_url, 'web_js', [])
 
@@ -162,7 +163,7 @@ def _install_docker_images(radare):
 
 
 def main(skip_docker, radare, nginx):
-    run_cmd_with_logging("sudo -EH pip3 install -r ./requirements_frontend.txt")
+    run_cmd_with_logging('sudo -EH pip3 install -r ./requirements_frontend.txt')
 
     # installing web/js-frameworks
     _install_css_and_js_files()
