@@ -70,7 +70,6 @@ def _get_html_span(highlighting_class: str) -> str:
 
 
 def _chr_to_hex(char: int) -> str:
-    ''' l => 6C '''
     return f'{char:#04x}'[2:].upper()
 
 
