@@ -39,7 +39,6 @@ class AnalysisPlugin(AnalysisBasePlugin):
             file_object.processed_analysis[self.NAME] = {'Output': elf_dict}
             self.create_tags(parsed_binary, file_object)
             file_object.processed_analysis[self.NAME]['summary'] = list(elf_dict.keys())
-            file_object.processed_analysis[self.NAME]['modinfo'] = self.filter_modinfo(file_object)
         except RuntimeError:
             logging.error('lief could not parse {}'.format(file_object.uid))
             file_object.processed_analysis[self.NAME] = {'Output': {}}
@@ -130,12 +129,15 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 binary_json_dict['imported_functions'] = normalize_lief_items(parsed_binary.imported_functions)
             if parsed_binary.libraries:
                 binary_json_dict['libraries'] = normalize_lief_items(parsed_binary.libraries)
+            elf_dict['modinfo'] = self.filter_modinfo(parsed_binary)
+
         except (TypeError, lief.bad_file) as error:
             logging.error('Bad file for lief/elf analysis {}. {}'.format(file_object.uid, error))
             return elf_dict
 
         self.get_final_analysis_dict(binary_json_dict, elf_dict)
         self._convert_address_values_to_hex(elf_dict)
+
         return elf_dict, parsed_binary
 
     @staticmethod
@@ -145,29 +147,21 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 for key in {'virtual_address', 'offset'}.intersection(entry):
                     entry[key] = hex(entry[key])
 
-    def filter_modinfo(self, file_object) -> Optional[str]:
+    def filter_modinfo(self, binary) -> Optional[str]:
         # getting the information from the *.ko files .modinfo
-        modinfo = str(file_object.file_name)
+        if binary is not None:
 
-        if not modinfo.endswith('.ko'):
-            modinfo = None
+            for section in binary.sections:
+                if section.name == '.modinfo':
+                    modinfo = bytes(section.content).decode()
+                    modinfo = [entry for entry in modinfo.split('\x00') if entry]
+                    break
+
+                # no .modinfo
+                modinfo = None
 
         else:
-            binary = lief.parse(file_object.file_path)
-
-            if not isinstance(binary, type(None)):
-
-                for section in binary.sections:
-                    if section.name == '.modinfo':
-                        modinfo = bytes(section.content).decode()
-                        modinfo = modinfo.replace('\x00', '\n')
-                        break
-
-                    # no .modinfo
-                    modinfo = None
-
-            else:
-                # binary is nonetype
-                modinfo = None
+            # binary is nonetype
+            modinfo = None
 
         return modinfo
