@@ -9,6 +9,7 @@ flask-security-too
 flask_sqlalchemy
 itsdangerous
 matplotlib
+more_itertools
 python-dateutil
 si-prefix
 sqlalchemy
