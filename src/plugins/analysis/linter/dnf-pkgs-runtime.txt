@@ -2,5 +2,6 @@ lua
 lua-devel
 luarocks
 nodejs
-npm
+# FIXME: deactivated because of npm installation issues
+# npm
 ShellCheck
