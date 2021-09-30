@@ -1,18 +1,16 @@
 import gc
-import unittest
 from multiprocessing import Queue, Value
 from tempfile import TemporaryDirectory
 from time import sleep
 
+import pytest
+
 from intercom.back_end_binding import InterComBackEndBinding
 from storage.MongoMgr import MongoMgr
-from test.common_helper import get_config_for_testing
-
-TMP_DIR = TemporaryDirectory(prefix='fact_test_')
-
+from test.common_helper import get_config_for_testing  # pylint: disable=wrong-import-order
 
 # This number must be changed, whenever a listener is added or removed
-NUMBER_OF_LISTENERS = 10
+NUMBER_OF_LISTENERS = 11
 
 
 class ServiceMock:
@@ -57,31 +55,35 @@ class AnalysisServiceMock:
         pass
 
 
-class TestInterComBackEndScheduler(unittest.TestCase):
-
-    def setUp(self):
-        config = get_config_for_testing(TMP_DIR)
-        self.test_queue = Queue()
-        self.interface = InterComBackEndBinding(
-            config=config, testing=True, analysis_service=AnalysisServiceMock(), compare_service=ServiceMock(self.test_queue), unpacking_service=ServiceMock(self.test_queue)
+@pytest.fixture(name='intercom')
+def get_intercom_for_testing():
+    with TemporaryDirectory(prefix='fact_test_') as tmp_dir:
+        config = get_config_for_testing(tmp_dir)
+        test_queue = Queue()
+        interface = InterComBackEndBinding(
+            config=config, testing=True,
+            analysis_service=AnalysisServiceMock(),
+            compare_service=ServiceMock(test_queue),
+            unpacking_service=ServiceMock(test_queue)
         )
-        self.interface.WAIT_TIME = 2
-        self.db = MongoMgr(config=config)
+        interface.WAIT_TIME = 2
+        db = MongoMgr(config=config)
+        yield interface
+        interface.shutdown()
+        test_queue.close()
+        db.shutdown()
+    gc.collect()
 
-    def tearDown(self):
-        self.interface.shutdown()
-        self.test_queue.close()
-        self.db.shutdown()
-        TMP_DIR.cleanup()
-        gc.collect()
 
-    def test_backend_worker(self):
-        service = ServiceMock(self.test_queue)
-        self.interface._start_listener(CommunicationBackendMock, service.add_task)  # pylint: disable=protected-access
-        result = self.test_queue.get(timeout=5)
-        self.assertEqual(result, 'test_task', 'task not received correctly')
+def test_backend_worker(intercom):
+    test_queue = Queue()
+    service = ServiceMock(test_queue)
+    intercom._start_listener(CommunicationBackendMock, service.add_task)  # pylint: disable=protected-access
+    result = test_queue.get(timeout=5)
+    assert result == 'test_task', 'task not received correctly'
 
-    def test_all_listeners_started(self):
-        self.interface.startup()
-        sleep(2)
-        self.assertEqual(len(self.interface.process_list), NUMBER_OF_LISTENERS, 'Not all listeners started')
+
+def test_all_listeners_started(intercom):
+    intercom.start_listeners()
+    sleep(2)
+    assert len(intercom.process_list) == NUMBER_OF_LISTENERS, 'Not all listeners started'

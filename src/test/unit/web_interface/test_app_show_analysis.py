@@ -1,6 +1,6 @@
 from helperFunctions.data_conversion import make_bytes
-from test.common_helper import TEST_FW, TEST_FW_2, TEST_TEXT_FILE
-from test.unit.web_interface.base import WebInterfaceTest
+from test.common_helper import TEST_FW, TEST_FW_2, TEST_TEXT_FILE  # pylint: disable=wrong-import-order
+from test.unit.web_interface.base import WebInterfaceTest  # pylint: disable=wrong-import-order
 
 
 class TestAppShowAnalysis(WebInterfaceTest):
@@ -14,9 +14,6 @@ class TestAppShowAnalysis(WebInterfaceTest):
         # check release date not available
         assert b'1970-01-01' not in result
         assert b'unknown' in result
-
-        # check file preview
-        assert b'Preview' not in result
 
         result = self.test_client.get('/analysis/{}'.format(TEST_FW_2.uid)).data
         assert b'unknown' not in result

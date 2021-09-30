@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 from typing import Optional, Tuple
 
 from common_helper_files.fail_safe_file_operations import get_binary_from_file
@@ -17,7 +18,7 @@ class BinaryService:
     def __init__(self, config=None):
         self.config = config
         self.fs_organizer = FSOrganizer(config=config)
-        logging.info("binary service online")
+        logging.info('binary service online')
 
     def get_binary_and_file_name(self, uid: str) -> Tuple[Optional[bytes], Optional[str]]:
         file_name = self._get_file_name_from_db(uid)
@@ -26,13 +27,23 @@ class BinaryService:
         binary = get_binary_from_file(self.fs_organizer.generate_path_from_uid(uid))
         return binary, file_name
 
+    def read_partial_binary(self, uid: str, offset: int, length: int) -> bytes:
+        file_name = self._get_file_name_from_db(uid)
+        if file_name is None:
+            logging.error(f'[BinaryService]: Tried to read from file {uid} but it was not found.')
+            return b''
+        file_path = Path(self.fs_organizer.generate_path_from_uid(uid))
+        with file_path.open('rb') as fp:
+            fp.seek(offset)
+            return fp.read(length)
+
     def get_repacked_binary_and_file_name(self, uid: str) -> Tuple[Optional[bytes], Optional[str]]:
         file_name = self._get_file_name_from_db(uid)
         if file_name is None:
             return None, None
         repack_service = TarRepack(config=self.config)
         tar = repack_service.tar_repack(self.fs_organizer.generate_path_from_uid(uid))
-        name = "{}.tar.gz".format(file_name)
+        name = f'{file_name}.tar.gz'
         return tar, name
 
     def _get_file_name_from_db(self, uid: str) -> Optional[str]:
@@ -45,7 +56,7 @@ class BinaryServiceDbInterface(MongoInterfaceCommon):
     READ_ONLY = True
 
     def get_file_name(self, uid: str) -> Optional[str]:
-        result = self.firmwares.find_one({"_id": uid}, {'file_name': 1})
+        result = self.firmwares.find_one({'_id': uid}, {'file_name': 1})
         if result is None:
-            result = self.file_objects.find_one({"_id": uid}, {'file_name': 1})
+            result = self.file_objects.find_one({'_id': uid}, {'file_name': 1})
         return result['file_name'] if result is not None else None
