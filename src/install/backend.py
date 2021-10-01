@@ -5,8 +5,8 @@ from contextlib import suppress
 from pathlib import Path
 
 from common_helper_process import execute_shell_command_get_return_code
-from compile_yara_signatures import main as compile_signatures
 
+from compile_yara_signatures import main as compile_signatures
 from helperFunctions.install import (
     InstallationError, OperateInDirectory, apt_install_packages, check_string_in_command_output, dnf_install_packages,
     load_main_config, read_package_list_from_file, run_cmd_with_logging

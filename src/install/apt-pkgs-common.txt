@@ -13,4 +13,3 @@ unzip
 # general python dependencies
 libfuzzy-dev
 libmagic-dev
-python3-tlsh
