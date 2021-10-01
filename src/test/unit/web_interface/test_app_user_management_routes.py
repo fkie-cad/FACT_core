@@ -89,8 +89,8 @@ class UserDbInterfaceMock:
         pass
 
 
-def add_security_get_mocked(app, config):
-    add_flask_security_to_app(app, config)
+def add_security_get_mocked(app):
+    add_flask_security_to_app(app)
     return UserDbMock(), UserDbInterfaceMock()
 
 
