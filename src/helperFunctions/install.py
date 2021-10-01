@@ -220,7 +220,7 @@ def run_cmd_with_logging(cmd: str, raise_error=True, shell=False, **kwargs):
 
     :param raise_error: Whether or not an error should be raised when `cmd` fails
     '''
-    logging.info(f'Running: {cmd}')
+    logging.debug(f'Running: {cmd}')
     try:
         cmd_ = cmd if shell else shlex.split(cmd)
         subprocess.run(cmd_, stdout=PIPE, stderr=PIPE, encoding='UTF-8', shell=shell, check=True, **kwargs)
