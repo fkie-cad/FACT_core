@@ -7,11 +7,14 @@ import requests
 from common_helper_process import execute_shell_command_get_return_code
 
 from helperFunctions.install import (
-    InstallationError, OperateInDirectory, apt_install_packages, load_main_config, remove_folder, run_cmd_with_logging
+    InstallationError, OperateInDirectory, apt_install_packages, install_pip_packages, load_main_config, remove_folder,
+    run_cmd_with_logging
 )
 
 DEFAULT_CERT = '.\n.\n.\n.\n.\nexample.com\n.\n\n\n'
-COMPOSE_VENV = Path(__file__).parent.absolute() / 'compose-env'
+INSTALL_DIR = Path(__file__).parent
+COMPOSE_VENV = INSTALL_DIR.absolute() / 'compose-env'
+PIP_DEPENDENCIES = INSTALL_DIR / 'requirements_frontend.txt'
 
 
 def execute_commands_and_raise_on_return_code(commands, error=None):  # pylint: disable=invalid-name
@@ -166,7 +169,7 @@ def main(skip_docker, radare, nginx):
     # flask-security is not maintained anymore and replaced by flask-security-too.
     # Since python package naming conflicts are not resolved automatically, we remove flask-security manually.
     run_cmd_with_logging('sudo -EH pip3 uninstall flask-security')
-    run_cmd_with_logging('sudo -EH pip3 install -r ./requirements_frontend.txt')
+    install_pip_packages(PIP_DEPENDENCIES)
 
     # installing web/js-frameworks
     _install_css_and_js_files()

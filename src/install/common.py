@@ -6,11 +6,12 @@ from common_helper_process import execute_shell_command_get_return_code
 
 from helperFunctions.install import (
     InstallationError, OperateInDirectory, apt_install_packages, apt_update_sources, dnf_install_packages,
-    dnf_update_sources, install_github_project, read_package_list_from_file, run_cmd_with_logging
+    dnf_update_sources, install_github_project, install_pip_packages, read_package_list_from_file
 )
 
 BIN_DIR = Path(__file__).parent.parent / 'bin'
 INSTALL_DIR = Path(__file__).parent
+PIP_DEPENDENCIES = INSTALL_DIR / 'requirements_common.txt'
 
 
 def install_pip():
@@ -36,8 +37,7 @@ def main(distribution):  # pylint: disable=too-many-statements
         dnf_install_packages(*pkgs)
 
     install_pip()
-
-    run_cmd_with_logging('sudo -EH pip3 install  -U -r ./requirements_common.txt')
+    install_pip_packages(PIP_DEPENDENCIES)
 
     # VarietyJS (is executed by update_statistic.py)
     if (BIN_DIR / 'spec').exists():
