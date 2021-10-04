@@ -26,6 +26,8 @@ def main(distribution):  # pylint: disable=too-many-statements
     _update_package_sources(distribution)
     _update_submodules()
 
+    BIN_DIR.mkdir(exist_ok=True)
+
     apt_packages_path = INSTALL_DIR / 'apt-pkgs-common.txt'
     dnf_packages_path = INSTALL_DIR / 'dnf-pkgs-common.txt'
 
