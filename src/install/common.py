@@ -34,7 +34,8 @@ def main(distribution):  # pylint: disable=too-many-statements
         pkgs = read_package_list_from_file(dnf_packages_path)
         dnf_install_packages(*pkgs)
 
-    run_cmd_with_logging("sudo -EH pip3 install -r ./requirements_common.txt")
+    install_pip('python3')
+    run_cmd_with_logging("sudo -EH pip3 install -U -r ./requirements_common.txt")
 
     _, is_repository = execute_shell_command_get_return_code('git status')
     if is_repository == 0:
@@ -47,8 +48,6 @@ def main(distribution):  # pylint: disable=too-many-statements
 
     # make bin dir
     BIN_DIR.mkdir(exist_ok=True)
-
-    install_pip('python3')
 
     # VarietyJS (is executed by update_statistic.py)
     if (BIN_DIR / 'spec').exists():
