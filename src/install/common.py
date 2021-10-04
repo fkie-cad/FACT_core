@@ -43,7 +43,7 @@ def main(distribution):  # pylint: disable=too-many-statements
     if (BIN_DIR / 'spec').exists():
         logging.warning('variety spec not overwritten')
     else:
-        install_github_project('variety/variety', ['git checkout 2f4d815', 'mv -f variety.js ../../bin', 'mv -f spec ../../bin'])
+        install_github_project('variety/variety', ['git checkout 2f4d815', 'mv -f variety.js ../../bin/', 'mv -f spec ../../bin/'])
 
     with OperateInDirectory('../../'):
         with suppress(FileNotFoundError):

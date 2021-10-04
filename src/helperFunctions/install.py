@@ -213,10 +213,10 @@ def run_cmd_with_logging(cmd: str, raise_error=True, shell=False, **kwargs):
     except CalledProcessError as err:
         # pylint:disable=no-else-raise
         if raise_error:
-            logging.error(f'Failed to run {err.cmd}:\n{err.stderr}')
+            logging.error(f'Failed to run {cmd}:\n{err.stderr}')
             raise err
         else:
-            logging.debug(f'Failed to run {err.cmd} (ignoring):\n{err.stderr}\n')
+            logging.debug(f'Failed to run {cmd} (ignoring):\n{err.stderr}\n')
 
 
 def install_pip_packages(package_file: Path):
