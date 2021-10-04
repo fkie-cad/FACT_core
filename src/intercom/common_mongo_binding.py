@@ -32,6 +32,8 @@ class InterComMongoInterface(MongoInterface):
         'raw_download_task_resp',
         'tar_repack_task',
         'tar_repack_task_resp',
+        'binary_peek_task',
+        'binary_peek_task_resp',
         'binary_search_task',
         'binary_search_task_resp',
         'single_file_task',
@@ -42,7 +44,8 @@ class InterComMongoInterface(MongoInterface):
     def _setup_database_mapping(self):
         self.connections = {}
         for item in self.INTERCOM_CONNECTION_TYPES:
-            self.connections[item] = {'name': '{}_{}'.format(self.config['data_storage']['intercom_database_prefix'], item)}
+            prefix = self.config['data_storage']['intercom_database_prefix']
+            self.connections[item] = {'name': f'{prefix}_{item}'}
             self.connections[item]['collection'] = self.client[self.connections[item]['name']]
             self.connections[item]['fs'] = gridfs.GridFS(self.connections[item]['collection'])
 
@@ -58,14 +61,14 @@ class InterComListener(InterComMongoInterface):
         try:
             task_obj = self.connections[self.CONNECTION_TYPE]['fs'].find_one()
         except Exception as exc:
-            logging.error('Could not get next task: {} {}'.format(type(exc), str(exc)))
+            logging.error(f'Could not get next task: {str(exc)}', exc_info=True)
             return None
         if task_obj is not None:
             task = pickle.loads(task_obj.read())
             task_id = task_obj.filename
             self.connections[self.CONNECTION_TYPE]['fs'].delete(task_obj._id)  # pylint: disable=protected-access
             task = self.post_processing(task, task_id)
-            logging.debug('{}: New task received: {}'.format(self.CONNECTION_TYPE, task))
+            logging.debug(f'{self.CONNECTION_TYPE}: New task received: {task}')
             return task
         return None
 
@@ -85,10 +88,10 @@ class InterComListenerAndResponder(InterComListener):
     OUTGOING_CONNECTION_TYPE = 'test'
 
     def post_processing(self, task, task_id):
-        logging.debug('request received: {} -> {}'.format(self.CONNECTION_TYPE, task_id))
+        logging.debug(f'request received: {self.CONNECTION_TYPE} -> {task_id}')
         response = self.get_response(task)
         self.connections[self.OUTGOING_CONNECTION_TYPE]['fs'].put(pickle.dumps(response), filename='{}'.format(task_id))
-        logging.debug('response send: {} -> {}'.format(self.OUTGOING_CONNECTION_TYPE, task_id))
+        logging.debug(f'response send: {self.OUTGOING_CONNECTION_TYPE} -> {task_id}')
         return task
 
     def get_response(self, task):  # pylint: disable=no-self-use

@@ -5,15 +5,13 @@ import getpass
 import os
 import sys
 
-from flask_security import Security
-from flask_sqlalchemy import SQLAlchemy
+from flask_security.utils import hash_password
 
 from config.ascii import FACT_ASCII_ART
-from helperFunctions.config import load_config, get_config_dir
+from helperFunctions.config import get_config_dir, load_config
 from helperFunctions.web_interface import password_is_legal
 from version import __VERSION__
 from web_interface.frontend_main import WebFrontEnd
-from web_interface.security.authentication import create_user_interface
 
 
 def setup_argparse():
@@ -71,7 +69,7 @@ class Actions:
         password = getpass.getpass('password: ')
         assert password_is_legal(password), 'password is illegal'
         with app.app_context():
-            interface.create_user(email=user, password=password)
+            interface.create_user(email=user, password=hash_password(password))
             db.session.commit()
 
     @staticmethod
@@ -159,13 +157,9 @@ def prompt_for_actions(app, store, db):
     print('\nQuitting ..')
 
 
-def start_user_management(app):
-    db = SQLAlchemy(app)
-    Security(app)
-    store = create_user_interface(db)
-
+def start_user_management(app, store, db):
+    # We expect flask-security to be initialized
     db.create_all()
-
     prompt_for_actions(app, store, db)
 
 
@@ -176,7 +170,7 @@ def main():
     config = load_config(file_name)
     frontend = WebFrontEnd(config)
 
-    start_user_management(frontend.app)
+    start_user_management(frontend.app, frontend.user_datastore, frontend.user_db)
 
     return 0
 

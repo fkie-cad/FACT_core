@@ -17,7 +17,6 @@ make
 # general python dependencies
 file-devel
 libffi-devel
-python3-tlsh
 
 # ssdeep deps so that it can be installed via pip
 ssdeep-devel
