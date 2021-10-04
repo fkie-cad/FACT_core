@@ -24,8 +24,8 @@
     <script type="text/javascript" src="{{ url_for('static', filename='web_js/jstree/dist/jstree.min.js') }}"></script>
 
     {# highlight.js import #}
-    <script src="{{ url_for('static', filename='highlight.js/highlight.pack.js') }}"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='highlight.js/styles/github.css') }}" />
+    <script src="{{ url_for('static', filename='highlight.js/highlight.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='highlight.js/styles/github.min.css') }}" />
 
     {# line_numbering.js import #}
     <script type="text/javascript" src="{{ url_for('static', filename='js/line_numbering.js') }}"></script>
@@ -285,7 +285,12 @@
                                 </label>
                             {% endfor %}
                             <hr />
-                            <button class="btn btn-primary" type="submit" id="add_single_file_analysis" value=submit><i class="fas fa-play-circle"></i> Add</button>
+                            <label class="checkbox-inline" data-toggle="tooltip" title="disable smart analysis skipping" style="display: block;">
+                                <input type=checkbox name="force_update" value="true" unchecked>&nbsp;force analysis update<br />
+                            </label>
+                            <button class="btn btn-primary" type="submit" id="add_single_file_analysis" value=submit>
+                                <i class="fas fa-play-circle"></i> Add
+                            </button>
                         </form>
                     </div>
                 </div>
@@ -327,46 +332,86 @@
 
         {# preview section #}
         {%- if "file_type" in firmware.processed_analysis -%}
-            {%- set previewable_mime_types = [] -%}
-            {%- if firmware.processed_analysis["file_type"]['mime'] in previewable_mime_types
-                    or firmware.processed_analysis["file_type"]['mime'][0:5] == "text/"
-                    or firmware.processed_analysis["file_type"]['mime'][0:6] == "image/" %}
-
-                <div class="col-lg-12">
-                    <div class="list-group">
-                        <button id="preview_button" data-toggle="collapse" data-target="#preview-div" class="list-group-item list-group-item-primary">
-                            Show Preview
-                        </button>
-                        <div id="preview-div" class="collapse">
-                            <div id="preview-loading-gif" style="display: block; border: 1px solid #dddddd; padding: 5px; text-align: center">
-                                <img src="{{ url_for("static", filename = "Pacman.gif") }}" alt="loading...">
+            <div class="col-lg-12">
+                <div class="list-group">
+                    <button id="preview_button" data-toggle="collapse" data-target="#preview-div" class="list-group-item list-group-item-primary">
+                        Show Preview
+                    </button>
+                    <div id="preview-div" class="collapse border rounded-bottom p-3">
+                        <div class="form-row" id="hex-preview-form" style="display: none;">
+                            <div class="col-auto">
+                                <div class="input-group input-group-sm mb-2">
+                                    <div class="input-group-prepend">
+                                        <div class="input-group-text">Offset</div>
+                                    </div>
+                                    <input type="text" class="form-control" id="hex-preview-offset" value="0">
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <div class="input-group input-group-sm mb-2">
+                                    <div class="input-group-prepend">
+                                        <div class="input-group-text">Length</div>
+                                    </div>
+                                    <input type="number" min="1" class="form-control" id="hex-preview-length" value="512">
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <button type="button" class="btn btn-primary btn-sm" onclick="load_preview();">Update</button>
                             </div>
                         </div>
-                        <script>
-                            const loading_gif = document.getElementById("preview-loading-gif");
-                            function init_preview() {
-                                hide_gif();
+                        <div id="preview-loading-gif" style="display: block; border: 1px solid #dddddd; padding: 5px; text-align: center">
+                            <img src="{{ url_for('static', filename = 'Pacman.gif') }}" alt="loading...">
+                        </div>
+                        <div id="preview-content" class="m-0 mt-2 p-0"></div>
+                    </div>
+
+                    {%- set is_text_preview = firmware.processed_analysis["file_type"]['mime'][0:5] == "text/" or firmware.processed_analysis["file_type"]['mime'][0:6] == "image/" %}
+                    <script>
+                        const isTextOrImage = {{ 'true' if is_text_preview else 'false' }};
+                        const loading_gif = document.getElementById("preview-loading-gif");
+                        function hide_gif(element) {
+                            element.style.display = "none";
+                        }
+                        function init_preview() {
+                            hide_gif(loading_gif);
+                            if (isTextOrImage) {
                                 highlight_code();
                             }
-                            function hide_gif() {
-                                loading_gif.style.display = "none";
+                        }
+                        function highlight_code() {
+                            const block = $('div#preview-div pre')[0];
+                            hljs.highlightElement(block);
+                            line_numbering();
+                        }
+                        function load_preview() {
+                            const uid = `{{ uid | safe }}`;
+                            let resourcePath;
+                            document.getElementById("preview_button").onclick = () => { false };
+                            if (isTextOrImage) {
+                                let mimeType = `{{ firmware.processed_analysis["file_type"]["mime"].replace("/", "_") }}`;
+                                resourcePath = `/ajax_get_binary/${mimeType}/${uid}`;
+                            } else {
+                                // hex preview
+                                if ($("#hex-preview-offset").hasClass("is-invalid")) {
+                                    $("#hex-preview-offset").removeClass("is-invalid");
+                                }
+                                $("#preview-content").html("");
+                                document.getElementById('hex-preview-form').style.display = "flex";
+                                let offset = parseInt(document.getElementById('hex-preview-offset').value);
+                                if (isNaN(offset)) {
+                                    $("#hex-preview-offset").addClass("is-invalid");
+                                    return;
+                                }
+                                let length = document.getElementById('hex-preview-length').value;
+                                resourcePath = `/ajax_get_hex_preview/${uid}/${offset}/${length}`;
                             }
-                            function highlight_code() {
-                                const block = $('div#preview-div pre')[0];
-                                hljs.highlightBlock(block);
-                                line_numbering();
-                            }
-                            function load_preview(){
-                                loading_gif.style.display = "block";
-                                document.getElementById("preview_button").onclick = function() {return false;};
-                                $("#preview-div").load("/ajax_get_binary/{{ firmware.processed_analysis["file_type"]["mime"].replace("/", "_") }}/{{ uid|safe }}", init_preview);
-                            }
-                            document.getElementById("preview_button").onclick = load_preview;
-                        </script>
-                    </div>
+                            loading_gif.style.display = "block";
+                            $("#preview-content").load(resourcePath, init_preview);
+                        }
+                        document.getElementById("preview_button").onclick = load_preview;
+                    </script>
                 </div>
-
-            {% endif %}
+            </div>
         {% endif %}
     </div>
 

@@ -1,3 +1,5 @@
+# pylint: disable=wrong-import-order
+
 import gc
 import os
 import unittest
@@ -6,8 +8,8 @@ from unittest import mock
 
 from intercom.back_end_binding import (
     InterComBackEndAnalysisPlugInsPublisher, InterComBackEndAnalysisTask, InterComBackEndCompareTask,
-    InterComBackEndRawDownloadTask, InterComBackEndReAnalyzeTask, InterComBackEndSingleFileTask,
-    InterComBackEndTarRepackTask
+    InterComBackEndPeekBinaryTask, InterComBackEndRawDownloadTask, InterComBackEndReAnalyzeTask,
+    InterComBackEndSingleFileTask, InterComBackEndTarRepackTask
 )
 from intercom.front_end_binding import InterComFrontEndBinding
 from storage.fsorganizer import FSOrganizer
@@ -15,7 +17,7 @@ from storage.MongoMgr import MongoMgr
 from test.common_helper import create_test_firmware, get_config_for_testing
 
 
-class AnalysisServiceMock():
+class AnalysisServiceMock:
 
     def __init__(self, config=None):
         pass
@@ -38,8 +40,8 @@ class TestInterComTaskCommunication(unittest.TestCase):
         self.backend = None
 
     def tearDown(self):
-        for item in self.frontend.connections.keys():
-            self.frontend.client.drop_database(self.frontend.connections[item]['name'])
+        for connection in self.frontend.connections.values():
+            self.frontend.client.drop_database(connection['name'])
         if self.backend:
             self.backend.shutdown()
         self.frontend.shutdown()
@@ -118,6 +120,21 @@ class TestInterComTaskCommunication(unittest.TestCase):
         self.assertEqual(task, 'valid_uid', 'task not correct')
         result = self.frontend.get_binary_and_filename('valid_uid_0.0')
         self.assertEqual(result, (b'test', 'test.txt'), 'retrieved binary not correct')
+
+    @mock.patch('intercom.front_end_binding.generate_task_id')
+    @mock.patch('intercom.back_end_binding.BinaryService')
+    def test_peek_binary_task(self, binary_service_mock, generate_task_id_mock):
+        binary_service_mock().read_partial_binary.return_value = b'foobar'
+        generate_task_id_mock.return_value = 'valid_uid_0.0'
+
+        result = self.frontend.peek_in_binary('valid_uid', 0, 512)
+        assert result is None, 'should be none because of timeout'
+
+        self.backend = InterComBackEndPeekBinaryTask(config=self.config)
+        task = self.backend.get_next_task()
+        assert task == ('valid_uid', 0, 512), 'task not correct'
+        result = self.frontend.peek_in_binary('valid_uid', 0, 512)
+        assert result == b'foobar', 'retrieved binary not correct'
 
     @mock.patch('intercom.front_end_binding.generate_task_id')
     @mock.patch('intercom.back_end_binding.BinaryService')

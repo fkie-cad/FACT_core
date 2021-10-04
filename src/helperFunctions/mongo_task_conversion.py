@@ -1,9 +1,11 @@
-import os
+import logging
 from configparser import ConfigParser
+from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Any, Dict, Optional, Tuple
 
-from flask import Request, escape
+from flask import Request
+from markupsafe import escape
 from werkzeug.datastructures import FileStorage
 
 from helperFunctions.config import get_temp_dir_path
@@ -42,7 +44,7 @@ def get_file_name_and_binary_from_request(request: Request, config: ConfigParser
     '''
     try:
         file_name = escape(request.files['file'].filename)
-    except Exception:
+    except AttributeError:
         file_name = 'no name'
     file_binary = _get_uploaded_file_binary(request.files['file'], config)
     return file_name, file_binary
@@ -84,7 +86,7 @@ def _get_meta_from_request(request: Request):
 def _get_meta_from_dropdowns(meta, request: Request):
     for item in meta.keys():
         if not meta[item] and item in DROPDOWN_FIELDS:
-            dd = request.form['{}_dropdown'.format(item)]
+            dd = request.form[f'{item}_dropdown']
             if dd != 'new entry':
                 meta[item] = escape(dd)
 
@@ -95,14 +97,16 @@ def _get_tag_list(tag_string):
     return tag_string.split(',')
 
 
-def convert_analysis_task_to_fw_obj(analysis_task: dict) -> Firmware:
+def convert_analysis_task_to_fw_obj(analysis_task: dict, base_fw: Optional[Firmware] = None) -> Firmware:
     '''
     Convert an analysis task to a firmware object.
 
     :param analysis_task: The analysis task data.
-    :return: A new `Firmware` object based on the analysis task data.
+    :param base_fw: The existing `Firmware` object in case of analysis update.
+    :return: A `Firmware` object based on the analysis task data.
     '''
-    fw = Firmware(scheduled_analysis=analysis_task['requested_analysis_systems'])
+    fw = base_fw or Firmware()
+    fw.scheduled_analysis = analysis_task['requested_analysis_systems']
     if 'binary' in analysis_task.keys():
         fw.set_binary(analysis_task['binary'])
         fw.file_name = analysis_task['file_name']
@@ -110,12 +114,12 @@ def convert_analysis_task_to_fw_obj(analysis_task: dict) -> Firmware:
         if 'file_name' in analysis_task.keys():
             fw.file_name = analysis_task['file_name']
         fw.uid = analysis_task['uid']
-    fw.set_device_name(analysis_task['device_name'])
+    fw.device_name = analysis_task['device_name']
     fw.set_part_name(analysis_task['device_part'])
-    fw.set_firmware_version(analysis_task['version'])
-    fw.set_device_class(analysis_task['device_class'])
-    fw.set_vendor(analysis_task['vendor'])
-    fw.set_release_date(analysis_task['release_date'])
+    fw.version = analysis_task['version']
+    fw.device_class = analysis_task['device_class']
+    fw.vendor = analysis_task['vendor']
+    fw.release_date = analysis_task['release_date']
     for tag in _get_tag_list(analysis_task['tags']):
         fw.set_tag(tag)
     return fw
@@ -144,18 +148,16 @@ def _get_uploaded_file_binary(request_file: FileStorage, config: ConfigParser) -
     :param config: The FACT configuration.
     :return: The binary as byte string or `None` if no binary was found.
     '''
-    if request_file:
-        tmp_dir = TemporaryDirectory(prefix='fact_upload_', dir=get_temp_dir_path(config))
-        tmp_file_path = os.path.join(tmp_dir.name, 'upload.bin')
+    if not request_file:
+        return None
+    with TemporaryDirectory(prefix='fact_upload_', dir=get_temp_dir_path(config)) as tmp_dir:
+        tmp_file_path = Path(tmp_dir) / 'upload.bin'
         try:
-            request_file.save(tmp_file_path)
-            with open(tmp_file_path, 'rb') as tmp_file:
-                binary = tmp_file.read()
-            tmp_dir.cleanup()
-            return binary
-        except Exception:
+            request_file.save(str(tmp_file_path))
+            return tmp_file_path.read_bytes()
+        except IOError:
+            logging.error('Encountered error when trying to read uploaded file:', exc_info=True)
             return None
-    return None
 
 
 def check_for_errors(analysis_task: dict) -> Dict[str, str]:

@@ -1,7 +1,10 @@
+from configparser import ConfigParser
+
 import pytest
 from flask import Flask
 
-from manage_users import start_user_management, setup_argparse, prompt_for_actions, choose_action, get_input
+from manage_users import choose_action, get_input, prompt_for_actions, setup_argparse, start_user_management
+from web_interface.security.authentication import add_config_from_configparser_to_app, add_flask_security_to_app
 
 
 def test_get_input(monkeypatch):
@@ -51,9 +54,23 @@ def test_integration_try_actions(monkeypatch, action_and_inputs):
     monkeypatch.setattr('getpass.getpass', lambda *x: 'mock_password')
 
     test_app = Flask(__name__)
-    test_app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///'
-    test_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    test_app.config['SECRET_KEY'] = 'secret_key'
+    parser = ConfigParser()
+    # See add_config_from_configparser_to_app for needed values
+    parser.read_dict({
+        'data_storage': {
+            # We want an in memory database for testing
+            'user_database': 'sqlite://',
+            'password_salt': "salt"
+        },
+        'ExpertSettings': {
+            'authentication': 'true'
+        },
+    })
 
-    start_user_management(test_app)
+    add_config_from_configparser_to_app(test_app, parser)
+    db, store = add_flask_security_to_app(test_app)
+
+    start_user_management(test_app, store, db)
 
     assert True, 'test will throw exception or stall if something is broken'

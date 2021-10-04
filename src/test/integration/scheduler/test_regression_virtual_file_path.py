@@ -85,7 +85,7 @@ def test_scheduler(test_config, finished_event, intermediate_event):
 
 def add_test_file(scheduler, path_in_test_dir):
     firmware = Firmware(file_path=str(Path(get_test_data_dir(), path_in_test_dir)))
-    firmware.set_release_date('1990-01-16')
+    firmware.release_date = '1990-01-16'
     scheduler.add_task(firmware)
 
 
