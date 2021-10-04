@@ -6,7 +6,7 @@
 
 [![codecov](https://codecov.io/gh/fkie-cad/FACT_core/branch/master/graph/badge.svg)](https://codecov.io/gh/fkie-cad/FACT_core)
 [![BCH compliance](https://bettercodehub.com/edge/badge/fkie-cad/FACT_core?branch=master)](https://bettercodehub.com/)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/8101a5fc388848e89ec705e06a5ad734)](https://www.codacy.com/app/johannes.vom.dorp/FACT_core?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=fkie-cad/FACT_core&amp;utm_campaign=Badge_Grade)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/d3910401cb58498a8c2d00be80092080)](https://www.codacy.com/gh/fkie-cad/FACT_core/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=fkie-cad/FACT_core&amp;utm_campaign=Badge_Grade)
 [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/FACT_core/community)
 
 The Firmware Analysis and Comparison Tool (formerly known as Fraunhofer's Firmware Analysis Framework (FAF)) is intended to automate most of the firmware analysis process. 
@@ -99,7 +99,7 @@ We've been happy to show FACT in a number of BlackHat Arsenal sessions.
 ## License
 ```
     Firmware Analysis and Comparison Tool (FACT)
-    Copyright (C) 2015-2020  Fraunhofer FKIE
+    Copyright (C) 2015-2021  Fraunhofer FKIE
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by

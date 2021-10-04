@@ -13,41 +13,31 @@ BIN_DIR = Path(__file__).parent.parent / 'bin'
 INSTALL_DIR = Path(__file__).parent
 
 
-def install_pip(python_command):
-    logging.info('Installing {} pip'.format(python_command))
-    for command in ['wget https://bootstrap.pypa.io/get-pip.py', 'sudo -EH {} get-pip.py'.format(python_command), 'rm get-pip.py']:
+def install_pip():
+    logging.info('Installing python3 pip')
+    for command in ['wget https://bootstrap.pypa.io/get-pip.py', 'sudo -EH python3 get-pip.py', 'rm get-pip.py']:
         output, return_code = execute_shell_command_get_return_code(command)
         if return_code != 0:
-            raise InstallationError('Error in pip installation for {}:\n{}'.format(python_command, output))
+            raise InstallationError(f'Error in pip installation for python3:\n{output}')
 
 
 def main(distribution):  # pylint: disable=too-many-statements
     _update_package_sources(distribution)
+    _update_submodules()
 
-    apt_packages_path = INSTALL_DIR / "apt-pkgs-common.txt"
-    dnf_packages_path = INSTALL_DIR / "dnf-pkgs-common.txt"
+    apt_packages_path = INSTALL_DIR / 'apt-pkgs-common.txt'
+    dnf_packages_path = INSTALL_DIR / 'dnf-pkgs-common.txt'
 
-    if distribution != "fedora":
+    if distribution != 'fedora':
         pkgs = read_package_list_from_file(apt_packages_path)
         apt_install_packages(*pkgs)
     else:
         pkgs = read_package_list_from_file(dnf_packages_path)
         dnf_install_packages(*pkgs)
 
-    install_pip('python3')
-    run_cmd_with_logging("sudo -EH pip3 install -U -r ./requirements_common.txt")
+    install_pip()
 
-    _, is_repository = execute_shell_command_get_return_code('git status')
-    if is_repository == 0:
-        # update submodules
-        git_output, git_code = execute_shell_command_get_return_code('(cd ../../ && git submodule foreach "git pull")')
-        if git_code != 0:
-            raise InstallationError('Failed to update submodules\n{}'.format(git_output))
-    else:
-        logging.warning('FACT is not set up using git. Note that *adding submodules* won\'t work!!')
-
-    # make bin dir
-    BIN_DIR.mkdir(exist_ok=True)
+    run_cmd_with_logging('sudo -EH pip3 install  -U -r ./requirements_common.txt')
 
     # VarietyJS (is executed by update_statistic.py)
     if (BIN_DIR / 'spec').exists():
@@ -61,6 +51,16 @@ def main(distribution):  # pylint: disable=too-many-statements
         Path('start_all_installed_fact_components').symlink_to('src/start_fact.py')
 
     return 0
+
+
+def _update_submodules():
+    _, is_repository = execute_shell_command_get_return_code('git status')
+    if is_repository == 0:
+        git_output, git_code = execute_shell_command_get_return_code('(cd ../../ && git submodule foreach "git pull")')
+        if git_code != 0:
+            raise InstallationError('Failed to update submodules\n{}'.format(git_output))
+    else:
+        logging.warning('FACT is not set up using git. Note that *adding submodules* won\'t work!!')
 
 
 def _update_package_sources(distribution):

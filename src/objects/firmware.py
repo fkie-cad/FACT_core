@@ -1,71 +1,161 @@
-from objects.file import FileObject
+from contextlib import suppress
+from typing import Dict, Optional
+
 from helperFunctions.hash import get_md5
 from helperFunctions.tag import TagColor
-from contextlib import suppress
+from objects.file import FileObject
 
 
-class Firmware(FileObject):
+class Firmware(FileObject):  # pylint: disable=too-many-instance-attributes
     '''
-    This objects represents a firmware
+    Uploaded firmware image representation.
+
+    In FACT, we represent an uploaded firmware image as specialized :class:`~objects.file.FileObject` with supplementary meta data.
+    This class is the root of a virtual path tree with all extracted folders and files as branch- and leaf-instances of the :class:`~objects.file.FileObject` class::
+
+                                  ┌────────────┐
+                                  │  Firmware  │
+                                  │(Root Image)│
+                                  └──────┬─────┘
+                                         │
+                         ┌───────────────┼───────────────┐
+                         │               │               │
+                         ▼               ▼               ▼
+                  ┌────────────┐  ┌────────────┐  ┌────────────┐
+                  │    /etc    │  │    /var    │  │    ...     │
+                  │(FileObject)│  │(FileObject)│  │(FileObject)│
+                  └──────┬─────┘  └──────┬─────┘  └────────────┘
+                         │               │
+               ┌─────────┴────┐       ┌──┼──┐
+               │              │       │  │  │
+               ▼              ▼       ▼  ▼  ▼
+        ┌────────────┐ ┌────────────┐   ...
+        │   passwd   │ │    ...     │
+        │(FileObject)│ │(FileObject)│
+        └────────────┘ └────────────┘
+
+
+    For each uploaded firmware, FACT can hold meta data that associates the analyzed image with its corresponding embedded device.
+    This meta data includes the...
+
+    * :attr:`device_class`,
+    * device :attr:`vendor`,
+    * :attr:`device_name`,
+    * firmware :attr:`version`,
+    * firmware :attr:`release_date`, and
+    * image-contained :attr:`part`.
+
+    Additionally, each Firmware can hold user-defined tags that may be used in advanced queries to categorize and filter all firmwares present in the database.
+    It is important to understand that said tags are **separately stored** from the :attr:`objects.file.FileObject.analysis_tags`, which are propagated by analysis plugins.
     '''
 
-    def __init__(self, binary=None, file_name=None, file_path=None, scheduled_analysis=None):
-        super().__init__(binary=binary, file_name=file_name, file_path=file_path, scheduled_analysis=scheduled_analysis)
-        self.device_name = None
-        self.version = None
-        self.device_class = None
-        self.vendor = None
-        self.part = ''
-        self.release_date = None
-        self.tags = dict()
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        #: Device name string identifier.
+        #: Can be freely defined during upload.
+        #:
+        #: This attribute is **mandatory** and shall never be `None`.
+        self.device_name: Optional[str] = None
+
+        #: Firmware version string identifier.
+        #: Can be freely defined during upload.
+        #:
+        #: This attribute is **mandatory** and shall never be `None`.
+        self.version: Optional[str] = None
+
+        #: Device class string identifier.
+        #: Not all embedded appliances are the same: There are routers, IP cameras, entertainment systems, printers, and a plethora of other classes.
+        #: FACT requires a user to categorize analyzed firmware images by this attribute.
+        #: While this attribute is **mandatory**, it can be freely defined during upload.
+        self.device_class: Optional[str] = None
+
+        #: Device vendor string identifier.
+        #:
+        #: This attribute is **mandatory** and shall never be `None`.
+        self.vendor: Optional[str] = None
+
+        #: Specifies the parts of an embedded system that are contained in this firmware.
+        #: While this meta data string can be freely defined during firmware upload,
+        #: FACT provides a preset of frequently used values: `complete`, `kernel`, `bootloader`, and `root-fs`.
+        #:
+        #: This attribute is **optional**. The firmware image is assumed to be `complete` if the assigned/default value is an empty string.
+        self.part: str = ''
+
+        #: Release date string of this firmware version in `ISO 8601 <https://en.wikipedia.org/wiki/ISO_8601>`_ `YYYY-MM-DD` format.
+        #:
+        #: This attribute is **optional**. The release date is assumed to be the start of UNIX epoch time (`1970-01-01`) if not specificed.
+        self.release_date: Optional[str] = None
+
+        #: User-defined firmware tags for advanced grouping and filtering of firmware images, saved as {'tag': :class:`helperFunctions.tag.TagColor`} dictionary.
+        #: It is important to understand that these tags are **separately stored** from the :attr:`objects.file.FileObject.analysis_tags`, which are propagated by analysis plugins.
+        #:
+        #: This attribute is **optional**, the dict may be empty.
+        self.tags: Dict[str, TagColor] = dict()
+
         self._update_root_id_and_virtual_path()
 
-    def set_device_name(self, device_name):
-        self.device_name = device_name
+    def set_part_name(self, part: str):
+        '''
+        Setter for `self.part_name`.
 
-    def set_part_name(self, part):
+        :param part: part identifier, defaults to `complete` if empty string is passed.
+        :type part: str
+        '''
         if part == 'complete':
             self.part = ''
         else:
             self.part = part
 
-    def set_firmware_version(self, version):
-        self.version = version
+    def set_binary(self, binary: bytes):
+        '''
+        See :meth:`objects.file.FileObject.set_binary`.
 
-    def set_device_class(self, device_class):
-        self.device_class = device_class
-
-    def set_binary(self, binary):
+        :param binary: binary data of the file object
+        :type binary: bytes
+        '''
         super().set_binary(binary)
         self._update_root_id_and_virtual_path()
         self.md5 = get_md5(binary)
-
-    def set_vendor(self, vendor):
-        self.vendor = vendor
-
-    def set_release_date(self, release_date):
-        self.release_date = release_date
 
     def _update_root_id_and_virtual_path(self):
         self.root_uid = self.uid
         self.virtual_file_path = {self.uid: [self.uid]}
 
-    def set_tag(self, tag, tag_color=TagColor.GRAY):
+    def set_tag(self, tag: str, tag_color: str = TagColor.GRAY):
+        '''
+        Set a user-defined tag with color.
+
+        :param tag: Tag identifier
+        :type tag: str
+        :param tag_color: The tag's color, defaults to :class:`~helperFunctions.tag.TagColor.GRAY`
+        :type tag_color: str from :class:`~helperFunctions.tag.TagColor`
+        '''
         self.tags[tag] = tag_color
 
-    def remove_tag(self, tag):
+    def remove_tag(self, tag: str):
+        '''
+        Remove a user-defined tag.
+
+        :param tag: Tag identifier
+        :type tag: str
+        '''
         with suppress(KeyError):
             self.tags.pop(tag)
 
-    def get_hid(self, root_uid=None):
+    def get_hid(self, root_uid: Optional[str] = None) -> str:
         '''
-        return a human readable identifier
+        See :meth:`objects.file.FileObject.get_hid`.
         '''
         part = ' - {}'.format(self.part) if self.part else ''
         return '{} {}{} v. {}'.format(self.vendor, self.device_name, part, self.version)
 
-    def __str__(self):
-        return '{}\nProcessed Analysis: {}\nScheduled Analysis: {}'.format(self.get_hid(), list(self.processed_analysis.keys()), self.scheduled_analysis)
+    def __str__(self) -> str:
+        return (
+                f'{self.get_hid()}\n'
+                f'Processed Analysis: {list(self.processed_analysis.keys())}\n'
+                f'Scheduled Analysis: {self.scheduled_analysis}'
+            )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.__str__()

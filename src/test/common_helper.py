@@ -5,7 +5,8 @@ from base64 import standard_b64encode
 from configparser import ConfigParser
 from copy import deepcopy
 from pathlib import Path
-from typing import Union
+from tempfile import TemporaryDirectory
+from typing import Optional, Union
 
 from helperFunctions.config import load_config
 from helperFunctions.data_conversion import get_value_of_first_key, normalize_compare_id
@@ -40,11 +41,11 @@ class CommonDbInterfaceMock(MongoInterfaceCommon):
 
 def create_test_firmware(device_class='Router', device_name='test_router', vendor='test_vendor', bin_path='container/test.zip', all_files_included_set=False, version='0.1'):
     fw = Firmware(file_path=os.path.join(get_test_data_dir(), bin_path))
-    fw.set_device_class(device_class)
-    fw.set_device_name(device_name)
-    fw.set_vendor(vendor)
+    fw.device_class = device_class
+    fw.device_name = device_name
+    fw.vendor = vendor
 
-    fw.set_release_date('1970-01-01')
+    fw.release_date = '1970-01-01'
     fw.version = version
     processed_analysis = {
         'dummy': {'summary': ['sum a', 'fw exclusive sum a'], 'content': 'abcd'},
@@ -414,10 +415,13 @@ def fake_exit(self, *args):
 
 
 def get_database_names(config):
-    databases = ['{}_{}'.format(config.get('data_storage', 'intercom_database_prefix'), intercom_db)
-                 for intercom_db in InterComMongoInterface.INTERCOM_CONNECTION_TYPES]
-    databases.extend([config.get('data_storage', 'main_database'), config.get(
-        'data_storage', 'view_storage'), config.get('data_storage', 'statistic_database')])
+    prefix = config.get('data_storage', 'intercom_database_prefix')
+    databases = [f'{prefix}_{intercom_db}' for intercom_db in InterComMongoInterface.INTERCOM_CONNECTION_TYPES]
+    databases.extend([
+        config.get('data_storage', 'main_database'),
+        config.get('data_storage', 'view_storage'),
+        config.get('data_storage', 'statistic_database')
+    ])
     return databases
 
 
@@ -450,7 +454,9 @@ def get_firmware_for_rest_upload_test():
     return data
 
 
-def get_config_for_testing(temp_dir=None):
+def get_config_for_testing(temp_dir: Optional[Union[TemporaryDirectory, str]] = None):
+    if isinstance(temp_dir, TemporaryDirectory):
+        temp_dir = temp_dir.name
     config = ConfigParser()
     config.add_section('data_storage')
     config.set('data_storage', 'mongo_server', 'localhost')
@@ -477,8 +483,8 @@ def get_config_for_testing(temp_dir=None):
     load_users_from_main_config(config)
     config.add_section('Logging')
     if temp_dir is not None:
-        config.set('data_storage', 'firmware_file_storage_directory', temp_dir.name)
-        config.set('Logging', 'mongoDbLogFile', os.path.join(temp_dir.name, 'mongo.log'))
+        config.set('data_storage', 'firmware_file_storage_directory', temp_dir)
+        config.set('Logging', 'mongoDbLogFile', os.path.join(temp_dir, 'mongo.log'))
     config.set('ExpertSettings', 'radare2_host', 'localhost')
     return config
 

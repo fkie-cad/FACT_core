@@ -12,6 +12,7 @@ pylint
 pytest
 pytest-cov
 python-magic
+python-tlsh
 requests
 ssdeep
 xmltodict
