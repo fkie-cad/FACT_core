@@ -3,7 +3,7 @@ import logging
 import os
 import re
 from difflib import SequenceMatcher
-from typing import Optional
+from typing import List, Optional
 
 import lief
 from common_helper_files import get_dir_of_file
@@ -147,7 +147,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 for key in {'virtual_address', 'offset'}.intersection(entry):
                     entry[key] = hex(entry[key])
 
-    def filter_modinfo(self, binary) -> Optional[str]:
+    def filter_modinfo(self, binary) -> Optional[List[str]]:
         # getting the information from the *.ko files .modinfo
         if binary is not None:
 
