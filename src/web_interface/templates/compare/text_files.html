@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% set active_page = "Database" %}
+
+
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='highlight.js/styles/github.min.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='web_css/diff2html.min.css') }}" />
+
+    <script type="text/javascript" src="{{ url_for('static', filename='web_js/diff2html-ui.min.js') }}"></script>
+{% endblock %}
+
+
+{% block body %}
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // This string is made safe by the python code rendering this template
+    const diffString =`{{diffstr | safe}}`;
+    const targetElement = document.getElementById('diff-element');
+    const configuration = {
+        drawFileList: false,
+        matching: 'lines',
+        highlight: true,
+        fileContentToggle: false,
+        outputFormat: 'side-by-side'
+    };
+    const diff2htmlUi = new Diff2HtmlUI(targetElement, diffString, configuration);
+    diff2htmlUi.draw();
+    diff2htmlUi.highlightCode();
+
+    // For a meaningful comparison we need to know which firmwares the files came from.
+    // We just append the firmware to the filename (in a hacky but simple but simple way).
+    // Replace the filenames by uuids first to prevent replacing the same string twice.
+    // We can't do this in python code because then highlight.js can't detect the filetype.
+    placeholder_first = "c046743b-268e-4f8b-909c-7458cc7a86a8"
+    placeholder_second = "7a0496d7-4fe3-46e8-894e-bbe7294217ee"
+    innerHTMLWithFirmware = targetElement.innerHTML.replace("{{file0}}", placeholder_first)
+    innerHTMLWithFirmware = innerHTMLWithFirmware.replace("{{file1}}", placeholder_second)
+    innerHTMLWithFirmware = innerHTMLWithFirmware.replace(placeholder_first, "{{file0}} ({{fw0.get_hid()}})")
+    innerHTMLWithFirmware = innerHTMLWithFirmware.replace(placeholder_second, "{{file1}} ({{fw1.get_hid()}})")
+    targetElement.innerHTML = innerHTMLWithFirmware
+});
+</script>
+
+<div id="diff-element" class="mt-3">Tets</div>
+
+
+{% endblock %}
