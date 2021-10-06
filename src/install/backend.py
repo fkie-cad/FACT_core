@@ -1,3 +1,4 @@
+import importlib
 import logging
 import os
 import stat
@@ -8,6 +9,7 @@ import requests
 from common_helper_process import execute_shell_command_get_return_code
 
 from compile_yara_signatures import main as compile_signatures
+from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.install import (
     InstallationError, OperateInDirectory, apt_install_packages, dnf_install_packages, install_pip_packages,
     load_main_config, read_package_list_from_file
@@ -39,10 +41,9 @@ def main(skip_docker, distribution):
 
     if not skip_docker:
         _install_docker_images()
-        _install_plugin_docker_images()
 
     # install plug-in dependencies
-    _install_plugins(distribution)
+    _install_plugins(distribution, skip_docker)
 
     # configure environment
     _edit_environment()
@@ -73,17 +74,10 @@ def _install_docker_images():
         raise InstallationError(f'Failed to pull extraction container:\n{output}')
 
 
-def _install_plugin_docker_images():
-    logging.info('Installing plugin docker dependecies')
-    find_output, return_code = execute_shell_command_get_return_code('find ../plugins -iname "install_docker.sh"')
-    if return_code != 0:
-        raise InstallationError('Error retrieving plugin docker installation scripts')
-    for install_script in find_output.splitlines(keepends=False):
-        logging.info(f'Running {install_script}')
-        shell_output, return_code = execute_shell_command_get_return_code(install_script)
-        if return_code != 0:
-            raise InstallationError(
-                f'Error in installation of {Path(install_script).parent.name} plugin docker images docker images\n{shell_output}')
+def install_plugin_docker_images():
+    # Distribution can be None here since it will not be used for installing
+    # docker images
+    _install_plugins(None, skip_docker=False, only_docker=True)
 
 
 def _edit_environment():
@@ -105,17 +99,22 @@ def _create_firmware_directory():
         raise InstallationError(f'Failed to create directories for binary storage\n{mkdir_output}\n{chown_output}')
 
 
-def _install_plugins(distribution):
-    logging.info('Installing plugins')
-    find_output, return_code = execute_shell_command_get_return_code('find ../plugins -iname "install.sh"')
-    if return_code != 0:
-        raise InstallationError('Error retrieving plugin installation scripts')
-    for install_script in find_output.splitlines(keepends=False):
-        logging.info('Running {}'.format(install_script))
-        shell_output, return_code = execute_shell_command_get_return_code(f'{install_script} {distribution}')
-        if return_code != 0:
-            raise InstallationError(
-                f'Error in installation of {Path(install_script).parent.name} plugin\n{shell_output}')
+def _install_plugins(distribution, skip_docker, only_docker=False):
+    installer_paths = Path(get_src_dir() + '/plugins/').glob('*/*/install.py')
+
+    for install_script in installer_paths:
+        plugin_name = install_script.parent.name
+        plugin_type = install_script.parent.parent.name
+
+        plugin = importlib.import_module(f'plugins.{plugin_type}.{plugin_name}.install')
+
+        plugin_installer = plugin.Installer(distribution, skip_docker=skip_docker)
+        logging.info(f'Installing {plugin_name} plugin.')
+        if not only_docker:
+            plugin_installer.install()
+        else:
+            plugin_installer.install_docker_images()
+        logging.info(f'Finished installing {plugin_name} plugin.\n')
 
 
 def _install_yara():  # pylint: disable=too-complex

@@ -4,10 +4,12 @@ import os
 import shlex
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 from subprocess import PIPE, CalledProcessError
 from typing import List, Tuple, Union
 
+import distro
 from common_helper_process import execute_shell_command_get_return_code
 
 
@@ -199,14 +201,14 @@ def load_main_config() -> configparser.ConfigParser:
 
 
 def run_cmd_with_logging(cmd: str, raise_error=True, shell=False, **kwargs):
-    """
+    '''
     Runs `cmd` with subprocess.run, logs the command it executes and logs
     stderr on non-zero returncode.
     All keyword arguments are execpt `raise_error` passed to subprocess.run.
 
     :param raise_error: Whether or not an error should be raised when `cmd` fails
-    """
-    logging.info(f'Running: {cmd}')
+    '''
+    logging.debug(f'Running: {cmd}')
     try:
         cmd_ = cmd if shell else shlex.split(cmd)
         subprocess.run(cmd_, stdout=PIPE, stderr=PIPE, encoding='UTF-8', shell=shell, check=True, **kwargs)
@@ -217,6 +219,32 @@ def run_cmd_with_logging(cmd: str, raise_error=True, shell=False, **kwargs):
             raise err
         else:
             logging.debug(f'Failed to run {cmd} (ignoring):\n{err.stderr}\n')
+
+
+def check_distribution():
+    '''
+    Check if the distribution is supported by the installer.
+
+    :return: The codename of the distribution
+    '''
+    bionic_code_names = ['bionic', 'tara', 'tessa', 'tina', 'disco']
+    debian_code_names = ['buster', 'stretch', 'kali-rolling']
+    focal_code_names = ['focal', 'ulyana', 'ulyssa', 'uma']
+
+    codename = distro.codename().lower()
+    if codename in bionic_code_names:
+        logging.debug('Ubuntu 18.04 detected')
+        return 'bionic'
+    if codename in focal_code_names:
+        logging.debug('Ubuntu 20.04 detected')
+        return 'focal'
+    if codename in debian_code_names:
+        logging.debug('Debian/Kali detected')
+        return 'debian'
+    if distro.id() == 'fedora':
+        logging.debug('Fedora detected')
+        return 'fedora'
+    sys.exit('Your Distribution ({} {}) is not supported. FACT Installer requires Ubuntu 18.04, 20.04 or compatible!'.format(distro.id(), distro.version()))
 
 
 def install_pip_packages(package_file: Path):
@@ -238,7 +266,7 @@ def install_pip_packages(package_file: Path):
 
 
 def read_package_list_from_file(path: Path):
-    """
+    '''
     Reads the file at `path` into a list.
     Each line in the file should be either a comment (starts with #) or a
     package name.
@@ -246,7 +274,7 @@ def read_package_list_from_file(path: Path):
 
     :param path: The path to the file.
     :return: A list of package names contained in the file.
-    """
+    '''
     packages = []
     for line_ in path.read_text().splitlines():
         line = line_.strip(' \t')
