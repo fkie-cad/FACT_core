@@ -177,7 +177,7 @@ class DatabaseRoutes(ComponentBase):
                     with ConnectTo(InterComFrontEndBinding, self._config) as connection:
                         request_id = connection.add_binary_search_request(yara_rule_file, firmware_uid)
                     return redirect(url_for('get_binary_search_results', request_id=request_id, only_firmware=only_firmware))
-                error = f'Error in YARA rules: {get_yara_error(yara_rule_file)}'
+                error = f'Error in YARA rules: {get_yara_error(yara_rule_file)} (pre-compiled rules are not supported here!)'
             else:
                 error = 'please select a file or enter rules in the text area'
         return render_template('database/database_binary_search.html', error=error)

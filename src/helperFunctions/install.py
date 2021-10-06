@@ -143,18 +143,6 @@ def check_if_command_in_path(command: str) -> bool:
     return True
 
 
-def check_string_in_command_output(command: str, target_string: str) -> bool:
-    '''
-    Execute command and test if string is contained in its output (i.e. stdout).
-
-    :param command: Command to execute.
-    :param target_string: String to match on output.
-    :return: `True` if string was found and return code was 0, else `False`.
-    '''
-    output, return_code = execute_shell_command_get_return_code(command)
-    return return_code == 0 and target_string in output
-
-
 def install_github_project(project_path: str, commands: List[str]):
     '''
     Install github project by cloning it, running a set of commands and removing the cloned files afterwards.
@@ -218,17 +206,35 @@ def run_cmd_with_logging(cmd: str, raise_error=True, shell=False, **kwargs):
 
     :param raise_error: Whether or not an error should be raised when `cmd` fails
     """
-    logging.info(f"Running: {cmd}")
+    logging.info(f'Running: {cmd}')
     try:
         cmd_ = cmd if shell else shlex.split(cmd)
         subprocess.run(cmd_, stdout=PIPE, stderr=PIPE, encoding='UTF-8', shell=shell, check=True, **kwargs)
     except CalledProcessError as err:
         # pylint:disable=no-else-raise
         if raise_error:
-            logging.error(f"Failed to run {err.cmd}:\n{err.stderr}")
+            logging.error(f'Failed to run {cmd}:\n{err.stderr}')
             raise err
         else:
-            logging.debug(f"Failed to run {err.cmd} (ignoring):\n{err.stderr}\n")
+            logging.debug(f'Failed to run {cmd} (ignoring):\n{err.stderr}\n')
+
+
+def install_pip_packages(package_file: Path):
+    '''
+    Install or upgrade python packages from file `package_file` using pip. Does not raise an error if the installation
+    fails because the package is already installed through the system's package manager. The package file should
+    have one package per line (empty lines and comments are allowed).
+
+    :param package_file: The path to the package file.
+    '''
+    for package in read_package_list_from_file(package_file):
+        try:
+            run_cmd_with_logging(f'sudo -EH pip3 install -U {package}')
+        except CalledProcessError as error:
+            # don't fail if a package is already installed using apt and can't be upgraded
+            if 'distutils installed' in error.stderr:
+                continue
+            raise
 
 
 def read_package_list_from_file(path: Path):
@@ -243,9 +249,9 @@ def read_package_list_from_file(path: Path):
     """
     packages = []
     for line_ in path.read_text().splitlines():
-        line = line_.strip(" \t")
+        line = line_.strip(' \t')
         # Skip comments and empty lines
-        if line.startswith("#") or len(line) == 0:
+        if line.startswith('#') or len(line) == 0:
             continue
         packages.append(line)
 

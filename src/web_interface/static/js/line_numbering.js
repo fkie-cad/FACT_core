@@ -1,5 +1,5 @@
 function line_numbering() {
-    var pre = document.getElementsByTagName('pre'),
+    var pre = document.getElementsByClassName('line_numbering'),
         pl = pre.length;
     for (var i = 0; i < pl; i++) {
         pre[i].innerHTML = '<span class="line-number"></span>' + pre[i].innerHTML + '<span class="cl"></span>';

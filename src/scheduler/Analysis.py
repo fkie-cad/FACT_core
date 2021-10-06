@@ -315,7 +315,6 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
     @staticmethod
     def _is_forced_update(file_object: FileObject) -> bool:
         try:
-            logging.warning('This feature is deprecated and will be removed when analysis scheduling is fixed.')
             return bool(getattr(file_object, 'force_update'))
         except AttributeError:
             return False
