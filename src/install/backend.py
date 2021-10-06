@@ -5,17 +5,19 @@ import stat
 from contextlib import suppress
 from pathlib import Path
 
+import requests
 from common_helper_process import execute_shell_command_get_return_code
 
 from compile_yara_signatures import main as compile_signatures
 from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.install import (
-    InstallationError, OperateInDirectory, apt_install_packages, check_string_in_command_output, dnf_install_packages,
-    load_main_config, read_package_list_from_file, run_cmd_with_logging
+    InstallationError, OperateInDirectory, apt_install_packages, dnf_install_packages, install_pip_packages,
+    load_main_config, read_package_list_from_file
 )
 
 BIN_DIR = Path(__file__).parent.parent / 'bin'
 INSTALL_DIR = Path(__file__).parent
+PIP_DEPENDENCIES = INSTALL_DIR / 'requirements_backend.txt'
 
 
 def main(skip_docker, distribution):
@@ -29,7 +31,7 @@ def main(skip_docker, distribution):
         pkgs = read_package_list_from_file(dnf_packages_path)
         dnf_install_packages(*pkgs)
 
-    run_cmd_with_logging('sudo -EH pip3 install -r ./requirements_backend.txt')
+    install_pip_packages(PIP_DEPENDENCIES)
 
     # install yara
     _install_yara()
@@ -116,22 +118,31 @@ def _install_plugins(distribution, skip_docker, only_docker=False):
 
 
 def _install_yara():  # pylint: disable=too-complex
-    logging.info('Installing yara')
 
     # CAUTION: Yara python binding is installed in install/common.py, because it is needed in the frontend as well.
 
-    if check_string_in_command_output('yara --version', '3.7.1'):
-        logging.info('skipping yara installation (already installed)')
+    try:
+        latest_url = requests.get('https://github.com/VirusTotal/yara/releases/latest').url
+        latest_version = latest_url.split('/tag/')[1]
+    except (AttributeError, KeyError):
+        raise InstallationError('Could not find latest yara version') from None
+
+    installed_version, return_code = execute_shell_command_get_return_code('yara --version')
+    if return_code == 0 and installed_version.strip() == latest_version.strip('v'):
+        logging.info('Skipping yara installation: Already installed and up to date')
         return
 
-    wget_output, wget_code = execute_shell_command_get_return_code('wget https://github.com/VirusTotal/yara/archive/v3.7.1.zip')
+    logging.info(f'Installing yara {latest_version}')
+    archive = f'{latest_version}.zip'
+    download_url = f'https://github.com/VirusTotal/yara/archive/refs/tags/{archive}'
+    wget_output, wget_code = execute_shell_command_get_return_code(f'wget {download_url}')
     if wget_code != 0:
         raise InstallationError(f'Error on yara download.\n{wget_output}')
-    zip_output, return_code = execute_shell_command_get_return_code('unzip v3.7.1.zip')
-    Path('v3.7.1.zip').unlink()
+    zip_output, return_code = execute_shell_command_get_return_code(f'unzip {archive}')
+    Path(archive).unlink()
     if return_code != 0:
         raise InstallationError(f'Error on yara extraction.\n{zip_output}')
-    yara_folder = [child for child in Path('.').iterdir() if 'yara-3.' in child.name][0]
+    yara_folder = [p for p in Path('.').iterdir() if p.name.startswith('yara-')][0]
     with OperateInDirectory(yara_folder.name, remove=True):
         os.chmod('bootstrap.sh', 0o775)
         for command in ['./bootstrap.sh', './configure --enable-magic', 'make -j$(nproc)', 'sudo make install']:
