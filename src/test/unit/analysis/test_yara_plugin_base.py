@@ -1,3 +1,5 @@
+# pylint: disable=wrong-import-order
+
 import logging
 import os
 from pathlib import Path
@@ -32,9 +34,9 @@ class TestAnalysisYaraBasePlugin(AnalysisPluginTest):
         test_file.processed_analysis.update({self.PLUGIN_NAME: []})
         processed_file = self.analysis_plugin.process_object(test_file)
         results = processed_file.processed_analysis[self.PLUGIN_NAME]
-        self.assertEqual(len(results), 2, 'not all matches found')
-        self.assertTrue('testRule' in results, 'testRule match not found')
-        self.assertEqual(results['summary'], ['testRule'])
+        assert len(results) == 2, 'not all matches found'
+        assert 'testRule' in results, 'testRule match not found'
+        assert results['summary'] == ['testRule']
 
     def test_process_object_nothing_found(self):
         test_file = FileObject(file_path=os.path.join(get_test_data_dir(), 'zero_byte'))
@@ -45,7 +47,7 @@ class TestAnalysisYaraBasePlugin(AnalysisPluginTest):
 
 
 def test_parse_yara_output():
-    matches = YaraBasePlugin._parse_yara_output(YARA_TEST_OUTPUT)
+    matches = YaraBasePlugin._parse_yara_output(YARA_TEST_OUTPUT)  # pylint: disable=protected-access
 
     assert isinstance(matches, dict), 'matches should be dict'
     assert 'PgpPublicKeyBlock' in matches.keys(), 'Pgp block should have been matched'
@@ -56,7 +58,7 @@ def test_parse_yara_output():
 
 
 def test_get_signature_file_name():
-    assert YaraBasePlugin._get_signature_file_name('/foo/bar/plugin_name/code/test.py') == 'plugin_name.yc'
+    assert YaraBasePlugin._get_signature_file_name('/foo/bar/plugin_name/code/test.py') == 'plugin_name.yc'  # pylint: disable=protected-access
 
 
 def test_parse_meta_data_error(caplog):

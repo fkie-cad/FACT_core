@@ -9,3 +9,4 @@ openssl
 # Yara dependencies
 bison
 flex
+pkg-config
