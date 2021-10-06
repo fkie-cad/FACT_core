@@ -173,26 +173,6 @@ Useful to find out if a program is already installed.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="helperFunctions.install.check_string_in_command_output">
-<span class="sig-prename descclassname"><span class="pre">helperFunctions.install.</span></span><span class="sig-name descname"><span class="pre">check_string_in_command_output</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_string</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.check_string_in_command_output" title="Permalink to this definition"></a></dt>
-<dd><p>Execute command and test if string is contained in its output (i.e. stdout).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>command</strong> (<em>str</em>) – Command to execute.</p></li>
-<li><p><strong>target_string</strong> (<em>str</em>) – String to match on output.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><cite>True</cite> if string was found and return code was 0, else <cite>False</cite>.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>bool</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
 <dt class="sig sig-object py" id="helperFunctions.install.dnf_install_packages">
 <span class="sig-prename descclassname"><span class="pre">helperFunctions.install.</span></span><span class="sig-name descname"><span class="pre">dnf_install_packages</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">packages</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.dnf_install_packages" title="Permalink to this definition"></a></dt>
 <dd><p>Install packages on Fedora / RedHat / Cent systems.</p>
@@ -238,6 +218,19 @@ Useful to find out if a program is already installed.</p>
 <span class="p">)</span>
 </pre></div>
 </div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="helperFunctions.install.install_pip_packages">
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.install.</span></span><span class="sig-name descname"><span class="pre">install_pip_packages</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">package_file</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.install_pip_packages" title="Permalink to this definition"></a></dt>
+<dd><p>Install or upgrade python packages from file <cite>package_file</cite> using pip. Does not raise an error if the installation
+fails because the package is already installed through the system’s package manager. The package file should
+have one package per line (empty lines and comments are allowed).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>package_file</strong> (<em>pathlib.Path</em>) – The path to the package file.</p>
 </dd>
 </dl>
 </dd></dl>
