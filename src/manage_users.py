@@ -45,15 +45,15 @@ class Actions:
     def help(*_):
         print(
             '\nOne of the following actions can be chosen:\n'
+            '\n\t[add_role_to_user]\tadd existing role to an existing user'
+            '\n\t[create_role]\t\tcreate new role'
             '\n\t[create_user]\t\tcreate new user'
             '\n\t[delete_user]\t\tdelete a user'
-            '\n\t[create_role]\t\tcreate new role'
-            '\n\t[add_role_to_user]\tadd existing role to an existing user'
-            '\n\t[remove_role_from_user]\tremove role from user'
+            '\n\t[exit]\t\t\tclose application'
             '\n\t[get_apikey_for_user]\tretrieve apikey for existing user'
             '\n\t[help]\t\t\tshow this help'
             '\n\t[list_all_users]\tlist all existing users and their roles'
-            '\n\t[exit]\t\t\tclose application'
+            '\n\t[remove_role_from_user]\tremove role from user'
         )
 
     @staticmethod
@@ -79,10 +79,6 @@ class Actions:
             return [x.name for x in interface.list_roles()]
 
     @staticmethod
-    def exit(*_):
-        raise EOFError('Quitting ..')
-
-    @staticmethod
     def create_user(app, interface, db):
         user_list = Actions._get_user_list(app, interface)
         user = SESSION.prompt(
@@ -90,30 +86,24 @@ class Actions:
             validator=ActionValidatorReverse(user_list, message='user must not exist'),
             completer=None
         )
-        while True:
-            password = getpass.getpass('password: ')
-            if not password_is_legal(password):
-                print('Password is not legal. Please choose another password.')
-                continue
-            break
+        password = getpass.getpass('password: ')
+        assert password_is_legal(password), 'password is illegal'
         with app.app_context():
-            interface.create_user(email=user, password=hash_password(password))
+            interface.create_user(email=user, password=password, roles=['guest'])
             db.session.commit()
 
     @staticmethod
-    def get_apikey_for_user(app, interface, _):
+    def delete_user(app, interface, db):
         user_list = Actions._get_user_list(app, interface)
         action_completer = WordCompleter(user_list)
         user = SESSION.prompt(
             'username: ',
-            validator=ActionValidator(user_list, message='user must exist to retrieve apikey.'),
+            validator=ActionValidator(user_list, message='user must exist before deleting'),
             completer=action_completer
         )
         with app.app_context():
-            user = interface.find_user(email=user)
-
-        apikey = user.api_key
-        print(f'key: {apikey}')
+            interface.delete_user(user=interface.find_user(email=user))
+            db.session.commit()
 
     @staticmethod
     def create_role(app, interface, db):
@@ -146,7 +136,7 @@ class Actions:
         with app.app_context():
             interface.add_role_to_user(user=interface.find_user(email=user), role=role)
             db.session.commit()
-
+            
     @staticmethod
     def remove_role_from_user(app, interface, db):
         user_list = Actions._get_user_list(app, interface)
@@ -166,7 +156,22 @@ class Actions:
         with app.app_context():
             interface.remove_role_from_user(user=interface.find_user(email=user.email), role=role)
             db.session.commit()
-            
+
+    @staticmethod
+    def get_apikey_for_user(app, interface, _):
+        user_list = Actions._get_user_list(app, interface)
+        action_completer = WordCompleter(user_list)
+        user = SESSION.prompt(
+            'username: ',
+            validator=ActionValidator(user_list, message='user must exist to retrieve apikey.'),
+            completer=action_completer
+        )
+        with app.app_context():
+            user = interface.find_user(email=user)
+
+        apikey = user.api_key
+        print(f'key: {apikey}')
+
     @staticmethod
     def list_all_users(_, interface, __):
         user_list = interface.list_users()
@@ -176,17 +181,8 @@ class Actions:
         print()
 
     @staticmethod
-    def delete_user(app, interface, db):
-        user_list = Actions._get_user_list(app, interface)
-        action_completer = WordCompleter(user_list)
-        user = SESSION.prompt(
-            'username: ',
-            validator=ActionValidator(user_list, message='user must exist before deleting'),
-            completer=action_completer
-        )
-        with app.app_context():
-            interface.delete_user(user=interface.find_user(email=user))
-            db.session.commit()
+    def exit(*_):
+        raise EOFError('Quitting ..')
 
 
 LEGAL_ACTIONS = [action for action in dir(Actions) if not action.startswith('_')]
