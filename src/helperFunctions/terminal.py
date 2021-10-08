@@ -5,20 +5,26 @@ SESSION = PromptSession()
 
 
 class ActionValidator(Validator):
-    def __init__(self, actions: list, message='This is not a valid action.'):
-        self.actions = actions
+    def __init__(self, accepted_list: list, message='This is not a valid action.'):
+        '''
+        a Validator class, that looks, if a word is available in the provided list 
+        '''
+        self.accepted_list = accepted_list
         self.message = message
 
     def validate(self, document):
-        if document.text not in self.actions:
+        if document.text not in self.accepted_list:
             raise ValidationError(message=self.message)
 
 
 class ActionValidatorReverse(Validator):
-    def __init__(self, actions: list, message='This is not a valid action.'):
-        self.actions = actions
+    def __init__(self, denied_list: list, message='This is not a valid action.'):
+        '''
+        a Validator class, that looks, if a word is absent in the provided list 
+        '''
+        self.denied_list = denied_list
         self.message = message
 
     def validate(self, document):
-        if document.text in self.actions:
+        if document.text in self.denied_list:
             raise ValidationError(message=self.message)
