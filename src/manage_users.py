@@ -7,6 +7,7 @@ from pathlib import Path
 
 from flask_security.utils import hash_password
 from prompt_toolkit.completion import WordCompleter
+from web_interface.security.terminal_validators import SESSION, ActionValidator, ActionValidatorReverse
 
 from config.ascii import FACT_ASCII_ART
 from helperFunctions.config import get_config_dir, load_config
@@ -14,7 +15,6 @@ from helperFunctions.web_interface import password_is_legal
 from version import __VERSION__
 from web_interface.frontend_main import WebFrontEnd
 from web_interface.security.privileges import ROLES
-from web_interface.security.terminal_validators import SESSION, ActionValidator, ActionValidatorReverse
 
 
 def setup_argparse():
@@ -79,10 +79,6 @@ class Actions:
             return [x.name for x in interface.list_roles()]
 
     @staticmethod
-    def exit(*_):
-        raise EOFError('Quitting ..')
-
-    @staticmethod
     def create_user(app, interface, db):
         user_list = Actions._get_user_list(app, interface)
         user = SESSION.prompt(
@@ -101,19 +97,17 @@ class Actions:
             db.session.commit()
 
     @staticmethod
-    def get_apikey_for_user(app, interface, _):
+    def delete_user(app, interface, db):
         user_list = Actions._get_user_list(app, interface)
         action_completer = WordCompleter(user_list)
         user = SESSION.prompt(
             'username: ',
-            validator=ActionValidator(user_list, message='user must exist to retrieve apikey.'),
+            validator=ActionValidator(user_list, message='user must exist before deleting'),
             completer=action_completer
         )
         with app.app_context():
-            user = interface.find_user(email=user)
-
-        apikey = user.api_key
-        print(f'key: {apikey}')
+            interface.delete_user(user=interface.find_user(email=user))
+            db.session.commit()
 
     @staticmethod
     def create_role(app, interface, db):
@@ -168,6 +162,21 @@ class Actions:
             db.session.commit()
 
     @staticmethod
+    def get_apikey_for_user(app, interface, _):
+        user_list = Actions._get_user_list(app, interface)
+        action_completer = WordCompleter(user_list)
+        user = SESSION.prompt(
+            'username: ',
+            validator=ActionValidator(user_list, message='user must exist to retrieve apikey.'),
+            completer=action_completer
+        )
+        with app.app_context():
+            user = interface.find_user(email=user)
+
+        apikey = user.api_key
+        print(f'key: {apikey}')
+
+    @staticmethod
     def list_all_users(_, interface, __):
         user_list = interface.list_users()
         for user in user_list:
@@ -176,17 +185,8 @@ class Actions:
         print()
 
     @staticmethod
-    def delete_user(app, interface, db):
-        user_list = Actions._get_user_list(app, interface)
-        action_completer = WordCompleter(user_list)
-        user = SESSION.prompt(
-            'username: ',
-            validator=ActionValidator(user_list, message='user must exist before deleting'),
-            completer=action_completer
-        )
-        with app.app_context():
-            interface.delete_user(user=interface.find_user(email=user))
-            db.session.commit()
+    def exit(*_):
+        raise EOFError('Quitting ..')
 
 
 LEGAL_ACTIONS = [action for action in dir(Actions) if not action.startswith('_')]
