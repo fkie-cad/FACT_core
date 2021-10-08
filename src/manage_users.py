@@ -32,7 +32,7 @@ def get_input(message, max_len=25):
     while True:
         user_input = input(message)
         if len(user_input) > max_len:
-            raise ValueError('Error: input too long (max length: {max_len})')
+            raise ValueError(f'Error: input too long (max length: {max_len})')
         return user_input
 
 
