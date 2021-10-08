@@ -26,20 +26,6 @@ def setup_argparse():
     return parser.parse_args()
 
 
-def get_input(message, max_len=25):
-    while True:
-        user_input = input(message)
-        if len(user_input) > max_len:
-            raise ValueError(f'Error: input too long (max length: {max_len})')
-        return user_input
-
-
-def choose_action():
-    print('\nPlease choose an action (use "help" for a list of available actions)')
-    chosen_action = input('action: ')
-    return chosen_action
-
-
 class Actions:
     @staticmethod
     def help(*_):
