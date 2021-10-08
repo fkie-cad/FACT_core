@@ -78,15 +78,13 @@ class DatabaseRoutes(ComponentBase):
     @AppRoute('/database/browse_binary_search_history', GET)
     def browse_searches(self):
         page, per_page, offset = extract_pagination_from_request(request, self._config)
-        all_searches = []
-
         try:
             with ConnectTo(FrontEndDbInterface, self._config) as conn:
                 # FIXME Use a proper yara parser
                 rule_name_regex = re.compile(r'rule\s+([[a-zA-Z_]\w*)')
-                all_searches = [(r['_id'], r['query_title'], rule_name_regex.findall(r['query_title']))
-                                for r in conn.search_query_cache.find(skip=per_page * (page - 1), limit=per_page)]
-                total = conn.search_query_cache.find().count()
+                searches = [(r['_id'], r['query_title'], rule_name_regex.findall(r['query_title']))
+                            for r in conn.search_query_cache.find(skip=per_page * (page - 1), limit=per_page)]
+                total = conn.search_query_cache.count_documents()
         except Exception as exception:
             error_message = f'Could not query database: {exception}'
             logging.error(error_message, exc_info=True)
@@ -95,7 +93,7 @@ class DatabaseRoutes(ComponentBase):
         pagination = get_pagination(page=page, per_page=per_page, total=total)
         return render_template(
             'database/database_binary_search_history.html',
-            searches_list=all_searches,
+            searches_list=searches,
             page=page,
             per_page=per_page,
             pagination=pagination
