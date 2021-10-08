@@ -46,13 +46,13 @@ class Actions:
         print(
             '\nOne of the following actions can be chosen:\n'
             '\n\t[add_role_to_user]\tadd existing role to an existing user'
-            '\n\t[create_user]\t\tcreate new user'
             '\n\t[create_role]\t\tcreate new role'
+            '\n\t[create_user]\t\tcreate new user'
             '\n\t[delete_user]\t\tdelete a user'
             '\n\t[get_apikey_for_user]\tretrieve apikey for existing user'
-            '\n\t[help]\t\t\tshow this help'
             '\n\t[list_all_users]\tlist all existing users and their roles'
             '\n\t[remove_role_from_user]\tremove role from user'
+            '\n\t[help]\t\t\tshow this help'
             '\n\t[exit]\t\t\tclose application'
         )
 
