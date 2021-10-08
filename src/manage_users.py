@@ -10,7 +10,7 @@ from prompt_toolkit.completion import WordCompleter
 
 from config.ascii import FACT_ASCII_ART
 from helperFunctions.config import get_config_dir, load_config
-from helperFunctions.terminal import SESSION, ActionValidator, ActionValidatorReverse
+from web_interface.security.terminal_validators import SESSION, ActionValidator, ActionValidatorReverse
 from helperFunctions.web_interface import password_is_legal
 from version import __VERSION__
 from web_interface.frontend_main import WebFrontEnd
