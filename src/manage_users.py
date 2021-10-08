@@ -89,8 +89,12 @@ class Actions:
             validator=ActionValidatorReverse(user_list, message='user must not exist'),
             completer=None
         )
-        password = getpass.getpass('password: ')
-        assert password_is_legal(password), 'password is illegal'
+        while True:
+            password = getpass.getpass('password: ')
+            if not password_is_legal(password):
+                print('Password is not legal. Please choose another password.')
+                continue
+            break
         with app.app_context():
             interface.create_user(email=user, password=hash_password(password))
             db.session.commit()
