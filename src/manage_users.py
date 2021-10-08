@@ -2,8 +2,8 @@
 
 import argparse
 import getpass
-import os
 import sys
+from pathlib import Path
 
 from flask_security.utils import hash_password
 from prompt_toolkit.completion import WordCompleter
@@ -230,7 +230,7 @@ def start_user_management(app, store, db):
 def main():
     args = setup_argparse()
 
-    file_name = os.path.basename(args.config_file)
+    file_name = Path(args.config_file).name
     config = load_config(file_name)
     frontend = WebFrontEnd(config)
 
