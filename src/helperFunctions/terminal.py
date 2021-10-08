@@ -7,7 +7,7 @@ SESSION = PromptSession()
 class ActionValidator(Validator):
     def __init__(self, accepted_list: list, message='This is not a valid action.'):
         '''
-        a Validator class, that looks, if a word is available in the provided list 
+        a Validator class, that looks, if a word is available in the provided list
         '''
         self.accepted_list = accepted_list
         self.message = message
@@ -20,7 +20,7 @@ class ActionValidator(Validator):
 class ActionValidatorReverse(Validator):
     def __init__(self, denied_list: list, message='This is not a valid action.'):
         '''
-        a Validator class, that looks, if a word is absent in the provided list 
+        a Validator class, that looks, if a word is absent in the provided list
         '''
         self.denied_list = denied_list
         self.message = message
