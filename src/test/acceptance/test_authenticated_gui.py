@@ -1,3 +1,5 @@
+import re
+
 from test.acceptance.auth_base import TestAuthenticatedAcceptanceBase
 
 NO_AUTH_ENDPOINTS = ['/about', '/doc', '/static', '/swagger']
@@ -49,7 +51,10 @@ class TestAcceptanceAuthentication(TestAuthenticatedAcceptanceBase):
     def test_all_endpoints_need_authentication(self):
         fails = []
         for endpoint_rule in list(self.frontend.app.url_map.iter_rules()):
-            endpoint = endpoint_rule.rule.replace('<>', '')
+            # endpoints with type annotations need valid input or we get a 404
+            if '<int:' in endpoint_rule.rule:
+                endpoint_rule.rule = re.sub('<int:[^>]+>', '1', endpoint_rule.rule)
+            endpoint = endpoint_rule.rule.replace(':', '').replace('<', '').replace('>', '')
 
             for method in [self.test_client.get, self.test_client.put, self.test_client.post]:
                 response = method(endpoint, follow_redirects=True)

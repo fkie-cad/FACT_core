@@ -12,10 +12,11 @@ pylint
 pytest
 pytest-cov
 python-magic
+python-tlsh
 requests
 ssdeep
 xmltodict
-yara-python==3.7.0
+yara-python
 
 git+https://github.com/fkie-cad/fact_helper_file.git
 

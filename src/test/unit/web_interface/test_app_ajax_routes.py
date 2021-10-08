@@ -44,6 +44,12 @@ class TestAppAjaxRoutes(WebInterfaceTest):
         assert 'systemHealth' in result
         assert result['systemHealth'] == [{'foo': 'bar'}]
 
+    def test_ajax_get_hex_preview(self):
+        self.mocked_interface.peek_in_binary = lambda *_: b'foobar'
+        result = self.test_client.get('/ajax_get_hex_preview/some_uid/0/10')
+        assert result.data.startswith(b'<pre')
+        assert b'foobar' in result.data
+
 
 @pytest.mark.parametrize('candidate, compare_id, expected_result', [
     ('all', 'uid1;uid2', 'uid1'),
