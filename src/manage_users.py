@@ -52,6 +52,7 @@ class Actions:
             '\n\t[remove_role_from_user]\tremove role from user'
             '\n\t[get_apikey_for_user]\tretrieve apikey for existing user'
             '\n\t[help]\t\t\tshow this help'
+            '\n\t[list_all_users]\tlist all existing users and their roles'
             '\n\t[exit]\t\t\tclose application'
         )
 
@@ -165,6 +166,14 @@ class Actions:
         with app.app_context():
             interface.remove_role_from_user(user=interface.find_user(email=user.email), role=role)
             db.session.commit()
+            
+    @staticmethod
+    def list_all_users(_, interface, __):
+        user_list = interface.list_users()
+        for user in user_list:
+            user_roles = ', '.join([role.name for role in user.roles])
+            print(f'\n\t{user.email} ({user_roles})')
+        print()
 
     @staticmethod
     def delete_user(app, interface, db):
