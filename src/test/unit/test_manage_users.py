@@ -38,7 +38,7 @@ def test_setup_argparse(monkeypatch):
     assert args.config_file == '/path/to/some/file', 'bad propagation of config path'
 
 
-def _setup_user_management(session):
+def _setup_frontend():
     test_app = Flask(__name__)
     test_app.config['SECRET_KEY'] = 'secret_key'
     parser = ConfigParser()
@@ -55,7 +55,7 @@ def _setup_user_management(session):
     })
     add_config_from_configparser_to_app(test_app, parser)
     db, store = add_flask_security_to_app(test_app)
-    start_user_management(test_app, store, db, session)
+    return test_app, store, db
 
 
 @pytest.mark.parametrize('action_and_inputs', [
@@ -76,7 +76,7 @@ def test_integration_try_actions(action_and_inputs, prompt):
     action_and_inputs.append('exit')
     for action in action_and_inputs:
         prompt.input.send_text(f'{action}\n')
-    _setup_user_management(prompt.session)
+    start_user_management(*_setup_frontend(), prompt.session)
 
     # test will throw exception or stall if something is broken
     assert True, f'action sequence {action_and_inputs} caused error'
@@ -89,8 +89,19 @@ def test_add_role(prompt, capsys):
     ]
     for action in action_and_inputs:
         prompt.input.send_text(f'{action}\n')
-    _setup_user_management(prompt.session)
+    start_user_management(*_setup_frontend(), prompt.session)
 
     captured = capsys.readouterr()
     assert 'test_user (guest)' in captured.out
     assert 'test_user (guest, guest_analyst)' in captured.out
+
+
+def test_password_is_hashed(prompt):
+    action_and_inputs = ['create_user', 'test_user', 'exit']
+    for action in action_and_inputs:
+        prompt.input.send_text(f'{action}\n')
+    app, store, db = _setup_frontend()
+    start_user_management(app, store, db, prompt.session)
+    with app.app_context():
+        user = store.find_user(email='test_user')
+    assert user.password != 'mock_password'
