@@ -1,7 +1,4 @@
-from prompt_toolkit import PromptSession
 from prompt_toolkit.validation import ValidationError, Validator
-
-SESSION = PromptSession()
 
 
 class ActionValidator(Validator):
