@@ -5,6 +5,7 @@ import getpass
 import sys
 from pathlib import Path
 
+from flask_security import hash_password
 from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import WordCompleter
 
@@ -41,11 +42,11 @@ class Actions:
             '\n\t[create_role]\t\tcreate new role'
             '\n\t[create_user]\t\tcreate new user'
             '\n\t[delete_user]\t\tdelete a user'
-            '\n\t[exit]\t\t\tclose application'
             '\n\t[get_apikey_for_user]\tretrieve apikey for existing user'
-            '\n\t[help]\t\t\tshow this help'
             '\n\t[list_all_users]\tlist all existing users and their roles'
             '\n\t[remove_role_from_user]\tremove role from user'
+            '\n\t[help]\t\t\tshow this help'
+            '\n\t[exit]\t\t\tclose application'
         )
 
     def _role_exists(self, role):
@@ -68,10 +69,14 @@ class Actions:
             validator=ActionValidatorReverse(user_list, message='user must not exist'),
             completer=None
         )
-        password = getpass.getpass('password: ')
-        assert password_is_legal(password), 'password is illegal'
+        while True:
+            password = getpass.getpass('password: ')
+            if not password_is_legal(password):
+                print('Password is not legal. Please choose another password.')
+                continue
+            break
         with self.app.app_context():
-            self.store.create_user(email=user, password=password, roles=['guest'])
+            self.store.create_user(email=user, password=hash_password(password), roles=['guest'])
             self.db.session.commit()
 
     def delete_user(self):
