@@ -61,12 +61,13 @@ class AnalysisPlugin(YaraBasePlugin):
         return ''
 
     @staticmethod
-    def _get_summary(results) -> List[str]:
+    def _get_summary(results: dict) -> List[str]:
         summary = set()
-        for item in results:
-            if item != 'summary':
-                for version in results[item]['meta']['version']:
-                    summary.add('{} {}'.format(results[item]['meta']['software_name'], version))
+        for key, result in results.items():
+            if key != 'summary':
+                software = result['meta']['software_name']
+                for version in result['meta']['version']:
+                    summary.add(f'{software} {version}')
         return sorted(summary)
 
     def add_version_information(self, results, file_object: FileObject):

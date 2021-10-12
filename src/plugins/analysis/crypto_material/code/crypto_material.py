@@ -13,7 +13,7 @@ except ImportError:
     from key_parser import read_asn1_key, read_pkcs_cert, read_ssl_cert
 
 
-Match = NamedTuple('Match', [('offset', int), ('label', str), ('matched_string', bytes)])
+Match = NamedTuple('Match', [('offset', int), ('label', str), ('matched_string', str)])
 
 
 class AnalysisPlugin(YaraBasePlugin):
@@ -81,7 +81,7 @@ class AnalysisPlugin(YaraBasePlugin):
     @staticmethod
     def extract_start_only_key(matches: List[Match], **_) -> List[str]:
         return [
-            match.matched_string.decode(encoding='utf_8', errors='replace')
+            match.matched_string
             for match in matches
             if match.label == '$start_string'
         ]

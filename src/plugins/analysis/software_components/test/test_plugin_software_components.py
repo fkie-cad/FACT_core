@@ -3,7 +3,8 @@ import os
 from common_helper_files import get_dir_of_file
 
 from objects.file import FileObject
-from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
+from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest  # pylint: disable=wrong-import-order
+
 from ..code.software_components import AnalysisPlugin
 
 TEST_DATA_DIR = os.path.join(get_dir_of_file(__file__), 'data')
@@ -28,7 +29,7 @@ class TestAnalysisPluginsSoftwareComponents(AnalysisPluginTest):
         self.assertEqual(results['MyTestRule']['meta']['website'], 'http://www.fkie.fraunhofer.de', 'incorrect website from yara meta')
         self.assertEqual(results['MyTestRule']['meta']['description'], 'This is a test rule', 'incorrect description from yara meta')
         self.assertTrue(results['MyTestRule']['meta']['open_source'], 'incorrect open-source flag from yara meta')
-        self.assertTrue((10, '$a', b'MyTestRule 0.1.3.') in results['MyTestRule']['strings'], 'string not found')
+        self.assertTrue((10, '$a', 'MyTestRule 0.1.3.') in results['MyTestRule']['strings'], 'string not found')
         self.assertTrue('0.1.3' in results['MyTestRule']['meta']['version'], 'Version not detected')
         self.assertEqual(len(results['MyTestRule']['strings']), 1, 'to much strings found')
         self.assertEqual(len(results['summary']), 1, 'Number of summary results not correct')
@@ -52,6 +53,7 @@ class TestAnalysisPluginsSoftwareComponents(AnalysisPluginTest):
         )
 
     def test_entry_has_no_trailing_version(self):
+        # pylint: disable=protected-access
         assert not self.analysis_plugin._entry_has_no_trailing_version('Linux', 'Linux 4.15.0-22')
         assert self.analysis_plugin._entry_has_no_trailing_version('Linux', 'Linux')
         assert self.analysis_plugin._entry_has_no_trailing_version(' Linux', 'Linux ')

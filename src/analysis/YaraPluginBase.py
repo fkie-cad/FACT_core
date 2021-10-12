@@ -3,6 +3,7 @@ import logging
 import re
 import subprocess
 from pathlib import Path
+from typing import Dict
 
 from analysis.PluginBase import AnalysisBasePlugin, PluginInitException
 from helperFunctions.fileSystem import get_src_dir
@@ -38,7 +39,7 @@ class YaraBasePlugin(AnalysisBasePlugin):
 
     def process_object(self, file_object):
         if self.signature_path is not None:
-            compiled_flag = '-C' if Path(self.signature_path).read_bytes().startswith(b"YARA") else ''
+            compiled_flag = '-C' if Path(self.signature_path).read_bytes().startswith(b'YARA') else ''
             command = f'yara {compiled_flag} --print-meta --print-strings {self.signature_path} {file_object.file_path}'
             with subprocess.Popen(command, shell=True, stdout=subprocess.PIPE) as process:
                 output = process.stdout.read().decode()
@@ -88,16 +89,11 @@ def _split_output_in_rules_and_matches(output):
     return match_blocks, rules
 
 
-def _append_match_to_result(match, resulting_matches, rule):
+def _append_match_to_result(match, resulting_matches: Dict[str, dict], rule):
     rule_name, meta_string, _, _ = rule
     _, offset, matched_tag, matched_string = match
-
-    meta_dict = _parse_meta_data(meta_string)
-
-    this_match = resulting_matches[rule_name] if rule_name in resulting_matches else dict(rule=rule_name, matches=True, strings=list(), meta=meta_dict)
-
-    this_match['strings'].append((int(offset, 16), matched_tag, matched_string.encode()))
-    resulting_matches[rule_name] = this_match
+    resulting_matches.setdefault(rule_name, dict(rule=rule_name, matches=True, strings=[], meta=_parse_meta_data(meta_string)))
+    resulting_matches[rule_name]['strings'].append((int(offset, 16), matched_tag, matched_string))
 
 
 def _parse_meta_data(meta_data_string):

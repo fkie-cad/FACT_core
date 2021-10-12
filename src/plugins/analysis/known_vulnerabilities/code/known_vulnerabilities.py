@@ -28,7 +28,7 @@ class AnalysisPlugin(YaraBasePlugin):
         yara_results = file_object.processed_analysis.pop(self.NAME)
         file_object.processed_analysis[self.NAME] = dict()
 
-        binary_vulnerabilities, _ = self._post_process_yara_results(yara_results)
+        binary_vulnerabilities = self._post_process_yara_results(yara_results)
         matched_vulnerabilities = self._check_vulnerabilities(file_object.processed_analysis)
 
         for name, vulnerability in binary_vulnerabilities + matched_vulnerabilities:
@@ -59,12 +59,12 @@ class AnalysisPlugin(YaraBasePlugin):
 
     @staticmethod
     def _post_process_yara_results(yara_results):
-        summary = yara_results.pop('summary')
+        yara_results.pop('summary')
         new_results = list()
         for result in yara_results:
             meta = yara_results[result]['meta']
             new_results.append((result, meta))
-        return new_results, summary
+        return new_results
 
     def _check_vulnerabilities(self, processed_analysis):
         matched_vulnerabilities = list()

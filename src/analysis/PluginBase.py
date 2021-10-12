@@ -116,7 +116,7 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
     def start_worker(self):
         for process_index in range(self.thread_count):
             self.workers.append(start_single_worker(process_index, 'Analysis', self.worker))
-        logging.debug('{}: {} worker threads started'.format(self.NAME, len(self.workers)))
+        logging.debug(f'{self.NAME}: {len(self.workers)} worker threads started')
 
     def process_next_object(self, task, result):
         task.processed_analysis.update({self.NAME: {}})
@@ -139,19 +139,19 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
             self._handle_failed_analysis(next_task, process, worker_id, 'Exception')
         else:
             self.out_queue.put(result.pop())
-            logging.debug('Worker {}: Finished {} analysis on {}'.format(worker_id, self.NAME, next_task.uid))
+            logging.debug(f'Worker {worker_id}: Finished {self.NAME} analysis on {next_task.uid}')
 
     def _handle_failed_analysis(self, fw_object, process, worker_id, cause: str):
         terminate_process_and_children(process)
-        fw_object.analysis_exception = (self.NAME, '{} occurred during analysis'.format(cause))
-        logging.error('Worker {}: {} during analysis {} on {}'.format(worker_id, cause, self.NAME, fw_object.uid))
+        fw_object.analysis_exception = (self.NAME, f'{cause} occurred during analysis')
+        logging.error(f'Worker {worker_id}: {cause} during analysis {self.NAME} on {fw_object.uid}')
         self.out_queue.put(fw_object)
 
     def worker(self, worker_id):
         while self.stop_condition.value == 0:
             try:
                 next_task = self.in_queue.get(timeout=float(self.config['ExpertSettings']['block_delay']))
-                logging.debug('Worker {}: Begin {} analysis on {}'.format(worker_id, self.NAME, next_task.uid))
+                logging.debug(f'Worker {worker_id}: Begin {self.NAME} analysis on {next_task.uid}')
             except Empty:
                 self.active[worker_id].value = 0
             else:
@@ -159,7 +159,7 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
                 next_task.processed_analysis.update({self.NAME: {}})
                 self.worker_processing_with_timeout(worker_id, next_task)
 
-        logging.debug('worker {} stopped'.format(worker_id))
+        logging.debug(f'worker {worker_id} stopped')
 
     def check_exceptions(self):
         return check_worker_exceptions(self.workers, 'Analysis', self.config, self.worker)
