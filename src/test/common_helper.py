@@ -229,7 +229,7 @@ class DatabaseMock:  # pylint: disable=too-many-public-methods
             return [TEST_SEARCH_QUERY]
 
         @staticmethod
-        def count_documents(**kwargs):
+        def count_documents(filter, **kwargs):
             return 1
 
     def get_data_for_nice_list(self, input_data, root_uid):
