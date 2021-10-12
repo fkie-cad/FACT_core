@@ -84,7 +84,7 @@ class DatabaseRoutes(ComponentBase):
                 rule_name_regex = re.compile(r'rule\s+([[a-zA-Z_]\w*)')
                 searches = [(r['_id'], r['query_title'], rule_name_regex.findall(r['query_title']))
                             for r in conn.search_query_cache.find(skip=per_page * (page - 1), limit=per_page)]
-                total = conn.search_query_cache.count_documents()
+                total = conn.search_query_cache.count_documents({})
         except Exception as exception:
             error_message = f'Could not query database: {exception}'
             logging.error(error_message, exc_info=True)
