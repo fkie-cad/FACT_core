@@ -52,8 +52,8 @@ class DatabaseRoutes(ComponentBase):
             if self._query_has_only_one_result(firmware_list, search_parameters['query']):
                 return redirect(url_for('show_analysis', uid=firmware_list[0][0]))
         except Exception as err:
-            error_message = f'Could not query database: {str(err)}'
-            logging.error(error_message, exc_info=True)
+            error_message = 'Could not query database'
+            logging.error(error_message + f'due to exception: {err}', exc_info=True)
             return render_template('error.html', message=error_message)
 
         with ConnectTo(FrontEndDbInterface, self._config) as connection:
@@ -86,8 +86,8 @@ class DatabaseRoutes(ComponentBase):
                             for r in conn.search_query_cache.find(skip=per_page * (page - 1), limit=per_page)]
                 total = conn.search_query_cache.count_documents({})
         except Exception as exception:
-            error_message = f'Could not query database: {exception}'
-            logging.error(error_message, exc_info=True)
+            error_message = 'Could not query database'
+            logging.error(error_message + f'due to exception: {exception}', exc_info=True)
             return render_template('error.html', message=error_message)
 
         pagination = get_pagination(page=page, per_page=per_page, total=total)
