@@ -8,7 +8,7 @@ class TestBrowseBinarySearchHistory(WebInterfaceTest):
         self.config['database'] = {}
         self.config['database']['results_per_page'] = '10'
 
-    def test_advanced_search(self):
+    def test_browse_binary_search_history(self):
         rv = self.test_client.get('/database/browse_binary_search_history')
         print(rv.data.decode())
         assert b'a_ascii_string_rule' in rv.data
