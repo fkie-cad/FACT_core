@@ -1,14 +1,15 @@
+import binascii
 import json
 import logging
 import random
 import re
 import zlib
-from base64 import standard_b64encode
+from base64 import b64decode, standard_b64encode
 from datetime import timedelta
 from operator import itemgetter
 from string import ascii_letters
 from time import localtime, strftime, struct_time, time
-from typing import AnyStr, Dict, List, Match, Optional, Tuple, Union
+from typing import Dict, List, Match, Optional, Tuple, Union
 
 from common_helper_files import human_readable_file_size
 from flask import render_template
@@ -329,13 +330,11 @@ def filter_format_string_list_with_offset(offset_tuples):  # pylint: disable=inv
     return '\n'.join(lines)
 
 
-def decompress(string: AnyStr) -> str:
-    if isinstance(string, bytes):
-        try:
-            return zlib.decompress(string).decode()
-        except zlib.error:
-            return string.decode()
-    return string
+def decompress(string: str) -> str:
+    try:
+        return zlib.decompress(b64decode(string)).decode()
+    except (zlib.error, binascii.Error, TypeError):
+        return string
 
 
 def get_unique_keys_from_list_of_dicts(list_of_dicts: List[dict]):

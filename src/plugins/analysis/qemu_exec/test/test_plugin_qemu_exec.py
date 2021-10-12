@@ -414,8 +414,8 @@ def test_decode_output_values(input_data, expected_output):
     result = qemu_exec.decode_output_values(input_data)
     assert all(
         isinstance(value, str)
-        for parameter in result
-        for value in result[parameter].values()
+        for entry in result.values()
+        for value in entry.values()
     )
     assert result['parameter']['output'] == expected_output
 
@@ -435,8 +435,8 @@ def test_process_strace_output():
     input_data = {'strace': {'stdout': 'foobar'}}
     qemu_exec.process_strace_output(input_data)
     result = input_data['strace']
-    assert isinstance(result, bytes)
-    assert result[:2].hex() == '789c'  # magic string for zlib compressed data
+    assert isinstance(result, str)
+    assert b64decode(result)[:2].hex() == '789c'  # magic string for zlib compressed data
 
 
 class TestQemuExecUnpacker(TestCase):
@@ -445,7 +445,7 @@ class TestQemuExecUnpacker(TestCase):
         self.name_prefix = 'FACT_plugin_qemu'
         self.config = get_config_for_testing()
         self.unpacker = qemu_exec.Unpacker(config=self.config)
-        qemu_exec.BinaryServiceDbInterface = MockBinaryService
+        qemu_exec.FSOrganizer = MockFSOrganizer
 
     def test_unpack_fo(self):
         test_fw = create_test_firmware()
@@ -489,14 +489,12 @@ class TestQemuExecUnpacker(TestCase):
         assert tmp_dir is None
 
 
-class MockBinaryService:
+class MockFSOrganizer:
     def __init__(self, config=None):
         self.config = config
 
-    def get_file_name_and_path(self, uid):
+    @staticmethod
+    def generate_path_from_uid(uid):
         if uid != 'foo':
-            return {'file_path': os.path.join(get_test_data_dir(), 'container/test.zip')}
+            return os.path.join(get_test_data_dir(), 'container/test.zip')
         return None
-
-    def shutdown(self):
-        pass

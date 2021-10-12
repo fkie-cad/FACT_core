@@ -2,7 +2,7 @@ import binascii
 import itertools
 import logging
 import zlib
-from base64 import b64decode
+from base64 import b64decode, b64encode
 from collections import OrderedDict
 from json import JSONDecodeError, loads
 from multiprocessing import Manager, Pool
@@ -22,7 +22,7 @@ from helperFunctions.docker import run_docker_container
 from helperFunctions.tag import TagColor
 from helperFunctions.uid import create_uid
 from objects.file import FileObject
-from storage.binary_service import BinaryServiceDbInterface
+from storage.fsorganizer import FSOrganizer
 from unpacker.unpack_base import UnpackBase
 
 TIMEOUT_IN_SECONDS = 15
@@ -48,14 +48,11 @@ class Unpacker(UnpackBase):
         return extraction_dir
 
     def _get_file_path_from_db(self, uid):
-        binary_service = BinaryServiceDbInterface(config=self.config)
+        fs_organizer = FSOrganizer(config=self.config)
         try:
-            path = binary_service.get_file_name_and_path(uid)['file_path']
-            return path
+            return fs_organizer.generate_path_from_uid(uid)
         except (KeyError, TypeError):
             return None
-        finally:
-            binary_service.shutdown()
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
@@ -152,11 +149,10 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def _process_included_files(self, file_list, file_object):
         manager = Manager()
-        pool = Pool(processes=8)
         results_dict = manager.dict()
-
-        jobs = self._create_analysis_jobs(file_list, file_object, results_dict)
-        pool.starmap(process_qemu_job, jobs, chunksize=1)
+        with Pool(processes=8) as pool:
+            jobs = self._create_analysis_jobs(file_list, file_object, results_dict)
+            pool.starmap(process_qemu_job, jobs, chunksize=1)
         self._enter_results(dict(results_dict), file_object)
         self._add_tag(file_object)
 
@@ -312,7 +308,8 @@ def _strace_output_exists(docker_output):
 
 def process_strace_output(docker_output: dict):
     docker_output['strace'] = (
-        zlib.compress(docker_output['strace']['stdout'].encode())
+        # b64 + zip is still smaller than raw on average
+        b64encode(zlib.compress(docker_output['strace']['stdout'].encode())).decode()
         if _strace_output_exists(docker_output) else {}
     )
 

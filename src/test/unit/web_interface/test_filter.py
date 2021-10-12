@@ -1,4 +1,5 @@
 import logging
+from base64 import b64encode
 from time import gmtime, time
 from zlib import compress
 
@@ -141,11 +142,11 @@ def test_infection_color(input_data, expected_output):
 
 
 def test_fix_cwe_valid_string():
-    assert fix_cwe("[CWE467] (Use of sizeof on a Pointer Type)") == "467"
+    assert fix_cwe('[CWE467] (Use of sizeof on a Pointer Type)') == '467'
 
 
 def test_fix_cwe_invalid_string():
-    assert fix_cwe("something_really_strange") == ""
+    assert fix_cwe('something_really_strange') == ''
 
 
 def test_replace_underscore():
@@ -299,9 +300,8 @@ def test_filter_format_string_list_with_offset():
 
 
 def test_filter_decompress():
-    test_string = "test123"
-    assert decompress(compress(test_string.encode())) == test_string
-    assert decompress(test_string.encode()) == test_string
+    test_string = 'test123'
+    assert decompress(b64encode(compress(test_string.encode())).decode()) == test_string
     assert decompress(test_string) == test_string
     assert decompress(None) is None
 
