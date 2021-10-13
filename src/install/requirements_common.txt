@@ -8,6 +8,7 @@ appdirs
 flaky
 lief
 psutil
+psycopg2
 pylint
 pytest
 pytest-cov
@@ -15,6 +16,7 @@ python-magic
 python-tlsh
 requests
 ssdeep
+sqlalchemy
 xmltodict
 yara-python
 
