@@ -35,7 +35,7 @@ def stub_plugin(test_config, monkeypatch):
 def test_process_object_not_supported(stub_plugin, test_object, monkeypatch):
     monkeypatch.setattr('storage.fsorganizer.FSOrganizer.generate_path_from_uid', lambda _self, _: test_object.file_path)
     result = stub_plugin.process_object(test_object)
-    assert result.processed_analysis[stub_plugin.NAME] == {'summary': [], 'warning': 'Unsupported script type: none'}
+    assert result.processed_analysis[stub_plugin.NAME] == {'summary': [], 'warning': 'Is not a script or language could not be detected'}
 
 
 def test_process_object_this_file(stub_plugin, monkeypatch):
