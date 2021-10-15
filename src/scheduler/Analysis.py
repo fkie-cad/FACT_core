@@ -295,10 +295,9 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
                 logging.warning('Desanitization of version string failed')
                 return False
 
-        return self._analysis_is_up_to_date(db_entry['processed_analysis'][analysis_to_do], self.analysis_plugins[analysis_to_do])
+        return self._analysis_is_up_to_date(db_entry['processed_analysis'][analysis_to_do], self.analysis_plugins[analysis_to_do], uid)
 
-    @staticmethod
-    def _analysis_is_up_to_date(analysis_db_entry: dict, analysis_plugin: AnalysisBasePlugin):
+    def _analysis_is_up_to_date(self, analysis_db_entry: dict, analysis_plugin: AnalysisBasePlugin, uid):
         old_plugin_version = analysis_db_entry['plugin_version']
         old_system_version = analysis_db_entry.get('system_version', None)
         current_plugin_version = analysis_plugin.VERSION
@@ -310,6 +309,14 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         except TypeError:
             logging.error(f'plug-in or system version of "{analysis_plugin.NAME}" plug-in is or was invalid!')
             return False
+
+        dependencies = analysis_plugin.DEPENDENCIES
+        for dependency in dependencies:
+            self_date = _analysis_get_date(analysis_plugin.NAME, uid, self.db_backend_service)
+            dependency_date = _analysis_get_date(dependency, uid, self.db_backend_service)
+            if self_date < dependency_date:
+                return False
+
         return True
 
     @staticmethod
@@ -517,3 +524,10 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         for uid, stats in list(self.recently_finished.items()):
             if time() - stats['time_finished'] > RECENTLY_FINISHED_DISPLAY_TIME_IN_SEC:
                 self.recently_finished.pop(uid)
+
+
+def _analysis_get_date(plugin_name: str, uid: str, backend_db_interface):
+    fo = backend_db_interface.get_object(uid, analysis_filter=[plugin_name])
+    if plugin_name not in fo.processed_analysis:
+        return float('inf')
+    return fo.processed_analysis[plugin_name]['analysis_date']
