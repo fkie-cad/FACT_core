@@ -1,3 +1,4 @@
+from pathlib import Path
 from subprocess import CompletedProcess
 
 import pytest
@@ -52,3 +53,10 @@ def test_do_analysis(stub_linter, monkeypatch):
         'line': 1,
         'column': 5,
     }
+
+
+def test_do_analysis_with_docker(stub_linter):
+    hello_world_js = Path(__file__).parent / 'data/hello_world.js'
+    issues = stub_linter.do_analysis(hello_world_js)
+    # We mostly don't care about the output we just want no exceptions
+    assert len(issues) != 0
