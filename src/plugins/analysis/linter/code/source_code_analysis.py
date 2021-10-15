@@ -53,6 +53,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
             file_object.processed_analysis[self.NAME] = {'summary': [], 'warning': 'Is not a script or language could not be detected'}
             return file_object
 
+        script_type = script_type.lower()
+
         if script_type not in self.SCRIPT_TYPES:
             logging.debug(f'[{self.NAME}] {file_object.file_name} ({script_type}) is not a supported script.')
             file_object.processed_analysis[self.NAME] = {'summary': [], 'warning': f'Unsupported script type: {script_type}'}
@@ -77,7 +79,6 @@ class AnalysisPlugin(AnalysisBasePlugin):
         # But due to performance reasons we don't want the filetype plugin to run linguist
         file_object.processed_analysis['file_type']['linguist'] = ''.join([f'{k:<10} {str(v):<10}\n' for k, v in output_json[container_path].items()])
 
-        # The language can be None, thus we need the str()
-        script_type = str(output_json[container_path].get('language')).lower()
+        script_type = output_json[container_path].get('language')
 
         return script_type
