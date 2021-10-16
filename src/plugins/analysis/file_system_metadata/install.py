@@ -19,7 +19,7 @@ class FileSystemMetadataInstaller(AbstractPluginInstaller):
     base_path = Path(__file__).resolve().parent
 
     def install_docker_images(self):
-        run_cmd_with_logging('docker build -t fs_metadata_mounting docker')
+        run_cmd_with_logging(f'docker build -t fs_metadata_mounting {self.base_path}/docker')
 
 
 # Alias for generic use
