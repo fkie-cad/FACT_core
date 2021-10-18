@@ -2,6 +2,7 @@ import logging
 import os
 from contextlib import suppress
 from pathlib import Path
+from subprocess import CalledProcessError
 
 import requests
 from common_helper_process import execute_shell_command_get_return_code
@@ -147,11 +148,12 @@ def _install_docker_images(radare):
     if radare:
         logging.info('Initializing docker container for radare')
 
-        execute_shell_command_get_return_code('virtualenv {}'.format(COMPOSE_VENV))
-        # We use the pip from the Venv for docker-compose
-        output, return_code = execute_shell_command_get_return_code('{} install -U docker-compose'.format(COMPOSE_VENV / 'bin' / 'pip'))
-        if return_code != 0:
-            raise InstallationError('Failed to set up virtualenv for docker-compose\n{}'.format(output))
+        try:
+            run_cmd_with_logging('virtualenv {}'.format(COMPOSE_VENV))
+            # We use the pip from the Venv for docker-compose
+            run_cmd_with_logging('{} install -U docker-compose'.format(COMPOSE_VENV / 'bin' / 'pip'))
+        except CalledProcessError as err:
+            raise InstallationError('Failed to set up virtualenv for docker-compose') from err
 
         with OperateInDirectory('radare'):
             output, return_code = execute_shell_command_get_return_code('{} build'.format(COMPOSE_VENV / 'bin' / 'docker-compose'))
