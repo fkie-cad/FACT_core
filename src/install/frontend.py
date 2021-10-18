@@ -152,7 +152,7 @@ def _install_docker_images(radare):
             run_cmd_with_logging('virtualenv {}'.format(COMPOSE_VENV))
             # We use the pip from the Venv for docker-compose
             run_cmd_with_logging('{} install -U docker-compose'.format(COMPOSE_VENV / 'bin' / 'pip'))
-        except CalledProcessError as err:
+        except (CalledProcessError, FileNotFoundError) as err:
             raise InstallationError('Failed to set up virtualenv for docker-compose') from err
 
         with OperateInDirectory('radare'):
