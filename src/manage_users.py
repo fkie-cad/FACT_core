@@ -66,7 +66,7 @@ class Actions:
         user_list = self._get_user_list()
         user = self.session.prompt(
             'username: ',
-            validator=ActionValidatorReverse(user_list, message='user must not exist'),
+            validator=ActionValidatorReverse(user_list, message='user must not exist and not be empty'),
             completer=None
         )
         while True:
@@ -95,7 +95,7 @@ class Actions:
         role_list = self._get_role_list()
         role = self.session.prompt(
             'role name: ',
-            validator=ActionValidatorReverse(role_list, message='role must not exist')
+            validator=ActionValidatorReverse(role_list, message='role must not exist and not be empty')
         )
         with self.app.app_context():
             if not self._role_exists(role):
