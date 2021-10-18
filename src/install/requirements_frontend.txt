@@ -15,6 +15,7 @@ python-dateutil
 si-prefix
 sqlalchemy
 uwsgi
+virtualenv
 
 # Used for username validation by flask-security
 bleach
