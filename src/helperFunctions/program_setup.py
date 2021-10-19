@@ -92,7 +92,7 @@ def get_log_file_for_component(component: str, config: ConfigParser) -> str:
     log_file = Path(config['Logging']['logFile'])
     if component is None:
         return config['Logging']['logFile']
-    return f"{log_file.parent}/{log_file.stem}_{component}{log_file.suffix}"
+    return f'{log_file.parent}/{log_file.stem}_{component}{log_file.suffix}'
 
 
 def _load_config(args):

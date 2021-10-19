@@ -310,9 +310,9 @@ class FrontEndDbInterface(MongoInterfaceCommon):
         ], allowDiskUse=True)
         for result in query_result:
             firmware_uid, analysis_list = result['_id'], result['analyses']
-            query = {"$and": [
-                {"virtual_file_path.{}".format(firmware_uid): {"$exists": True}},
-                {"$or": [{"processed_analysis.{}".format(plugin): {"$exists": False}} for plugin in analysis_list]}
+            query = {'$and': [
+                {'virtual_file_path.{}'.format(firmware_uid): {'$exists': True}},
+                {'$or': [{'processed_analysis.{}'.format(plugin): {'$exists': False}} for plugin in analysis_list]}
             ]}
             for entry in self.file_objects.find(query, {'_id': 1}):
                 missing_analyses.setdefault(firmware_uid, set()).add(entry['_id'])

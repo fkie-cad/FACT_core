@@ -24,7 +24,7 @@ class WebFrontEnd:
         self.program_version = __VERSION__
 
         self._setup_app()
-        logging.info("Web front end online")
+        logging.info('Web front end online')
 
     def _setup_app(self):
         self.app = Flask(__name__)

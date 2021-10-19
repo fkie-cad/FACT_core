@@ -9,11 +9,11 @@ class AnalysisPlugin(AnalysisBasePlugin):
     '''
     This Plugin creates several hashes of the file
     '''
-    NAME = "malware_scanner"
+    NAME = 'malware_scanner'
     DEPENDENCIES = []
     MIME_BLACKLIST = ['filesystem']
-    VERSION = "0.3.1"
-    DESCRIPTION = "scan for known malware"
+    VERSION = '0.3.1'
+    DESCRIPTION = 'scan for known malware'
 
     def __init__(self, plugin_administrator, config=None, recursive=True):
         '''
