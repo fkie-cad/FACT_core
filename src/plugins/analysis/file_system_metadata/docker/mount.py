@@ -8,10 +8,10 @@ from pathlib import Path
 from subprocess import CalledProcessError, check_call
 from typing import Dict, Union
 
-INPUT_DIR = Path("/work")
-INPUT_FILE = INPUT_DIR / "input.img"
-MOUNT_DIR = Path("/root/mount_dir")
-OUTPUT_FILE = INPUT_DIR / "output.pickle"
+INPUT_DIR = Path('/work')
+INPUT_FILE = INPUT_DIR / 'input.img'
+MOUNT_DIR = Path('/root/mount_dir')
+OUTPUT_FILE = INPUT_DIR / 'output.pickle'
 
 
 @contextmanager
@@ -37,7 +37,7 @@ def main():
 
 def _get_mounted_file_stats():
     result = []
-    for file in MOUNT_DIR.rglob("*"):
+    for file in MOUNT_DIR.rglob('*'):
         try:
             if not file.is_symlink() and file.is_file():
                 result.append((file.name, str(file.relative_to(MOUNT_DIR)), _stat_to_dict(file.lstat())))

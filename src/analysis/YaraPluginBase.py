@@ -38,7 +38,7 @@ class YaraBasePlugin(AnalysisBasePlugin):
 
     def process_object(self, file_object):
         if self.signature_path is not None:
-            compiled_flag = '-C' if Path(self.signature_path).read_bytes().startswith(b"YARA") else ''
+            compiled_flag = '-C' if Path(self.signature_path).read_bytes().startswith(b'YARA') else ''
             command = f'yara {compiled_flag} --print-meta --print-strings {self.signature_path} {file_object.file_path}'
             with subprocess.Popen(command, shell=True, stdout=subprocess.PIPE) as process:
                 output = process.stdout.read().decode()

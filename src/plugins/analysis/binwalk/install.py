@@ -36,7 +36,7 @@ class BinwalkInstaller(AbstractPluginInstaller):
 # Alias for generic use
 Installer = BinwalkInstaller
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
     distribution = check_distribution()
     installer = Installer(distribution)

@@ -75,7 +75,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     def _get_symbols_version_entries(symbol_versions):
         imported_libs = []
         for sv in symbol_versions:
-            if str(sv) != '* Local *' and str(sv) != "* Global *":
+            if str(sv) != '* Local *' and str(sv) != '* Global *':
                 imported_libs.append(str(sv).split('(')[0])
         return list(set(imported_libs))
 

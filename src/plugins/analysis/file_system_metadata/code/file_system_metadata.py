@@ -87,10 +87,10 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def _extract_metadata_from_file_system(self, file_object: FileObject):
         with TemporaryDirectory() as tmp_dir:
-            input_file = Path(tmp_dir) / "input.img"
+            input_file = Path(tmp_dir) / 'input.img'
             input_file.write_bytes(file_object.binary or Path(file_object.file_path).read_bytes())
             output = self._mount_in_docker(tmp_dir)
-            output_file = Path(tmp_dir) / "output.pickle"
+            output_file = Path(tmp_dir) / 'output.pickle'
             if output_file.is_file():
                 self._analyze_metadata_of_mounted_dir(json.loads(output_file.read_bytes()))
             else:
@@ -155,7 +155,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     @staticmethod
     def _get_extended_file_permissions(file_mode: str) -> List[bool]:
-        extended_file_permission_bits = "{0:03b}".format(int(file_mode[-4])) if len(file_mode) > 3 else '000'
+        extended_file_permission_bits = '{0:03b}'.format(int(file_mode[-4])) if len(file_mode) > 3 else '000'
         return [b == '1' for b in extended_file_permission_bits]
 
     @staticmethod
@@ -222,5 +222,5 @@ class FsMetadataDbInterface(MongoInterfaceCommon):
         for path_list in file_object.virtual_file_path.values():
             for virtual_path in path_list:
                 with suppress(IndexError):
-                    result.add(virtual_path.split("|")[-2])
+                    result.add(virtual_path.split('|')[-2])
         return result
