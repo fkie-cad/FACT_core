@@ -49,9 +49,12 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def get_modinfo(self, file_object):
         # getting the information from the *.ko files .modinfo
-        if 'modinfo' in file_object.processed_analysis['elf_analysis']['Output'].keys():
-            modinfo = file_object.processed_analysis['elf_analysis']['Output']['modinfo']
-            # FIXME: evaluate information
+        if 'Output' in file_object.processed_analysis['elf_analysis'].keys():
+            if 'modinfo' in file_object.processed_analysis['elf_analysis']['Output'].keys():
+                modinfo = file_object.processed_analysis['elf_analysis']['Output']['modinfo']
+                # FIXME: evaluate information
+            else:
+                modinfo = None
         else:
             modinfo = None
 

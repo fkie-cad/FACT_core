@@ -21,7 +21,7 @@ class MockAdmin:
         pass
 
 
-LiefResult = namedtuple('LiefResult', ['symbols_version', 'libraries', 'imported_functions', 'exported_functions'])
+LiefResult = namedtuple('LiefResult', ['symbols_version', 'libraries', 'imported_functions', 'exported_functions', 'sections'])
 
 MOCK_DATA = (
     '{"header": {"entrypoint": 109724, "file_type": "DYNAMIC", "header_size": 52, "identity_class": "CLASS32", "identity_data": "LSB", "identity_os_abi": "SYSTEMV"},'
@@ -36,7 +36,8 @@ MOCK_LIEF_RESULT = LiefResult(
     libraries=['libdl.so.2', 'libc.so.6'],
     imported_functions=['fdopen', 'calloc', 'strstr', 'raise', 'gmtime_r', 'strcmp'],
     symbols_version=list(),
-    exported_functions=['SHA256_Transform', 'GENERAL_NAMES_free', 'i2d_RSAPrivateKey', 'd2i_OCSP_REQUEST'])
+    exported_functions=['SHA256_Transform', 'GENERAL_NAMES_free', 'i2d_RSAPrivateKey', 'd2i_OCSP_REQUEST'],
+    sections=[])
 
 
 @pytest.fixture(scope='function')

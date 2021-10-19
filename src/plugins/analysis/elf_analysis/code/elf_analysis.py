@@ -39,6 +39,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             file_object.processed_analysis[self.NAME] = {'Output': elf_dict}
             self.create_tags(parsed_binary, file_object)
             file_object.processed_analysis[self.NAME]['summary'] = list(elf_dict.keys())
+
         except RuntimeError:
             logging.error('lief could not parse {}'.format(file_object.uid))
             file_object.processed_analysis[self.NAME] = {'Output': {}}
@@ -129,7 +130,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 binary_json_dict['imported_functions'] = normalize_lief_items(parsed_binary.imported_functions)
             if parsed_binary.libraries:
                 binary_json_dict['libraries'] = normalize_lief_items(parsed_binary.libraries)
-            elf_dict['modinfo'] = self.filter_modinfo(parsed_binary)
+            if parsed_binary.sections:
+                elf_dict['modinfo'] = self.filter_modinfo(parsed_binary)
 
         except (TypeError, lief.bad_file) as error:
             logging.error('Bad file for lief/elf analysis {}. {}'.format(file_object.uid, error))
