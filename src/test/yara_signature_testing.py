@@ -1,59 +1,45 @@
 import logging
-import os
+from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import List
 
-from common_helper_files import get_files_in_dir
 from common_helper_yara import compile_rules, get_all_matched_strings, scan
 
 
 class SignatureTestingMatching:
 
     def __init__(self):
-        self.tmp_dir = TemporaryDirectory(prefix='fact_software_signature_test')
-        self.signature_file_path = os.path.join(self.tmp_dir.name, 'test_sig.yc')
         self.matches = []
         self.test_file = None
         self.signature_path = None
         self.strings_to_match = None
 
-    def check(self, signature_path, test_file):
+    def check(self, signature_path: Path, test_file: Path):
         self.test_file = test_file
         self.signature_path = signature_path
-        self._get_list_of_test_data()
+        self.strings_to_match = test_file.read_text().strip().split('\n')
         self._execute_yara_matching()
-        return self._intersect_lists()
+        return set(self.strings_to_match).difference(self.matches)
 
     def _execute_yara_matching(self):
-        compile_rules(self.signature_path, self.signature_file_path, external_variables={'test_flag': 'true'})
-        scan_result = scan(self.signature_file_path, self.test_file)
-        self.matches = get_all_matched_strings(scan_result)
-
-    def _get_list_of_test_data(self):
-        with open(self.test_file, mode='r', encoding='utf8') as pointer:
-            self.strings_to_match = pointer.read().split('\n')
-        self.strings_to_match.pop()
-
-    def _intersect_lists(self):
-        strings_to_match = set(self.strings_to_match)
-        return strings_to_match.difference(self.matches)
+        with TemporaryDirectory(prefix='fact_software_signature_test') as tmp_dir:
+            signature_file_path = Path(tmp_dir) / 'test_sig.yc'
+            compile_rules(self.signature_path, signature_file_path, external_variables={'test_flag': 'true'})
+            scan_result = scan(signature_file_path, self.test_file, compiled=True)
+            self.matches = get_all_matched_strings(scan_result)
 
 
 class SignatureTestingMeta:
     META_FIELDS = ['software_name', 'open_source', 'website', 'description']
     missing_meta_fields = []
 
-    def check_meta_fields(self, sig_path):
-        sig_dir = sig_path
-        list_of_files = get_files_in_dir(sig_dir)
-        for file in list_of_files:
+    def check_meta_fields(self, sig_path: Path):
+        for file in sig_path.iterdir():
             self.check_for_file(file)
         return self.missing_meta_fields
 
-    def check_for_file(self, file_path):
-        with open(file_path, 'r') as fd:
-            raw = fd.read()
-        rules = self._split_rules(raw)
+    def check_for_file(self, file_path: Path):
+        rules = self._split_rules(file_path.read_text())
         for rule in rules:
             self.check_meta_fields_of_rule(rule)
 
@@ -82,5 +68,5 @@ class SignatureTestingMeta:
                 self._register_missing_field(required_field, rule_name)
 
     def _register_missing_field(self, missing_field: str, rule_name: str):
-        self.missing_meta_fields.append('{} in {}'.format(missing_field, rule_name))
-        logging.error('CST: No meta field {} for rule {}.'.format(missing_field, rule_name))
+        self.missing_meta_fields.append(f'{missing_field} in {rule_name}')
+        logging.error(f'CST: No meta field {missing_field} for rule {rule_name}.')

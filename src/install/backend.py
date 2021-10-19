@@ -1,46 +1,48 @@
+import importlib
 import logging
 import os
 import stat
 from contextlib import suppress
 from pathlib import Path
 
+import requests
 from common_helper_process import execute_shell_command_get_return_code
-from compile_yara_signatures import main as compile_signatures
 
+from compile_yara_signatures import main as compile_signatures
+from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.install import (
-    InstallationError, OperateInDirectory, apt_install_packages, check_string_in_command_output, dnf_install_packages,
-    load_main_config, read_package_list_from_file, run_cmd_with_logging
+    InstallationError, OperateInDirectory, apt_install_packages, dnf_install_packages, install_pip_packages,
+    load_main_config, read_package_list_from_file
 )
 
 BIN_DIR = Path(__file__).parent.parent / 'bin'
 INSTALL_DIR = Path(__file__).parent
+PIP_DEPENDENCIES = INSTALL_DIR / 'requirements_backend.txt'
 
 
 def main(skip_docker, distribution):
-    apt_packages_path = INSTALL_DIR / "apt-pkgs-backend.txt"
-    dnf_packages_path = INSTALL_DIR / "dnf-pkgs-backend.txt"
+    apt_packages_path = INSTALL_DIR / 'apt-pkgs-backend.txt'
+    dnf_packages_path = INSTALL_DIR / 'dnf-pkgs-backend.txt'
 
-    if distribution != "fedora":
+    if distribution != 'fedora':
         pkgs = read_package_list_from_file(apt_packages_path)
         apt_install_packages(*pkgs)
     else:
         pkgs = read_package_list_from_file(dnf_packages_path)
         dnf_install_packages(*pkgs)
 
-    run_cmd_with_logging("sudo -EH pip3 install -r ./requirements_backend.txt")
+    install_pip_packages(PIP_DEPENDENCIES)
 
     # install yara
     _install_yara()
 
-    # install checksec.sh
     _install_checksec()
 
     if not skip_docker:
         _install_docker_images()
-        _install_plugin_docker_images()
 
     # install plug-in dependencies
-    _install_plugins(distribution)
+    _install_plugins(distribution, skip_docker)
 
     # configure environment
     _edit_environment()
@@ -71,17 +73,10 @@ def _install_docker_images():
         raise InstallationError(f'Failed to pull extraction container:\n{output}')
 
 
-def _install_plugin_docker_images():
-    logging.info('Installing plugin docker dependecies')
-    find_output, return_code = execute_shell_command_get_return_code('find ../plugins -iname "install_docker.sh"')
-    if return_code != 0:
-        raise InstallationError('Error retrieving plugin docker installation scripts')
-    for install_script in find_output.splitlines(keepends=False):
-        logging.info(f'Running {install_script}')
-        shell_output, return_code = execute_shell_command_get_return_code(install_script)
-        if return_code != 0:
-            raise InstallationError(
-                f'Error in installation of {Path(install_script).parent.name} plugin docker images docker images\n{shell_output}')
+def install_plugin_docker_images():
+    # Distribution can be None here since it will not be used for installing
+    # docker images
+    _install_plugins(None, skip_docker=False, only_docker=True)
 
 
 def _edit_environment():
@@ -103,36 +98,50 @@ def _create_firmware_directory():
         raise InstallationError(f'Failed to create directories for binary storage\n{mkdir_output}\n{chown_output}')
 
 
-def _install_plugins(distribution):
-    logging.info('Installing plugins')
-    find_output, return_code = execute_shell_command_get_return_code('find ../plugins -iname "install.sh"')
-    if return_code != 0:
-        raise InstallationError('Error retrieving plugin installation scripts')
-    for install_script in find_output.splitlines(keepends=False):
-        logging.info('Running {}'.format(install_script))
-        shell_output, return_code = execute_shell_command_get_return_code(f'{install_script} {distribution}')
-        if return_code != 0:
-            raise InstallationError(
-                f'Error in installation of {Path(install_script).parent.name} plugin\n{shell_output}')
+def _install_plugins(distribution, skip_docker, only_docker=False):
+    installer_paths = Path(get_src_dir() + '/plugins/').glob('*/*/install.py')
+
+    for install_script in installer_paths:
+        plugin_name = install_script.parent.name
+        plugin_type = install_script.parent.parent.name
+
+        plugin = importlib.import_module(f'plugins.{plugin_type}.{plugin_name}.install')
+
+        plugin_installer = plugin.Installer(distribution, skip_docker=skip_docker)
+        logging.info(f'Installing {plugin_name} plugin.')
+        if not only_docker:
+            plugin_installer.install()
+        else:
+            plugin_installer.install_docker_images()
+        logging.info(f'Finished installing {plugin_name} plugin.\n')
 
 
 def _install_yara():  # pylint: disable=too-complex
-    logging.info('Installing yara')
 
     # CAUTION: Yara python binding is installed in install/common.py, because it is needed in the frontend as well.
 
-    if check_string_in_command_output('yara --version', '3.7.1'):
-        logging.info('skipping yara installation (already installed)')
+    try:
+        latest_url = requests.get('https://github.com/VirusTotal/yara/releases/latest').url
+        latest_version = latest_url.split('/tag/')[1]
+    except (AttributeError, KeyError):
+        raise InstallationError('Could not find latest yara version') from None
+
+    installed_version, return_code = execute_shell_command_get_return_code('yara --version')
+    if return_code == 0 and installed_version.strip() == latest_version.strip('v'):
+        logging.info('Skipping yara installation: Already installed and up to date')
         return
 
-    wget_output, wget_code = execute_shell_command_get_return_code('wget https://github.com/VirusTotal/yara/archive/v3.7.1.zip')
+    logging.info(f'Installing yara {latest_version}')
+    archive = f'{latest_version}.zip'
+    download_url = f'https://github.com/VirusTotal/yara/archive/refs/tags/{archive}'
+    wget_output, wget_code = execute_shell_command_get_return_code(f'wget {download_url}')
     if wget_code != 0:
         raise InstallationError(f'Error on yara download.\n{wget_output}')
-    zip_output, return_code = execute_shell_command_get_return_code('unzip v3.7.1.zip')
-    Path('v3.7.1.zip').unlink()
+    zip_output, return_code = execute_shell_command_get_return_code(f'unzip {archive}')
+    Path(archive).unlink()
     if return_code != 0:
         raise InstallationError(f'Error on yara extraction.\n{zip_output}')
-    yara_folder = [child for child in Path('.').iterdir() if 'yara-3.' in child.name][0]
+    yara_folder = [p for p in Path('.').iterdir() if p.name.startswith('yara-')][0]
     with OperateInDirectory(yara_folder.name, remove=True):
         os.chmod('bootstrap.sh', 0o775)
         for command in ['./bootstrap.sh', './configure --enable-magic', 'make -j$(nproc)', 'sudo make install']:
@@ -143,12 +152,9 @@ def _install_yara():  # pylint: disable=too-complex
 
 def _install_checksec():
     checksec_path = BIN_DIR / 'checksec'
-    if checksec_path.is_file():
-        logging.info('Skipping checksec.sh installation (already installed)')
-        return
 
     logging.info('Installing checksec.sh')
-    checksec_url = "https://raw.githubusercontent.com/slimm609/checksec.sh/master/checksec"
+    checksec_url = 'https://raw.githubusercontent.com/slimm609/checksec.sh/2.5.0/checksec'
     output, return_code = execute_shell_command_get_return_code(f'wget -P {BIN_DIR} {checksec_url}')
     if return_code != 0:
         raise InstallationError(f'Error during installation of checksec.sh\n{output}')

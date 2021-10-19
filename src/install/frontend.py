@@ -2,16 +2,20 @@ import logging
 import os
 from contextlib import suppress
 from pathlib import Path
+from subprocess import CalledProcessError
 
 import requests
 from common_helper_process import execute_shell_command_get_return_code
 
 from helperFunctions.install import (
-    InstallationError, OperateInDirectory, apt_install_packages, load_main_config, remove_folder, run_cmd_with_logging
+    InstallationError, OperateInDirectory, apt_install_packages, install_pip_packages, load_main_config, remove_folder,
+    run_cmd_with_logging
 )
 
 DEFAULT_CERT = '.\n.\n.\n.\n.\nexample.com\n.\n\n\n'
-COMPOSE_VENV = Path(__file__).parent.absolute() / 'compose-env'
+INSTALL_DIR = Path(__file__).parent
+COMPOSE_VENV = INSTALL_DIR.absolute() / 'compose-env'
+PIP_DEPENDENCIES = INSTALL_DIR / 'requirements_frontend.txt'
 
 
 def execute_commands_and_raise_on_return_code(commands, error=None):  # pylint: disable=invalid-name
@@ -144,11 +148,12 @@ def _install_docker_images(radare):
     if radare:
         logging.info('Initializing docker container for radare')
 
-        execute_shell_command_get_return_code('virtualenv {}'.format(COMPOSE_VENV))
-        # We use the pip from the Venv for docker-compose
-        output, return_code = execute_shell_command_get_return_code('{} install -U docker-compose'.format(COMPOSE_VENV / 'bin' / 'pip'))
-        if return_code != 0:
-            raise InstallationError('Failed to set up virtualenv for docker-compose\n{}'.format(output))
+        try:
+            run_cmd_with_logging('virtualenv {}'.format(COMPOSE_VENV))
+            # We use the pip from the Venv for docker-compose
+            run_cmd_with_logging('{} install -U docker-compose'.format(COMPOSE_VENV / 'bin' / 'pip'))
+        except (CalledProcessError, FileNotFoundError) as err:
+            raise InstallationError('Failed to set up virtualenv for docker-compose') from err
 
         with OperateInDirectory('radare'):
             output, return_code = execute_shell_command_get_return_code('{} build'.format(COMPOSE_VENV / 'bin' / 'docker-compose'))
@@ -163,7 +168,10 @@ def _install_docker_images(radare):
 
 
 def main(skip_docker, radare, nginx):
-    run_cmd_with_logging('sudo -EH pip3 install -r ./requirements_frontend.txt')
+    # flask-security is not maintained anymore and replaced by flask-security-too.
+    # Since python package naming conflicts are not resolved automatically, we remove flask-security manually.
+    run_cmd_with_logging('sudo -EH pip3 uninstall -y flask-security')
+    install_pip_packages(PIP_DEPENDENCIES)
 
     # installing web/js-frameworks
     _install_css_and_js_files()

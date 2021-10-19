@@ -1,22 +1,35 @@
+from configparser import ConfigParser
+from typing import NamedTuple
+
 import pytest
 from flask import Flask
+from prompt_toolkit import PromptSession
+from prompt_toolkit.input import create_pipe_input
+from prompt_toolkit.input.base import PipeInput
+from prompt_toolkit.output import DummyOutput
 
-from manage_users import start_user_management, setup_argparse, prompt_for_actions, choose_action, get_input
-
-
-def test_get_input(monkeypatch):
-    monkeypatch.setattr('builtins.input', lambda *x: 'my_input')
-
-    assert get_input('') == 'my_input', 'bad processing of input'
-
-    with pytest.raises(ValueError):
-        get_input('', max_len=5)
+from manage_users import setup_argparse, start_user_management
+from web_interface.security.authentication import add_config_from_configparser_to_app, add_flask_security_to_app
 
 
-def test_choose_action(monkeypatch):
-    monkeypatch.setattr('builtins.input', lambda *x: 'my_input')
+class Prompt(NamedTuple):
+    session: PromptSession
+    input: PipeInput
 
-    assert choose_action() == 'my_input', 'bad processing of input'
+
+# pylint: disable=redefined-outer-name
+@pytest.fixture()
+def prompt(monkeypatch):
+    monkeypatch.setattr('getpass.getpass', lambda _: 'mock_password')
+    pipe = create_pipe_input()
+    try:
+        session = PromptSession(
+            input=pipe,
+            output=DummyOutput(),
+        )
+        yield Prompt(session, pipe)
+    finally:
+        pipe.close()
 
 
 def test_setup_argparse(monkeypatch):
@@ -25,35 +38,70 @@ def test_setup_argparse(monkeypatch):
     assert args.config_file == '/path/to/some/file', 'bad propagation of config path'
 
 
-def test_prompt_for_actions(monkeypatch):
-    input_sequence = ['help', 'bad_action', 'exit']
-    monkeypatch.setattr('builtins.input', lambda *x: input_sequence.pop(0))
-
-    prompt_for_actions(None, None, None)
-
-    assert True, 'test will throw exception or stall if something is broken'
+def _setup_frontend():
+    test_app = Flask(__name__)
+    test_app.config['SECRET_KEY'] = 'secret_key'
+    parser = ConfigParser()
+    # See add_config_from_configparser_to_app for needed values
+    parser.read_dict({
+        'data_storage': {
+            # We want an in memory database for testing
+            'user_database': 'sqlite://',
+            'password_salt': 'salt'
+        },
+        'ExpertSettings': {
+            'authentication': 'true'
+        },
+    })
+    add_config_from_configparser_to_app(test_app, parser)
+    db, store = add_flask_security_to_app(test_app)
+    return test_app, store, db
 
 
 @pytest.mark.parametrize('action_and_inputs', [
-    ['help', ],
+    ['help'],
     ['create_role', 'role'],
     ['create_user', 'username'],
-    ['create_user', 'username', 'create_user', 'username'],
     ['create_user', 'A', 'create_user', 'B'],
     ['create_user', 'username', 'get_apikey_for_user', 'username'],
     ['create_user', 'username', 'delete_user', 'username'],
     ['create_role', 'role', 'create_user', 'username', 'add_role_to_user', 'username', 'role'],
-    ['create_role', 'role', 'create_user', 'username', 'add_role_to_user', 'username', 'role', 'remove_role_from_user', 'username', 'role']
+    [
+        'create_role', 'role', 'create_user', 'username', 'add_role_to_user', 'username', 'role',
+        'remove_role_from_user', 'username', 'role'
+    ],
+    ['create_user', 'username', 'list_all_users'],
 ])
-def test_integration_try_actions(monkeypatch, action_and_inputs):
+def test_integration_try_actions(action_and_inputs, prompt):
     action_and_inputs.append('exit')
-    monkeypatch.setattr('builtins.input', lambda *x: action_and_inputs.pop(0))
-    monkeypatch.setattr('getpass.getpass', lambda *x: 'mock_password')
+    for action in action_and_inputs:
+        prompt.input.send_text(f'{action}\n')
+    start_user_management(*_setup_frontend(), prompt.session)
 
-    test_app = Flask(__name__)
-    test_app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///'
-    test_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    # test will throw exception or stall if something is broken
+    assert True, f'action sequence {action_and_inputs} caused error'
 
-    start_user_management(test_app)
 
-    assert True, 'test will throw exception or stall if something is broken'
+def test_add_role(prompt, capsys):
+    action_and_inputs = [
+        'create_user', 'test_user', 'list_all_users', 'add_role_to_user', 'test_user', 'guest_analyst',
+        'list_all_users', 'exit'
+    ]
+    for action in action_and_inputs:
+        prompt.input.send_text(f'{action}\n')
+    start_user_management(*_setup_frontend(), prompt.session)
+
+    captured = capsys.readouterr()
+    assert 'test_user (guest)' in captured.out
+    assert 'test_user (guest, guest_analyst)' in captured.out
+
+
+def test_password_is_hashed(prompt):
+    action_and_inputs = ['create_user', 'test_user', 'exit']
+    for action in action_and_inputs:
+        prompt.input.send_text(f'{action}\n')
+    app, store, db = _setup_frontend()
+    start_user_management(app, store, db, prompt.session)
+    with app.app_context():
+        user = store.find_user(email='test_user')
+    assert user.password != 'mock_password'

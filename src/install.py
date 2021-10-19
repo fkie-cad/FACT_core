@@ -24,12 +24,11 @@ import sys
 from pathlib import Path
 
 try:
-    import distro
     from common_helper_process import execute_shell_command_get_return_code
 
-    from helperFunctions.install import OperateInDirectory
+    from helperFunctions.install import OperateInDirectory, check_distribution
     from install.backend import _install_docker_images as backend_install_docker_images
-    from install.backend import _install_plugin_docker_images as backend_install_plugin_docker_images
+    from install.backend import install_plugin_docker_images as backend_install_plugin_docker_images
     from install.backend import main as backend
     from install.common import main as common
     from install.db import main as db
@@ -45,11 +44,7 @@ PROGRAM_DESCRIPTION = 'Firmware Analysis and Comparison Tool (FACT) installation
 
 INSTALL_CANDIDATES = ['frontend', 'db', 'backend']
 
-BIONIC_CODE_NAMES = ['bionic', 'tara', 'tessa', 'tina', 'disco']
-DEBIAN_CODE_NAMES = ['buster', 'stretch', 'kali-rolling']
-FOCAL_CODE_NAMES = ['focal', 'ulyana', 'ulyssa', 'uma']
-
-FACT_INSTALLER_SKIP_DOCKER = os.getenv("FACT_INSTALLER_SKIP_DOCKER")
+FACT_INSTALLER_SKIP_DOCKER = os.getenv('FACT_INSTALLER_SKIP_DOCKER')
 
 
 def _setup_argparser():
@@ -119,27 +114,6 @@ def check_python_version():
     if sys.version_info.major != 3 or sys.version_info.minor < 6:
         logging.critical('Incompatible Python version! You need at least version 3.6! Your Version: {}'.format(sys.version))
         sys.exit(1)
-
-
-def check_distribution():
-    codename = distro.codename().lower()
-    if codename in BIONIC_CODE_NAMES:
-        logging.debug('Ubuntu 18.04 detected')
-        return 'bionic'
-    if codename in FOCAL_CODE_NAMES:
-        logging.debug('Ubuntu 20.04 detected')
-        return 'focal'
-    if codename in DEBIAN_CODE_NAMES:
-        logging.debug('Debian/Kali detected')
-        return 'debian'
-    if distro.id() == 'fedora':
-        logging.debug('Fedora detected')
-        return 'fedora'
-    logging.critical(
-        'Your Distribution ({} {}) is not supported. '
-        'FACT Installer requires Ubuntu 18.04, 20.04 or compatible!'.format(distro.id(), distro.version())
-    )
-    sys.exit(1)
 
 
 def install_statistic_cronjob():
