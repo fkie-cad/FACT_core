@@ -19,7 +19,7 @@ class InputVectorsInstaller(AbstractPluginInstaller):
     base_path = Path(__file__).resolve().parent
 
     def install_docker_images(self):
-        run_cmd_with_logging('docker build -t input-vectors .')
+        run_cmd_with_logging(f'docker build -t input-vectors {self.base_path}')
         run_cmd_with_logging('docker pull fkiecad/radare-web-gui:latest')
 
 
