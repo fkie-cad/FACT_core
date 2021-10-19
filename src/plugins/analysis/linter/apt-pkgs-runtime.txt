@@ -1,0 +1,6 @@
+liblua5.3-dev
+lua5.3
+luarocks
+# FIXME: deactivated because of npm installation issues
+# npm
+shellcheck
