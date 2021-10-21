@@ -117,7 +117,7 @@ def test_get_symbols_version_entries(stub_plugin, symbol_versions, expected):
 
 def test_create_tags(stub_plugin, stub_object):
     stub_object.processed_analysis[stub_plugin.NAME] = {}
-    stub_result = LiefResult(libraries=['recvmsg', 'unknown'], imported_functions=list(), symbols_version=list(), exported_functions=list())
+    stub_result = LiefResult(libraries=['recvmsg', 'unknown'], imported_functions=list(), symbols_version=list(), exported_functions=list(), sections=list())
     stub_plugin.create_tags(stub_result, stub_object)
 
     assert 'network' in stub_object.processed_analysis[stub_plugin.NAME]['tags']
