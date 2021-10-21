@@ -207,8 +207,8 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
             for item in parent_paths:
                 base_path = get_base_of_virtual_path(item)
                 if base_path:
-                    base_path += "|"
-                self.virtual_file_path[self.root_uid].append("{}{}|{}".format(base_path, parent_uid, self.file_path))
+                    base_path += '|'
+                self.virtual_file_path[self.root_uid].append('{}{}|{}'.format(base_path, parent_uid, self.file_path))
 
     def get_virtual_paths_for_one_uid(self, root_uid: str = None) -> List[str]:
         '''
@@ -259,7 +259,7 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
         return list(self.get_virtual_file_paths().keys())[0]
 
     def __str__(self) -> str:
-        return "UID: {}\n Processed analysis: {}\n Files included: {}".format(self.uid, list(self.processed_analysis.keys()), self.files_included)
+        return 'UID: {}\n Processed analysis: {}\n Files included: {}'.format(self.uid, list(self.processed_analysis.keys()), self.files_included)
 
     def __repr__(self) -> str:
         return self.__str__()

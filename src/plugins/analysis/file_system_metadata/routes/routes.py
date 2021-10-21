@@ -64,7 +64,7 @@ class PluginRoutes(ComponentBase):
     def _load_view():
         file_dir = get_dir_of_file(__file__)
         path = os.path.join(file_dir, 'ajax_view.html')
-        with open(path, "r") as fp:
+        with open(path, 'r') as fp:
             return fp.read()
 
 

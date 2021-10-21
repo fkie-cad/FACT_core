@@ -22,7 +22,7 @@ class QemuExecInstaller(AbstractPluginInstaller):
 
     def install_docker_images(self):
         run_cmd_with_logging(
-            'docker build --build-arg=http{,s}_proxy --build-arg=HTTP{,S}_PROXY -t fact/qemu:latest docker',
+            f'docker build --build-arg=http{{,s}}_proxy --build-arg=HTTP{{,S}}_PROXY -t fact/qemu:latest {self.base_path}/docker',
             shell=True)
 
     def install_files(self):
@@ -56,7 +56,7 @@ class QemuExecInstaller(AbstractPluginInstaller):
 # Alias for generic use
 Installer = QemuExecInstaller
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
     distribution = check_distribution()
     installer = Installer(distribution)
