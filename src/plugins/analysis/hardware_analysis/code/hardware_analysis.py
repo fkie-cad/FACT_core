@@ -49,16 +49,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def get_modinfo(self, file_object):
         # getting the information from the *.ko files .modinfo
-        if 'Output' in file_object.processed_analysis['elf_analysis'].keys():
-            if 'modinfo' in file_object.processed_analysis['elf_analysis']['Output'].keys():
-                modinfo = file_object.processed_analysis['elf_analysis']['Output']['modinfo']
-                # FIXME: evaluate information
-            else:
-                modinfo = None
-        else:
-            modinfo = None
-
-        return modinfo
+        return file_object.processed_analysis['elf_analysis'].get('Output', {}).get('modinfo')
 
     def filter_kernel_config(self, file_object):
         kernel_config_dict = file_object.processed_analysis['kernel_config']
