@@ -60,7 +60,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             kernel_config = [
                 line
                 for line in kernel_config_list
-                if not line.startswith('#')
+                if line and not line.startswith('#')
             ]
 
         else:
