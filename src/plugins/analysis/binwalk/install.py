@@ -12,7 +12,7 @@ except ImportError:
     SRC_PATH = Path(__file__).absolute().parent.parent.parent.parent
     sys.path.append(str(SRC_PATH))
 
-    from helperFunctions.install import OperateInDirectory, check_distribution, run_cmd_with_logging
+    from helperFunctions.install import OperateInDirectory, check_distribution, is_virtualenv, run_cmd_with_logging
     from plugins.installer import AbstractPluginInstaller
 
 
