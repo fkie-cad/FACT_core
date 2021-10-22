@@ -5,7 +5,7 @@ import urllib.request
 from pathlib import Path
 
 try:
-    from helperFunctions.install import OperateInDirectory, check_distribution, run_cmd_with_logging
+    from helperFunctions.install import OperateInDirectory, check_distribution, is_virtualenv, run_cmd_with_logging
     from plugins.installer import AbstractPluginInstaller
 except ImportError:
     import sys
@@ -30,7 +30,10 @@ class BinwalkInstaller(AbstractPluginInstaller):
 
         with OperateInDirectory('binwalk-2.3.1'):
             run_cmd_with_logging('python3 setup.py build')
-            run_cmd_with_logging('sudo python3 setup.py install')
+            if is_virtualenv():
+                run_cmd_with_logging('python3 setup.py install')
+            else:
+                run_cmd_with_logging('sudo python3 setup.py install')
 
 
 # Alias for generic use
