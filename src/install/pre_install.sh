@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 # cd in this files directory for relative paths to work
 cd "$( dirname "${BASH_SOURCE[0]}" )"
 
