@@ -36,12 +36,12 @@ then
 else
 	# Uninstall old versions
 	sudo apt-get -y remove docker docker-engine docker.io
-	
+
 	if [ "${CODENAME}" = "stretch" ] || [ "${CODENAME}" = "buster" ]
 	then
 	    # Add Docker’s official GPG key
 	    curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
-	
+
 	    # set up the stable repository
 	    if [ ! -f /etc/apt/sources.list.d/docker.list ]
 	    then
@@ -51,7 +51,7 @@ else
 	else
 	    # Add Docker’s official GPG key
 	    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-	
+
 	    # set up the stable repository
 	    if  ! grep -q "^deb .*download.docker.com/linux/ubuntu" /etc/apt/sources.list /etc/apt/sources.list.d/*
 	    then
