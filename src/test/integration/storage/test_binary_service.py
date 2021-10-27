@@ -1,9 +1,11 @@
-# pylint: disable=attribute-defined-outside-init
+# pylint: disable=attribute-defined-outside-init,wrong-import-order,redefined-outer-name,invalid-name
 
 import gc
+from configparser import ConfigParser
 from tempfile import TemporaryDirectory
 
 import magic
+import pytest
 
 from storage.binary_service import BinaryService
 from storage.db_interface_backend import BackEndDbInterface
@@ -13,44 +15,56 @@ from test.common_helper import create_test_firmware, get_config_for_testing, sto
 TEST_FW = create_test_firmware()
 
 
-class TestBinaryService:
+@pytest.fixture
+def binary_service():
+    with TemporaryDirectory(prefix='fact_test_') as tmp_dir:
+        config = get_config_for_testing(temp_dir=tmp_dir)
+        mongo_server = MongoMgr(config=config)
+        _init_test_data(config, tmp_dir)
+        yield BinaryService(config=config)
+        mongo_server.shutdown()
+    gc.collect()
 
-    def setup(self):
-        self.tmp_dir = TemporaryDirectory()
-        self.config = get_config_for_testing(temp_dir=self.tmp_dir)
-        self.mongo_server = MongoMgr(config=self.config)
-        self._init_test_data()
-        self.binary_service = BinaryService(config=self.config)
 
-    def _init_test_data(self):
-        self.backend_db_interface = BackEndDbInterface(config=self.config)
-        self.backend_db_interface.add_firmware(TEST_FW)
-        store_binary_on_file_system(self.tmp_dir.name, TEST_FW)
-        self.backend_db_interface.shutdown()
+def _init_test_data(config: ConfigParser, tmp_dir: str):
+    backend_db_interface = BackEndDbInterface(config=config)
+    backend_db_interface.add_firmware(TEST_FW)
+    store_binary_on_file_system(tmp_dir, TEST_FW)
+    backend_db_interface.shutdown()
 
-    def teardown(self):
-        self.tmp_dir.cleanup()
-        self.mongo_server.shutdown()
-        gc.collect()
 
-    def test_get_binary_and_file_name(self):
-        binary, file_name = self.binary_service.get_binary_and_file_name(TEST_FW.uid)
-        assert file_name == TEST_FW.file_name, 'file_name not correct'
-        assert binary == TEST_FW.binary, 'invalid result not correct'
+def test_get_binary_and_file_name(binary_service):
+    binary, file_name = binary_service.get_binary_and_file_name(TEST_FW.uid)
+    assert file_name == TEST_FW.file_name, 'file_name not correct'
+    assert binary == TEST_FW.binary, 'invalid result not correct'
 
-    def test_get_binary_and_file_name_invalid_uid(self):
-        binary, file_name = self.binary_service.get_binary_and_file_name('invalid_uid')
-        assert binary is None, 'should be none'
-        assert file_name is None, 'should be none'
 
-    def test_get_repacked_binary_and_file_name(self):
-        tar, file_name = self.binary_service.get_repacked_binary_and_file_name(TEST_FW.uid)
-        assert file_name == '{}.tar.gz'.format(TEST_FW.file_name), 'file_name not correct'
+def test_get_binary_and_file_name_invalid_uid(binary_service):
+    binary, file_name = binary_service.get_binary_and_file_name('invalid_uid')
+    assert binary is None, 'should be none'
+    assert file_name is None, 'should be none'
 
-        file_type = magic.from_buffer(tar, mime=False)
-        assert 'gzip compressed data' in file_type, 'Result is not an tar.gz file'
 
-    def test_get_repacked_binary_and_file_name_invalid_uid(self):
-        binary, file_name = self.binary_service.get_repacked_binary_and_file_name('invalid_uid')
-        assert binary is None, 'should be none'
-        assert file_name is None, 'should be none'
+def test_get_repacked_binary_and_file_name(binary_service):
+    tar, file_name = binary_service.get_repacked_binary_and_file_name(TEST_FW.uid)
+    assert file_name == f'{TEST_FW.file_name}.tar.gz', 'file_name not correct'
+
+    file_type = magic.from_buffer(tar, mime=False)
+    assert 'gzip compressed data' in file_type, 'Result is not an tar.gz file'
+
+
+def test_get_repacked_binary_and_file_name_invalid_uid(binary_service):
+    binary, file_name = binary_service.get_repacked_binary_and_file_name('invalid_uid')
+    assert binary is None, 'should be none'
+    assert file_name is None, 'should be none'
+
+
+def test_read_partial_binary(binary_service):
+    partial_binary = binary_service.read_partial_binary(TEST_FW.uid, 30, 14)
+    assert len(partial_binary) == 14
+    assert partial_binary == b'get_files_test', 'invalid result not correct'
+
+
+def test_read_partial_binary_invalid_uid(binary_service):
+    result = binary_service.read_partial_binary('invalid_uid', 0, 1337)
+    assert result == b'', 'result should be empty'

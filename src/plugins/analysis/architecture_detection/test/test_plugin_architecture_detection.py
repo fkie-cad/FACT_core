@@ -1,13 +1,9 @@
-from common_helper_files.fail_safe_file_operations import get_dir_of_file
-import os
+# pylint: disable=wrong-import-order
 
 from objects.file import FileObject
 from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
 
 from ..code.architecture_detection import AnalysisPlugin
-
-
-TEST_DATA_DIR = os.path.join(get_dir_of_file(__file__), 'data')
 
 
 class TestArchDetection(AnalysisPluginTest):
@@ -24,11 +20,11 @@ class TestArchDetection(AnalysisPluginTest):
         test_file = FileObject()
         test_file.processed_analysis['file_type'] = {'mime': 'x-executable', 'full': full_file_type}
         self.analysis_plugin.process_object(test_file)
-        self.assertEqual(len(test_file.processed_analysis[self.PLUGIN_NAME]), 2, 'number of archs not correct')
-        result = '{}, {}, {} (M)'.format(architecture, bitness, endianness)
-        self.assertIn(result, test_file.processed_analysis[self.PLUGIN_NAME].keys(), 'architecture not correct: expected {}'.format(architecture))
-        self.assertEqual(len(test_file.processed_analysis[self.PLUGIN_NAME]['summary']), 1, 'number of summary entries not correct')
-        self.assertIn(result, test_file.processed_analysis[self.PLUGIN_NAME]['summary'], '{} missing in summary'.format(architecture))
+        assert len(test_file.processed_analysis[self.PLUGIN_NAME]) == 2, 'number of archs not correct'
+        result = f'{architecture}, {bitness}, {endianness} (M)'
+        assert result in test_file.processed_analysis[self.PLUGIN_NAME].keys(), f'architecture not correct: expected {architecture}'
+        assert len(test_file.processed_analysis[self.PLUGIN_NAME]['summary']) == 1, 'number of summary entries not correct'
+        assert result in test_file.processed_analysis[self.PLUGIN_NAME]['summary'], f'{architecture} missing in summary'
 
     def test_process_object_meta(self):
         architecture_test_data = [
@@ -76,7 +72,16 @@ class TestArchDetection(AnalysisPluginTest):
              'eter /lib/ld.so.1, for GNU/Linux 3.2.0, BuildID[sha1]=45b625d0d19134a63ed9f22e9bcec9b24187babb, stripped'),
             ('Alpha', '64-bit', 'little endian',
              'ELF 64-bit LSB shared object, Alpha (unofficial), version 1 (SYSV), dynamically linked, interpreter /lib/'
-             'ld-linux.so.2, for GNU/Linux 3.2.0, BuildID[sha1]=8604fb8d006884a3305eeb6127b281692ee2e57c, stripped')
+             'ld-linux.so.2, for GNU/Linux 3.2.0, BuildID[sha1]=8604fb8d006884a3305eeb6127b281692ee2e57c, stripped'),
+            ('RISC-V', '32-bit', 'little endian',
+             'ELF 32-bit LSB executable, UCB RISC-V, version 1 (SYSV), statically linked, not stripped'),
+            ('AVR', '8-bit', 'little endian',
+             'ELF 32-bit LSB executable, Atmel AVR 8-bit, version 1 (SYSV), statically linked, not stripped'),
+            ('ARC', '32-bit', 'little endian',
+             'ELF 32-bit LSB executable, ARC Cores Tangent-A5, version 1 (SYSV), dynamically linked, '
+             'interpreter /lib/ld-uClibc.so.0, for GNU/Linux 4.8.0, not stripped'),
+            ('ESP', '32-bit', 'little endian',
+             'ELF 32-bit LSB executable, Tensilica Xtensa, version 1 (SYSV), statically linked, with debug_info, not stripped'),
         ]
         for data_set in architecture_test_data:
             self.start_process_object_meta_for_architecture(*data_set)

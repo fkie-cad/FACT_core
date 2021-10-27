@@ -10,6 +10,7 @@ from storage.db_interface_compare import CompareDbInterface
 from storage.db_interface_frontend import FrontEndDbInterface
 from storage.db_interface_statistic import StatisticDbViewer
 from web_interface.components.component_base import GET, AppRoute, ComponentBase
+from web_interface.components.hex_highlighting import preview_data_as_hex
 from web_interface.file_tree.file_tree import remove_virtual_path_from_root
 from web_interface.file_tree.file_tree_node import FileTreeNode
 from web_interface.file_tree.jstree_conversion import convert_to_jstree_node
@@ -95,11 +96,19 @@ class AjaxRoutes(ComponentBase):
         with ConnectTo(InterComFrontEndBinding, self._config) as sc:
             binary = sc.get_binary_and_filename(uid)[0]
         if 'text/' in mime_type:
-            return '<pre style="white-space: pre-wrap">{}</pre>'.format(html.escape(bytes_to_str_filter(binary)))
+            return '<pre class="line_numbering" style="white-space: pre-wrap">{}</pre>'.format(html.escape(bytes_to_str_filter(binary)))
         if 'image/' in mime_type:
             div = '<div style="display: block; border: 1px solid; border-color: #dddddd; padding: 5px; text-align: center">'
             return '{}<img src="data:image/{} ;base64,{}" style="max-width:100%"></div>'.format(div, mime_type[6:], encode_base64_filter(binary))
         return None
+
+    @roles_accepted(*PRIVILEGES['view_analysis'])
+    @AppRoute('/ajax_get_hex_preview/<string:uid>/<int:offset>/<int:length>', GET)
+    def ajax_get_hex_preview(self, uid: str, offset: int, length: int) -> str:
+        with ConnectTo(InterComFrontEndBinding, self._config) as sc:
+            partial_binary = sc.peek_in_binary(uid, offset, length)
+        hex_dump = preview_data_as_hex(partial_binary, offset=offset)
+        return f'<pre style="white-space: pre-wrap; margin-bottom: 0;">\n{hex_dump}\n</pre>'
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
     @AppRoute('/ajax_get_summary/<uid>/<selected_analysis>', GET)
@@ -113,7 +122,7 @@ class AjaxRoutes(ComponentBase):
     @AppRoute('/ajax/stats/system', GET)
     def get_system_stats(self):
         with ConnectTo(StatisticDbViewer, self._config) as stats_db:
-            backend_data = stats_db.get_statistic("backend")
+            backend_data = stats_db.get_statistic('backend')
         try:
             return {
                 'backend_cpu_percentage': '{}%'.format(backend_data['system']['cpu_percentage']),

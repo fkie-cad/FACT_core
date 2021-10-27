@@ -47,11 +47,12 @@ def get_ssdeep_comparison(first, second):
 
 
 def get_tlsh(code):
-    return tlsh.hash(make_bytes(code))
+    tlsh_hash = tlsh.hash(make_bytes(code))  # pylint: disable=c-extension-no-member
+    return tlsh_hash if tlsh_hash != 'TNULL' else ''
 
 
 def get_tlsh_comparison(first, second):
-    return tlsh.diff(first, second)
+    return tlsh.diff(first, second)  # pylint: disable=c-extension-no-member
 
 
 def get_imphash(file_object):
@@ -66,6 +67,7 @@ def get_imphash(file_object):
     if _is_elf_file(file_object):
         try:
             with _suppress_stdout():
+                # pylint: disable=c-extension-no-member
                 functions = normalize_lief_items(lief.parse(file_object.file_path).imported_functions)
             return md5(','.join(sorted(functions)).encode()).hexdigest()
         except Exception:

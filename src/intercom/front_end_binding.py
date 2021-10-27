@@ -34,10 +34,13 @@ class InterComFrontEndBinding(InterComMongoInterface):
         if plugin_file is not None:
             plugin_dict = pickle.loads(plugin_file.read())
             return plugin_dict
-        raise Exception("No available plug-ins found. FACT backend might be down!")
+        raise Exception('No available plug-ins found. FACT backend might be down!')
 
     def get_binary_and_filename(self, uid):
         return self._request_response_listener(uid, 'raw_download_task', 'raw_download_task_resp')
+
+    def peek_in_binary(self, uid: str, offset: int, length: int) -> bytes:
+        return self._request_response_listener((uid, offset, length), 'binary_peek_task', 'binary_peek_task_resp')
 
     def get_repacked_binary_and_file_name(self, uid):
         return self._request_response_listener(uid, 'tar_repack_task', 'tar_repack_task_resp')
@@ -45,7 +48,7 @@ class InterComFrontEndBinding(InterComMongoInterface):
     def add_binary_search_request(self, yara_rule_binary: bytes, firmware_uid: Optional[str] = None):
         serialized_request = pickle.dumps((yara_rule_binary, firmware_uid))
         request_id = generate_task_id(yara_rule_binary)
-        self.connections["binary_search_task"]['fs'].put(serialized_request, filename=request_id)
+        self.connections['binary_search_task']['fs'].put(serialized_request, filename=request_id)
         return request_id
 
     def get_binary_search_result(self, request_id):
@@ -55,24 +58,24 @@ class InterComFrontEndBinding(InterComMongoInterface):
     def _request_response_listener(self, input_data, request_connection, response_connection):
         serialized_request = pickle.dumps(input_data)
         request_id = generate_task_id(input_data)
-        self.connections[request_connection]['fs'].put(serialized_request, filename="{}".format(request_id))
-        logging.debug('Request sent: {} -> {}'.format(request_connection, request_id))
+        self.connections[request_connection]['fs'].put(serialized_request, filename=request_id)
+        logging.debug(f'Request sent: {request_connection} -> {request_id}')
         sleep(1)
         return self._response_listener(response_connection, request_id)
 
     def _response_listener(self, response_connection, request_id, timeout=None, delete=True):
         output_data = None
         if timeout is None:
-            timeout = time() + int(self.config['ExpertSettings'].get('communication_timeout', "60"))
+            timeout = time() + int(self.config['ExpertSettings'].get('communication_timeout', '60'))
         while timeout > time():
-            resp = self.connections[response_connection]['fs'].find_one({'filename': '{}'.format(request_id)})
+            resp = self.connections[response_connection]['fs'].find_one({'filename': request_id})
             if resp:
                 output_data = pickle.loads(resp.read())
                 if delete:
                     self.connections[response_connection]['fs'].delete(resp._id)  # pylint: disable=protected-access
-                logging.debug('Response received: {} -> {}'.format(response_connection, request_id))
+                logging.debug(f'Response received: {response_connection} -> {request_id}')
                 break
-            logging.debug('No response yet: {} -> {}'.format(response_connection, request_id))
+            logging.debug(f'No response yet: {response_connection} -> {request_id}')
             sleep(1)
         return output_data
 

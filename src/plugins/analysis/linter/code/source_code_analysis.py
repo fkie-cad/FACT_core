@@ -12,10 +12,10 @@ from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.docker import run_docker_container
 
 try:
-    from ..internal import js_linter, lua_linter, python_linter, shell_linter
+    from ..internal import lua_linter, python_linter, shell_linter
 except ImportError:
     sys.path.append(str(Path(__file__).parent.parent))
-    from internal import js_linter, lua_linter, python_linter, shell_linter
+    from internal import lua_linter, python_linter, shell_linter
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
@@ -36,7 +36,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
     SCRIPT_TYPES = {
         'shell': {'mime': 'shell', 'shebang': 'sh', 'ending': '.sh', 'linter': shell_linter.ShellLinter},
         'lua': {'mime': 'luascript', 'shebang': 'lua', 'ending': '.lua', 'linter': lua_linter.LuaLinter},
-        'javascript': {'mime': 'java', 'shebang': 'java', 'ending': '.js', 'linter': js_linter.JavaScriptLinter},
+        # FIXME: deactivated because of npm installation issues
+        # 'javascript': {'mime': 'java', 'shebang': 'java', 'ending': '.js', 'linter': js_linter.JavaScriptLinter},
         'python': {'mime': 'python', 'shebang': 'python', 'ending': '.py', 'linter': python_linter.PythonLinter}
     }
 

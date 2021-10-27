@@ -1,27 +1,49 @@
 import base64
 import os
 
-from flask_security import Security, UserMixin, RoleMixin, AnonymousUser
+from flask_security import AnonymousUser, LoginForm, RoleMixin, Security, UserMixin, uia_username_mapper
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.local import LocalProxy
+from wtforms import StringField
+from wtforms.validators import DataRequired
 
 from web_interface.security.privileges import PRIVILEGES
 from web_interface.security.user_role_db_interface import UserRoleDbInterface
 
 
-def add_flask_security_to_app(app, config):
-    _add_configuration_to_app(app, config)
+def add_config_from_configparser_to_app(app, config):
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['SECURITY_PASSWORD_SALT'] = config.get('data_storage', 'password_salt').encode()
+    app.config['SQLALCHEMY_DATABASE_URI'] = config.get('data_storage', 'user_database', fallback='sqlite:///')
+    # FIXME fix redirect loop here
+    app.config['SECURITY_UNAUTHORIZED_VIEW'] = '/login'
+    app.config['LOGIN_DISABLED'] = not config.getboolean('ExpertSettings', 'authentication')
 
+    # As we want to use ONLY usernames and no emails but email is hardcoded in
+    # flask-security we change the validation mapper of 'email'.
+    # Note that from the perspective of flask-security we still use emails.
+    # This means that we do not want to enable SECURITY_USERNAME_ENABLE
+    app.config['SECURITY_USER_IDENTITY_ATTRIBUTES'] = [{'email': {'mapper': uia_username_mapper, 'case_insensitive': True}}]
+
+
+def add_flask_security_to_app(app):
     db = SQLAlchemy(app)
+    user_datastore = create_user_datastore(db)
 
-    user_interface = create_user_interface(db)
-    security = Security(app, user_interface)
+    # Allow users to enter non-emails in the html form
+    # See add_config_from_configparser_to_app for explanation why we need this
+    class CustomLoginForm(LoginForm):
+        email = StringField('username', [DataRequired()])
 
-    _add_apikey_handler(security, user_interface)
-    return db, user_interface
+    security = Security(app, user_datastore, login_form=CustomLoginForm)
+
+    _add_apikey_handler(security, user_datastore)
+    return db, user_datastore
 
 
-def create_user_interface(db):
+def create_user_datastore(db):
+    # pylint: disable=no-member
+
     roles_users = db.Table('roles_users', db.Column('user_id', db.Integer(), db.ForeignKey('user.id')), db.Column('role_id', db.Integer(), db.ForeignKey('role.id')))
 
     class Role(db.Model, RoleMixin):
@@ -37,6 +59,7 @@ def create_user_interface(db):
         active = db.Column(db.Boolean())
         confirmed_at = db.Column(db.DateTime())
         roles = db.relationship('Role', secondary=roles_users, backref=db.backref('users', lazy='dynamic'))
+        fs_uniquifier = db.Column(db.String(64), unique=True, nullable=False)
 
     return UserRoleDbInterface(db, User, Role)
 
@@ -50,14 +73,6 @@ def _add_apikey_handler(security, user_datastore):
             if user:
                 return user
         return None
-
-
-def _add_configuration_to_app(app, config):
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.config['SECURITY_PASSWORD_SALT'] = config.get('data_storage', 'password_salt').encode()
-    app.config['SQLALCHEMY_DATABASE_URI'] = config.get('data_storage', 'user_database', fallback='sqlite:///')
-    app.config['SECURITY_UNAUTHORIZED_VIEW'] = '/login'
-    app.config['LOGIN_DISABLED'] = not config.getboolean('ExpertSettings', 'authentication')
 
 
 def _build_api_key():

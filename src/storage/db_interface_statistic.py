@@ -30,13 +30,13 @@ class StatisticDbUpdater(StatisticDb):
     READ_ONLY = False
 
     def update_statistic(self, identifier, content_dict):
-        logging.debug("update {} statistic".format(identifier))
+        logging.debug('update {} statistic'.format(identifier))
         try:
             self.statistic.delete_many({'_id': identifier})
             content_dict['_id'] = identifier
             self.statistic.insert_one(content_dict)
         except PyMongoError as err:
-            logging.error(f"Could not store statistic {identifier} ({err})", exc_info=True)
+            logging.error(f'Could not store statistic {identifier} ({err})', exc_info=True)
 
 
 class StatisticDbViewer(StatisticDb):

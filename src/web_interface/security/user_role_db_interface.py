@@ -8,6 +8,10 @@ class UserRoleDbInterface(SQLAlchemyUserDatastore):
         user_list = self.user_model.query.all()
         return user_list
 
+    def list_roles(self):
+        role_list = self.role_model.query.all()
+        return role_list
+
     def password_is_correct(self, user_name, password):
         user = self.find_user(email=user_name)
         return verify_password(password, user.password)

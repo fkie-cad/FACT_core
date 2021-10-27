@@ -2,181 +2,226 @@
 
 import argparse
 import getpass
-import os
 import sys
+from pathlib import Path
 
-from flask_security import Security
-from flask_sqlalchemy import SQLAlchemy
+from flask_security import hash_password
+from prompt_toolkit import PromptSession
+from prompt_toolkit.completion import WordCompleter
 
 from config.ascii import FACT_ASCII_ART
-from helperFunctions.config import load_config, get_config_dir
+from helperFunctions.config import get_config_dir, load_config
 from helperFunctions.web_interface import password_is_legal
 from version import __VERSION__
 from web_interface.frontend_main import WebFrontEnd
-from web_interface.security.authentication import create_user_interface
+from web_interface.security.privileges import ROLES
+from web_interface.security.terminal_validators import ActionValidator, ActionValidatorReverse
 
 
 def setup_argparse():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-v', '--version', action='version', version='FACT User Management (FACTUM) {}'.format(__VERSION__))
-    parser.add_argument('-C', '--config_file', help='set path to config File', default='{}/main.cfg'.format(get_config_dir()))
+    parser.add_argument('-v', '--version', action='version',
+                        version=f'FACT User Management (FACTUM) {__VERSION__}')
+    parser.add_argument('-C', '--config_file', help='set path to config File',
+                        default=f'{get_config_dir()}/main.cfg')
     return parser.parse_args()
 
 
-def get_input(message, max_len=25):
-    while True:
-        user_input = input(message)
-        if len(user_input) > max_len:
-            raise ValueError('Error: input too long (max length: {})'.format(max_len))
-        else:
-            return user_input
-
-
-def choose_action():
-    print('\nPlease choose an action (use "help" for a list of available actions)')
-    chosen_action = input('action: ')
-    return chosen_action
-
-
 class Actions:
+    def __init__(self, session, app, store, db):
+        self.session = session
+        self.app = app
+        self.store = store
+        self.db = db
+
     @staticmethod
-    def help(*_):
+    def help():
         print(
-            '\nPlease choose an action:\n'
+            '\nOne of the following actions can be chosen:\n'
+            '\n\t[add_role_to_user]\tadd existing role to an existing user'
+            '\n\t[create_role]\t\tcreate new role'
             '\n\t[create_user]\t\tcreate new user'
             '\n\t[delete_user]\t\tdelete a user'
-            '\n\t[create_role]\t\tcreate new role'
-            '\n\t[add_role_to_user]\tadd existing role to an existing user'
-            '\n\t[remove_role_from_user]\tremove role from user'
             '\n\t[get_apikey_for_user]\tretrieve apikey for existing user'
+            '\n\t[list_all_users]\tlist all existing users and their roles'
+            '\n\t[remove_role_from_user]\tremove role from user'
             '\n\t[help]\t\t\tshow this help'
             '\n\t[exit]\t\t\tclose application'
         )
 
-    @staticmethod
-    def _user_exists(app, interface, name):
-        with app.app_context():
-            user = interface.find_user(email=name)
-        return True if user else False
+    def _role_exists(self, role):
+        with self.app.app_context():
+            exists = self.store.find_role(role)
+        return bool(exists)
 
-    @staticmethod
-    def exit(*_):
-        raise EOFError('Quitting ..')
+    def _get_user_list(self):
+        with self.app.app_context():
+            return [x.email for x in self.store.list_users()]
 
-    @staticmethod
-    def create_user(app, interface, db):
-        user = get_input('username: ')
-        assert not Actions._user_exists(app, interface, user), 'user must not exist'
+    def _get_role_list(self):
+        with self.app.app_context():
+            return [x.name for x in self.store.list_roles()]
 
-        password = getpass.getpass('password: ')
-        assert password_is_legal(password), 'password is illegal'
-        with app.app_context():
-            interface.create_user(email=user, password=password)
-            db.session.commit()
+    def create_user(self):
+        user_list = self._get_user_list()
+        user = self.session.prompt(
+            'username: ',
+            validator=ActionValidatorReverse(user_list, message='user must not exist and not be empty'),
+            completer=None
+        )
+        while True:
+            password = getpass.getpass('password: ')
+            if not password_is_legal(password):
+                print('Password is not legal. Please choose another password.')
+                continue
+            break
+        with self.app.app_context():
+            self.store.create_user(email=user, password=hash_password(password), roles=['guest'])
+            self.db.session.commit()
 
-    @staticmethod
-    def get_apikey_for_user(app, interface, _):
-        user = get_input('username: ')
-        assert Actions._user_exists(app, interface, user), 'user must exist to retrieve apikey'
+    def delete_user(self):
+        user_list = self._get_user_list()
+        action_completer = WordCompleter(user_list)
+        user = self.session.prompt(
+            'username: ',
+            validator=ActionValidator(user_list, message='user must exist before deleting'),
+            completer=action_completer
+        )
+        with self.app.app_context():
+            self.store.delete_user(user=self.store.find_user(email=user))
+            self.db.session.commit()
 
-        with app.app_context():
-            user = interface.find_user(email=user)
+    def create_role(self):
+        role_list = self._get_role_list()
+        role = self.session.prompt(
+            'role name: ',
+            validator=ActionValidatorReverse(role_list, message='role must not exist and not be empty')
+        )
+        with self.app.app_context():
+            if not self._role_exists(role):
+                self.store.create_role(name=role)
+                self.db.session.commit()
+
+    def add_role_to_user(self):
+        user_list = self._get_user_list()
+        role_list = self._get_role_list()
+        user_completer = WordCompleter(user_list)
+        role_completer = WordCompleter(role_list)
+        user = self.session.prompt(
+            'username: ',
+            validator=ActionValidator(user_list, message='user must exists before adding it to a role'),
+            completer=user_completer
+        )
+        role = self.session.prompt(
+            'rolename: ',
+            validator=ActionValidator(role_list, message='role must exists before user can be added'),
+            completer=role_completer
+        )
+        with self.app.app_context():
+            self.store.add_role_to_user(user=self.store.find_user(email=user), role=role)
+            self.db.session.commit()
+
+    def remove_role_from_user(self):
+        user_list = self._get_user_list()
+        user_completer = WordCompleter(user_list)
+        user = self.session.prompt(
+            'username: ',
+            validator=ActionValidator(user_list, message='user must exist'),
+            completer=user_completer
+        )
+        with self.app.app_context():
+            user = self.store.find_user(email=user)
+        user_roles = [role.name for role in user.roles]
+        role = self.session.prompt(
+            'rolename: ',
+            validator=ActionValidator(user_roles, message='user must have that role before it can be removed'),
+            completer=WordCompleter(user_roles)
+        )
+        with self.app.app_context():
+            self.store.remove_role_from_user(user=self.store.find_user(email=user.email), role=role)
+            self.db.session.commit()
+
+    def get_apikey_for_user(self):
+        user_list = self._get_user_list()
+        action_completer = WordCompleter(user_list)
+        user = self.session.prompt(
+            'username: ',
+            validator=ActionValidator(user_list, message='user must exist to retrieve apikey.'),
+            completer=action_completer
+        )
+        with self.app.app_context():
+            user = self.store.find_user(email=user)
 
         apikey = user.api_key
-        print('key: {}'.format(apikey))
+        print(f'key: {apikey}')
+
+    def list_all_users(self):
+        user_list = self.store.list_users()
+        for user in user_list:
+            user_roles = ', '.join([role.name for role in user.roles])
+            print(f'\n\t{user.email} ({user_roles})')
+        print()
 
     @staticmethod
-    def _role_exists(app, interface, role):
-        with app.app_context():
-            exists = interface.find_role(role)
-        return True if exists else False
-
-    @staticmethod
-    def create_role(app, interface, db):
-        role = get_input('role name: ')
-        with app.app_context():
-            interface.create_role(name=role)
-            db.session.commit()
-
-    @staticmethod
-    def add_role_to_user(app, interface, db):
-        user = get_input('username: ')
-        assert Actions._user_exists(app, interface, user), 'user must exists before adding it to role'
-
-        role = get_input('role name: ')
-        assert Actions._role_exists(app, interface, role), 'role must exists before user can be added'
-
-        with app.app_context():
-            interface.add_role_to_user(user=interface.find_user(email=user), role=role)
-            db.session.commit()
-
-    @staticmethod
-    def remove_role_from_user(app, interface, db):
-        user = get_input('username: ')
-        assert Actions._user_exists(app, interface, user), 'user must exists before adding it to role'
-
-        role = get_input('role name: ')
-        assert Actions._role_exists(app, interface, role), 'role must exists before user can be added'
-
-        with app.app_context():
-            interface.remove_role_from_user(user=interface.find_user(email=user), role=role)
-            db.session.commit()
-
-    @staticmethod
-    def delete_user(app, interface, db):
-        user = get_input('username: ')
-        assert Actions._user_exists(app, interface, user), 'user must exists before adding it to role'
-
-        with app.app_context():
-            interface.delete_user(user=interface.find_user(email=user))
-            db.session.commit()
+    def exit():
+        raise EOFError('Quitting ..')
 
 
 LEGAL_ACTIONS = [action for action in dir(Actions) if not action.startswith('_')]
 
 
-def prompt_for_actions(app, store, db):
-    print(FACT_ASCII_ART)
+def initialise_roles(app, interface, db):
+    for role in ROLES:
+        if not interface.find_role(role):
+            with app.app_context():
+                interface.create_role(name=role)
+                db.session.commit()
 
+
+def prompt_loop(app, store, db, session):
+    print(FACT_ASCII_ART)
     print('\nWelcome to the FACT User Management (FACTUM)\n')
+    initialise_roles(app, store, db)
+    actions = Actions(session, app, store, db)
 
     while True:
         try:
-            action = choose_action()
+            action_completer = WordCompleter(LEGAL_ACTIONS)
+            action = actions.session.prompt(
+                'Please choose an action to perform: ',
+                validator=ActionValidator(LEGAL_ACTIONS),
+                completer=action_completer
+            )
         except (EOFError, KeyboardInterrupt):
             break
-        if action not in LEGAL_ACTIONS:
-            print('error: please choose a legal action.')
-        else:
-            try:
-                acting_function = getattr(Actions, action)
-                acting_function(app, store, db)
-            except AssertionError as assertion_error:
-                print('error: {}'.format(assertion_error))
-            except EOFError:
-                break
+        try:
+            acting_function = getattr(actions, action)
+            acting_function()
+
+        except KeyboardInterrupt:
+            print('returning to action selection')
+        except AssertionError as assertion_error:
+            print(f'error: {assertion_error}')
+        except EOFError:
+            break
 
     print('\nQuitting ..')
 
 
-def start_user_management(app):
-    db = SQLAlchemy(app)
-    Security(app)
-    store = create_user_interface(db)
-
+def start_user_management(app, store, db, session):
+    # We expect flask-security to be initialized
     db.create_all()
-
-    prompt_for_actions(app, store, db)
+    prompt_loop(app, store, db, session)
 
 
 def main():
     args = setup_argparse()
-    file_name = os.path.basename(args.config_file)
 
+    file_name = Path(args.config_file).name
     config = load_config(file_name)
     frontend = WebFrontEnd(config)
 
-    start_user_management(frontend.app)
+    start_user_management(frontend.app, frontend.user_datastore, frontend.user_db, PromptSession())
 
     return 0
 

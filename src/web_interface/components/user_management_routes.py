@@ -3,6 +3,7 @@ from contextlib import contextmanager
 
 from flask import flash, redirect, render_template, request, url_for
 from flask_security import current_user
+from flask_security.utils import hash_password
 from sqlalchemy.exc import SQLAlchemyError
 
 from helperFunctions.web_interface import password_is_legal
@@ -51,7 +52,7 @@ class UserManagementRoutes(ComponentBase):
             flash('Error: passwords do not match', 'danger')
         else:
             with self.user_db_session('Error while creating user'):
-                self._user_db_interface.create_user(email=name, password=password)
+                self._user_db_interface.create_user(email=name, password=hash_password(password))
                 flash('Successfully created user', 'success')
                 logging.info('Created user: {}'.format(name))
 

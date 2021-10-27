@@ -108,22 +108,23 @@ function createCurrentAnalysisItem(uid, data) {
     const currentUnpackingProgress = (data.unpacked_count - data.analyzed_count) / data.total_count;
     const analysisProgressString = `${data.analyzed_count} / ${data.total_count} (Elapsed: ${getDuration(data.start_time)})`;
     return `
-        <div class="list-group-item border-top-0 clickable" onclick="location.href='/analysis/${uid}/ro/${uid}'">
-            ${data.hid}
-            <div class="progress mt-2" style="height: 20px;">
-                <div
-                    class="progress-bar progress-bar-striped progress-bar-animated text-center"
-                    role="progressbar"
-                    style="width: ${currentAnalysisProgress * 100}%"
-                >
-                    ${currentAnalysisProgress >= 0.5 ? analysisProgressString : ""}
+        <div class="card clickable mt-2" onclick="location.href='/analysis/${uid}/ro/${uid}'">
+            <h6 class="card-title p-2" style="margin-bottom: 0 !important; padding-bottom: 0 !important;">${data.hid}</h6>
+            <div class="card-body p-2">
+                ${getProgressParagraph(analysisProgressString)}
+                <div class="progress" style="height: 20px;">
+                    <div
+                        class="progress-bar progress-bar-striped progress-bar-animated text-center"
+                        role="progressbar"
+                        style="width: ${currentAnalysisProgress * 100}%"
+                    >
+                    </div>
+                    <div
+                        class="progress-bar progress-bar-striped progress-bar-animated bg-warning text-center"
+                        role="progressbar"
+                        style="width: ${currentUnpackingProgress * 100}%"
+                    ></div>
                 </div>
-                <div
-                    class="progress-bar progress-bar-striped progress-bar-animated bg-warning text-center"
-                    role="progressbar"
-                    style="width: ${currentUnpackingProgress * 100}%"
-                ></div>
-                ${currentAnalysisProgress < 0.5 ? '<div class="justify-content-center d-flex w-100">' + analysisProgressString + '</div>' : ""}
             </div>
         </div>
     `;
@@ -132,15 +133,20 @@ function createCurrentAnalysisItem(uid, data) {
 function createFinishedAnalysisItem(uid, data) {
     const progressString = `${data.total_files_count} / ${data.total_files_count} (Finished in: ${getDuration(null, data.duration)})`;
     return `
-        <div class="list-group-item border-top-0 clickable" onclick="location.href='/analysis/${uid}/ro/${uid}'">
-            ${data.hid}
-            <div class="progress mt-2" style="height: 20px;">
-                <div class="progress-bar progress-bar-striped bg-success text-center" role="progressbar" style="width: 100%">
-                    ${progressString}
+        <div class="card clickable mt-2" onclick="location.href='/analysis/${uid}/ro/${uid}'">
+            <h6 class="card-title p-2" style="margin-bottom: 0 !important; padding-bottom: 0 !important;">${data.hid}</h6>
+            <div class="card-body p-2">
+                ${getProgressParagraph(progressString)}
+                <div class="progress" style="height: 20px;">
+                    <div class="progress-bar progress-bar-striped bg-success text-center" role="progressbar" style="width: 100%"></div>
                 </div>
             </div>
         </div>
     `;
+}
+
+function getProgressParagraph(progressText) {
+    return `<p style="color: white; position: absolute; z-index: 3; width: 100%; margin-top: -3px; text-align: center;"><small>${progressText}</small></p>`;
 }
 
 function getDuration(start=null, duration=null) {

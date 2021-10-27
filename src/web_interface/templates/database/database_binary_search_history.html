@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% set active_page = "Database" %}
+
+
+{% block head %}
+    <link rel="stylesheet" type="text/css" href="/static/css/pagination.css">
+{% endblock %}
+
+
+{% block body %}
+<script type="text/javascript" src="{{ url_for('static', filename='js/update_url_variables.js') }}"></script>
+
+<div class="row justify-content-center">
+    <div class="col-xl-6 col-lg-8 col-md-10 mt-4">
+        <h3 class="mb-3">Browse Binary Pattern Search History</h3>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="mt-4 col-xl-6 col-lg-8 col-md-10">
+        <table class="table table-sm table-hover">
+            {% for id, query_title, rule_names in searches_list %}
+                <tr>
+                    {% if pagination is defined %}
+                        <th style="vertical-align: middle;">{{ loop.index + (page - 1) * per_page }}</th>
+                    {% endif %}
+                    <td style="width: 100%">
+                        <button data-toggle="collapse" data-target="#search_query_{{ id }}" class="list-group-item list-group-item-primary d-flex justify-content-center align-items-center p-2" style="border: 0; width:100%; text-align: center;">
+                            <i class="fas fa-caret-down"></i>&nbsp;
+                            <ul class="mb-0 p-0" style="list-style-type:none">
+                                {%for rule_name in rule_names %}
+                                    <li>{{ rule_name }}</li>
+                                {% endfor %}
+                            </ul>
+                        </button>
+                        <div id="search_query_{{ id }}" class="collapse list-group-item p-0 border-0">
+                            <pre class="bg-light p-2 mb-0 rounded-bottom">{{ query_title | render_query_title }}</pre>
+                        </div>
+                    </td>
+                    <td>
+                        <button onclick="location.href='/database/browse?query={{ id | urlencode }}'" class="btn btn-secondary p-2 pl-3 pr-3 border-0">View</button>
+                    </td>
+                </tr>
+            {% else %}
+                <h4>No Searches found in database!</h4>
+            {% endfor %}
+        </table>
+
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div style="max-width: 300px;">
+        {% if pagination is defined %}
+            {{ pagination.info }}
+            {{ pagination.links }}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

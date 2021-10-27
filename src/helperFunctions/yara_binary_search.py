@@ -1,5 +1,6 @@
 from configparser import ConfigParser
 from os.path import basename
+from pathlib import Path
 from subprocess import CalledProcessError
 from tempfile import NamedTemporaryFile
 from typing import Dict, List, Optional, Tuple, Union
@@ -34,7 +35,8 @@ class YaraBinarySearchScanner:
         :param rule_file_path: The file path to the yara rule file.
         :return: The output from the yara scan.
         '''
-        command = 'yara -r {} {}'.format(rule_file_path, self.db_path if target_path is None else target_path)
+        compiled_flag = '-C' if Path(rule_file_path).read_bytes().startswith(b'YARA') else ''
+        command = f'yara -r {compiled_flag} {rule_file_path} {target_path or self.db_path}'
         return execute_shell_command(command)
 
     def _execute_yara_search_for_single_firmware(self, rule_file_path: str, firmware_uid: str) -> str:
@@ -53,11 +55,7 @@ class YaraBinarySearchScanner:
         for line in raw_result.split('\n'):
             if line and 'warning' not in line:
                 rule, match = line.split(' ')
-                match = basename(match)
-                if rule in results:
-                    results[rule].append(match)
-                else:
-                    results[rule] = [match]
+                results.setdefault(rule, []).append(basename(match))
         return results
 
     @staticmethod
@@ -82,9 +80,9 @@ class YaraBinarySearchScanner:
                 self._eliminate_duplicates(results)
                 return results
             except yara.SyntaxError as yara_error:
-                return 'There seems to be an error in the rule file:\n{}'.format(yara_error)
+                return f'There seems to be an error in the rule file:\n{yara_error}'
             except CalledProcessError as process_error:
-                return 'Error when calling YARA:\n{}'.format(process_error.output.decode())
+                return f'Error when calling YARA:\n{process_error.output.decode()}'
 
     def _get_raw_result(self, firmware_uid: Optional[str], temp_rule_file: NamedTemporaryFile) -> str:
         if firmware_uid is None:
@@ -117,12 +115,12 @@ def get_yara_error(rules_file: Union[str, bytes]) -> Optional[Exception]:
     :param rules_file: A string containing yara rules.
     :result: The exception if compiling the rules causes an exception or ``None`` otherwise.
     '''
-    if isinstance(rules_file, bytes):
-        rules_file = rules_file.decode()
     try:
+        if isinstance(rules_file, bytes):
+            rules_file = rules_file.decode()
         yara.compile(source=rules_file)
         return None
-    except (yara.Error, TypeError) as error:
+    except (yara.Error, TypeError, UnicodeDecodeError) as error:
         return error
 
 

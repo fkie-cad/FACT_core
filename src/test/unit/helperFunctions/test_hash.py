@@ -1,7 +1,11 @@
+# pylint: disable=wrong-import-order
+
+import os
 from pathlib import Path
 
 from helperFunctions.hash import (
-    _suppress_stdout, get_imphash, get_md5, get_sha256, get_ssdeep, get_ssdeep_comparison, normalize_lief_items
+    _suppress_stdout, get_imphash, get_md5, get_sha256, get_ssdeep, get_ssdeep_comparison, get_tlsh,
+    normalize_lief_items
 )
 from test.common_helper import create_test_file_object, get_test_data_dir
 
@@ -78,3 +82,8 @@ def test_suppress_stdout(capsys):
 
     with_decorator = capsys.readouterr()
     assert not with_decorator.out
+
+
+def test_get_tlsh():
+    assert get_tlsh(b'foobar') == ''  # make sure the result is not 'TNULL'
+    assert get_tlsh(os.urandom(2**7)) != ''  # the new tlsh version should work for smaller inputs

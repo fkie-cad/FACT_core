@@ -32,20 +32,17 @@
 
     <script type="text/javascript" src="{{ url_for('static', filename='web_js/bootstrap-datepicker.js') }}"></script>
 
+    <script type="text/javascript" src="{{ url_for('static', filename='js/quick_search.js') }}"></script>
+
     <script>
-            $(document).ready(function(){
-                $('[data-toggle="tooltip"]').tooltip();
-                $(".toggle").click(function(){
-                    $(".expand").toggle();
-                });
+        $(document).ready(function(){
+            $('[data-toggle="tooltip"]').tooltip();
+            $(".toggle").click(function(){
+                $(".expand").toggle();
             });
-            function quickSearch() {
-                let search_input = document.getElementById('quick_search_input').value;
-                window.location = '/database/quick_search?search_term=' + search_input;
-            }
 
-
-
+            initQuickSearch();
+        });
     </script>
 
     {% block head %}
@@ -108,25 +105,20 @@
                 font-family: 'Courier New', Courier, monospace;
                 font-size: 10px;
             }
-
-
-
     </style>
     {% block styles %}{% endblock %}
 </head>
 
 <body>
 
-<nav role="navigation" class="navbar navbar-expand navbar-light flex-column flex-md-row bg-fact">
+<nav role="navigation" class="navbar navbar-expand-lg navbar-light flex-column flex-md-row bg-fact">
     <button type="button" data-target="#navbarCollapse" data-toggle="collapse" class="navbar-toggler">
         <span class="sr-only">Toggle navigation</span>
         <span class="navbar-toggler-icon"></span>
     </button>
-    <div class="navbar-brand d-none d-md-block mr-0 mr-md-2" style="vertical-align: middle; margin-left: 15px">
+    <div class="navbar-brand d-none d-md-block ml-3" data-toggle="tooltip" data-placement="bottom" data-delay='{"show": 500, "hide": 100}'
+         title="Firmware Analysis and Comparison Tool" style="vertical-align: middle;">
         <span><img height="25px" src="{{ url_for('static', filename='fact_logo_inv.svg') }}"></span>
-    </div>
-    <div class="navbar-brand d-none d-xl-block" style="vertical-align: middle">
-        Firmware Analysis and Comparison Tool
     </div>
     <div id="navbarCollapse" class="collapse navbar-collapse">
         <!-- Navbar Elements -->
@@ -136,7 +128,7 @@
             <li class="dropdown pr-3">
                 <a {% if caption== active_page %}style="color: #fff; font-weight: 500;" {% endif %}
                    class="dropdown-toggle" data-toggle="dropdown" href="#"><i
-                        class="fas fa-tasks"></i>&nbsp;Database<span class="caret"></span></a>
+                        class="fas fa-tasks"></i><span class="hideable_caption">&nbsp;Database</span><span class="caret"></span></a>
                 <div class="dropdown-menu">
                     <a class="dropdown-item" href="/database/browse" style="font-size: 14px"><i
                             class="fas fa-list-ul"></i> Browse Firmware</a>
@@ -148,13 +140,15 @@
                             class="fas fa-search-plus"></i> Advanced Search</a>
                     <a class="dropdown-item" href="/database/binary_search" style="font-size: 14px"><i
                             class="fas fa-search-dollar"></i> Binary Pattern Search</a>
+                    <a class="dropdown-item" href="/database/browse_binary_search_history" style="font-size: 14px"><i
+                            class="fas fa-search-dollar"></i> Browse Binary Pattern Search History</a>
                 </div>
             </li>
             {% elif caption == "Info" %}
             <li class="dropdown pr-3">
                 <a {% if caption== active_page %}style="color: #fff; font-weight: 500;" {% endif %}
-                   class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="fas fa-info-circle"></i>&nbsp;{{
-                    caption }}<span class="caret"></span></a>
+                   class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="fas fa-info-circle"></i><span class="hideable_caption">&nbsp;{{
+                    caption }}</span><span class="caret"></span></a>
                 <div class="dropdown-menu">
                     <a class="dropdown-item" href="/statistic" style="font-size: 14px"><i class="fas fa-chart-bar"></i>
                         Statistics</a>
@@ -167,13 +161,13 @@
             {% elif caption == "Feedback" %}
             <li class="pr-3">
                 <a {% if caption== active_page %}style="color: #fff; font-weight: 500;" {% endif %}
-                    data-toggle="modal" data-target="#feedbackModal" href="#"> <i class="fas fa-bullhorn"></i> Feedback </a>
+                    data-toggle="modal" data-target="#feedbackModal" href="#"> <i class="fas fa-bullhorn"></i><span class="hideable_caption">&nbsp;Feedback</span></a>
             </li>
             {% elif caption == "Admin" %}
             <li class="dropdown pr-3">
                 <a {% if caption== active_page %}style="color: #fff; font-weight: 500;" {% endif %}
-                   class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="fas fa-user-shield"></i>&nbsp;{{
-                    caption }}<span class="caret"></span></a>
+                   class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="fas fa-user-shield"></i><span class="hideable_caption">&nbsp;{{
+                    caption }}</span><span class="caret"></span></a>
                 <div class="dropdown-menu">
                     {% if current_user | user_has_role('manage_users') %}
                         <a class="dropdown-item" href="/admin/manage_users" style="font-size: 14px"><i
@@ -189,8 +183,8 @@
             {% if current_user.is_authenticated %}
             <li class="dropdown pr-3">
                 <a {% if caption== active_page %}style="color: #fff; font-weight: 500;" {% endif %}
-                   class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="fas fa-user"></i>&nbsp;{{
-                    current_user.email }}<span class="caret"></span></a>
+                   class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="fas fa-user"></i><span class="hideable_caption">&nbsp;{{
+                    current_user.email|truncate(12) }}</span><span class="caret"></span></a>
                 <div class="dropdown-menu">
                     <a class="dropdown-item" href="/user_profile" style="font-size: 14px"><i
                             class="fas fa-user-cog"></i> Profile</a>
@@ -201,24 +195,24 @@
             {% else %}
             <li>
                 <a {% if caption== active_page %}style="color: #fff; font-weight: 500;" {% endif %} href="/login"><i
-                        class="fas fa-sign-in-alt"></i> Login</a>
+                        class="fas fa-sign-in-alt"></i><span class="hideable_caption">&nbsp;Login</span></a>
             </li>
             {% endif %}
             {% else %}
             <li class="pr-3">
                 <a {% if caption== active_page %}style="color: #fff; font-weight: 500;" {% endif %} href={{ href }}>{{
-                    icon|safe }} {{ caption }}</a>
+                    icon|safe }}<span class="hideable_caption">&nbsp;{{ caption }}</span></a>
             </li>
             {% endif %}
             {% endfor %}
         </ul>
 
         <!-- Navbar Quick Search Input -->
-        <div id="quick_search_div" class="nav navbar-nav ml-md-auto d-none d-md-block">
-            <div class="input-group mr-sm-2">
-                <input type="text" class="form-control" placeholder="Quick search name, vendor and hash values"
+        <div id="quick_search_div" class="nav navbar-nav ml-md-auto d-block">
+            <div class="input-group mr-sm-2" style="z-index: 100;" >
+                <input type="text" class="form-control" placeholder="Quick search name, vendor or hash"
                        id="quick_search_input" onKeyDown="if(event.keyCode==13) quickSearch();"
-                       style="margin: 0; background-color: #e7e7e7; border-radius: 0; border-top-left-radius: .25rem; border-bottom-left-radius: .25rem;">
+                       style="margin: 0; background-color: #e7e7e7; border-radius: 0; border-top-left-radius: .25rem; border-bottom-left-radius: .25rem; width: 120px; transition: width 0.5s ease-in-out;">
                 <div class="input-group-append">
                     <button class="btn btn-secondary" type="button" onclick="quickSearch()">
                         <i class="fas fa-search"></i>

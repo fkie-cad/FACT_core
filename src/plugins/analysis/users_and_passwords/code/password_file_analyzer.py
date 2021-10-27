@@ -13,7 +13,7 @@ from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.tag import TagColor
 from objects.file import FileObject
 
-JOHN_PATH = Path(__file__).parent.parent / 'bin' / 'john' / 'run' / 'john'
+JOHN_PATH = Path(__file__).parent.parent / 'bin' / 'john'
 WORDLIST_PATH = Path(get_src_dir()) / 'bin' / 'passwords.txt'
 USER_NAME_REGEX = br'[a-zA-Z][a-zA-Z0-9_-]{2,15}'
 UNIX_REGEXES = [
