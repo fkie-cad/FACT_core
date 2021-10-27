@@ -247,6 +247,17 @@ have one package per line (empty lines and comments are allowed).</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="helperFunctions.install.is_virtualenv">
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.install.</span></span><span class="sig-name descname"><span class="pre">is_virtualenv</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.is_virtualenv" title="Permalink to this definition"></a></dt>
+<dd><p>Check if FACT runs in a virtual environment</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="helperFunctions.install.load_main_config">
 <span class="sig-prename descclassname"><span class="pre">helperFunctions.install.</span></span><span class="sig-name descname"><span class="pre">load_main_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.load_main_config" title="Permalink to this definition"></a></dt>
 <dd><p>Create config object from main.cfg in src/config folder.</p>
@@ -305,14 +316,16 @@ this effectively falls back to <cite>sudo rm -rf</cite>.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="helperFunctions.install.run_cmd_with_logging">
-<span class="sig-prename descclassname"><span class="pre">helperFunctions.install.</span></span><span class="sig-name descname"><span class="pre">run_cmd_with_logging</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cmd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">raise_error</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shell</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.run_cmd_with_logging" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.install.</span></span><span class="sig-name descname"><span class="pre">run_cmd_with_logging</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cmd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">raise_error</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shell</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">silent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.install.run_cmd_with_logging" title="Permalink to this definition"></a></dt>
 <dd><p>Runs <cite>cmd</cite> with subprocess.run, logs the command it executes and logs
 stderr on non-zero returncode.
 All keyword arguments are execpt <cite>raise_error</cite> passed to subprocess.run.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
+<li><p><strong>shell</strong> – execute the command through the shell.</p></li>
 <li><p><strong>raise_error</strong> – Whether or not an error should be raised when <cite>cmd</cite> fails</p></li>
+<li><p><strong>silent</strong> (<em>bool</em>) – don’t log in case of error.</p></li>
 <li><p><strong>cmd</strong> (<em>str</em>) – </p></li>
 </ul>
 </dd>
