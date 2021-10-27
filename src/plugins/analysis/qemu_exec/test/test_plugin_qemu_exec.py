@@ -4,12 +4,12 @@ from base64 import b64decode, b64encode
 from pathlib import Path
 from unittest import TestCase
 
-import docker
 import pytest
 from common_helper_files import get_dir_of_file
 from requests.exceptions import ConnectionError as RequestConnectionError
 from requests.exceptions import ReadTimeout
 
+import docker
 from test.common_helper import create_test_firmware, get_config_for_testing, get_test_data_dir
 from test.mock import mock_patch
 from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
@@ -197,7 +197,7 @@ class TestPluginQemuExec(AnalysisPluginTest):
         assert 'files' in result
         assert any(result['files'][uid]['executable'] for uid in result['files']) is False
         assert all(
-            result['files'][uid]['results']['mips'][option]['stderr'] == '/lib/ld.so.1: No such file or directory\n'
+            '/lib/ld.so.1\': No such file or directory' in result['files'][uid]['results']['mips'][option]['stderr']
             for uid in result['files']
             for option in result['files'][uid]['results']['mips']
             if option != 'strace'
