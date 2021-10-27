@@ -35,7 +35,7 @@ class YaraBinarySearchScanner:
         :param rule_file_path: The file path to the yara rule file.
         :return: The output from the yara scan.
         '''
-        compiled_flag = '-C' if Path(rule_file_path).read_bytes().startswith(b"YARA") else ''
+        compiled_flag = '-C' if Path(rule_file_path).read_bytes().startswith(b'YARA') else ''
         command = f'yara -r {compiled_flag} {rule_file_path} {target_path or self.db_path}'
         return execute_shell_command(command)
 

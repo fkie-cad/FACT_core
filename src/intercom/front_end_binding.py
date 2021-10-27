@@ -48,7 +48,7 @@ class InterComFrontEndBinding(InterComMongoInterface):
     def add_binary_search_request(self, yara_rule_binary: bytes, firmware_uid: Optional[str] = None):
         serialized_request = pickle.dumps((yara_rule_binary, firmware_uid))
         request_id = generate_task_id(yara_rule_binary)
-        self.connections["binary_search_task"]['fs'].put(serialized_request, filename=request_id)
+        self.connections['binary_search_task']['fs'].put(serialized_request, filename=request_id)
         return request_id
 
     def get_binary_search_result(self, request_id):
@@ -66,7 +66,7 @@ class InterComFrontEndBinding(InterComMongoInterface):
     def _response_listener(self, response_connection, request_id, timeout=None, delete=True):
         output_data = None
         if timeout is None:
-            timeout = time() + int(self.config['ExpertSettings'].get('communication_timeout', "60"))
+            timeout = time() + int(self.config['ExpertSettings'].get('communication_timeout', '60'))
         while timeout > time():
             resp = self.connections[response_connection]['fs'].find_one({'filename': request_id})
             if resp:

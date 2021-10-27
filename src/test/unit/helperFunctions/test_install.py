@@ -62,8 +62,8 @@ def test_operate_in_directory():
 def test_read_package_list_from_file():
     # Note that we can't use tempfile.NamedTemporaryFile here because it is not
     # guaranteed that it can be opened a second time
-    expected_packages = ["foo", "bar", "foobar"]
-    path = Path(__file__).parent / "test_pkglist.txt"
+    expected_packages = ['foo', 'bar', 'foobar']
+    path = Path(__file__).parent / 'test_pkglist.txt'
     packages = read_package_list_from_file(path)
 
     assert set(packages) == set(expected_packages)

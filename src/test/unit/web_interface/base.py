@@ -6,7 +6,7 @@ from tempfile import TemporaryDirectory
 from test.common_helper import DatabaseMock, fake_exit, get_config_for_testing
 from web_interface.frontend_main import WebFrontEnd
 
-TMP_DIR = TemporaryDirectory(prefix="fact_test_")
+TMP_DIR = TemporaryDirectory(prefix='fact_test_')
 
 
 class WebInterfaceTest(unittest.TestCase):

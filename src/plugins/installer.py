@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 
-from helperFunctions.install import read_package_list_from_file, run_cmd_with_logging
+from helperFunctions.install import install_pip_packages, read_package_list_from_file, run_cmd_with_logging
 
 
 class AbstractPluginInstaller:
@@ -69,8 +69,9 @@ class AbstractPluginInstaller:
         '''
         Install packages with pip
         '''
-        if Path('./requirements.txt').exists():
-            run_cmd_with_logging('sudo pip3 install -r ./requirements.txt')
+        requirements_path = self.base_path / 'requirements.txt'
+        if requirements_path.exists():
+            install_pip_packages(requirements_path)
 
     def install_other_packages(self):
         '''
