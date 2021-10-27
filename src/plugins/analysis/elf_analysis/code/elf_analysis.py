@@ -149,21 +149,14 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 for key in {'virtual_address', 'offset'}.intersection(entry):
                     entry[key] = hex(entry[key])
 
-    def filter_modinfo(self, binary) -> Optional[List[str]]:
+    @staticmethod
+    def filter_modinfo(binary) -> Optional[List[str]]:
         # getting the information from the *.ko files .modinfo
+        modinfo = None
         if binary is not None:
-
             for section in binary.sections:
                 if section.name == '.modinfo':
                     modinfo = bytes(section.content).decode()
                     modinfo = [entry for entry in modinfo.split('\x00') if entry]
                     break
-
-                # no .modinfo
-                modinfo = None
-
-        else:
-            # binary is nonetype
-            modinfo = None
-
         return modinfo
