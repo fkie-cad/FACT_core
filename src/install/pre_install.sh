@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # cd in this files directory for relative paths to work
-cd "$( dirname "${BASH_SOURCE[0]}" )"
+cd "$( dirname "${BASH_SOURCE[0]}" )" || exit 1
 
 FACTUSER=$(whoami)
 
@@ -70,15 +70,8 @@ then
 fi
 sudo usermod -aG docker "$FACTUSER"
 
-if pip3 freeze 2>/dev/null | grep -q enum34
-then
-  echo "Please uninstall the enum34 pypi package before continuing as it is not compatible with python >3.6 anymore"
-  exit 1
-fi
-
-sudo -EH pip3 install --upgrade pip
-
-sudo -EH pip install -r ./requirements_pre_install.txt
+python3 -m pip install -U pip
+python3 -m pip install -r ./requirements_pre_install.txt --prefer-binary
 
 echo -e "Pre-Install-Routine complete! \\033[31mPlease reboot before running install.py\\033[0m"
 
