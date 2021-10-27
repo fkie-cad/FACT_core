@@ -4,12 +4,12 @@ from base64 import b64decode, b64encode
 from pathlib import Path
 from unittest import TestCase
 
+import docker
 import pytest
 from common_helper_files import get_dir_of_file
 from requests.exceptions import ConnectionError as RequestConnectionError
 from requests.exceptions import ReadTimeout
 
-import docker
 from test.common_helper import create_test_firmware, get_config_for_testing, get_test_data_dir
 from test.mock import mock_patch
 from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
@@ -411,13 +411,13 @@ def test_replace_empty_strings():
     ({'parameter': {'output': 'no_b64'}}, 'decoding error: no_b64'),
 ])
 def test_decode_output_values(input_data, expected_output):
-    result = qemu_exec.decode_output_values(input_data)
+    results = qemu_exec.decode_output_values(input_data)
     assert all(
         isinstance(value, str)
-        for parameter in result
-        for value in result[parameter].values()
+        for parameter_result in results.values()
+        for value in parameter_result.values()
     )
-    assert result['parameter']['output'] == expected_output
+    assert results['parameter']['output'] == expected_output
 
 
 @pytest.mark.parametrize('input_data', [
