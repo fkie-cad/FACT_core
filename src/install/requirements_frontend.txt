@@ -19,3 +19,6 @@ virtualenv
 
 # Used for username validation by flask-security
 bleach
+
+# Used to start radare
+docker-compose
