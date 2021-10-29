@@ -405,8 +405,8 @@ def sort_cve_results(cve_result: Dict[str, Dict[str, str]]) -> List[Tuple[str, D
 
 def linter_reformat_issues(issues) -> Dict[str, List[Dict[str, str]]]:
     reformatted = defaultdict(lambda: [], {})
-    for blah in issues:
-        symbol = blah['symbol']
-        content = {'line': blah['line'], 'column': blah['column'], 'message': blah['message']}
+    for issue in issues:
+        symbol = issue['symbol']
+        content = {'line': issue['line'], 'column': issue['column'], 'message': issue['message']}
         reformatted[symbol].append(content)
     return reformatted
