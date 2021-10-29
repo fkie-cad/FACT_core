@@ -119,6 +119,8 @@ class TestAnalysisSchedulerBlacklist:
     file_object = MockFileObject()
 
     class PluginMock:
+        DEPENDENCIES = []
+
         def __init__(self, blacklist=None, whitelist=None):
             if blacklist:
                 self.MIME_BLACKLIST = blacklist
@@ -334,6 +336,8 @@ class TestUtilityFunctions(UtilityBase):
 class TestAnalysisSkipping:
 
     class PluginMock:
+        DEPENDENCIES = []
+
         def __init__(self, version, system_version):
             self.VERSION = version
             self.NAME = 'test plug-in'
