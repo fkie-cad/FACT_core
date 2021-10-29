@@ -29,21 +29,14 @@ document.addEventListener('DOMContentLoaded', () => {
     diff2htmlUi.draw();
     diff2htmlUi.highlightCode();
 
-    // For a meaningful comparison we need to know which firmwares the files came from.
-    // We just append the firmware to the filename (in a hacky but simple but simple way).
-    // Replace the filenames by uuids first to prevent replacing the same string twice.
-    // We can't do this in python code because then highlight.js can't detect the filetype.
-    placeholder_first = "c046743b-268e-4f8b-909c-7458cc7a86a8"
-    placeholder_second = "7a0496d7-4fe3-46e8-894e-bbe7294217ee"
-    innerHTMLWithFirmware = targetElement.innerHTML.replace("{{file0}}", placeholder_first)
-    innerHTMLWithFirmware = innerHTMLWithFirmware.replace("{{file1}}", placeholder_second)
-    innerHTMLWithFirmware = innerHTMLWithFirmware.replace(placeholder_first, "{{file0}} ({{fw0.get_hid()}})")
-    innerHTMLWithFirmware = innerHTMLWithFirmware.replace(placeholder_second, "{{file1}} ({{fw1.get_hid()}})")
-    targetElement.innerHTML = innerHTMLWithFirmware
+    // We depend on internal naming schemes on diff2html here.
+    // So be aware that this might break. For now this is the simplest way to
+    // incoperate firmware information.
+    fileNameElement = targetElement.querySelector(".d2h-file-name")
+    fileNameElement.textContent += " | ({{fw0.get_hid()}}) vs ({{fw1.get_hid()}})"
 });
 </script>
 
-<div id="diff-element" class="mt-3">Tets</div>
-
+<div id="diff-element" class="mt-3"></div>
 
 {% endblock %}

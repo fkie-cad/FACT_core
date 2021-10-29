@@ -10,7 +10,6 @@ from helperFunctions.data_conversion import (
 from helperFunctions.database import ConnectTo
 from helperFunctions.web_interface import get_template_as_string
 from intercom.front_end_binding import InterComFrontEndBinding
-from storage.binary_service import BinaryService
 from storage.db_interface_compare import CompareDbInterface, FactCompareException
 from storage.db_interface_frontend import FrontEndDbInterface
 from storage.db_interface_view_sync import ViewReader
@@ -165,17 +164,15 @@ class CompareRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['compare'])
     @AppRoute('/comparison/text_files', GET)
     def text_files(self):
-        compare_uid_list = get_comparison_uid_list_from_session()
-        if len(compare_uid_list) != 2:
-            return render_template('compare/error.html', error=f"Can't compare {len(compare_uid_list)} files. You must compare exactly 2 files.")
+        uids = get_comparison_uid_list_from_session()
+        if len(uids) != 2:
+            return render_template('compare/error.html', error=f"Can't compare {len(uids)} files. You must compare exactly 2 files.")
 
-        uids = [session['uids_for_comparison'][0], session['uids_for_comparison'][1]]
         contents = [None, None]
-        names = [None, None]
         fos = [None, None]
-        bs = BinaryService(self._config)
-        contents[0], names[0] = bs.get_binary_and_file_name(uids[0])
-        contents[1], names[1] = bs.get_binary_and_file_name(uids[1])
+        with ConnectTo(InterComFrontEndBinding, self._config) as db:
+            contents[0], _ = db.get_binary_and_filename(uids[0])
+            contents[1], _ = db.get_binary_and_filename(uids[1])
 
         with ConnectTo(CompareDbInterface, self._config) as db:
             fos[0] = db.get_object(uids[0])
@@ -183,10 +180,19 @@ class CompareRoutes(ComponentBase):
 
         # FIXME theoretically it is possible that the file_type plugin is not finished yet.
         mimetypes = [None, None]
-        mimetypes[0] = fos[0].processed_analysis['file_type']['mime']
-        mimetypes[1] = fos[1].processed_analysis['file_type']['mime']
+        mimetypes[0] = fos[0].processed_analysis.get('file_type', {}).get('mime')
+        mimetypes[1] = fos[1].processed_analysis.get('file_type', {}).get('mime')
 
-        if mimetypes[0][0:len('text')] != 'text' or mimetypes[1][0:len('text')] != 'text':
+        uids_with_missing_file_type_msg = ''
+        if mimetypes[0] is None:
+            uids_with_missing_file_type_msg += uids[0]
+        if mimetypes[1] is None:
+            uids_with_missing_file_type_msg += f' and {uids[1]}'
+
+        if len(uids_with_missing_file_type_msg) != 0:
+            return render_template('compare/error.html', error=f'file_type anayisis is not finished for {uids_with_missing_file_type_msg}')
+
+        if any(mime[0:len('text')] != 'text' for mime in mimetypes):
             return render_template('compare/error.html', error=f"Can't compare non-text mimetypes. ({mimetypes[0]} vs {mimetypes[1]})")
 
         # Note that this is kind of bad.
@@ -198,20 +204,15 @@ class CompareRoutes(ComponentBase):
 
         diff_generator = difflib.unified_diff(contents[0].decode().splitlines(keepends=True),
                                               contents[1].decode().splitlines(keepends=True),
-                                              fromfile=f'{names[0]}',
-                                              tofile=f'{names[1]}')
+                                              fromfile=f'{fos[0].file_name}',
+                                              tofile=f'{fos[1].file_name}')
 
         diffstr = ''.join(diff_generator)
         diffstr = diffstr.replace('`', '\\`')
-        return render_template('compare/text_files.html', diffstr=diffstr, file0=names[0], file1=names[1], fw0=firmwares[0], fw1=firmwares[1])
 
-    def get_software_components(self, uid):
-        try:
-            with ConnectTo(CompareDbInterface, self._config) as db:
-                components = db.get_object(uid).processed_analysis['software_components']['summary']
-        except KeyError:
-            components = None
-        return components
+        uids.clear()
+        session.modified = True
+        return render_template('compare/text_files.html', diffstr=diffstr, file0=fos[0].file_name, file1=fos[1].file_name, fw0=firmwares[0], fw1=firmwares[1])
 
 
 def get_comparison_uid_list_from_session():  # pylint: disable=invalid-name
