@@ -74,7 +74,7 @@ sudo usermod -aG docker "$FACTUSER"
 
 IS_VENV=$(python3 -c 'import sys; print(sys.exec_prefix!=sys.base_prefix)')
 SUDO=""
-if [[ $IS_VENV == "True" ]]
+if [[ $IS_VENV == "False" ]]
 then
   SUDO="sudo -EH"
 fi
