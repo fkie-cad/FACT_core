@@ -1,11 +1,17 @@
 {% extends "analysis_plugins/general_information.html" %}
 
 {% block analysis_result_details %}
-    {% set result = firmware.processed_analysis[selected_analysis]['full'] %}
-    {% for issue in result %}
+    {% set result = firmware.processed_analysis[selected_analysis]['full'] | _linter_reformat_issues %}
+    {% for symbol, contents in result.items() %}
         <tr>
-            <td> {{issue['symbol']}} </td>
-            <td><pre class="border rounded p-2 bg-light">{{ issue['line'] }}:{{ issue['column'] }} {{ issue['message'] | safe}}</pre></td>
+            <td>{{symbol}}</td>
+            <td>
+                <ul class="list-unstyled">
+                    {% for c in contents %}
+                        <li class="border rounded p-2 bg-light">{{ c['line'] }}:{{ c['column'] }} {{ c['message'] | safe}}</li->
+                    {% endfor %}
+                </ul>
+            </td>
         </tr>
     {% endfor %}
     {% if 'warning' in firmware.processed_analysis[selected_analysis] %}
