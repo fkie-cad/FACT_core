@@ -65,7 +65,7 @@ class UsersAndPasswordsInstaller(AbstractPluginInstaller):
 # Alias for generic use
 Installer = UsersAndPasswordsInstaller
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
     distribution = check_distribution()
     installer = Installer(distribution)

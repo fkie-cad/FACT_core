@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import logging
+import os
 import urllib.request
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -21,9 +22,15 @@ class QemuExecInstaller(AbstractPluginInstaller):
     base_path = Path(__file__).resolve().parent
 
     def install_docker_images(self):
-        run_cmd_with_logging(
-            'docker build --build-arg=http{,s}_proxy --build-arg=HTTP{,S}_PROXY -t fact/qemu:latest docker',
-            shell=True)
+        run_cmd_with_logging(f'docker build {self._get_build_args()} -t fact/qemu-exec:alpine-3.14 {self.base_path}/docker')
+
+    @staticmethod
+    def _get_build_args():
+        return ' '.join([
+            f'--build-arg {key}={os.environ[key]}'
+            for key in ['http_proxy', 'https_proxy', 'no_proxy', 'HTTP_PROXY', 'HTTPS_PROXY', 'NO_PROXY']
+            if key in os.environ
+        ])
 
     def install_files(self):
         with TemporaryDirectory(dir=str(self.base_path)) as tmp_dir:
@@ -56,7 +63,7 @@ class QemuExecInstaller(AbstractPluginInstaller):
 # Alias for generic use
 Installer = QemuExecInstaller
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
     distribution = check_distribution()
     installer = Installer(distribution)

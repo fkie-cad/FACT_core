@@ -13,7 +13,6 @@ from helperFunctions.install import (
 
 DEFAULT_CERT = '.\n.\n.\n.\n.\nexample.com\n.\n\n\n'
 INSTALL_DIR = Path(__file__).parent
-COMPOSE_VENV = INSTALL_DIR.absolute() / 'compose-env'
 PIP_DEPENDENCIES = INSTALL_DIR / 'requirements_frontend.txt'
 
 
@@ -149,14 +148,8 @@ def _install_docker_images(radare):
     if radare:
         logging.info('Initializing docker container for radare')
 
-        execute_shell_command_get_return_code('virtualenv {}'.format(COMPOSE_VENV))
-        # We use the pip from the Venv for docker-compose
-        output, return_code = execute_shell_command_get_return_code('{} install -U docker-compose'.format(COMPOSE_VENV / 'bin' / 'pip'))
-        if return_code != 0:
-            raise InstallationError('Failed to set up virtualenv for docker-compose\n{}'.format(output))
-
         with OperateInDirectory('radare'):
-            output, return_code = execute_shell_command_get_return_code('{} build'.format(COMPOSE_VENV / 'bin' / 'docker-compose'))
+            output, return_code = execute_shell_command_get_return_code('docker-compose build')
             if return_code != 0:
                 raise InstallationError('Failed to initialize radare container:\n{}'.format(output))
 
@@ -170,7 +163,7 @@ def _install_docker_images(radare):
 def main(skip_docker, radare, nginx):
     # flask-security is not maintained anymore and replaced by flask-security-too.
     # Since python package naming conflicts are not resolved automatically, we remove flask-security manually.
-    run_cmd_with_logging('sudo -EH pip3 uninstall flask-security')
+    run_cmd_with_logging('sudo -EH pip3 uninstall -y flask-security')
     install_pip_packages(PIP_DEPENDENCIES)
 
     # installing web/js-frameworks

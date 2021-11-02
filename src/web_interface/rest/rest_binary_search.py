@@ -31,16 +31,16 @@ class RestBinarySearchPost(RestResourceBase):
         `rule_file` can be something like `rule rule_name {strings: $a = \"foobar\" condition: $a}`
         '''
         payload_data = self.validate_payload_data(binary_search_model)
-        if not is_valid_yara_rule_file(payload_data["rule_file"]):
+        if not is_valid_yara_rule_file(payload_data['rule_file']):
             return error_message('Error in YARA rule file', self.URL, request_data=request.data)
-        if payload_data["uid"] and not self._is_firmware(payload_data["uid"]):
+        if payload_data['uid'] and not self._is_firmware(payload_data['uid']):
             return error_message(
                 f'Firmware with UID {payload_data["uid"]} not found in database',
                 self.URL, request_data=request.data
             )
 
         with ConnectTo(InterComFrontEndBinding, self.config) as intercom:
-            search_id = intercom.add_binary_search_request(payload_data["rule_file"].encode(), payload_data["uid"])
+            search_id = intercom.add_binary_search_request(payload_data['rule_file'].encode(), payload_data['uid'])
 
         return success_message(
             {'message': 'Started binary search. Please use GET and the search_id to get the results'},

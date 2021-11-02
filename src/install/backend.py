@@ -36,7 +36,6 @@ def main(skip_docker, distribution):
     # install yara
     _install_yara()
 
-    # install checksec.sh
     _install_checksec()
 
     if not skip_docker:
@@ -153,12 +152,9 @@ def _install_yara():  # pylint: disable=too-complex
 
 def _install_checksec():
     checksec_path = BIN_DIR / 'checksec'
-    if checksec_path.is_file():
-        logging.info('Skipping checksec.sh installation (already installed)')
-        return
 
     logging.info('Installing checksec.sh')
-    checksec_url = 'https://raw.githubusercontent.com/slimm609/checksec.sh/master/checksec'
+    checksec_url = 'https://raw.githubusercontent.com/slimm609/checksec.sh/2.5.0/checksec'
     output, return_code = execute_shell_command_get_return_code(f'wget -P {BIN_DIR} {checksec_url}')
     if return_code != 0:
         raise InstallationError(f'Error during installation of checksec.sh\n{output}')
