@@ -178,7 +178,6 @@ class CompareRoutes(ComponentBase):
             fos[0] = db.get_object(uids[0])
             fos[1] = db.get_object(uids[1])
 
-        # FIXME theoretically it is possible that the file_type plugin is not finished yet.
         mimetypes = [None, None]
         mimetypes[0] = fos[0].processed_analysis.get('file_type', {}).get('mime')
         mimetypes[1] = fos[1].processed_analysis.get('file_type', {}).get('mime')
