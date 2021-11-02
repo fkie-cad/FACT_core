@@ -1,30 +1,40 @@
-import unittest
-
-from test.common_helper import TEST_TEXT_FILE
+from test.common_helper import TEST_TEXT_FILE, TEST_TEXT_FILE2
 from test.unit.web_interface.base import WebInterfaceTest
 
 
-class MockBinaryService:
-    def __init__(self, config=None):
-        pass
+class MockInterCom:
+    def get_binary_and_filename(self, uid: str):
+        if uid == TEST_TEXT_FILE.uid:
+            return b'file content\nfirst', TEST_TEXT_FILE.file_name
+        elif uid == TEST_TEXT_FILE2.uid:
+            return b'file content\nsecond', TEST_TEXT_FILE2.file_name
+        else:
+            assert False
 
-    def get_binary_and_file_name(self, uid: str):
-        assert uid == TEST_TEXT_FILE.uid
-        return b'file content', TEST_TEXT_FILE.file_name
+    def get_object(self, uid: str):
+        if uid == TEST_TEXT_FILE.uid:
+            return TEST_TEXT_FILE
+        elif uid == TEST_TEXT_FILE2.uid:
+            return TEST_TEXT_FILE2
+        else:
+            assert False
+
+    def shutdown(self):
+        pass
 
 
 class TestAppComparisonTextFiles(WebInterfaceTest):
+    def setUp(self):
+        super().setUp(db_mock=MockInterCom)
 
     def test_comparison_text_files(self):
-        new_patch = unittest.mock.patch(target='storage.binary_service.BinaryService.__new__', new=lambda *_, **__: MockBinaryService())
-        new_patch.start()
+        TEST_TEXT_FILE.processed_analysis['file_type']['mime'] = 'text/plain'
+        TEST_TEXT_FILE2.processed_analysis['file_type']['mime'] = 'text/plain'
         with self.test_client as tc:
             with tc.session_transaction() as test_session:
-                test_session['uids_for_comparison'] = [TEST_TEXT_FILE.uid, TEST_TEXT_FILE.uid]
+                test_session['uids_for_comparison'] = [TEST_TEXT_FILE.uid, TEST_TEXT_FILE2.uid]
 
             rv = self.test_client.get('/comparison/text_files')
-            print(rv.data)
 
+            # As the javascript rendering is done clientside we test if the diffstring is valid
             assert TEST_TEXT_FILE.file_name in rv.data.decode()
-
-        new_patch.stop()
