@@ -4,6 +4,7 @@ import random
 import re
 import zlib
 from base64 import standard_b64encode
+from collections import defaultdict
 from datetime import timedelta
 from operator import itemgetter
 from string import ascii_letters
@@ -400,3 +401,12 @@ def _link_to_cwe(match: Match) -> str:
 
 def sort_cve_results(cve_result: Dict[str, Dict[str, str]]) -> List[Tuple[str, Dict[str, str]]]:
     return sorted(cve_result.items(), key=lambda item: item[1]['score2'], reverse=True)
+
+
+def linter_reformat_issues(issues) -> Dict[str, List[Dict[str, str]]]:
+    reformatted = defaultdict(lambda: [], {})
+    for issue in issues:
+        symbol = issue['symbol']
+        content = {'line': issue['line'], 'column': issue['column'], 'message': issue['message']}
+        reformatted[symbol].append(content)
+    return reformatted
