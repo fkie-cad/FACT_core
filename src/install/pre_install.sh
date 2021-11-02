@@ -72,8 +72,14 @@ then
 fi
 sudo usermod -aG docker "$FACTUSER"
 
-python3 -m pip install -U pip
-python3 -m pip install -r ./requirements_pre_install.txt --prefer-binary
+IS_VENV=$(python3 -c 'import sys; print(sys.exec_prefix!=sys.base_prefix)')
+SUDO=""
+if [[ $IS_VENV == "False" ]]
+then
+  SUDO="sudo -EH"
+fi
+$SUDO pip3 install -U pip
+$SUDO pip3 install -r ./requirements_pre_install.txt --prefer-binary
 
 echo -e "Pre-Install-Routine complete! \\033[31mPlease reboot before running install.py\\033[0m"
 
