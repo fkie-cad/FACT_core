@@ -62,10 +62,10 @@ def main():
     parser.set_defaults(func=lambda _: parser.print_usage())
     subparsers = parser.add_subparsers()
 
-    upgrade_p = subparsers.add_parser("upgrade", help="Upgrade the user database", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    upgrade_p = subparsers.add_parser('upgrade', help='Upgrade the user database', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     upgrade_p.set_defaults(func=upgrade)
 
-    downgrade_p = subparsers.add_parser("downgrade", help="Downgrade the user database", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    downgrade_p = subparsers.add_parser('downgrade', help='Downgrade the user database', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     downgrade_p.set_defaults(func=downgrade)
     args = parser.parse_args()
 

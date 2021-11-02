@@ -1,2 +1,2 @@
 def plugin_init():
-    return "plugin_loaded"
+    return 'plugin_loaded'

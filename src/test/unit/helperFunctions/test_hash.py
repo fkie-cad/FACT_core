@@ -85,5 +85,5 @@ def test_suppress_stdout(capsys):
 
 
 def test_get_tlsh():
-    assert get_tlsh(b"foobar") == ''  # make sure the result is not 'TNULL'
+    assert get_tlsh(b'foobar') == ''  # make sure the result is not 'TNULL'
     assert get_tlsh(os.urandom(2**7)) != ''  # the new tlsh version should work for smaller inputs

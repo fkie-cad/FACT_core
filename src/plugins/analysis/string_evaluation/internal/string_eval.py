@@ -31,13 +31,13 @@ def _add_length_score(string, score):
 
 
 def _add_rare_special_character_score(string, score):
-    rare_characters = ["^", "°", "§", "´", "`", "{", "}"]
+    rare_characters = ['^', '°', '§', '´', '`', '{', '}']
     return score - 15 * len([character for character in rare_characters if character in string])
 
 
 def _add_special_character_ratio_score(string, score):
-    regex_non_word = r"\W"
-    regex_word = r"[a-zA-Z]"
+    regex_non_word = r'\W'
+    regex_word = r'[a-zA-Z]'
     matches_non_word = re.finditer(regex_non_word, string)
     matches_word = re.finditer(regex_word, string)
     match_num_non_word = len(list(matches_non_word))
@@ -52,8 +52,8 @@ def _ratio_word_non_word_helper(num_word, num_non_word):
 
 
 def _add_case_ratio_score(string, score):
-    regex_lower = r"[a-z]"
-    regex_capital = r"[A-Z]"
+    regex_lower = r'[a-z]'
+    regex_capital = r'[A-Z]'
     matches_lower_case = re.finditer(regex_lower, string)
     matches_capital = re.finditer(regex_capital, string)
     match_num_lower = len(list(matches_lower_case))
@@ -71,35 +71,35 @@ def _case_ratio_helper(num_lower, num_capital):
 
 
 def _add_quad_characters_score(string, score):
-    matches = re.finditer(r"(\S)\1\1\1", string)
+    matches = re.finditer(r'(\S)\1\1\1', string)
     return score - 25 * len(list(matches))
 
 
 def _add_dictionary_score(string, score):
-    dictionary = ["version", "v.", "http", "ftp", "usage", "Usage", "ssh", "SSH", "password", "Version"]
+    dictionary = ['version', 'v.', 'http', 'ftp', 'usage', 'Usage', 'ssh', 'SSH', 'password', 'Version']
     return score + 30 * len([word for word in dictionary if word in string])
 
 
 def _add_possible_year_score(string, score):
-    regex = r"([1][9]\d\d)|([2][0]\d\d)"
+    regex = r'([1][9]\d\d)|([2][0]\d\d)'
     matches = re.search(regex, string)
     return score + 20 if matches else score
 
 
 def _add_path_score(string, score):
-    regex = r"(\/[\w-]+)+(.[a-zA-Z]+)"
+    regex = r'(\/[\w-]+)+(.[a-zA-Z]+)'
     matches = re.search(regex, string)
     return score + 100 if matches else score
 
 
 def _add_possible_version_number_score(string, score):
-    regex = r"\d+\.(\d+\.?)+"
+    regex = r'\d+\.(\d+\.?)+'
     matches = re.search(regex, string)
     return score + 35 if matches else score
 
 
 def _add_format_string_score(string, score):
-    regex = r"%s|%lu|%u|%lf|%f|%i|%d"
+    regex = r'%s|%lu|%u|%lf|%f|%i|%d'
     matches = re.finditer(regex, string)
     return score - 15 * len(list(matches))
 
@@ -111,16 +111,16 @@ def _add_mail_adress_score(string, score):
 
 
 def _add_underscore_or_period_at_beginning_score(string, score):
-    match = re.search(r"(^_+)|^\.", string)
+    match = re.search(r'(^_+)|^\.', string)
     return score - 25 if match else score
 
 
 def _add_parameter_score(string, score):
-    match = re.search(r"^\s*-{1,2}", string)
+    match = re.search(r'^\s*-{1,2}', string)
     return score + 35 if match and len(string) > 6 else score
 
 
 def _add_html_score(string, score):
-    regex = r"</?[^\\\(\)$\[\]\§\.\,\?<>;|!]+>"
+    regex = r'</?[^\\\(\)$\[\]\§\.\,\?<>;|!]+>'
     match = re.search(regex, string)
     return score + 15 if match else score

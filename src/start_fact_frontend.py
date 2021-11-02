@@ -25,14 +25,11 @@ import tempfile
 from shlex import split
 from subprocess import Popen, TimeoutExpired
 
-from common_helper_process import execute_shell_command
 from fact_base import FactBase
-
 from helperFunctions.config import get_config_dir
 from helperFunctions.fileSystem import get_src_dir
-from install.frontend import COMPOSE_VENV
+from helperFunctions.install import run_cmd_with_logging
 
-DOCKER_COMPOSE = COMPOSE_VENV / 'bin' / 'docker-compose'
 COMPOSE_YAML = f'{get_src_dir()}/install/radare/docker-compose.yml'
 
 
@@ -56,14 +53,6 @@ class UwsgiServer:
                 self.process.kill()
 
 
-def start_docker():
-    execute_shell_command(f'{DOCKER_COMPOSE} -f {COMPOSE_YAML} up -d')
-
-
-def stop_docker():
-    execute_shell_command(f'{DOCKER_COMPOSE} -f {COMPOSE_YAML} down')
-
-
 class FactFrontend(FactBase):
     PROGRAM_NAME = 'FACT Frontend'
     PROGRAM_DESCRIPTION = 'Firmware Analysis and Compare Tool Frontend'
@@ -72,7 +61,7 @@ class FactFrontend(FactBase):
     def __init__(self):
         super().__init__()
         self.server = None
-        start_docker()
+        run_cmd_with_logging(f'docker-compose -f {COMPOSE_YAML} up -d')
 
     def main(self):
         with tempfile.NamedTemporaryFile() as fp:
@@ -87,7 +76,7 @@ class FactFrontend(FactBase):
         super().shutdown()
         if self.server:
             self.server.shutdown()
-        stop_docker()
+        run_cmd_with_logging(f'docker-compose -f {COMPOSE_YAML} down')
 
 
 if __name__ == '__main__':
