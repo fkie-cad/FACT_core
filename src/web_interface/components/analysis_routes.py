@@ -56,6 +56,8 @@ class AnalysisRoutes(ComponentBase):
             file_obj = sc.get_object(uid, analysis_filter=analysis_filter)
             if not file_obj:
                 return render_template('uid_not_found.html', uid=uid)
+            if selected_analysis is not None and selected_analysis not in file_obj.processed_analysis:
+                return render_template('error.html', message=f'The requested analyis ({selected_analysis}) has not run (yet)')
             if isinstance(file_obj, Firmware):
                 root_uid = file_obj.uid
                 other_versions = sc.get_other_versions_of_firmware(file_obj)
