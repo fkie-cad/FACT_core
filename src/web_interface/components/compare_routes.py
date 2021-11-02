@@ -138,9 +138,12 @@ class CompareRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @AppRoute('/comparison/add/<uid>', GET)
-    def add_to_compare_basket(self, uid):  # pylint: disable=no-self-use
+    @AppRoute('/comparison/add/<uid>/<root_uid>', GET)
+    def add_to_compare_basket(self, uid, root_uid=None):  # pylint: disable=no-self-use
         compare_uid_list = get_comparison_uid_list_from_session()
         compare_uid_list.append(uid)
+        compare_root_uid_dict = get_comparison_root_uid_dict_from_session()
+        compare_root_uid_dict[uid] = root_uid
         session.modified = True
         return redirect(url_for('show_analysis', uid=uid))
 
@@ -150,6 +153,7 @@ class CompareRoutes(ComponentBase):
         compare_uid_list = get_comparison_uid_list_from_session()
         if compare_uid in compare_uid_list:
             session['uids_for_comparison'].remove(compare_uid)
+            session['root_uids_for_comparison'].pop(compare_uid)
             session.modified = True
         return redirect(url_for('show_analysis', uid=analysis_uid))
 
@@ -158,6 +162,8 @@ class CompareRoutes(ComponentBase):
     def remove_all_from_compare_basket(self, analysis_uid):  # pylint: disable=no-self-use
         compare_uid_list = get_comparison_uid_list_from_session()
         compare_uid_list.clear()
+        compare_root_uid_dict = get_comparison_root_uid_dict_from_session()
+        compare_root_uid_dict.clear()
         session.modified = True
         return redirect(url_for('show_analysis', uid=analysis_uid))
 
@@ -194,12 +200,9 @@ class CompareRoutes(ComponentBase):
         if any(mime[0:len('text')] != 'text' for mime in mimetypes):
             return render_template('compare/error.html', error=f"Can't compare non-text mimetypes. ({mimetypes[0]} vs {mimetypes[1]})")
 
-        # Note that this is kind of bad.
-        # Files can be part of many firmwares. This means that two firmwares containing the same file might lead to
-        # confusion.
-        root_uids = [fos[0].get_root_uid(), fos[1].get_root_uid()]
+        root_uids_dict = get_comparison_root_uid_dict_from_session()
         with ConnectTo(FrontEndDbInterface, self._config) as db:
-            firmwares = [db.get_object(root_uids[0]), db.get_object(root_uids[1])]
+            firmwares = [db.get_object(root_uids_dict[uids[0]]), db.get_object(root_uids_dict[uids[1]])]
 
         diff_generator = difflib.unified_diff(contents[0].decode().splitlines(keepends=True),
                                               contents[1].decode().splitlines(keepends=True),
@@ -218,3 +221,9 @@ def get_comparison_uid_list_from_session():  # pylint: disable=invalid-name
     if 'uids_for_comparison' not in session or not isinstance(session['uids_for_comparison'], list):
         session['uids_for_comparison'] = []
     return session['uids_for_comparison']
+
+
+def get_comparison_root_uid_dict_from_session():
+    if 'root_uids_for_comparison' not in session or not isinstance(session['root_uids_for_comparison'], dict):
+        session['root_uids_for_comparison'] = {}
+    return session['root_uids_for_comparison']

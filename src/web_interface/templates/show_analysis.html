@@ -90,7 +90,9 @@
                     {{ button_collapse('old-compare-button', 'hdd', 'known-comparisons', 'Show list of known comparisons') }}
                 {% endif %}
                 {% if not uids_for_comparison or uid not in uids_for_comparison %}
-                    {{ button_tooltip('Add to comparison', 'add-compare', '/comparison/add/', 'plus') }}
+                    <button id="add-compare" class="btn btn-outline-secondary" onclick="window.location.href = '/comparison/add/{{firmware.uid}}/{{root_uid}}'" data-toggle="tooltip" data-placement="bottom" title="Add to comparison">
+                        <i class="fas fa-plus"></i>
+                    </button>
                 {% endif %}
 
                 {% if uids_for_comparison %}
