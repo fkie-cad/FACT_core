@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 # cd in this files directory for relative paths to work
 cd "$( dirname "${BASH_SOURCE[0]}" )" || exit 1
 
@@ -34,12 +36,12 @@ then
 else
 	# Uninstall old versions
 	sudo apt-get -y remove docker docker-engine docker.io
-	
+
 	if [ "${CODENAME}" = "stretch" ] || [ "${CODENAME}" = "buster" ]
 	then
 	    # Add Docker’s official GPG key
 	    curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
-	
+
 	    # set up the stable repository
 	    if [ ! -f /etc/apt/sources.list.d/docker.list ]
 	    then
@@ -49,7 +51,7 @@ else
 	else
 	    # Add Docker’s official GPG key
 	    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-	
+
 	    # set up the stable repository
 	    if  ! grep -q "^deb .*download.docker.com/linux/ubuntu" /etc/apt/sources.list /etc/apt/sources.list.d/*
 	    then
@@ -70,8 +72,14 @@ then
 fi
 sudo usermod -aG docker "$FACTUSER"
 
-python3 -m pip install -U pip
-python3 -m pip install -r ./requirements_pre_install.txt --prefer-binary
+IS_VENV=$(python3 -c 'import sys; print(sys.exec_prefix!=sys.base_prefix)')
+SUDO=""
+if [[ $IS_VENV == "False" ]]
+then
+  SUDO="sudo -EH"
+fi
+$SUDO pip3 install -U pip
+$SUDO pip3 install -r ./requirements_pre_install.txt --prefer-binary
 
 echo -e "Pre-Install-Routine complete! \\033[31mPlease reboot before running install.py\\033[0m"
 
