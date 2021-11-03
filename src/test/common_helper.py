@@ -48,9 +48,9 @@ def create_test_firmware(device_class='Router', device_name='test_router', vendo
     fw.release_date = '1970-01-01'
     fw.version = version
     processed_analysis = {
-        'dummy': {'summary': ['sum a', 'fw exclusive sum a'], 'content': 'abcd'},
-        'unpacker': {'plugin_used': 'used_unpack_plugin'},
-        'file_type': {'mime': 'test_type', 'full': 'Not a PE file', 'summary': ['a summary']}
+        'dummy': {'summary': ['sum a', 'fw exclusive sum a'], 'content': 'abcd', 'plugin_version': '0', 'analysis_date': '0'},
+        'unpacker': {'plugin_used': 'used_unpack_plugin', 'plugin_version': '1.0', 'analysis_date': '0'},
+        'file_type': {'mime': 'test_type', 'full': 'Not a PE file', 'summary': ['a summary'], 'plugin_version': '1.0', 'analysis_date': '0'}
     }
 
     fw.processed_analysis.update(processed_analysis)
@@ -63,9 +63,9 @@ def create_test_firmware(device_class='Router', device_name='test_router', vendo
 def create_test_file_object(bin_path='get_files_test/testfile1'):
     fo = FileObject(file_path=os.path.join(get_test_data_dir(), bin_path))
     processed_analysis = {
-        'dummy': {'summary': ['sum a', 'file exclusive sum b'], 'content': 'file abcd'},
-        'file_type': {'full': 'Not a PE file'},
-        'unpacker': {'file_system_flag': False, 'plugin_used': 'unpacker_name'}
+        'dummy': {'summary': ['sum a', 'file exclusive sum b'], 'content': 'file abcd', 'plugin_version': '0', 'analysis_date': '0'},
+        'file_type': {'full': 'Not a PE file', 'plugin_version': '1.0', 'analysis_date': '0'},
+        'unpacker': {'file_system_flag': False, 'plugin_used': 'unpacker_name', 'plugin_version': '1.0', 'analysis_date': '0'}
     }
     fo.processed_analysis.update(processed_analysis)
     fo.virtual_file_path = fo.get_virtual_file_paths()
