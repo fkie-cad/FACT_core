@@ -163,13 +163,14 @@ class AnalysisRoutes(ComponentBase):
     @AppRoute('/update-analysis/<uid>', POST)
     def post_update_analysis(self, uid, re_do=False):
         analysis_task = create_re_analyze_task(request, uid=uid)
+        force_reanalysis = request.form.get('force_reanalysis') == 'true'
         error = check_for_errors(analysis_task)
         if error:
             return redirect(url_for('get_update_analysis', uid=uid, re_do=re_do, error=error))
-        self._schedule_re_analysis_task(uid, analysis_task, re_do)
+        self._schedule_re_analysis_task(uid, analysis_task, re_do, force_reanalysis)
         return render_template('upload/upload_successful.html', uid=uid)
 
-    def _schedule_re_analysis_task(self, uid, analysis_task, re_do):
+    def _schedule_re_analysis_task(self, uid, analysis_task, re_do, force_reanalysis=False):
         if re_do:
             base_fw = None
             with ConnectTo(AdminDbInterface, self._config) as sc:
@@ -177,6 +178,7 @@ class AnalysisRoutes(ComponentBase):
         else:
             with ConnectTo(FrontEndDbInterface, self._config) as db:
                 base_fw = db.get_firmware(uid)
+                base_fw.force_update = force_reanalysis
         fw = convert_analysis_task_to_fw_obj(analysis_task, base_fw=base_fw)
         with ConnectTo(InterComFrontEndBinding, self._config) as sc:
             sc.add_re_analyze_task(fw, unpack=re_do)
