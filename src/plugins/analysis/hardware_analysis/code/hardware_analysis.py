@@ -22,14 +22,15 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
         # search for important information
         cpu_architecture = self.cpu_architecture_analysis(file_object)
-        modinfo = self.filter_modinfo(file_object)
+        modinfo = self.get_modinfo(file_object)
         kernel_config = self.filter_kernel_config(file_object)
 
         # store the results
-        file_object.processed_analysis[self.NAME] = dict()
-        file_object.processed_analysis[self.NAME]['cpu architecture'] = cpu_architecture
-        file_object.processed_analysis[self.NAME]['*.ko ".modinfo"'] = modinfo
-        file_object.processed_analysis[self.NAME]['kernel configuration'] = kernel_config
+        file_object.processed_analysis[self.NAME] = {
+            'cpu architecture': cpu_architecture,
+            'modinfo section': modinfo,
+            'kernel configuration': kernel_config
+        }
 
         # propagate summary to parent objects
         file_object.processed_analysis[self.NAME]['summary'] = self.make_summary(cpu_architecture, modinfo, kernel_config)
@@ -37,8 +38,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return file_object
 
     def cpu_architecture_analysis(self, file_object) -> Optional[str]:
-        cpu_architecture_dict = file_object.processed_analysis['cpu_architecture']
-        cpu_architecture = cpu_architecture_dict["summary"]
+        cpu_architecture = file_object.processed_analysis['cpu_architecture']['summary']
 
         if cpu_architecture == []:
             cpu_architecture = None
@@ -47,26 +47,21 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
         return cpu_architecture
 
-    def filter_modinfo(self, file_object):
+    def get_modinfo(self, file_object):
         # getting the information from the *.ko files .modinfo
-        if "modinfo" in file_object.processed_analysis['elf_analysis'].keys():
-            modinfo = file_object.processed_analysis['elf_analysis']['modinfo']
-        else:
-            modinfo = None
-
-        return modinfo
+        return file_object.processed_analysis['elf_analysis'].get('Output', {}).get('modinfo')
 
     def filter_kernel_config(self, file_object):
         kernel_config_dict = file_object.processed_analysis['kernel_config']
-        kernel_config = kernel_config_dict.get("kernel_config")
-
+        kernel_config = kernel_config_dict.get('kernel_config')
+        # FIXME: finer filter
         if isinstance(kernel_config, str):
             kernel_config_list = kernel_config.splitlines()
-            kernel_config = "\n".join([
+            kernel_config = [
                 line
                 for line in kernel_config_list
-                if not line.startswith("#")
-            ])
+                if line and not line.startswith('#')
+            ]
 
         else:
             kernel_config = None

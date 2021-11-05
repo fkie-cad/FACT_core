@@ -23,11 +23,9 @@ class LinterInstaller(AbstractPluginInstaller):
         run_cmd_with_logging('sudo luarocks install luacheck')
         run_cmd_with_logging('sudo luarocks install luafilesystem')
 
-        # FIXME: deactivated because of npm installation issues
-        # run_cmd_with_logging('sudo npm install -g jshint')
-
     def install_docker_images(self):
         run_cmd_with_logging('docker pull crazymax/linguist')
+        run_cmd_with_logging('docker pull cytopia/eslint')
 
 
 # Alias for generic use

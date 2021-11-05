@@ -73,6 +73,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         self._add_update_to_current_analyses(fo, included_files)
         for child_uid in included_files:
             child_fo = self.db_backend_service.get_object(child_uid)
+            child_fo.force_update = getattr(fo, 'force_update', False)  # propagate forced update to children
             self._schedule_analysis_tasks(child_fo, fo.scheduled_analysis)
         self.check_further_process_or_complete(fo)
 
@@ -315,7 +316,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
     @staticmethod
     def _is_forced_update(file_object: FileObject) -> bool:
         try:
-            return bool(getattr(file_object, 'force_update'))
+            return bool(getattr(file_object, 'force_update', False))
         except AttributeError:
             return False
 

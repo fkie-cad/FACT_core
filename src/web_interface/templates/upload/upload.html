@@ -177,6 +177,17 @@
                         <i class="fas fa-upload"></i> Submit
                     {%- endif %}
                 </button>
+
+                {%- if is_reanalysis and "re-do" not in title %}
+                    <div class="checkbox m-0 pl-2" style="display: inline;">
+                        <label style="padding: 2px">
+                            <input
+                                type="checkbox" value="true" id="force_reanalysis" style="margin-top: 2px;"
+                                data-toggle="tooltip" title="deactivate smart scheduling" name="force_reanalysis"
+                            > Force Analysis Update
+                        </label>
+                    </div>
+                {%- endif %}
             </form>
         </div>
     </div>
