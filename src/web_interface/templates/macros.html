@@ -25,10 +25,10 @@
 {% macro upload_input(key, label, error, additional_classes='') %}
     <label class="control-label" for="{{ key }}">{{ label }}:</label>
     <div class="form-group">
-        <div class="{% if key in error.keys() %}has-error {% endif %}{{ additional_classes }}">
+        <div class="{{ additional_classes }}">
             {{ caller() }}
-            {% if key in error.keys() %}
-                <span class="help-block">{{ error[key] }}</span>
+            {% if key in error %}
+                <span class="form-text text-danger">{{ error[key] }}</span>
             {% endif %}
         </div>
     </div>

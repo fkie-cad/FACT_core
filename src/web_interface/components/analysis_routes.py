@@ -166,7 +166,7 @@ class AnalysisRoutes(ComponentBase):
         force_reanalysis = request.form.get('force_reanalysis') == 'true'
         error = check_for_errors(analysis_task)
         if error:
-            return redirect(url_for('get_update_analysis', uid=uid, re_do=re_do, error=error))
+            return self.get_update_analysis(uid=uid, re_do=re_do, error=error)
         self._schedule_re_analysis_task(uid, analysis_task, re_do, force_reanalysis)
         return render_template('upload/upload_successful.html', uid=uid)
 
