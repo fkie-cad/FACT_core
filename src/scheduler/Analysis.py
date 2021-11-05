@@ -70,6 +70,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         This function is used to recursively analyze an object without need of the unpacker
         '''
         included_files = self.db_backend_service.get_list_of_all_included_files(fo)
+        self.pre_analysis(fo)
         self._add_update_to_current_analyses(fo, included_files)
         for child_uid in included_files:
             child_fo = self.db_backend_service.get_object(child_uid)
