@@ -6,16 +6,11 @@
 {% block head %}
     {# angularJS import #}
     <script type="text/javascript" src="{{ url_for('static', filename='angular.min.js') }}"></script>
-
-    <script>
-        function hide_checkbox() {
-            if ($("#only_firmware").is(':checked')) {
-                $("#inverted_div").show();
-            } else {
-                $("#inverted_div").hide();
-            }
-        }
-    </script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/hide_checkbox.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/angular_database_adv_search.js') }}"></script>
+<script>
+    var database_structure = {{ database_structure | tojson }};
+</script>
 {% endblock %}
 
 
@@ -136,21 +131,6 @@ Additional fields for outer container: (Mostly set by user, so depend on submiss
                     </tr>
                 </table>
             </div>
-
-            <script>
-                var app = angular.module('myApp', []);
-
-                app.config(['$interpolateProvider', function($interpolateProvider) {
-                    $interpolateProvider.startSymbol('{a');
-                    $interpolateProvider.endSymbol('a}');
-                }]);
-
-                app.controller('formCtrl', function($scope) {
-                    $scope.firstname = "complete";
-                    $scope.data = {{ database_structure | tojson }};
-                    $scope.plugins = Object.keys($scope.data);
-                });
-            </script>
 
             {% else %}
 
