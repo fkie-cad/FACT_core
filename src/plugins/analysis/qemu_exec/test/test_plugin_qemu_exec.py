@@ -197,7 +197,7 @@ class TestPluginQemuExec(AnalysisPluginTest):
         assert 'files' in result
         assert any(result['files'][uid]['executable'] for uid in result['files']) is False
         assert all(
-            result['files'][uid]['results']['mips'][option]['stderr'] == '/lib/ld.so.1: No such file or directory\n'
+            '/lib/ld.so.1\': No such file or directory' in result['files'][uid]['results']['mips'][option]['stderr']
             for uid in result['files']
             for option in result['files'][uid]['results']['mips']
             if option != 'strace'
@@ -411,13 +411,13 @@ def test_replace_empty_strings():
     ({'parameter': {'output': 'no_b64'}}, 'decoding error: no_b64'),
 ])
 def test_decode_output_values(input_data, expected_output):
-    result = qemu_exec.decode_output_values(input_data)
+    results = qemu_exec.decode_output_values(input_data)
     assert all(
         isinstance(value, str)
-        for parameter in result
-        for value in result[parameter].values()
+        for parameter_result in results.values()
+        for value in parameter_result.values()
     )
-    assert result['parameter']['output'] == expected_output
+    assert results['parameter']['output'] == expected_output
 
 
 @pytest.mark.parametrize('input_data', [
