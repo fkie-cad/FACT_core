@@ -73,7 +73,7 @@ def test_bad_put_request(test_app):
 
 
 def test_submit_empty_data(test_app):
-    result = decode_response(test_app.put('/rest/firmware', data=json.dumps(dict())))
+    result = decode_response(test_app.put('/rest/firmware', data=json.dumps({})))
     assert 'Input payload validation failed' in result['message']
 
 
@@ -99,6 +99,13 @@ def test_submit_success(test_app):
 def test_request_update(test_app):
     requested_analysis = json.dumps(['optional_plugin'])
     result = decode_response(test_app.put(f'/rest/firmware/{TEST_FW.uid}?update={quote(requested_analysis)}'))
+    assert result['status'] == 0
+
+
+def test_submit_no_tags(test_app):
+    request_data = {**TEST_FW_PAYLOAD}
+    request_data.pop('tags')
+    result = decode_response(test_app.put('/rest/firmware', json=request_data))
     assert result['status'] == 0
 
 
