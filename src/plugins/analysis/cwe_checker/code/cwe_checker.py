@@ -35,7 +35,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
                   'CWE-676 (Use of Potentially Dangerous Function).'\
                   'Due to the nature of static analysis, this plugin may run for a long time.'
     DEPENDENCIES = ['cpu_architecture', 'file_type']
-    VERSION = '0.5.0'
+    VERSION = '0.5.1'
     MIME_WHITELIST = ['application/x-executable', 'application/x-object', 'application/x-sharedlib']
     SUPPORTED_ARCHS = ['arm', 'x86', 'x64', 'mips', 'ppc']
 
@@ -56,7 +56,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         if output is None:
             logging.error('Could not get version string from cwe_checker.')
         else:
-            logging.info('Version is {}'.format(str(output)))
+            logging.info(f'Version is {output}')
         return output
 
     @staticmethod

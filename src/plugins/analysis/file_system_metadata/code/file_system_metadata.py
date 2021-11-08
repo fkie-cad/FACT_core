@@ -95,7 +95,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 self._analyze_metadata_of_mounted_dir(json.loads(output_file.read_bytes()))
             else:
                 message = f'mount failed:\n{output}'
-                logging.warning(f'[{self.NAME}] {message}')
+                logging.warning(f'[file_system_metadata] {message}')
                 file_object.processed_analysis[self.NAME]['failed'] = message
 
     def _mount_in_docker(self, input_dir: str) -> str:

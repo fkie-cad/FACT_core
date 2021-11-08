@@ -36,7 +36,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             else:
                 file_object.processed_analysis[self.NAME]['summary'] = []
         except (IndexError, json.JSONDecodeError, ValueError) as error:
-            logging.warning(f'Error occurred during {self.NAME} analysis:', exc_info=True)
+            logging.warning('Error occurred during exploit_mitigations analysis:', exc_info=True)
             file_object.processed_analysis[self.NAME]['failed'] = f'Error during analysis: {error}'
         return file_object
 

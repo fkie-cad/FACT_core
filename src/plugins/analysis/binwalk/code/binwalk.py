@@ -36,13 +36,13 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return file_object
 
     def _extract_summary(self, binwalk_output: str) -> List[str]:
-        summary = list()
+        summary = []
         for line in self._iterate_valid_signature_lines(binwalk_output.splitlines()):
             signature_description = self._extract_description_from_signature_line(line.split())
             if 'entropy edge' in signature_description:
                 continue
             if ',' in signature_description:
-                summary.append(signature_description.split(',')[0])
+                summary.append(signature_description.split(',', maxsplit=1)[0])
             elif signature_description:
                 summary.append(signature_description)
 

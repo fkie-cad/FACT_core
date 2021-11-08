@@ -42,7 +42,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
         except RuntimeError:
             logging.error(f'lief could not parse {file_object.uid}', exc_info=True)
-            file_object.processed_analysis[self.NAME] = {'failed': 'Error: lief could not parse the file'}
+            file_object.processed_analysis[self.NAME] = {'failed': 'lief could not parse the file'}
         return file_object
 
     @staticmethod
@@ -65,7 +65,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def _get_tags(self, libraries: list, functions: list) -> list:
         behaviour_classes = self._load_template_file_as_json_obj(TEMPLATE_FILE_PATH)
-        tags = list()
+        tags = []
         for behaviour_class in behaviour_classes:
             if behaviour_class not in tags:
                 behaviour_indicators = behaviour_classes[behaviour_class]
@@ -78,7 +78,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         imported_libs = []
         for sv in symbol_versions:
             if str(sv) != '* Local *' and str(sv) != '* Global *':
-                imported_libs.append(str(sv).split('(')[0])
+                imported_libs.append(str(sv).split('(', maxsplit=1)[0])
         return list(set(imported_libs))
 
     @staticmethod
