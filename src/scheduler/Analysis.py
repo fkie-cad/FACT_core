@@ -310,10 +310,12 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             logging.error(f'plug-in or system version of "{analysis_plugin.NAME}" plug-in is or was invalid!')
             return False
 
-        dependencies = analysis_plugin.DEPENDENCIES
-        for dependency in dependencies:
-            self_date = _analysis_get_date(analysis_plugin.NAME, uid, self.db_backend_service)
-            dependency_date = _analysis_get_date(dependency, uid, self.db_backend_service)
+        return self._dependencies_are_up_to_date(analysis_plugin, uid)
+
+    def _dependencies_are_up_to_date(self, analysis_plugin: AnalysisBasePlugin, uid):
+        for dependency in analysis_plugin.DEPENDENCIES:
+            self_date = _get_analysis_date(analysis_plugin.NAME, uid, self.db_backend_service)
+            dependency_date = _get_analysis_date(dependency, uid, self.db_backend_service)
             if self_date < dependency_date:
                 return False
 
@@ -526,7 +528,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
                 self.recently_finished.pop(uid)
 
 
-def _analysis_get_date(plugin_name: str, uid: str, backend_db_interface):
+def _get_analysis_date(plugin_name: str, uid: str, backend_db_interface):
     fo = backend_db_interface.get_object(uid, analysis_filter=[plugin_name])
     if plugin_name not in fo.processed_analysis:
         return float('inf')

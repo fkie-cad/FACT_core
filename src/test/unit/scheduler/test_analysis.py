@@ -428,9 +428,8 @@ class TestAnalysisShouldReanalyse:
         (20, 10, True)
     ])
     def test_analysis_is_up_to_date(self, plugin_root_date, plugin_dep_date, is_up_to_date, monkeypatch):
-        def _analysis_get_date_mock(plugin_name, uid, backend_db_interface):
-            _ = backend_db_interface
-            _ = uid
+        def _get_analysis_date_mock(plugin_name, uid, backend_db_interface):
+            # pylint: disable=unused-argument
             if plugin_name == 'plugin_root':
                 return plugin_root_date
             elif plugin_name == 'plugin_dep':
@@ -438,7 +437,7 @@ class TestAnalysisShouldReanalyse:
 
             assert False
 
-        monkeypatch.setattr('scheduler.Analysis._analysis_get_date', _analysis_get_date_mock)
+        monkeypatch.setattr('scheduler.Analysis._get_analysis_date', _get_analysis_date_mock)
         uid = 'DONT_CARE'
         analysis_db_entry = {'plugin_version': '1.0'}
         plugin_mock = self.PluginMock()
