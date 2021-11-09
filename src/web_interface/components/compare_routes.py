@@ -191,7 +191,7 @@ class CompareRoutes(ComponentBase):
             uids_with_missing_file_type_msg += f' and {uids[1]}'
 
         if len(uids_with_missing_file_type_msg) != 0:
-            return render_template('compare/error.html', error=f'file_type anayisis is not finished for {uids_with_missing_file_type_msg}')
+            return render_template('compare/error.html', error=f'file_type analysis is not finished for {uids_with_missing_file_type_msg}')
 
         if any(mime[0:len('text')] != 'text' for mime in mimetypes):
             return render_template('compare/error.html', error=f"Can't compare non-text mimetypes. ({mimetypes[0]} vs {mimetypes[1]})")
@@ -207,7 +207,7 @@ class CompareRoutes(ComponentBase):
         diffstr = ''.join(diff_generator)
         diffstr = diffstr.replace('`', '\\`')
 
-        uids.clear()
+        uids_dict.clear()
         session.modified = True
         return render_template('compare/text_files.html', diffstr=diffstr, file0=fos[0].file_name, file1=fos[1].file_name, fw0=firmwares[0], fw1=firmwares[1])
 
