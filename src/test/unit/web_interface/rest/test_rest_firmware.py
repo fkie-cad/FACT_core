@@ -109,6 +109,14 @@ def test_submit_no_tags(test_app):
     assert result['status'] == 0
 
 
+def test_submit_no_release_date(test_app):
+    request_data = {**TEST_FW_PAYLOAD}
+    request_data.pop('release_date')
+    result = decode_response(test_app.put('/rest/firmware', json=request_data))
+    assert result['status'] == 0
+    assert result['request']['release_date'] == '1970-01-01'
+
+
 def test_request_update_bad_parameter(test_app):
     result = decode_response(test_app.put(f'/rest/firmware/{TEST_FW.uid}?update=no_list'))
     assert result['status'] == 1

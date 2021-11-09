@@ -29,7 +29,7 @@ firmware_model = api.model('Upload Firmware', {
     'file_name':  fields.String(description='File Name', required=True),
     'version':  fields.String(description='Version', required=True),
     'vendor':  fields.String(description='Vendor', required=True),
-    'release_date':  fields.String(description='Release Date'),
+    'release_date':  fields.String(description='Release Date', default='1970-01-01'),
     'tags':  fields.String(description='Tags'),
     'requested_analysis_systems': fields.List(description='Selected Analysis Systems', cls_or_instance=fields.String),
     'binary': fields.String(description='Base64 String Representing the Raw Binary', required=True)
