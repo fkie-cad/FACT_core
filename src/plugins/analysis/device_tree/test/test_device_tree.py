@@ -1,7 +1,8 @@
 from pathlib import Path
 
-from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
 from objects.file import FileObject
+from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
+
 from ..code.device_tree import AnalysisPlugin
 
 TEST_DATA = Path(__file__).parent.parent / 'test/data'
@@ -32,6 +33,5 @@ class test_device_tree(AnalysisPluginTest):
     def test_execute_device_tree_compiler(self):
         test_object = self.test_file
         result = self.analysis_plugin.execute_device_tree_compiler(test_object)
-        asserted_in_result = '#address-cells = <0x01>;'
 
-        assert asserted_in_result in result
+        assert '#address-cells = <0x01>;' in result
