@@ -153,7 +153,7 @@
                         {% for compare_uid in uids_for_comparison %}
                             <div class="col-xs-12 p-0">
                                 <span class="m-0" style="padding: 2px; display: inline-flex;">
-                                    <span class="close" style="font-size: 20px" onclick="location.href='/comparison/remove/{{ uid }}/{{ compare_uid }}'">
+                                    <span class="close" style="font-size: 20px" onclick="location.href='/comparison/remove/{{ uid }}/{{ compare_uid }}/{{ root_uid }}'">
                                         &times;
                                     </span>
                                     <span class="tag badge badge-{% if compare_uid == uid %}primary{% else %}secondary{% endif %}" style="margin-left: 3px">{{ compare_uid |replace_uid_with_hid | safe }}</span>
@@ -164,7 +164,7 @@
                     {% if uids_for_comparison|length > 1 %}
                         <td style="width: 180px; vertical-align: top;">
                             <div class="col-xs-12" style="padding: 2px;">
-                                <button type="button" class="btn btn-secondary btn-sm" onclick="location.href='/comparison/remove_all/{{ uid }}'" style="width: 100%">
+                                <button type="button" class="btn btn-secondary btn-sm" onclick="location.href='/comparison/remove_all/{{ uid }}/{{ root_uid }}'" style="width: 100%">
                                     <i class="fas fa-ban"></i> Remove All
                                 </button>
                             </div>

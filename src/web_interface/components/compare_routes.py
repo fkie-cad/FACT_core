@@ -143,24 +143,26 @@ class CompareRoutes(ComponentBase):
         compare_uid_list = get_comparison_uid_dict_from_session()
         compare_uid_list[uid] = root_uid
         session.modified = True
-        return redirect(url_for('show_analysis', uid=uid))
+        return redirect(url_for('show_analysis', uid=uid, root_uid=root_uid))
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @AppRoute('/comparison/remove/<analysis_uid>/<compare_uid>', GET)
-    def remove_from_compare_basket(self, analysis_uid, compare_uid):  # pylint: disable=no-self-use
+    @AppRoute('/comparison/remove/<analysis_uid>/<compare_uid>/<root_uid>', GET)
+    def remove_from_compare_basket(self, analysis_uid, compare_uid, root_uid=None):  # pylint: disable=no-self-use
         compare_uid_list = get_comparison_uid_dict_from_session()
         if compare_uid in compare_uid_list:
             session['uids_for_comparison'].pop(compare_uid)
             session.modified = True
-        return redirect(url_for('show_analysis', uid=analysis_uid))
+        return redirect(url_for('show_analysis', uid=analysis_uid, root_uid=root_uid))
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @AppRoute('/comparison/remove_all/<analysis_uid>', GET)
-    def remove_all_from_compare_basket(self, analysis_uid):  # pylint: disable=no-self-use
+    @AppRoute('/comparison/remove_all/<analysis_uid>/<root_uid>', GET)
+    def remove_all_from_compare_basket(self, analysis_uid, root_uid=None):  # pylint: disable=no-self-use
         compare_uid_list = get_comparison_uid_dict_from_session()
         compare_uid_list.clear()
         session.modified = True
-        return redirect(url_for('show_analysis', uid=analysis_uid))
+        return redirect(url_for('show_analysis', uid=analysis_uid, root_uid=root_uid))
 
     @roles_accepted(*PRIVILEGES['compare'])
     @AppRoute('/comparison/text_files', GET)
