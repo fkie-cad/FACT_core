@@ -199,7 +199,18 @@ class CompareRoutes(ComponentBase):
             return render_template('compare/error.html', error=f"Can't compare non-text mimetypes. ({mimetypes[0]} vs {mimetypes[1]})")
 
         with ConnectTo(FrontEndDbInterface, self._config) as db:
-            firmwares = [db.get_object(uids_dict[uids[0]]), db.get_object(uids_dict[uids[1]])]
+            # From some contexts the root_uid is not known.
+            # E.g. when clicking on a file from the browse page
+            # This workaround does not guarantee the right firmware but is better than nothing
+            fw0_uid = uids_dict[uids[0]]
+            if fw0_uid is None:
+                fw0_uid = fos[0].get_root_uid()
+
+            fw1_uid = uids_dict[uids[1]]
+            if fw1_uid is None:
+                fw1_uid = fos[1].get_root_uid()
+
+            firmwares = [db.get_object(fw0_uid), db.get_object(fw1_uid)]
 
         diff_generator = difflib.unified_diff(contents[0].decode().splitlines(keepends=True),
                                               contents[1].decode().splitlines(keepends=True),
