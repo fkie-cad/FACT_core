@@ -91,7 +91,7 @@ class CompareRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @AppRoute('/compare', GET)
     def start_compare(self):
-        if 'uids_for_comparison' not in session or not isinstance(session['uids_for_comparison'], list) or len(session['uids_for_comparison']) < 2:
+        if len(get_comparison_uid_dict_from_session()) < 2:
             return render_template('compare/error.html', error='No UIDs found for comparison')
         compare_id = convert_uid_list_to_compare_id(session['uids_for_comparison'])
         session['uids_for_comparison'] = None
@@ -140,37 +140,33 @@ class CompareRoutes(ComponentBase):
     @AppRoute('/comparison/add/<uid>', GET)
     @AppRoute('/comparison/add/<uid>/<root_uid>', GET)
     def add_to_compare_basket(self, uid, root_uid=None):  # pylint: disable=no-self-use
-        compare_uid_list = get_comparison_uid_list_from_session()
-        compare_uid_list.append(uid)
-        compare_root_uid_dict = get_comparison_root_uid_dict_from_session()
-        compare_root_uid_dict[uid] = root_uid
+        compare_uid_list = get_comparison_uid_dict_from_session()
+        compare_uid_list[uid] = root_uid
         session.modified = True
         return redirect(url_for('show_analysis', uid=uid))
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @AppRoute('/comparison/remove/<analysis_uid>/<compare_uid>', GET)
     def remove_from_compare_basket(self, analysis_uid, compare_uid):  # pylint: disable=no-self-use
-        compare_uid_list = get_comparison_uid_list_from_session()
+        compare_uid_list = get_comparison_uid_dict_from_session()
         if compare_uid in compare_uid_list:
-            session['uids_for_comparison'].remove(compare_uid)
-            session['root_uids_for_comparison'].pop(compare_uid)
+            session['uids_for_comparison'].pop(compare_uid)
             session.modified = True
         return redirect(url_for('show_analysis', uid=analysis_uid))
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @AppRoute('/comparison/remove_all/<analysis_uid>', GET)
     def remove_all_from_compare_basket(self, analysis_uid):  # pylint: disable=no-self-use
-        compare_uid_list = get_comparison_uid_list_from_session()
+        compare_uid_list = get_comparison_uid_dict_from_session()
         compare_uid_list.clear()
-        compare_root_uid_dict = get_comparison_root_uid_dict_from_session()
-        compare_root_uid_dict.clear()
         session.modified = True
         return redirect(url_for('show_analysis', uid=analysis_uid))
 
     @roles_accepted(*PRIVILEGES['compare'])
     @AppRoute('/comparison/text_files', GET)
     def text_files(self):
-        uids = get_comparison_uid_list_from_session()
+        uids_dict = get_comparison_uid_dict_from_session()
+        uids = list(uids_dict)
         if len(uids) != 2:
             return render_template('compare/error.html', error=f"Can't compare {len(uids)} files. You must compare exactly 2 files.")
 
@@ -200,9 +196,8 @@ class CompareRoutes(ComponentBase):
         if any(mime[0:len('text')] != 'text' for mime in mimetypes):
             return render_template('compare/error.html', error=f"Can't compare non-text mimetypes. ({mimetypes[0]} vs {mimetypes[1]})")
 
-        root_uids_dict = get_comparison_root_uid_dict_from_session()
         with ConnectTo(FrontEndDbInterface, self._config) as db:
-            firmwares = [db.get_object(root_uids_dict[uids[0]]), db.get_object(root_uids_dict[uids[1]])]
+            firmwares = [db.get_object(uids_dict[uids[0]]), db.get_object(uids_dict[uids[1]])]
 
         diff_generator = difflib.unified_diff(contents[0].decode().splitlines(keepends=True),
                                               contents[1].decode().splitlines(keepends=True),
@@ -217,13 +212,9 @@ class CompareRoutes(ComponentBase):
         return render_template('compare/text_files.html', diffstr=diffstr, file0=fos[0].file_name, file1=fos[1].file_name, fw0=firmwares[0], fw1=firmwares[1])
 
 
-def get_comparison_uid_list_from_session():  # pylint: disable=invalid-name
-    if 'uids_for_comparison' not in session or not isinstance(session['uids_for_comparison'], list):
-        session['uids_for_comparison'] = []
+def get_comparison_uid_dict_from_session():  # pylint: disable=invalid-name
+    # session['uids_for_comparison'] is a dictionary where keys are FileObject-
+    # uids and values are the root FirmwareObject of the corresponding key
+    if 'uids_for_comparison' not in session or not isinstance(session['uids_for_comparison'], dict):
+        session['uids_for_comparison'] = {}
     return session['uids_for_comparison']
-
-
-def get_comparison_root_uid_dict_from_session():
-    if 'root_uids_for_comparison' not in session or not isinstance(session['root_uids_for_comparison'], dict):
-        session['root_uids_for_comparison'] = {}
-    return session['root_uids_for_comparison']

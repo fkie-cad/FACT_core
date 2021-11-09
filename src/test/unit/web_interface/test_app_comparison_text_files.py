@@ -1,4 +1,4 @@
-from test.common_helper import TEST_TEXT_FILE, TEST_TEXT_FILE2
+from test.common_helper import TEST_TEXT_FILE, TEST_TEXT_FILE2, create_test_firmware
 from test.unit.web_interface.base import WebInterfaceTest
 
 
@@ -16,6 +16,10 @@ class MockInterCom:
             return TEST_TEXT_FILE
         elif uid == TEST_TEXT_FILE2.uid:
             return TEST_TEXT_FILE2
+        elif uid == 'file_1_root_uid':
+            return create_test_firmware(device_name='fw1')
+        elif uid == 'file_2_root_uid':
+            return create_test_firmware(device_name='fw2')
         else:
             assert False
 
@@ -32,7 +36,8 @@ class TestAppComparisonTextFiles(WebInterfaceTest):
         TEST_TEXT_FILE2.processed_analysis['file_type']['mime'] = 'text/plain'
         with self.test_client as tc:
             with tc.session_transaction() as test_session:
-                test_session['uids_for_comparison'] = [TEST_TEXT_FILE.uid, TEST_TEXT_FILE2.uid]
+                test_session['uids_for_comparison'] = {TEST_TEXT_FILE.uid: 'file_1_root_uid', TEST_TEXT_FILE2.uid: 'file_2_root_uid'}
+                test_session.modified = True
 
             rv = self.test_client.get('/comparison/text_files')
 
