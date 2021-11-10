@@ -16,7 +16,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     // This string is made safe by the python code rendering this template
-    const diffString =`{{diffstr | safe}}`;
+    const diffString =`{{ diffstr | safe }}`;
     const targetElement = document.getElementById('diff-element');
     const configuration = {
         drawFileList: false,
@@ -31,9 +31,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // We depend on internal naming schemes on diff2html here.
     // So be aware that this might break. For now this is the simplest way to
-    // incoperate firmware information.
+    // incorporate firmware information.
     fileNameElement = targetElement.querySelector(".d2h-file-name")
-    fileNameElement.textContent += " | ({{fw0.get_hid()}}) vs ({{fw1.get_hid()}})"
+    fileNameElement.textContent += " | ({{ hid0 }}) vs ({{ hid1 }})"
 });
 </script>
 
