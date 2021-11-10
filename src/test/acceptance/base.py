@@ -1,6 +1,7 @@
 import gc
 import logging
 import os
+import time
 import unittest
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -13,6 +14,7 @@ from intercom.back_end_binding import InterComBackEndBinding
 from scheduler.Analysis import AnalysisScheduler
 from scheduler.Compare import CompareScheduler
 from scheduler.Unpacking import UnpackingScheduler
+from storage.db_interface_backend import BackEndDbInterface
 from storage.fsorganizer import FSOrganizer
 from storage.MongoMgr import MongoMgr
 from test.common_helper import clean_test_database, get_database_names  # pylint: disable=wrong-import-order
@@ -97,3 +99,16 @@ class TestAcceptanceBase(unittest.TestCase):
         console_log.setFormatter(log_format)
         logger.addHandler(file_log)
         logger.addHandler(console_log)
+
+
+class TestAcceptanceBaseWithDb(TestAcceptanceBase):
+    def setUp(self):
+        super().setUp()
+        self._start_backend()
+        self.db_backend = BackEndDbInterface(config=self.config)
+        time.sleep(2)  # wait for systems to start
+
+    def tearDown(self):
+        self.db_backend.shutdown()
+        self._stop_backend()
+        super().tearDown()

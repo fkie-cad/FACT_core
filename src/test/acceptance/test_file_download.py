@@ -1,24 +1,11 @@
 import io
 import tarfile
-import time
 
-from storage.db_interface_backend import BackEndDbInterface
-from test.acceptance.base import TestAcceptanceBase  # pylint: disable=wrong-import-order
+from test.acceptance.base import TestAcceptanceBaseWithDb  # pylint: disable=wrong-import-order
 from test.common_helper import create_test_firmware  # pylint: disable=wrong-import-order
 
 
-class TestAcceptanceDownloadFile(TestAcceptanceBase):
-
-    def setUp(self):
-        super().setUp()
-        self._start_backend()
-        self.db_backend = BackEndDbInterface(config=self.config)
-        time.sleep(2)  # wait for systems to start
-
-    def tearDown(self):
-        self.db_backend.shutdown()
-        self._stop_backend()
-        super().tearDown()
+class TestAcceptanceDownloadFile(TestAcceptanceBaseWithDb):
 
     def _show_analysis_page(self, fw):
         rv = self.test_client.get(f'/analysis/{fw.uid}')

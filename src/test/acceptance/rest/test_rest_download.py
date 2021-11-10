@@ -1,11 +1,12 @@
 import urllib.parse
 from base64 import standard_b64encode
 
-from test.acceptance.test_file_download import TestAcceptanceDownloadFile
+from test.acceptance.base import TestAcceptanceBaseWithDb
 from test.common_helper import create_test_firmware
 
 
-class TestRestDownloadFirmware(TestAcceptanceDownloadFile):
+class TestRestDownloadFirmware(TestAcceptanceBaseWithDb):
+
     def setUp(self):
         super().setUp()
         self.test_fw = create_test_firmware(device_class='test class', device_name='test device', vendor='test vendor')
