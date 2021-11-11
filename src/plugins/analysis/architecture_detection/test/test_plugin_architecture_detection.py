@@ -82,6 +82,9 @@ class TestArchDetection(AnalysisPluginTest):
              'interpreter /lib/ld-uClibc.so.0, for GNU/Linux 4.8.0, not stripped'),
             ('ESP', '32-bit', 'little endian',
              'ELF 32-bit LSB executable, Tensilica Xtensa, version 1 (SYSV), statically linked, with debug_info, not stripped'),
+            ('Tilera', '32-bit', 'little endian',
+             'ELF 32-bit LSB executable, Tilera TILE-Gx, version 1 (SYSV), dynamically linked, interpreter /lib32/ld.so.1, '
+             'for GNU/Linux 2.6.32, stripped'),
         ]
         for data_set in architecture_test_data:
             self.start_process_object_meta_for_architecture(*data_set)
