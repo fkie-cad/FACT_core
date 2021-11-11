@@ -1,24 +1,15 @@
-import time
 import urllib.parse
 from base64 import standard_b64encode
 
-from storage.db_interface_backend import BackEndDbInterface
-from test.acceptance.base import TestAcceptanceBase
+from test.acceptance.base import TestAcceptanceBaseWithDb
 from test.common_helper import create_test_firmware
 
 
-class TestIntegrationRestDownloadFirmware(TestAcceptanceBase):
+class TestRestDownloadFirmware(TestAcceptanceBaseWithDb):
 
     def setUp(self):
         super().setUp()
-        self._start_backend()
-        self.db_backend = BackEndDbInterface(config=self.config)
-        time.sleep(2)  # wait for systems to start
-
-    def tearDown(self):
-        self.db_backend.shutdown()
-        self._stop_backend()
-        super().tearDown()
+        self.test_fw = create_test_firmware(device_class='test class', device_name='test device', vendor='test vendor')
 
     def _rest_search(self):
         query = '{"device_class": "test class"}'
@@ -32,8 +23,8 @@ class TestIntegrationRestDownloadFirmware(TestAcceptanceBase):
         assert f'"SHA256": "{self.test_fw.sha256}"'.encode() in rv.data, 'rest download response incorrect'
 
     def test_run_from_upload_to_show_analysis(self):
-        self.test_fw = create_test_firmware(device_class='test class', device_name='test device', vendor='test vendor')
         self.db_backend.add_firmware(self.test_fw)
+        self.fs_organizer.store_file(self.test_fw)
 
         self._rest_search()
         self._rest_download()
