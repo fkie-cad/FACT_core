@@ -108,12 +108,12 @@
 <span id="helperfunctions-logging-module"></span><h1>helperFunctions.logging module<a class="headerlink" href="#module-helperFunctions.logging" title="Permalink to this headline"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="helperFunctions.logging.ColoringFormatter">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">helperFunctions.logging.</span></span><span class="sig-name descname"><span class="pre">ColoringFormatter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fmt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datefmt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'%'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.logging.ColoringFormatter" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">helperFunctions.logging.</span></span><span class="sig-name descname"><span class="pre">ColoringFormatter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fmt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datefmt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'%'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.logging.ColoringFormatter" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">logging.Formatter</span></code></p>
 <p>A subclass of <code class="docutils literal notranslate"><span class="pre">Formatter</span></code> that automatically prints the log level in the respective color.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="helperFunctions.logging.ColoringFormatter.LOG_LEVEL_COLORS">
-<span class="sig-name descname"><span class="pre">LOG_LEVEL_COLORS</span></span><em class="property"> <span class="pre">=</span> <span class="pre">[('DEBUG',</span> <span class="pre">'\x1b[95m'),</span> <span class="pre">('INFO',</span> <span class="pre">'\x1b[94m'),</span> <span class="pre">('WARNING',</span> <span class="pre">'\x1b[93m'),</span> <span class="pre">('ERROR',</span> <span class="pre">'\x1b[91m'),</span> <span class="pre">('CRITICAL',</span> <span class="pre">'\x1b[91m\x1b[1m')]</span></em><a class="headerlink" href="#helperFunctions.logging.ColoringFormatter.LOG_LEVEL_COLORS" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">LOG_LEVEL_COLORS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[('DEBUG',</span> <span class="pre">'\x1b[95m'),</span> <span class="pre">('INFO',</span> <span class="pre">'\x1b[94m'),</span> <span class="pre">('WARNING',</span> <span class="pre">'\x1b[93m'),</span> <span class="pre">('ERROR',</span> <span class="pre">'\x1b[91m'),</span> <span class="pre">('CRITICAL',</span> <span class="pre">'\x1b[91m\x1b[1m')]</span></em><a class="headerlink" href="#helperFunctions.logging.ColoringFormatter.LOG_LEVEL_COLORS" title="Permalink to this definition"></a></dt>
 <dd><p>A List of Tuples with log levels and colors/formatting.</p>
 </dd></dl>
 
@@ -136,73 +136,73 @@ as defined in <code class="docutils literal notranslate"><span class="pre">LOG_L
 
 <dl class="py class">
 <dt class="sig sig-object py" id="helperFunctions.logging.TerminalColors">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">helperFunctions.logging.</span></span><span class="sig-name descname"><span class="pre">TerminalColors</span></span><a class="headerlink" href="#helperFunctions.logging.TerminalColors" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">helperFunctions.logging.</span></span><span class="sig-name descname"><span class="pre">TerminalColors</span></span><a class="headerlink" href="#helperFunctions.logging.TerminalColors" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>This class contains colors and formatting used for formatting the terminal output. A the terminal output after a
 string from this class will be colored in the respective color. <code class="docutils literal notranslate"><span class="pre">ENDC</span></code> must be used to stop formatting the output.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="helperFunctions.logging.TerminalColors.BLUE">
-<span class="sig-name descname"><span class="pre">BLUE</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'\x1b[94m'</span></em><a class="headerlink" href="#helperFunctions.logging.TerminalColors.BLUE" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">BLUE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[94m'</span></em><a class="headerlink" href="#helperFunctions.logging.TerminalColors.BLUE" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="helperFunctions.logging.TerminalColors.BOLD">
-<span class="sig-name descname"><span class="pre">BOLD</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'\x1b[1m'</span></em><a class="headerlink" href="#helperFunctions.logging.TerminalColors.BOLD" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">BOLD</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[1m'</span></em><a class="headerlink" href="#helperFunctions.logging.TerminalColors.BOLD" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="helperFunctions.logging.TerminalColors.ENDC">
-<span class="sig-name descname"><span class="pre">ENDC</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'\x1b[0m'</span></em><a class="headerlink" href="#helperFunctions.logging.TerminalColors.ENDC" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">ENDC</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[0m'</span></em><a class="headerlink" href="#helperFunctions.logging.TerminalColors.ENDC" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="helperFunctions.logging.TerminalColors.FAIL">
-<span class="sig-name descname"><span class="pre">FAIL</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'\x1b[91m'</span></em><a class="headerlink" href="#helperFunctions.logging.TerminalColors.FAIL" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">FAIL</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[91m'</span></em><a class="headerlink" href="#helperFunctions.logging.TerminalColors.FAIL" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="helperFunctions.logging.TerminalColors.GREEN">
-<span class="sig-name descname"><span class="pre">GREEN</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'\x1b[92m'</span></em><a class="headerlink" href="#helperFunctions.logging.TerminalColors.GREEN" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">GREEN</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[92m'</span></em><a class="headerlink" href="#helperFunctions.logging.TerminalColors.GREEN" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="helperFunctions.logging.TerminalColors.HEADER">
-<span class="sig-name descname"><span class="pre">HEADER</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'\x1b[95m'</span></em><a class="headerlink" href="#helperFunctions.logging.TerminalColors.HEADER" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">HEADER</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[95m'</span></em><a class="headerlink" href="#helperFunctions.logging.TerminalColors.HEADER" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="helperFunctions.logging.TerminalColors.OKBLUE">
-<span class="sig-name descname"><span class="pre">OKBLUE</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'\x1b[94m'</span></em><a class="headerlink" href="#helperFunctions.logging.TerminalColors.OKBLUE" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">OKBLUE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[94m'</span></em><a class="headerlink" href="#helperFunctions.logging.TerminalColors.OKBLUE" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="helperFunctions.logging.TerminalColors.OKGREEN">
-<span class="sig-name descname"><span class="pre">OKGREEN</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'\x1b[92m'</span></em><a class="headerlink" href="#helperFunctions.logging.TerminalColors.OKGREEN" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">OKGREEN</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[92m'</span></em><a class="headerlink" href="#helperFunctions.logging.TerminalColors.OKGREEN" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="helperFunctions.logging.TerminalColors.PURPLE">
-<span class="sig-name descname"><span class="pre">PURPLE</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'\x1b[95m'</span></em><a class="headerlink" href="#helperFunctions.logging.TerminalColors.PURPLE" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">PURPLE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[95m'</span></em><a class="headerlink" href="#helperFunctions.logging.TerminalColors.PURPLE" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="helperFunctions.logging.TerminalColors.RED">
-<span class="sig-name descname"><span class="pre">RED</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'\x1b[91m'</span></em><a class="headerlink" href="#helperFunctions.logging.TerminalColors.RED" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">RED</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[91m'</span></em><a class="headerlink" href="#helperFunctions.logging.TerminalColors.RED" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="helperFunctions.logging.TerminalColors.UNDERLINE">
-<span class="sig-name descname"><span class="pre">UNDERLINE</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'\x1b[4m'</span></em><a class="headerlink" href="#helperFunctions.logging.TerminalColors.UNDERLINE" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">UNDERLINE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[4m'</span></em><a class="headerlink" href="#helperFunctions.logging.TerminalColors.UNDERLINE" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="helperFunctions.logging.TerminalColors.WARNING">
-<span class="sig-name descname"><span class="pre">WARNING</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'\x1b[93m'</span></em><a class="headerlink" href="#helperFunctions.logging.TerminalColors.WARNING" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">WARNING</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[93m'</span></em><a class="headerlink" href="#helperFunctions.logging.TerminalColors.WARNING" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="helperFunctions.logging.TerminalColors.YELLOW">
-<span class="sig-name descname"><span class="pre">YELLOW</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'\x1b[93m'</span></em><a class="headerlink" href="#helperFunctions.logging.TerminalColors.YELLOW" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">YELLOW</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[93m'</span></em><a class="headerlink" href="#helperFunctions.logging.TerminalColors.YELLOW" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
