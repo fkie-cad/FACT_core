@@ -4,6 +4,7 @@ from base64 import standard_b64decode
 
 from flask import request
 from flask_restx import Namespace, fields
+from flask_restx.fields import MarshallingError
 from pymongo.errors import PyMongoError
 
 from helperFunctions.database import ConnectTo
@@ -29,7 +30,7 @@ firmware_model = api.model('Upload Firmware', {
     'file_name':  fields.String(description='File Name', required=True),
     'version':  fields.String(description='Version', required=True),
     'vendor':  fields.String(description='Vendor', required=True),
-    'release_date':  fields.String(description='Release Date'),
+    'release_date':  fields.Date(dt_format='iso8601', description='Release Date (ISO 8601)', default='1970-01-01'),
     'tags':  fields.String(description='Tags'),
     'requested_analysis_systems': fields.List(description='Selected Analysis Systems', cls_or_instance=fields.String),
     'binary': fields.String(description='Base64 String Representing the Raw Binary', required=True)
@@ -97,7 +98,11 @@ class RestFirmwareGetWithoutUid(RestResourceBase):
         The HTTP body must contain a json document of the structure shown below
         Important: The binary has to be a base64 string representing the raw binary you want to submit
         '''
-        data = self.validate_payload_data(firmware_model)
+        try:
+            data = self.validate_payload_data(firmware_model)
+        except MarshallingError as error:
+            logging.error(f'REST|firmware|PUT: Error in payload data: {error}')
+            return error_message(str(error), self.URL)
         result = self._process_data(data)
         if 'error_message' in result:
             logging.warning('Submission not according to API guidelines! (data could not be parsed)')
