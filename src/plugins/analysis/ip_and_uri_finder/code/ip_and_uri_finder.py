@@ -5,7 +5,7 @@ from pathlib import Path
 from re import search
 
 import geoip2.database
-from common_analysis_ip_and_uri_finder import CommonAnalysisIPAndURIFinder, ip_and_uri_finder_analysis
+from common_analysis_ip_and_uri_finder import CommonAnalysisIPAndURIFinder
 from geoip2.errors import AddressNotFoundError
 from maxminddb.errors import InvalidDatabaseError
 
@@ -63,7 +63,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def _get_augmented_result(self, result):
         result['summary'] = self._get_summary(result)
-        result['system_version'] = ip_and_uri_finder_analysis.system_version
+        result['system_version'] = self.ip_and_uri_finder.system_version
         return result
 
     def add_geo_uri_to_ip(self, result):

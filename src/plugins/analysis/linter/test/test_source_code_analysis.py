@@ -1,3 +1,5 @@
+# pylint: disable=redefined-outer-name,unused-argument,protected-access,wrong-import-order
+
 from pathlib import Path
 
 import pytest
@@ -5,8 +7,6 @@ import pytest
 from test.common_helper import create_test_file_object, get_config_for_testing
 
 from ..code.source_code_analysis import AnalysisPlugin
-
-# pylint: disable=redefined-outer-name,unused-argument,protected-access
 
 PYLINT_TEST_FILE = Path(__file__).parent / 'data' / 'linter_test_file'
 
@@ -52,7 +52,7 @@ def test_process_object_no_issues(stub_plugin, test_object, monkeypatch):
     test_object.processed_analysis['file_type'] = {'full': 'anything containing python'}
     monkeypatch.setattr('storage.fsorganizer.FSOrganizer.generate_path_from_uid', lambda _self, _: test_object.file_path)
     monkeypatch.setattr('plugins.analysis.linter.code.source_code_analysis.python_linter.PythonLinter.do_analysis',
-                        lambda self, file_path: list())
+                        lambda self, file_path: [])
     stub_plugin.process_object(test_object)
     result = test_object.processed_analysis[stub_plugin.NAME]
     assert 'full' not in result
