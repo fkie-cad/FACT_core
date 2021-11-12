@@ -1,5 +1,7 @@
+import difflib
 import logging
 from contextlib import suppress
+from typing import NamedTuple, Optional
 
 from flask import redirect, render_template, render_template_string, request, session, url_for
 
@@ -10,15 +12,17 @@ from helperFunctions.database import ConnectTo
 from helperFunctions.web_interface import get_template_as_string
 from intercom.front_end_binding import InterComFrontEndBinding
 from storage.db_interface_compare import CompareDbInterface, FactCompareException
+from storage.db_interface_frontend import FrontEndDbInterface
 from storage.db_interface_view_sync import ViewReader
 from web_interface.components.component_base import GET, AppRoute, ComponentBase
 from web_interface.pagination import extract_pagination_from_request, get_pagination
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
+FileDiffData = NamedTuple('FileDiffData', [('uid', str), ('content', str), ('file_name', str), ('mime', str), ('fw_hid', str)])
+
 
 class CompareRoutes(ComponentBase):
-
     @roles_accepted(*PRIVILEGES['compare'])
     @AppRoute('/compare/<compare_id>', GET)
     def show_compare_result(self, compare_id):
@@ -76,8 +80,8 @@ class CompareRoutes(ComponentBase):
         else:
             insertion_index += len(key)
             for plugin, view in plugin_views:
-                if_case = '{{% elif plugin == \'{}\' %}}'.format(plugin)
-                view = '{}\n{}'.format(if_case, view.decode())
+                if_case = f'{{% elif plugin == \'{plugin}\' %}}'
+                view = f'{if_case}\n{view.decode()}'
                 compare_view = self._insert_plugin_into_view_at_index(view, compare_view, insertion_index)
         return compare_view
 
@@ -90,7 +94,7 @@ class CompareRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @AppRoute('/compare', GET)
     def start_compare(self):
-        if 'uids_for_comparison' not in session or not isinstance(session['uids_for_comparison'], list) or len(session['uids_for_comparison']) < 2:
+        if len(get_comparison_uid_dict_from_session()) < 2:
             return render_template('compare/error.html', error='No UIDs found for comparison')
         compare_id = convert_uid_list_to_compare_id(session['uids_for_comparison'])
         session['uids_for_comparison'] = None
@@ -113,8 +117,8 @@ class CompareRoutes(ComponentBase):
 
     @staticmethod
     def _create_ida_download_if_existing(result, compare_id):
-        if isinstance(result, dict) and result.get('plugins', dict()).get('Ida_Diff_Highlighting', dict()).get('idb_binary'):
-            return '/ida-download/{}'.format(compare_id)
+        if isinstance(result, dict) and result.get('plugins', {}).get('Ida_Diff_Highlighting', {}).get('idb_binary'):
+            return f'/ida-download/{compare_id}'
         return None
 
     @roles_accepted(*PRIVILEGES['compare'])
@@ -125,8 +129,8 @@ class CompareRoutes(ComponentBase):
             with ConnectTo(CompareDbInterface, self._config) as db_service:
                 compare_list = db_service.page_compare_results(skip=per_page * (page - 1), limit=per_page)
         except Exception as exception:
-            error_message = 'Could not query database: {} {}'.format(type(exception), str(exception))
-            logging.error(error_message)
+            error_message = f'Could not query database: {type(exception)}'
+            logging.error(error_message, exc_info=True)
             return render_template('error.html', message=error_message)
 
         with ConnectTo(CompareDbInterface, self._config) as connection:
@@ -137,31 +141,77 @@ class CompareRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @AppRoute('/comparison/add/<uid>', GET)
-    def add_to_compare_basket(self, uid):  # pylint: disable=no-self-use
-        compare_uid_list = get_comparison_uid_list_from_session()
-        compare_uid_list.append(uid)
-        session.modified = True
-        return redirect(url_for('show_analysis', uid=uid))
+    @AppRoute('/comparison/add/<uid>/<root_uid>', GET)
+    def add_to_compare_basket(self, uid, root_uid=None):  # pylint: disable=no-self-use
+        compare_uid_list = get_comparison_uid_dict_from_session()
+        compare_uid_list[uid] = root_uid
+        session.modified = True  # pylint: disable=assigning-non-slot
+        return redirect(url_for('show_analysis', uid=uid, root_uid=root_uid))
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @AppRoute('/comparison/remove/<analysis_uid>/<compare_uid>', GET)
-    def remove_from_compare_basket(self, analysis_uid, compare_uid):  # pylint: disable=no-self-use
-        compare_uid_list = get_comparison_uid_list_from_session()
+    @AppRoute('/comparison/remove/<analysis_uid>/<compare_uid>/<root_uid>', GET)
+    def remove_from_compare_basket(self, analysis_uid, compare_uid, root_uid=None):  # pylint: disable=no-self-use
+        compare_uid_list = get_comparison_uid_dict_from_session()
         if compare_uid in compare_uid_list:
-            session['uids_for_comparison'].remove(compare_uid)
-            session.modified = True
-        return redirect(url_for('show_analysis', uid=analysis_uid))
+            session['uids_for_comparison'].pop(compare_uid)
+            session.modified = True  # pylint: disable=assigning-non-slot
+        return redirect(url_for('show_analysis', uid=analysis_uid, root_uid=root_uid))
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @AppRoute('/comparison/remove_all/<analysis_uid>', GET)
-    def remove_all_from_compare_basket(self, analysis_uid):  # pylint: disable=no-self-use
-        compare_uid_list = get_comparison_uid_list_from_session()
+    @AppRoute('/comparison/remove_all/<analysis_uid>/<root_uid>', GET)
+    def remove_all_from_compare_basket(self, analysis_uid, root_uid=None):  # pylint: disable=no-self-use
+        compare_uid_list = get_comparison_uid_dict_from_session()
         compare_uid_list.clear()
-        session.modified = True
-        return redirect(url_for('show_analysis', uid=analysis_uid))
+        session.modified = True  # pylint: disable=assigning-non-slot
+        return redirect(url_for('show_analysis', uid=analysis_uid, root_uid=root_uid))
+
+    @roles_accepted(*PRIVILEGES['compare'])
+    @AppRoute('/comparison/text_files', GET)
+    def compare_text_files(self):
+        uids_dict = get_comparison_uid_dict_from_session()
+        if len(uids_dict) != 2:
+            return render_template('compare/error.html', error=f'Can\'t compare {len(uids_dict)} files. You must select exactly 2 files.')
+
+        diff_files = [self._get_data_for_file_diff(uid, root_uid) for uid, root_uid in uids_dict.items()]
+
+        uids_with_missing_file_type = ', '.join((f.uid for f in diff_files if f.mime is None))
+        if uids_with_missing_file_type:
+            return render_template('compare/error.html', error=f'file_type analysis is not finished for {uids_with_missing_file_type}')
+
+        if any(not f.mime.startswith('text') for f in diff_files):
+            return render_template('compare/error.html', error=f'Can\'t compare non-text mimetypes. ({diff_files[0].mime} vs {diff_files[1].mime})')
+
+        diffstr = self._get_file_diff(*diff_files)
+
+        uids_dict.clear()
+        session.modified = True  # pylint: disable=assigning-non-slot
+        return render_template('compare/text_files.html', diffstr=diffstr, hid0=diff_files[0].fw_hid, hid1=diff_files[1].fw_hid)
+
+    @staticmethod
+    def _get_file_diff(file1: FileDiffData, file2: FileDiffData) -> str:
+        diff_list = difflib.unified_diff(
+            file1.content.splitlines(keepends=True), file2.content.splitlines(keepends=True),
+            fromfile=f'{file1.file_name}', tofile=f'{file2.file_name}'
+        )
+        return ''.join(diff_list).replace('`', '\\`')
+
+    def _get_data_for_file_diff(self, uid: str, root_uid: Optional[str]) -> FileDiffData:
+        with ConnectTo(InterComFrontEndBinding, self._config) as db:
+            content, _ = db.get_binary_and_filename(uid)
+        with ConnectTo(FrontEndDbInterface, self._config) as db:
+            fo = db.get_object(uid)
+            if root_uid in [None, 'None']:
+                root_uid = fo.get_root_uid()
+            fw_hid = db.get_object(root_uid).get_hid()
+        mime = fo.processed_analysis.get('file_type', {}).get('mime')
+        return FileDiffData(uid, content.decode(errors='replace'), fo.file_name, mime, fw_hid)
 
 
-def get_comparison_uid_list_from_session():  # pylint: disable=invalid-name
-    if 'uids_for_comparison' not in session or not isinstance(session['uids_for_comparison'], list):
-        session['uids_for_comparison'] = []
+def get_comparison_uid_dict_from_session():  # pylint: disable=invalid-name
+    # session['uids_for_comparison'] is a dictionary where keys are FileObject-
+    # uids and values are the root FirmwareObject of the corresponding key
+    if 'uids_for_comparison' not in session or not isinstance(session['uids_for_comparison'], dict):
+        session['uids_for_comparison'] = {}
     return session['uids_for_comparison']
