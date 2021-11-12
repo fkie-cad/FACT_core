@@ -32,11 +32,35 @@ class AnalysisPlugin(AnalysisBasePlugin):
     def _find_git_repos(self, file_object):
         for virtual_path_list in file_object.virtual_file_path.values():
             for virtual_path in virtual_path_list:
-                if virtual_path.split("|")[-1].endswith(".git/config"):
+                path = virtual_path.split('|')[-1]
+                if path.endswith('.git/config'):
                     file_object.processed_analysis[self.NAME]['git_repo'] = file_object.binary.decode()
+                if path.endswith('default.conf'):
+                    file_object.processed_analysis[self.NAME]['possible_code_blocks_config'] = file_object.binary.decode()
+                if path.endswith('clion64.exe.vmoptions'):
+                    file_object.processed_analysis[self.NAME]['clion_jvm_options'] = file_object.binary.decode()
+                if path.endswith('idea.properties'):
+                    file_object.processed_analysis[self.NAME]['clion_platform_properties'] = file_object.binary.decode()
+                if path.endswith('.config/Code/User/settings.json'):
+                    file_object.processed_analysis[self.NAME]['vscode_settings'] = file_object.binary.decode()
+
+                if any(file_object.files_included):
+                    # file_object is a diretory
+                    if path.endswith('.pytest_cache'):
+                        file_object.processed_analysis[self.NAME]['pytest_cache_directory'] = path
+                    if path.endswith('.github'):
+                        file_object.processed_analysis[self.NAME]['github_config_directory'] = path
+                    if path.endswith('.idea'):
+                        file_object.processed_analysis[self.NAME]['pycharm_config_directory'] = path
+                    if path.endswith('.subversion'):
+                        file_object.processed_analysis[self.NAME]['svn_user_settings_directory'] = path
+                    if path.endswith('subversion'):
+                        file_object.processed_analysis[self.NAME]['svn_settings_directory'] = path
 
     def _find_paths(self, file_object: FileObject, regex, label):
-        result = regex.findall(file_object.binary)
+        
+        result = regex.findall(file_object.binary)  #todo here fault
+        print(result)
         if result:
             file_object.processed_analysis[self.NAME][label] = sorted({e.decode() for e in result})
             file_object.processed_analysis[self.NAME]['summary'].append(label)
