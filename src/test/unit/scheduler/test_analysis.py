@@ -119,6 +119,8 @@ class TestAnalysisSchedulerBlacklist:
     file_object = MockFileObject()
 
     class PluginMock:
+        DEPENDENCIES = []
+
         def __init__(self, blacklist=None, whitelist=None):
             if blacklist:
                 self.MIME_BLACKLIST = blacklist
@@ -334,6 +336,8 @@ class TestUtilityFunctions(UtilityBase):
 class TestAnalysisSkipping:
 
     class PluginMock:
+        DEPENDENCIES = []
+
         def __init__(self, version, system_version):
             self.VERSION = version
             self.NAME = 'test plug-in'
@@ -401,3 +405,43 @@ class TestAnalysisSkipping:
         assert self.scheduler._is_forced_update(fo) is False
         fo.force_update = True
         assert self.scheduler._is_forced_update(fo) is True
+
+
+class TestAnalysisShouldReanalyse:
+    class PluginMock:
+        DEPENDENCIES = ['plugin_dep']
+        VERSION = '1.0'
+        NAME = 'plugin_root'
+
+    class BackendMock:
+        pass
+
+    @classmethod
+    def setup_class(cls):
+        cls.init_patch = mock.patch(target='scheduler.Analysis.AnalysisScheduler.__init__', new=lambda *_: None)
+        cls.init_patch.start()
+        cls.scheduler = AnalysisScheduler()
+        cls.init_patch.stop()
+
+    @pytest.mark.parametrize('plugin_root_date, plugin_dep_date, is_up_to_date', [
+        (10, 20, False),
+        (20, 10, True)
+    ])
+    def test_analysis_is_up_to_date(self, plugin_root_date, plugin_dep_date, is_up_to_date, monkeypatch):
+        def _get_analysis_date_mock(plugin_name, uid, backend_db_interface):
+            # pylint: disable=unused-argument
+            if plugin_name == 'plugin_root':
+                return plugin_root_date
+            elif plugin_name == 'plugin_dep':
+                return plugin_dep_date
+
+            assert False
+
+        monkeypatch.setattr('scheduler.Analysis._get_analysis_date', _get_analysis_date_mock)
+        uid = 'DONT_CARE'
+        analysis_db_entry = {'plugin_version': '1.0'}
+        plugin_mock = self.PluginMock()
+
+        self.scheduler.db_backend_service = self.BackendMock()
+
+        assert self.scheduler._analysis_is_up_to_date(analysis_db_entry, plugin_mock, uid) == is_up_to_date

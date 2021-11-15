@@ -70,9 +70,11 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         This function is used to recursively analyze an object without need of the unpacker
         '''
         included_files = self.db_backend_service.get_list_of_all_included_files(fo)
+        self.pre_analysis(fo)
         self._add_update_to_current_analyses(fo, included_files)
         for child_uid in included_files:
             child_fo = self.db_backend_service.get_object(child_uid)
+            child_fo.force_update = getattr(fo, 'force_update', False)  # propagate forced update to children
             self._schedule_analysis_tasks(child_fo, fo.scheduled_analysis)
         self.check_further_process_or_complete(fo)
 
@@ -295,10 +297,9 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
                 logging.warning('Desanitization of version string failed')
                 return False
 
-        return self._analysis_is_up_to_date(db_entry['processed_analysis'][analysis_to_do], self.analysis_plugins[analysis_to_do])
+        return self._analysis_is_up_to_date(db_entry['processed_analysis'][analysis_to_do], self.analysis_plugins[analysis_to_do], uid)
 
-    @staticmethod
-    def _analysis_is_up_to_date(analysis_db_entry: dict, analysis_plugin: AnalysisBasePlugin):
+    def _analysis_is_up_to_date(self, analysis_db_entry: dict, analysis_plugin: AnalysisBasePlugin, uid):
         old_plugin_version = analysis_db_entry['plugin_version']
         old_system_version = analysis_db_entry.get('system_version', None)
         current_plugin_version = analysis_plugin.VERSION
@@ -310,12 +311,22 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         except TypeError:
             logging.error(f'plug-in or system version of "{analysis_plugin.NAME}" plug-in is or was invalid!')
             return False
+
+        return self._dependencies_are_up_to_date(analysis_plugin, uid)
+
+    def _dependencies_are_up_to_date(self, analysis_plugin: AnalysisBasePlugin, uid):
+        for dependency in analysis_plugin.DEPENDENCIES:
+            self_date = _get_analysis_date(analysis_plugin.NAME, uid, self.db_backend_service)
+            dependency_date = _get_analysis_date(dependency, uid, self.db_backend_service)
+            if self_date < dependency_date:
+                return False
+
         return True
 
     @staticmethod
     def _is_forced_update(file_object: FileObject) -> bool:
         try:
-            return bool(getattr(file_object, 'force_update'))
+            return bool(getattr(file_object, 'force_update', False))
         except AttributeError:
             return False
 
@@ -517,3 +528,10 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         for uid, stats in list(self.recently_finished.items()):
             if time() - stats['time_finished'] > RECENTLY_FINISHED_DISPLAY_TIME_IN_SEC:
                 self.recently_finished.pop(uid)
+
+
+def _get_analysis_date(plugin_name: str, uid: str, backend_db_interface):
+    fo = backend_db_interface.get_object(uid, analysis_filter=[plugin_name])
+    if plugin_name not in fo.processed_analysis:
+        return float('inf')
+    return fo.processed_analysis[plugin_name]['analysis_date']

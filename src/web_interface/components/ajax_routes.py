@@ -122,7 +122,7 @@ class AjaxRoutes(ComponentBase):
     @AppRoute('/ajax/stats/system', GET)
     def get_system_stats(self):
         with ConnectTo(StatisticDbViewer, self._config) as stats_db:
-            backend_data = stats_db.get_statistic("backend")
+            backend_data = stats_db.get_statistic('backend')
         try:
             return {
                 'backend_cpu_percentage': '{}%'.format(backend_data['system']['cpu_percentage']),

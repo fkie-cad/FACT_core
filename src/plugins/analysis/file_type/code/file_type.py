@@ -7,9 +7,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
     '''
     This Plugin detects the mime type of the file
     '''
-    NAME = "file_type"
-    DESCRIPTION = "identify the file type"
-    VERSION = "1.0"
+    NAME = 'file_type'
+    DESCRIPTION = 'identify the file type'
+    VERSION = '1.0'
 
     def __init__(self, plugin_administrator, config=None, recursive=True):
         '''

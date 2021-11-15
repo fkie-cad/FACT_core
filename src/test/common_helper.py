@@ -83,6 +83,8 @@ NICE_LIST_DATA = {
     'current_virtual_path': get_value_of_first_key(TEST_FW.get_virtual_file_paths())
 }
 
+TEST_SEARCH_QUERY = {'_id': '0000000000000000000000000000000000000000000000000000000000000000_1', 'search_query': f'{{"_id": "{TEST_FW_2.uid}"}}', 'query_title': 'rule a_ascii_string_rule'}
+
 
 class MockFileObject:
 
@@ -193,7 +195,7 @@ class DatabaseMock:  # pylint: disable=too-many-public-methods
         return '0000000000000000000000000000000000000000000000000000000000000000_0'
 
     def get_query_from_cache(self, query_uid):
-        return {'search_query': '{{"_id": "{}"}}'.format(format(TEST_FW_2.uid)), 'query_title': 'test'}
+        return TEST_SEARCH_QUERY
 
     class firmwares:  # pylint: disable=invalid-name
         @staticmethod
@@ -218,6 +220,17 @@ class DatabaseMock:  # pylint: disable=too-many-public-methods
         @staticmethod
         def find(query, query_filter):
             return {}
+
+    class search_query_cache:  # pylint: disable=invalid-name
+        @staticmethod
+        def find(**kwargs):
+            # We silently ignore every argument given to this function
+            # Feel free to change this behavior if your test needs it
+            return [TEST_SEARCH_QUERY]
+
+        @staticmethod
+        def count_documents(filter, **kwargs):
+            return 1
 
     def get_data_for_nice_list(self, input_data, root_uid):
         return [NICE_LIST_DATA, ]
@@ -447,7 +460,7 @@ def get_firmware_for_rest_upload_test():
         'device_class': 'test_class',
         'version': '1.0',
         'vendor': 'test_vendor',
-        'release_date': '01.01.1970',
+        'release_date': '1970-01-01',
         'tags': '',
         'requested_analysis_systems': ['software_components']
     }

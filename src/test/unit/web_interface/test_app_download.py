@@ -15,9 +15,9 @@ class TestAppDownload(WebInterfaceTest):
     def test_app_download_raw(self):
         rv = self.test_client.get('/download/{}'.format(TEST_FW.uid))
         assert TEST_FW.binary in rv.data
-        assert "attachment; filename=test.zip" in rv.headers['Content-Disposition']
+        assert 'attachment; filename=test.zip' in rv.headers['Content-Disposition']
 
     def test_app_tar_download(self):
         rv = self.test_client.get('/tar-download/{}'.format(TEST_FW.uid))
         assert TEST_FW.binary in rv.data
-        assert "attachment; filename=test.zip" in rv.headers['Content-Disposition']
+        assert 'attachment; filename=test.zip' in rv.headers['Content-Disposition']

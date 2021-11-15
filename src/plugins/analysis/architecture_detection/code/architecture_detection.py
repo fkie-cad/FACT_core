@@ -72,7 +72,8 @@ class MetaDataDetector:
         'SuperH': ['Renesas SH'],
         'ESP': ['Tensilica Xtensa'],
         'Alpha': ['Alpha'],
-        'M68K': ['m68k', '68020']
+        'M68K': ['m68k', '68020'],
+        'Tilera': ['TILE-Gx', 'TILE64', 'TILEPro']
     }
     bitness = {
         '8-bit': ['8-bit'],

@@ -10,14 +10,14 @@ from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
 from ..code.kernel_config import AnalysisPlugin
 
 try:
+    from ..internal.checksec_check_kernel import check_kernel_config
     from ..internal.decomp import GZDecompressor
     from ..internal.kernel_config_hardening_check import check_kernel_hardening
-    from ..internal.checksec_check_kernel import check_kernel_config
 except ImportError:
     sys.path.append(str(Path(__file__).parent.parent / 'internal'))
+    from checksec_check_kernel import check_kernel_config
     from decomp import GZDecompressor
     from kernel_config_hardening_check import check_kernel_hardening
-    from checksec_check_kernel import check_kernel_config
 
 
 TEST_DATA_DIR = Path(__file__).parent / 'data'
@@ -184,7 +184,6 @@ def test_checksec_existing_config():
     assert result != {}
     assert 'kernel' in result
     assert 'selinux' in result
-    assert 'grsecurity' in result
     assert 'randomize_va_space' not in result['kernel']
     assert result['kernel']['kernel_heap_randomization'] == 'yes'
 

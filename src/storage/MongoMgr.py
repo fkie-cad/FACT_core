@@ -39,7 +39,7 @@ class MongoMgr:
 
     def start(self, _authenticate=True):
         if self.config['data_storage']['mongo_server'] == 'localhost':
-            logging.info("Starting local mongo database")
+            logging.info('Starting local mongo database')
             self.check_file_and_directory_existence_and_permissions()
             auth_option = '--auth ' if _authenticate else ''
             command = 'mongod {}--config {} --fork --logpath {}'.format(auth_option, self.config_path, self.mongo_log_path)
@@ -72,23 +72,23 @@ class MongoMgr:
     def init_users(self):
         logging.info('Creating users for MongoDB authentication')
         if self.auth_is_enabled():
-            logging.error("The DB seems to be running with authentication. Try terminating the MongoDB process.")
+            logging.error('The DB seems to be running with authentication. Try terminating the MongoDB process.')
         mongo_server = self.config['data_storage']['mongo_server']
         mongo_port = self.config['data_storage']['mongo_port']
         try:
             client = MongoClient('mongodb://{}:{}'.format(mongo_server, mongo_port), connect=False)
             client.admin.command(
-                "createUser",
+                'createUser',
                 self.config['data_storage']['db_admin_user'],
                 pwd=self.config['data_storage']['db_admin_pw'],
                 roles=[
                     {'role': 'dbOwner', 'db': 'admin'},
                     {'role': 'readWriteAnyDatabase', 'db': 'admin'},
-                    {'role': 'root', 'db': "admin"}
+                    {'role': 'root', 'db': 'admin'}
                 ]
             )
             client.admin.command(
-                "createUser",
+                'createUser',
                 self.config['data_storage']['db_readonly_user'],
                 pwd=self.config['data_storage']['db_readonly_pw'],
                 roles=[{'role': 'readAnyDatabase', 'db': 'admin'}]

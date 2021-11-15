@@ -200,13 +200,15 @@ def load_main_config() -> configparser.ConfigParser:
     return config
 
 
-def run_cmd_with_logging(cmd: str, raise_error=True, shell=False, **kwargs):
+def run_cmd_with_logging(cmd: str, raise_error=True, shell=False, silent: bool = False, **kwargs):
     '''
     Runs `cmd` with subprocess.run, logs the command it executes and logs
     stderr on non-zero returncode.
     All keyword arguments are execpt `raise_error` passed to subprocess.run.
 
+    :param shell: execute the command through the shell.
     :param raise_error: Whether or not an error should be raised when `cmd` fails
+    :param silent: don't log in case of error.
     '''
     logging.debug(f'Running: {cmd}')
     try:
@@ -214,11 +216,10 @@ def run_cmd_with_logging(cmd: str, raise_error=True, shell=False, **kwargs):
         subprocess.run(cmd_, stdout=PIPE, stderr=PIPE, encoding='UTF-8', shell=shell, check=True, **kwargs)
     except CalledProcessError as err:
         # pylint:disable=no-else-raise
+        if not silent:
+            logging.log(logging.ERROR if raise_error else logging.DEBUG, f'Failed to run {cmd}:\n{err.stderr}')
         if raise_error:
-            logging.error(f'Failed to run {cmd}:\n{err.stderr}')
             raise err
-        else:
-            logging.debug(f'Failed to run {cmd} (ignoring):\n{err.stderr}\n')
 
 
 def check_distribution():
@@ -244,7 +245,8 @@ def check_distribution():
     if distro.id() == 'fedora':
         logging.debug('Fedora detected')
         return 'fedora'
-    sys.exit('Your Distribution ({} {}) is not supported. FACT Installer requires Ubuntu 18.04, 20.04 or compatible!'.format(distro.id(), distro.version()))
+    logging.critical('Your Distribution ({} {}) is not supported. FACT Installer requires Ubuntu 18.04, 20.04 or compatible!'.format(distro.id(), distro.version()))
+    sys.exit(1)
 
 
 def install_pip_packages(package_file: Path):
@@ -257,11 +259,16 @@ def install_pip_packages(package_file: Path):
     '''
     for package in read_package_list_from_file(package_file):
         try:
-            run_cmd_with_logging(f'sudo -EH pip3 install -U {package}')
+            command = f'pip3 install -U {package} --prefer-binary'  # prefer binary release to compiling latest
+            if not is_virtualenv():
+                command = 'sudo -EH ' + command
+            run_cmd_with_logging(command, silent=True)
         except CalledProcessError as error:
             # don't fail if a package is already installed using apt and can't be upgraded
             if 'distutils installed' in error.stderr:
+                logging.warning(f'Pip package {package} is already installed with distutils. This may Cause problems:\n{error.stderr}')
                 continue
+            logging.error(f'Pip package {package} could not be installed:\n{error.stderr}')
             raise
 
 
@@ -284,3 +291,8 @@ def read_package_list_from_file(path: Path):
         packages.append(line)
 
     return packages
+
+
+def is_virtualenv() -> bool:
+    '''Check if FACT runs in a virtual environment'''
+    return sys.prefix != getattr(sys, 'base_prefix', getattr(sys, 'real_prefix', None))

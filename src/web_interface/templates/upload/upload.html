@@ -117,10 +117,16 @@
 
                 {# Device Name #}
                 {%- call macros.upload_input("device_name", "Device Name", error) %}
-                    <select class="form-control" id="device_name" name='device_name_dropdown' size="4" required
-                            {%- if not is_reanalysis %} disabled {% endif -%}
+                    <select
+                            class="form-control"
+                            id="device_name"
+                            name='device_name_dropdown'
+                            size="4"
                             onchange="update_text_input(this, document.getElementById('device_name_text'));
-                                      if (this.selectedIndex != -1){document.getElementById('device_part').disabled = false;}">
+                                      if (this.selectedIndex != -1){document.getElementById('device_part').disabled = false;}"
+                            required
+                            {%- if not is_reanalysis %} disabled {% endif %}
+                    >
                         {% if not is_reanalysis %}
                             <option value='new entry'>Please select device class and vendor</option>
                         {% else %}
@@ -133,18 +139,24 @@
 
                 {# Device Part #}
                 {%- call macros.upload_input("device_part", "Device Part", error) %}
-                    <select class="form-control" id="device_part" name='device_part_dropdown' size="4" required
-                            {%- if not is_reanalysis %} disabled {% endif -%}
-                            onchange="update_text_input(this, document.getElementById('device_part_text'));">
+                    <select
+                            class="form-control"
+                            id="device_part"
+                            name='device_part_dropdown'
+                            size="4"
+                            onchange="update_text_input(this, document.getElementById('device_part_text'));"
+                            required
+                            {%- if not is_reanalysis %} disabled {% endif %}
+                    >
                         {%- if not is_reanalysis %}
                             <option value='complete' selected>complete</option>
                             <option value='kernel'>kernel</option>
                             <option value='bootloader'>bootloader</option>
                             <option value='root-fs'>root-fs</option>
+                            <option value='new entry'>new entry</option>
                         {%- else %}
-                            <option value='{{ firmware.part }}' selected>{{ firmware.part }}</option>
+                            <option value='{{ firmware.part or "complete" }}' selected>{{ firmware.part or "complete" }}</option>
                         {%- endif %}
-                        <option value='new entry'>new entry</option>
                     </select>
                     <input type="text" name="device_part" class="form-control" id="device_part_text" placeholder="New Device Part" style="display: none;">
                 {%- endcall %}
@@ -240,6 +252,17 @@
                         <i class="fas fa-upload"></i> Submit
                     {%- endif %}
                 </button>
+
+                {%- if is_reanalysis and "re-do" not in title %}
+                    <div class="checkbox m-0 pl-2" style="display: inline;">
+                        <label style="padding: 2px">
+                            <input
+                                type="checkbox" value="true" id="force_reanalysis" style="margin-top: 2px;"
+                                data-toggle="tooltip" title="deactivate smart scheduling" name="force_reanalysis"
+                            > Force Analysis Update
+                        </label>
+                    </div>
+                {%- endif %}
             </form>
         </div>
     </div>

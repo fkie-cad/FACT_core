@@ -37,7 +37,7 @@ def _get_console_output_level(debug_flag):
 
 def _setup_logging(config, debug_flag=False):
     log_level = getattr(logging, config['Logging']['logLevel'], None)
-    log_format = logging.Formatter(fmt="[%(asctime)s][%(module)s][%(levelname)s]: %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
+    log_format = logging.Formatter(fmt='[%(asctime)s][%(module)s][%(levelname)s]: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
     logger = logging.getLogger('')
     logger.setLevel(logging.DEBUG)
     create_dir_for_file(config['Logging']['logFile'])
@@ -67,7 +67,7 @@ def shutdown(*_):
 
 args_path = sys.argv[-1]
 if os.path.isfile(args_path):
-    with open(args_path, "br") as fp:
+    with open(args_path, 'br') as fp:
         args = pickle.loads(fp.read())
     config = _load_config(args)
     _setup_logging(config, args.debug)

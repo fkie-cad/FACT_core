@@ -3,6 +3,7 @@ import logging
 import os
 import re
 from difflib import SequenceMatcher
+from typing import List, Optional
 
 import lief
 from common_helper_files import get_dir_of_file
@@ -38,6 +39,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             file_object.processed_analysis[self.NAME] = {'Output': elf_dict}
             self.create_tags(parsed_binary, file_object)
             file_object.processed_analysis[self.NAME]['summary'] = list(elf_dict.keys())
+
         except RuntimeError:
             logging.error('lief could not parse {}'.format(file_object.uid))
             file_object.processed_analysis[self.NAME] = {'Output': {}}
@@ -75,7 +77,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     def _get_symbols_version_entries(symbol_versions):
         imported_libs = []
         for sv in symbol_versions:
-            if str(sv) != '* Local *' and str(sv) != "* Global *":
+            if str(sv) != '* Local *' and str(sv) != '* Global *':
                 imported_libs.append(str(sv).split('(')[0])
         return list(set(imported_libs))
 
@@ -128,12 +130,16 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 binary_json_dict['imported_functions'] = normalize_lief_items(parsed_binary.imported_functions)
             if parsed_binary.libraries:
                 binary_json_dict['libraries'] = normalize_lief_items(parsed_binary.libraries)
+            if parsed_binary.sections:
+                elf_dict['modinfo'] = self.filter_modinfo(parsed_binary)
+
         except (TypeError, lief.bad_file) as error:
             logging.error('Bad file for lief/elf analysis {}. {}'.format(file_object.uid, error))
             return elf_dict
 
         self.get_final_analysis_dict(binary_json_dict, elf_dict)
         self._convert_address_values_to_hex(elf_dict)
+
         return elf_dict, parsed_binary
 
     @staticmethod
@@ -142,3 +148,22 @@ class AnalysisPlugin(AnalysisBasePlugin):
             for entry in elf_dict[category]:
                 for key in {'virtual_address', 'offset'}.intersection(entry):
                     entry[key] = hex(entry[key])
+
+    def filter_modinfo(self, binary) -> Optional[List[str]]:
+        # getting the information from the *.ko files .modinfo
+        if binary is not None:
+
+            for section in binary.sections:
+                if section.name == '.modinfo':
+                    modinfo = bytes(section.content).decode()
+                    modinfo = [entry for entry in modinfo.split('\x00') if entry]
+                    break
+
+                # no .modinfo
+                modinfo = None
+
+        else:
+            # binary is nonetype
+            modinfo = None
+
+        return modinfo

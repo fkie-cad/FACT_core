@@ -25,6 +25,10 @@ class TestAppShowAnalysis(WebInterfaceTest):
         assert b'Preview' in result
         assert b'test file:\ncontent:'
 
+    def test_app_show_analysis_invalid_analysis(self):
+        result = self.test_client.get(f'/analysis/{TEST_FW.uid}/this_analysis_does_not_exist/ro/{TEST_FW.uid}').data
+        assert b'Error!' in result
+
     def test_app_single_file_analysis(self):
         result = self.test_client.get('/analysis/{}'.format(TEST_FW.uid))
 
