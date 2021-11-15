@@ -1,12 +1,11 @@
 '''
-This plugin implements a wrapper around the BAP plugin cwe_checker, which checks ELF executables for
+This plugin implements a wrapper around the cwe_checker, which checks ELF executables for
 several CWEs (Common Weakness Enumeration). Please refer to cwe_checkers implementation for further information.
 Please note that these checks are heuristics and the checks are static.
 This means that there are definitely false positives and false negatives. The objective of this
 plugin is to find potentially interesting binaries that deserve a deep manual analysis or intensive fuzzing.
 
-As the plugin depends on BAP, it depends on BAP's lifting capabilities. Currently, BAP
-lifts to the following architectures:
+Currently the cwe_checker supports the following architectures:
 - Intel x86 (32 and 64 bits)
 - ARM
 - PowerPC
@@ -22,7 +21,7 @@ from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.docker import run_docker_container
 
 TIMEOUT_IN_SECONDS = 600  # 10 minutes
-DOCKER_IMAGE = 'fkiecad/cwe_checker:latest'
+DOCKER_IMAGE = 'fkiecad/cwe_checker:stable'
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
