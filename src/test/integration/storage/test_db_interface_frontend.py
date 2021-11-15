@@ -100,7 +100,7 @@ class TestStorageDbInterfaceFrontend(unittest.TestCase):
         fw_2.tags = {'foo': 'some_color', 'test': 'some_color'}
         self.db_backend_interface.add_firmware(fw_2)
 
-        assert self.db_frontend_interface.get_tag_list() == {'foo', 'bar', 'test'}
+        assert self.db_frontend_interface.get_tag_list() == ['bar', 'foo', 'test']
 
     def test_get_data_for_nice_list(self):
         uid_list = [self.test_firmware.uid]
