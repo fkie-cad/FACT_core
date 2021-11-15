@@ -2,8 +2,8 @@ import json
 import logging
 import sys
 from copy import deepcopy
-from typing import Dict, List
 from itertools import chain
+from typing import Dict, List, Set
 
 from helperFunctions.compare_sets import remove_duplicates_from_list
 from helperFunctions.data_conversion import get_value_of_first_key
@@ -91,6 +91,14 @@ class FrontEndDbInterface(MongoInterfaceCommon):
 
     def get_vendor_list(self):
         return self.get_firmware_attribute_list('vendor')
+
+    def get_tag_list(self) -> Set[str]:
+        query = self.firmwares.aggregate([
+            {'$project': {'tags': {'$objectToArray': '$tags'}}},
+            {'$unwind': '$tags'},
+            {'$group': {'_id': '$_id', 'tag_set': {'$addToSet': '$tags.k'}}},
+        ], allowDiskUse=True)
+        return set(tag for entry in query for tag in entry['tag_set'])
 
     def get_device_name_dict(self):
         device_name_dict = {}
