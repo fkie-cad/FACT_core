@@ -56,15 +56,15 @@ class FilterClass:
         return '  ||  '.join(res)
 
     def _filter_replace_uid_with_hid_link(self, input_data, root_uid=None):
-        tmp = input_data.__str__()
-        if tmp == 'None':
+        content = str(input_data)
+        if content == 'None':
             return ' '
-        uid_list = flt.get_all_uids_in_string(tmp)
+        uid_list = flt.get_all_uids_in_string(content)
         with ConnectTo(FrontEndDbInterface, self._config) as sc:
-            for item in uid_list:
-                tmp = tmp.replace(item, '<a style="text-reset" href="/analysis/{}/ro/{}">{}</a>'.format(
-                    item, root_uid, sc.get_hid(item, root_uid=root_uid)))
-        return tmp
+            for uid in uid_list:
+                hid = sc.get_hid(uid, root_uid=root_uid)
+                content = content.replace(uid, f'<a style="text-reset" href="/analysis/{uid}/ro/{root_uid}">{hid}</a>')
+        return content
 
     def _filter_nice_uid_list(self, uids, root_uid=None, selected_analysis=None, filename_only=False):
         root_uid = none_to_none(root_uid)
