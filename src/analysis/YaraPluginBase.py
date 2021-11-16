@@ -47,9 +47,9 @@ class YaraBasePlugin(AnalysisBasePlugin):
                 file_object.processed_analysis[self.NAME] = result
                 file_object.processed_analysis[self.NAME]['summary'] = list(result.keys())
             except (ValueError, TypeError):
-                file_object.processed_analysis[self.NAME] = {'ERROR': 'Processing corrupted. Likely bad call to yara.'}
+                file_object.processed_analysis[self.NAME] = {'failed': 'Processing corrupted. Likely bad call to yara.'}
         else:
-            file_object.processed_analysis[self.NAME] = {'ERROR': 'Signature path not set'}
+            file_object.processed_analysis[self.NAME] = {'failed': 'Signature path not set'}
         return file_object
 
     @staticmethod
