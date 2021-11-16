@@ -1,3 +1,10 @@
+function hide_checkbox() {
+    if ($("#only_firmware").is(':checked')) {
+        $("#inverted_div").show();
+    } else {
+        $("#inverted_div").hide();
+    }
+}
 var app = angular.module('myApp', []);
 
 app.config(['$interpolateProvider', function($interpolateProvider) {
