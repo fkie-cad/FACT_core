@@ -4,3 +4,4 @@ function start_compare(){
     if (checkbox.checked) link += '?force_recompare=true';
     location.href = link;
 };
+document.getElementById("start_compare_button").onclick = start_compare;

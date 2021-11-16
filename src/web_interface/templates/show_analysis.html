@@ -31,8 +31,6 @@
     <script type="text/javascript" src="{{ url_for('static', filename='js/line_numbering.js') }}"></script>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/line_numbering.css') }}" />
 
-    <script src="{{ url_for('static', filename='js/start_compare.js') }}"></script>
-
     <script>
         const uid = "{{ uid|safe }}";
     </script>
@@ -184,6 +182,7 @@
                                     </label>
                                 </div>
                             </div>
+                            <script src="{{ url_for('static', filename='js/start_compare.js') }}"></script>
                         </td>
                     {% endif %}
                 </tr>
