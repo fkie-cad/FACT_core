@@ -6,15 +6,13 @@
 {%- set is_reanalysis = True if firmware else False -%}
 
 {% block head %}
-    <script type="text/javascript" src="{{ url_for('static', filename='js/known_devices.js') }}"></script>
+    
     <script>
         var device_names = {{ device_names | safe }};
-    </script>
-    <script type="text/javascript" src="{{ url_for('static', filename='js/release_date.js') }}"></script>
-    <script>
         var plugin_dict = {{ analysis_plugin_dict | dict_to_json | safe }};
     </script>
-    <script type="text/javascript" src="{{ url_for('static', filename='js/change_selected_plugins.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/upload.js') }}"></script>
+    
 {% endblock %}
 
 {%- block styles -%}

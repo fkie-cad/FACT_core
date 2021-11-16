@@ -4,7 +4,7 @@
 
 {% block head %}
     <title>Dependency Graph</title>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/dependency_graph_style.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/dependency_graph.css') }}">
    
     <script src="{{ url_for('static', filename='web_js/vis-network.min.js') }}"></script> 
 {% endblock %}
@@ -60,13 +60,13 @@
 
 <!--  insert js graph magic here  -->
 
-    <script>
-        var get_nodes = {{ nodes | safe }};
-        var get_edges = {{ edges | safe }};
-        var get_groups = {{ groups | safe }};
+<script>
+    var get_nodes = {{ nodes | safe }};
+    var get_edges = {{ edges | safe }};
+    var get_groups = {{ groups | safe }};
 
-        var color_list = {{ color_list | safe }};
-    </script>
-    <script type="text/javascript" src="{{ url_for('static', filename='js/dependency_graph.js') }}"></script>
+    var color_list = {{ color_list | safe }};
+</script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/dependency_graph.js') }}"></script>
 
 {% endblock %}

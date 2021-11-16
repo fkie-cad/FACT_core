@@ -6,9 +6,9 @@ var nodes, groups, edges, network, legend_network, allNodes;
         return JSON.stringify(obj, null, 4);
     }
 
-    var my_nodes = []
-    var my_edges = []
-    groups = []
+    var my_nodes = [];
+    var my_edges = [];
+    groups = [];
 
     var graph_container = document.getElementById("dependencyGraph");
     var legend_container = document.getElementById("dependencyGraphLegend");

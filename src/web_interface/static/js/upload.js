@@ -1,3 +1,9 @@
+$(function () {
+    $('#release_date').datepicker({
+        format: 'yyyy-mm-dd',
+        todayHighlight: true
+    });
+});
 function add_device_class_options(selected_device_class, selected_vendor, data) {
     $('#device_name').empty();
     if (data.hasOwnProperty(selected_device_class)) {
@@ -30,5 +36,19 @@ function update_device_names() {
         var selected_device_class = device_class_dropdown.options[device_class_dropdown.selectedIndex].value;
         var selected_vendor = vendor_dropdown.options[vendor_dropdown.selectedIndex].value;
         add_device_class_options(selected_device_class, selected_vendor, device_names);
+    }
+}
+function change_selected_plugins(selected_theme) {
+    for (var plugin in plugin_dict) {
+        if (plugin_dict.hasOwnProperty(plugin)) {
+            plugin_checkbox = document.getElementById(plugin);
+            if (plugin_checkbox != null) {
+                if (plugin_dict[plugin][2][selected_theme] == true) {
+                    plugin_checkbox.firstElementChild.firstElementChild.checked = true;
+                } else {
+                    plugin_checkbox.firstElementChild.firstElementChild.checked = false;
+                }
+            }
+        }
     }
 }
