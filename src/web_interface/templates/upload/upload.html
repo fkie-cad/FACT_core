@@ -16,7 +16,7 @@
 {% endblock %}
 
 {%- block styles -%}
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/upload_style.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/upload.css') }}">
 {%- endblock -%}
 
 {%- block body -%}
@@ -28,9 +28,6 @@
         {%- else %}
             <h3 class="mb-3">Upload Firmware</h3>
         {%- endif %}
-
-        <img id="map_img" src="{{ url_for('.static', filename='Pacman.gif') }}" style="display: none;"/>
-        <script type="text/javascript" src="{{ url_for('static', filename='js/show_img.js') }}"></script>
        
         <div id="form">
             <form class="form-horizontal" action="" method=post enctype=multipart/form-data>
