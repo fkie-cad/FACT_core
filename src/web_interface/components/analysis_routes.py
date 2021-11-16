@@ -20,7 +20,7 @@ from storage.db_interface_admin import AdminDbInterface
 from storage.db_interface_compare import CompareDbInterface
 from storage.db_interface_frontend import FrontEndDbInterface
 from storage.db_interface_view_sync import ViewReader
-from web_interface.components.compare_routes import get_comparison_uid_list_from_session
+from web_interface.components.compare_routes import get_comparison_uid_dict_from_session
 from web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
 from web_interface.components.dependency_graph import (
     create_data_graph_edges, create_data_graph_nodes_and_groups, get_graph_colors
@@ -73,7 +73,7 @@ class AnalysisRoutes(ComponentBase):
             root_uid=none_to_none(root_uid),
             analysis_plugin_dict=analysis_plugins,
             other_versions=other_versions,
-            uids_for_comparison=get_comparison_uid_list_from_session(),
+            uids_for_comparison=get_comparison_uid_dict_from_session(),
             user_has_admin_clearance=user_has_privilege(current_user, privilege='delete'),
             known_comparisons=known_comparisons,
             available_plugins=self._get_used_and_unused_plugins(
@@ -166,7 +166,7 @@ class AnalysisRoutes(ComponentBase):
         force_reanalysis = request.form.get('force_reanalysis') == 'true'
         error = check_for_errors(analysis_task)
         if error:
-            return redirect(url_for('get_update_analysis', uid=uid, re_do=re_do, error=error))
+            return self.get_update_analysis(uid=uid, re_do=re_do, error=error)
         self._schedule_re_analysis_task(uid, analysis_task, re_do, force_reanalysis)
         return render_template('upload/upload_successful.html', uid=uid)
 

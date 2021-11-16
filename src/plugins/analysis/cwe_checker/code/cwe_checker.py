@@ -1,12 +1,11 @@
 '''
-This plugin implements a wrapper around the BAP plugin cwe_checker, which checks ELF executables for
+This plugin implements a wrapper around the cwe_checker, which checks ELF executables for
 several CWEs (Common Weakness Enumeration). Please refer to cwe_checkers implementation for further information.
 Please note that these checks are heuristics and the checks are static.
 This means that there are definitely false positives and false negatives. The objective of this
 plugin is to find potentially interesting binaries that deserve a deep manual analysis or intensive fuzzing.
 
-As the plugin depends on BAP, it depends on BAP's lifting capabilities. Currently, BAP
-lifts to the following architectures:
+Currently the cwe_checker supports the following architectures:
 - Intel x86 (32 and 64 bits)
 - ARM
 - PowerPC
@@ -17,12 +16,12 @@ import logging
 from collections import defaultdict
 
 from common_helper_process import execute_shell_command_get_return_code
-from helperFunctions.docker import run_docker_container
 
 from analysis.PluginBase import AnalysisBasePlugin
+from helperFunctions.docker import run_docker_container
 
 TIMEOUT_IN_SECONDS = 600  # 10 minutes
-DOCKER_IMAGE = 'fkiecad/cwe_checker:latest'
+DOCKER_IMAGE = 'fkiecad/cwe_checker:stable'
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
@@ -35,7 +34,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
                   'CWE-676 (Use of Potentially Dangerous Function).'\
                   'Due to the nature of static analysis, this plugin may run for a long time.'
     DEPENDENCIES = ['cpu_architecture', 'file_type']
-    VERSION = '0.5.0'
+    VERSION = '0.5.1'
     MIME_WHITELIST = ['application/x-executable', 'application/x-object', 'application/x-sharedlib']
     SUPPORTED_ARCHS = ['arm', 'x86', 'x64', 'mips', 'ppc']
 
@@ -56,7 +55,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         if output is None:
             logging.error('Could not get version string from cwe_checker.')
         else:
-            logging.info('Version is {}'.format(str(output)))
+            logging.info(f'Version is {output}')
         return output
 
     @staticmethod
@@ -101,11 +100,13 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 cwe_messages = self._parse_cwe_checker_output(output)
                 file_object.processed_analysis[self.NAME] = {'full': cwe_messages, 'summary': list(cwe_messages.keys())}
             except json.JSONDecodeError:
-                logging.error('cwe_checker execution failed: {}\nUID: {}'.format(output, file_object.uid))
-                file_object.processed_analysis[self.NAME] = {'summary': []}
+                message = f'cwe_checker execution failed: {output}'
+                logging.error(f'{message}\nUID: {file_object.uid}', exc_info=True)
+                file_object.processed_analysis[self.NAME] = {'summary': [], 'failed': message}
         else:
-            logging.error('Timeout or error during cwe_checker execution.\nUID: {}'.format(file_object.uid))
-            file_object.processed_analysis[self.NAME] = {'summary': []}
+            message = 'Timeout or error during cwe_checker execution.'
+            logging.error(f'{message}\nUID: {file_object.uid}')
+            file_object.processed_analysis[self.NAME] = {'summary': [], 'failed': message}
         return file_object
 
     def process_object(self, file_object):

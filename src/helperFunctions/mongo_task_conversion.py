@@ -2,7 +2,7 @@ import logging
 from configparser import ConfigParser
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from flask import Request
 from markupsafe import escape
@@ -91,8 +91,8 @@ def _get_meta_from_dropdowns(meta, request: Request):
                 meta[item] = escape(dd)
 
 
-def _get_tag_list(tag_string):
-    if tag_string == '':
+def _get_tag_list(tag_string: Optional[str]) -> List[str]:
+    if tag_string is None or tag_string == '':
         return []
     return tag_string.split(',')
 
@@ -169,7 +169,7 @@ def check_for_errors(analysis_task: dict) -> Dict[str, str]:
     :return: A dictionary containing error messages in the form `{task_key: error_message}`.
     '''
     return {
-        key: 'Please specify the {}'.format(key.replace('_', ' '))
+        key: f'''Please specify the {key.replace('_', ' ')}'''
         for key in analysis_task
         if analysis_task[key] in [None, '', b''] and key not in OPTIONAL_FIELDS
     }

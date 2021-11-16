@@ -75,6 +75,7 @@ def create_test_file_object(bin_path='get_files_test/testfile1'):
 TEST_FW = create_test_firmware(device_class='test class', device_name='test device', vendor='test vendor')
 TEST_FW_2 = create_test_firmware(device_class='test_class', device_name='test_firmware_2', vendor='test vendor', bin_path='container/test.7z')
 TEST_TEXT_FILE = create_test_file_object()
+TEST_TEXT_FILE2 = create_test_file_object(bin_path='get_files_test/testfile2')
 NICE_LIST_DATA = {
     'uid': TEST_FW.uid,
     'files_included': TEST_FW.files_included,
@@ -460,7 +461,7 @@ def get_firmware_for_rest_upload_test():
         'device_class': 'test_class',
         'version': '1.0',
         'vendor': 'test_vendor',
-        'release_date': '01.01.1970',
+        'release_date': '1970-01-01',
         'tags': '',
         'requested_analysis_systems': ['software_components']
     }
