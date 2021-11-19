@@ -86,7 +86,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             self._add_tag(file_object, self.result)
 
     def _extract_metadata_from_file_system(self, file_object: FileObject):
-        with TemporaryDirectory() as tmp_dir:
+        with TemporaryDirectory(dir=self.config['data_storage']['docker-mount-base-dir']) as tmp_dir:
             input_file = Path(tmp_dir) / 'input.img'
             input_file.write_bytes(file_object.binary or Path(file_object.file_path).read_bytes())
             output = self._mount_in_docker(tmp_dir)
