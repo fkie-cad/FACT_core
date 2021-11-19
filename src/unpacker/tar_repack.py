@@ -13,7 +13,7 @@ from unpacker.unpack_base import UnpackBase
 class TarRepack(UnpackBase):
 
     def tar_repack(self, file_path):
-        extraction_directory = TemporaryDirectory(prefix='FACT_tar_repack', dir=get_temp_dir_path(self.config))
+        extraction_directory = TemporaryDirectory(prefix='FACT_tar_repack', dir=self.config['data_storage']['docker-mount-base-dir'])
         self.extract_files_from_file(file_path, extraction_directory.name)
 
         archive_directory = TemporaryDirectory(prefix='FACT_tar_repack', dir=get_temp_dir_path(self.config))
