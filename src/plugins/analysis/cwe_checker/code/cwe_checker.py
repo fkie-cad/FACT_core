@@ -40,15 +40,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def __init__(self, plugin_administrator, config=None, recursive=True, timeout=TIMEOUT_IN_SECONDS + 30):
         self.config = config
-        if not self._check_docker_installed():
-            raise RuntimeError('Docker is not installed.')
         self._log_version_string()
         super().__init__(plugin_administrator, config=config, plugin_path=__file__, recursive=recursive, timeout=timeout)
-
-    @staticmethod
-    def _check_docker_installed():
-        _, return_code = execute_shell_command_get_return_code('docker -v')
-        return return_code == 0
 
     def _log_version_string(self):
         output = self._run_cwe_checker_to_get_version_string()
