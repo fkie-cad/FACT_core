@@ -7,7 +7,6 @@ from time import sleep
 import requests
 from flask import make_response, redirect, render_template, request
 
-from helperFunctions.config import get_temp_dir_path
 from helperFunctions.database import ConnectTo
 from helperFunctions.mongo_task_conversion import (
     check_for_errors, convert_analysis_task_to_fw_obj, create_analysis_task
@@ -140,7 +139,7 @@ class IORoutes(ComponentBase):
             firmware = connection.get_complete_object_including_all_summaries(uid)
 
         try:
-            with TemporaryDirectory(dir=get_temp_dir_path(self._config)) as folder:
+            with TemporaryDirectory(dir=self.config['data-storage']['docker-mount-base-dir']) as folder:
                 pdf_path = build_pdf_report(firmware, Path(folder))
                 binary = pdf_path.read_bytes()
         except RuntimeError as error:
