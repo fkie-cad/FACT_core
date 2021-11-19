@@ -1,14 +1,13 @@
 from pathlib import Path
 
-from objects.file import FileObject
 from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
-
+from objects.file import FileObject
 from ..code.device_tree import AnalysisPlugin
 
 TEST_DATA = Path(__file__).parent.parent / 'test/data'
 
 
-class test_device_tree(AnalysisPluginTest):
+class TestDeviceTree(AnalysisPluginTest):
 
     PLUGIN_NAME = 'device_tree'
 
@@ -34,4 +33,4 @@ class test_device_tree(AnalysisPluginTest):
         test_object = self.test_file
         result = self.analysis_plugin.execute_device_tree_compiler(test_object)
 
-        assert '#address-cells = <0x01>;' in result
+        assert 'model = "Manufac XYZ1234ABC";' in result
