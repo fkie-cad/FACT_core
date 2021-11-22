@@ -6,6 +6,47 @@ from objects.file import FileObject
 PATH_REGEX = {'user_paths': re.compile(rb'/home/[^/]+/[^\n \0]+'),
               'proc_paths': re.compile(rb'/proc/[^/]+/[^\n \0]+')}
 
+# todo folders
+# todo java?
+# todo pycharm
+
+PATH_ARTIFACT_DICT = {
+    '.git/config': 'git_repo',
+    '.conda/environments.txt': 'conda_environment',
+    'default.conf': 'possible_code_blocks_config',
+    'clion64.exe.vmoptions': 'clion_jvm_options',
+    'idea.properties': 'clion_platform_properties',
+    '.config/Code/User/settings.json': 'vscode_settings',
+
+    '.cproject': 'eclipse_config',
+    '.csproject': 'eclipse_config',
+    '.project': 'eclipse_config',
+
+    '.hws': 'renesas_project_config',
+    '.ewd': 'iar_embedded_workbench_config',
+    '.ewp': 'iar_embedded_workbench_config',
+    '.eww': 'iar_embedded_workbench_config',
+    '.ewt': 'iar_embedded_workbench_config',
+
+    '.Uv2': 'keil_uvision_config',
+    '.uvproj': 'keil_uvision_config',
+    '.uvopt': 'keil_uvision_config',
+    '.uvprojx': 'keil_uvision_config',
+    '.uvoptx': 'keil_uvision_config',
+
+    '.atsln': 'atmel_studio_config',
+    '.cyprj': 'cydesigner_config',
+    '.cywrk': 'cydesigner_config'
+}
+
+PATH_PATH_DICT = {
+    '.github': 'github_config_directory',
+    '.pytest_cache': 'pytest_cache_directory',
+    '.subversion': 'svn_user_settings_directory',
+    'subversion': 'svn_settings_directory',
+    '.idea': 'pycharm_config_directory'
+}
+
 
 class AnalysisPlugin(AnalysisBasePlugin):
     '''
@@ -34,61 +75,12 @@ class AnalysisPlugin(AnalysisBasePlugin):
         for virtual_path_list in file_object.virtual_file_path.values():
             for virtual_path in virtual_path_list:
                 path = virtual_path.split('|')[-1]
-                self.test_for_ides(path, file_object)
-                self.test_for_programming_environemnts(path, file_object)
-                self.test_for_versioncontrol(path, file_object)
-
-    def test_for_versioncontrol(self, path, file_object):
-        if path.endswith('.git/config'):
-            file_object.processed_analysis[self.NAME]['git_repo'] = file_object.binary.decode()
-        elif path.endswith('.github'):
-            file_object.processed_analysis[self.NAME]['github_config_directory'] = path
-        elif path.endswith('.pytest_cache'):
-            file_object.processed_analysis[self.NAME]['pytest_cache_directory'] = path
-
-        # todo folders
-        elif path.endswith('.subversion'):
-            file_object.processed_analysis[self.NAME]['svn_user_settings_directory'] = path
-        elif path.endswith('subversion'):
-            file_object.processed_analysis[self.NAME]['svn_settings_directory'] = path
-
-    def test_for_programming_environemnts(self, path, file_object):
-        if path.endswith('.conda/environments.txt'):
-            file_object.processed_analysis[self.NAME]['conda_environment'] = file_object.binary.decode()
-        # todo java?
-
-    def test_for_ides(self, path, file_object):
-        # todo pycharm
-        if path.endswith('.idea'):
-            file_object.processed_analysis[self.NAME]['pycharm_config_directory'] = path
-
-        elif path.endswith('default.conf'):
-            file_object.processed_analysis[self.NAME][
-                'possible_code_blocks_config'] = file_object.binary.decode()
-        elif path.endswith('clion64.exe.vmoptions'):
-            file_object.processed_analysis[self.NAME]['clion_jvm_options'] = file_object.binary.decode()
-        elif path.endswith('idea.properties'):
-            file_object.processed_analysis[self.NAME]['clion_platform_properties'] = file_object.binary.decode()
-        elif path.endswith('.config/Code/User/settings.json'):
-            file_object.processed_analysis[self.NAME]['vscode_settings'] = file_object.binary.decode()
-        elif path.endswith('.project') or path.endswith('.cproject') or path.endswith('.ccsproject'):
-            file_object.processed_analysis[self.NAME]['eclipse_config'] = file_object.binary.decode()
-        else:
-            self.test_embedded_ides(path, file_object)
-
-    def test_embedded_ides(self, path, file_object):
-        if path.endswith('.hws'):
-            file_object.processed_analysis[self.NAME]['renesas_project_config'] = file_object.binary.decode()
-        elif path.endswith('.ewd') or path.endswith('.ewp') or path.endswith('.eww') or path.endswith('.ewt'):
-            file_object.processed_analysis[self.NAME][
-                'iar_embedded_workbench_config'] = file_object.binary.decode()
-        elif path.endswith('.Uv2') or path.endswith('.uvproj') or path.endswith('.uvopt') or path.endswith(
-                '.uvprojx') or path.endswith('.uvoptx'):
-            file_object.processed_analysis[self.NAME]['keil_uvision_config'] = file_object.binary.decode()
-        elif path.endswith('.atsln'):
-            file_object.processed_analysis[self.NAME]['atmel_studio_config'] = file_object.binary.decode()
-        elif path.endswith('.cyprj') or path.endswith('.cywrk'):
-            file_object.processed_analysis[self.NAME]['cydesigner_config'] = file_object.binary.decode()
+                for key_path, artifact in PATH_ARTIFACT_DICT.items():
+                    if path.endswith(key_path):
+                        file_object.processed_analysis[self.NAME][artifact] = file_object.binary.decode()
+                for key_path, artifact in PATH_PATH_DICT.items():
+                    if path.endswith(key_path):
+                        file_object.processed_analysis[self.NAME][artifact] = path
 
     def _find_paths(self, file_object: FileObject, regex, label):
         result = regex.findall(file_object.binary)
