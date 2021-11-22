@@ -61,4 +61,3 @@ class TestAnalysisPluginInformationLeaks(AnalysisPluginTest):
         self.analysis_plugin.process_object(fo)
 
         assert fo.processed_analysis[self.PLUGIN_NAME]['vscode_settings'] == 'test_data'
-
