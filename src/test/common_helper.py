@@ -482,6 +482,9 @@ def get_config_for_testing(temp_dir: Optional[Union[TemporaryDirectory, str]] = 
     config.set('data_storage', 'report_threshold', '2048')
     config.set('data_storage', 'password_salt', '1234')
     config.set('data_storage', 'firmware_file_storage_directory', '/tmp/fact_test_fs_directory')
+    docker_mount_base_dir = Path('/tmp/fact-docker-mount-base-dir')
+    docker_mount_base_dir.mkdir(0o770, exist_ok=True)
+    config.set('data_storage', 'docker-mount-base-dir', str(docker_mount_base_dir)) # TODO note that this is always done here, remove in other places
     config.add_section('unpack')
     config.set('unpack', 'whitelist', '')
     config.set('unpack', 'max_depth', '10')
