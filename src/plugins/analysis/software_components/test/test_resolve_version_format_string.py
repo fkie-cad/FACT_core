@@ -8,7 +8,9 @@ from ..internal.resolve_version_format_string import extract_data_from_ghidra, f
 def test_extract_data_from_ghidra():
     key_string = 'get_version v%s'
     test_file = Path(__file__).parent / 'data' / 'format_string_arm-linux-gnueabihf'
-    result = extract_data_from_ghidra(test_file.read_bytes(), [key_string])
+    docker_mount_base_dir = Path('/tmp/fact-docker-mount-base-dir')
+    docker_mount_base_dir.mkdir(0o770, exist_ok=True)
+    result = extract_data_from_ghidra(test_file.read_bytes(), [key_string], str(docker_mount_base_dir))
     assert len(result) == 1
     assert result == ['1.2.3']
 
