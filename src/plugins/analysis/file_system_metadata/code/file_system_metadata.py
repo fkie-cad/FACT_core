@@ -9,6 +9,8 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import List, NamedTuple, Tuple
 
+from docker.types import Mount
+
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.database import ConnectTo
 from helperFunctions.docker import run_docker_container
@@ -99,13 +101,17 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 file_object.processed_analysis[self.NAME]['failed'] = message
 
     def _mount_in_docker(self, input_dir: str) -> str:
-        return run_docker_container(
+        output, _ = run_docker_container(
             DOCKER_IMAGE,
-            mount=('/work', input_dir),
-            label=self.NAME,
+            logging_label=self.NAME,
+            mounts=[
+                Mount('/work', input_dir, type='bind'),
+            ],
             timeout=int(self.timeout * .8),
-            privileged=True
+            privileged=True,
         )
+
+        return output
 
     def _analyze_metadata_of_mounted_dir(self, docker_results: Tuple[str, str, dict]):
         for file_name, file_path, file_stats in docker_results:

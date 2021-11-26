@@ -3,8 +3,10 @@ import logging
 from pathlib import Path
 
 from common_helper_encoder import ReportEncoder
-from common_helper_process import execute_shell_command_get_return_code
+from docker.errors import DockerException
+from docker.types import Mount
 
+from helperFunctions.docker import run_docker_container
 from helperFunctions.object_conversion import create_meta_dict
 from objects.firmware import Firmware
 
@@ -26,12 +28,20 @@ def build_pdf_report(firmware: Firmware, folder: Path) -> Path:
     '''
     _initialize_subfolder(folder, firmware)
 
-    output, return_code = execute_shell_command_get_return_code(
-        f'docker run -m 512m -v {folder}:/tmp/interface --rm fkiecad/fact_pdf_report'
-    )
+    try:
+        output, exit_code = run_docker_container(
+            'fkiecad/fact_pdf_report',
+            mem_limit='512m',
+            mounts=[
+                Mount('/tmp/interface/', str(folder), type='bind'),
+            ],
+        )
+    except (DockerException, TimeoutError):
+        logging.error('Failed to execute pdf generator.')
+        raise RuntimeError('Could not create PDF report')
 
-    if return_code != 0:
-        logging.error('Failed to execute pdf generator with code {}:\n{}'.format(return_code, output))
+    if exit_code != 0:
+        logging.error(f'Failed to execute pdf generator with code {exit_code}:\n{output}')
         raise RuntimeError('Could not create PDF report')
 
     pdf_path = _find_pdf(folder)

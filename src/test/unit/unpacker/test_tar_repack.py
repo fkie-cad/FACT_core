@@ -1,6 +1,7 @@
 import gc
 import os
 import unittest
+from pathlib import Path
 
 import magic
 
@@ -12,6 +13,9 @@ class TestTarRepack(unittest.TestCase):
 
     def setUp(self):
         self.config = get_config_for_testing()
+        self.docker_mount_base_dir = Path('/tmp/fact-docker-mount-base-dir')
+        self.docker_mount_base_dir.mkdir(0o770, exist_ok=True)
+        self.config.set('data_storage', 'docker-mount-base-dir', str(self.docker_mount_base_dir))
         self.repack_service = TarRepack(config=self.config)
 
     def tearDown(self):

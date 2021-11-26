@@ -5,6 +5,9 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import List
 
+from docker.errors import DockerException
+from docker.types import Mount
+
 from helperFunctions.docker import run_docker_container
 
 CONTAINER_TARGET_PATH = '/work'
@@ -20,7 +23,18 @@ def extract_data_from_ghidra(input_file_data: bytes, key_strings: List[str], pat
         ghidra_input_file = tmp_dir_path / 'ghidra_input'
         (tmp_dir_path / KEY_FILE).write_text(json.dumps(key_strings))
         ghidra_input_file.write_bytes(input_file_data)
-        docker_output = run_docker_container(DOCKER_IMAGE, TIMEOUT, mount=(CONTAINER_TARGET_PATH, tmp_dir), label='FSR')
+        try:
+            docker_output, _ = run_docker_container(
+                DOCKER_IMAGE,
+                logging_label='FSR',
+                timeout=TIMEOUT,
+                mounts=[
+                    Mount(CONTAINER_TARGET_PATH, tmp_dir, type='bind'),
+                ],
+            )
+        except (DockerException, TimeoutError):
+            docker_output = None
+
         logging.debug(docker_output)
         try:
             output_file = (tmp_dir_path / DOCKER_OUTPUT_FILE).read_text()

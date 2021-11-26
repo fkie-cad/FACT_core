@@ -18,8 +18,11 @@ class TestUnpackerBase(unittest.TestCase):
     def setUp(self):
         config = ConfigParser()
         self.ds_tmp_dir = TemporaryDirectory(prefix='fact_tests_')
+        self.docker_mount_dir = Path('/tmp/fact-docker-mount-base-dir')
+        self.docker_mount_dir.mkdir(0o770, exist_ok=True)
         config.add_section('data_storage')
         config.set('data_storage', 'firmware_file_storage_directory', self.ds_tmp_dir.name)
+        config.set('data_storage', 'docker-mount-base-dir', self.docker_mount_dir)
         config.add_section('unpack')
         config.set('unpack', 'max_depth', '3')
         config.set('unpack', 'whitelist', 'text/plain, image/png')

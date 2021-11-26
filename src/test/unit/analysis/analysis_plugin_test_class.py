@@ -2,6 +2,7 @@ import gc
 import unittest
 import unittest.mock
 from configparser import ConfigParser
+from pathlib import Path
 
 from test.common_helper import DatabaseMock, fake_exit, load_users_from_main_config
 
@@ -21,6 +22,9 @@ class AnalysisPluginTest(unittest.TestCase):
 
         self.exit_patch = unittest.mock.patch(target='helperFunctions.database.ConnectTo.__exit__', new=fake_exit)
         self.exit_patch.start()
+
+        self.docker_mount_base_dir = Path('/tmp/fact-docker-mount-base-dir')
+        self.docker_mount_base_dir.mkdir(mode=0o770, exist_ok=True)
 
     def tearDown(self):
         self.analysis_plugin.shutdown()  # pylint: disable=no-member
@@ -42,6 +46,7 @@ class AnalysisPluginTest(unittest.TestCase):
         config.set('data_storage', 'mongo_server', 'localhost')
         config.set('data_storage', 'mongo_port', '54321')
         config.set('data_storage', 'view_storage', 'tmp_view')
+        config.set('data_storage', 'docker-mount-base-dir', str(self.docker_mount_base_dir))
         return config
 
     def register_plugin(self, name, plugin_object):

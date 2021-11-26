@@ -4,7 +4,9 @@ from os import getgid, getuid, makedirs
 from pathlib import Path
 
 from common_helper_files import safe_rglob
-from common_helper_process import execute_shell_command_get_return_code
+from docker.types import Mount
+
+from helperFunctions.docker import run_docker_container
 
 
 class UnpackBase:
@@ -20,13 +22,19 @@ class UnpackBase:
         self._initialize_shared_folder(tmp_dir)
         shutil.copy2(file_path, str(Path(tmp_dir, 'input', Path(file_path).name)))
 
-        output, return_code = execute_shell_command_get_return_code(
-            'docker run --privileged -m {}m -v /dev:/dev -v {}:/tmp/extractor --rm fkiecad/fact_extractor --chown {}:{}'.format(
-                self.config.get('unpack', 'memory_limit', fallback='1024'), tmp_dir, getuid(), getgid()
-            )
+        output, exit_code = run_docker_container(
+            'fkiecad/fact_extractor',
+            privileged=True,
+            mem_limit=f"{self.config.get('unpack', 'memory_limit', fallback='1024')}m",
+            mounts=[
+                Mount('/dev/', '/dev/', type='bind'),
+                Mount('/tmp/extractor', tmp_dir, type='bind'),
+            ],
+            command=f'--chown {getuid()}:{getgid()}'
         )
-        if return_code != 0:
-            error = 'Failed to execute docker extractor with code {}:\n{}'.format(return_code, output)
+
+        if exit_code != 0:
+            error = f'Failed to execute docker extractor with code {exit_code}:\n{output}'
             logging.error(error)
             raise RuntimeError(error)
 

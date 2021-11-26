@@ -1,6 +1,7 @@
 import gc
 from configparser import ConfigParser
 from multiprocessing import Event, Queue
+from pathlib import Path
 from tempfile import TemporaryDirectory
 from time import sleep
 from unittest import TestCase
@@ -25,6 +26,9 @@ class TestUnpackScheduler(TestCase):
         self.config.set('ExpertSettings', 'unpack_throttle_limit', '10')
         self.config.add_section('data_storage')
         self.config.set('data_storage', 'firmware_file_storage_directory', self.tmp_dir.name)
+        self.docker_mount_base_dir = Path('/tmp/fact-docker-mount-base-dir')
+        self.docker_mount_base_dir.mkdir(0o770, exist_ok=True)
+        self.config.set('data_storage', 'docker-mount-base-dir', str(self.docker_mount_base_dir))
         self.tmp_queue = Queue()
         self.scheduler = None
 

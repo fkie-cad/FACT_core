@@ -4,6 +4,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from docker.errors import DockerException
+from docker.types import Mount
 from requests.exceptions import ReadTimeout
 
 from analysis.PluginBase import AnalysisBasePlugin
@@ -40,9 +41,15 @@ class AnalysisPlugin(AnalysisBasePlugin):
             file_path = Path(tmp_dir) / file_object.file_name
             file_path.write_bytes(file_object.binary)
             try:
-                result = run_docker_container(
-                    DOCKER_IMAGE, TIMEOUT_IN_SECONDS, CONTAINER_TARGET_PATH, reraise=True,
-                    mount=(CONTAINER_TARGET_PATH, str(file_path)), label=self.NAME, include_stderr=False
+                result, _ = run_docker_container(
+                    DOCKER_IMAGE,
+                    logging_label=self.NAME,
+                    timeout=TIMEOUT_IN_SECONDS,
+                    command=CONTAINER_TARGET_PATH,
+                    mounts=[
+                        Mount(CONTAINER_TARGET_PATH, str(file_path), type='bind'),
+                    ],
+                    stderr=False,
                 )
                 file_object.processed_analysis[self.NAME] = loads(result)
             except ReadTimeout:

@@ -12,6 +12,7 @@ from typing import Dict, List, Optional, Tuple, Union
 
 from common_helper_files import get_binary_from_file, safe_rglob
 from docker.errors import DockerException
+from docker.types import Mount
 from fact_helper_file import get_file_type_from_path
 from requests.exceptions import ReadTimeout
 
@@ -261,10 +262,16 @@ def get_docker_output(arch_suffix: str, file_path: str, root_path: Path) -> dict
     '''
     command = '{arch_suffix} {target}'.format(arch_suffix=arch_suffix, target=file_path)
     try:
-        return loads(run_docker_container(
-            DOCKER_IMAGE, TIMEOUT_IN_SECONDS, command, reraise=True, mount=(CONTAINER_TARGET_PATH, str(root_path)),
-            label='qemu_exec'
-        ))
+        output, _ = run_docker_container(
+            DOCKER_IMAGE,
+            timeout=TIMEOUT_IN_SECONDS,
+            command=command,
+            mounts=[
+                Mount(CONTAINER_TARGET_PATH, str(root_path), type='bind'),
+            ],
+            logging_label='qemu_exec'
+        )
+        return loads(output)
     except ReadTimeout:
         return {'error': 'timeout'}
     except (DockerException, IOError):

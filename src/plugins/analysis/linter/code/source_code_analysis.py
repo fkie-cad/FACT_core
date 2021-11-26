@@ -3,6 +3,8 @@ import logging
 import sys
 from pathlib import Path
 
+from docker.types import Mount
+
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.docker import run_docker_container
 from storage.fsorganizer import FSOrganizer
@@ -72,7 +74,15 @@ class AnalysisPlugin(AnalysisBasePlugin):
     def _get_script_type(self, file_object):
         host_path = self._fs_organizer.generate_path_from_uid(file_object.uid)
         container_path = f'/repo/{file_object.file_name}'
-        linguist_output = run_docker_container('crazymax/linguist', 60, f'--json {container_path}', reraise=True, mount=(container_path, host_path), label=self.NAME)
+        linguist_output, _ = run_docker_container(
+            'crazymax/linguist',
+            timeout=60,
+            command=f'--json {container_path}',
+            mounts=[
+                Mount(container_path, host_path, type='bind'),
+            ],
+            logging_label=self.NAME,
+        )
         output_json = json.loads(linguist_output)
 
         # FIXME plugins should not set the output for other plugins
