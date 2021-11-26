@@ -1,48 +1,55 @@
 import logging
 from contextlib import suppress
-from typing import Optional, Tuple
 
 import docker
-from docker.errors import DockerException
-from docker.types import Mount
-from requests.exceptions import ReadTimeout
+from docker.errors import APIError, DockerException, ImageNotFound
+
+client = docker.client.from_env()
 
 
-def run_docker_container(  # pylint: disable=too-many-arguments
-    image: str, timeout: int = 300, command: Optional[str] = None, reraise: bool = False, privileged: bool = False,
-    mount: Optional[Tuple[str, str]] = None, label: str = 'Docker', include_stderr: bool = True
-) -> str:
-    '''
-    Run a docker container and get its output.
+def run_docker_container(image: str, logging_label: str = 'Docker', timeout: int = 300,  stderr=True, **kwargs):
+    """
+    This is a convinience function that runs a docker container and returns the output and exit code of the command.
+    All remaining keyword args are passed to `docker.containers.run`.
 
-    :param image: the name of the docker image
-    :param timeout: a timeout after which the execution is canceled
-    :param command: the command to run in the container (optional)
-    :param reraise: re-raise exceptions if they occur (timeout and docker exceptions)
-    :param privileged: Run container with elevated privileges.
-    :param mount: specifies a directory that gets mounted into the container;
-                  structure: `(path_inside_container, source_path)`
-    :param label: label used for logging output
-    :param include_stderr: include stderr of the container in the output
-    :return: the output of the docker container
-    '''
-    container = None
+    :param image: The name of the docker image
+    :param logging_label: Label used for logging
+    :param timeout: Timeout after which the execution is canceled
+    :param stderr: Whether to include stderr or not in the output
+
+    :return: Output and exit code as tuple
+
+    :raises ImageNotFound: If the docker image was not found
+    :raises TimeoutError: If the timeout was reached
+    :raises APIError: If the communication with docker fails
+    """
+    kwargs.setdefault('detach', True)
+
     try:
-        kwargs = {'mounts': [Mount(*mount, read_only=False, type='bind')]} if mount else {}
-        client = docker.from_env()
-        container = client.containers.run(image, command=command, network_disabled=True, detach=True, privileged=privileged, **kwargs)
-        container.wait(timeout=timeout)
-        return container.logs(stderr=include_stderr).decode()
-    except ReadTimeout:
-        logging.warning('[{}]: timeout while processing'.format(label))
-        if reraise:
-            raise
-    except (DockerException, IOError):
-        logging.warning('[{}]: encountered process error while processing'.format(label))
-        if reraise:
-            raise
-    finally:
-        if container:
-            with suppress(DockerException):
-                container.stop()
+        container = client.containers.run(image, **kwargs)
+    except (ImageNotFound, APIError):
+        logging.warning(f'[{logging_label}]: encountered process error while processing')
+        raise
+
+    try:
+        response = container.wait(timeout=timeout)
+        exit_code = response['StatusCode']
+    except TimeoutError:
+        logging.warning(f'[{logging_label}]: timeout while processing')
+        with suppress(DockerException):
+            container.stop()
             container.remove()
+
+        raise
+
+    try:
+        output = container.logs(stderr=stderr).decode()
+    except APIError:
+        logging.warning(f'[{logging_label}]: encountered docker error while processing')
+        raise
+    finally:
+        with suppress(DockerException):
+            container.stop()
+            container.remove()
+
+    return output, exit_code
