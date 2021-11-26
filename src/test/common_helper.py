@@ -1,4 +1,5 @@
 # pylint: disable=no-self-use,unused-argument
+import grp
 import json
 import os
 from base64 import standard_b64encode
@@ -482,8 +483,16 @@ def get_config_for_testing(temp_dir: Optional[Union[TemporaryDirectory, str]] = 
     config.set('data_storage', 'report_threshold', '2048')
     config.set('data_storage', 'password_salt', '1234')
     config.set('data_storage', 'firmware_file_storage_directory', '/tmp/fact_test_fs_directory')
+
     docker_mount_base_dir = Path('/tmp/fact-docker-mount-base-dir')
-    docker_mount_base_dir.mkdir(0o770, exist_ok=True)
+    try:
+        docker_mount_base_dir.mkdir(0o770)
+    except FileExistsError:
+        # We don't want to change permissions if the directory already exists
+        pass
+    else:
+        docker_gid = grp.getgrnam('docker').gr_gid
+        os.chown(docker_mount_base_dir, -1, docker_gid)
     config.set('data_storage', 'docker-mount-base-dir', str(docker_mount_base_dir))
     config.add_section('unpack')
     config.set('unpack', 'whitelist', '')

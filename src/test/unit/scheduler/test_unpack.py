@@ -1,4 +1,6 @@
 import gc
+import grp
+import os
 from configparser import ConfigParser
 from multiprocessing import Event, Queue
 from pathlib import Path
@@ -27,7 +29,13 @@ class TestUnpackScheduler(TestCase):
         self.config.add_section('data_storage')
         self.config.set('data_storage', 'firmware_file_storage_directory', self.tmp_dir.name)
         self.docker_mount_base_dir = Path('/tmp/fact-docker-mount-base-dir')
-        self.docker_mount_base_dir.mkdir(0o770, exist_ok=True)
+        try:
+            self.docker_mount_base_dir.mkdir(0o770)
+        except FileExistsError:
+            pass
+        else:
+            docker_gid = grp.getgrnam('docker').gr_gid
+            os.chown(self.docker_mount_base_dir, -1, docker_gid)
         self.config.set('data_storage', 'docker-mount-base-dir', str(self.docker_mount_base_dir))
         self.tmp_queue = Queue()
         self.scheduler = None

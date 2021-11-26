@@ -1,4 +1,6 @@
 import gc
+import grp
+import os
 import unittest
 import unittest.mock
 from configparser import ConfigParser
@@ -24,7 +26,13 @@ class AnalysisPluginTest(unittest.TestCase):
         self.exit_patch.start()
 
         self.docker_mount_base_dir = Path('/tmp/fact-docker-mount-base-dir')
-        self.docker_mount_base_dir.mkdir(mode=0o770, exist_ok=True)
+        try:
+            self.docker_mount_base_dir.mkdir(mode=0o770)
+        except FileExistsError:
+            pass
+        else:
+            docker_gid = grp.getgrnam('docker').gr_gid
+            os.chown(self.docker_mount_base_dir, -1, docker_gid)
 
     def tearDown(self):
         self.analysis_plugin.shutdown()  # pylint: disable=no-member
