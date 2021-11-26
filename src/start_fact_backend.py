@@ -17,12 +17,14 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+import grp
 import logging
+import os
+from pathlib import Path
 from time import sleep
 
-from fact_base import FactBase
-
 from analysis.PluginBase import PluginInitException
+from fact_base import FactBase
 from helperFunctions.process import complete_shutdown
 from intercom.back_end_binding import InterComBackEndBinding
 from scheduler.Analysis import AnalysisScheduler
@@ -57,6 +59,11 @@ class FactBackend(FactBase):
         )
 
     def main(self):
+        docker_mount_base_dir = Path(self.config['data_storage']['docker-mount-base-dir'])
+        docker_mount_base_dir.mkdir(0o770, exist_ok=True)
+        docker_gid = grp.getgrnam('docker').gr_gid
+        os.chown(docker_mount_base_dir, -1, docker_gid)
+
         while self.run:
             self.work_load_stat.update(
                 unpacking_workload=self.unpacking_service.get_scheduled_workload(),
