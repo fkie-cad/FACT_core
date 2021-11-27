@@ -7,7 +7,7 @@ import requests
 from common_helper_process import execute_shell_command_get_return_code
 
 from helperFunctions.install import (
-    InstallationError, OperateInDirectory, apt_install_packages, install_pip_packages, load_main_config, remove_folder,
+    InstallationError, OperateInDirectory, apt_install_packages, dnf_install_packages, install_pip_packages, load_main_config, remove_folder,
     run_cmd_with_logging
 )
 
@@ -72,8 +72,11 @@ def _create_directory_for_authentication():  # pylint: disable=invalid-name
         raise InstallationError('Error in creating directory for authentication database.\n{}'.format('\n'.join((mkdir_output, chown_output))))
 
 
-def _install_nginx():
-    apt_install_packages('nginx')
+def _install_nginx(distribution):
+    if distribution != 'fedora':
+        apt_install_packages('nginx')
+    else:
+        dnf_install_packages('nginx')
     _generate_and_install_certificate()
     _configure_nginx()
     nginx_output, nginx_code = execute_shell_command_get_return_code('sudo nginx -s reload')
@@ -160,7 +163,7 @@ def _install_docker_images(radare):
         raise InstallationError('Failed to pull pdf report container:\n{}'.format(output))
 
 
-def main(skip_docker, radare, nginx):
+def main(skip_docker, radare, nginx, distribution):
     # flask-security is not maintained anymore and replaced by flask-security-too.
     # Since python package naming conflicts are not resolved automatically, we remove flask-security manually.
     run_cmd_with_logging('sudo -EH pip3 uninstall -y flask-security')
@@ -173,7 +176,7 @@ def main(skip_docker, radare, nginx):
     _create_directory_for_authentication()
 
     if nginx:
-        _install_nginx()
+        _install_nginx(distribution)
 
     if not skip_docker:
         _install_docker_images(radare)
