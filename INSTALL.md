@@ -12,15 +12,10 @@ $ git clone https://github.com/fkie-cad/FACT_core.git ~/FACT_core
 $ ~/FACT_core/src/install/pre_install.sh && sudo mkdir /media/data && sudo chown -R $USER /media/data
 ```
 ### WSL only
-To make sure that docker starts when you login to a WSL machine, add this to your .bashrc (or .zshrc) file
-```sh
-# Start Docker daemon automatically when logging in if not running.
-RUNNING=`ps aux | grep dockerd | grep -v grep`
-if [ -z "$RUNNING" ]; then
-    sudo dockerd > /dev/null 2>&1 &
-    disown
-fi
-```
+To make sure that docker starts when you login to a WSL machine, follow the instructions on this webpage
+
+https://blog.nillsf.com/index.php/2020/06/29/how-to-automatically-start-the-docker-daemon-on-wsl2/
+
 Then continue with the regular installation
 
 ```sh
