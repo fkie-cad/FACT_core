@@ -43,7 +43,7 @@ def main(distribution):
         apt_update_sources()
         apt_install_packages('mongodb-org')
     elif distribution == 'fedora':
-        dnf_install_packages('mongodb-org-3.6.8')
+        dnf_install_packages('mongodb-org')
     else:
         apt_install_packages('mongodb')
 
