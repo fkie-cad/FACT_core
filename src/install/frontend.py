@@ -82,7 +82,7 @@ def _install_nginx(distribution):
     if distribution == 'fedora':
         execute_commands_and_raise_on_return_code([
             'sudo restorecon -v /etc/nginx/fact.*',
-            'sudo semanage fcontext -at httpd_log_t "/var/log/fact(/.*)?"',
+            'sudo semanage fcontext -at httpd_log_t "/var/log/fact(/.*)?" || true',
             'sudo restorecon -v -R /var/log/fact'
         ], error='restore selinux context')
     nginx_output, nginx_code = execute_shell_command_get_return_code('sudo nginx -s reload')
