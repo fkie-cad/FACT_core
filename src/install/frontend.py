@@ -79,6 +79,12 @@ def _install_nginx(distribution):
         dnf_install_packages('nginx')
     _generate_and_install_certificate()
     _configure_nginx()
+    if distribution == 'fedora':
+        execute_commands_and_raise_on_return_code([
+            'sudo restorecon -v /etc/nginx/fact.*'
+            'sudo semanage fcontext -at httpd_log_t "/var/log/fact(/.*)?"'
+            'sudo restorecon -v -R /var/log/fact'
+        ], error='restore selinux context for certificates')
     nginx_output, nginx_code = execute_shell_command_get_return_code('sudo nginx -s reload')
     if nginx_code != 0:
         raise InstallationError('Failed to start nginx\n{}'.format(nginx_output))
@@ -99,7 +105,8 @@ def _configure_nginx():
     execute_commands_and_raise_on_return_code([
         'sudo cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak',
         'sudo rm /etc/nginx/nginx.conf',
-        '(cd ../config && sudo ln -s $PWD/nginx.conf /etc/nginx/nginx.conf)',
+        # copy is better on redhat to respect selinux context
+        '(cd ../config && sudo install -m 644 $PWD/nginx.conf /etc/nginx/nginx.conf)',
         '(sudo mkdir /etc/nginx/error || true)',
         '(cd ../web_interface/templates/ && sudo ln -s $PWD/maintenance.html /etc/nginx/error/maintenance.html) || true'
     ], error='configuring nginx')
