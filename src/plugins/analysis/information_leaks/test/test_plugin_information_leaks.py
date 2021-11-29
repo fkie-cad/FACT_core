@@ -20,10 +20,10 @@ class TestAnalysisPluginInformationLeaks(AnalysisPluginTest):
         fo = MockFileObject()
         fo.binary = (TEST_DATA_DIR / 'path_test_file').read_bytes()
         fo.processed_analysis[self.PLUGIN_NAME] = {}
+        fo.processed_analysis['file_type'] = {'mime': 'application/x-executable'}
         fo.virtual_file_path = {}
         self.analysis_plugin.process_object(fo)
 
-        assert 'proc_paths' in fo.processed_analysis[self.PLUGIN_NAME]
         assert 'user_paths' in fo.processed_analysis[self.PLUGIN_NAME]
 
         expected_user_paths = sorted([

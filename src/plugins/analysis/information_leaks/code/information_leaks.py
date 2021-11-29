@@ -3,12 +3,7 @@ import re
 from analysis.PluginBase import AnalysisBasePlugin
 from objects.file import FileObject
 
-PATH_REGEX = {'user_paths': re.compile(rb'/home/[^/]+/[^\n \0]+'),
-              'proc_paths': re.compile(rb'/proc/[^/]+/[^\n \0]+')}
-
-# todo folders
-# todo java?
-# todo pycharm
+PATH_REGEX = {'user_paths': re.compile(rb'/home/[^/]+/[^\n \x00]+')}
 
 PATH_ARTIFACT_DICT = {
     '.git/config': 'git_repo',
