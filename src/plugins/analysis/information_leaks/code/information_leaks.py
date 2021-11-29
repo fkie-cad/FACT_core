@@ -34,7 +34,7 @@ PATH_ARTIFACT_DICT = {
     '.cywrk': 'cydesigner_config'
 }
 
-PATH_PATH_DICT = {
+DIRECTORY_DICT = {
     '.github': 'github_config_directory',
     '.pytest_cache': 'pytest_cache_directory',
     '.subversion': 'svn_user_settings_directory',
@@ -59,11 +59,12 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def process_object(self, file_object: FileObject):
         file_object.processed_analysis[self.NAME]['summary'] = []
-        for label, regex in PATH_REGEX.items():
-            self._find_paths(file_object, regex, label)
-
-        self._find_artifacts(file_object)
-
+        if file_object.processed_analysis['file_type']['mime'] == 'text/plain':
+            self._find_artifacts(file_object)
+            file_object.processed_analysis[self.NAME]['summary'] = file_object.processed_analysis[self.NAME].keys()
+        else:
+            for label, regex in PATH_REGEX.items():
+                self._find_paths(file_object, regex, label)
         return file_object
 
     def _find_artifacts(self, file_object: FileObject):
@@ -73,8 +74,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 for key_path, artifact in PATH_ARTIFACT_DICT.items():
                     if path.endswith(key_path):
                         file_object.processed_analysis[self.NAME][artifact] = file_object.binary.decode()
-                for key_path, artifact in PATH_PATH_DICT.items():
-                    if path.endswith(key_path):
+                for key_path, artifact in DIRECTORY_DICT.items():
+                    if path == key_path.split('/')[-2]:
                         file_object.processed_analysis[self.NAME][artifact] = path
 
     def _find_paths(self, file_object: FileObject, regex, label):
