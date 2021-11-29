@@ -93,6 +93,9 @@ In contrast to nginx, radare has to be deselected as it is installed by default.
 Simply checkout the new sources, re-run the `src/install/pre_install.sh` and then `src/install.py`. Rebooting is not necessary if docker is already present.
 For tarball installations, the easiest way is to backup the config files, remove the FACT folder, extract the new one and put the configuration back in. Then also re-run `src/install/pre_install.sh` and `src/install.py`.
 
+If your FACT installation is v3.2 or lower and you use authentification then you have to migrate the user database.
+To do so simply run the [migrate_database.py](src/migrate_database.py) script.
+
 ## Troubleshooting
 
 If you encounter any problems, check out our [Troubleshooting wiki](https://github.com/fkie-cad/FACT_core/wiki/Troubleshooting) before opening an issue on github. 

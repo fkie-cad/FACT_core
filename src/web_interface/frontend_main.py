@@ -15,7 +15,7 @@ from web_interface.components.plugin_routes import PluginRoutes
 from web_interface.components.statistic_routes import StatisticRoutes
 from web_interface.components.user_management_routes import UserManagementRoutes
 from web_interface.rest.rest_base import RestBase
-from web_interface.security.authentication import add_flask_security_to_app
+from web_interface.security.authentication import add_config_from_configparser_to_app, add_flask_security_to_app
 
 
 class WebFrontEnd:
@@ -24,14 +24,15 @@ class WebFrontEnd:
         self.program_version = __VERSION__
 
         self._setup_app()
-        logging.info("Web front end online")
+        logging.info('Web front end online')
 
     def _setup_app(self):
         self.app = Flask(__name__)
         self.app.config.from_object(__name__)
 
-        Flask.secret_key = os.urandom(24)
-        user_db, user_interface = add_flask_security_to_app(self.app, self.config)
+        self.app.config['SECRET_KEY'] = os.urandom(24)
+        add_config_from_configparser_to_app(self.app, self.config)
+        self.user_db, self.user_datastore = add_flask_security_to_app(self.app)
 
         AjaxRoutes(self.app, self.config)
         AnalysisRoutes(self.app, self.config)
@@ -40,7 +41,7 @@ class WebFrontEnd:
         IORoutes(self.app, self.config)
         MiscellaneousRoutes(self.app, self.config)
         StatisticRoutes(self.app, self.config)
-        UserManagementRoutes(self.app, self.config, user_db=user_db, user_db_interface=user_interface)
+        UserManagementRoutes(self.app, self.config, user_db=self.user_db, user_db_interface=self.user_datastore)
 
         rest_base = RestBase(app=self.app, config=self.config)
         PluginRoutes(self.app, self.config, api=rest_base.api)

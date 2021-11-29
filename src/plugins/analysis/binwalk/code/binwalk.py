@@ -1,13 +1,12 @@
-import os
 import string
+from pathlib import Path
 from tempfile import TemporaryDirectory
+from typing import List
 
-from common_helper_files import get_binary_from_file
 from common_helper_process import execute_shell_command
 
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.config import get_temp_dir_path
-from helperFunctions.data_conversion import make_unicode_string
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
@@ -16,7 +15,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     DESCRIPTION = 'binwalk signature and entropy analysis'
     DEPENDENCIES = []
     MIME_BLACKLIST = ['audio', 'image', 'video']
-    VERSION = '0.5.3'
+    VERSION = '0.5.4'
 
     def __init__(self, plugin_administrator, config=None, recursive=True):
         self.config = config
@@ -24,39 +23,34 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def process_object(self, file_object):
         result = {}
-        tmp_dir = TemporaryDirectory(prefix='fact_analysis_binwalk_', dir=get_temp_dir_path(self.config))
-        dir_path = tmp_dir.name
+        with TemporaryDirectory(prefix='fact_analysis_binwalk_', dir=get_temp_dir_path(self.config)) as tmp_dir:
+            signature_analysis_result = execute_shell_command(f'(cd {tmp_dir} && xvfb-run -a binwalk -BEJ {file_object.file_path})')
+            result['signature_analysis'] = signature_analysis_result
 
-        signature_analysis_result = execute_shell_command('(cd {} && xvfb-run -a binwalk -BEJ {})'.format(dir_path, file_object.file_path))
-        result['signature_analysis'] = make_unicode_string(signature_analysis_result)
+            result['summary'] = list(set(self._extract_summary(signature_analysis_result)))
 
-        result['summary'] = list(set(self._extract_summary(result['signature_analysis'])))
+            pic_path = Path(tmp_dir) / f'{Path(file_object.file_path).name}.png'
+            result['entropy_analysis_graph'] = pic_path.read_bytes()
 
-        pic_path = os.path.join(dir_path, '{}.png'.format(os.path.basename(file_object.file_path)))
-        result['entropy_analysis_graph'] = get_binary_from_file(pic_path)
-
-        tmp_dir.cleanup()
         file_object.processed_analysis[self.NAME] = result
         return file_object
 
-    def _extract_summary(self, binwalk_output):
-        summary = list()
-        output_lines = binwalk_output.splitlines()
-
-        for line in self._iterate_valid_signature_lines(output_lines):
-            separated_by_spaces = line.split()
-            signature_description = self._extract_description_from_signature_line(separated_by_spaces)
+    def _extract_summary(self, binwalk_output: str) -> List[str]:
+        summary = []
+        for line in self._iterate_valid_signature_lines(binwalk_output.splitlines()):
+            signature_description = self._extract_description_from_signature_line(line.split())
+            if 'entropy edge' in signature_description:
+                continue
             if ',' in signature_description:
-                summary.append(signature_description.split(',')[0])
+                summary.append(signature_description.split(',', maxsplit=1)[0])
             elif signature_description:
                 summary.append(signature_description)
 
-        return [entry for entry in summary if 'entropy edge' not in entry]
+        return summary
 
     @staticmethod
     def _extract_description_from_signature_line(separated_by_spaces):
-        signature_description = ' '.join(separated_by_spaces[2:]) if len(separated_by_spaces) > 2 else ''
-        return signature_description
+        return ' '.join(separated_by_spaces[2:]) if len(separated_by_spaces) > 2 else ''
 
     @staticmethod
     def _iterate_valid_signature_lines(output_lines):

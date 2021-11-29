@@ -20,7 +20,7 @@ from storage.db_interface_admin import AdminDbInterface
 from storage.db_interface_compare import CompareDbInterface
 from storage.db_interface_frontend import FrontEndDbInterface
 from storage.db_interface_view_sync import ViewReader
-from web_interface.components.compare_routes import get_comparison_uid_list_from_session
+from web_interface.components.compare_routes import get_comparison_uid_dict_from_session
 from web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
 from web_interface.components.dependency_graph import (
     create_data_graph_edges, create_data_graph_nodes_and_groups, get_graph_colors
@@ -56,6 +56,8 @@ class AnalysisRoutes(ComponentBase):
             file_obj = sc.get_object(uid, analysis_filter=analysis_filter)
             if not file_obj:
                 return render_template('uid_not_found.html', uid=uid)
+            if selected_analysis is not None and selected_analysis not in file_obj.processed_analysis:
+                return render_template('error.html', message=f'The requested analyis ({selected_analysis}) has not run (yet)')
             if isinstance(file_obj, Firmware):
                 root_uid = file_obj.uid
                 other_versions = sc.get_other_versions_of_firmware(file_obj)
@@ -71,7 +73,7 @@ class AnalysisRoutes(ComponentBase):
             root_uid=none_to_none(root_uid),
             analysis_plugin_dict=analysis_plugins,
             other_versions=other_versions,
-            uids_for_comparison=get_comparison_uid_list_from_session(),
+            uids_for_comparison=get_comparison_uid_dict_from_session(),
             user_has_admin_clearance=user_has_privilege(current_user, privilege='delete'),
             known_comparisons=known_comparisons,
             available_plugins=self._get_used_and_unused_plugins(
@@ -96,6 +98,7 @@ class AnalysisRoutes(ComponentBase):
         with ConnectTo(FrontEndDbInterface, self._config) as database:
             file_object = database.get_object(uid)
         file_object.scheduled_analysis = request.form.getlist('analysis_systems')
+        file_object.force_update = request.form.get('force_update') == 'true'
         with ConnectTo(InterComFrontEndBinding, self._config) as intercom:
             intercom.add_single_file_task(file_object)
         return redirect(url_for(self.show_analysis.__name__, uid=uid, root_uid=root_uid, selected_analysis=selected_analysis))
@@ -160,19 +163,25 @@ class AnalysisRoutes(ComponentBase):
     @AppRoute('/update-analysis/<uid>', POST)
     def post_update_analysis(self, uid, re_do=False):
         analysis_task = create_re_analyze_task(request, uid=uid)
+        force_reanalysis = request.form.get('force_reanalysis') == 'true'
         error = check_for_errors(analysis_task)
         if error:
-            return redirect(url_for('get_update_analysis', uid=uid, re_do=re_do, error=error))
-        self._schedule_re_analysis_task(uid, analysis_task, re_do)
+            return self.get_update_analysis(uid=uid, re_do=re_do, error=error)
+        self._schedule_re_analysis_task(uid, analysis_task, re_do, force_reanalysis)
         return render_template('upload/upload_successful.html', uid=uid)
 
-    def _schedule_re_analysis_task(self, uid, analysis_task, re_do):
-        fw = convert_analysis_task_to_fw_obj(analysis_task)
+    def _schedule_re_analysis_task(self, uid, analysis_task, re_do, force_reanalysis=False):
         if re_do:
+            base_fw = None
             with ConnectTo(AdminDbInterface, self._config) as sc:
                 sc.delete_firmware(uid, delete_root_file=False)
+        else:
+            with ConnectTo(FrontEndDbInterface, self._config) as db:
+                base_fw = db.get_firmware(uid)
+                base_fw.force_update = force_reanalysis
+        fw = convert_analysis_task_to_fw_obj(analysis_task, base_fw=base_fw)
         with ConnectTo(InterComFrontEndBinding, self._config) as sc:
-            sc.add_re_analyze_task(fw)
+            sc.add_re_analyze_task(fw, unpack=re_do)
 
     @roles_accepted(*PRIVILEGES['delete'])
     @AppRoute('/admin/re-do_analysis/<uid>', GET, POST)

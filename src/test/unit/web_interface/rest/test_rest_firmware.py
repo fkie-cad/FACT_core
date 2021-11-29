@@ -12,7 +12,7 @@ TEST_FW_PAYLOAD = {
     'device_name': 'no real device',
     'device_class': 'no real class',
     'version': 'no.real.version',
-    'release_date': '01.01.1970',
+    'release_date': '1970-01-01',
     'vendor': 'no real vendor',
     'tags': 'tag1,tag2',
     'requested_analysis_systems': ['file_type']
@@ -73,7 +73,7 @@ def test_bad_put_request(test_app):
 
 
 def test_submit_empty_data(test_app):
-    result = decode_response(test_app.put('/rest/firmware', data=json.dumps(dict())))
+    result = decode_response(test_app.put('/rest/firmware', data=json.dumps({})))
     assert 'Input payload validation failed' in result['message']
 
 
@@ -100,6 +100,29 @@ def test_request_update(test_app):
     requested_analysis = json.dumps(['optional_plugin'])
     result = decode_response(test_app.put(f'/rest/firmware/{TEST_FW.uid}?update={quote(requested_analysis)}'))
     assert result['status'] == 0
+
+
+def test_submit_no_tags(test_app):
+    request_data = {**TEST_FW_PAYLOAD}
+    request_data.pop('tags')
+    result = decode_response(test_app.put('/rest/firmware', json=request_data))
+    assert result['status'] == 0
+
+
+def test_submit_no_release_date(test_app):
+    request_data = {**TEST_FW_PAYLOAD}
+    request_data.pop('release_date')
+    result = decode_response(test_app.put('/rest/firmware', json=request_data))
+    assert result['status'] == 0
+    assert isinstance(result['request']['release_date'], str)
+    assert result['request']['release_date'] == '1970-01-01'
+
+
+def test_submit_invalid_release_date(test_app):
+    request_data = {**TEST_FW_PAYLOAD, 'release_date': 'invalid date'}
+    result = decode_response(test_app.put('/rest/firmware', json=request_data))
+    assert result['status'] == 1
+    assert 'Invalid date literal' in result['error_message']
 
 
 def test_request_update_bad_parameter(test_app):

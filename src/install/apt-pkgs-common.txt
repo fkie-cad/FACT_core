@@ -1,0 +1,15 @@
+apt-transport-https
+
+# install python3 and general build stuff
+autoconf
+automake
+build-essential
+git
+libtool
+python3
+python3-dev
+unzip
+
+# general python dependencies
+libfuzzy-dev
+libmagic-dev

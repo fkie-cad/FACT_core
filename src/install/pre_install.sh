@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+set -e
+
+# cd in this files directory for relative paths to work
+cd "$( dirname "${BASH_SOURCE[0]}" )" || exit 1
+
 FACTUSER=$(whoami)
 
 CODENAME=$(lsb_release -cs)
@@ -31,12 +36,12 @@ then
 else
 	# Uninstall old versions
 	sudo apt-get -y remove docker docker-engine docker.io
-	
+
 	if [ "${CODENAME}" = "stretch" ] || [ "${CODENAME}" = "buster" ]
 	then
 	    # Add Docker’s official GPG key
 	    curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
-	
+
 	    # set up the stable repository
 	    if [ ! -f /etc/apt/sources.list.d/docker.list ]
 	    then
@@ -46,7 +51,7 @@ else
 	else
 	    # Add Docker’s official GPG key
 	    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-	
+
 	    # set up the stable repository
 	    if  ! grep -q "^deb .*download.docker.com/linux/ubuntu" /etc/apt/sources.list /etc/apt/sources.list.d/*
 	    then
@@ -67,22 +72,14 @@ then
 fi
 sudo usermod -aG docker "$FACTUSER"
 
-if pip3 freeze 2>/dev/null | grep -q enum34
+IS_VENV=$(python3 -c 'import sys; print(sys.exec_prefix!=sys.base_prefix)')
+SUDO=""
+if [[ $IS_VENV == "False" ]]
 then
-  echo "Please uninstall the enum34 pypi package before continuing as it is not compatible with python >3.6 anymore"
-  exit 1
+  SUDO="sudo -EH"
 fi
-
-sudo -EH pip3 install --upgrade pip
-sudo -EH pip3 install --upgrade virtualenv
-
-echo "Installing Python Libraries for python based installation"
-sudo -EH pip3 install --upgrade distro
-sudo -EH pip3 install --upgrade python-magic
-sudo -EH pip3 install --upgrade requests
-
-sudo -EH pip3 install --upgrade git+https://github.com/fkie-cad/common_helper_files.git
-sudo -EH pip3 install --upgrade git+https://github.com/fkie-cad/common_helper_process.git
+$SUDO pip3 install -U pip
+$SUDO pip3 install -r ./requirements_pre_install.txt --prefer-binary
 
 echo -e "Pre-Install-Routine complete! \\033[31mPlease reboot before running install.py\\033[0m"
 

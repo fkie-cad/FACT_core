@@ -1,5 +1,6 @@
 import json
 import logging
+import re
 from datetime import datetime
 from itertools import chain
 
@@ -51,8 +52,8 @@ class DatabaseRoutes(ComponentBase):
             if self._query_has_only_one_result(firmware_list, search_parameters['query']):
                 return redirect(url_for('show_analysis', uid=firmware_list[0][0]))
         except Exception as err:
-            error_message = f'Could not query database: {str(err)}'
-            logging.error(error_message, exc_info=True)
+            error_message = 'Could not query database'
+            logging.error(error_message + f'due to exception: {err}', exc_info=True)
             return render_template('error.html', message=error_message)
 
         with ConnectTo(FrontEndDbInterface, self._config) as connection:
@@ -71,6 +72,31 @@ class DatabaseRoutes(ComponentBase):
             current_class=str(request.args.get('device_class')),
             current_vendor=str(request.args.get('vendor')),
             search_parameters=search_parameters
+        )
+
+    @roles_accepted(*PRIVILEGES['pattern_search'])
+    @AppRoute('/database/browse_binary_search_history', GET)
+    def browse_searches(self):
+        page, per_page, offset = extract_pagination_from_request(request, self._config)
+        try:
+            with ConnectTo(FrontEndDbInterface, self._config) as conn:
+                # FIXME Use a proper yara parser
+                rule_name_regex = re.compile(r'rule\s+([[a-zA-Z_]\w*)')
+                searches = [(r['_id'], r['query_title'], rule_name_regex.findall(r['query_title']))
+                            for r in conn.search_query_cache.find(skip=per_page * (page - 1), limit=per_page)]
+                total = conn.search_query_cache.count_documents({})
+        except Exception as exception:
+            error_message = 'Could not query database'
+            logging.error(error_message + f'due to exception: {exception}', exc_info=True)
+            return render_template('error.html', message=error_message)
+
+        pagination = get_pagination(page=page, per_page=per_page, total=total)
+        return render_template(
+            'database/database_binary_search_history.html',
+            searches_list=searches,
+            page=page,
+            per_page=per_page,
+            pagination=pagination
         )
 
     def _get_search_parameters(self, query, only_firmware, inverted):
@@ -177,7 +203,7 @@ class DatabaseRoutes(ComponentBase):
                     with ConnectTo(InterComFrontEndBinding, self._config) as connection:
                         request_id = connection.add_binary_search_request(yara_rule_file, firmware_uid)
                     return redirect(url_for('get_binary_search_results', request_id=request_id, only_firmware=only_firmware))
-                error = f'Error in YARA rules: {get_yara_error(yara_rule_file)}'
+                error = f'Error in YARA rules: {get_yara_error(yara_rule_file)} (pre-compiled rules are not supported here!)'
             else:
                 error = 'please select a file or enter rules in the text area'
         return render_template('database/database_binary_search.html', error=error)

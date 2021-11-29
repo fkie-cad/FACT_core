@@ -24,6 +24,7 @@ class FoMock:
         self.virtual_file_path = {}
         self.file_name = 'test'
         self.binary = file_path.read_bytes() if file_path is not None else None
+        self.uid = 'deadbeef_123'
         if parent_fo_type:
             self.temporary_data = {'parent_fo_type': parent_fo_type}
 
@@ -226,16 +227,16 @@ class TestFileSystemMetadata(AnalysisPluginTest):
         assert len(result) > 0
 
     def test_get_extended_file_permissions(self):
-        assert self.analysis_plugin._get_extended_file_permissions("777") == [False, False, False]
-        assert self.analysis_plugin._get_extended_file_permissions("0777") == [False, False, False]
-        assert self.analysis_plugin._get_extended_file_permissions("1777") == [False, False, True]
-        assert self.analysis_plugin._get_extended_file_permissions("2777") == [False, True, False]
-        assert self.analysis_plugin._get_extended_file_permissions("3777") == [False, True, True]
-        assert self.analysis_plugin._get_extended_file_permissions("4777") == [True, False, False]
-        assert self.analysis_plugin._get_extended_file_permissions("5777") == [True, False, True]
-        assert self.analysis_plugin._get_extended_file_permissions("6777") == [True, True, False]
-        assert self.analysis_plugin._get_extended_file_permissions("7777") == [True, True, True]
-        assert self.analysis_plugin._get_extended_file_permissions("00007777") == [True, True, True]
+        assert self.analysis_plugin._get_extended_file_permissions('777') == [False, False, False]
+        assert self.analysis_plugin._get_extended_file_permissions('0777') == [False, False, False]
+        assert self.analysis_plugin._get_extended_file_permissions('1777') == [False, False, True]
+        assert self.analysis_plugin._get_extended_file_permissions('2777') == [False, True, False]
+        assert self.analysis_plugin._get_extended_file_permissions('3777') == [False, True, True]
+        assert self.analysis_plugin._get_extended_file_permissions('4777') == [True, False, False]
+        assert self.analysis_plugin._get_extended_file_permissions('5777') == [True, False, True]
+        assert self.analysis_plugin._get_extended_file_permissions('6777') == [True, True, False]
+        assert self.analysis_plugin._get_extended_file_permissions('7777') == [True, True, True]
+        assert self.analysis_plugin._get_extended_file_permissions('00007777') == [True, True, True]
 
     def test_parent_has_file_system_metadata(self):
         # fo has temporary_data entry

@@ -19,7 +19,7 @@ from web_interface.frontend_main import WebFrontEnd
 FIRST_ROOT_ID = '5fadb36c49961981f8d87cc21fc6df73a1b90aa1857621f2405d317afb994b64_68415'
 SECOND_ROOT_ID = '0383cac1dd8fbeb770559163edbd571c21696c435a4942bec6df151983719731_52143'
 TARGET_UID = '49543bc7128542b062d15419c90459be65ca93c3134554bc6224e307b359c021_9968'
-TMP_DIR = TemporaryDirectory(prefix="fact_test_")
+TMP_DIR = TemporaryDirectory(prefix='fact_test_')
 
 
 class MockScheduler:
@@ -85,7 +85,7 @@ def test_scheduler(test_config, finished_event, intermediate_event):
 
 def add_test_file(scheduler, path_in_test_dir):
     firmware = Firmware(file_path=str(Path(get_test_data_dir(), path_in_test_dir)))
-    firmware.set_release_date('1990-01-16')
+    firmware.release_date = '1990-01-16'
     scheduler.add_task(firmware)
 
 

@@ -1,0 +1,7 @@
+libjpeg-devel
+openssl-devel
+
+# checksec dependencies
+binutils
+file
+openssl

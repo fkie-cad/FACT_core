@@ -64,6 +64,18 @@
             <li>Improved loading of analysis tags.</li>
             <li>New Swagger documentation for all REST endpoints.</li>
             <li>Added software signatures.</li>
+            <li>Added new feature to force single analysis update (will be removed when scheduling problems are fixed).</li>
+            <li>Changed "update analysis" to skip the unpacking step ("re-do analysis" still unpacks).</li>
+            <li>Updated the web framework Flask to version 2.0
+                <ul>
+                    <li>
+                        <i class="fas fa-exclamation-triangle" style="color: red;"></i>
+                        If you use FACT with authentication, it is necessary to run the script
+                        <code>src/migrate_database.py</code>
+                        to convert the old user database to the new format
+                    </li>
+                </ul>
+            </li>
             <li>Bug fixes.</li>
         </ul>
 

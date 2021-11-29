@@ -5,7 +5,8 @@ from base64 import standard_b64encode
 from configparser import ConfigParser
 from copy import deepcopy
 from pathlib import Path
-from typing import Union
+from tempfile import TemporaryDirectory
+from typing import Optional, Union
 
 from helperFunctions.config import load_config
 from helperFunctions.data_conversion import get_value_of_first_key, normalize_compare_id
@@ -40,11 +41,11 @@ class CommonDbInterfaceMock(MongoInterfaceCommon):
 
 def create_test_firmware(device_class='Router', device_name='test_router', vendor='test_vendor', bin_path='container/test.zip', all_files_included_set=False, version='0.1'):
     fw = Firmware(file_path=os.path.join(get_test_data_dir(), bin_path))
-    fw.set_device_class(device_class)
-    fw.set_device_name(device_name)
-    fw.set_vendor(vendor)
+    fw.device_class = device_class
+    fw.device_name = device_name
+    fw.vendor = vendor
 
-    fw.set_release_date('1970-01-01')
+    fw.release_date = '1970-01-01'
     fw.version = version
     processed_analysis = {
         'dummy': {'summary': ['sum a', 'fw exclusive sum a'], 'content': 'abcd'},
@@ -74,6 +75,7 @@ def create_test_file_object(bin_path='get_files_test/testfile1'):
 TEST_FW = create_test_firmware(device_class='test class', device_name='test device', vendor='test vendor')
 TEST_FW_2 = create_test_firmware(device_class='test_class', device_name='test_firmware_2', vendor='test vendor', bin_path='container/test.7z')
 TEST_TEXT_FILE = create_test_file_object()
+TEST_TEXT_FILE2 = create_test_file_object(bin_path='get_files_test/testfile2')
 NICE_LIST_DATA = {
     'uid': TEST_FW.uid,
     'files_included': TEST_FW.files_included,
@@ -81,6 +83,8 @@ NICE_LIST_DATA = {
     'mime-type': 'file-type-plugin/not-run-yet',
     'current_virtual_path': get_value_of_first_key(TEST_FW.get_virtual_file_paths())
 }
+
+TEST_SEARCH_QUERY = {'_id': '0000000000000000000000000000000000000000000000000000000000000000_1', 'search_query': f'{{"_id": "{TEST_FW_2.uid}"}}', 'query_title': 'rule a_ascii_string_rule'}
 
 
 class MockFileObject:
@@ -192,7 +196,7 @@ class DatabaseMock:  # pylint: disable=too-many-public-methods
         return '0000000000000000000000000000000000000000000000000000000000000000_0'
 
     def get_query_from_cache(self, query_uid):
-        return {'search_query': '{{"_id": "{}"}}'.format(format(TEST_FW_2.uid)), 'query_title': 'test'}
+        return TEST_SEARCH_QUERY
 
     class firmwares:  # pylint: disable=invalid-name
         @staticmethod
@@ -217,6 +221,17 @@ class DatabaseMock:  # pylint: disable=too-many-public-methods
         @staticmethod
         def find(query, query_filter):
             return {}
+
+    class search_query_cache:  # pylint: disable=invalid-name
+        @staticmethod
+        def find(**kwargs):
+            # We silently ignore every argument given to this function
+            # Feel free to change this behavior if your test needs it
+            return [TEST_SEARCH_QUERY]
+
+        @staticmethod
+        def count_documents(filter, **kwargs):
+            return 1
 
     def get_data_for_nice_list(self, input_data, root_uid):
         return [NICE_LIST_DATA, ]
@@ -414,10 +429,13 @@ def fake_exit(self, *args):
 
 
 def get_database_names(config):
-    databases = ['{}_{}'.format(config.get('data_storage', 'intercom_database_prefix'), intercom_db)
-                 for intercom_db in InterComMongoInterface.INTERCOM_CONNECTION_TYPES]
-    databases.extend([config.get('data_storage', 'main_database'), config.get(
-        'data_storage', 'view_storage'), config.get('data_storage', 'statistic_database')])
+    prefix = config.get('data_storage', 'intercom_database_prefix')
+    databases = [f'{prefix}_{intercom_db}' for intercom_db in InterComMongoInterface.INTERCOM_CONNECTION_TYPES]
+    databases.extend([
+        config.get('data_storage', 'main_database'),
+        config.get('data_storage', 'view_storage'),
+        config.get('data_storage', 'statistic_database')
+    ])
     return databases
 
 
@@ -443,14 +461,16 @@ def get_firmware_for_rest_upload_test():
         'device_class': 'test_class',
         'version': '1.0',
         'vendor': 'test_vendor',
-        'release_date': '01.01.1970',
+        'release_date': '1970-01-01',
         'tags': '',
         'requested_analysis_systems': ['software_components']
     }
     return data
 
 
-def get_config_for_testing(temp_dir=None):
+def get_config_for_testing(temp_dir: Optional[Union[TemporaryDirectory, str]] = None):
+    if isinstance(temp_dir, TemporaryDirectory):
+        temp_dir = temp_dir.name
     config = ConfigParser()
     config.add_section('data_storage')
     config.set('data_storage', 'mongo_server', 'localhost')
@@ -477,8 +497,8 @@ def get_config_for_testing(temp_dir=None):
     load_users_from_main_config(config)
     config.add_section('Logging')
     if temp_dir is not None:
-        config.set('data_storage', 'firmware_file_storage_directory', temp_dir.name)
-        config.set('Logging', 'mongoDbLogFile', os.path.join(temp_dir.name, 'mongo.log'))
+        config.set('data_storage', 'firmware_file_storage_directory', temp_dir)
+        config.set('Logging', 'mongoDbLogFile', os.path.join(temp_dir, 'mongo.log'))
     config.set('ExpertSettings', 'radare2_host', 'localhost')
     return config
 

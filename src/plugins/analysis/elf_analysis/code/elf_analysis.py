@@ -3,6 +3,7 @@ import logging
 import os
 import re
 from difflib import SequenceMatcher
+from typing import List, Optional
 
 import lief
 from common_helper_files import get_dir_of_file
@@ -25,7 +26,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     NAME = 'elf_analysis'
     DESCRIPTION = 'Analyzes and tags ELF executables and libraries'
     DEPENDENCIES = ['file_type']
-    VERSION = '0.3'
+    VERSION = '0.3.1'
     MIME_WHITELIST = ['application/x-executable', 'application/x-object', 'application/x-sharedlib']
 
     def __init__(self, plugin_administrator, config=None, recursive=True, offline_testing=False):
@@ -38,9 +39,10 @@ class AnalysisPlugin(AnalysisBasePlugin):
             file_object.processed_analysis[self.NAME] = {'Output': elf_dict}
             self.create_tags(parsed_binary, file_object)
             file_object.processed_analysis[self.NAME]['summary'] = list(elf_dict.keys())
+
         except RuntimeError:
-            logging.error('lief could not parse {}'.format(file_object.uid))
-            file_object.processed_analysis[self.NAME] = {'Output': {}}
+            logging.error(f'lief could not parse {file_object.uid}', exc_info=True)
+            file_object.processed_analysis[self.NAME] = {'failed': 'lief could not parse the file'}
         return file_object
 
     @staticmethod
@@ -63,7 +65,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def _get_tags(self, libraries: list, functions: list) -> list:
         behaviour_classes = self._load_template_file_as_json_obj(TEMPLATE_FILE_PATH)
-        tags = list()
+        tags = []
         for behaviour_class in behaviour_classes:
             if behaviour_class not in tags:
                 behaviour_indicators = behaviour_classes[behaviour_class]
@@ -75,8 +77,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
     def _get_symbols_version_entries(symbol_versions):
         imported_libs = []
         for sv in symbol_versions:
-            if str(sv) != '* Local *' and str(sv) != "* Global *":
-                imported_libs.append(str(sv).split('(')[0])
+            if str(sv) != '* Local *' and str(sv) != '* Global *':
+                imported_libs.append(str(sv).split('(', maxsplit=1)[0])
         return list(set(imported_libs))
 
     @staticmethod
@@ -128,12 +130,16 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 binary_json_dict['imported_functions'] = normalize_lief_items(parsed_binary.imported_functions)
             if parsed_binary.libraries:
                 binary_json_dict['libraries'] = normalize_lief_items(parsed_binary.libraries)
-        except (TypeError, lief.bad_file) as error:
-            logging.error('Bad file for lief/elf analysis {}. {}'.format(file_object.uid, error))
+            if parsed_binary.sections:
+                elf_dict['modinfo'] = self.filter_modinfo(parsed_binary)
+
+        except (TypeError, lief.bad_file):
+            logging.error(f'Bad file for lief/elf analysis {file_object.uid}.', exc_info=True)
             return elf_dict
 
         self.get_final_analysis_dict(binary_json_dict, elf_dict)
         self._convert_address_values_to_hex(elf_dict)
+
         return elf_dict, parsed_binary
 
     @staticmethod
@@ -142,3 +148,15 @@ class AnalysisPlugin(AnalysisBasePlugin):
             for entry in elf_dict[category]:
                 for key in {'virtual_address', 'offset'}.intersection(entry):
                     entry[key] = hex(entry[key])
+
+    @staticmethod
+    def filter_modinfo(binary) -> Optional[List[str]]:
+        # getting the information from the *.ko files .modinfo
+        modinfo = None
+        if binary is not None:
+            for section in binary.sections:
+                if section.name == '.modinfo':
+                    modinfo = bytes(section.content).decode()
+                    modinfo = [entry for entry in modinfo.split('\x00') if entry]
+                    break
+        return modinfo

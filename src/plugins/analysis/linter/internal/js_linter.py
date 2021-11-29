@@ -1,46 +1,35 @@
-import logging
+import json
+import subprocess
 from pathlib import Path
+from subprocess import PIPE
 
-from common_helper_process import execute_shell_command
-
-CONFIG_FILE_PATH = Path(Path(__file__).parent, 'config', '.jshintrc')
+CONFIG_FILE_PATH = Path(__file__).parent / 'config/eslintrc.js'
 
 
 class JavaScriptLinter:
     '''
-    Wrapper for jshint javascript linter
+    Wrapper for eslint javascript linter
     '''
-    def do_analysis(self, file_path):
-        linter_output = execute_shell_command('jshint --config={} --verbose {}'.format(CONFIG_FILE_PATH, file_path))
-        return self._parse_linter_output(linter_output)
 
-    def _parse_linter_output(self, linter_output):
+    def do_analysis(self, file_path):
+        # The linter will have nonzero returncode when a rule matches
+        # pylint: disable=subprocess-run-check
+        output_raw = subprocess.run(
+                    f'''docker run
+                        --rm
+                        -v {CONFIG_FILE_PATH}:/eslintrc.js
+                        -v {file_path}:/input.js
+                        cytopia/eslint
+                        -c /eslintrc.js
+                        --format json
+                        /input.js'''.split(),
+                    stdout=PIPE, stderr=PIPE).stdout
+
+        output_json = json.loads(output_raw)
+
         issues = []
-        for issue in linter_output.splitlines()[:-2]:
-            try:
-                remaining_line = self._strip_file_path(issue)
-                remaining_line, issue_code = self._extract_issue_code(remaining_line)
-                remaining_line, line_number, column = self._extract_line_and_column(remaining_line)
-                issues.append(dict(line=line_number, column=column, symbol=issue_code, message=remaining_line))
-            except (IndexError, ValueError) as error:
-                logging.warning('jshint line was not correctly parsed: {}\n{}'.format(issue, str(error)))
+        # As we only ever analyse one file use output_json[0]
+        for msg in output_json[0]['messages']:
+            issues.append(dict(line=msg['line'], column=msg['column'], message=msg['message'], symbol=msg['ruleId']))
 
         return issues
-
-    @staticmethod
-    def _strip_file_path(line):
-        colon_separated = line.split(':')
-        return ':'.join(colon_separated[1:])
-
-    @staticmethod
-    def _extract_issue_code(line):
-        bracket_separated = line.split('(')
-        code_part = bracket_separated[-1]
-        return '('.join(bracket_separated[:-1]), code_part.strip(' )')
-
-    @staticmethod
-    def _extract_line_and_column(line):
-        comma_separated = line.split(',')
-        line_number = comma_separated[0].strip()[5:]
-        column = comma_separated[1].strip()[4:]
-        return ','.join(comma_separated[2:]).strip(), int(line_number), int(column)

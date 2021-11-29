@@ -13,13 +13,15 @@ from ..code.elf_analysis import AnalysisPlugin
 
 TEST_DATA = Path(get_test_data_dir(), 'test_data_file.bin')
 
+TEST_DATA_DIR = Path(__file__).parent / 'data'
+
 
 class MockAdmin:
     def register_plugin(self, name, administrator):
         pass
 
 
-LiefResult = namedtuple('LiefResult', ['symbols_version', 'libraries', 'imported_functions', 'exported_functions'])
+LiefResult = namedtuple('LiefResult', ['symbols_version', 'libraries', 'imported_functions', 'exported_functions', 'sections'])
 
 MOCK_DATA = (
     '{"header": {"entrypoint": 109724, "file_type": "DYNAMIC", "header_size": 52, "identity_class": "CLASS32", "identity_data": "LSB", "identity_os_abi": "SYSTEMV"},'
@@ -34,7 +36,8 @@ MOCK_LIEF_RESULT = LiefResult(
     libraries=['libdl.so.2', 'libc.so.6'],
     imported_functions=['fdopen', 'calloc', 'strstr', 'raise', 'gmtime_r', 'strcmp'],
     symbols_version=list(),
-    exported_functions=['SHA256_Transform', 'GENERAL_NAMES_free', 'i2d_RSAPrivateKey', 'd2i_OCSP_REQUEST'])
+    exported_functions=['SHA256_Transform', 'GENERAL_NAMES_free', 'i2d_RSAPrivateKey', 'd2i_OCSP_REQUEST'],
+    sections=[])
 
 
 @pytest.fixture(scope='function')
@@ -114,7 +117,7 @@ def test_get_symbols_version_entries(stub_plugin, symbol_versions, expected):
 
 def test_create_tags(stub_plugin, stub_object):
     stub_object.processed_analysis[stub_plugin.NAME] = {}
-    stub_result = LiefResult(libraries=['recvmsg', 'unknown'], imported_functions=list(), symbols_version=list(), exported_functions=list())
+    stub_result = LiefResult(libraries=['recvmsg', 'unknown'], imported_functions=list(), symbols_version=list(), exported_functions=list(), sections=list())
     stub_plugin.create_tags(stub_result, stub_object)
 
     assert 'network' in stub_object.processed_analysis[stub_plugin.NAME]['tags']
@@ -155,3 +158,10 @@ def test_plugin(stub_plugin, stub_object, monkeypatch):
     assert result_summary == ['dynamic_entries', 'exported_functions', 'header', 'imported_functions', 'libraries', 'sections', 'segments', 'symbols_version']
     assert 'strcmp' in output['imported_functions']
     assert output['segments'][0]['virtual_address'].startswith('0x'), 'addresses should be converted to hex'
+
+
+def test_modinfo(stub_plugin):
+    test_file = FileObject(file_path=str(TEST_DATA_DIR / 'test_data.ko'))
+    bin_dict, bin = stub_plugin._analyze_elf(test_file)
+    result = stub_plugin.filter_modinfo(bin)
+    assert result[0] == 'this are test data\n'

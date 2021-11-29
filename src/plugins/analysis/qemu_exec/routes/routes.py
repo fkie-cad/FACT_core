@@ -33,7 +33,7 @@ def _get_parent_uids_from_virtual_path(file_object):
     for path_list in file_object.virtual_file_path.values():
         for virtual_path in path_list:
             with suppress(IndexError):
-                result.add(virtual_path.split("|")[-2])
+                result.add(virtual_path.split('|')[-2])
     return result
 
 
@@ -59,7 +59,7 @@ class PluginRoutes(ComponentBase):
     @staticmethod
     def _load_view():
         path = os.path.join(get_src_dir(), 'plugins/analysis/{}/routes/ajax_view.html'.format(AnalysisPlugin.NAME))
-        with open(path, "r") as fp:
+        with open(path, 'r') as fp:
             return fp.read()
 
 

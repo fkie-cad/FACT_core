@@ -7,11 +7,13 @@ import requests
 from common_helper_process import execute_shell_command_get_return_code
 
 from helperFunctions.install import (
-    InstallationError, OperateInDirectory, apt_install_packages, load_main_config, pip3_install_packages, remove_folder
+    InstallationError, OperateInDirectory, apt_install_packages, install_pip_packages, load_main_config, remove_folder,
+    run_cmd_with_logging
 )
 
 DEFAULT_CERT = '.\n.\n.\n.\n.\nexample.com\n.\n\n\n'
-COMPOSE_VENV = Path(__file__).parent.absolute() / 'compose-env'
+INSTALL_DIR = Path(__file__).parent
+PIP_DEPENDENCIES = INSTALL_DIR / 'requirements_frontend.txt'
 
 
 def execute_commands_and_raise_on_return_code(commands, error=None):  # pylint: disable=invalid-name
@@ -60,6 +62,7 @@ def _create_directory_for_authentication():  # pylint: disable=invalid-name
 
     config = load_main_config()
     dburi = config.get('data_storage', 'user_database')
+    # pylint: disable=fixme
     factauthdir = '/'.join(dburi.split('/')[:-1])[10:]  # FIXME this should be beautified with pathlib
 
     mkdir_output, mkdir_code = execute_shell_command_get_return_code('sudo mkdir -p --mode=0744 {}'.format(factauthdir))
@@ -79,7 +82,7 @@ def _install_nginx():
 
 
 def _generate_and_install_certificate():
-    logging.info("Generating self-signed certificate")
+    logging.info('Generating self-signed certificate')
     execute_commands_and_raise_on_return_code([
         'openssl genrsa -out fact.key 4096',
         'echo "{}" | openssl req -new -key fact.key -out fact.csr'.format(DEFAULT_CERT),
@@ -89,7 +92,7 @@ def _generate_and_install_certificate():
 
 
 def _configure_nginx():
-    logging.info("Configuring nginx")
+    logging.info('Configuring nginx')
     execute_commands_and_raise_on_return_code([
         'sudo cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak',
         'sudo rm /etc/nginx/nginx.conf',
@@ -107,22 +110,25 @@ def _install_css_and_js_files():
         wget_static_web_content('https://github.com/vakata/jstree/zipball/3.3.9', '.', ['unzip 3.3.9', 'rm 3.3.9', 'rm -rf ./web_js/jstree/vakata*', 'mv vakata* web_js/jstree'], 'jstree')
         wget_static_web_content('https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js', '.', [], 'angularJS')
         wget_static_web_content('https://github.com/chartjs/Chart.js/releases/download/v2.3.0/Chart.js', '.', [], 'charts.js')
-        wget_static_web_content('https://registry.npmjs.org/vis-network/-/vis-network-8.5.2.tgz', '.', ['tar xf vis-network-8.5.2.tgz', 'rm -rf vis', 'mv package/dist vis'], 'vis-network')
 
         _build_highlight_js()
 
         for css_url in [
-                'https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css',
-                'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.8.0/css/bootstrap-datepicker.standalone.css'
+            'https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css',
+            'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.8.0/css/bootstrap-datepicker.standalone.css',
+            'https://unpkg.com/vis-network@8.5.6/styles/vis-network.min.css',
+            'https://cdn.jsdelivr.net/npm/diff2html/bundles/css/diff2html.min.css',
         ]:
             wget_static_web_content(css_url, 'web_css', [])
 
         for js_url in [
-                'https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.1/jquery.min.js',
-                'https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js',
-                'https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js',
-                'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.8.0/js/bootstrap-datepicker.js',
-                'https://raw.githubusercontent.com/moment/moment/develop/moment.js'
+            'https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.1/jquery.min.js',
+            'https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js',
+            'https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js',
+            'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.8.0/js/bootstrap-datepicker.js',
+            'https://raw.githubusercontent.com/moment/moment/develop/moment.js',
+            'https://unpkg.com/vis-network@8.5.6/standalone/umd/vis-network.min.js',
+            'https://cdn.jsdelivr.net/npm/diff2html/bundles/js/diff2html-ui.min.js',
         ]:
             wget_static_web_content(js_url, 'web_js', [])
 
@@ -137,28 +143,13 @@ def _install_css_and_js_files():
                 ]
             )
 
-        if not Path('bootstrap3-editable').exists():
-            wget_static_web_content(
-                'https://vitalets.github.io/x-editable/assets/zip/bootstrap3-editable-1.5.1.zip',
-                '.',
-                ['unzip -o bootstrap3-editable-1.5.1.zip',
-                 'rm bootstrap3-editable-1.5.1.zip CHANGELOG.txt LICENSE-MIT README.md',
-                 'rm -rf inputs-ext'],
-                'x-editable')
-
 
 def _install_docker_images(radare):
     if radare:
         logging.info('Initializing docker container for radare')
 
-        execute_shell_command_get_return_code('virtualenv {}'.format(COMPOSE_VENV))
-        # We use the pip from the Venv for docker-compose
-        output, return_code = execute_shell_command_get_return_code('{} install -U docker-compose'.format(COMPOSE_VENV / 'bin' / 'pip'))
-        if return_code != 0:
-            raise InstallationError('Failed to set up virtualenv for docker-compose\n{}'.format(output))
-
         with OperateInDirectory('radare'):
-            output, return_code = execute_shell_command_get_return_code('{} build'.format(COMPOSE_VENV / 'bin' / 'docker-compose'))
+            output, return_code = execute_shell_command_get_return_code('docker-compose build')
             if return_code != 0:
                 raise InstallationError('Failed to initialize radare container:\n{}'.format(output))
 
@@ -170,23 +161,10 @@ def _install_docker_images(radare):
 
 
 def main(skip_docker, radare, nginx):
-    pip3_install_packages('werkzeug==0.16.1')  # Multiple flask plugins break on werkzeug > 0.16.1
-    pip3_install_packages(
-        'flask==1.1.2',  # FIXME: unpin when flask-restful / flask-restx works with flask 2.0
-        'flask_restx',
-        'flask_security',
-        'flask_sqlalchemy',
-        'flask-paginate',
-        'Flask-API',
-        'itsdangerous==1.1.0',  # FIXME: remove pin when not needed anymore (used by flask_security)
-        'uwsgi',
-        'bcrypt',
-        'python-dateutil',
-        'si-prefix',
-        '"sqlalchemy>=1.2,<1.4"',  # FIXME: unpin when flask_sqlalchemy works with sqlalchemy >= 1.4
-        'email-validator',
-        'matplotlib'
-    )
+    # flask-security is not maintained anymore and replaced by flask-security-too.
+    # Since python package naming conflicts are not resolved automatically, we remove flask-security manually.
+    run_cmd_with_logging('sudo -EH pip3 uninstall -y flask-security')
+    install_pip_packages(PIP_DEPENDENCIES)
 
     # installing web/js-frameworks
     _install_css_and_js_files()

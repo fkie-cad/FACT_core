@@ -1,0 +1,4 @@
+liblua5.3-dev
+lua5.3
+luarocks
+shellcheck

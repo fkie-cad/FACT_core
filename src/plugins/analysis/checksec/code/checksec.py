@@ -1,4 +1,5 @@
 import json
+import logging
 import re
 from pathlib import Path
 
@@ -15,7 +16,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     DESCRIPTION = 'analyses ELF binaries within a firmware for present exploit mitigation techniques'
     DEPENDENCIES = ['file_type']
     MIME_WHITELIST = ['application/x-executable', 'application/x-object', 'application/x-sharedlib']
-    VERSION = '0.1.5'
+    VERSION = '0.1.6'
 
     def __init__(self, plugin_administrator, config=None, recursive=True):
         self.config = config
@@ -35,9 +36,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
             else:
                 file_object.processed_analysis[self.NAME]['summary'] = []
         except (IndexError, json.JSONDecodeError, ValueError) as error:
-            file_object.processed_analysis[self.NAME]['summary'] = [
-                'Error - Firmware could not be processed properly: {}'.format(error)
-            ]
+            logging.warning('Error occurred during exploit_mitigations analysis:', exc_info=True)
+            file_object.processed_analysis[self.NAME]['failed'] = f'Error during analysis: {error}'
         return file_object
 
 

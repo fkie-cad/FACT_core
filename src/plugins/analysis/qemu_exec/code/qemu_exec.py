@@ -28,7 +28,7 @@ from unpacker.unpack_base import UnpackBase
 TIMEOUT_IN_SECONDS = 15
 EXECUTABLE = 'executable'
 EMPTY = '(no parameter)'
-DOCKER_IMAGE = 'fact/qemu:latest'
+DOCKER_IMAGE = 'fact/qemu-exec:alpine-3.14'
 QEMU_ERRORS = ['Unsupported syscall', 'Invalid ELF', 'uncaught target signal']
 CONTAINER_TARGET_PATH = '/opt/firmware_root'
 
@@ -80,8 +80,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
         ('80486', ['x86_64', 'i386']),
         ('x86', ['x86_64', 'i386']),
 
-        ('PowerPC', ['ppc', 'ppc64', 'ppc64abi32', 'ppc64le']),
-        ('PPC', ['ppc', 'ppc64', 'ppc64abi32', 'ppc64le']),
+        ('PowerPC', ['ppc', 'ppc64', 'ppc64le']),
+        ('PPC', ['ppc', 'ppc64', 'ppc64le']),
 
         ('Renesas SH', ['sh4', 'sh4eb']),
     ])

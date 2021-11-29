@@ -28,7 +28,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     NAME = 'file_system_metadata'
     DEPENDENCIES = ['file_type']
     DESCRIPTION = 'extract file system metadata (e.g. owner, group, etc.) from file system images contained in firmware'
-    VERSION = '0.2'
+    VERSION = '0.2.1'
     timeout = 600
 
     ARCHIVE_MIME_TYPES = [
@@ -87,15 +87,15 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def _extract_metadata_from_file_system(self, file_object: FileObject):
         with TemporaryDirectory() as tmp_dir:
-            input_file = Path(tmp_dir) / "input.img"
+            input_file = Path(tmp_dir) / 'input.img'
             input_file.write_bytes(file_object.binary or Path(file_object.file_path).read_bytes())
             output = self._mount_in_docker(tmp_dir)
-            output_file = Path(tmp_dir) / "output.pickle"
+            output_file = Path(tmp_dir) / 'output.pickle'
             if output_file.is_file():
                 self._analyze_metadata_of_mounted_dir(json.loads(output_file.read_bytes()))
             else:
-                message = 'mount failed:\n{}'.format(output)
-                logging.warning('[{}] {}'.format(self.NAME, message))
+                message = f'mount failed:\n{output}'
+                logging.warning(f'[file_system_metadata] {message}')
                 file_object.processed_analysis[self.NAME]['failed'] = message
 
     def _mount_in_docker(self, input_dir: str) -> str:
@@ -128,15 +128,12 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def _extract_metadata_from_tar(self, file_object: FileObject):
         try:
-            for file_info in tarfile.open(file_object.file_path):
-                if file_info.isfile():
-                    self._enter_results_for_tar_file(file_info)
-        except tarfile.TarError:
-            logging.warning('could not open tar archive {}'.format(file_object.file_name))
-        except zlib.error:
-            logging.warning('could not open compressed tar archive: {}'.format(file_object.file_name))
-        except EOFError:
-            logging.warning('could not open archive: unexpected EOF {}'.format(file_object.file_name))
+            with tarfile.open(file_object.file_path) as tar_archive:
+                for file_info in tar_archive:
+                    if file_info.isfile():
+                        self._enter_results_for_tar_file(file_info)
+        except (tarfile.TarError, zlib.error, EOFError) as error:
+            logging.warning(f'[{self.NAME}]: Could not open archive on {file_object.uid}: {error}', exc_info=True)
 
     def _enter_results_for_tar_file(self, file_info: tarfile.TarInfo):
         file_path = file_info.name
@@ -155,7 +152,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     @staticmethod
     def _get_extended_file_permissions(file_mode: str) -> List[bool]:
-        extended_file_permission_bits = "{0:03b}".format(int(file_mode[-4])) if len(file_mode) > 3 else '000'
+        extended_file_permission_bits = f'{int(file_mode[-4]):03b}' if len(file_mode) > 3 else '000'
         return [b == '1' for b in extended_file_permission_bits]
 
     @staticmethod
@@ -222,5 +219,5 @@ class FsMetadataDbInterface(MongoInterfaceCommon):
         for path_list in file_object.virtual_file_path.values():
             for virtual_path in path_list:
                 with suppress(IndexError):
-                    result.add(virtual_path.split("|")[-2])
+                    result.add(virtual_path.split('|')[-2])
         return result
