@@ -4,7 +4,6 @@ from base64 import b64decode, b64encode
 from pathlib import Path
 from unittest import TestCase
 
-import docker
 import pytest
 from common_helper_files import get_dir_of_file
 from requests.exceptions import ConnectionError as RequestConnectionError
@@ -55,7 +54,7 @@ def execute_shell_fails(monkeypatch):
 class ContainerMock:
     @staticmethod
     def wait(**_):
-        pass
+        return {'StatusCode': 0}
 
     @staticmethod
     def stop():
@@ -83,7 +82,7 @@ class DockerClientMock:
 
 @pytest.fixture
 def execute_docker_error(monkeypatch):
-    monkeypatch.setattr(docker, 'from_env', DockerClientMock)
+    monkeypatch.setattr('helperFunctions.docker.client', DockerClientMock)
 
 
 class TestPluginQemuExec(AnalysisPluginTest):
@@ -224,12 +223,6 @@ class TestPluginQemuExec(AnalysisPluginTest):
         assert self.analysis_plugin.NAME in test_fw.processed_analysis
         assert 'parent_flag' in test_fw.processed_analysis[self.analysis_plugin.NAME]
         assert test_fw.processed_analysis[self.analysis_plugin.NAME]['parent_flag'] is True
-
-    def test_process_object__docker_not_running(self):
-        test_fw = create_test_firmware()
-        test_fw.files_included = ['foo', 'bar']
-        self.analysis_plugin.process_object(test_fw)
-        assert self.analysis_plugin.NAME not in test_fw.processed_analysis
 
     def _set_up_fw_for_process_object(self, path: Path = TEST_DATA_DIR):
         test_fw = create_test_firmware()
