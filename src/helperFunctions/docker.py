@@ -3,6 +3,7 @@ from contextlib import suppress
 
 import docker
 from docker.errors import APIError, DockerException, ImageNotFound
+from requests.exceptions import ReadTimeout
 
 client = docker.client.from_env()
 
@@ -19,9 +20,9 @@ def run_docker_container(image: str, logging_label: str = 'Docker', timeout: int
 
     :return: Output and exit code as tuple
 
-    :raises ImageNotFound: If the docker image was not found
-    :raises TimeoutError: If the timeout was reached
-    :raises APIError: If the communication with docker fails
+    :raises docker.errors.ImageNotFound: If the docker image was not found
+    :raises requests.exceptions.ReadTimeout: If the timeout was reached
+    :raises docker.errors.APIError: If the communication with docker fails
     """
     kwargs.setdefault('detach', True)
 
@@ -34,7 +35,7 @@ def run_docker_container(image: str, logging_label: str = 'Docker', timeout: int
     try:
         response = container.wait(timeout=timeout)
         exit_code = response['StatusCode']
-    except TimeoutError:
+    except ReadTimeout:
         logging.warning(f'[{logging_label}]: timeout while processing')
         with suppress(DockerException):
             container.stop()
