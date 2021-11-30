@@ -1,7 +1,8 @@
 from pathlib import Path
 
-from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
 from objects.file import FileObject
+from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
+
 from ..code.device_tree import AnalysisPlugin
 
 TEST_DATA = Path(__file__).parent.parent / 'test/data'
@@ -17,10 +18,6 @@ class TestDeviceTree(AnalysisPluginTest):
 
         self.analysis_plugin = AnalysisPlugin(self, config=config)
         self.test_file = TEST_DATA / 'device_tree.dtb'
-
-    def tearDown(self):
-        super().tearDown()
-        # additional tearDown can go here
 
     def test_process_object(self):
         test_object = FileObject()

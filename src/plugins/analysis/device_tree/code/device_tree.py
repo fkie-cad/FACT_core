@@ -11,9 +11,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
     '''
     NAME = 'device_tree'
     DESCRIPTION = 'get the device tree in text from the device tree blob'
-    DEPENDENCIES = []
+    DEPENDENCIES = ['file_type']
     VERSION = '0.1'
-    # MIME_WHITELIST = ['linux/device-tree']
+    MIME_WHITELIST = ['linux/device-tree']
 
     def __init__(self, plugin_administrator, config=None, recursive=True):
         self.config = config
@@ -25,7 +25,6 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
         device_tree = self.execute_device_tree_compiler(file_object.file_path)
 
-    # store the results
         file_object.processed_analysis[self.NAME] = {}
 
         if device_tree:
