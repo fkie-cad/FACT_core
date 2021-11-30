@@ -20,9 +20,8 @@
 import logging
 from time import sleep
 
-from fact_base import FactBase
-
 from analysis.PluginBase import PluginInitException
+from fact_base import FactBase
 from helperFunctions.process import complete_shutdown
 from intercom.back_end_binding import InterComBackEndBinding
 from scheduler.Analysis import AnalysisScheduler

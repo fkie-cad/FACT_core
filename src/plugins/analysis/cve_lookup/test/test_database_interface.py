@@ -16,10 +16,10 @@ TEST_QUERIES = {
 }
 
 try:
-    from ..internal.database_interface import DatabaseInterface, QUERIES
+    from ..internal.database_interface import QUERIES, DatabaseInterface
 except ImportError:
     sys.path.append(str(Path(__file__).parent.parent / 'internal'))
-    from database_interface import DatabaseInterface, QUERIES
+    from database_interface import QUERIES, DatabaseInterface
 
 
 @pytest.fixture(scope='module', autouse=True)

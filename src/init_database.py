@@ -20,9 +20,8 @@
 import logging
 import sys
 
-from storage.MongoMgr import MongoMgr
 from helperFunctions.program_setup import program_setup
-
+from storage.MongoMgr import MongoMgr
 
 PROGRAM_NAME = 'FACT Database Initializer'
 PROGRAM_DESCRIPTION = 'Initialize authentication and users for FACT\'s Database'

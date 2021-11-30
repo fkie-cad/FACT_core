@@ -6,10 +6,10 @@ from sqlite3 import Error as SqliteException
 from sqlite3 import connect
 
 try:
-    from ..internal.helper_functions import get_field_string, get_field_names
+    from ..internal.helper_functions import get_field_names, get_field_string
 except (ImportError, SystemError):
     sys.path.append(str(Path(__file__).parent.parent / 'internal'))
-    from helper_functions import get_field_string, get_field_names
+    from helper_functions import get_field_names, get_field_string
 
 DB_PATH = str(Path(__file__).parent / 'cve_cpe.db')
 

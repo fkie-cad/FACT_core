@@ -2,8 +2,8 @@ import json
 import logging
 import sys
 from copy import deepcopy
-from typing import Dict, List
 from itertools import chain
+from typing import Dict, List
 
 from helperFunctions.compare_sets import remove_duplicates_from_list
 from helperFunctions.data_conversion import get_value_of_first_key

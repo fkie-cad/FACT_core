@@ -1,9 +1,8 @@
 import json
 import os
-
 from contextlib import suppress
 
-from common_helper_files import write_binary_to_file, get_string_list_from_file
+from common_helper_files import get_string_list_from_file, write_binary_to_file
 
 SIGNATURE_PATH = '../signatures/os.yara'
 TARGET_PATH = '../bin/__init__.py'
