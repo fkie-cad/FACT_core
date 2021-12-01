@@ -1,5 +1,6 @@
-from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
 from objects.file import FileObject
+from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
+
 from ..code.cwe_checker import AnalysisPlugin
 
 

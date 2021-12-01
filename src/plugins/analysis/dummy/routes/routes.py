@@ -1,4 +1,4 @@
-from flask_restx import Resource, Namespace
+from flask_restx import Namespace, Resource
 
 from web_interface.components.component_base import ComponentBase
 from web_interface.rest.helper import success_message

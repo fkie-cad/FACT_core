@@ -1,12 +1,12 @@
 import gc
 import os
 
-import init_database
 import pytest
-import update_statistic
-import update_variety_data
 from common_helper_process import execute_shell_command_get_return_code
 
+import init_database
+import update_statistic
+import update_variety_data
 from helperFunctions.fileSystem import get_src_dir
 
 

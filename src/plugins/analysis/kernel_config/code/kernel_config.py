@@ -7,14 +7,14 @@ from analysis.PluginBase import AnalysisBasePlugin
 from objects.file import FileObject
 
 try:
+    from ..internal.checksec_check_kernel import CHECKSEC_PATH, check_kernel_config
     from ..internal.decomp import decompress
     from ..internal.kernel_config_hardening_check import check_kernel_hardening
-    from ..internal.checksec_check_kernel import check_kernel_config, CHECKSEC_PATH
 except ImportError:
     sys.path.append(str(Path(__file__).parent.parent / 'internal'))
+    from checksec_check_kernel import CHECKSEC_PATH, check_kernel_config
     from decomp import decompress
     from kernel_config_hardening_check import check_kernel_hardening
-    from checksec_check_kernel import check_kernel_config, CHECKSEC_PATH
 
 
 MAGIC_WORD = b'IKCFG_ST\037\213'
