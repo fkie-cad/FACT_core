@@ -69,9 +69,9 @@ class TestCurrentAnalyses(UtilityBase):
         fo = FileObject(binary=b'foo')
         fo.parent_firmware_uids = {'parent_uid'}
         fo.uid = 'foo'
-        with caplog.at_level(logging.WARNING):
+        with caplog.at_level(logging.DEBUG):
             self.scheduler._remove_from_current_analyses(fo)
-            assert any('but it is not included' in m for m in caplog.messages)
+            assert any('Failed to remove' in m for m in caplog.messages)
 
     def test_remove_fully_from_current_analyses(self):
         self.scheduler.currently_running = {'parent_uid': {

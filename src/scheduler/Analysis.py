@@ -498,7 +498,8 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             for parent in self._find_currently_analyzed_parents(fw_object):
                 updated_dict = self.currently_running[parent]
                 if fw_object.uid not in updated_dict['files_to_analyze']:
-                    logging.warning(f'Trying to remove {fw_object.uid} from current analysis of {parent} but it is not included')
+                    # probably a file that occurred multiple times in one firmware
+                    logging.debug(f'Failed to remove {fw_object.uid} from current analysis of {parent}')
                     continue
                 updated_dict['files_to_analyze'] = list(set(updated_dict['files_to_analyze']) - {fw_object.uid})
                 updated_dict['analyzed_files_count'] += 1

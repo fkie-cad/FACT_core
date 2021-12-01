@@ -1,5 +1,6 @@
-from pathlib import Path
 import logging
+from pathlib import Path
+
 from common_helper_process import execute_shell_command
 
 CONFIG_FILE_PATH = Path(Path(__file__).parent, 'config', '.luacheckrc')

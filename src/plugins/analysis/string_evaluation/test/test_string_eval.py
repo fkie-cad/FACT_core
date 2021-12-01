@@ -1,9 +1,11 @@
 import unittest
 
-from ..internal.string_eval import eval_strings, _add_mail_adress_score, _add_parameter_score, _add_html_score, _add_case_ratio_score, \
-    _add_dictionary_score, _add_format_string_score, _add_length_score, _add_path_score, _add_possible_version_number_score, \
-    _add_possible_year_score, _add_quad_characters_score, _add_rare_special_character_score, _add_special_character_ratio_score, \
-    _add_underscore_or_period_at_beginning_score, _score
+from ..internal.string_eval import (
+    _add_case_ratio_score, _add_dictionary_score, _add_format_string_score, _add_html_score, _add_length_score,
+    _add_mail_adress_score, _add_parameter_score, _add_path_score, _add_possible_version_number_score,
+    _add_possible_year_score, _add_quad_characters_score, _add_rare_special_character_score,
+    _add_special_character_ratio_score, _add_underscore_or_period_at_beginning_score, _score, eval_strings
+)
 
 
 class TestStringEval(unittest.TestCase):

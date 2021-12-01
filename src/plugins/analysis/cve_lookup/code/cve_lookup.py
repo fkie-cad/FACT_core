@@ -16,11 +16,11 @@ from helperFunctions.tag import TagColor
 from objects.file import FileObject
 
 try:
-    from ..internal.database_interface import DatabaseInterface, QUERIES
+    from ..internal.database_interface import QUERIES, DatabaseInterface
     from ..internal.helper_functions import replace_characters_and_wildcards, unescape
 except ImportError:
     sys.path.append(str(Path(__file__).parent.parent / 'internal'))
-    from database_interface import DatabaseInterface, QUERIES
+    from database_interface import QUERIES, DatabaseInterface
     from helper_functions import replace_characters_and_wildcards, unescape
 
 MAX_TERM_SPREAD = 3  # a range in which the product term is allowed to come after the vendor term for it not to be a false positive

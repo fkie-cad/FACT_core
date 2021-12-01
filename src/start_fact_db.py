@@ -20,7 +20,6 @@
 import sys
 
 from fact_base import FactBase
-
 from helperFunctions.program_setup import program_setup
 from storage.MongoMgr import MongoMgr
 
