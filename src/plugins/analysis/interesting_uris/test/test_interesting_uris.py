@@ -1,7 +1,9 @@
 import pytest
-from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
-from ..code.interesting_uris import AnalysisPlugin
+
 from test.common_helper import create_test_file_object
+from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
+
+from ..code.interesting_uris import AnalysisPlugin
 
 
 @pytest.mark.parametrize('input_list, blacklist, expected_output', [

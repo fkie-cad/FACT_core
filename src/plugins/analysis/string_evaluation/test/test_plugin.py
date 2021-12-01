@@ -1,5 +1,6 @@
 from test.common_helper import create_test_file_object
 from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
+
 from ..code.string_eval import AnalysisPlugin
 
 

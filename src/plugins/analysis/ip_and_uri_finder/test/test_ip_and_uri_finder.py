@@ -4,6 +4,7 @@ from collections import namedtuple
 from unittest.mock import patch
 
 from geoip2.errors import AddressNotFoundError
+
 from objects.file import FileObject
 from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
 

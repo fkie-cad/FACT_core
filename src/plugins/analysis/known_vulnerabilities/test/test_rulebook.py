@@ -1,7 +1,9 @@
 import pytest
 
-from ..internal.rulebook import evaluate, _get_value, _get_dotted_path_from_dictionary, SubPathRule, MetaRule, \
-    SingleRule, RELATIONS, _evaluate_single_rule, _evaluate_meta_rule, _evaluate_sub_path_rule
+from ..internal.rulebook import (
+    RELATIONS, MetaRule, SingleRule, SubPathRule, _evaluate_meta_rule, _evaluate_single_rule, _evaluate_sub_path_rule,
+    _get_dotted_path_from_dictionary, _get_value, evaluate
+)
 
 IPS = {
     'ip_and_uri_finder': {
