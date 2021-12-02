@@ -2,6 +2,7 @@ import sys
 from pathlib import Path
 
 from analysis.PluginBase import AnalysisBasePlugin
+from plugins.mime_blacklists import MIME_BLACKLIST_COMPRESSED
 
 try:
     from ..internal.string_eval import eval_strings
@@ -20,7 +21,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     '''
     NAME = 'string_evaluator'
     DEPENDENCIES = ['printable_strings']
-    MIME_BLACKLIST = ['application/gzip', 'application/gzip', 'application/x-7z-compressed', 'application/x-tar', 'application/x-xz', 'application/zip']
+    MIME_BLACKLIST = MIME_BLACKLIST_COMPRESSED
     DESCRIPTION = 'Tries to sort strings based on usefulness'
     VERSION = '0.2.1'
 
