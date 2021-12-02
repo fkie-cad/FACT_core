@@ -4,7 +4,6 @@ from pymongo import MongoClient, errors
 
 from helperFunctions.process import complete_shutdown
 
-
 warnings.filterwarnings('ignore', module='pymongo.topology')
 
 

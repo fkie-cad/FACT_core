@@ -9,15 +9,15 @@ import pytest
 try:
     from ..internal import data_parsing as dp
     from ..internal import setup_repository as sr
-    from ..internal.database_interface import DatabaseInterface, QUERIES
-    from ..internal.helper_functions import CveEntry, CveSummaryEntry, CveLookupException
+    from ..internal.database_interface import QUERIES, DatabaseInterface
+    from ..internal.helper_functions import CveEntry, CveLookupException, CveSummaryEntry
     from .test_database_interface import TEST_QUERIES
 except ImportError:
     sys.path.append(str(Path(__file__).parent.parent / 'internal'))
     import data_prep as dp
-    from database_interface import DatabaseInterface, QUERIES
     import setup_repository as sr
-    from helper_functions import CveEntry, CveSummaryEntry, CveLookupException
+    from database_interface import QUERIES, DatabaseInterface
+    from helper_functions import CveEntry, CveLookupException, CveSummaryEntry
 
 PATH_TO_TEST = str(Path(__file__).parent.parent) + '/test/'
 YEARTUPLE = namedtuple('years', 'start_year end_year')

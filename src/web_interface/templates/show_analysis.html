@@ -30,6 +30,10 @@
     {# line_numbering.js import #}
     <script type="text/javascript" src="{{ url_for('static', filename='js/line_numbering.js') }}"></script>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/line_numbering.css') }}" />
+
+    <script>
+        const uid = "{{ uid|safe }}";
+    </script>
 {% endblock %}
 
 
@@ -185,20 +189,7 @@
                                     </label>
                                 </div>
                             </div>
-                            <script>
-                                function start_compare(){
-                                    var checkbox = document.getElementById('recompare_checkbox');
-                                    var link = '/compare';
-                                    if (checkbox.checked) link += '?force_recompare=true';
-                                    location.href = link;
-                                };
-                                document.getElementById("start_compare_button").onclick = start_compare;
-                                function start_text_file_compare(){
-                                    var link = '/comparison/text_files';
-                                    location.href = link;
-                                };
-                                document.getElementById("start_text_file_compare_button").onclick = start_text_file_compare;
-                            </script>
+                            <script src="{{ url_for('static', filename='js/start_compare.js') }}"></script>
                         </td>
                     {% endif %}
                 </tr>
@@ -221,23 +212,10 @@
                     <tr>
                         <td>
                             <div id="fileTreeAjax"></div>
-                            <script>
-                                $('#fileTreeAjax')
-                                    // generate links to the analysis page
-                                    .on("activate_node.jstree", function(e,data){window.location.href = data.node.a_attr.href;})
-                                    // generate file tree
-                                    .jstree({
-                                        "core" : {
-                                            'data' : {
-                                                'url' : function (node) {
-                                                    return node.id === '#' ?
-                                                        "/ajax_root/{{ uid | safe }}/{{ root_uid | safe }}" : "/ajax_tree/" + node["data"]["uid"] + "/{{ root_uid | safe }}";
-                                                }
-                                            }
-                                        },
-                                        "plugins" : [ "sort" ]
-                                    });
+                            <script> 
+                            const root_uid = "{{ root_uid | safe }}";
                             </script>
+                            <script src="{{ url_for('static', filename='js/show_analysis_fileTreeAjax.js') }}"></script>
                         </td>
                     </tr>
                 </tbody>
@@ -326,17 +304,11 @@
                         </div>
                     </div>
                     <script>
-                        function hide_summary_gif() {
-                            const loading_gif = document.getElementById("loading-summary-gif");
-                            loading_gif.style.display = "none";
-                        }
-                        function load_summary(){
-                            $("#summary-div").load("/ajax_get_summary/{{ uid|safe }}/{{ selected_analysis }}", hide_summary_gif);
-                        }
-                        $(document).ready(function() {
-                            load_summary();
-                        });
+                        const selected_analysis = "{{ selected_analysis }}";
+                        const loading_gif = document.getElementById("loading-summary-gif");
                     </script>
+                    <script type="text/javascript" src="{{ url_for('static', filename='js/show_analysis_summary.js') }}"></script>
+                    
                 {%- endif -%}
             </div>
 
@@ -378,50 +350,13 @@
                     </div>
 
                     {%- set is_text_preview = firmware.processed_analysis["file_type"]['mime'][0:5] == "text/" or firmware.processed_analysis["file_type"]['mime'][0:6] == "image/" %}
+                    
                     <script>
                         const isTextOrImage = {{ 'true' if is_text_preview else 'false' }};
-                        const loading_gif = document.getElementById("preview-loading-gif");
-                        function hide_gif(element) {
-                            element.style.display = "none";
-                        }
-                        function init_preview() {
-                            hide_gif(loading_gif);
-                            if (isTextOrImage) {
-                                highlight_code();
-                            }
-                        }
-                        function highlight_code() {
-                            const block = $('div#preview-div pre')[0];
-                            hljs.highlightElement(block);
-                            line_numbering();
-                        }
-                        function load_preview() {
-                            const uid = `{{ uid | safe }}`;
-                            let resourcePath;
-                            document.getElementById("preview_button").onclick = () => { false };
-                            if (isTextOrImage) {
-                                let mimeType = `{{ firmware.processed_analysis["file_type"]["mime"].replace("/", "_") }}`;
-                                resourcePath = `/ajax_get_binary/${mimeType}/${uid}`;
-                            } else {
-                                // hex preview
-                                if ($("#hex-preview-offset").hasClass("is-invalid")) {
-                                    $("#hex-preview-offset").removeClass("is-invalid");
-                                }
-                                $("#preview-content").html("");
-                                document.getElementById('hex-preview-form').style.display = "flex";
-                                let offset = parseInt(document.getElementById('hex-preview-offset').value);
-                                if (isNaN(offset)) {
-                                    $("#hex-preview-offset").addClass("is-invalid");
-                                    return;
-                                }
-                                let length = document.getElementById('hex-preview-length').value;
-                                resourcePath = `/ajax_get_hex_preview/${uid}/${offset}/${length}`;
-                            }
-                            loading_gif.style.display = "block";
-                            $("#preview-content").load(resourcePath, init_preview);
-                        }
-                        document.getElementById("preview_button").onclick = load_preview;
+                        let mimeType = '{{ firmware.processed_analysis["file_type"]["mime"].replace("/", "_") }}';
                     </script>
+                    <script type="text/javascript" src="{{ url_for('static', filename='js/show_analysis_preview.js') }}"></script>
+
                 </div>
             </div>
         {% endif %}

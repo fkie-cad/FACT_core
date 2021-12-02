@@ -7,9 +7,9 @@ import argparse
 import logging
 import os
 import sys
-from common_helper_files import delete_file, write_binary_to_file, get_dir_of_file
-from common_helper_passwords import get_merged_password_set
 
+from common_helper_files import delete_file, get_dir_of_file, write_binary_to_file
+from common_helper_passwords import get_merged_password_set
 
 PROGRAM_NAME = 'FACT Password List Updater'
 PROGRAM_VERSION = '0.3'

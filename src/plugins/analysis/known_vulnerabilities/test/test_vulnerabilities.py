@@ -1,5 +1,6 @@
 import pytest
-from plugins.analysis.known_vulnerabilities.internal.rulebook import SingleRule, Vulnerability, BadRuleError
+
+from plugins.analysis.known_vulnerabilities.internal.rulebook import BadRuleError, SingleRule, Vulnerability
 
 DUMMY_RULE = SingleRule(['file_type'], 'is', 'application/octet-stream')
 

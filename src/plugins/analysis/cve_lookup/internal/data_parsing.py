@@ -12,10 +12,10 @@ from requests.exceptions import RequestException
 from retry import retry
 
 try:
-    from ..internal.helper_functions import CveEntry, CveSummaryEntry, CveLookupException
+    from ..internal.helper_functions import CveEntry, CveLookupException, CveSummaryEntry
 except (ImportError, SystemError):
     sys.path.append(str(Path(__file__).parent.parent / 'internal'))
-    from helper_functions import CveEntry, CveSummaryEntry, CveLookupException
+    from helper_functions import CveEntry, CveLookupException, CveSummaryEntry
 
 CPE_FILE = 'official-cpe-dictionary_v2.3.xml'
 CPE_URL = 'https://nvd.nist.gov/feeds/xml/cpe/dictionary/{}.zip'.format(CPE_FILE)
