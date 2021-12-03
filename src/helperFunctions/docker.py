@@ -24,6 +24,8 @@ def run_docker_container(image: str, logging_label: str = 'Docker', timeout: int
     :raises requests.exceptions.ReadTimeout: If the timeout was reached
     :raises docker.errors.APIError: If the communication with docker fails
     """
+    # TODO verify that bind mounts in kwargs["mounts"] only contain files in docker-mount-base-dir
+    # If they don't just copy them to docker-mount-base-dir and change the Mount's
     kwargs.setdefault('detach', True)
 
     try:
