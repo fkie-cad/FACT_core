@@ -3,7 +3,7 @@ from concurrent.futures import ThreadPoolExecutor
 from configparser import ConfigParser
 from copy import copy
 from distutils.version import LooseVersion
-from multiprocessing import Manager, Queue, Value
+from multiprocessing import Queue, Value
 from queue import Empty
 from time import sleep, time
 from typing import List, Optional, Set, Tuple, Union
@@ -17,12 +17,10 @@ from helperFunctions.plugin import import_plugins
 from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions
 from objects.file import FileObject
 from objects.firmware import Firmware
+from scheduler.analysis_status import AnalysisStatus
 from storage.db_interface_backend import BackEndDbInterface
 
 MANDATORY_PLUGINS = ['file_type', 'file_hashes']
-
-
-RECENTLY_FINISHED_DISPLAY_TIME_IN_SEC = 300
 
 
 class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
@@ -36,10 +34,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         self.load_plugins()
         self.stop_condition = Value('i', 0)
         self.process_queue = Queue()
-        self.manager = Manager()
-        self.currently_running = self.manager.dict()
-        self.recently_finished = self.manager.dict()
-        self.currently_running_lock = self.manager.Lock()  # pylint: disable=no-member
+        self.status = AnalysisStatus()
 
         self.db_backend_service = db_interface if db_interface else BackEndDbInterface(config=config)
         self.pre_analysis = pre_analysis if pre_analysis else self.db_backend_service.add_object
@@ -71,7 +66,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         '''
         included_files = self.db_backend_service.get_list_of_all_included_files(fo)
         self.pre_analysis(fo)
-        self._add_update_to_current_analyses(fo, included_files)
+        self.status.add_update_to_current_analyses(fo, included_files)
         for child_uid in included_files:
             child_fo = self.db_backend_service.get_object(child_uid)
             child_fo.force_update = getattr(fo, 'force_update', False)  # propagate forced update to children
@@ -82,7 +77,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         '''
         This function should be used to add a new firmware object to the scheduler
         '''
-        self._add_to_current_analyses(fo)
+        self.status.add_to_current_analyses(fo)
         self._schedule_analysis_tasks(fo, fo.scheduled_analysis, mandatory=True)
 
     def update_analysis_of_single_object(self, fo: FileObject):
@@ -175,12 +170,12 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
 # ---- scheduling functions ----
 
     def get_scheduled_workload(self):
-        self._clear_recently_finished()
+        self.status.clear_recently_finished()
         workload = {
             'analysis_main_scheduler': self.process_queue.qsize(),
             'plugins': {},
             'current_analyses': self._get_current_analyses_stats(),
-            'recently_finished_analyses': dict(self.recently_finished),
+            'recently_finished_analyses': dict(self.status.recently_finished),
         }
         for plugin_name, plugin in self.analysis_plugins.items():
             workload['plugins'][plugin_name] = {
@@ -198,7 +193,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
                 'total_count': stats_dict['total_files_count'],
                 'hid': stats_dict['hid'],
             }
-            for uid, stats_dict in self.currently_running.items()
+            for uid, stats_dict in self.status.currently_running.items()
         }
 
     def register_plugin(self, name, plugin_instance):
@@ -407,7 +402,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
     def check_further_process_or_complete(self, fw_object):
         if not fw_object.scheduled_analysis:
             logging.info(f'Analysis Completed:\n{fw_object}')
-            self._remove_from_current_analyses(fw_object)
+            self.status.remove_from_current_analyses(fw_object)
         else:
             self.process_queue.put(fw_object)
 
@@ -439,96 +434,6 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             for plugin in scheduled_analyses
             for dependency in self.analysis_plugins[plugin].DEPENDENCIES
         }.difference(scheduled_analyses)
-
-    # ---- currently running analyses ----
-
-    def _add_update_to_current_analyses(self, fw_object: Union[Firmware, FileObject], included_files: List[str]):
-        self._add_to_current_analyses(fw_object)
-        self.currently_running_lock.acquire()
-        update_dict = self.currently_running[fw_object.uid]
-        update_dict['files_to_unpack'] = []
-        update_dict['unpacked_files_count'] = len(included_files) + 1
-        update_dict['total_files_count'] = len(included_files) + 1
-        update_dict['files_to_analyze'] = [fw_object.uid, *included_files]
-        self.currently_running[fw_object.uid] = update_dict
-        self.currently_running_lock.release()
-
-    def _add_to_current_analyses(self, fw_object: Union[Firmware, FileObject]):
-        self.currently_running_lock.acquire()
-        try:
-            if isinstance(fw_object, Firmware):
-                self.currently_running[fw_object.uid] = self._init_current_analysis(fw_object)
-            else:
-                self._update_current_analysis(fw_object)
-        finally:
-            self.currently_running_lock.release()
-
-    def _update_current_analysis(self, fw_object):
-        '''
-        new file comes from unpacking:
-        - file moved from files_to_unpack to files_to_analyze (could be duplicate!)
-        - included files added to files_to_unpack (could also include duplicates!)
-        '''
-        for parent in self._find_currently_analyzed_parents(fw_object):
-            updated_dict = self.currently_running[parent]
-            new_files = set(fw_object.files_included) - set(updated_dict['files_to_unpack']).union(set(updated_dict['files_to_analyze']))
-            updated_dict['total_files_count'] += len(new_files)
-            updated_dict['files_to_unpack'] = list(set(updated_dict['files_to_unpack']).union(new_files))
-            if fw_object.uid in updated_dict['files_to_unpack']:
-                updated_dict['files_to_unpack'].remove(fw_object.uid)
-                updated_dict['files_to_analyze'].append(fw_object.uid)
-                updated_dict['unpacked_files_count'] += 1
-            self.currently_running[parent] = updated_dict
-
-    @staticmethod
-    def _init_current_analysis(fw_object: Firmware):
-        return {
-            'files_to_unpack': list(fw_object.files_included),
-            'files_to_analyze': [fw_object.uid],
-            'start_time': time(),
-            'unpacked_files_count': 1,
-            'analyzed_files_count': 0,
-            'total_files_count': 1 + len(fw_object.files_included),
-            'hid': fw_object.get_hid(),
-        }
-
-    def _remove_from_current_analyses(self, fw_object: Union[Firmware, FileObject]):
-        try:
-            self.currently_running_lock.acquire()
-            for parent in self._find_currently_analyzed_parents(fw_object):
-                updated_dict = self.currently_running[parent]
-                if fw_object.uid not in updated_dict['files_to_analyze']:
-                    # probably a file that occurred multiple times in one firmware
-                    logging.debug(f'Failed to remove {fw_object.uid} from current analysis of {parent}')
-                    continue
-                updated_dict['files_to_analyze'] = list(set(updated_dict['files_to_analyze']) - {fw_object.uid})
-                updated_dict['analyzed_files_count'] += 1
-                if len(updated_dict['files_to_unpack']) == len(updated_dict['files_to_analyze']) == 0:
-                    self.recently_finished[parent] = self._init_recently_finished(updated_dict)
-                    self.currently_running.pop(parent)
-                    logging.info(f'Analysis of firmware {parent} completed')
-                else:
-                    self.currently_running[parent] = updated_dict
-        finally:
-            self.currently_running_lock.release()
-
-    @staticmethod
-    def _init_recently_finished(analysis_data: dict) -> dict:
-        return {
-            'duration': time() - analysis_data['start_time'],
-            'total_files_count': analysis_data['total_files_count'],
-            'time_finished': time(),
-            'hid': analysis_data['hid'],
-        }
-
-    def _find_currently_analyzed_parents(self, fw_object: Union[Firmware, FileObject]) -> Set[str]:
-        parent_uids = {fw_object.uid} if isinstance(fw_object, Firmware) else fw_object.parent_firmware_uids
-        return set(self.currently_running.keys()).intersection(parent_uids)
-
-    def _clear_recently_finished(self):
-        for uid, stats in list(self.recently_finished.items()):
-            if time() - stats['time_finished'] > RECENTLY_FINISHED_DISPLAY_TIME_IN_SEC:
-                self.recently_finished.pop(uid)
 
 
 def _get_analysis_date(plugin_name: str, uid: str, backend_db_interface):
