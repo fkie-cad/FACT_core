@@ -12,6 +12,7 @@ from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.tag import TagColor
 from objects.file import FileObject
+from plugins.mime_blacklists import MIME_BLACKLIST_NON_EXECUTABLE
 
 JOHN_PATH = Path(__file__).parent.parent / 'bin' / 'john'
 WORDLIST_PATH = Path(get_src_dir()) / 'bin' / 'passwords.txt'
@@ -34,7 +35,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     '''
     NAME = 'users_and_passwords'
     DEPENDENCIES = []
-    MIME_BLACKLIST = ['audio', 'filesystem', 'image', 'video']
+    MIME_BLACKLIST = MIME_BLACKLIST_NON_EXECUTABLE
     DESCRIPTION = 'search for UNIX, httpd, and mosquitto password files, parse them and try to crack the passwords'
     VERSION = '0.5.0'
 
@@ -84,7 +85,7 @@ def generate_unix_entry(entry: bytes) -> dict:
             result_entry['password-hash'] = pw_hash
             result_entry['cracked'] = crack_hash(b':'.join((user_name, pw_hash)), result_entry)
     except (IndexError, AttributeError, TypeError):
-        logging.warning('Unsupported password format: {}'.format(entry), exc_info=True)
+        logging.warning(f'Unsupported password format: {entry}', exc_info=True)
     return {f'{user_name.decode(errors="replace")}:unix': result_entry}
 
 
