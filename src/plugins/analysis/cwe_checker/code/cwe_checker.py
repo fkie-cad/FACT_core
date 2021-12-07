@@ -66,7 +66,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
             DOCKER_IMAGE,
             timeout=TIMEOUT_IN_SECONDS,
             command='/input --json --quiet',
-            mounts=Mount('/input', file_object.file_path, type='bind')
+            mounts=[
+                Mount('/input', file_object.file_path, type='bind'),
+            ],
         )
         return output
 
