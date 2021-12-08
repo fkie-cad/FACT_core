@@ -1,3 +1,4 @@
+# pylint: disable=use-implicit-booleaness-not-comparison
 import logging
 from multiprocessing import Manager
 from time import time
@@ -9,7 +10,7 @@ from objects.firmware import Firmware
 from scheduler.analysis_status import RECENTLY_FINISHED_DISPLAY_TIME_IN_SEC, AnalysisStatus
 
 
-class TestCurrentAnalyses:
+class TestAnalysisStatus:
     @classmethod
     def setup_class(cls):
         cls.status = AnalysisStatus()

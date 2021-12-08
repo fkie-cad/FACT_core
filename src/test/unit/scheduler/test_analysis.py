@@ -1,7 +1,7 @@
-# pylint: disable=protected-access,invalid-name,wrong-import-order
+# pylint: disable=protected-access,invalid-name,wrong-import-order,use-implicit-booleaness-not-comparison
 import gc
 import os
-from multiprocessing import Manager, Queue
+from multiprocessing import Queue
 from unittest import TestCase, mock
 
 import pytest
@@ -221,7 +221,7 @@ class TestAnalysisSchedulerBlacklist:
         self.sched.config.set('test_plugin', 'mime_blacklist', 'type1, type2')
 
 
-class UtilityBase:
+class TestUtilityFunctions:
 
     class PluginMock:
         def __init__(self, dependencies):
@@ -232,7 +232,6 @@ class UtilityBase:
         cls.init_patch = mock.patch(target='scheduler.analysis.AnalysisScheduler.__init__', new=lambda *_: None)
         cls.init_patch.start()
         cls.scheduler = AnalysisScheduler()
-        cls.scheduler.currently_running_lock = Manager().Lock()  # pylint: disable=no-member
         cls.plugin_list = ['no_deps', 'foo', 'bar']
         cls.init_patch.stop()
 
@@ -253,8 +252,6 @@ class UtilityBase:
             'p6': self.PluginMock([])
         }
 
-
-class TestUtilityFunctions(UtilityBase):
     @pytest.mark.parametrize('input_data, expected_output', [
         (set(), set()),
         ({'p1'}, {'p2', 'p3'}),
