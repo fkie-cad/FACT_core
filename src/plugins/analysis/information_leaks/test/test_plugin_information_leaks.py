@@ -29,19 +29,15 @@ class TestAnalysisPluginInformationLeaks(AnalysisPluginTest):
         expected_user_paths = sorted([
             '/home/user/test/urandom',
             '/home/user/test/urandom_sehr_sehr_sehr-lang.txt',
-            '/home/user/urandom',
-            '/home/user/.git/config',
-            '/home/user/PyCharm/',
-            '/home/user/this_file/.pytest_cache',
-            '/home/user/this_file/.github',
-            '/home/user/this_file/eclipse.ini',
-            '/home/user/cLion/bin/clion64.exe.vmoptions',
-            '/home/user/cLion/bin/idea.properties',
-            '/home/user/code_blocks/default.conf',
-            '/home/user/.config/Code/User/settings.json',
-            '/home/user/project/.vscode'
+            '/home/user/urandom'
         ])
         assert fo.processed_analysis[self.PLUGIN_NAME]['user_paths'] == expected_user_paths
+
+        assert 'var_path' in fo.processed_analysis[self.PLUGIN_NAME]
+        assert fo.processed_analysis[self.PLUGIN_NAME]['var_path'] == ['/var/www/tmp/me_']
+
+        assert 'root_path' in fo.processed_analysis[self.PLUGIN_NAME]
+        assert fo.processed_analysis[self.PLUGIN_NAME]['root_path'] == ['/root/user_name/this_directory']
 
     def test_find_git_repo(self):
         fo = MockFileObject()
@@ -61,3 +57,22 @@ class TestAnalysisPluginInformationLeaks(AnalysisPluginTest):
         self.analysis_plugin.process_object(fo)
 
         assert fo.processed_analysis[self.PLUGIN_NAME]['vscode_settings'] == 'test_data'
+
+    def test_find_artifacts(self):
+        fo = MockFileObject()
+        fo.processed_analysis['file_type'] = {}
+        fo.processed_analysis['file_type']['mime'] = 'text/plain'
+        fo.virtual_file_path = {
+            1: ['|home|user|project|.git|config',
+                '|home|user|some_path|.pytest_cache|some_file',
+                '|root|some_directory|some_more|.config|Code|User|settings.json',
+                '|some_home|some_user|urandom|42|some_file.uvprojx',
+                'home', '', 'h654qf"§$%74672', 'vuwreivh54r234|', '|vr4242fdsg4%%$'
+                ]
+        }
+        fo.processed_analysis[self.PLUGIN_NAME] = {}
+        self.analysis_plugin.process_object(fo)
+
+        assert 'summary' in fo.processed_analysis[self.PLUGIN_NAME]
+        assert fo.processed_analysis[self.PLUGIN_NAME]['summary'] == ['git_repo', 'git_config_repo', 'pytest_cache_directory',
+                                                                        'vscode_settings', 'keil_uvision_config']
