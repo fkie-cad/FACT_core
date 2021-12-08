@@ -41,8 +41,7 @@ class TestAnalysisPluginInformationLeaks(AnalysisPluginTest):
 
     def test_find_artifacts(self):
         fo = MockFileObject()
-        fo.processed_analysis['file_type'] = {}
-        fo.processed_analysis['file_type']['mime'] = 'text/plain'
+        fo.processed_analysis['file_type'] = {'mime': 'text/plain'}
         fo.virtual_file_path = {
             1: ['some_uid|/home/user/project/.git/config',
                 'some_uid|/home/user/some_path/.pytest_cache/some_file',
