@@ -9,12 +9,12 @@ PATH_REGEX = {'user_paths': re.compile(rb'/home/[^/]+/[^\n \x00]+'),
               }
 
 PATH_ARTIFACT_DICT = {
-    '.git|config': 'git_repo',
-    '.conda|environments.txt': 'conda_environment',
+    '.git/config': 'git_repo',
+    '.conda/environments.txt': 'conda_environment',
     'default.conf': 'possible_code_blocks_config',
     'clion64.exe.vmoptions': 'clion_jvm_options',
     'idea.properties': 'clion_platform_properties',
-    '.config|Code|User|settings.json': 'vscode_settings',
+    '.config/Code/User/settings.json': 'vscode_settings',
 
     '.cproject': 'eclipse_config',
     '.csproject': 'eclipse_config',
@@ -80,7 +80,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
                     if virtual_path.endswith(key_path):
                         file_object.processed_analysis[self.NAME][artifact] = file_object.binary.decode()
                 for key_path, artifact in DIRECTORY_DICT.items():
-                    v_path = virtual_path.split('|')
+                    v_path = virtual_path.split('/')
                     if len(v_path) > 1:
                         if v_path[-2] == key_path:
                             file_object.processed_analysis[self.NAME][artifact] = virtual_path
