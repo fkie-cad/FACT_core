@@ -76,14 +76,20 @@ class AnalysisPlugin(AnalysisBasePlugin):
     def _find_artifacts(self, file_object: FileObject):
         for virtual_path_list in file_object.virtual_file_path.values():
             for virtual_path in virtual_path_list:
-                for key_path, artifact in PATH_ARTIFACT_DICT.items():
-                    if virtual_path.endswith(key_path):
-                        file_object.processed_analysis[self.NAME][artifact] = file_object.binary.decode()
-                for key_path, artifact in DIRECTORY_DICT.items():
-                    v_path = virtual_path.split('/')
-                    if len(v_path) > 1:
-                        if v_path[-2] == key_path:
-                            file_object.processed_analysis[self.NAME][artifact] = virtual_path
+                self._check_for_files(virtual_path, file_object)
+                self._check_for_directories(virtual_path, file_object)
+
+    def _check_for_files(self, virtual_path, file_object):
+        for key_path, artifact in PATH_ARTIFACT_DICT.items():
+            if virtual_path.endswith(key_path):
+                file_object.processed_analysis[self.NAME][artifact] = file_object.binary.decode()
+
+    def _check_for_directories(self, virtual_path, file_object):
+        for key_path, artifact in DIRECTORY_DICT.items():
+            v_path = virtual_path.split('/')
+            if len(v_path) > 1:
+                if v_path[-2] == key_path:
+                    file_object.processed_analysis[self.NAME][artifact] = virtual_path
 
     def _find_paths(self, file_object: FileObject, regex, label):
         result = regex.findall(file_object.binary)
