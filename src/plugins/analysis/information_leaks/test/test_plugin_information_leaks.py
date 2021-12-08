@@ -39,35 +39,17 @@ class TestAnalysisPluginInformationLeaks(AnalysisPluginTest):
         assert 'root_path' in fo.processed_analysis[self.PLUGIN_NAME]
         assert fo.processed_analysis[self.PLUGIN_NAME]['root_path'] == ['/root/user_name/this_directory']
 
-    def test_find_git_repo(self):
-        fo = MockFileObject()
-        fo.binary = b'test_data'
-        fo.processed_analysis[self.PLUGIN_NAME] = {}
-        fo.virtual_file_path = {'firmware_uid': ['some_uid|/test/.git/config']}
-        self.analysis_plugin.process_object(fo)
-
-        assert fo.processed_analysis[self.PLUGIN_NAME]['git_repo'] == 'test_data'
-
-    def test_find_vscode_settings(self):
-        fo = MockFileObject()
-        fo.files_included = {(TEST_DATA_DIR / 'path_test_file').read_bytes().decode().split('\n')}
-        fo.binary = b'test_data'
-        fo.processed_analysis[self.PLUGIN_NAME] = {}
-        fo.virtual_file_path = {'firmware_uid': ['some_uid|/home/user/.config/Code/User/settings.json']}
-        self.analysis_plugin.process_object(fo)
-
-        assert fo.processed_analysis[self.PLUGIN_NAME]['vscode_settings'] == 'test_data'
-
     def test_find_artifacts(self):
         fo = MockFileObject()
         fo.processed_analysis['file_type'] = {}
         fo.processed_analysis['file_type']['mime'] = 'text/plain'
         fo.virtual_file_path = {
-            1: ['|home|user|project|.git|config',
-                '|home|user|some_path|.pytest_cache|some_file',
-                '|root|some_directory|some_more|.config|Code|User|settings.json',
-                '|some_home|some_user|urandom|42|some_file.uvprojx',
-                'home', '', 'h654qf"§$%74672', 'vuwreivh54r234|', '|vr4242fdsg4%%$'
+            1: ['some_uid|/home/user/project/.git/config',
+                'some_uid|/home/user/some_path/.pytest_cache/some_file',
+                'some_uid|/root/some_directory/some_more/.config/Code/User/settings.json',
+                'some_uid|/some_home/some_user/urandom/42/some_file.uvprojx',
+                'some_uid|home', 'some_uid|', 'some_uid|h654qf"§$%74672', 'some_uid|vuwreivh54r234/',
+                'some_uid|/vr4242fdsg4%%$'
                 ]
         }
         fo.processed_analysis[self.PLUGIN_NAME] = {}
