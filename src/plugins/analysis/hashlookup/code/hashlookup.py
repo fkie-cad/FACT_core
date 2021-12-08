@@ -5,13 +5,21 @@ import requests
 from analysis.PluginBase import AnalysisBasePlugin
 from objects.file import FileObject
 
+CONTAINER_FORMATS = [
+    'application/gzip', 'application/x-7z-compressed', 'application/x-archive', 'application/x-bzip2',
+    'application/x-cpio', 'application/x-lzma', 'application/x-tar', 'application/x-xz', 'application/zip'
+]
+
 
 class AnalysisPlugin(AnalysisBasePlugin):
     NAME = 'hashlookup'
-    DESCRIPTION = 'Querying the circ.lu hash library to identify known binaries'
-    MIME_BLACKLIST = []
+    DESCRIPTION = (
+        'Querying the circ.lu hash library to identify known binaries. The library contains file hashes for multiple'
+        '*nix distributions and the NIST software reference library.'
+    )
+    MIME_BLACKLIST = ['audio/', 'compression/', 'filesystem/', 'font/', 'image/', 'video/', *CONTAINER_FORMATS]
     DEPENDENCIES = ['file_hashes']
-    VERSION = '0.1.2'
+    VERSION = '0.1.3'
 
     def __init__(self, plugin_administrator, config=None, recursive=True, offline_testing=False):
         self.config = config
