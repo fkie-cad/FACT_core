@@ -57,7 +57,7 @@ def _get_partial_virtual_paths(virtual_path: Dict[str, List[str]], new_root: str
         if new_root in vpath
     }
     if not paths_with_new_root:
-        return ['|{uid}|'.format(uid=new_root)]
+        return [f'|{new_root}|']
     return sorted(paths_with_new_root)
 
 
@@ -163,4 +163,4 @@ class VirtualPathFileTree:
     def _has_children(self) -> bool:
         if self.whitelist:
             return any(f in self.fo_data['files_included'] for f in self.whitelist)
-        return self.fo_data['files_included'] != []
+        return bool(self.fo_data['files_included'])
