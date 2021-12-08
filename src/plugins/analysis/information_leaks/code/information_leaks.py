@@ -3,10 +3,11 @@ import re
 from analysis.PluginBase import AnalysisBasePlugin
 from objects.file import FileObject
 
-PATH_REGEX = {'user_paths': re.compile(rb'/home/[^/]+/[^\n \x00]+'),
-              'root_path': re.compile(rb'/root/[^/]+/[^\n \x00]+'),
-              'var_path': re.compile(rb'/var/www/[^/]+/[^\n \x00]+')
-              }
+PATH_REGEX = {
+    'user_paths': re.compile(rb'/home/[^/]+/[^\n \x00]+'),
+    'root_path': re.compile(rb'/root/[^/]+/[^\n \x00]+'),
+    'var_path': re.compile(rb'/var/www/[^/]+/[^\n \x00]+')
+}
 
 PATH_ARTIFACT_DICT = {
     '.git/config': 'git_repo',
@@ -19,6 +20,9 @@ PATH_ARTIFACT_DICT = {
     '.cproject': 'eclipse_config',
     '.csproject': 'eclipse_config',
     '.project': 'eclipse_config',
+
+    '.bash_history': 'bash_history',
+    '.zsh_history': 'zsh_history',
 
     '.hws': 'renesas_project_config',
     '.ewd': 'iar_embedded_workbench_config',
@@ -51,8 +55,8 @@ DIRECTORY_DICT = {
 
 class AnalysisPlugin(AnalysisBasePlugin):
     """
-    This Plugin searches for compilation artifacts in a firmware,
-        e.g., github repositories, IDE configs and special paths
+    This Plugin searches for leaked information in a firmware,
+        e.g., compilation artifacts, VCS repositories, IDE configs and special paths
     """
     NAME = 'information_leaks'
     DEPENDENCIES = []
@@ -76,20 +80,19 @@ class AnalysisPlugin(AnalysisBasePlugin):
     def _find_artifacts(self, file_object: FileObject):
         for virtual_path_list in file_object.virtual_file_path.values():
             for virtual_path in virtual_path_list:
-                self._check_for_files(virtual_path, file_object)
-                self._check_for_directories(virtual_path, file_object)
+                self._check_for_files(virtual_path.split('|')[-1], file_object)
+                self._check_for_directories(virtual_path.split('|')[-1].split('/'), file_object)
 
-    def _check_for_files(self, virtual_path, file_object):
+    def _check_for_files(self, file_path: str, file_object: FileObject):
         for key_path, artifact in PATH_ARTIFACT_DICT.items():
-            if virtual_path.endswith(key_path):
-                file_object.processed_analysis[self.NAME][artifact] = file_object.binary.decode()
+            if file_path.endswith(key_path):
+                file_object.processed_analysis[self.NAME][artifact] = file_path
 
-    def _check_for_directories(self, virtual_path, file_object):
+    def _check_for_directories(self, file_path: list, file_object: FileObject):
         for key_path, artifact in DIRECTORY_DICT.items():
-            v_path = virtual_path.split('/')
-            if len(v_path) > 1:
-                if v_path[-2] == key_path:
-                    file_object.processed_analysis[self.NAME][artifact] = virtual_path
+            if len(file_path) > 1:
+                if file_path[-2] == key_path:
+                    file_object.processed_analysis[self.NAME][artifact] = file_path
 
     def _find_paths(self, file_object: FileObject, regex, label):
         result = regex.findall(file_object.binary)
