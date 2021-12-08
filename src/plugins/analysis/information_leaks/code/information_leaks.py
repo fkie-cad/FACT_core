@@ -3,15 +3,18 @@ import re
 from analysis.PluginBase import AnalysisBasePlugin
 from objects.file import FileObject
 
-PATH_REGEX = {'user_paths': re.compile(rb'/home/[^/]+/[^\n \x00]+')}
+PATH_REGEX = {'user_paths': re.compile(rb'/home/[^/]+/[^\n \x00]+'),
+              'root_path': re.compile(rb'/root/[^/]+/[^\n \x00]+'),
+              'var_path': re.compile(rb'/var/www/[^/]+/[^\n \x00]+')
+              }
 
 PATH_ARTIFACT_DICT = {
-    '.git/config': 'git_repo',
-    '.conda/environments.txt': 'conda_environment',
+    '.git|config': 'git_repo',
+    '.conda|environments.txt': 'conda_environment',
     'default.conf': 'possible_code_blocks_config',
     'clion64.exe.vmoptions': 'clion_jvm_options',
     'idea.properties': 'clion_platform_properties',
-    '.config/Code/User/settings.json': 'vscode_settings',
+    '.config|Code|User|settings.json': 'vscode_settings',
 
     '.cproject': 'eclipse_config',
     '.csproject': 'eclipse_config',
@@ -35,8 +38,11 @@ PATH_ARTIFACT_DICT = {
 }
 
 DIRECTORY_DICT = {
+    '.git': 'git_config_repo',
     '.github': 'github_config_directory',
     '.pytest_cache': 'pytest_cache_directory',
+    '.conda': 'conda_directory',
+    '.config': 'a_config_directory',
     '.subversion': 'svn_user_settings_directory',
     'subversion': 'svn_settings_directory',
     '.idea': 'pycharm_config_directory'
@@ -44,9 +50,10 @@ DIRECTORY_DICT = {
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
-    '''
-    This Plugin creates several hashes of the file
-    '''
+    """
+    This Plugin searches for compilation artifacts in a firmware,
+        e.g., github repositories, IDE configs and special paths
+    """
     NAME = 'information_leaks'
     DEPENDENCIES = []
     DESCRIPTION = 'Find leaked information like compilation artifacts'
@@ -58,28 +65,27 @@ class AnalysisPlugin(AnalysisBasePlugin):
                          offline_testing=offline_testing)
 
     def process_object(self, file_object: FileObject):
-        file_object.processed_analysis[self.NAME]['summary'] = []
         if file_object.processed_analysis['file_type']['mime'] == 'text/plain':
             self._find_artifacts(file_object)
-            file_object.processed_analysis[self.NAME]['summary'] = file_object.processed_analysis[self.NAME].keys()
         else:
             for label, regex in PATH_REGEX.items():
                 self._find_paths(file_object, regex, label)
+        file_object.processed_analysis[self.NAME]['summary'] = list(file_object.processed_analysis[self.NAME])
         return file_object
 
     def _find_artifacts(self, file_object: FileObject):
         for virtual_path_list in file_object.virtual_file_path.values():
             for virtual_path in virtual_path_list:
-                path = virtual_path.split('|')[-1]
                 for key_path, artifact in PATH_ARTIFACT_DICT.items():
-                    if path.endswith(key_path):
+                    if virtual_path.endswith(key_path):
                         file_object.processed_analysis[self.NAME][artifact] = file_object.binary.decode()
                 for key_path, artifact in DIRECTORY_DICT.items():
-                    if path == key_path.split('/')[-2]:
-                        file_object.processed_analysis[self.NAME][artifact] = path
+                    v_path = virtual_path.split('|')
+                    if len(v_path) > 1:
+                        if v_path[-2] == key_path:
+                            file_object.processed_analysis[self.NAME][artifact] = virtual_path
 
     def _find_paths(self, file_object: FileObject, regex, label):
         result = regex.findall(file_object.binary)
         if result:
             file_object.processed_analysis[self.NAME][label] = sorted({e.decode(errors='replace') for e in result})
-            file_object.processed_analysis[self.NAME]['summary'].append(label)
