@@ -30,8 +30,8 @@ def test_process_object_unknown_hash(stub_plugin, monkeypatch):
     monkeypatch.setattr('storage.fsorganizer.FSOrganizer.generate_path_from_uid', lambda _self, _: test_file.file_path)
     stub_plugin.process_object(test_file)
     result = test_file.processed_analysis[stub_plugin.NAME]
-    assert 'message' in result
-    assert 'sha256 hash unknown' in result['message']
+    assert 'failed' in result
+    assert 'sha256 hash unknown' in result['failed']
 
 
 def test_process_object_known_hash(stub_plugin, monkeypatch):
@@ -49,5 +49,5 @@ def test_process_object_missing_hash(stub_plugin, monkeypatch):
     monkeypatch.setattr('storage.fsorganizer.FSOrganizer.generate_path_from_uid', lambda _self, _: test_file.file_path)
     stub_plugin.process_object(test_file)
     result = test_file.processed_analysis[stub_plugin.NAME]
-    assert 'message' in result
-    assert result['message'].startswith('Lookup needs sha256 hash')
+    assert 'failed' in result
+    assert result['failed'].startswith('Lookup needs sha256 hash')

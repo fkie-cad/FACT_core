@@ -1,14 +1,11 @@
+import json
 import logging
 
 import requests
 
 from analysis.PluginBase import AnalysisBasePlugin
 from objects.file import FileObject
-
-CONTAINER_FORMATS = [
-    'application/gzip', 'application/x-7z-compressed', 'application/x-archive', 'application/x-bzip2',
-    'application/x-cpio', 'application/x-lzma', 'application/x-tar', 'application/x-xz', 'application/zip'
-]
+from plugins.mime_blacklists import MIME_BLACKLIST_COMPRESSED, MIME_BLACKLIST_NON_EXECUTABLE
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
@@ -17,7 +14,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         'Querying the circ.lu hash library to identify known binaries. The library contains file hashes for multiple'
         '*nix distributions and the NIST software reference library.'
     )
-    MIME_BLACKLIST = ['audio/', 'compression/', 'filesystem/', 'font/', 'image/', 'video/', *CONTAINER_FORMATS]
+    MIME_BLACKLIST = [*MIME_BLACKLIST_NON_EXECUTABLE, *MIME_BLACKLIST_COMPRESSED]
     DEPENDENCIES = ['file_hashes']
     VERSION = '0.1.3'
 
@@ -28,31 +25,35 @@ class AnalysisPlugin(AnalysisBasePlugin):
     def process_object(self, file_object: FileObject):
         try:
             sha2_hash = file_object.processed_analysis['file_hashes']['sha256']
-        except (AttributeError, KeyError):
+        except KeyError:
             message = 'Lookup needs sha256 hash of file. It\'s missing so sth. seems to be wrong with the hash plugin'
             logging.error(message)
             file_object.processed_analysis[self.NAME] = {
-                'message': message,
+                'failed': message,
                 'summary': []
             }
             return file_object
 
-        result = requests.get(
-            f'https://hashlookup.circl.lu/lookup/sha256/{sha2_hash}',
-            headers={'accept': 'application/json'}
-        ).json()
+        try:
+            result = requests.get(
+                f'https://hashlookup.circl.lu/lookup/sha256/{sha2_hash}',
+                headers={'accept': 'application/json'}
+            ).json()
+        except (requests.ConnectionError,  json.JSONDecodeError):
+            logging.error('Failed to connect to circ.lu hashlookup API', exc_info=True)
+            result = {}
 
         if 'FileName' in result:
             result['summary'] = [result['FileName']]
             file_object.processed_analysis[self.NAME] = result
         elif 'message' in result and result['message'] == 'Non existing SHA-256':
             file_object.processed_analysis[self.NAME] = {
-                'message': 'sha256 hash unknown to hashlookup at time of analysis',
+                'failed': 'sha256 hash unknown to hashlookup at time of analysis',
                 'summary': []
             }
         else:
             file_object.processed_analysis[self.NAME] = {
-                'message': 'Unknown error connecting to hashlookup API',
+                'failed': 'Unknown error connecting to hashlookup API',
                 'summary': []
             }
         return file_object
