@@ -72,7 +72,7 @@ class TestAnalysisPluginInformationLeaks(AnalysisPluginTest):
         }
         fo.processed_analysis[self.PLUGIN_NAME] = {}
         self.analysis_plugin.process_object(fo)
-
+        expected_result = ['git_repo', 'git_config_repo', 'pytest_cache_directory', 'vscode_settings',
+                           'keil_uvision_config']
         assert 'summary' in fo.processed_analysis[self.PLUGIN_NAME]
-        assert fo.processed_analysis[self.PLUGIN_NAME]['summary'] == ['git_repo', 'git_config_repo', 'pytest_cache_directory',
-                                                                        'vscode_settings', 'keil_uvision_config']
+        assert fo.processed_analysis[self.PLUGIN_NAME]['summary'] == expected_result
