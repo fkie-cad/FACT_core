@@ -24,13 +24,12 @@ class TestAnalysisPluginInformationLeaks(AnalysisPluginTest):
         fo.virtual_file_path = {}
         self.analysis_plugin.process_object(fo)
 
-        assert 'user_paths' in fo.processed_analysis[self.PLUGIN_NAME]
-
         expected_user_paths = sorted([
             '/home/user/test/urandom',
             '/home/user/test/urandom_sehr_sehr_sehr-lang.txt',
-            '/home/user/urandom'
-        ])
+            '/home/user/urandom'])
+
+        assert 'user_paths' in fo.processed_analysis[self.PLUGIN_NAME]
         assert fo.processed_analysis[self.PLUGIN_NAME]['user_paths'] == expected_user_paths
 
         assert 'var_path' in fo.processed_analysis[self.PLUGIN_NAME]
@@ -48,9 +47,7 @@ class TestAnalysisPluginInformationLeaks(AnalysisPluginTest):
                 'some_uid|/root/some_directory/some_more/.config/Code/User/settings.json',
                 'some_uid|/some_home/some_user/urandom/42/some_file.uvprojx',
                 'some_uid|home', 'some_uid|', 'some_uid|h654qf"§$%74672', 'some_uid|vuwreivh54r234/',
-                'some_uid|/vr4242fdsg4%%$'
-                ]
-        }
+                'some_uid|/vr4242fdsg4%%$']}
         fo.processed_analysis[self.PLUGIN_NAME] = {}
         self.analysis_plugin.process_object(fo)
         expected_result = ['git_repo', 'git_config_repo', 'pytest_cache_directory', 'vscode_settings',
