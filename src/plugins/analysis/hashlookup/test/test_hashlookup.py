@@ -24,30 +24,31 @@ def stub_plugin(test_config, monkeypatch):
     return AnalysisPlugin(MockAdmin(), test_config, offline_testing=True)
 
 
-def test_process_object_unknown_hash(stub_plugin, monkeypatch):
+@pytest.fixture(scope='function')
+def file_object(monkeypatch):
     test_file = create_test_file_object()
-    test_file.processed_analysis['file_hashes'] = {'sha256': test_file.sha256}
     monkeypatch.setattr('storage.fsorganizer.FSOrganizer.generate_path_from_uid', lambda _self, _: test_file.file_path)
-    stub_plugin.process_object(test_file)
-    result = test_file.processed_analysis[stub_plugin.NAME]
+    return test_file
+
+
+def test_process_object_unknown_hash(stub_plugin, file_object):
+    file_object.processed_analysis['file_hashes'] = {'sha256': file_object.sha256}
+    stub_plugin.process_object(file_object)
+    result = file_object.processed_analysis[stub_plugin.NAME]
     assert 'failed' in result
     assert 'sha256 hash unknown' in result['failed']
 
 
-def test_process_object_known_hash(stub_plugin, monkeypatch):
-    test_file = create_test_file_object()
-    test_file.processed_analysis['file_hashes'] = {'sha256': KNOWN_ZSH_HASH}
-    monkeypatch.setattr('storage.fsorganizer.FSOrganizer.generate_path_from_uid', lambda _self, _: test_file.file_path)
-    stub_plugin.process_object(test_file)
-    result = test_file.processed_analysis[stub_plugin.NAME]
+def test_process_object_known_hash(stub_plugin, file_object):
+    file_object.processed_analysis['file_hashes'] = {'sha256': KNOWN_ZSH_HASH}
+    stub_plugin.process_object(file_object)
+    result = file_object.processed_analysis[stub_plugin.NAME]
     assert 'FileName' in result
     assert result['FileName'] == './bin/zsh'
 
 
-def test_process_object_missing_hash(stub_plugin, monkeypatch):
-    test_file = create_test_file_object()
-    monkeypatch.setattr('storage.fsorganizer.FSOrganizer.generate_path_from_uid', lambda _self, _: test_file.file_path)
-    stub_plugin.process_object(test_file)
-    result = test_file.processed_analysis[stub_plugin.NAME]
+def test_process_object_missing_hash(stub_plugin, file_object):
+    stub_plugin.process_object(file_object)
+    result = file_object.processed_analysis[stub_plugin.NAME]
     assert 'failed' in result
     assert result['failed'].startswith('Lookup needs sha256 hash')
