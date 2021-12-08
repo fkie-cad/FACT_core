@@ -1,13 +1,13 @@
-# pylint: disable=protected-access,invalid-name,wrong-import-order
+# pylint: disable=protected-access,invalid-name,wrong-import-order,use-implicit-booleaness-not-comparison
 import gc
 import os
-from multiprocessing import Manager, Queue
+from multiprocessing import Queue
 from unittest import TestCase, mock
 
 import pytest
 
 from objects.firmware import Firmware
-from scheduler.Analysis import MANDATORY_PLUGINS, AnalysisScheduler
+from scheduler.analysis import MANDATORY_PLUGINS, AnalysisScheduler
 from test.common_helper import DatabaseMock, MockFileObject, fake_exit, get_config_for_testing, get_test_data_dir
 from test.mock import mock_patch, mock_spy
 
@@ -132,7 +132,7 @@ class TestAnalysisSchedulerBlacklist:
 
     @classmethod
     def setup_class(cls):
-        cls.init_patch = mock.patch(target='scheduler.Analysis.AnalysisScheduler.__init__', new=lambda *_: None)
+        cls.init_patch = mock.patch(target='scheduler.analysis.AnalysisScheduler.__init__', new=lambda *_: None)
         cls.init_patch.start()
         cls.sched = AnalysisScheduler()
         cls.sched.analysis_plugins = {}
@@ -221,7 +221,7 @@ class TestAnalysisSchedulerBlacklist:
         self.sched.config.set('test_plugin', 'mime_blacklist', 'type1, type2')
 
 
-class UtilityBase:
+class TestUtilityFunctions:
 
     class PluginMock:
         def __init__(self, dependencies):
@@ -229,10 +229,9 @@ class UtilityBase:
 
     @classmethod
     def setup_class(cls):
-        cls.init_patch = mock.patch(target='scheduler.Analysis.AnalysisScheduler.__init__', new=lambda *_: None)
+        cls.init_patch = mock.patch(target='scheduler.analysis.AnalysisScheduler.__init__', new=lambda *_: None)
         cls.init_patch.start()
         cls.scheduler = AnalysisScheduler()
-        cls.scheduler.currently_running_lock = Manager().Lock()  # pylint: disable=no-member
         cls.plugin_list = ['no_deps', 'foo', 'bar']
         cls.init_patch.stop()
 
@@ -253,8 +252,6 @@ class UtilityBase:
             'p6': self.PluginMock([])
         }
 
-
-class TestUtilityFunctions(UtilityBase):
     @pytest.mark.parametrize('input_data, expected_output', [
         (set(), set()),
         ({'p1'}, {'p2', 'p3'}),
@@ -356,7 +353,7 @@ class TestAnalysisSkipping:
 
     @classmethod
     def setup_class(cls):
-        cls.init_patch = mock.patch(target='scheduler.Analysis.AnalysisScheduler.__init__', new=lambda *_: None)
+        cls.init_patch = mock.patch(target='scheduler.analysis.AnalysisScheduler.__init__', new=lambda *_: None)
         cls.init_patch.start()
 
         cls.scheduler = AnalysisScheduler()
@@ -418,7 +415,7 @@ class TestAnalysisShouldReanalyse:
 
     @classmethod
     def setup_class(cls):
-        cls.init_patch = mock.patch(target='scheduler.Analysis.AnalysisScheduler.__init__', new=lambda *_: None)
+        cls.init_patch = mock.patch(target='scheduler.analysis.AnalysisScheduler.__init__', new=lambda *_: None)
         cls.init_patch.start()
         cls.scheduler = AnalysisScheduler()
         cls.init_patch.stop()
@@ -432,12 +429,12 @@ class TestAnalysisShouldReanalyse:
             # pylint: disable=unused-argument
             if plugin_name == 'plugin_root':
                 return plugin_root_date
-            elif plugin_name == 'plugin_dep':
+            if plugin_name == 'plugin_dep':
                 return plugin_dep_date
 
             assert False
 
-        monkeypatch.setattr('scheduler.Analysis._get_analysis_date', _get_analysis_date_mock)
+        monkeypatch.setattr('scheduler.analysis._get_analysis_date', _get_analysis_date_mock)
         uid = 'DONT_CARE'
         analysis_db_entry = {'plugin_version': '1.0'}
         plugin_mock = self.PluginMock()

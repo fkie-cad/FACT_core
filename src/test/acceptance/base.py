@@ -11,7 +11,7 @@ from common_helper_files import create_dir_for_file
 
 from helperFunctions.config import load_config
 from intercom.back_end_binding import InterComBackEndBinding
-from scheduler.Analysis import AnalysisScheduler
+from scheduler.analysis import AnalysisScheduler
 from scheduler.Compare import CompareScheduler
 from scheduler.Unpacking import UnpackingScheduler
 from storage.db_interface_backend import BackEndDbInterface
