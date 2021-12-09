@@ -9,8 +9,12 @@ PATH_REGEX = {
     'var_path': re.compile(rb'/var/www/[^/]+/[^\n \x00]+')
 }
 
+FILES_REGEX = {
+    'any_history': re.compile(rb'.+_history')
+}
+
 PATH_ARTIFACT_DICT = {
-    '.git/config': 'git_repo',
+    '.git/config': 'git_config',
     '.conda/environments.txt': 'conda_environment',
     'default.conf': 'possible_code_blocks_config',
     'clion64.exe.vmoptions': 'clion_jvm_options',
@@ -42,7 +46,7 @@ PATH_ARTIFACT_DICT = {
 }
 
 DIRECTORY_DICT = {
-    '.git': 'git_config_repo',
+    '.git': 'git_repository',
     '.github': 'github_config_directory',
     '.pytest_cache': 'pytest_cache_directory',
     '.conda': 'conda_directory',
@@ -72,29 +76,49 @@ class AnalysisPlugin(AnalysisBasePlugin):
         if file_object.processed_analysis['file_type']['mime'] == 'text/plain':
             self._find_artifacts(file_object)
         else:
-            for label, regex in PATH_REGEX.items():
-                self._find_paths(file_object, regex, label)
-        file_object.processed_analysis[self.NAME]['summary'] = list(file_object.processed_analysis[self.NAME])
+            self._find_regex(file_object, file_object.binary, PATH_REGEX)
+        file_object.processed_analysis[self.NAME]['summary'] = sorted(file_object.processed_analysis[self.NAME])
         return file_object
 
     def _find_artifacts(self, file_object: FileObject):
         for virtual_path_list in file_object.virtual_file_path.values():
             for virtual_path in virtual_path_list:
-                self._check_for_files(virtual_path.split('|')[-1], file_object)
-                self._check_for_directories(virtual_path.split('|')[-1].split('/'), file_object)
+                match = self._check_for_files(file_object, virtual_path.split('|')[-1])
+                if match:
+                    continue
+                match = self._check_for_directories(file_object, virtual_path.split('|')[-1])
+                if match:
+                    continue
+                self._find_regex(file_object, virtual_path.split('|')[-1].encode(), FILES_REGEX)
 
-    def _check_for_files(self, file_path: str, file_object: FileObject):
+    def _check_for_files(self, file_object: FileObject, file_path: str):
         for key_path, artifact in PATH_ARTIFACT_DICT.items():
             if file_path.endswith(key_path):
-                file_object.processed_analysis[self.NAME][artifact] = file_path
+                if artifact in file_object.processed_analysis[self.NAME]:
+                    file_object.processed_analysis[self.NAME][artifact].append(file_path)
+                else:
+                    file_object.processed_analysis[self.NAME][artifact] = [file_path]
+                return True
+        return False
 
-    def _check_for_directories(self, file_path: list, file_object: FileObject):
+    def _check_for_directories(self, file_object: FileObject, file_path: str):
         for key_path, artifact in DIRECTORY_DICT.items():
-            if len(file_path) > 1:
-                if file_path[-2] == key_path:
-                    file_object.processed_analysis[self.NAME][artifact] = file_path
+            file_path_list = file_path.split('/')
+            if len(file_path_list) > 1:
+                if file_path_list[-2] == key_path:
+                    if artifact in file_object.processed_analysis[self.NAME]:
+                        file_object.processed_analysis[self.NAME][artifact].append(file_path)
+                    else:
+                        file_object.processed_analysis[self.NAME][artifact] = [file_path]
+                    return True
+        return False
 
-    def _find_paths(self, file_object: FileObject, regex, label):
-        result = regex.findall(file_object.binary)
-        if result:
-            file_object.processed_analysis[self.NAME][label] = sorted({e.decode(errors='replace') for e in result})
+    def _find_regex(self, file_object: FileObject, search_term, regex_dict):
+        for label, regex in regex_dict.items():
+            result = regex.findall(search_term)
+            if result:
+                result_list = sorted({e.decode(errors='replace') for e in result})
+                if label in file_object.processed_analysis[self.NAME]:
+                    file_object.processed_analysis[self.NAME][label].append(result_list)
+                else:
+                    file_object.processed_analysis[self.NAME][label] = result_list
