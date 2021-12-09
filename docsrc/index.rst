@@ -25,6 +25,7 @@ Contents
 
    modules/helperFunctions
    modules/objects
+   modules/scheduler
    modules/web_interface
 
 
