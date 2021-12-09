@@ -104,3 +104,15 @@ class AnalysisStatus:
         for uid, stats in list(self.recently_finished.items()):
             if time() - stats['time_finished'] > RECENTLY_FINISHED_DISPLAY_TIME_IN_SEC:
                 self.recently_finished.pop(uid)
+
+    def get_current_analyses_stats(self):
+        return {
+            uid: {
+                'unpacked_count': stats_dict['unpacked_files_count'],
+                'analyzed_count': stats_dict['analyzed_files_count'],
+                'start_time': stats_dict['start_time'],
+                'total_count': stats_dict['total_files_count'],
+                'hid': stats_dict['hid'],
+            }
+            for uid, stats_dict in self.currently_running.items()
+        }
