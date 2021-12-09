@@ -2,7 +2,7 @@
 import pytest
 
 from objects.firmware import Firmware
-from scheduler.analysis_scheduling import Scheduler
+from scheduler.analysis_scheduling import AnalysisTaskScheduler
 
 
 class TestAnalysisScheduling:
@@ -13,7 +13,7 @@ class TestAnalysisScheduling:
 
     def setup_class(self):
         self.analysis_plugins = {}
-        self.scheduler = Scheduler(self.analysis_plugins)
+        self.scheduler = AnalysisTaskScheduler(self.analysis_plugins)
         self.plugin_list = ['no_deps', 'foo', 'bar']
 
     def _add_plugins(self):

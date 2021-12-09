@@ -99,7 +99,7 @@ class TestScheduleInitialAnalysis(AnalysisSchedulerTest):
         test_fw.scheduled_analysis = ['unknown_plugin']
 
         with mock_spy(self.sched, '_start_or_skip_analysis') as spy:
-            self.sched.process_next_analysis(test_fw)
+            self.sched.process_next_analysis_task(test_fw)
             assert not spy.was_called(), 'unknown plugin should simply be skipped'
 
     def test_skip_analysis_because_whitelist(self):

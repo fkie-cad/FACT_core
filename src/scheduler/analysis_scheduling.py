@@ -9,11 +9,11 @@ from objects.firmware import Firmware
 MANDATORY_PLUGINS = ['file_type', 'file_hashes']
 
 
-class Scheduler:
+class AnalysisTaskScheduler:
     def __init__(self, plugins):
         self.plugins = plugins
 
-    def schedule(self, fo, scheduled_analysis, mandatory=False):
+    def schedule_analysis_tasks(self, fo, scheduled_analysis, mandatory=False):
         scheduled_analysis = self._add_dependencies_recursively(copy(scheduled_analysis) or [])
         fo.scheduled_analysis = self._smart_shuffle(
             scheduled_analysis + MANDATORY_PLUGINS if mandatory else scheduled_analysis
