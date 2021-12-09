@@ -2,8 +2,8 @@ import json
 import logging
 import sys
 from copy import deepcopy
-from typing import Dict, List
 from itertools import chain
+from typing import Dict, List
 
 from helperFunctions.compare_sets import remove_duplicates_from_list
 from helperFunctions.data_conversion import get_value_of_first_key
@@ -327,12 +327,3 @@ class FrontEndDbInterface(MongoInterfaceCommon):
             {'$group': {'_id': '$analysis.k', 'UIDs': {'$addToSet': '$_id'}}},
         ], allowDiskUse=True)
         return {entry['_id']: entry['UIDs'] for entry in query_result}
-
-    def get_data_for_dependency_graph(self, uid):
-        data = list(self.file_objects.find(
-            {'parents': uid},
-            {'_id': 1, 'processed_analysis.elf_analysis': 1, 'processed_analysis.file_type': 1, 'file_name': 1})
-        )
-        for entry in data:
-            self.retrieve_analysis(entry['processed_analysis'])
-        return data

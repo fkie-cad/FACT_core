@@ -1,56 +1,54 @@
 from itertools import chain, islice, repeat
+from typing import List
 
 from helperFunctions.web_interface import get_color_list
+from objects.file import FileObject
 
 
-def create_data_graph_nodes_and_groups(data, whitelist):
-
+def create_data_graph_nodes_and_groups(fo_list: List[FileObject], whitelist):
     data_graph = {
         'nodes': [],
-        'edges': [],
-        'groups': []
+        'edges': []
     }
-    groups = []
+    groups = set()
 
-    for file in data:
-        if file['processed_analysis']['file_type']['mime'] in whitelist:
+    for fo in fo_list:
+        mime = fo.processed_analysis['file_type']['mime']
+        if mime in whitelist:
             node = {
-                'label': file['file_name'],
-                'id': file['_id'],
-                'group': file['processed_analysis']['file_type']['mime'],
-                'full_file_type': file['processed_analysis']['file_type']['full']
+                'label': fo.file_name,
+                'id': fo.uid,
+                'group': mime,
+                'full_file_type': fo.processed_analysis['file_type']['full']
             }
-
-            if file['processed_analysis']['file_type']['mime'] not in groups:
-                groups.append(file['processed_analysis']['file_type']['mime'])
-
+            groups.add(mime)
             data_graph['nodes'].append(node)
 
-    data_graph['groups'] = groups
+    data_graph['groups'] = list(groups)
 
     return data_graph
 
 
-def create_data_graph_edges(data, data_graph):
+def create_data_graph_edges(fo_list: List[FileObject], data_graph: dict):
 
-    edge_id = create_symbolic_link_edges(data_graph)
+    edge_id = _create_symbolic_link_edges(data_graph)
     elf_analysis_missing_from_files = 0
 
-    for file in data:
+    for fo in fo_list:
         try:
-            libraries = file['processed_analysis']['elf_analysis']['Output']['libraries']
+            libraries = fo.processed_analysis['elf_analysis']['Output']['libraries']
         except (IndexError, KeyError):
-            if 'elf_analysis' not in file['processed_analysis']:
+            if 'elf_analysis' not in fo.processed_analysis:
                 elf_analysis_missing_from_files += 1
             continue
 
         for lib in libraries:
-            edge_id = find_edges(data_graph, edge_id, lib, file)
+            edge_id = _find_edges(data_graph, edge_id, lib, fo.uid)
 
     return data_graph, elf_analysis_missing_from_files
 
 
-def create_symbolic_link_edges(data_graph):
+def _create_symbolic_link_edges(data_graph):
     edge_id = 0
 
     for node in data_graph['nodes']:
@@ -64,7 +62,7 @@ def create_symbolic_link_edges(data_graph):
     return edge_id
 
 
-def find_edges(data_graph, edge_id, lib, file_object):
+def _find_edges(data_graph, edge_id, lib, uid):
     target_id = None
 
     for node in data_graph['nodes']:
@@ -72,7 +70,7 @@ def find_edges(data_graph, edge_id, lib, file_object):
             target_id = node['id']
             break
     if target_id is not None:
-        edge = {'source': file_object['_id'], 'target': target_id, 'id': edge_id}
+        edge = {'source': uid, 'target': target_id, 'id': edge_id}
         data_graph['edges'].append(edge)
         edge_id += 1
 
