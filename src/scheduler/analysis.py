@@ -51,13 +51,25 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
     * Plugins can have dependencies, these have to be present before the depending plugin can be run
     * The order of execution is shuffled (dependency preserving) to balance execution of the plugins
 
-    After scheduling, for each task a set of checks is run to decide if a task might be skipped:
+    After scheduling, for each task a set of checks is run to decide if a task might be skipped: class::
 
-    0. Plugin exists: No? Skip analysis
-    1. Is forced update: Yes? Start analysis
-    2. Analysis present and plugin version unchanged: Yes? Skip analysis and load results if dependent analysis exists
-    3. Analysis is blacklisted based on file type: Yes? Skip analysis and store reason (blacklisted) as result
-    4. Else: Start analysis
+        ┌─┬──────────────┐ No                                   ┌────────┐
+        │0│Plugin exists?├──────────────────────────────────────►        │
+        └─┴───┬──────────┘                                      │  Skip  │
+              │ Yes                                     ┌───────►        ◄───┐
+        ┌─┬───▼─────────────┐ Yes                       │       └────────┘   │
+        │1│Is forced update?├───────────────────────────┼─────┐              │
+        └─┴───┬─────────────┘                           │     │              │
+              │ No                                      │     │              │
+        ┌─┬───▼────────────────────────────────┐ Yes    │     │              │
+        │2│Analysis present, version unchanged?├────────┘     │              │
+        └─┴───┬────────────────────────────────┘              │ ┌─────────┐  │
+              │ No                                            └─►         │  │
+        ┌─┬───▼────────────────────────────┐ No                 │  Start  │  │
+        │3│Analysis is black / whitelisted?├────────────────────►         │  │
+        └─┴───┬────────────────────────────┘                    └─────────┘  │
+              │ Yes                                                          │
+              └──────────────────────────────────────────────────────────────┘
 
     Running the analysis tasks is achieved through (multiprocessing.Queue)s. Each plugin has an in-queue, triggered
     by the scheduler using the `add_job` function, and an out-queue that is processed by the result collector. The
