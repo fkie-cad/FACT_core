@@ -94,10 +94,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     def _check_for_files(self, file_object: FileObject, file_path: str):
         for key_path, artifact in PATH_ARTIFACT_DICT.items():
             if file_path.endswith(key_path):
-                if artifact in file_object.processed_analysis[self.NAME]:
-                    file_object.processed_analysis[self.NAME][artifact].append(file_path)
-                else:
-                    file_object.processed_analysis[self.NAME][artifact] = [file_path]
+                file_object.processed_analysis[self.NAME].set_default(artifact, []).append(file_path)
                 return True
         return False
 
@@ -106,10 +103,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             file_path_list = file_path.split('/')
             if len(file_path_list) > 1:
                 if file_path_list[-2] == key_path:
-                    if artifact in file_object.processed_analysis[self.NAME]:
-                        file_object.processed_analysis[self.NAME][artifact].append(file_path)
-                    else:
-                        file_object.processed_analysis[self.NAME][artifact] = [file_path]
+                    file_object.processed_analysis[self.NAME].set_default(artifact, []).append(file_path)
                     return True
         return False
 
