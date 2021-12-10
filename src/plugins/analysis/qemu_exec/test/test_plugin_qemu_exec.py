@@ -82,7 +82,7 @@ class DockerClientMock:
 
 @pytest.fixture
 def execute_docker_error(monkeypatch):
-    monkeypatch.setattr('helperFunctions.docker.client', DockerClientMock)
+    monkeypatch.setattr('docker.client.from_env', lambda: DockerClientMock())
 
 
 class TestPluginQemuExec(AnalysisPluginTest):

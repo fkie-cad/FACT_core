@@ -5,8 +5,6 @@ import docker
 from docker.errors import APIError, DockerException, ImageNotFound
 from requests.exceptions import ReadTimeout
 
-client = docker.client.from_env()
-
 
 def run_docker_container(image: str, logging_label: str = 'Docker', timeout: int = 300,  stderr=True, **kwargs):
     """
@@ -26,12 +24,18 @@ def run_docker_container(image: str, logging_label: str = 'Docker', timeout: int
     """
     # TODO verify that bind mounts in kwargs["mounts"] only contain files in docker-mount-base-dir
     # If they don't just copy them to docker-mount-base-dir and change the Mount's
+
+    client = docker.client.from_env()
     kwargs.setdefault('detach', True)
 
     try:
         container = client.containers.run(image, **kwargs)
     except (ImageNotFound, APIError):
         logging.warning(f'[{logging_label}]: encountered process error while processing')
+        with suppress(DockerException):
+            container.stop()
+            container.remove()
+
         raise
 
     try:
