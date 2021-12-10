@@ -94,7 +94,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     def _check_for_files(self, file_object: FileObject, file_path: str):
         for key_path, artifact in PATH_ARTIFACT_DICT.items():
             if file_path.endswith(key_path):
-                file_object.processed_analysis[self.NAME].set_default(artifact, []).append(file_path)
+                file_object.processed_analysis[self.NAME].setdefault(artifact, []).append(file_path)
                 return True
         return False
 
@@ -103,7 +103,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             file_path_list = file_path.split('/')
             if len(file_path_list) > 1:
                 if file_path_list[-2] == key_path:
-                    file_object.processed_analysis[self.NAME].set_default(artifact, []).append(file_path)
+                    file_object.processed_analysis[self.NAME].setdefault(artifact, []).append(file_path)
                     return True
         return False
 
@@ -112,7 +112,4 @@ class AnalysisPlugin(AnalysisBasePlugin):
             result = regex.findall(search_term)
             if result:
                 result_list = sorted({e.decode(errors='replace') for e in result})
-                if label in file_object.processed_analysis[self.NAME]:
-                    file_object.processed_analysis[self.NAME][label].append(result_list)
-                else:
-                    file_object.processed_analysis[self.NAME][label] = result_list
+                file_object.processed_analysis[self.NAME].setdefault(label, []).extend(result_list)
