@@ -16,7 +16,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     )
     MIME_BLACKLIST = [*MIME_BLACKLIST_NON_EXECUTABLE, *MIME_BLACKLIST_COMPRESSED]
     DEPENDENCIES = ['file_hashes']
-    VERSION = '0.1.3'
+    VERSION = '0.1.4'
 
     def __init__(self, plugin_administrator, config=None, recursive=True, offline_testing=False):
         self.config = config
@@ -48,7 +48,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             file_object.processed_analysis[self.NAME] = result
         elif 'message' in result and result['message'] == 'Non existing SHA-256':
             file_object.processed_analysis[self.NAME] = {
-                'failed': 'sha256 hash unknown to hashlookup at time of analysis',
+                'message': 'sha256 hash unknown to hashlookup at time of analysis',
                 'summary': []
             }
         else:
