@@ -1,6 +1,6 @@
 /home/user/test/urandom
 /home/user/urandom
-/home/user/test/urandom_sehr_sehr_sehr-lang.txt
+/home/%s/%s/some_file
 /proc/athversion
 /proc/simple_config/simple_config_led
 /sys/class/net/%s/brport/bridge

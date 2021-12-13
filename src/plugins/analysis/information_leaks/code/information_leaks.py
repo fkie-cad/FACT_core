@@ -4,9 +4,9 @@ from analysis.PluginBase import AnalysisBasePlugin
 from objects.file import FileObject
 
 PATH_REGEX = {
-    'user_paths': re.compile(rb'/home/[^/]+/[^\n \x00]+'),
-    'root_path': re.compile(rb'/root/[^/]+/[^\n \x00]+'),
-    'var_path': re.compile(rb'/var/www/[^/]+/[^\n \x00]+')
+    'user_paths': re.compile(rb'/home/[^/%]+/[^\n \x00]+'),
+    'root_path': re.compile(rb'/root/[^/%]+/[^\n \x00]+'),
+    'www_path': re.compile(rb'/var/www/[^/%]+/[^\n \x00]+')
 }
 
 FILES_REGEX = {
@@ -73,6 +73,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
                          offline_testing=offline_testing)
 
     def process_object(self, file_object: FileObject):
+        file_object.processed_analysis[self.NAME] = {}
         if file_object.processed_analysis['file_type']['mime'] == 'text/plain':
             self._find_artifacts(file_object)
         else:

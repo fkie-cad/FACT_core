@@ -24,16 +24,11 @@ class TestAnalysisPluginInformationLeaks(AnalysisPluginTest):
         fo.virtual_file_path = {}
         self.analysis_plugin.process_object(fo)
 
-        expected_user_paths = sorted([
-            '/home/user/test/urandom',
-            '/home/user/test/urandom_sehr_sehr_sehr-lang.txt',
-            '/home/user/urandom'])
-
         assert 'user_paths' in fo.processed_analysis[self.PLUGIN_NAME]
-        assert fo.processed_analysis[self.PLUGIN_NAME]['user_paths'] == expected_user_paths
+        assert fo.processed_analysis[self.PLUGIN_NAME]['user_paths'] == ['/home/user/test/urandom', '/home/user/urandom']
 
-        assert 'var_path' in fo.processed_analysis[self.PLUGIN_NAME]
-        assert fo.processed_analysis[self.PLUGIN_NAME]['var_path'] == ['/var/www/tmp/me_']
+        assert 'www_path' in fo.processed_analysis[self.PLUGIN_NAME]
+        assert fo.processed_analysis[self.PLUGIN_NAME]['www_path'] == ['/var/www/tmp/me_']
 
         assert 'root_path' in fo.processed_analysis[self.PLUGIN_NAME]
         assert fo.processed_analysis[self.PLUGIN_NAME]['root_path'] == ['/root/user_name/this_directory']
@@ -50,7 +45,6 @@ class TestAnalysisPluginInformationLeaks(AnalysisPluginTest):
                 'some_uid|some_more_uid|/this_home/this_dict/.random_ambiguous_history',
                 'some_uid|home', 'some_uid|', 'some_uid|h654qf"§$%74672', 'some_uid|vuwreivh54r234/',
                 'some_uid|/vr4242fdsg4%%$']}
-        fo.processed_analysis[self.PLUGIN_NAME] = {}
         self.analysis_plugin.process_object(fo)
         expected_result = sorted(['git_config', 'pytest_cache_directory', 'vscode_settings',
                                   'keil_uvision_config', 'zsh_history', 'any_history'])
