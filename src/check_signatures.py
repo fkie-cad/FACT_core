@@ -22,7 +22,6 @@ import logging
 
 from helperFunctions.yara_signature_testing import SignatureTesting
 
-
 PROGRAM_NAME = 'Component Signature Test Framework (CSTF)'
 PROGRAM_VERSION = '0.2'
 PROGRAM_DESCRIPTION = 'Check if each line in a file is matched by a yara rule.'

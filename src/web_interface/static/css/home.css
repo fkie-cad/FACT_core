@@ -1,0 +1,19 @@
+.bubble {
+    position: relative;
+    font-family: 'Courier New', Courier, monospace;
+    color: #fff;
+    background: #007bff;
+    border-radius: 10px;
+    padding: 8px;
+    margin: -3px;
+    margin-bottom: -15px;
+}
+.bubble-triangle:after {
+    content: '';
+    border: 10px solid transparent;
+    border-left: 10px solid #007bff;
+    border-top: 10px solid #007bff;
+    position: absolute;
+    bottom: -10px;
+    left: 25px;
+}

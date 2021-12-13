@@ -1,0 +1,13 @@
+ .code-pre {
+    padding: 5px;
+    width: 100%;
+    white-space: pre-wrap;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    display: block;
+    font-family: monospace;
+    margin: 0 0;
+    color: #f8f8f8;
+    background-color: #333;
+    max-height: 500px;
+}
