@@ -1,6 +1,7 @@
 import json
 import logging
 import re
+from contextlib import suppress
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import List
@@ -23,7 +24,7 @@ def extract_data_from_ghidra(input_file_data: bytes, key_strings: List[str], pat
         ghidra_input_file = tmp_dir_path / 'ghidra_input'
         (tmp_dir_path / KEY_FILE).write_text(json.dumps(key_strings))
         ghidra_input_file.write_bytes(input_file_data)
-        try:
+        with suppress(DockerException, TimeoutError):
             docker_output, _ = run_docker_container(
                 DOCKER_IMAGE,
                 logging_label='FSR',
@@ -32,10 +33,8 @@ def extract_data_from_ghidra(input_file_data: bytes, key_strings: List[str], pat
                     Mount(CONTAINER_TARGET_PATH, tmp_dir, type='bind'),
                 ],
             )
-        except (DockerException, TimeoutError):
-            docker_output = None
+            logging.debug(docker_output)
 
-        logging.debug(docker_output)
         try:
             output_file = (tmp_dir_path / DOCKER_OUTPUT_FILE).read_text()
             return filter_implausible_results(json.loads(output_file))
