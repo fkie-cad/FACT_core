@@ -527,3 +527,16 @@ def store_binary_on_file_system(tmp_dir: str, test_object: Union[FileObject, Fir
     binary_dir = Path(tmp_dir) / test_object.uid[:2]
     binary_dir.mkdir(parents=True)
     (binary_dir / test_object.uid).write_bytes(test_object.binary)
+
+
+def create_docker_mount_base_dir():
+    docker_mount_base_dir = Path('/tmp/fact-docker-mount-base-dir')
+    try:
+        docker_mount_base_dir.mkdir(0o770)
+    except FileExistsError:
+        pass
+    else:
+        docker_gid = grp.getgrnam('docker').gr_gid
+        os.chown(docker_mount_base_dir, -1, docker_gid)
+
+    return docker_mount_base_dir

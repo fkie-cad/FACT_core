@@ -1,12 +1,9 @@
 import gc
-import grp
-import os
 import unittest
 import unittest.mock
 from configparser import ConfigParser
-from pathlib import Path
 
-from test.common_helper import DatabaseMock, fake_exit, load_users_from_main_config
+from test.common_helper import DatabaseMock, create_docker_mount_base_dir, fake_exit, load_users_from_main_config
 
 
 class AnalysisPluginTest(unittest.TestCase):
@@ -25,14 +22,7 @@ class AnalysisPluginTest(unittest.TestCase):
         self.exit_patch = unittest.mock.patch(target='helperFunctions.database.ConnectTo.__exit__', new=fake_exit)
         self.exit_patch.start()
 
-        self.docker_mount_base_dir = Path('/tmp/fact-docker-mount-base-dir')
-        try:
-            self.docker_mount_base_dir.mkdir(mode=0o770)
-        except FileExistsError:
-            pass
-        else:
-            docker_gid = grp.getgrnam('docker').gr_gid
-            os.chown(self.docker_mount_base_dir, -1, docker_gid)
+        self.docker_mount_base_dir = create_docker_mount_base_dir()
 
     def tearDown(self):
         self.analysis_plugin.shutdown()  # pylint: disable=no-member
