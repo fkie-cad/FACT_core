@@ -333,13 +333,12 @@ class TestUtilityFunctions:
     def test_combined_analysis_workload(self):
         self.scheduler.analysis_plugins = {}
         dummy_plugin = self.scheduler.analysis_plugins['dummy_plugin'] = self.PluginMock([])
-        dummy_plugin.in_queue = Queue()
+        dummy_plugin.in_queue = Queue()  # pylint: disable=attribute-defined-outside-init
         self.scheduler.process_queue = Queue()
         try:
             assert self.scheduler.get_combined_analysis_workload() == 0
             self.scheduler.process_queue.put({})
-            dummy_plugin.in_queue = Queue()
-            for i in range(2):
+            for _ in range(2):
                 dummy_plugin.in_queue.put({})
             assert self.scheduler.get_combined_analysis_workload() == 3
         finally:
