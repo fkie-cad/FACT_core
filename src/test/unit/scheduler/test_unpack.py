@@ -44,8 +44,7 @@ class TestUnpackScheduler(TestCase):
         outer_container = self.tmp_queue.get(timeout=5)
         self.assertEqual(len(outer_container.files_included), 2, 'not all childs of root found')
         self.assertIn('ab4153d747f530f9bc3a4b71907386f50472ea5ae975c61c0bacd918f1388d4b_227', outer_container.files_included, 'included container not extracted. Unpacker tar.gz modul broken?')
-        included_files = [self.tmp_queue.get(timeout=5)]
-        included_files.append(self.tmp_queue.get(timeout=5))
+        included_files = [self.tmp_queue.get(timeout=5), self.tmp_queue.get(timeout=5)]
         for item in included_files:
             if item.uid == 'ab4153d747f530f9bc3a4b71907386f50472ea5ae975c61c0bacd918f1388d4b_227':
                 self.assertEqual(len(item.files_included), 1, 'number of files in included container not correct')
@@ -66,14 +65,15 @@ class TestUnpackScheduler(TestCase):
         assert self.scheduler.throttle_condition.value == 1, 'unpack load throttle not functional'
 
     def _start_scheduler(self):
-        self.scheduler = UnpackingScheduler(config=self.config, post_unpack=self._mock_callback, analysis_workload=self._mock_get_analysis_workload, db_interface=DatabaseMock())
+        self.scheduler = UnpackingScheduler(
+            config=self.config,
+            post_unpack=self._mock_callback,
+            analysis_workload=lambda: 3,
+            db_interface=DatabaseMock()
+        )
 
     def _mock_callback(self, fw):
         self.tmp_queue.put(fw)
-
-    @staticmethod
-    def _mock_get_analysis_workload():
-        return {'analysis_main_scheduler': 1, 'plugins': {'a': {'queue': 2}}}
 
     def _trigger_sleep(self, seconds: int) -> None:
         self.sleep_event.set()

@@ -184,6 +184,9 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             }
         return workload
 
+    def get_combined_analysis_workload(self):
+        return self.process_queue.qsize() + sum(plugin.in_queue.qsize() for plugin in self.analysis_plugins.values())
+
     def _get_current_analyses_stats(self):
         return {
             uid: {

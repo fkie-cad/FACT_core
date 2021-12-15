@@ -2,6 +2,7 @@
 import gc
 import os
 from multiprocessing import Queue
+from time import sleep
 from unittest import TestCase, mock
 
 import pytest
@@ -328,6 +329,23 @@ class TestUtilityFunctions:
         }
         result = self.scheduler._smart_shuffle(['p1', 'p2', 'p3'])
         assert result == []
+
+    def test_combined_analysis_workload(self):
+        self.scheduler.analysis_plugins = {}
+        dummy_plugin = self.scheduler.analysis_plugins['dummy_plugin'] = self.PluginMock([])
+        dummy_plugin.in_queue = Queue()
+        self.scheduler.process_queue = Queue()
+        try:
+            assert self.scheduler.get_combined_analysis_workload() == 0
+            self.scheduler.process_queue.put({})
+            dummy_plugin.in_queue = Queue()
+            for i in range(2):
+                dummy_plugin.in_queue.put({})
+            assert self.scheduler.get_combined_analysis_workload() == 3
+        finally:
+            sleep(0.1)  # let the queue finish internally to not cause "Broken pipe"
+            self.scheduler.process_queue.close()
+            dummy_plugin.in_queue.close()
 
 
 class TestAnalysisSkipping:
