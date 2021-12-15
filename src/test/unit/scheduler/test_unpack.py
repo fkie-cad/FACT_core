@@ -39,10 +39,10 @@ class TestUnpackScheduler(TestCase):
 
     def test_unpack_a_container_including_another_container(self):
         self._start_scheduler()
-        test_fw = Firmware(file_path='{}/container/test_zip.tar.gz'.format(get_test_data_dir()))
+        test_fw = Firmware(file_path=f'{get_test_data_dir()}/container/test_zip.tar.gz')
         self.scheduler.add_task(test_fw)
         outer_container = self.tmp_queue.get(timeout=5)
-        self.assertEqual(len(outer_container.files_included), 2, 'not all childs of root found')
+        self.assertEqual(len(outer_container.files_included), 2, 'not all children of root found')
         self.assertIn('ab4153d747f530f9bc3a4b71907386f50472ea5ae975c61c0bacd918f1388d4b_227', outer_container.files_included, 'included container not extracted. Unpacker tar.gz modul broken?')
         included_files = [self.tmp_queue.get(timeout=5), self.tmp_queue.get(timeout=5)]
         for item in included_files:
