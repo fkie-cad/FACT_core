@@ -35,8 +35,8 @@ def test_process_object_unknown_hash(stub_plugin, file_object):
     file_object.processed_analysis['file_hashes'] = {'sha256': file_object.sha256}
     stub_plugin.process_object(file_object)
     result = file_object.processed_analysis[stub_plugin.NAME]
-    assert 'failed' in result
-    assert 'sha256 hash unknown' in result['failed']
+    assert 'message' in result
+    assert 'sha256 hash unknown' in result['message']
 
 
 def test_process_object_known_hash(stub_plugin, file_object):
