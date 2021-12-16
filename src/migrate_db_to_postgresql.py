@@ -8,7 +8,8 @@ from sqlalchemy.exc import StatementError
 from helperFunctions.config import load_config
 from helperFunctions.database import ConnectTo
 from storage.db_interface_compare import CompareDbInterface
-from storage_postgresql.db_interface import DbInterface
+from storage_postgresql.db_interface_backend import BackendDbInterface
+from storage_postgresql.db_interface_comparison import ComparisonDbInterface
 
 try:
     from tqdm import tqdm
@@ -43,10 +44,10 @@ def _fix_illegal_dict(dict_: dict, label=''):
 
 
 def _fix_illegal_list(list_: list, key=None, label=''):
-    for i, element in enumerate(list_):
+    for index, element in enumerate(list_):
         if isinstance(element, bytes):
             logging.debug(f'array entry ({label}) {key} has illegal type bytes: {element[:10]}... -> converting to str...')
-            list_[i] = element.decode()
+            list_[index] = element.decode()
         elif isinstance(element, dict):
             _fix_illegal_dict(element, label)
         elif isinstance(element, list):
@@ -54,7 +55,7 @@ def _fix_illegal_list(list_: list, key=None, label=''):
         elif isinstance(element, str):
             if '\0' in element:
                 logging.debug(f'entry ({label}) {key} contains illegal character "\\0": {element[:10]} -> replacing with "?"')
-                list_[i] = element.replace('\0', '\\x00')
+                list_[index] = element.replace('\0', '\\x00')
 
 
 def _check_for_missing_fields(plugin, analysis_data):
@@ -66,14 +67,15 @@ def _check_for_missing_fields(plugin, analysis_data):
 
 
 def main():
-    postgres = DbInterface()
+    postgres = BackendDbInterface()
     config = load_config('main.cfg')
 
     with ConnectTo(CompareDbInterface, config) as db:
-        migrate(postgres, {}, db, True)
+        migrate_fw(postgres, {}, db, True)
+        migrate_comparisons(db)
 
 
-def migrate(postgres, query, db, root=False, root_uid=None, parent_uid=None):
+def migrate_fw(postgres: BackendDbInterface, query, db, root=False, root_uid=None, parent_uid=None):
     label = 'firmware' if root else 'file_object'
     collection = db.firmwares if root else db.file_objects
     total = collection.count_documents(query)
@@ -86,7 +88,7 @@ def migrate(postgres, query, db, root=False, root_uid=None, parent_uid=None):
             # root fw uid must be updated for all included files :(
             firmware_object = db.get_object(uid)
             query = {'_id': {'$in': list(firmware_object.files_included)}}
-            migrate(postgres, query, db, root_uid=firmware_object.uid if root else root_uid, parent_uid=firmware_object.uid)
+            migrate_fw(postgres, query, db, root_uid=firmware_object.uid if root else root_uid, parent_uid=firmware_object.uid)
         else:
             firmware_object = (db.get_firmware if root else db.get_file_object)(uid)
             firmware_object.parents = [parent_uid]
@@ -95,7 +97,7 @@ def migrate(postgres, query, db, root=False, root_uid=None, parent_uid=None):
                 _fix_illegal_dict(plugin_data, plugin)
                 _check_for_missing_fields(plugin, plugin_data)
             try:
-                (postgres.insert_firmware if root else postgres.insert_file_object)(firmware_object)
+                postgres.insert_object(firmware_object)
             except StatementError:
                 logging.error(f'Firmware contains errors: {firmware_object}')
                 raise
@@ -108,7 +110,19 @@ def migrate(postgres, query, db, root=False, root_uid=None, parent_uid=None):
                 raise
             query = {'_id': {'$in': list(firmware_object.files_included)}}
             root_uid = firmware_object.uid if root else root_uid
-            migrate(postgres, query, db, root_uid=root_uid, parent_uid=firmware_object.uid)
+            migrate_fw(postgres, query, db, root_uid=root_uid, parent_uid=firmware_object.uid)
+
+
+def migrate_comparisons(mongo):
+    count = 0
+    compare_db = ComparisonDbInterface()
+    for entry in mongo.compare_results.find({}):
+        results = {key: value for key, value in entry.items() if key not in ['_id', 'submission_date']}
+        comparison_id = entry['_id']
+        if not compare_db.comparison_exists(comparison_id):
+            compare_db.insert_comparison(comparison_id, results)
+            count += 1
+    logging.warning(f'Migrated {count} comparison entries')
 
 
 if __name__ == '__main__':
