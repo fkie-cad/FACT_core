@@ -262,8 +262,9 @@ def get_docker_output(arch_suffix: str, file_path: str, root_path: Path) -> dict
     '''
     command = '{arch_suffix} {target}'.format(arch_suffix=arch_suffix, target=file_path)
     try:
-        output, _ = run_docker_container(
+        result = run_docker_container(
             DOCKER_IMAGE,
+            combine_stderr_stdout=True,
             timeout=TIMEOUT_IN_SECONDS,
             command=command,
             mounts=[
@@ -271,7 +272,7 @@ def get_docker_output(arch_suffix: str, file_path: str, root_path: Path) -> dict
             ],
             logging_label='qemu_exec'
         )
-        return loads(output)
+        return loads(result.stdout)
     except ReadTimeout:
         return {'error': 'timeout'}
     except (DockerException, IOError):

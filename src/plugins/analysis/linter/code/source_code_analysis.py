@@ -74,8 +74,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
     def _get_script_type(self, file_object):
         host_path = self._fs_organizer.generate_path_from_uid(file_object.uid)
         container_path = f'/repo/{file_object.file_name}'
-        linguist_output, _ = run_docker_container(
+        result = run_docker_container(
             'crazymax/linguist',
+            combine_stderr_stdout=True,
             timeout=60,
             command=f'--json {container_path}',
             mounts=[
@@ -83,7 +84,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             ],
             logging_label=self.NAME,
         )
-        output_json = json.loads(linguist_output)
+        output_json = json.loads(result.stdout)
 
         # FIXME plugins should not set the output for other plugins
         # But due to performance reasons we don't want the filetype plugin to run linguist

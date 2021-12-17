@@ -101,8 +101,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 file_object.processed_analysis[self.NAME]['failed'] = message
 
     def _mount_in_docker(self, input_dir: str) -> str:
-        output, _ = run_docker_container(
+        result = run_docker_container(
             DOCKER_IMAGE,
+            combine_stderr_stdout=True,
             logging_label=self.NAME,
             mounts=[
                 Mount('/work', input_dir, type='bind'),
@@ -111,7 +112,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             privileged=True,
         )
 
-        return output
+        return result.stdout
 
     def _analyze_metadata_of_mounted_dir(self, docker_results: Tuple[str, str, dict]):
         for file_name, file_path, file_stats in docker_results:

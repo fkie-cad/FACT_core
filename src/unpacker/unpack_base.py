@@ -2,6 +2,7 @@ import logging
 import shutil
 from os import getgid, getuid, makedirs
 from pathlib import Path
+from subprocess import CalledProcessError
 
 from common_helper_files import safe_rglob
 from docker.types import Mount
@@ -22,8 +23,9 @@ class UnpackBase:
         self._initialize_shared_folder(tmp_dir)
         shutil.copy2(file_path, str(Path(tmp_dir, 'input', Path(file_path).name)))
 
-        output, exit_code = run_docker_container(
+        result = run_docker_container(
             'fkiecad/fact_extractor',
+            combine_stderr_stdout=True,
             privileged=True,
             mem_limit=f"{self.config.get('unpack', 'memory_limit', fallback='1024')}m",
             mounts=[
@@ -33,8 +35,10 @@ class UnpackBase:
             command=f'--chown {getuid()}:{getgid()}'
         )
 
-        if exit_code != 0:
-            error = f'Failed to execute docker extractor with code {exit_code}:\n{output}'
+        try:
+            result.check_returncode()
+        except CalledProcessError as err:
+            error = f'Failed to execute docker extractor with code {err.returncode}:\n{err.stdout}'
             logging.error(error)
             raise RuntimeError(error)
 

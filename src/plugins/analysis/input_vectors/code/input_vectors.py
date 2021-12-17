@@ -40,8 +40,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
             file_path = Path(tmp_dir) / file_object.file_name
             file_path.write_bytes(file_object.binary)
             try:
-                result, _ = run_docker_container(
+                result = run_docker_container(
                     DOCKER_IMAGE,
+                    combine_stderr_stdout=True,
                     logging_label=self.NAME,
                     timeout=TIMEOUT_IN_SECONDS,
                     command=CONTAINER_TARGET_PATH,
@@ -50,7 +51,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
                     ],
                     stderr=False,
                 )
-                file_object.processed_analysis[self.NAME] = loads(result)
+                file_object.processed_analysis[self.NAME] = loads(result.stdout)
             except ReadTimeout:
                 file_object.processed_analysis[self.NAME]['failed'] = 'Analysis timed out. It might not be complete.'
             except (DockerException, IOError):

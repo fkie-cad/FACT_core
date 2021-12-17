@@ -14,8 +14,9 @@ class JavaScriptLinter:
     '''
 
     def do_analysis(self, file_path):
-        output_raw, _ = run_docker_container(
+        result = run_docker_container(
             'cytopia/eslint',
+            combine_stderr_stdout=True,
             mounts=[
                 Mount('/eslintrc.js', str(CONFIG_FILE_PATH), type='bind', read_only=True),
                 Mount('/input.js', str(file_path), type='bind', read_only=True),
@@ -23,7 +24,7 @@ class JavaScriptLinter:
             command='-c /eslintrc.js --format json /input.js',
         )
 
-        output_json = json.loads(output_raw)
+        output_json = json.loads(result.stdout)
 
         issues = []
         # As we only ever analyse one file use output_json[0]

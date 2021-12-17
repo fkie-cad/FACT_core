@@ -1,4 +1,5 @@
 from pathlib import Path
+from subprocess import CompletedProcess
 
 import pytest
 
@@ -36,7 +37,7 @@ def run_docker_container_stub(*_, **__):
         "usedDeprecatedRules": []
     }
 ]'''
-    return stdout, 1
+    return CompletedProcess(args=None, returncode=1, stdout=stdout, stderr=None)
 
 
 def test_do_analysis(stub_linter, monkeypatch):

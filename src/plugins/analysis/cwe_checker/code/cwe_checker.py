@@ -53,24 +53,26 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     @staticmethod
     def _run_cwe_checker_to_get_version_string():
-        output, _ = run_docker_container(
+        result = run_docker_container(
             DOCKER_IMAGE,
+            combine_stderr_stdout=True,
             timeout=60,
             command='--version',
         )
-        return output
+        return result.stdout
 
     @staticmethod
     def _run_cwe_checker_in_docker(file_object):
-        output, _ = run_docker_container(
+        result = run_docker_container(
             DOCKER_IMAGE,
+            combine_stderr_stdout=True,
             timeout=TIMEOUT_IN_SECONDS,
             command='/input --json --quiet',
             mounts=[
                 Mount('/input', file_object.file_path, type='bind'),
             ],
         )
-        return output
+        return result.stdout
 
     @staticmethod
     def _parse_cwe_checker_output(output):
