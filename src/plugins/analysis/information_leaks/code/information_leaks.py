@@ -76,9 +76,12 @@ class AnalysisPlugin(AnalysisBasePlugin):
         file_object.processed_analysis[self.NAME] = {}
         if file_object.processed_analysis['file_type']['mime'] == 'text/plain':
             self._find_artifacts(file_object)
+            file_object.processed_analysis[self.NAME]['summary'] = sorted(
+                file_object.processed_analysis[self.NAME])
         else:
             self._find_regex(file_object, file_object.binary, PATH_REGEX)
-        file_object.processed_analysis[self.NAME]['summary'] = sorted(file_object.processed_analysis[self.NAME])
+            file_object.processed_analysis[self.NAME]['summary'] = sorted(
+                file_object.processed_analysis[self.NAME].values())
         return file_object
 
     def _find_artifacts(self, file_object: FileObject):
