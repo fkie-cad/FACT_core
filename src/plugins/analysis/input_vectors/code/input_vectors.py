@@ -42,7 +42,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
             try:
                 result = run_docker_container(
                     DOCKER_IMAGE,
-                    combine_stderr_stdout=True,
+                    # We explicitly don't want stderr to ignore "Cannot analyse at [...]"
+                    combine_stderr_stdout=False,
                     logging_label=self.NAME,
                     timeout=TIMEOUT_IN_SECONDS,
                     command=CONTAINER_TARGET_PATH,
