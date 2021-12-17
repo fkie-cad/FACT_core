@@ -14,8 +14,8 @@ from helperFunctions.logging import TerminalColors, color_string
 from helperFunctions.plugin import import_plugins
 from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions
 from objects.file import FileObject
-from scheduler.analysis_scheduling import MANDATORY_PLUGINS, AnalysisTaskScheduler
 from scheduler.analysis_status import AnalysisStatus
+from scheduler.task_scheduler import MANDATORY_PLUGINS, AnalysisTaskScheduler
 from storage.db_interface_backend import BackEndDbInterface
 
 

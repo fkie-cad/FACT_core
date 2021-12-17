@@ -2,7 +2,7 @@
 import pytest
 
 from objects.firmware import Firmware
-from scheduler.analysis_scheduling import AnalysisTaskScheduler
+from scheduler.task_scheduler import AnalysisTaskScheduler
 
 
 class TestAnalysisScheduling:
