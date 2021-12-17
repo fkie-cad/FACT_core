@@ -100,11 +100,6 @@ class AnalysisStatus:
         parent_uids = {fw_object.uid} if isinstance(fw_object, Firmware) else fw_object.parent_firmware_uids
         return set(self.currently_running.keys()).intersection(parent_uids)
 
-    def clear_recently_finished(self):
-        for uid, stats in list(self.recently_finished.items()):
-            if time() - stats['time_finished'] > RECENTLY_FINISHED_DISPLAY_TIME_IN_SEC:
-                self.recently_finished.pop(uid)
-
     def get_current_analyses_stats(self):
         return {
             uid: {
@@ -116,3 +111,12 @@ class AnalysisStatus:
             }
             for uid, stats_dict in self.currently_running.items()
         }
+
+    def clear_recently_finished(self):
+        try:
+            self.currently_running_lock.acquire()
+            for uid, stats in list(self.recently_finished.items()):
+                if time() - stats['time_finished'] > RECENTLY_FINISHED_DISPLAY_TIME_IN_SEC:
+                    self.recently_finished.pop(uid)
+        finally:
+            self.currently_running_lock.release()

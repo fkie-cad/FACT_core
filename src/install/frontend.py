@@ -7,7 +7,7 @@ import requests
 from common_helper_process import execute_shell_command_get_return_code
 
 from helperFunctions.install import (
-    InstallationError, OperateInDirectory, apt_install_packages, install_pip_packages, load_main_config, remove_folder,
+    InstallationError, OperateInDirectory, apt_install_packages, dnf_install_packages, install_pip_packages, load_main_config, remove_folder,
     run_cmd_with_logging
 )
 
@@ -72,10 +72,19 @@ def _create_directory_for_authentication():  # pylint: disable=invalid-name
         raise InstallationError('Error in creating directory for authentication database.\n{}'.format('\n'.join((mkdir_output, chown_output))))
 
 
-def _install_nginx():
-    apt_install_packages('nginx')
+def _install_nginx(distribution):
+    if distribution != 'fedora':
+        apt_install_packages('nginx')
+    else:
+        dnf_install_packages('nginx')
     _generate_and_install_certificate()
     _configure_nginx()
+    if distribution == 'fedora':
+        execute_commands_and_raise_on_return_code([
+            'sudo restorecon -v /etc/nginx/fact.*',
+            'sudo semanage fcontext -at httpd_log_t "/var/log/fact(/.*)?" || true',
+            'sudo restorecon -v -R /var/log/fact'
+        ], error='restore selinux context')
     nginx_output, nginx_code = execute_shell_command_get_return_code('sudo nginx -s reload')
     if nginx_code != 0:
         raise InstallationError('Failed to start nginx\n{}'.format(nginx_output))
@@ -96,7 +105,8 @@ def _configure_nginx():
     execute_commands_and_raise_on_return_code([
         'sudo cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak',
         'sudo rm /etc/nginx/nginx.conf',
-        '(cd ../config && sudo ln -s $PWD/nginx.conf /etc/nginx/nginx.conf)',
+        # copy is better on redhat to respect selinux context
+        '(cd ../config && sudo install -m 644 $PWD/nginx.conf /etc/nginx/nginx.conf)',
         '(sudo mkdir /etc/nginx/error || true)',
         '(cd ../web_interface/templates/ && sudo ln -s $PWD/maintenance.html /etc/nginx/error/maintenance.html) || true'
     ], error='configuring nginx')
@@ -160,7 +170,7 @@ def _install_docker_images(radare):
         raise InstallationError('Failed to pull pdf report container:\n{}'.format(output))
 
 
-def main(skip_docker, radare, nginx):
+def main(skip_docker, radare, nginx, distribution):
     # flask-security is not maintained anymore and replaced by flask-security-too.
     # Since python package naming conflicts are not resolved automatically, we remove flask-security manually.
     run_cmd_with_logging('sudo -EH pip3 uninstall -y flask-security')
@@ -173,7 +183,7 @@ def main(skip_docker, radare, nginx):
     _create_directory_for_authentication()
 
     if nginx:
-        _install_nginx()
+        _install_nginx(distribution)
 
     if not skip_docker:
         _install_docker_images(radare)

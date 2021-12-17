@@ -428,6 +428,9 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
 
     # ---- miscellaneous functions ----
 
+    def get_combined_analysis_workload(self):
+        return self.process_queue.qsize() + sum(plugin.in_queue.qsize() for plugin in self.analysis_plugins.values())
+
     def get_scheduled_workload(self) -> dict:
         '''
         Get the current workload of this scheduler. The workload is represented through

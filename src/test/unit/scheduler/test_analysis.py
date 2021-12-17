@@ -2,6 +2,7 @@
 import gc
 import os
 from multiprocessing import Queue
+from time import sleep
 from unittest import TestCase, mock
 
 import pytest
@@ -333,3 +334,28 @@ class TestAnalysisShouldReanalyse:
         self.scheduler.db_backend_service = self.BackendMock()
 
         assert self.scheduler._analysis_is_up_to_date(analysis_db_entry, plugin_mock, uid) == is_up_to_date
+
+
+class PluginMock:
+    def __init__(self, dependencies):
+        self.DEPENDENCIES = dependencies
+
+
+def test_combined_analysis_workload(monkeypatch):
+    monkeypatch.setattr(AnalysisScheduler, '__init__', lambda *_: None)
+    scheduler = AnalysisScheduler()
+
+    scheduler.analysis_plugins = {}
+    dummy_plugin = scheduler.analysis_plugins['dummy_plugin'] = PluginMock([])
+    dummy_plugin.in_queue = Queue()  # pylint: disable=attribute-defined-outside-init
+    scheduler.process_queue = Queue()
+    try:
+        assert scheduler.get_combined_analysis_workload() == 0
+        scheduler.process_queue.put({})
+        for _ in range(2):
+            dummy_plugin.in_queue.put({})
+        assert scheduler.get_combined_analysis_workload() == 3
+    finally:
+        sleep(0.1)  # let the queue finish internally to not cause "Broken pipe"
+        scheduler.process_queue.close()
+        dummy_plugin.in_queue.close()
