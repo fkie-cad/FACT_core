@@ -78,7 +78,7 @@ class CompareScheduler:
                 self.compare_module.compare(convert_compare_id_to_list(compare_id))
             )
         except Exception:  # pylint: disable=broad-except
-            logging.error('Fatal error in compare process', exc_info=True)
+            logging.error(f'Fatal error in compare process for {compare_id}', exc_info=True)
 
     @staticmethod
     def _decide_whether_to_process(uid, redo, compares_done):
