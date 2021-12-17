@@ -25,7 +25,7 @@ def extract_data_from_ghidra(input_file_data: bytes, key_strings: List[str], pat
         (tmp_dir_path / KEY_FILE).write_text(json.dumps(key_strings))
         ghidra_input_file.write_bytes(input_file_data)
         with suppress(DockerException, TimeoutError):
-            docker_output, _ = run_docker_container(
+            run_docker_container(
                 DOCKER_IMAGE,
                 logging_label='FSR',
                 timeout=TIMEOUT,
@@ -33,7 +33,6 @@ def extract_data_from_ghidra(input_file_data: bytes, key_strings: List[str], pat
                     Mount(CONTAINER_TARGET_PATH, tmp_dir, type='bind'),
                 ],
             )
-            logging.debug(docker_output)
 
         try:
             output_file = (tmp_dir_path / DOCKER_OUTPUT_FILE).read_text()
