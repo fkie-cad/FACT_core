@@ -137,7 +137,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
     def start_analysis_of_object(self, fo: FileObject):
         '''
         This function is used to start analysis of a firmware object. The function registers the firmware with the
-        status module such that the progress of the firmware and its included files are tracked.
+        status module such that the progress of the firmware and its included files is tracked.
 
         :param fo: The firmware that is to be analyzed
         '''
@@ -147,8 +147,8 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
 
     def update_analysis_of_single_object(self, fo: FileObject):
         '''
-        This function is used to add analysis tasks for a single file. This function has no side effects but processing
-        the object until all scheduled analyses are processed or skipped.
+        This function is used to add analysis tasks for a single file. This function has no side effects so the object
+        is simply iterated until all scheduled analyses are processed or skipped.
 
         :param fo: The file that is to be analyzed
         '''
