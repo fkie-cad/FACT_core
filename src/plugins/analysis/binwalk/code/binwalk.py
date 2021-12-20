@@ -1,6 +1,9 @@
 import logging
+import re
 import string
 from pathlib import Path
+from shlex import split
+from subprocess import check_output
 from tempfile import TemporaryDirectory
 from typing import List
 
@@ -32,8 +35,14 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 result['signature_analysis'] = signature_analysis_result
                 result['summary'] = list(set(self._extract_summary(signature_analysis_result)))
             except FileNotFoundError:
-                result = {'failed': f'Binwalk analysis failed:\n{signature_analysis_result}'}
-                logging.error(f'Binwalk analysis on {file_object.uid} failed:\n{signature_analysis_result}')
+                result = {'failed': 'Binwalk analysis failed'}
+                pip_output = check_output(split('pip3 show binwalk'))
+                location = Path(re.findall(b'Location: ([^\n]+)', pip_output)[0].decode()).parent
+                ls_output = check_output(f'ls -a {location} {location}/binw*', shell=True)
+                logging.error(f'Binwalk analysis on {file_object.uid} failed:\n'
+                              f'{pip_output=}\n'
+                              f'{signature_analysis_result=}\n'
+                              f'{ls_output=}')
 
         file_object.processed_analysis[self.NAME] = result
         return file_object
