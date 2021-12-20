@@ -1,3 +1,4 @@
+# pylint: disable=wrong-import-order,protected-access,no-self-use,unused-argument
 import gc
 import unittest
 
@@ -14,7 +15,7 @@ def no_compare_views(monkeypatch):
     monkeypatch.setattr(CompareBasePlugin, '_sync_view', value=lambda s, p: None)
 
 
-class MockDbInterface(object):
+class MockDbInterface:
 
     def __init__(self):
         self.fw = create_test_firmware()
@@ -26,13 +27,15 @@ class MockDbInterface(object):
     def get_object(self, uid, analysis_filter=None):
         if uid == self.fw.uid:
             return self.fw
-        elif uid == 'error':
+        if uid == 'error':
             return None
-        else:
-            return self.fo
+        return self.fo
 
     def get_ssdeep_hash(self, uid):
         return ''
+
+    def get_complete_object_including_all_summaries(self, uid):
+        return self.get_object(uid)
 
 
 class TestCompare(unittest.TestCase):
@@ -57,8 +60,8 @@ class TestCompare(unittest.TestCase):
         self.assertIsInstance(result['plugins'], dict, 'plugins part is not a dict')
 
     def test_compare_error_none_existing_fo(self):
-        result = self.compare_system.compare(['error'])
-        self.assertIsInstance(result, Exception, 'result has wrong type')
+        with pytest.raises(AttributeError):
+            self.compare_system.compare(['error'])
 
     def test_create_general_section_dict(self):
         result = self.compare_system._create_general_section_dict([self.fw_one, self.fw_two])

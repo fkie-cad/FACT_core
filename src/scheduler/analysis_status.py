@@ -100,6 +100,18 @@ class AnalysisStatus:
         parent_uids = {fw_object.uid} if isinstance(fw_object, Firmware) else fw_object.parent_firmware_uids
         return set(self.currently_running.keys()).intersection(parent_uids)
 
+    def get_current_analyses_stats(self):
+        return {
+            uid: {
+                'unpacked_count': stats_dict['unpacked_files_count'],
+                'analyzed_count': stats_dict['analyzed_files_count'],
+                'start_time': stats_dict['start_time'],
+                'total_count': stats_dict['total_files_count'],
+                'hid': stats_dict['hid'],
+            }
+            for uid, stats_dict in self.currently_running.items()
+        }
+
     def clear_recently_finished(self):
         try:
             self.currently_running_lock.acquire()
