@@ -1,0 +1,46 @@
+from typing import List, Optional
+
+from test.common_helper import create_test_file_object, create_test_firmware
+
+TEST_FO = create_test_file_object()
+TEST_FO_2 = create_test_file_object(bin_path='get_files_test/testfile2')
+TEST_FW = create_test_firmware()
+
+
+def generate_analysis_entry(
+    plugin_version: str = '1.0',
+    analysis_date: float = 0.0,
+    summary: Optional[List[str]] = None,
+    tags: Optional[dict] = None,
+    analysis_result: Optional[dict] = None,
+):
+    return {
+        'plugin_version': plugin_version,
+        'analysis_date': analysis_date,
+        'summary': summary or [],
+        'tags': tags or {},
+        **(analysis_result or {})
+    }
+
+
+def create_fw_with_child_fo():
+    fo = create_test_file_object()
+    fw = create_test_firmware()
+    fo.parents.append(fw.uid)
+    fo.parent_firmware_uids.add(fw.uid)
+    fw.files_included.add(fo.uid)
+    fw.virtual_file_path = {fw.uid: [f'|{fw.uid}|']}
+    fo.virtual_file_path = {fw.uid: [f'|{fw.uid}|/folder/{fo.file_name}']}
+    return fo, fw
+
+
+def create_fw_with_parent_and_child():
+    # fw -> parent_fo -> child_fo
+    parent_fo, fw = create_fw_with_child_fo()
+    child_fo = create_test_file_object()
+    child_fo.uid = 'test_uid'
+    parent_fo.files_included.add(child_fo.uid)
+    child_fo.parents.append(parent_fo.uid)
+    child_fo.parent_firmware_uids.add(fw.uid)
+    child_fo.virtual_file_path = {fw.uid: [f'|{fw.uid}|{parent_fo.uid}|/folder/{child_fo.file_name}']}
+    return fw, parent_fo, child_fo
