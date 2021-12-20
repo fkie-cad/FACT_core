@@ -26,7 +26,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     NAME = 'elf_analysis'
     DESCRIPTION = 'Analyzes and tags ELF executables and libraries'
     DEPENDENCIES = ['file_type']
-    VERSION = '0.3.2'
+    VERSION = '0.3.3'
     MIME_WHITELIST = ['application/x-executable', 'application/x-pie-executable', 'application/x-object', 'application/x-sharedlib']
 
     def __init__(self, plugin_administrator, config=None, recursive=True, offline_testing=False):
@@ -39,8 +39,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             file_object.processed_analysis[self.NAME] = {'Output': elf_dict}
             self.create_tags(parsed_binary, file_object)
             file_object.processed_analysis[self.NAME]['summary'] = list(elf_dict.keys())
-
-        except RuntimeError:
+        except (RuntimeError, ValueError):
             logging.error(f'lief could not parse {file_object.uid}', exc_info=True)
             file_object.processed_analysis[self.NAME] = {'failed': 'lief could not parse the file'}
         return file_object
