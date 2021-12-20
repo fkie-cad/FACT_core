@@ -1,13 +1,14 @@
-# pylint: disable=protected-access,invalid-name,wrong-import-order
+# pylint: disable=protected-access,invalid-name,wrong-import-order,use-implicit-booleaness-not-comparison
 import gc
 import os
-from multiprocessing import Manager, Queue
+from multiprocessing import Queue
+from time import sleep
 from unittest import TestCase, mock
 
 import pytest
 
 from objects.firmware import Firmware
-from scheduler.Analysis import MANDATORY_PLUGINS, AnalysisScheduler
+from scheduler.analysis import MANDATORY_PLUGINS, AnalysisScheduler
 from test.common_helper import DatabaseMock, MockFileObject, fake_exit, get_config_for_testing, get_test_data_dir
 from test.mock import mock_patch, mock_spy
 
@@ -99,7 +100,7 @@ class TestScheduleInitialAnalysis(AnalysisSchedulerTest):
         test_fw.scheduled_analysis = ['unknown_plugin']
 
         with mock_spy(self.sched, '_start_or_skip_analysis') as spy:
-            self.sched.process_next_analysis(test_fw)
+            self.sched._process_next_analysis_task(test_fw)
             assert not spy.was_called(), 'unknown plugin should simply be skipped'
 
     def test_skip_analysis_because_whitelist(self):
@@ -132,7 +133,7 @@ class TestAnalysisSchedulerBlacklist:
 
     @classmethod
     def setup_class(cls):
-        cls.init_patch = mock.patch(target='scheduler.Analysis.AnalysisScheduler.__init__', new=lambda *_: None)
+        cls.init_patch = mock.patch(target='scheduler.analysis.AnalysisScheduler.__init__', new=lambda *_: None)
         cls.init_patch.start()
         cls.sched = AnalysisScheduler()
         cls.sched.analysis_plugins = {}
@@ -221,118 +222,6 @@ class TestAnalysisSchedulerBlacklist:
         self.sched.config.set('test_plugin', 'mime_blacklist', 'type1, type2')
 
 
-class UtilityBase:
-
-    class PluginMock:
-        def __init__(self, dependencies):
-            self.DEPENDENCIES = dependencies
-
-    @classmethod
-    def setup_class(cls):
-        cls.init_patch = mock.patch(target='scheduler.Analysis.AnalysisScheduler.__init__', new=lambda *_: None)
-        cls.init_patch.start()
-        cls.scheduler = AnalysisScheduler()
-        cls.scheduler.currently_running_lock = Manager().Lock()  # pylint: disable=no-member
-        cls.plugin_list = ['no_deps', 'foo', 'bar']
-        cls.init_patch.stop()
-
-    def _add_plugins(self):
-        self.scheduler.analysis_plugins = {
-            'no_deps': self.PluginMock(dependencies=[]),
-            'foo': self.PluginMock(dependencies=['no_deps']),
-            'bar': self.PluginMock(dependencies=['no_deps', 'foo'])
-        }
-
-    def _add_plugins_with_recursive_dependencies(self):
-        self.scheduler.analysis_plugins = {
-            'p1': self.PluginMock(['p2', 'p3']),
-            'p2': self.PluginMock(['p3']),
-            'p3': self.PluginMock([]),
-            'p4': self.PluginMock(['p5']),
-            'p5': self.PluginMock(['p6']),
-            'p6': self.PluginMock([])
-        }
-
-
-class TestUtilityFunctions(UtilityBase):
-    @pytest.mark.parametrize('input_data, expected_output', [
-        (set(), set()),
-        ({'p1'}, {'p2', 'p3'}),
-        ({'p3'}, set()),
-        ({'p1', 'p2', 'p3', 'p4'}, {'p5'}),
-    ])
-    def test_get_cumulative_remaining_dependencies(self, input_data, expected_output):
-        self._add_plugins_with_recursive_dependencies()
-        result = self.scheduler._get_cumulative_remaining_dependencies(input_data)
-        assert result == expected_output
-
-    @pytest.mark.parametrize('input_data, expected_output', [
-        ([], set()),
-        (['p3'], {'p3'}),
-        (['p1'], {'p1', 'p2', 'p3'}),
-        (['p4'], {'p4', 'p5', 'p6'}),
-    ])
-    def test_add_dependencies_recursively(self, input_data, expected_output):
-        self._add_plugins_with_recursive_dependencies()
-        result = self.scheduler._add_dependencies_recursively(input_data)
-        assert set(result) == expected_output
-
-    @pytest.mark.parametrize('remaining, scheduled, expected_output', [
-        ({}, [], []),
-        ({'no_deps', 'foo', 'bar'}, [], ['no_deps']),
-        ({'foo', 'bar'}, ['no_deps'], ['foo']),
-        ({'bar'}, ['no_deps', 'foo'], ['bar']),
-    ])
-    def test_get_plugins_with_met_dependencies(self, remaining, scheduled, expected_output):
-        self._add_plugins()
-        assert self.scheduler._get_plugins_with_met_dependencies(remaining, scheduled) == expected_output
-
-    @pytest.mark.parametrize('remaining, scheduled, expected_output', [
-        ({'bar'}, ['no_deps', 'foo'], {'bar'}),
-        ({'foo', 'bar'}, ['no_deps', 'foo'], {'foo', 'bar'}),
-    ])
-    def test_get_plugins_with_met_dependencies__completed_analyses(self, remaining, scheduled, expected_output):
-        self._add_plugins()
-        assert set(self.scheduler._get_plugins_with_met_dependencies(remaining, scheduled)) == expected_output
-
-    def test_reschedule_failed_analysis_task(self):
-        task = Firmware(binary='foo')
-        error_message = 'There was an exception'
-        task.analysis_exception = ('foo', error_message)
-        task.scheduled_analysis = ['no_deps', 'bar']
-        task.processed_analysis['foo'] = {'error': 1}
-        self._add_plugins()
-        self.scheduler._reschedule_failed_analysis_task(task)
-
-        assert 'foo' in task.processed_analysis
-        assert task.processed_analysis['foo'] == {'failed': error_message}
-        assert 'bar' not in task.scheduled_analysis
-        assert 'bar' in task.processed_analysis
-        assert task.processed_analysis['bar'] == {'failed': 'Analysis of dependency foo failed'}
-        assert 'no_deps' in task.scheduled_analysis
-
-    def test_smart_shuffle(self):
-        self._add_plugins()
-        result = self.scheduler._smart_shuffle(self.plugin_list)
-        assert result == ['bar', 'foo', 'no_deps']
-
-    def test_smart_shuffle__impossible_dependency(self):
-        self._add_plugins()
-        self.scheduler.analysis_plugins['impossible'] = self.PluginMock(dependencies=['impossible to meet'])
-        result = self.scheduler._smart_shuffle(self.plugin_list + ['impossible'])
-        assert 'impossible' not in result
-        assert result == ['bar', 'foo', 'no_deps']
-
-    def test_smart_shuffle__circle_dependency(self):
-        self.scheduler.analysis_plugins = {
-            'p1': self.PluginMock(['p2']),
-            'p2': self.PluginMock(['p3']),
-            'p3': self.PluginMock(['p1']),
-        }
-        result = self.scheduler._smart_shuffle(['p1', 'p2', 'p3'])
-        assert result == []
-
-
 class TestAnalysisSkipping:
 
     class PluginMock:
@@ -356,7 +245,7 @@ class TestAnalysisSkipping:
 
     @classmethod
     def setup_class(cls):
-        cls.init_patch = mock.patch(target='scheduler.Analysis.AnalysisScheduler.__init__', new=lambda *_: None)
+        cls.init_patch = mock.patch(target='scheduler.analysis.AnalysisScheduler.__init__', new=lambda *_: None)
         cls.init_patch.start()
 
         cls.scheduler = AnalysisScheduler()
@@ -418,7 +307,7 @@ class TestAnalysisShouldReanalyse:
 
     @classmethod
     def setup_class(cls):
-        cls.init_patch = mock.patch(target='scheduler.Analysis.AnalysisScheduler.__init__', new=lambda *_: None)
+        cls.init_patch = mock.patch(target='scheduler.analysis.AnalysisScheduler.__init__', new=lambda *_: None)
         cls.init_patch.start()
         cls.scheduler = AnalysisScheduler()
         cls.init_patch.stop()
@@ -432,12 +321,12 @@ class TestAnalysisShouldReanalyse:
             # pylint: disable=unused-argument
             if plugin_name == 'plugin_root':
                 return plugin_root_date
-            elif plugin_name == 'plugin_dep':
+            if plugin_name == 'plugin_dep':
                 return plugin_dep_date
 
             assert False
 
-        monkeypatch.setattr('scheduler.Analysis._get_analysis_date', _get_analysis_date_mock)
+        monkeypatch.setattr('scheduler.analysis._get_analysis_date', _get_analysis_date_mock)
         uid = 'DONT_CARE'
         analysis_db_entry = {'plugin_version': '1.0'}
         plugin_mock = self.PluginMock()
@@ -445,3 +334,28 @@ class TestAnalysisShouldReanalyse:
         self.scheduler.db_backend_service = self.BackendMock()
 
         assert self.scheduler._analysis_is_up_to_date(analysis_db_entry, plugin_mock, uid) == is_up_to_date
+
+
+class PluginMock:
+    def __init__(self, dependencies):
+        self.DEPENDENCIES = dependencies
+
+
+def test_combined_analysis_workload(monkeypatch):
+    monkeypatch.setattr(AnalysisScheduler, '__init__', lambda *_: None)
+    scheduler = AnalysisScheduler()
+
+    scheduler.analysis_plugins = {}
+    dummy_plugin = scheduler.analysis_plugins['dummy_plugin'] = PluginMock([])
+    dummy_plugin.in_queue = Queue()  # pylint: disable=attribute-defined-outside-init
+    scheduler.process_queue = Queue()
+    try:
+        assert scheduler.get_combined_analysis_workload() == 0
+        scheduler.process_queue.put({})
+        for _ in range(2):
+            dummy_plugin.in_queue.put({})
+        assert scheduler.get_combined_analysis_workload() == 3
+    finally:
+        sleep(0.1)  # let the queue finish internally to not cause "Broken pipe"
+        scheduler.process_queue.close()
+        dummy_plugin.in_queue.close()

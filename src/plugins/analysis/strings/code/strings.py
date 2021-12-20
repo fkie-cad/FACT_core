@@ -2,6 +2,7 @@ import re
 from typing import List, Pattern, Tuple
 
 from analysis.PluginBase import AnalysisBasePlugin
+from plugins.mime_blacklists import MIME_BLACKLIST_COMPRESSED
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
@@ -10,7 +11,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     '''
     NAME = 'printable_strings'
     DEPENDENCIES = []
-    MIME_BLACKLIST = ['application/gzip', 'application/gzip', 'application/x-7z-compressed', 'application/x-tar', 'application/x-xz', 'application/zip']
+    MIME_BLACKLIST = MIME_BLACKLIST_COMPRESSED
     DESCRIPTION = 'extracts strings and their offsets from the files consisting of printable characters'
     VERSION = '0.3.4'
 

@@ -41,8 +41,11 @@ def main(distribution):  # pylint: disable=too-many-statements
 
     if not is_virtualenv():
         install_pip()
-    else:
+    elif distribution != 'fedora':
         run_cmd_with_logging('pip install -U pip setuptools wheel')
+    else:
+        # on fedora, extra setuptools will break some system tools like selinux ones
+        run_cmd_with_logging('pip install -U pip wheel')
     install_pip_packages(PIP_DEPENDENCIES)
 
     # VarietyJS (is executed by update_statistic.py)

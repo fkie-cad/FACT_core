@@ -14,6 +14,7 @@ from pyxdameraulevenshtein import damerau_levenshtein_distance as distance  # py
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.tag import TagColor
 from objects.file import FileObject
+from plugins.mime_blacklists import MIME_BLACKLIST_NON_EXECUTABLE
 
 try:
     from ..internal.database_interface import QUERIES, DatabaseInterface
@@ -41,7 +42,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     '''
     NAME = 'cve_lookup'
     DESCRIPTION = 'lookup CVE vulnerabilities'
-    MIME_BLACKLIST = ['audio', 'filesystem', 'image', 'video']
+    MIME_BLACKLIST = MIME_BLACKLIST_NON_EXECUTABLE
     DEPENDENCIES = ['software_components']
     VERSION = '0.0.4'
 
@@ -64,7 +65,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def _create_summary(self, cve_results: Dict[str, Dict[str, Dict[str, str]]]) -> List[str]:
         return list({
-            software if not self._software_has_critical_cve(entry) else '{} (CRITICAL)'.format(software)
+            software if not self._software_has_critical_cve(entry) else f'{software} (CRITICAL)'
             for software, entry in cve_results.items()
         })
 
@@ -101,7 +102,7 @@ def look_up_vulnerabilities(product_name: str, requested_version: str) -> Option
 
         matched_cpe = match_cpe(db, product_terms)
         if len(matched_cpe) == 0:
-            logging.debug('No CPEs were found for product {}'.format(product_name))
+            logging.debug(f'No CPEs were found for product {product_name}')
             return None
         try:
             matched_product = find_matching_cpe_product(matched_cpe, version)
@@ -155,13 +156,13 @@ def build_version_string(cve_entry: CveDbEntry) -> str:
         return unescape(cve_entry.version)
     result = 'version'
     if cve_entry.version_start_including:
-        result = '{} ≤ {}'.format(cve_entry.version_start_including, result)
+        result = f'{cve_entry.version_start_including} ≤ {result}'
     elif cve_entry.version_start_excluding:
-        result = '{} < {}'.format(cve_entry.version_start_excluding, result)
+        result = f'{cve_entry.version_start_excluding} < {result}'
     if cve_entry.version_end_including:
-        result = '{} ≤ {}'.format(result, cve_entry.version_end_including)
+        result = f'{result} ≤ {cve_entry.version_end_including}'
     elif cve_entry.version_end_excluding:
-        result = '{} < {}'.format(result, cve_entry.version_end_excluding)
+        result = f'{result} < {cve_entry.version_end_excluding}'
     return result
 
 

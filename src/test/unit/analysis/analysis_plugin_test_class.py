@@ -36,7 +36,7 @@ class AnalysisPluginTest(unittest.TestCase):
         config.add_section(self.PLUGIN_NAME)
         config.set(self.PLUGIN_NAME, 'threads', '1')
         config.add_section('ExpertSettings')
-        config.set('ExpertSettings', 'block_delay', '2')
+        config.set('ExpertSettings', 'block_delay', '0.1')
         config.add_section('data_storage')
         load_users_from_main_config(config)
         config.set('data_storage', 'mongo_server', 'localhost')

@@ -24,7 +24,7 @@ from analysis.PluginBase import PluginInitException
 from fact_base import FactBase
 from helperFunctions.process import complete_shutdown
 from intercom.back_end_binding import InterComBackEndBinding
-from scheduler.Analysis import AnalysisScheduler
+from scheduler.analysis import AnalysisScheduler
 from scheduler.Compare import CompareScheduler
 from scheduler.Unpacking import UnpackingScheduler
 
@@ -45,7 +45,7 @@ class FactBackend(FactBase):
         self.unpacking_service = UnpackingScheduler(
             config=self.config,
             post_unpack=self.analysis_service.start_analysis_of_object,
-            analysis_workload=self.analysis_service.get_scheduled_workload
+            analysis_workload=self.analysis_service.get_combined_analysis_workload
         )
         self.compare_service = CompareScheduler(config=self.config)
         self.intercom = InterComBackEndBinding(
