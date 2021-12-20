@@ -50,6 +50,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="modules/helperFunctions.html">helperFunctions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="modules/objects.html">objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules/scheduler.html">scheduler</a></li>
 <li class="toctree-l1"><a class="reference internal" href="modules/web_interface.html">web_interface</a></li>
 </ul>
 
@@ -118,6 +119,8 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="modules/scheduler.analysis.html#scheduler.analysis.AnalysisScheduler">AnalysisScheduler (class in scheduler.analysis)</a>
+</li>
       <li><a href="modules/helperFunctions.web_interface.html#helperFunctions.web_interface.apply_filters_to_query">apply_filters_to_query() (in module helperFunctions.web_interface)</a>
 </li>
       <li><a href="modules/helperFunctions.install.html#helperFunctions.install.apt_install_packages">apt_install_packages() (in module helperFunctions.install)</a>
@@ -157,6 +160,8 @@
       <li><a href="modules/helperFunctions.web_interface.html#helperFunctions.web_interface.cap_length_of_element">cap_length_of_element() (in module helperFunctions.web_interface)</a>
 </li>
       <li><a href="modules/helperFunctions.install.html#helperFunctions.install.check_distribution">check_distribution() (in module helperFunctions.install)</a>
+</li>
+      <li><a href="modules/scheduler.analysis.html#scheduler.analysis.AnalysisScheduler.check_exceptions">check_exceptions() (scheduler.analysis.AnalysisScheduler method)</a>
 </li>
       <li><a href="modules/helperFunctions.mongo_task_conversion.html#helperFunctions.mongo_task_conversion.check_for_errors">check_for_errors() (in module helperFunctions.mongo_task_conversion)</a>
 </li>
@@ -270,6 +275,8 @@
 </li>
       <li><a href="modules/helperFunctions.web_interface.html#helperFunctions.web_interface.get_color_list">get_color_list() (in module helperFunctions.web_interface)</a>
 </li>
+      <li><a href="modules/scheduler.analysis.html#scheduler.analysis.AnalysisScheduler.get_combined_analysis_workload">get_combined_analysis_workload() (scheduler.analysis.AnalysisScheduler method)</a>
+</li>
       <li><a href="modules/helperFunctions.config.html#helperFunctions.config.get_config_dir">get_config_dir() (in module helperFunctions.config)</a>
 </li>
       <li><a href="modules/web_interface.rest.helper.html#web_interface.rest.helper.get_current_gmt">get_current_gmt() (in module web_interface.rest.helper)</a>
@@ -294,6 +301,8 @@
 </li>
       <li><a href="modules/web_interface.rest.helper.html#web_interface.rest.helper.get_paging">get_paging() (in module web_interface.rest.helper)</a>
 </li>
+      <li><a href="modules/scheduler.analysis.html#scheduler.analysis.AnalysisScheduler.get_plugin_dict">get_plugin_dict() (scheduler.analysis.AnalysisScheduler method)</a>
+</li>
       <li><a href="modules/web_interface.rest.helper.html#web_interface.rest.helper.get_query">get_query() (in module web_interface.rest.helper)</a>
 </li>
       <li><a href="modules/helperFunctions.fileSystem.html#helperFunctions.fileSystem.get_relative_object_path">get_relative_object_path() (in module helperFunctions.fileSystem)</a>
@@ -301,6 +310,8 @@
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/objects.file.html#objects.file.FileObject.get_root_uid">get_root_uid() (objects.file.FileObject method)</a>
+</li>
+      <li><a href="modules/scheduler.analysis.html#scheduler.analysis.AnalysisScheduler.get_scheduled_workload">get_scheduled_workload() (scheduler.analysis.AnalysisScheduler method)</a>
 </li>
       <li><a href="modules/helperFunctions.hash.html#helperFunctions.hash.get_sha256">get_sha256() (in module helperFunctions.hash)</a>
 </li>
@@ -603,6 +614,8 @@
 </li>
         <li><a href="modules/objects.firmware.html#module-objects.firmware">objects.firmware</a>
 </li>
+        <li><a href="modules/scheduler.analysis.html#module-scheduler.analysis">scheduler.analysis</a>
+</li>
         <li><a href="modules/web_interface.rest.helper.html#module-web_interface.rest.helper">web_interface.rest.helper</a>
 </li>
       </ul></li>
@@ -686,12 +699,14 @@
         <li><a href="modules/helperFunctions.tag.html#helperFunctions.tag.TagColor.RED">(helperFunctions.tag.TagColor attribute)</a>
 </li>
       </ul></li>
-      <li><a href="modules/objects.firmware.html#objects.firmware.Firmware.release_date">release_date (objects.firmware.Firmware attribute)</a>
+      <li><a href="modules/scheduler.analysis.html#scheduler.analysis.AnalysisScheduler.register_plugin">register_plugin() (scheduler.analysis.AnalysisScheduler method)</a>
 </li>
-      <li><a href="modules/helperFunctions.compare_sets.html#helperFunctions.compare_sets.remove_duplicates_from_list">remove_duplicates_from_list() (in module helperFunctions.compare_sets)</a>
+      <li><a href="modules/objects.firmware.html#objects.firmware.Firmware.release_date">release_date (objects.firmware.Firmware attribute)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="modules/helperFunctions.compare_sets.html#helperFunctions.compare_sets.remove_duplicates_from_list">remove_duplicates_from_list() (in module helperFunctions.compare_sets)</a>
+</li>
       <li><a href="modules/helperFunctions.install.html#helperFunctions.install.remove_folder">remove_folder() (in module helperFunctions.install)</a>
 </li>
       <li><a href="modules/objects.firmware.html#objects.firmware.Firmware.remove_tag">remove_tag() (objects.firmware.Firmware method)</a>
@@ -712,6 +727,13 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/objects.file.html#objects.file.FileObject.scheduled_analysis">scheduled_analysis (objects.file.FileObject attribute)</a>
 </li>
+      <li>
+    scheduler.analysis
+
+      <ul>
+        <li><a href="modules/scheduler.analysis.html#module-scheduler.analysis">module</a>
+</li>
+      </ul></li>
       <li><a href="modules/objects.file.html#objects.file.FileObject.set_binary">set_binary() (objects.file.FileObject method)</a>
 
       <ul>
@@ -728,7 +750,11 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/helperFunctions.merge_generators.html#helperFunctions.merge_generators.shuffled">shuffled() (in module helperFunctions.merge_generators)</a>
 </li>
+      <li><a href="modules/scheduler.analysis.html#scheduler.analysis.AnalysisScheduler.shutdown">shutdown() (scheduler.analysis.AnalysisScheduler method)</a>
+</li>
       <li><a href="modules/objects.file.html#objects.file.FileObject.size">size (objects.file.FileObject attribute)</a>
+</li>
+      <li><a href="modules/scheduler.analysis.html#scheduler.analysis.AnalysisScheduler.start_analysis_of_object">start_analysis_of_object() (scheduler.analysis.AnalysisScheduler method)</a>
 </li>
       <li><a href="modules/helperFunctions.process.html#helperFunctions.process.start_single_worker">start_single_worker() (in module helperFunctions.process)</a>
 </li>
@@ -768,8 +794,12 @@
 </li>
       <li><a href="modules/helperFunctions.logging.html#helperFunctions.logging.TerminalColors.UNDERLINE">UNDERLINE (helperFunctions.logging.TerminalColors attribute)</a>
 </li>
+      <li><a href="modules/scheduler.analysis.html#scheduler.analysis.AnalysisScheduler.update_analysis_of_object_and_children">update_analysis_of_object_and_children() (scheduler.analysis.AnalysisScheduler method)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="modules/scheduler.analysis.html#scheduler.analysis.AnalysisScheduler.update_analysis_of_single_object">update_analysis_of_single_object() (scheduler.analysis.AnalysisScheduler method)</a>
+</li>
       <li><a href="modules/helperFunctions.object_storage.html#helperFunctions.object_storage.update_included_files">update_included_files() (in module helperFunctions.object_storage)</a>
 </li>
       <li><a href="modules/helperFunctions.object_storage.html#helperFunctions.object_storage.update_virtual_file_path">update_virtual_file_path() (in module helperFunctions.object_storage)</a>
