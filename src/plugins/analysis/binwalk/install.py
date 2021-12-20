@@ -23,8 +23,6 @@ class BinwalkInstaller(AbstractPluginInstaller):
     base_path = Path(__file__).resolve().parent
 
     def build(self):
-        # We need a version >=2.3.0 because of 1534001b96b8d543dcbb52845526326b61119f8c
-        # Ubuntu 20.04 is currently on 2.2.0
         url_binwalk = f'https://github.com/ReFirmLabs/binwalk/archive/refs/tags/v{BINWALK_VERSION}.tar.gz'
         dest_binwalk = f'binwalk-v{BINWALK_VERSION}.tar.gz'
         urllib.request.urlretrieve(url_binwalk, dest_binwalk)
@@ -32,18 +30,17 @@ class BinwalkInstaller(AbstractPluginInstaller):
         run_cmd_with_logging(f'tar -xf {dest_binwalk}')
 
         with OperateInDirectory(f'binwalk-{BINWALK_VERSION}'):
-            run_cmd_with_logging('python3 setup.py build')
             if is_virtualenv():
-                run_cmd_with_logging('python3 setup.py install')
+                run_cmd_with_logging('pip install -U .')
             else:
-                run_cmd_with_logging('sudo python3 setup.py install')
+                run_cmd_with_logging('sudo -EH pip3 install -U .')
 
 
 # Alias for generic use
 Installer = BinwalkInstaller
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
     distribution = check_distribution()
     installer = Installer(distribution)
     installer.install()
