@@ -27,7 +27,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     DESCRIPTION = 'Analyzes and tags ELF executables and libraries'
     DEPENDENCIES = ['file_type']
     VERSION = '0.3.2'
-    MIME_WHITELIST = ['application/x-executable', 'application/x-object', 'application/x-sharedlib']
+    MIME_WHITELIST = ['application/x-executable', 'application/x-pie-executable', 'application/x-object', 'application/x-sharedlib']
 
     def __init__(self, plugin_administrator, config=None, recursive=True, offline_testing=False):
         self.config = config
