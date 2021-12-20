@@ -16,19 +16,22 @@ except ImportError:
     from plugins.installer import AbstractPluginInstaller
 
 
+BINWALK_VERSION = '2.3.3'
+
+
 class BinwalkInstaller(AbstractPluginInstaller):
     base_path = Path(__file__).resolve().parent
 
     def build(self):
         # We need a version >=2.3.0 because of 1534001b96b8d543dcbb52845526326b61119f8c
         # Ubuntu 20.04 is currently on 2.2.0
-        url_binwalk = 'https://github.com/ReFirmLabs/binwalk/archive/refs/tags/v2.3.1.tar.gz'
-        dest_binwalk = 'binwalk-v2.3.1.tar.gz'
+        url_binwalk = f'https://github.com/ReFirmLabs/binwalk/archive/refs/tags/v{BINWALK_VERSION}.tar.gz'
+        dest_binwalk = f'binwalk-v{BINWALK_VERSION}.tar.gz'
         urllib.request.urlretrieve(url_binwalk, dest_binwalk)
 
         run_cmd_with_logging(f'tar -xf {dest_binwalk}')
 
-        with OperateInDirectory('binwalk-2.3.1'):
+        with OperateInDirectory(f'binwalk-{BINWALK_VERSION}'):
             run_cmd_with_logging('python3 setup.py build')
             if is_virtualenv():
                 run_cmd_with_logging('python3 setup.py install')
@@ -40,7 +43,7 @@ class BinwalkInstaller(AbstractPluginInstaller):
 Installer = BinwalkInstaller
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.DEBUG)
     distribution = check_distribution()
     installer = Installer(distribution)
     installer.install()
