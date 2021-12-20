@@ -5,12 +5,12 @@ import pytest
 
 try:
     from ..internal.helper_functions import (
-        replace_characters_and_wildcards, escape_special_characters, get_field_string, get_field_names
+        escape_special_characters, get_field_names, get_field_string, replace_characters_and_wildcards
     )
 except ImportError:
     sys.path.append(str(Path(__file__).parent.parent / 'internal'))
     from helper_functions import (
-        replace_characters_and_wildcards, escape_special_characters, get_field_string, get_field_names
+        escape_special_characters, get_field_names, get_field_string, replace_characters_and_wildcards
     )
 
 

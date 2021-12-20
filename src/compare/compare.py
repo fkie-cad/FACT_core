@@ -20,28 +20,25 @@ class Compare:
         self.config = config
         self.db_interface = db_interface
         self._setup_plugins()
-        logging.info('Plug-ins available: {}'.format(list(self.compare_plugins.keys())))
+        logging.info(f'Plug-ins available: {self.compare_plugins.keys()}')
 
     def compare(self, uid_list):
-        logging.info('Compare in progress: {}'.format(uid_list))
+        logging.info(f'Compare in progress: {uid_list}')
         bs = BinaryService(config=self.config)
 
         fo_list = []
         for uid in uid_list:
-            try:
-                fo = self.db_interface.get_complete_object_including_all_summaries(uid)
-                fo.binary = bs.get_binary_and_file_name(fo.uid)[0]
-                fo_list.append(fo)
-            except Exception as exception:
-                return exception
+            fo = self.db_interface.get_complete_object_including_all_summaries(uid)
+            fo.binary = bs.get_binary_and_file_name(fo.uid)[0]
+            fo_list.append(fo)
 
         return self.compare_objects(fo_list)
 
     def compare_objects(self, fo_list):
-        tmp = {}
-        tmp['general'] = self._create_general_section_dict(fo_list)
-        tmp['plugins'] = self._execute_compare_plugins(fo_list)
-        return tmp
+        return {
+            'general': self._create_general_section_dict(fo_list),
+            'plugins': self._execute_compare_plugins(fo_list)
+        }
 
     def _create_general_section_dict(self, object_list):
         general = {}
@@ -80,18 +77,17 @@ class Compare:
         for plugin_name in self.source.list_plugins():
             try:
                 plugin = self.source.load_plugin(plugin_name)
-            except Exception:
-                # For why this exception can occur see
-                # Analysis.AnalysisScheduler.load_plugins
+            except Exception:  # pylint: disable=broad-except
+                # For why this exception can occur see Analysis.AnalysisScheduler.load_plugins
                 logging.error(f'Could not import plugin {plugin_name} due to exception', exc_info=True)
             else:
                 plugin.ComparePlugin(self, config=self.config, db_interface=self.db_interface)
 
-    def register_plugin(self, name, c_plugin_instance):
-        self.compare_plugins[name] = c_plugin_instance
+    def register_plugin(self, name, compare_plugin_instance):
+        self.compare_plugins[name] = compare_plugin_instance
 
     def _execute_compare_plugins(self, fo_list):
-        plugin_results = {}
-        for plugin in self.compare_plugins:
-            plugin_results[plugin] = self.compare_plugins[plugin].compare(fo_list)
-        return plugin_results
+        return {
+            name: plugin.compare(fo_list)
+            for name, plugin in self.compare_plugins.items()
+        }

@@ -12,6 +12,7 @@ from helperFunctions.data_conversion import make_unicode_string
 from helperFunctions.tag import TagColor
 from objects.file import FileObject
 from plugins.analysis.software_components.bin import OS_LIST
+from plugins.mime_blacklists import MIME_BLACKLIST_NON_EXECUTABLE
 
 try:
     from ..internal.resolve_version_format_string import extract_data_from_ghidra
@@ -32,7 +33,7 @@ class AnalysisPlugin(YaraBasePlugin):
     '''
     NAME = 'software_components'
     DESCRIPTION = 'identify software components'
-    MIME_BLACKLIST = ['audio', 'filesystem', 'image', 'video']
+    MIME_BLACKLIST = MIME_BLACKLIST_NON_EXECUTABLE
     VERSION = '0.4.1'
 
     def __init__(self, plugin_administrator, config=None, recursive=True):

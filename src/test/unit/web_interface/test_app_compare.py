@@ -2,7 +2,7 @@ from flask import session
 
 from test.common_helper import TEST_FW, TEST_FW_2
 from test.unit.web_interface.base import WebInterfaceTest
-from web_interface.components.compare_routes import CompareRoutes, get_comparison_uid_list_from_session
+from web_interface.components.compare_routes import CompareRoutes, get_comparison_uid_dict_from_session
 
 
 class AppMock:
@@ -22,14 +22,14 @@ class TestAppCompare(WebInterfaceTest):
     def test_add_firmwares_to_compare__multiple(self):
         with self.test_client as tc:
             with tc.session_transaction() as test_session:
-                test_session['uids_for_comparison'] = [TEST_FW_2.uid]
+                test_session['uids_for_comparison'] = {TEST_FW_2.uid: None}
             rv = self.test_client.get('/comparison/add/{}'.format(TEST_FW.uid), follow_redirects=True)
             self.assertIn('Remove All', rv.data.decode())
 
     def test_start_compare(self):
         with self.test_client as tc:
             with tc.session_transaction() as test_session:
-                test_session['uids_for_comparison'] = [TEST_FW.uid, TEST_FW_2.uid]
+                test_session['uids_for_comparison'] = {TEST_FW.uid: None, TEST_FW_2.uid: None}
             compare_id = '{};{}'.format(TEST_FW.uid, TEST_FW_2.uid)
             rv = self.test_client.get('/compare', follow_redirects=True)
             assert b'Your compare task is in progress' in rv.data
@@ -39,7 +39,7 @@ class TestAppCompare(WebInterfaceTest):
     def test_start_compare__force(self):
         with self.test_client as tc:
             with tc.session_transaction() as test_session:
-                test_session['uids_for_comparison'] = [TEST_FW.uid, TEST_FW_2.uid]
+                test_session['uids_for_comparison'] = {TEST_FW.uid: None, TEST_FW_2.uid: None}
             compare_id = '{};{}'.format(TEST_FW.uid, TEST_FW_2.uid)
             rv = self.test_client.get('/compare?force_recompare=true', follow_redirects=True)
             assert b'Your compare task is in progress' in rv.data
@@ -55,14 +55,14 @@ class TestAppCompare(WebInterfaceTest):
         rv = self.test_client.get('/compare/{}'.format(compare_id), follow_redirects=True)
         assert b'General information' in rv.data
 
-    def test_get_comparison_uid_list_from_session(self):
+    def test_get_comparison_uid_list_dict_session(self):
         with self.frontend.app.test_request_context():
             assert 'uids_for_comparison' not in session
 
-            compare_list = get_comparison_uid_list_from_session()
+            compare_list = get_comparison_uid_dict_from_session()
             assert 'uids_for_comparison' in session
-            assert isinstance(session['uids_for_comparison'], list)
-            assert isinstance(compare_list, list)
+            assert isinstance(session['uids_for_comparison'], dict)
+            assert isinstance(compare_list, dict)
 
     def test_add_to_compare_basket(self):
         with self.frontend.app.test_request_context():
@@ -70,13 +70,13 @@ class TestAppCompare(WebInterfaceTest):
 
             CompareRoutes.add_to_compare_basket(self.frontend, 'test')
             assert 'uids_for_comparison' in session
-            assert isinstance(session['uids_for_comparison'], list)
+            assert isinstance(session['uids_for_comparison'], dict)
             assert 'test' in session['uids_for_comparison']
 
     def test_remove_from_compare_basket(self):
         with self.frontend.app.test_request_context():
-            session['uids_for_comparison'] = [TEST_FW.uid, TEST_FW_2.uid]
-            session.modified = True
+            CompareRoutes.add_to_compare_basket(self.frontend, TEST_FW.uid)
+            CompareRoutes.add_to_compare_basket(self.frontend, TEST_FW_2.uid)
             assert 'uids_for_comparison' in session
             assert TEST_FW.uid in session['uids_for_comparison']
             assert TEST_FW_2.uid in session['uids_for_comparison']

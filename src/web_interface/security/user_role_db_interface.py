@@ -1,5 +1,5 @@
 from flask_security import SQLAlchemyUserDatastore
-from flask_security.utils import verify_password, hash_password
+from flask_security.utils import hash_password, verify_password
 
 
 class UserRoleDbInterface(SQLAlchemyUserDatastore):

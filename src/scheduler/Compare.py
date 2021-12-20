@@ -48,7 +48,7 @@ class CompareScheduler:
             self.db_interface.check_objects_exist(compare_id)
         except FactCompareException as exception:
             return exception.get_message()  # FIXME: return value gets ignored by backend intercom
-        logging.debug('Schedule for compare: {}'.format(compare_id))
+        logging.debug(f'Schedule for compare: {compare_id}')
         self.in_queue.put((compare_id, redo))
         return None
 
@@ -73,11 +73,12 @@ class CompareScheduler:
                     self.callback()
 
     def _process_compare(self, compare_id):
-        result = self.compare_module.compare(convert_compare_id_to_list(compare_id))
-        if isinstance(result, dict):
-            self.db_interface.add_compare_result(result)
-        else:
-            logging.error(result)
+        try:
+            self.db_interface.add_compare_result(
+                self.compare_module.compare(convert_compare_id_to_list(compare_id))
+            )
+        except Exception:  # pylint: disable=broad-except
+            logging.error(f'Fatal error in compare process for {compare_id}', exc_info=True)
 
     @staticmethod
     def _decide_whether_to_process(uid, redo, compares_done):

@@ -27,7 +27,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     NAME = 'input_vectors'
     DESCRIPTION = 'Determines possible input vectors of an ELF executable like stdin, network, or syscalls.'
     DEPENDENCIES = ['file_type']
-    VERSION = '0.1.1'
+    VERSION = '0.1.2'
     MIME_WHITELIST = ['application/x-executable', 'application/x-object', 'application/x-sharedlib']
 
     def __init__(self, plugin_administrator, config=None, recursive=True):
@@ -46,10 +46,10 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 )
                 file_object.processed_analysis[self.NAME] = loads(result)
             except ReadTimeout:
-                file_object.processed_analysis[self.NAME]['warning'] = 'Analysis timed out. It might not be complete.'
+                file_object.processed_analysis[self.NAME]['failed'] = 'Analysis timed out. It might not be complete.'
             except (DockerException, IOError):
-                file_object.processed_analysis[self.NAME]['warning'] = 'Analysis issues. It might not be complete.'
+                file_object.processed_analysis[self.NAME]['failed'] = 'Analysis issues. It might not be complete.'
             except JSONDecodeError:
-                logging.error('Could not decode JSON output: {}'.format(repr(result)))
+                logging.error('[input_vectors]: Could not decode JSON output:', exc_info=True)
 
             return file_object

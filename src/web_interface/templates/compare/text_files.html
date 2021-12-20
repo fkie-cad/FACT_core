@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% set active_page = "Database" %}
+
+
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='highlight.js/styles/github.min.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='web_css/diff2html.min.css') }}" />
+
+    <script type="text/javascript" src="{{ url_for('static', filename='web_js/diff2html-ui.min.js') }}"></script>
+    <style>
+        .d2h-files-diff {
+            padding: 2px 1px;
+        }
+    </style>
+{% endblock %}
+
+
+{% block body %}
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // This string is made safe by the python code rendering this template
+    const diffString =`{{ diffstr | safe }}`;
+    const targetElement = document.getElementById('diff-element');
+    const configuration = {
+        drawFileList: false,
+        matching: 'lines',
+        highlight: true,
+        fileContentToggle: false,
+        outputFormat: 'side-by-side'
+    };
+    const diff2htmlUi = new Diff2HtmlUI(targetElement, diffString, configuration);
+    diff2htmlUi.draw();
+    diff2htmlUi.highlightCode();
+
+    // We depend on internal naming schemes on diff2html here.
+    // So be aware that this might break. For now this is the simplest way to
+    // incorporate firmware information.
+    fileNameElement = targetElement.querySelector(".d2h-file-name")
+    fileNameElement.textContent += " | ({{ hid0 }}) vs ({{ hid1 }})"
+});
+</script>
+
+<div id="diff-element" class="mt-3"></div>
+
+{% endblock %}
