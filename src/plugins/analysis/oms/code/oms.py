@@ -34,8 +34,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         If you want to propagate results to parent objects store a list of strings 'summary' entry of your result dict
         '''
         result = self.oms.analyze_file(file_object.file_path)
-        logging.debug(result)
-        logging.debug(type(result))
+        logging.debug(f'malware_scanner result: {result}')
         file_object.processed_analysis[self.NAME] = result
         file_object.processed_analysis[self.NAME]['summary'] = self._get_summary(file_object.processed_analysis[self.NAME])
         return file_object
