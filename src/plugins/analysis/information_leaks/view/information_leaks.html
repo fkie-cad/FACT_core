@@ -1,0 +1,34 @@
+{% extends "analysis_plugins/general_information.html" %}
+
+{% block analysis_result_details %}
+
+<link type="text/css" href="src/web_interface/static/css/code_pre.css" rel="stylesheet">
+
+{% for key in firmware.processed_analysis[selected_analysis].keys() | sort %}
+    {% if key | is_not_mandatory_analysis_entry %}
+        <tr>
+            <td>
+                {{ key }}
+            </td>
+            <td class="m-0 p-0">
+                <div class="clickable pt-2 pl-3" data-toggle="collapse" data-target="#{{ key }}">
+                    <i class="fas fa-angle-down mb-2 pt-2"></i>
+                </div>
+
+                <div class="collapse w-100" id="{{ key }}">
+                    {% if firmware.processed_analysis[selected_analysis][key] | is_list %}
+                        {% for value in firmware.processed_analysis[selected_analysis][key] %}
+                             <ul>
+                                <li>{{ value }}</li>
+                             </ul>
+                        {% endfor %}
+                    {% else %}
+                        <pre class="information-leaks-pre">{{ firmware.processed_analysis[selected_analysis][key] }}</pre>
+                    {% endif %}
+                </div>
+            </td>
+        </tr>
+    {% endif %}
+{% endfor %}
+
+{% endblock %}

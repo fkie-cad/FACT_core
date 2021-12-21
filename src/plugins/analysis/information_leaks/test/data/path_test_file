@@ -1,0 +1,17 @@
+/home/user/test/urandom
+/home/user/urandom
+/home/%s/%s/some_file
+/proc/athversion
+/proc/simple_config/simple_config_led
+/sys/class/net/%s/brport/bridge
+/sys/class/net/%s/phy80211
+/sys/class/net/%s/phy80211/name
+/var/log/%s.log
+/var/www/tmp/me_
+/dev/urandom.
+/root/user_name/this_directory
+/proc/ath_pktlog/%s
+/proc/ath_pktlog/system
+/proc/sys/ath_pktlog/%s/enable
+/var/log/%s.log
+/usr/lua
