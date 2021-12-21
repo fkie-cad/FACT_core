@@ -2,14 +2,16 @@
 
 import pytest
 
-from storage_postgresql.db_interface_stats import StatsDbUpdater, StatsDbViewer
+from storage_postgresql.db_interface_stats import StatsDbViewer, StatsUpdateDbInterface
 from storage_postgresql.schema import FileObjectEntry, StatsEntry
-from test.common_helper import create_test_firmware  # pylint: disable=wrong-import-order
+from test.common_helper import create_test_file_object, create_test_firmware  # pylint: disable=wrong-import-order
+
+from .helper import create_fw_with_parent_and_child
 
 
 @pytest.fixture
 def stats_updater():
-    updater = StatsDbUpdater(database='fact_test2')
+    updater = StatsUpdateDbInterface(database='fact_test2')
     yield updater
 
 
@@ -76,8 +78,44 @@ def test_get_sum(db, stats_updater):
     fw2.size = 67
     db.backend.add_object(fw2)
 
-    result = stats_updater.get_sum(FileObjectEntry.size)
+    result = stats_updater.get_sum(FileObjectEntry.size, firmware=True)
     assert result == 100
+
+
+def test_get_included_sum(db, stats_updater):
+    fw, parent_fo, child_fo = create_fw_with_parent_and_child()
+    fw.size, parent_fo.size, child_fo.size = 1337, 25, 175
+    db.backend.add_object(fw)
+    db.backend.add_object(parent_fo)
+    db.backend.add_object(child_fo)
+
+    result = stats_updater.get_sum(FileObjectEntry.size, firmware=False)
+    assert result == 200
+
+
+def test_filtered_included_sum(db, stats_updater):
+    fw, parent_fo, child_fo = create_fw_with_parent_and_child()
+    fw.size, parent_fo.size, child_fo.size = 1337, 17, 13
+    fw.vendor = 'foo'
+    db.backend.add_object(fw)
+    db.backend.add_object(parent_fo)
+    db.backend.add_object(child_fo)
+
+    # add another FW to check that the filter works
+    fo2 = create_test_file_object()
+    fw2 = create_test_firmware()
+    fw2.uid, fo2.uid = 'other fw uid', 'other fo uid'
+    fw2.vendor = 'other vendor'
+    fo2.parents.append(fw2.uid)
+    fo2.parent_firmware_uids.add(fw2.uid)
+    fw2.size, fo2.size = 69, 70
+    db.backend.add_object(fw2)
+    db.backend.add_object(fo2)
+
+    assert stats_updater.get_sum(FileObjectEntry.size, firmware=False) == 100
+    assert stats_updater.get_sum(FileObjectEntry.size, filter_={'vendor': fw.vendor}, firmware=False) == 30
+    assert stats_updater.get_sum(FileObjectEntry.size, filter_={'vendor': fw2.vendor}, firmware=False) == 70
+    assert stats_updater.get_sum(FileObjectEntry.size, filter_={'vendor': fw.vendor}, firmware=True) == 1337
 
 
 def test_get_avg(db, stats_updater):
@@ -90,5 +128,5 @@ def test_get_avg(db, stats_updater):
     fw2.size = 67
     db.backend.add_object(fw2)
 
-    result = stats_updater.get_avg(FileObjectEntry.size)
+    result = stats_updater.get_avg(FileObjectEntry.size, firmware=True)
     assert round(result) == 50

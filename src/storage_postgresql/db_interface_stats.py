@@ -5,13 +5,15 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import InstrumentedAttribute
 
 from storage_postgresql.db_interface_common import DbInterface, ReadWriteDbInterface
-from storage_postgresql.schema import StatsEntry
+from storage_postgresql.schema import FileObjectEntry, FirmwareEntry, StatsEntry
+
+Number = Union[float, int]
 
 
-class StatsDbUpdater(ReadWriteDbInterface):
-    '''
+class StatsUpdateDbInterface(ReadWriteDbInterface):
+    """
     Statistic module backend interface
-    '''
+    """
 
     def update_statistic(self, identifier: str, content_dict: dict):
         logging.debug(f'Updating {identifier} statistics')
@@ -23,24 +25,44 @@ class StatsDbUpdater(ReadWriteDbInterface):
             else:  # there was an entry -> update stats data
                 entry.data = content_dict
 
-    def get_sum(self, field: InstrumentedAttribute, filter_: Optional[dict] = None) -> Union[float, int]:
-        return self._get_aggregate(field, filter_, func.sum)
+    def get_count(self, field: InstrumentedAttribute, filter_: Optional[dict] = None, firmware: bool = False) -> Number:
+        return self._get_aggregate(field, func.count, filter_, firmware) or 0
 
-    def get_avg(self, field: InstrumentedAttribute, filter_: Optional[dict] = None) -> float:
-        return self._get_aggregate(field, filter_, func.avg)
+    def get_sum(self, field: InstrumentedAttribute, filter_: Optional[dict] = None, firmware: bool = False) -> Number:
+        return self._get_aggregate(field, func.sum, filter_, firmware) or 0
 
-    def _get_aggregate(self, field: InstrumentedAttribute, filter_: Optional[dict], function: Callable) -> Any:
+    def get_avg(self, field: InstrumentedAttribute, filter_: Optional[dict] = None, firmware: bool = False) -> float:
+        return self._get_aggregate(field, func.avg, filter_, firmware) or 0.0
+
+    def _get_aggregate(
+        self,
+        field: InstrumentedAttribute,
+        aggregation_function: Callable,
+        query_filter: Optional[dict] = None,
+        firmware: bool = False
+    ) -> Any:
+        """
+        :param field: The field that is aggregated (e.g. `FileObjectEntry.size`)
+        :param aggregation_function: The aggregation function (e.g. `func.sum`)
+        :param query_filter: Optional filters (e.g. `{"device_class": "Router"}`)
+        :param firmware: If `True`, Firmware entries are queried. Else, the included FileObject entries are queried.
+        :return: The aggregation result. The result will be `None` if no matches were found.
+        """
         with self.get_read_only_session() as session:
-            query = select(function(field))
-            if filter_:
-                query = query.filter_by(**filter_)
+            query = select(aggregation_function(field))
+            if firmware:
+                query = query.join(FirmwareEntry, FileObjectEntry.uid == FirmwareEntry.uid)
+            else:  # query all included files instead of firmware
+                query = query.join(FirmwareEntry, FileObjectEntry.root_firmware.any(uid=FirmwareEntry.uid))
+            if query_filter:
+                query = query.filter_by(**query_filter)
             return session.execute(query).scalar()
 
 
 class StatsDbViewer(DbInterface):
-    '''
+    """
     Statistic module frontend interface
-    '''
+    """
 
     def get_statistic(self, identifier) -> Optional[dict]:
         with self.get_read_only_session() as session:
