@@ -1,4 +1,5 @@
 import re
+from itertools import chain
 
 from analysis.PluginBase import AnalysisBasePlugin
 from objects.file import FileObject
@@ -81,7 +82,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         else:
             self._find_regex(file_object, file_object.binary, PATH_REGEX)
             file_object.processed_analysis[self.NAME]['summary'] = sorted(
-                file_object.processed_analysis[self.NAME].values())
+                chain(*file_object.processed_analysis[self.NAME].values()))
         return file_object
 
     def _find_artifacts(self, file_object: FileObject):

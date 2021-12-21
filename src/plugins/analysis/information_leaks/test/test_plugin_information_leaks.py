@@ -34,7 +34,9 @@ class TestAnalysisPluginInformationLeaks(AnalysisPluginTest):
         assert fo.processed_analysis[self.PLUGIN_NAME]['root_path'] == ['/root/user_name/this_directory']
 
         assert 'summary' in fo.processed_analysis[self.PLUGIN_NAME]
-        assert fo.processed_analysis[self.PLUGIN_NAME]['summary'] == [['/home/user/test/urandom', '/home/user/urandom'], ['/root/user_name/this_directory'], ['/var/www/tmp/me_']]
+        assert fo.processed_analysis[self.PLUGIN_NAME]['summary'] == [
+            '/home/user/test/urandom', '/home/user/urandom', '/root/user_name/this_directory', '/var/www/tmp/me_'
+        ]
 
     def test_find_artifacts(self):
         fo = MockFileObject()
