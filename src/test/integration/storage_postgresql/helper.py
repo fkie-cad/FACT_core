@@ -44,3 +44,20 @@ def create_fw_with_parent_and_child():
     child_fo.parent_firmware_uids.add(fw.uid)
     child_fo.virtual_file_path = {fw.uid: [f'|{fw.uid}|{parent_fo.uid}|/folder/{child_fo.file_name}']}
     return fw, parent_fo, child_fo
+
+
+def insert_test_fw(db, uid, file_name='test.zip', device_class='class', vendor='vendor', device_name='name', version='1.0'):
+    test_fw = create_test_firmware(device_class=device_class, vendor=vendor, device_name=device_name, version=version)
+    test_fw.uid = uid
+    test_fw.file_name = file_name
+    db.backend.insert_object(test_fw)
+
+
+def insert_test_fo(db, uid, file_name='test.zip', size=1, analysis: Optional[dict] = None):
+    test_fo = create_test_file_object()
+    test_fo.uid = uid
+    test_fo.file_name = file_name
+    test_fo.size = size
+    if analysis:
+        test_fo.processed_analysis = analysis
+    db.backend.insert_object(test_fo)

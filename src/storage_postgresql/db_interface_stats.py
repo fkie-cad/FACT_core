@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Callable, List, Optional, Union
+from typing import Any, Callable, List, Optional, Tuple, Union
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import InstrumentedAttribute
@@ -57,6 +57,40 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
             if query_filter:
                 query = query.filter_by(**query_filter)
             return session.execute(query).scalar()
+
+    def count_distinct_values(self, key: InstrumentedAttribute, additional_filter=None) -> List[Tuple[int, str]]:
+        """
+        Get a list of tuples with all unique values of a column `key` and the count of occurrences.
+        E.g. key=FileObjectEntry.file_name, result: [('some.other.file', 2), ('some.file', 1)]
+        :param key: `Table.column`
+        :param additional_filter: Additional query filter (e.g. `AnalysisEntry.plugin == 'file_type'`)
+        :return: list of unique values with their count
+        """
+        with self.get_read_only_session() as session:
+            query = select(key, func.count(key))
+            if additional_filter is not None:
+                query = query.filter(additional_filter)
+            return sorted(session.execute(query.filter(key.isnot(None)).group_by(key)), key=lambda e: (e[1], e[0]))
+
+    def count_distinct_values_in_array(self, key: InstrumentedAttribute, additional_filter=None) -> List[Tuple[int, str]]:
+        """
+        Get a list of tuples with all unique values of an array stored under `key` and the count of occurrences.
+        :param key: `Table.column['array']`
+        :param additional_filter: Additional query filter (e.g. `AnalysisEntry.plugin == 'file_type'`)
+        :return: list of unique values with their count
+        """
+        with self.get_read_only_session() as session:
+            # jsonb_array_elements() works somewhat like $unwind in MongoDB
+            query = (
+                select(
+                    func.jsonb_array_elements(key).label('array_elements'),
+                    func.count('array_elements')
+                )
+                .group_by('array_elements')
+            )
+            if additional_filter is not None:
+                query = query.filter(additional_filter)
+            return list(session.execute(query))
 
 
 class StatsDbViewer(DbInterface):

@@ -3,10 +3,10 @@
 import pytest
 
 from storage_postgresql.db_interface_stats import StatsDbViewer, StatsUpdateDbInterface
-from storage_postgresql.schema import FileObjectEntry, StatsEntry
+from storage_postgresql.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry, StatsEntry
 from test.common_helper import create_test_file_object, create_test_firmware  # pylint: disable=wrong-import-order
 
-from .helper import create_fw_with_parent_and_child
+from .helper import create_fw_with_parent_and_child, generate_analysis_entry, insert_test_fo, insert_test_fw
 
 
 @pytest.fixture
@@ -130,3 +130,43 @@ def test_get_avg(db, stats_updater):
 
     result = stats_updater.get_avg(FileObjectEntry.size, firmware=True)
     assert round(result) == 50
+
+
+def test_count_distinct_values(db, stats_updater):
+    insert_test_fw(db, 'fw1', device_class='class', vendor='vendor_1', device_name='device_1')
+    insert_test_fw(db, 'fw2', device_class='class', vendor='vendor_2', device_name='device_2')
+    insert_test_fw(db, 'fw3', device_class='class', vendor='vendor_1', device_name='device_3')
+
+    assert stats_updater.count_distinct_values(FirmwareEntry.device_class) == [('class', 3)]
+    assert stats_updater.count_distinct_values(FirmwareEntry.vendor) == [('vendor_2', 1), ('vendor_1', 2)], 'sorted wrongly'
+    assert sorted(stats_updater.count_distinct_values(FirmwareEntry.device_name)) == [
+        ('device_1', 1), ('device_2', 1), ('device_3', 1)
+    ]
+
+
+@pytest.mark.parametrize('filter_, expected_result', [
+    (None, [('value2', 1), ('value1', 2)]),
+    (AnalysisEntry.plugin == 'foo', [('value1', 1), ('value2', 1)]),
+    (AnalysisEntry.plugin == 'bar', [('value1', 1)]),
+    (AnalysisEntry.plugin == 'no result', []),
+])
+def test_count_distinct_analysis(db, stats_updater, filter_, expected_result):
+    insert_test_fo(db, 'fo1', analysis={'foo': generate_analysis_entry(analysis_result={'key': 'value1'})})
+    insert_test_fo(db, 'fo2', analysis={'bar': generate_analysis_entry(analysis_result={'key': 'value1'})})
+    insert_test_fo(db, 'fo3', analysis={'foo': generate_analysis_entry(analysis_result={'key': 'value2'})})
+
+    result = stats_updater.count_distinct_values(AnalysisEntry.result['key'], additional_filter=filter_)
+    assert result == expected_result
+
+
+@pytest.mark.parametrize('filter_, expected_result', [
+    (None, [('value1', 2), ('value2', 1)]),
+    (AnalysisEntry.plugin == 'foo', [('value1', 1)]),
+    (AnalysisEntry.plugin == 'no result', []),
+])
+def test_count_distinct_array(db, stats_updater, filter_, expected_result):
+    insert_test_fo(db, 'fo1', analysis={'foo': generate_analysis_entry(analysis_result={'key': ['value1']})})
+    insert_test_fo(db, 'fo2', analysis={'bar': generate_analysis_entry(analysis_result={'key': ['value1', 'value2']})})
+
+    result = stats_updater.count_distinct_values_in_array(AnalysisEntry.result['key'], additional_filter=filter_)
+    assert result == expected_result

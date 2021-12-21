@@ -1,19 +1,20 @@
-from typing import Optional
-
 import pytest
 
 from test.common_helper import create_test_file_object, create_test_firmware  # pylint: disable=wrong-import-order
 from web_interface.file_tree.file_tree_node import FileTreeNode
 
-from .helper import TEST_FO, TEST_FW, create_fw_with_child_fo, create_fw_with_parent_and_child, generate_analysis_entry
+from .helper import (
+    TEST_FO, TEST_FW, create_fw_with_child_fo, create_fw_with_parent_and_child, generate_analysis_entry, insert_test_fo,
+    insert_test_fw
+)
 
 DUMMY_RESULT = generate_analysis_entry(analysis_result={'key': 'result'})
 
 
 def test_get_last_added_firmwares(db):
-    _insert_test_fw(db, 'fw1')
-    _insert_test_fw(db, 'fw2')
-    _insert_test_fw(db, 'fw3')
+    insert_test_fw(db, 'fw1')
+    insert_test_fw(db, 'fw2')
+    insert_test_fw(db, 'fw3')
     fw4 = create_test_firmware()
     fw4.uid = 'fw4'
     fw4.processed_analysis['unpacker'] = {'plugin_used': 'foobar', 'plugin_version': '1', 'analysis_date': 0}
@@ -70,24 +71,24 @@ def test_get_data_for_nice_list(db):
 
 
 def test_get_device_class_list(db):
-    _insert_test_fw(db, 'fw1', device_class='class1')
-    _insert_test_fw(db, 'fw2', device_class='class2')
-    _insert_test_fw(db, 'fw3', device_class='class2')
+    insert_test_fw(db, 'fw1', device_class='class1')
+    insert_test_fw(db, 'fw2', device_class='class2')
+    insert_test_fw(db, 'fw3', device_class='class2')
     assert db.frontend.get_device_class_list() == ['class1', 'class2']
 
 
 def test_get_vendor_list(db):
-    _insert_test_fw(db, 'fw1', vendor='vendor1')
-    _insert_test_fw(db, 'fw2', vendor='vendor2')
-    _insert_test_fw(db, 'fw3', vendor='vendor2')
+    insert_test_fw(db, 'fw1', vendor='vendor1')
+    insert_test_fw(db, 'fw2', vendor='vendor2')
+    insert_test_fw(db, 'fw3', vendor='vendor2')
     assert db.frontend.get_vendor_list() == ['vendor1', 'vendor2']
 
 
 def test_get_device_name_dict(db):
-    _insert_test_fw(db, 'fw1', vendor='vendor1', device_class='class1', device_name='name1')
-    _insert_test_fw(db, 'fw2', vendor='vendor1', device_class='class1', device_name='name2')
-    _insert_test_fw(db, 'fw3', vendor='vendor1', device_class='class2', device_name='name1')
-    _insert_test_fw(db, 'fw4', vendor='vendor2', device_class='class1', device_name='name1')
+    insert_test_fw(db, 'fw1', vendor='vendor1', device_class='class1', device_name='name1')
+    insert_test_fw(db, 'fw2', vendor='vendor1', device_class='class1', device_name='name2')
+    insert_test_fw(db, 'fw3', vendor='vendor1', device_class='class2', device_name='name1')
+    insert_test_fw(db, 'fw4', vendor='vendor2', device_class='class1', device_name='name1')
     assert db.frontend.get_device_name_dict() == {
         'class1': {'vendor1': ['name1', 'name2'], 'vendor2': ['name1']},
         'class2': {'vendor1': ['name1']}
@@ -95,7 +96,7 @@ def test_get_device_name_dict(db):
 
 
 def test_generic_search_fo(db):
-    _insert_test_fw(db, 'uid_1')
+    insert_test_fw(db, 'uid_1')
     result = db.frontend.generic_search({'file_name': 'test.zip'})
     assert result == ['uid_1']
 
@@ -106,7 +107,7 @@ def test_generic_search_fo(db):
     ({'vendor': 'different_vendor'}, []),
 ])
 def test_generic_search_fw(db, query, expected):
-    _insert_test_fw(db, 'uid_1', vendor='test_vendor')
+    insert_test_fw(db, 'uid_1', vendor='test_vendor')
     assert db.frontend.generic_search(query) == expected
 
 
@@ -119,7 +120,7 @@ def test_generic_search_parent(db):
     db.backend.insert_object(fo)
 
     # insert some unrelated objects to assure non-matching objects are not found
-    _insert_test_fw(db, 'some_other_fw', vendor='foo123')
+    insert_test_fw(db, 'some_other_fw', vendor='foo123')
     fo2 = create_test_file_object()
     fo2.uid = 'some_other_fo'
     db.backend.insert_object(fo2)
@@ -137,17 +138,17 @@ def test_inverted_search(db):
     fo.file_name = 'foo.bar'
     db.backend.insert_object(fw)
     db.backend.insert_object(fo)
-    _insert_test_fw(db, 'some_other_fw')
+    insert_test_fw(db, 'some_other_fw')
 
     assert db.frontend.generic_search({'file_name': 'foo.bar'}, only_fo_parent_firmware=True) == [fw.uid]
     assert db.frontend.generic_search({'file_name': 'foo.bar'}, only_fo_parent_firmware=True, inverted=True) == ['some_other_fw']
 
 
 def test_search_limit_skip_and_order(db):
-    _insert_test_fw(db, 'uid_1', device_class='foo', vendor='v1', device_name='n2', file_name='f1')
-    _insert_test_fw(db, 'uid_2', device_class='foo', vendor='v1', device_name='n3', file_name='f2')
-    _insert_test_fw(db, 'uid_3', device_class='foo', vendor='v1', device_name='n1', file_name='f3')
-    _insert_test_fw(db, 'uid_4', device_class='foo', vendor='v2', device_name='n1', file_name='f4')
+    insert_test_fw(db, 'uid_1', device_class='foo', vendor='v1', device_name='n2', file_name='f1')
+    insert_test_fw(db, 'uid_2', device_class='foo', vendor='v1', device_name='n3', file_name='f2')
+    insert_test_fw(db, 'uid_3', device_class='foo', vendor='v1', device_name='n1', file_name='f3')
+    insert_test_fw(db, 'uid_4', device_class='foo', vendor='v2', device_name='n1', file_name='f4')
 
     expected_result_fw = ['uid_3', 'uid_1', 'uid_2', 'uid_4']
     result = db.frontend.generic_search({})
@@ -165,17 +166,17 @@ def test_search_limit_skip_and_order(db):
 
 
 def test_search_analysis_result(db):
-    _insert_test_fw(db, 'uid_1')
-    _insert_test_fw(db, 'uid_2')
+    insert_test_fw(db, 'uid_1')
+    insert_test_fw(db, 'uid_2')
     db.backend.add_analysis('uid_2', 'test_plugin', generate_analysis_entry(analysis_result={'foo': 'bar'}))
     result = db.frontend.generic_search({'processed_analysis.test_plugin.foo': 'bar'})
     assert result == ['uid_2']
 
 
 def test_get_other_versions(db):
-    _insert_test_fw(db, 'uid_1', version='1.0')
-    _insert_test_fw(db, 'uid_2', version='2.0')
-    _insert_test_fw(db, 'uid_3', version='3.0')
+    insert_test_fw(db, 'uid_1', version='1.0')
+    insert_test_fw(db, 'uid_2', version='2.0')
+    insert_test_fw(db, 'uid_3', version='3.0')
     fw1 = db.frontend.get_object('uid_1')
     result = db.frontend.get_other_versions_of_firmware(fw1)
     assert result == [('uid_2', '2.0'), ('uid_3', '3.0')]
@@ -243,9 +244,9 @@ def test_get_number_of_total_matches(db, query, expected, expected_fw, expected_
 
 
 def test_rest_get_file_object_uids(db):
-    _insert_test_fo(db, 'fo1', 'file_name_1', size=10)
-    _insert_test_fo(db, 'fo2', size=10)
-    _insert_test_fo(db, 'fo3', size=11)
+    insert_test_fo(db, 'fo1', 'file_name_1', size=10)
+    insert_test_fo(db, 'fo2', size=10)
+    insert_test_fo(db, 'fo3', size=11)
 
     assert sorted(db.frontend.rest_get_file_object_uids(offset=None, limit=None)) == ['fo1', 'fo2', 'fo3']
     assert db.frontend.rest_get_file_object_uids(offset=1, limit=1) == ['fo2']
@@ -259,8 +260,8 @@ def test_rest_get_firmware_uids(db):
     child_fo.file_name = 'foo_file'
     db.backend.add_object(parent_fw)
     db.backend.add_object(child_fo)
-    _insert_test_fw(db, 'fw1', vendor='foo_vendor')
-    _insert_test_fw(db, 'fw2', vendor='foo_vendor')
+    insert_test_fw(db, 'fw1', vendor='foo_vendor')
+    insert_test_fw(db, 'fw2', vendor='foo_vendor')
 
     assert sorted(db.frontend.rest_get_firmware_uids(offset=None, limit=None)) == [parent_fw.uid, 'fw1', 'fw2']
     assert db.frontend.rest_get_firmware_uids(offset=1, limit=1) == ['fw1']
@@ -286,24 +287,7 @@ def test_find_missing_analyses(db):
 
 def test_find_failed_analyses(db):
     failed_result = generate_analysis_entry(analysis_result={'failed': 'it failed'})
-    _insert_test_fo(db, 'fo1', analysis={'plugin1': DUMMY_RESULT, 'plugin2': failed_result})
-    _insert_test_fo(db, 'fo2', analysis={'plugin1': failed_result, 'plugin2': failed_result})
+    insert_test_fo(db, 'fo1', analysis={'plugin1': DUMMY_RESULT, 'plugin2': failed_result})
+    insert_test_fo(db, 'fo2', analysis={'plugin1': failed_result, 'plugin2': failed_result})
 
     assert db.frontend.find_failed_analyses() == {'plugin1': {'fo2'}, 'plugin2': {'fo1', 'fo2'}}
-
-
-def _insert_test_fw(db, uid, file_name='test.zip', device_class='class', vendor='vendor', device_name='name', version='1.0'):
-    test_fw = create_test_firmware(device_class=device_class, vendor=vendor, device_name=device_name, version=version)
-    test_fw.uid = uid
-    test_fw.file_name = file_name
-    db.backend.insert_object(test_fw)
-
-
-def _insert_test_fo(db, uid, file_name='test.zip', size=1, analysis: Optional[dict] = None):
-    test_fo = create_test_file_object()
-    test_fo.uid = uid
-    test_fo.file_name = file_name
-    test_fo.size = size
-    if analysis:
-        test_fo.processed_analysis = analysis
-    db.backend.insert_object(test_fo)
