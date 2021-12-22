@@ -1,7 +1,9 @@
 import logging
 from typing import Set
 
-from sqlalchemy import Boolean, Column, Date, Float, ForeignKey, Integer, PrimaryKeyConstraint, Table, event, select
+from sqlalchemy import (
+    Boolean, Column, Date, Float, ForeignKey, Integer, LargeBinary, PrimaryKeyConstraint, Table, event, select
+)
 from sqlalchemy.dialects.postgresql import ARRAY, CHAR, JSONB, VARCHAR
 from sqlalchemy.orm import Session, backref, declarative_base, relationship
 
@@ -145,15 +147,22 @@ class StatsEntry(Base):
     __tablename__ = 'stats'
 
     name = Column(VARCHAR, primary_key=True)
-    data = Column(JSONB)
+    data = Column(JSONB, nullable=False)
 
 
 class SearchCacheEntry(Base):
     __tablename__ = 'search_cache'
 
     uid = Column(UID, primary_key=True)
-    data = Column(VARCHAR)
-    title = Column(VARCHAR)
+    data = Column(VARCHAR, nullable=False)
+    title = Column(VARCHAR, nullable=False)
+
+
+class WebInterfaceTemplateEntry(Base):
+    __tablename__ = 'templates'
+
+    plugin = Column(VARCHAR, primary_key=True)
+    template = Column(LargeBinary, nullable=False)
 
 
 @event.listens_for(Session, 'persistent_to_deleted')
