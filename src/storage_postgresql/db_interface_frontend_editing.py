@@ -1,7 +1,7 @@
 from typing import Optional
 
 from helperFunctions.uid import create_uid
-from storage_postgresql.db_interface_common import ReadWriteDbInterface
+from storage_postgresql.db_interface_base import ReadWriteDbInterface
 from storage_postgresql.schema import FileObjectEntry, SearchCacheEntry
 
 

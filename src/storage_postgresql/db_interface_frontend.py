@@ -8,7 +8,7 @@ from helperFunctions.tag import TagColor
 from helperFunctions.virtual_file_path import get_top_of_virtual_path
 from objects.file import FileObject
 from objects.firmware import Firmware
-from storage_postgresql.db_interface_common import DbInterface
+from storage_postgresql.db_interface_common import DbInterfaceCommon
 from storage_postgresql.query_conversion import build_generic_search_query, query_parent_firmware
 from storage_postgresql.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry, SearchCacheEntry
 from web_interface.file_tree.file_tree import VirtualPathFileTree
@@ -17,7 +17,7 @@ from web_interface.file_tree.file_tree_node import FileTreeNode
 MetaEntry = NamedTuple('MetaEntry', [('uid', str), ('hid', str), ('tags', dict), ('submission_date', int)])
 
 
-class FrontEndDbInterface(DbInterface):
+class FrontEndDbInterface(DbInterfaceCommon):
 
     def get_last_added_firmwares(self, limit: int = 10) -> List[MetaEntry]:
         with self.get_read_only_session() as session:

@@ -3,14 +3,14 @@ import pytest
 from objects.file import FileObject
 from storage_postgresql.db_interface_admin import AdminDbInterface
 from storage_postgresql.db_interface_backend import BackendDbInterface
-from storage_postgresql.db_interface_common import DbInterface
+from storage_postgresql.db_interface_common import DbInterfaceCommon
 from storage_postgresql.db_interface_frontend import FrontEndDbInterface
 from storage_postgresql.db_interface_frontend_editing import FrontendEditingDbInterface
 
 
 class DB:
     def __init__(
-        self, common: DbInterface, backend: BackendDbInterface, frontend: FrontEndDbInterface,
+        self, common: DbInterfaceCommon, backend: BackendDbInterface, frontend: FrontEndDbInterface,
         frontend_editing: FrontendEditingDbInterface
     ):
         self.common = common
@@ -21,7 +21,7 @@ class DB:
 
 @pytest.fixture(scope='package')
 def db_interface():
-    common = DbInterface(database='fact_test2')
+    common = DbInterfaceCommon(database='fact_test2')
     backend = BackendDbInterface(database='fact_test2')
     frontend = FrontEndDbInterface(database='fact_test2')
     frontend_ed = FrontendEditingDbInterface(database='fact_test2')

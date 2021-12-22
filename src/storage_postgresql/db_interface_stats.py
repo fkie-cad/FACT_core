@@ -4,7 +4,7 @@ from typing import Any, Callable, List, Optional, Tuple, Union
 from sqlalchemy import func, select
 from sqlalchemy.orm import InstrumentedAttribute
 
-from storage_postgresql.db_interface_common import DbInterface, ReadWriteDbInterface
+from storage_postgresql.db_interface_base import ReadOnlyDbInterface, ReadWriteDbInterface
 from storage_postgresql.schema import FileObjectEntry, FirmwareEntry, StatsEntry
 
 Number = Union[float, int]
@@ -93,7 +93,7 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
             return list(session.execute(query))
 
 
-class StatsDbViewer(DbInterface):
+class StatsDbViewer(ReadOnlyDbInterface):
     """
     Statistic module frontend interface
     """

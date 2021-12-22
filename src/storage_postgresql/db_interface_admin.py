@@ -1,11 +1,12 @@
 import logging
 from typing import Tuple
 
-from storage_postgresql.db_interface_common import ReadWriteDbInterface
+from storage_postgresql.db_interface_base import ReadWriteDbInterface
+from storage_postgresql.db_interface_common import DbInterfaceCommon
 from storage_postgresql.schema import FileObjectEntry
 
 
-class AdminDbInterface(ReadWriteDbInterface):
+class AdminDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
 
     def __init__(self, database='fact_db', config=None, intercom=None):
         super().__init__(database=database)

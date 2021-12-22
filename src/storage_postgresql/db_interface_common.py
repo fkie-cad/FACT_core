@@ -1,18 +1,17 @@
 import logging
-from contextlib import contextmanager
 from typing import Dict, List, Optional, Set, Union
 
-from sqlalchemy import create_engine, func, select
+from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.orm import Session
 from sqlalchemy.orm.exc import NoResultFound
 
 from objects.file import FileObject
 from objects.firmware import Firmware
+from storage_postgresql.db_interface_base import ReadOnlyDbInterface
 from storage_postgresql.entry_conversion import file_object_from_entry, firmware_from_entry
 from storage_postgresql.query_conversion import build_query_from_dict
-from storage_postgresql.schema import AnalysisEntry, Base, FileObjectEntry, FirmwareEntry, fw_files_table
+from storage_postgresql.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry, fw_files_table
 from storage_postgresql.tags import append_unique_tag
 
 PLUGINS_WITH_TAG_PROPAGATION = [  # FIXME This should be inferred in a sensible way. This is not possible yet.
@@ -23,25 +22,7 @@ PLUGINS_WITH_TAG_PROPAGATION = [  # FIXME This should be inferred in a sensible 
 Summary = Dict[str, List[str]]
 
 
-class DbInterfaceError(Exception):
-    pass
-
-
-class DbInterface:
-    def __init__(self, database='fact_db'):
-        self.engine = create_engine(f'postgresql:///{database}')
-        self.base = Base
-        self.base.metadata.create_all(self.engine)
-        self._session_maker = sessionmaker(bind=self.engine, future=True)  # future=True => sqlalchemy 2.0 support
-
-    @contextmanager
-    def get_read_only_session(self) -> Session:
-        session: Session = self._session_maker()
-        session.connection(execution_options={'postgresql_readonly': True, 'postgresql_deferrable': True})
-        try:
-            yield session
-        finally:
-            session.close()
+class DbInterfaceCommon(ReadOnlyDbInterface):
 
     def exists(self, uid: str) -> bool:
         with self.get_read_only_session() as session:
@@ -264,19 +245,3 @@ class DbInterface:
     def drop_unpacking_locks(self):
         # self.main.drop_collection('locks')
         pass  # ToDo FixMe?
-
-
-class ReadWriteDbInterface(DbInterface):
-
-    @contextmanager
-    def get_read_write_session(self) -> Session:
-        session = self._session_maker()
-        try:
-            yield session
-            session.commit()
-        except (SQLAlchemyError, DbInterfaceError) as err:
-            logging.error(f'Database error when trying to write to the Database: {err}', exc_info=True)
-            session.rollback()
-            raise
-        finally:
-            session.close()

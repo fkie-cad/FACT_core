@@ -5,14 +5,15 @@ from sqlalchemy.orm import Session
 
 from objects.file import FileObject
 from objects.firmware import Firmware
-from storage_postgresql.db_interface_common import DbInterfaceError, ReadWriteDbInterface
+from storage_postgresql.db_interface_base import DbInterfaceError, ReadWriteDbInterface
+from storage_postgresql.db_interface_common import DbInterfaceCommon
 from storage_postgresql.entry_conversion import (
     create_analysis_entries, create_file_object_entry, create_firmware_entry, get_analysis_without_meta
 )
 from storage_postgresql.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry
 
 
-class BackendDbInterface(ReadWriteDbInterface):
+class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
 
     # ===== Create / INSERT =====
 

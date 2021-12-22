@@ -5,7 +5,7 @@ from typing import Optional, Tuple
 from common_helper_files.fail_safe_file_operations import get_binary_from_file
 
 from storage.fsorganizer import FSOrganizer
-from storage_postgresql.db_interface_common import DbInterface
+from storage_postgresql.db_interface_base import ReadOnlyDbInterface
 from storage_postgresql.schema import FileObjectEntry
 from unpacker.tar_repack import TarRepack
 
@@ -48,7 +48,7 @@ class BinaryService:
         return tar, name
 
 
-class BinaryServiceDbInterface(DbInterface):
+class BinaryServiceDbInterface(ReadOnlyDbInterface):
 
     def get_file_name(self, uid: str) -> Optional[str]:
         with self.get_read_only_session() as session:
