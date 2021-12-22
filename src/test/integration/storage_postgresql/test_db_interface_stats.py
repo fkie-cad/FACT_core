@@ -4,20 +4,24 @@ import pytest
 
 from storage_postgresql.db_interface_stats import StatsDbViewer, StatsUpdateDbInterface
 from storage_postgresql.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry, StatsEntry
-from test.common_helper import create_test_file_object, create_test_firmware  # pylint: disable=wrong-import-order
+from test.common_helper import (  # pylint: disable=wrong-import-order
+    create_test_file_object, create_test_firmware, get_config_for_testing
+)
 
 from .helper import create_fw_with_parent_and_child, generate_analysis_entry, insert_test_fo, insert_test_fw
+
+TEST_CONFIG = get_config_for_testing()
 
 
 @pytest.fixture
 def stats_updater():
-    updater = StatsUpdateDbInterface(database='fact_test2')
+    updater = StatsUpdateDbInterface(TEST_CONFIG)
     yield updater
 
 
 @pytest.fixture
 def stats_viewer():
-    viewer = StatsDbViewer(database='fact_test2')
+    viewer = StatsDbViewer(TEST_CONFIG)
     yield viewer
 
 

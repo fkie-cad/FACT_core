@@ -5,12 +5,13 @@ import pytest
 
 from storage_postgresql.db_interface_comparison import ComparisonDbInterface
 from storage_postgresql.schema import ComparisonEntry
-from test.common_helper import create_test_firmware  # pylint: disable=wrong-import-order
+from test.common_helper import create_test_firmware, get_config_for_testing  # pylint: disable=wrong-import-order
 
 
 @pytest.fixture()
 def comp_db():
-    yield ComparisonDbInterface(database='fact_test2')
+    config = get_config_for_testing()
+    yield ComparisonDbInterface(config)
 
 
 def test_add_and_get_comparison_result(db, comp_db):

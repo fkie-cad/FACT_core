@@ -1,4 +1,5 @@
 import logging
+from configparser import ConfigParser
 from contextlib import contextmanager
 
 from sqlalchemy import create_engine
@@ -13,8 +14,13 @@ class DbInterfaceError(Exception):
 
 
 class ReadOnlyDbInterface:
-    def __init__(self, database='fact_db'):
-        self.engine = create_engine(f'postgresql:///{database}')
+    def __init__(self, config: ConfigParser):
+        address = config.get('data_storage', 'postgres_server')
+        port = config.get('data_storage', 'postgres_port')
+        database = config.get('data_storage', 'postgres_database')
+        user = config.get('data_storage', 'postgres_user')
+        password = config.get('data_storage', 'postgres_password')
+        self.engine = create_engine(f'postgresql://{user}:{password}@{address}:{port}/{database}')
         self.base = Base
         self.base.metadata.create_all(self.engine)
         self._session_maker = sessionmaker(bind=self.engine, future=True)  # future=True => sqlalchemy 2.0 support

@@ -6,6 +6,7 @@ from storage_postgresql.db_interface_backend import BackendDbInterface
 from storage_postgresql.db_interface_common import DbInterfaceCommon
 from storage_postgresql.db_interface_frontend import FrontEndDbInterface
 from storage_postgresql.db_interface_frontend_editing import FrontendEditingDbInterface
+from test.common_helper import get_config_for_testing  # pylint: disable=wrong-import-order
 
 
 class DB:
@@ -21,10 +22,11 @@ class DB:
 
 @pytest.fixture(scope='package')
 def db_interface():
-    common = DbInterfaceCommon(database='fact_test2')
-    backend = BackendDbInterface(database='fact_test2')
-    frontend = FrontEndDbInterface(database='fact_test2')
-    frontend_ed = FrontendEditingDbInterface(database='fact_test2')
+    config = get_config_for_testing()
+    common = DbInterfaceCommon(config)
+    backend = BackendDbInterface(config)
+    frontend = FrontEndDbInterface(config)
+    frontend_ed = FrontendEditingDbInterface(config)
     yield DB(common, backend, frontend, frontend_ed)
     common.base.metadata.drop_all(common.engine)  # delete test db tables
 
@@ -50,5 +52,6 @@ class MockIntercom:
 
 @pytest.fixture()
 def admin_db():
-    interface = AdminDbInterface(database='fact_test2', config=None, intercom=MockIntercom())
+    config = get_config_for_testing()
+    interface = AdminDbInterface(config=config, intercom=MockIntercom())
     yield interface

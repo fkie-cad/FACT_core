@@ -8,8 +8,8 @@ from storage_postgresql.schema import FileObjectEntry
 
 class AdminDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
 
-    def __init__(self, database='fact_db', config=None, intercom=None):
-        super().__init__(database=database)
+    def __init__(self, config=None, intercom=None):
+        super().__init__(config=config)
         if intercom is not None:  # for testing purposes
             self.intercom = intercom
         else:

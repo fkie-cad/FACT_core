@@ -500,6 +500,9 @@ def get_config_for_testing(temp_dir: Optional[Union[TemporaryDirectory, str]] = 
         config.set('data_storage', 'firmware_file_storage_directory', temp_dir)
         config.set('Logging', 'mongoDbLogFile', os.path.join(temp_dir, 'mongo.log'))
     config.set('ExpertSettings', 'radare2_host', 'localhost')
+    # -- postgres -- FixMe? --
+    config.set('data_storage', 'postgres_server', 'localhost')
+    config.set('data_storage', 'postgres_database', 'fact_test2')
     return config
 
 
@@ -509,6 +512,9 @@ def load_users_from_main_config(config: ConfigParser):
     config.set('data_storage', 'db_admin_pw', fact_config['data_storage']['db_admin_pw'])
     config.set('data_storage', 'db_readonly_user', fact_config['data_storage']['db_readonly_user'])
     config.set('data_storage', 'db_readonly_pw', fact_config['data_storage']['db_readonly_pw'])
+    # -- postgres -- FixMe? --
+    config.set('data_storage', 'postgres_user', fact_config.get('data_storage', 'postgres_user'))
+    config.set('data_storage', 'postgres_password', fact_config.get('data_storage', 'postgres_password'))
 
 
 def store_binary_on_file_system(tmp_dir: str, test_object: Union[FileObject, Firmware]):
