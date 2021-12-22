@@ -26,7 +26,7 @@ def create_data_graph_nodes_and_groups(data, whitelist):
 
             data_graph['nodes'].append(node)
 
-    data_graph['groups'] = groups
+    data_graph['groups'] = sorted(groups)
 
     return data_graph
 
