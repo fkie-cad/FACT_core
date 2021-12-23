@@ -80,4 +80,4 @@ def find_edges(data_graph, edge_id, lib, file_object):
 
 
 def get_graph_colors(quantity):
-    return get_color_list(quantity, quantity)
+    return get_color_list(quantity, quantity) if quantity > 0 else []
