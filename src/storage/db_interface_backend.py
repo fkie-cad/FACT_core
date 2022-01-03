@@ -42,7 +42,8 @@ class BackEndDbInterface(MongoInterfaceCommon):
             collection = self.firmwares
         else:
             update_dictionary.update({
-                'parent_firmware_uids': list(set.union(set(old_object['parent_firmware_uids']), new_object.parent_firmware_uids))
+                'parent_firmware_uids': list(set.union(set(old_object['parent_firmware_uids']), new_object.parent_firmware_uids)),
+                'parents': list(set.union(set(old_object['parents']), new_object.parents))
             })
             collection = self.file_objects
 
