@@ -86,6 +86,32 @@ def test_get_sum(db, stats_updater):
     assert result == 100
 
 
+def test_get_fw_count(db, stats_updater):
+    assert stats_updater.get_count(firmware=True) == 0
+
+    fw1 = create_test_firmware()
+    fw1.uid = 'fw1'
+    db.backend.add_object(fw1)
+
+    assert stats_updater.get_count(firmware=True) == 1
+
+    fw2 = create_test_firmware()
+    fw2.uid = 'fw2'
+    db.backend.add_object(fw2)
+
+    assert stats_updater.get_count(firmware=True) == 2
+
+
+def test_get_fo_count(db, stats_updater):
+    fw, parent_fo, child_fo = create_fw_with_parent_and_child()
+    db.backend.add_object(fw)
+    assert stats_updater.get_count(firmware=False) == 0
+    db.backend.add_object(parent_fo)
+    assert stats_updater.get_count(firmware=False) == 1
+    db.backend.add_object(child_fo)
+    assert stats_updater.get_count(firmware=False) == 2
+
+
 def test_get_included_sum(db, stats_updater):
     fw, parent_fo, child_fo = create_fw_with_parent_and_child()
     fw.size, parent_fo.size, child_fo.size = 1337, 25, 175

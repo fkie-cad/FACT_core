@@ -25,8 +25,8 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
             else:  # there was an entry -> update stats data
                 entry.data = content_dict
 
-    def get_count(self, field: InstrumentedAttribute, filter_: Optional[dict] = None, firmware: bool = False) -> Number:
-        return self._get_aggregate(field, func.count, filter_, firmware) or 0
+    def get_count(self, filter_: Optional[dict] = None, firmware: bool = False) -> Number:
+        return self._get_aggregate(FileObjectEntry.uid, func.count, filter_, firmware) or 0
 
     def get_sum(self, field: InstrumentedAttribute, filter_: Optional[dict] = None, firmware: bool = False) -> Number:
         return self._get_aggregate(field, func.sum, filter_, firmware) or 0
@@ -58,7 +58,7 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
                 query = query.filter_by(**query_filter)
             return session.execute(query).scalar()
 
-    def count_distinct_values(self, key: InstrumentedAttribute, additional_filter=None) -> List[Tuple[int, str]]:
+    def count_distinct_values(self, key: InstrumentedAttribute, additional_filter=None) -> List[Tuple[str, int]]:
         """
         Get a list of tuples with all unique values of a column `key` and the count of occurrences.
         E.g. key=FileObjectEntry.file_name, result: [('some.other.file', 2), ('some.file', 1)]
@@ -72,7 +72,7 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
                 query = query.filter(additional_filter)
             return sorted(session.execute(query.filter(key.isnot(None)).group_by(key)), key=lambda e: (e[1], e[0]))
 
-    def count_distinct_values_in_array(self, key: InstrumentedAttribute, additional_filter=None) -> List[Tuple[int, str]]:
+    def count_distinct_values_in_array(self, key: InstrumentedAttribute, additional_filter=None) -> List[Tuple[str, int]]:
         """
         Get a list of tuples with all unique values of an array stored under `key` and the count of occurrences.
         :param key: `Table.column['array']`
