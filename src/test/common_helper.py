@@ -502,6 +502,7 @@ def get_config_for_testing(temp_dir: Optional[Union[TemporaryDirectory, str]] = 
     config.set('ExpertSettings', 'radare2_host', 'localhost')
     # -- postgres -- FixMe? --
     config.set('data_storage', 'postgres_server', 'localhost')
+    config.set('data_storage', 'postgres_port', '5432')
     config.set('data_storage', 'postgres_database', 'fact_test2')
     return config
 

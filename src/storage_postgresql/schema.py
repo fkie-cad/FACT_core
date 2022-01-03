@@ -8,7 +8,6 @@ from sqlalchemy.dialects.postgresql import ARRAY, CHAR, JSONB, VARCHAR
 from sqlalchemy.orm import Session, backref, declarative_base, relationship
 
 Base = declarative_base()
-
 UID = VARCHAR(78)
 
 # primary_key=True implies `unique=True` and `nullable=False`
