@@ -5,9 +5,11 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import InstrumentedAttribute
 
 from storage_postgresql.db_interface_base import ReadOnlyDbInterface, ReadWriteDbInterface
-from storage_postgresql.schema import FileObjectEntry, FirmwareEntry, StatsEntry
+from storage_postgresql.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry, StatsEntry
 
 Number = Union[float, int]
+Stats = List[Tuple[str, int]]
+RelativeStats = List[Tuple[str, int, float]]  # stats with relative share as third element
 
 
 class StatsUpdateDbInterface(ReadWriteDbInterface):
@@ -54,27 +56,29 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
                 query = query.join(FirmwareEntry, FileObjectEntry.uid == FirmwareEntry.uid)
             else:  # query all included files instead of firmware
                 query = query.join(FirmwareEntry, FileObjectEntry.root_firmware.any(uid=FirmwareEntry.uid))
-            if query_filter:
+            if self._filter_is_not_empty(query_filter):
                 query = query.filter_by(**query_filter)
             return session.execute(query).scalar()
 
-    def count_distinct_values(self, key: InstrumentedAttribute, additional_filter=None) -> List[Tuple[str, int]]:
+    def count_distinct_values(self, key: InstrumentedAttribute, additional_filter=None) -> Stats:
         """
         Get a list of tuples with all unique values of a column `key` and the count of occurrences.
         E.g. key=FileObjectEntry.file_name, result: [('some.other.file', 2), ('some.file', 1)]
+
         :param key: `Table.column`
         :param additional_filter: Additional query filter (e.g. `AnalysisEntry.plugin == 'file_type'`)
         :return: list of unique values with their count
         """
         with self.get_read_only_session() as session:
             query = select(key, func.count(key))
-            if additional_filter is not None:
-                query = query.filter(additional_filter)
+            if self._filter_is_not_empty(additional_filter):
+                query = query.filter_by(**additional_filter)
             return sorted(session.execute(query.filter(key.isnot(None)).group_by(key)), key=lambda e: (e[1], e[0]))
 
-    def count_distinct_values_in_array(self, key: InstrumentedAttribute, additional_filter=None) -> List[Tuple[str, int]]:
+    def count_distinct_values_in_array(self, key: InstrumentedAttribute, additional_filter=None) -> Stats:
         """
         Get a list of tuples with all unique values of an array stored under `key` and the count of occurrences.
+
         :param key: `Table.column['array']`
         :param additional_filter: Additional query filter (e.g. `AnalysisEntry.plugin == 'file_type'`)
         :return: list of unique values with their count
@@ -88,9 +92,25 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
                 )
                 .group_by('array_elements')
             )
-            if additional_filter is not None:
+            if self._filter_is_not_empty(additional_filter):
                 query = query.filter(additional_filter)
             return list(session.execute(query))
+
+    def aggregate_summary(self, plugin: str, query_filter: Optional[dict] = None) -> List[str]:
+        """
+        Get all values from all FOs from summary of plugin `plugin` (incl. duplicates). Optional parameter
+        `query_filter` can be used to filter the results (e.g. only from FW with `device_class` "router").
+        """
+        with self.get_read_only_session() as session:
+            query = select(func.unnest(AnalysisEntry.summary)).filter_by(plugin=plugin)
+            if self._filter_is_not_empty(query_filter):
+                query = query.join(FirmwareEntry, AnalysisEntry.uid == FirmwareEntry.uid)
+                query = query.filter_by(**query_filter)
+            return list(session.execute(query).scalars())
+
+    @staticmethod
+    def _filter_is_not_empty(query_filter: Optional[dict]) -> bool:
+        return query_filter is not None and query_filter != {}
 
 
 class StatsDbViewer(ReadOnlyDbInterface):
