@@ -47,16 +47,16 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
 
     # ===== Read / SELECT =====
 
-    def get_object(self, uid: str) -> Optional[Union[FileObject, Firmware]]:
+    def get_object(self, uid: str, analysis_filter: Optional[List[str]] = None) -> Optional[Union[FileObject, Firmware]]:
         if self.is_firmware(uid):
-            return self.get_firmware(uid)
-        return self.get_file_object(uid)
+            return self.get_firmware(uid, analysis_filter=analysis_filter)
+        return self.get_file_object(uid, analysis_filter=analysis_filter)
 
-    def get_firmware(self, uid: str) -> Optional[Firmware]:
+    def get_firmware(self, uid: str, analysis_filter: Optional[List[str]] = None) -> Optional[Firmware]:
         with self.get_read_only_session() as session:
             try:
                 fw_entry = self._get_firmware_entry(uid, session)
-                return self._firmware_from_entry(fw_entry)
+                return self._firmware_from_entry(fw_entry, analysis_filter=analysis_filter)
             except NoResultFound:
                 return None
 
@@ -70,12 +70,12 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
         query = select(FirmwareEntry).filter_by(uid=uid)
         return session.execute(query).scalars().one()
 
-    def get_file_object(self, uid: str) -> Optional[FileObject]:
+    def get_file_object(self, uid: str, analysis_filter: Optional[List[str]] = None) -> Optional[FileObject]:
         with self.get_read_only_session() as session:
             fo_entry = session.get(FileObjectEntry, uid)
             if fo_entry is None:
                 return None
-            return file_object_from_entry(fo_entry)
+            return file_object_from_entry(fo_entry, analysis_filter=analysis_filter)
 
     def get_objects_by_uid_list(self, uid_list: List[str], analysis_filter: Optional[List[str]] = None) -> List[FileObject]:
         with self.get_read_only_session() as session:

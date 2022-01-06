@@ -27,6 +27,16 @@ def test_get_file(db):
     assert set(db_fo.processed_analysis) == set(TEST_FO.processed_analysis)
 
 
+def test_get_file_filtered(db):
+    db.backend.insert_object(TEST_FO)
+    db_fo = db.common.get_file_object(TEST_FO.uid, analysis_filter=['unpacker'])
+    assert list(db_fo.processed_analysis) == ['unpacker']
+    db_fo = db.common.get_file_object(TEST_FO.uid, analysis_filter=['file_type', 'dummy'])
+    assert sorted(db_fo.processed_analysis) == ['dummy', 'file_type']
+    db_fo = db.common.get_file_object(TEST_FO.uid, analysis_filter=['unknown plugin'])
+    assert not list(db_fo.processed_analysis)
+
+
 def test_get_fw(db):
     assert db.common.get_firmware(TEST_FW.uid) is None
     db.backend.insert_object(TEST_FW)
