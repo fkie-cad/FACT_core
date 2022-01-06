@@ -18,7 +18,7 @@ class BinaryService:
     def __init__(self, config=None):
         self.config = config
         self.fs_organizer = FSOrganizer(config=config)
-        self.db_interface = BinaryServiceDbInterface()  # FixMe?
+        self.db_interface = BinaryServiceDbInterface(config=config)
         logging.info('binary service online')
 
     def get_binary_and_file_name(self, uid: str) -> Tuple[Optional[bytes], Optional[str]]:

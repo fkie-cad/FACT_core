@@ -66,9 +66,8 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
 
     def analysis_exists(self, uid: str, plugin: str) -> bool:
         with self.get_read_only_session() as session:
-            query = select(AnalysisEntry).filter_by(uid=uid, plugin=plugin)
-            # ToDo: rewrite with session.execute
-            return session.query(query.exists()).scalar()
+            query = select(AnalysisEntry.uid).filter_by(uid=uid, plugin=plugin)
+            return bool(session.execute(query).scalar())
 
     def insert_analysis(self, uid: str, plugin: str, analysis_dict: dict):
         with self.get_read_write_session() as session:
