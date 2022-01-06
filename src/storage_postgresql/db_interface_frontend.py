@@ -1,3 +1,4 @@
+import re
 from typing import Any, Dict, List, NamedTuple, Optional, Set, Tuple, Union
 
 from sqlalchemy import Column, func, select
@@ -15,6 +16,7 @@ from web_interface.file_tree.file_tree import VirtualPathFileTree
 from web_interface.file_tree.file_tree_node import FileTreeNode
 
 MetaEntry = NamedTuple('MetaEntry', [('uid', str), ('hid', str), ('tags', dict), ('submission_date', int)])
+RULE_REGEX = re.compile(r'rule\s+([a-zA-Z_]\w*)')
 
 
 class FrontEndDbInterface(DbInterfaceCommon):
@@ -56,7 +58,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
 
     # --- "nice list" ---
 
-    def get_data_for_nice_list(self, uid_list: List[str], root_uid: str) -> List[dict]:
+    def get_data_for_nice_list(self, uid_list: List[str], root_uid: Optional[str]) -> List[dict]:
         with self.get_read_only_session() as session:
             query = (
                 select(FileObjectEntry, AnalysisEntry)
@@ -131,8 +133,9 @@ class FrontEndDbInterface(DbInterfaceCommon):
             query = select(subquery).order_by(subquery.c.jsonb_array_elements.cast(JSONB)['time'].desc())
             return list(session.execute(query.limit(limit)).scalars())
 
-    def create_analysis_structure(self):
-        pass  # ToDo FixMe ???
+    @staticmethod
+    def create_analysis_structure():
+        return {}  # ToDo FixMe ???
 
     # --- generic search ---
 
@@ -247,11 +250,13 @@ class FrontEndDbInterface(DbInterfaceCommon):
 
     # --- missing files/analyses ---
 
-    def find_missing_files(self):
+    @staticmethod
+    def find_missing_files():
         # FixMe: This should be impossible now -> Remove?
         return {}
 
-    def find_orphaned_objects(self) -> Dict[str, List[str]]:
+    @staticmethod
+    def find_orphaned_objects() -> Dict[str, List[str]]:
         # FixMe: This should be impossible now -> Remove?
         return {}
 
@@ -298,3 +303,16 @@ class FrontEndDbInterface(DbInterfaceCommon):
                 return None
             # FixMe? for backwards compatibility. replace with NamedTuple/etc.?
             return {'search_query': entry.data, 'query_title': entry.title}
+
+    def get_total_cached_query_count(self):
+        with self.get_read_only_session() as session:
+            query = select(func.count(SearchCacheEntry.uid))
+            return session.execute(query).scalar()
+
+    def search_query_cache(self, offset: int, limit: int):
+        with self.get_read_only_session() as session:
+            query = select(SearchCacheEntry).offset(offset).limit(limit)
+            return [
+                (entry.uid, entry.title, RULE_REGEX.findall(entry.title))  # FIXME Use a proper yara parser
+                for entry in (session.execute(query).scalars())
+            ]

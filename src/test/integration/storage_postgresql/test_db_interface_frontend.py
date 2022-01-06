@@ -291,3 +291,33 @@ def test_find_failed_analyses(db):
     insert_test_fo(db, 'fo2', analysis={'plugin1': failed_result, 'plugin2': failed_result})
 
     assert db.frontend.find_failed_analyses() == {'plugin1': {'fo2'}, 'plugin2': {'fo1', 'fo2'}}
+
+
+# --- search cache ---
+
+def test_get_query_from_cache(db):
+    assert db.frontend.get_query_from_cache('non-existent') is None
+
+    id_ = db.frontend_ed.add_to_search_query_cache('foo', 'bar')
+    assert db.frontend.get_query_from_cache(id_) == {'query_title': 'bar', 'search_query': 'foo'}
+
+
+def test_get_cached_count(db):
+    assert db.frontend.get_total_cached_query_count() == 0
+
+    db.frontend_ed.add_to_search_query_cache('foo', 'bar')
+    assert db.frontend.get_total_cached_query_count() == 1
+
+    db.frontend_ed.add_to_search_query_cache('bar', 'foo')
+    assert db.frontend.get_total_cached_query_count() == 2
+
+
+def test_search_query_cache(db):
+    assert db.frontend.search_query_cache(offset=0, limit=10) == []
+
+    id1 = db.frontend_ed.add_to_search_query_cache('foo', 'rule bar{}')
+    id2 = db.frontend_ed.add_to_search_query_cache('bar', 'rule foo{}')
+    assert sorted(db.frontend.search_query_cache(offset=0, limit=10)) == [
+        (id1, 'rule bar{}', ['bar']),
+        (id2, 'rule foo{}', ['foo']),
+    ]
