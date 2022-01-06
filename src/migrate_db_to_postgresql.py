@@ -67,12 +67,12 @@ def _check_for_missing_fields(plugin, analysis_data):
 
 
 def main():
-    postgres = BackendDbInterface()
     config = load_config('main.cfg')
+    postgres = BackendDbInterface(config=config)
 
     with ConnectTo(CompareDbInterface, config) as db:
         migrate_fw(postgres, {}, db, True)
-        migrate_comparisons(db)
+        migrate_comparisons(db, config)
 
 
 def migrate_fw(postgres: BackendDbInterface, query, db, root=False, root_uid=None, parent_uid=None):
@@ -113,9 +113,9 @@ def migrate_fw(postgres: BackendDbInterface, query, db, root=False, root_uid=Non
             migrate_fw(postgres, query, db, root_uid=root_uid, parent_uid=firmware_object.uid)
 
 
-def migrate_comparisons(mongo):
+def migrate_comparisons(mongo, config):
     count = 0
-    compare_db = ComparisonDbInterface()
+    compare_db = ComparisonDbInterface(config=config)
     for entry in mongo.compare_results.find({}):
         results = {key: value for key, value in entry.items() if key not in ['_id', 'submission_date']}
         comparison_id = entry['_id']
