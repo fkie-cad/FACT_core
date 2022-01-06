@@ -19,6 +19,7 @@ class AnalysisEntry(Base):
     uid = Column(UID, ForeignKey('file_object.uid'))
     plugin = Column(VARCHAR(64), nullable=False)
     plugin_version = Column(VARCHAR(16), nullable=False)
+    system_version = Column(VARCHAR)
     analysis_date = Column(Float, nullable=False)
     summary = Column(ARRAY(VARCHAR, dimensions=1))
     tags = Column(JSONB)

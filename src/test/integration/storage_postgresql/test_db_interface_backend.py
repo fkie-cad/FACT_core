@@ -81,7 +81,10 @@ def test_update_firmware(db):
 def test_insert_analysis(db):
     db.backend.insert_file_object(TEST_FO)
     plugin = 'previously_not_run_plugin'
-    new_analysis_data = {'summary': ['sum 1', 'sum 2'], 'foo': 'bar', 'plugin_version': '1', 'analysis_date': 1.0, 'tags': {}}
+    new_analysis_data = {
+        'summary': ['sum 1', 'sum 2'], 'foo': 'bar', 'plugin_version': '1', 'analysis_date': 1.0, 'tags': {},
+        'system_version': '1.2',
+    }
     db.backend.add_analysis(TEST_FO.uid, plugin, new_analysis_data)
     db_fo = db.common.get_object(TEST_FO.uid)
     assert plugin in db_fo.processed_analysis

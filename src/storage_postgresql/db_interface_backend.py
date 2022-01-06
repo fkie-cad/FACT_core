@@ -79,6 +79,7 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
                 uid=uid,
                 plugin=plugin,
                 plugin_version=analysis_dict['plugin_version'],
+                system_version=analysis_dict.get('system_version'),
                 analysis_date=analysis_dict['analysis_date'],
                 summary=analysis_dict.get('summary'),
                 tags=analysis_dict.get('tags'),

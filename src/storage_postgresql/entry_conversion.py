@@ -69,7 +69,7 @@ def create_firmware_entry(firmware: Firmware, fo_entry: FileObjectEntry) -> Firm
 
 
 def get_analysis_without_meta(analysis_data: dict) -> dict:
-    meta_keys = {'tags', 'summary', 'analysis_date', 'plugin_version', 'file_system_flag'}
+    meta_keys = {'tags', 'summary', 'analysis_date', 'plugin_version', 'system_version', 'file_system_flag'}
     return {
         key: value
         for key, value in analysis_data.items()
@@ -101,6 +101,7 @@ def create_analysis_entries(file_object: FileObject, fo_backref: FileObjectEntry
             uid=file_object.uid,
             plugin=plugin_name,
             plugin_version=analysis_data['plugin_version'],
+            system_version=analysis_data.get('system_version'),
             analysis_date=analysis_data['analysis_date'],
             summary=analysis_data.get('summary'),
             tags=analysis_data.get('tags'),
@@ -115,6 +116,7 @@ def _analysis_entry_to_dict(entry: AnalysisEntry) -> dict:
     return {
         'analysis_date': entry.analysis_date,
         'plugin_version': entry.plugin_version,
+        'system_version': entry.system_version,
         'summary': entry.summary,
         'tags': entry.tags or {},
         **entry.result,
