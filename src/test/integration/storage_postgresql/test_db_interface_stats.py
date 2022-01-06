@@ -3,7 +3,7 @@ from math import isclose
 
 import pytest
 
-from storage_postgresql.db_interface_stats import StatsDbViewer, StatsUpdateDbInterface
+from storage_postgresql.db_interface_stats import StatsDbViewer, StatsUpdateDbInterface, count_occurrences
 from storage_postgresql.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry, StatsEntry
 from test.common_helper import (  # pylint: disable=wrong-import-order
     create_test_file_object, create_test_firmware, get_config_for_testing
@@ -31,14 +31,14 @@ def test_update_stats(db, stats_db):  # pylint: disable=unused-argument
         assert session.get(StatsEntry, 'foo') is None
 
     # insert
-    stats_data = {'foo': 'bar'}
+    stats_data = {'stat': [('foo', 1), ('bar', 2)]}
     stats_db.update_statistic('foo', stats_data)
 
     with stats_db.get_read_only_session() as session:
         entry = session.get(StatsEntry, 'foo')
         assert entry is not None
         assert entry.name == 'foo'
-        assert entry.data == stats_data
+        assert entry.data['stat'] == [list(entry) for entry in stats_data['stat']]
 
     # update
     stats_db.update_statistic('foo', {'foo': '123'})
@@ -278,8 +278,8 @@ def test_get_used_unpackers(db, stats_db):
     assert stats_db.get_used_unpackers(q_filter={'vendor': 'other'}) == []
 
 
-def test_count_occurrences(stats_db):
+def test_count_occurrences():
     test_list = ['A', 'B', 'B', 'C', 'C', 'C']
-    result = set(stats_db.count_occurrences(test_list))
+    result = set(count_occurrences(test_list))
     expected_result = {('A', 1), ('C', 3), ('B', 2)}
     assert result == expected_result

@@ -1,8 +1,9 @@
 import logging
 from collections import Counter
-from typing import Any, Callable, List, Optional, Tuple, Union
+from typing import Any, Callable, Iterator, List, Optional, Tuple, Union
 
 from sqlalchemy import column, func, select
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import InstrumentedAttribute, aliased
 from sqlalchemy.sql import Select
 
@@ -21,13 +22,16 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
 
     def update_statistic(self, identifier: str, content_dict: dict):
         logging.debug(f'Updating {identifier} statistics')
-        with self.get_read_write_session() as session:
-            entry: StatsEntry = session.get(StatsEntry, identifier)
-            if entry is None:  # no old entry in DB -> create new one
-                entry = StatsEntry(name=identifier, data=content_dict)
-                session.add(entry)
-            else:  # there was an entry -> update stats data
-                entry.data = content_dict
+        try:
+            with self.get_read_write_session() as session:
+                entry: StatsEntry = session.get(StatsEntry, identifier)
+                if entry is None:  # no old entry in DB -> create new one
+                    entry = StatsEntry(name=identifier, data=content_dict)
+                    session.add(entry)
+                else:  # there was an entry -> update stats data
+                    entry.data = content_dict
+        except SQLAlchemyError:
+            logging.error(f'Could not save stats entry in the DB:\n{content_dict}')
 
     def get_count(self, q_filter: Optional[dict] = None, firmware: bool = False) -> Number:
         return self._get_aggregate(FileObjectEntry.uid, func.count, q_filter, firmware) or 0
@@ -36,7 +40,8 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
         return self._get_aggregate(field, func.sum, q_filter, firmware) or 0
 
     def get_avg(self, field: InstrumentedAttribute, q_filter: Optional[dict] = None, firmware: bool = False) -> float:
-        return self._get_aggregate(field, func.avg, q_filter, firmware) or 0.0
+        average = self._get_aggregate(field, func.avg, q_filter, firmware)
+        return 0.0 if average is None else float(average)  # func.avg returns a `Decimal` but we want a float
 
     def _get_aggregate(
         self,
@@ -75,7 +80,7 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
             query = select(key, func.count(key)).filter(key.isnot(None)).group_by(key)
             if self._filter_is_not_empty(q_filter):
                 query = query.filter_by(**q_filter)
-            return self._sort_tuples(session.execute(query))
+            return _sort_tuples(session.execute(query))
 
     def count_distinct_in_analysis(
         self, key: InstrumentedAttribute, plugin: str, firmware: bool = False, q_filter=None, analysis_filter=None
@@ -95,7 +100,7 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
             query = self._join_fw_or_fo(query, firmware)
             if self._filter_is_not_empty(q_filter):
                 query = query.filter_by(**q_filter)
-            return self._sort_tuples(session.execute(query))
+            return _sort_tuples(session.execute(query))
 
     def count_distinct_values_in_array(self, key: InstrumentedAttribute, plugin: str, q_filter=None) -> Stats:
         """
@@ -119,7 +124,7 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
             if self._filter_is_not_empty(q_filter):
                 query = self._join_fw_or_fo(query, is_firmware=False)
                 query = query.filter_by(**q_filter)
-            return self._sort_tuples(session.execute(query))
+            return _sort_tuples(session.execute(query))
 
     def count_values_in_summary(self, plugin: str, q_filter: Optional[dict] = None, firmware: bool = False) -> Stats:
         """
@@ -134,7 +139,7 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
             query = self._join_fw_or_fo(query, firmware)
             if self._filter_is_not_empty(q_filter):
                 query = query.filter_by(**q_filter)
-            return self.count_occurrences(session.execute(query).scalars())
+            return count_occurrences(session.execute(query).scalars())
 
     def get_arch_stats(self, q_filter: Optional[dict] = None) -> List[Tuple[str, int, str]]:
         """
@@ -176,7 +181,7 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
             if self._filter_is_not_empty(q_filter):
                 query = self._join_all(query)
                 query = query.filter_by(**q_filter)
-            return list(session.execute(query))
+            return _sort_tuples(session.execute(query))
 
     def get_unpacking_entropy(self, summary_key: str, q_filter: Optional[dict] = None) -> float:
         with self.get_read_only_session() as session:
@@ -188,7 +193,7 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
             if self._filter_is_not_empty(q_filter):
                 query = self._join_all(query)
                 query = query.filter_by(**q_filter)
-            return self._avg([float(entropy) for entropy in session.execute(query).scalars()])
+            return _avg([float(entropy) for entropy in session.execute(query).scalars()])
 
     def get_used_unpackers(self, q_filter: Optional[dict] = None) -> Stats:
         with self.get_read_only_session() as session:
@@ -199,7 +204,7 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
             if self._filter_is_not_empty(q_filter):
                 query = self._join_all(query)
                 query = query.filter_by(**q_filter)
-            return self.count_occurrences([plugin for plugin, count in session.execute(query) if int(count) > 0])
+            return count_occurrences([plugin for plugin, count in session.execute(query) if int(count) > 0])
 
     def get_regex_mime_match_count(self, regex: str, q_filter: Optional[dict] = None) -> int:
         with self.get_read_only_session() as session:
@@ -243,13 +248,7 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
                 query = query.join(FileObjectEntry, FileObjectEntry.uid == subquery.c.uid)
                 query = query.join(FirmwareEntry, FileObjectEntry.root_firmware.any(uid=FirmwareEntry.uid))
                 query = query.filter_by(**q_filter)
-            return self._sort_tuples(session.execute(query))
-
-    @staticmethod
-    def _avg(values: List[float]) -> float:
-        if len(values) == 0:
-            return 0
-        return sum(values)/len(values)
+            return _sort_tuples(session.execute(query))
 
     @staticmethod
     def _join_fw_or_fo(query: Select, is_firmware: bool) -> Select:
@@ -271,16 +270,29 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
         )
         return query
 
-    def count_occurrences(self, result_list: List[str]) -> Stats:
-        return self._sort_tuples(Counter(result_list).items())
-
-    @staticmethod
-    def _sort_tuples(query_result: Stats) -> Stats:
-        return sorted(query_result, key=lambda e: (e[1], e[0]))
-
     @staticmethod
     def _filter_is_not_empty(query_filter: Optional[dict]) -> bool:
         return query_filter is not None and query_filter != {}
+
+
+def count_occurrences(result_list: List[str]) -> Stats:
+    return _sort_tuples(Counter(result_list).items())
+
+
+def _sort_tuples(query_result: Stats) -> Stats:
+    return sorted(_convert_to_tuples(query_result), key=lambda e: (e[1], e[0]))
+
+
+def _convert_to_tuples(query_result) -> Iterator[Tuple[str, int]]:
+    # results from the DB query will be of type `Row` and not actual tuples -> convert
+    # (otherwise they cannot be serialized as JSON and not be saved in the stats DB)
+    return (tuple(item) if not isinstance(item, tuple) else item for item in query_result)
+
+
+def _avg(values: List[float]) -> float:
+    if len(values) == 0:
+        return 0
+    return sum(values)/len(values)
 
 
 class StatsDbViewer(ReadOnlyDbInterface):
