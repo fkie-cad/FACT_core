@@ -61,7 +61,9 @@ class StatsUpdater:
         return stats
 
     def get_malware_stats(self) -> Dict[str, Stats]:
-        result = self.db.count_distinct_values(AnalysisEntry.result['scans']['ClamAV']['result'], q_filter=self.match)
+        result = self.db.count_distinct_in_analysis(
+            AnalysisEntry.result['scans']['ClamAV']['result'], plugin='malware_scanner', q_filter=self.match
+        )
         return {'malware': self._filter_results(result)}
 
     @staticmethod

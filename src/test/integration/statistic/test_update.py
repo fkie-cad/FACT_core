@@ -48,6 +48,9 @@ def test_malware_stats(db, stats_updater):
 
     assert stats_updater.get_malware_stats() == {'malware': [('SomeMalware', 1)]}
 
+    stats_updater.set_match({'vendor': fw.vendor})
+    assert stats_updater.get_malware_stats() == {'malware': [('SomeMalware', 1)]}
+
 
 def test_get_mitigation_stats(db, stats_updater):
     assert stats_updater.get_exploit_mitigations_stats() == {'exploit_mitigations': []}
