@@ -9,7 +9,7 @@ from helperFunctions.database import ConnectTo
 from helperFunctions.program_setup import get_log_file_for_component
 from helperFunctions.web_interface import format_time
 from intercom.front_end_binding import InterComFrontEndBinding
-from statistic.update import StatisticUpdater
+from statistic.update import StatsUpdater
 from storage.db_interface_admin import AdminDbInterface
 from storage.db_interface_compare import CompareDbInterface
 from storage.db_interface_frontend import FrontEndDbInterface
@@ -24,7 +24,7 @@ class MiscellaneousRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['status'])
     @AppRoute('/', GET)
     def show_home(self):
-        stats = StatisticUpdater(config=self._config)
+        stats = StatsUpdater(config=self._config)
         with ConnectTo(FrontEndDbInterface, config=self._config) as sc:
             latest_firmware_submissions = sc.get_last_added_firmwares(int(self._config['database'].get('number_of_latest_firmwares_to_display', '10')))
             latest_comments = sc.get_latest_comments(int(self._config['database'].get('number_of_latest_firmwares_to_display', '10')))
@@ -32,7 +32,6 @@ class MiscellaneousRoutes(ComponentBase):
             latest_comparison_results = sc.page_compare_results(limit=10)
         ajax_stats_reload_time = int(self._config['database']['ajax_stats_reload_time'])
         general_stats = stats.get_general_stats()
-        stats.shutdown()
         return render_template(
             'home.html',
             general_stats=general_stats,
