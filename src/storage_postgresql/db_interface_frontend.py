@@ -7,12 +7,13 @@ from sqlalchemy.dialects.postgresql import JSONB
 from helperFunctions.data_conversion import get_value_of_first_key
 from helperFunctions.tag import TagColor
 from helperFunctions.virtual_file_path import get_top_of_virtual_path
-from objects.file import FileObject
 from objects.firmware import Firmware
 from storage_postgresql.db_interface_common import DbInterfaceCommon
 from storage_postgresql.query_conversion import build_generic_search_query, query_parent_firmware
-from storage_postgresql.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry, SearchCacheEntry
-from web_interface.file_tree.file_tree import VirtualPathFileTree
+from storage_postgresql.schema import (
+    AnalysisEntry, FileObjectEntry, FirmwareEntry, SearchCacheEntry, included_files_table
+)
+from web_interface.file_tree.file_tree import FileTreeDatum, VirtualPathFileTree
 from web_interface.file_tree.file_tree_node import FileTreeNode
 
 MetaEntry = NamedTuple('MetaEntry', [('uid', str), ('hid', str), ('tags', dict), ('submission_date', int)])
@@ -197,38 +198,60 @@ class FrontEndDbInterface(DbInterfaceCommon):
     # --- file tree
 
     def generate_file_tree_nodes_for_uid_list(
-            self, uid_list: List[str], root_uid: str,
-            parent_uid: Optional[str], whitelist: Optional[List[str]] = None
+        self, uid_list: List[str], root_uid: str,
+        parent_uid: Optional[str], whitelist: Optional[List[str]] = None
     ):
-        fo_dict = {fo.uid: fo for fo in self.get_objects_by_uid_list(uid_list, analysis_filter=['file_type'])}
-        for uid in uid_list:
-            for node in self.generate_file_tree_level(uid, root_uid, parent_uid, whitelist, fo_dict.get(uid, None)):
+        file_tree_data = self.get_file_tree_data(uid_list)
+        for entry in file_tree_data:
+            for node in self.generate_file_tree_level(entry.uid, root_uid, parent_uid, whitelist, entry):
                 yield node
 
     def generate_file_tree_level(
-            self, uid: str, root_uid: str,
-            parent_uid: Optional[str] = None, whitelist: Optional[List[str]] = None, fo: Optional[FileObject] = None
+        self, uid: str, root_uid: str,
+        parent_uid: Optional[str] = None, whitelist: Optional[List[str]] = None, data: Optional[FileTreeDatum] = None
     ):
-        if fo is None:
-            fo = self.get_object(uid)
+        if data is None:
+            data = self.get_file_tree_data([uid])[0]
         try:
-            fo_data = self._convert_fo_to_fo_data(fo)
-            for node in VirtualPathFileTree(root_uid, parent_uid, fo_data, whitelist).get_file_tree_nodes():
+            for node in VirtualPathFileTree(root_uid, parent_uid, data, whitelist).get_file_tree_nodes():
                 yield node
         except (KeyError, TypeError):  # the file has not been analyzed yet
             yield FileTreeNode(uid, root_uid, not_analyzed=True, name=f'{uid} (not analyzed yet)')
 
-    @staticmethod
-    def _convert_fo_to_fo_data(fo: FileObject) -> dict:
-        # ToDo: remove this and change VirtualPathFileTree to work with file objects or make more efficient DB query
-        return {
-            '_id': fo.uid,
-            'file_name': fo.file_name,
-            'files_included': fo.files_included,
-            'processed_analysis': {'file_type': {'mime': fo.processed_analysis['file_type']['mime']}},
-            'size': fo.size,
-            'virtual_file_path': fo.virtual_file_path,
-        }
+    def get_file_tree_data(self, uid_list: List[str]) -> List[FileTreeDatum]:
+        with self.get_read_only_session() as session:
+            included_query = (
+                select(
+                    FileObjectEntry.uid,
+                    func.array_agg(included_files_table.c.child_uid),
+                )
+                .filter(FileObjectEntry.uid.in_(uid_list))
+                .join(included_files_table, included_files_table.c.parent_uid == FileObjectEntry.uid)
+                .group_by(FileObjectEntry)
+            )
+            included_files = dict(e for e in session.execute(included_query))
+            type_query = (
+                select(
+                    AnalysisEntry.uid,
+                    AnalysisEntry.result['mime'],
+                )
+                .filter(AnalysisEntry.plugin == 'file_type')
+                .filter(AnalysisEntry.uid.in_(uid_list))
+            )
+            type_analyses = dict(e for e in session.execute(type_query))
+            query = (
+                select(
+                    FileObjectEntry.uid,
+                    FileObjectEntry.file_name,
+                    FileObjectEntry.size,
+                    FileObjectEntry.virtual_file_paths,
+                )
+                .filter(FileObjectEntry.uid.in_(uid_list))
+            )
+            return [
+                FileTreeDatum(uid, file_name, size, vfp, type_analyses.get(uid), included_files.get(uid, set()))
+                for uid, file_name, size, vfp, in session.execute(query)
+            ]
 
     # --- REST ---
 

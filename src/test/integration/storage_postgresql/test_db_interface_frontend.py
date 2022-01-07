@@ -223,6 +223,29 @@ def test_generate_file_tree_level(db):
         assert virtual_grand_child.name == child_fo.file_name
 
 
+def test_get_file_tree_data(db):
+    fw, parent_fo, child_fo = create_fw_with_parent_and_child()
+    fw.processed_analysis = {'file_type': generate_analysis_entry(analysis_result={'failed': 'some error'})}
+    parent_fo.processed_analysis = {'file_type': generate_analysis_entry(analysis_result={'mime': 'foo_type'})}
+    child_fo.processed_analysis = {}  # simulate that file_type did not run yet
+    db.backend.add_object(fw)
+    db.backend.add_object(parent_fo)
+    db.backend.add_object(child_fo)
+
+    result = db.frontend.get_file_tree_data([fw.uid, parent_fo.uid, child_fo.uid])
+    assert len(result) == 3
+    result_by_uid = {r.uid: r for r in result}
+    assert result_by_uid[parent_fo.uid].uid == parent_fo.uid
+    assert result_by_uid[parent_fo.uid].file_name == parent_fo.file_name
+    assert result_by_uid[parent_fo.uid].size == parent_fo.size
+    assert result_by_uid[parent_fo.uid].virtual_file_path == parent_fo.virtual_file_path
+    assert result_by_uid[fw.uid].mime is None
+    assert result_by_uid[parent_fo.uid].mime == 'foo_type'
+    assert result_by_uid[child_fo.uid].mime is None
+    assert result_by_uid[fw.uid].included_files == [parent_fo.uid]
+    assert result_by_uid[parent_fo.uid].included_files == [child_fo.uid]
+
+
 @pytest.mark.parametrize('query, expected, expected_fw, expected_inv', [
     ({}, 1, 1, 1),
     ({'size': 123}, 2, 1, 0),
