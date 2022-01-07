@@ -3,7 +3,7 @@ from typing import Dict, List, Optional, Set, Union
 
 from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, aliased
 from sqlalchemy.orm.exc import NoResultFound
 
 from objects.file import FileObject
@@ -11,14 +11,15 @@ from objects.firmware import Firmware
 from storage_postgresql.db_interface_base import ReadOnlyDbInterface
 from storage_postgresql.entry_conversion import file_object_from_entry, firmware_from_entry
 from storage_postgresql.query_conversion import build_query_from_dict
-from storage_postgresql.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry, fw_files_table
+from storage_postgresql.schema import (
+    AnalysisEntry, FileObjectEntry, FirmwareEntry, fw_files_table, included_files_table
+)
 from storage_postgresql.tags import append_unique_tag
 
 PLUGINS_WITH_TAG_PROPAGATION = [  # FIXME This should be inferred in a sensible way. This is not possible yet.
     'crypto_material', 'cve_lookup', 'known_vulnerabilities', 'qemu_exec', 'software_components',
     'users_and_passwords'
 ]
-
 Summary = Dict[str, List[str]]
 
 
@@ -79,12 +80,32 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
 
     def get_objects_by_uid_list(self, uid_list: List[str], analysis_filter: Optional[List[str]] = None) -> List[FileObject]:
         with self.get_read_only_session() as session:
-            query = select(FileObjectEntry).filter(FileObjectEntry.uid.in_(uid_list))
-            return [
-                self._firmware_from_entry(fo_entry.firmware, analysis_filter) if fo_entry.is_firmware
-                else file_object_from_entry(fo_entry, analysis_filter)
-                for fo_entry in session.execute(query).scalars()
+            parents_table = aliased(included_files_table, name='parents')
+            children_table = aliased(included_files_table, name='children')
+            query = (
+                select(
+                    FileObjectEntry,
+                    func.array_agg(parents_table.c.child_uid),
+                    func.array_agg(children_table.c.parent_uid),
+                )
+                .filter(FileObjectEntry.uid.in_(uid_list))
+                # outer join here because objects may not have included files
+                .outerjoin(parents_table, parents_table.c.parent_uid == FileObjectEntry.uid)
+                .join(children_table, children_table.c.child_uid == FileObjectEntry.uid)
+                .group_by(FileObjectEntry)
+            )
+            file_objects = [
+                file_object_from_entry(
+                    fo_entry, analysis_filter, {f for f in included_files if f}, set(parents)
+                )
+                for fo_entry, included_files, parents in session.execute(query)
             ]
+            fw_query = select(FirmwareEntry).filter(FirmwareEntry.uid.in_(uid_list))
+            firmware = [
+                self._firmware_from_entry(fw_entry)
+                for fw_entry in session.execute(fw_query).scalars()
+            ]
+            return file_objects + firmware
 
     def get_analysis(self, uid: str, plugin: str) -> Optional[AnalysisEntry]:
         with self.get_read_only_session() as session:

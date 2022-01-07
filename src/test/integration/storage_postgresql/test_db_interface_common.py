@@ -129,14 +129,15 @@ def test_get_specific_fields_of_db_entry(db):
 
 
 def test_get_objects_by_uid_list(db):
-    db.backend.insert_object(TEST_FW)
-    db.backend.insert_object(TEST_FO)
-    result = db.common.get_objects_by_uid_list([TEST_FW.uid, TEST_FO.uid])
+    fo, fw = create_fw_with_child_fo()
+    db.backend.insert_object(fw)
+    db.backend.insert_object(fo)
+    result = db.common.get_objects_by_uid_list2([fo.uid, fw.uid])
     assert len(result) == 2
     objects_by_uid = {fo.uid: fo for fo in result}
-    assert TEST_FW.uid in objects_by_uid and TEST_FO.uid in objects_by_uid
-    assert isinstance(objects_by_uid[TEST_FW.uid], Firmware)
-    assert isinstance(objects_by_uid[TEST_FO.uid], FileObject)
+    assert fo.uid in objects_by_uid and fw.uid in objects_by_uid
+    assert isinstance(objects_by_uid[fw.uid], Firmware)
+    assert isinstance(objects_by_uid[fo.uid], FileObject)
 
 
 def test_get_analysis(db):

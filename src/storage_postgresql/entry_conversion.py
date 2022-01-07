@@ -1,6 +1,6 @@
 from datetime import datetime
 from time import time
-from typing import List, Optional
+from typing import List, Optional, Set
 
 from helperFunctions.data_conversion import convert_time_to_str
 from objects.file import FileObject
@@ -21,28 +21,39 @@ def firmware_from_entry(fw_entry: FirmwareEntry, analysis_filter: Optional[List[
     return firmware
 
 
-def file_object_from_entry(fo_entry: FileObjectEntry, analysis_filter: Optional[List[str]] = None) -> FileObject:
+def file_object_from_entry(
+    fo_entry: FileObjectEntry,
+    analysis_filter: Optional[List[str]] = None,
+    included_files: Optional[Set[str]] = None,
+    parents: Optional[Set[str]] = None,
+) -> FileObject:
     file_object = FileObject()
-    _populate_fo_data(fo_entry, file_object, analysis_filter)
+    _populate_fo_data(fo_entry, file_object, analysis_filter, included_files, parents)
     file_object.tags = collect_analysis_tags(file_object)
     return file_object
 
 
-def _populate_fo_data(fo_entry: FileObjectEntry, file_object: FileObject, analysis_filter: Optional[List[str]] = None):
+def _populate_fo_data(
+    fo_entry: FileObjectEntry,
+    file_object: FileObject,
+    analysis_filter: Optional[List[str]] = None,
+    included_files: Optional[Set[str]] = None,
+    parents: Optional[Set[str]] = None,
+):
     file_object.uid = fo_entry.uid
     file_object.size = fo_entry.size
     file_object.file_name = fo_entry.file_name
     file_object.virtual_file_path = fo_entry.virtual_file_paths
-    file_object.parents = fo_entry.get_parent_uids()
     file_object.processed_analysis = {
         analysis_entry.plugin: _analysis_entry_to_dict(analysis_entry)
         for analysis_entry in fo_entry.analyses
         if analysis_filter is None or analysis_entry.plugin in analysis_filter
     }
-    file_object.files_included = fo_entry.get_included_uids()
-    file_object.parent_firmware_uids = fo_entry.get_root_firmware_uids()
     file_object.analysis_tags = _collect_analysis_tags(file_object.processed_analysis)
     file_object.comments = fo_entry.comments
+    file_object.parents = fo_entry.get_parent_uids() if parents is None else parents
+    file_object.files_included = fo_entry.get_included_uids() if included_files is None else included_files
+    file_object.parent_firmware_uids = list(file_object.virtual_file_path)
 
 
 def _collect_analysis_tags(analysis_dict: dict) -> dict:
