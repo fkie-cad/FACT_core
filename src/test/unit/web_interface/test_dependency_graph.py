@@ -67,8 +67,8 @@ GRAPH_RES_SYMLINK = {'nodes':
                        'full_file_type': 'test text'},
                       {'label': 'file three', 'id': '0987654', 'group': 'inode/symlink',
                        'full_file_type': 'symbolic link to \'file two\''}],
-                      'edges': [{'from': '0987654', 'to': '7654321', 'id': 0},
-                                {'from': '7654321', 'to': '1234567', 'id': 1}],
+                     'edges': [{'from': '0987654', 'to': '7654321', 'id': 0},
+                               {'from': '7654321', 'to': '1234567', 'id': 1}],
                      'groups': ['application/x-executable', 'inode/symlink']}
 
 WHITELIST = ['application/x-executable', 'application/x-sharedlib', 'inode/symlink']
