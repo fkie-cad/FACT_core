@@ -171,7 +171,7 @@ function nodeListSelectionHandler(ev) {
 
     // if the user clicked a link on the nodes list, this will be defined
     if (ref.dataset.nodeid !== undefined) {
-        // we then programmatically selected the node in the network...
+        // we then programmatically select the node in the network...
         network.selectNodes([ref.dataset.nodeid]);
 
         // ... and invoke the selection handler by hand, because vis.js does
