@@ -1,11 +1,11 @@
 import json
 import logging
-import re
 from datetime import datetime
 from itertools import chain
 
 from dateutil.relativedelta import relativedelta
 from flask import redirect, render_template, request, url_for
+from sqlalchemy.exc import SQLAlchemyError
 
 from helperFunctions.config import read_list_from_config
 from helperFunctions.data_conversion import make_unicode_string
@@ -15,8 +15,8 @@ from helperFunctions.uid import is_uid
 from helperFunctions.web_interface import apply_filters_to_query, filter_out_illegal_characters
 from helperFunctions.yara_binary_search import get_yara_error, is_valid_yara_rule_file
 from intercom.front_end_binding import InterComFrontEndBinding
-from storage.db_interface_frontend import FrontEndDbInterface
-from storage.db_interface_frontend_editing import FrontendEditingDbInterface
+from storage_postgresql.db_interface_frontend import FrontEndDbInterface
+from storage_postgresql.db_interface_frontend_editing import FrontendEditingDbInterface
 from web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
 from web_interface.pagination import extract_pagination_from_request, get_pagination
 from web_interface.security.decorator import roles_accepted
@@ -24,6 +24,10 @@ from web_interface.security.privileges import PRIVILEGES
 
 
 class DatabaseRoutes(ComponentBase):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.db = FrontEndDbInterface(config=self._config)
+        self.editing_db = FrontendEditingDbInterface(config=self._config)
 
     @staticmethod
     def _add_date_to_query(query, date):
@@ -56,10 +60,9 @@ class DatabaseRoutes(ComponentBase):
             logging.error(error_message + f'due to exception: {err}', exc_info=True)
             return render_template('error.html', message=error_message)
 
-        with ConnectTo(FrontEndDbInterface, self._config) as connection:
-            total = connection.get_number_of_total_matches(search_parameters['query'], search_parameters['only_firmware'], inverted=search_parameters['inverted'])
-            device_classes = connection.get_device_class_list()
-            vendors = connection.get_vendor_list()
+        total = self.db.get_number_of_total_matches(search_parameters['query'], search_parameters['only_firmware'], inverted=search_parameters['inverted'])
+        device_classes = self.db.get_device_class_list()
+        vendors = self.db.get_vendor_list()
 
         pagination = get_pagination(page=page, per_page=per_page, total=total, record_name='firmwares')
         return render_template(
@@ -79,13 +82,9 @@ class DatabaseRoutes(ComponentBase):
     def browse_searches(self):
         page, per_page, offset = extract_pagination_from_request(request, self._config)
         try:
-            with ConnectTo(FrontEndDbInterface, self._config) as conn:
-                # FIXME Use a proper yara parser
-                rule_name_regex = re.compile(r'rule\s+([[a-zA-Z_]\w*)')
-                searches = [(r['_id'], r['query_title'], rule_name_regex.findall(r['query_title']))
-                            for r in conn.search_query_cache.find(skip=per_page * (page - 1), limit=per_page)]
-                total = conn.search_query_cache.count_documents({})
-        except Exception as exception:
+            searches = self.db.search_query_cache(offset=offset, limit=per_page)
+            total = self.db.get_total_cached_query_count()
+        except SQLAlchemyError as exception:
             error_message = 'Could not query database'
             logging.error(error_message + f'due to exception: {exception}', exc_info=True)
             return render_template('error.html', message=error_message)
@@ -105,18 +104,17 @@ class DatabaseRoutes(ComponentBase):
         In case of a binary search, indicated by the query being an uid instead of a dict, the cached search result is
         retrieved.
         '''
-        search_parameters = dict()
+        search_parameters = {}
         if request.args.get('query'):
             query = request.args.get('query')
             if is_uid(query):
-                with ConnectTo(FrontEndDbInterface, self._config) as connection:
-                    cached_query = connection.get_query_from_cache(query)
-                    query = cached_query['search_query']
-                    search_parameters['query_title'] = cached_query['query_title']
+                cached_query = self.db.get_query_from_cache(query)
+                query = cached_query['search_query']
+                search_parameters['query_title'] = cached_query['query_title']
         search_parameters['only_firmware'] = request.args.get('only_firmwares') == 'True' if request.args.get('only_firmwares') else only_firmware
         search_parameters['inverted'] = request.args.get('inverted') == 'True' if request.args.get('inverted') else inverted
         search_parameters['query'] = apply_filters_to_query(request, query)
-        if 'query_title' not in search_parameters.keys():
+        if 'query_title' not in search_parameters:
             search_parameters['query_title'] = search_parameters['query']
         if request.args.get('date'):
             search_parameters['query'] = self._add_date_to_query(search_parameters['query'], request.args.get('date'))
@@ -127,18 +125,12 @@ class DatabaseRoutes(ComponentBase):
         return len(result_list) == 1 and query != '{}'
 
     def _search_database(self, query, skip=0, limit=0, only_firmwares=False, inverted=False):
-        sorted_meta_list = list()
-        with ConnectTo(FrontEndDbInterface, self._config) as connection:
-            result = connection.generic_search(query, skip, limit, only_fo_parent_firmware=only_firmwares, inverted=inverted)
-            if not isinstance(result, list):
-                raise Exception(result)
-            if query not in ('{}', {}):
-                firmware_list = [connection.firmwares.find_one(uid) or connection.file_objects.find_one(uid) for uid in result]
-            else:  # if search query is empty: get only firmware objects
-                firmware_list = [connection.firmwares.find_one(uid) for uid in result]
-            sorted_meta_list = sorted(connection.get_meta_list(firmware_list), key=lambda x: x[1].lower())
-
-        return sorted_meta_list
+        meta_list = self.db.generic_search(
+            query, skip, limit, only_fo_parent_firmware=only_firmwares, inverted=inverted, as_meta=True
+        )
+        if not isinstance(meta_list, list):
+            raise Exception(meta_list)
+        return sorted(meta_list, key=lambda x: x[1].lower())
 
     def _build_search_query(self):
         query = {}
@@ -165,9 +157,8 @@ class DatabaseRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['basic_search'])
     @AppRoute('/database/search', GET)
     def show_basic_search(self):
-        with ConnectTo(FrontEndDbInterface, self._config) as connection:
-            device_classes = connection.get_device_class_list()
-            vendors = connection.get_vendor_list()
+        device_classes = self.db.get_device_class_list()
+        vendors = self.db.get_vendor_list()
         return render_template('database/database_search.html', device_classes=device_classes, vendors=vendors)
 
     @roles_accepted(*PRIVILEGES['advanced_search'])
@@ -186,8 +177,7 @@ class DatabaseRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['advanced_search'])
     @AppRoute('/database/advanced_search', GET)
     def show_advanced_search(self, error=None):
-        with ConnectTo(FrontEndDbInterface, self._config) as connection:
-            database_structure = connection.create_analysis_structure()
+        database_structure = self.db.create_analysis_structure()
         return render_template('database/database_advanced_search.html', error=error, database_structure=database_structure)
 
     @roles_accepted(*PRIVILEGES['pattern_search'])
@@ -219,8 +209,7 @@ class DatabaseRoutes(ComponentBase):
         return yara_rule_file, firmware_uid, only_firmware
 
     def _firmware_is_in_db(self, firmware_uid: str) -> bool:
-        with ConnectTo(FrontEndDbInterface, self._config) as connection:
-            return connection.is_firmware(firmware_uid)
+        return self.db.is_firmware(firmware_uid)
 
     @roles_accepted(*PRIVILEGES['pattern_search'])
     @AppRoute('/database/binary_search_results', GET)
@@ -247,8 +236,7 @@ class DatabaseRoutes(ComponentBase):
 
     def _store_binary_search_query(self, binary_search_results: list, yara_rules: str) -> str:
         query = '{"_id": {"$in": ' + str(binary_search_results).replace('\'', '"') + '}}'
-        with ConnectTo(FrontendEditingDbInterface, self._config) as connection:
-            query_uid = connection.add_to_search_query_cache(query, query_title=yara_rules)
+        query_uid = self.editing_db.add_to_search_query_cache(query, query_title=yara_rules)
         return query_uid
 
     @staticmethod
