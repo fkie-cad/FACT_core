@@ -144,6 +144,12 @@ def test_get_final_analysis_dict(stub_plugin, binary_json_dict, elf_dict, expect
     assert len(elf_dict) == expected
 
 
+def test_pie(stub_plugin):
+    test_file = FileObject(file_path=str(TEST_DATA_DIR / 'x-pie-executable'))
+    elf_dict, _ = stub_plugin._analyze_elf(test_file)
+    assert elf_dict != {}
+
+
 def test_plugin(stub_plugin, stub_object, monkeypatch):
     monkeypatch.setattr('lief.parse', lambda _: MOCK_LIEF_RESULT)
     monkeypatch.setattr('lief.to_json_from_abstract', lambda _: MOCK_DATA)
