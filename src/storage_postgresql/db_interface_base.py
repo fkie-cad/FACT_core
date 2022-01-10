@@ -20,16 +20,18 @@ class ReadOnlyDbInterface:
         database = config.get('data_storage', 'postgres_database')
         user = config.get('data_storage', 'postgres_user')
         password = config.get('data_storage', 'postgres_password')
-        self.engine = create_engine(f'postgresql://{user}:{password}@{address}:{port}/{database}')
-        self.base = Base
-        self.base.metadata.create_all(self.engine)
+        engine_url = f'postgresql://{user}:{password}@{address}:{port}/{database}'
+        self.engine = create_engine(engine_url, pool_size=100, max_overflow=10, pool_recycle=60, future=True)
         self._session_maker = sessionmaker(bind=self.engine, future=True)  # future=True => sqlalchemy 2.0 support
+
+    def create_tables(self):
+        Base.metadata.create_all(self.engine)
 
     @contextmanager
     def get_read_only_session(self) -> Session:
         session: Session = self._session_maker()
-        session.connection(execution_options={'postgresql_readonly': True, 'postgresql_deferrable': True})
         try:
+            session.connection(execution_options={'postgresql_readonly': True, 'postgresql_deferrable': True})
             yield session
         finally:
             session.close()

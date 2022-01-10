@@ -22,6 +22,7 @@ import sys
 from fact_base import FactBase
 from helperFunctions.program_setup import program_setup
 from storage.MongoMgr import MongoMgr
+from storage_postgresql.db_interface_base import ReadOnlyDbInterface
 
 
 class FactDb(FactBase):
@@ -32,6 +33,7 @@ class FactDb(FactBase):
     def __init__(self):
         _, config = program_setup(self.PROGRAM_NAME, self.PROGRAM_DESCRIPTION, self.COMPONENT)
         self.mongo_server = MongoMgr(config=config)
+        ReadOnlyDbInterface(config).create_tables()
         super().__init__()
 
     def shutdown(self):
