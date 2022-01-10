@@ -1,6 +1,6 @@
 import json
 import os
-from typing import Dict, Union
+from typing import Dict, Optional, Union
 
 from common_helper_files import get_binary_from_file
 from flask import flash, redirect, render_template, render_template_string, request, url_for
@@ -16,10 +16,10 @@ from helperFunctions.web_interface import get_template_as_string
 from intercom.front_end_binding import InterComFrontEndBinding
 from objects.file import FileObject
 from objects.firmware import Firmware
-from storage.db_interface_admin import AdminDbInterface
-from storage.db_interface_compare import CompareDbInterface
-from storage.db_interface_frontend import FrontEndDbInterface
-from storage.db_interface_view_sync import ViewReader
+from storage_postgresql.db_interface_admin import AdminDbInterface
+from storage_postgresql.db_interface_comparison import ComparisonDbInterface
+from storage_postgresql.db_interface_frontend import FrontEndDbInterface
+from storage_postgresql.db_interface_view_sync import ViewReader
 from web_interface.components.compare_routes import get_comparison_uid_dict_from_session
 from web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
 from web_interface.components.dependency_graph import (
@@ -40,6 +40,10 @@ class AnalysisRoutes(ComponentBase):
         super().__init__(app, config, api)
         self.analysis_generic_view = get_analysis_view('generic')
         self.analysis_unpacker_view = get_analysis_view('unpacker')
+        self.db = FrontEndDbInterface(config=self._config)
+        self.comp_db = ComparisonDbInterface(config=self._config)
+        self.admin_db = AdminDbInterface(config=self._config)
+        self.template_db = ViewReader(config=self._config)
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
     @AppRoute('/analysis/<uid>', GET)
@@ -48,20 +52,18 @@ class AnalysisRoutes(ComponentBase):
     @AppRoute('/analysis/<uid>/<selected_analysis>/ro/<root_uid>', GET)
     def show_analysis(self, uid, selected_analysis=None, root_uid=None):
         other_versions = None
-        with ConnectTo(CompareDbInterface, self._config) as db_service:
-            all_comparisons = db_service.page_compare_results()
-            known_comparisons = [comparison for comparison in all_comparisons if uid in comparison[0]]
-        analysis_filter = [selected_analysis] if selected_analysis else []
-        with ConnectTo(FrontEndDbInterface, self._config) as sc:
-            file_obj = sc.get_object(uid, analysis_filter=analysis_filter)
-            if not file_obj:
-                return render_template('uid_not_found.html', uid=uid)
-            if selected_analysis is not None and selected_analysis not in file_obj.processed_analysis:
-                return render_template('error.html', message=f'The requested analyis ({selected_analysis}) has not run (yet)')
-            if isinstance(file_obj, Firmware):
-                root_uid = file_obj.uid
-                other_versions = sc.get_other_versions_of_firmware(file_obj)
-            included_fo_analysis_complete = not sc.all_uids_found_in_database(list(file_obj.files_included))
+        all_comparisons = self.comp_db.page_comparison_results()
+        known_comparisons = [comparison for comparison in all_comparisons if uid in comparison[0]]
+        analysis_filter = [selected_analysis] if selected_analysis else None
+        file_obj = self.db.get_object(uid, analysis_filter=analysis_filter)
+        if not file_obj:
+            return render_template('uid_not_found.html', uid=uid)
+        if selected_analysis is not None and selected_analysis not in file_obj.processed_analysis:
+            return render_template('error.html', message=f'The requested analysis ({selected_analysis}) has not run (yet)')
+        if isinstance(file_obj, Firmware):
+            root_uid = file_obj.uid
+            other_versions = self.db.get_other_versions_of_firmware(file_obj)
+        included_fo_analysis_complete = not self.db.all_uids_found_in_database(list(file_obj.files_included))
         with ConnectTo(InterComFrontEndBinding, self._config) as sc:
             analysis_plugins = sc.get_available_analysis_plugins()
         return render_template_string(
@@ -82,7 +84,7 @@ class AnalysisRoutes(ComponentBase):
             )
         )
 
-    def _get_correct_template(self, selected_analysis: str, fw_object: Union[Firmware, FileObject]):
+    def _get_correct_template(self, selected_analysis: Optional[str], fw_object: Union[Firmware, FileObject]):
         if selected_analysis and 'failed' in fw_object.processed_analysis[selected_analysis]:
             return get_template_as_string('analysis_plugins/fail.html')
         if selected_analysis:
@@ -95,8 +97,7 @@ class AnalysisRoutes(ComponentBase):
     @AppRoute('/analysis/<uid>/<selected_analysis>', POST)
     @AppRoute('/analysis/<uid>/<selected_analysis>/ro/<root_uid>', POST)
     def start_single_file_analysis(self, uid, selected_analysis=None, root_uid=None):
-        with ConnectTo(FrontEndDbInterface, self._config) as database:
-            file_object = database.get_object(uid)
+        file_object = self.db.get_object(uid)
         file_object.scheduled_analysis = request.form.getlist('analysis_systems')
         file_object.force_update = request.form.get('force_update') == 'true'
         with ConnectTo(InterComFrontEndBinding, self._config) as intercom:
@@ -113,8 +114,7 @@ class AnalysisRoutes(ComponentBase):
     def _get_analysis_view(self, selected_analysis):
         if selected_analysis == 'unpacker':
             return self.analysis_unpacker_view
-        with ConnectTo(ViewReader, self._config) as vr:
-            view = vr.get_view(selected_analysis)
+        view = self.template_db.get_view(selected_analysis)
         if view:
             return view.decode('utf-8')
         return self.analysis_generic_view
@@ -122,14 +122,13 @@ class AnalysisRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @AppRoute('/update-analysis/<uid>', GET)
     def get_update_analysis(self, uid, re_do=False, error=None):
-        with ConnectTo(FrontEndDbInterface, self._config) as sc:
-            old_firmware = sc.get_firmware(uid=uid, analysis_filter=[])
-            if old_firmware is None:
-                return render_template('uid_not_found.html', uid=uid)
+        old_firmware = self.db.get_firmware(uid=uid, analysis_filter=[])
+        if old_firmware is None:
+            return render_template('uid_not_found.html', uid=uid)
 
-            device_class_list = sc.get_device_class_list()
-            vendor_list = sc.get_vendor_list()
-            device_name_dict = sc.get_device_name_dict()
+        device_class_list = self.db.get_device_class_list()
+        vendor_list = self.db.get_vendor_list()
+        device_name_dict = self.db.get_device_name_dict()
 
         device_class_list.remove(old_firmware.device_class)
         vendor_list.remove(old_firmware.vendor)
@@ -173,12 +172,10 @@ class AnalysisRoutes(ComponentBase):
     def _schedule_re_analysis_task(self, uid, analysis_task, re_do, force_reanalysis=False):
         if re_do:
             base_fw = None
-            with ConnectTo(AdminDbInterface, self._config) as sc:
-                sc.delete_firmware(uid, delete_root_file=False)
+            self.admin_db.delete_firmware(uid, delete_root_file=False)
         else:
-            with ConnectTo(FrontEndDbInterface, self._config) as db:
-                base_fw = db.get_firmware(uid)
-                base_fw.force_update = force_reanalysis
+            base_fw = self.db.get_firmware(uid)
+            base_fw.force_update = force_reanalysis
         fw = convert_analysis_task_to_fw_obj(analysis_task, base_fw=base_fw)
         with ConnectTo(InterComFrontEndBinding, self._config) as sc:
             sc.add_re_analyze_task(fw, unpack=re_do)
@@ -193,25 +190,24 @@ class AnalysisRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['view_analysis'])
     @AppRoute('/dependency-graph/<uid>', GET)
     def show_elf_dependency_graph(self, uid):
-        with ConnectTo(FrontEndDbInterface, self._config) as db:
-            fo = db.get_object(uid)
-            fo_list = db.get_objects_by_uid_list(fo.files_included, analysis_filter=['elf_analysis', 'file_type'])
+        fo = self.db.get_object(uid)
+        fo_list = self.db.get_objects_by_uid_list(fo.files_included, analysis_filter=['elf_analysis', 'file_type'])
 
-            whitelist = ['application/x-executable', 'application/x-sharedlib', 'inode/symlink']
+        whitelist = ['application/x-executable', 'application/x-sharedlib', 'inode/symlink']
 
-            data_graph_part = create_data_graph_nodes_and_groups(fo_list, whitelist)
+        data_graph_part = create_data_graph_nodes_and_groups(fo_list, whitelist)
 
-            if not data_graph_part['nodes']:
-                flash('Error: Graph could not be rendered. '
-                      'The file chosen as root must contain a filesystem with binaries.', 'danger')
-                return render_template('dependency_graph.html', **data_graph_part, uid=uid)
+        if not data_graph_part['nodes']:
+            flash('Error: Graph could not be rendered. '
+                  'The file chosen as root must contain a filesystem with binaries.', 'danger')
+            return render_template('dependency_graph.html', **data_graph_part, uid=uid)
 
-            data_graph, elf_analysis_missing_from_files = create_data_graph_edges(fo_list, data_graph_part)
+        data_graph, elf_analysis_missing_from_files = create_data_graph_edges(fo_list, data_graph_part)
 
-            if elf_analysis_missing_from_files > 0:
-                flash(f'Warning: Elf analysis plugin result is missing for {elf_analysis_missing_from_files} files', 'warning')
+        if elf_analysis_missing_from_files > 0:
+            flash(f'Warning: Elf analysis plugin result is missing for {elf_analysis_missing_from_files} files', 'warning')
 
-            color_list = get_graph_colors()
+        color_list = get_graph_colors()
 
-            # TODO: Add a loading icon?
+        # TODO: Add a loading icon?
         return render_template('dependency_graph.html', **data_graph, uid=uid, color_list=color_list)
