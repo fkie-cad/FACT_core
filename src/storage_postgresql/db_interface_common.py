@@ -3,7 +3,7 @@ from typing import Dict, List, Optional, Set, Union
 
 from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.orm import Session, aliased
+from sqlalchemy.orm import aliased
 from sqlalchemy.orm.exc import NoResultFound
 
 from objects.file import FileObject
@@ -36,7 +36,7 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
             return bool(session.execute(query).scalar())
 
     def is_file_object(self, uid: str) -> bool:
-        # aka "is_not_firmware"
+        # aka "is_in_the_db_but_not_a_firmware"
         return not self.is_firmware(uid) and self.exists(uid)
 
     def all_uids_found_in_database(self, uid_list: List[str]) -> bool:
@@ -55,21 +55,15 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
 
     def get_firmware(self, uid: str, analysis_filter: Optional[List[str]] = None) -> Optional[Firmware]:
         with self.get_read_only_session() as session:
-            try:
-                fw_entry = self._get_firmware_entry(uid, session)
-                return self._firmware_from_entry(fw_entry, analysis_filter=analysis_filter)
-            except NoResultFound:
+            fw_entry = session.get(FirmwareEntry, uid)
+            if fw_entry is None:
                 return None
+            return self._firmware_from_entry(fw_entry, analysis_filter=analysis_filter)
 
     def _firmware_from_entry(self, fw_entry: FirmwareEntry, analysis_filter: Optional[List[str]] = None) -> Firmware:
         firmware = firmware_from_entry(fw_entry, analysis_filter)
         firmware.analysis_tags = self._collect_analysis_tags_from_children(firmware.uid)
         return firmware
-
-    @staticmethod
-    def _get_firmware_entry(uid: str, session: Session) -> FirmwareEntry:
-        query = select(FirmwareEntry).filter_by(uid=uid)
-        return session.execute(query).scalars().one()
 
     def get_file_object(self, uid: str, analysis_filter: Optional[List[str]] = None) -> Optional[FileObject]:
         with self.get_read_only_session() as session:
