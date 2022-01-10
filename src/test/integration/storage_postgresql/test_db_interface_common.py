@@ -132,7 +132,7 @@ def test_get_objects_by_uid_list(db):
     fo, fw = create_fw_with_child_fo()
     db.backend.insert_object(fw)
     db.backend.insert_object(fo)
-    result = db.common.get_objects_by_uid_list2([fo.uid, fw.uid])
+    result = db.common.get_objects_by_uid_list([fo.uid, fw.uid])
     assert len(result) == 2
     objects_by_uid = {fo.uid: fo for fo in result}
     assert fo.uid in objects_by_uid and fw.uid in objects_by_uid

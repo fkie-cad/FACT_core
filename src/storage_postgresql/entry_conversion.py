@@ -29,7 +29,7 @@ def file_object_from_entry(
 ) -> FileObject:
     file_object = FileObject()
     _populate_fo_data(fo_entry, file_object, analysis_filter, included_files, parents)
-    file_object.tags = collect_analysis_tags(file_object)
+    file_object.analysis_tags = collect_analysis_tags(file_object)
     return file_object
 
 
@@ -53,7 +53,7 @@ def _populate_fo_data(
     file_object.comments = fo_entry.comments
     file_object.parents = fo_entry.get_parent_uids() if parents is None else parents
     file_object.files_included = fo_entry.get_included_uids() if included_files is None else included_files
-    file_object.parent_firmware_uids = list(file_object.virtual_file_path)
+    file_object.parent_firmware_uids = set(file_object.virtual_file_path)
 
 
 def _collect_analysis_tags(analysis_dict: dict) -> dict:

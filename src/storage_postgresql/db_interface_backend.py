@@ -125,6 +125,7 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
             entry.result = get_analysis_without_meta(analysis_data)
 
     def update_file_object_parents(self, file_uid: str, root_uid: str, parent_uid):
+        # FixMe? update VFP here?
         with self.get_read_write_session() as session:
             fo_entry = session.get(FileObjectEntry, file_uid)
             self._update_parents([root_uid], [parent_uid], fo_entry, session)

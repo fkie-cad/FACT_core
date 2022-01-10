@@ -32,52 +32,84 @@ class FrontEndDbInterface(DbInterfaceCommon):
 
     # --- HID ---
 
-    def get_hid(self, uid, root_uid=None):  # FixMe? replace with direct query
+    def get_hid(self, uid, root_uid=None) -> str:
         '''
         returns a human-readable identifier (hid) for a given uid
         returns an empty string if uid is not in Database
         '''
-        hid = self._get_hid_firmware(uid)
-        if hid is None:
-            hid = self._get_hid_fo(uid, root_uid)
-        if hid is None:
-            return ''
-        return hid
+        with self.get_read_only_session() as session:
+            fo_entry = session.get(FileObjectEntry, uid)
+            if fo_entry is None:
+                return ''
+            if fo_entry.is_firmware:
+                return self._get_hid_firmware(fo_entry.firmware)
+            return self._get_hid_fo(fo_entry, root_uid)
 
-    def _get_hid_firmware(self, uid: str) -> Optional[str]:
-        firmware = self.get_firmware(uid)
-        if firmware is not None:
-            part = '' if firmware.part in ['', None] else f' {firmware.part}'
-            return f'{firmware.vendor} {firmware.device_name} -{part} {firmware.version} ({firmware.device_class})'
-        return None
+    @staticmethod
+    def _get_hid_firmware(firmware: FirmwareEntry) -> str:
+        part = '' if firmware.device_part in ['', None] else f' {firmware.device_part}'
+        return f'{firmware.vendor} {firmware.device_name} -{part} {firmware.version} ({firmware.device_class})'
 
-    def _get_hid_fo(self, uid, root_uid):
-        fo = self.get_object(uid)
-        if fo is None:
-            return None
-        return get_top_of_virtual_path(fo.get_virtual_paths_for_one_uid(root_uid)[0])
+    @staticmethod
+    def _get_hid_fo(fo_entry: FileObjectEntry, root_uid: Optional[str]) -> str:
+        vfp_list = fo_entry.virtual_file_paths.get(root_uid) or get_value_of_first_key(fo_entry.virtual_file_paths)
+        return get_top_of_virtual_path(vfp_list[0])
 
     # --- "nice list" ---
 
     def get_data_for_nice_list(self, uid_list: List[str], root_uid: Optional[str]) -> List[dict]:
         with self.get_read_only_session() as session:
+            included_files_dict = self._get_included_files_for_uid_list(session, uid_list)
+            mime_dict = self._get_mime_types_for_uid_list(session, uid_list)
             query = (
-                select(FileObjectEntry, AnalysisEntry)
-                .select_from(FileObjectEntry)
-                .join(AnalysisEntry, AnalysisEntry.uid == FileObjectEntry.uid)
-                .filter(AnalysisEntry.plugin == 'file_type', FileObjectEntry.uid.in_(uid_list))
+                select(
+                    FileObjectEntry.uid,
+                    FileObjectEntry.size,
+                    FileObjectEntry.file_name,
+                    FileObjectEntry.virtual_file_paths
+                )
+                .filter(FileObjectEntry.uid.in_(uid_list))
             )
-            return [
+            nice_list_data = [
                 {
-                    'uid': fo_entry.uid,
-                    'files_included': fo_entry.get_included_uids(),
-                    'size': fo_entry.size,
-                    'file_name': fo_entry.file_name,
-                    'mime-type': type_analysis.result['mime'] if type_analysis else 'file-type-plugin/not-run-yet',
-                    'current_virtual_path': self._get_current_vfp(fo_entry.virtual_file_paths, root_uid)
+                    'uid': uid,
+                    'files_included': included_files_dict.get(uid, set()),
+                    'size': size,
+                    'file_name': file_name,
+                    'mime-type': mime_dict.get(uid, 'file-type-plugin/not-run-yet'),
+                    'current_virtual_path': self._get_current_vfp(virtual_file_path, root_uid)
                 }
-                for fo_entry, type_analysis in session.execute(query)
+                for uid, size, file_name, virtual_file_path in session.execute(query)
             ]
+            self._replace_uids_in_nice_list(nice_list_data, root_uid)
+            return nice_list_data
+
+    def _replace_uids_in_nice_list(self, nice_list_data: List[dict], root_uid: str):
+        uids_in_vfp = set()
+        for item in nice_list_data:
+            uids_in_vfp.update(uid for vfp in item['current_virtual_path'] for uid in vfp.split('|')[:-1] if uid)
+        hid_dict = self._get_hid_dict(uids_in_vfp, root_uid)
+        for item in nice_list_data:
+            for index, vfp in enumerate(item['current_virtual_path']):
+                for uid in vfp.split('|')[:-1]:
+                    if uid:
+                        vfp = vfp.replace(uid, hid_dict.get(uid, 'unknown'))
+                item['current_virtual_path'][index] = vfp
+
+    def _get_hid_dict(self, uid_set: Set[str], root_uid: str) -> Dict[str, str]:
+        with self.get_read_only_session() as session:
+            query = (
+                select(FileObjectEntry, FirmwareEntry)
+                .outerjoin(FirmwareEntry, FirmwareEntry.uid == FileObjectEntry.uid)
+                .filter(FileObjectEntry.uid.in_(uid_set))
+            )
+            result = {}
+            for fo_entry, fw_entry in session.execute(query):
+                if fw_entry is None:  # FO
+                    result[fo_entry.uid] = self._get_hid_fo(fo_entry, root_uid)
+                else:  # FW
+                    result[fo_entry.uid] = self._get_hid_firmware(fw_entry)
+        return result
 
     @staticmethod
     def _get_current_vfp(vfp: Dict[str, List[str]], root_uid: str) -> List[str]:
@@ -89,6 +121,11 @@ class FrontEndDbInterface(DbInterfaceCommon):
         if not file_type_analysis or 'mime' not in file_type_analysis.result:
             return 'file-type-plugin/not-run-yet'
         return file_type_analysis.result['mime']
+
+    def get_file_name(self, uid: str) -> str:
+        with self.get_read_only_session() as session:
+            entry = session.get(FileObjectEntry, uid)
+            return entry.file_name if entry is not None else 'unknown'
 
     # --- misc. ---
 
@@ -220,25 +257,10 @@ class FrontEndDbInterface(DbInterfaceCommon):
 
     def get_file_tree_data(self, uid_list: List[str]) -> List[FileTreeDatum]:
         with self.get_read_only_session() as session:
-            included_query = (
-                select(
-                    FileObjectEntry.uid,
-                    func.array_agg(included_files_table.c.child_uid),
-                )
-                .filter(FileObjectEntry.uid.in_(uid_list))
-                .join(included_files_table, included_files_table.c.parent_uid == FileObjectEntry.uid)
-                .group_by(FileObjectEntry)
-            )
-            included_files = dict(e for e in session.execute(included_query))
-            type_query = (
-                select(
-                    AnalysisEntry.uid,
-                    AnalysisEntry.result['mime'],
-                )
-                .filter(AnalysisEntry.plugin == 'file_type')
-                .filter(AnalysisEntry.uid.in_(uid_list))
-            )
-            type_analyses = dict(e for e in session.execute(type_query))
+            # get included files in a separate query because it is way faster than FileObjectEntry.get_included_uids()
+            included_files = self._get_included_files_for_uid_list(session, uid_list)
+            # get analysis data in a separate query because the analysis may be missing (=> no row in joined result)
+            type_analyses = self._get_mime_types_for_uid_list(session, uid_list)
             query = (
                 select(
                     FileObjectEntry.uid,
@@ -250,8 +272,28 @@ class FrontEndDbInterface(DbInterfaceCommon):
             )
             return [
                 FileTreeDatum(uid, file_name, size, vfp, type_analyses.get(uid), included_files.get(uid, set()))
-                for uid, file_name, size, vfp, in session.execute(query)
+                for uid, file_name, size, vfp in session.execute(query)
             ]
+
+    @staticmethod
+    def _get_mime_types_for_uid_list(session, uid_list: List[str]) -> Dict[str, str]:
+        type_query = (
+            select(AnalysisEntry.uid, AnalysisEntry.result['mime'])
+            .filter(AnalysisEntry.plugin == 'file_type')
+            .filter(AnalysisEntry.uid.in_(uid_list))
+        )
+        return dict(e for e in session.execute(type_query))
+
+    @staticmethod
+    def _get_included_files_for_uid_list(session, uid_list: List[str]) -> Dict[str, List[str]]:
+        included_query = (
+            # aggregation `array_agg()` converts multiple rows to an array
+            select(FileObjectEntry.uid, func.array_agg(included_files_table.c.child_uid))
+            .filter(FileObjectEntry.uid.in_(uid_list))
+            .join(included_files_table, included_files_table.c.parent_uid == FileObjectEntry.uid)
+            .group_by(FileObjectEntry)
+        )
+        return dict(e for e in session.execute(included_query))
 
     # --- REST ---
 
