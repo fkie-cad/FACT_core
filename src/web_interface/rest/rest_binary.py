@@ -6,9 +6,8 @@ from flask_restx import Namespace
 from helperFunctions.database import ConnectTo
 from helperFunctions.hash import get_sha256
 from intercom.front_end_binding import InterComFrontEndBinding
-from storage.db_interface_frontend import FrontEndDbInterface
 from web_interface.rest.helper import error_message, get_boolean_from_request, success_message
-from web_interface.rest.rest_resource_base import RestResourceBase
+from web_interface.rest.rest_resource_base import RestResourceDbBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
@@ -25,7 +24,7 @@ api = Namespace('rest/binary', description='Request the binary of a given firmwa
         }
     }
 )
-class RestBinary(RestResourceBase):
+class RestBinary(RestResourceDbBase):
     URL = '/rest/binary'
 
     @roles_accepted(*PRIVILEGES['download'])
@@ -37,9 +36,7 @@ class RestBinary(RestResourceBase):
         Alternatively the tar parameter can be used to get the target archive as its content repacked into a .tar.gz.
         The return format will be {"binary": b64_encoded_binary_or_tar_gz, "file_name": file_name}
         '''
-        with ConnectTo(FrontEndDbInterface, self.config) as db_service:
-            existence = db_service.exists(uid)
-        if not existence:
+        if not self.db.exists(uid):
             return error_message('No firmware with UID {} found in database'.format(uid), self.URL,
                                  request_data={'uid': uid}, return_code=404)
 

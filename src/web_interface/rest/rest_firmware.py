@@ -12,11 +12,10 @@ from helperFunctions.mongo_task_conversion import convert_analysis_task_to_fw_ob
 from helperFunctions.object_conversion import create_meta_dict
 from intercom.front_end_binding import InterComFrontEndBinding
 from objects.firmware import Firmware
-from storage.db_interface_frontend import FrontEndDbInterface
 from web_interface.rest.helper import (
     error_message, get_boolean_from_request, get_paging, get_query, get_update, success_message
 )
-from web_interface.rest.rest_resource_base import RestResourceBase
+from web_interface.rest.rest_resource_base import RestResourceDbBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
@@ -38,7 +37,7 @@ firmware_model = api.model('Upload Firmware', {
 
 
 @api.route('', doc={'description': ''})
-class RestFirmwareGetWithoutUid(RestResourceBase):
+class RestFirmwareGetWithoutUid(RestResourceDbBase):
     URL = '/rest/firmware'
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
@@ -72,8 +71,7 @@ class RestFirmwareGetWithoutUid(RestResourceBase):
 
         parameters = dict(offset=offset, limit=limit, query=query, recursive=recursive, inverted=inverted)
         try:
-            with ConnectTo(FrontEndDbInterface, self.config) as connection:
-                uids = connection.rest_get_firmware_uids(**parameters)
+            uids = self.db.rest_get_firmware_uids(**parameters)
             return success_message(dict(uids=uids), self.URL, parameters)
         except PyMongoError:
             return error_message('Unknown exception on request', self.URL, parameters)
@@ -125,7 +123,7 @@ class RestFirmwareGetWithoutUid(RestResourceBase):
 
 
 @api.route('/<string:uid>', doc={'description': '', 'params': {'uid': 'Firmware UID'}})
-class RestFirmwareGetWithUid(RestResourceBase):
+class RestFirmwareGetWithUid(RestResourceDbBase):
     URL = '/rest/firmware'
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
@@ -140,11 +138,9 @@ class RestFirmwareGetWithUid(RestResourceBase):
         '''
         summary = get_boolean_from_request(request.args, 'summary')
         if summary:
-            with ConnectTo(FrontEndDbInterface, self.config) as connection:
-                firmware = connection.get_complete_object_including_all_summaries(uid)
+            firmware = self.db.get_complete_object_including_all_summaries(uid)
         else:
-            with ConnectTo(FrontEndDbInterface, self.config) as connection:
-                firmware = connection.get_firmware(uid)
+            firmware = self.db.get_firmware(uid)
         if not firmware or not isinstance(firmware, Firmware):
             return error_message(f'No firmware with UID {uid} found', self.URL, dict(uid=uid))
 
@@ -171,8 +167,7 @@ class RestFirmwareGetWithUid(RestResourceBase):
         return self._update_analysis(uid, update)
 
     def _update_analysis(self, uid, update):
-        with ConnectTo(FrontEndDbInterface, self.config) as connection:
-            firmware = connection.get_firmware(uid)
+        firmware = self.db.get_firmware(uid)
         if not firmware:
             return error_message(f'No firmware with UID {uid} found', self.URL, dict(uid=uid))
 
