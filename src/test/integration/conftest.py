@@ -24,6 +24,7 @@ class DB:
 def db_interface():
     config = get_config_for_testing()
     common = DbInterfaceCommon(config)
+    common.create_tables()
     backend = BackendDbInterface(config)
     frontend = FrontEndDbInterface(config)
     frontend_ed = FrontendEditingDbInterface(config)

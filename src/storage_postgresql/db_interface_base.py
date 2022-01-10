@@ -15,6 +15,7 @@ class DbInterfaceError(Exception):
 
 class ReadOnlyDbInterface:
     def __init__(self, config: ConfigParser):
+        self.base = Base
         address = config.get('data_storage', 'postgres_server')
         port = config.get('data_storage', 'postgres_port')
         database = config.get('data_storage', 'postgres_database')
@@ -25,7 +26,7 @@ class ReadOnlyDbInterface:
         self._session_maker = sessionmaker(bind=self.engine, future=True)  # future=True => sqlalchemy 2.0 support
 
     def create_tables(self):
-        Base.metadata.create_all(self.engine)
+        self.base.metadata.create_all(self.engine)
 
     @contextmanager
     def get_read_only_session(self) -> Session:
