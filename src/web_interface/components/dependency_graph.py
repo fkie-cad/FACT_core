@@ -26,7 +26,7 @@ def create_data_graph_nodes_and_groups(data, whitelist):
 
             data_graph['nodes'].append(node)
 
-    data_graph['groups'] = groups
+    data_graph['groups'] = sorted(groups)
 
     return data_graph
 
@@ -58,7 +58,7 @@ def create_symbolic_link_edges(data_graph):
             link_to = node['full_file_type'].split('\'')[1]
             for match in data_graph['nodes']:
                 if match['label'] == link_to:
-                    edge = {'source': node['id'], 'target': match['id'], 'id': edge_id}
+                    edge = {'from': node['id'], 'to': match['id'], 'id': edge_id}
                     data_graph['edges'].append(edge)
                     edge_id += 1
     return edge_id
@@ -72,14 +72,12 @@ def find_edges(data_graph, edge_id, lib, file_object):
             target_id = node['id']
             break
     if target_id is not None:
-        edge = {'source': file_object['_id'], 'target': target_id, 'id': edge_id}
+        edge = {'from': file_object['_id'], 'to': target_id, 'id': edge_id}
         data_graph['edges'].append(edge)
         edge_id += 1
 
     return edge_id
 
 
-def get_graph_colors():
-    available_colors = get_color_list(10)
-    color_list = list(islice(chain(*repeat(available_colors, 4)), None, None, 4))
-    return color_list
+def get_graph_colors(quantity):
+    return get_color_list(quantity, quantity) if quantity > 0 else []

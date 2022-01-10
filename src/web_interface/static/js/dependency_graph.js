@@ -1,274 +1,265 @@
-var nodes, groups, edges, network, legend_network, allNodes;
-    var highlightActive = false;
+var allConnectedNodes;
+var allNodes;
+var dataset;
+var graphOptions;
+var groupOptions;
+var highlightActive = false;
+var network;
 
-    // convenience method to stringify a JSON object
-    function toJSON(obj) {
-        return JSON.stringify(obj, null, 4);
-    }
+function dependencyGraph(nodes, edges, groups, colors) {
+    let graphCanvas = $("#dependencyGraph")[0];
 
-    var my_nodes = [];
-    var my_edges = [];
-    groups = [];
-
-    var graph_container = document.getElementById("dependencyGraph");
-    var legend_container = document.getElementById("dependencyGraphLegend");
-
-    for (i in get_nodes) {
-        my_nodes[i] = {id: get_nodes[i].id, label: get_nodes[i].label, group: get_nodes[i].group, full_file_type: get_nodes[i].full_file_type}
-    }
-    for (i in get_edges) {
-        my_edges[i] = {id: get_edges[i].id, from: get_edges[i].source, to: get_edges[i].target}
-    }
-    for (i in get_groups) {
-        groups.push(get_groups[i])
-    }
-
-    // create an array with nodes
-    nodes = new vis.DataSet();
-    nodes.add(my_nodes);
-
-    // create a legend
-    // and change group colors
-    var legend_nodes = new vis.DataSet();
-    var legend_nodes_array = [];
-    var x = 0;
-    var y = 0;
-    var step = 60;
-
-    var group_options = {};
-   
-    if (typeof color_list === 'undefined' || color_list.length <= 0) {
-        // bootstrap colors cyan, yellow, pink, blue, purple, orange
-        color_list = ['#17a2b8', '#ffc107', '#e83e8c', '#007bff', '#6f42c1', '#fd7e14'];
-    }
-    color_i = 0;
-
-    var id = 1;
-    var step_i = 0;
-    for (j in groups) {
-        legend_nodes_array.push({
-            id: id,
-            x: x,
-            y: y + step * step_i,
-            label: groups[j],
-            group: groups[j],
-            value: 1,
-            fixed: true,
-            physics: false
-        });
-        id = id + 1;
-        step_i = step_i + 1;
-        group_options [groups[j]] = {color: color_list[color_i]};
-        color_i = (color_i + 1)%color_list.length;
-    }
-    legend_nodes.add(legend_nodes_array);
-
-    // create an array with edges
-    edges = new vis.DataSet();
-    edges.add(my_edges);
-
-    // create a network
-    var data = {
-        nodes: nodes,
-        edges: edges,
+    dataset = {
+        nodes: new vis.DataSet(nodes),
+        edges: new vis.DataSet(edges)
     };
 
-    var legend_data = {
-        nodes: legend_nodes,
-    };
+    // map group names to colors --> {'mime/type': {color: '#...'}}
+    groupOptions = groups.reduce((obj, curr, i) => {return {...obj, [curr]: {color: colors[i]}}}, {});
 
-    function draw_network() {
-
-        var options = {
-            nodes: {
-                shape: 'dot',
-                scaling: {
-                    min: 10,
-                    max: 30
-                },
-                font: {
-                    size: 12,
-                    face: 'Tahoma'
-                }
-            },
-            groups: group_options,
-            edges: {
-                color:{inherit:true},
-                width: 0.15,
-                arrows: {
-                    to: true
-                }
-            },
-            interaction: {
-                hideEdgesOnDrag: true,
-                tooltipDelay: 200
-            },
-            physics: {
-                forceAtlas2Based: {
-                    gravitationalConstant: -129,
-                    centralGravity: 0.16,
-                    springLength: 0,
-                    springConstant: 0.4,
-                    damping: 0.85,
-                    avoidOverlap: 0.46
-                },
-                minVelocity: 0.75,
-                solver: 'forceAtlas2Based'
+    // set the graph options. Most of this is physics model initialization
+    graphOptions = {
+        nodes: {
+            shape: 'dot',
+            font: {
+                size: 18,
+                face: 'Tahoma'
             }
-        };
+        },
+        groups: groupOptions,
+        edges: {
+            color: { inherit: true },
+            width: 0.5,
+            arrows: { to: true },
+        },
+        interaction: {
+            dragNodes: false,
+        },
+        physics: {
+            enabled: true,
+            solver: 'forceAtlas2Based',
+            forceAtlas2Based: {
+                theta: 0.8,
+                springLength: 40,
+                springConstant: 0.05,
+                damping: 0.4,
+                avoidOverlap: 0.1,
+            },
+            maxVelocity: 2000,
+            minVelocity: 0.0,
+            timestep: 0.05,
+            adaptiveTimestep: true,
+            stabilization: {
+              enabled: false
+            }
+        },
+        layout: {
+            randomSeed: 0,
+            improvedLayout: false,
+        }
+    };
 
-        network = new vis.Network(graph_container, data, options,  main = "Dependency Graph");
+    // draw all components
+    network = drawNetwork(dataset, graphOptions, graphCanvas);
+    drawLegend(groups, colors);
+    drawNodesList();
+    drawDetails();
 
-        allNodes = nodes.get({ returnType: "Object" });
-        network.on("click", neighbourhoodHighlight);
+    // register event handlers
+    network.on("click", neighbourhoodHighlight);
+    $('#nodesList').click(nodeListSelectionHandler);
+    $('#nodeFilter').keyup(filterNodesList);
+}
 
-        network.on("oncontext", contextMenu);
+function drawLegend(groups, colors) {
+    // draw the legend
+    let legend = $('#legend');
+    for (let i = 0; i < groups.length; i++) {
+        legend.append('<div><span style="color: ' + colors[i] + ';">&#9679;</span> ' + groups[i] + '</div>');
+    }
+}
 
-        network.on("stabilizationIterationsDone", function (params) {
+function filterNodesList() {
+    // filter nodes list event handler
+    try {
+        // the filter input supports regex
+        var expr = new RegExp($(this).val(), 'i');
+    } catch(SyntaxError) {
+        // invalid search
+        return;
+    }
+
+    $("#nodesList > div").each(function(){
+        // hide all nodes in the list that are filtered out, show the rest
+        let mime = $(this).find('a')[0].dataset.nodemime;
+        let name = $(this).find('a')[0].dataset.nodelabel;
+
+        // we search both name and mime
+        if (mime.search(expr) < 0 && name.search(expr) < 0) {
+            $(this).fadeOut();
+        } else {
+            $(this).show();
+        }
+    });
+}
+
+function drawNodesList() {
+    let nodesList = $('#nodesList');
+    $('#nodeFilter')[0].value = '';
+    nodesList.empty();
+
+    for (nodeId in allNodes) {
+        let node = dataset.nodes.get(nodeId);
+        let color = groupOptions[node.group].color;
+        if (node.label !== undefined) {
+            nodesList.append('<div><span style="color: ' + color + ';">&#9679;</span>&nbsp;<a href="#" class="text-dark" data-nodeid="' + node.id + '" data-nodelabel="' + node.label + '" data-nodemime="' + node.group + '" style="text-decoration: none;">' + node.label + '</a></div>');
+        }
+    }
+}
+
+function drawDetails() {
+    // get details and flush contents
+    let details = $('#detailsBody');
+    details.empty();
+
+    // check if something is selected
+    let selected = network.getSelectedNodes();
+    if (selected.length == 0) {
+        details.append('<div>No node selected</div>');
+        return;
+    }
+
+    // show node details
+    let node = dataset.nodes.get(selected[0]);
+    let color = groupOptions[node.group].color;
+    details.append(`
+        <div>
+            <a target="_blank" href="/analysis/${node.id}">Analysis Results</a>
+        </div>
+        <div>
+            <span class="font-weight-bold">Node:&nbsp;</span><span style="color: ${color};">&#9679;</span>&nbsp;${node.label}
+        </div>
+        <div>
+            <span class="font-weight-bold">Mime:&nbsp;</span>${node.group}
+        </div>
+        <div>
+            <span class="font-weight-bold">Full:&nbsp;</span>${node.full_file_type}
+        </div>`
+    );
+}
+
+function drawNetwork(dataset, graphOptions, canvas) {
+    // create the network on an empty canvas
+    let network = new vis.Network(canvas, dataset, graphOptions,  main = "Dependency Graph");
+    allNodes = dataset.nodes.get({ returnType: "Object" });
+
+    // get a decent stabilization before starting a 60 second timeout that
+    // aborts the physics simulation to preserve resources
+    network.on("stabilizationIterationsDone", function (params) {
+        setTimeout(() => {
             network.stopSimulation();
             network.setOptions( { physics: false } );
-        });
-        network.stabilize(100);
-    };
-
-    function draw_legend() {
-
-        // create a legend graph
-        var legend_options = {
-            nodes: {
-                shape: 'dot',
-                scaling: {
-                    min: 10,
-                    max: 30
-                },
-                font: {
-                    size: 12,
-                    face: 'Tahoma'
-                }
-            },
-            groups: group_options,
-            interaction: {
-                hideEdgesOnDrag: true,
-                tooltipDelay: 200,
-                dragNodes: false,
-                dragView: false,
-                zoomView: false
-            },
-            physics: {
-                forceAtlas2Based: {
-                    gravitationalConstant: -129,
-                    centralGravity: 0.16,
-                    springLength: 0,
-                    springConstant: 0.4,
-                    damping: 0.85,
-                    avoidOverlap: 0.46
-                },
-                minVelocity: 0.75,
-                solver: 'forceAtlas2Based'
-            }
-        };
-
-        legend_network = new vis.Network(legend_container, legend_data, legend_options,  main = "Dependency Graph Legend");
-
-        legend_network.on("stabilizationIterationsDone", function (params) {
-            legend_network.stopSimulation();
-            legend_network.setOptions( { physics: false } );
-        });
-        legend_network.stabilize(100);
-    };
-
-    function contextMenu(params) {
-        params.event.preventDefault();
-        $('#context-menu').modal()
-        var nodeId = network.getNodeAt(params.pointer.DOM);
-        var href = '/analysis/' + nodeId;
-        var nodeLabel = allNodes[nodeId].label;
-        var link = '<a href="' + href + '">' + nodeLabel + '</a>';
-        var fileType = allNodes[nodeId].full_file_type;
-        document.getElementById('node-link').innerHTML = link;
-        document.getElementById('file-type').innerHTML = fileType;
-    };
-
-
-
-    function neighbourhoodHighlight(params) {
-        // if something is selected:
-        if (params.nodes.length > 0) {
-            highlightActive = true;
-            var i, j;
-            var selectedNode = params.nodes[0];
-            var degrees = 1;
-
-            // mark all nodes as hard to read.
-            for (var nodeId in allNodes) {
-                allNodes[nodeId].color = "rgba(200,200,200,0.5)";
-                if (allNodes[nodeId].hiddenLabel === undefined) {
-                    allNodes[nodeId].hiddenLabel = allNodes[nodeId].label;
-                    allNodes[nodeId].label = undefined;
-                }
-            }
-
-            var connectedNodes = network.getConnectedNodes(selectedNode);
-            var allConnectedNodes = [];
-
-            // get the second degree nodes
-            for (i = 1; i < degrees; i++) {
-                for (j = 0; j < connectedNodes.length; j++) {
-                    allConnectedNodes = allConnectedNodes.concat(
-                        network.getConnectedNodes(connectedNodes[j])
-                    );
-                }
-            }
-
-            // all second degree nodes get a different color and their label back
-            for (i = 0; i < allConnectedNodes.length; i++) {
-                allNodes[allConnectedNodes[i]].color = "rgba(150,150,150,0.75)";
-                if (allNodes[allConnectedNodes[i]].hiddenLabel !== undefined) {
-                    allNodes[allConnectedNodes[i]].label =
-                    allNodes[allConnectedNodes[i]].hiddenLabel;
-                    allNodes[allConnectedNodes[i]].hiddenLabel = undefined;
-                }
-            }
-
-            // all first degree nodes get their own color and their label back
-            for (i = 0; i < connectedNodes.length; i++) {
-                allNodes[connectedNodes[i]].color = undefined;
-                if (allNodes[connectedNodes[i]].hiddenLabel !== undefined) {
-                    allNodes[connectedNodes[i]].label =
-                    allNodes[connectedNodes[i]].hiddenLabel;
-                    allNodes[connectedNodes[i]].hiddenLabel = undefined;
-                }
-            }
-
-            // the main node gets its own color and its label back.
-            allNodes[selectedNode].color = undefined;
-            if (allNodes[selectedNode].hiddenLabel !== undefined) {
-                allNodes[selectedNode].label = allNodes[selectedNode].hiddenLabel;
-                allNodes[selectedNode].hiddenLabel = undefined;
-            }
-        } else if (highlightActive === true) {
-            // reset all nodes
-            for (var nodeId in allNodes) {
-                allNodes[nodeId].color = undefined;
-                if (allNodes[nodeId].hiddenLabel !== undefined) {
-                    allNodes[nodeId].label = allNodes[nodeId].hiddenLabel;
-                    allNodes[nodeId].hiddenLabel = undefined;
-                }
-            }
-            highlightActive = false;
-        }
-
-        // transform the object into an array
-        var updateArray = [];
-        for (nodeId in allNodes) {
-            if (allNodes.hasOwnProperty(nodeId)) {
-                updateArray.push(allNodes[nodeId]);
-            }
-        }
-        nodes.update(updateArray);
-    }
-
-    window.addEventListener("load", () => {
-        draw_network();
-        draw_legend();
+        }, 60000);
     });
+    network.stabilize(200);
+
+    return network;
+}
+
+function nodeListSelectionHandler(ev) {
+    let ref = ev.target;
+
+    // if the user clicked a link on the nodes list, this will be defined
+    if (ref.dataset.nodeid !== undefined) {
+        // we then programmatically select the node in the network...
+        network.selectNodes([ref.dataset.nodeid]);
+
+        // ... and invoke the selection handler by hand, because vis.js does
+        // not fire a click event in this case.
+        let params = {nodes: network.getSelectedNodes()};
+        neighbourhoodHighlight(params)
+    }
+}
+
+// adapted source from visjs example:
+// https://visjs.github.io/vis-network/examples/network/exampleApplications/neighbourhoodHighlight.html
+function neighbourhoodHighlight(params) {
+    // if something is selected:
+    if (params.nodes.length > 0) {
+        highlightActive = true;
+        var i, j;
+        var selectedNode = params.nodes[0];
+        var degrees = 1;
+        network.focus(selectedNode, {scale: 0.4, animation: {easingFunction: 'easeInOutQuad'}});
+ 
+        // mark all nodes as hard to read.
+        for (var nodeId in allNodes) {
+            allNodes[nodeId].color = "rgba(200,200,200,0.5)";
+            if (allNodes[nodeId].hiddenLabel === undefined) {
+                allNodes[nodeId].hiddenLabel = allNodes[nodeId].label;
+                allNodes[nodeId].label = undefined;
+            }
+        }
+ 
+        var connectedNodes = network.getConnectedNodes(selectedNode);
+        allConnectedNodes = [];
+ 
+        // get the second degree nodes
+        for (i = 1; i < degrees; i++) {
+            for (j = 0; j < connectedNodes.length; j++) {
+                allConnectedNodes = allConnectedNodes.concat(
+                    network.getConnectedNodes(connectedNodes[j])
+                );
+            }
+        }
+ 
+        // all second degree nodes get a different color and their label back
+        for (i = 0; i < allConnectedNodes.length; i++) {
+            allNodes[allConnectedNodes[i]].color = "rgba(150,150,150,0.75)";
+            if (allNodes[allConnectedNodes[i]].hiddenLabel !== undefined) {
+                allNodes[allConnectedNodes[i]].label =
+                allNodes[allConnectedNodes[i]].hiddenLabel;
+                allNodes[allConnectedNodes[i]].hiddenLabel = undefined;
+            }
+        }
+ 
+        // all first degree nodes get their own color and their label back
+        for (i = 0; i < connectedNodes.length; i++) {
+            allNodes[connectedNodes[i]].color = undefined;
+            if (allNodes[connectedNodes[i]].hiddenLabel !== undefined) {
+                allNodes[connectedNodes[i]].label =
+                allNodes[connectedNodes[i]].hiddenLabel;
+                allNodes[connectedNodes[i]].hiddenLabel = undefined;
+            }
+        }
+ 
+        // the main node gets its own color and its label back.
+        allNodes[selectedNode].color = undefined;
+        if (allNodes[selectedNode].hiddenLabel !== undefined) {
+            allNodes[selectedNode].label = allNodes[selectedNode].hiddenLabel;
+            allNodes[selectedNode].hiddenLabel = undefined;
+        }
+    } else if (highlightActive === true) {
+        // reset all nodes
+        for (var nodeId in allNodes) {https://github.com/almende/vis/issues/2906
+            allNodes[nodeId].color = undefined;
+            if (allNodes[nodeId].hiddenLabel !== undefined) {
+                allNodes[nodeId].label = allNodes[nodeId].hiddenLabel;
+                allNodes[nodeId].hiddenLabel = undefined;
+            }
+        }
+        highlightActive = false;
+    }
+    // transform the object into an array
+    var updateArray = [];
+    for (nodeId in allNodes) {
+        if (allNodes.hasOwnProperty(nodeId)) {
+            updateArray.push(allNodes[nodeId]);
+        }
+    }
+    dataset.nodes.update(updateArray);
+
+    // re-draw nodes list and node detail view
+    drawNodesList();
+    drawDetails();
+}

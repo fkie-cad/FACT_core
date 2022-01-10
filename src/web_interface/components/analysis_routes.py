@@ -196,9 +196,11 @@ class AnalysisRoutes(ComponentBase):
         with ConnectTo(FrontEndDbInterface, self._config) as db:
             data = db.get_data_for_dependency_graph(uid)
 
-            whitelist = ['application/x-executable', 'application/x-sharedlib', 'inode/symlink']
+            whitelist = ['application/x-executable', 'application/x-pie-executable', 'application/x-sharedlib', 'inode/symlink']
 
             data_graph_part = create_data_graph_nodes_and_groups(data, whitelist)
+
+            colors = sorted(get_graph_colors(len(data_graph_part['groups'])))
 
             if not data_graph_part['nodes']:
                 flash('Error: Graph could not be rendered. '
@@ -210,7 +212,5 @@ class AnalysisRoutes(ComponentBase):
             if elf_analysis_missing_from_files > 0:
                 flash(f'Warning: Elf analysis plugin result is missing for {elf_analysis_missing_from_files} files', 'warning')
 
-            color_list = get_graph_colors()
-
             # TODO: Add a loading icon?
-        return render_template('dependency_graph.html', **data_graph, uid=uid, color_list=color_list)
+        return render_template('dependency_graph.html', **data_graph, uid=uid, colors=colors)
