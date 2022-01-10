@@ -11,9 +11,9 @@ from helperFunctions.data_conversion import (
 from helperFunctions.database import ConnectTo
 from helperFunctions.web_interface import get_template_as_string
 from intercom.front_end_binding import InterComFrontEndBinding
-from storage.db_interface_compare import CompareDbInterface, FactCompareException
-from storage.db_interface_frontend import FrontEndDbInterface
-from storage.db_interface_view_sync import ViewReader
+from storage_postgresql.db_interface_comparison import ComparisonDbInterface, FactComparisonException
+from storage_postgresql.db_interface_frontend import FrontEndDbInterface
+from storage_postgresql.db_interface_view_sync import ViewReader
 from web_interface.components.component_base import GET, AppRoute, ComponentBase
 from web_interface.pagination import extract_pagination_from_request, get_pagination
 from web_interface.security.decorator import roles_accepted
@@ -23,14 +23,19 @@ FileDiffData = NamedTuple('FileDiffData', [('uid', str), ('content', str), ('fil
 
 
 class CompareRoutes(ComponentBase):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.db = FrontEndDbInterface(config=self._config)
+        self.comp_db = ComparisonDbInterface(config=self._config)
+        self.template_db = ViewReader(config=self._config)
+
     @roles_accepted(*PRIVILEGES['compare'])
     @AppRoute('/compare/<compare_id>', GET)
     def show_compare_result(self, compare_id):
         compare_id = normalize_compare_id(compare_id)
         try:
-            with ConnectTo(CompareDbInterface, self._config) as sc:
-                result = sc.get_compare_result(compare_id)
-        except FactCompareException as exception:
+            result = self.comp_db.get_comparison_result(compare_id)
+        except FactComparisonException as exception:
             return render_template('compare/error.html', error=exception.get_message())
         if not result:
             return render_template('compare/wait.html', compare_id=compare_id)
@@ -60,8 +65,7 @@ class CompareRoutes(ComponentBase):
         with suppress(KeyError):
             used_plugins = list(compare_result['plugins'].keys())
             for plugin in used_plugins:
-                with ConnectTo(ViewReader, self._config) as vr:
-                    view = vr.get_view(plugin)
+                view = self.template_db.get_view(plugin)
                 if view:
                     views.append((plugin, view))
                 else:
@@ -100,16 +104,9 @@ class CompareRoutes(ComponentBase):
         session['uids_for_comparison'] = None
         redo = True if request.args.get('force_recompare') else None
 
-        with ConnectTo(CompareDbInterface, self._config) as sc:
-            compare_exists = sc.compare_result_is_in_db(compare_id)
+        compare_exists = self.comp_db.comparison_exists(compare_id)
         if compare_exists and not redo:
             return redirect(url_for('show_compare_result', compare_id=compare_id))
-
-        try:
-            with ConnectTo(CompareDbInterface, self._config) as sc:
-                sc.check_objects_exist(compare_id)
-        except FactCompareException as exception:
-            return render_template('compare/error.html', error=exception.get_message())
 
         with ConnectTo(InterComFrontEndBinding, self._config) as sc:
             sc.add_compare_task(compare_id, force=redo)
@@ -126,15 +123,13 @@ class CompareRoutes(ComponentBase):
     def browse_comparisons(self):
         page, per_page = extract_pagination_from_request(request, self._config)[0:2]
         try:
-            with ConnectTo(CompareDbInterface, self._config) as db_service:
-                compare_list = db_service.page_compare_results(skip=per_page * (page - 1), limit=per_page)
+            compare_list = self.comp_db.page_comparison_results(skip=per_page * (page - 1), limit=per_page)
         except Exception as exception:
             error_message = f'Could not query database: {type(exception)}'
             logging.error(error_message, exc_info=True)
             return render_template('error.html', message=error_message)
 
-        with ConnectTo(CompareDbInterface, self._config) as connection:
-            total = connection.get_total_number_of_results()
+        total = self.comp_db.get_total_number_of_results()
 
         pagination = get_pagination(page=page, per_page=per_page, total=total, record_name='compare results')
         return render_template('database/compare_browse.html', compare_list=compare_list, page=page, per_page=per_page, pagination=pagination)
@@ -200,11 +195,10 @@ class CompareRoutes(ComponentBase):
     def _get_data_for_file_diff(self, uid: str, root_uid: Optional[str]) -> FileDiffData:
         with ConnectTo(InterComFrontEndBinding, self._config) as db:
             content, _ = db.get_binary_and_filename(uid)
-        with ConnectTo(FrontEndDbInterface, self._config) as db:
-            fo = db.get_object(uid)
-            if root_uid in [None, 'None']:
-                root_uid = fo.get_root_uid()
-            fw_hid = db.get_object(root_uid).get_hid()
+        fo = self.db.get_object(uid)
+        if root_uid in [None, 'None']:
+            root_uid = fo.get_root_uid()
+        fw_hid = self.db.get_object(root_uid).get_hid()
         mime = fo.processed_analysis.get('file_type', {}).get('mime')
         return FileDiffData(uid, content.decode(errors='replace'), fo.file_name, mime, fw_hid)
 
