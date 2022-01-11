@@ -1,4 +1,5 @@
-from typing import Dict, List
+from contextlib import suppress
+from typing import Dict, List, Set
 
 
 def split_virtual_path(virtual_path: str) -> List[str]:
@@ -38,3 +39,15 @@ def _split_vfp_list_by_base(vfp_list: List[str]) -> Dict[str, List[str]]:
     for path in vfp_list:
         vfp_list_by_base.setdefault(get_base_of_virtual_path(path), []).append(path)
     return vfp_list_by_base
+
+
+def get_parent_uids_from_virtual_path(file_object) -> Set[str]:
+    '''
+    Get the UIDs of parent files (aka files with include this file) from the virtual file paths.
+    '''
+    parent_uids = set()
+    for path_list in file_object.virtual_file_path.values():
+        for virtual_path in path_list:
+            with suppress(IndexError):
+                parent_uids.add(virtual_path.split('|')[-2])
+    return parent_uids

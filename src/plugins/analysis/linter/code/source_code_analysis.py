@@ -5,7 +5,7 @@ from pathlib import Path
 
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.docker import run_docker_container
-from storage.fsorganizer import FSOrganizer
+from storage_postgresql.fsorganizer import FSOrganizer
 
 try:
     from ..internal import js_linter, lua_linter, python_linter, shell_linter

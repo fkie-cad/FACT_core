@@ -2,8 +2,7 @@ import logging
 from pathlib import Path
 from typing import Optional
 
-from helperFunctions.database import ConnectTo
-from storage.db_interface_view_sync import ViewUpdater
+from storage_postgresql.db_interface_view_sync import ViewUpdater
 
 
 class BasePlugin:
@@ -13,6 +12,7 @@ class BasePlugin:
     def __init__(self, plugin_administrator, config=None, plugin_path=None):
         self.plugin_administrator = plugin_administrator
         self.config = config
+        self.view_updater = ViewUpdater(config)
         if plugin_path:
             self._sync_view(plugin_path)
 
@@ -20,8 +20,7 @@ class BasePlugin:
         view_path = self._get_view_file_path(plugin_path)
         if view_path is not None:
             view_content = view_path.read_bytes()
-            with ConnectTo(ViewUpdater, self.config) as connection:
-                connection.update_view(self.NAME, view_content)
+            self.view_updater.update_view(self.NAME, view_content)
 
     def _get_view_file_path(self, plugin_path: str) -> Optional[Path]:
         views_dir = Path(plugin_path).parent.parent / 'view'

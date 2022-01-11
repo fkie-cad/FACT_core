@@ -55,22 +55,9 @@ class TestQemuExecRoutesStatic(TestCase):
     def test_get_analysis_results_for_included_uid(self):
         result = routes.get_analysis_results_for_included_uid('foo', self.config)
         assert result is not None
-        assert result != {}
+        assert result != {}  # pylint: disable=use-implicit-booleaness-not-comparison
         assert 'parent_uid' in result
         assert result['parent_uid'] == {'executable': False}
-
-    def test_get_parent_uids_from_virtual_path(self):
-        fo = create_test_file_object()
-        fo.virtual_file_path = {
-            'parent1': ['parent1|foo|bar|/some_file', 'parent1|some_uid|/some_file'],
-            'parent2': ['parent2|/some_file'],
-        }
-
-        result = routes._get_parent_uids_from_virtual_path(fo)
-        assert len(result) == 3
-        assert 'bar' in result
-        assert 'some_uid' in result
-        assert 'parent2' in result
 
     def test_get_results_from_parent_fo(self):
         parent = create_test_firmware()

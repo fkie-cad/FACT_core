@@ -22,7 +22,7 @@ from helperFunctions.docker import run_docker_container
 from helperFunctions.tag import TagColor
 from helperFunctions.uid import create_uid
 from objects.file import FileObject
-from storage.fsorganizer import FSOrganizer
+from storage_postgresql.fsorganizer import FSOrganizer
 from unpacker.unpack_base import UnpackBase
 
 TIMEOUT_IN_SECONDS = 15

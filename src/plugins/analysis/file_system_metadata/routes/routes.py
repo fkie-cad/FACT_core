@@ -5,23 +5,24 @@ from common_helper_files.fail_safe_file_operations import get_dir_of_file
 from flask import render_template_string
 from flask_restx import Namespace, Resource
 
-from helperFunctions.database import ConnectTo
+from helperFunctions.virtual_file_path import get_parent_uids_from_virtual_path
 from objects.file import FileObject
+from storage_postgresql.db_interface_common import DbInterfaceCommon
 from web_interface.components.component_base import ComponentBase
 from web_interface.rest.helper import error_message, success_message
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
-from ..code.file_system_metadata import AnalysisPlugin, FsMetadataDbInterface
+from ..code.file_system_metadata import AnalysisPlugin
 
 
-class FsMetadataRoutesDbInterface(FsMetadataDbInterface):
+class FsMetadataRoutesDbInterface(DbInterfaceCommon):
 
     def get_analysis_results_for_included_uid(self, uid: str):
         results = {}
         this_fo = self.get_object(uid)
         if this_fo is not None:
-            parent_uids = self.get_parent_uids_from_virtual_path(this_fo)
+            parent_uids = get_parent_uids_from_virtual_path(this_fo)
             for current_uid in parent_uids:
                 parent_fo = self.get_object(current_uid)
                 self.get_results_from_parent_fos(parent_fo, this_fo, results)
@@ -50,14 +51,16 @@ class FsMetadataRoutesDbInterface(FsMetadataDbInterface):
 
 
 class PluginRoutes(ComponentBase):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.db = FsMetadataRoutesDbInterface(config=self._config)
 
     def _init_component(self):
         self._app.add_url_rule('/plugins/file_system_metadata/ajax/<uid>', 'plugins/file_system_metadata/ajax/<uid>', self._get_analysis_results_of_parent_fo)
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
     def _get_analysis_results_of_parent_fo(self, uid):
-        with ConnectTo(FsMetadataRoutesDbInterface, self._config) as db:
-            results = db.get_analysis_results_for_included_uid(uid)
+        results = self.db.get_analysis_results_for_included_uid(uid)
         return render_template_string(self._load_view(), results=results)
 
     @staticmethod
@@ -78,11 +81,11 @@ class FSMetadataRoutesRest(Resource):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.config = kwargs.get('config', None)
+        self.db = FsMetadataRoutesDbInterface(config=self.config)
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
     def get(self, uid):
-        with ConnectTo(FsMetadataRoutesDbInterface, self.config) as db:
-            results = db.get_analysis_results_for_included_uid(uid)
+        results = self.db.get_analysis_results_for_included_uid(uid)
         endpoint = self.ENDPOINTS[0][0]
         if not results:
             error_message('no results found for uid {}'.format(uid), endpoint, request_data={'uid': uid})
