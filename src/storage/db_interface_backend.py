@@ -4,6 +4,7 @@ from time import time
 from pymongo.errors import PyMongoError
 
 from helperFunctions.data_conversion import convert_str_to_time
+from helperFunctions.merge_generators import merge_lists
 from helperFunctions.object_storage import update_included_files, update_virtual_file_path
 from objects.file import FileObject
 from objects.firmware import Firmware
@@ -42,7 +43,8 @@ class BackEndDbInterface(MongoInterfaceCommon):
             collection = self.firmwares
         else:
             update_dictionary.update({
-                'parent_firmware_uids': list(set.union(set(old_object['parent_firmware_uids']), new_object.parent_firmware_uids))
+                'parent_firmware_uids': merge_lists(old_object['parent_firmware_uids'], new_object.parent_firmware_uids),
+                'parents': merge_lists(old_object['parents'], new_object.parents)
             })
             collection = self.file_objects
 
