@@ -7,13 +7,12 @@ from typing import Callable, Optional, Tuple, Type
 
 from common_helper_mongo.gridfs import overwrite_file
 
-from helperFunctions.database import ConnectTo
 from helperFunctions.program_setup import get_log_file_for_component
 from helperFunctions.yara_binary_search import YaraBinarySearchScanner
 from intercom.common_mongo_binding import InterComListener, InterComListenerAndResponder, InterComMongoInterface
-from storage.binary_service import BinaryService
-from storage.db_interface_common import MongoInterfaceCommon
-from storage.fsorganizer import FSOrganizer
+from storage_postgresql.binary_service import BinaryService
+from storage_postgresql.db_interface_common import DbInterfaceCommon
+from storage_postgresql.fsorganizer import FSOrganizer
 from storage_postgresql.unpacking_locks import UnpackingLockManager
 
 
@@ -186,6 +185,7 @@ class InterComBackEndDeleteFile(InterComListener):
     def __init__(self, config=None, unpacking_locks=None):
         super().__init__(config)
         self.fs_organizer = FSOrganizer(config=config)
+        self.db = DbInterfaceCommon(config=config)
         self.unpacking_locks: UnpackingLockManager = unpacking_locks
 
     def post_processing(self, task, task_id):
@@ -195,13 +195,12 @@ class InterComBackEndDeleteFile(InterComListener):
         return task
 
     def _entry_was_removed_from_db(self, uid):
-        with ConnectTo(MongoInterfaceCommon, self.config) as db:
-            if db.exists(uid):
-                logging.debug('file not removed, because database entry exists: {}'.format(uid))
-                return False
-            if self.unpacking_locks is not None and self.unpacking_locks.unpacking_lock_is_set(uid):
-                logging.debug('file not removed, because it is processed by unpacker: {}'.format(uid))
-                return False
+        if self.db.exists(uid):
+            logging.debug('file not removed, because database entry exists: {}'.format(uid))
+            return False
+        if self.unpacking_locks is not None and self.unpacking_locks.unpacking_lock_is_set(uid):
+            logging.debug('file not removed, because it is processed by unpacker: {}'.format(uid))
+            return False
         return True
 
 

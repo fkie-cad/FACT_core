@@ -6,7 +6,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 
 from helperFunctions.data_conversion import get_value_of_first_key
 from helperFunctions.tag import TagColor
-from helperFunctions.virtual_file_path import get_top_of_virtual_path
+from helperFunctions.virtual_file_path import get_top_of_virtual_path, get_uids_from_virtual_path
 from objects.firmware import Firmware
 from storage_postgresql.db_interface_common import DbInterfaceCommon
 from storage_postgresql.query_conversion import build_generic_search_query, query_parent_firmware
@@ -87,14 +87,13 @@ class FrontEndDbInterface(DbInterfaceCommon):
     def _replace_uids_in_nice_list(self, nice_list_data: List[dict], root_uid: str):
         uids_in_vfp = set()
         for item in nice_list_data:
-            uids_in_vfp.update(uid for vfp in item['current_virtual_path'] for uid in vfp.split('|')[:-1] if uid)
+            uids_in_vfp.update(uid for vfp in item['current_virtual_path'] for uid in get_uids_from_virtual_path(vfp))
         hid_dict = self._get_hid_dict(uids_in_vfp, root_uid)
         for item in nice_list_data:
             for index, vfp in enumerate(item['current_virtual_path']):
-                for uid in vfp.split('|')[:-1]:
-                    if uid:
-                        vfp = vfp.replace(uid, hid_dict.get(uid, 'unknown'))
-                item['current_virtual_path'][index] = vfp
+                for uid in get_uids_from_virtual_path(vfp):
+                    vfp = vfp.replace(uid, hid_dict.get(uid, uid))
+                item['current_virtual_path'][index] = vfp.lstrip('|')
 
     def _get_hid_dict(self, uid_set: Set[str], root_uid: str) -> Dict[str, str]:
         with self.get_read_only_session() as session:

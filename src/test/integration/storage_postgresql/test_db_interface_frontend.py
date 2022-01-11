@@ -62,12 +62,19 @@ def test_get_mime_type(db):
 
 
 def test_get_data_for_nice_list(db):
-    uid_list = [TEST_FW.uid]
+    uid_list = [TEST_FW.uid, TEST_FO.uid]
     db.backend.add_object(TEST_FW)
+    TEST_FO.virtual_file_path = {'TEST_FW.uid': [f'|{TEST_FW.uid}|/file/path']}
+    db.backend.add_object(TEST_FO)
+
     nice_list_data = db.frontend.get_data_for_nice_list(uid_list, uid_list[0])
+    assert len(nice_list_data) == 2
     expected_result = ['current_virtual_path', 'file_name', 'files_included', 'mime-type', 'size', 'uid']
     assert sorted(nice_list_data[0].keys()) == expected_result
     assert nice_list_data[0]['uid'] == TEST_FW.uid
+    expected_hid = 'test_vendor test_router - 0.1 (Router)'
+    assert nice_list_data[0]['current_virtual_path'][0] == expected_hid, 'UID should be replaced with HID'
+    assert nice_list_data[1]['current_virtual_path'][0] == f'{expected_hid}|/file/path'
 
 
 def test_get_device_class_list(db):

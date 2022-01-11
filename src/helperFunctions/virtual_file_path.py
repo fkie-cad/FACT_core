@@ -51,3 +51,10 @@ def get_parent_uids_from_virtual_path(file_object) -> Set[str]:
             with suppress(IndexError):
                 parent_uids.add(virtual_path.split('|')[-2])
     return parent_uids
+
+
+def get_uids_from_virtual_path(virtual_path: str) -> List[str]:
+    parts = split_virtual_path(virtual_path)
+    if len(parts) == 1:  # the virtual path of a FW consists only of its UID
+        return parts
+    return parts[:-1]  # included files have the file path as last element

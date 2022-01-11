@@ -54,8 +54,7 @@ class AnalysisRoutes(ComponentBase):
         other_versions = None
         all_comparisons = self.comp_db.page_comparison_results()
         known_comparisons = [comparison for comparison in all_comparisons if uid in comparison[0]]
-        analysis_filter = [selected_analysis] if selected_analysis else None
-        file_obj = self.db.get_object(uid, analysis_filter=analysis_filter)
+        file_obj = self.db.get_object(uid)
         if not file_obj:
             return render_template('uid_not_found.html', uid=uid)
         if selected_analysis is not None and selected_analysis not in file_obj.processed_analysis:
