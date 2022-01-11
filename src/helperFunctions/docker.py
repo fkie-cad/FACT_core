@@ -19,7 +19,7 @@ def run_docker_container(image: str, logging_label: str = 'Docker', timeout: int
     :param combine_stderr_stdout: Whether to combine stderr and stdout or not
 
     :return: A subprocess.CompletedProcess instance for the command ran in the
-    container.
+        container.
 
     :raises docker.errors.ImageNotFound: If the docker image was not found
     :raises requests.exceptions.ReadTimeout: If the timeout was reached
