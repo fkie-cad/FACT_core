@@ -15,7 +15,9 @@ function dependencyGraph(nodes, edges, groups, colors) {
     };
 
     // map group names to colors --> {'mime/type': {color: '#...'}}
+    // jshint ignore:start
     groupOptions = groups.reduce((obj, curr, i) => {return {...obj, [curr]: {color: colors[i]}}}, {});
+    // jshint ignore:end
 
     // set the graph options. Most of this is physics model initialization
     graphOptions = {
