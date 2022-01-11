@@ -21,7 +21,7 @@ def create_data_graph_nodes_and_groups(data, parent_uid, root_uid, whitelist):
 
         if mime not in groups:
             groups.append(file['processed_analysis']['file_type']['mime'])
- 
+
         virtual_paths = file['virtual_file_path'][root_uid]
 
         for vpath in virtual_paths:
@@ -78,12 +78,10 @@ def create_symbolic_link_edges(data_graph):
         if node['group'] == 'inode/symlink':
             link_to = Path(node['full_file_type'].split('\'')[1])
 
-            import logging
             if not link_to.is_absolute():
                 base = Path(node['label']).parent
                 link_to = normpath(base / link_to)
 
-            logging.warn(link_to)
             for match in data_graph['nodes']:
                 if match['label'] == str(link_to):
                     edge = {'from': node['id'], 'to': match['id'], 'id': edge_id}
