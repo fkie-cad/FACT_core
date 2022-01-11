@@ -1,9 +1,11 @@
-from itertools import chain, islice, repeat
+from os.path import normpath
+from pathlib import Path
 
+from helperFunctions.virtual_file_path import split_virtual_path
 from helperFunctions.web_interface import get_color_list
 
 
-def create_data_graph_nodes_and_groups(data, whitelist):
+def create_data_graph_nodes_and_groups(data, parent_uid, root_uid, whitelist):
 
     data_graph = {
         'nodes': [],
@@ -13,16 +15,35 @@ def create_data_graph_nodes_and_groups(data, whitelist):
     groups = []
 
     for file in data:
-        if file['processed_analysis']['file_type']['mime'] in whitelist:
+        mime = file['processed_analysis']['file_type']['mime']
+        if mime not in whitelist or root_uid not in file['virtual_file_path']:
+            continue
+
+        if mime not in groups:
+            groups.append(file['processed_analysis']['file_type']['mime'])
+ 
+        virtual_paths = file['virtual_file_path'][root_uid]
+
+        for vpath in virtual_paths:
+
+            path_components = split_virtual_path(vpath)
+
+            if len(path_components) < 2:
+                continue
+
+            name_component = path_components[-1]
+            parent_component = path_components[-2]
+
+            if parent_component != parent_uid:
+                continue
+
             node = {
-                'label': file['file_name'],
-                'id': file['_id'],
+                'label': name_component,
+                'id': vpath,
+                'entity': file['_id'],
                 'group': file['processed_analysis']['file_type']['mime'],
                 'full_file_type': file['processed_analysis']['file_type']['full']
             }
-
-            if file['processed_analysis']['file_type']['mime'] not in groups:
-                groups.append(file['processed_analysis']['file_type']['mime'])
 
             data_graph['nodes'].append(node)
 
@@ -55,9 +76,16 @@ def create_symbolic_link_edges(data_graph):
 
     for node in data_graph['nodes']:
         if node['group'] == 'inode/symlink':
-            link_to = node['full_file_type'].split('\'')[1]
+            link_to = Path(node['full_file_type'].split('\'')[1])
+
+            import logging
+            if not link_to.is_absolute():
+                base = Path(node['label']).parent
+                link_to = normpath(base / link_to)
+
+            logging.warn(link_to)
             for match in data_graph['nodes']:
-                if match['label'] == link_to:
+                if match['label'] == str(link_to):
                     edge = {'from': node['id'], 'to': match['id'], 'id': edge_id}
                     data_graph['edges'].append(edge)
                     edge_id += 1
