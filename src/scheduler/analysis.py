@@ -16,7 +16,9 @@ from helperFunctions.process import ExceptionSafeProcess, check_worker_exception
 from objects.file import FileObject
 from scheduler.analysis_status import AnalysisStatus
 from scheduler.task_scheduler import MANDATORY_PLUGINS, AnalysisTaskScheduler
-from storage.db_interface_backend import BackEndDbInterface
+from storage_postgresql.db_interface_backend import BackendDbInterface
+from storage_postgresql.schema import AnalysisEntry
+from storage_postgresql.unpacking_locks import UnpackingLockManager
 
 
 class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
@@ -82,17 +84,19 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
     :param db_interface: An object reference to an instance of BackEndDbInterface.
     '''
 
-    def __init__(self, config: Optional[ConfigParser] = None, pre_analysis=None, post_analysis=None, db_interface=None):
+    def __init__(self, config: Optional[ConfigParser] = None, pre_analysis=None, post_analysis=None, db_interface=None,
+                 unpacking_locks=None):
         self.config = config
         self.analysis_plugins = {}
         self._load_plugins()
         self.stop_condition = Value('i', 0)
         self.process_queue = Queue()
+        self.unpacking_locks: UnpackingLockManager = unpacking_locks
 
         self.status = AnalysisStatus()
         self.task_scheduler = AnalysisTaskScheduler(self.analysis_plugins)
 
-        self.db_backend_service = db_interface if db_interface else BackEndDbInterface(config=config)
+        self.db_backend_service = db_interface if db_interface else BackendDbInterface(config=config)
         self.pre_analysis = pre_analysis if pre_analysis else self.db_backend_service.add_object
         self.post_analysis = post_analysis if post_analysis else self.db_backend_service.add_analysis
         self._start_runner_process()
@@ -112,8 +116,6 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             executor.submit(self.result_collector_process.join)
             for plugin in self.analysis_plugins.values():
                 executor.submit(plugin.shutdown)
-        if getattr(self.db_backend_service, 'shutdown', False):
-            self.db_backend_service.shutdown()
         self.process_queue.close()
         logging.info('Analysis System offline')
 
@@ -126,6 +128,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         '''
         included_files = self.db_backend_service.get_list_of_all_included_files(fo)
         self.pre_analysis(fo)
+        self.unpacking_locks.release_unpacking_lock(fo.uid)
         self.status.add_update_to_current_analyses(fo, included_files)
         for child_uid in included_files:
             child_fo = self.db_backend_service.get_object(child_uid)
@@ -176,7 +179,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
 
     def register_plugin(self, name: str, plugin_instance: AnalysisBasePlugin):
         '''
-        This function is used by analysis plugins to register themselves with this scheduler. During intialization the
+        This function is used by analysis plugins to register themselves with this scheduler. During initialization the
         plugins will call this functions giving their name and a reference to their object to allow the scheduler to
         address them for running analyses.
 
@@ -262,6 +265,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
 
     def _process_next_analysis_task(self, fw_object: FileObject):
         self.pre_analysis(fw_object)
+        self.unpacking_locks.release_unpacking_lock(fw_object.uid)
         analysis_to_do = fw_object.scheduled_analysis.pop()
         if analysis_to_do not in self.analysis_plugins:
             logging.error(f'Plugin \'{analysis_to_do}\' not available')
@@ -277,8 +281,9 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             self._check_further_process_or_complete(file_object)
         elif analysis_to_do not in MANDATORY_PLUGINS and self._next_analysis_is_blacklisted(analysis_to_do, file_object):
             logging.debug(f'skipping analysis "{analysis_to_do}" for {file_object.uid} (blacklisted file type)')
-            file_object.processed_analysis[analysis_to_do] = self._get_skipped_analysis_result(analysis_to_do)
-            self.post_analysis(file_object)
+            analysis_result = self._get_skipped_analysis_result(analysis_to_do)
+            file_object.processed_analysis[analysis_to_do] = analysis_result
+            self.post_analysis(file_object.uid, analysis_to_do, analysis_result)
             self._check_further_process_or_complete(file_object)
         else:
             self.analysis_plugins[analysis_to_do].add_job(file_object)
@@ -294,62 +299,42 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
 
     # ---- 2. Analysis present and plugin version unchanged ----
 
-    def _analysis_is_already_in_db_and_up_to_date(self, analysis_to_do: str, uid: str):
-        db_entry = self.db_backend_service.get_specific_fields_of_db_entry(
-            uid,
-            {
-                f'processed_analysis.{analysis_to_do}.{key}': 1
-                for key in ['failed', 'file_system_flag', 'plugin_version', 'system_version']
-            }
-        )
-        if not db_entry or analysis_to_do not in db_entry['processed_analysis'] or 'failed' in db_entry['processed_analysis'][analysis_to_do]:
+    def _analysis_is_already_in_db_and_up_to_date(self, analysis_to_do: str, uid: str) -> bool:
+        db_entry = self.db_backend_service.get_analysis(uid, analysis_to_do)
+        if db_entry is None or 'failed' in db_entry['processed_analysis'][analysis_to_do]:
             return False
-        if 'plugin_version' not in db_entry['processed_analysis'][analysis_to_do]:
+        if db_entry.plugin_version is None:
             logging.error(f'Plugin Version missing: UID: {uid}, Plugin: {analysis_to_do}')
             return False
+        return self._analysis_is_up_to_date(db_entry, self.analysis_plugins[analysis_to_do], uid)
 
-        if db_entry['processed_analysis'][analysis_to_do]['file_system_flag']:
-            db_entry['processed_analysis'] = self.db_backend_service.retrieve_analysis(db_entry['processed_analysis'], analysis_filter=[analysis_to_do])
-            if 'file_system_flag' in db_entry['processed_analysis'][analysis_to_do]:
-                logging.warning('Desanitization of version string failed')
-                return False
-
-        return self._analysis_is_up_to_date(db_entry['processed_analysis'][analysis_to_do], self.analysis_plugins[analysis_to_do], uid)
-
-    def _analysis_is_up_to_date(self, analysis_db_entry: dict, analysis_plugin: AnalysisBasePlugin, uid):
-        old_plugin_version = analysis_db_entry['plugin_version']
-        old_system_version = analysis_db_entry.get('system_version', None)
+    def _analysis_is_up_to_date(self, db_entry: AnalysisEntry, analysis_plugin: AnalysisBasePlugin, uid: str) -> bool:
         current_plugin_version = analysis_plugin.VERSION
         current_system_version = getattr(analysis_plugin, 'SYSTEM_VERSION', None)
         try:
-            if LooseVersion(old_plugin_version) < LooseVersion(current_plugin_version) or \
-                    LooseVersion(old_system_version or '0') < LooseVersion(current_system_version or '0'):
+            if LooseVersion(db_entry.plugin_version) < LooseVersion(current_plugin_version) or \
+                    LooseVersion(db_entry.system_version or '0') < LooseVersion(current_system_version or '0'):
                 return False
         except TypeError:
             logging.error(f'plug-in or system version of "{analysis_plugin.NAME}" plug-in is or was invalid!')
             return False
 
-        return self._dependencies_are_up_to_date(analysis_plugin, uid)
+        return self._dependencies_are_up_to_date(db_entry, analysis_plugin, uid)
 
-    def _dependencies_are_up_to_date(self, analysis_plugin: AnalysisBasePlugin, uid):
+    def _dependencies_are_up_to_date(self, db_entry: AnalysisEntry, analysis_plugin: AnalysisBasePlugin, uid: str) -> bool:
         for dependency in analysis_plugin.DEPENDENCIES:
-            self_date = _get_analysis_date(analysis_plugin.NAME, uid, self.db_backend_service)
-            dependency_date = _get_analysis_date(dependency, uid, self.db_backend_service)
-            if self_date < dependency_date:
+            dependency_entry = self.db_backend_service.get_analysis(uid, dependency)
+            if db_entry.analysis_date < dependency_entry.analysis_date:
                 return False
-
         return True
 
     def _add_completed_analysis_results_to_file_object(self, analysis_to_do: str, fw_object: FileObject):
-        db_entry = self.db_backend_service.get_specific_fields_of_db_entry(
-            fw_object.uid, {f'processed_analysis.{analysis_to_do}': 1}
-        )
-        desanitized_analysis = self.db_backend_service.retrieve_analysis(db_entry['processed_analysis'])
-        fw_object.processed_analysis[analysis_to_do] = desanitized_analysis[analysis_to_do]
+        db_entry = self.db_backend_service.get_analysis(fw_object.uid, analysis_to_do)
+        fw_object.processed_analysis[analysis_to_do] = db_entry
 
     # ---- 3. blacklist and whitelist ----
 
-    def _get_skipped_analysis_result(self, analysis_to_do):
+    def _get_skipped_analysis_result(self, analysis_to_do: str) -> dict:
         return {
             'skipped': 'blacklisted file type',
             'summary': [],
@@ -374,7 +359,6 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
     def _get_file_type_from_object_or_db(self, fw_object: FileObject) -> Optional[str]:
         if 'file_type' not in fw_object.processed_analysis:
             self._add_completed_analysis_results_to_file_object('file_type', fw_object)
-
         return fw_object.processed_analysis['file_type']['mime'].lower()
 
     def _get_blacklist_and_whitelist(self, next_analysis: str) -> Tuple[List, List]:
@@ -414,7 +398,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
                         if fw.analysis_exception:
                             self.task_scheduler.reschedule_failed_analysis_task(fw)
 
-                        self.post_analysis(fw)
+                        self.post_analysis(fw.uid, plugin_name, fw.processed_analysis[plugin_name])
                     self._check_further_process_or_complete(fw)
             if nop:
                 sleep(float(self.config['ExpertSettings']['block_delay']))
@@ -475,7 +459,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
 
     def check_exceptions(self) -> bool:
         '''
-        Iterate all attached processes and see if an exception occured in any. Depending on configuration, plugin
+        Iterate all attached processes and see if an exception occurred in any. Depending on configuration, plugin
         exceptions are not registered as they are restarted after an exception occurs.
 
         :return: Boolean value stating if any attached process ran into an exception
@@ -484,10 +468,3 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             if plugin.check_exceptions():
                 return True
         return check_worker_exceptions([self.schedule_process, self.result_collector_process], 'Scheduler')
-
-
-def _get_analysis_date(plugin_name: str, uid: str, backend_db_interface):
-    fo = backend_db_interface.get_object(uid, analysis_filter=[plugin_name])
-    if plugin_name not in fo.processed_analysis:
-        return float('inf')
-    return fo.processed_analysis[plugin_name]['analysis_date']

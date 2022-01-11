@@ -4,8 +4,8 @@ from typing import Optional, Tuple
 
 from common_helper_files.fail_safe_file_operations import get_binary_from_file
 
-from storage.fsorganizer import FSOrganizer
 from storage_postgresql.db_interface_base import ReadOnlyDbInterface
+from storage_postgresql.fsorganizer import FSOrganizer
 from storage_postgresql.schema import FileObjectEntry
 from unpacker.tar_repack import TarRepack
 

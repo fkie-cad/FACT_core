@@ -3,7 +3,7 @@ from contextlib import suppress
 
 from helperFunctions.plugin import import_plugins
 from objects.firmware import Firmware
-from storage.binary_service import BinaryService
+from storage_postgresql.binary_service import BinaryService
 
 
 class Compare:

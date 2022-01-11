@@ -4,7 +4,9 @@ from typing import List, Optional, Tuple
 
 from sqlalchemy import func, select
 
-from helperFunctions.data_conversion import convert_uid_list_to_compare_id, normalize_compare_id
+from helperFunctions.data_conversion import (
+    convert_compare_id_to_list, convert_uid_list_to_compare_id, normalize_compare_id
+)
 from storage_postgresql.db_interface_base import ReadWriteDbInterface
 from storage_postgresql.schema import AnalysisEntry, ComparisonEntry, FileObjectEntry
 
@@ -29,6 +31,12 @@ class ComparisonDbInterface(ReadWriteDbInterface):
         with self.get_read_only_session() as session:
             query = select(ComparisonEntry.comparison_id).filter(ComparisonEntry.comparison_id == comparison_id)
             return bool(session.execute(query).scalar())
+
+    def objects_exist(self, compare_id: str) -> bool:
+        uid_list = convert_compare_id_to_list(compare_id)
+        with self.get_read_only_session() as session:
+            query = select(func.count(FileObjectEntry.uid)).filter(FileObjectEntry.uid.in_(uid_list))
+            return session.execute(query).scalar() == len(uid_list)
 
     @staticmethod
     def _calculate_comp_id(comparison_result):

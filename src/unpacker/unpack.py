@@ -11,15 +11,15 @@ from helperFunctions.fileSystem import file_is_empty, get_relative_object_path
 from helperFunctions.tag import TagColor
 from helperFunctions.virtual_file_path import get_base_of_virtual_path, join_virtual_path
 from objects.file import FileObject
-from storage.fsorganizer import FSOrganizer
+from storage_postgresql.fsorganizer import FSOrganizer
 from unpacker.unpack_base import UnpackBase
 
 
 class Unpacker(UnpackBase):
-    def __init__(self, config=None, worker_id=None, db_interface=None):
+    def __init__(self, config=None, worker_id=None, unpacking_locks=None):
         super().__init__(config=config, worker_id=worker_id)
         self.file_storage_system = FSOrganizer(config=self.config)
-        self.db_interface = db_interface
+        self.unpacking_locks = unpacking_locks
 
     def unpack(self, current_fo: FileObject):
         '''
@@ -33,20 +33,15 @@ class Unpacker(UnpackBase):
             self._store_unpacking_depth_skip_info(current_fo)
             return []
 
-        tmp_dir = TemporaryDirectory(prefix='fact_unpack_', dir=get_temp_dir_path(self.config))
+        with TemporaryDirectory(prefix='fact_unpack_', dir=get_temp_dir_path(self.config)) as tmp_dir:
+            file_path = self._generate_local_file_path(current_fo)
+            extracted_files = self.extract_files_from_file(file_path, tmp_dir)
+            extracted_file_objects = self.generate_and_store_file_objects(extracted_files, Path(tmp_dir) / 'files', current_fo)
+            extracted_file_objects = self.remove_duplicates(extracted_file_objects, current_fo)
+            self.add_included_files_to_object(extracted_file_objects, current_fo)
+            # set meta data
+            current_fo.processed_analysis['unpacker'] = json.loads(Path(tmp_dir, 'reports', 'meta.json').read_text())
 
-        file_path = self._generate_local_file_path(current_fo)
-
-        extracted_files = self.extract_files_from_file(file_path, tmp_dir.name)
-
-        extracted_file_objects = self.generate_and_store_file_objects(extracted_files, Path(tmp_dir.name) / 'files', current_fo)
-        extracted_file_objects = self.remove_duplicates(extracted_file_objects, current_fo)
-        self.add_included_files_to_object(extracted_file_objects, current_fo)
-
-        # set meta data
-        current_fo.processed_analysis['unpacker'] = json.loads(Path(tmp_dir.name, 'reports', 'meta.json').read_text())
-
-        self.cleanup(tmp_dir)
         return extracted_file_objects
 
     @staticmethod
@@ -80,7 +75,7 @@ class Unpacker(UnpackBase):
                 if current_file.uid in extracted_files:  # the same file is extracted multiple times from one archive
                     extracted_files[current_file.uid].virtual_file_path[parent.get_root_uid()].append(current_virtual_path)
                 else:
-                    self.db_interface.set_unpacking_lock(current_file.uid)
+                    self.unpacking_locks.set_unpacking_lock(current_file.uid)
                     self.file_storage_system.store_file(current_file)
                     current_file.virtual_file_path = {parent.get_root_uid(): [current_virtual_path]}
                     current_file.parent_firmware_uids.add(parent.get_root_uid())

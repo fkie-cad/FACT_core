@@ -244,19 +244,3 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
         with self.get_read_only_session() as session:
             query = build_query_from_dict(query, query=select(func.count(FileObjectEntry.uid)))
             return session.execute(query).scalar()
-
-    def set_unpacking_lock(self, uid):
-        # self.locks.insert_one({'uid': uid})
-        pass  # ToDo FixMe?
-
-    def check_unpacking_lock(self, uid):
-        # return self.locks.count_documents({'uid': uid}) > 0
-        pass  # ToDo FixMe?
-
-    def release_unpacking_lock(self, uid):
-        # self.locks.delete_one({'uid': uid})
-        pass  # ToDo FixMe?
-
-    def drop_unpacking_locks(self):
-        # self.main.drop_collection('locks')
-        pass  # ToDo FixMe?

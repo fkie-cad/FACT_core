@@ -25,8 +25,9 @@ from fact_base import FactBase
 from helperFunctions.process import complete_shutdown
 from intercom.back_end_binding import InterComBackEndBinding
 from scheduler.analysis import AnalysisScheduler
-from scheduler.Compare import CompareScheduler
-from scheduler.Unpacking import UnpackingScheduler
+from scheduler.comparison_scheduler import ComparisonScheduler
+from scheduler.unpacking_scheduler import UnpackingScheduler
+from storage_postgresql.unpacking_locks import UnpackingLockManager
 
 
 class FactBackend(FactBase):
@@ -36,23 +37,26 @@ class FactBackend(FactBase):
 
     def __init__(self):
         super().__init__()
+        unpacking_lock_manager = UnpackingLockManager()
 
         try:
-            self.analysis_service = AnalysisScheduler(config=self.config)
+            self.analysis_service = AnalysisScheduler(config=self.config, unpacking_locks=unpacking_lock_manager)
         except PluginInitException as error:
             logging.critical(f'Error during initialization of plugin {error.plugin.NAME}. Shutting down FACT backend')
             complete_shutdown()
         self.unpacking_service = UnpackingScheduler(
             config=self.config,
             post_unpack=self.analysis_service.start_analysis_of_object,
-            analysis_workload=self.analysis_service.get_combined_analysis_workload
+            analysis_workload=self.analysis_service.get_combined_analysis_workload,
+            unpacking_locks=unpacking_lock_manager,
         )
-        self.compare_service = CompareScheduler(config=self.config)
+        self.compare_service = ComparisonScheduler(config=self.config)
         self.intercom = InterComBackEndBinding(
             config=self.config,
             analysis_service=self.analysis_service,
             compare_service=self.compare_service,
-            unpacking_service=self.unpacking_service
+            unpacking_service=self.unpacking_service,
+            unpacking_locks=unpacking_lock_manager,
         )
 
     def main(self):

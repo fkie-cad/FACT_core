@@ -8,9 +8,8 @@ from typing import Dict, List, Optional, Tuple, Union
 import yara
 from common_helper_process import execute_shell_command
 
-from helperFunctions.database import ConnectTo
-from storage.db_interface_common import MongoInterfaceCommon
-from storage.fsorganizer import FSOrganizer
+from storage_postgresql.db_interface_common import DbInterfaceCommon
+from storage_postgresql.fsorganizer import FSOrganizer
 
 
 class YaraBinarySearchScanner:
@@ -26,6 +25,8 @@ class YaraBinarySearchScanner:
         self.matches = []
         self.config = config
         self.db_path = self.config['data_storage']['firmware_file_storage_directory']
+        self.db = DbInterfaceCommon(config)
+        self.fs_organizer = FSOrganizer(self.config)
 
     def _execute_yara_search(self, rule_file_path: str, target_path: Optional[str] = None) -> str:
         '''
@@ -40,10 +41,15 @@ class YaraBinarySearchScanner:
         return execute_shell_command(command)
 
     def _execute_yara_search_for_single_firmware(self, rule_file_path: str, firmware_uid: str) -> str:
-        with ConnectTo(YaraBinarySearchScannerDbInterface, self.config) as connection:
-            file_paths = connection.get_file_paths_of_files_included_in_fo(firmware_uid)
+        file_paths = self._get_file_paths_of_files_included_in_fw(firmware_uid)
         result = (self._execute_yara_search(rule_file_path, path) for path in file_paths)
         return '\n'.join(result)
+
+    def _get_file_paths_of_files_included_in_fw(self, fw_uid: str) -> List[str]:
+        return [
+            self.fs_organizer.generate_path_from_uid(uid)
+            for uid in self.db.get_uids_of_all_included_files(fw_uid)
+        ]
 
     @staticmethod
     def _parse_raw_result(raw_result: str) -> Dict[str, List[str]]:
@@ -122,15 +128,3 @@ def get_yara_error(rules_file: Union[str, bytes]) -> Optional[Exception]:
         return None
     except (yara.Error, TypeError, UnicodeDecodeError) as error:
         return error
-
-
-class YaraBinarySearchScannerDbInterface(MongoInterfaceCommon):
-
-    READ_ONLY = True
-
-    def get_file_paths_of_files_included_in_fo(self, fo_uid: str) -> List[str]:
-        fs_organizer = FSOrganizer(self.config)
-        return [
-            fs_organizer.generate_path_from_uid(uid)
-            for uid in self.get_uids_of_all_included_files(fo_uid)
-        ]

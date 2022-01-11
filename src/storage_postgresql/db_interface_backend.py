@@ -28,7 +28,6 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
             self.insert_firmware(fw_object)
         else:
             self.insert_file_object(fw_object)
-        # ToDo?? self.release_unpacking_lock(fo_fw.uid)
 
     def insert_file_object(self, file_object: FileObject):
         with self.get_read_write_session() as session:

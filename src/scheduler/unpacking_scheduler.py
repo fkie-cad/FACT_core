@@ -6,16 +6,15 @@ from time import sleep
 
 from helperFunctions.logging import TerminalColors, color_string
 from helperFunctions.process import check_worker_exceptions, new_worker_was_started, start_single_worker
-from storage.db_interface_common import MongoInterfaceCommon
 from unpacker.unpack import Unpacker
 
 
-class UnpackingScheduler:
+class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
     '''
     This scheduler performs unpacking on firmware objects
     '''
 
-    def __init__(self, config=None, post_unpack=None, analysis_workload=None, db_interface=None):
+    def __init__(self, config=None, post_unpack=None, analysis_workload=None, unpacking_locks=None):
         self.config = config
         self.stop_condition = Value('i', 0)
         self.throttle_condition = Value('i', 0)
@@ -24,14 +23,10 @@ class UnpackingScheduler:
         self.work_load_counter = 25
         self.workers = []
         self.post_unpack = post_unpack
-        self.db_interface = MongoInterfaceCommon(config) if not db_interface else db_interface
-        self.drop_cached_locks()
+        self.unpacking_locks = unpacking_locks
         self.start_unpack_workers()
         self.work_load_process = self.start_work_load_monitor()
         logging.info('Unpacker Module online')
-
-    def drop_cached_locks(self):
-        self.db_interface.drop_unpacking_locks()
 
     def add_task(self, fo):
         '''
@@ -63,7 +58,7 @@ class UnpackingScheduler:
             self.workers.append(start_single_worker(process_index, 'Unpacking', self.unpack_worker))
 
     def unpack_worker(self, worker_id):
-        unpacker = Unpacker(self.config, worker_id=worker_id, db_interface=self.db_interface)
+        unpacker = Unpacker(self.config, worker_id=worker_id, unpacking_locks=self.unpacking_locks)
         while self.stop_condition.value == 0:
             with suppress(Empty):
                 fo = self.in_queue.get(timeout=float(self.config['ExpertSettings']['block_delay']))
