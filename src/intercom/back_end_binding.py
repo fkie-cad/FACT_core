@@ -52,9 +52,11 @@ class InterComBackEndBinding:  # pylint: disable=too-many-instance-attributes
 
     def shutdown(self):
         self.stop_condition.value = 1
-        for item in self.process_list:
-            item.join()
-        logging.info('InterCom down')
+        for worker in self.process_list:  # type: Process
+            worker.join(timeout=10)
+            if worker.is_alive():
+                worker.terminate()
+        logging.warning('InterCom down')
 
     def _start_listener(self, listener: Type[InterComListener], do_after_function: Optional[Callable] = None, **kwargs):
         process = Process(target=self._backend_worker, args=(listener, do_after_function, kwargs))
@@ -189,9 +191,10 @@ class InterComBackEndDeleteFile(InterComListener):
         self.unpacking_locks: UnpackingLockManager = unpacking_locks
 
     def post_processing(self, task, task_id):
-        if self._entry_was_removed_from_db(task['_id']):
-            logging.info('remove file: {}'.format(task['_id']))
-            self.fs_organizer.delete_file(task['_id'])
+        # task is a UID here
+        if self._entry_was_removed_from_db(task):
+            logging.info('remove file: {}'.format(task))
+            self.fs_organizer.delete_file(task)
         return task
 
     def _entry_was_removed_from_db(self, uid):
