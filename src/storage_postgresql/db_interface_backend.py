@@ -72,7 +72,7 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
         with self.get_read_write_session() as session:
             fo_backref = session.get(FileObjectEntry, uid)
             if fo_backref is None:
-                raise DbInterfaceError('Could not find file object for analysis update')
+                raise DbInterfaceError(f'Could not find file object for analysis update: {uid}')
             analysis = AnalysisEntry(
                 uid=uid,
                 plugin=plugin,

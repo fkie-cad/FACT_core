@@ -40,7 +40,7 @@ class AdminDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
                 removed_fp += child_removed_fp
                 deleted += child_deleted
             if delete_root_file:
-                self.intercom.delete_file(fw)
+                self.intercom.delete_file(fw.uid)
             self.delete_object(uid)
             deleted += 1
         return removed_fp, deleted
@@ -73,7 +73,6 @@ class AdminDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
             # fo.parent_files = [f for f in fo.parent_files if f.uid != root_uid]  # TODO?
             removed_fp += 1
         else:  # file is only included in this firmware -> delete file
-            fo = self.get_object(fo_uid)
-            self.intercom.delete_file(fo)
+            self.intercom.delete_file(fo_uid)
             deleted += 1  # FO DB entry gets deleted automatically when all parents are deleted by cascade
         return removed_fp, deleted
