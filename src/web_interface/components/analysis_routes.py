@@ -207,10 +207,16 @@ class AnalysisRoutes(ComponentBase):
                       'The file chosen as root must contain a filesystem with binaries.', 'danger')
                 return render_template('dependency_graph.html', **data_graph_part, uid=uid, root_uid=root_uid)
 
-            data_graph, elf_analysis_missing_from_files = create_data_graph_edges(data, data_graph_part)
+            data_graph, elf_analysis_missing_from_files = create_data_graph_edges(data_graph_part)
 
             if elf_analysis_missing_from_files > 0:
                 flash(f'Warning: Elf analysis plugin result is missing for {elf_analysis_missing_from_files} files', 'warning')
 
             # TODO: Add a loading icon?
-        return render_template('dependency_graph.html', **data_graph, uid=uid, root_uid=root_uid, colors=colors)
+        return render_template(
+            'dependency_graph.html',
+            **{key: json.dumps(data_graph[key]) for key in ['nodes', 'edges', 'groups']},
+            uid=uid,
+            root_uid=root_uid,
+            colors=colors
+        )

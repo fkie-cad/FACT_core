@@ -76,6 +76,53 @@ TEST_FW = create_test_firmware(device_class='test class', device_name='test devi
 TEST_FW_2 = create_test_firmware(device_class='test_class', device_name='test_firmware_2', vendor='test vendor', bin_path='container/test.7z')
 TEST_TEXT_FILE = create_test_file_object()
 TEST_TEXT_FILE2 = create_test_file_object(bin_path='get_files_test/testfile2')
+TEST_GRAPH_DATA_ONE = {
+    'processed_analysis': {
+        'file_type': {
+            'mime': 'application/x-executable', 'full': 'test text'
+        }
+    },
+    'virtual_file_path': {
+        TEST_FW.uid: [
+            "|testgraph|/lib/file_one.so"                        
+        ]
+    },
+    '_id': '1234567',
+    'file_name': 'file_one.so'
+}
+TEST_GRAPH_DATA_TWO = {
+    'processed_analysis': {
+        'file_type': {
+            'mime': 'application/x-executable', 'full': 'test text'
+        },
+        'elf_analysis': {
+            'Output': {
+                'libraries': ['file_one.so']
+            }
+        }
+    },
+    'virtual_file_path': {
+        TEST_FW.uid: [
+            "|testgraph|/bin/file_two"                        
+        ]
+    },
+    '_id': '7654321',
+    'file_name': 'file_two'
+}
+TEST_GRAPH_DATA_THREE = {
+    'processed_analysis': {
+        'file_type': {
+            'mime': 'inode/symlink', 'full': 'symbolic link to \'file two\''
+        },
+    },
+    'virtual_file_path': {
+        TEST_FW.uid: [
+            "|testgraph|/sbin/file_three"
+        ]
+    },
+    '_id': '0987654',
+    'file_name': 'file_three'
+}
 NICE_LIST_DATA = {
     'uid': TEST_FW.uid,
     'files_included': TEST_FW.files_included,
@@ -395,32 +442,9 @@ class DatabaseMock:  # pylint: disable=too-many-public-methods
     def find_orphaned_objects(self):
         return {'root_fw_uid': ['missing_child_uid']}
 
-    def get_data_for_dependency_graph(self, uid):
+    def get_data_for_dependency_graph(self, uid, root_uid):
         if uid == 'testgraph':
-            file_object_one = {
-                'processed_analysis': {
-                    'file_type': {
-                        'mime': 'application/x-executable', 'full': 'test text'
-                    }
-                },
-                '_id': '1234567',
-                'file_name': 'file one'
-            }
-            file_object_two = {
-                'processed_analysis': {
-                    'file_type': {
-                        'mime': 'application/x-executable', 'full': 'test text'
-                    },
-                    'elf_analysis': {
-                        'Output': {
-                            'libraries': ['file one']
-                        }
-                    }
-                },
-                '_id': '7654321',
-                'file_name': 'file two'
-            }
-            return [file_object_one, file_object_two]
+            return [TEST_GRAPH_DATA_ONE, TEST_GRAPH_DATA_TWO]
         return []
 
 

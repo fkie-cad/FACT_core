@@ -1,3 +1,4 @@
+from contextlib import suppress
 from os.path import normpath
 from pathlib import Path
 
@@ -20,7 +21,7 @@ def create_data_graph_nodes_and_groups(data, parent_uid, root_uid, whitelist):
             continue
 
         if mime not in groups:
-            groups.append(file['processed_analysis']['file_type']['mime'])
+            groups.append(mime)
 
         virtual_paths = file['virtual_file_path'][root_uid]
 
@@ -37,12 +38,19 @@ def create_data_graph_nodes_and_groups(data, parent_uid, root_uid, whitelist):
             if parent_component != parent_uid:
                 continue
 
+            linked_libraries = []
+            elf_analysis_missing = 'elf_analysis' not in file['processed_analysis'] 
+            with suppress(KeyError):
+                linked_libraries = file['processed_analysis']['elf_analysis']['Output']['libraries']
+
             node = {
                 'label': name_component,
                 'id': vpath,
                 'entity': file['_id'],
-                'group': file['processed_analysis']['file_type']['mime'],
-                'full_file_type': file['processed_analysis']['file_type']['full']
+                'group': mime,
+                'full_file_type': file['processed_analysis']['file_type']['full'],
+                'linked_libraries': linked_libraries,
+                'elf_analysis_missing': elf_analysis_missing
             }
 
             data_graph['nodes'].append(node)
@@ -52,21 +60,20 @@ def create_data_graph_nodes_and_groups(data, parent_uid, root_uid, whitelist):
     return data_graph
 
 
-def create_data_graph_edges(data, data_graph):
+def create_data_graph_edges(data_graph):
 
     edge_id = create_symbolic_link_edges(data_graph)
     elf_analysis_missing_from_files = 0
 
-    for file in data:
-        try:
-            libraries = file['processed_analysis']['elf_analysis']['Output']['libraries']
-        except (IndexError, KeyError):
-            if 'elf_analysis' not in file['processed_analysis']:
-                elf_analysis_missing_from_files += 1
+    for node in data_graph['nodes']:
+        if node['elf_analysis_missing']:
+            elf_analysis_missing_from_files += 1
             continue
+        
+        linked_libraries = node['linked_libraries']
 
-        for lib in libraries:
-            edge_id = find_edges(data_graph, edge_id, lib, file)
+        for linked_lib_name in linked_libraries:
+            edge_id = find_edges(node, linked_lib_name, data_graph, edge_id)
 
     return data_graph, elf_analysis_missing_from_files
 
@@ -90,17 +97,15 @@ def create_symbolic_link_edges(data_graph):
     return edge_id
 
 
-def find_edges(data_graph, edge_id, lib, file_object):
-    target_id = None
-
-    for node in data_graph['nodes']:
-        if node['label'] == lib:
-            target_id = node['id']
-            break
-    if target_id is not None:
-        edge = {'from': file_object['_id'], 'to': target_id, 'id': edge_id}
+def find_edges(node, linked_lib_name, data_graph, edge_id):
+    # TODO: FIX: THIS DOES NOT WORK BECAUSE WE ARE AGAIN WORKING WITH LABELS AND FILE OBJECTS
+    for lib in data_graph['nodes']:
+        if linked_lib_name != Path(lib['label']).name:
+            continue
+        edge = {'from': node['id'], 'to': lib['id'], 'id': edge_id}
         data_graph['edges'].append(edge)
         edge_id += 1
+        break
 
     return edge_id
 
