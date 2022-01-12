@@ -8,15 +8,18 @@ class RestResourceBase(Resource):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.config = kwargs.get('config', None)
+        self._setup_db(self.config)
 
     @staticmethod
     def validate_payload_data(model: Model) -> dict:
         model.validate(request.json or {})
         return marshal(request.json, model)
 
+    def _setup_db(self, config):
+        pass
+
 
 class RestResourceDbBase(RestResourceBase):
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(self, *args, **kwargs)
+    def _setup_db(self, config):
         self.db = FrontEndDbInterface(config=self.config)

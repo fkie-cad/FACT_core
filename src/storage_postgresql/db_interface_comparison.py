@@ -8,6 +8,7 @@ from helperFunctions.data_conversion import (
     convert_compare_id_to_list, convert_uid_list_to_compare_id, normalize_compare_id
 )
 from storage_postgresql.db_interface_base import ReadWriteDbInterface
+from storage_postgresql.db_interface_common import DbInterfaceCommon
 from storage_postgresql.schema import AnalysisEntry, ComparisonEntry, FileObjectEntry
 
 
@@ -18,7 +19,7 @@ class FactComparisonException(Exception):
         return ''
 
 
-class ComparisonDbInterface(ReadWriteDbInterface):
+class ComparisonDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
     def add_comparison_result(self, comparison_result: dict):
         comparison_id = self._calculate_comp_id(comparison_result)
         if self.comparison_exists(comparison_id):

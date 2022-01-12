@@ -20,13 +20,14 @@ compare_model = api.model('Compare Firmware', {
 })
 
 
-@api.route('', doc={'description': 'Initiate a comparison'})
-class RestComparePut(RestResourceBase):
-    URL = '/rest/compare'
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(self, *args, **kwargs)
+class RestResourceCompDbBase(RestResourceBase):
+    def _setup_db(self, config):
         self.db = ComparisonDbInterface(config=self.config)
+
+
+@api.route('', doc={'description': 'Initiate a comparison'})
+class RestComparePut(RestResourceCompDbBase):
+    URL = '/rest/compare'
 
     @roles_accepted(*PRIVILEGES['compare'])
     @api.expect(compare_model)
@@ -45,6 +46,13 @@ class RestComparePut(RestResourceBase):
                 self.URL, request_data=request.json, return_code=200
             )
 
+        if not self.db.objects_exist(compare_id):
+            missing_uids = ', '.join(uid for uid in convert_compare_id_to_list(compare_id) if not self.db.exists(uid))
+            return error_message(
+                f'Some objects are not found in the database: {missing_uids}', self.URL,
+                request_data=request.json, return_code=404
+            )
+
         with ConnectTo(InterComFrontEndBinding, self.config) as intercom:
             intercom.add_compare_task(compare_id, force=data['redo'])
         return success_message(
@@ -60,12 +68,8 @@ class RestComparePut(RestResourceBase):
         'params': {'compare_id': 'Firmware UID'}
     }
 )
-class RestCompareGet(RestResourceBase):
+class RestCompareGet(RestResourceCompDbBase):
     URL = '/rest/compare'
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(self, *args, **kwargs)
-        self.db = ComparisonDbInterface(config=self.config)
 
     @roles_accepted(*PRIVILEGES['compare'])
     @api.doc(responses={200: 'Success', 400: 'Unknown comparison ID'})
@@ -74,7 +78,7 @@ class RestCompareGet(RestResourceBase):
         Request results from a comparisons
         The result can be requested by providing a semicolon separated list of uids as compare_id
         The response will contain a json_document with the comparison result, along with the fields status, timestamp,
-        request_resource and request as meta data
+        request_resource and request as metadata
         '''
         try:
             self._validate_compare_id(compare_id)
