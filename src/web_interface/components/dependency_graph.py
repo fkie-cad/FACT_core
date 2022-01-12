@@ -39,7 +39,7 @@ def create_data_graph_nodes_and_groups(data, parent_uid, root_uid, whitelist):
                 continue
 
             linked_libraries = []
-            elf_analysis_missing = 'elf_analysis' not in file['processed_analysis'] 
+            elf_analysis_missing = 'elf_analysis' not in file['processed_analysis']
             with suppress(KeyError):
                 linked_libraries = file['processed_analysis']['elf_analysis']['Output']['libraries']
 
@@ -69,7 +69,7 @@ def create_data_graph_edges(data_graph):
         if node['elf_analysis_missing']:
             elf_analysis_missing_from_files += 1
             continue
-        
+
         linked_libraries = node['linked_libraries']
 
         for linked_lib_name in linked_libraries:

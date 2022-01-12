@@ -64,7 +64,7 @@
                 {% if not firmware.files_included %}
                     {{ button_tooltip('Show dependency graph', 'graph-button', '/dependency-graph/', 'project-diagram', danger=False, disabled=True) }}
                 {% else %}
-                    {{ button_tooltip('Show dependency graph', 'graph-button', '/dependency_graph/', 'project-diagram', 'window.location.href = \'/dependency-graph/' + '/' + firmware.uid + '/' + root_uid + '\'') }}
+                    {{ button_tooltip('Show dependency graph', 'graph-button', '/dependency-graph/', 'project-diagram', 'window.location.href = \'/dependency-graph/' + firmware.uid + '/' + root_uid + '\'') }}
                 {% endif %}
                 {% if firmware.vendor %}
                     {{ button_tooltip('Update analysis', 'update-button', '/update-analysis/', 'redo-alt') }}
