@@ -84,7 +84,7 @@ TEST_GRAPH_DATA_ONE = {
     },
     'virtual_file_path': {
         TEST_FW.uid: [
-            "|testgraph|/lib/file_one.so"                        
+            '|testgraph|/lib/file_one.so'
         ]
     },
     '_id': '1234567',
@@ -103,7 +103,7 @@ TEST_GRAPH_DATA_TWO = {
     },
     'virtual_file_path': {
         TEST_FW.uid: [
-            "|testgraph|/bin/file_two"                        
+            '|testgraph|/bin/file_two'
         ]
     },
     '_id': '7654321',
@@ -112,12 +112,12 @@ TEST_GRAPH_DATA_TWO = {
 TEST_GRAPH_DATA_THREE = {
     'processed_analysis': {
         'file_type': {
-            'mime': 'inode/symlink', 'full': 'symbolic link to \'file two\''
+            'mime': 'inode/symlink', 'full': 'symbolic link to \'../bin/file_two\''
         },
     },
     'virtual_file_path': {
         TEST_FW.uid: [
-            "|testgraph|/sbin/file_three"
+            '|testgraph|/sbin/file_three'
         ]
     },
     '_id': '0987654',

@@ -98,7 +98,6 @@ def create_symbolic_link_edges(data_graph):
 
 
 def find_edges(node, linked_lib_name, data_graph, edge_id):
-    # TODO: FIX: THIS DOES NOT WORK BECAUSE WE ARE AGAIN WORKING WITH LABELS AND FILE OBJECTS
     for lib in data_graph['nodes']:
         if linked_lib_name != Path(lib['label']).name:
             continue

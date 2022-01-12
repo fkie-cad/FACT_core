@@ -1,43 +1,44 @@
 import pytest
 
-from test.common_helper import TEST_FW, TEST_GRAPH_DATA_ONE, TEST_GRAPH_DATA_TWO, TEST_GRAPH_DATA_THREE
+from test.common_helper import (  # pylint: disable=wrong-import-order
+    TEST_FW, TEST_GRAPH_DATA_ONE, TEST_GRAPH_DATA_THREE, TEST_GRAPH_DATA_TWO
+)
 from web_interface.components.dependency_graph import create_data_graph_edges, create_data_graph_nodes_and_groups
 
-
 GRAPH_PART = {'nodes':
-              [{'label': '/lib/file_one.so', 'entity': '1234567', 'id': '|testgraph|/lib/file_one.so', 'group': 'application/x-executable',
-                'full_file_type': 'test text'},
-               {'label': '/bin/file_two', 'entity': '7654321', 'id': '|testgraph|/bin/file_two', 'group': 'application/x-executable',
-                'full_file_type': 'test text'}],
+              [{'label': '/lib/file_one.so', 'elf_analysis_missing': True, 'entity': '1234567', 'id': '|testgraph|/lib/file_one.so', 'group': 'application/x-executable',
+                'full_file_type': 'test text', 'linked_libraries': []},
+               {'label': '/bin/file_two', 'elf_analysis_missing': False, 'entity': '7654321', 'id': '|testgraph|/bin/file_two', 'group': 'application/x-executable',
+                'full_file_type': 'test text', 'linked_libraries': ['file_one.so']}],
               'edges': [],
               'groups': ['application/x-executable']}
 GRAPH_RES = {'nodes':
-             [{'label': '/lib/file_one.so', 'entity': '1234567', 'id': '|testgraph|/lib/file_one.so', 'group': 'application/x-executable',
-               'full_file_type': 'test text'},
-              {'label': '/bin/file_two', 'entity': '7654321', 'id': '|testgraph|/bin/file_two', 'group': 'application/x-executable',
-               'full_file_type': 'test text'}],
+             [{'label': '/lib/file_one.so', 'elf_analysis_missing': True, 'entity': '1234567', 'id': '|testgraph|/lib/file_one.so', 'group': 'application/x-executable',
+               'full_file_type': 'test text', 'linked_libraries': []},
+              {'label': '/bin/file_two', 'elf_analysis_missing': False, 'entity': '7654321', 'id': '|testgraph|/bin/file_two', 'group': 'application/x-executable',
+               'full_file_type': 'test text', 'linked_libraries': ['file_one.so']}],
              'edges': [{'from': '|testgraph|/bin/file_two', 'to': '|testgraph|/lib/file_one.so', 'id': 0}],
              'groups': ['application/x-executable']}
 
 GRAPH_PART_SYMLINK = {'nodes':
-                      [{'label': '/lib/file_one.so', 'entity': '1234567', 'id': '|testgraph|/lib/file_one.so', 'group': 'application/x-executable',
-                        'full_file_type': 'test text'},
-                       {'label': '/bin/file_two', 'entity': '7654321', 'id': '|testgraph|/bin/file_two', 'group': 'application/x-executable',
-                        'full_file_type': 'test text'},
-                       {'label': '/sbin/file_three', 'entity': '0987654', 'id': '|testgraph|/sbin/file_three','group': 'inode/symlink',
-                        'full_file_type': 'symbolic link to \'file two\''}],
+                      [{'label': '/lib/file_one.so', 'elf_analysis_missing': True, 'entity': '1234567', 'id': '|testgraph|/lib/file_one.so', 'group': 'application/x-executable',
+                        'full_file_type': 'test text', 'linked_libraries': []},
+                       {'label': '/bin/file_two', 'elf_analysis_missing': False, 'entity': '7654321', 'id': '|testgraph|/bin/file_two', 'group': 'application/x-executable',
+                        'full_file_type': 'test text', 'linked_libraries': ['file_one.so']},
+                       {'label': '/sbin/file_three', 'elf_analysis_missing': True, 'entity': '0987654', 'id': '|testgraph|/sbin/file_three', 'group': 'inode/symlink',
+                        'full_file_type': 'symbolic link to \'../bin/file_two\'', 'linked_libraries': []}],
                       'edges': [],
                       'groups': ['application/x-executable', 'inode/symlink']}
 
 GRAPH_RES_SYMLINK = {'nodes':
-                     [{'label': 'file one', 'id': '1234567', 'group': 'application/x-executable',
-                       'full_file_type': 'test text'},
-                      {'label': 'file two', 'id': '7654321', 'group': 'application/x-executable',
-                       'full_file_type': 'test text'},
-                      {'label': 'file three', 'id': '0987654', 'group': 'inode/symlink',
-                       'full_file_type': 'symbolic link to \'file two\''}],
-                     'edges': [{'from': '0987654', 'to': '7654321', 'id': 0},
-                               {'from': '7654321', 'to': '1234567', 'id': 1}],
+                     [{'label': '/lib/file_one.so', 'elf_analysis_missing': True, 'entity': '1234567', 'id': '|testgraph|/lib/file_one.so', 'group': 'application/x-executable',
+                       'full_file_type': 'test text', 'linked_libraries': []},
+                      {'label': '/bin/file_two', 'elf_analysis_missing': False, 'entity': '7654321', 'id': '|testgraph|/bin/file_two', 'group': 'application/x-executable',
+                       'full_file_type': 'test text', 'linked_libraries': ['file_one.so']},
+                      {'label': '/sbin/file_three', 'elf_analysis_missing': True, 'entity': '0987654', 'id': '|testgraph|/sbin/file_three', 'group': 'inode/symlink',
+                       'full_file_type': 'symbolic link to \'../bin/file_two\'', 'linked_libraries': []}],
+                     'edges': [{'from': '|testgraph|/sbin/file_three', 'to': '|testgraph|/bin/file_two', 'id': 0},
+                               {'from': '|testgraph|/bin/file_two', 'to': '|testgraph|/lib/file_one.so', 'id': 1}],
                      'groups': ['application/x-executable', 'inode/symlink']}
 
 WHITELIST = ['application/x-executable', 'application/x-sharedlib', 'inode/symlink']
@@ -51,9 +52,9 @@ def test_create_graph_nodes_and_groups(list_of_objects, parent_uid, root_uid, wh
     assert create_data_graph_nodes_and_groups(list_of_objects, parent_uid, root_uid, whitelist) == expected_result
 
 
-@pytest.mark.parametrize('list_of_objects, graph_part, expected_graph, expected_missing_analysis', [
-    ([TEST_GRAPH_DATA_ONE, TEST_GRAPH_DATA_TWO], GRAPH_PART, GRAPH_RES, 1),
-    #([TEST_GRAPH_DATA_ONE, TEST_GRAPH_DATA_TWO, TEST_GRAPH_DATA_THREE], GRAPH_PART_SYMLINK, GRAPH_RES_SYMLINK, 2),
+@pytest.mark.parametrize('graph_part, expected_graph, expected_missing_analysis', [
+    (GRAPH_PART, GRAPH_RES, 1),
+    (GRAPH_PART_SYMLINK, GRAPH_RES_SYMLINK, 2),
 ])
-def test_create_graph_edges(list_of_objects, graph_part, expected_graph, expected_missing_analysis):
-    assert create_data_graph_edges(list_of_objects, graph_part) == (expected_graph, expected_missing_analysis)
+def test_create_graph_edges(graph_part, expected_graph, expected_missing_analysis):  # pylint: disable=too-many-function-args
+    assert create_data_graph_edges(graph_part) == (expected_graph, expected_missing_analysis)
