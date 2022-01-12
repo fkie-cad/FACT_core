@@ -136,7 +136,7 @@ function drawDetails() {
     let color = groupOptions[node.group].color;
     details.append(`
         <div>
-            <a target="_blank" href="/analysis/${node.entity}">Analysis Results</a>
+            <span class="font-weight-bold">Analysis:&nbsp;</span><a target="_blank" href="/analysis/${node.entity}">&#x1F517;</a>
         </div>
         <div>
             <span class="font-weight-bold">Node:&nbsp;</span><span style="color: ${color};">&#9679;</span>&nbsp;${node.label}
