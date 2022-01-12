@@ -25,10 +25,13 @@ class MockFSOrganizer:
 
 class MockDbInterface:
     def __init__(self, *_, **__):
-        self._objects = dict()
+        self._objects = {}
 
     def add_object(self, fo_fw):
         self._objects[fo_fw.uid] = fo_fw
+
+    def get_analysis(self, *_):
+        pass
 
     def get_specific_fields_of_db_entry(self, uid, field_dict):
         pass

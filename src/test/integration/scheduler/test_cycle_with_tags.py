@@ -1,40 +1,47 @@
-# pylint: disable=wrong-import-order,too-many-instance-attributes
+# pylint: disable=wrong-import-order,too-many-instance-attributes,attribute-defined-outside-init
 import gc
-import unittest
 from multiprocessing import Event
 from tempfile import TemporaryDirectory
 from time import sleep
 
 from objects.firmware import Firmware
 from scheduler.analysis import AnalysisScheduler
-from scheduler.Unpacking import UnpackingScheduler
-from storage.db_interface_backend import BackEndDbInterface
+from scheduler.unpacking_scheduler import UnpackingScheduler
 from storage.MongoMgr import MongoMgr
+from storage_postgresql.db_interface_backend import BackendDbInterface
+from storage_postgresql.unpacking_locks import UnpackingLockManager
 from test.common_helper import clean_test_database, get_database_names, get_test_data_dir
 from test.integration.common import initialize_config
 
 
-class TestTagPropagation(unittest.TestCase):
+class TestTagPropagation:
 
-    def setUp(self):
+    def setup(self):
         self._tmp_dir = TemporaryDirectory()
         self._config = initialize_config(self._tmp_dir)
         self.analysis_finished_event = Event()
         self.uid_of_key_file = '530bf2f1203b789bfe054d3118ebd29a04013c587efd22235b3b9677cee21c0e_2048'
 
         self._mongo_server = MongoMgr(config=self._config, auth=False)
-        self.backend_interface = BackEndDbInterface(config=self._config)
+        self.backend_interface = BackendDbInterface(config=self._config)
+        unpacking_lock_manager = UnpackingLockManager()
 
-        self._analysis_scheduler = AnalysisScheduler(config=self._config, pre_analysis=self.backend_interface.add_object, post_analysis=self.count_analysis_finished_event)
-        self._unpack_scheduler = UnpackingScheduler(config=self._config, post_unpack=self._analysis_scheduler.start_analysis_of_object)
+        self._analysis_scheduler = AnalysisScheduler(
+            config=self._config, pre_analysis=self.backend_interface.add_object,
+            post_analysis=self.count_analysis_finished_event, unpacking_locks=unpacking_lock_manager
+        )
+        self._unpack_scheduler = UnpackingScheduler(
+            config=self._config, post_unpack=self._analysis_scheduler.start_analysis_of_object,
+            unpacking_locks=unpacking_lock_manager
+        )
 
-    def count_analysis_finished_event(self, fw_object):
-        self.backend_interface.add_analysis(fw_object)
-        if fw_object.uid == self.uid_of_key_file and 'crypto_material' in fw_object.processed_analysis:
+    def count_analysis_finished_event(self, uid, plugin, analysis_result):
+        self.backend_interface.add_analysis(uid, plugin, analysis_result)
+        if uid == self.uid_of_key_file and plugin == 'crypto_material':
             sleep(1)
             self.analysis_finished_event.set()
 
-    def tearDown(self):
+    def teardown(self):
         self._unpack_scheduler.shutdown()
         self._analysis_scheduler.shutdown()
 
@@ -44,8 +51,9 @@ class TestTagPropagation(unittest.TestCase):
         self._tmp_dir.cleanup()
         gc.collect()
 
-    def test_run_analysis_with_tag(self):
-        test_fw = Firmware(file_path='{}/container/with_key.7z'.format(get_test_data_dir()))
+    def test_run_analysis_with_tag(self, db):
+        test_fw = Firmware(file_path=f'{get_test_data_dir()}/container/with_key.7z')
+        test_fw.version, test_fw.vendor, test_fw.device_name, test_fw.device_class = ['foo'] * 4
         test_fw.release_date = '2017-01-01'
         test_fw.scheduled_analysis = ['crypto_material']
 

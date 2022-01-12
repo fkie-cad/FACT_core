@@ -16,9 +16,9 @@ from unpacker.unpack_base import UnpackBase
 
 
 class Unpacker(UnpackBase):
-    def __init__(self, config=None, worker_id=None, unpacking_locks=None):
+    def __init__(self, config=None, worker_id=None, fs_organizer=None, unpacking_locks=None):
         super().__init__(config=config, worker_id=worker_id)
-        self.file_storage_system = FSOrganizer(config=self.config)
+        self.file_storage_system = FSOrganizer(config=self.config) if fs_organizer is None else fs_organizer
         self.unpacking_locks = unpacking_locks
 
     def unpack(self, current_fo: FileObject):

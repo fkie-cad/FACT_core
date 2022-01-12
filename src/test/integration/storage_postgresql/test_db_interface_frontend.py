@@ -294,6 +294,7 @@ def test_rest_get_firmware_uids(db):
     insert_test_fw(db, 'fw2', vendor='foo_vendor')
 
     assert sorted(db.frontend.rest_get_firmware_uids(offset=None, limit=None)) == [parent_fw.uid, 'fw1', 'fw2']
+    assert sorted(db.frontend.rest_get_firmware_uids(query={}, offset=0, limit=0)) == [parent_fw.uid, 'fw1', 'fw2']
     assert db.frontend.rest_get_firmware_uids(offset=1, limit=1) == ['fw1']
     assert sorted(db.frontend.rest_get_firmware_uids(
         offset=None, limit=None, query={'vendor': 'foo_vendor'})) == ['fw1', 'fw2']

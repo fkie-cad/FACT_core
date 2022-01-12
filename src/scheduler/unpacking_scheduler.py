@@ -14,11 +14,12 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
     This scheduler performs unpacking on firmware objects
     '''
 
-    def __init__(self, config=None, post_unpack=None, analysis_workload=None, unpacking_locks=None):
+    def __init__(self, config=None, post_unpack=None, analysis_workload=None, fs_organizer=None, unpacking_locks=None):
         self.config = config
         self.stop_condition = Value('i', 0)
         self.throttle_condition = Value('i', 0)
         self.get_analysis_workload = analysis_workload
+        self.fs_organizer = fs_organizer
         self.in_queue = Queue()
         self.work_load_counter = 25
         self.workers = []
@@ -43,9 +44,10 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
         '''
         logging.debug('Shutting down...')
         self.stop_condition.value = 1
-        for worker in self.workers:
-            worker.join()
-        self.work_load_process.join()
+        for worker in self.workers + [self.work_load_process]:
+            worker.join(timeout=10)
+            if worker.is_alive():
+                worker.terminate()
         self.in_queue.close()
         logging.info('Unpacker Module offline')
 
@@ -58,7 +60,7 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
             self.workers.append(start_single_worker(process_index, 'Unpacking', self.unpack_worker))
 
     def unpack_worker(self, worker_id):
-        unpacker = Unpacker(self.config, worker_id=worker_id, unpacking_locks=self.unpacking_locks)
+        unpacker = Unpacker(self.config, worker_id=worker_id, fs_organizer=self.fs_organizer, unpacking_locks=self.unpacking_locks)
         while self.stop_condition.value == 0:
             with suppress(Empty):
                 fo = self.in_queue.get(timeout=float(self.config['ExpertSettings']['block_delay']))
