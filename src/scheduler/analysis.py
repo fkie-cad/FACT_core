@@ -1,11 +1,12 @@
 import logging
 from concurrent.futures import ThreadPoolExecutor
 from configparser import ConfigParser
-from distutils.version import LooseVersion
 from multiprocessing import Queue, Value
 from queue import Empty
 from time import sleep, time
 from typing import List, Optional, Tuple
+
+from packaging.version import parse as parse_version
 
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.compare_sets import substring_is_in_list
@@ -301,7 +302,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
 
     def _analysis_is_already_in_db_and_up_to_date(self, analysis_to_do: str, uid: str) -> bool:
         db_entry = self.db_backend_service.get_analysis(uid, analysis_to_do)
-        if db_entry is None or 'failed' in db_entry['processed_analysis'][analysis_to_do]:
+        if db_entry is None or 'failed' in db_entry.result:
             return False
         if db_entry.plugin_version is None:
             logging.error(f'Plugin Version missing: UID: {uid}, Plugin: {analysis_to_do}')
@@ -309,17 +310,22 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         return self._analysis_is_up_to_date(db_entry, self.analysis_plugins[analysis_to_do], uid)
 
     def _analysis_is_up_to_date(self, db_entry: AnalysisEntry, analysis_plugin: AnalysisBasePlugin, uid: str) -> bool:
-        current_plugin_version = analysis_plugin.VERSION
         current_system_version = getattr(analysis_plugin, 'SYSTEM_VERSION', None)
         try:
-            if LooseVersion(db_entry.plugin_version) < LooseVersion(current_plugin_version) or \
-                    LooseVersion(db_entry.system_version or '0') < LooseVersion(current_system_version or '0'):
+            if self._current_version_is_newer(analysis_plugin.VERSION, current_system_version, db_entry):
                 return False
         except TypeError:
             logging.error(f'plug-in or system version of "{analysis_plugin.NAME}" plug-in is or was invalid!')
             return False
 
         return self._dependencies_are_up_to_date(db_entry, analysis_plugin, uid)
+
+    @staticmethod
+    def _current_version_is_newer(current_plugin_version: str, current_system_version: str, db_entry: AnalysisEntry) -> bool:
+        return (
+            parse_version(db_entry.plugin_version) < parse_version(current_plugin_version)
+            or parse_version(db_entry.system_version or '0') < parse_version(current_system_version or '0')
+        )
 
     def _dependencies_are_up_to_date(self, db_entry: AnalysisEntry, analysis_plugin: AnalysisBasePlugin, uid: str) -> bool:
         for dependency in analysis_plugin.DEPENDENCIES:
