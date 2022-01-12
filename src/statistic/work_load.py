@@ -9,7 +9,7 @@ from time import time
 import distro
 import psutil
 
-from storage.db_interface_statistic import StatisticDbUpdater
+from storage_postgresql.db_interface_stats import StatsUpdateDbInterface
 from version import __VERSION__
 
 
@@ -18,14 +18,13 @@ class WorkLoadStatistic:
     def __init__(self, config, component):
         self.config = config
         self.component = component
-        self.db = StatisticDbUpdater(config=self.config)
+        self.db = StatsUpdateDbInterface(config=self.config)
         self.platform_information = self._get_platform_information()
         logging.debug('{}: Online'.format(self.component))
 
     def shutdown(self):
         logging.debug('{}: shutting down -> set offline message'.format(self.component))
         self.db.update_statistic(self.component, {'status': 'offline', 'last_update': time()})
-        self.db.shutdown()
 
     def update(self, unpacking_workload=None, analysis_workload=None, compare_workload=None):
         stats = {
@@ -70,7 +69,7 @@ class WorkLoadStatistic:
 
     @staticmethod
     def _get_platform_information():
-        operating_system = ' '.join(distro.linux_distribution()[0:2])
+        operating_system = f'{distro.id()} {distro.version()}'
         python_version = '.'.join(str(x) for x in sys.version_info[0:3])
         fact_version = __VERSION__
         return {
