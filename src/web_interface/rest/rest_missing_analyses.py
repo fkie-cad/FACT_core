@@ -24,7 +24,7 @@ class RestMissingAnalyses(RestResourceDbBase):
         missing_analyses_data = {
             'missing_files': self._make_json_serializable(self.db.find_missing_files()),
             'missing_analyses': self._make_json_serializable(self.db.find_missing_analyses()),
-            'failed_analyses': self.db.find_failed_analyses(),
+            'failed_analyses': self._make_json_serializable(self.db.find_failed_analyses()),
             'orphaned_objects': self.db.find_orphaned_objects(),
         }
         return success_message(missing_analyses_data, self.URL)

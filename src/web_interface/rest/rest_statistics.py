@@ -22,13 +22,15 @@ def _delete_id_and_check_empty_stat(stats_dict):
             stats_dict[stat] = {}
 
 
-@api.route('', doc={'description': 'Retrieves all statistics from the FACT database as raw JSON data.'})
-class RestStatisticsWithoutName(RestResourceBase):
-    URL = '/rest/statistics'
+class RestResourceStatsBase(RestResourceBase):
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(self, *args, **kwargs)
-        self.db = StatsDbViewer(config=self.config)
+    def _setup_db(self, config):
+        self.stats_viewer = StatsDbViewer(config=self.config)
+
+
+@api.route('', doc={'description': 'Retrieves all statistics from the FACT database as raw JSON data.'})
+class RestStatisticsWithoutName(RestResourceStatsBase):
+    URL = '/rest/statistics'
 
     @roles_accepted(*PRIVILEGES['status'])
     @api.doc(responses={200: 'Success', 400: 'Unknown stats category'})
@@ -38,7 +40,7 @@ class RestStatisticsWithoutName(RestResourceBase):
         '''
         statistics_dict = {}
         for stat in STATISTICS:
-            statistics_dict[stat] = self.db.get_statistic(stat)
+            statistics_dict[stat] = self.stats_viewer.get_statistic(stat)
 
         _delete_id_and_check_empty_stat(statistics_dict)
 
@@ -52,12 +54,8 @@ class RestStatisticsWithoutName(RestResourceBase):
         'params': {'stat_name': 'Statistic\'s name'}
     }
 )
-class RestStatisticsWithName(RestResourceBase):
+class RestStatisticsWithName(RestResourceStatsBase):
     URL = '/rest/statistics'
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(self, *args, **kwargs)
-        self.db = StatsDbViewer(config=self.config)
 
     @roles_accepted(*PRIVILEGES['status'])
     @api.doc(responses={200: 'Success', 400: 'Unknown stats category'})
@@ -65,7 +63,7 @@ class RestStatisticsWithName(RestResourceBase):
         '''
         Get specific statistic
         '''
-        statistic_dict = {stat_name: self.db.get_statistic(stat_name)}
+        statistic_dict = {stat_name: self.stats_viewer.get_statistic(stat_name)}
         _delete_id_and_check_empty_stat(statistic_dict)
         if stat_name not in STATISTICS:
             return error_message(f'A statistic with the ID {stat_name} does not exist', self.URL, dict(stat_name=stat_name))

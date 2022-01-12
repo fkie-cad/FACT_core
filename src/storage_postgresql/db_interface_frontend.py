@@ -3,6 +3,7 @@ from typing import Any, Dict, List, NamedTuple, Optional, Set, Tuple, Union
 
 from sqlalchemy import Column, func, select
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.sql import Select
 
 from helperFunctions.data_conversion import get_value_of_first_key
 from helperFunctions.tag import TagColor
@@ -180,17 +181,20 @@ class FrontEndDbInterface(DbInterfaceCommon):
                        only_fo_parent_firmware: bool = False, inverted: bool = False, as_meta: bool = False):
         with self.get_read_only_session() as session:
             query = build_generic_search_query(search_dict, only_fo_parent_firmware, inverted)
-
-            if skip:
-                query = query.offset(skip)
-            if limit:
-                query = query.limit(limit)
-
+            query = self._apply_offset_and_limit(query, skip, limit)
             results = session.execute(query).scalars()
 
             if as_meta:
                 return [self._get_meta_for_entry(element) for element in results]
             return [element.uid for element in results]
+
+    @staticmethod
+    def _apply_offset_and_limit(query: Select, skip: Optional[int], limit: Optional[int]) -> Select:
+        if skip:
+            query = query.offset(skip)
+        if limit:
+            query = query.limit(limit)
+        return query
 
     def _get_meta_for_entry(self, entry: Union[FirmwareEntry, FileObjectEntry]):
         if isinstance(entry, FirmwareEntry):
@@ -303,7 +307,8 @@ class FrontEndDbInterface(DbInterfaceCommon):
             db_query = select(FirmwareEntry.uid)
             if query:
                 db_query = db_query.filter_by(**query)
-            return list(session.execute(db_query.offset(offset).limit(limit)).scalars())
+            db_query = self._apply_offset_and_limit(db_query, offset, limit)
+            return list(session.execute(db_query).scalars())
 
     def rest_get_file_object_uids(self, offset: Optional[int], limit: Optional[int], query=None) -> List[str]:
         if query:
@@ -334,7 +339,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
                 for fo_uid, fo_plugin_list in session.execute(fo_query):
                     missing_plugins = set(fw_plugin_list) - set(fo_plugin_list)
                     if missing_plugins:
-                        missing_analyses[fo_uid] = missing_plugins
+                        missing_analyses.setdefault(fw_uid, {})[fo_uid] = missing_plugins
         return missing_analyses
 
     @staticmethod

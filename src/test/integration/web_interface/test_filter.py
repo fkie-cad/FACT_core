@@ -1,8 +1,11 @@
+from unittest import mock
+
 from test.common_helper import get_config_for_testing
 from web_interface.filter import list_group_collapse
 from web_interface.frontend_main import WebFrontEnd
 
 
+@mock.patch('intercom.front_end_binding.InterComFrontEndBinding', lambda **_: None)
 def test_list_group_collapse():
     with WebFrontEnd(get_config_for_testing()).app.app_context():
         collapsed_list_group = list_group_collapse(['a', 'b'])
