@@ -62,7 +62,7 @@ def create_data_graph_nodes_and_groups(data, parent_uid, root_uid, whitelist):
 
 def create_data_graph_edges(data_graph):
 
-    edge_id = create_symbolic_link_edges(data_graph)
+    create_symbolic_link_edges(data_graph)
     elf_analysis_missing_from_files = 0
 
     for node in data_graph['nodes']:
@@ -73,14 +73,12 @@ def create_data_graph_edges(data_graph):
         linked_libraries = node['linked_libraries']
 
         for linked_lib_name in linked_libraries:
-            edge_id = find_edges(node, linked_lib_name, data_graph, edge_id)
+            find_edges(node, linked_lib_name, data_graph)
 
     return data_graph, elf_analysis_missing_from_files
 
 
 def create_symbolic_link_edges(data_graph):
-    edge_id = 0
-
     for node in data_graph['nodes']:
         if node['group'] == 'inode/symlink':
             link_to = Path(node['full_file_type'].split('\'')[1])
@@ -91,22 +89,17 @@ def create_symbolic_link_edges(data_graph):
 
             for match in data_graph['nodes']:
                 if match['label'] == str(link_to):
-                    edge = {'from': node['id'], 'to': match['id'], 'id': edge_id}
+                    edge = {'from': node['id'], 'to': match['id'], 'id': len(data_graph['edges'])}
                     data_graph['edges'].append(edge)
-                    edge_id += 1
-    return edge_id
 
 
-def find_edges(node, linked_lib_name, data_graph, edge_id):
+def find_edges(node, linked_lib_name, data_graph):
     for lib in data_graph['nodes']:
         if linked_lib_name != Path(lib['label']).name:
             continue
-        edge = {'from': node['id'], 'to': lib['id'], 'id': edge_id}
+        edge = {'from': node['id'], 'to': lib['id'], 'id': len(data_graph['edges'])}
         data_graph['edges'].append(edge)
-        edge_id += 1
         break
-
-    return edge_id
 
 
 def get_graph_colors(quantity):
