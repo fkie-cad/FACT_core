@@ -29,11 +29,11 @@
 
 {% block body %}
     <div class="header mb-4" style="word-wrap: break-word">
-        <h3>
-            Dependency Graph for File {{ uid | replace_uid_with_hid }}
+        <h4>
+            Dependency Graph for {{ uid | replace_uid_with_hid }} in {{ root_uid | replace_uid_with_hid }}
             <br>
             <span style="font-size: 15px"><strong>UID:</strong> {{ uid }}</span>
-        </h3>
+        </h4>
     </div>
     <div class="row lb-3">
         <div class="col-lg-8 col-xl-10">
