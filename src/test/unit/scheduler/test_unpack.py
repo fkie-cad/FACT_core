@@ -7,8 +7,9 @@ from unittest import TestCase
 from unittest.mock import patch
 
 from objects.firmware import Firmware
-from scheduler.Unpacking import UnpackingScheduler
-from test.common_helper import DatabaseMock, get_test_data_dir
+from scheduler.unpacking_scheduler import UnpackingScheduler
+from storage_postgresql.unpacking_locks import UnpackingLockManager
+from test.common_helper import get_test_data_dir  # pylint: disable=wrong-import-order
 
 
 class TestUnpackScheduler(TestCase):
@@ -57,7 +58,7 @@ class TestUnpackScheduler(TestCase):
         self.assertEqual(result, 3, 'workload calculation not correct')
 
     def test_throttle(self):
-        with patch(target='scheduler.Unpacking.sleep', new=self._trigger_sleep):
+        with patch(target='scheduler.unpacking_scheduler.sleep', new=self._trigger_sleep):
             self.config.set('ExpertSettings', 'unpack_throttle_limit', '-1')
             self._start_scheduler()
             self.sleep_event.wait(timeout=10)
@@ -69,7 +70,7 @@ class TestUnpackScheduler(TestCase):
             config=self.config,
             post_unpack=self._mock_callback,
             analysis_workload=lambda: 3,
-            db_interface=DatabaseMock()
+            unpacking_locks=UnpackingLockManager()
         )
 
     def _mock_callback(self, fw):

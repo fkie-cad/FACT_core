@@ -1,8 +1,10 @@
 import pytest
 
 from helperFunctions.virtual_file_path import (
-    get_base_of_virtual_path, get_top_of_virtual_path, join_virtual_path, merge_vfp_lists, split_virtual_path
+    get_base_of_virtual_path, get_parent_uids_from_virtual_path, get_top_of_virtual_path, join_virtual_path,
+    merge_vfp_lists, split_virtual_path
 )
+from test.common_helper import create_test_file_object  # pylint: disable=wrong-import-order
 
 
 @pytest.mark.parametrize('virtual_path, expected_output', [
@@ -52,3 +54,14 @@ def test_get_top_of_virtual_path(virtual_path, expected_output):
 ])
 def test_merge_vfp_lists(old_vfp_list, new_vfp_list, expected_output):
     assert sorted(merge_vfp_lists(old_vfp_list, new_vfp_list)) == expected_output
+
+
+@pytest.mark.parametrize('vfp, expected_result', [
+    ({}, []),
+    ({'root uid': ['foo|bar|/some/path', 'different|parent|/some/other/path']}, ['bar', 'parent']),
+    ({'root uid': ['foo|bar|/some/path'], 'other root': ['different|parent|/some/other/path']}, ['bar', 'parent']),
+])
+def test_get_parent_uids(vfp, expected_result):
+    fo = create_test_file_object()
+    fo.virtual_file_path = vfp
+    assert sorted(get_parent_uids_from_virtual_path(fo)) == expected_result

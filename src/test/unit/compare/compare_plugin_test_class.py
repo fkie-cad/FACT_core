@@ -1,9 +1,10 @@
 import gc
 import unittest
 from configparser import ConfigParser
+from unittest import mock
 
 from compare.PluginBase import CompareBasePlugin as ComparePlugin
-from test.common_helper import create_test_firmware
+from test.common_helper import create_test_firmware  # pylint: disable=wrong-import-order
 
 
 class ComparePluginTest(unittest.TestCase):
@@ -11,6 +12,7 @@ class ComparePluginTest(unittest.TestCase):
     # This name must be changed according to the name of plug-in to test
     PLUGIN_NAME = 'base'
 
+    @mock.patch('plugins.base.ViewUpdater', lambda *_: None)
     def setUp(self):
         self.config = self.generate_config()
         self.config.add_section('ExpertSettings')
@@ -29,7 +31,7 @@ class ComparePluginTest(unittest.TestCase):
         '''
         return ComparePlugin(self, config=self.config)
 
-    def generate_config(self):
+    def generate_config(self):  # pylint: disable=no-self-use
         '''
         This function can be overwritten by the test instance if a special config is needed
         '''

@@ -5,6 +5,7 @@ import unittest
 from configparser import ConfigParser
 from pathlib import Path
 from time import sleep
+from unittest import mock
 
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.fileSystem import get_src_dir
@@ -16,6 +17,7 @@ PLUGIN_PATH = Path(get_src_dir()) / 'plugins' / 'analysis'
 
 class TestPluginBase(unittest.TestCase):
 
+    @mock.patch('plugins.base.ViewUpdater', lambda *_: None)
     def setUp(self):
         config = self.set_up_base_config()
         self.base_plugin = AnalysisBasePlugin(self, config)
@@ -33,12 +35,12 @@ class TestPluginBase(unittest.TestCase):
         self.base_plugin.shutdown()
         gc.collect()
 
-    def register_plugin(self, name, plugin_object):
+    def register_plugin(self, name, plugin_object):  # pylint: disable=no-self-use
         '''
         This is a mock checking if the plugin registers correctly
         '''
-        self.assertEqual(name, 'base', 'plugin registers with wrong name')
-        self.assertEqual(plugin_object.NAME, 'base', 'plugin object has wrong name')
+        assert name == 'base', 'plugin registers with wrong name'
+        assert plugin_object.NAME == 'base', 'plugin object has wrong name'
 
 
 class TestPluginBaseCore(TestPluginBase):
@@ -100,6 +102,7 @@ class TestPluginBaseAddJob(TestPluginBase):
 
 class TestPluginBaseOffline(TestPluginBase):
 
+    @mock.patch('plugins.base.ViewUpdater', lambda *_: None)
     def setUp(self):
         self.base_plugin = AnalysisBasePlugin(self, config=self.set_up_base_config(), offline_testing=True)
 
@@ -122,6 +125,7 @@ class TestPluginNotRunning(TestPluginBase):
     def tearDown(self):
         pass
 
+    @mock.patch('plugins.base.ViewUpdater', lambda *_: None)
     def multithread_config_test(self, multithread_flag, threads_in_config, threads_wanted):
         self.config.set('base', 'threads', threads_in_config)
         self.p_base = AnalysisBasePlugin(self, self.config, no_multithread=multithread_flag)
@@ -134,6 +138,7 @@ class TestPluginNotRunning(TestPluginBase):
     def test_normal_multithread(self):
         self.multithread_config_test(False, '2', '2')
 
+    @mock.patch('plugins.base.ViewUpdater', lambda *_: None)
     def test_init_result_dict(self):
         self.p_base = AnalysisBasePlugin(self, self.config)
         resultdict = self.p_base.init_dict()
@@ -151,6 +156,7 @@ class TestPluginTimeout(TestPluginBase):
     def tearDown(self):
         pass
 
+    @mock.patch('plugins.base.ViewUpdater', lambda *_: None)
     def test_timeout(self):
         self.p_base = DummyPlugin(self, self.config, timeout=0)
         fo_in = FileObject(binary=b'test', scheduled_analysis=[])

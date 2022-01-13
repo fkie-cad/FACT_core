@@ -14,9 +14,9 @@ from helperFunctions.fileSystem import get_src_dir
 from intercom.common_mongo_binding import InterComMongoInterface
 from objects.file import FileObject
 from objects.firmware import Firmware
-from storage.db_interface_common import MongoInterfaceCommon
-from storage.db_interface_compare import FactCompareException
 from storage.mongo_interface import MongoInterface
+from storage_postgresql.db_interface_common import DbInterfaceCommon
+from storage_postgresql.db_interface_comparison import FactComparisonException
 
 
 def get_test_data_dir():
@@ -26,7 +26,7 @@ def get_test_data_dir():
     return os.path.join(get_src_dir(), 'test/data')
 
 
-class CommonDbInterfaceMock(MongoInterfaceCommon):
+class CommonDbInterfaceMock(DbInterfaceCommon):
 
     def __init__(self):  # pylint: disable=super-init-not-called
         class Collection:
@@ -152,7 +152,7 @@ class DatabaseMock:  # pylint: disable=too-many-public-methods
         return ['test class']
 
     def page_compare_results(self):
-        return list()
+        return []
 
     def get_vendor_list(self):
         return ['test vendor']
@@ -182,7 +182,7 @@ class DatabaseMock:  # pylint: disable=too-many-public-methods
             return None
         if compare_id == normalize_compare_id(';'.join([TEST_TEXT_FILE.uid, TEST_FW.uid])):
             return None
-        raise FactCompareException('bla')
+        raise FactComparisonException('bla')
 
     def all_uids_found_in_database(self, uid_list):
         return True
@@ -221,17 +221,6 @@ class DatabaseMock:  # pylint: disable=too-many-public-methods
         @staticmethod
         def find(query, query_filter):
             return {}
-
-    class search_query_cache:  # pylint: disable=invalid-name
-        @staticmethod
-        def find(**kwargs):
-            # We silently ignore every argument given to this function
-            # Feel free to change this behavior if your test needs it
-            return [TEST_SEARCH_QUERY]
-
-        @staticmethod
-        def count_documents(filter, **kwargs):
-            return 1
 
     def get_data_for_nice_list(self, input_data, root_uid):
         return [NICE_LIST_DATA, ]
@@ -439,6 +428,7 @@ def get_database_names(config):
     return databases
 
 
+# FixMe: still useful for intercom
 def clean_test_database(config, list_of_test_databases):
     db = MongoInterface(config=config)
     try:

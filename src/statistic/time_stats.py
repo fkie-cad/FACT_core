@@ -24,6 +24,8 @@ def _build_time_dict(release_date_stats: List[Tuple[int, int, int]]) -> Dict[int
 
 
 def _fill_in_time_gaps(time_dict: Dict[int, Dict[int, int]]):
+    if time_dict == {}:
+        return
     start_year = min(time_dict)
     start_month = min(time_dict[start_year])
     end_year = max(time_dict)

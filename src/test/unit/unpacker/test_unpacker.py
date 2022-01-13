@@ -7,7 +7,8 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from objects.file import FileObject
-from test.common_helper import DatabaseMock, create_test_file_object, get_test_data_dir
+from storage_postgresql.unpacking_locks import UnpackingLockManager
+from test.common_helper import create_test_file_object, get_test_data_dir
 from unpacker.unpack import Unpacker
 
 TEST_DATA_DIR = Path(get_test_data_dir())
@@ -24,7 +25,7 @@ class TestUnpackerBase(unittest.TestCase):
         config.set('unpack', 'max_depth', '3')
         config.set('unpack', 'whitelist', 'text/plain, image/png')
         config.add_section('ExpertSettings')
-        self.unpacker = Unpacker(config=config, db_interface=DatabaseMock())
+        self.unpacker = Unpacker(config=config, unpacking_locks=UnpackingLockManager())
         self.tmp_dir = TemporaryDirectory(prefix='fact_tests_')
         self.test_fo = create_test_file_object()
 
@@ -51,10 +52,10 @@ class TestUnpackerCore(TestUnpackerBase):
         self.assertEqual(len(result), 0, 'parent not removed from list')
 
     def test_file_is_locked(self):
-        assert not self.unpacker.db_interface.check_unpacking_lock(self.test_fo.uid)
+        assert not self.unpacker.unpacking_locks.unpacking_lock_is_set(self.test_fo.uid)
         file_paths = [TEST_DATA_DIR / 'get_files_test' / 'testfile1']
         self.unpacker.generate_and_store_file_objects(file_paths, EXTRACTION_DIR, self.test_fo)
-        assert self.unpacker.db_interface.check_unpacking_lock(self.test_fo.uid)
+        assert self.unpacker.unpacking_locks.unpacking_lock_is_set(self.test_fo.uid)
 
 
 class TestUnpackerCoreMain(TestUnpackerBase):

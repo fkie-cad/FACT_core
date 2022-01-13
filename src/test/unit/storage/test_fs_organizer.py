@@ -7,7 +7,7 @@ from tempfile import TemporaryDirectory
 from common_helper_files import get_binary_from_file
 
 from objects.file import FileObject
-from storage.fsorganizer import FSOrganizer
+from storage_postgresql.fsorganizer import FSOrganizer
 
 
 class TestFsOrganizer(unittest.TestCase):

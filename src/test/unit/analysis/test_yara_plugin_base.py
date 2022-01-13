@@ -3,6 +3,7 @@
 import logging
 import os
 from pathlib import Path
+from unittest import mock
 
 import pytest
 
@@ -19,6 +20,7 @@ class TestAnalysisYaraBasePlugin(AnalysisPluginTest):
 
     PLUGIN_NAME = 'Yara_Base_Plugin'
 
+    @mock.patch('plugins.base.ViewUpdater', lambda *_: None)
     def setUp(self):
         super().setUp()
         config = self.init_basic_config()
@@ -50,7 +52,7 @@ def test_parse_yara_output():
     matches = YaraBasePlugin._parse_yara_output(YARA_TEST_OUTPUT)  # pylint: disable=protected-access
 
     assert isinstance(matches, dict), 'matches should be dict'
-    assert 'PgpPublicKeyBlock' in matches.keys(), 'Pgp block should have been matched'
+    assert 'PgpPublicKeyBlock' in matches, 'Pgp block should have been matched'
     assert matches['PgpPublicKeyBlock']['strings'][0][0] == 0, 'first block should start at 0x0'
     assert 'r_libjpeg8_8d12b1_0' in matches
     assert matches['r_libjpeg8_8d12b1_0']['meta']['description'] == 'foo [bar]'

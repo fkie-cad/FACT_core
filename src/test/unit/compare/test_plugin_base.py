@@ -1,8 +1,10 @@
+from unittest import mock
+
 import pytest
 
 from compare.PluginBase import CompareBasePlugin as ComparePlugin
 from compare.PluginBase import _get_unmatched_dependencies
-from test.unit.compare.compare_plugin_test_class import ComparePluginTest
+from test.unit.compare.compare_plugin_test_class import ComparePluginTest  # pylint: disable=wrong-import-order
 
 
 class TestComparePluginBase(ComparePluginTest):
@@ -10,6 +12,7 @@ class TestComparePluginBase(ComparePluginTest):
     # This name must be changed according to the name of plug-in to test
     PLUGIN_NAME = 'base'
 
+    @mock.patch('plugins.base.ViewUpdater', lambda *_: None)
     def setup_plugin(self):
         """
         This function must be overwritten by the test instance.
