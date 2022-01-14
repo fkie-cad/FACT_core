@@ -4,13 +4,13 @@ from tempfile import TemporaryDirectory
 
 import pytest
 
-from test.common_helper import DatabaseMock, fake_exit, get_config_for_testing
+from test.common_helper import CommonDatabaseMock, fake_exit, get_config_for_testing
 from web_interface.frontend_main import WebFrontEnd
 
 
 @pytest.fixture(scope='function', autouse=True)
 def mocking_the_database(monkeypatch):
-    monkeypatch.setattr('helperFunctions.database.ConnectTo.__enter__', lambda _: DatabaseMock())
+    monkeypatch.setattr('helperFunctions.database.ConnectTo.__enter__', lambda _: CommonDatabaseMock())
     monkeypatch.setattr('helperFunctions.database.ConnectTo.__exit__', fake_exit)
 
 

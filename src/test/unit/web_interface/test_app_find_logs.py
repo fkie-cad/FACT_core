@@ -1,21 +1,21 @@
+# pylint: disable=wrong-import-order
 from pathlib import Path
 
 import helperFunctions.fileSystem
+from test.common_helper import CommonIntercomMock
 from test.unit.web_interface.base import WebInterfaceTest
 
 
-class IntercomMock:
+class MockIntercom(CommonIntercomMock):
     @staticmethod
     def get_backend_logs():
         return ['String1', 'String2', 'String3']
 
-    def shutdown(self):
-        pass
-
 
 class TestShowLogs(WebInterfaceTest):
-    def setUp(self, db_mock=None):
-        super().setUp(db_mock=IntercomMock)
+
+    def setup(self, *_, **__):
+        super().setup(intercom_mock=MockIntercom)
 
     def test_backend_available(self):
         self.config['Logging']['logFile'] = 'NonExistentFile'

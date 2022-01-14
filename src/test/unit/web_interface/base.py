@@ -1,33 +1,46 @@
+# pylint: disable=attribute-defined-outside-init
 import gc
-import unittest
-import unittest.mock
 from tempfile import TemporaryDirectory
+from unittest import mock
 
-from test.common_helper import DatabaseMock, fake_exit, get_config_for_testing
-from web_interface.frontend_main import WebFrontEnd
+from test.common_helper import CommonDatabaseMock, CommonIntercomMock, get_config_for_testing
 
-TMP_DIR = TemporaryDirectory(prefix='fact_test_')
+INTERCOM = 'intercom.front_end_binding.InterComFrontEndBinding'
+DB_INTERFACES = [
+    'storage_postgresql.db_interface_frontend.FrontEndDbInterface',
+    'storage_postgresql.db_interface_frontend_editing.FrontendEditingDbInterface',
+    'storage_postgresql.db_interface_comparison.ComparisonDbInterface',
+    'storage_postgresql.db_interface_stats.StatsDbViewer',
+]
 
 
-class WebInterfaceTest(unittest.TestCase):
+class WebInterfaceTest:
 
-    def setUp(self, db_mock=DatabaseMock):  # pylint: disable=arguments-differ
-        self.mocked_interface = db_mock()
+    def setup(self, db_mock=CommonDatabaseMock, intercom_mock=CommonIntercomMock):  # pylint: disable=arguments-differ
+        self._init_patches(db_mock, intercom_mock)
+        # delay import to be able to mock the database before the frontend imports it -- weird hack but OK
+        from web_interface.frontend_main import WebFrontEnd  # pylint: disable=import-outside-toplevel
 
-        self.enter_patch = unittest.mock.patch(target='helperFunctions.database.ConnectTo.__enter__', new=lambda _: self.mocked_interface)
-        self.enter_patch.start()
-
-        self.exit_patch = unittest.mock.patch(target='helperFunctions.database.ConnectTo.__exit__', new=fake_exit)
-        self.exit_patch.start()
-
-        self.config = get_config_for_testing(TMP_DIR)
+        self.tmp_dir = TemporaryDirectory(prefix='fact_test_')
+        self.config = get_config_for_testing(self.tmp_dir)
+        self.intercom = intercom_mock
+        self.intercom.tasks.clear()
         self.frontend = WebFrontEnd(config=self.config)
         self.frontend.app.config['TESTING'] = True
         self.test_client = self.frontend.app.test_client()
 
-    def tearDown(self):
-        self.enter_patch.stop()
-        self.exit_patch.stop()
+    def _init_patches(self, db_mock, intercom_mock):
+        self.patches = [
+            mock.patch(db_interface, db_mock)
+            for db_interface in DB_INTERFACES
+        ]
+        self.patches.append(mock.patch(INTERCOM, intercom_mock))
 
-        self.mocked_interface.shutdown()
+        for patch in self.patches:
+            patch.start()
+
+    def teardown(self):
+        for patch in self.patches:
+            patch.stop()
+        self.tmp_dir.cleanup()
         gc.collect()

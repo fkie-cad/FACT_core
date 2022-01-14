@@ -1,8 +1,8 @@
-from test.common_helper import DatabaseMock
+from test.common_helper import CommonDatabaseMock
 from test.unit.web_interface.base import WebInterfaceTest
 
 
-class MissingAnalysesDbMock(DatabaseMock):
+class MissingAnalysesDbMock(CommonDatabaseMock):
     result = None
 
     def find_missing_files(self):
@@ -19,8 +19,9 @@ class MissingAnalysesDbMock(DatabaseMock):
 
 
 class TestAppMissingAnalyses(WebInterfaceTest):
-    def setUp(self, db_mock=None):
-        super().setUp(db_mock=MissingAnalysesDbMock)
+
+    def setup(self, *_, **__):
+        super().setup(db_mock=MissingAnalysesDbMock)
 
     def test_app_no_missing_analyses(self):
         MissingAnalysesDbMock.result = {}

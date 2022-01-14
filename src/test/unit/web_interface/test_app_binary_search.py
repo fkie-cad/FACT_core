@@ -1,61 +1,95 @@
+# pylint: disable=wrong-import-order
 from io import BytesIO
 
+from storage_postgresql.db_interface_frontend import MetaEntry
+from test.common_helper import CommonDatabaseMock, CommonIntercomMock
 from test.unit.web_interface.base import WebInterfaceTest
+
+QUERY_CACHE_UID = 'deadbeef01234567deadbeef01234567deadbeef01234567deadbeef01234567_123'
+
+
+class IntercomMock(CommonIntercomMock):
+
+    @staticmethod
+    def add_binary_search_request(*_):
+        return 'binary_search_id'
+
+    @staticmethod
+    def get_binary_search_result(uid):
+        if uid == 'binary_search_id':
+            return {'test_rule': ['test_uid']}, b'some yara rule'
+        return None, None
+
+
+class DbMock(CommonDatabaseMock):
+
+    @staticmethod
+    def generic_search(search_dict: dict, *_, **__):
+        if 'test_uid' in str(search_dict) or search_dict == {}:
+            return [MetaEntry('test_uid', 'hid', {}, 0)]
+        return []
+
+    @staticmethod
+    def add_to_search_query_cache(*_, **__):
+        return QUERY_CACHE_UID
+
+    @staticmethod
+    def get_query_from_cache(query_id):
+        if query_id == QUERY_CACHE_UID:
+            return {'search_query': '{"uid": {"$in": ["test_uid"]}}', 'query_title': 'some yara rule'}
+        return None
 
 
 class TestAppBinarySearch(WebInterfaceTest):
 
+    def setup(self, *_, **__):
+        super().setup(db_mock=DbMock, intercom_mock=IntercomMock)
+
     def test_app_binary_search_get(self):
-        rv = self.test_client.get('/database/binary_search')
-        assert b'<h3 class="mb-3">Binary Pattern Search</h3>' in rv.data
+        response = self.test_client.get('/database/binary_search').data.decode()
+        assert '<h3 class="mb-3">Binary Pattern Search</h3>' in response
 
     def test_app_binary_search_post_from_file(self):
-        rv = self.test_client.post(
-            '/database/binary_search',
-            content_type='multipart/form-data',
-            data={'file': (BytesIO(b'rule rulename {strings: $a = { 0123456789abcdef } condition: $a }'), 'test_file.txt'), 'textarea': ''},
-            follow_redirects=True
-        )
-        assert b'test_uid' in rv.data
+        response = self._post_binary_search({
+            'file': (BytesIO(b'rule rulename {strings: $a = { 0123456789abcdef } condition: $a }'), 'test_file.txt'),
+            'textarea': ''
+        })
+        assert 'test_uid' in response
 
     def test_app_binary_search_post_from_textarea(self):
-        rv = self.test_client.post(
-            '/database/binary_search',
-            content_type='multipart/form-data',
-            data={'file': None, 'textarea': 'rule rulename {strings: $a = { 0123456789abcdef } condition: $a }'},
-            follow_redirects=True
-        )
-        assert b'test_uid' in rv.data
+        response = self._post_binary_search({
+            'file': None,
+            'textarea': 'rule rulename {strings: $a = { 0123456789abcdef } condition: $a }'
+        })
+        assert 'test_uid' in response
 
     def test_app_binary_search_post_invalid_rule(self):
-        rv = self.test_client.post('/database/binary_search', content_type='multipart/form-data',
-                                   data={'file': (BytesIO(b'invalid_rule'), 'test_file.txt'), 'textarea': ''},
-                                   follow_redirects=True)
-        assert b'Error in YARA rules' in rv.data
+        response = self._post_binary_search({'file': (BytesIO(b'invalid_rule'), 'test_file.txt'), 'textarea': ''})
+        assert 'Error in YARA rules' in response
 
     def test_app_binary_search_post_empty(self):
-        rv = self.test_client.post(
-            '/database/binary_search',
-            content_type='multipart/form-data',
-            data={'file': None, 'textarea': ''},
-            follow_redirects=True
-        )
-        assert b'please select a file or enter rules in the text area' in rv.data
+        response = self._post_binary_search({'file': None, 'textarea': ''})
+        assert 'please select a file or enter rules in the text area' in response
 
     def test_app_binary_search_post_firmware_not_found(self):
-        rv = self.test_client.post(
-            '/database/binary_search',
-            content_type='multipart/form-data',
-            data={'file': (BytesIO(b'invalid_rule'), 'test_file.txt'), 'textarea': '', 'firmware_uid': 'uid_not_in_db'},
-            follow_redirects=True
-        )
-        assert b'not found in database' in rv.data
+        response = self._post_binary_search({
+            'file': (BytesIO(b'invalid_rule'), 'test_file.txt'),
+            'textarea': '', 'firmware_uid': 'uid_not_in_db'
+        })
+        assert 'not found in database' in response
 
     def test_app_binary_search_post_single_firmware(self):
-        rv = self.test_client.post(
+        response = self._post_binary_search({
+            'file': None, 'firmware_uid': 'uid_in_db',
+            'textarea': 'rule rulename {strings: $a = { 0123456789abcdef } condition: $a }'
+        })
+        assert 'test_uid' in response
+
+    def _post_binary_search(self, query: dict) -> str:
+        response = self.test_client.post(
             '/database/binary_search',
             content_type='multipart/form-data',
-            data={'file': None, 'textarea': 'rule rulename {strings: $a = { 0123456789abcdef } condition: $a }', 'firmware_uid': 'uid_in_db'},
+            data=query,
             follow_redirects=True
         )
-        assert b'test_uid' in rv.data
+        return response.data.decode()

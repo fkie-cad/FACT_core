@@ -42,7 +42,7 @@ class CompareRoutes(ComponentBase):
         download_link = self._create_ida_download_if_existing(result, compare_id)
         uid_list = convert_compare_id_to_list(compare_id)
         plugin_views, plugins_without_view = self._get_compare_plugin_views(result)
-        compare_view = self._get_compare_view(plugin_views)
+        compare_view = _get_compare_view(plugin_views)
         self._fill_in_empty_fields(result, compare_id)
         return render_template_string(
             compare_view,
@@ -71,29 +71,6 @@ class CompareRoutes(ComponentBase):
                 else:
                     plugins_without_view.append(plugin)
         return views, plugins_without_view
-
-    def _get_compare_view(self, plugin_views):
-        compare_view = get_template_as_string('compare/compare.html')
-        return self._add_plugin_views_to_compare_view(compare_view, plugin_views)
-
-    def _add_plugin_views_to_compare_view(self, compare_view, plugin_views):
-        key = '{# individual plugin views #}'
-        insertion_index = compare_view.find(key)
-        if insertion_index == -1:
-            logging.error('compare view insertion point not found in compare template')
-        else:
-            insertion_index += len(key)
-            for plugin, view in plugin_views:
-                if_case = f'{{% elif plugin == \'{plugin}\' %}}'
-                view = f'{if_case}\n{view.decode()}'
-                compare_view = self._insert_plugin_into_view_at_index(view, compare_view, insertion_index)
-        return compare_view
-
-    @staticmethod
-    def _insert_plugin_into_view_at_index(plugin, view, index):
-        if index < 0:
-            return view
-        return view[:index] + plugin + view[index:]
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @AppRoute('/compare', GET)
@@ -201,6 +178,31 @@ class CompareRoutes(ComponentBase):
         fw_hid = self.db.get_object(root_uid).get_hid()
         mime = fo.processed_analysis.get('file_type', {}).get('mime')
         return FileDiffData(uid, content.decode(errors='replace'), fo.file_name, mime, fw_hid)
+
+
+def _get_compare_view(plugin_views):
+    compare_view = get_template_as_string('compare/compare.html')
+    return _add_plugin_views_to_compare_view(compare_view, plugin_views)
+
+
+def _add_plugin_views_to_compare_view(compare_view, plugin_views):
+    key = '{# individual plugin views #}'
+    insertion_index = compare_view.find(key)
+    if insertion_index == -1:
+        logging.error('compare view insertion point not found in compare template')
+    else:
+        insertion_index += len(key)
+        for plugin, view in plugin_views:
+            if_case = f'{{% elif plugin == \'{plugin}\' %}}'
+            view = f'{if_case}\n{view.decode()}'
+            compare_view = _insert_plugin_into_view_at_index(view, compare_view, insertion_index)
+    return compare_view
+
+
+def _insert_plugin_into_view_at_index(plugin, view, index):
+    if index < 0:
+        return view
+    return view[:index] + plugin + view[index:]
 
 
 def get_comparison_uid_dict_from_session():  # pylint: disable=invalid-name

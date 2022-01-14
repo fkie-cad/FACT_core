@@ -3,7 +3,7 @@ import unittest
 import unittest.mock
 from configparser import ConfigParser
 
-from test.common_helper import DatabaseMock, fake_exit, load_users_from_main_config
+from test.common_helper import CommonDatabaseMock, fake_exit, load_users_from_main_config
 
 
 class AnalysisPluginTest(unittest.TestCase):
@@ -14,7 +14,7 @@ class AnalysisPluginTest(unittest.TestCase):
     PLUGIN_NAME = 'plugin_test'
 
     def setUp(self):
-        self.mocked_interface = DatabaseMock()
+        self.mocked_interface = CommonDatabaseMock()
 
         self.enter_patch = unittest.mock.patch(target='helperFunctions.database.ConnectTo.__enter__', new=lambda _: self.mocked_interface)
         self.enter_patch.start()
@@ -28,7 +28,6 @@ class AnalysisPluginTest(unittest.TestCase):
         self.enter_patch.stop()
         self.exit_patch.stop()
 
-        self.mocked_interface.shutdown()
         gc.collect()
 
     def init_basic_config(self):

@@ -121,7 +121,7 @@ class AnalysisRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @AppRoute('/update-analysis/<uid>', GET)
     def get_update_analysis(self, uid, re_do=False, error=None):
-        old_firmware = self.db.get_firmware(uid=uid, analysis_filter=[])
+        old_firmware = self.db.get_object(uid=uid, analysis_filter=[])
         if old_firmware is None:
             return render_template('uid_not_found.html', uid=uid)
 
@@ -173,7 +173,7 @@ class AnalysisRoutes(ComponentBase):
             base_fw = None
             self.admin_db.delete_firmware(uid, delete_root_file=False)
         else:
-            base_fw = self.db.get_firmware(uid)
+            base_fw = self.db.get_object(uid)
             base_fw.force_update = force_reanalysis
         fw = convert_analysis_task_to_fw_obj(analysis_task, base_fw=base_fw)
         with ConnectTo(InterComFrontEndBinding, self._config) as sc:
@@ -189,12 +189,11 @@ class AnalysisRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['view_analysis'])
     @AppRoute('/dependency-graph/<uid>', GET)
     def show_elf_dependency_graph(self, uid):
-        fo = self.db.get_object(uid)
-        fo_list = self.db.get_objects_by_uid_list(fo.files_included, analysis_filter=['elf_analysis', 'file_type'])
+        data = self.db.get_data_for_dependency_graph(uid)
 
         whitelist = ['application/x-executable', 'application/x-pie-executable', 'application/x-sharedlib', 'inode/symlink']
 
-        data_graph_part = create_data_graph_nodes_and_groups(fo_list, whitelist)
+        data_graph_part = create_data_graph_nodes_and_groups(data, whitelist)
 
         colors = sorted(get_graph_colors(len(data_graph_part['groups'])))
 
@@ -203,10 +202,10 @@ class AnalysisRoutes(ComponentBase):
                   'The file chosen as root must contain a filesystem with binaries.', 'danger')
             return render_template('dependency_graph.html', **data_graph_part, uid=uid)
 
-        data_graph, elf_analysis_missing_from_files = create_data_graph_edges(fo_list, data_graph_part)
+        data_graph, elf_analysis_missing_from_files = create_data_graph_edges(data, data_graph_part)
 
         if elf_analysis_missing_from_files > 0:
             flash(f'Warning: Elf analysis plugin result is missing for {elf_analysis_missing_from_files} files', 'warning')
 
-            # TODO: Add a loading icon?
+        # TODO: Add a loading icon?
         return render_template('dependency_graph.html', **data_graph, uid=uid, colors=colors)
