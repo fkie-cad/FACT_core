@@ -1,5 +1,6 @@
 import pytest
 
+from storage_postgresql.db_interface_frontend import DependencyGraphResult
 from test.common_helper import create_test_file_object, create_test_firmware  # pylint: disable=wrong-import-order
 from web_interface.file_tree.file_tree_node import FileTreeNode
 
@@ -352,3 +353,21 @@ def test_search_query_cache(db):
         (id1, 'rule bar{}', ['bar']),
         (id2, 'rule foo{}', ['foo']),
     ]
+
+
+def test_data_for_dependency_graph(db):
+    child_fo, parent_fw = create_fw_with_child_fo()
+    assert db.frontend.get_data_for_dependency_graph(parent_fw.uid) == []
+
+    db.backend.insert_object(parent_fw)
+    db.backend.insert_object(child_fo)
+
+    assert db.frontend.get_data_for_dependency_graph(child_fo.uid) == [], 'should be empty if no files included'
+
+    result = db.frontend.get_data_for_dependency_graph(parent_fw.uid)
+    assert len(result) == 1
+    assert isinstance(result[0], DependencyGraphResult)
+    assert result[0].uid == child_fo.uid
+    assert result[0].libraries is None
+    assert result[0].full_type == 'Not a PE file'
+    assert result[0].file_name == 'testfile1'

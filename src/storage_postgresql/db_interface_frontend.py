@@ -18,6 +18,9 @@ from web_interface.file_tree.file_tree import FileTreeDatum, VirtualPathFileTree
 from web_interface.file_tree.file_tree_node import FileTreeNode
 
 MetaEntry = NamedTuple('MetaEntry', [('uid', str), ('hid', str), ('tags', dict), ('submission_date', int)])
+DependencyGraphResult = NamedTuple('DependencyGraphResult', [
+    ('uid', str), ('file_name', str), ('mime', str), ('full_type', str), ('libraries', Optional[List[str]])
+])
 RULE_REGEX = re.compile(r'rule\s+([a-zA-Z_]\w*)')
 
 
@@ -385,3 +388,39 @@ class FrontEndDbInterface(DbInterfaceCommon):
                 (entry.uid, entry.title, RULE_REGEX.findall(entry.title))  # FIXME Use a proper yara parser
                 for entry in (session.execute(query).scalars())
             ]
+
+    # --- dependency graph ---
+
+    def get_data_for_dependency_graph(self, uid: str) -> List[DependencyGraphResult]:
+        fo = self.get_object(uid)
+        if fo is None or not fo.files_included:
+            return []
+        with self.get_read_only_session() as session:
+            libraries_by_uid = self._get_elf_analysis_libraries(session, fo.files_included)
+            query = (
+                select(
+                    FileObjectEntry.uid, FileObjectEntry.file_name,
+                    AnalysisEntry.result['mime'], AnalysisEntry.result['full']
+                )
+                .filter(FileObjectEntry.uid.in_(fo.files_included))
+                .join(AnalysisEntry, AnalysisEntry.uid == FileObjectEntry.uid)
+                .filter(AnalysisEntry.plugin == 'file_type')
+            )
+            return [
+                DependencyGraphResult(uid, file_name, mime, full_type, libraries_by_uid.get(uid))
+                for uid, file_name, mime, full_type in session.execute(query)
+            ]
+
+    @staticmethod
+    def _get_elf_analysis_libraries(session, uid_list: List[str]) -> Dict[str, Optional[List[str]]]:
+        elf_analysis_query = (
+            select(FileObjectEntry.uid, AnalysisEntry.result)
+            .filter(FileObjectEntry.uid.in_(uid_list))
+            .join(AnalysisEntry, AnalysisEntry.uid == FileObjectEntry.uid)
+            .filter(AnalysisEntry.plugin == 'elf_analysis')
+        )
+        return {
+            uid: elf_analysis_result.get('Output', {}).get('libraries', [])
+            for uid, elf_analysis_result in session.execute(elf_analysis_query)
+            if elf_analysis_result is not None
+        }

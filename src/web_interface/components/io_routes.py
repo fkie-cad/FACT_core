@@ -70,8 +70,7 @@ class IORoutes(ComponentBase):
         return self._prepare_file_download(uid, packed=True)
 
     def _prepare_file_download(self, uid, packed=False):
-        object_exists = self.db.exists(uid)
-        if not object_exists:
+        if not self.db.exists(uid):
             return render_template('uid_not_found.html', uid=uid)
         with ConnectTo(InterComFrontEndBinding, self._config) as sc:
             if packed:

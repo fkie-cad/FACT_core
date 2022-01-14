@@ -1,26 +1,25 @@
 from typing import List
 
 from helperFunctions.web_interface import get_color_list
-from objects.file import FileObject
+from storage_postgresql.db_interface_frontend import DependencyGraphResult
 
 
-def create_data_graph_nodes_and_groups(fo_list: List[FileObject], whitelist):
+def create_data_graph_nodes_and_groups(dependency_data: List[DependencyGraphResult], whitelist):
     data_graph = {
         'nodes': [],
         'edges': []
     }
     groups = set()
 
-    for fo in fo_list:
-        mime = fo.processed_analysis['file_type']['mime']
-        if mime in whitelist:
+    for entry in dependency_data:
+        if entry.mime in whitelist:
             node = {
-                'label': fo.file_name,
-                'id': fo.uid,
-                'group': mime,
-                'full_file_type': fo.processed_analysis['file_type']['full']
+                'label': entry.file_name,
+                'id': entry.uid,
+                'group': entry.mime,
+                'full_file_type': entry.full_type
             }
-            groups.add(mime)
+            groups.add(entry.mime)
             data_graph['nodes'].append(node)
 
     data_graph['groups'] = sorted(groups)
@@ -28,21 +27,18 @@ def create_data_graph_nodes_and_groups(fo_list: List[FileObject], whitelist):
     return data_graph
 
 
-def create_data_graph_edges(fo_list: List[FileObject], data_graph: dict):
+def create_data_graph_edges(dependency_data: List[DependencyGraphResult], data_graph: dict):
 
     edge_id = _create_symbolic_link_edges(data_graph)
     elf_analysis_missing_from_files = 0
 
-    for fo in fo_list:
-        try:
-            libraries = fo.processed_analysis['elf_analysis']['Output']['libraries']
-        except (IndexError, KeyError):
-            if 'elf_analysis' not in fo.processed_analysis:
-                elf_analysis_missing_from_files += 1
+    for entry in dependency_data:
+        if entry.libraries is None:
+            elf_analysis_missing_from_files += 1
             continue
 
-        for lib in libraries:
-            edge_id = _find_edges(data_graph, edge_id, lib, fo.uid)
+        for lib in entry.libraries:
+            edge_id = _find_edges(data_graph, edge_id, lib, entry.uid)
 
     return data_graph, elf_analysis_missing_from_files
 
