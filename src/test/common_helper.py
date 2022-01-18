@@ -14,7 +14,6 @@ from intercom.common_mongo_binding import InterComMongoInterface
 from objects.file import FileObject
 from objects.firmware import Firmware
 from storage.mongo_interface import MongoInterface
-from storage_postgresql.db_interface_common import DbInterfaceCommon
 
 
 def get_test_data_dir():
@@ -22,19 +21,6 @@ def get_test_data_dir():
     Returns the absolute path of the test data directory
     '''
     return os.path.join(get_src_dir(), 'test/data')
-
-
-class CommonDbInterfaceMock(DbInterfaceCommon):
-
-    def __init__(self):  # pylint: disable=super-init-not-called
-        class Collection:
-            def aggregate(self, *_, **__):
-                return []
-
-        self.file_objects = Collection()
-
-    def retrieve_analysis(self, sanitized_dict, analysis_filter=None):
-        return {}
 
 
 def create_test_firmware(device_class='Router', device_name='test_router', vendor='test_vendor', bin_path='container/test.zip', all_files_included_set=False, version='0.1'):
@@ -81,6 +67,7 @@ NICE_LIST_DATA = {
     'mime-type': 'file-type-plugin/not-run-yet',
     'current_virtual_path': get_value_of_first_key(TEST_FW.get_virtual_file_paths())
 }
+COMPARISON_ID = f'{TEST_FW.uid};{TEST_FW_2.uid}'
 
 TEST_SEARCH_QUERY = {'_id': '0000000000000000000000000000000000000000000000000000000000000000_1', 'search_query': f'{{"_id": "{TEST_FW_2.uid}"}}', 'query_title': 'rule a_ascii_string_rule'}
 
@@ -113,8 +100,42 @@ class CommonIntercomMock:
     def shutdown(self):
         pass
 
-    def peek_in_binary(self, *_):
+    @staticmethod
+    def peek_in_binary(*_):
         return b'foobar'
+
+    @staticmethod
+    def get_binary_and_filename(uid):
+        if uid == TEST_FW.uid:
+            return TEST_FW.binary, TEST_FW.file_name
+        if uid == TEST_TEXT_FILE.uid:
+            return TEST_TEXT_FILE.binary, TEST_TEXT_FILE.file_name
+        return None
+
+    @staticmethod
+    def get_repacked_binary_and_file_name(uid):
+        if uid == TEST_FW.uid:
+            return TEST_FW.binary, f'{TEST_FW.file_name}.tar.gz'
+        return None, None
+
+    @staticmethod
+    def add_binary_search_request(*_):
+        return 'binary_search_id'
+
+    @staticmethod
+    def get_binary_search_result(uid):
+        if uid == 'binary_search_id':
+            return {'test_rule': ['test_uid']}, b'some yara rule'
+        return None, None
+
+    def add_compare_task(self, compare_id, force=False):
+        self.tasks.append((compare_id, force))
+
+    def add_analysis_task(self, task):
+        self.tasks.append(task)
+
+    def add_re_analyze_task(self, task, unpack=True):  # pylint: disable=unused-argument
+        self.tasks.append(task)
 
 
 class CommonDatabaseMock:  # pylint: disable=too-many-public-methods
@@ -173,17 +194,6 @@ class CommonDatabaseMock:  # pylint: disable=too-many-public-methods
     def get_number_of_total_matches(self, *_, **__):
         return 10
 
-    # ToDo
-    # def compare_result_is_in_db(self, uid_list):
-    #     return uid_list == normalize_compare_id(';'.join([TEST_FW.uid, TEST_TEXT_FILE.uid]))
-    #
-    # def check_objects_exist(self, compare_id):
-    #     if compare_id == normalize_compare_id(';'.join([TEST_FW_2.uid, TEST_FW.uid])):
-    #         return None
-    #     if compare_id == normalize_compare_id(';'.join([TEST_TEXT_FILE.uid, TEST_FW.uid])):
-    #         return None
-    #     raise FactComparisonException('bla')
-
     def exists(self, uid):
         return uid in (self.fw_uid, self.fo_uid, self.fw2_uid, 'error')
 
@@ -200,37 +210,6 @@ class CommonDatabaseMock:  # pylint: disable=too-many-public-methods
     @staticmethod
     def create_analysis_structure():
         return ''
-
-    # def add_binary_search_request(self, yara_rule_binary, firmware_uid=None):
-    #     if yara_rule_binary == b'invalid_rule':
-    #         return 'error: invalid rule'
-    #     return 'some_id'
-    #
-    # def get_complete_object_including_all_summaries(self, uid):
-    #     if uid == TEST_FW.uid:
-    #         return TEST_FW
-    #     raise Exception('UID not found: {}'.format(uid))
-    #
-    # def rest_get_firmware_uids(self, offset, limit, query=None, recursive=False, inverted=False):
-    #     if (offset != 0) or (limit != 0):
-    #         return []
-    #     return [TEST_FW.uid, ]
-    #
-    # def rest_get_file_object_uids(self, offset, limit, query=None):
-    #     if (offset != 0) or (limit != 0):
-    #         return []
-    #     return [TEST_TEXT_FILE.uid, ]
-    #
-    # def search_cve_summaries_for(self, keyword):
-    #     return [{'_id': 'CVE-2012-0002'}]
-    #
-    # def get_all_ssdeep_hashes(self):
-    #     return [
-    #         {'_id': '3', 'processed_analysis': {'file_hashes': {
-    #             'ssdeep': '384:aztrofSbs/7qkBYbplFPEW5d8aODW9EyGqgm/nZuxpIdQ1s4JtUn:Urofgs/uK2lF8W5dxWyGS/AxpIws'}}},
-    #         {'_id': '4', 'processed_analysis': {'file_hashes': {
-    #             'ssdeep': '384:aztrofSbs/7qkBYbplFPEW5d8aODW9EyGqgm/nZuxpIdQ1s4JwT:Urofgs/uK2lF8W5dxWyGS/AxpIwA'}}}
-    #     ]
 
     def get_other_versions_of_firmware(self, fo):
         return []
@@ -249,27 +228,34 @@ class CommonDatabaseMock:  # pylint: disable=too-many-public-methods
     def check_unpacking_lock(self, uid):
         return uid in self.locks
 
-    # def get_file_name(self, uid):
-    #     if uid == 'deadbeef00000000000000000000000000000000000000000000000000000000_123':
-    #         return 'test_name'
-    #     return None
-
     def get_summary(self, fo, selected_analysis):
         if fo.uid == TEST_FW.uid and selected_analysis == 'foobar':
             return {'foobar': ['some_uid']}
         return None
-    #
-    # def find_missing_files(self):
-    #     return {'parent_uid': ['missing_child_uid']}
-    #
-    # def find_missing_analyses(self):
-    #     return {'root_fw_uid': ['missing_child_uid']}
-    #
-    # def find_failed_analyses(self):
-    #     return {'plugin': ['missing_child_uid']}
-    #
-    # def find_orphaned_objects(self):
-    #     return {'root_fw_uid': ['missing_child_uid']}
+
+    # === Comparison ===
+
+    @staticmethod
+    def comparison_exists(comparison_id):
+        if comparison_id == COMPARISON_ID:
+            return True
+        return False
+
+    @staticmethod
+    def get_comparison_result(comparison_id):
+        if comparison_id == COMPARISON_ID:
+            return {
+                'general': {'hid': {TEST_FW.uid: 'hid1', TEST_FW_2.uid: 'hid2'}},
+                '_id': comparison_id,
+                'submission_date': 0.0
+            }
+        return None
+
+    @staticmethod
+    def objects_exist(compare_id):
+        if compare_id in ['existing_id', 'uid1;uid2', COMPARISON_ID]:
+            return True
+        return False
 
 
 def fake_exit(self, *args):

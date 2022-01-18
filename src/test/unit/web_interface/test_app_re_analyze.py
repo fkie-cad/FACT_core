@@ -1,18 +1,9 @@
 from helperFunctions.data_conversion import make_bytes
-from test.common_helper import TEST_FW, CommonIntercomMock  # pylint: disable=wrong-import-order
+from test.common_helper import TEST_FW  # pylint: disable=wrong-import-order
 from test.unit.web_interface.base import WebInterfaceTest  # pylint: disable=wrong-import-order
 
 
-class IntercomMock(CommonIntercomMock):
-
-    def add_re_analyze_task(self, task, unpack=True):  # pylint: disable=unused-argument
-        self.tasks.append(task)
-
-
 class TestAppReAnalyze(WebInterfaceTest):
-
-    def setup(self, *_, **__):
-        super().setup(intercom_mock=IntercomMock)
 
     def test_app_re_analyze_get_invalid_firmware(self):
         rv = self.test_client.get('/update-analysis/invalid')

@@ -1,19 +1,9 @@
 from io import BytesIO
 
-from test.common_helper import CommonIntercomMock
 from test.unit.web_interface.base import WebInterfaceTest
 
 
-class IntercomMock(CommonIntercomMock):
-
-    def add_analysis_task(self, task):
-        self.tasks.append(task)
-
-
 class TestAppUpload(WebInterfaceTest):
-
-    def setup(self, *_, **__):
-        super().setup(intercom_mock=IntercomMock)
 
     def test_app_upload_get(self):
         rv = self.test_client.get('/upload')

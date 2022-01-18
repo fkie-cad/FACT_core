@@ -8,7 +8,7 @@ import pytest
 
 from compare.PluginBase import CompareBasePlugin
 from scheduler.comparison_scheduler import ComparisonScheduler
-from test.common_helper import create_test_file_object  # pylint: disable=wrong-import-order
+from test.common_helper import CommonDatabaseMock, create_test_file_object  # pylint: disable=wrong-import-order
 
 # pylint: disable=unused-argument,protected-access,no-member
 
@@ -18,16 +18,10 @@ def no_compare_views(monkeypatch):
     monkeypatch.setattr(CompareBasePlugin, '_sync_view', value=lambda s, p: None)
 
 
-class MockDbInterface:
+class MockDbInterface(CommonDatabaseMock):
     def __init__(self, config=None):
         self.test_object = create_test_file_object()
         self.test_object.list_of_all_included_files = [self.test_object.uid]
-
-    @staticmethod
-    def objects_exist(compare_id):
-        if not compare_id == 'existing_id':
-            return False
-        return True
 
     def get_complete_object_including_all_summaries(self, uid):
         if uid == self.test_object.uid:

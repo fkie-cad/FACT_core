@@ -6,7 +6,7 @@ from unittest import mock
 
 from flaky import flaky
 
-from test.common_helper import TEST_FW, TEST_FW_2, DatabaseMock, create_test_file_object
+from test.common_helper import TEST_FW, TEST_FW_2, CommonDatabaseMock, create_test_file_object
 from test.mock import mock_patch
 from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
 
@@ -66,7 +66,7 @@ class TestFileSystemMetadata(AnalysisPluginTest):
             mock.patch.object(
                 target=plugin.FsMetadataDbInterface,
                 attribute='__bases__',
-                new=(DatabaseMock,)
+                new=(CommonDatabaseMock,)
             ),
             mock.patch(
                 target='helperFunctions.database.ConnectTo.__enter__',

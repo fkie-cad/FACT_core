@@ -2,23 +2,10 @@
 from io import BytesIO
 
 from storage_postgresql.db_interface_frontend import MetaEntry
-from test.common_helper import CommonDatabaseMock, CommonIntercomMock
+from test.common_helper import CommonDatabaseMock
 from test.unit.web_interface.base import WebInterfaceTest
 
 QUERY_CACHE_UID = 'deadbeef01234567deadbeef01234567deadbeef01234567deadbeef01234567_123'
-
-
-class IntercomMock(CommonIntercomMock):
-
-    @staticmethod
-    def add_binary_search_request(*_):
-        return 'binary_search_id'
-
-    @staticmethod
-    def get_binary_search_result(uid):
-        if uid == 'binary_search_id':
-            return {'test_rule': ['test_uid']}, b'some yara rule'
-        return None, None
 
 
 class DbMock(CommonDatabaseMock):
@@ -43,7 +30,7 @@ class DbMock(CommonDatabaseMock):
 class TestAppBinarySearch(WebInterfaceTest):
 
     def setup(self, *_, **__):
-        super().setup(db_mock=DbMock, intercom_mock=IntercomMock)
+        super().setup(db_mock=DbMock)
 
     def test_app_binary_search_get(self):
         response = self.test_client.get('/database/binary_search').data.decode()
