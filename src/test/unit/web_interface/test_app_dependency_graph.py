@@ -1,7 +1,7 @@
 # pylint: disable=wrong-import-order
-from storage_postgresql.db_interface_frontend import DependencyGraphResult
 from test.common_helper import CommonDatabaseMock
 from test.unit.web_interface.base import WebInterfaceTest
+from web_interface.components.dependency_graph import DepGraphData
 
 
 class DbMock(CommonDatabaseMock):
@@ -10,8 +10,8 @@ class DbMock(CommonDatabaseMock):
     def get_data_for_dependency_graph(uid):
         if uid == 'testgraph':
             return [
-                DependencyGraphResult('1234567', 'file one', 'application/x-executable', 'test text', None),
-                DependencyGraphResult('7654321', 'file two', 'application/x-executable', 'test text', ['file one']),
+                DepGraphData('1234567', 'file one', 'application/x-executable', 'test text', None),
+                DepGraphData('7654321', 'file two', 'application/x-executable', 'test text', ['file one']),
             ]
         return []
 

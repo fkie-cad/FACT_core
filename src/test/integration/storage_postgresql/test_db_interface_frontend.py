@@ -1,7 +1,7 @@
 import pytest
 
-from storage_postgresql.db_interface_frontend import DependencyGraphResult
 from test.common_helper import create_test_file_object, create_test_firmware  # pylint: disable=wrong-import-order
+from web_interface.components.dependency_graph import DepGraphData
 from web_interface.file_tree.file_tree_node import FileTreeNode
 
 from .helper import (
@@ -366,7 +366,7 @@ def test_data_for_dependency_graph(db):
 
     result = db.frontend.get_data_for_dependency_graph(parent_fw.uid)
     assert len(result) == 1
-    assert isinstance(result[0], DependencyGraphResult)
+    assert isinstance(result[0], DepGraphData)
     assert result[0].uid == child_fo.uid
     assert result[0].libraries is None
     assert result[0].full_type == 'Not a PE file'

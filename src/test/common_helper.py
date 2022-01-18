@@ -129,15 +129,6 @@ class CommonDatabaseMock:  # pylint: disable=too-many-public-methods
     def update_view(self, file_name, content):
         pass
 
-    # def get_meta_list(self, firmware_list=None):
-    #     fw_entry = ('test_uid', 'test firmware', 'unpacker')
-    #     fo_entry = ('test_fo_uid', 'test file object', 'unpacker')
-    #     if firmware_list and self.fw_uid in firmware_list and self.fo_uid in firmware_list:
-    #         return [fw_entry, fo_entry]
-    #     if firmware_list and self.fo_uid in firmware_list:
-    #         return [fo_entry]
-    #     return [fw_entry]
-
     def get_object(self, uid, analysis_filter=None):
         if uid == TEST_FW.uid:
             result = deepcopy(TEST_FW)
@@ -209,9 +200,6 @@ class CommonDatabaseMock:  # pylint: disable=too-many-public-methods
     @staticmethod
     def create_analysis_structure():
         return ''
-
-    def add_analysis_task(self, task):
-        self.tasks.append(task)
 
     # def add_binary_search_request(self, yara_rule_binary, firmware_uid=None):
     #     if yara_rule_binary == b'invalid_rule':

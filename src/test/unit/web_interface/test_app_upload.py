@@ -1,9 +1,19 @@
 from io import BytesIO
 
+from test.common_helper import CommonIntercomMock
 from test.unit.web_interface.base import WebInterfaceTest
 
 
+class IntercomMock(CommonIntercomMock):
+
+    def add_analysis_task(self, task):
+        self.tasks.append(task)
+
+
 class TestAppUpload(WebInterfaceTest):
+
+    def setup(self, *_, **__):
+        super().setup(intercom_mock=IntercomMock)
 
     def test_app_upload_get(self):
         rv = self.test_client.get('/upload')
@@ -24,7 +34,7 @@ class TestAppUpload(WebInterfaceTest):
             'tags': '',
             'analysis_systems': ['dummy']}, follow_redirects=True)
         assert b'Please specify the version' in rv.data
-        self.assertEqual(len(self.mocked_interface.tasks), 0, 'task added to intercom but should not')
+        assert len(self.intercom.tasks) == 0, 'task added to intercom but should not'
 
     def test_app_upload_valid_firmware(self):
         rv = self.test_client.post('/upload', content_type='multipart/form-data', data={
@@ -39,6 +49,6 @@ class TestAppUpload(WebInterfaceTest):
             'analysis_systems': ['dummy']}, follow_redirects=True)
         assert b'Upload Successful' in rv.data
         assert b'c1f95369a99b765e93c335067e77a7d91af3076d2d3d64aacd04e1e0a810b3ed_17' in rv.data
-        self.assertEqual(self.mocked_interface.tasks[0].uid, 'c1f95369a99b765e93c335067e77a7d91af3076d2d3d64aacd04e1e0a810b3ed_17', 'fw not added to intercom')
-        self.assertIn('dummy', self.mocked_interface.tasks[0].scheduled_analysis, 'analysis system not added')
-        self.assertEqual(self.mocked_interface.tasks[0].file_name, 'test_file.txt', 'file name not correct')
+        assert self.intercom.tasks[0].uid == 'c1f95369a99b765e93c335067e77a7d91af3076d2d3d64aacd04e1e0a810b3ed_17', 'fw not added to intercom'
+        assert 'dummy' in self.intercom.tasks[0].scheduled_analysis, 'analysis system not added'
+        assert self.intercom.tasks[0].file_name == 'test_file.txt', 'file name not correct'

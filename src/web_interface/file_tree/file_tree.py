@@ -27,11 +27,15 @@ TYPE_CATEGORY_TO_ICON = {
     'image/': '/static/file_icons/image.png',
     'text/': '/static/file_icons/text.png',
 }
-FileTreeDatum = NamedTuple(
-    'FileTreeDatum',
-    [('uid', str), ('file_name', str), ('size', int), ('virtual_file_path', Dict[str, List[str]]),
-     ('mime', str), ('included_files', Set[str])]
-)
+
+
+class FileTreeData(NamedTuple):
+    uid: str
+    file_name: str
+    size: int
+    virtual_file_path: Dict[str, List[str]]
+    mime: str
+    included_files: Set[str]
 
 
 def get_correct_icon_for_mime(mime_type: str) -> str:
@@ -112,11 +116,11 @@ class VirtualPathFileTree:
         'virtual_file_path': 1,
     }
 
-    def __init__(self, root_uid: str, parent_uid: str, fo_data: FileTreeDatum, whitelist: Optional[List[str]] = None):
+    def __init__(self, root_uid: str, parent_uid: str, fo_data: FileTreeData, whitelist: Optional[List[str]] = None):
         self.uid = fo_data.uid
         self.root_uid = root_uid if root_uid else list(fo_data.virtual_file_path)[0]
         self.parent_uid = parent_uid
-        self.fo_data: FileTreeDatum = fo_data
+        self.fo_data: FileTreeData = fo_data
         self.whitelist = whitelist
         self.virtual_file_paths = self._get_virtual_file_paths()
 

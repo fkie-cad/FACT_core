@@ -14,14 +14,18 @@ from storage_postgresql.query_conversion import build_generic_search_query, quer
 from storage_postgresql.schema import (
     AnalysisEntry, FileObjectEntry, FirmwareEntry, SearchCacheEntry, included_files_table
 )
-from web_interface.file_tree.file_tree import FileTreeDatum, VirtualPathFileTree
+from web_interface.components.dependency_graph import DepGraphData
+from web_interface.file_tree.file_tree import FileTreeData, VirtualPathFileTree
 from web_interface.file_tree.file_tree_node import FileTreeNode
 
-MetaEntry = NamedTuple('MetaEntry', [('uid', str), ('hid', str), ('tags', dict), ('submission_date', int)])
-DependencyGraphResult = NamedTuple('DependencyGraphResult', [
-    ('uid', str), ('file_name', str), ('mime', str), ('full_type', str), ('libraries', Optional[List[str]])
-])
 RULE_REGEX = re.compile(r'rule\s+([a-zA-Z_]\w*)')
+
+
+class MetaEntry(NamedTuple):
+    uid: str
+    hid: str
+    tags: dict
+    submission_date: int
 
 
 class FrontEndDbInterface(DbInterfaceCommon):
@@ -251,7 +255,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
 
     def generate_file_tree_level(
         self, uid: str, root_uid: str,
-        parent_uid: Optional[str] = None, whitelist: Optional[List[str]] = None, data: Optional[FileTreeDatum] = None
+        parent_uid: Optional[str] = None, whitelist: Optional[List[str]] = None, data: Optional[FileTreeData] = None
     ):
         if data is None:
             data = self.get_file_tree_data([uid])[0]
@@ -261,7 +265,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
         except (KeyError, TypeError):  # the file has not been analyzed yet
             yield FileTreeNode(uid, root_uid, not_analyzed=True, name=f'{uid} (not analyzed yet)')
 
-    def get_file_tree_data(self, uid_list: List[str]) -> List[FileTreeDatum]:
+    def get_file_tree_data(self, uid_list: List[str]) -> List[FileTreeData]:
         with self.get_read_only_session() as session:
             # get included files in a separate query because it is way faster than FileObjectEntry.get_included_uids()
             included_files = self._get_included_files_for_uid_list(session, uid_list)
@@ -277,7 +281,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
                 .filter(FileObjectEntry.uid.in_(uid_list))
             )
             return [
-                FileTreeDatum(uid, file_name, size, vfp, type_analyses.get(uid), included_files.get(uid, set()))
+                FileTreeData(uid, file_name, size, vfp, type_analyses.get(uid), included_files.get(uid, set()))
                 for uid, file_name, size, vfp in session.execute(query)
             ]
 
@@ -391,7 +395,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
 
     # --- dependency graph ---
 
-    def get_data_for_dependency_graph(self, uid: str) -> List[DependencyGraphResult]:
+    def get_data_for_dependency_graph(self, uid: str) -> List[DepGraphData]:
         fo = self.get_object(uid)
         if fo is None or not fo.files_included:
             return []
@@ -407,7 +411,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
                 .filter(AnalysisEntry.plugin == 'file_type')
             )
             return [
-                DependencyGraphResult(uid, file_name, mime, full_type, libraries_by_uid.get(uid))
+                DepGraphData(uid, file_name, mime, full_type, libraries_by_uid.get(uid))
                 for uid, file_name, mime, full_type in session.execute(query)
             ]
 

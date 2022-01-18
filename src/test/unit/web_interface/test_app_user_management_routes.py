@@ -1,8 +1,7 @@
 # pylint: disable=wrong-import-order,no-self-use,redefined-outer-name
 
 import logging
-import unittest
-import unittest.mock
+from unittest.mock import patch
 
 import pytest
 from sqlalchemy.exc import SQLAlchemyError
@@ -100,21 +99,15 @@ def current_user_fixture(monkeypatch):
 
 
 @pytest.fixture(scope='module')
+@patch(target='web_interface.frontend_main.add_flask_security_to_app', new=add_security_get_mocked)
+@patch(target='intercom.front_end_binding.InterComFrontEndBinding', new=lambda config: None)
 def test_client():
-    enter_patch = None
-    try:
-        config = get_config_for_testing()
+    config = get_config_for_testing()
 
-        enter_patch = unittest.mock.patch(target='web_interface.frontend_main.add_flask_security_to_app', new=add_security_get_mocked)
-        enter_patch.start()
+    frontend = frontend_main.WebFrontEnd(config=config)
 
-        frontend = frontend_main.WebFrontEnd(config=config)
-
-        frontend.app.config['TESTING'] = True
-        yield frontend.app.test_client()
-    finally:
-        if enter_patch:
-            enter_patch.stop()
+    frontend.app.config['TESTING'] = True
+    return frontend.app.test_client()
 
 
 def test_app_manage_users(test_client):

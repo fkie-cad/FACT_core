@@ -1,10 +1,17 @@
-from typing import List
+from typing import List, NamedTuple, Optional
 
 from helperFunctions.web_interface import get_color_list
-from storage_postgresql.db_interface_frontend import DependencyGraphResult
 
 
-def create_data_graph_nodes_and_groups(dependency_data: List[DependencyGraphResult], whitelist):
+class DepGraphData(NamedTuple):
+    uid: str
+    file_name: str
+    mime: str
+    full_type: str
+    libraries: Optional[List[str]] = None
+
+
+def create_data_graph_nodes_and_groups(dependency_data: List[DepGraphData], whitelist):
     data_graph = {
         'nodes': [],
         'edges': []
@@ -27,7 +34,7 @@ def create_data_graph_nodes_and_groups(dependency_data: List[DependencyGraphResu
     return data_graph
 
 
-def create_data_graph_edges(dependency_data: List[DependencyGraphResult], data_graph: dict):
+def create_data_graph_edges(dependency_data: List[DepGraphData], data_graph: dict):
 
     edge_id = _create_symbolic_link_edges(data_graph)
     elf_analysis_missing_from_files = 0

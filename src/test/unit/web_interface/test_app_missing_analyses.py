@@ -2,7 +2,7 @@ from test.common_helper import CommonDatabaseMock
 from test.unit.web_interface.base import WebInterfaceTest
 
 
-class MissingAnalysesDbMock(CommonDatabaseMock):
+class DbMock(CommonDatabaseMock):
     result = None
 
     def find_missing_files(self):
@@ -21,17 +21,17 @@ class MissingAnalysesDbMock(CommonDatabaseMock):
 class TestAppMissingAnalyses(WebInterfaceTest):
 
     def setup(self, *_, **__):
-        super().setup(db_mock=MissingAnalysesDbMock)
+        super().setup(db_mock=DbMock)
 
     def test_app_no_missing_analyses(self):
-        MissingAnalysesDbMock.result = {}
+        DbMock.result = {}
         content = self.test_client.get('/admin/missing_analyses').data.decode()
         assert 'Missing Files: No entries found' in content
         assert 'Missing Analyses: No entries found' in content
         assert 'Failed Analyses: No entries found' in content
 
     def test_app_missing_analyses(self):
-        MissingAnalysesDbMock.result = {'parent_uid': {'child_uid1', 'child_uid2'}}
+        DbMock.result = {'parent_uid': {'child_uid1', 'child_uid2'}}
         content = self.test_client.get('/admin/missing_analyses').data.decode()
         assert 'Missing Analyses: 2' in content
         assert 'Missing Files: 2' in content

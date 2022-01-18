@@ -1,25 +1,12 @@
 import pytest
 
-from test.common_helper import create_test_file_object  # pylint: disable=wrong-import-order
-from web_interface.components.dependency_graph import create_data_graph_edges, create_data_graph_nodes_and_groups
+from web_interface.components.dependency_graph import (
+    DepGraphData, create_data_graph_edges, create_data_graph_nodes_and_groups
+)
 
-FILE_ONE = create_test_file_object()
-FILE_ONE.processed_analysis = {'file_type': {'mime': 'application/x-executable', 'full': 'test text'}}
-FILE_ONE.uid = '1234567'
-FILE_ONE.file_name = 'file one'
-
-FILE_TWO = create_test_file_object()
-FILE_TWO.processed_analysis = {
-    'file_type': {'mime': 'application/x-executable', 'full': 'test text'},
-    'elf_analysis': {'Output': {'libraries': ['file one']}}
-}
-FILE_TWO.uid = '7654321'
-FILE_TWO.file_name = 'file two'
-
-FILE_THREE = create_test_file_object()
-FILE_THREE.processed_analysis = {'file_type': {'mime': 'inode/symlink', 'full': 'symbolic link to \'file two\''}}
-FILE_THREE.uid = '0987654'
-FILE_THREE.file_name = 'file three'
+entry_1 = DepGraphData('1234567', 'file one', 'application/x-executable', 'test text')
+entry_2 = DepGraphData('7654321', 'file two', 'application/x-executable', 'test text', ['file one'])
+entry_3 = DepGraphData('0987654', 'file three', 'inode/symlink', 'symbolic link to \'file two\'')
 
 GRAPH_PART = {
     'nodes': [
@@ -62,16 +49,16 @@ WHITELIST = ['application/x-executable', 'application/x-sharedlib', 'inode/symli
 
 
 @pytest.mark.parametrize('list_of_objects, whitelist, expected_result', [
-    ([FILE_ONE, FILE_TWO], WHITELIST, GRAPH_PART),
-    ([FILE_ONE, FILE_TWO, FILE_THREE], WHITELIST, GRAPH_PART_SYMLINK),
+    ([entry_1, entry_2], WHITELIST, GRAPH_PART),
+    ([entry_1, entry_2, entry_3], WHITELIST, GRAPH_PART_SYMLINK),
 ])
 def test_create_graph_nodes_and_groups(list_of_objects, whitelist, expected_result):
     assert create_data_graph_nodes_and_groups(list_of_objects, whitelist) == expected_result
 
 
 @pytest.mark.parametrize('list_of_objects, graph_part, expected_graph, expected_missing_analysis', [
-    ([FILE_ONE, FILE_TWO], GRAPH_PART, GRAPH_RES, 1),
-    ([FILE_ONE, FILE_TWO, FILE_THREE], GRAPH_PART_SYMLINK, GRAPH_RES_SYMLINK, 2),
+    ([entry_1, entry_2], GRAPH_PART, GRAPH_RES, 1),
+    ([entry_1, entry_2, entry_3], GRAPH_PART_SYMLINK, GRAPH_RES_SYMLINK, 2),
 ])
 def test_create_graph_edges(list_of_objects, graph_part, expected_graph, expected_missing_analysis):
     assert create_data_graph_edges(list_of_objects, graph_part) == (expected_graph, expected_missing_analysis)
