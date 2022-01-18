@@ -24,8 +24,9 @@ class DbMock(CommonDatabaseMock):
 
 class TestRestFirmware(WebInterfaceTest):
 
-    def setup(self, *_, **__):
-        super().setup(db_mock=DbMock)
+    @classmethod
+    def setup_class(cls, *_, **__):
+        super().setup_class(db_mock=DbMock)
 
     def test_missing(self):
         result = self.test_client.get('/rest/missing').json

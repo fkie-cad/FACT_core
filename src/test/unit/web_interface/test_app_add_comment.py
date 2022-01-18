@@ -13,8 +13,9 @@ class DbMock(CommonDatabaseMock):
 
 class TestAppAddComment(WebInterfaceTest):
 
-    def setup(self, *_, **__):
-        super().setup(db_mock=DbMock)
+    @classmethod
+    def setup_class(cls, *_, **__):
+        super().setup_class(db_mock=DbMock)
 
     def test_app_add_comment_get_not_in_db(self):
         rv = self.test_client.get('/comment/abc_123')

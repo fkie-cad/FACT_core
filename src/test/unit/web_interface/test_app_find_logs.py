@@ -14,8 +14,9 @@ class MockIntercom(CommonIntercomMock):
 
 class TestShowLogs(WebInterfaceTest):
 
-    def setup(self, *_, **__):
-        super().setup(intercom_mock=MockIntercom)
+    @classmethod
+    def setup_class(cls, *_, **__):
+        super().setup_class(intercom_mock=MockIntercom)
 
     def test_backend_available(self):
         self.config['Logging']['logFile'] = 'NonExistentFile'

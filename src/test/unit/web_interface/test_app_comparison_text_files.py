@@ -31,8 +31,9 @@ class DbMock(CommonDatabaseMock):
 
 class TestAppComparisonTextFiles(WebInterfaceTest):
 
-    def setup(self, *_, **__):
-        super().setup(db_mock=DbMock, intercom_mock=MockInterCom)
+    @classmethod
+    def setup_class(cls, *_, **__):
+        super().setup_class(db_mock=DbMock, intercom_mock=MockInterCom)
 
     def test_comparison_text_files(self):
         TEST_TEXT_FILE.processed_analysis['file_type']['mime'] = 'text/plain'

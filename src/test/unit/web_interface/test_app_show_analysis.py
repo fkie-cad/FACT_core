@@ -13,8 +13,9 @@ class IntercomMock(CommonIntercomMock):
 
 class TestAppShowAnalysis(WebInterfaceTest):
 
-    def setup(self, *_, **__):
-        super().setup(intercom_mock=IntercomMock)
+    @classmethod
+    def setup_class(cls, *_, **__):
+        super().setup_class(intercom_mock=IntercomMock)
 
     def test_app_show_analysis_get_valid_fw(self):
         result = self.test_client.get('/analysis/{}'.format(TEST_FW.uid)).data

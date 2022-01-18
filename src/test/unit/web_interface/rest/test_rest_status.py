@@ -21,8 +21,9 @@ class StatisticDbViewerMock(CommonDatabaseMock):
 
 class TestRestFirmware(WebInterfaceTest):
 
-    def setup(self, *_, **__):
-        super().setup(db_mock=StatisticDbViewerMock)
+    @classmethod
+    def setup_class(cls, *_, **__):
+        super().setup_class(db_mock=StatisticDbViewerMock)
 
     def test_empty_uid(self):
         StatisticDbViewerMock.down = False

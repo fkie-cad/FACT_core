@@ -8,14 +8,14 @@ from test.unit.web_interface.base import WebInterfaceTest
 class DbMock(CommonDatabaseMock):
 
     @staticmethod
-    def get_comparison_result(compare_id):
-        if compare_id == normalize_compare_id(';'.join([TEST_FW.uid, TEST_FW_2.uid])):
+    def get_comparison_result(comparison_id):
+        if comparison_id == normalize_compare_id(';'.join([TEST_FW.uid, TEST_FW_2.uid])):
             return {
                 'this_is': 'a_compare_result',
                 'general': {'hid': {TEST_FW.uid: 'foo', TEST_TEXT_FILE.uid: 'bar'}},
                 'plugins': {'File_Coverage': {'some_feature': {TEST_FW.uid: [TEST_TEXT_FILE.uid]}}}
             }
-        if compare_id == normalize_compare_id(';'.join([TEST_FW.uid, TEST_TEXT_FILE.uid])):
+        if comparison_id == normalize_compare_id(';'.join([TEST_FW.uid, TEST_TEXT_FILE.uid])):
             return {'this_is': 'a_compare_result'}
         return 'generic error'
 
@@ -43,8 +43,9 @@ class DbMock(CommonDatabaseMock):
 
 class TestAppAjaxRoutes(WebInterfaceTest):
 
-    def setup(self, *_, **__):
-        super().setup(db_mock=DbMock)
+    @classmethod
+    def setup_class(cls, *_, **__):
+        super().setup_class(db_mock=DbMock)
 
     def test_ajax_get_summary(self):
         result = self.test_client.get(f'/ajax_get_summary/{TEST_FW.uid}/foobar').data

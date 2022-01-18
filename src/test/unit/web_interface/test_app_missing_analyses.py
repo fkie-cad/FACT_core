@@ -20,8 +20,9 @@ class DbMock(CommonDatabaseMock):
 
 class TestAppMissingAnalyses(WebInterfaceTest):
 
-    def setup(self, *_, **__):
-        super().setup(db_mock=DbMock)
+    @classmethod
+    def setup_class(cls, *_, **__):
+        super().setup_class(db_mock=DbMock)
 
     def test_app_no_missing_analyses(self):
         DbMock.result = {}

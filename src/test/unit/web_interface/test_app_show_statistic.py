@@ -13,8 +13,9 @@ class DbMock(CommonDatabaseMock):
 
 class TestShowStatistic(WebInterfaceTest):
 
-    def setup(self, *_, **__):
-        super().setup(db_mock=DbMock)
+    @classmethod
+    def setup_class(cls, *_, **__):
+        super().setup_class(db_mock=DbMock)
 
     def test_no_stats_available(self):
         DbMock.result = None

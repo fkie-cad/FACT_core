@@ -2,14 +2,13 @@
 from flask import render_template_string
 
 from test.unit.web_interface.base import WebInterfaceTest
+from web_interface.components.jinja_filter import FilterClass
 
 
 class TestAppShowAnalysis(WebInterfaceTest):
 
     def setup(self, *_, **__):
         super().setup()
-        # mocks must be initialized before import
-        from web_interface.components.jinja_filter import FilterClass  # pylint: disable=import-outside-toplevel
         self.filter = FilterClass(self.frontend.app, '', self.config)
 
     def _get_template_filter_output(self, data, filter_name):

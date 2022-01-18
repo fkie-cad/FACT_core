@@ -15,8 +15,9 @@ class DbMock(CommonDatabaseMock):
 
 class TestBrowseBinarySearchHistory(WebInterfaceTest):
 
-    def setup(self, *_, **__):
-        super().setup(db_mock=DbMock)
+    @classmethod
+    def setup_class(cls, *_, **__):
+        super().setup_class(db_mock=DbMock)
 
     def test_browse_binary_search_history(self):
         rv = self.test_client.get('/database/browse_binary_search_history')

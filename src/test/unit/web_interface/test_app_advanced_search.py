@@ -25,10 +25,11 @@ class DbMock(CommonDatabaseMock):
 
 class TestAppAdvancedSearch(WebInterfaceTest):
 
-    def setup(self, *_, **__):
-        super().setup(db_mock=DbMock)
-        self.config['database'] = {}
-        self.config['database']['results_per_page'] = '10'
+    @classmethod
+    def setup_class(cls, *_, **__):
+        super().setup_class(db_mock=DbMock)
+        cls.config['database'] = {}
+        cls.config['database']['results_per_page'] = '10'
 
     def test_advanced_search(self):
         response = self._do_advanced_search({'advanced_search': '{}'})

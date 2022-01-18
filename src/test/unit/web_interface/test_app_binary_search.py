@@ -29,8 +29,9 @@ class DbMock(CommonDatabaseMock):
 
 class TestAppBinarySearch(WebInterfaceTest):
 
-    def setup(self, *_, **__):
-        super().setup(db_mock=DbMock)
+    @classmethod
+    def setup_class(cls, *_, **__):
+        super().setup_class(db_mock=DbMock)
 
     def test_app_binary_search_get(self):
         response = self.test_client.get('/database/binary_search').data.decode()

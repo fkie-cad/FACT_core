@@ -18,8 +18,9 @@ class DbMock(CommonDatabaseMock):
 
 class TestAppDependencyGraph(WebInterfaceTest):
 
-    def setup(self, *_, **__):
-        super().setup(db_mock=DbMock)
+    @classmethod
+    def setup_class(cls, *_, **__):
+        super().setup_class(db_mock=DbMock)
 
     def test_app_dependency_graph(self):
         result = self.test_client.get('/dependency-graph/testgraph')

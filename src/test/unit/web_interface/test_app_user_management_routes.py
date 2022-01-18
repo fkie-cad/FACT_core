@@ -81,8 +81,9 @@ def current_user_fixture(monkeypatch):
 
 class TestAppUpload(WebInterfaceTest):
 
-    def setup(self, *_, **__):
-        super().setup(db_mock=UserDbInterfaceMock)
+    @classmethod
+    def setup_class(cls, *_, **__):
+        super().setup_class(db_mock=UserDbInterfaceMock)
 
     def test_app_manage_users(self):
         response = self.test_client.get('/admin/manage_users', follow_redirects=True)
