@@ -63,9 +63,9 @@ class RestFileObjectWithUid(RestResourceDbBase):
         Request a specific file
         Get the analysis results of a specific file by providing the corresponding uid
         '''
-        file_object = self.db.get_file_object(uid)
+        file_object = self.db.get_object(uid)
         if not file_object:
-            return error_message('No file object with UID {} found'.format(uid), self.URL, dict(uid=uid))
+            return error_message(f'No file object with UID {uid} found', self.URL, dict(uid=uid))
 
         fitted_file_object = self._fit_file_object(file_object)
         return success_message(dict(file_object=fitted_file_object), self.URL, request_data=dict(uid=uid))

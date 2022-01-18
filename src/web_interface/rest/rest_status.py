@@ -15,8 +15,7 @@ api = Namespace('rest/status', description='Request FACT\'s system status')
 class RestStatus(RestResourceBase):
     URL = '/rest/status'
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(self, *args, **kwargs)
+    def _setup_db(self, config):
         self.db = StatsDbViewer(config=self.config)
 
     @roles_accepted(*PRIVILEGES['status'])

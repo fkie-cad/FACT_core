@@ -140,7 +140,7 @@ class RestFirmwareGetWithUid(RestResourceDbBase):
         if summary:
             firmware = self.db.get_complete_object_including_all_summaries(uid)
         else:
-            firmware = self.db.get_firmware(uid)
+            firmware = self.db.get_object(uid)
         if not firmware or not isinstance(firmware, Firmware):
             return error_message(f'No firmware with UID {uid} found', self.URL, dict(uid=uid))
 
@@ -167,7 +167,7 @@ class RestFirmwareGetWithUid(RestResourceDbBase):
         return self._update_analysis(uid, update)
 
     def _update_analysis(self, uid, update):
-        firmware = self.db.get_firmware(uid)
+        firmware = self.db.get_object(uid)
         if not firmware:
             return error_message(f'No firmware with UID {uid} found', self.URL, dict(uid=uid))
 

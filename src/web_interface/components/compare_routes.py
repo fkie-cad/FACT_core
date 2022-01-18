@@ -11,7 +11,7 @@ from helperFunctions.data_conversion import (
 from helperFunctions.database import ConnectTo
 from helperFunctions.web_interface import get_template_as_string
 from intercom.front_end_binding import InterComFrontEndBinding
-from storage_postgresql.db_interface_comparison import ComparisonDbInterface, FactComparisonException
+from storage_postgresql.db_interface_comparison import ComparisonDbInterface
 from storage_postgresql.db_interface_frontend import FrontEndDbInterface
 from storage_postgresql.db_interface_view_sync import ViewReader
 from web_interface.components.component_base import GET, AppRoute, ComponentBase
@@ -33,10 +33,9 @@ class CompareRoutes(ComponentBase):
     @AppRoute('/compare/<compare_id>', GET)
     def show_compare_result(self, compare_id):
         compare_id = normalize_compare_id(compare_id)
-        try:
-            result = self.comp_db.get_comparison_result(compare_id)
-        except FactComparisonException as exception:
-            return render_template('compare/error.html', error=exception.get_message())
+        if not self.comp_db.objects_exist(compare_id):
+            return render_template('compare/error.html', error='Not all UIDs found in the DB')
+        result = self.comp_db.get_comparison_result(compare_id)
         if not result:
             return render_template('compare/wait.html', compare_id=compare_id)
         download_link = self._create_ida_download_if_existing(result, compare_id)
@@ -75,19 +74,23 @@ class CompareRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @AppRoute('/compare', GET)
     def start_compare(self):
-        if len(get_comparison_uid_dict_from_session()) < 2:
+        uid_dict = get_comparison_uid_dict_from_session()
+        if len(uid_dict) < 2:
             return render_template('compare/error.html', error='No UIDs found for comparison')
-        compare_id = convert_uid_list_to_compare_id(session['uids_for_comparison'])
+
+        comparison_id = convert_uid_list_to_compare_id(list(uid_dict))
         session['uids_for_comparison'] = None
         redo = True if request.args.get('force_recompare') else None
 
-        compare_exists = self.comp_db.comparison_exists(compare_id)
-        if compare_exists and not redo:
-            return redirect(url_for('show_compare_result', compare_id=compare_id))
+        if not self.comp_db.objects_exist(comparison_id):
+            return render_template('compare/error.html', error='Not all UIDs found in the DB')
+
+        if not redo and self.comp_db.comparison_exists(comparison_id):
+            return redirect(url_for('show_compare_result', compare_id=comparison_id))
 
         with ConnectTo(InterComFrontEndBinding, self._config) as sc:
-            sc.add_compare_task(compare_id, force=redo)
-        return render_template('compare/wait.html', compare_id=compare_id)
+            sc.add_compare_task(comparison_id, force=redo)
+        return render_template('compare/wait.html', compare_id=comparison_id)
 
     @staticmethod
     def _create_ida_download_if_existing(result, compare_id):
