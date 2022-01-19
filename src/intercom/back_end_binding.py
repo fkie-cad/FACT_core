@@ -45,7 +45,8 @@ class InterComBackEndBinding:  # pylint: disable=too-many-instance-attributes
         self._start_listener(InterComBackEndTarRepackTask)
         self._start_listener(InterComBackEndBinarySearchTask)
         self._start_listener(InterComBackEndUpdateTask, self.analysis_service.update_analysis_of_object_and_children)
-        self._start_listener(InterComBackEndDeleteFile, unpacking_locks=self.unpacking_locks)
+        self._start_listener(InterComBackEndDeleteFile, unpacking_locks=self.unpacking_locks,
+                             db_interface=DbInterfaceCommon(config=self.config))
         self._start_listener(InterComBackEndSingleFileTask, self.analysis_service.update_analysis_of_single_object)
         self._start_listener(InterComBackEndPeekBinaryTask)
         self._start_listener(InterComBackEndLogsTask)
@@ -184,25 +185,25 @@ class InterComBackEndDeleteFile(InterComListener):
 
     CONNECTION_TYPE = 'file_delete_task'
 
-    def __init__(self, config=None, unpacking_locks=None):
+    def __init__(self, config=None, unpacking_locks=None, db_interface=None):
         super().__init__(config)
         self.fs_organizer = FSOrganizer(config=config)
-        self.db = DbInterfaceCommon(config=config)
+        self.db = db_interface
         self.unpacking_locks: UnpackingLockManager = unpacking_locks
 
     def post_processing(self, task, task_id):
         # task is a UID here
         if self._entry_was_removed_from_db(task):
-            logging.info('remove file: {}'.format(task))
+            logging.info(f'remove file: {task}')
             self.fs_organizer.delete_file(task)
         return task
 
     def _entry_was_removed_from_db(self, uid):
         if self.db.exists(uid):
-            logging.debug('file not removed, because database entry exists: {}'.format(uid))
+            logging.debug(f'file not removed, because database entry exists: {uid}')
             return False
         if self.unpacking_locks is not None and self.unpacking_locks.unpacking_lock_is_set(uid):
-            logging.debug('file not removed, because it is processed by unpacker: {}'.format(uid))
+            logging.debug(f'file not removed, because it is processed by unpacker: {uid}')
             return False
         return True
 
