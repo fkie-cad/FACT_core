@@ -2,10 +2,6 @@ from flask import render_template, request
 
 from helperFunctions.database import ConnectTo
 from helperFunctions.web_interface import apply_filters_to_query
-from intercom.front_end_binding import InterComFrontEndBinding
-from statistic.update import StatsUpdater
-from storage_postgresql.db_interface_frontend import FrontEndDbInterface
-from storage_postgresql.db_interface_stats import StatsDbViewer
 from web_interface.components.component_base import GET, AppRoute, ComponentBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
@@ -21,9 +17,8 @@ class StatisticRoutes(ComponentBase):
             stats = self._get_stats_from_db()
         else:
             stats = self._get_live_stats(filter_query)
-        db = FrontEndDbInterface(config=self._config)  # FixMe? move to class variable?
-        device_classes = db.get_device_class_list()
-        vendors = db.get_vendor_list()
+        device_classes = self.db.frontend.get_device_class_list()
+        vendors = self.db.frontend.get_vendor_list()
         return render_template(
             'show_statistic.html',
             stats=stats,
@@ -36,45 +31,43 @@ class StatisticRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['status'])
     @AppRoute('/system_health', GET)
     def show_system_health(self):
-        with ConnectTo(InterComFrontEndBinding, self._config) as sc:
+        with ConnectTo(self.intercom, self._config) as sc:
             plugin_dict = sc.get_available_analysis_plugins()
         return render_template('system_health.html', analysis_plugin_info=plugin_dict)
 
     def _get_stats_from_db(self):
-        viewer = StatsDbViewer(config=self._config)  # FixMe? move to class variable?
         stats_dict = {
-            'general_stats': viewer.get_statistic('general'),
-            'firmware_meta_stats': viewer.get_statistic('firmware_meta'),
-            'file_type_stats': viewer.get_statistic('file_type'),
-            'malware_stats': viewer.get_statistic('malware'),
-            'crypto_material_stats': viewer.get_statistic('crypto_material'),
-            'unpacker_stats': viewer.get_statistic('unpacking'),
-            'ip_and_uri_stats': viewer.get_statistic('ips_and_uris'),
-            'architecture_stats': viewer.get_statistic('architecture'),
-            'release_date_stats': viewer.get_statistic('release_date'),
-            'exploit_mitigations_stats': viewer.get_statistic('exploit_mitigations'),
-            'known_vulnerabilities_stats': viewer.get_statistic('known_vulnerabilities'),
-            'software_stats': viewer.get_statistic('software_components'),
-            'elf_executable_stats': viewer.get_statistic('elf_executable'),
+            'general_stats': self.db.stats_viewer.get_statistic('general'),
+            'firmware_meta_stats': self.db.stats_viewer.get_statistic('firmware_meta'),
+            'file_type_stats': self.db.stats_viewer.get_statistic('file_type'),
+            'malware_stats': self.db.stats_viewer.get_statistic('malware'),
+            'crypto_material_stats': self.db.stats_viewer.get_statistic('crypto_material'),
+            'unpacker_stats': self.db.stats_viewer.get_statistic('unpacking'),
+            'ip_and_uri_stats': self.db.stats_viewer.get_statistic('ips_and_uris'),
+            'architecture_stats': self.db.stats_viewer.get_statistic('architecture'),
+            'release_date_stats': self.db.stats_viewer.get_statistic('release_date'),
+            'exploit_mitigations_stats': self.db.stats_viewer.get_statistic('exploit_mitigations'),
+            'known_vulnerabilities_stats': self.db.stats_viewer.get_statistic('known_vulnerabilities'),
+            'software_stats': self.db.stats_viewer.get_statistic('software_components'),
+            'elf_executable_stats': self.db.stats_viewer.get_statistic('elf_executable'),
         }
         return stats_dict
 
     def _get_live_stats(self, filter_query):
-        stats_updater = StatsUpdater(config=self._config)  # FixMe? move to class variable?
-        stats_updater.set_match(filter_query)
+        self.db.stats_updater.set_match(filter_query)
         stats_dict = {
-            'firmware_meta_stats': stats_updater.get_firmware_meta_stats(),
-            'file_type_stats': stats_updater.get_file_type_stats(),
-            'malware_stats': stats_updater.get_malware_stats(),
-            'crypto_material_stats': stats_updater.get_crypto_material_stats(),
-            'unpacker_stats': stats_updater.get_unpacking_stats(),
-            'ip_and_uri_stats': stats_updater.get_ip_stats(),
-            'architecture_stats': stats_updater.get_architecture_stats(),
-            'release_date_stats': stats_updater.get_time_stats(),
-            'general_stats': stats_updater.get_general_stats(),
-            'exploit_mitigations_stats': stats_updater.get_exploit_mitigations_stats(),
-            'known_vulnerabilities_stats': stats_updater.get_known_vulnerabilities_stats(),
-            'software_stats': stats_updater.get_software_components_stats(),
-            'elf_executable_stats': stats_updater.get_executable_stats(),
+            'firmware_meta_stats': self.db.stats_updater.get_firmware_meta_stats(),
+            'file_type_stats': self.db.stats_updater.get_file_type_stats(),
+            'malware_stats': self.db.stats_updater.get_malware_stats(),
+            'crypto_material_stats': self.db.stats_updater.get_crypto_material_stats(),
+            'unpacker_stats': self.db.stats_updater.get_unpacking_stats(),
+            'ip_and_uri_stats': self.db.stats_updater.get_ip_stats(),
+            'architecture_stats': self.db.stats_updater.get_architecture_stats(),
+            'release_date_stats': self.db.stats_updater.get_time_stats(),
+            'general_stats': self.db.stats_updater.get_general_stats(),
+            'exploit_mitigations_stats': self.db.stats_updater.get_exploit_mitigations_stats(),
+            'known_vulnerabilities_stats': self.db.stats_updater.get_known_vulnerabilities_stats(),
+            'software_stats': self.db.stats_updater.get_software_components_stats(),
+            'elf_executable_stats': self.db.stats_updater.get_executable_stats(),
         }
         return stats_dict

@@ -1,6 +1,5 @@
 from flask_restx import Namespace
 
-from storage_postgresql.db_interface_stats import StatsDbViewer
 from web_interface.rest.helper import error_message
 from web_interface.rest.rest_resource_base import RestResourceBase
 from web_interface.security.decorator import roles_accepted
@@ -22,14 +21,8 @@ def _delete_id_and_check_empty_stat(stats_dict):
             stats_dict[stat] = {}
 
 
-class RestResourceStatsBase(RestResourceBase):
-
-    def _setup_db(self, config):
-        self.stats_viewer = StatsDbViewer(config=self.config)
-
-
 @api.route('', doc={'description': 'Retrieves all statistics from the FACT database as raw JSON data.'})
-class RestStatisticsWithoutName(RestResourceStatsBase):
+class RestStatisticsWithoutName(RestResourceBase):
     URL = '/rest/statistics'
 
     @roles_accepted(*PRIVILEGES['status'])
@@ -40,7 +33,7 @@ class RestStatisticsWithoutName(RestResourceStatsBase):
         '''
         statistics_dict = {}
         for stat in STATISTICS:
-            statistics_dict[stat] = self.stats_viewer.get_statistic(stat)
+            statistics_dict[stat] = self.db.stats_viewer.get_statistic(stat)
 
         _delete_id_and_check_empty_stat(statistics_dict)
 
@@ -54,7 +47,7 @@ class RestStatisticsWithoutName(RestResourceStatsBase):
         'params': {'stat_name': 'Statistic\'s name'}
     }
 )
-class RestStatisticsWithName(RestResourceStatsBase):
+class RestStatisticsWithName(RestResourceBase):
     URL = '/rest/statistics'
 
     @roles_accepted(*PRIVILEGES['status'])
@@ -63,7 +56,7 @@ class RestStatisticsWithName(RestResourceStatsBase):
         '''
         Get specific statistic
         '''
-        statistic_dict = {stat_name: self.stats_viewer.get_statistic(stat_name)}
+        statistic_dict = {stat_name: self.db.stats_viewer.get_statistic(stat_name)}
         _delete_id_and_check_empty_stat(statistic_dict)
         if stat_name not in STATISTICS:
             return error_message(f'A statistic with the ID {stat_name} does not exist', self.URL, dict(stat_name=stat_name))

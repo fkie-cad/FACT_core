@@ -4,8 +4,6 @@ from flask_restx import Namespace, fields
 from helperFunctions.data_conversion import convert_compare_id_to_list, normalize_compare_id
 from helperFunctions.database import ConnectTo
 from helperFunctions.uid import is_uid
-from intercom.front_end_binding import InterComFrontEndBinding
-from storage_postgresql.db_interface_comparison import ComparisonDbInterface
 from web_interface.rest.helper import error_message, success_message
 from web_interface.rest.rest_resource_base import RestResourceBase
 from web_interface.security.decorator import roles_accepted
@@ -20,13 +18,8 @@ compare_model = api.model('Compare Firmware', {
 })
 
 
-class RestResourceCompDbBase(RestResourceBase):
-    def _setup_db(self, config):
-        self.db = ComparisonDbInterface(config=self.config)
-
-
 @api.route('', doc={'description': 'Initiate a comparison'})
-class RestComparePut(RestResourceCompDbBase):
+class RestComparePut(RestResourceBase):
     URL = '/rest/compare'
 
     @roles_accepted(*PRIVILEGES['compare'])
@@ -40,20 +33,23 @@ class RestComparePut(RestResourceCompDbBase):
         data = self.validate_payload_data(compare_model)
         compare_id = normalize_compare_id(';'.join(data['uid_list']))
 
-        if self.db.comparison_exists(compare_id) and not data['redo']:
+        if self.db.comparison.comparison_exists(compare_id) and not data['redo']:
             return error_message(
                 'Compare already exists. Use "redo" to force re-compare.',
                 self.URL, request_data=request.json, return_code=200
             )
 
-        if not self.db.objects_exist(compare_id):
-            missing_uids = ', '.join(uid for uid in convert_compare_id_to_list(compare_id) if not self.db.exists(uid))
+        if not self.db.frontend.objects_exist(compare_id):
+            missing_uids = ', '.join(
+                uid for uid in convert_compare_id_to_list(compare_id)
+                if not self.db.frontend.exists(uid)
+            )
             return error_message(
                 f'Some objects are not found in the database: {missing_uids}', self.URL,
                 request_data=request.json, return_code=404
             )
 
-        with ConnectTo(InterComFrontEndBinding, self.config) as intercom:
+        with ConnectTo(self.intercom, self.config) as intercom:
             intercom.add_compare_task(compare_id, force=data['redo'])
         return success_message(
             {'message': 'Compare started. Please use GET to get the results.'},
@@ -68,7 +64,7 @@ class RestComparePut(RestResourceCompDbBase):
         'params': {'compare_id': 'Firmware UID'}
     }
 )
-class RestCompareGet(RestResourceCompDbBase):
+class RestCompareGet(RestResourceBase):
     URL = '/rest/compare'
 
     @roles_accepted(*PRIVILEGES['compare'])
@@ -90,8 +86,8 @@ class RestCompareGet(RestResourceCompDbBase):
             )
 
         result = None
-        if self.db.comparison_exists(compare_id):
-            result = self.db.get_comparison_result(compare_id)
+        if self.db.comparison.comparison_exists(compare_id):
+            result = self.db.comparison.get_comparison_result(compare_id)
         if result:
             return success_message(result, self.URL, request_data={'compare_id': compare_id}, return_code=202)
         return error_message('Compare not found in database. Please use /rest/start_compare to start the compare.', self.URL, request_data={'compare_id': compare_id}, return_code=404)

@@ -3,9 +3,8 @@ from flask_restx import Namespace, fields
 
 from helperFunctions.database import ConnectTo
 from helperFunctions.yara_binary_search import is_valid_yara_rule_file
-from intercom.front_end_binding import InterComFrontEndBinding
 from web_interface.rest.helper import error_message, success_message
-from web_interface.rest.rest_resource_base import RestResourceBase, RestResourceDbBase
+from web_interface.rest.rest_resource_base import RestResourceBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
@@ -18,7 +17,7 @@ binary_search_model = api.model('Binary Search', {
 
 
 @api.route('', doc={'description': 'Binary search on all files in the database (or files of a single firmware)'})
-class RestBinarySearchPost(RestResourceDbBase):
+class RestBinarySearchPost(RestResourceBase):
     URL = '/rest/binary_search'
 
     @roles_accepted(*PRIVILEGES['pattern_search'])
@@ -32,13 +31,13 @@ class RestBinarySearchPost(RestResourceDbBase):
         payload_data = self.validate_payload_data(binary_search_model)
         if not is_valid_yara_rule_file(payload_data['rule_file']):
             return error_message('Error in YARA rule file', self.URL, request_data=request.data)
-        if payload_data['uid'] and not self.db.is_firmware(payload_data['uid']):
+        if payload_data['uid'] and not self.db.frontend.is_firmware(payload_data['uid']):
             return error_message(
                 f'Firmware with UID {payload_data["uid"]} not found in database',
                 self.URL, request_data=request.data
             )
 
-        with ConnectTo(InterComFrontEndBinding, self.config) as intercom:
+        with ConnectTo(self.intercom, self.config) as intercom:
             search_id = intercom.add_binary_search_request(payload_data['rule_file'].encode(), payload_data['uid'])
 
         return success_message(
@@ -67,7 +66,7 @@ class RestBinarySearchGet(RestResourceBase):
         The result of the search request can only be fetched once
         After this the search needs to be started again.
         '''
-        with ConnectTo(InterComFrontEndBinding, self.config) as intercom:
+        with ConnectTo(self.intercom, self.config) as intercom:
             result, _ = intercom.get_binary_search_result(search_id)
 
         if result is None:

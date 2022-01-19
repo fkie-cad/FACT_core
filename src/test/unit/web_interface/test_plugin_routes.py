@@ -13,10 +13,12 @@ from web_interface.components.plugin_routes import (
 
 
 class PluginRoutesMock(PluginRoutes):
-    def __init__(self, app, config, api=None):
+    def __init__(self, app, config, db=None, intercom=None, api=None):
         self._app = app
         self._config = config
         self._api = api
+        self.db = db
+        self.intercom = intercom
 
 
 class TestPluginRoutes:

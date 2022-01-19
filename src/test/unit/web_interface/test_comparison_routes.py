@@ -16,9 +16,8 @@ class TemplateDbMock:
 
 class TestAppComparisonBasket(WebInterfaceTest):
 
-    def setup(self, *_, **__):
-        super().setup()
-        self.frontend.template_db = TemplateDbMock()
+    def setup_class(self, *_, **__):
+        super().setup_class(db_mock=TemplateDbMock)
 
     def test_get_compare_plugin_views(self):
         compare_result = {'plugins': {}}

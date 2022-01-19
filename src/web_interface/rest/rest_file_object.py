@@ -4,7 +4,7 @@ from pymongo.errors import PyMongoError
 
 from helperFunctions.object_conversion import create_meta_dict
 from web_interface.rest.helper import error_message, get_paging, get_query, success_message
-from web_interface.rest.rest_resource_base import RestResourceDbBase
+from web_interface.rest.rest_resource_base import RestResourceBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
@@ -12,7 +12,7 @@ api = Namespace('rest/file_object', description='Browse the file database or req
 
 
 @api.route('', doc={'description': 'Browse the file database'})
-class RestFileObjectWithoutUid(RestResourceDbBase):
+class RestFileObjectWithoutUid(RestResourceBase):
     URL = '/rest/file_object'
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
@@ -37,7 +37,7 @@ class RestFileObjectWithoutUid(RestResourceDbBase):
 
         parameters = dict(offset=offset, limit=limit, query=query)
         try:
-            uids = self.db.rest_get_file_object_uids(**parameters)
+            uids = self.db.frontend.rest_get_file_object_uids(**parameters)
             return success_message(dict(uids=uids), self.URL, parameters)
         except PyMongoError:
             return error_message('Unknown exception on request', self.URL, parameters)
@@ -53,7 +53,7 @@ class RestFileObjectWithoutUid(RestResourceDbBase):
         }
     }
 )
-class RestFileObjectWithUid(RestResourceDbBase):
+class RestFileObjectWithUid(RestResourceBase):
     URL = '/rest/file_object'
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
@@ -63,7 +63,7 @@ class RestFileObjectWithUid(RestResourceDbBase):
         Request a specific file
         Get the analysis results of a specific file by providing the corresponding uid
         '''
-        file_object = self.db.get_object(uid)
+        file_object = self.db.frontend.get_object(uid)
         if not file_object:
             return error_message(f'No file object with UID {uid} found', self.URL, dict(uid=uid))
 

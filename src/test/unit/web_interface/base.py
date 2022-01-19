@@ -16,6 +16,17 @@ DB_INTERFACES = [
 ]
 
 
+class FrontendDbMock:
+    def __init__(self, db_mock: CommonDatabaseMock):
+        self.frontend = db_mock
+        self.editing = db_mock
+        self.admin = db_mock
+        self.comparison = db_mock
+        self.template = db_mock
+        self.stats_viewer = db_mock
+        self.stats_updater = db_mock
+
+
 class UserDbMock:
     class session:  # pylint: disable=invalid-name
         @staticmethod
@@ -31,40 +42,34 @@ class WebInterfaceTest:
     patches = []
 
     @classmethod
-    def setup_class(cls, db_mock=CommonDatabaseMock, intercom_mock=CommonIntercomMock):
+    def setup_class(cls, db_mock=CommonDatabaseMock, intercom_mock=CommonIntercomMock):  # pylint: disable=arguments-differ
         cls.tmp_dir = TemporaryDirectory(prefix='fact_test_')
         cls.config = get_config_for_testing(cls.tmp_dir)
         cls.db_mock = db_mock
         cls.intercom = intercom_mock
-        cls._init_patches(db_mock, intercom_mock)
-        cls.frontend = WebFrontEnd(config=cls.config)
+        cls._init_patches()
+        cls.frontend = WebFrontEnd(config=cls.config, db=FrontendDbMock(db_mock()), intercom=intercom_mock)
         cls.frontend.app.config['TESTING'] = True
         cls.test_client = cls.frontend.app.test_client()
 
-    def setup(self):  # pylint: disable=arguments-differ
+    def setup(self):
         self.intercom.tasks.clear()
 
     @classmethod
-    def _init_patches(cls, db_mock, intercom_mock):
-        for db_interface in DB_INTERFACES:
-            cls.patches.append(patch(f'{db_interface}.__init__', new=lambda *_, **__: None))
-            cls.patches.append(patch(f'{db_interface}.__new__', new=lambda *_, **__: db_mock()))
-        cls.patches.append(patch(f'{INTERCOM}.__init__', new=lambda *_, **__: None))
-        cls.patches.append(patch(f'{INTERCOM}.__new__', new=lambda *_, **__: intercom_mock()))
-        cls.patches.append(patch(
+    def _init_patches(cls):
+        cls.security_patch = patch(
             target='web_interface.frontend_main.add_flask_security_to_app',
             new=cls.add_security_get_mocked
-        ))
-        for patch_ in cls.patches:
-            patch_.start()
+        )
+        cls.security_patch.start()
 
     @classmethod
     def add_security_get_mocked(cls, app):
         add_flask_security_to_app(app)
         return UserDbMock(), cls.db_mock()
 
-    def teardown_class(self):
-        for patch_ in self.patches:
-            patch_.stop()
-        self.tmp_dir.cleanup()
+    @classmethod
+    def teardown_class(cls):
+        cls.security_patch.stop()
+        cls.tmp_dir.cleanup()
         gc.collect()

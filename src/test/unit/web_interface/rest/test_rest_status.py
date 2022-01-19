@@ -14,10 +14,6 @@ class StatisticDbViewerMock(CommonDatabaseMock):
     def get_statistic(self, identifier):
         return None if self.down or identifier != 'backend' else BACKEND_STATS
 
-    @staticmethod
-    def get_available_analysis_plugins():
-        return []
-
 
 class TestRestFirmware(WebInterfaceTest):
 

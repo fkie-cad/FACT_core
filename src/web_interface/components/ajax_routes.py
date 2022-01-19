@@ -5,10 +5,6 @@ from flask import jsonify, render_template
 
 from helperFunctions.data_conversion import none_to_none
 from helperFunctions.database import ConnectTo
-from intercom.front_end_binding import InterComFrontEndBinding
-from storage_postgresql.db_interface_comparison import ComparisonDbInterface
-from storage_postgresql.db_interface_frontend import FrontEndDbInterface
-from storage_postgresql.db_interface_stats import StatsDbViewer
 from web_interface.components.component_base import GET, AppRoute, ComponentBase
 from web_interface.components.hex_highlighting import preview_data_as_hex
 from web_interface.file_tree.file_tree import remove_virtual_path_from_root
@@ -20,11 +16,6 @@ from web_interface.security.privileges import PRIVILEGES
 
 
 class AjaxRoutes(ComponentBase):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.db = FrontEndDbInterface(config=self._config)
-        self.comparison_dbi = ComparisonDbInterface(config=self._config)
-        self.stats_viewer = StatsDbViewer(config=self._config)
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
     @AppRoute('/ajax_tree/<uid>/<root_uid>', GET)
@@ -41,17 +32,17 @@ class AjaxRoutes(ComponentBase):
 
     def _get_exclusive_files(self, compare_id, root_uid):
         if compare_id:
-            return self.comparison_dbi.get_exclusive_files(compare_id, root_uid)
+            return self.db.comparison.get_exclusive_files(compare_id, root_uid)
         return None
 
     def _generate_file_tree(self, root_uid: str, uid: str, whitelist: List[str]) -> FileTreeNode:
         root = FileTreeNode(None)
         child_uids = [
             child_uid
-            for child_uid in self.db.get_object(uid).files_included
+            for child_uid in self.db.frontend.get_object(uid).files_included
             if whitelist is None or child_uid in whitelist
         ]
-        for node in self.db.generate_file_tree_nodes_for_uid_list(child_uids, root_uid, uid, whitelist):
+        for node in self.db.frontend.generate_file_tree_nodes_for_uid_list(child_uids, root_uid, uid, whitelist):
             root.add_child_node(node)
         return root
 
@@ -59,7 +50,7 @@ class AjaxRoutes(ComponentBase):
     @AppRoute('/ajax_root/<uid>/<root_uid>', GET)
     def ajax_get_tree_root(self, uid, root_uid):
         root = []
-        for node in self.db.generate_file_tree_level(uid, root_uid):  # only a single item in this 'iterable'
+        for node in self.db.frontend.generate_file_tree_level(uid, root_uid):  # only a single item in this 'iterable'
             root = [convert_to_jstree_node(node)]
         root = remove_virtual_path_from_root(root)
         return jsonify(root)
@@ -67,7 +58,7 @@ class AjaxRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['compare'])
     @AppRoute('/compare/ajax_common_files/<compare_id>/<feature_id>/', GET)
     def ajax_get_common_files_for_compare(self, compare_id, feature_id):
-        result = self.comparison_dbi.get_comparison_result(compare_id)
+        result = self.db.comparison.get_comparison_result(compare_id)
         feature, matching_uid = feature_id.split('___')
         uid_list = result['plugins']['File_Coverage'][feature][matching_uid]
         return self._get_nice_uid_list_html(uid_list, root_uid=self._get_root_uid(matching_uid, compare_id))
@@ -80,7 +71,7 @@ class AjaxRoutes(ComponentBase):
         return compare_id.split(';')[0]
 
     def _get_nice_uid_list_html(self, input_data, root_uid):
-        included_files = self.db.get_data_for_nice_list(input_data, None)
+        included_files = self.db.frontend.get_data_for_nice_list(input_data, None)
         number_of_unanalyzed_files = len(input_data) - len(included_files)
         return render_template(
             'generic_view/nice_fo_list.html',
@@ -94,7 +85,7 @@ class AjaxRoutes(ComponentBase):
     @AppRoute('/ajax_get_binary/<mime_type>/<uid>', GET)
     def ajax_get_binary(self, mime_type, uid):
         mime_type = mime_type.replace('_', '/')
-        with ConnectTo(InterComFrontEndBinding, self._config) as sc:
+        with ConnectTo(self.intercom, self._config) as sc:
             binary = sc.get_binary_and_filename(uid)[0]
         if 'text/' in mime_type:
             return '<pre class="line_numbering" style="white-space: pre-wrap">{}</pre>'.format(html.escape(bytes_to_str_filter(binary)))
@@ -106,7 +97,7 @@ class AjaxRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['view_analysis'])
     @AppRoute('/ajax_get_hex_preview/<string:uid>/<int:offset>/<int:length>', GET)
     def ajax_get_hex_preview(self, uid: str, offset: int, length: int) -> str:
-        with ConnectTo(InterComFrontEndBinding, self._config) as sc:
+        with ConnectTo(self.intercom, self._config) as sc:
             partial_binary = sc.peek_in_binary(uid, offset, length)
         hex_dump = preview_data_as_hex(partial_binary, offset=offset)
         return f'<pre style="white-space: pre-wrap; margin-bottom: 0;">\n{hex_dump}\n</pre>'
@@ -114,14 +105,14 @@ class AjaxRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['view_analysis'])
     @AppRoute('/ajax_get_summary/<uid>/<selected_analysis>', GET)
     def ajax_get_summary(self, uid, selected_analysis):
-        firmware = self.db.get_object(uid, analysis_filter=selected_analysis)
-        summary_of_included_files = self.db.get_summary(firmware, selected_analysis)
+        firmware = self.db.frontend.get_object(uid, analysis_filter=selected_analysis)
+        summary_of_included_files = self.db.frontend.get_summary(firmware, selected_analysis)
         return render_template('summary.html', summary_of_included_files=summary_of_included_files, root_uid=uid, selected_analysis=selected_analysis)
 
     @roles_accepted(*PRIVILEGES['status'])
     @AppRoute('/ajax/stats/system', GET)
     def get_system_stats(self):
-        backend_data = self.stats_viewer.get_statistic('backend')
+        backend_data = self.db.stats_viewer.get_statistic('backend')
         try:
             return {
                 'backend_cpu_percentage': '{}%'.format(backend_data['system']['cpu_percentage']),
@@ -133,4 +124,4 @@ class AjaxRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['status'])
     @AppRoute('/ajax/system_health', GET)
     def get_system_health_update(self):
-        return {'systemHealth': self.stats_viewer.get_stats_list('backend', 'frontend', 'database')}
+        return {'systemHealth': self.db.stats_viewer.get_stats_list('backend', 'frontend', 'database')}

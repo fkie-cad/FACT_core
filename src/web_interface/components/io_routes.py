@@ -13,19 +13,13 @@ from helperFunctions.mongo_task_conversion import (
     check_for_errors, convert_analysis_task_to_fw_obj, create_analysis_task
 )
 from helperFunctions.pdf import build_pdf_report
-from intercom.front_end_binding import InterComFrontEndBinding
-from storage_postgresql.db_interface_comparison import ComparisonDbInterface, FactComparisonException
-from storage_postgresql.db_interface_frontend import FrontEndDbInterface
+from storage_postgresql.db_interface_comparison import FactComparisonException
 from web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
 
 class IORoutes(ComponentBase):
-    def __init__(self, app, config, api=None):
-        super().__init__(app, config, api)
-        self.db = FrontEndDbInterface(config=self._config)
-        self.comp_db = ComparisonDbInterface(config=self._config)
 
     # ---- upload
 
@@ -37,7 +31,7 @@ class IORoutes(ComponentBase):
         if error:
             return self.get_upload(error=error)
         fw = convert_analysis_task_to_fw_obj(analysis_task)
-        with ConnectTo(InterComFrontEndBinding, self._config) as sc:
+        with ConnectTo(self.intercom, self._config) as sc:
             sc.add_analysis_task(fw)
         return render_template('upload/upload_successful.html', uid=analysis_task['uid'])
 
@@ -45,10 +39,10 @@ class IORoutes(ComponentBase):
     @AppRoute('/upload', GET)
     def get_upload(self, error=None):
         error = error or {}
-        device_class_list = self.db.get_device_class_list()
-        vendor_list = self.db.get_vendor_list()
-        device_name_dict = self.db.get_device_name_dict()
-        with ConnectTo(InterComFrontEndBinding, self._config) as sc:
+        device_class_list = self.db.frontend.get_device_class_list()
+        vendor_list = self.db.frontend.get_vendor_list()
+        device_name_dict = self.db.frontend.get_device_name_dict()
+        with ConnectTo(self.intercom, self._config) as sc:
             analysis_plugins = sc.get_available_analysis_plugins()
         return render_template(
             'upload/upload.html',
@@ -70,9 +64,9 @@ class IORoutes(ComponentBase):
         return self._prepare_file_download(uid, packed=True)
 
     def _prepare_file_download(self, uid, packed=False):
-        if not self.db.exists(uid):
+        if not self.db.frontend.exists(uid):
             return render_template('uid_not_found.html', uid=uid)
-        with ConnectTo(InterComFrontEndBinding, self._config) as sc:
+        with ConnectTo(self.intercom, self._config) as sc:
             if packed:
                 result = sc.get_repacked_binary_and_file_name(uid)
             else:
@@ -88,7 +82,7 @@ class IORoutes(ComponentBase):
     @AppRoute('/ida-download/<compare_id>', GET)
     def download_ida_file(self, compare_id):
         try:
-            result = self.comp_db.get_comparison_result(compare_id)
+            result = self.db.comparison.get_comparison_result(compare_id)
         except FactComparisonException as exception:
             return render_template('error.html', message=exception.get_message())
         if result is None:
@@ -101,10 +95,10 @@ class IORoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['download'])
     @AppRoute('/radare-view/<uid>', GET)
     def show_radare(self, uid):
-        object_exists = self.db.exists(uid)
+        object_exists = self.db.frontend.exists(uid)
         if not object_exists:
             return render_template('uid_not_found.html', uid=uid)
-        with ConnectTo(InterComFrontEndBinding, self._config) as sc:
+        with ConnectTo(self.intercom, self._config) as sc:
             result = sc.get_binary_and_filename(uid)
         if result is None:
             return render_template('error.html', message='timeout')
@@ -130,11 +124,11 @@ class IORoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['download'])
     @AppRoute('/pdf-download/<uid>', GET)
     def download_pdf_report(self, uid):
-        object_exists = self.db.exists(uid)
+        object_exists = self.db.frontend.exists(uid)
         if not object_exists:
             return render_template('uid_not_found.html', uid=uid)
 
-        firmware = self.db.get_complete_object_including_all_summaries(uid)
+        firmware = self.db.frontend.get_complete_object_including_all_summaries(uid)
 
         try:
             with TemporaryDirectory(dir=get_temp_dir_path(self._config)) as folder:
@@ -144,6 +138,6 @@ class IORoutes(ComponentBase):
             return render_template('error.html', message=str(error))
 
         response = make_response(binary)
-        response.headers['Content-Disposition'] = 'attachment; filename={}'.format(pdf_path.name)
+        response.headers['Content-Disposition'] = f'attachment; filename={pdf_path.name}'
 
         return response

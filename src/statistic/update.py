@@ -14,9 +14,9 @@ class StatsUpdater:
     This class handles statistic generation
     '''
 
-    def __init__(self, config=None):
+    def __init__(self, stats_db: StatsUpdateDbInterface, config=None):
         self._config = config
-        self.db = StatsUpdateDbInterface(config)
+        self.db = stats_db
         self.start_time = None
         self.match = {}
 

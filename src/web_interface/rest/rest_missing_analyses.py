@@ -3,7 +3,7 @@ from typing import Dict, List, Set
 from flask_restx import Namespace
 
 from web_interface.rest.helper import success_message
-from web_interface.rest.rest_resource_base import RestResourceDbBase
+from web_interface.rest.rest_resource_base import RestResourceBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
@@ -11,7 +11,7 @@ api = Namespace('rest/missing', description='Search the database for missing ent
 
 
 @api.route('')
-class RestMissingAnalyses(RestResourceDbBase):
+class RestMissingAnalyses(RestResourceBase):
     URL = '/rest/missing'
 
     @roles_accepted(*PRIVILEGES['delete'])
@@ -22,10 +22,10 @@ class RestMissingAnalyses(RestResourceDbBase):
         Search for missing or orphaned files and missing or failed analyses
         '''
         missing_analyses_data = {
-            'missing_files': self._make_json_serializable(self.db.find_missing_files()),
-            'missing_analyses': self._make_json_serializable(self.db.find_missing_analyses()),
-            'failed_analyses': self._make_json_serializable(self.db.find_failed_analyses()),
-            'orphaned_objects': self.db.find_orphaned_objects(),
+            'missing_files': self._make_json_serializable(self.db.frontend.find_missing_files()),
+            'missing_analyses': self._make_json_serializable(self.db.frontend.find_missing_analyses()),
+            'failed_analyses': self._make_json_serializable(self.db.frontend.find_failed_analyses()),
+            'orphaned_objects': self.db.frontend.find_orphaned_objects(),
         }
         return success_message(missing_analyses_data, self.URL)
 

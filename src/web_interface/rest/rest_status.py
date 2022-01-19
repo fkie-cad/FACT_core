@@ -1,8 +1,6 @@
 from flask_restx import Namespace
 
 from helperFunctions.database import ConnectTo
-from intercom.front_end_binding import InterComFrontEndBinding
-from storage_postgresql.db_interface_stats import StatsDbViewer
 from web_interface.rest.helper import error_message, success_message
 from web_interface.rest.rest_resource_base import RestResourceBase
 from web_interface.security.decorator import roles_accepted
@@ -15,9 +13,6 @@ api = Namespace('rest/status', description='Request FACT\'s system status')
 class RestStatus(RestResourceBase):
     URL = '/rest/status'
 
-    def _setup_db(self, config):
-        self.db = StatsDbViewer(config=self.config)
-
     @roles_accepted(*PRIVILEGES['status'])
     @api.doc(responses={200: 'Success', 400: 'Error'})
     def get(self):
@@ -28,9 +23,9 @@ class RestStatus(RestResourceBase):
         components = ['frontend', 'database', 'backend']
         status = {}
         for component in components:
-            status[component] = self.db.get_statistic(component)
+            status[component] = self.db.stats_viewer.get_statistic(component)
 
-        with ConnectTo(InterComFrontEndBinding, self.config) as sc:
+        with ConnectTo(self.intercom, self.config) as sc:
             plugins = sc.get_available_analysis_plugins()
 
         if not any(bool(status[component]) for component in components):

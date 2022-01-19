@@ -10,12 +10,11 @@ from pymongo.errors import PyMongoError
 from helperFunctions.database import ConnectTo
 from helperFunctions.mongo_task_conversion import convert_analysis_task_to_fw_obj
 from helperFunctions.object_conversion import create_meta_dict
-from intercom.front_end_binding import InterComFrontEndBinding
 from objects.firmware import Firmware
 from web_interface.rest.helper import (
     error_message, get_boolean_from_request, get_paging, get_query, get_update, success_message
 )
-from web_interface.rest.rest_resource_base import RestResourceDbBase
+from web_interface.rest.rest_resource_base import RestResourceBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
@@ -37,7 +36,7 @@ firmware_model = api.model('Upload Firmware', {
 
 
 @api.route('', doc={'description': ''})
-class RestFirmwareGetWithoutUid(RestResourceDbBase):
+class RestFirmwareGetWithoutUid(RestResourceBase):
     URL = '/rest/firmware'
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
@@ -71,7 +70,7 @@ class RestFirmwareGetWithoutUid(RestResourceDbBase):
 
         parameters = dict(offset=offset, limit=limit, query=query, recursive=recursive, inverted=inverted)
         try:
-            uids = self.db.rest_get_firmware_uids(**parameters)
+            uids = self.db.frontend.rest_get_firmware_uids(**parameters)
             return success_message(dict(uids=uids), self.URL, parameters)
         except PyMongoError:
             return error_message('Unknown exception on request', self.URL, parameters)
@@ -115,7 +114,7 @@ class RestFirmwareGetWithoutUid(RestResourceDbBase):
         except binascii.Error:
             return dict(error_message='Could not parse binary (must be valid base64!)')
         firmware_object = convert_analysis_task_to_fw_obj(data)
-        with ConnectTo(InterComFrontEndBinding, self.config) as intercom:
+        with ConnectTo(self.intercom, self.config) as intercom:
             intercom.add_analysis_task(firmware_object)
         data.pop('binary')
 
@@ -123,7 +122,7 @@ class RestFirmwareGetWithoutUid(RestResourceDbBase):
 
 
 @api.route('/<string:uid>', doc={'description': '', 'params': {'uid': 'Firmware UID'}})
-class RestFirmwareGetWithUid(RestResourceDbBase):
+class RestFirmwareGetWithUid(RestResourceBase):
     URL = '/rest/firmware'
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
@@ -138,9 +137,9 @@ class RestFirmwareGetWithUid(RestResourceDbBase):
         '''
         summary = get_boolean_from_request(request.args, 'summary')
         if summary:
-            firmware = self.db.get_complete_object_including_all_summaries(uid)
+            firmware = self.db.frontend.get_complete_object_including_all_summaries(uid)
         else:
-            firmware = self.db.get_object(uid)
+            firmware = self.db.frontend.get_object(uid)
         if not firmware or not isinstance(firmware, Firmware):
             return error_message(f'No firmware with UID {uid} found', self.URL, dict(uid=uid))
 
@@ -167,7 +166,7 @@ class RestFirmwareGetWithUid(RestResourceDbBase):
         return self._update_analysis(uid, update)
 
     def _update_analysis(self, uid, update):
-        firmware = self.db.get_object(uid)
+        firmware = self.db.frontend.get_object(uid)
         if not firmware:
             return error_message(f'No firmware with UID {uid} found', self.URL, dict(uid=uid))
 
@@ -177,7 +176,7 @@ class RestFirmwareGetWithUid(RestResourceDbBase):
 
         firmware.scheduled_analysis = update
 
-        with ConnectTo(InterComFrontEndBinding, self.config) as intercom:
+        with ConnectTo(self.intercom, self.config) as intercom:
             supported_plugins = intercom.get_available_analysis_plugins().keys()
             for item in update:
                 if item not in supported_plugins:
