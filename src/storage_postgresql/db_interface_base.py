@@ -40,7 +40,7 @@ class ReadOnlyDbInterface:
         try:
             yield session
         finally:
-            session.close()
+            session.invalidate()
 
 
 class ReadWriteDbInterface(ReadOnlyDbInterface):
@@ -62,4 +62,4 @@ class ReadWriteDbInterface(ReadOnlyDbInterface):
             session.rollback()
             raise
         finally:
-            session.close()
+            session.invalidate()
