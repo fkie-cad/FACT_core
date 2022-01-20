@@ -18,6 +18,7 @@ from storage.MongoMgr import MongoMgr
 from storage_postgresql.db_interface_admin import AdminDbInterface
 from storage_postgresql.db_interface_backend import BackendDbInterface
 from storage_postgresql.fsorganizer import FSOrganizer
+from storage_postgresql.unpacking_locks import UnpackingLockManager
 from test.common_helper import setup_test_tables  # pylint: disable=wrong-import-order
 from test.common_helper import clean_test_database, get_database_names  # pylint: disable=wrong-import-order
 from web_interface.frontend_main import WebFrontEnd
@@ -83,10 +84,16 @@ class TestAcceptanceBase(unittest.TestCase):  # pylint: disable=too-many-instanc
 
     def _start_backend(self, post_analysis=None, compare_callback=None):
         # pylint: disable=attribute-defined-outside-init
-        self.analysis_service = AnalysisScheduler(config=self.config, post_analysis=post_analysis)
-        self.unpacking_service = UnpackingScheduler(config=self.config, post_unpack=self.analysis_service.start_analysis_of_object)
+        unpacking_locks = UnpackingLockManager()
+        self.analysis_service = AnalysisScheduler(config=self.config, post_analysis=post_analysis, unpacking_locks=unpacking_locks)
+        self.unpacking_service = UnpackingScheduler(
+            config=self.config, post_unpack=self.analysis_service.start_analysis_of_object, unpacking_locks=unpacking_locks
+        )
         self.compare_service = ComparisonScheduler(config=self.config, callback=compare_callback)
-        self.intercom = InterComBackEndBinding(config=self.config, analysis_service=self.analysis_service, compare_service=self.compare_service, unpacking_service=self.unpacking_service)
+        self.intercom = InterComBackEndBinding(
+            config=self.config, analysis_service=self.analysis_service, compare_service=self.compare_service,
+            unpacking_service=self.unpacking_service, unpacking_locks=unpacking_locks
+        )
         self.fs_organizer = FSOrganizer(config=self.config)
 
     def _setup_debugging_logging(self):

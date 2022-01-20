@@ -41,12 +41,16 @@ def query_parent_firmware(search_dict: dict, inverted: bool, count: bool = False
     return select(FirmwareEntry).filter(query_filter).order_by(*FIRMWARE_ORDER)
 
 
-def build_query_from_dict(query_dict: dict, query: Optional[Select] = None) -> Select:
+def build_query_from_dict(query_dict: dict, query: Optional[Select] = None) -> Select:  # pylint: disable=too-complex
     '''
     Builds an ``sqlalchemy.orm.Query`` object from a query in dict form.
     '''
     if query is None:
         query = select(FileObjectEntry)
+
+    if '_id' in query_dict and '$in' in query_dict['_id']:
+        # special case: filter by list of UIDs (FixMe: backwards compatible for binary search)
+        query = query.filter(FileObjectEntry.uid.in_(query_dict['_id']['$in']))
 
     analysis_keys = [key for key in query_dict if key.startswith('processed_analysis')]
     if analysis_keys:
