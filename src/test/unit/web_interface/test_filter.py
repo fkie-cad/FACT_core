@@ -208,7 +208,7 @@ def test_render_tags(tag_dict, output):
 
 
 def test_empty_analysis_tags():
-    assert render_analysis_tags(dict()) == ''
+    assert render_analysis_tags({}) == ''
 
 
 def test_render_analysis_tags_success():
@@ -346,13 +346,13 @@ def test_is_not_mandatory_analysis_entry(input_data, additional, expected_result
 
 
 def test_version_links_no_analysis():
-    links = create_firmware_version_links([{'version': '1.0', '_id': 'uid_123'}, {'version': '1.1', '_id': 'uid_234'}])
+    links = create_firmware_version_links([('uid_123', '1.0'), ('uid_234', '1.1')])
     assert '<a href="/analysis/uid_123">1.0</a>' in links
     assert '<a href="/analysis/uid_234">1.1</a>' in links
 
 
 def test_version_links_with_analysis():
-    links = create_firmware_version_links([{'version': '1.0', '_id': 'uid_123'}, {'version': '1.1', '_id': 'uid_234'}], 'foo')
+    links = create_firmware_version_links([('uid_123', '1.0'), ('uid_234', '1.1')], 'foo')
     assert '<a href="/analysis/uid_123/foo">1.0</a>' in links
     assert '<a href="/analysis/uid_234/foo">1.1</a>' in links
 

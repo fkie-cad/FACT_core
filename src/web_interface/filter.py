@@ -359,11 +359,11 @@ def random_collapse_id():
 
 def create_firmware_version_links(firmware_list, selected_analysis=None):
     if selected_analysis:
-        template = '<a href="/analysis/{{}}/{}">{{}}</a>'.format(selected_analysis)
+        template = f'<a href="/analysis/{{}}/{selected_analysis}">{{}}</a>'
     else:
         template = '<a href="/analysis/{}">{}</a>'
 
-    return [template.format(firmware['_id'], firmware['version']) for firmware in firmware_list]
+    return [template.format(uid, version) for uid, version in firmware_list]
 
 
 def elapsed_time(start_time: float) -> int:
