@@ -2,7 +2,9 @@ import logging
 from configparser import ConfigParser
 from pathlib import Path
 from subprocess import check_output
-from typing import Optional
+from typing import List, Optional
+
+from storage_postgresql.db_interface_admin import AdminDbInterface
 
 try:
     from helperFunctions.config import load_config
@@ -68,29 +70,50 @@ def change_db_owner(database_name: str, owner: str):
 def main(config: ConfigParser):
     fact_db = config['data_storage']['postgres_database']
     test_db = config['data_storage']['postgres_test_database']
+    _create_databases([fact_db, test_db])
+    _init_users(config, [fact_db, test_db])
+    _create_tables(config)
+    _set_table_privileges(config, fact_db)
 
-    for key, privileges in [
-        ('ro', [Privileges.SELECT]),
-        ('rw', [Privileges.SELECT, Privileges.INSERT, Privileges.UPDATE]),
-        ('admin', [Privileges.ALL])
-    ]:
+
+def _create_databases(db_list):
+    for db in db_list:
+        if not database_exists(db):
+            create_database(db)
+
+
+def _init_users(config, db_list):
+    for key in ['ro', 'rw', 'admin']:
         user = config['data_storage'][f'postgres_{key}_user']
         pw = config['data_storage'][f'postgres_{key}_pw']
-        _create_fact_user(user, pw, [fact_db, test_db], privileges)
+        _create_fact_user(user, pw, db_list)
+        if key == 'admin':
+            for db in db_list:
+                change_db_owner(db, user)
 
-    change_db_owner(fact_db, user)
-    change_db_owner(test_db, user)
 
-
-def _create_fact_user(user, pw, databases, privileges):
+def _create_fact_user(user: str, pw: str, databases: List[str]):
     logging.info(f'creating user {user}')
     if not user_exists(user):
         create_user(user, pw)
     for db in databases:
         grant_connect(db, user)
         grant_usage(db, user)
+
+
+def _create_tables(config):
+    AdminDbInterface(config, intercom=None).create_tables()
+
+
+def _set_table_privileges(config, fact_db):
+    for key, privileges in [
+        ('ro', [Privileges.SELECT]),
+        ('rw', [Privileges.SELECT, Privileges.INSERT, Privileges.UPDATE]),
+        ('admin', [Privileges.ALL])
+    ]:
+        user = config['data_storage'][f'postgres_{key}_user']
         for privilege in privileges:
-            grant_privileges(db, user, privilege)
+            grant_privileges(fact_db, user, privilege)
 
 
 if __name__ == '__main__':
