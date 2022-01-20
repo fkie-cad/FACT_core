@@ -52,19 +52,19 @@ def test_get_latest_comparisons(db, comp_db):
         assert before <= submission_date <= time()
 
 
-def test_delete_fw_cascades_to_comp(db, comp_db, admin_db):
+def test_delete_fw_cascades_to_comp(db, comp_db):
     _, fw_two, _, comp_id = _add_comparison(comp_db, db)
 
     with comp_db.get_read_only_session() as session:
         assert session.get(ComparisonEntry, comp_id) is not None
 
-    admin_db.delete_firmware(fw_two.uid)
+    db.admin.delete_firmware(fw_two.uid)
 
     with comp_db.get_read_only_session() as session:
         assert session.get(ComparisonEntry, comp_id) is None, 'deletion should be cascaded if one FW is deleted'
 
 
-def test_get_latest_removed_firmware(db, comp_db, admin_db):
+def test_get_latest_removed_firmware(db, comp_db):
     fw_one, fw_two, compare_dict, _ = _create_comparison()
     db.backend.add_object(fw_one)
     db.backend.add_object(fw_two)
@@ -73,7 +73,7 @@ def test_get_latest_removed_firmware(db, comp_db, admin_db):
     result = comp_db.page_comparison_results(limit=10)
     assert result != [], 'A compare result should be available'
 
-    admin_db.delete_firmware(fw_two.uid)
+    db.admin.delete_firmware(fw_two.uid)
 
     result = comp_db.page_comparison_results(limit=10)
 
