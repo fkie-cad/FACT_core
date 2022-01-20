@@ -1,26 +1,10 @@
-from typing import List, Optional
+from typing import Optional
 
 from test.common_helper import create_test_file_object, create_test_firmware
 
 TEST_FO = create_test_file_object()
 TEST_FO_2 = create_test_file_object(bin_path='get_files_test/testfile2')
 TEST_FW = create_test_firmware()
-
-
-def generate_analysis_entry(
-    plugin_version: str = '1.0',
-    analysis_date: float = 0.0,
-    summary: Optional[List[str]] = None,
-    tags: Optional[dict] = None,
-    analysis_result: Optional[dict] = None,
-):
-    return {
-        'plugin_version': plugin_version,
-        'analysis_date': analysis_date,
-        'summary': summary or [],
-        'tags': tags or {},
-        **(analysis_result or {})
-    }
 
 
 def create_fw_with_child_fo():

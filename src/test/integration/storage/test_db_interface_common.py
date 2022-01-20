@@ -1,13 +1,11 @@
-# pylint: disable=protected-access,invalid-name
+# pylint: disable=protected-access,invalid-name,wrong-import-order
 
 from objects.file import FileObject
 from objects.firmware import Firmware
 from storage_postgresql.schema import AnalysisEntry
-from test.common_helper import create_test_file_object, create_test_firmware  # pylint: disable=wrong-import-order
+from test.common_helper import create_test_file_object, create_test_firmware, generate_analysis_entry
 
-from .helper import (
-    TEST_FO, TEST_FO_2, TEST_FW, create_fw_with_child_fo, create_fw_with_parent_and_child, generate_analysis_entry
-)
+from .helper import TEST_FO, TEST_FO_2, TEST_FW, create_fw_with_child_fo, create_fw_with_parent_and_child
 
 
 def test_init(db):  # pylint: disable=unused-argument

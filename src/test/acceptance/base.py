@@ -12,18 +12,20 @@ from common_helper_files import create_dir_for_file
 from helperFunctions.config import load_config
 from intercom.back_end_binding import InterComBackEndBinding
 from scheduler.analysis import AnalysisScheduler
-from scheduler.Compare import CompareScheduler
-from scheduler.Unpacking import UnpackingScheduler
-from storage.db_interface_backend import BackEndDbInterface
-from storage.fsorganizer import FSOrganizer
+from scheduler.comparison_scheduler import ComparisonScheduler
+from scheduler.unpacking_scheduler import UnpackingScheduler
 from storage.MongoMgr import MongoMgr
+from storage_postgresql.db_interface_admin import AdminDbInterface
+from storage_postgresql.db_interface_backend import BackendDbInterface
+from storage_postgresql.fsorganizer import FSOrganizer
+from test.common_helper import setup_test_tables  # pylint: disable=wrong-import-order
 from test.common_helper import clean_test_database, get_database_names  # pylint: disable=wrong-import-order
 from web_interface.frontend_main import WebFrontEnd
 
 TMP_DB_NAME = 'tmp_acceptance_tests'
 
 
-class TestAcceptanceBase(unittest.TestCase):
+class TestAcceptanceBase(unittest.TestCase):  # pylint: disable=too-many-instance-attributes
 
     class TestFW:
         def __init__(self, uid, path, name):
@@ -35,9 +37,12 @@ class TestAcceptanceBase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls._set_config()
-        cls.mongo_server = MongoMgr(config=cls.config)
+        cls.mongo_server = MongoMgr(config=cls.config)  # FixMe: still needed for intercom
 
     def setUp(self):
+        self.admin_db = AdminDbInterface(self.config, intercom=None)
+        setup_test_tables(self.config, self.admin_db)
+
         self.tmp_dir = TemporaryDirectory(prefix='fact_test_')
         self.config.set('data_storage', 'firmware_file_storage_directory', self.tmp_dir.name)
         self.config.set('Logging', 'mongoDbLogFile', str(Path(self.tmp_dir.name) / 'mongo.log'))
@@ -53,6 +58,7 @@ class TestAcceptanceBase(unittest.TestCase):
                                      'regression_one', 'test_fw_c')
 
     def tearDown(self):
+        self.admin_db.base.metadata.drop_all(self.admin_db.engine)  # delete test db tables
         clean_test_database(self.config, get_database_names(self.config))
         self.tmp_dir.cleanup()
         gc.collect()
@@ -64,9 +70,8 @@ class TestAcceptanceBase(unittest.TestCase):
     @classmethod
     def _set_config(cls):
         cls.config = load_config('main.cfg')
-        cls.config.set('data_storage', 'main_database', TMP_DB_NAME)
-        cls.config.set('data_storage', 'intercom_database_prefix', TMP_DB_NAME)
-        cls.config.set('data_storage', 'statistic_database', TMP_DB_NAME)
+        test_db = cls.config.get('data_storage', 'postgres_test_database')
+        cls.config.set('data_storage', 'postgres_database', test_db)
         cls.config.set('ExpertSettings', 'authentication', 'false')
 
     def _stop_backend(self):
@@ -80,7 +85,7 @@ class TestAcceptanceBase(unittest.TestCase):
         # pylint: disable=attribute-defined-outside-init
         self.analysis_service = AnalysisScheduler(config=self.config, post_analysis=post_analysis)
         self.unpacking_service = UnpackingScheduler(config=self.config, post_unpack=self.analysis_service.start_analysis_of_object)
-        self.compare_service = CompareScheduler(config=self.config, callback=compare_callback)
+        self.compare_service = ComparisonScheduler(config=self.config, callback=compare_callback)
         self.intercom = InterComBackEndBinding(config=self.config, analysis_service=self.analysis_service, compare_service=self.compare_service, unpacking_service=self.unpacking_service)
         self.fs_organizer = FSOrganizer(config=self.config)
 
@@ -105,10 +110,9 @@ class TestAcceptanceBaseWithDb(TestAcceptanceBase):
     def setUp(self):
         super().setUp()
         self._start_backend()
-        self.db_backend = BackEndDbInterface(config=self.config)
+        self.db_backend = BackendDbInterface(config=self.config)
         time.sleep(2)  # wait for systems to start
 
     def tearDown(self):
-        self.db_backend.shutdown()
         self._stop_backend()
         super().tearDown()

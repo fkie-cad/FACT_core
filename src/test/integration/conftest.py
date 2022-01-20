@@ -7,7 +7,7 @@ from storage_postgresql.db_interface_common import DbInterfaceCommon
 from storage_postgresql.db_interface_comparison import ComparisonDbInterface
 from storage_postgresql.db_interface_frontend import FrontEndDbInterface
 from storage_postgresql.db_interface_frontend_editing import FrontendEditingDbInterface
-from test.common_helper import get_config_for_testing  # pylint: disable=wrong-import-order
+from test.common_helper import get_config_for_testing, setup_test_tables  # pylint: disable=wrong-import-order
 
 
 class DB:
@@ -26,26 +26,13 @@ class DB:
 def db_interface():
     config = get_config_for_testing()
     admin = AdminDbInterface(config, intercom=MockIntercom())
-    _setup_test_tables(config, admin)
+    setup_test_tables(config, admin)
     common = DbInterfaceCommon(config)
     backend = BackendDbInterface(config)
     frontend = FrontEndDbInterface(config)
     frontend_ed = FrontendEditingDbInterface(config)
     yield DB(common, backend, frontend, frontend_ed, admin)
     admin.base.metadata.drop_all(admin.engine)  # delete test db tables
-
-
-def _setup_test_tables(config, admin_interface: AdminDbInterface):
-    admin_interface.create_tables()
-    ro_user = config['data_storage']['postgres_ro_user']
-    rw_user = config['data_storage']['postgres_rw_user']
-    admin_user = config['data_storage']['postgres_admin_user']
-    with admin_interface.get_read_write_session() as session:
-        session.execute(f'GRANT SELECT ON ALL TABLES IN SCHEMA public TO {ro_user}')
-        session.execute(f'GRANT SELECT ON ALL TABLES IN SCHEMA public TO {rw_user}')
-        session.execute(f'GRANT INSERT ON ALL TABLES IN SCHEMA public TO {rw_user}')
-        session.execute(f'GRANT UPDATE ON ALL TABLES IN SCHEMA public TO {rw_user}')
-        session.execute(f'GRANT ALL ON ALL TABLES IN SCHEMA public TO {admin_user}')
 
 
 @pytest.fixture(scope='function')

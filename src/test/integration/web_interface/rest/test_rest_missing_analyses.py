@@ -4,8 +4,7 @@ import json
 
 import pytest
 
-from test.common_helper import create_test_file_object, create_test_firmware
-from test.integration.storage.helper import generate_analysis_entry
+from test.common_helper import create_test_file_object, create_test_firmware, generate_analysis_entry
 from test.integration.web_interface.rest.base import RestTestBase
 
 

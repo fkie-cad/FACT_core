@@ -1,12 +1,12 @@
 import pytest
 
+from test.common_helper import generate_analysis_entry  # pylint: disable=wrong-import-order
 from test.common_helper import create_test_file_object, create_test_firmware  # pylint: disable=wrong-import-order
 from web_interface.components.dependency_graph import DepGraphData
 from web_interface.file_tree.file_tree_node import FileTreeNode
 
 from .helper import (
-    TEST_FO, TEST_FW, create_fw_with_child_fo, create_fw_with_parent_and_child, generate_analysis_entry, insert_test_fo,
-    insert_test_fw
+    TEST_FO, TEST_FW, create_fw_with_child_fo, create_fw_with_parent_and_child, insert_test_fo, insert_test_fw
 )
 
 DUMMY_RESULT = generate_analysis_entry(analysis_result={'key': 'result'})

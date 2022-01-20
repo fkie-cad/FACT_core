@@ -5,7 +5,7 @@ from configparser import ConfigParser
 from copy import deepcopy
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Optional, Union
+from typing import List, Optional, Union
 
 from helperFunctions.config import load_config
 from helperFunctions.data_conversion import get_value_of_first_key
@@ -14,6 +14,7 @@ from intercom.common_mongo_binding import InterComMongoInterface
 from objects.file import FileObject
 from objects.firmware import Firmware
 from storage.mongo_interface import MongoInterface
+from storage_postgresql.db_interface_admin import AdminDbInterface
 
 
 def get_test_data_dir():
@@ -361,3 +362,33 @@ def store_binary_on_file_system(tmp_dir: str, test_object: Union[FileObject, Fir
     binary_dir = Path(tmp_dir) / test_object.uid[:2]
     binary_dir.mkdir(parents=True)
     (binary_dir / test_object.uid).write_bytes(test_object.binary)
+
+
+def setup_test_tables(config, admin_interface: AdminDbInterface):
+    admin_interface.create_tables()
+    ro_user = config['data_storage']['postgres_ro_user']
+    rw_user = config['data_storage']['postgres_rw_user']
+    admin_user = config['data_storage']['postgres_admin_user']
+    # privileges must be set each time the test DB tables are created
+    with admin_interface.get_read_write_session() as session:
+        session.execute(f'GRANT SELECT ON ALL TABLES IN SCHEMA public TO {ro_user}')
+        session.execute(f'GRANT SELECT ON ALL TABLES IN SCHEMA public TO {rw_user}')
+        session.execute(f'GRANT INSERT ON ALL TABLES IN SCHEMA public TO {rw_user}')
+        session.execute(f'GRANT UPDATE ON ALL TABLES IN SCHEMA public TO {rw_user}')
+        session.execute(f'GRANT ALL ON ALL TABLES IN SCHEMA public TO {admin_user}')
+
+
+def generate_analysis_entry(
+    plugin_version: str = '1.0',
+    analysis_date: float = 0.0,
+    summary: Optional[List[str]] = None,
+    tags: Optional[dict] = None,
+    analysis_result: Optional[dict] = None,
+):
+    return {
+        'plugin_version': plugin_version,
+        'analysis_date': analysis_date,
+        'summary': summary or [],
+        'tags': tags or {},
+        **(analysis_result or {})
+    }
