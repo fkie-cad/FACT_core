@@ -122,13 +122,6 @@ class FrontEndDbInterface(DbInterfaceCommon):
     def _get_current_vfp(vfp: Dict[str, List[str]], root_uid: str) -> List[str]:
         return vfp[root_uid] if root_uid in vfp else get_value_of_first_key(vfp)
 
-    # FixMe: not needed?
-    def get_mime_type(self, uid: str) -> str:
-        file_type_analysis = self.get_analysis(uid, 'file_type')
-        if not file_type_analysis or 'mime' not in file_type_analysis.result:
-            return 'file-type-plugin/not-run-yet'
-        return file_type_analysis.result['mime']
-
     def get_file_name(self, uid: str) -> str:
         with self.get_read_only_session() as session:
             entry = session.get(FileObjectEntry, uid)

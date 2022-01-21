@@ -52,16 +52,6 @@ def test_get_hid_invalid_uid(db):
     assert result == '', 'invalid uid should result in empty string'
 
 
-def test_get_mime_type(db):
-    test_fw = create_test_firmware()
-    test_fw.uid = 'foo'
-    test_fw.processed_analysis['file_type'] = generate_analysis_entry(analysis_result={'mime': 'foo/bar'})
-    db.backend.insert_object(test_fw)
-
-    result = db.frontend.get_mime_type('foo')
-    assert result == 'foo/bar'
-
-
 def test_get_data_for_nice_list(db):
     uid_list = [TEST_FW.uid, TEST_FO.uid]
     db.backend.add_object(TEST_FW)
