@@ -304,7 +304,7 @@ def test_find_missing_analyses(db):
     db.backend.insert_object(parent_fo)
     db.backend.insert_object(child_fo)
 
-    assert db.frontend.find_missing_analyses() == {fw.uid: {parent_fo.uid: {'plugin3'}, child_fo.uid: {'plugin2', 'plugin3'}}}
+    assert db.frontend.find_missing_analyses() == {fw.uid: {parent_fo.uid, child_fo.uid}}
 
 
 def test_find_failed_analyses(db):

@@ -353,7 +353,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
                 for fo_uid, fo_plugin_list in session.execute(fo_query):
                     missing_plugins = set(fw_plugin_list) - set(fo_plugin_list)
                     if missing_plugins:
-                        missing_analyses.setdefault(fw_uid, {})[fo_uid] = missing_plugins
+                        missing_analyses.setdefault(fw_uid, set()).add(fo_uid)
         return missing_analyses
 
     @staticmethod
