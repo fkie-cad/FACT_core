@@ -99,6 +99,29 @@ def test_generic_search_fo(db):
     assert result == ['uid_1']
 
 
+def test_generic_search_date(db):
+    insert_test_fw(db, 'uid_1', release_date='2022-02-22')
+    assert db.frontend.generic_search({'release_date': '2022-02-22'}) == ['uid_1']
+    assert db.frontend.generic_search({'release_date': {'$regex': '2022'}}) == ['uid_1']
+    assert db.frontend.generic_search({'release_date': {'$regex': '2022-02'}}) == ['uid_1']
+    assert db.frontend.generic_search({'release_date': {'$regex': '2020'}}) == []
+
+
+def test_generic_search_regex(db):
+    insert_test_fw(db, 'uid_1', file_name='some_file.zip')
+    insert_test_fw(db, 'uid_2', file_name='other_file.zip')
+    assert set(db.frontend.generic_search({'file_name': {'$regex': 'file.zip'}})) == {'uid_1', 'uid_2'}
+    assert set(db.frontend.generic_search({'file_name': {'$regex': 'me_file.zip'}})) == {'uid_1'}
+
+
+def test_generic_search_lt_gt(db):
+    insert_test_fo(db, 'uid_1', size=10)
+    insert_test_fo(db, 'uid_2', size=20)
+    insert_test_fo(db, 'uid_3', size=30)
+    assert set(db.frontend.generic_search({'size': {'$lt': 25}})) == {'uid_1', 'uid_2'}
+    assert set(db.frontend.generic_search({'size': {'$gt': 15}})) == {'uid_2', 'uid_3'}
+
+
 @pytest.mark.parametrize('query, expected', [
     ({}, ['uid_1']),
     ({'vendor': 'test_vendor'}, ['uid_1']),

@@ -14,6 +14,7 @@ from helperFunctions.mongo_task_conversion import get_file_name_and_binary_from_
 from helperFunctions.uid import is_uid
 from helperFunctions.web_interface import apply_filters_to_query, filter_out_illegal_characters
 from helperFunctions.yara_binary_search import get_yara_error, is_valid_yara_rule_file
+from storage_postgresql.query_conversion import QueryConversionException
 from web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
 from web_interface.pagination import extract_pagination_from_request, get_pagination
 from web_interface.security.decorator import roles_accepted
@@ -48,9 +49,12 @@ class DatabaseRoutes(ComponentBase):
             )
             if self._query_has_only_one_result(firmware_list, search_parameters['query']):
                 return redirect(url_for('show_analysis', uid=firmware_list[0][0]))
+        except QueryConversionException as exception:
+            error_message = exception.get_message()
+            return render_template('error.html', message=error_message)
         except Exception as err:
             error_message = 'Could not query database'
-            logging.error(error_message + f'due to exception: {err}', exc_info=True)  # pylint: disable=logging-not-lazy
+            logging.error(error_message + f' due to exception: {err}', exc_info=True)  # pylint: disable=logging-not-lazy
             return render_template('error.html', message=error_message)
 
         total = self.db.frontend.get_number_of_total_matches(search_parameters['query'], search_parameters['only_firmware'], inverted=search_parameters['inverted'])

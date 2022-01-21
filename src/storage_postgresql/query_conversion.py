@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import aliased
@@ -7,6 +7,13 @@ from sqlalchemy.sql import Select
 from storage_postgresql.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry
 
 FIRMWARE_ORDER = FirmwareEntry.vendor.asc(), FirmwareEntry.device_name.asc()
+
+
+class QueryConversionException(Exception):
+    def get_message(self):
+        if self.args:  # pylint: disable=using-constant-test
+            return self.args[0]  # pylint: disable=unsubscriptable-object
+        return ''
 
 
 def build_generic_search_query(search_dict: dict, only_fo_parent_firmware: bool, inverted: bool) -> Select:
@@ -48,9 +55,9 @@ def build_query_from_dict(query_dict: dict, query: Optional[Select] = None) -> S
     if query is None:
         query = select(FileObjectEntry)
 
-    if '_id' in query_dict and '$in' in query_dict['_id']:
-        # special case: filter by list of UIDs (FixMe: backwards compatible for binary search)
-        query = query.filter(FileObjectEntry.uid.in_(query_dict['_id']['$in']))
+    if '_id' in query_dict:
+        # FixMe?: backwards compatible for binary search
+        query_dict['uid'] = query_dict.pop('_id')
 
     analysis_keys = [key for key in query_dict if key.startswith('processed_analysis')]
     if analysis_keys:
@@ -59,15 +66,38 @@ def build_query_from_dict(query_dict: dict, query: Optional[Select] = None) -> S
     firmware_keys = [key for key in query_dict if not key == 'uid' and hasattr(FirmwareEntry, key)]
     if firmware_keys:
         query = query.join(FirmwareEntry, FirmwareEntry.uid == FileObjectEntry.uid)
-        for key in firmware_keys:
-            query = query.filter(getattr(FirmwareEntry, key) == query_dict[key])
+        query = _add_search_filter_from_dict(firmware_keys, FirmwareEntry, query, query_dict)
 
     file_object_keys = [key for key in query_dict if hasattr(FileObjectEntry, key)]
     if file_object_keys:
-        for key in (key for key in query_dict if hasattr(FileObjectEntry, key)):
-            query = query.filter(getattr(FileObjectEntry, key) == query_dict[key])
+        query = _add_search_filter_from_dict(file_object_keys, FileObjectEntry, query, query_dict)
 
     return query
+
+
+def _add_search_filter_from_dict(attribute_list, table, query, query_dict):
+    for key in attribute_list:
+        column = _get_column(key, table)
+        if not isinstance(query_dict[key], dict):
+            query = query.filter(column == query_dict[key])
+        elif '$regex' in query_dict[key]:
+            query = query.filter(column.op('~')(query_dict[key]['$regex']))
+        elif '$in' in query_dict[key]:  # filter by list
+            query = query.filter(column.in_(query_dict[key]['$in']))
+        elif '$lt' in query_dict[key]:  # less than
+            query = query.filter(column < query_dict[key]['$lt'])
+        elif '$gt' in query_dict[key]:  # greater than
+            query = query.filter(column > query_dict[key]['$gt'])
+        else:
+            raise QueryConversionException(f'Search options currently unsupported: {query_dict[key]}')
+    return query
+
+
+def _get_column(key: str, table: Union[FirmwareEntry, FileObjectEntry, AnalysisEntry]):
+    column = getattr(table, key)
+    if key == 'release_date':  # special case: Date column -> convert to string
+        return func.to_char(column, 'YYYY-MM-DD')
+    return column
 
 
 def _add_analysis_filter_to_query(analysis_keys: List[str], query: Select, query_dict: dict) -> Select:
