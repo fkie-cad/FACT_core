@@ -335,7 +335,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         return True
 
     def _add_completed_analysis_results_to_file_object(self, analysis_to_do: str, fw_object: FileObject):
-        db_entry = self.db_backend_service.get_analysis(fw_object.uid, analysis_to_do)
+        db_entry = self.db_backend_service.get_analysis_as_dict(fw_object.uid, analysis_to_do)
         fw_object.processed_analysis[analysis_to_do] = db_entry
 
     # ---- 3. blacklist and whitelist ----

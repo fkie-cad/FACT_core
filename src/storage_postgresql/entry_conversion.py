@@ -45,7 +45,7 @@ def _populate_fo_data(
     file_object.file_name = fo_entry.file_name
     file_object.virtual_file_path = fo_entry.virtual_file_paths
     file_object.processed_analysis = {
-        analysis_entry.plugin: _analysis_entry_to_dict(analysis_entry)
+        analysis_entry.plugin: analysis_entry_to_dict(analysis_entry)
         for analysis_entry in fo_entry.analyses
         if analysis_filter is None or analysis_entry.plugin in analysis_filter
     }
@@ -123,7 +123,7 @@ def create_analysis_entries(file_object: FileObject, fo_backref: FileObjectEntry
     ]
 
 
-def _analysis_entry_to_dict(entry: AnalysisEntry) -> dict:
+def analysis_entry_to_dict(entry: AnalysisEntry) -> dict:
     return {
         'analysis_date': entry.analysis_date,
         'plugin_version': entry.plugin_version,

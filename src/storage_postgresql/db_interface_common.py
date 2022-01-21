@@ -9,7 +9,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from objects.file import FileObject
 from objects.firmware import Firmware
 from storage_postgresql.db_interface_base import ReadOnlyDbInterface
-from storage_postgresql.entry_conversion import file_object_from_entry, firmware_from_entry
+from storage_postgresql.entry_conversion import analysis_entry_to_dict, file_object_from_entry, firmware_from_entry
 from storage_postgresql.query_conversion import build_query_from_dict
 from storage_postgresql.schema import (
     AnalysisEntry, FileObjectEntry, FirmwareEntry, fw_files_table, included_files_table
@@ -108,6 +108,12 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
                 return session.execute(query).scalars().one()
             except NoResultFound:
                 return None
+
+    def get_analysis_as_dict(self, uid: str, plugin: str) -> Optional[dict]:
+        entry = self.get_analysis(uid, plugin)
+        if entry is None:
+            return None
+        return analysis_entry_to_dict(entry)
 
     # ===== included files. =====
 
