@@ -75,7 +75,7 @@ def test_get_data_for_nice_list(db):
     assert nice_list_data[0]['uid'] == TEST_FW.uid
     expected_hid = 'test_vendor test_router - 0.1 (Router)'
     assert nice_list_data[0]['current_virtual_path'][0] == expected_hid, 'UID should be replaced with HID'
-    assert nice_list_data[1]['current_virtual_path'][0] == f'{expected_hid}|/file/path'
+    assert nice_list_data[1]['current_virtual_path'][0] == f'{expected_hid} | /file/path'
 
 
 def test_get_device_class_list(db):

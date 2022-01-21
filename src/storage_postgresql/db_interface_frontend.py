@@ -59,7 +59,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
         return f'{firmware.vendor} {firmware.device_name} -{part} {firmware.version} ({firmware.device_class})'
 
     @staticmethod
-    def _get_hid_fo(fo_entry: FileObjectEntry, root_uid: Optional[str]) -> str:
+    def _get_hid_fo(fo_entry: FileObjectEntry, root_uid: Optional[str] = None) -> str:
         vfp_list = fo_entry.virtual_file_paths.get(root_uid) or get_value_of_first_key(fo_entry.virtual_file_paths)
         return get_top_of_virtual_path(vfp_list[0])
 
@@ -101,7 +101,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
             for index, vfp in enumerate(item['current_virtual_path']):
                 for uid in get_uids_from_virtual_path(vfp):
                     vfp = vfp.replace(uid, hid_dict.get(uid, uid))
-                item['current_virtual_path'][index] = vfp.lstrip('|')
+                item['current_virtual_path'][index] = vfp.lstrip('|').replace('|', ' | ')
 
     def _get_hid_dict(self, uid_set: Set[str], root_uid: str) -> Dict[str, str]:
         with self.get_read_only_session() as session:
@@ -203,27 +203,41 @@ class FrontEndDbInterface(DbInterfaceCommon):
             query = query.limit(limit)
         return query
 
-    def _get_meta_for_entry(self, entry: Union[FirmwareEntry, FileObjectEntry]):
+    def _get_meta_for_entry(self, entry: Union[FirmwareEntry, FileObjectEntry]) -> MetaEntry:
         if isinstance(entry, FirmwareEntry):
-            hid = self._get_hid_for_fw_entry(entry)
-            tags = {tag: 'secondary' for tag in entry.firmware_tags}
-            submission_date = entry.submission_date
-        else:  # FileObjectEntry
-            hid = self._get_one_virtual_path(entry)
-            tags = {}
-            submission_date = 0
-        tags = {**tags, self._get_unpacker_name(entry): TagColor.LIGHT_BLUE}
-        # ToDo: use NamedTuple Attributes in Template instead of indices
+            return self._get_meta_for_fw(entry)
+        if entry.is_firmware:
+            return self._get_meta_for_fw(entry.firmware)
+        return self._get_meta_for_fo(entry)
+
+    def _get_meta_for_fo(self, entry: FileObjectEntry) -> MetaEntry:
+        root_hid = self._get_fo_root_hid(entry)
+        tags = {self._get_unpacker_name(entry): TagColor.LIGHT_BLUE}
+        return MetaEntry(entry.uid, f'{root_hid}{self._get_hid_fo(entry)}', tags, 0)
+
+    @staticmethod
+    def _get_fo_root_hid(entry: FileObjectEntry) -> str:
+        for root_fo in entry.root_firmware:
+            root_fw = root_fo.firmware
+            root_hid = f'{root_fw.vendor} {root_fw.device_name} | '
+            break
+        else:
+            root_hid = ''
+        return root_hid
+
+    def _get_meta_for_fw(self, entry: FirmwareEntry) -> MetaEntry:
+        hid = self._get_hid_for_fw_entry(entry)
+        tags = {
+            **{tag: 'secondary' for tag in entry.firmware_tags},
+            self._get_unpacker_name(entry): TagColor.LIGHT_BLUE
+        }
+        submission_date = entry.submission_date
         return MetaEntry(entry.uid, hid, tags, submission_date)
 
     @staticmethod
     def _get_hid_for_fw_entry(entry: FirmwareEntry) -> str:
         part = '' if entry.device_part == '' else f' {entry.device_part}'
         return f'{entry.vendor} {entry.device_name} -{part} {entry.version} ({entry.device_class})'
-
-    @staticmethod
-    def _get_one_virtual_path(fo_entry: FileObjectEntry) -> str:
-        return list(fo_entry.virtual_file_paths.values())[0][0]
 
     def _get_unpacker_name(self, fw_entry: FirmwareEntry) -> str:
         unpacker_analysis = self.get_analysis(fw_entry.uid, 'unpacker')

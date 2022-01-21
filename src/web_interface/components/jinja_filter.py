@@ -11,6 +11,7 @@ from helperFunctions.hash import get_md5
 from helperFunctions.uid import is_list_of_uids, is_uid
 from helperFunctions.virtual_file_path import split_virtual_path
 from helperFunctions.web_interface import cap_length_of_element, get_color_list
+from storage_postgresql.db_interface_frontend import MetaEntry
 from web_interface.filter import elapsed_time, random_collapse_id
 
 
@@ -107,7 +108,7 @@ class FilterClass:
         return render_template('generic_view/firmware_detail_tabular_field.html', firmware=firmware_meta_data)
 
     @staticmethod
-    def _render_general_information_table(firmware, root_uid, other_versions, selected_analysis):
+    def _render_general_information_table(firmware: MetaEntry, root_uid: str, other_versions, selected_analysis):
         return render_template(
             'generic_view/general_information.html',
             firmware=firmware, root_uid=root_uid, other_versions=other_versions, selected_analysis=selected_analysis
