@@ -9,10 +9,10 @@ from web_interface.security.authentication import add_flask_security_to_app
 
 INTERCOM = 'intercom.front_end_binding.InterComFrontEndBinding'
 DB_INTERFACES = [
-    'storage_postgresql.db_interface_frontend.FrontEndDbInterface',
-    'storage_postgresql.db_interface_frontend_editing.FrontendEditingDbInterface',
-    'storage_postgresql.db_interface_comparison.ComparisonDbInterface',
-    'storage_postgresql.db_interface_stats.StatsDbViewer',
+    'storage.db_interface_frontend.FrontEndDbInterface',
+    'storage.db_interface_frontend_editing.FrontendEditingDbInterface',
+    'storage.db_interface_comparison.ComparisonDbInterface',
+    'storage.db_interface_stats.StatsDbViewer',
 ]
 
 

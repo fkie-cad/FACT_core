@@ -7,9 +7,9 @@ from sqlalchemy import func, select
 from helperFunctions.data_conversion import (
     convert_compare_id_to_list, convert_uid_list_to_compare_id, normalize_compare_id
 )
-from storage_postgresql.db_interface_base import ReadWriteDbInterface
-from storage_postgresql.db_interface_common import DbInterfaceCommon
-from storage_postgresql.schema import AnalysisEntry, ComparisonEntry, FileObjectEntry
+from storage.db_interface_base import ReadWriteDbInterface
+from storage.db_interface_common import DbInterfaceCommon
+from storage.schema import AnalysisEntry, ComparisonEntry, FileObjectEntry
 
 
 class FactComparisonException(Exception):

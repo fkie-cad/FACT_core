@@ -6,7 +6,7 @@ from tempfile import TemporaryDirectory
 import magic
 import pytest
 
-from storage_postgresql.binary_service import BinaryService
+from storage.binary_service import BinaryService
 from test.common_helper import create_test_firmware, get_config_for_testing, store_binary_on_file_system
 
 TEST_FW = create_test_firmware()

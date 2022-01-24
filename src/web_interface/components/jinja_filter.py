@@ -11,7 +11,7 @@ from helperFunctions.hash import get_md5
 from helperFunctions.uid import is_list_of_uids, is_uid
 from helperFunctions.virtual_file_path import split_virtual_path
 from helperFunctions.web_interface import cap_length_of_element, get_color_list
-from storage_postgresql.db_interface_frontend import MetaEntry
+from storage.db_interface_frontend import MetaEntry
 from web_interface.filter import elapsed_time, random_collapse_id
 
 

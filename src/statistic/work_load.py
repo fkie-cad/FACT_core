@@ -9,7 +9,7 @@ from time import time
 import distro
 import psutil
 
-from storage_postgresql.db_interface_stats import StatsUpdateDbInterface
+from storage.db_interface_stats import StatsUpdateDbInterface
 from version import __VERSION__
 
 

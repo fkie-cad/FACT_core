@@ -4,7 +4,7 @@ from pathlib import Path
 from subprocess import check_output
 from typing import List, Optional
 
-from storage_postgresql.db_interface_admin import AdminDbInterface
+from storage.db_interface_admin import AdminDbInterface
 
 try:
     from helperFunctions.config import load_config

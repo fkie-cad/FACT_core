@@ -13,7 +13,7 @@ from helperFunctions.docker import run_docker_container
 from helperFunctions.tag import TagColor
 from helperFunctions.virtual_file_path import get_parent_uids_from_virtual_path
 from objects.file import FileObject
-from storage_postgresql.db_interface_common import DbInterfaceCommon
+from storage.db_interface_common import DbInterfaceCommon
 
 DOCKER_IMAGE = 'fs_metadata_mounting'
 StatResult = NamedTuple(

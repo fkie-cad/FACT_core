@@ -1,7 +1,7 @@
 import json
 from urllib.parse import quote
 
-from storage_postgresql.db_interface_backend import BackendDbInterface
+from storage.db_interface_backend import BackendDbInterface
 from test.acceptance.base import TestAcceptanceBase  # pylint: disable=wrong-import-order
 from test.common_helper import (  # pylint: disable=wrong-import-order
     create_test_file_object, create_test_firmware, generate_analysis_entry

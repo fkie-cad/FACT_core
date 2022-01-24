@@ -6,8 +6,8 @@ from typing import Dict, List, Optional, Tuple
 from common_helper_filter.time import time_format
 
 from statistic.time_stats import build_stats_entry_from_date_query
-from storage_postgresql.db_interface_stats import RelativeStats, Stats, StatsUpdateDbInterface, count_occurrences
-from storage_postgresql.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry
+from storage.db_interface_stats import RelativeStats, Stats, StatsUpdateDbInterface, count_occurrences
+from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry
 
 
 class StatsUpdater:

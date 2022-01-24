@@ -1,4 +1,4 @@
-from storage_postgresql.db_interface_view_sync import ViewReader, ViewUpdater
+from storage.db_interface_view_sync import ViewReader, ViewUpdater
 from test.common_helper import get_config_for_testing  # pylint: disable=wrong-import-order
 
 CONFIG = get_config_for_testing()

@@ -4,7 +4,7 @@ from multiprocessing import Queue
 
 from objects.firmware import Firmware
 from scheduler.unpacking_scheduler import UnpackingScheduler
-from storage_postgresql.unpacking_locks import UnpackingLockManager
+from storage.unpacking_locks import UnpackingLockManager
 from test.common_helper import get_test_data_dir
 from test.integration.common import MockFSOrganizer, initialize_config
 

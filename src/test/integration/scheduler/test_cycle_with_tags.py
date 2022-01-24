@@ -7,9 +7,9 @@ from time import sleep
 from objects.firmware import Firmware
 from scheduler.analysis import AnalysisScheduler
 from scheduler.unpacking_scheduler import UnpackingScheduler
+from storage.db_interface_backend import BackendDbInterface
 from storage.MongoMgr import MongoMgr
-from storage_postgresql.db_interface_backend import BackendDbInterface
-from storage_postgresql.unpacking_locks import UnpackingLockManager
+from storage.unpacking_locks import UnpackingLockManager
 from test.common_helper import clean_test_database, get_database_names, get_test_data_dir
 from test.integration.common import initialize_config
 

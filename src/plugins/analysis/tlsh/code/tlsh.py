@@ -2,8 +2,8 @@ from sqlalchemy import select
 
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.hash import get_tlsh_comparison
-from storage_postgresql.db_interface_base import ReadOnlyDbInterface
-from storage_postgresql.schema import AnalysisEntry
+from storage.db_interface_base import ReadOnlyDbInterface
+from storage.schema import AnalysisEntry
 
 
 class AnalysisPlugin(AnalysisBasePlugin):

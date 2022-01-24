@@ -1,7 +1,7 @@
 # pylint: disable=wrong-import-order
 from io import BytesIO
 
-from storage_postgresql.db_interface_frontend import MetaEntry
+from storage.db_interface_frontend import MetaEntry
 from test.common_helper import CommonDatabaseMock
 from test.unit.web_interface.base import WebInterfaceTest
 

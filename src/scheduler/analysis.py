@@ -17,8 +17,8 @@ from helperFunctions.process import ExceptionSafeProcess, check_worker_exception
 from objects.file import FileObject
 from scheduler.analysis_status import AnalysisStatus
 from scheduler.task_scheduler import MANDATORY_PLUGINS, AnalysisTaskScheduler
-from storage_postgresql.db_interface_backend import BackendDbInterface
-from storage_postgresql.unpacking_locks import UnpackingLockManager
+from storage.db_interface_backend import BackendDbInterface
+from storage.unpacking_locks import UnpackingLockManager
 
 
 class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes

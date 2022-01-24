@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Dict, List, Tuple
 
-from storage_postgresql.db_interface_stats import Stats
+from storage.db_interface_stats import Stats
 
 
 def build_stats_entry_from_date_query(release_date_stats: List[Tuple[int, int, int]]) -> Stats:

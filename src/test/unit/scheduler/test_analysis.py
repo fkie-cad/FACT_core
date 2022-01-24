@@ -9,7 +9,7 @@ import pytest
 
 from objects.firmware import Firmware
 from scheduler.analysis import MANDATORY_PLUGINS, AnalysisScheduler
-from storage_postgresql.unpacking_locks import UnpackingLockManager
+from storage.unpacking_locks import UnpackingLockManager
 from test.common_helper import MockFileObject, get_config_for_testing, get_test_data_dir
 from test.mock import mock_patch, mock_spy
 

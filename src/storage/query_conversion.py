@@ -4,7 +4,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql import Select
 
-from storage_postgresql.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry
+from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry
 
 FIRMWARE_ORDER = FirmwareEntry.vendor.asc(), FirmwareEntry.device_name.asc()
 

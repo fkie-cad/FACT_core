@@ -7,8 +7,8 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import InstrumentedAttribute, aliased
 from sqlalchemy.sql import Select
 
-from storage_postgresql.db_interface_base import ReadOnlyDbInterface, ReadWriteDbInterface
-from storage_postgresql.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry, StatsEntry
+from storage.db_interface_base import ReadOnlyDbInterface, ReadWriteDbInterface
+from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry, StatsEntry
 
 Number = Union[float, int]
 Stats = List[Tuple[str, int]]

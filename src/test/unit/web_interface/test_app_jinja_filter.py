@@ -1,7 +1,7 @@
 # pylint: disable=protected-access,wrong-import-order,attribute-defined-outside-init
 from flask import render_template_string
 
-from storage_postgresql.db_interface_frontend import MetaEntry
+from storage.db_interface_frontend import MetaEntry
 from test.unit.web_interface.base import WebInterfaceTest
 from web_interface.components.jinja_filter import FilterClass
 

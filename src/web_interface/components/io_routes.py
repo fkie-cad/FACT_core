@@ -13,7 +13,7 @@ from helperFunctions.mongo_task_conversion import (
     check_for_errors, convert_analysis_task_to_fw_obj, create_analysis_task
 )
 from helperFunctions.pdf import build_pdf_report
-from storage_postgresql.db_interface_comparison import FactComparisonException
+from storage.db_interface_comparison import FactComparisonException
 from web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES

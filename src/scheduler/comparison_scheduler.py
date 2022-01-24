@@ -5,7 +5,7 @@ from queue import Empty
 from compare.compare import Compare
 from helperFunctions.data_conversion import convert_compare_id_to_list
 from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions, new_worker_was_started
-from storage_postgresql.db_interface_comparison import ComparisonDbInterface
+from storage.db_interface_comparison import ComparisonDbInterface
 
 
 class ComparisonScheduler:

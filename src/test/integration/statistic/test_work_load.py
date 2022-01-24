@@ -3,7 +3,7 @@ from math import isclose
 from time import time
 
 from statistic.work_load import WorkLoadStatistic
-from storage_postgresql.db_interface_stats import StatsDbViewer
+from storage.db_interface_stats import StatsDbViewer
 from test.common_helper import get_config_for_testing  # pylint: disable=wrong-import-order
 
 

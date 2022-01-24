@@ -3,7 +3,7 @@ from time import time
 
 import pytest
 
-from storage_postgresql.schema import ComparisonEntry
+from storage.schema import ComparisonEntry
 from test.common_helper import create_test_firmware  # pylint: disable=wrong-import-order
 
 

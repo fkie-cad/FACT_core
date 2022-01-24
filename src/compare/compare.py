@@ -4,8 +4,8 @@ from typing import Optional
 
 from helperFunctions.plugin import import_plugins
 from objects.firmware import Firmware
-from storage_postgresql.binary_service import BinaryService
-from storage_postgresql.db_interface_comparison import ComparisonDbInterface
+from storage.binary_service import BinaryService
+from storage.db_interface_comparison import ComparisonDbInterface
 
 
 class Compare:

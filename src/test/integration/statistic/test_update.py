@@ -5,7 +5,7 @@ from math import isclose
 import pytest
 
 from statistic.update import StatsUpdater
-from storage_postgresql.db_interface_stats import StatsUpdateDbInterface
+from storage.db_interface_stats import StatsUpdateDbInterface
 from test.common_helper import (
     create_test_file_object, create_test_firmware, generate_analysis_entry, get_config_for_testing
 )

@@ -14,11 +14,11 @@ from intercom.back_end_binding import InterComBackEndBinding
 from scheduler.analysis import AnalysisScheduler
 from scheduler.comparison_scheduler import ComparisonScheduler
 from scheduler.unpacking_scheduler import UnpackingScheduler
+from storage.db_interface_admin import AdminDbInterface
+from storage.db_interface_backend import BackendDbInterface
+from storage.fsorganizer import FSOrganizer
 from storage.MongoMgr import MongoMgr
-from storage_postgresql.db_interface_admin import AdminDbInterface
-from storage_postgresql.db_interface_backend import BackendDbInterface
-from storage_postgresql.fsorganizer import FSOrganizer
-from storage_postgresql.unpacking_locks import UnpackingLockManager
+from storage.unpacking_locks import UnpackingLockManager
 from test.common_helper import setup_test_tables  # pylint: disable=wrong-import-order
 from test.common_helper import clean_test_database, get_database_names  # pylint: disable=wrong-import-order
 from web_interface.frontend_main import WebFrontEnd

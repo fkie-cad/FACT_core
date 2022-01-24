@@ -3,8 +3,8 @@ from math import isclose
 
 import pytest
 
-from storage_postgresql.db_interface_stats import StatsDbViewer, StatsUpdateDbInterface, count_occurrences
-from storage_postgresql.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry, StatsEntry
+from storage.db_interface_stats import StatsDbViewer, StatsUpdateDbInterface, count_occurrences
+from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry, StatsEntry
 from test.common_helper import (  # pylint: disable=wrong-import-order
     create_test_file_object, create_test_firmware, generate_analysis_entry, get_config_for_testing
 )

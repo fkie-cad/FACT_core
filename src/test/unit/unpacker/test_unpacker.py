@@ -7,7 +7,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from objects.file import FileObject
-from storage_postgresql.unpacking_locks import UnpackingLockManager
+from storage.unpacking_locks import UnpackingLockManager
 from test.common_helper import create_test_file_object, get_test_data_dir
 from unpacker.unpack import Unpacker
 

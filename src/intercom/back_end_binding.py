@@ -10,10 +10,10 @@ from common_helper_mongo.gridfs import overwrite_file
 from helperFunctions.program_setup import get_log_file_for_component
 from helperFunctions.yara_binary_search import YaraBinarySearchScanner
 from intercom.common_mongo_binding import InterComListener, InterComListenerAndResponder, InterComMongoInterface
-from storage_postgresql.binary_service import BinaryService
-from storage_postgresql.db_interface_common import DbInterfaceCommon
-from storage_postgresql.fsorganizer import FSOrganizer
-from storage_postgresql.unpacking_locks import UnpackingLockManager
+from storage.binary_service import BinaryService
+from storage.db_interface_common import DbInterfaceCommon
+from storage.fsorganizer import FSOrganizer
+from storage.unpacking_locks import UnpackingLockManager
 
 
 class InterComBackEndBinding:  # pylint: disable=too-many-instance-attributes

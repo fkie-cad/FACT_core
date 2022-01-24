@@ -6,7 +6,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, sessionmaker
 
-from storage_postgresql.schema import Base
+from storage.schema import Base
 
 
 class DbInterfaceError(Exception):

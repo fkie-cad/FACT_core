@@ -3,7 +3,7 @@ from base64 import standard_b64encode
 from multiprocessing import Queue
 
 from intercom.back_end_binding import InterComBackEndBinding
-from storage_postgresql.db_interface_backend import BackendDbInterface
+from storage.db_interface_backend import BackendDbInterface
 from test.common_helper import create_test_firmware, store_binary_on_file_system
 from test.integration.intercom import test_backend_scheduler
 from test.integration.web_interface.rest.base import RestTestBase

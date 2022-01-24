@@ -2,7 +2,7 @@ import logging
 from pathlib import Path
 from typing import Optional
 
-from storage_postgresql.db_interface_view_sync import ViewUpdater
+from storage.db_interface_view_sync import ViewUpdater
 
 
 class BasePlugin:

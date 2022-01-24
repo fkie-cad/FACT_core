@@ -2,7 +2,7 @@
 
 import json
 
-from storage_postgresql.db_interface_stats import StatsUpdateDbInterface
+from storage.db_interface_stats import StatsUpdateDbInterface
 from test.integration.web_interface.rest.base import RestTestBase
 
 

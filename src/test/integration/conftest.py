@@ -1,12 +1,12 @@
 import pytest
 
 from objects.file import FileObject
-from storage_postgresql.db_interface_admin import AdminDbInterface
-from storage_postgresql.db_interface_backend import BackendDbInterface
-from storage_postgresql.db_interface_common import DbInterfaceCommon
-from storage_postgresql.db_interface_comparison import ComparisonDbInterface
-from storage_postgresql.db_interface_frontend import FrontEndDbInterface
-from storage_postgresql.db_interface_frontend_editing import FrontendEditingDbInterface
+from storage.db_interface_admin import AdminDbInterface
+from storage.db_interface_backend import BackendDbInterface
+from storage.db_interface_common import DbInterfaceCommon
+from storage.db_interface_comparison import ComparisonDbInterface
+from storage.db_interface_frontend import FrontEndDbInterface
+from storage.db_interface_frontend_editing import FrontendEditingDbInterface
 from test.common_helper import get_config_for_testing, setup_test_tables  # pylint: disable=wrong-import-order
 
 

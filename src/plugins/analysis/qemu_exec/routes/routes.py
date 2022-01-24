@@ -4,7 +4,7 @@ from flask import render_template_string
 from flask_restx import Namespace
 
 from helperFunctions.virtual_file_path import get_parent_uids_from_virtual_path
-from storage_postgresql.db_interface_frontend import FrontEndDbInterface
+from storage.db_interface_frontend import FrontEndDbInterface
 from web_interface.components.component_base import ComponentBase
 from web_interface.rest.helper import error_message, success_message
 from web_interface.rest.rest_resource_base import RestResourceBase

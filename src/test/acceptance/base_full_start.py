@@ -2,7 +2,7 @@ import time
 from multiprocessing import Event, Value
 from pathlib import Path
 
-from storage_postgresql.db_interface_backend import BackendDbInterface
+from storage.db_interface_backend import BackendDbInterface
 from test.acceptance.base import TestAcceptanceBase  # pylint: disable=wrong-import-order
 from test.common_helper import get_test_data_dir  # pylint: disable=wrong-import-order
 

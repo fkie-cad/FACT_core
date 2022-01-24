@@ -1,15 +1,21 @@
 import json
 import logging
+import pickle
 import sys
 from base64 import b64encode
+from typing import List, Optional, Union
 
+import gridfs
 from sqlalchemy.exc import StatementError
 
 from helperFunctions.config import load_config
+from helperFunctions.data_conversion import convert_time_to_str
 from helperFunctions.database import ConnectTo
-from storage.db_interface_compare import CompareDbInterface
-from storage_postgresql.db_interface_backend import BackendDbInterface
-from storage_postgresql.db_interface_comparison import ComparisonDbInterface
+from objects.file import FileObject
+from objects.firmware import Firmware
+from storage.db_interface_backend import BackendDbInterface
+from storage.db_interface_comparison import ComparisonDbInterface
+from storage.mongo_interface import MongoInterface
 
 try:
     from tqdm import tqdm
@@ -18,7 +24,129 @@ except ImportError:
     sys.exit(1)
 
 
-def _fix_illegal_dict(dict_: dict, label=''):
+class MigrationMongoInterface(MongoInterface):
+
+    def _setup_database_mapping(self):
+        main_database = self.config['data_storage']['main_database']
+        self.main = self.client[main_database]
+        self.firmwares = self.main.firmwares
+        self.file_objects = self.main.file_objects
+        self.compare_results = self.main.compare_results
+        # sanitize stuff
+        sanitize_db = self.config['data_storage'].get('sanitize_database', 'faf_sanitize')
+        self.sanitize_storage = self.client[sanitize_db]
+        self.sanitize_fs = gridfs.GridFS(self.sanitize_storage)
+
+    def get_object(self, uid, analysis_filter=None):
+        """
+        input uid
+        output:
+            - firmware_object if uid found in firmware database
+            - else: file_object if uid found in file_database
+            - else: None
+        """
+        fo = self.get_file_object(uid, analysis_filter=analysis_filter)
+        if fo is None:
+            fo = self.get_firmware(uid, analysis_filter=analysis_filter)
+        return fo
+
+    def get_firmware(self, uid: str, analysis_filter: Optional[List[str]] = None) -> Optional[Firmware]:
+        firmware_entry = self.firmwares.find_one(uid)
+        if firmware_entry:
+            return self._convert_to_firmware(firmware_entry, analysis_filter=analysis_filter)
+        logging.debug(f'No firmware with UID {uid} found.')
+        return None
+
+    def _convert_to_firmware(self, entry: dict, analysis_filter: List[str] = None) -> Firmware:
+        firmware = Firmware()
+        firmware.uid = entry['_id']
+        firmware.size = entry['size']
+        firmware.file_name = entry['file_name']
+        firmware.device_name = entry['device_name']
+        firmware.device_class = entry['device_class']
+        firmware.release_date = convert_time_to_str(entry['release_date'])
+        firmware.vendor = entry['vendor']
+        firmware.version = entry['version']
+        firmware.processed_analysis = self.retrieve_analysis(
+            entry['processed_analysis'], analysis_filter=analysis_filter
+        )
+        firmware.files_included = set(entry['files_included'])
+        firmware.virtual_file_path = entry['virtual_file_path']
+        firmware.tags = entry.get('tags', {})
+        firmware.set_part_name(entry.get('device_part', 'complete'))
+        firmware.comments = entry.get('comments', [])
+        return firmware
+
+    def get_file_object(self, uid: str, analysis_filter: Optional[List[str]] = None) -> Optional[FileObject]:
+        file_entry = self.file_objects.find_one(uid)
+        if file_entry:
+            return self._convert_to_file_object(file_entry, analysis_filter=analysis_filter)
+        logging.debug(f'No FileObject with UID {uid} found.')
+        return None
+
+    def _convert_to_file_object(self, entry: dict, analysis_filter: Optional[List[str]] = None) -> FileObject:
+        file_object = FileObject()
+        file_object.uid = entry['_id']
+        file_object.size = entry['size']
+        file_object.file_name = entry['file_name']
+        file_object.virtual_file_path = entry['virtual_file_path']
+        file_object.parents = entry['parents']
+        file_object.processed_analysis = self.retrieve_analysis(
+            entry['processed_analysis'], analysis_filter=analysis_filter
+        )
+        file_object.files_included = set(entry['files_included'])
+        file_object.parent_firmware_uids = set(entry['parent_firmware_uids'])
+        file_object.comments = entry.get('comments', [])
+        return file_object
+
+    def retrieve_analysis(self, sanitized_dict: dict, analysis_filter: Optional[List[str]] = None) -> dict:
+        """
+        retrieves analysis including sanitized entries
+        :param sanitized_dict: processed analysis dictionary including references to sanitized entries
+        :param analysis_filter: list of analysis plugins to be restored
+        :default None:
+        :return: dict
+        """
+        if analysis_filter is None:
+            plugins = sanitized_dict.keys()
+        else:
+            # only use the plugins from analysis_filter that are actually in the results
+            plugins = set(sanitized_dict.keys()).intersection(analysis_filter)
+        for key in plugins:
+            try:
+                if sanitized_dict[key]['file_system_flag']:
+                    logging.debug(f'Retrieving stored file {key}')
+                    sanitized_dict[key].pop('file_system_flag')
+                    sanitized_dict[key] = self._retrieve_binaries(sanitized_dict, key)
+                else:
+                    sanitized_dict[key].pop('file_system_flag')
+            except (KeyError, IndexError, AttributeError, TypeError, pickle.PickleError):
+                logging.error('Could not retrieve information:', exc_info=True)
+        return sanitized_dict
+
+    def _retrieve_binaries(self, sanitized_dict, key):
+        tmp_dict = {}
+        for analysis_key in sanitized_dict[key].keys():
+            if self.is_not_sanitized(analysis_key, sanitized_dict[key]):
+                tmp_dict[analysis_key] = sanitized_dict[key][analysis_key]
+            else:
+                logging.debug(f'Retrieving {analysis_key}')
+                tmp = self.sanitize_fs.get_last_version(sanitized_dict[key][analysis_key])
+                if tmp is not None:
+                    report = pickle.loads(tmp.read())
+                else:
+                    logging.error(f'sanitized file not found: {sanitized_dict[key][analysis_key]}')
+                    report = {}
+                tmp_dict[analysis_key] = report
+        return tmp_dict
+
+    @staticmethod
+    def is_not_sanitized(field, analysis_result):
+        # As of now, all _saved_ fields are dictionaries, so the str check ensures it's not a reference to gridFS
+        return field in ['summary', 'tags'] and not isinstance(analysis_result[field], str)
+
+
+def _fix_illegal_dict(dict_: dict, label=''):  # pylint: disable=too-complex
     for key, value in dict_.items():
         if isinstance(value, bytes):
             if key == 'entropy_analysis_graph':
@@ -39,14 +167,18 @@ def _fix_illegal_dict(dict_: dict, label=''):
             _fix_illegal_list(value, key, label)
         elif isinstance(value, str):
             if '\0' in value:
-                logging.debug(f'entry ({label}) {key} contains illegal character "\\0": {value[:10]} -> replacing with "?"')
+                logging.debug(
+                    f'entry ({label}) {key} contains illegal character "\\0": {value[:10]} -> replacing with "?"'
+                )
                 dict_[key] = value.replace('\0', '\\x00')
 
 
 def _fix_illegal_list(list_: list, key=None, label=''):
     for index, element in enumerate(list_):
         if isinstance(element, bytes):
-            logging.debug(f'array entry ({label}) {key} has illegal type bytes: {element[:10]}... -> converting to str...')
+            logging.debug(
+                f'array entry ({label}) {key} has illegal type bytes: {element[:10]}... -> converting to str...'
+            )
             list_[index] = element.decode()
         elif isinstance(element, dict):
             _fix_illegal_dict(element, label)
@@ -54,7 +186,9 @@ def _fix_illegal_list(list_: list, key=None, label=''):
             _fix_illegal_list(element, key, label)
         elif isinstance(element, str):
             if '\0' in element:
-                logging.debug(f'entry ({label}) {key} contains illegal character "\\0": {element[:10]} -> replacing with "?"')
+                logging.debug(
+                    f'entry ({label}) {key} contains illegal character "\\0": {element[:10]} -> replacing with "?"'
+                )
                 list_[index] = element.replace('\0', '\\x00')
 
 
@@ -70,14 +204,15 @@ def main():
     config = load_config('main.cfg')
     postgres = BackendDbInterface(config=config)
 
-    with ConnectTo(CompareDbInterface, config) as db:
+    with ConnectTo(MigrationMongoInterface, config) as db:
         migrate_fw(postgres, {}, db, True)
         migrate_comparisons(db, config)
 
 
-def migrate_fw(postgres: BackendDbInterface, query, db, root=False, root_uid=None, parent_uid=None):
+def migrate_fw(postgres: BackendDbInterface, query, mongo: MigrationMongoInterface, root=False, root_uid=None,
+               parent_uid=None):
     label = 'firmware' if root else 'file_object'
-    collection = db.firmwares if root else db.file_objects
+    collection = mongo.firmwares if root else mongo.file_objects
     total = collection.count_documents(query)
     logging.debug(f'Migrating {total} {label} entries')
     for entry in tqdm(collection.find(query, {'_id': 1}), total=total, leave=root):
@@ -86,34 +221,41 @@ def migrate_fw(postgres: BackendDbInterface, query, db, root=False, root_uid=Non
             if not root:
                 postgres.update_file_object_parents(uid, root_uid, parent_uid)
             # root fw uid must be updated for all included files :(
-            firmware_object = db.get_object(uid)
+            firmware_object = mongo.get_object(uid)
             query = {'_id': {'$in': list(firmware_object.files_included)}}
-            migrate_fw(postgres, query, db, root_uid=firmware_object.uid if root else root_uid, parent_uid=firmware_object.uid)
+            migrate_fw(
+                postgres, query, mongo,
+                root_uid=firmware_object.uid if root else root_uid, parent_uid=firmware_object.uid
+            )
         else:
-            firmware_object = (db.get_firmware if root else db.get_file_object)(uid)
-            firmware_object.parents = [parent_uid]
-            firmware_object.parent_firmware_uids = [root_uid]
-            for plugin, plugin_data in firmware_object.processed_analysis.items():
-                _fix_illegal_dict(plugin_data, plugin)
-                _check_for_missing_fields(plugin, plugin_data)
-            try:
-                postgres.insert_object(firmware_object)
-            except StatementError:
-                logging.error(f'Firmware contains errors: {firmware_object}')
-                raise
-            except KeyError:
-                logging.error(
-                    f'fields missing from analysis data: \n'
-                    f'{json.dumps(firmware_object.processed_analysis, indent=2)}',
-                    exc_info=True
-                )
-                raise
+            firmware_object = mongo.get_object(uid)
+            _migrate_single_object(firmware_object, parent_uid, postgres, root_uid)
             query = {'_id': {'$in': list(firmware_object.files_included)}}
             root_uid = firmware_object.uid if root else root_uid
-            migrate_fw(postgres, query, db, root_uid=root_uid, parent_uid=firmware_object.uid)
+            migrate_fw(postgres, query, mongo, root_uid=root_uid, parent_uid=firmware_object.uid)
 
 
-def migrate_comparisons(mongo, config):
+def _migrate_single_object(firmware_object: Union[Firmware, FileObject], parent_uid: str, postgres, root_uid: str):
+    firmware_object.parents = [parent_uid]
+    firmware_object.parent_firmware_uids = [root_uid]
+    for plugin, plugin_data in firmware_object.processed_analysis.items():
+        _fix_illegal_dict(plugin_data, plugin)
+        _check_for_missing_fields(plugin, plugin_data)
+    try:
+        postgres.insert_object(firmware_object)
+    except StatementError:
+        logging.error(f'Firmware contains errors: {firmware_object}')
+        raise
+    except KeyError:
+        logging.error(
+            f'fields missing from analysis data: \n'
+            f'{json.dumps(firmware_object.processed_analysis, indent=2)}',
+            exc_info=True
+        )
+        raise
+
+
+def migrate_comparisons(mongo: MigrationMongoInterface, config):
     count = 0
     compare_db = ComparisonDbInterface(config=config)
     for entry in mongo.compare_results.find({}):

@@ -27,7 +27,7 @@ from intercom.back_end_binding import InterComBackEndBinding
 from scheduler.analysis import AnalysisScheduler
 from scheduler.comparison_scheduler import ComparisonScheduler
 from scheduler.unpacking_scheduler import UnpackingScheduler
-from storage_postgresql.unpacking_locks import UnpackingLockManager
+from storage.unpacking_locks import UnpackingLockManager
 
 
 class FactBackend(FactBase):

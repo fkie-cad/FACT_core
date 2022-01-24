@@ -1,5 +1,5 @@
 # pylint: disable=wrong-import-order
-from storage_postgresql.db_interface_frontend import MetaEntry
+from storage.db_interface_frontend import MetaEntry
 from test.common_helper import TEST_FW_2, TEST_TEXT_FILE, CommonDatabaseMock
 from test.unit.web_interface.base import WebInterfaceTest
 

@@ -5,8 +5,8 @@ from typing import List, Optional, Set
 from helperFunctions.data_conversion import convert_time_to_str
 from objects.file import FileObject
 from objects.firmware import Firmware
-from storage_postgresql.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry
-from storage_postgresql.tags import collect_analysis_tags
+from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry
+from storage.tags import collect_analysis_tags
 
 
 def firmware_from_entry(fw_entry: FirmwareEntry, analysis_filter: Optional[List[str]] = None) -> Firmware:

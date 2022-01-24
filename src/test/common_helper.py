@@ -13,8 +13,8 @@ from helperFunctions.fileSystem import get_src_dir
 from intercom.common_mongo_binding import InterComMongoInterface
 from objects.file import FileObject
 from objects.firmware import Firmware
+from storage.db_interface_admin import AdminDbInterface
 from storage.mongo_interface import MongoInterface
-from storage_postgresql.db_interface_admin import AdminDbInterface
 
 
 def get_test_data_dir():

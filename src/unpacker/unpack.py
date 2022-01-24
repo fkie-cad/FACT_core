@@ -11,7 +11,7 @@ from helperFunctions.fileSystem import file_is_empty, get_relative_object_path
 from helperFunctions.tag import TagColor
 from helperFunctions.virtual_file_path import get_base_of_virtual_path, join_virtual_path
 from objects.file import FileObject
-from storage_postgresql.fsorganizer import FSOrganizer
+from storage.fsorganizer import FSOrganizer
 from unpacker.unpack_base import UnpackBase
 
 

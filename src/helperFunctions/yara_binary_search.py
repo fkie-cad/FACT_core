@@ -8,8 +8,8 @@ from typing import Dict, List, Optional, Tuple, Union
 import yara
 from common_helper_process import execute_shell_command
 
-from storage_postgresql.db_interface_common import DbInterfaceCommon
-from storage_postgresql.fsorganizer import FSOrganizer
+from storage.db_interface_common import DbInterfaceCommon
+from storage.fsorganizer import FSOrganizer
 
 
 class YaraBinarySearchScanner:

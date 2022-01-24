@@ -1,12 +1,12 @@
 from configparser import ConfigParser
 from typing import Optional
 
-from storage_postgresql.db_interface_admin import AdminDbInterface
-from storage_postgresql.db_interface_comparison import ComparisonDbInterface
-from storage_postgresql.db_interface_frontend import FrontEndDbInterface
-from storage_postgresql.db_interface_frontend_editing import FrontendEditingDbInterface
-from storage_postgresql.db_interface_stats import StatsDbViewer, StatsUpdateDbInterface
-from storage_postgresql.db_interface_view_sync import ViewReader
+from storage.db_interface_admin import AdminDbInterface
+from storage.db_interface_comparison import ComparisonDbInterface
+from storage.db_interface_frontend import FrontEndDbInterface
+from storage.db_interface_frontend_editing import FrontendEditingDbInterface
+from storage.db_interface_stats import StatsDbViewer, StatsUpdateDbInterface
+from storage.db_interface_view_sync import ViewReader
 
 
 class FrontendDatabase:
