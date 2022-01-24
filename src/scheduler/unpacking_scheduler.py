@@ -5,7 +5,7 @@ from queue import Empty
 from time import sleep
 
 from helperFunctions.logging import TerminalColors, color_string
-from helperFunctions.process import check_worker_exceptions, new_worker_was_started, start_single_worker
+from helperFunctions.process import check_worker_exceptions, new_worker_was_started, start_single_worker, stop_processes
 from unpacker.unpack import Unpacker
 
 
@@ -44,10 +44,7 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
         '''
         logging.debug('Shutting down...')
         self.stop_condition.value = 1
-        for worker in self.workers + [self.work_load_process]:
-            worker.join(timeout=10)
-            if worker.is_alive():
-                worker.terminate()
+        stop_processes(self.workers + [self.work_load_process])
         self.in_queue.close()
         logging.info('Unpacker Module offline')
 

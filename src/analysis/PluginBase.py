@@ -4,7 +4,7 @@ from queue import Empty
 from time import time
 
 from helperFunctions.process import (
-    ExceptionSafeProcess, check_worker_exceptions, start_single_worker, terminate_process_and_children
+    ExceptionSafeProcess, check_worker_exceptions, start_single_worker, stop_processes, terminate_process_and_children
 )
 from helperFunctions.tag import TagColor
 from objects.file import FileObject
@@ -76,12 +76,11 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
 
     def shutdown(self):
         '''
-        This function can be called to shutdown all working threads
+        This function can be called to shut down all working threads
         '''
         logging.debug('Shutting down...')
         self.stop_condition.value = 1
-        for process in self.workers:
-            process.join()
+        stop_processes(self.workers)
         self.in_queue.close()
         self.out_queue.close()
 

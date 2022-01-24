@@ -13,7 +13,7 @@ from helperFunctions.compare_sets import substring_is_in_list
 from helperFunctions.config import read_list_from_config
 from helperFunctions.logging import TerminalColors, color_string
 from helperFunctions.plugin import import_plugins
-from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions
+from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions, stop_processes
 from objects.file import FileObject
 from scheduler.analysis_status import AnalysisStatus
 from scheduler.task_scheduler import MANDATORY_PLUGINS, AnalysisTaskScheduler
@@ -112,8 +112,8 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         logging.debug('Shutting down...')
         self.stop_condition.value = 1
         with ThreadPoolExecutor() as executor:
-            executor.submit(self.schedule_process.join)
-            executor.submit(self.result_collector_process.join)
+            executor.submit(stop_processes, args=([self.schedule_process],))
+            executor.submit(stop_processes, args=([self.result_collector_process],))
             for plugin in self.analysis_plugins.values():
                 executor.submit(plugin.shutdown)
         self.process_queue.close()

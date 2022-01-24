@@ -7,6 +7,7 @@ from typing import Callable, Optional, Tuple, Type
 
 from common_helper_mongo.gridfs import overwrite_file
 
+from helperFunctions.process import stop_processes
 from helperFunctions.program_setup import get_log_file_for_component
 from helperFunctions.yara_binary_search import YaraBinarySearchScanner
 from intercom.common_mongo_binding import InterComListener, InterComListenerAndResponder, InterComMongoInterface
@@ -53,10 +54,7 @@ class InterComBackEndBinding:  # pylint: disable=too-many-instance-attributes
 
     def shutdown(self):
         self.stop_condition.value = 1
-        for worker in self.process_list:  # type: Process
-            worker.join(timeout=10)
-            if worker.is_alive():
-                worker.terminate()
+        stop_processes(self.process_list)
         logging.warning('InterCom down')
 
     def _start_listener(self, listener: Type[InterComListener], do_after_function: Optional[Callable] = None, **kwargs):
