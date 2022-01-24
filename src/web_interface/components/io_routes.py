@@ -13,7 +13,6 @@ from helperFunctions.mongo_task_conversion import (
     check_for_errors, convert_analysis_task_to_fw_obj, create_analysis_task
 )
 from helperFunctions.pdf import build_pdf_report
-from storage.db_interface_comparison import FactComparisonException
 from web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
@@ -81,15 +80,13 @@ class IORoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['download'])
     @AppRoute('/ida-download/<compare_id>', GET)
     def download_ida_file(self, compare_id):
-        try:
-            result = self.db.comparison.get_comparison_result(compare_id)
-        except FactComparisonException as exception:
-            return render_template('error.html', message=exception.get_message())
+        # FixMe: IDA comparison plugin must not add binary strings to the result (not JSON compatible)
+        result = self.db.comparison.get_comparison_result(compare_id)
         if result is None:
-            return render_template('error.html', message='timeout')
+            return render_template('error.html', message=f'Comparison with ID {compare_id} not found')
         binary = result['plugins']['Ida_Diff_Highlighting']['idb_binary']
         response = make_response(binary)
-        response.headers['Content-Disposition'] = 'attachment; filename={}.idb'.format(compare_id[:8])
+        response.headers['Content-Disposition'] = f'attachment; filename={compare_id[:8]}.idb'
         return response
 
     @roles_accepted(*PRIVILEGES['download'])

@@ -22,6 +22,9 @@ class FactComparisonException(Exception):
 class ComparisonDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
     def add_comparison_result(self, comparison_result: dict):
         comparison_id = self._calculate_comp_id(comparison_result)
+        if not self.objects_exist(comparison_id):
+            logging.error(f'Could not add comparison result: not all objects found in db: {comparison_id}')
+            return
         if self.comparison_exists(comparison_id):
             self.update_comparison(comparison_id, comparison_result)
         else:
