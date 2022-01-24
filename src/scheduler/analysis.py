@@ -18,7 +18,6 @@ from objects.file import FileObject
 from scheduler.analysis_status import AnalysisStatus
 from scheduler.task_scheduler import MANDATORY_PLUGINS, AnalysisTaskScheduler
 from storage_postgresql.db_interface_backend import BackendDbInterface
-from storage_postgresql.schema import AnalysisEntry
 from storage_postgresql.unpacking_locks import UnpackingLockManager
 
 
@@ -302,14 +301,14 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
 
     def _analysis_is_already_in_db_and_up_to_date(self, analysis_to_do: str, uid: str) -> bool:
         db_entry = self.db_backend_service.get_analysis(uid, analysis_to_do)
-        if db_entry is None or 'failed' in db_entry.result:
+        if db_entry is None or 'failed' in db_entry:
             return False
-        if db_entry.plugin_version is None:
+        if db_entry['plugin_version'] is None:
             logging.error(f'Plugin Version missing: UID: {uid}, Plugin: {analysis_to_do}')
             return False
         return self._analysis_is_up_to_date(db_entry, self.analysis_plugins[analysis_to_do], uid)
 
-    def _analysis_is_up_to_date(self, db_entry: AnalysisEntry, analysis_plugin: AnalysisBasePlugin, uid: str) -> bool:
+    def _analysis_is_up_to_date(self, db_entry: dict, analysis_plugin: AnalysisBasePlugin, uid: str) -> bool:
         current_system_version = getattr(analysis_plugin, 'SYSTEM_VERSION', None)
         try:
             if self._current_version_is_newer(analysis_plugin.VERSION, current_system_version, db_entry):
@@ -321,21 +320,21 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         return self._dependencies_are_up_to_date(db_entry, analysis_plugin, uid)
 
     @staticmethod
-    def _current_version_is_newer(current_plugin_version: str, current_system_version: str, db_entry: AnalysisEntry) -> bool:
+    def _current_version_is_newer(current_plugin_version: str, current_system_version: str, db_entry: dict) -> bool:
         return (
-            parse_version(db_entry.plugin_version) < parse_version(current_plugin_version)
-            or parse_version(db_entry.system_version or '0') < parse_version(current_system_version or '0')
+            parse_version(current_plugin_version) > parse_version(db_entry['plugin_version'])
+            or parse_version(current_system_version or '0') > parse_version(db_entry['system_version'] or '0')
         )
 
-    def _dependencies_are_up_to_date(self, db_entry: AnalysisEntry, analysis_plugin: AnalysisBasePlugin, uid: str) -> bool:
+    def _dependencies_are_up_to_date(self, db_entry: dict, analysis_plugin: AnalysisBasePlugin, uid: str) -> bool:
         for dependency in analysis_plugin.DEPENDENCIES:
             dependency_entry = self.db_backend_service.get_analysis(uid, dependency)
-            if db_entry.analysis_date < dependency_entry.analysis_date:
+            if db_entry['analysis_date'] < dependency_entry['analysis_date']:
                 return False
         return True
 
     def _add_completed_analysis_results_to_file_object(self, analysis_to_do: str, fw_object: FileObject):
-        db_entry = self.db_backend_service.get_analysis_as_dict(fw_object.uid, analysis_to_do)
+        db_entry = self.db_backend_service.get_analysis(fw_object.uid, analysis_to_do)
         fw_object.processed_analysis[analysis_to_do] = db_entry
 
     # ---- 3. blacklist and whitelist ----

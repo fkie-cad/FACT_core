@@ -2,7 +2,6 @@
 
 from objects.file import FileObject
 from objects.firmware import Firmware
-from storage_postgresql.schema import AnalysisEntry
 from test.common_helper import create_test_file_object, create_test_firmware, generate_analysis_entry
 
 from .helper import TEST_FO, TEST_FO_2, TEST_FW, create_fw_with_child_fo, create_fw_with_parent_and_child
@@ -141,9 +140,12 @@ def test_get_objects_by_uid_list(db):
 def test_get_analysis(db):
     db.backend.insert_object(TEST_FW)
     result = db.common.get_analysis(TEST_FW.uid, 'file_type')
-    assert isinstance(result, AnalysisEntry)
-    assert result.plugin == 'file_type'
-    assert result.plugin_version == TEST_FW.processed_analysis['file_type']['plugin_version']
+    assert isinstance(result, dict)
+    assert result['mime'] == TEST_FW.processed_analysis['file_type']['mime']
+    assert result['summary'] == TEST_FW.processed_analysis['file_type']['summary']
+    assert result['analysis_date'] == TEST_FW.processed_analysis['file_type']['analysis_date']
+    assert result['plugin_version'] == TEST_FW.processed_analysis['file_type']['plugin_version']
+    assert result['system_version'] is None
 
 
 def test_get_complete_object(db):

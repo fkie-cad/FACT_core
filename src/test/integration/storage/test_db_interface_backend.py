@@ -97,6 +97,6 @@ def test_update_analysis(db):
     db.backend.add_analysis(TEST_FO.uid, 'dummy', updated_analysis_data)
     analysis = db.common.get_analysis(TEST_FO.uid, 'dummy')
     assert analysis is not None
-    assert analysis.result['content'] == 'file efgh'
-    assert analysis.summary == updated_analysis_data['summary']
-    assert analysis.plugin_version == updated_analysis_data['plugin_version']
+    assert analysis['content'] == 'file efgh'
+    assert analysis['summary'] == updated_analysis_data['summary']
+    assert analysis['plugin_version'] == updated_analysis_data['plugin_version']

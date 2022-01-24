@@ -1,4 +1,4 @@
-# pylint: disable=protected-access,invalid-name,wrong-import-order,use-implicit-booleaness-not-comparison
+# pylint: disable=protected-access,invalid-name,wrong-import-order,use-implicit-booleaness-not-comparison,too-many-arguments
 import gc
 import os
 from multiprocessing import Queue
@@ -227,15 +227,6 @@ class TestAnalysisSchedulerBlacklist:
         self.sched.config.set('test_plugin', 'mime_blacklist', 'type1, type2')
 
 
-class AnalysisEntryMock:
-    def __init__(self, **kwargs):
-        self.plugin = kwargs.get('plugin', 'plugin')
-        self.plugin_version = kwargs.get('plugin_version', '0')
-        self.system_version = kwargs.get('system_version', None)
-        self.analysis_date = kwargs.get('analysis_date', None)
-        self.result = kwargs.get('result', {})
-
-
 class TestAnalysisSkipping:
 
     class PluginMock:
@@ -249,7 +240,7 @@ class TestAnalysisSkipping:
 
     class BackendMock:
         def __init__(self, analysis_result):
-            self.analysis_entry = AnalysisEntryMock(**analysis_result)
+            self.analysis_entry = analysis_result
 
         def get_analysis(self, *_):
             return self.analysis_entry
@@ -289,9 +280,8 @@ class TestAnalysisSkipping:
         assert self.scheduler._analysis_is_already_in_db_and_up_to_date(plugin, '') == expected_output
 
     @pytest.mark.parametrize('db_entry', [
-        {'plugin': 'plugin'},
-        {'plugin': 'plugin', 'result': {'no': 'version'}},
-        {'plugin': 'plugin', 'result': {'failed': 'reason'}, 'plugin_version': '0', 'system_version': '0'}
+        {'plugin': 'plugin', 'plugin_version': '0'},  # 'system_version' missing
+        {'plugin': 'plugin', 'result': {'failed': 'reason'}, 'plugin_version': '0', 'system_version': '0'},  # failed
     ])
     def test_analysis_is_already_in_db_and_up_to_date__incomplete(self, db_entry):
         self.scheduler.db_backend_service = self.BackendMock(db_entry)
@@ -310,15 +300,19 @@ class TestAnalysisSkipping:
 class TestAnalysisShouldReanalyse:
     class PluginMock:
         DEPENDENCIES = ['plugin_dep']
-        VERSION = '1.0'
         NAME = 'plugin_root'
 
+        def __init__(self, plugin_version, system_version):
+            self.VERSION = plugin_version
+            self.SYSTEM_VERSION = system_version
+
     class BackendMock:
-        def __init__(self, dependency_analysis_date):
+        def __init__(self, dependency_analysis_date, system_version=None):
             self.date = dependency_analysis_date
+            self.system_version = system_version
 
         def get_analysis(self, *_):
-            return AnalysisEntryMock(analysis_date=self.date)
+            return dict(analysis_date=self.date, system_version=None)
 
     @classmethod
     def setup_class(cls):
@@ -327,14 +321,21 @@ class TestAnalysisShouldReanalyse:
         cls.scheduler = AnalysisScheduler()
         cls.init_patch.stop()
 
-    @pytest.mark.parametrize('plugin_root_date, plugin_dep_date, is_up_to_date', [
-        (10, 20, False),
-        (20, 10, True)
+    @pytest.mark.parametrize('plugin_date, dependency_date, plugin_version, system_version, db_plugin_version, db_system_version, expected_result', [
+        (10, 20, '1.0', None, '1.0', None, False),  # analysis date < dependency date => not up to date
+        (20, 10, '1.0', None, '1.0', None, True),  # analysis date > dependency date => up to date
+        (20, 10, '1.1', None, '1.0', None, False),  # plugin version > db version => not up to date
+        (20, 10, '1.0', None, '1.1', None, True),  # plugin version < db version => up to date
+        (20, 10, '1.0', '1.1', '1.0', '1.0', False),  # system version > db system version => not up to date
+        (20, 10, '1.0', '1.0', '1.0', '1.1', True),  # system version < db system version => up to date
+        (20, 10, '1.0', '1.0', '1.0', None, False),  # system version did not exist in db => not up to date
     ])
-    def test_analysis_is_up_to_date(self, plugin_root_date, plugin_dep_date, is_up_to_date):
-        analysis_db_entry = AnalysisEntryMock(plugin_version='1.0', analysis_date=plugin_root_date)
-        self.scheduler.db_backend_service = self.BackendMock(plugin_dep_date)
-        assert self.scheduler._analysis_is_up_to_date(analysis_db_entry, self.PluginMock(), 'uid') == is_up_to_date
+    def test_analysis_is_up_to_date(self, plugin_date, dependency_date, plugin_version, system_version,
+                                    db_plugin_version, db_system_version, expected_result):
+        analysis_db_entry = dict(plugin_version=db_plugin_version, analysis_date=plugin_date, system_version=db_system_version)
+        self.scheduler.db_backend_service = self.BackendMock(dependency_date)
+        plugin = self.PluginMock(plugin_version, system_version)
+        assert self.scheduler._analysis_is_up_to_date(analysis_db_entry, plugin, 'uid') == expected_result
 
 
 class PluginMock:

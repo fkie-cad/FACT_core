@@ -7,7 +7,6 @@ from flask_restx import Namespace
 
 from objects.file import FileObject
 from storage_postgresql.db_interface_frontend import FrontEndDbInterface
-from storage_postgresql.schema import AnalysisEntry
 from web_interface.components.component_base import ComponentBase
 from web_interface.rest.helper import error_message, success_message
 from web_interface.rest.rest_resource_base import RestResourceBase
@@ -25,20 +24,20 @@ def get_analysis_results_for_included_uid(uid: str, db: FrontEndDbInterface) -> 
     if this_fo is not None:
         for parent_uid in this_fo.parents:
             parent_results = db.get_analysis(parent_uid, AnalysisPlugin.NAME)
-            results.update(_get_results_from_parent_fo(parent_results, this_fo))
+            results.update(_get_results_from_parent_fo(parent_results, parent_uid, this_fo))
     return results
 
 
-def _get_results_from_parent_fo(parent_results: Optional[AnalysisEntry], this_fo: FileObject) -> dict:
-    if parent_results is None or 'files' not in parent_results.result:
+def _get_results_from_parent_fo(parent_results: Optional[dict], parent_uid: str, this_fo: FileObject) -> dict:
+    if parent_results is None or 'files' not in parent_results:
         return {}
 
     results = {}
-    for file_name in _get_parent_file_names(parent_results.uid, this_fo):
+    for file_name in _get_parent_file_names(parent_uid, this_fo):
         encoded_name = b64encode(file_name.encode()).decode()
-        if encoded_name in parent_results.result['files']:
-            results[file_name] = parent_results.result['files'][encoded_name]
-            results[file_name]['parent_uid'] = parent_results.uid
+        if encoded_name in parent_results['files']:
+            results[file_name] = parent_results['files'][encoded_name]
+            results[file_name]['parent_uid'] = parent_uid
     return results
 
 

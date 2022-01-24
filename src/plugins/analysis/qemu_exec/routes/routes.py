@@ -5,7 +5,6 @@ from flask_restx import Namespace
 
 from helperFunctions.virtual_file_path import get_parent_uids_from_virtual_path
 from storage_postgresql.db_interface_frontend import FrontEndDbInterface
-from storage_postgresql.schema import AnalysisEntry
 from web_interface.components.component_base import ComponentBase
 from web_interface.rest.helper import error_message, success_message
 from web_interface.rest.rest_resource_base import RestResourceBase
@@ -28,13 +27,13 @@ def get_analysis_results_for_included_uid(uid: str, db: FrontEndDbInterface):  #
     return results
 
 
-def _get_results_from_parent_fo(analysis_entry: AnalysisEntry, uid: str):
+def _get_results_from_parent_fo(analysis_entry: dict, uid: str):
     if (
         analysis_entry is not None
-        and 'files' in analysis_entry.result
-        and uid in analysis_entry.result['files']
+        and 'files' in analysis_entry
+        and uid in analysis_entry['files']
     ):
-        return analysis_entry.result['files'][uid]
+        return analysis_entry['files'][uid]
     return None
 
 

@@ -101,7 +101,7 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
             ]
             return file_objects + firmware
 
-    def get_analysis(self, uid: str, plugin: str) -> Optional[AnalysisEntry]:
+    def _get_analysis_entry(self, uid: str, plugin: str) -> Optional[AnalysisEntry]:
         with self.get_read_only_session() as session:
             try:
                 query = select(AnalysisEntry).filter_by(uid=uid, plugin=plugin)
@@ -109,8 +109,8 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
             except NoResultFound:
                 return None
 
-    def get_analysis_as_dict(self, uid: str, plugin: str) -> Optional[dict]:
-        entry = self.get_analysis(uid, plugin)
+    def get_analysis(self, uid: str, plugin: str) -> Optional[dict]:
+        entry = self._get_analysis_entry(uid, plugin)
         if entry is None:
             return None
         return analysis_entry_to_dict(entry)

@@ -77,7 +77,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         for parent_uid in get_parent_uids_from_virtual_path(file_object):
             analysis_entry = self.db.get_analysis(parent_uid, 'file_type')
             if analysis_entry is not None:
-                if self._has_correct_type(analysis_entry.result['mime']):
+                if self._has_correct_type(analysis_entry['mime']):
                     return True
         return False
 
