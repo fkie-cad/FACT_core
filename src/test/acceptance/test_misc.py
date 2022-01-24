@@ -4,9 +4,9 @@ import os
 import time
 from multiprocessing import Event, Value
 
-from statistic.update import StatisticUpdater
+from statistic.update import StatsUpdater
 from statistic.work_load import WorkLoadStatistic
-from storage.db_interface_backend import BackEndDbInterface
+from storage.db_interface_backend import BackendDbInterface
 from test.acceptance.base import TestAcceptanceBase
 from test.common_helper import get_test_data_dir
 
@@ -16,29 +16,27 @@ class TestAcceptanceMisc(TestAcceptanceBase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.db_backend_service = BackEndDbInterface(config=cls.config)
+        cls.db_backend_service = BackendDbInterface(config=cls.config)
         cls.analysis_finished_event = Event()
         cls.elements_finished_analyzing = Value('i', 0)
 
     def setUp(self):
         super().setUp()
         self._start_backend(post_analysis=self._analysis_callback)
-        self.updater = StatisticUpdater(config=self.config)
+        self.updater = StatsUpdater(config=self.config)
         self.workload = WorkLoadStatistic(config=self.config, component='backend')
         time.sleep(2)  # wait for systems to start
 
     def tearDown(self):
-        self.updater.shutdown()
         self._stop_backend()
         super().tearDown()
 
     @classmethod
     def tearDownClass(cls):
-        cls.db_backend_service.shutdown()
         super().tearDownClass()
 
-    def _analysis_callback(self, fo):
-        self.db_backend_service.add_analysis(fo)
+    def _analysis_callback(self, uid: str, plugin: str, analysis_dict: dict):
+        self.db_backend_service.add_analysis(uid, plugin, analysis_dict)
         self.elements_finished_analyzing.value += 1
         if self.elements_finished_analyzing.value == 4 * 2 * 2:  # two firmware container with 3 included files each times two mandatory plugins
             self.analysis_finished_event.set()

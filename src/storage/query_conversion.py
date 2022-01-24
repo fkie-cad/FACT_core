@@ -66,30 +66,37 @@ def build_query_from_dict(query_dict: dict, query: Optional[Select] = None) -> S
     firmware_keys = [key for key in query_dict if not key == 'uid' and hasattr(FirmwareEntry, key)]
     if firmware_keys:
         query = query.join(FirmwareEntry, FirmwareEntry.uid == FileObjectEntry.uid)
-        query = _add_search_filter_from_dict(firmware_keys, FirmwareEntry, query, query_dict)
+        query = _add_filters_for_attribute_list(firmware_keys, FirmwareEntry, query, query_dict)
 
     file_object_keys = [key for key in query_dict if hasattr(FileObjectEntry, key)]
     if file_object_keys:
-        query = _add_search_filter_from_dict(file_object_keys, FileObjectEntry, query, query_dict)
+        query = _add_filters_for_attribute_list(file_object_keys, FileObjectEntry, query, query_dict)
 
     return query
 
 
-def _add_search_filter_from_dict(attribute_list, table, query, query_dict):
+def _add_filters_for_attribute_list(attribute_list: List[str], table, query: Select, query_dict: dict) -> Select:
     for key in attribute_list:
         column = _get_column(key, table)
-        if not isinstance(query_dict[key], dict):
-            query = query.filter(column == query_dict[key])
-        elif '$regex' in query_dict[key]:
-            query = query.filter(column.op('~')(query_dict[key]['$regex']))
-        elif '$in' in query_dict[key]:  # filter by list
-            query = query.filter(column.in_(query_dict[key]['$in']))
-        elif '$lt' in query_dict[key]:  # less than
-            query = query.filter(column < query_dict[key]['$lt'])
-        elif '$gt' in query_dict[key]:  # greater than
-            query = query.filter(column > query_dict[key]['$gt'])
-        else:
-            raise QueryConversionException(f'Search options currently unsupported: {query_dict[key]}')
+        query = _apply_filter(query, column, query_dict, key)
+    return query
+
+
+def _apply_filter(query: Select, column, query_dict: dict, key: str) -> Select:
+    if not isinstance(query_dict[key], dict):
+        query = query.filter(column == query_dict[key])
+    elif '$regex' in query_dict[key]:
+        query = query.filter(column.op('~')(query_dict[key]['$regex']))
+    elif '$in' in query_dict[key]:  # filter by list
+        query = query.filter(column.in_(query_dict[key]['$in']))
+    elif '$lt' in query_dict[key]:  # less than
+        query = query.filter(column < query_dict[key]['$lt'])
+    elif '$gt' in query_dict[key]:  # greater than
+        query = query.filter(column > query_dict[key]['$gt'])
+    elif '$contains' in query_dict[key]:  # array contains value
+        query = query.filter(column.contains(query_dict[key]['$contains']))
+    else:
+        raise QueryConversionException(f'Search options currently unsupported: {query_dict[key]}')
     return query
 
 
@@ -103,7 +110,7 @@ def _get_column(key: str, table: Union[FirmwareEntry, FileObjectEntry, AnalysisE
 def _add_analysis_filter_to_query(analysis_keys: List[str], query: Select, query_dict: dict) -> Select:
     query = query.join(AnalysisEntry, AnalysisEntry.uid == FileObjectEntry.uid)
     for key in analysis_keys:  # type: str
-        _, plugin, json_key = key.split('.', maxsplit=3)  # FixMe? nested json
+        _, plugin, json_key = key.split('.', maxsplit=2)
         if hasattr(AnalysisEntry, key):
             if json_key == 'summary':  # special case: array field -> contains()
                 needle = query_dict[key] if isinstance(query_dict[key], list) else [query_dict[key]]
@@ -111,9 +118,9 @@ def _add_analysis_filter_to_query(analysis_keys: List[str], query: Select, query
             else:
                 query = query.filter(getattr(AnalysisEntry, key) == query_dict[key])
         else:  # no meta field, actual analysis result key
-            # FixMe? add support for arrays, nested documents, other operators than "="/"$eq"
-            query = query.filter(
-                AnalysisEntry.result[json_key].astext == query_dict[key],
-                AnalysisEntry.plugin == plugin
-            )
+            query = query.filter(AnalysisEntry.plugin == plugin)
+            column = AnalysisEntry.result
+            for nested_key in json_key.split('.'):
+                column = column[nested_key]
+            query = _apply_filter(query, column.astext, query_dict, key)
     return query

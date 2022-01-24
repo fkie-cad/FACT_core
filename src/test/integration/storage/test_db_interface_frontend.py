@@ -136,7 +136,7 @@ def test_generic_search_parent(db):
     fo, fw = create_fw_with_child_fo()
     fw.file_name = 'fw.image'
     fo.file_name = 'foo.bar'
-    fo.processed_analysis = {'plugin': generate_analysis_entry(analysis_result={'foo': 'bar'})}
+    fo.processed_analysis = {'plugin': generate_analysis_entry(analysis_result={'foo': 'bar', 'list': ['a', 'b']})}
     db.backend.insert_object(fw)
     db.backend.insert_object(fo)
 
@@ -149,9 +149,39 @@ def test_generic_search_parent(db):
     assert db.frontend.generic_search({'file_name': 'foo.bar'}) == [fo.uid]
     assert db.frontend.generic_search({'file_name': 'foo.bar'}, only_fo_parent_firmware=True) == [fw.uid]
     assert db.frontend.generic_search({'processed_analysis.plugin.foo': 'bar'}, only_fo_parent_firmware=True) == [fw.uid]
+    assert db.frontend.generic_search({'processed_analysis.plugin.list': {'$contains': 'a'}}, only_fo_parent_firmware=True) == [fw.uid]
+    assert db.frontend.generic_search({'processed_analysis.plugin.list': {'$contains': 'c'}}, only_fo_parent_firmware=True) == []
     # root file objects of FW should also match:
     assert db.frontend.generic_search({'file_name': 'fw.image'}, only_fo_parent_firmware=True) == [fw.uid]
     assert db.frontend.generic_search({'vendor': 'foo123'}, only_fo_parent_firmware=True) == ['some_other_fw']
+
+
+def test_generic_search_nested(db):
+    fo, fw = create_fw_with_child_fo()
+    fo.processed_analysis = {'plugin': generate_analysis_entry(analysis_result={
+        'nested': {'key': 'value'},
+        'nested_2': {'inner_nested': {'foo': 'bar', 'list': ['a']}}
+    })}
+    db.backend.insert_object(fw)
+    db.backend.insert_object(fo)
+
+    assert db.frontend.generic_search({'processed_analysis.plugin.nested.key': 'value'}) == [fo.uid]
+    assert db.frontend.generic_search(
+        {'processed_analysis.plugin.nested.key': {'$in': ['value', 'other_value']}}) == [fo.uid]
+    assert db.frontend.generic_search({'processed_analysis.plugin.nested_2.inner_nested.foo': 'bar'}) == [fo.uid]
+    assert db.frontend.generic_search(
+        {'processed_analysis.plugin.nested_2.inner_nested.list': {'$contains': 'a'}}) == [fo.uid]
+
+
+def test_generic_search_wrong_key(db):
+    fo, fw = create_fw_with_child_fo()
+    fo.processed_analysis = {'plugin': generate_analysis_entry(analysis_result={'nested': {'key': 'value'}})}
+    db.backend.insert_object(fw)
+    db.backend.insert_object(fo)
+
+    assert db.frontend.generic_search({'processed_analysis.plugin.unknown': 'value'}) == []
+    assert db.frontend.generic_search({'processed_analysis.plugin.nested.unknown': 'value'}) == []
+    assert db.frontend.generic_search({'processed_analysis.plugin.nested.key.too_deep': 'value'}) == []
 
 
 def test_inverted_search(db):
