@@ -89,7 +89,8 @@ class ComparisonDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
 
     def page_comparison_results(self, skip=0, limit=0) -> List[Tuple[str, str, float]]:
         with self.get_read_only_session() as session:
-            query = select(ComparisonEntry).order_by(ComparisonEntry.submission_date.desc()).offset(skip).limit(limit)
+            query = select(ComparisonEntry).order_by(ComparisonEntry.submission_date.desc())
+            query = self._apply_offset_and_limit(query, skip, limit)
             return [
                 (entry.comparison_id, entry.data['general']['hid'], entry.submission_date)
                 for entry in session.execute(query).scalars()

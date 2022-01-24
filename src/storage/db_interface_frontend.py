@@ -3,7 +3,6 @@ from typing import Any, Dict, List, NamedTuple, Optional, Set, Tuple, Union
 
 from sqlalchemy import Column, func, select
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.sql import Select
 
 from helperFunctions.data_conversion import get_value_of_first_key
 from helperFunctions.tag import TagColor
@@ -185,14 +184,6 @@ class FrontEndDbInterface(DbInterfaceCommon):
             if as_meta:
                 return [self._get_meta_for_entry(element) for element in results]
             return [element.uid for element in results]
-
-    @staticmethod
-    def _apply_offset_and_limit(query: Select, skip: Optional[int], limit: Optional[int]) -> Select:
-        if skip:
-            query = query.offset(skip)
-        if limit:
-            query = query.limit(limit)
-        return query
 
     def _get_meta_for_entry(self, entry: Union[FirmwareEntry, FileObjectEntry]) -> MetaEntry:
         if isinstance(entry, FirmwareEntry):

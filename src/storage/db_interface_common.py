@@ -5,6 +5,7 @@ from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import aliased
 from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.sql import Select
 
 from objects.file import FileObject
 from objects.firmware import Firmware
@@ -248,3 +249,11 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
         with self.get_read_only_session() as session:
             query = build_query_from_dict(query, query=select(func.count(FileObjectEntry.uid)))
             return session.execute(query).scalar()
+
+    @staticmethod
+    def _apply_offset_and_limit(query: Select, skip: Optional[int], limit: Optional[int]) -> Select:
+        if skip:
+            query = query.offset(skip)
+        if limit:
+            query = query.limit(limit)
+        return query
