@@ -41,6 +41,7 @@ def insert_test_fw(
     if analysis:
         test_fw.processed_analysis = analysis
     db.backend.insert_object(test_fw)
+    return test_fw
 
 
 def insert_test_fo(db, uid, file_name='test.zip', size=1, analysis: Optional[dict] = None, parent_fw=None, comments=None):

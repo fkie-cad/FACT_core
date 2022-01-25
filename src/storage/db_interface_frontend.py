@@ -9,7 +9,7 @@ from helperFunctions.tag import TagColor
 from helperFunctions.virtual_file_path import get_top_of_virtual_path, get_uids_from_virtual_path
 from objects.firmware import Firmware
 from storage.db_interface_common import DbInterfaceCommon
-from storage.query_conversion import build_generic_search_query, query_parent_firmware
+from storage.query_conversion import build_generic_search_query, build_query_from_dict, query_parent_firmware
 from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry, SearchCacheEntry, included_files_table
 from web_interface.components.dependency_graph import DepGraphData
 from web_interface.file_tree.file_tree import FileTreeData, VirtualPathFileTree
@@ -304,12 +304,12 @@ class FrontEndDbInterface(DbInterfaceCommon):
     # --- REST ---
 
     def rest_get_firmware_uids(self, offset: int, limit: int, query: dict = None, recursive=False, inverted=False):
+        if query is None:
+            query = {}
         if recursive:
             return self.generic_search(query, skip=offset, limit=limit, only_fo_parent_firmware=True, inverted=inverted)
         with self.get_read_only_session() as session:
-            db_query = select(FirmwareEntry.uid)
-            if query:
-                db_query = db_query.filter_by(**query)
+            db_query = build_query_from_dict(query_dict=query, query=select(FirmwareEntry.uid), fw_only=True)
             db_query = self._apply_offset_and_limit(db_query, offset, limit)
             return list(session.execute(db_query).scalars())
 

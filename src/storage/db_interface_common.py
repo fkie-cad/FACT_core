@@ -230,17 +230,11 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
 
     # ===== misc. =====
 
-    def get_specific_fields_of_fo_entry(self, uid: str, fields: List[str]) -> tuple:
-        with self.get_read_only_session() as session:
-            field_attributes = [getattr(FileObjectEntry, field) for field in fields]
-            query = select(*field_attributes).filter_by(uid=uid)  # ToDo FixMe?
-            return session.execute(query).one()
-
     def get_firmware_number(self, query: Optional[dict] = None) -> int:
         with self.get_read_only_session() as session:
             db_query = select(func.count(FirmwareEntry.uid))
             if query:
-                db_query = db_query.filter_by(**query)  # FixMe: no generic query supported?
+                db_query = build_query_from_dict(query_dict=query, query=db_query, fw_only=True)
             return session.execute(db_query).scalar()
 
     def get_file_object_number(self, query: dict, zero_on_empty_query: bool = True) -> int:

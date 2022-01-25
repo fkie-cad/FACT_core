@@ -360,18 +360,22 @@ def test_rest_get_firmware_uids(db):
     child_fo.file_name = 'foo_file'
     db.backend.add_object(parent_fw)
     db.backend.add_object(child_fo)
-    insert_test_fw(db, 'fw1', vendor='foo_vendor')
-    insert_test_fw(db, 'fw2', vendor='foo_vendor')
+    test_fw1 = insert_test_fw(db, 'fw1', vendor='foo_vendor', file_name='fw1', device_name='some_device')
+    test_fw2 = insert_test_fw(db, 'fw2', vendor='foo_vendor', file_name='fw2')
 
-    assert sorted(db.frontend.rest_get_firmware_uids(offset=None, limit=None)) == [parent_fw.uid, 'fw1', 'fw2']
-    assert sorted(db.frontend.rest_get_firmware_uids(query={}, offset=0, limit=0)) == [parent_fw.uid, 'fw1', 'fw2']
-    assert db.frontend.rest_get_firmware_uids(offset=1, limit=1) == ['fw1']
+    assert sorted(db.frontend.rest_get_firmware_uids(offset=None, limit=None)) == [parent_fw.uid, test_fw1.uid, test_fw2.uid]
+    assert sorted(db.frontend.rest_get_firmware_uids(query={}, offset=0, limit=0)) == [parent_fw.uid, test_fw1.uid, test_fw2.uid]
+    assert db.frontend.rest_get_firmware_uids(offset=1, limit=1) == [test_fw1.uid]
     assert sorted(db.frontend.rest_get_firmware_uids(
-        offset=None, limit=None, query={'vendor': 'foo_vendor'})) == ['fw1', 'fw2']
+        offset=None, limit=None, query={'vendor': 'foo_vendor'})) == [test_fw1.uid, test_fw2.uid]
     assert sorted(db.frontend.rest_get_firmware_uids(
-        offset=None, limit=None, query={'file_name': 'foo_file'}, recursive=True)) == [parent_fw.uid]
+        offset=None, limit=None, query={'device_name': 'some_device'})) == [test_fw1.uid]
     assert sorted(db.frontend.rest_get_firmware_uids(
-        offset=None, limit=None, query={'file_name': 'foo_file'}, recursive=True, inverted=True)) == ['fw1', 'fw2']
+        offset=None, limit=None, query={'file_name': parent_fw.file_name})) == [parent_fw.uid]
+    assert sorted(db.frontend.rest_get_firmware_uids(
+        offset=None, limit=None, query={'file_name': child_fo.file_name}, recursive=True)) == [parent_fw.uid]
+    assert sorted(db.frontend.rest_get_firmware_uids(
+        offset=None, limit=None, query={'file_name': child_fo.file_name}, recursive=True, inverted=True)) == [test_fw1.uid, test_fw2.uid]
 
 
 def test_find_missing_analyses(db):

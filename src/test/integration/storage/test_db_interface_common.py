@@ -119,12 +119,6 @@ def test_all_files_in_fo(db):
     assert db.common.get_all_files_in_fo(parent_fo) == {parent_fo.uid, child_fo.uid}
 
 
-def test_get_specific_fields_of_db_entry(db):
-    db.backend.insert_object(TEST_FO)
-    result = db.common.get_specific_fields_of_fo_entry(TEST_FO.uid, ['uid', 'file_name'])
-    assert result == (TEST_FO.uid, TEST_FO.file_name)
-
-
 def test_get_objects_by_uid_list(db):
     fo, fw = create_fw_with_child_fo()
     db.backend.insert_object(fw)
@@ -196,6 +190,7 @@ def test_get_firmware_number(db):
     assert db.common.get_firmware_number(query={}) == 2
     assert db.common.get_firmware_number(query={'device_class': 'Router'}) == 2
     assert db.common.get_firmware_number(query={'uid': TEST_FW.uid}) == 1
+    assert db.common.get_firmware_number(query={'sha256': TEST_FW.sha256}) == 1
 
 
 def test_get_file_object_number(db):
