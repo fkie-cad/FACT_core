@@ -1,8 +1,9 @@
 # pylint: disable=wrong-import-order
-
+import json
 import os
 import time
 from multiprocessing import Event, Value
+from urllib.parse import quote
 
 from statistic.update import StatsUpdater
 from statistic.work_load import WorkLoadStatistic
@@ -88,7 +89,8 @@ class TestAcceptanceMisc(TestAcceptanceBase):
         self.assertIn(b'backend status', rv.data)
 
     def _click_chart(self):
-        rv = self.test_client.get('/database/browse?query=%7b%22vendor%22%3A+%7b%22%24eq%22%3A+%22test_vendor%22%7d%7d')
+        query = json.dumps({'vendor': 'test_vendor'})
+        rv = self.test_client.get(f'/database/browse?query={quote(query)}')
         self.assertIn(self.test_fw_a.uid.encode(), rv.data)
 
     def _click_release_date_histogram(self):
