@@ -175,12 +175,23 @@ class StatsUpdater:
         return {'executable_stats': stats}
 
     def get_ip_stats(self) -> Dict[str, Stats]:
-        return {
+        ip_stats = {
             key: self.db.count_distinct_values_in_array(
                 AnalysisEntry.result[key], plugin='ip_and_uri_finder', q_filter=self.match
             )
             for key in ['ips_v4', 'ips_v6', 'uris']
         }
+        self._remove_location_info(ip_stats)
+        return ip_stats
+
+    @staticmethod
+    def _remove_location_info(ip_stats: Dict[str, Stats]):
+        # IP data can contain location info -> just use the IP string (which is the first element in a list)
+        for key in ['ips_v4', 'ips_v6']:
+            for index, (ip, count) in enumerate(ip_stats[key]):
+                if isinstance(ip, list):
+                    ip_without_gps_info = ip[0]
+                    ip_stats[key][index] = (ip_without_gps_info, count)
 
     def get_time_stats(self):
         release_date_stats = self.db.get_release_date_stats(q_filter=self.match)

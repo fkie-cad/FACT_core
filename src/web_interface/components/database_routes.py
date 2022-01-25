@@ -3,7 +3,6 @@ import logging
 from datetime import datetime
 from itertools import chain
 
-from dateutil.relativedelta import relativedelta
 from flask import redirect, render_template, request, url_for
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -26,13 +25,12 @@ class DatabaseRoutes(ComponentBase):
     @staticmethod
     def _add_date_to_query(query, date):
         try:
-            start_date = datetime.strptime(date.replace('\'', ''), '%B %Y')
-            end_date = start_date + relativedelta(months=1)
-            date_query = {'release_date': {'$gte': start_date, '$lt': end_date}}
+            start_str = datetime.strptime(date.replace('\'', ''), '%B %Y').strftime('%Y-%m')
+            date_query = {'release_date': {'$regex': start_str}}
             if query == {}:
                 query = date_query
             else:
-                query = {'$and': [query, date_query]}
+                query.update(date_query)
             return query
         except Exception:
             return query

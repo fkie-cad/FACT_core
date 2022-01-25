@@ -241,7 +241,7 @@ def test_get_ip_stats(db, stats_updater):
     })
 
     stats = stats_updater.get_ip_stats()
-    assert stats['ips_v4'] == [(['1.2.3.4', '123.45, 678.9'], 1)]
+    assert stats['ips_v4'] == [('1.2.3.4', 1)]
     assert stats['ips_v6'] == []
     assert stats['uris'] == [('https://foo.bar', 1), ('www.example.com', 1)]
 

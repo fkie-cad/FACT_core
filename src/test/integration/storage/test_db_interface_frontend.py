@@ -1,5 +1,6 @@
 import pytest
 
+from storage.query_conversion import QueryConversionException
 from test.common_helper import generate_analysis_entry  # pylint: disable=wrong-import-order
 from test.common_helper import create_test_file_object, create_test_firmware  # pylint: disable=wrong-import-order
 from web_interface.components.dependency_graph import DepGraphData
@@ -122,6 +123,11 @@ def test_generic_search_lt_gt(db):
     assert set(db.frontend.generic_search({'size': {'$gt': 15}})) == {'uid_2', 'uid_3'}
 
 
+def test_generic_search_unknown_op(db):
+    with pytest.raises(QueryConversionException):
+        db.frontend.generic_search({'file_name': {'$unknown': 'foo'}})
+
+
 @pytest.mark.parametrize('query, expected', [
     ({}, ['uid_1']),
     ({'vendor': 'test_vendor'}, ['uid_1']),
@@ -149,8 +155,6 @@ def test_generic_search_parent(db):
     assert db.frontend.generic_search({'file_name': 'foo.bar'}) == [fo.uid]
     assert db.frontend.generic_search({'file_name': 'foo.bar'}, only_fo_parent_firmware=True) == [fw.uid]
     assert db.frontend.generic_search({'processed_analysis.plugin.foo': 'bar'}, only_fo_parent_firmware=True) == [fw.uid]
-    assert db.frontend.generic_search({'processed_analysis.plugin.list': {'$contains': 'a'}}, only_fo_parent_firmware=True) == [fw.uid]
-    assert db.frontend.generic_search({'processed_analysis.plugin.list': {'$contains': 'c'}}, only_fo_parent_firmware=True) == []
     # root file objects of FW should also match:
     assert db.frontend.generic_search({'file_name': 'fw.image'}, only_fo_parent_firmware=True) == [fw.uid]
     assert db.frontend.generic_search({'vendor': 'foo123'}, only_fo_parent_firmware=True) == ['some_other_fw']
@@ -160,7 +164,7 @@ def test_generic_search_nested(db):
     fo, fw = create_fw_with_child_fo()
     fo.processed_analysis = {'plugin': generate_analysis_entry(analysis_result={
         'nested': {'key': 'value'},
-        'nested_2': {'inner_nested': {'foo': 'bar', 'list': ['a']}}
+        'nested_2': {'inner_nested': {'foo': 'bar'}}
     })}
     db.backend.insert_object(fw)
     db.backend.insert_object(fo)
@@ -169,8 +173,16 @@ def test_generic_search_nested(db):
     assert db.frontend.generic_search(
         {'processed_analysis.plugin.nested.key': {'$in': ['value', 'other_value']}}) == [fo.uid]
     assert db.frontend.generic_search({'processed_analysis.plugin.nested_2.inner_nested.foo': 'bar'}) == [fo.uid]
-    assert db.frontend.generic_search(
-        {'processed_analysis.plugin.nested_2.inner_nested.list': {'$contains': 'a'}}) == [fo.uid]
+
+
+def test_generic_search_json_array(db):
+    fo, fw = create_fw_with_child_fo()
+    fo.processed_analysis = {'plugin': generate_analysis_entry(analysis_result={'list': ['a']})}
+    db.backend.insert_object(fw)
+    db.backend.insert_object(fo)
+
+    assert db.frontend.generic_search({'processed_analysis.plugin.list': {'$contains': 'a'}}) == [fo.uid]
+    assert db.frontend.generic_search({'processed_analysis.plugin.list': {'$contains': 'b'}}) == []
 
 
 def test_generic_search_wrong_key(db):
@@ -182,6 +194,20 @@ def test_generic_search_wrong_key(db):
     assert db.frontend.generic_search({'processed_analysis.plugin.unknown': 'value'}) == []
     assert db.frontend.generic_search({'processed_analysis.plugin.nested.unknown': 'value'}) == []
     assert db.frontend.generic_search({'processed_analysis.plugin.nested.key.too_deep': 'value'}) == []
+
+
+def test_generic_search_summary(db):
+    fo, fw = create_fw_with_child_fo()
+    fo.processed_analysis = {'plugin': generate_analysis_entry(summary=['foo', 'bar', 'test 123'])}
+    db.backend.insert_object(fw)
+    db.backend.insert_object(fo)
+
+    assert db.frontend.generic_search({'processed_analysis.plugin.summary': 'foo'}) == [fo.uid]
+    assert db.frontend.generic_search({'processed_analysis.plugin.summary': {'$regex': 'test'}}) == [fo.uid]
+    assert db.frontend.generic_search({'processed_analysis.plugin.summary': ['foo']}) == [fo.uid]
+
+    with pytest.raises(QueryConversionException):
+        db.frontend.generic_search({'processed_analysis.plugin.summary': {'$foo': 'bar'}})
 
 
 def test_inverted_search(db):
