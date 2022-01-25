@@ -17,6 +17,7 @@ def firmware_from_entry(fw_entry: FirmwareEntry, analysis_filter: Optional[List[
     firmware.release_date = convert_time_to_str(fw_entry.release_date)
     firmware.vendor = fw_entry.vendor
     firmware.version = fw_entry.version
+    firmware.part = fw_entry.device_part
     firmware.tags = getattr(fw_entry, 'tags', {})
     return firmware
 
