@@ -26,8 +26,8 @@ class InterComFrontEndBinding(InterComMongoInterface):
     def add_compare_task(self, compare_id, force=False):
         self.connections['compare_task']['fs'].put(pickle.dumps((compare_id, force)), filename=compare_id)
 
-    def delete_file(self, fw):
-        self.connections['file_delete_task']['fs'].put(pickle.dumps(fw))
+    def delete_file(self, uid_list):
+        self.connections['file_delete_task']['fs'].put(pickle.dumps(uid_list))
 
     def get_available_analysis_plugins(self):
         plugin_file = self.connections['analysis_plugins']['fs'].find_one({'filename': 'plugin_dictionary'})

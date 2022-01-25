@@ -190,13 +190,14 @@ class InterComBackEndDeleteFile(InterComListener):
         self.unpacking_locks: UnpackingLockManager = unpacking_locks
 
     def post_processing(self, task, task_id):
-        # task is a UID here
-        if self._entry_was_removed_from_db(task):
-            logging.info(f'remove file: {task}')
-            self.fs_organizer.delete_file(task)
+        # task is a UID list here
+        for uid in task:
+            if self._entry_was_removed_from_db(uid):
+                logging.info(f'removing file: {uid}')
+                self.fs_organizer.delete_file(uid)
         return task
 
-    def _entry_was_removed_from_db(self, uid):
+    def _entry_was_removed_from_db(self, uid: str) -> bool:
         if self.db.exists(uid):
             logging.debug(f'file not removed, because database entry exists: {uid}')
             return False

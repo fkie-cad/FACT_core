@@ -1,5 +1,5 @@
 import logging
-from typing import Tuple
+from typing import List, Tuple
 
 from storage.db_interface_base import ReadWriteDbInterface
 from storage.db_interface_common import DbInterfaceCommon
@@ -35,7 +35,7 @@ class AdminDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
                 session.delete(fo_entry)
 
     def delete_firmware(self, uid, delete_root_file=True):
-        removed_fp, deleted = 0, 0
+        removed_fp, uids_to_delete = 0, []
         with self.get_read_write_session() as session:
             fw: FileObjectEntry = session.get(FileObjectEntry, uid)
             if not fw or not fw.is_firmware:
@@ -43,16 +43,16 @@ class AdminDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
                 return 0, 0
 
             for child_uid in fw.get_included_uids():
-                child_removed_fp, child_deleted = self._remove_virtual_path_entries(uid, child_uid, session)
+                child_removed_fp, child_uids_to_delete = self._remove_virtual_path_entries(uid, child_uid, session)
                 removed_fp += child_removed_fp
-                deleted += child_deleted
-            if delete_root_file:
-                self.intercom.delete_file(fw.uid)
-            self.delete_object(uid)
-            deleted += 1
-        return removed_fp, deleted
+                uids_to_delete.extend(child_uids_to_delete)
+        self.delete_object(uid)
+        if delete_root_file:
+            uids_to_delete.append(uid)
+        self.intercom.delete_file(uids_to_delete)
+        return removed_fp, len(uids_to_delete)
 
-    def _remove_virtual_path_entries(self, root_uid: str, fo_uid: str, session) -> Tuple[int, int]:
+    def _remove_virtual_path_entries(self, root_uid: str, fo_uid: str, session) -> Tuple[int, List[str]]:
         '''
         Recursively checks if the provided root_uid is the only entry in the virtual path of the file object belonging
         to fo_uid. If this is the case, the file object is deleted from the database. Otherwise, only the entry from
@@ -62,14 +62,15 @@ class AdminDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
         :param fo_uid: The uid of the current file object
         :return: tuple with numbers of recursively removed virtual file path entries and deleted files
         '''
-        removed_fp, deleted = 0, 0
+        removed_fp = 0
+        uids_to_delete = []
         fo_entry: FileObjectEntry = session.get(FileObjectEntry, fo_uid)
         if fo_entry is None:
-            return 0, 0
+            return 0, []
         for child_uid in fo_entry.get_included_uids():
-            child_removed_fp, child_deleted = self._remove_virtual_path_entries(root_uid, child_uid, session)
+            child_removed_fp, child_uids_to_delete = self._remove_virtual_path_entries(root_uid, child_uid, session)
             removed_fp += child_removed_fp
-            deleted += child_deleted
+            uids_to_delete.extend(child_uids_to_delete)
         if any(root != root_uid for root in fo_entry.virtual_file_paths):
             # file is included in other firmwares -> only remove root_uid from virtual_file_paths
             fo_entry.virtual_file_paths = {
@@ -80,6 +81,6 @@ class AdminDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
             # fo.parent_files = [f for f in fo.parent_files if f.uid != root_uid]  # TODO?
             removed_fp += 1
         else:  # file is only included in this firmware -> delete file
-            self.intercom.delete_file(fo_uid)
-            deleted += 1  # FO DB entry gets deleted automatically when all parents are deleted by cascade
-        return removed_fp, deleted
+            uids_to_delete.append(fo_uid)
+            # FO DB entry gets deleted automatically when all parents are deleted by cascade
+        return removed_fp, uids_to_delete

@@ -1,6 +1,7 @@
+from typing import List
+
 import pytest
 
-from objects.file import FileObject
 from storage.db_interface_admin import AdminDbInterface
 from storage.db_interface_backend import BackendDbInterface
 from storage.db_interface_common import DbInterfaceCommon
@@ -53,8 +54,8 @@ class MockIntercom:
     def __init__(self):
         self.deleted_files = []
 
-    def delete_file(self, uid: FileObject):
-        self.deleted_files.append(uid)
+    def delete_file(self, uid_list: List[str]):
+        self.deleted_files.extend(uid_list)
 
 
 @pytest.fixture()
