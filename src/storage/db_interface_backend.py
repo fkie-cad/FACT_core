@@ -1,3 +1,4 @@
+import logging
 from typing import List
 
 from sqlalchemy import select
@@ -57,11 +58,16 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
             session.add_all([fo_entry, firmware_entry, *analyses])
 
     def add_analysis(self, uid: str, plugin: str, analysis_dict: dict):
-        # ToDo: update analysis scheduler for changed signature
-        if self.analysis_exists(uid, plugin):
-            self.update_analysis(uid, plugin, analysis_dict)
-        else:
-            self.insert_analysis(uid, plugin, analysis_dict)
+        try:
+            if self.analysis_exists(uid, plugin):
+                self.update_analysis(uid, plugin, analysis_dict)
+            else:
+                self.insert_analysis(uid, plugin, analysis_dict)
+        except TypeError:
+            logging.error(f'Could not store analysis of plugin result {plugin} in the DB because'
+                          f' it is not JSON-serializable: {uid=}\n{analysis_dict=}', exc_info=True)
+        except DbInterfaceError as error:
+            logging.error(f'Could not store analysis result: {str(error)}')
 
     def analysis_exists(self, uid: str, plugin: str) -> bool:
         with self.get_read_only_session() as session:
@@ -73,6 +79,8 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
             fo_backref = session.get(FileObjectEntry, uid)
             if fo_backref is None:
                 raise DbInterfaceError(f'Could not find file object for analysis update: {uid}')
+            if any(item not in analysis_dict for item in ['plugin_version', 'analysis_date']):
+                raise DbInterfaceError(f'Analysis data of {plugin} is incomplete: {analysis_dict}')
             analysis = AnalysisEntry(
                 uid=uid,
                 plugin=plugin,
