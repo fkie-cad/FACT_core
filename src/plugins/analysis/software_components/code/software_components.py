@@ -84,7 +84,7 @@ class AnalysisPlugin(YaraBasePlugin):
             match = make_unicode_string(match)
             versions.add(self.get_version(match, result['meta']))
         if result['meta'].get('format_string'):
-            key_strings = [s.decode() for _, _, s in result['strings'] if b'%s' in s]
+            key_strings = [s for _, _, s in result['strings'] if '%s' in s]
             if key_strings:
                 versions.update(extract_data_from_ghidra(file_object.binary, key_strings, get_temp_dir_path(self.config)))
         if '' in versions and len(versions) > 1:  # if there are actual version results, remove the "empty" result

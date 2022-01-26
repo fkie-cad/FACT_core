@@ -79,7 +79,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
 def generate_unix_entry(entry: bytes) -> dict:
     user_name, pw_hash, *_ = entry.split(b':')
-    result_entry = {'type': 'unix', 'entry': entry}
+    result_entry = {'type': 'unix', 'entry': entry.decode(errors='replace')}
     try:
         if pw_hash.startswith(b'$') or _is_des_hash(pw_hash):
             result_entry['password-hash'] = pw_hash
@@ -97,9 +97,10 @@ def generate_htpasswd_entry(entry: bytes) -> dict:
 
 
 def generate_mosquitto_entry(entry: bytes) -> dict:
-    user, _, _, salt_hash, passwd_hash, *_ = re.split(r'[:$]', entry.decode(errors='replace'))
+    entry_decoded = entry.decode(errors='replace')
+    user, _, _, salt_hash, passwd_hash, *_ = re.split(r'[:$]', entry_decoded)
     passwd_entry = f'{user}:$dynamic_82${b64decode(passwd_hash).hex()}$HEX${b64decode(salt_hash).hex()}'
-    result_entry = {'type': 'mosquitto', 'entry': entry, 'password-hash': passwd_hash}
+    result_entry = {'type': 'mosquitto', 'entry': entry_decoded, 'password-hash': passwd_hash}
     result_entry['cracked'] = crack_hash(passwd_entry.encode(), result_entry, '--format=dynamic_82')
     return {f'{user}:mosquitto': result_entry}
 
