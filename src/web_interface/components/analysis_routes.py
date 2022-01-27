@@ -113,7 +113,7 @@ class AnalysisRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @AppRoute('/update-analysis/<uid>', GET)
     def get_update_analysis(self, uid, re_do=False, error=None):
-        old_firmware = self.db.frontend.get_object(uid=uid, analysis_filter=[])
+        old_firmware = self.db.frontend.get_object(uid=uid)
         if old_firmware is None:
             return render_template('uid_not_found.html', uid=uid)
 
