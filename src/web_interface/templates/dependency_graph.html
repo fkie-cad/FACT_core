@@ -7,6 +7,19 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/dependency_graph.css') }}">
    
     <script src="{{ url_for('static', filename='web_js/vis-network.min.js') }}"></script> 
+
+    <script type="text/javascript" src="{{ url_for('static', filename='js/dependency_graph.js') }}"></script>
+
+    <script type="text/javascript">
+        $(window).on("load", () => {
+            dependencyGraph(
+                {{ nodes | safe }},
+                {{ edges | safe }},
+                {{ groups | safe }},
+                {{ colors | safe }}
+            );
+        });
+    </script>
 {% endblock %}
     
 {% block style %}
@@ -15,58 +28,63 @@
 
 
 {% block body %}
-    <div class="modal" id="context-menu" tabindex="-1" role="dialog" aria-labelledby="contextLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="contextLabel">Additional information</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    Node:
-                    <p id='node-link'>No node selected.</p>
-                    <br>
-                    File type:
-                    <p id='file-type'>No node selected.</p>
-                </div>
-            </div>
-        </div>
-    </div>
     <div class="header mb-4" style="word-wrap: break-word">
-        <h3>
-            Dependency Graph for File {{ uid | replace_uid_with_hid }}
+        <h4>
+            Dependency Graph for {{ uid | replace_uid_with_hid }} in {{ root_uid | replace_uid_with_hid }}
             <br>
             <span style="font-size: 15px"><strong>UID:</strong> {{ uid }}</span>
-        </h3>
+        </h4>
     </div>
-
-
-    <div class="row mb-3">
+    <div class="row lb-3">
         <div class="col-lg-8 col-xl-10">
             <div id="dependencyGraph" class="border rounded"></div>
         </div>
         <div class="col-lg-4 col-xl-2">
-            <div class="header mb-4" style="word-wrap: break-word">
-                <h4 style="text-align: center">Legend</h4>
+            <div class="accordion" id="graphSidebar">
+                <div class="card">
+                  <div class="card-header" id="legendHeader" style="background-color: #255e54; padding: 0;">
+                      <button class="btn btn-link text-white" data-toggle="collapse" data-target="#legend" aria-expanded="true" aria-controls="legendBody" style="text-decoration: none; font-weight: 400;">
+                        Legend
+                      </button>
+                  </div>
+                  <div class="collapse show" aria-labelledby="legendHeader">
+                    <div id="legend" class="card-body" style="height: 125px; overflow: auto;">
+
+                    </div>
+                  </div>
+                </div>
+                <div class="card">
+                  <div class="card-header" id="detailsHeader" style="background-color: #255e54; padding: 0;">
+                      <button class="btn btn-link text-white" data-toggle="collapse" data-target="#details" aria-expanded="true" aria-controls="details" style="text-decoration: none; font-weight: 400;">
+                        Node Details
+                      </button>
+                  </div>
+                  <div id="details" class="collapse show" aria-labelledby="detailsHeader">
+                    <div id="detailsBody" class="card-body" style="height: 150px; overflow: auto;">
+                    </div>
+                  </div>
+                </div>
+                <div class="card">
+                  <div class="card-header" id="nodesHeader" style="background-color: #255e54; padding: 0;">
+                      <button class="btn btn-link text-white" data-toggle="collapse" data-target="#nodesBody" aria-expanded="true" aria-controls="nodesBody" style="text-decoration: none; font-weight: 400;">
+                        Connected Nodes
+                      </button>
+                  </div>
+                  <div id="nodesBody" class="collapse show" aria-labelledby="nodesHeader">
+                    <div class="card-body">
+                      <form>
+                        <div class="form-group">
+                          <input type="text" class="form-control" id="nodeFilter" placeholder="Filter by name/mime..." />
+                        </div>
+                      </form>
+                      <div id="nodesList" style="height: 314px; overflow: auto;">
+                      </div>
+                    </div>
+                  </div>
+                </div>
             </div>
-            <div id="dependencyGraphLegend"></div>
-            <span style="font-size: 15px">
-                A context menu providing additional information about the nodes is available on right click.
-            </span>
         </div>
     </div>
 
-<!--  insert js graph magic here  -->
-
-<script>
-    var get_nodes = {{ nodes | safe }};
-    var get_edges = {{ edges | safe }};
-    var get_groups = {{ groups | safe }};
-
-    var color_list = {{ color_list | safe }};
-</script>
-<script type="text/javascript" src="{{ url_for('static', filename='js/dependency_graph.js') }}"></script>
 
 {% endblock %}

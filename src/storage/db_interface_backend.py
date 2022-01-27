@@ -4,6 +4,7 @@ from time import time
 from pymongo.errors import PyMongoError
 
 from helperFunctions.data_conversion import convert_str_to_time
+from helperFunctions.merge_generators import merge_lists
 from helperFunctions.object_storage import update_included_files, update_virtual_file_path
 from objects.file import FileObject
 from objects.firmware import Firmware
@@ -22,11 +23,11 @@ class BackEndDbInterface(MongoInterfaceCommon):
             return
         self.release_unpacking_lock(fo_fw.uid)
 
-    def update_object(self, new_object=None, old_object=None):
+    def update_object(self, new_object: FileObject, old_db_entry: dict):
         update_dictionary = {
-            'processed_analysis': self._update_processed_analysis(new_object, old_object),
-            'files_included': update_included_files(new_object, old_object),
-            'virtual_file_path': update_virtual_file_path(new_object, old_object),
+            'processed_analysis': self._update_processed_analysis(new_object, old_db_entry),
+            'files_included': update_included_files(new_object, old_db_entry),
+            'virtual_file_path': update_virtual_file_path(new_object, old_db_entry),
         }
 
         if isinstance(new_object, Firmware):
@@ -42,7 +43,8 @@ class BackEndDbInterface(MongoInterfaceCommon):
             collection = self.firmwares
         else:
             update_dictionary.update({
-                'parent_firmware_uids': list(set.union(set(old_object['parent_firmware_uids']), new_object.parent_firmware_uids))
+                'parent_firmware_uids': merge_lists(old_db_entry['parent_firmware_uids'], new_object.parent_firmware_uids),
+                'parents': merge_lists(old_db_entry['parents'], new_object.parents)
             })
             collection = self.file_objects
 
@@ -54,12 +56,12 @@ class BackEndDbInterface(MongoInterfaceCommon):
             old_pa[key] = new_object.processed_analysis[key]
         return self.sanitize_analysis(analysis_dict=old_pa, uid=new_object.uid)
 
-    def add_firmware(self, firmware):
-        old_object = self.firmwares.find_one({'_id': firmware.uid})
-        if old_object:
+    def add_firmware(self, firmware: Firmware):
+        old_db_entry = self.firmwares.find_one({'_id': firmware.uid})
+        if old_db_entry:
             logging.debug('Update old firmware!')
             try:
-                self.update_object(new_object=firmware, old_object=old_object)
+                self.update_object(new_object=firmware, old_db_entry=old_db_entry)
             except Exception:  # pylint: disable=broad-except
                 logging.error('Could not update firmware:', exc_info=True)
         else:
@@ -98,11 +100,11 @@ class BackEndDbInterface(MongoInterfaceCommon):
         return entry
 
     def add_file_object(self, file_object):
-        old_object = self.file_objects.find_one({'_id': file_object.uid})
-        if old_object:
+        old_db_entry = self.file_objects.find_one({'_id': file_object.uid})
+        if old_db_entry:
             logging.debug('Update old file_object!')
             try:
-                self.update_object(new_object=file_object, old_object=old_object)
+                self.update_object(new_object=file_object, old_db_entry=old_db_entry)
             except Exception:  # pylint: disable=broad-except
                 logging.error('Could not update file object:', exc_info=True)
         else:

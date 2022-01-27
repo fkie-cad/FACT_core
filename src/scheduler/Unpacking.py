@@ -57,8 +57,9 @@ class UnpackingScheduler:
 # ---- internal functions ----
 
     def start_unpack_workers(self):
-        logging.debug('Starting {} working threads'.format(int(self.config['unpack']['threads'])))
-        for process_index in range(int(self.config['unpack']['threads'])):
+        threads = int(self.config['unpack']['threads'])
+        logging.debug(f'Starting {threads} working threads')
+        for process_index in range(threads):
             self.workers.append(start_single_worker(process_index, 'Unpacking', self.unpack_worker))
 
     def unpack_worker(self, worker_id):
@@ -67,7 +68,7 @@ class UnpackingScheduler:
             with suppress(Empty):
                 fo = self.in_queue.get(timeout=float(self.config['ExpertSettings']['block_delay']))
                 extracted_objects = unpacker.unpack(fo)
-                logging.debug('[worker {}] unpacking of {} complete: {} files extracted'.format(worker_id, fo.uid, len(extracted_objects)))
+                logging.debug(f'[worker {worker_id}] unpacking of {fo.uid} complete: {len(extracted_objects)} files extracted')
                 self.post_unpack(fo)
                 self.schedule_extracted_files(extracted_objects)
 
@@ -98,7 +99,7 @@ class UnpackingScheduler:
             else:
                 self.work_load_counter += 1
                 log_function = logging.debug
-            log_function(color_string('Queue Length (Analysis/Unpack): {} / {}'.format(workload, unpack_queue_size),
+            log_function(color_string(f'Queue Length (Analysis/Unpack): {workload} / {unpack_queue_size}',
                                       TerminalColors.WARNING))
 
             if workload < int(self.config['ExpertSettings']['unpack_throttle_limit']):
@@ -109,8 +110,7 @@ class UnpackingScheduler:
 
     def _get_combined_analysis_workload(self):
         if self.get_analysis_workload is not None:
-            workload = self.get_analysis_workload()
-            return sum([entry['queue'] for entry in workload['plugins'].values()]) + workload['analysis_main_scheduler']
+            return self.get_analysis_workload()
         return 0
 
     def check_exceptions(self):

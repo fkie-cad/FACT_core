@@ -102,14 +102,17 @@ class TestStorageDbInterfaceBackend(unittest.TestCase):
 
         self.test_fo.processed_analysis = first_dict
         self.test_fo.files_included = {'file a', 'file b'}
+        self.test_fo.parents = ['parent_1']
         self.db_interface_backend.add_file_object(self.test_fo)
         self.test_fo.processed_analysis = second_dict
         self.test_fo.files_included = {'file b', 'file c'}
+        self.test_fo.parents = ['parent_2']
         self.db_interface_backend.add_file_object(self.test_fo)
         received_object = self.db_interface.get_object(self.test_fo.uid)
-        self.assertEqual(0, received_object.processed_analysis['other_plugin']['result'])
-        self.assertEqual(1, received_object.processed_analysis['stub_plugin']['result'])
-        self.assertEqual(3, len(received_object.files_included))
+        assert received_object.processed_analysis['other_plugin']['result'] == 0
+        assert received_object.processed_analysis['stub_plugin']['result'] == 1
+        assert len(received_object.files_included) == 3
+        assert sorted(received_object.parents) == ['parent_1', 'parent_2']
 
     def test_add_and_get_object_including_comment(self):
         comment, author, date, uid = 'this is a test comment!', 'author', '1473431685', self.test_fo.uid
