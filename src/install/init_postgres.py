@@ -67,7 +67,10 @@ def change_db_owner(database_name: str, owner: str):
     execute_psql_command(f'ALTER DATABASE {database_name} OWNER TO {owner};')
 
 
-def main(config: ConfigParser):
+def main(config: Optional[ConfigParser] = None):
+    if config is None:
+        logging.info('No custom configuration path provided for PostgreSQL setup. Using main.cfg ...')
+        config = load_config('main.cfg')
     fact_db = config['data_storage']['postgres_database']
     test_db = config['data_storage']['postgres_test_database']
     _create_databases([fact_db, test_db])
@@ -117,4 +120,4 @@ def _set_table_privileges(config, fact_db):
 
 
 if __name__ == '__main__':
-    main(load_config('main.cfg'))
+    main()

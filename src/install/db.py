@@ -3,11 +3,12 @@ import os
 from contextlib import suppress
 from pathlib import Path
 
-from common_helper_process import execute_shell_command_get_return_code
+from common_helper_process import execute_shell_command, execute_shell_command_get_return_code
 
 from helperFunctions.install import (
     InstallationError, OperateInDirectory, apt_install_packages, apt_update_sources, dnf_install_packages
 )
+from install.init_postgres import main as init_postgres
 
 MONGO_MIRROR_COMMANDS = {
     'debian': {
@@ -35,7 +36,33 @@ def _add_mongo_mirror(distribution):
         raise InstallationError('Unable to set up mongodb installation\n{}'.format('\n'.join((apt_key_output, tee_output))))
 
 
+CODENAME_TRANSLATION = {
+    'tara': 'bionic', 'tessa': 'bionic', 'tina': 'bionic', 'tricia': 'bionic',
+    'ulyana': 'focal', 'ulyssa': 'focal', 'uma': 'focal', 'una': 'focal',
+}
+
+
+def install_postgres():
+    codename = execute_shell_command('lsb_release -cs')
+    codename = CODENAME_TRANSLATION.get(codename, codename)
+    # based on https://www.postgresql.org/download/linux/ubuntu/
+    command_list = [
+        f'sudo sh -c \'echo "deb http://apt.postgresql.org/pub/repos/apt {codename}-pgdg main" > /etc/apt/sources.list.d/pgdg.list\'',
+        'wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -',
+        'sudo apt-get update',
+        'sudo apt-get -y install postgresql-14'
+    ]
+    for command in command_list:
+        output, return_code = execute_shell_command_get_return_code(command)
+        if return_code != 0:
+            raise InstallationError(f'Failed to set up PostgreSQL: {output}')
+
+
 def main(distribution):
+    logging.info('Setting up PostgreSQL database')
+    install_postgres()
+    init_postgres()
+
     logging.info('Setting up mongo database')
 
     if distribution == 'debian':
@@ -49,8 +76,8 @@ def main(distribution):
 
     # creating DB directory
     fact_db_directory = _get_db_directory()
-    mkdir_output, _ = execute_shell_command_get_return_code('sudo mkdir -p --mode=0744 {}'.format(fact_db_directory))
-    chown_output, chown_code = execute_shell_command_get_return_code('sudo chown {}:{} {}'.format(os.getuid(), os.getgid(), fact_db_directory))
+    mkdir_output, _ = execute_shell_command_get_return_code(f'sudo mkdir -p --mode=0744 {fact_db_directory}')
+    chown_output, chown_code = execute_shell_command_get_return_code(f'sudo chown {os.getuid()}:{os.getgid()} {fact_db_directory}')
     if chown_code != 0:
         raise InstallationError('Failed to set up database directory. Check if parent folder exists\n{}'.format('\n'.join((mkdir_output, chown_output))))
 
@@ -59,7 +86,7 @@ def main(distribution):
     with OperateInDirectory('..'):
         init_output, init_code = execute_shell_command_get_return_code('python3 init_database.py')
     if init_code != 0:
-        raise InstallationError('Unable to initialize database\n{}'.format(init_output))
+        raise InstallationError(f'Unable to initialize database\n{init_output}')
 
     with OperateInDirectory('../../'):
         with suppress(FileNotFoundError):
