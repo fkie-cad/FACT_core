@@ -61,6 +61,7 @@ class MigrationMongoInterface(MongoInterface):
         firmware = Firmware()
         firmware.uid = entry['_id']
         firmware.size = entry['size']
+        firmware.sha256 = entry['sha256']
         firmware.file_name = entry['file_name']
         firmware.device_name = entry['device_name']
         firmware.device_class = entry['device_class']
@@ -88,6 +89,7 @@ class MigrationMongoInterface(MongoInterface):
         file_object = FileObject()
         file_object.uid = entry['_id']
         file_object.size = entry['size']
+        file_object.sha256 = entry['sha256']
         file_object.file_name = entry['file_name']
         file_object.virtual_file_path = entry['virtual_file_path']
         file_object.parents = entry['parents']
