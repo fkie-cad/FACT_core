@@ -8,7 +8,7 @@ appdirs
 flaky
 lief
 psutil
-psycopg2
+psycopg2-binary
 pylint
 pytest
 pytest-cov
