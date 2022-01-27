@@ -32,7 +32,7 @@ class AnalysisEntry(Base):
     )
 
     def __repr__(self) -> str:
-        return f'AnalysisEntry({self.uid=}, {self.plugin=}, {self.plugin_version=})'
+        return f'AnalysisEntry({self.uid}, {self.plugin}, {self.plugin_version})'
 
 
 included_files_table = Table(
@@ -116,7 +116,7 @@ class FileObjectEntry(Base):
         return {root.uid for root in self.root_firmware}
 
     def __repr__(self) -> str:
-        return f'FileObject({self.uid=}, {self.file_name=}, {self.is_firmware=})'
+        return f'FileObject({self.uid}, {self.file_name}, {self.is_firmware})'
 
 
 class FirmwareEntry(Base):

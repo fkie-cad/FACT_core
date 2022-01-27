@@ -42,7 +42,7 @@ CODENAME_TRANSLATION = {
 
 
 def install_postgres():
-    codename = execute_shell_command('lsb_release -cs')
+    codename = execute_shell_command('lsb_release -cs').rstrip()
     codename = CODENAME_TRANSLATION.get(codename, codename)
     # based on https://www.postgresql.org/download/linux/ubuntu/
     command_list = [

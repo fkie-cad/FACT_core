@@ -66,7 +66,7 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
                 self.insert_analysis(uid, plugin, analysis_dict)
         except (TypeError, StatementError):
             logging.error(f'Could not store analysis of plugin result {plugin} in the DB because'
-                          f' it is not JSON-serializable: {uid=}\n{analysis_dict=}', exc_info=True)
+                          f' it is not JSON-serializable: {uid}\n{analysis_dict}', exc_info=True)
         except DbInterfaceError as error:
             logging.error(f'Could not store analysis result: {str(error)}')
 

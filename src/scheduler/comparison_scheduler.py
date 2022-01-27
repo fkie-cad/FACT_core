@@ -73,7 +73,7 @@ class ComparisonScheduler:
                 self.comparison_module.compare(convert_compare_id_to_list(comparison_id))
             )
         except Exception:  # pylint: disable=broad-except
-            logging.error(f'Fatal error in comparison process for {comparison_id=}', exc_info=True)
+            logging.error(f'Fatal error in comparison process for {comparison_id}', exc_info=True)
 
     @staticmethod
     def _comparison_should_start(uid, redo, comparisons_done):
