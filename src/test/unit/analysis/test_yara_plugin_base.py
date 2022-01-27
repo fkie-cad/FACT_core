@@ -19,17 +19,17 @@ YARA_TEST_OUTPUT = Path(get_test_data_dir(), 'yara_matches').read_text()
 class TestAnalysisYaraBasePlugin(AnalysisPluginTest):
 
     PLUGIN_NAME = 'Yara_Base_Plugin'
+    PLUGIN_CLASS = YaraBasePlugin
 
     @mock.patch('plugins.base.ViewUpdater', lambda *_: None)
+    @mock.patch('analysis.YaraPluginBase.YaraBasePlugin.FILE', '/foo/bar/Yara_Base_Plugin/code/test.py')
     def setUp(self):
         super().setUp()
-        config = self.init_basic_config()
-        self.intended_signature_path = os.path.join(get_src_dir(), 'analysis/signatures', self.PLUGIN_NAME)
-        self.analysis_plugin = YaraBasePlugin(self, config=config, plugin_path='/foo/bar/Yara_Base_Plugin/code/test.py')
 
     def test_get_signature_paths(self):
+        intended_signature_path = os.path.join(get_src_dir(), 'analysis/signatures', self.PLUGIN_NAME)
         self.assertTrue(isinstance(self.analysis_plugin.signature_path, str), 'incorrect type')
-        self.assertEqual('{}.yc'.format(self.intended_signature_path.rstrip('/')), self.analysis_plugin.signature_path, 'signature path is wrong')
+        self.assertEqual('{}.yc'.format(intended_signature_path.rstrip('/')), self.analysis_plugin.signature_path, 'signature path is wrong')
 
     def test_process_object(self):
         test_file = FileObject(file_path=os.path.join(get_test_data_dir(), 'yara_test_file'))

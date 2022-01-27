@@ -29,6 +29,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     DESCRIPTION = 'extract file system metadata (e.g. owner, group, etc.) from file system images contained in firmware'
     VERSION = '0.2.1'
     timeout = 600
+    FILE = __file__
 
     ARCHIVE_MIME_TYPES = [
         'application/gzip',
@@ -52,10 +53,10 @@ class AnalysisPlugin(AnalysisBasePlugin):
         'filesystem/squashfs'
     ]
 
-    def __init__(self, plugin_administrator, config=None, recursive=True):
-        self.result = {}
-        super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__)
-        self.db = DbInterfaceCommon(config=config)
+    def __init__(self, *args, config=None, db_interface=None, **kwargs):
+        self.db = db_interface if db_interface is not None else DbInterfaceCommon(config=config)
+        self.result = None
+        super().__init__(*args, config=config, **kwargs)
 
     def process_object(self, file_object: FileObject) -> FileObject:
         self.result = {}

@@ -1,19 +1,17 @@
+# pylint: disable=attribute-defined-outside-init,not-callable,no-self-use
 import gc
-import unittest
 from configparser import ConfigParser
-from unittest import mock
 
-from compare.PluginBase import CompareBasePlugin as ComparePlugin
-from test.common_helper import create_test_firmware  # pylint: disable=wrong-import-order
+from test.common_helper import CommonDatabaseMock, create_test_firmware  # pylint: disable=wrong-import-order
 
 
-class ComparePluginTest(unittest.TestCase):
+class ComparePluginTest:
 
     # This name must be changed according to the name of plug-in to test
     PLUGIN_NAME = 'base'
+    PLUGIN_CLASS = None
 
-    @mock.patch('plugins.base.ViewUpdater', lambda *_: None)
-    def setUp(self):
+    def setup(self):
         self.config = self.generate_config()
         self.config.add_section('ExpertSettings')
         self.config.set('ExpertSettings', 'ssdeep_ignore', '80')
@@ -21,15 +19,14 @@ class ComparePluginTest(unittest.TestCase):
         self.c_plugin = self.setup_plugin()
         self.setup_test_fw()
 
-    def tearDown(self):
+    def teardown(self):
         gc.collect()
 
     def setup_plugin(self):
         '''
-        This function must be overwritten by the test instance.
-        In most cases it is sufficient to copy this function.
+        This function can be overwritten by the test instance.
         '''
-        return ComparePlugin(self, config=self.config)
+        return self.PLUGIN_CLASS(self, config=self.config, view_updater=CommonDatabaseMock())
 
     def generate_config(self):  # pylint: disable=no-self-use
         '''
@@ -38,8 +35,8 @@ class ComparePluginTest(unittest.TestCase):
         return ConfigParser()
 
     def test_init(self):
-        self.assertEqual(len(self.compare_plugins), 1, 'number of registered plugins not correct')
-        self.assertEqual(self.compare_plugins[self.PLUGIN_NAME].NAME, self.PLUGIN_NAME, 'plugin instance not correct')
+        assert len(self.compare_plugins) == 1, 'number of registered plugins not correct'
+        assert self.compare_plugins[self.PLUGIN_NAME].NAME == self.PLUGIN_NAME, 'plugin instance not correct'
 
     def register_plugin(self, plugin_name, plugin_instance):
         '''

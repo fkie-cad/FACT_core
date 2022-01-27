@@ -21,9 +21,7 @@ class ComparePlugin(CompareBasePlugin):
     '''
     NAME = 'File_Header'
     DEPENDENCIES = []
-
-    def __init__(self, plugin_administrator, config=None, db_interface=None, plugin_path=__file__):
-        super().__init__(plugin_administrator, config=config, db_interface=db_interface, plugin_path=plugin_path)
+    FILE = __file__
 
     def compare_function(self, fo_list):
         binaries = [fo.binary for fo in fo_list]
@@ -79,7 +77,7 @@ class ComparePlugin(CompareBasePlugin):
         return Markup(offsets_string + '</p>')
 
     def _get_byte_mask(self, binaries, lower_bound):
-        mask = list()
+        mask = []
 
         for index in range(lower_bound):
             reference = binaries[0][index]

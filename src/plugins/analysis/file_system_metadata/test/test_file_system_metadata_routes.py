@@ -16,12 +16,6 @@ def b64_encode(string):
     return b64encode(string.encode()).decode()
 
 
-class MockAnalysisEntry:
-    def __init__(self, analysis_result=None, uid=None):
-        self.uid = uid
-        self.result = analysis_result or {}
-
-
 class DbInterfaceMock:
     def __init__(self):
         self.fw = create_test_firmware()
@@ -45,7 +39,7 @@ class DbInterfaceMock:
 
     def get_analysis(self, uid, plugin):
         if uid == self.fw.uid and plugin == AnalysisPlugin.NAME:
-            return MockAnalysisEntry({'files': {b64_encode('some_file'): {'test_result': 'test_value'}}}, self.fw.uid)
+            return {'files': {b64_encode('some_file'): {'test_result': 'test_value'}}}
         return None
 
 
@@ -55,10 +49,10 @@ class TestFileSystemMetadataRoutesStatic:
         fo = create_test_file_object()
         file_name = 'folder/file'
         encoded_name = b64_encode(file_name)
-        parent_result = MockAnalysisEntry({'files': {encoded_name: {'result': 'value'}}}, 'parent_uid')
+        parent_result = {'files': {encoded_name: {'result': 'value'}}}
         fo.virtual_file_path['some_uid'] = [f'some_uid|parent_uid|/{file_name}']
 
-        results = _get_results_from_parent_fo(parent_result, fo)
+        results = _get_results_from_parent_fo(parent_result, 'parent_uid', fo)
 
         assert results != {}, 'result should not be empty'
         assert file_name in results, 'files missing from result'
@@ -71,9 +65,9 @@ class TestFileSystemMetadataRoutesStatic:
         fo.parents = ['parent_uid']
         file_names = ['file_a', 'file_b', 'file_c']
         fo.virtual_file_path['some_uid'] = [f'some_uid|parent_uid|/{f}' for f in file_names]
-        parent_result = MockAnalysisEntry({'files': {b64_encode(f): {'result': 'value'} for f in file_names}}, 'parent_uid')
+        parent_result = {'files': {b64_encode(f): {'result': 'value'} for f in file_names}}
 
-        results = _get_results_from_parent_fo(parent_result, fo)
+        results = _get_results_from_parent_fo(parent_result, 'parent_uid', fo)
 
         assert results is not None
         assert results != {}, 'result should not be empty'

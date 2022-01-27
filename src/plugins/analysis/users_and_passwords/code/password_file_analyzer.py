@@ -38,10 +38,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     MIME_BLACKLIST = MIME_BLACKLIST_NON_EXECUTABLE
     DESCRIPTION = 'search for UNIX, httpd, and mosquitto password files, parse them and try to crack the passwords'
     VERSION = '0.5.0'
-
-    def __init__(self, plugin_administrator, config=None, recursive=True):
-        self.config = config
-        super().__init__(plugin_administrator, config=config, recursive=recursive, no_multithread=True, plugin_path=__file__)
+    FILE = __file__
 
     def process_object(self, file_object: FileObject) -> FileObject:
         if self.NAME not in file_object.processed_analysis:

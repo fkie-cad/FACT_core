@@ -9,12 +9,11 @@ from ..code.architecture_detection import AnalysisPlugin
 class TestArchDetection(AnalysisPluginTest):
 
     PLUGIN_NAME = 'cpu_architecture'
+    PLUGIN_CLASS = AnalysisPlugin
 
     def setUp(self):
         super().setUp()
-        config = self.init_basic_config()
-        config.set(self.PLUGIN_NAME, 'mime_ignore', '')
-        self.analysis_plugin = AnalysisPlugin(self, config=config)
+        self.config.set(self.PLUGIN_NAME, 'mime_ignore', '')
 
     def start_process_object_meta_for_architecture(self, architecture, bitness, endianness, full_file_type):
         test_file = FileObject()

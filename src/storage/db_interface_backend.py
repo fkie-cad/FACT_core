@@ -2,6 +2,7 @@ import logging
 from typing import List
 
 from sqlalchemy import select
+from sqlalchemy.exc import StatementError
 from sqlalchemy.orm import Session
 
 from objects.file import FileObject
@@ -63,7 +64,7 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
                 self.update_analysis(uid, plugin, analysis_dict)
             else:
                 self.insert_analysis(uid, plugin, analysis_dict)
-        except TypeError:
+        except (TypeError, StatementError):
             logging.error(f'Could not store analysis of plugin result {plugin} in the DB because'
                           f' it is not JSON-serializable: {uid=}\n{analysis_dict=}', exc_info=True)
         except DbInterfaceError as error:

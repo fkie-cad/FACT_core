@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from objects.file import FileObject
-from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
+from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest  # pylint: disable=wrong-import-order
 
 from ..code.input_vectors import AnalysisPlugin
 
@@ -11,11 +11,7 @@ TEST_FILE_DIR = Path(__file__).parent / 'data'
 class AnalysisPluginTestInputVectors(AnalysisPluginTest):
 
     PLUGIN_NAME = 'input_vectors'
-
-    def setUp(self):
-        super().setUp()
-        config = self.init_basic_config()
-        self.analysis_plugin = AnalysisPlugin(self, config=config)
+    PLUGIN_CLASS = AnalysisPlugin
 
     def test_process_object_inputs(self):
         result = self.assert_process_object('test_fgets.elf')

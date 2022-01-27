@@ -34,20 +34,15 @@ class AnalysisPlugin(AnalysisBasePlugin):
     ]
     DESCRIPTION = 'Search file for IP addresses and URIs based on regular expressions.'
     VERSION = '0.4.2'
+    FILE = __file__
 
-    def __init__(self, plugin_administrator, config=None, recursive=True):
-
-        self.config = config
-
+    def additional_setup(self):
         self.ip_and_uri_finder = CommonAnalysisIPAndURIFinder()
-
         try:
             self.reader = geoip2.database.Reader(str(GEOIP_DATABASE_PATH))
         except FileNotFoundError:
             logging.error('could not load GeoIP database')
             self.reader = None
-
-        super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__)
 
     def process_object(self, file_object):
         result = self.ip_and_uri_finder.analyze_file(file_object.file_path, separate_ipv6=True)
@@ -73,7 +68,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def find_geo_location(self, ip_address):
         response = self.reader.city(ip_address)
-        return '{}, {}'.format(response.location.latitude, response.location.longitude)  # pylint: disable=no-member
+        return f'{response.location.latitude}, {response.location.longitude}'  # pylint: disable=no-member
 
     def link_ips_with_geo_location(self, ip_addresses):
         linked_ip_geo_list = []
@@ -81,7 +76,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             try:
                 ip_tuple = ip, self.find_geo_location(ip)
             except (AttributeError, AddressNotFoundError, FileNotFoundError, ValueError, InvalidDatabaseError) as exception:
-                logging.debug('{} {}'.format(type(exception), str(exception)))
+                logging.debug(f'Error during {self.NAME} analysis: {str(exception)}', exc_info=True)
                 ip_tuple = ip, ''
             linked_ip_geo_list.append(ip_tuple)
         return linked_ip_geo_list

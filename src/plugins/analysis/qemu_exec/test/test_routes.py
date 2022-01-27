@@ -48,7 +48,7 @@ class DbInterfaceMock:
         if uid == self.fo.uid:
             return self.fo.processed_analysis.get(plugin)
         if uid == self.fw.uid:
-            return MockAnalysisEntry(self.fw.processed_analysis[AnalysisPlugin.NAME])
+            return self.fw.processed_analysis[AnalysisPlugin.NAME]
         return None
 
     def shutdown(self):
@@ -69,12 +69,11 @@ class TestQemuExecRoutesStatic:
 
     def test_get_results_from_parent_fo(self):
         analysis_result = {'executable': False}
-        entry = MockAnalysisEntry({'files': {'foo': analysis_result}})
-        result = routes._get_results_from_parent_fo(entry, 'foo')
+        result = routes._get_results_from_parent_fo({'files': {'foo': analysis_result}}, 'foo')
         assert result == analysis_result
 
     def test_no_results_from_parent(self):
-        result = routes._get_results_from_parent_fo(MockAnalysisEntry(), 'foo')
+        result = routes._get_results_from_parent_fo({}, 'foo')
         assert result is None
 
 

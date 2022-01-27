@@ -1,9 +1,7 @@
-import gc
-import unittest
 import unittest.mock
 from configparser import ConfigParser
 
-from test.common_helper import CommonDatabaseMock, fake_exit, load_users_from_main_config
+from test.common_helper import CommonDatabaseMock, load_users_from_main_config  # pylint: disable=wrong-import-order
 
 
 class AnalysisPluginTest(unittest.TestCase):
@@ -11,24 +9,24 @@ class AnalysisPluginTest(unittest.TestCase):
     This is the base class for analysis plugin test.unit
     '''
 
+    # must be set by individual plugin test class
     PLUGIN_NAME = 'plugin_test'
+    PLUGIN_CLASS = None
 
     def setUp(self):
-        self.mocked_interface = CommonDatabaseMock()
+        self.config = self.init_basic_config()
+        self._set_config()
+        self.analysis_plugin = self.setup_plugin()
 
-        self.enter_patch = unittest.mock.patch(target='helperFunctions.database.ConnectTo.__enter__', new=lambda _: self.mocked_interface)
-        self.enter_patch.start()
+    def _set_config(self):
+        pass  # set individual config in plugin tests if necessary
 
-        self.exit_patch = unittest.mock.patch(target='helperFunctions.database.ConnectTo.__exit__', new=fake_exit)
-        self.exit_patch.start()
+    def setup_plugin(self):
+        # overwrite in plugin tests if necessary
+        return self.PLUGIN_CLASS(self, config=self.config, view_updater=CommonDatabaseMock())  # pylint: disable=not-callable
 
     def tearDown(self):
         self.analysis_plugin.shutdown()  # pylint: disable=no-member
-
-        self.enter_patch.stop()
-        self.exit_patch.stop()
-
-        gc.collect()
 
     def init_basic_config(self):
         config = ConfigParser()
@@ -41,6 +39,10 @@ class AnalysisPluginTest(unittest.TestCase):
         config.set('data_storage', 'mongo_server', 'localhost')
         config.set('data_storage', 'mongo_port', '54321')
         config.set('data_storage', 'view_storage', 'tmp_view')
+        # -- postgres -- FixMe? --
+        config.set('data_storage', 'postgres_server', 'localhost')
+        config.set('data_storage', 'postgres_port', '5432')
+        config.set('data_storage', 'postgres_database', 'fact_test')
         return config
 
     def register_plugin(self, name, plugin_object):

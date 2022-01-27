@@ -10,12 +10,12 @@ from common_helper_files import get_dir_of_file
 from requests.exceptions import ConnectionError as RequestConnectionError
 from requests.exceptions import ReadTimeout
 
-from test.common_helper import create_test_firmware, get_config_for_testing, get_test_data_dir
+from test.common_helper import CommonDatabaseMock, create_test_firmware, get_config_for_testing, get_test_data_dir
 from test.mock import mock_patch
 from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
 
 from ..code import qemu_exec
-from ..code.qemu_exec import EXECUTABLE
+from ..code.qemu_exec import EXECUTABLE, AnalysisPlugin
 
 TEST_DATA_DIR = Path(get_dir_of_file(__file__)) / 'data/test_tmp_dir'
 TEST_DATA_DIR_2 = Path(get_dir_of_file(__file__)) / 'data/test_tmp_dir_2'
@@ -99,12 +99,10 @@ def docker_is_not_running(monkeypatch):
 class TestPluginQemuExec(AnalysisPluginTest):
 
     PLUGIN_NAME = 'qemu_exec'
+    PLUGIN_CLASS = AnalysisPlugin
 
-    def setUp(self):
-        super().setUp()
-        config = self.init_basic_config()
-        self.mock_unpacker = MockUnpacker()
-        self.analysis_plugin = qemu_exec.AnalysisPlugin(self, config=config, unpacker=self.mock_unpacker)
+    def setup_plugin(self):
+        return AnalysisPlugin(self, config=self.config, unpacker=MockUnpacker(), view_updater=CommonDatabaseMock())
 
     def test_has_relevant_type(self):
         assert self.analysis_plugin._has_relevant_type(None) is False

@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from objects.file import FileObject
-from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
+from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest  # pylint: disable=wrong-import-order
 
 from ..code.password_file_analyzer import AnalysisPlugin, crack_hash
 
@@ -11,11 +11,7 @@ TEST_DATA_DIR = Path(__file__).parent / 'data'
 class TestAnalysisPluginPasswordFileAnalyzer(AnalysisPluginTest):
 
     PLUGIN_NAME = 'users_and_passwords'
-
-    def setUp(self):
-        super().setUp()
-        config = self.init_basic_config()
-        self.analysis_plugin = AnalysisPlugin(self, config=config)
+    PLUGIN_CLASS = AnalysisPlugin
 
     def test_process_object_shadow_file(self):
         test_file = FileObject(file_path=str(TEST_DATA_DIR / 'passwd_test'))

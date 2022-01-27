@@ -45,9 +45,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     MIME_BLACKLIST = MIME_BLACKLIST_NON_EXECUTABLE
     DEPENDENCIES = ['software_components']
     VERSION = '0.0.4'
-
-    def __init__(self, plugin_administrator, config=None, recursive=True, offline_testing=False):
-        super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__, offline_testing=offline_testing)
+    FILE = __file__
 
     def process_object(self, file_object):
         cves = {'cve_results': {}}

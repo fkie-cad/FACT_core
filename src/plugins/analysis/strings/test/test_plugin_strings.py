@@ -1,9 +1,10 @@
+# pylint: disable=protected-access
 import os
 
 from common_helper_files import get_dir_of_file
 
 from objects.file import FileObject
-from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
+from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest  # pylint: disable=wrong-import-order
 
 from ..code.strings import AnalysisPlugin
 
@@ -13,15 +14,15 @@ TEST_DATA_DIR = os.path.join(get_dir_of_file(__file__), 'data')
 class TestAnalysisPlugInPrintableStrings(AnalysisPluginTest):
 
     PLUGIN_NAME = 'printable_strings'
+    PLUGIN_CLASS = AnalysisPlugin
 
     def setUp(self):
         super().setUp()
-        config = self.init_basic_config()
-        config.set(self.PLUGIN_NAME, 'min_length', '4')
-        self.analysis_plugin = AnalysisPlugin(self, config=config)
-
         self.strings = ['first string', 'second<>_$tring!', 'third:?-+012345/\\string']
         self.offsets = [(3, self.strings[0]), (21, self.strings[1]), (61, self.strings[2])]
+
+    def _set_config(self):
+        self.config.set(self.PLUGIN_NAME, 'min_length', '4')
 
     def test_process_object(self):
         fo = FileObject(file_path=os.path.join(TEST_DATA_DIR, 'string_find_test_file2'))

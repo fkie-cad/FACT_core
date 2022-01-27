@@ -11,22 +11,21 @@ except ImportError:
     from rulebook import evaluate, vulnerabilities
 
 
+VULNERABILITIES = vulnerabilities()
+
+
 class AnalysisPlugin(YaraBasePlugin):
     NAME = 'known_vulnerabilities'
     DESCRIPTION = 'Rule based detection of known vulnerabilities like Heartbleed'
     DEPENDENCIES = ['file_hashes', 'software_components']
     VERSION = '0.2'
-
-    def __init__(self, plugin_administrator, config=None, recursive=True):
-        self._rule_base_vulnerabilities = vulnerabilities()
-
-        super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__)
+    FILE = __file__
 
     def process_object(self, file_object):
         file_object = super().process_object(file_object)
 
         yara_results = file_object.processed_analysis.pop(self.NAME)
-        file_object.processed_analysis[self.NAME] = dict()
+        file_object.processed_analysis[self.NAME] = {}
 
         binary_vulnerabilities = self._post_process_yara_results(yara_results)
         matched_vulnerabilities = self._check_vulnerabilities(file_object.processed_analysis)
@@ -60,15 +59,16 @@ class AnalysisPlugin(YaraBasePlugin):
     @staticmethod
     def _post_process_yara_results(yara_results):
         yara_results.pop('summary')
-        new_results = list()
+        new_results = []
         for result in yara_results:
             meta = yara_results[result]['meta']
             new_results.append((result, meta))
         return new_results
 
-    def _check_vulnerabilities(self, processed_analysis):
-        matched_vulnerabilities = list()
-        for vulnerability in self._rule_base_vulnerabilities:
+    @staticmethod
+    def _check_vulnerabilities(processed_analysis):
+        matched_vulnerabilities = []
+        for vulnerability in VULNERABILITIES:
             if evaluate(processed_analysis, vulnerability.rule):
                 vulnerability_data = vulnerability.get_dict()
                 name = vulnerability_data.pop('short_name')
