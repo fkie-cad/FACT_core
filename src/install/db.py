@@ -8,7 +8,6 @@ from common_helper_process import execute_shell_command, execute_shell_command_g
 from helperFunctions.install import (
     InstallationError, OperateInDirectory, apt_install_packages, apt_update_sources, dnf_install_packages
 )
-from install.init_postgres import main as init_postgres
 
 MONGO_MIRROR_COMMANDS = {
     'debian': {
@@ -61,6 +60,8 @@ def install_postgres():
 def main(distribution):
     logging.info('Setting up PostgreSQL database')
     install_postgres()
+    # delay import so that sqlalchemy is installed
+    from install.init_postgres import main as init_postgres  # pylint: disable=import-outside-toplevel
     init_postgres()
 
     logging.info('Setting up mongo database')
