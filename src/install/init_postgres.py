@@ -105,7 +105,7 @@ def _create_fact_user(user: str, pw: str, databases: List[str]):
 
 
 def _create_tables(config):
-    AdminDbInterface(config, intercom=None).create_tables()
+    AdminDbInterface(config, intercom=False).create_tables()
 
 
 def _set_table_privileges(config, fact_db):
