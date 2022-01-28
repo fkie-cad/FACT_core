@@ -111,8 +111,15 @@ def test_generic_search_date(db):
 def test_generic_search_regex(db):
     insert_test_fw(db, 'uid_1', file_name='some_file.zip')
     insert_test_fw(db, 'uid_2', file_name='other_file.zip')
-    assert set(db.frontend.generic_search({'file_name': {'$regex': 'file.zip'}})) == {'uid_1', 'uid_2'}
-    assert set(db.frontend.generic_search({'file_name': {'$regex': 'me_file.zip'}})) == {'uid_1'}
+    assert set(db.frontend.generic_search({'file_name': {'$regex': '[a-z]+.zip'}})) == {'uid_1', 'uid_2'}
+    assert set(db.frontend.generic_search({'file_name': {'$regex': r'other.*\.zip'}})) == {'uid_2'}
+
+
+def test_generic_search_like(db):
+    insert_test_fw(db, 'uid_1', file_name='some_file.zip')
+    insert_test_fw(db, 'uid_2', file_name='other_file.zip')
+    assert set(db.frontend.generic_search({'file_name': {'$like': 'file.zip'}})) == {'uid_1', 'uid_2'}
+    assert set(db.frontend.generic_search({'file_name': {'$like': 'me_FILE'}})) == {'uid_1'}, 'case should be ignored'
 
 
 def test_generic_search_lt_gt(db):

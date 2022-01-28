@@ -108,6 +108,8 @@ def _dict_key_to_filter(column, key: str, value: Any):  # pylint: disable=too-co
         return column.has_key(key.split('.')[-1])
     if '$regex' in value:
         return column.op('~')(value['$regex'])
+    if '$like' in value:  # match substring ignoring case
+        return column.ilike(f'%{value["$like"]}%')
     if '$in' in value:  # filter by list
         return column.in_(value['$in'])
     if '$lt' in value:  # less than

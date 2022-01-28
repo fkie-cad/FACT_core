@@ -245,9 +245,9 @@ class DatabaseRoutes(ComponentBase):
         if search_term is None:
             return render_template('error.html', message='Search string not found')
         query = {'$or': {
-            'device_name': {'$regex': search_term},
-            'vendor': {'$regex': search_term},
-            'file_name': {'$regex': search_term},
+            'device_name': {'$like': search_term},
+            'vendor': {'$like': search_term},
+            'file_name': {'$like': search_term},
             'md5': search_term,
             'sha256': search_term,
         }}
