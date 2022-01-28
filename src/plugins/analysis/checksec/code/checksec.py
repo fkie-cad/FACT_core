@@ -1,9 +1,9 @@
 import json
 import logging
 import re
+import subprocess
 from pathlib import Path
-
-from common_helper_process import execute_shell_command_get_return_code
+from subprocess import PIPE, STDOUT
 
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.fileSystem import get_src_dir
@@ -42,10 +42,10 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
 
 def execute_checksec_script(file_path):
-    checksec_result, return_code = execute_shell_command_get_return_code(f'{SHELL_SCRIPT} --file={file_path} --format=json --extended')
-    if return_code != 0:
-        raise ValueError(f'Checksec script exited with non-zero return code {return_code}')
-    return json.loads(checksec_result)[str(file_path)]
+    checksec_p = subprocess.run(f'{SHELL_SCRIPT} --file={file_path} --format=json --extended', shell=True, stdout=PIPE, stderr=STDOUT, text=True)
+    if checksec_p.returncode != 0:
+        raise ValueError(f'Checksec script exited with non-zero return code {checksec_p.returncode}')
+    return json.loads(checksec_p.stdout)[str(file_path)]
 
 
 def check_mitigations(file_path):

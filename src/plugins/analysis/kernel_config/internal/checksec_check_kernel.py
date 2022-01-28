@@ -1,10 +1,10 @@
 import json
 import logging
+import subprocess
 from json import JSONDecodeError
 from pathlib import Path
+from subprocess import DEVNULL, PIPE
 from tempfile import NamedTemporaryFile
-
-from common_helper_process import execute_shell_command
 
 from helperFunctions.fileSystem import get_src_dir
 
@@ -28,8 +28,9 @@ def check_kernel_config(kernel_config: str) -> dict:
         with NamedTemporaryFile() as fp:
             fp.write(kernel_config.encode())
             fp.seek(0)
-            command = f'{CHECKSEC_PATH} --kernel={fp.name} --output=json 2>/dev/null'
-            result = json.loads(execute_shell_command(command))
+            command = f'{CHECKSEC_PATH} --kernel={fp.name} --output=json'
+            checksec_p = subprocess.run(command, shell=True, stdout=PIPE, stderr=DEVNULL, text=True)
+            result = json.loads(checksec_p.stdout)
             whitelist_configs(result)
             return result
     except (JSONDecodeError, KeyError):

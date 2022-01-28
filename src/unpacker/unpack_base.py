@@ -1,10 +1,11 @@
 import logging
 import shutil
+import subprocess
 from os import getgid, getuid, makedirs
 from pathlib import Path
+from subprocess import PIPE, STDOUT
 
 from common_helper_files import safe_rglob
-from common_helper_process import execute_shell_command_get_return_code
 
 
 class UnpackBase:
@@ -20,13 +21,17 @@ class UnpackBase:
         self._initialize_shared_folder(tmp_dir)
         shutil.copy2(file_path, str(Path(tmp_dir, 'input', Path(file_path).name)))
 
-        output, return_code = execute_shell_command_get_return_code(
+        docker_p = subprocess.run(
             'docker run --privileged -m {}m -v /dev:/dev -v {}:/tmp/extractor --rm fkiecad/fact_extractor --chown {}:{}'.format(
                 self.config.get('unpack', 'memory_limit', fallback='1024'), tmp_dir, getuid(), getgid()
-            )
+            ),
+            shell=True,
+            stdout=PIPE,
+            stderr=STDOUT,
+            text=True,
         )
-        if return_code != 0:
-            error = 'Failed to execute docker extractor with code {}:\n{}'.format(return_code, output)
+        if docker_p.returncode != 0:
+            error = 'Failed to execute docker extractor with code {}:\n{}'.format(docker_p.returncode, docker_p.stdout)
             logging.error(error)
             raise RuntimeError(error)
 

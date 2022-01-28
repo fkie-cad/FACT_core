@@ -1,9 +1,10 @@
 import json
 import logging
+import subprocess
 from pathlib import Path
+from subprocess import PIPE, STDOUT
 
 from common_helper_encoder import ReportEncoder
-from common_helper_process import execute_shell_command_get_return_code
 
 from helperFunctions.object_conversion import create_meta_dict
 from objects.firmware import Firmware
@@ -26,12 +27,16 @@ def build_pdf_report(firmware: Firmware, folder: Path) -> Path:
     '''
     _initialize_subfolder(folder, firmware)
 
-    output, return_code = execute_shell_command_get_return_code(
-        f'docker run -m 512m -v {folder}:/tmp/interface --rm fkiecad/fact_pdf_report'
+    docker_p = subprocess.run(
+        f'docker run -m 512m -v {folder}:/tmp/interface --rm fkiecad/fact_pdf_report',
+        shell=True,
+        stdout=PIPE,
+        stderr=STDOUT,
+        text=True,
     )
 
-    if return_code != 0:
-        logging.error('Failed to execute pdf generator with code {}:\n{}'.format(return_code, output))
+    if docker_p.returncode != 0:
+        logging.error('Failed to execute pdf generator with code {}:\n{}'.format(docker_p.returncode, docker_p.stdout))
         raise RuntimeError('Could not create PDF report')
 
     pdf_path = _find_pdf(folder)

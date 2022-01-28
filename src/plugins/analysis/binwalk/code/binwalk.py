@@ -1,10 +1,10 @@
 import logging
 import string
+import subprocess
 from pathlib import Path
+from subprocess import PIPE, STDOUT
 from tempfile import TemporaryDirectory
 from typing import List
-
-from common_helper_process import execute_shell_command
 
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.config import get_temp_dir_path
@@ -25,7 +25,14 @@ class AnalysisPlugin(AnalysisBasePlugin):
     def process_object(self, file_object):
         result = {}
         with TemporaryDirectory(prefix='fact_analysis_binwalk_', dir=get_temp_dir_path(self.config)) as tmp_dir:
-            signature_analysis_result = execute_shell_command(f'(cd {tmp_dir} && xvfb-run -a binwalk -BEJ {file_object.file_path})')
+            cmd_p = subprocess.run(
+                f'(cd {tmp_dir} && xvfb-run -a binwalk -BEJ {file_object.file_path})',
+                shell=True,
+                stdout=PIPE,
+                stderr=STDOUT,
+                text=True,
+            )
+            signature_analysis_result = cmd_p.stdout
             try:
                 pic_path = Path(tmp_dir) / f'{Path(file_object.file_path).name}.png'
                 result['entropy_analysis_graph'] = pic_path.read_bytes()

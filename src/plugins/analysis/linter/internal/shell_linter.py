@@ -6,8 +6,8 @@
 
 import json
 import logging
-
-from common_helper_process import execute_shell_command_get_return_code
+import subprocess
+from subprocess import PIPE, STDOUT
 
 
 class ShellLinter:
@@ -15,14 +15,20 @@ class ShellLinter:
     Wrapper for shellcheck shell linter
     '''
     def do_analysis(self, file_path):
-        linter_output, return_code = execute_shell_command_get_return_code('shellcheck --format=json {}'.format(file_path))
+        shellcheck_p = subprocess.run(
+            'shellcheck --format=json {}'.format(file_path),
+            shell=True,
+            stdout=PIPE,
+            stderr=STDOUT,
+            text=True,
+        )
 
-        if return_code == 2:
-            logging.debug('Failed to execute shellcheck:\n{}'.format(linter_output))
+        if shellcheck_p.stdout == 2:
+            logging.debug('Failed to execute shellcheck:\n{}'.format(shellcheck_p.stdout))
             return list()
 
         try:
-            shellcheck_json = json.loads(linter_output)
+            shellcheck_json = json.loads(shellcheck_p.stdout)
         except json.JSONDecodeError:
             return list()
 

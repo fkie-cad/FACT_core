@@ -13,9 +13,9 @@ Currently the cwe_checker supports the following architectures:
 '''
 import json
 import logging
+import subprocess
 from collections import defaultdict
-
-from common_helper_process import execute_shell_command_get_return_code
+from subprocess import DEVNULL
 
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.docker import run_docker_container
@@ -47,8 +47,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     @staticmethod
     def _check_docker_installed():
-        _, return_code = execute_shell_command_get_return_code('docker -v')
-        return return_code == 0
+        docker_p = subprocess.run('docker -v', shell=True, stdout=DEVNULL, stderr=DEVNULL, text=True)
+        return docker_p.returncode == 0
 
     def _log_version_string(self):
         output = self._run_cwe_checker_to_get_version_string()

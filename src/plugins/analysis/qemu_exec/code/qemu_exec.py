@@ -1,6 +1,7 @@
 import binascii
 import itertools
 import logging
+import subprocess
 import zlib
 from base64 import b64decode
 from collections import OrderedDict
@@ -8,11 +9,11 @@ from concurrent.futures import Future, ThreadPoolExecutor
 from json import JSONDecodeError, loads
 from multiprocessing import Manager
 from pathlib import Path
+from subprocess import DEVNULL
 from tempfile import TemporaryDirectory
 from typing import Dict, List, Optional, Tuple, Union
 
 from common_helper_files import get_binary_from_file, safe_rglob
-from common_helper_process import execute_shell_command_get_return_code
 from docker.errors import DockerException
 from fact_helper_file import get_file_type_from_path
 from requests.exceptions import ReadTimeout
@@ -350,5 +351,5 @@ def merge_identical_results(results: Dict[str, Dict[str, str]]):
 
 
 def docker_is_running() -> bool:
-    _, return_code = execute_shell_command_get_return_code('docker info')
-    return return_code == 0
+    docker_p = subprocess.run('docker info', shell=True, stdout=DEVNULL, stderr=DEVNULL, text=True)
+    return docker_p.returncode == 0

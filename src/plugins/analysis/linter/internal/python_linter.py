@@ -1,7 +1,7 @@
 import json
 import logging
-
-from common_helper_process import execute_shell_command
+import subprocess
+from subprocess import PIPE, STDOUT
 
 
 class PythonLinter:
@@ -9,11 +9,11 @@ class PythonLinter:
     Wrapper for pylint python linter
     '''
     def do_analysis(self, file_path):
-        pylint_output = execute_shell_command('pylint --output-format=json {}'.format(file_path))
+        pylint_p = subprocess.run('pylint --output-format=json {}'.format(file_path), shell=True, stdout=PIPE, stderr=STDOUT, text=True)
         try:
-            pylint_json = json.loads(pylint_output)
+            pylint_json = json.loads(pylint_p.stdout)
         except json.JSONDecodeError:
-            logging.warning('Failed to execute pylint:\n{}'.format(pylint_output))
+            logging.warning('Failed to execute pylint:\n{}'.format(pylint_p.stdout))
             return list()
 
         return self._extract_relevant_warnings(pylint_json)

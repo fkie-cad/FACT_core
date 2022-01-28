@@ -20,12 +20,12 @@
 import argparse
 import logging
 import os
+import subprocess
 import sys
 from pathlib import Path
+from subprocess import PIPE, STDOUT
 
 try:
-    from common_helper_process import execute_shell_command_get_return_code
-
     from helperFunctions.install import OperateInDirectory, check_distribution
     from install.backend import _install_docker_images as backend_install_docker_images
     from install.backend import install_plugin_docker_images as backend_install_plugin_docker_images
@@ -125,9 +125,9 @@ def install_statistic_cronjob():
     cron_content = '0    *    *    *    *    {} > /dev/null 2>&1\n'.format(statistic_update_script_path)
     cron_content += '30    0    *    *    0    {} > /dev/null 2>&1\n'.format(variety_update_script_path)
     crontab_file_path.write_text(cron_content)
-    output, return_code = execute_shell_command_get_return_code('crontab {}'.format(crontab_file_path))
-    if return_code != 0:
-        logging.error(output)
+    crontab_p = subprocess.run(f'crontab {crontab_file_path}', shell=True, stdout=PIPE, stderr=STDOUT, text=True)
+    if crontab_p.returncode != 0:
+        logging.error(crontab_p.stdout)
     else:
         logging.info('done')
 

@@ -1,7 +1,7 @@
 import logging
+import subprocess
 from pathlib import Path
-
-from common_helper_process import execute_shell_command
+from subprocess import PIPE, STDOUT
 
 CONFIG_FILE_PATH = Path(Path(__file__).parent, 'config', '.luacheckrc')
 
@@ -11,8 +11,14 @@ class LuaLinter:
     Wrapper for luacheck luascript linter
     '''
     def do_analysis(self, file_path):
-        linter_output = execute_shell_command('luacheck -q --ranges --config  {} {}'.format(CONFIG_FILE_PATH, file_path))
-        return self._parse_linter_output(linter_output)
+        luacheck_p = subprocess.run(
+            'luacheck -q --ranges --config  {} {}'.format(CONFIG_FILE_PATH, file_path),
+            shell=True,
+            stdout=PIPE,
+            stderr=STDOUT,
+            text=True,
+        )
+        return self._parse_linter_output(luacheck_p.stdout)
 
     def _parse_linter_output(self, output):
         '''

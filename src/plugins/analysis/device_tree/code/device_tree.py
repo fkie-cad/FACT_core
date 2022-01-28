@@ -1,8 +1,8 @@
 import logging
+import subprocess
 from pathlib import Path
+from subprocess import PIPE, STDOUT
 from typing import Optional, Union
-
-from common_helper_process import execute_shell_command_get_return_code
 
 from analysis.PluginBase import AnalysisBasePlugin
 from plugins.mime_blacklists import MIME_BLACKLIST_COMPRESSED
@@ -46,15 +46,15 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     @staticmethod
     def convert_device_tree(file_path: Union[str, Path]) -> Optional[str]:
-        dtc_result, return_code = execute_shell_command_get_return_code(f'dtc -I dtb -O dts {file_path}')
-        if return_code != 0:
-            logging.warning(f'The Device Tree Compiler exited with non-zero return code {return_code} after working on {file_path}')
+        dtc_p = subprocess.run(f'dtc -I dtb -O dts {file_path}', shell=True, stdout=PIPE, stderr=STDOUT, text=True)
+        if dtc_p.returncode != 0:
+            logging.warning(f'The Device Tree Compiler exited with non-zero return code {dtc_p.returncode} after working on {file_path}')
             return None
-        return dtc_result
+        return dtc_p.stdout
 
     @staticmethod
     def dump_device_tree(file_path: Union[str, Path]) -> Optional[str]:
-        output, return_code = execute_shell_command_get_return_code(f'fdtdump --scan {file_path}')
-        if return_code != 0:
+        fdtdump_p = subprocess.run(f'fdtdump --scan {file_path}', shell=True, stdout=PIPE, stderr=STDOUT)
+        if fdtdump_p.returncode != 0:
             return None
-        return output
+        return fdtdump_p.stdout
