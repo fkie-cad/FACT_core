@@ -24,9 +24,10 @@ class MiscellaneousRoutes(ComponentBase):
     @AppRoute('/', GET)
     def show_home(self):
         latest_count = int(self._config['database'].get('number_of_latest_firmwares_to_display', '10'))
-        latest_firmware_submissions = self.db.frontend.get_last_added_firmwares(latest_count)
-        latest_comments = self.db.frontend.get_latest_comments(latest_count)
-        latest_comparison_results = self.db.comparison.page_comparison_results(limit=10)
+        with self.db.frontend.get_read_only_session():
+            latest_firmware_submissions = self.db.frontend.get_last_added_firmwares(latest_count)
+            latest_comments = self.db.frontend.get_latest_comments(latest_count)
+            latest_comparison_results = self.db.comparison.page_comparison_results(limit=10)
         ajax_stats_reload_time = int(self._config['database']['ajax_stats_reload_time'])
         general_stats = self.stats_updater.get_general_stats()
         return render_template(

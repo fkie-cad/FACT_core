@@ -27,9 +27,10 @@ class CompareRoutes(ComponentBase):
     @AppRoute('/compare/<compare_id>', GET)
     def show_compare_result(self, compare_id):
         compare_id = normalize_compare_id(compare_id)
-        if not self.db.comparison.objects_exist(compare_id):
-            return render_template('compare/error.html', error='Not all UIDs found in the DB')
-        result = self.db.comparison.get_comparison_result(compare_id)
+        with self.db.comparison.get_read_only_session():
+            if not self.db.comparison.objects_exist(compare_id):
+                return render_template('compare/error.html', error='Not all UIDs found in the DB')
+            result = self.db.comparison.get_comparison_result(compare_id)
         if not result:
             return render_template('compare/wait.html', compare_id=compare_id)
         download_link = self._create_ida_download_if_existing(result, compare_id)
@@ -57,12 +58,13 @@ class CompareRoutes(ComponentBase):
         views, plugins_without_view = [], []
         with suppress(KeyError):
             used_plugins = list(compare_result['plugins'].keys())
-            for plugin in used_plugins:
-                view = self.db.template.get_view(plugin)
-                if view:
-                    views.append((plugin, view))
-                else:
-                    plugins_without_view.append(plugin)
+            with self.db.template.get_read_only_session():
+                for plugin in used_plugins:
+                    view = self.db.template.get_view(plugin)
+                    if view:
+                        views.append((plugin, view))
+                    else:
+                        plugins_without_view.append(plugin)
         return views, plugins_without_view
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
@@ -76,11 +78,12 @@ class CompareRoutes(ComponentBase):
         session['uids_for_comparison'] = None
         redo = True if request.args.get('force_recompare') else None
 
-        if not self.db.comparison.objects_exist(comparison_id):
-            return render_template('compare/error.html', error='Not all UIDs found in the DB')
+        with self.db.comparison.get_read_only_session():
+            if not self.db.comparison.objects_exist(comparison_id):
+                return render_template('compare/error.html', error='Not all UIDs found in the DB')
 
-        if not redo and self.db.comparison.comparison_exists(comparison_id):
-            return redirect(url_for('show_compare_result', compare_id=comparison_id))
+            if not redo and self.db.comparison.comparison_exists(comparison_id):
+                return redirect(url_for('show_compare_result', compare_id=comparison_id))
 
         with ConnectTo(self.intercom, self._config) as sc:
             sc.add_compare_task(comparison_id, force=redo)

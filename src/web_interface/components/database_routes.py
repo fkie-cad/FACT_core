@@ -40,24 +40,26 @@ class DatabaseRoutes(ComponentBase):
     def browse_database(self, query: str = '{}', only_firmwares=False, inverted=False):
         page, per_page = extract_pagination_from_request(request, self._config)[0:2]
         search_parameters = self._get_search_parameters(query, only_firmwares, inverted)
-        try:
-            firmware_list = self._search_database(
-                search_parameters['query'], skip=per_page * (page - 1), limit=per_page,
-                only_firmwares=search_parameters['only_firmware'], inverted=search_parameters['inverted']
-            )
-            if self._query_has_only_one_result(firmware_list, search_parameters['query']):
-                return redirect(url_for('show_analysis', uid=firmware_list[0][0]))
-        except QueryConversionException as exception:
-            error_message = exception.get_message()
-            return render_template('error.html', message=error_message)
-        except Exception as err:
-            error_message = 'Could not query database'
-            logging.error(error_message + f' due to exception: {err}', exc_info=True)  # pylint: disable=logging-not-lazy
-            return render_template('error.html', message=error_message)
 
-        total = self.db.frontend.get_number_of_total_matches(search_parameters['query'], search_parameters['only_firmware'], inverted=search_parameters['inverted'])
-        device_classes = self.db.frontend.get_device_class_list()
-        vendors = self.db.frontend.get_vendor_list()
+        with self.db.frontend.get_read_only_session():
+            try:
+                firmware_list = self._search_database(
+                    search_parameters['query'], skip=per_page * (page - 1), limit=per_page,
+                    only_firmwares=search_parameters['only_firmware'], inverted=search_parameters['inverted']
+                )
+                if self._query_has_only_one_result(firmware_list, search_parameters['query']):
+                    return redirect(url_for('show_analysis', uid=firmware_list[0][0]))
+            except QueryConversionException as exception:
+                error_message = exception.get_message()
+                return render_template('error.html', message=error_message)
+            except Exception as err:
+                error_message = 'Could not query database'
+                logging.error(error_message + f' due to exception: {err}', exc_info=True)  # pylint: disable=logging-not-lazy
+                return render_template('error.html', message=error_message)
+
+            total = self.db.frontend.get_number_of_total_matches(search_parameters['query'], search_parameters['only_firmware'], inverted=search_parameters['inverted'])
+            device_classes = self.db.frontend.get_device_class_list()
+            vendors = self.db.frontend.get_vendor_list()
 
         pagination = get_pagination(page=page, per_page=per_page, total=total, record_name='firmwares')
         return render_template(
@@ -77,8 +79,9 @@ class DatabaseRoutes(ComponentBase):
     def browse_searches(self):
         page, per_page, offset = extract_pagination_from_request(request, self._config)
         try:
-            searches = self.db.frontend.search_query_cache(offset=offset, limit=per_page)
-            total = self.db.frontend.get_total_cached_query_count()
+            with self.db.frontend.get_read_only_session():
+                searches = self.db.frontend.search_query_cache(offset=offset, limit=per_page)
+                total = self.db.frontend.get_total_cached_query_count()
         except SQLAlchemyError as exception:
             error_message = 'Could not query database'
             logging.error(error_message + f'due to exception: {exception}', exc_info=True)  # pylint: disable=logging-not-lazy
@@ -152,8 +155,9 @@ class DatabaseRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['basic_search'])
     @AppRoute('/database/search', GET)
     def show_basic_search(self):
-        device_classes = self.db.frontend.get_device_class_list()
-        vendors = self.db.frontend.get_vendor_list()
+        with self.db.frontend.get_read_only_session():
+            device_classes = self.db.frontend.get_device_class_list()
+            vendors = self.db.frontend.get_vendor_list()
         return render_template('database/database_search.html', device_classes=device_classes, vendors=vendors)
 
     @roles_accepted(*PRIVILEGES['advanced_search'])

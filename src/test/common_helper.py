@@ -7,6 +7,8 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import List, Optional, Union
 
+from decorator import contextmanager
+
 from helperFunctions.config import load_config
 from helperFunctions.data_conversion import get_value_of_first_key
 from helperFunctions.fileSystem import get_src_dir
@@ -147,6 +149,10 @@ class CommonDatabaseMock:  # pylint: disable=too-many-public-methods
     def __init__(self, config=None):
         self.tasks = []
         self.locks = []
+
+    @contextmanager
+    def get_read_only_session(self):
+        yield None
 
     def update_view(self, file_name, content):
         pass

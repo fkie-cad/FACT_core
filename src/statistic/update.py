@@ -26,35 +26,37 @@ class StatsUpdater:
     def update_all_stats(self):
         self.start_time = time()
 
-        self.db.update_statistic('firmware_meta', self.get_firmware_meta_stats())
-        self.db.update_statistic('file_type', self.get_file_type_stats())
-        self.db.update_statistic('malware', self.get_malware_stats())
-        self.db.update_statistic('crypto_material', self.get_crypto_material_stats())
-        self.db.update_statistic('unpacking', self.get_unpacking_stats())
-        self.db.update_statistic('architecture', self.get_architecture_stats())
-        self.db.update_statistic('ips_and_uris', self.get_ip_stats())
-        self.db.update_statistic('release_date', self.get_time_stats())
-        self.db.update_statistic('exploit_mitigations', self.get_exploit_mitigations_stats())
-        self.db.update_statistic('known_vulnerabilities', self.get_known_vulnerabilities_stats())
-        self.db.update_statistic('software_components', self.get_software_components_stats())
-        self.db.update_statistic('elf_executable', self.get_executable_stats())
-        # should always be the last, because of the benchmark
-        self.db.update_statistic('general', self.get_general_stats())
+        with self.db.get_read_only_session():
+            self.db.update_statistic('firmware_meta', self.get_firmware_meta_stats())
+            self.db.update_statistic('file_type', self.get_file_type_stats())
+            self.db.update_statistic('malware', self.get_malware_stats())
+            self.db.update_statistic('crypto_material', self.get_crypto_material_stats())
+            self.db.update_statistic('unpacking', self.get_unpacking_stats())
+            self.db.update_statistic('architecture', self.get_architecture_stats())
+            self.db.update_statistic('ips_and_uris', self.get_ip_stats())
+            self.db.update_statistic('release_date', self.get_time_stats())
+            self.db.update_statistic('exploit_mitigations', self.get_exploit_mitigations_stats())
+            self.db.update_statistic('known_vulnerabilities', self.get_known_vulnerabilities_stats())
+            self.db.update_statistic('software_components', self.get_software_components_stats())
+            self.db.update_statistic('elf_executable', self.get_executable_stats())
+            # should always be the last, because of the benchmark
+            self.db.update_statistic('general', self.get_general_stats())
 
 # ---- get statistic functions
 
     def get_general_stats(self):
         if self.start_time is None:
             self.start_time = time()
-        stats = {
-            'number_of_firmwares': self.db.get_count(q_filter=self.match, firmware=True),
-            'total_firmware_size': self.db.get_sum(FileObjectEntry.size, q_filter=self.match, firmware=True),
-            'average_firmware_size': self.db.get_avg(FileObjectEntry.size, q_filter=self.match, firmware=True),
-            'number_of_unique_files': self.db.get_count(q_filter=self.match, firmware=False),
-            'total_file_size': self.db.get_sum(FileObjectEntry.size, q_filter=self.match, firmware=False),
-            'average_file_size': self.db.get_avg(FileObjectEntry.size, q_filter=self.match, firmware=False),
-            'creation_time': time()
-        }
+        with self.db.get_read_only_session():
+            stats = {
+                'number_of_firmwares': self.db.get_count(q_filter=self.match, firmware=True),
+                'total_firmware_size': self.db.get_sum(FileObjectEntry.size, q_filter=self.match, firmware=True),
+                'average_firmware_size': self.db.get_avg(FileObjectEntry.size, q_filter=self.match, firmware=True),
+                'number_of_unique_files': self.db.get_count(q_filter=self.match, firmware=False),
+                'total_file_size': self.db.get_sum(FileObjectEntry.size, q_filter=self.match, firmware=False),
+                'average_file_size': self.db.get_avg(FileObjectEntry.size, q_filter=self.match, firmware=False),
+                'creation_time': time()
+            }
         benchmark = stats['creation_time'] - self.start_time
         stats['benchmark'] = benchmark
         logging.info(f'time to create stats: {time_format(benchmark)}')

@@ -37,13 +37,14 @@ class AjaxRoutes(ComponentBase):
 
     def _generate_file_tree(self, root_uid: str, uid: str, whitelist: List[str]) -> FileTreeNode:
         root = FileTreeNode(None)
-        child_uids = [
-            child_uid
-            for child_uid in self.db.frontend.get_object(uid).files_included
-            if whitelist is None or child_uid in whitelist
-        ]
-        for node in self.db.frontend.generate_file_tree_nodes_for_uid_list(child_uids, root_uid, uid, whitelist):
-            root.add_child_node(node)
+        with self.db.frontend.get_read_only_session():
+            child_uids = [
+                child_uid
+                for child_uid in self.db.frontend.get_object(uid).files_included
+                if whitelist is None or child_uid in whitelist
+            ]
+            for node in self.db.frontend.generate_file_tree_nodes_for_uid_list(child_uids, root_uid, uid, whitelist):
+                root.add_child_node(node)
         return root
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
@@ -105,8 +106,9 @@ class AjaxRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['view_analysis'])
     @AppRoute('/ajax_get_summary/<uid>/<selected_analysis>', GET)
     def ajax_get_summary(self, uid, selected_analysis):
-        firmware = self.db.frontend.get_object(uid, analysis_filter=selected_analysis)
-        summary_of_included_files = self.db.frontend.get_summary(firmware, selected_analysis)
+        with self.db.frontend.get_read_only_session():
+            firmware = self.db.frontend.get_object(uid, analysis_filter=selected_analysis)
+            summary_of_included_files = self.db.frontend.get_summary(firmware, selected_analysis)
         return render_template('summary.html', summary_of_included_files=summary_of_included_files, root_uid=uid, selected_analysis=selected_analysis)
 
     @roles_accepted(*PRIVILEGES['status'])

@@ -38,9 +38,10 @@ class IORoutes(ComponentBase):
     @AppRoute('/upload', GET)
     def get_upload(self, error=None):
         error = error or {}
-        device_class_list = self.db.frontend.get_device_class_list()
-        vendor_list = self.db.frontend.get_vendor_list()
-        device_name_dict = self.db.frontend.get_device_name_dict()
+        with self.db.frontend.get_read_only_session():
+            device_class_list = self.db.frontend.get_device_class_list()
+            vendor_list = self.db.frontend.get_vendor_list()
+            device_name_dict = self.db.frontend.get_device_name_dict()
         with ConnectTo(self.intercom, self._config) as sc:
             analysis_plugins = sc.get_available_analysis_plugins()
         return render_template(
@@ -121,11 +122,12 @@ class IORoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['download'])
     @AppRoute('/pdf-download/<uid>', GET)
     def download_pdf_report(self, uid):
-        object_exists = self.db.frontend.exists(uid)
-        if not object_exists:
-            return render_template('uid_not_found.html', uid=uid)
+        with self.db.frontend.get_read_only_session():
+            object_exists = self.db.frontend.exists(uid)
+            if not object_exists:
+                return render_template('uid_not_found.html', uid=uid)
 
-        firmware = self.db.frontend.get_complete_object_including_all_summaries(uid)
+            firmware = self.db.frontend.get_complete_object_including_all_summaries(uid)
 
         try:
             with TemporaryDirectory(dir=get_temp_dir_path(self._config)) as folder:
