@@ -123,6 +123,17 @@ def test_generic_search_lt_gt(db):
     assert set(db.frontend.generic_search({'size': {'$gt': 15}})) == {'uid_2', 'uid_3'}
 
 
+def test_generic_search_or(db):
+    insert_test_fo(db, 'uid_1', file_name='some_file.zip', size=10)
+    insert_test_fo(db, 'uid_2', file_name='other_file.zip', size=20)
+    assert set(db.frontend.generic_search({'file_name': 'some_file.zip'})) == {'uid_1'}
+    assert set(db.frontend.generic_search({'$or': {'file_name': 'some_file.zip'}})) == {'uid_1'}
+    assert set(db.frontend.generic_search({'$or': {'file_name': 'some_file.zip', 'size': 20}})) == {'uid_1', 'uid_2'}
+    assert set(db.frontend.generic_search({'$or': {'file_name': 'other_file.zip', 'size': {'$lt': 20}}})) == {'uid_1', 'uid_2'}
+    # "$or" query should still match if there is a firmware attribute in the query
+    assert set(db.frontend.generic_search({'$or': {'file_name': 'some_file.zip', 'vendor': 'some_vendor'}})) == {'uid_1'}
+
+
 def test_generic_search_unknown_op(db):
     with pytest.raises(QueryConversionException):
         db.frontend.generic_search({'file_name': {'$unknown': 'foo'}})

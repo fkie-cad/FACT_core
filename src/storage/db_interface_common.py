@@ -1,7 +1,7 @@
 import logging
 from typing import Dict, List, Optional, Set, Union
 
-from sqlalchemy import func, select
+from sqlalchemy import distinct, func, select
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import aliased
 from sqlalchemy.orm.exc import NoResultFound
@@ -241,7 +241,7 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
         if zero_on_empty_query and query == {}:
             return 0
         with self.get_read_only_session() as session:
-            query = build_query_from_dict(query, query=select(func.count(FileObjectEntry.uid)))
+            query = build_query_from_dict(query, query=select(func.count(distinct(FileObjectEntry.uid))))
             return session.execute(query).scalar()
 
     @staticmethod

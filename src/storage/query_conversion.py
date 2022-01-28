@@ -1,6 +1,6 @@
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Type, Union
 
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql import Select
 
@@ -48,12 +48,17 @@ def query_parent_firmware(search_dict: dict, inverted: bool, count: bool = False
     return select(FirmwareEntry).filter(query_filter).order_by(*FIRMWARE_ORDER)
 
 
-def build_query_from_dict(query_dict: dict, query: Optional[Select] = None, fw_only: bool = False) -> Select:  # pylint: disable=too-complex
+def build_query_from_dict(query_dict: dict, query: Optional[Select] = None,  # pylint: disable=too-complex
+                          fw_only: bool = False, or_query: bool = False) -> Select:
     '''
     Builds an ``sqlalchemy.orm.Query`` object from a query in dict form.
     '''
     if query is None:
         query = select(FileObjectEntry) if not fw_only else select(FirmwareEntry)
+    filters = []
+
+    if '$or' in query_dict:  # insert inception reference here
+        return build_query_from_dict(query_dict['$or'], query, fw_only=fw_only, or_query=True)
 
     if '_id' in query_dict:
         # FixMe?: backwards compatible for binary search
@@ -62,21 +67,31 @@ def build_query_from_dict(query_dict: dict, query: Optional[Select] = None, fw_o
     analysis_search_dict = {key: value for key, value in query_dict.items() if key.startswith('processed_analysis')}
     if analysis_search_dict:
         query = query.join(AnalysisEntry, AnalysisEntry.uid == (FileObjectEntry.uid if not fw_only else FirmwareEntry.uid))
-        query = _add_analysis_filter_to_query(analysis_search_dict, query)
+        for key, value in analysis_search_dict.items():
+            _, plugin, subkey = key.split('.', maxsplit=2)
+            filters.append((_add_analysis_filter_to_query(key, value, subkey)) & (AnalysisEntry.plugin == plugin))
 
     firmware_search_dict = get_search_keys_from_dict(query_dict, FirmwareEntry, blacklist=['uid'])
     if firmware_search_dict:
         if not fw_only:
-            query = query.join(FirmwareEntry, FirmwareEntry.uid == FileObjectEntry.uid)
-        query = _add_filters_for_attribute_list(firmware_search_dict, FirmwareEntry, query)
+            join_function = query.outerjoin if or_query else query.join  # outer join in case of "$or" so file objects still match
+            query = join_function(FirmwareEntry, FirmwareEntry.uid == FileObjectEntry.uid)
+        for key, value in firmware_search_dict.items():
+            filters.append(_dict_key_to_filter(_get_column(key, FirmwareEntry), key, value))
 
     file_search_dict = get_search_keys_from_dict(query_dict, FileObjectEntry)
     if file_search_dict:
-        if fw_only:
+        if fw_only:  # join on uid here, so we only match the root file objects
             query = query.join(FileObjectEntry, FirmwareEntry.uid == FileObjectEntry.uid)
-        query = _add_filters_for_attribute_list(file_search_dict, FileObjectEntry, query)
+        for key, value in file_search_dict.items():
+            filters.append(_dict_key_to_filter(_get_column(key, FileObjectEntry), key, value))
 
-    return query
+    if or_query:
+        query = query.filter(or_(*filters))
+    else:
+        query = query.filter(*filters)
+
+    return query.distinct()
 
 
 def get_search_keys_from_dict(query_dict: dict, table, blacklist: List[str] = None) -> Dict[str, Any]:
@@ -84,13 +99,6 @@ def get_search_keys_from_dict(query_dict: dict, table, blacklist: List[str] = No
         key: value for key, value in query_dict.items()
         if key not in (blacklist or []) and hasattr(table, key)
     }
-
-
-def _add_filters_for_attribute_list(search_key_dict: dict, table, query: Select) -> Select:
-    for key, value in search_key_dict.items():
-        column = _get_column(key, table)
-        query = query.filter(_dict_key_to_filter(column, key, value))
-    return query
 
 
 def _dict_key_to_filter(column, key: str, value: Any):  # pylint: disable=too-complex,too-many-return-statements
@@ -111,42 +119,34 @@ def _dict_key_to_filter(column, key: str, value: Any):  # pylint: disable=too-co
     raise QueryConversionException(f'Search options currently unsupported: {value}')
 
 
-def _get_column(key: str, table: Union[FirmwareEntry, FileObjectEntry, AnalysisEntry]):
+def _get_column(key: str, table: Union[Type[FirmwareEntry], Type[FileObjectEntry], Type[AnalysisEntry]]):
     column = getattr(table, key)
     if key == 'release_date':  # special case: Date column -> convert to string
         return func.to_char(column, 'YYYY-MM-DD')
     return column
 
 
-def _add_analysis_filter_to_query(analysis_search_dict: dict, query: Select) -> Select:
-    for key, value in analysis_search_dict.items():  # type: str, Any
-        _, plugin, subkey = key.split('.', maxsplit=2)
-        query = query.filter(AnalysisEntry.plugin == plugin)
-        if hasattr(AnalysisEntry, subkey):
-            if subkey == 'summary':  # special case: array field
-                query = _add_summary_filter(query, key, value)
-            else:
-                query = query.filter(getattr(AnalysisEntry, subkey) == value)
-        else:  # no metadata field, actual analysis result key in `AnalysisEntry.result` (JSON)
-            query = _add_json_filter(query, key, value, subkey)
-    return query
+def _add_analysis_filter_to_query(key: str, value: Any, subkey: str):
+    if hasattr(AnalysisEntry, subkey):
+        if subkey == 'summary':  # special case: array field
+            return _get_summary_filter(key, value)
+        return getattr(AnalysisEntry, subkey) == value
+    # no metadata field, actual analysis result key in `AnalysisEntry.result` (JSON)
+    return _add_json_filter(key, value, subkey)
 
 
-def _add_summary_filter(query, key, value):
+def _get_summary_filter(key, value):
     if isinstance(value, list):  # array can be queried with list or single value
-        query = query.filter(AnalysisEntry.summary.contains(value))
-    elif isinstance(value, dict):
+        return AnalysisEntry.summary.contains(value)
+    if isinstance(value, dict):
         if '$regex' in value:  # array + "$regex" needs a trick: convert array to string
             column = func.array_to_string(AnalysisEntry.summary, ',')
-            query = query.filter(_dict_key_to_filter(column, key, value))
-        else:
-            raise QueryConversionException(f'Unsupported search option for ARRAY field: {value}')
-    else:  # value
-        query = query.filter(AnalysisEntry.summary.contains([value]))
-    return query
+            return _dict_key_to_filter(column, key, value)
+        raise QueryConversionException(f'Unsupported search option for ARRAY field: {value}')
+    return AnalysisEntry.summary.contains([value])  # filter by value
 
 
-def _add_json_filter(query, key, value, subkey):
+def _add_json_filter(key, value, subkey):
     column = AnalysisEntry.result
     if '$exists' in value:
         # "$exists" (aka key exists in json document) is a special case because
@@ -157,4 +157,4 @@ def _add_json_filter(query, key, value, subkey):
         for nested_key in subkey.split('.'):
             column = column[nested_key]
         column = column.astext
-    return query.filter(_dict_key_to_filter(column, key, value))
+    return _dict_key_to_filter(column, key, value)

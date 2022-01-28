@@ -140,7 +140,7 @@ class DatabaseRoutes(ComponentBase):
 
     def _add_hash_query_to_query(self, query, value):
         hash_types = read_list_from_config(self._config, 'file_hashes', 'hashes')
-        hash_query = [{f'processed_analysis.file_hashes.{hash_type}': value} for hash_type in hash_types]
+        hash_query = {f'processed_analysis.file_hashes.{hash_type}': value for hash_type in hash_types}
         query.update({'$or': hash_query})
 
     @roles_accepted(*PRIVILEGES['basic_search'])
@@ -244,12 +244,11 @@ class DatabaseRoutes(ComponentBase):
         search_term = filter_out_illegal_characters(request.args.get('search_term'))
         if search_term is None:
             return render_template('error.html', message='Search string not found')
-        query = {}
-        self._add_hash_query_to_query(query, search_term)
-        query['$or'].extend([
-            {'device_name': {'$options': 'si', '$regex': search_term}},
-            {'vendor': {'$options': 'si', '$regex': search_term}},
-            {'file_name': {'$options': 'si', '$regex': search_term}}
-        ])
-        query = json.dumps(query)
-        return redirect(url_for('browse_database', query=query))
+        query = {'$or': {
+            'device_name': {'$regex': search_term},
+            'vendor': {'$regex': search_term},
+            'file_name': {'$regex': search_term},
+            'md5': search_term,
+            'sha256': search_term,
+        }}
+        return redirect(url_for('browse_database', query=json.dumps(query)))

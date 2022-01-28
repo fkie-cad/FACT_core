@@ -228,7 +228,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
         return unpacker_analysis.result['plugin_used']
 
     def get_number_of_total_matches(self, search_dict: dict, only_parent_firmwares: bool, inverted: bool) -> int:
-        if search_dict == {}:
+        if search_dict == {}:  # if the query is empty: show only firmware on browse DB page
             return self.get_firmware_number()
 
         if not only_parent_firmwares:
