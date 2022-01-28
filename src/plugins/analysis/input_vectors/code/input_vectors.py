@@ -50,7 +50,6 @@ class AnalysisPlugin(AnalysisBasePlugin):
                     mounts=[
                         Mount(CONTAINER_TARGET_PATH, str(file_path), type='bind'),
                     ],
-                    stderr=False,
                 )
                 file_object.processed_analysis[self.NAME] = loads(result.stdout)
             except ReadTimeout:
