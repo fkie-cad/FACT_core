@@ -55,12 +55,11 @@ def run_docker_container(image: str, logging_label: str = 'Docker', timeout: int
 
     # We do not know the docker entrypoint so we just insert a generic "entrypoint"
     command = kwargs.get('command', None)
-    command_t = type(command)
-    if command_t == str:
+    if isinstance(command, str):
         args = 'entrypoint' + command
-    elif command_t == list:
+    elif isinstance(command, list):
         args = ['entrypoint'] + command
-    elif command_t:
+    else:
         args = ['entrypoint']
 
     return CompletedProcess(args=args, returncode=exit_code, stdout=stdout, stderr=stderr)
