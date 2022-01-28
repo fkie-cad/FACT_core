@@ -38,13 +38,15 @@ class FileTreeData(NamedTuple):
     included_files: Set[str]
 
 
-def get_correct_icon_for_mime(mime_type: str) -> str:
+def get_correct_icon_for_mime(mime_type: Optional[str]) -> str:
     '''
     Retrieve the path to appropriate icon for a given mime type. The icons are located in the static folder of the
     web interface and the paths therefore start with "/static". Archive types all receive the same icon.
 
     :param mime_type: The MIME type of a file (in the file tree).
     '''
+    if mime_type is None:
+        return '/static/file_icons/unknown.png'
     if mime_type in ARCHIVE_FILE_TYPES:
         return '/static/file_icons/archive.png'
     if mime_type in TYPE_TO_ICON:
