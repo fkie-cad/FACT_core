@@ -399,7 +399,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
             libraries_by_uid = self._get_elf_analysis_libraries(session, fo.files_included)
             query = (
                 select(
-                    FileObjectEntry.uid, FileObjectEntry.file_name,
+                    FileObjectEntry.uid, FileObjectEntry.file_name, FileObjectEntry.virtual_file_paths,
                     AnalysisEntry.result['mime'], AnalysisEntry.result['full']
                 )
                 .filter(FileObjectEntry.uid.in_(fo.files_included))
@@ -407,8 +407,8 @@ class FrontEndDbInterface(DbInterfaceCommon):
                 .filter(AnalysisEntry.plugin == 'file_type')
             )
             return [
-                DepGraphData(uid, file_name, mime, full_type, libraries_by_uid.get(uid))
-                for uid, file_name, mime, full_type in session.execute(query)
+                DepGraphData(uid, file_name, vfp, mime, full_type, libraries_by_uid.get(uid))
+                for uid, file_name, vfp, mime, full_type in session.execute(query)
             ]
 
     @staticmethod

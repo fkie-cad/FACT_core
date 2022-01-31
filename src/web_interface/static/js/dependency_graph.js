@@ -15,7 +15,9 @@ function dependencyGraph(nodes, edges, groups, colors) {
     };
 
     // map group names to colors --> {'mime/type': {color: '#...'}}
+    // jshint ignore:start
     groupOptions = groups.reduce((obj, curr, i) => {return {...obj, [curr]: {color: colors[i]}}}, {});
+    // jshint ignore:end
 
     // set the graph options. Most of this is physics model initialization
     graphOptions = {
@@ -108,7 +110,7 @@ function drawNodesList() {
     $('#nodeFilter')[0].value = '';
     nodesList.empty();
 
-    for (nodeId in allNodes) {
+    for (let nodeId in allNodes) {
         let node = dataset.nodes.get(nodeId);
         let color = groupOptions[node.group].color;
         if (node.label !== undefined) {
@@ -134,7 +136,7 @@ function drawDetails() {
     let color = groupOptions[node.group].color;
     details.append(`
         <div>
-            <a target="_blank" href="/analysis/${node.id}">Analysis Results</a>
+            <span class="font-weight-bold">Analysis:&nbsp;</span><a target="_blank" href="/analysis/${node.entity}">&#x1F517;</a>
         </div>
         <div>
             <span class="font-weight-bold">Node:&nbsp;</span><span style="color: ${color};">&#9679;</span>&nbsp;${node.label}
@@ -177,7 +179,7 @@ function nodeListSelectionHandler(ev) {
         // ... and invoke the selection handler by hand, because vis.js does
         // not fire a click event in this case.
         let params = {nodes: network.getSelectedNodes()};
-        neighbourhoodHighlight(params)
+        neighbourhoodHighlight(params);
     }
 }
 
@@ -193,7 +195,7 @@ function neighbourhoodHighlight(params) {
         network.focus(selectedNode, {scale: 0.4, animation: {easingFunction: 'easeInOutQuad'}});
  
         // mark all nodes as hard to read.
-        for (var nodeId in allNodes) {
+        for (let nodeId in allNodes) {
             allNodes[nodeId].color = "rgba(200,200,200,0.5)";
             if (allNodes[nodeId].hiddenLabel === undefined) {
                 allNodes[nodeId].hiddenLabel = allNodes[nodeId].label;
@@ -241,7 +243,7 @@ function neighbourhoodHighlight(params) {
         }
     } else if (highlightActive === true) {
         // reset all nodes
-        for (var nodeId in allNodes) {https://github.com/almende/vis/issues/2906
+        for (let nodeId in allNodes) {
             allNodes[nodeId].color = undefined;
             if (allNodes[nodeId].hiddenLabel !== undefined) {
                 allNodes[nodeId].label = allNodes[nodeId].hiddenLabel;
@@ -252,7 +254,7 @@ function neighbourhoodHighlight(params) {
     }
     // transform the object into an array
     var updateArray = [];
-    for (nodeId in allNodes) {
+    for (let nodeId in allNodes) {
         if (allNodes.hasOwnProperty(nodeId)) {
             updateArray.push(allNodes[nodeId]);
         }
