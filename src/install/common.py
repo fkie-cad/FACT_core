@@ -1,8 +1,10 @@
 import logging
 from contextlib import suppress
 from pathlib import Path
+from platform import python_version_tuple
 
 from common_helper_process import execute_shell_command_get_return_code
+from packaging.version import parse as parse_version
 
 from helperFunctions.install import (
     InstallationError, OperateInDirectory, apt_install_packages, apt_update_sources, dnf_install_packages,
@@ -16,8 +18,15 @@ PIP_DEPENDENCIES = INSTALL_DIR / 'requirements_common.txt'
 
 
 def install_pip():
+    python_version = '.'.join(python_version_tuple()[:2])
+    if parse_version(python_version) < parse_version('3.7'):
+        logging.warning('Your Python version is outdated. Please upgrade it.')
+        pip_link = f'https://bootstrap.pypa.io/pip/{python_version}/get-pip.py'
+    else:
+        pip_link = 'https://bootstrap.pypa.io/get-pip.py'
+
     logging.info('Installing python3 pip')
-    for command in ['wget https://bootstrap.pypa.io/get-pip.py', 'sudo -EH python3 get-pip.py', 'rm get-pip.py']:
+    for command in [f'wget {pip_link}', 'sudo -EH python3 get-pip.py', 'rm get-pip.py']:
         output, return_code = execute_shell_command_get_return_code(command)
         if return_code != 0:
             raise InstallationError(f'Error in pip installation for python3:\n{output}')
@@ -67,7 +76,7 @@ def _update_submodules():
     if is_repository == 0:
         git_output, git_code = execute_shell_command_get_return_code('(cd ../../ && git submodule foreach "git pull")')
         if git_code != 0:
-            raise InstallationError('Failed to update submodules\n{}'.format(git_output))
+            raise InstallationError(f'Failed to update submodules\n{git_output}')
     else:
         logging.warning('FACT is not set up using git. Note that *adding submodules* won\'t work!!')
 
