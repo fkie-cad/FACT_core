@@ -2,12 +2,11 @@
 import os
 from base64 import standard_b64encode
 from configparser import ConfigParser
+from contextlib import contextmanager
 from copy import deepcopy
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import List, Optional, Union
-
-from decorator import contextmanager
 
 from helperFunctions.config import load_config
 from helperFunctions.data_conversion import get_value_of_first_key
