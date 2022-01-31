@@ -4,7 +4,7 @@ from pathlib import Path
 from platform import python_version_tuple
 
 from common_helper_process import execute_shell_command_get_return_code
-from packaging.version import parse as parse_version
+from pkg_resources import parse_version
 
 from helperFunctions.install import (
     InstallationError, OperateInDirectory, apt_install_packages, apt_update_sources, dnf_install_packages,
