@@ -7,7 +7,7 @@ from test.unit.web_interface.test_dependency_graph import entry_1, entry_2
 class DbMock(CommonDatabaseMock):
 
     @staticmethod
-    def get_data_for_dependency_graph(uid, root_uid):  # pylint: disable=unused-argument
+    def get_data_for_dependency_graph(uid):
         if uid == 'testgraph':
             return [entry_1, entry_2]
         return []
