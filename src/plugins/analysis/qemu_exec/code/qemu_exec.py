@@ -4,8 +4,9 @@ import logging
 import zlib
 from base64 import b64decode
 from collections import OrderedDict
+from concurrent.futures import Future, ThreadPoolExecutor
 from json import JSONDecodeError, loads
-from multiprocessing import Manager, Pool
+from multiprocessing import Manager
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Dict, List, Optional, Tuple, Union
@@ -62,7 +63,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     NAME = 'qemu_exec'
     DESCRIPTION = 'test binaries for executability in QEMU and display help if available'
-    VERSION = '0.5.1'
+    VERSION = '0.5.2'
     DEPENDENCIES = ['file_type']
     FILE_TYPES = ['application/x-executable', 'application/x-pie-executable', 'application/x-sharedlib']
 
@@ -141,7 +142,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     def _find_root_path(self, extracted_files_dir: Path) -> Path:
         root_path = extracted_files_dir
         if (root_path / self.FACT_EXTRACTION_FOLDER_NAME).is_dir():
-            # if there a 'fact_extracted' folder in the tmp dir: reset root path to that folder
+            # if there is a 'fact_extracted' folder in the tmp dir: reset root path to that folder
             root_path /= self.FACT_EXTRACTION_FOLDER_NAME
         return root_path
 
@@ -152,24 +153,26 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def _process_included_files(self, file_list, file_object):
         manager = Manager()
-        pool = Pool(processes=8)
+        executor = ThreadPoolExecutor(max_workers=8)
         results_dict = manager.dict()
 
-        jobs = self._create_analysis_jobs(file_list, file_object, results_dict)
-        pool.starmap(process_qemu_job, jobs, chunksize=1)
+        jobs = self._run_analysis_jobs(executor, file_list, file_object, results_dict)
+        for future in jobs:  # wait for jobs to finish
+            future.result()
+        executor.shutdown(wait=False)
         self._enter_results(dict(results_dict), file_object)
         self._add_tag(file_object)
 
-    def _create_analysis_jobs(self, file_list: List[Tuple[str, str]], file_object: FileObject, results_dict: dict) -> List[tuple]:
+    def _run_analysis_jobs(self, executor: ThreadPoolExecutor, file_list: List[Tuple[str, str]],
+                           file_object: FileObject, results_dict: dict) -> List[Future]:
         jobs = []
         for file_path, full_type in file_list:
             uid = self._get_uid(file_path, self.root_path)
             if self._analysis_not_already_completed(file_object, uid):
-                qemu_arch_suffixes = self._find_arch_suffixes(full_type)
-                jobs.extend([
-                    (file_path, arch_suffix, self.root_path, results_dict, uid)
-                    for arch_suffix in qemu_arch_suffixes
-                ])
+                for arch_suffix in self._find_arch_suffixes(full_type):
+                    jobs.append(
+                        executor.submit(process_qemu_job, file_path, arch_suffix, self.root_path, results_dict, uid)
+                    )
         return jobs
 
     def _analysis_not_already_completed(self, file_object, uid):
