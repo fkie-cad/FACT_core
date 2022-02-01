@@ -1,3 +1,0 @@
-clamav
-clamav-daemon
-clamdscan

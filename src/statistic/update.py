@@ -37,7 +37,6 @@ class StatisticUpdater:
 
         self.db.update_statistic('firmware_meta', self.get_firmware_meta_stats())
         self.db.update_statistic('file_type', self.get_file_type_stats())
-        self.db.update_statistic('malware', self.get_malware_stats())
         self.db.update_statistic('crypto_material', self.get_crypto_material_stats())
         self.db.update_statistic('unpacking', self.get_unpacking_stats())
         self.db.update_statistic('architecture', self.get_architecture_stats())
@@ -78,12 +77,6 @@ class StatisticUpdater:
         benchmark = stats['creation_time'] - self.start_time
         stats['benchmark'] = benchmark
         logging.info('time to create stats: {}'.format(time_format(benchmark)))
-        return stats
-
-    def get_malware_stats(self):
-        stats = {}
-        result = self._get_objects_and_count_of_occurrence('$processed_analysis.malware_scanner.scans.ClamAV.result', unwind=False, match=self.match)
-        stats['malware'] = self._clean_malware_list(result)
         return stats
 
     def get_exploit_mitigations_stats(self):

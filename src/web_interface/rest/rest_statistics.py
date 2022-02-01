@@ -9,7 +9,7 @@ from web_interface.security.privileges import PRIVILEGES
 
 STATISTICS = [
     'architecture', 'crypto_material', 'elf_executable', 'exploit_mitigations', 'file_type', 'firmware_meta',
-    'general', 'ips_and_uris', 'known_vulnerabilities', 'malware', 'release_date', 'software_components', 'unpacking',
+    'general', 'ips_and_uris', 'known_vulnerabilities', 'release_date', 'software_components', 'unpacking',
 ]
 
 api = Namespace('rest/statistics', description='Query all FACT statistics or a certain one')

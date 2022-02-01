@@ -30,8 +30,6 @@ class TestRestStatistics(RestTestBase):
         assert b'known_vulnerabilities' in st.data
         assert bool(st_dict['known_vulnerabilities'])
         assert 'known_vulnerabilities' in st_dict['known_vulnerabilities']
-        assert b'malware' in st.data
-        assert not st_dict['malware']
         assert b'exploit_mitigations' in st.data
         assert not st_dict['exploit_mitigations']
 
