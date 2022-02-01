@@ -23,7 +23,7 @@ from helperFunctions.docker import run_docker_container
 from helperFunctions.tag import TagColor
 from helperFunctions.uid import create_uid
 from objects.file import FileObject
-from storage.binary_service import BinaryServiceDbInterface
+from storage.fsorganizer import FSOrganizer
 from unpacker.unpack_base import UnpackBase
 
 TIMEOUT_IN_SECONDS = 15
@@ -35,28 +35,22 @@ CONTAINER_TARGET_PATH = '/opt/firmware_root'
 
 
 class Unpacker(UnpackBase):
+    def __init__(self, config=None, worker_id=None):
+        super().__init__(config=config, worker_id=worker_id)
+        self.fs_organizer = FSOrganizer(config)
+
     def unpack_fo(self, file_object: FileObject) -> Optional[TemporaryDirectory]:
-        file_path = (
-            file_object.file_path if file_object.file_path
-            else self._get_file_path_from_db(file_object.uid)
-        )
+        file_path = file_object.file_path if file_object.file_path else self._get_path_from_fo(file_object)
         if not file_path or not Path(file_path).is_file():
-            logging.error('could not unpack {}: file path not found'.format(file_object.uid))
+            logging.error(f'could not unpack {file_object.uid}: file path not found')
             return None
 
         extraction_dir = TemporaryDirectory(prefix='FACT_plugin_qemu_exec', dir=get_temp_dir_path(self.config))
         self.extract_files_from_file(file_path, extraction_dir.name)
         return extraction_dir
 
-    def _get_file_path_from_db(self, uid):
-        binary_service = BinaryServiceDbInterface(config=self.config)
-        try:
-            path = binary_service.get_file_name_and_path(uid)['file_path']
-            return path
-        except (KeyError, TypeError):
-            return None
-        finally:
-            binary_service.shutdown()
+    def _get_path_from_fo(self, file_object: FileObject) -> str:
+        return self.fs_organizer.generate_path(file_object)
 
 
 class AnalysisPlugin(AnalysisBasePlugin):

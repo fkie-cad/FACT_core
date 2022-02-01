@@ -10,7 +10,7 @@ from common_helper_files import get_dir_of_file
 from requests.exceptions import ConnectionError as RequestConnectionError
 from requests.exceptions import ReadTimeout
 
-from test.common_helper import create_test_firmware, get_config_for_testing, get_test_data_dir
+from test.common_helper import TEST_FW, create_test_firmware, get_config_for_testing, get_test_data_dir
 from test.mock import mock_patch
 from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
 
@@ -463,7 +463,8 @@ class TestQemuExecUnpacker(TestCase):
         test_fw = create_test_firmware()
         test_fw.file_path = None
 
-        tmp_dir = self.unpacker.unpack_fo(test_fw)
+        with mock_patch(self.unpacker.fs_organizer, 'generate_path', lambda _: TEST_FW.file_path):
+            tmp_dir = self.unpacker.unpack_fo(test_fw)
 
         try:
             assert self.name_prefix in tmp_dir.name
