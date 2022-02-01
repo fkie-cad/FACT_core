@@ -34,10 +34,11 @@ class AnalysisPlugin(AnalysisBasePlugin):
     # All linter methods must return an array of dicts.
     # These dicts must at least contain a value for the 'symbol' key.
     linter_impls = {
-        'shell': linters.run_shellcheck,
-        'lua':  linters.run_luacheck,
         'javascript':  linters.run_eslint,
+        'lua':  linters.run_luacheck,
         'python': linters.run_pylint,
+        'ruby': linters.run_rubocop,
+        'shell': linters.run_shellcheck,
     }
 
     def __init__(self, plugin_administrator, config=None, recursive=True, offline_testing=False):

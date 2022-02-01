@@ -22,6 +22,7 @@ class LinterInstaller(AbstractPluginInstaller):
         run_cmd_with_logging('sudo luarocks install argparse')
         run_cmd_with_logging('sudo luarocks install luacheck')
         run_cmd_with_logging('sudo luarocks install luafilesystem')
+        run_cmd_with_logging('sudo gem install rubocop')
 
     def install_docker_images(self):
         run_cmd_with_logging('docker pull crazymax/linguist')

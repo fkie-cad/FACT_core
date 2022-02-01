@@ -1,8 +1,9 @@
 import json
 import logging
+import shlex
 import subprocess
 from pathlib import Path
-from subprocess import PIPE
+from subprocess import DEVNULL, PIPE
 
 from common_helper_process import execute_shell_command, execute_shell_command_get_return_code
 
@@ -125,4 +126,22 @@ def _pylint_extract_relevant_warnings(pylint_json):
             for unnecessary_information in ['module', 'obj', 'path', 'message-id']:
                 issue.pop(unnecessary_information)
             issues.append(issue)
+    return issues
+
+
+def run_rubocop(file_path):
+    rubocop_p = subprocess.run(shlex.split('rubocop -f json'), stdout=PIPE, stderr=DEVNULL)
+    linter_output = json.loads(rubocop_p.stdout)
+
+    issues = []
+    for offense in linter_output['files'][0]['offenses']:
+        issues.append(
+            {
+                'symbol': offense['cop_name'],
+                'line': offense['location']['start_line'],
+                'column': offense['location']['column'],
+                'message': offense['message'],
+            }
+        )
+
     return issues
