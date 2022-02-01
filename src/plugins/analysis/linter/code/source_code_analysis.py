@@ -39,6 +39,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         'python': linters.run_pylint,
         'ruby': linters.run_rubocop,
         'shell': linters.run_shellcheck,
+        'php': linters.run_phpstan,
     }
 
     def __init__(self, plugin_administrator, config=None, recursive=True, offline_testing=False):

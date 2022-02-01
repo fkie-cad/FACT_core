@@ -145,3 +145,23 @@ def run_rubocop(file_path):
         )
 
     return issues
+
+
+def run_phpstan(file_path):
+    container_path = '/app/input.php'
+    host_path = file_path
+    phpstan_p = subprocess.run(shlex.split(f'docker run -v {host_path}:{container_path} --rm ghcr.io/phpstan/phpstan analyse --error-format=json -- input.php'), stdout=PIPE, stderr=DEVNULL)
+    linter_output = json.loads(phpstan_p.stdout)
+
+    issues = []
+    for message in linter_output['files'][container_path]['messages']:
+        issues.append(
+            {
+                'symbol': 'error',  # phpstan errors do not have codes or names
+                'line': message['line'],
+                'column': -1,  # phpstan does not report columns
+                'message': message['message'],
+            }
+        )
+
+    return issues

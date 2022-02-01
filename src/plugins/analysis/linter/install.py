@@ -27,6 +27,7 @@ class LinterInstaller(AbstractPluginInstaller):
     def install_docker_images(self):
         run_cmd_with_logging('docker pull crazymax/linguist')
         run_cmd_with_logging('docker pull cytopia/eslint')
+        run_cmd_with_logging('docker pull ghcr.io/phpstan/phpstan')
 
 
 # Alias for generic use
