@@ -109,27 +109,32 @@
 <span id="helperfunctions-docker-module"></span><h1>helperFunctions.docker module<a class="headerlink" href="#module-helperFunctions.docker" title="Permalink to this headline"></a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="helperFunctions.docker.run_docker_container">
-<span class="sig-prename descclassname"><span class="pre">helperFunctions.docker.</span></span><span class="sig-name descname"><span class="pre">run_docker_container</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">300</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">command</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reraise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">privileged</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mount</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Docker'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_stderr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.docker.run_docker_container" title="Permalink to this definition"></a></dt>
-<dd><p>Run a docker container and get its output.</p>
+<span class="sig-prename descclassname"><span class="pre">helperFunctions.docker.</span></span><span class="sig-name descname"><span class="pre">run_docker_container</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logging_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Docker'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">300</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">combine_stderr_stdout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#helperFunctions.docker.run_docker_container" title="Permalink to this definition"></a></dt>
+<dd><p>This is a convinience function that runs a docker container and returns a
+subprocess.CompletedProcess instance for the command ran in the container.
+All remaining keyword args are passed to <cite>docker.containers.run</cite>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>image</strong> (<em>str</em>) – the name of the docker image</p></li>
-<li><p><strong>timeout</strong> (<em>int</em>) – a timeout after which the execution is canceled</p></li>
-<li><p><strong>command</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – the command to run in the container (optional)</p></li>
-<li><p><strong>reraise</strong> (<em>bool</em>) – re-raise exceptions if they occur (timeout and docker exceptions)</p></li>
-<li><p><strong>privileged</strong> (<em>bool</em>) – Run container with elevated privileges.</p></li>
-<li><p><strong>mount</strong> (<em>Optional</em><em>[</em><em>Tuple</em><em>[</em><em>str</em><em>, </em><em>str</em><em>]</em><em>]</em>) – specifies a directory that gets mounted into the container;
-structure: <cite>(path_inside_container, source_path)</cite></p></li>
-<li><p><strong>label</strong> (<em>str</em>) – label used for logging output</p></li>
-<li><p><strong>include_stderr</strong> (<em>bool</em>) – include stderr of the container in the output</p></li>
+<li><p><strong>image</strong> (<em>str</em>) – The name of the docker image</p></li>
+<li><p><strong>logging_label</strong> (<em>str</em>) – Label used for logging</p></li>
+<li><p><strong>timeout</strong> (<em>int</em>) – Timeout after which the execution is canceled</p></li>
+<li><p><strong>combine_stderr_stdout</strong> (<em>bool</em>) – Whether to combine stderr and stdout or not</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>the output of the docker container</p>
+<dd class="field-even"><p>A subprocess.CompletedProcess instance for the command ran in the
+container.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>str</p>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>docker.errors.ImageNotFound</strong> – If the docker image was not found</p></li>
+<li><p><strong>requests.exceptions.ReadTimeout</strong> – If the timeout was reached</p></li>
+<li><p><strong>docker.errors.APIError</strong> – If the communication with docker fails</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>subprocess.CompletedProcess</p>
 </dd>
 </dl>
 </dd></dl>
