@@ -17,7 +17,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+import grp
 import logging
+import os
+from pathlib import Path
 from time import sleep
 
 from analysis.PluginBase import PluginInitException
@@ -56,6 +59,11 @@ class FactBackend(FactBase):
         )
 
     def main(self):
+        docker_mount_base_dir = Path(self.config['data_storage']['docker-mount-base-dir'])
+        docker_mount_base_dir.mkdir(0o770, exist_ok=True)
+        docker_gid = grp.getgrnam('docker').gr_gid
+        os.chown(docker_mount_base_dir, -1, docker_gid)
+
         while self.run:
             self.work_load_stat.update(
                 unpacking_workload=self.unpacking_service.get_scheduled_workload(),

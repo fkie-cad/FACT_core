@@ -11,9 +11,8 @@ def stub_linter():
     return JavaScriptLinter()
 
 
-def subprocess_run_stub(*args, **kwargs):
-    p = CompletedProcess('DONT_CARE', 1)
-    p.stdout = r'''[
+def run_docker_container_stub(*_, **__):
+    stdout = r'''[
     {
         "filePath": "test_file_path.js",
         "messages": [
@@ -38,12 +37,11 @@ def subprocess_run_stub(*args, **kwargs):
         "usedDeprecatedRules": []
     }
 ]'''
-    return p
+    return CompletedProcess(args=None, returncode=1, stdout=stdout, stderr=None)
 
 
 def test_do_analysis(stub_linter, monkeypatch):
-
-    monkeypatch.setattr('plugins.analysis.linter.internal.js_linter.subprocess.run', subprocess_run_stub)
+    monkeypatch.setattr('plugins.analysis.linter.internal.js_linter.run_docker_container', run_docker_container_stub)
     result = stub_linter.do_analysis('test_file_path.js')
     assert result
     assert len(result) == 1

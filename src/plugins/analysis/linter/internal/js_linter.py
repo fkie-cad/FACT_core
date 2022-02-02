@@ -1,7 +1,9 @@
 import json
-import subprocess
 from pathlib import Path
-from subprocess import PIPE
+
+from docker.types import Mount
+
+from helperFunctions.docker import run_docker_container
 
 CONFIG_FILE_PATH = Path(__file__).parent / 'config/eslintrc.js'
 
@@ -12,20 +14,17 @@ class JavaScriptLinter:
     '''
 
     def do_analysis(self, file_path):
-        # The linter will have nonzero returncode when a rule matches
-        # pylint: disable=subprocess-run-check
-        output_raw = subprocess.run(
-                    f'''docker run
-                        --rm
-                        -v {CONFIG_FILE_PATH}:/eslintrc.js
-                        -v {file_path}:/input.js
-                        cytopia/eslint
-                        -c /eslintrc.js
-                        --format json
-                        /input.js'''.split(),
-                    stdout=PIPE, stderr=PIPE).stdout
+        result = run_docker_container(
+            'cytopia/eslint',
+            combine_stderr_stdout=True,
+            mounts=[
+                Mount('/eslintrc.js', str(CONFIG_FILE_PATH), type='bind', read_only=True),
+                Mount('/input.js', str(file_path), type='bind', read_only=True),
+            ],
+            command='-c /eslintrc.js --format json /input.js',
+        )
 
-        output_json = json.loads(output_raw)
+        output_json = json.loads(result.stdout)
 
         issues = []
         # As we only ever analyse one file use output_json[0]

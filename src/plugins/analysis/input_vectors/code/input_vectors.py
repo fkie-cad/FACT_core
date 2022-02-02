@@ -4,10 +4,10 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from docker.errors import DockerException
+from docker.types import Mount
 from requests.exceptions import ReadTimeout
 
 from analysis.PluginBase import AnalysisBasePlugin
-from helperFunctions.config import get_temp_dir_path
 from helperFunctions.docker import run_docker_container
 from objects.file import FileObject
 
@@ -36,15 +36,22 @@ class AnalysisPlugin(AnalysisBasePlugin):
         logging.info('Up and running.')
 
     def process_object(self, file_object: FileObject):
-        with TemporaryDirectory(prefix=self.NAME, dir=get_temp_dir_path(self.config)) as tmp_dir:
+        with TemporaryDirectory(prefix=self.NAME, dir=self.config['data_storage']['docker-mount-base-dir']) as tmp_dir:
             file_path = Path(tmp_dir) / file_object.file_name
             file_path.write_bytes(file_object.binary)
             try:
                 result = run_docker_container(
-                    DOCKER_IMAGE, TIMEOUT_IN_SECONDS, CONTAINER_TARGET_PATH, reraise=True,
-                    mount=(CONTAINER_TARGET_PATH, str(file_path)), label=self.NAME, include_stderr=False
+                    DOCKER_IMAGE,
+                    # We explicitly don't want stderr to ignore "Cannot analyse at [...]"
+                    combine_stderr_stdout=False,
+                    logging_label=self.NAME,
+                    timeout=TIMEOUT_IN_SECONDS,
+                    command=CONTAINER_TARGET_PATH,
+                    mounts=[
+                        Mount(CONTAINER_TARGET_PATH, str(file_path), type='bind'),
+                    ],
                 )
-                file_object.processed_analysis[self.NAME] = loads(result)
+                file_object.processed_analysis[self.NAME] = loads(result.stdout)
             except ReadTimeout:
                 file_object.processed_analysis[self.NAME]['failed'] = 'Analysis timed out. It might not be complete.'
             except (DockerException, IOError):
