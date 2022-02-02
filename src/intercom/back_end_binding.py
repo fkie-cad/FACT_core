@@ -100,15 +100,6 @@ class InterComBackEndReAnalyzeTask(InterComListener):
 
     CONNECTION_TYPE = 're_analyze_task'
 
-    def __init__(self, config=None):
-        super().__init__(config)
-        self.fs_organizer = FSOrganizer(config=config)
-
-    def post_processing(self, task, task_id):
-        task.file_path = self.fs_organizer.generate_path(task)
-        task.create_binary_from_path()
-        return task
-
 
 class InterComBackEndUpdateTask(InterComBackEndReAnalyzeTask):
 

@@ -18,6 +18,7 @@ from objects.file import FileObject
 from scheduler.analysis_status import AnalysisStatus
 from scheduler.task_scheduler import MANDATORY_PLUGINS, AnalysisTaskScheduler
 from storage.db_interface_backend import BackendDbInterface
+from storage.fsorganizer import FSOrganizer
 from storage.unpacking_locks import UnpackingLockManager
 
 
@@ -96,6 +97,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         self.status = AnalysisStatus()
         self.task_scheduler = AnalysisTaskScheduler(self.analysis_plugins)
 
+        self.fs_organizer = FSOrganizer(config=config)
         self.db_backend_service = db_interface if db_interface else BackendDbInterface(config=config)
         self.pre_analysis = pre_analysis if pre_analysis else self.db_backend_service.add_object
         self.post_analysis = post_analysis if post_analysis else self.db_backend_service.add_analysis
@@ -286,7 +288,15 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             self.post_analysis(file_object.uid, analysis_to_do, analysis_result)
             self._check_further_process_or_complete(file_object)
         else:
+            if file_object.binary is None:
+                self._set_binary(file_object)
             self.analysis_plugins[analysis_to_do].add_job(file_object)
+
+    def _set_binary(self, file_object: FileObject):
+        # the file_object.binary may be missing in case of an update
+        if file_object.file_path is None:
+            file_object.file_path = self.fs_organizer.generate_path(file_object)
+        file_object.create_binary_from_path()
 
     # ---- 1. Is forced update ----
 
