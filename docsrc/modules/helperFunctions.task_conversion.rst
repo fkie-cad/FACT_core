@@ -1,7 +1,7 @@
-helperFunctions.mongo_task_conversion module
+helperFunctions.task_conversion module
 ============================================
 
-.. automodule:: helperFunctions.mongo_task_conversion
+.. automodule:: helperFunctions.task_conversion
    :members:
    :undoc-members:
    :show-inheritance:

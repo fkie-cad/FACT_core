@@ -1,6 +1,7 @@
 import logging
 from typing import List, Tuple
 
+from intercom.front_end_binding import InterComFrontEndBinding
 from storage.db_interface_base import ReadWriteDbInterface
 from storage.db_interface_common import DbInterfaceCommon
 from storage.schema import FileObjectEntry
@@ -20,11 +21,7 @@ class AdminDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
         if intercom is not None:  # for testing purposes
             self.intercom = intercom
         else:
-            from intercom.front_end_binding import InterComFrontEndBinding
-            self.intercom = InterComFrontEndBinding(config=config)  # FixMe? still uses MongoDB
-
-    def shutdown(self):
-        self.intercom.shutdown()  # FixMe? still uses MongoDB
+            self.intercom = InterComFrontEndBinding(config=config)
 
     # ===== Delete / DELETE =====
 

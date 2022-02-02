@@ -21,7 +21,6 @@ import sys
 
 from fact_base import FactBase
 from helperFunctions.program_setup import program_setup
-from storage.MongoMgr import MongoMgr
 
 
 class FactDb(FactBase):
@@ -31,12 +30,8 @@ class FactDb(FactBase):
 
     def __init__(self):
         _, config = program_setup(self.PROGRAM_NAME, self.PROGRAM_DESCRIPTION, self.COMPONENT)
-        self.mongo_server = MongoMgr(config=config)
         super().__init__()
-
-    def shutdown(self):
-        super().shutdown()
-        self.mongo_server.shutdown()
+        # FixMe postgres runs as a service. Is this script still useful?
 
 
 if __name__ == '__main__':

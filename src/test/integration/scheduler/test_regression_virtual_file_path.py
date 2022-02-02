@@ -10,9 +10,8 @@ from objects.firmware import Firmware
 from scheduler.analysis import AnalysisScheduler
 from scheduler.unpacking_scheduler import UnpackingScheduler
 from storage.db_interface_backend import BackendDbInterface
-from storage.MongoMgr import MongoMgr
 from storage.unpacking_locks import UnpackingLockManager
-from test.common_helper import clean_test_database, get_database_names, get_test_data_dir
+from test.common_helper import get_test_data_dir
 from test.integration.common import initialize_config
 from web_interface.frontend_main import WebFrontEnd
 
@@ -43,15 +42,6 @@ def intermediate_event():
 def test_config():
     with TemporaryDirectory(prefix='fact_test_') as tmp_dir:
         yield initialize_config(tmp_dir)
-
-
-@pytest.fixture(scope='module', autouse=True)
-def test_server(test_config):
-    mongo = MongoMgr(test_config)
-    clean_test_database(test_config, get_database_names(test_config))
-    yield None
-    clean_test_database(test_config, get_database_names(test_config))
-    mongo.shutdown()
 
 
 @pytest.fixture(scope='module')
@@ -100,7 +90,7 @@ def add_test_file(scheduler, path_in_test_dir):
     scheduler.add_task(firmware)
 
 
-def test_check_collision(db, test_app, test_scheduler, finished_event, intermediate_event):
+def test_check_collision(db, test_app, test_scheduler, finished_event, intermediate_event):  # pylint: disable=unused-argument
     add_test_file(test_scheduler, 'regression_one')
 
     intermediate_event.wait(timeout=30)
@@ -109,8 +99,8 @@ def test_check_collision(db, test_app, test_scheduler, finished_event, intermedi
 
     finished_event.wait(timeout=30)
 
-    first_response = test_app.get('/analysis/{}/ro/{}'.format(TARGET_UID, FIRST_ROOT_ID))
+    first_response = test_app.get(f'/analysis/{TARGET_UID}/ro/{FIRST_ROOT_ID}')
     assert b'insufficient information' not in first_response.data
 
-    second_response = test_app.get('/analysis/{}/ro/{}'.format(TARGET_UID, SECOND_ROOT_ID))
+    second_response = test_app.get(f'/analysis/{TARGET_UID}/ro/{SECOND_ROOT_ID}')
     assert b'insufficient information' not in second_response.data

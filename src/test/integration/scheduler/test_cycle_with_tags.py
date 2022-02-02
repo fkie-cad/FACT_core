@@ -8,9 +8,8 @@ from objects.firmware import Firmware
 from scheduler.analysis import AnalysisScheduler
 from scheduler.unpacking_scheduler import UnpackingScheduler
 from storage.db_interface_backend import BackendDbInterface
-from storage.MongoMgr import MongoMgr
 from storage.unpacking_locks import UnpackingLockManager
-from test.common_helper import clean_test_database, get_database_names, get_test_data_dir
+from test.common_helper import get_test_data_dir
 from test.integration.common import initialize_config
 
 
@@ -22,7 +21,6 @@ class TestTagPropagation:
         self.analysis_finished_event = Event()
         self.uid_of_key_file = '530bf2f1203b789bfe054d3118ebd29a04013c587efd22235b3b9677cee21c0e_2048'
 
-        self._mongo_server = MongoMgr(config=self._config, auth=False)
         self.backend_interface = BackendDbInterface(config=self._config)
         unpacking_lock_manager = UnpackingLockManager()
 
@@ -44,9 +42,6 @@ class TestTagPropagation:
     def teardown(self):
         self._unpack_scheduler.shutdown()
         self._analysis_scheduler.shutdown()
-
-        clean_test_database(self._config, get_database_names(self._config))
-        self._mongo_server.shutdown()
 
         self._tmp_dir.cleanup()
         gc.collect()

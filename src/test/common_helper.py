@@ -11,11 +11,9 @@ from typing import List, Optional, Union
 from helperFunctions.config import load_config
 from helperFunctions.data_conversion import get_value_of_first_key
 from helperFunctions.fileSystem import get_src_dir
-from intercom.common_mongo_binding import InterComMongoInterface
 from objects.file import FileObject
 from objects.firmware import Firmware
 from storage.db_interface_admin import AdminDbInterface
-from storage.mongo_interface import MongoInterface
 
 
 def get_test_data_dir():
@@ -268,28 +266,6 @@ def fake_exit(self, *args):
     pass
 
 
-def get_database_names(config):
-    prefix = config.get('data_storage', 'intercom_database_prefix')
-    databases = [f'{prefix}_{intercom_db}' for intercom_db in InterComMongoInterface.INTERCOM_CONNECTION_TYPES]
-    databases.extend([
-        config.get('data_storage', 'main_database'),
-        config.get('data_storage', 'view_storage'),
-        config.get('data_storage', 'statistic_database')
-    ])
-    return databases
-
-
-# FixMe: still useful for intercom
-def clean_test_database(config, list_of_test_databases):
-    db = MongoInterface(config=config)
-    try:
-        for database_name in list_of_test_databases:
-            db.client.drop_database(database_name)
-    except Exception:  # pylint: disable=broad-except
-        pass
-    db.shutdown()
-
-
 def get_firmware_for_rest_upload_test():
     testfile_path = os.path.join(get_test_data_dir(), 'container/test.zip')
     with open(testfile_path, 'rb') as fp:
@@ -314,12 +290,6 @@ def get_config_for_testing(temp_dir: Optional[Union[TemporaryDirectory, str]] = 
         temp_dir = temp_dir.name
     config = ConfigParser()
     config.add_section('data_storage')
-    config.set('data_storage', 'mongo_server', 'localhost')
-    config.set('data_storage', 'main_database', 'tmp_unit_tests')
-    config.set('data_storage', 'intercom_database_prefix', 'tmp_unit_tests')
-    config.set('data_storage', 'statistic_database', 'tmp_unit_tests')
-    config.set('data_storage', 'view_storage', 'tmp_tests_view')
-    config.set('data_storage', 'mongo_port', '27018')
     config.set('data_storage', 'report_threshold', '2048')
     config.set('data_storage', 'password_salt', '1234')
     config.set('data_storage', 'firmware_file_storage_directory', '/tmp/fact_test_fs_directory')
@@ -339,7 +309,6 @@ def get_config_for_testing(temp_dir: Optional[Union[TemporaryDirectory, str]] = 
     config.add_section('Logging')
     if temp_dir is not None:
         config.set('data_storage', 'firmware_file_storage_directory', temp_dir)
-        config.set('Logging', 'mongoDbLogFile', os.path.join(temp_dir, 'mongo.log'))
     config.set('ExpertSettings', 'radare2_host', 'localhost')
     # -- postgres -- FixMe? --
     config.set('data_storage', 'postgres_server', 'localhost')
@@ -350,10 +319,6 @@ def get_config_for_testing(temp_dir: Optional[Union[TemporaryDirectory, str]] = 
 
 def load_users_from_main_config(config: ConfigParser):
     fact_config = load_config('main.cfg')
-    config.set('data_storage', 'db_admin_user', fact_config['data_storage']['db_admin_user'])
-    config.set('data_storage', 'db_admin_pw', fact_config['data_storage']['db_admin_pw'])
-    config.set('data_storage', 'db_readonly_user', fact_config['data_storage']['db_readonly_user'])
-    config.set('data_storage', 'db_readonly_pw', fact_config['data_storage']['db_readonly_pw'])
     # -- postgres -- FixMe? --
     config.set('data_storage', 'postgres_ro_user', fact_config.get('data_storage', 'postgres_ro_user'))
     config.set('data_storage', 'postgres_ro_pw', fact_config.get('data_storage', 'postgres_ro_pw'))
@@ -361,6 +326,10 @@ def load_users_from_main_config(config: ConfigParser):
     config.set('data_storage', 'postgres_rw_pw', fact_config.get('data_storage', 'postgres_rw_pw'))
     config.set('data_storage', 'postgres_admin_user', fact_config.get('data_storage', 'postgres_admin_user'))
     config.set('data_storage', 'postgres_admin_pw', fact_config.get('data_storage', 'postgres_admin_pw'))
+    # -- redis -- FixMe? --
+    config.set('data_storage', 'redis_fact_db', fact_config.get('data_storage', 'redis_test_db'))
+    config.set('data_storage', 'redis_host', fact_config.get('data_storage', 'redis_host'))
+    config.set('data_storage', 'redis_port', fact_config.get('data_storage', 'redis_port'))
 
 
 def store_binary_on_file_system(tmp_dir: str, test_object: Union[FileObject, Firmware]):

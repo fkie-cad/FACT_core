@@ -8,11 +8,6 @@ from test.common_helper import CommonDatabaseMock, get_config_for_testing
 from test.integration.common import MockFSOrganizer
 
 
-@pytest.fixture(scope='function', autouse=True)
-def mocking_the_database(monkeypatch):
-    monkeypatch.setattr('intercom.common_mongo_binding.InterComListener.__init__', lambda self, config: None)
-
-
 @pytest.fixture(scope='function')
 def config():
     return get_config_for_testing()

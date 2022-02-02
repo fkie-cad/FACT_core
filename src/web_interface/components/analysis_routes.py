@@ -9,9 +9,7 @@ from flask_login.utils import current_user
 from helperFunctions.data_conversion import none_to_none
 from helperFunctions.database import ConnectTo
 from helperFunctions.fileSystem import get_src_dir
-from helperFunctions.mongo_task_conversion import (
-    check_for_errors, convert_analysis_task_to_fw_obj, create_re_analyze_task
-)
+from helperFunctions.task_conversion import check_for_errors, convert_analysis_task_to_fw_obj, create_re_analyze_task
 from helperFunctions.web_interface import get_template_as_string
 from objects.file import FileObject
 from objects.firmware import Firmware

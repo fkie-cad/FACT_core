@@ -6,6 +6,7 @@ from base64 import b64encode
 from typing import List, Optional, Union
 
 import gridfs
+from pymongo import MongoClient, errors
 from sqlalchemy.exc import StatementError
 
 from helperFunctions.config import load_config
@@ -15,13 +16,47 @@ from objects.file import FileObject
 from objects.firmware import Firmware
 from storage.db_interface_backend import BackendDbInterface
 from storage.db_interface_comparison import ComparisonDbInterface
-from storage.mongo_interface import MongoInterface
 
 try:
     from tqdm import tqdm
 except ImportError:
     print('Error: tqdm not found. Please install it:\npython3 -m pip install tqdm')
     sys.exit(1)
+
+
+class MongoInterface:
+    '''
+    This is the mongo interface base class handling:
+    - load config
+    - setup connection including authentication
+    '''
+
+    READ_ONLY = False
+
+    def __init__(self, config=None):
+        self.config = config
+        mongo_server = self.config['data_storage']['mongo_server']
+        mongo_port = self.config['data_storage']['mongo_port']
+        self.client = MongoClient('mongodb://{}:{}'.format(mongo_server, mongo_port), connect=False)
+        self._authenticate()
+        self._setup_database_mapping()
+
+    def shutdown(self):
+        self.client.close()
+
+    def _setup_database_mapping(self):
+        pass
+
+    def _authenticate(self):
+        if self.READ_ONLY:
+            user, pw = self.config['data_storage']['db_readonly_user'], self.config['data_storage']['db_readonly_pw']
+        else:
+            user, pw = self.config['data_storage']['db_admin_user'], self.config['data_storage']['db_admin_pw']
+        try:
+            self.client.admin.authenticate(user, pw, mechanism='SCRAM-SHA-1')
+        except errors.OperationFailure as e:  # Authentication not successful
+            logging.error(f'Error: Authentication not successful: {e}')
+            sys.exit(1)
 
 
 class MigrationMongoInterface(MongoInterface):

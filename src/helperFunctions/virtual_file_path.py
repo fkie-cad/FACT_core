@@ -58,3 +58,23 @@ def get_uids_from_virtual_path(virtual_path: str) -> List[str]:
     if len(parts) == 1:  # the virtual path of a FW consists only of its UID
         return parts
     return parts[:-1]  # included files have the file path as last element
+
+
+def update_virtual_file_path(new_vfp: Dict[str, List[str]], old_vfp: Dict[str, List[str]]) -> Dict[str, List[str]]:
+    '''
+    Get updated dict of virtual file paths.
+    A file object can exist only once, multiple times inside the same firmware (e.g. sym links) or
+    even in multiple different firmware images (e.g. common files across patch levels).
+    Thus updating the virtual file paths dict requires some logic.
+    This function returns the combined dict across newfound virtual paths and existing ones.
+
+    :param new_vfp: current virtual file path dictionary
+    :param old_vfp: old virtual file path dictionary (existing DB entry)
+    :return: updated (merged) virtual file path dictionary
+    '''
+    for key in new_vfp:
+        if key in old_vfp:
+            old_vfp[key] = merge_vfp_lists(old_vfp[key], new_vfp[key])
+        else:
+            old_vfp[key] = new_vfp[key]
+    return old_vfp

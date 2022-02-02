@@ -5,6 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import StatementError
 from sqlalchemy.orm import Session
 
+from helperFunctions.virtual_file_path import update_virtual_file_path
 from objects.file import FileObject
 from objects.firmware import Firmware
 from storage.db_interface_base import DbInterfaceError, ReadWriteDbInterface
@@ -120,7 +121,7 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
             entry.depth = file_object.depth
             entry.size = file_object.size
             entry.comments = file_object.comments
-            entry.virtual_file_paths = file_object.virtual_file_path
+            entry.virtual_file_paths = update_virtual_file_path(file_object.virtual_file_path, entry.virtual_file_paths)
             entry.is_firmware = isinstance(file_object, Firmware)
 
     def update_analysis(self, uid: str, plugin: str, analysis_data: dict):

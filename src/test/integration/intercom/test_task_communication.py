@@ -13,7 +13,6 @@ from intercom.back_end_binding import (
 )
 from intercom.front_end_binding import InterComFrontEndBinding
 from storage.fsorganizer import FSOrganizer
-from storage.MongoMgr import MongoMgr
 from test.common_helper import create_test_firmware, get_config_for_testing
 
 
@@ -33,23 +32,17 @@ class TestInterComTaskCommunication(unittest.TestCase):
         cls.tmp_dir = TemporaryDirectory(prefix='fact_test_')
         cls.config = get_config_for_testing(temp_dir=cls.tmp_dir)
         cls.config.set('ExpertSettings', 'communication_timeout', '1')
-        cls.mongo_server = MongoMgr(config=cls.config)
 
     def setUp(self):
         self.frontend = InterComFrontEndBinding(config=self.config)
         self.backend = None
 
     def tearDown(self):
-        for connection in self.frontend.connections.values():
-            self.frontend.client.drop_database(connection['name'])
-        if self.backend:
-            self.backend.shutdown()
-        self.frontend.shutdown()
+        self.frontend.redis.flushdb()
         gc.collect()
 
     @classmethod
     def tearDownClass(cls):
-        cls.mongo_server.shutdown()
         cls.tmp_dir.cleanup()
 
     def test_analysis_task(self):

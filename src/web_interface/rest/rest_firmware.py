@@ -8,8 +8,8 @@ from flask_restx.fields import MarshallingError
 from pymongo.errors import PyMongoError
 
 from helperFunctions.database import ConnectTo
-from helperFunctions.mongo_task_conversion import convert_analysis_task_to_fw_obj
 from helperFunctions.object_conversion import create_meta_dict
+from helperFunctions.task_conversion import convert_analysis_task_to_fw_obj
 from objects.firmware import Firmware
 from web_interface.rest.helper import (
     error_message, get_boolean_from_request, get_paging, get_query, get_update, success_message
