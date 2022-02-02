@@ -9,6 +9,7 @@ from helperFunctions.process import stop_processes
 from helperFunctions.program_setup import get_log_file_for_component
 from helperFunctions.yara_binary_search import YaraBinarySearchScanner
 from intercom.common_redis_binding import InterComListener, InterComListenerAndResponder, InterComRedisInterface
+from objects.firmware import Firmware
 from storage.binary_service import BinaryService
 from storage.db_interface_common import DbInterfaceCommon
 from storage.fsorganizer import FSOrganizer
@@ -99,6 +100,15 @@ class InterComBackEndAnalysisTask(InterComListener):
 class InterComBackEndReAnalyzeTask(InterComListener):
 
     CONNECTION_TYPE = 're_analyze_task'
+
+    def __init__(self, config=None):
+        super().__init__(config)
+        self.fs_organizer = FSOrganizer(config=config)
+
+    def post_processing(self, task: Firmware, task_id):
+        task.file_path = self.fs_organizer.generate_path(task)
+        task.create_binary_from_path()
+        return task
 
 
 class InterComBackEndUpdateTask(InterComBackEndReAnalyzeTask):
