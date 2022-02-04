@@ -6,25 +6,25 @@ from pathlib import Path
 from subprocess import DEVNULL, PIPE
 
 from common_helper_process import execute_shell_command, execute_shell_command_get_return_code
+from docker.types import Mount
+
+from helperFunctions.docker import run_docker_container
 
 
 def run_eslint(file_path):
     eslintrc_path = Path(__file__).parent / 'config/eslintrc.js'
 
-    # The linter will have nonzero returncode when a rule matches
-    # pylint: disable=subprocess-run-check
-    output_raw = subprocess.run(
-                f'''docker run
-                    --rm
-                    -v {eslintrc_path}:/eslintrc.js
-                    -v {file_path}:/input.js
-                    cytopia/eslint
-                    -c /eslintrc.js
-                    --format json
-                    /input.js'''.split(),
-                stdout=PIPE, stderr=PIPE).stdout
+    result = run_docker_container(
+        'cytopia/eslint',
+        combine_stderr_stdout=False,
+        mounts=[
+            Mount('/eslintrc.js', str(eslintrc_path), type='bind', read_only=True),
+            Mount('/input.js', str(file_path), type='bind', read_only=True),
+        ],
+        command='-c /eslintrc.js --format json /input.js',
+    )
 
-    output_json = json.loads(output_raw)
+    output_json = json.loads(result.stdout)
 
     issues = []
     # As we only ever analyse one file use output_json[0]
@@ -130,7 +130,12 @@ def _pylint_extract_relevant_warnings(pylint_json):
 
 
 def run_rubocop(file_path):
-    rubocop_p = subprocess.run(shlex.split('rubocop -f json'), stdout=PIPE, stderr=DEVNULL)
+    rubocop_p = subprocess.run(
+        shlex.split(f'rubocop --stdin --format json {file_path}'),
+        stdout=PIPE,
+        stderr=DEVNULL,
+        check=False,
+    )
     linter_output = json.loads(rubocop_p.stdout)
 
     issues = []
@@ -149,8 +154,15 @@ def run_rubocop(file_path):
 
 def run_phpstan(file_path):
     container_path = '/app/input.php'
-    host_path = file_path
-    phpstan_p = subprocess.run(shlex.split(f'docker run -v {host_path}:{container_path} --rm ghcr.io/phpstan/phpstan analyse --error-format=json -- input.php'), stdout=PIPE, stderr=DEVNULL)
+    phpstan_p = run_docker_container(
+        'ghcr.io/phpstan/phpstan',
+        combine_stderr_stdout=False,
+        mounts=[
+            Mount(container_path, file_path, type='bind', read_only=True),
+        ],
+        command='analyse --error-format=json -- input.php',
+    )
+
     linter_output = json.loads(phpstan_p.stdout)
 
     issues = []
