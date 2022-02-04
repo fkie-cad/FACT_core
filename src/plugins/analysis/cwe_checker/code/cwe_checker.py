@@ -15,6 +15,8 @@ import json
 import logging
 from collections import defaultdict
 
+from docker.types import Mount
+
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.docker import run_docker_container
 
@@ -51,13 +53,25 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     @staticmethod
     def _run_cwe_checker_to_get_version_string():
-        return run_docker_container(DOCKER_IMAGE, timeout=60,
-                                    command='--version')
+        result = run_docker_container(
+            DOCKER_IMAGE,
+            combine_stderr_stdout=True,
+            timeout=60,
+            command='--version',
+        )
+        return result.stdout
 
     def _run_cwe_checker_in_docker(self, file_object):
-        return run_docker_container(DOCKER_IMAGE, timeout=self.TIMEOUT,
-                                    command='/input --json --quiet',
-                                    mount=('/input', file_object.file_path))
+        result = run_docker_container(
+            DOCKER_IMAGE,
+            combine_stderr_stdout=True,
+            timeout=self.TIMEOUT - 30,
+            command='/input --json --quiet',
+            mounts=[
+                Mount('/input', file_object.file_path, type='bind'),
+            ],
+        )
+        return result.stdout
 
     @staticmethod
     def _parse_cwe_checker_output(output):

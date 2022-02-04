@@ -1,4 +1,5 @@
 # pylint: disable=no-self-use,unused-argument
+import grp
 import os
 from base64 import standard_b64encode
 from configparser import ConfigParser
@@ -323,6 +324,8 @@ def get_config_for_testing(temp_dir: Optional[Union[TemporaryDirectory, str]] = 
     config.set('data_storage', 'report_threshold', '2048')
     config.set('data_storage', 'password_salt', '1234')
     config.set('data_storage', 'firmware_file_storage_directory', '/tmp/fact_test_fs_directory')
+    docker_mount_base_dir = create_docker_mount_base_dir()
+    config.set('data_storage', 'docker-mount-base-dir', str(docker_mount_base_dir))
     config.add_section('unpack')
     config.set('unpack', 'whitelist', '')
     config.set('unpack', 'max_depth', '10')
@@ -397,3 +400,16 @@ def generate_analysis_entry(
         'tags': tags or {},
         **(analysis_result or {})
     }
+
+
+def create_docker_mount_base_dir():
+    docker_mount_base_dir = Path('/tmp/fact-docker-mount-base-dir')
+    try:
+        docker_mount_base_dir.mkdir(0o770)
+    except FileExistsError:
+        pass
+    else:
+        docker_gid = grp.getgrnam('docker').gr_gid
+        os.chown(docker_mount_base_dir, -1, docker_gid)
+
+    return docker_mount_base_dir
