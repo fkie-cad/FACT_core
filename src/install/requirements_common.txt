@@ -15,6 +15,7 @@ pytest-cov
 python-magic
 python-tlsh
 requests
+rich
 ssdeep
 sqlalchemy
 xmltodict
