@@ -18,9 +18,9 @@ from storage.db_interface_backend import BackendDbInterface
 from storage.db_interface_comparison import ComparisonDbInterface
 
 try:
-    from tqdm import tqdm
+    from rich.progress import Progress
 except ImportError:
-    print('Error: tqdm not found. Please install it:\npython3 -m pip install tqdm')
+    print('Error: rich not found. Please install it:\npython3 -m pip install rich')
     sys.exit(1)
 
 
@@ -242,54 +242,66 @@ def main():
     postgres = BackendDbInterface(config=config)
 
     with ConnectTo(MigrationMongoInterface, config) as db:
-        migrate_fw(postgres, {}, db, True)
+        with Progress() as progress:
+            migrator = DbMigrator(postgres=postgres, mongo=db, progress=progress)
+            migrator.migrate_fw(query={}, root=True, label='firmwares')
         migrate_comparisons(db, config)
 
 
-def migrate_fw(postgres: BackendDbInterface, query, mongo: MigrationMongoInterface, root=False, root_uid=None,
-               parent_uid=None):
-    label = 'firmware' if root else 'file_object'
-    collection = mongo.firmwares if root else mongo.file_objects
-    total = collection.count_documents(query)
-    logging.debug(f'Migrating {total} {label} entries')
-    for entry in tqdm(collection.find(query, {'_id': 1}), total=total, leave=root):
-        uid = entry['_id']
-        if postgres.exists(uid):
-            if not root:
-                postgres.update_file_object_parents(uid, root_uid, parent_uid)
-            # root fw uid must be updated for all included files :(
-            firmware_object = mongo.get_object(uid)
-            query = {'_id': {'$in': list(firmware_object.files_included)}}
-            migrate_fw(
-                postgres, query, mongo,
-                root_uid=firmware_object.uid if root else root_uid, parent_uid=firmware_object.uid
+class DbMigrator:
+    def __init__(self, postgres: BackendDbInterface, mongo: MigrationMongoInterface, progress: Progress):
+        self.postgres = postgres
+        self.mongo = mongo
+        self.progress = progress
+
+    def migrate_fw(self, query, label: str = None, root=False, root_uid=None, parent_uid=None):
+        collection = self.mongo.firmwares if root else self.mongo.file_objects
+        total = collection.count_documents(query)
+        if not total:
+            return
+        task = self.progress.add_task(f'[{"green" if root else "cyan"}]{label}', total=total)
+        for entry in collection.find(query, {'_id': 1}):
+            uid = entry['_id']
+            if self.postgres.exists(uid):
+                if not root:
+                    self.postgres.update_file_object_parents(uid, root_uid, parent_uid)
+                # root fw uid must be updated for all included files :(
+                firmware_object = self.mongo.get_object(uid)
+                query = {'_id': {'$in': list(firmware_object.files_included)}}
+                self.migrate_fw(
+                    query, label=firmware_object.file_name,
+                    root_uid=firmware_object.uid if root else root_uid, parent_uid=firmware_object.uid
+                )
+            else:
+                firmware_object = self.mongo.get_object(uid)
+                self._migrate_single_object(firmware_object, parent_uid, root_uid)
+                query = {'_id': {'$in': list(firmware_object.files_included)}}
+                root_uid = firmware_object.uid if root else root_uid
+                self.migrate_fw(
+                    query=query, root_uid=root_uid, parent_uid=firmware_object.uid,
+                    label=firmware_object.file_name
+                )
+            self.progress.update(task, advance=1)
+        self.progress.remove_task(task)
+
+    def _migrate_single_object(self, firmware_object: Union[Firmware, FileObject], parent_uid: str, root_uid: str):
+        firmware_object.parents = [parent_uid]
+        firmware_object.parent_firmware_uids = [root_uid]
+        for plugin, plugin_data in firmware_object.processed_analysis.items():
+            _fix_illegal_dict(plugin_data, plugin)
+            _check_for_missing_fields(plugin, plugin_data)
+        try:
+            self.postgres.insert_object(firmware_object)
+        except StatementError:
+            logging.error(f'Firmware contains errors: {firmware_object}')
+            raise
+        except KeyError:
+            logging.error(
+                f'fields missing from analysis data: \n'
+                f'{json.dumps(firmware_object.processed_analysis, indent=2)}',
+                exc_info=True
             )
-        else:
-            firmware_object = mongo.get_object(uid)
-            _migrate_single_object(firmware_object, parent_uid, postgres, root_uid)
-            query = {'_id': {'$in': list(firmware_object.files_included)}}
-            root_uid = firmware_object.uid if root else root_uid
-            migrate_fw(postgres, query, mongo, root_uid=root_uid, parent_uid=firmware_object.uid)
-
-
-def _migrate_single_object(firmware_object: Union[Firmware, FileObject], parent_uid: str, postgres, root_uid: str):
-    firmware_object.parents = [parent_uid]
-    firmware_object.parent_firmware_uids = [root_uid]
-    for plugin, plugin_data in firmware_object.processed_analysis.items():
-        _fix_illegal_dict(plugin_data, plugin)
-        _check_for_missing_fields(plugin, plugin_data)
-    try:
-        postgres.insert_object(firmware_object)
-    except StatementError:
-        logging.error(f'Firmware contains errors: {firmware_object}')
-        raise
-    except KeyError:
-        logging.error(
-            f'fields missing from analysis data: \n'
-            f'{json.dumps(firmware_object.processed_analysis, indent=2)}',
-            exc_info=True
-        )
-        raise
+            raise
 
 
 def migrate_comparisons(mongo: MigrationMongoInterface, config):

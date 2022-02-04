@@ -16,6 +16,7 @@ python-magic
 python-tlsh
 requests
 redis
+rich
 ssdeep
 sqlalchemy
 xmltodict

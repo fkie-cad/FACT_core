@@ -1,6 +1,8 @@
 import logging
 from contextlib import suppress
 from pathlib import Path
+from shlex import split
+from subprocess import CalledProcessError, check_call
 
 from common_helper_process import execute_shell_command, execute_shell_command_get_return_code
 
@@ -28,9 +30,21 @@ def install_postgres():
             raise InstallationError(f'Failed to set up PostgreSQL: {output}')
 
 
+def postgres_is_installed():
+    try:
+        check_call(split('psql --version'))
+        return True
+    except (CalledProcessError, FileNotFoundError):
+        return False
+
+
 def main():
-    logging.info('Setting up PostgreSQL database')
-    install_postgres()
+    if postgres_is_installed():
+        logging.info('Skipping PostgreSQL installation. Reason: Already installed.')
+    else:
+        logging.info('Setting up PostgreSQL database')
+        install_postgres()
+
     # delay import so that sqlalchemy is installed
     from install.init_postgres import main as init_postgres  # pylint: disable=import-outside-toplevel
     init_postgres()

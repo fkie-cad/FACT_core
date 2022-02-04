@@ -2,7 +2,8 @@ import logging
 from typing import Set
 
 from sqlalchemy import (
-    Boolean, Column, Date, Float, ForeignKey, Integer, LargeBinary, PrimaryKeyConstraint, Table, event, select
+    BigInteger, Boolean, Column, Date, Float, ForeignKey, Integer, LargeBinary, PrimaryKeyConstraint, Table, event,
+    select
 )
 from sqlalchemy.dialects.postgresql import ARRAY, CHAR, JSONB, VARCHAR
 from sqlalchemy.orm import Session, backref, declarative_base, relationship
@@ -62,7 +63,7 @@ class FileObjectEntry(Base):
     sha256 = Column(CHAR(64), nullable=False)
     file_name = Column(VARCHAR, nullable=False)
     depth = Column(Integer, nullable=False)
-    size = Column(Integer, nullable=False)
+    size = Column(BigInteger, nullable=False)
     comments = Column(JSONB)
     virtual_file_paths = Column(JSONB)
     is_firmware = Column(Boolean, nullable=False)
