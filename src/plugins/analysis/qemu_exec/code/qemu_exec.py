@@ -12,13 +12,12 @@ from tempfile import TemporaryDirectory
 from typing import Dict, List, Optional, Tuple, Union
 
 from common_helper_files import get_binary_from_file, safe_rglob
-from common_helper_process import execute_shell_command_get_return_code
 from docker.errors import DockerException
+from docker.types import Mount
 from fact_helper_file import get_file_type_from_path
 from requests.exceptions import ReadTimeout
 
 from analysis.PluginBase import AnalysisBasePlugin
-from helperFunctions.config import get_temp_dir_path
 from helperFunctions.docker import run_docker_container
 from helperFunctions.tag import TagColor
 from helperFunctions.uid import create_uid
@@ -45,7 +44,7 @@ class Unpacker(UnpackBase):
             logging.error(f'could not unpack {file_object.uid}: file path not found')
             return None
 
-        extraction_dir = TemporaryDirectory(prefix='FACT_plugin_qemu_exec', dir=get_temp_dir_path(self.config))
+        extraction_dir = TemporaryDirectory(prefix='FACT_plugin_qemu_exec', dir=self.config['data_storage']['docker-mount-base-dir'])
         self.extract_files_from_file(file_path, extraction_dir.name)
         return extraction_dir
 
@@ -88,10 +87,6 @@ class AnalysisPlugin(AnalysisBasePlugin):
         super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__, timeout=900)
 
     def process_object(self, file_object: FileObject) -> FileObject:
-        if not docker_is_running():
-            logging.error('could not process object: docker daemon not running')
-            return file_object
-
         if self.NAME not in file_object.processed_analysis:
             file_object.processed_analysis[self.NAME] = {}
         file_object.processed_analysis[self.NAME]['summary'] = []
@@ -264,10 +259,17 @@ def get_docker_output(arch_suffix: str, file_path: str, root_path: Path) -> dict
     '''
     command = '{arch_suffix} {target}'.format(arch_suffix=arch_suffix, target=file_path)
     try:
-        return loads(run_docker_container(
-            DOCKER_IMAGE, TIMEOUT_IN_SECONDS, command, reraise=True, mount=(CONTAINER_TARGET_PATH, str(root_path)),
-            label='qemu_exec'
-        ))
+        result = run_docker_container(
+            DOCKER_IMAGE,
+            combine_stderr_stdout=True,
+            timeout=TIMEOUT_IN_SECONDS,
+            command=command,
+            mounts=[
+                Mount(CONTAINER_TARGET_PATH, str(root_path), type='bind'),
+            ],
+            logging_label='qemu_exec'
+        )
+        return loads(result.stdout)
     except ReadTimeout:
         return {'error': 'timeout'}
     except (DockerException, IOError):
@@ -347,8 +349,3 @@ def merge_identical_results(results: Dict[str, Dict[str, str]]):
             results.pop(parameter_2)
             merge_identical_results(results)
             break
-
-
-def docker_is_running() -> bool:
-    _, return_code = execute_shell_command_get_return_code('docker info')
-    return return_code == 0

@@ -15,7 +15,7 @@ import json
 import logging
 from collections import defaultdict
 
-from common_helper_process import execute_shell_command_get_return_code
+from docker.types import Mount
 
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.docker import run_docker_container
@@ -40,15 +40,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def __init__(self, plugin_administrator, config=None, recursive=True, timeout=TIMEOUT_IN_SECONDS + 30):
         self.config = config
-        if not self._check_docker_installed():
-            raise RuntimeError('Docker is not installed.')
         self._log_version_string()
         super().__init__(plugin_administrator, config=config, plugin_path=__file__, recursive=recursive, timeout=timeout)
-
-    @staticmethod
-    def _check_docker_installed():
-        _, return_code = execute_shell_command_get_return_code('docker -v')
-        return return_code == 0
 
     def _log_version_string(self):
         output = self._run_cwe_checker_to_get_version_string()
@@ -60,14 +53,26 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     @staticmethod
     def _run_cwe_checker_to_get_version_string():
-        return run_docker_container(DOCKER_IMAGE, timeout=60,
-                                    command='--version')
+        result = run_docker_container(
+            DOCKER_IMAGE,
+            combine_stderr_stdout=True,
+            timeout=60,
+            command='--version',
+        )
+        return result.stdout
 
     @staticmethod
     def _run_cwe_checker_in_docker(file_object):
-        return run_docker_container(DOCKER_IMAGE, timeout=TIMEOUT_IN_SECONDS,
-                                    command='/input --json --quiet',
-                                    mount=('/input', file_object.file_path))
+        result = run_docker_container(
+            DOCKER_IMAGE,
+            combine_stderr_stdout=True,
+            timeout=TIMEOUT_IN_SECONDS,
+            command='/input --json --quiet',
+            mounts=[
+                Mount('/input', file_object.file_path, type='bind'),
+            ],
+        )
+        return result.stdout
 
     @staticmethod
     def _parse_cwe_checker_output(output):
