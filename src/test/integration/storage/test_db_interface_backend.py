@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 import pytest
 
 from test.common_helper import create_test_file_object, create_test_firmware  # pylint: disable=wrong-import-order
@@ -8,6 +10,12 @@ from .helper import TEST_FO, TEST_FW, create_fw_with_child_fo
 def test_insert_objects(db):
     db.backend.insert_file_object(TEST_FO)
     db.backend.insert_firmware(TEST_FW)
+
+
+def test_insert_fw_w_big_size(db):
+    fw = deepcopy(TEST_FW)
+    fw.size = 2_352_167_575
+    db.backend.insert_firmware(fw)
 
 
 @pytest.mark.parametrize('fw_object', [TEST_FW, TEST_FO])
