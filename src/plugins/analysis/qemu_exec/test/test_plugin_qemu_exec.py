@@ -10,7 +10,7 @@ from common_helper_files import get_dir_of_file
 from requests.exceptions import ConnectionError as RequestConnectionError
 from requests.exceptions import ReadTimeout
 
-from test.common_helper import create_test_firmware, get_config_for_testing, get_test_data_dir
+from test.common_helper import TEST_FW, create_test_firmware, get_config_for_testing, get_test_data_dir
 from test.mock import mock_patch
 from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
 
@@ -150,6 +150,7 @@ class TestPluginQemuExec(AnalysisPluginTest):
         result = self.analysis_plugin._find_arch_suffixes(mime_str)
         assert result == []
 
+    @pytest.mark.timeout(10)
     def test_process_included_files(self):
         self.analysis_plugin.OPTIONS = ['-h']
         test_fw = create_test_firmware()
@@ -164,6 +165,7 @@ class TestPluginQemuExec(AnalysisPluginTest):
         assert test_uid in result['files']
         assert result['files'][test_uid]['executable'] is True
 
+    @pytest.mark.timeout(10)
     @pytest.mark.usefixtures('docker_is_running')
     def test_process_object(self):
         self.analysis_plugin.OPTIONS = ['-h']
@@ -175,6 +177,7 @@ class TestPluginQemuExec(AnalysisPluginTest):
         assert len(result['files']) == 4
         assert any(result['files'][uid]['executable'] for uid in result['files'])
 
+    @pytest.mark.timeout(10)
     @pytest.mark.usefixtures('docker_is_running')
     def test_process_object__with_extracted_folder(self):
         self.analysis_plugin.OPTIONS = ['-h']
@@ -187,6 +190,7 @@ class TestPluginQemuExec(AnalysisPluginTest):
         assert len(result['files']) == 3
         assert result['files'][test_file_uid]['executable'] is True
 
+    @pytest.mark.timeout(10)
     @pytest.mark.usefixtures('docker_is_running')
     def test_process_object__error(self):
         test_fw = self._set_up_fw_for_process_object(path=TEST_DATA_DIR / 'usr')
@@ -203,6 +207,7 @@ class TestPluginQemuExec(AnalysisPluginTest):
             if option != 'strace'
         )
 
+    @pytest.mark.timeout(10)
     @pytest.mark.usefixtures('docker_is_running')
     @pytest.mark.usefixtures('execute_docker_error')
     def test_process_object__timeout(self):
@@ -222,6 +227,7 @@ class TestPluginQemuExec(AnalysisPluginTest):
             for uid in result['files']
         )
 
+    @pytest.mark.timeout(10)
     @pytest.mark.usefixtures('docker_is_running')
     def test_process_object__no_files(self):
         test_fw = create_test_firmware()
@@ -231,6 +237,7 @@ class TestPluginQemuExec(AnalysisPluginTest):
         assert self.analysis_plugin.NAME in test_fw.processed_analysis
         assert test_fw.processed_analysis[self.analysis_plugin.NAME] == {'summary': []}
 
+    @pytest.mark.timeout(10)
     @pytest.mark.usefixtures('docker_is_running')
     def test_process_object__included_binary(self):
         test_fw = create_test_firmware()
@@ -241,6 +248,7 @@ class TestPluginQemuExec(AnalysisPluginTest):
         assert 'parent_flag' in test_fw.processed_analysis[self.analysis_plugin.NAME]
         assert test_fw.processed_analysis[self.analysis_plugin.NAME]['parent_flag'] is True
 
+    @pytest.mark.timeout(10)
     @pytest.mark.usefixtures('docker_is_not_running')
     def test_process_object__docker_not_running(self):
         test_fw = create_test_firmware()
@@ -463,7 +471,8 @@ class TestQemuExecUnpacker(TestCase):
         test_fw = create_test_firmware()
         test_fw.file_path = None
 
-        tmp_dir = self.unpacker.unpack_fo(test_fw)
+        with mock_patch(self.unpacker.fs_organizer, 'generate_path', lambda _: TEST_FW.file_path):
+            tmp_dir = self.unpacker.unpack_fo(test_fw)
 
         try:
             assert self.name_prefix in tmp_dir.name
