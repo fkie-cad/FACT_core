@@ -1,7 +1,7 @@
 import logging
 from configparser import ConfigParser
 from pathlib import Path
-from subprocess import check_output
+from subprocess import CalledProcessError, check_output
 from typing import List, Optional
 
 # pylint: disable=ungrouped-imports
@@ -27,7 +27,11 @@ class Privileges:
 def execute_psql_command(psql_command: str, database: Optional[str] = None):
     database_option = f'-d {database}' if database else ''
     shell_cmd = f'sudo -u postgres psql {database_option} -c "{psql_command}"'
-    return check_output(shell_cmd, shell=True)
+    try:
+        return check_output(shell_cmd, shell=True)
+    except CalledProcessError as error:
+        logging.error(f'Error during PostgreSQL installation: {error.output}')
+        raise
 
 
 def user_exists(user_name: str) -> bool:
