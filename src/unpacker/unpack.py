@@ -6,7 +6,6 @@ from typing import List
 
 from fact_helper_file import get_file_type_from_path
 
-from helperFunctions.config import get_temp_dir_path
 from helperFunctions.fileSystem import file_is_empty, get_relative_object_path
 from helperFunctions.tag import TagColor
 from helperFunctions.virtual_file_path import get_base_of_virtual_path, join_virtual_path
@@ -33,7 +32,7 @@ class Unpacker(UnpackBase):
             self._store_unpacking_depth_skip_info(current_fo)
             return []
 
-        tmp_dir = TemporaryDirectory(prefix='fact_unpack_', dir=get_temp_dir_path(self.config))
+        tmp_dir = TemporaryDirectory(prefix='fact_unpack_', dir=self.config['data_storage']['docker-mount-base-dir'])
 
         file_path = self._generate_local_file_path(current_fo)
 

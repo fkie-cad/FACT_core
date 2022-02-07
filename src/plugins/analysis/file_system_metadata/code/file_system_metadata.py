@@ -9,6 +9,8 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import List, NamedTuple, Tuple
 
+from docker.types import Mount
+
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.database import ConnectTo
 from helperFunctions.docker import run_docker_container
@@ -86,7 +88,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             self._add_tag(file_object, self.result)
 
     def _extract_metadata_from_file_system(self, file_object: FileObject):
-        with TemporaryDirectory() as tmp_dir:
+        with TemporaryDirectory(dir=self.config['data_storage']['docker-mount-base-dir']) as tmp_dir:
             input_file = Path(tmp_dir) / 'input.img'
             input_file.write_bytes(file_object.binary or Path(file_object.file_path).read_bytes())
             output = self._mount_in_docker(tmp_dir)
@@ -99,13 +101,18 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 file_object.processed_analysis[self.NAME]['failed'] = message
 
     def _mount_in_docker(self, input_dir: str) -> str:
-        return run_docker_container(
+        result = run_docker_container(
             DOCKER_IMAGE,
-            mount=('/work', input_dir),
-            label=self.NAME,
+            combine_stderr_stdout=True,
+            logging_label=self.NAME,
+            mounts=[
+                Mount('/work', input_dir, type='bind'),
+            ],
             timeout=int(self.timeout * .8),
-            privileged=True
+            privileged=True,
         )
+
+        return result.stdout
 
     def _analyze_metadata_of_mounted_dir(self, docker_results: Tuple[str, str, dict]):
         for file_name, file_path, file_stats in docker_results:
