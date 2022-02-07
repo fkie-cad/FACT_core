@@ -4,15 +4,16 @@ from pathlib import Path
 from subprocess import check_output
 from typing import List, Optional
 
-from storage.db_interface_admin import AdminDbInterface
-
+# pylint: disable=ungrouped-imports
 try:
     from helperFunctions.config import load_config
+    from storage.db_interface_admin import AdminDbInterface
 except ImportError:
     import sys
     src_dir = Path(__file__).parent.parent
     sys.path.append(str(src_dir))
     from helperFunctions.config import load_config
+    from storage.db_interface_admin import AdminDbInterface
 
 
 class Privileges:
