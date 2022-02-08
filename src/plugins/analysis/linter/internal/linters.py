@@ -131,7 +131,7 @@ def _pylint_extract_relevant_warnings(pylint_json):
 
 def run_rubocop(file_path):
     rubocop_p = subprocess.run(
-        shlex.split(f'rubocop --stdin --format json {file_path}'),
+        shlex.split(f'rubocop --format json {file_path}'),
         stdout=PIPE,
         stderr=DEVNULL,
         check=False,
