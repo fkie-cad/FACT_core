@@ -25,6 +25,8 @@ from pathlib import Path
 
 from common_helper_files import create_dir_for_file
 
+from config import cfg, configparser_cfg
+from config import load_config as load_config_global
 from helperFunctions.config import get_config_dir
 from helperFunctions.logging import ColoringFormatter
 from version import __VERSION__
@@ -103,10 +105,17 @@ def _load_config(args):
     :return: A dictionary containing the parsed config
     '''
 
+    load_config_global(args.config_file)
+
     config = configparser.ConfigParser()
     config.read(args.config_file)
     if args.log_file is not None:
         config['logging']['logfile'] = args.log_file
+        configparser_cfg['logging']['logfile'] = args.log_file
+        cfg.logging.logfile = args.log_file
     if args.log_level is not None:
         config['logging']['loglevel'] = args.log_level
+        configparser_cfg['logging']['loglevel'] = args.log_level
+        cfg.logging.loglevel = args.log_level
+
     return config
