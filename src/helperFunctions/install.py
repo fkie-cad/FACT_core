@@ -177,7 +177,7 @@ def install_github_project(project_path: str, commands: List[str]):
 def _checkout_github_project(github_path: str, folder_name: str):
     clone_url = 'https://www.github.com/{}'.format(github_path)
     git_p = subprocess.run('git clone {}'.format(clone_url), shell=True, stdout=DEVNULL, stderr=DEVNULL, text=True)
-    if git_p != 0:
+    if git_p.returncode != 0:
         raise InstallationError('Cloning from github failed for project {}\n {}'.format(github_path, clone_url))
     if not Path('.', folder_name).exists():
         raise InstallationError('Repository creation failed on folder {}\n {}'.format(folder_name, clone_url))
