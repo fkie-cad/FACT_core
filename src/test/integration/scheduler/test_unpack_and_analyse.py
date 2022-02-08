@@ -4,7 +4,7 @@ from multiprocessing import Queue
 from unittest.mock import patch
 
 from objects.firmware import Firmware
-from scheduler.Analysis import AnalysisScheduler
+from scheduler.analysis import AnalysisScheduler
 from scheduler.Unpacking import UnpackingScheduler
 from test.common_helper import DatabaseMock, fake_exit, get_test_data_dir
 from test.integration.common import MockDbInterface, MockFSOrganizer, initialize_config

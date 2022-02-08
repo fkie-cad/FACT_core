@@ -12,15 +12,15 @@ from typing import List, Tuple
 
 try:
     from ..internal import data_parsing as dp
-    from ..internal.database_interface import DatabaseInterface, QUERIES, DB_PATH
+    from ..internal.database_interface import DB_PATH, QUERIES, DatabaseInterface
     from ..internal.helper_functions import (
-        CveEntry, CveSummaryEntry, replace_characters_and_wildcards, CveLookupException
+        CveEntry, CveLookupException, CveSummaryEntry, replace_characters_and_wildcards
     )
 except (ImportError, ValueError, SystemError):
     sys.path.append(str(Path(__file__).parent.parent / 'internal'))
     import data_parsing as dp
-    from database_interface import DatabaseInterface, QUERIES, DB_PATH
-    from helper_functions import CveEntry, CveSummaryEntry, replace_characters_and_wildcards, CveLookupException
+    from database_interface import DB_PATH, QUERIES, DatabaseInterface
+    from helper_functions import CveEntry, CveLookupException, CveSummaryEntry, replace_characters_and_wildcards
 
 CURRENT_YEAR = datetime.now().year
 DATABASE = DatabaseInterface()

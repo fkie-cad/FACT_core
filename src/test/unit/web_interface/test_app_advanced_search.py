@@ -1,4 +1,4 @@
-from test.common_helper import TEST_TEXT_FILE, TEST_FW_2
+from test.common_helper import TEST_FW_2, TEST_TEXT_FILE
 from test.unit.web_interface.base import WebInterfaceTest
 
 

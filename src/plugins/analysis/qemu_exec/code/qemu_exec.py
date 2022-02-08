@@ -4,25 +4,25 @@ import logging
 import zlib
 from base64 import b64decode
 from collections import OrderedDict
+from concurrent.futures import Future, ThreadPoolExecutor
 from json import JSONDecodeError, loads
-from multiprocessing import Manager, Pool
+from multiprocessing import Manager
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Dict, List, Optional, Tuple, Union
 
 from common_helper_files import get_binary_from_file, safe_rglob
-from common_helper_process import execute_shell_command_get_return_code
 from docker.errors import DockerException
+from docker.types import Mount
 from fact_helper_file import get_file_type_from_path
 from requests.exceptions import ReadTimeout
 
 from analysis.PluginBase import AnalysisBasePlugin
-from helperFunctions.config import get_temp_dir_path
 from helperFunctions.docker import run_docker_container
 from helperFunctions.tag import TagColor
 from helperFunctions.uid import create_uid
 from objects.file import FileObject
-from storage.binary_service import BinaryServiceDbInterface
+from storage.fsorganizer import FSOrganizer
 from unpacker.unpack_base import UnpackBase
 
 TIMEOUT_IN_SECONDS = 15
@@ -34,35 +34,29 @@ CONTAINER_TARGET_PATH = '/opt/firmware_root'
 
 
 class Unpacker(UnpackBase):
+    def __init__(self, config=None, worker_id=None):
+        super().__init__(config=config, worker_id=worker_id)
+        self.fs_organizer = FSOrganizer(config)
+
     def unpack_fo(self, file_object: FileObject) -> Optional[TemporaryDirectory]:
-        file_path = (
-            file_object.file_path if file_object.file_path
-            else self._get_file_path_from_db(file_object.uid)
-        )
+        file_path = file_object.file_path if file_object.file_path else self._get_path_from_fo(file_object)
         if not file_path or not Path(file_path).is_file():
-            logging.error('could not unpack {}: file path not found'.format(file_object.uid))
+            logging.error(f'could not unpack {file_object.uid}: file path not found')
             return None
 
-        extraction_dir = TemporaryDirectory(prefix='FACT_plugin_qemu_exec', dir=get_temp_dir_path(self.config))
+        extraction_dir = TemporaryDirectory(prefix='FACT_plugin_qemu_exec', dir=self.config['data_storage']['docker-mount-base-dir'])
         self.extract_files_from_file(file_path, extraction_dir.name)
         return extraction_dir
 
-    def _get_file_path_from_db(self, uid):
-        binary_service = BinaryServiceDbInterface(config=self.config)
-        try:
-            path = binary_service.get_file_name_and_path(uid)['file_path']
-            return path
-        except (KeyError, TypeError):
-            return None
-        finally:
-            binary_service.shutdown()
+    def _get_path_from_fo(self, file_object: FileObject) -> str:
+        return self.fs_organizer.generate_path(file_object)
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
 
     NAME = 'qemu_exec'
     DESCRIPTION = 'test binaries for executability in QEMU and display help if available'
-    VERSION = '0.5.1'
+    VERSION = '0.5.2'
     DEPENDENCIES = ['file_type']
     FILE_TYPES = ['application/x-executable', 'application/x-pie-executable', 'application/x-sharedlib']
 
@@ -93,10 +87,6 @@ class AnalysisPlugin(AnalysisBasePlugin):
         super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__, timeout=900)
 
     def process_object(self, file_object: FileObject) -> FileObject:
-        if not docker_is_running():
-            logging.error('could not process object: docker daemon not running')
-            return file_object
-
         if self.NAME not in file_object.processed_analysis:
             file_object.processed_analysis[self.NAME] = {}
         file_object.processed_analysis[self.NAME]['summary'] = []
@@ -141,7 +131,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     def _find_root_path(self, extracted_files_dir: Path) -> Path:
         root_path = extracted_files_dir
         if (root_path / self.FACT_EXTRACTION_FOLDER_NAME).is_dir():
-            # if there a 'fact_extracted' folder in the tmp dir: reset root path to that folder
+            # if there is a 'fact_extracted' folder in the tmp dir: reset root path to that folder
             root_path /= self.FACT_EXTRACTION_FOLDER_NAME
         return root_path
 
@@ -152,24 +142,26 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def _process_included_files(self, file_list, file_object):
         manager = Manager()
-        pool = Pool(processes=8)
+        executor = ThreadPoolExecutor(max_workers=8)
         results_dict = manager.dict()
 
-        jobs = self._create_analysis_jobs(file_list, file_object, results_dict)
-        pool.starmap(process_qemu_job, jobs, chunksize=1)
+        jobs = self._run_analysis_jobs(executor, file_list, file_object, results_dict)
+        for future in jobs:  # wait for jobs to finish
+            future.result()
+        executor.shutdown(wait=False)
         self._enter_results(dict(results_dict), file_object)
         self._add_tag(file_object)
 
-    def _create_analysis_jobs(self, file_list: List[Tuple[str, str]], file_object: FileObject, results_dict: dict) -> List[tuple]:
+    def _run_analysis_jobs(self, executor: ThreadPoolExecutor, file_list: List[Tuple[str, str]],
+                           file_object: FileObject, results_dict: dict) -> List[Future]:
         jobs = []
         for file_path, full_type in file_list:
             uid = self._get_uid(file_path, self.root_path)
             if self._analysis_not_already_completed(file_object, uid):
-                qemu_arch_suffixes = self._find_arch_suffixes(full_type)
-                jobs.extend([
-                    (file_path, arch_suffix, self.root_path, results_dict, uid)
-                    for arch_suffix in qemu_arch_suffixes
-                ])
+                for arch_suffix in self._find_arch_suffixes(full_type):
+                    jobs.append(
+                        executor.submit(process_qemu_job, file_path, arch_suffix, self.root_path, results_dict, uid)
+                    )
         return jobs
 
     def _analysis_not_already_completed(self, file_object, uid):
@@ -267,10 +259,17 @@ def get_docker_output(arch_suffix: str, file_path: str, root_path: Path) -> dict
     '''
     command = '{arch_suffix} {target}'.format(arch_suffix=arch_suffix, target=file_path)
     try:
-        return loads(run_docker_container(
-            DOCKER_IMAGE, TIMEOUT_IN_SECONDS, command, reraise=True, mount=(CONTAINER_TARGET_PATH, str(root_path)),
-            label='qemu_exec'
-        ))
+        result = run_docker_container(
+            DOCKER_IMAGE,
+            combine_stderr_stdout=True,
+            timeout=TIMEOUT_IN_SECONDS,
+            command=command,
+            mounts=[
+                Mount(CONTAINER_TARGET_PATH, str(root_path), type='bind'),
+            ],
+            logging_label='qemu_exec'
+        )
+        return loads(result.stdout)
     except ReadTimeout:
         return {'error': 'timeout'}
     except (DockerException, IOError):
@@ -350,8 +349,3 @@ def merge_identical_results(results: Dict[str, Dict[str, str]]):
             results.pop(parameter_2)
             merge_identical_results(results)
             break
-
-
-def docker_is_running() -> bool:
-    _, return_code = execute_shell_command_get_return_code('docker info')
-    return return_code == 0

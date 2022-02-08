@@ -3,7 +3,7 @@ import unittest
 import unittest.mock
 from configparser import ConfigParser
 
-from test.common_helper import DatabaseMock, fake_exit, load_users_from_main_config
+from test.common_helper import DatabaseMock, create_docker_mount_base_dir, fake_exit, load_users_from_main_config
 
 
 class AnalysisPluginTest(unittest.TestCase):
@@ -22,6 +22,8 @@ class AnalysisPluginTest(unittest.TestCase):
         self.exit_patch = unittest.mock.patch(target='helperFunctions.database.ConnectTo.__exit__', new=fake_exit)
         self.exit_patch.start()
 
+        self.docker_mount_base_dir = create_docker_mount_base_dir()
+
     def tearDown(self):
         self.analysis_plugin.shutdown()  # pylint: disable=no-member
 
@@ -36,12 +38,13 @@ class AnalysisPluginTest(unittest.TestCase):
         config.add_section(self.PLUGIN_NAME)
         config.set(self.PLUGIN_NAME, 'threads', '1')
         config.add_section('ExpertSettings')
-        config.set('ExpertSettings', 'block_delay', '2')
+        config.set('ExpertSettings', 'block_delay', '0.1')
         config.add_section('data_storage')
         load_users_from_main_config(config)
         config.set('data_storage', 'mongo_server', 'localhost')
         config.set('data_storage', 'mongo_port', '54321')
         config.set('data_storage', 'view_storage', 'tmp_view')
+        config.set('data_storage', 'docker-mount-base-dir', str(self.docker_mount_base_dir))
         return config
 
     def register_plugin(self, name, plugin_object):

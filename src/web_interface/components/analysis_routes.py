@@ -191,26 +191,32 @@ class AnalysisRoutes(ComponentBase):
         return self.get_update_analysis(uid, re_do=True)
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
-    @AppRoute('/dependency-graph/<uid>', GET)
-    def show_elf_dependency_graph(self, uid):
+    @AppRoute('/dependency-graph/<uid>/<root_uid>', GET)
+    def show_elf_dependency_graph(self, uid, root_uid):
         with ConnectTo(FrontEndDbInterface, self._config) as db:
-            data = db.get_data_for_dependency_graph(uid)
+            data = db.get_data_for_dependency_graph(uid, root_uid)
 
-            whitelist = ['application/x-executable', 'application/x-sharedlib', 'inode/symlink']
+            whitelist = ['application/x-executable', 'application/x-pie-executable', 'application/x-sharedlib', 'inode/symlink']
 
-            data_graph_part = create_data_graph_nodes_and_groups(data, whitelist)
+            data_graph_part = create_data_graph_nodes_and_groups(data, uid, root_uid, whitelist)
+
+            colors = sorted(get_graph_colors(len(data_graph_part['groups'])))
 
             if not data_graph_part['nodes']:
                 flash('Error: Graph could not be rendered. '
                       'The file chosen as root must contain a filesystem with binaries.', 'danger')
-                return render_template('dependency_graph.html', **data_graph_part, uid=uid)
+                return render_template('dependency_graph.html', **data_graph_part, uid=uid, root_uid=root_uid)
 
-            data_graph, elf_analysis_missing_from_files = create_data_graph_edges(data, data_graph_part)
+            data_graph, elf_analysis_missing_from_files = create_data_graph_edges(data_graph_part)
 
             if elf_analysis_missing_from_files > 0:
                 flash(f'Warning: Elf analysis plugin result is missing for {elf_analysis_missing_from_files} files', 'warning')
 
-            color_list = get_graph_colors()
-
             # TODO: Add a loading icon?
-        return render_template('dependency_graph.html', **data_graph, uid=uid, color_list=color_list)
+        return render_template(
+            'dependency_graph.html',
+            **{key: json.dumps(data_graph[key]) for key in ['nodes', 'edges', 'groups']},
+            uid=uid,
+            root_uid=root_uid,
+            colors=colors
+        )

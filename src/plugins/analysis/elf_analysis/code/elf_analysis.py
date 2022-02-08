@@ -1,12 +1,11 @@
 import json
 import logging
-import os
 import re
 from difflib import SequenceMatcher
+from pathlib import Path
 from typing import List, Optional
 
 import lief
-from common_helper_files import get_dir_of_file
 
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.hash import normalize_lief_items
@@ -16,7 +15,8 @@ LIEF_DATA_ENTRIES = (
     'dynamic_entries', 'exported_functions', 'header', 'imported_functions', 'libraries', 'sections', 'segments',
     'symbols_version'
 )
-TEMPLATE_FILE_PATH = os.path.join(get_dir_of_file(__file__), '../internal/matching_template.json')
+TEMPLATE_FILE_PATH = Path(__file__).parent.parent / 'internal/matching_template.json'
+BEHAVIOUR_CLASSES = json.loads(TEMPLATE_FILE_PATH.read_text())
 
 # pylint: disable=c-extension-no-member
 
@@ -26,8 +26,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
     NAME = 'elf_analysis'
     DESCRIPTION = 'Analyzes and tags ELF executables and libraries'
     DEPENDENCIES = ['file_type']
-    VERSION = '0.3.1'
-    MIME_WHITELIST = ['application/x-executable', 'application/x-object', 'application/x-sharedlib']
+    VERSION = '0.3.3'
+    MIME_WHITELIST = ['application/x-executable', 'application/x-pie-executable', 'application/x-object', 'application/x-sharedlib']
 
     def __init__(self, plugin_administrator, config=None, recursive=True, offline_testing=False):
         self.config = config
@@ -39,17 +39,10 @@ class AnalysisPlugin(AnalysisBasePlugin):
             file_object.processed_analysis[self.NAME] = {'Output': elf_dict}
             self.create_tags(parsed_binary, file_object)
             file_object.processed_analysis[self.NAME]['summary'] = list(elf_dict.keys())
-
-        except RuntimeError:
+        except (RuntimeError, ValueError):
             logging.error(f'lief could not parse {file_object.uid}', exc_info=True)
             file_object.processed_analysis[self.NAME] = {'failed': 'lief could not parse the file'}
         return file_object
-
-    @staticmethod
-    def _load_template_file_as_json_obj(path: str) -> dict:
-        with open(path, 'r') as fd:
-            data = json.load(fd)
-        return data
 
     @staticmethod
     def _get_tags_from_library_list(libraries: list, behaviour_class: str, indicators: list, tags: list):
@@ -64,11 +57,10 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 tags.append(behaviour_class)
 
     def _get_tags(self, libraries: list, functions: list) -> list:
-        behaviour_classes = self._load_template_file_as_json_obj(TEMPLATE_FILE_PATH)
         tags = []
-        for behaviour_class in behaviour_classes:
+        for behaviour_class in BEHAVIOUR_CLASSES:
             if behaviour_class not in tags:
-                behaviour_indicators = behaviour_classes[behaviour_class]
+                behaviour_indicators = BEHAVIOUR_CLASSES[behaviour_class]
                 self._get_tags_from_function_list(functions, behaviour_class, behaviour_indicators, tags)
                 self._get_tags_from_library_list(libraries, behaviour_class, behaviour_indicators, tags)
         return list(set(tags))
@@ -130,10 +122,11 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 binary_json_dict['imported_functions'] = normalize_lief_items(parsed_binary.imported_functions)
             if parsed_binary.libraries:
                 binary_json_dict['libraries'] = normalize_lief_items(parsed_binary.libraries)
-            if parsed_binary.sections:
-                elf_dict['modinfo'] = self.filter_modinfo(parsed_binary)
+            modinfo_data = self.filter_modinfo(parsed_binary)
+            if modinfo_data:
+                elf_dict['modinfo'] = modinfo_data
 
-        except (TypeError, lief.bad_file):
+        except (AttributeError, TypeError, lief.bad_file):
             logging.error(f'Bad file for lief/elf analysis {file_object.uid}.', exc_info=True)
             return elf_dict
 
@@ -151,12 +144,11 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     @staticmethod
     def filter_modinfo(binary) -> Optional[List[str]]:
-        # getting the information from the *.ko files .modinfo
+        # getting the information from the *.ko files .modinfo section
         modinfo = None
-        if binary is not None:
-            for section in binary.sections:
-                if section.name == '.modinfo':
-                    modinfo = bytes(section.content).decode()
-                    modinfo = [entry for entry in modinfo.split('\x00') if entry]
-                    break
+        for section in binary.sections:
+            if section.name == '.modinfo':
+                modinfo = bytes(section.content).decode()
+                modinfo = [entry for entry in modinfo.split('\x00') if entry]
+                break
         return modinfo

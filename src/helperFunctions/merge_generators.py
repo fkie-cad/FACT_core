@@ -1,11 +1,10 @@
 import itertools
-
 from copy import deepcopy
-from itertools import zip_longest
 from random import sample, seed
-from typing import Sequence
+from typing import Iterable, List, Sequence, TypeVar
 
 seed()
+T = TypeVar('T')  # pylint: disable=invalid-name
 
 
 def _add_nested_list_to_dict(input_list, input_dict):
@@ -70,3 +69,13 @@ def shuffled(sequence):
     :return: A shuffled copy of `sequence`
     '''
     return sample(sequence, len(sequence))
+
+
+def merge_lists(*lists: Iterable[T]) -> List[T]:
+    '''
+    Merges multiple lists into one (sorted) list while only keeping unique entries.
+
+    :param lists: The lists to be merged.
+    :return: A merged list.
+    '''
+    return sorted(set.union(*(set(list_) for list_ in lists)))

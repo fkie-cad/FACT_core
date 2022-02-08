@@ -7,11 +7,11 @@ from typing import List
 from common_helper_files import get_dir_of_file
 
 from analysis.YaraPluginBase import YaraBasePlugin
-from helperFunctions.config import get_temp_dir_path
 from helperFunctions.data_conversion import make_unicode_string
 from helperFunctions.tag import TagColor
 from objects.file import FileObject
 from plugins.analysis.software_components.bin import OS_LIST
+from plugins.mime_blacklists import MIME_BLACKLIST_NON_EXECUTABLE
 
 try:
     from ..internal.resolve_version_format_string import extract_data_from_ghidra
@@ -32,7 +32,7 @@ class AnalysisPlugin(YaraBasePlugin):
     '''
     NAME = 'software_components'
     DESCRIPTION = 'identify software components'
-    MIME_BLACKLIST = ['audio', 'filesystem', 'image', 'video']
+    MIME_BLACKLIST = MIME_BLACKLIST_NON_EXECUTABLE
     VERSION = '0.4.1'
 
     def __init__(self, plugin_administrator, config=None, recursive=True):
@@ -66,7 +66,7 @@ class AnalysisPlugin(YaraBasePlugin):
         for item in results:
             if item != 'summary':
                 for version in results[item]['meta']['version']:
-                    summary.add('{} {}'.format(results[item]['meta']['software_name'], version))
+                    summary.add(f'{results[item]["meta"]["software_name"]} {version}')
         return sorted(summary)
 
     def add_version_information(self, results, file_object: FileObject):
@@ -84,7 +84,7 @@ class AnalysisPlugin(YaraBasePlugin):
         if result['meta'].get('format_string'):
             key_strings = [s.decode() for _, _, s in result['strings'] if b'%s' in s]
             if key_strings:
-                versions.update(extract_data_from_ghidra(file_object.binary, key_strings, get_temp_dir_path(self.config)))
+                versions.update(extract_data_from_ghidra(file_object.binary, key_strings, self.config['data_storage']['docker-mount-base-dir']))
         if '' in versions and len(versions) > 1:  # if there are actual version results, remove the "empty" result
             versions.remove('')
         result['meta']['version'] = list(versions)

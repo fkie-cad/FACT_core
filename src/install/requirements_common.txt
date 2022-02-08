@@ -11,6 +11,7 @@ psutil
 pylint
 pytest
 pytest-cov
+pytest-timeout
 python-magic
 python-tlsh
 requests
@@ -21,7 +22,7 @@ yara-python
 git+https://github.com/fkie-cad/fact_helper_file.git
 
 # Python MongoDB bindings
-pymongo
+pymongo<4
 pyyaml
 
 # Common code modules

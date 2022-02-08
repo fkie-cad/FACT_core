@@ -1,6 +1,7 @@
 from urllib.parse import quote
 
 from test.common_helper import TEST_TEXT_FILE
+
 from .conftest import decode_response
 
 

@@ -2,7 +2,7 @@ import os
 from contextlib import suppress
 
 from flask import render_template_string
-from flask_restx import Resource, Namespace
+from flask_restx import Namespace, Resource
 
 from helperFunctions.database import ConnectTo
 from helperFunctions.fileSystem import get_src_dir

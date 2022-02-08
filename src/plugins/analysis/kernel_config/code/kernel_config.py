@@ -5,16 +5,17 @@ from typing import List
 
 from analysis.PluginBase import AnalysisBasePlugin
 from objects.file import FileObject
+from plugins.mime_blacklists import MIME_BLACKLIST_NON_EXECUTABLE
 
 try:
+    from ..internal.checksec_check_kernel import CHECKSEC_PATH, check_kernel_config
     from ..internal.decomp import decompress
     from ..internal.kernel_config_hardening_check import check_kernel_hardening
-    from ..internal.checksec_check_kernel import check_kernel_config, CHECKSEC_PATH
 except ImportError:
     sys.path.append(str(Path(__file__).parent.parent / 'internal'))
+    from checksec_check_kernel import CHECKSEC_PATH, check_kernel_config
     from decomp import decompress
     from kernel_config_hardening_check import check_kernel_hardening
-    from checksec_check_kernel import check_kernel_config, CHECKSEC_PATH
 
 
 MAGIC_WORD = b'IKCFG_ST\037\213'
@@ -23,7 +24,7 @@ MAGIC_WORD = b'IKCFG_ST\037\213'
 class AnalysisPlugin(AnalysisBasePlugin):
     NAME = 'kernel_config'
     DESCRIPTION = 'Heuristics to find and analyze Linux Kernel configurations via checksec and kconfig-hardened-check'
-    MIME_BLACKLIST = ['audio', 'filesystem', 'image', 'video']
+    MIME_BLACKLIST = MIME_BLACKLIST_NON_EXECUTABLE
     DEPENDENCIES = ['file_type', 'software_components']
     VERSION = '0.3'
 
@@ -39,7 +40,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__)
 
     def process_object(self, file_object: FileObject) -> FileObject:
-        file_object.processed_analysis[self.NAME] = dict()
+        file_object.processed_analysis[self.NAME] = {}
 
         if self.object_mime_is_plaintext(file_object) and self.probably_kernel_config(file_object.binary):
             self.add_kernel_config_to_analysis(file_object, file_object.binary)

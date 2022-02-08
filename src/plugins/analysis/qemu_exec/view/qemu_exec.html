@@ -2,25 +2,13 @@
 
 
 {% block styles %}
-<style>
-    .qemu-pre {
-        padding: 5px;
-        width: 100%;
-        white-space: pre-wrap;
-        overflow-y: scroll;
-        overflow-x: hidden;
-        display: block;
-        font-family: monospace;
-        margin: 0 0;
-        color: #f8f8f8;
-        background-color: #333;
-        max-height: 500px;
-    }
-    .qemu-td {
-        width: 100%;
-        max-width: 0;
-    }
-</style>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/code_pre.css') }}">
+    <style>
+        .qemu-td {
+            width: 100%;
+            max-width: 0;
+        }
+    </style>
 {% endblock %}
 
 
@@ -76,14 +64,14 @@
                                                     <td>stdout</td>
                                                     <td class="qemu-td" style="padding: 5px;">
                                                         {% if option_result['stdout'] %}
-                                                        <pre class="qemu-pre">{{ '$ .' + result['path'] + ' ' + option + '\n' + option_result['stdout'] }}</pre>
+                                                        <pre class="code-pre">{{ '$ .' + result['path'] + ' ' + option + '\n' + option_result['stdout'] }}</pre>
                                                         {% else %}Empty{% endif %}
                                                     </td>
                                                     </tr><tr>
                                                         <td>stderr</td>
                                                         <td>
                                                             {% if option_result['stderr'] %}
-                                                            <pre class="qemu-pre">{{ '$ .' + result['path'] + ' ' + option + '\n' + option_result['stderr'] }}</pre>
+                                                            <pre class="code-pre">{{ '$ .' + result['path'] + ' ' + option + '\n' + option_result['stderr'] }}</pre>
                                                             {% else %}Empty{% endif %}
                                                         </td>
                                                     </tr><tr>
@@ -96,7 +84,7 @@
                                                     <td width="1px">strace</td>
                                                     <td colspan="2">
                                                         {% if result['results'][arch]['strace'] %}
-                                                            <pre class="qemu-pre">{{ result['results'][arch]['strace'] | decompress }}</pre>
+                                                            <pre class="code-pre">{{ result['results'][arch]['strace'] | decompress }}</pre>
                                                         {% else %}Empty{% endif %}
                                                     </td>
                                                 </tr>

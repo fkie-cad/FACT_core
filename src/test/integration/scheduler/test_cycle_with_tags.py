@@ -6,7 +6,7 @@ from tempfile import TemporaryDirectory
 from time import sleep
 
 from objects.firmware import Firmware
-from scheduler.Analysis import AnalysisScheduler
+from scheduler.analysis import AnalysisScheduler
 from scheduler.Unpacking import UnpackingScheduler
 from storage.db_interface_backend import BackEndDbInterface
 from storage.MongoMgr import MongoMgr

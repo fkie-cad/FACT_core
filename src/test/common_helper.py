@@ -1,4 +1,5 @@
 # pylint: disable=no-self-use,unused-argument
+import grp
 import json
 import os
 from base64 import standard_b64encode
@@ -76,6 +77,53 @@ TEST_FW = create_test_firmware(device_class='test class', device_name='test devi
 TEST_FW_2 = create_test_firmware(device_class='test_class', device_name='test_firmware_2', vendor='test vendor', bin_path='container/test.7z')
 TEST_TEXT_FILE = create_test_file_object()
 TEST_TEXT_FILE2 = create_test_file_object(bin_path='get_files_test/testfile2')
+TEST_GRAPH_DATA_ONE = {
+    'processed_analysis': {
+        'file_type': {
+            'mime': 'application/x-executable', 'full': 'test text'
+        }
+    },
+    'virtual_file_path': {
+        TEST_FW.uid: [
+            '|testgraph|/lib/file_one.so'
+        ]
+    },
+    '_id': '1234567',
+    'file_name': 'file_one.so'
+}
+TEST_GRAPH_DATA_TWO = {
+    'processed_analysis': {
+        'file_type': {
+            'mime': 'application/x-executable', 'full': 'test text'
+        },
+        'elf_analysis': {
+            'Output': {
+                'libraries': ['file_one.so']
+            }
+        }
+    },
+    'virtual_file_path': {
+        TEST_FW.uid: [
+            '|testgraph|/bin/file_two'
+        ]
+    },
+    '_id': '7654321',
+    'file_name': 'file_two'
+}
+TEST_GRAPH_DATA_THREE = {
+    'processed_analysis': {
+        'file_type': {
+            'mime': 'inode/symlink', 'full': 'symbolic link to \'../bin/file_two\''
+        },
+    },
+    'virtual_file_path': {
+        TEST_FW.uid: [
+            '|testgraph|/sbin/file_three'
+        ]
+    },
+    '_id': '0987654',
+    'file_name': 'file_three'
+}
 NICE_LIST_DATA = {
     'uid': TEST_FW.uid,
     'files_included': TEST_FW.files_included,
@@ -395,32 +443,9 @@ class DatabaseMock:  # pylint: disable=too-many-public-methods
     def find_orphaned_objects(self):
         return {'root_fw_uid': ['missing_child_uid']}
 
-    def get_data_for_dependency_graph(self, uid):
+    def get_data_for_dependency_graph(self, uid, root_uid):
         if uid == 'testgraph':
-            file_object_one = {
-                'processed_analysis': {
-                    'file_type': {
-                        'mime': 'application/x-executable', 'full': 'test text'
-                    }
-                },
-                '_id': '1234567',
-                'file_name': 'file one'
-            }
-            file_object_two = {
-                'processed_analysis': {
-                    'file_type': {
-                        'mime': 'application/x-executable', 'full': 'test text'
-                    },
-                    'elf_analysis': {
-                        'Output': {
-                            'libraries': ['file one']
-                        }
-                    }
-                },
-                '_id': '7654321',
-                'file_name': 'file two'
-            }
-            return [file_object_one, file_object_two]
+            return [TEST_GRAPH_DATA_ONE, TEST_GRAPH_DATA_TWO]
         return []
 
 
@@ -482,6 +507,8 @@ def get_config_for_testing(temp_dir: Optional[Union[TemporaryDirectory, str]] = 
     config.set('data_storage', 'report_threshold', '2048')
     config.set('data_storage', 'password_salt', '1234')
     config.set('data_storage', 'firmware_file_storage_directory', '/tmp/fact_test_fs_directory')
+    docker_mount_base_dir = create_docker_mount_base_dir()
+    config.set('data_storage', 'docker-mount-base-dir', str(docker_mount_base_dir))
     config.add_section('unpack')
     config.set('unpack', 'whitelist', '')
     config.set('unpack', 'max_depth', '10')
@@ -515,3 +542,16 @@ def store_binary_on_file_system(tmp_dir: str, test_object: Union[FileObject, Fir
     binary_dir = Path(tmp_dir) / test_object.uid[:2]
     binary_dir.mkdir(parents=True)
     (binary_dir / test_object.uid).write_bytes(test_object.binary)
+
+
+def create_docker_mount_base_dir():
+    docker_mount_base_dir = Path('/tmp/fact-docker-mount-base-dir')
+    try:
+        docker_mount_base_dir.mkdir(0o770)
+    except FileExistsError:
+        pass
+    else:
+        docker_gid = grp.getgrnam('docker').gr_gid
+        os.chown(docker_mount_base_dir, -1, docker_gid)
+
+    return docker_mount_base_dir

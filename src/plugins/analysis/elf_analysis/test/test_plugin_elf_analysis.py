@@ -1,3 +1,4 @@
+# pylint: disable=redefined-outer-name,protected-access,wrong-import-order
 from collections import namedtuple
 from pathlib import Path
 
@@ -8,8 +9,6 @@ from objects.file import FileObject
 from test.common_helper import get_config_for_testing, get_test_data_dir
 
 from ..code.elf_analysis import AnalysisPlugin
-
-# pylint: disable=redefined-outer-name,protected-access
 
 TEST_DATA = Path(get_test_data_dir(), 'test_data_file.bin')
 
@@ -35,7 +34,7 @@ MOCK_DATA = (
 MOCK_LIEF_RESULT = LiefResult(
     libraries=['libdl.so.2', 'libc.so.6'],
     imported_functions=['fdopen', 'calloc', 'strstr', 'raise', 'gmtime_r', 'strcmp'],
-    symbols_version=list(),
+    symbols_version=[],
     exported_functions=['SHA256_Transform', 'GENERAL_NAMES_free', 'i2d_RSAPrivateKey', 'd2i_OCSP_REQUEST'],
     sections=[])
 
@@ -101,7 +100,7 @@ def test_get_tags(stub_plugin, monkeypatch):
         'two': ['z', 'a'],
         'three': ['f', 'u']
     }
-    monkeypatch.setattr('plugins.analysis.elf_analysis.code.elf_analysis.AnalysisPlugin._load_template_file_as_json_obj', lambda _, __: behaviour_classes)
+    monkeypatch.setattr('plugins.analysis.elf_analysis.code.elf_analysis.BEHAVIOUR_CLASSES', behaviour_classes)
     tags = stub_plugin._get_tags(libraries=['a', 'b', 'c'], functions=['d', 'e', 'f'])
     assert sorted(tags) == ['three', 'two']
 
@@ -117,7 +116,7 @@ def test_get_symbols_version_entries(stub_plugin, symbol_versions, expected):
 
 def test_create_tags(stub_plugin, stub_object):
     stub_object.processed_analysis[stub_plugin.NAME] = {}
-    stub_result = LiefResult(libraries=['recvmsg', 'unknown'], imported_functions=list(), symbols_version=list(), exported_functions=list(), sections=list())
+    stub_result = LiefResult(libraries=['recvmsg', 'unknown'], imported_functions=[], symbols_version=[], exported_functions=[], sections=[])
     stub_plugin.create_tags(stub_result, stub_object)
 
     assert 'network' in stub_object.processed_analysis[stub_plugin.NAME]['tags']
@@ -145,6 +144,12 @@ def test_get_final_analysis_dict(stub_plugin, binary_json_dict, elf_dict, expect
     assert len(elf_dict) == expected
 
 
+def test_pie(stub_plugin):
+    test_file = FileObject(file_path=str(TEST_DATA_DIR / 'x-pie-executable'))
+    elf_dict, _ = stub_plugin._analyze_elf(test_file)
+    assert elf_dict != {}
+
+
 def test_plugin(stub_plugin, stub_object, monkeypatch):
     monkeypatch.setattr('lief.parse', lambda _: MOCK_LIEF_RESULT)
     monkeypatch.setattr('lief.to_json_from_abstract', lambda _: MOCK_DATA)
@@ -162,6 +167,6 @@ def test_plugin(stub_plugin, stub_object, monkeypatch):
 
 def test_modinfo(stub_plugin):
     test_file = FileObject(file_path=str(TEST_DATA_DIR / 'test_data.ko'))
-    bin_dict, bin = stub_plugin._analyze_elf(test_file)
-    result = stub_plugin.filter_modinfo(bin)
+    _, binary = stub_plugin._analyze_elf(test_file)
+    result = stub_plugin.filter_modinfo(binary)
     assert result[0] == 'this are test data\n'

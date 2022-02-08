@@ -1,6 +1,8 @@
 # pylint: disable=wrong-import-order
 
 import gc
+import grp
+import os
 import unittest
 from configparser import ConfigParser
 from pathlib import Path
@@ -18,8 +20,17 @@ class TestUnpackerBase(unittest.TestCase):
     def setUp(self):
         config = ConfigParser()
         self.ds_tmp_dir = TemporaryDirectory(prefix='fact_tests_')
+        self.docker_mount_base_dir = Path('/tmp/fact-docker-mount-base-dir')
+        try:
+            self.docker_mount_base_dir.mkdir(0o770)
+        except FileExistsError:
+            pass
+        else:
+            docker_gid = grp.getgrnam('docker').gr_gid
+            os.chown(self.docker_mount_base_dir, -1, docker_gid)
         config.add_section('data_storage')
         config.set('data_storage', 'firmware_file_storage_directory', self.ds_tmp_dir.name)
+        config.set('data_storage', 'docker-mount-base-dir', str(self.docker_mount_base_dir))
         config.add_section('unpack')
         config.set('unpack', 'max_depth', '3')
         config.set('unpack', 'whitelist', 'text/plain, image/png')

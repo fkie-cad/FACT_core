@@ -17,15 +17,17 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+import grp
 import logging
+import os
+from pathlib import Path
 from time import sleep
 
-from fact_base import FactBase
-
 from analysis.PluginBase import PluginInitException
+from fact_base import FactBase
 from helperFunctions.process import complete_shutdown
 from intercom.back_end_binding import InterComBackEndBinding
-from scheduler.Analysis import AnalysisScheduler
+from scheduler.analysis import AnalysisScheduler
 from scheduler.Compare import CompareScheduler
 from scheduler.Unpacking import UnpackingScheduler
 
@@ -46,7 +48,7 @@ class FactBackend(FactBase):
         self.unpacking_service = UnpackingScheduler(
             config=self.config,
             post_unpack=self.analysis_service.start_analysis_of_object,
-            analysis_workload=self.analysis_service.get_scheduled_workload
+            analysis_workload=self.analysis_service.get_combined_analysis_workload
         )
         self.compare_service = CompareScheduler(config=self.config)
         self.intercom = InterComBackEndBinding(
@@ -57,6 +59,16 @@ class FactBackend(FactBase):
         )
 
     def main(self):
+        docker_mount_base_dir = Path(self.config['data_storage']['docker-mount-base-dir'])
+        docker_mount_base_dir.mkdir(0o770, exist_ok=True)
+        docker_gid = grp.getgrnam('docker').gr_gid
+        try:
+            os.chown(docker_mount_base_dir, -1, docker_gid)
+        except PermissionError:
+            # If we don't have enough rights to change the permissions we assume they are right
+            # E.g. in FACT_docker the correct group is not the group named 'docker'
+            logging.warning('Could not change permissions of docker-mount-base-dir. Ignoring.')
+
         while self.run:
             self.work_load_stat.update(
                 unpacking_workload=self.unpacking_service.get_scheduled_workload(),

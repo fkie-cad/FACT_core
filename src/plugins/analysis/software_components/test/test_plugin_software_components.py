@@ -4,6 +4,7 @@ from common_helper_files import get_dir_of_file
 
 from objects.file import FileObject
 from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
+
 from ..code.software_components import AnalysisPlugin
 
 TEST_DATA_DIR = os.path.join(get_dir_of_file(__file__), 'data')
