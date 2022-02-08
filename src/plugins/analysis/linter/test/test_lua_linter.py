@@ -1,3 +1,5 @@
+from subprocess import CompletedProcess
+
 import pytest
 
 from ..internal.lua_linter import LuaLinter
@@ -21,7 +23,7 @@ def stub_linter():
 
 
 def test_do_analysis(stub_linter, monkeypatch):
-    monkeypatch.setattr('plugins.analysis.linter.internal.lua_linter.execute_shell_command', lambda command: MOCK_RESPONSE)
+    monkeypatch.setattr('plugins.analysis.linter.internal.lua_linter.subprocess.run', lambda *_, **__: CompletedProcess('DONT_CARE', 0, stdout=MOCK_RESPONSE))
     result = stub_linter.do_analysis('any/path')
     assert result
     assert len(result) == 10
@@ -35,13 +37,13 @@ def test_do_analysis(stub_linter, monkeypatch):
 
 def test_bad_lines(stub_linter, monkeypatch):
     bad_lines = MOCK_RESPONSE[0:2].replace(':', ' ')
-    monkeypatch.setattr('plugins.analysis.linter.internal.lua_linter.execute_shell_command', lambda command: bad_lines)
+    monkeypatch.setattr('plugins.analysis.linter.internal.lua_linter.subprocess.run', lambda *_, **__: CompletedProcess('DONT_CARRE', 0, bad_lines))
     result = stub_linter.do_analysis('any/path')
     assert not result
 
 
 def test_skip_w6xy(stub_linter, monkeypatch):
     w6xy = MOCK_RESPONSE[0:1].replace('W211', 'W631')
-    monkeypatch.setattr('plugins.analysis.linter.internal.lua_linter.execute_shell_command', lambda command: w6xy)
+    monkeypatch.setattr('plugins.analysis.linter.internal.lua_linter.subprocess.run', lambda *_, **__: CompletedProcess('DONT_CARE', 0, stdout=w6xy))
     result = stub_linter.do_analysis('any/path')
     assert not result

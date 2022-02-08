@@ -1,3 +1,5 @@
+from subprocess import CompletedProcess
+
 import pytest
 
 from ..internal.shell_linter import ShellLinter
@@ -46,7 +48,7 @@ def stub_linter():
 
 
 def test_do_analysis(stub_linter, monkeypatch):
-    monkeypatch.setattr('plugins.analysis.linter.internal.shell_linter.execute_shell_command_get_return_code', lambda command: (MOCK_RESPONSE, 0))
+    monkeypatch.setattr('plugins.analysis.linter.internal.shell_linter.subprocess.run', lambda command: CompletedProcess('DONT_CARE', 0, stdout=MOCK_RESPONSE))
     result = stub_linter.do_analysis('any/path')
 
     assert result
@@ -57,12 +59,12 @@ def test_do_analysis(stub_linter, monkeypatch):
 
 
 def test_do_analysis_bad_invokation(stub_linter, monkeypatch):
-    monkeypatch.setattr('plugins.analysis.linter.internal.shell_linter.execute_shell_command_get_return_code', lambda command: (BAD_RESPONSE, 1))
+    monkeypatch.setattr('plugins.analysis.linter.internal.shell_linter.subprocess.run', lambda command: CompletedProcess('DONT_CARE', 1, stdout=BAD_RESPONSE))
     result = stub_linter.do_analysis('any/path')
     assert 'full' not in result
 
 
 def test_do_analysis_bad_status_code(stub_linter, monkeypatch):
-    monkeypatch.setattr('plugins.analysis.linter.internal.shell_linter.execute_shell_command_get_return_code', lambda command: (MOCK_RESPONSE, 2))
+    monkeypatch.setattr('plugins.analysis.linter.internal.shell_linter.subprocess.run', lambda command: CompletedProcess('DONT_CARE', 2, stdout=MOCK_RESPONSE))
     result = stub_linter.do_analysis('any/path')
     assert 'full' not in result

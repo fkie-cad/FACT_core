@@ -1,3 +1,5 @@
+from subprocess import CompletedProcess
+
 import pytest
 
 from ..internal.python_linter import PythonLinter
@@ -40,7 +42,7 @@ def stub_linter():
 
 
 def test_do_analysis(stub_linter, monkeypatch):
-    monkeypatch.setattr('plugins.analysis.linter.internal.python_linter.execute_shell_command', lambda command: MOCK_RESPONSE)
+    monkeypatch.setattr('plugins.analysis.linter.internal.python_linter.subprocess.run', lambda *_, **__: CompletedProcess('DONT_CARE', 0, stdout=MOCK_RESPONSE))
     result = stub_linter.do_analysis('any/path')
 
     assert len(result[0].keys()) == 5
@@ -48,6 +50,6 @@ def test_do_analysis(stub_linter, monkeypatch):
 
 
 def test_do_analysis_bad_invokation(stub_linter, monkeypatch):
-    monkeypatch.setattr('plugins.analysis.linter.internal.python_linter.execute_shell_command', lambda command: BAD_RESPONSE)
+    monkeypatch.setattr('plugins.analysis.linter.internal.python_linter.subprocess.run', lambda *_, **__: CompletedProcess('DONT_CARE', 1, stdout=BAD_RESPONSE))
     result = stub_linter.do_analysis('any/path')
     assert not result
