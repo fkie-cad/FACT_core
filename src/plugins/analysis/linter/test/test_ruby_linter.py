@@ -1,3 +1,4 @@
+from pathlib import Path
 from subprocess import CompletedProcess
 
 from ..internal.linters import run_rubocop
@@ -47,3 +48,16 @@ def test_do_analysis(monkeypatch):
     result = run_rubocop('any/path')
 
     assert len(result) == 1
+
+
+def test_do_analysis_unmocked():
+    # Older versions of rubocop ignored files that didn't have an .ruby extension
+    hello_world_ruby = Path(__file__).parent / 'data/hello_world_ruby'
+    result = run_rubocop(str(hello_world_ruby))
+
+    assert len(result) == 2
+
+    hello_world_dot_ruby = Path(__file__).parent / 'data/hello_world.ruby'
+    result = run_rubocop(str(hello_world_dot_ruby))
+
+    assert len(result) == 2
