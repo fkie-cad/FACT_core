@@ -74,9 +74,11 @@ def main(distribution):
         logging.info('Setting up PostgreSQL database')
         install_postgres()
 
-    # delay import so that sqlalchemy is installed
-    from install.init_postgres import main as init_postgres  # pylint: disable=import-outside-toplevel
-    init_postgres()
+    # initializing DB
+    logging.info('Initializing PostgreSQL database')
+    init_output, init_code = execute_shell_command_get_return_code('python3 init_postgres.py')
+    if init_code != 0:
+        raise InstallationError(f'Unable to initialize database\n{init_output}')
 
     logging.info('Setting up mongo database')
 
