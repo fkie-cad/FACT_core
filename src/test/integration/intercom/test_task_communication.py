@@ -30,7 +30,7 @@ class TestInterComTaskCommunication(unittest.TestCase):
     def setUpClass(cls):
         cls.tmp_dir = TemporaryDirectory(prefix='fact_test_')
         cls.config = get_config_for_testing(temp_dir=cls.tmp_dir)
-        cls.config.set('ExpertSettings', 'communication_timeout', '1')
+        cls.config.set('expert-settings', 'communication-timeout', '1')
 
     def setUp(self):
         self.frontend = InterComFrontEndBinding(config=self.config)

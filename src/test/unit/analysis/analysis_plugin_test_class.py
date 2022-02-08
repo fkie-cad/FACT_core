@@ -35,15 +35,16 @@ class AnalysisPluginTest(unittest.TestCase):
         config = ConfigParser()
         config.add_section(self.PLUGIN_NAME)
         config.set(self.PLUGIN_NAME, 'threads', '1')
-        config.add_section('ExpertSettings')
-        config.set('ExpertSettings', 'block_delay', '0.1')
-        config.add_section('data_storage')
+        config.add_section('expert-settings')
+        config.set('expert-settings', 'block-delay', '0.1')
+        config.add_section('data-storage')
         load_users_from_main_config(config)
-        config.set('data_storage', 'docker-mount-base-dir', str(self.docker_mount_base_dir))
+        config.set('data-storage', 'docker-mount-base-dir', str(self.docker_mount_base_dir))
         # -- postgres --
-        config.set('data_storage', 'postgres_server', 'localhost')
-        config.set('data_storage', 'postgres_port', '5432')
-        config.set('data_storage', 'postgres_database', 'fact_test')
+        config.set('data-storage', 'postgres-server', 'localhost')
+        config.set('data-storage', 'postgres-port', '5432')
+        config.set('data-storage', 'postgres-database', 'fact-test')
+
         return config
 
     def register_plugin(self, name, plugin_object):

@@ -69,7 +69,7 @@ def _get_console_output_level(debug_flag):
 
 
 def setup_logging(config, args, component=None):
-    log_level = getattr(logging, config['Logging']['logLevel'], None)
+    log_level = getattr(logging, config['logging']['loglevel'], None)
     log_format = dict(fmt='[%(asctime)s][%(module)s][%(levelname)s]: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
     logger = logging.getLogger('')
     logger.setLevel(logging.DEBUG)
@@ -89,9 +89,9 @@ def setup_logging(config, args, component=None):
 
 
 def get_log_file_for_component(component: str, config: ConfigParser) -> str:
-    log_file = Path(config['Logging']['logFile'])
+    log_file = Path(config['logging']['logfile'])
     if component is None:
-        return config['Logging']['logFile']
+        return config['logging']['logfile']
     return f'{log_file.parent}/{log_file.stem}_{component}{log_file.suffix}'
 
 
@@ -106,7 +106,7 @@ def _load_config(args):
     config = configparser.ConfigParser()
     config.read(args.config_file)
     if args.log_file is not None:
-        config['Logging']['logFile'] = args.log_file
+        config['logging']['logfile'] = args.log_file
     if args.log_level is not None:
-        config['Logging']['logLevel'] = args.log_level
+        config['logging']['loglevel'] = args.log_level
     return config

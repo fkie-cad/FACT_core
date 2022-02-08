@@ -64,7 +64,7 @@ class TestAnalysisPlugInPrintableStrings(AnalysisPluginTest):
     def test_get_min_length_from_config(self):
         assert self.analysis_plugin._get_min_length_from_config() == '4'
 
-        self.analysis_plugin.config[self.PLUGIN_NAME].pop('min_length')
+        self.analysis_plugin.config[self.PLUGIN_NAME].pop('min-length')
         assert self.analysis_plugin._get_min_length_from_config() == '8'
 
         self.analysis_plugin.config.pop(self.PLUGIN_NAME)

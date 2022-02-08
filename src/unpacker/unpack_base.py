@@ -27,7 +27,7 @@ class UnpackBase:
             'fkiecad/fact_extractor',
             combine_stderr_stdout=True,
             privileged=True,
-            mem_limit=f"{self.config.get('unpack', 'memory_limit', fallback='1024')}m",
+            mem_limit=f"{self.config.get('unpack', 'memory-limit', fallback='1024')}m",
             mounts=[
                 Mount('/dev/', '/dev/', type='bind'),
                 Mount('/tmp/extractor', tmp_dir, type='bind'),

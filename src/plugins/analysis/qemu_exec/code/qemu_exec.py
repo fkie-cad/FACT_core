@@ -44,7 +44,7 @@ class Unpacker(UnpackBase):
             logging.error(f'could not unpack {file_object.uid}: file path not found')
             return None
 
-        extraction_dir = TemporaryDirectory(prefix='FACT_plugin_qemu_exec', dir=self.config['data_storage']['docker-mount-base-dir'])
+        extraction_dir = TemporaryDirectory(prefix='FACT_plugin_qemu_exec', dir=self.config['data-storage']['docker-mount-base-dir'])
         self.extract_files_from_file(file_path, extraction_dir.name)
         return extraction_dir
 

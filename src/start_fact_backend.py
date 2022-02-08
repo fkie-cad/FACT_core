@@ -63,7 +63,7 @@ class FactBackend(FactBase):
         )
 
     def main(self):
-        docker_mount_base_dir = Path(self.config['data_storage']['docker-mount-base-dir'])
+        docker_mount_base_dir = Path(self.config['data-storage']['docker-mount-base-dir'])
         docker_mount_base_dir.mkdir(0o770, exist_ok=True)
         docker_gid = grp.getgrnam('docker').gr_gid
         try:
