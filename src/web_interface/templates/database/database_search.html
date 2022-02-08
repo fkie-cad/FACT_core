@@ -14,8 +14,7 @@
         <div class="form-row">
             <div class="form-group col-md-6">
                 <label class="control-label" for="device_class">Device Class:</label>
-                <select class="form-control" name='device_class_dropdown' id="device_class">
-                    <option value=''></option>
+                <select class="selectpicker" name='device_class_dropdown' id="device_class" multiple>
                     {% for class in device_classes | sort %}
                         <option value='{{ class }}'>{{ class }}</option>
                     {% endfor %}
@@ -23,9 +22,8 @@
             </div>
 
             <div class="form-group col-md-6">
-                <label class="control-label" for="device_class">Vendor:</label>
-                <select class="form-control" name='vendor' id="vendor">
-                    <option value=''></option>
+                <label class="control-label" for="vendor">Vendor:</label>
+                <select class="selectpicker" name='vendor' id="vendor" multiple>
                     {% for vendor in vendors | sort %}
                         <option value='{{ vendor }}'>{{ vendor }}</option>
                     {% endfor %}
