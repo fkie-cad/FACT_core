@@ -58,7 +58,7 @@ def main(skip_docker, distribution):
         shell=True,
         stdout=PIPE,
         stderr=PIPE,
-        text=True,
+        universal_newlines=True,
     )
     if yarac_p.returncode != 0:
         raise InstallationError('Failed to compile yara test signatures')
@@ -75,7 +75,7 @@ def _install_docker_images():
     # pull extraction docker container
     logging.info('Pulling fact extraction container')
 
-    docker_p = subprocess.run('docker pull fkiecad/fact_extractor', shell=True, stdout=PIPE, stderr=STDOUT, text=True)
+    docker_p = subprocess.run('docker pull fkiecad/fact_extractor', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
     if docker_p.returncode != 0:
         raise InstallationError(f'Failed to pull extraction container:\n{docker_p.stdout}')
 
@@ -89,7 +89,7 @@ def install_plugin_docker_images():
 def _edit_environment():
     logging.info('set environment variables...')
     for command in ['sudo cp -f fact_env.sh /etc/profile.d/', 'sudo chmod 755 /etc/profile.d/fact_env.sh', '. /etc/profile']:
-        cmd_p = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, text=True)
+        cmd_p = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
         if cmd_p.returncode != 0:
             raise InstallationError(f'Failed to add environment changes [{command}]\n{cmd_p.stdout}')
 
@@ -99,8 +99,8 @@ def _create_firmware_directory():
 
     config = load_main_config()
     data_dir_name = config.get('data_storage', 'firmware_file_storage_directory')
-    mkdir_p = subprocess.run(f'sudo mkdir -p --mode=0744 {data_dir_name}', shell=True, stdout=PIPE, stderr=STDOUT, text=True)
-    chown_p = subprocess.run(f'sudo chown {os.getuid()}:{os.getgid()} {data_dir_name}', shell=True, stdout=PIPE, stderr=STDOUT, text=True)
+    mkdir_p = subprocess.run(f'sudo mkdir -p --mode=0744 {data_dir_name}', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
+    chown_p = subprocess.run(f'sudo chown {os.getuid()}:{os.getgid()} {data_dir_name}', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
     if not all(code == 0 for code in (mkdir_p.returncode, chown_p.returncode)):
         raise InstallationError(f'Failed to create directories for binary storage\n{mkdir_p.stdout}\n{chown_p.stdout}')
 
@@ -133,7 +133,7 @@ def _install_yara():  # pylint: disable=too-complex
     except (AttributeError, KeyError):
         raise InstallationError('Could not find latest yara version') from None
 
-    yara_p = subprocess.run('yara --version', shell=True, stdout=PIPE, stderr=STDOUT, text=True)
+    yara_p = subprocess.run('yara --version', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
     if yara_p.returncode == 0 and yara_p.stdout.strip() == latest_version.strip('v'):
         logging.info('Skipping yara installation: Already installed and up to date')
         return
@@ -141,10 +141,10 @@ def _install_yara():  # pylint: disable=too-complex
     logging.info(f'Installing yara {latest_version}')
     archive = f'{latest_version}.zip'
     download_url = f'https://github.com/VirusTotal/yara/archive/refs/tags/{archive}'
-    wget_p = subprocess.run(f'wget {download_url}', shell=True, stdout=PIPE, stderr=STDOUT, text=True)
+    wget_p = subprocess.run(f'wget {download_url}', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
     if wget_p.returncode != 0:
         raise InstallationError(f'Error on yara download.\n{wget_p.stdout}')
-    unzip_p = subprocess.run(f'unzip {archive}', shell=True, stdout=PIPE, stderr=STDOUT, text=True)
+    unzip_p = subprocess.run(f'unzip {archive}', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
     Path(archive).unlink()
     if unzip_p.returncode != 0:
         raise InstallationError(f'Error on yara extraction.\n{unzip_p.stdout}')
@@ -152,7 +152,7 @@ def _install_yara():  # pylint: disable=too-complex
     with OperateInDirectory(yara_folder.name, remove=True):
         os.chmod('bootstrap.sh', 0o775)
         for command in ['./bootstrap.sh', './configure --enable-magic', 'make -j$(nproc)', 'sudo make install']:
-            cmd_p = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, text=True)
+            cmd_p = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
             if cmd_p.returncode != 0:
                 raise InstallationError(f'Error in yara installation.\n{cmd_p.stdout}')
 
@@ -162,7 +162,7 @@ def _install_checksec():
 
     logging.info('Installing checksec.sh')
     checksec_url = 'https://raw.githubusercontent.com/slimm609/checksec.sh/2.5.0/checksec'
-    wget_p = subprocess.run(f'wget -P {BIN_DIR} {checksec_url}', shell=True, stdout=PIPE, stderr=STDOUT, text=True)
+    wget_p = subprocess.run(f'wget -P {BIN_DIR} {checksec_url}', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
     if wget_p.returncode != 0:
         raise InstallationError(f'Error during installation of checksec.sh\n{wget_p.stdout}')
     checksec_path.chmod(checksec_path.stat().st_mode | stat.S_IEXEC)  # chmod +x

@@ -3,8 +3,8 @@ import subprocess
 from contextlib import suppress
 from pathlib import Path
 from platform import python_version_tuple
-
 from subprocess import PIPE, STDOUT
+
 from pkg_resources import parse_version
 
 from helperFunctions.install import (
@@ -28,7 +28,7 @@ def install_pip():
 
     logging.info('Installing python3 pip')
     for command in [f'wget {pip_link}', 'sudo -EH python3 get-pip.py', 'rm get-pip.py']:
-        cmd_p = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, text=True)
+        cmd_p = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
         if cmd_p.returncode != 0:
             raise InstallationError(f'Error in pip installation for python3:\n{cmd_p.stdout}')
 
@@ -73,9 +73,9 @@ def main(distribution):  # pylint: disable=too-many-statements
 
 
 def _update_submodules():
-    git_p = subprocess.run('git status', shell=True, stdout=PIPE, stderr=STDOUT, text=True)
+    git_p = subprocess.run('git status', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
     if git_p.returncode == 0:
-        git_submodule_p = subprocess.run('(cd ../../ && git submodule foreach "git pull")', shell=True, stdout=PIPE, stderr=STDOUT, text=True)
+        git_submodule_p = subprocess.run('(cd ../../ && git submodule foreach "git pull")', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
         if git_submodule_p.returncode != 0:
             raise InstallationError(f'Failed to update submodules\n{git_submodule_p.stdout}')
     else:

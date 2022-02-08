@@ -30,7 +30,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 shell=True,
                 stdout=PIPE,
                 stderr=STDOUT,
-                text=True,
+                universal_newlines=True,
             )
             signature_analysis_result = cmd_p.stdout
             try:

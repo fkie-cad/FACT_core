@@ -109,7 +109,7 @@ def _get_kernel_hardening_data(kernel_config: str) -> List[List[str]]:
                 shell=True,
                 stdout=PIPE,
                 stderr=STDOUT,
-                text=True,
+                universal_newlines=True,
             )
             return json.loads(kconfig_p.stdout)
     except (JSONDecodeError, KeyError):

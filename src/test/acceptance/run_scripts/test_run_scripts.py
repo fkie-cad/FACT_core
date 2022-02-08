@@ -24,7 +24,7 @@ def test_start_script_help_and_version(script, expected_str):
         shell=True,
         stdout=PIPE,
         stderr=STDOUT,
-        text=True,
+        universal_newlines=True,
     )
     assert cmd_p.returncode == 0
     assert 'usage: {}'.format(script) in cmd_p.stdout
@@ -35,7 +35,7 @@ def test_start_script_help_and_version(script, expected_str):
         shell=True,
         stdout=PIPE,
         stderr=STDOUT,
-        text=True,
+        universal_newlines=True,
     )
     assert expected_str in cmd_p.stdout, 'Wrong output {}'.format(cmd_p.stdout)
     assert cmd_p.returncode == 0
@@ -57,7 +57,7 @@ def test_fact_complete_start():
         shell=True,
         stdout=PIPE,
         stderr=STDOUT,
-        text=True,
+        universal_newlines=True,
     )
     assert '[DEBUG]' in cmd_p.stdout
     assert 'Analysis System online...' in cmd_p.stdout

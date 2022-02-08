@@ -117,10 +117,10 @@ def crack_hash(passwd_entry: bytes, result_entry: dict, format_term: str = '') -
             shell=True,
             stdout=PIPE,
             stderr=STDOUT,
-            text=True,
+            universal_newlines=True,
         )
         result_entry['log'] = john_p.stdout
-        john_p = subprocess.run(f'{JOHN_PATH} {fp.name} --show {format_term}', shell=True, stdout=PIPE, stderr=STDOUT, text=True)
+        john_p = subprocess.run(f'{JOHN_PATH} {fp.name} --show {format_term}', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
         output = john_p.stdout.split('\n')
     if len(output) > 1:
         with suppress(KeyError):

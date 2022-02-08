@@ -45,7 +45,7 @@ class MongoMgr:
             auth_option = '--auth ' if _authenticate else ''
             command = 'mongod {}--config {} --fork --logpath {}'.format(auth_option, self.config_path, self.mongo_log_path)
             logging.info(f'Starting DB: {command}')
-            mongod_p = subprocess.run(command, shell=True, stdout=PIPE, stderr=PIPE, text=True)
+            mongod_p = subprocess.run(command, shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True)
             logging.debug(mongod_p.stdout)
         else:
             logging.info('using external mongodb: {}:{}'.format(self.config['data_storage']['mongo_server'], self.config['data_storage']['mongo_port']))
@@ -67,7 +67,7 @@ class MongoMgr:
                 self.config['data_storage']['mongo_server'], self.config['data_storage']['mongo_port'],
                 self.config['data_storage']['db_admin_user'], self.config['data_storage']['db_admin_pw']
             )
-            mongo_p = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, text=True)
+            mongo_p = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
             logging.debug(mongo_p.stdout)
 
     def init_users(self):

@@ -46,7 +46,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     @staticmethod
     def convert_device_tree(file_path: Union[str, Path]) -> Optional[str]:
-        dtc_p = subprocess.run(f'dtc -I dtb -O dts {file_path}', shell=True, stdout=PIPE, stderr=STDOUT, text=True)
+        dtc_p = subprocess.run(f'dtc -I dtb -O dts {file_path}', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
         if dtc_p.returncode != 0:
             logging.warning(f'The Device Tree Compiler exited with non-zero return code {dtc_p.returncode} after working on {file_path}')
             return None

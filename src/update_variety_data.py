@@ -51,7 +51,7 @@ def _create_variety_data(config):
         shell=True,
         stdout=PIPE,
         stderr=STDOUT,
-        text=True,
+        universal_newlines=True,
     )
     if mongo_p.returncode == 0:
         subprocess.run(
@@ -62,7 +62,7 @@ def _create_variety_data(config):
             shell=True,
             stdout=PIPE,
             stderr=STDOUT,
-            text=True,
+            universal_newlines=True,
         )
 
     logging.debug(mongo_p.stdout)

@@ -20,7 +20,7 @@ class ShellLinter:
             shell=True,
             stdout=PIPE,
             stderr=STDOUT,
-            text=True,
+            universal_newlines=True,
         )
 
         if shellcheck_p.stdout == 2:

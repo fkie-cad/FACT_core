@@ -16,7 +16,7 @@ class LuaLinter:
             shell=True,
             stdout=PIPE,
             stderr=STDOUT,
-            text=True,
+            universal_newlines=True,
         )
         return self._parse_linter_output(luacheck_p.stdout)
 
