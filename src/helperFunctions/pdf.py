@@ -1,11 +1,13 @@
 import json
 import logging
-import subprocess
 from pathlib import Path
-from subprocess import PIPE, STDOUT
+from subprocess import CalledProcessError
 
 from common_helper_encoder import ReportEncoder
+from docker.errors import DockerException
+from docker.types import Mount
 
+from helperFunctions.docker import run_docker_container
 from helperFunctions.object_conversion import create_meta_dict
 from objects.firmware import Firmware
 
@@ -27,16 +29,23 @@ def build_pdf_report(firmware: Firmware, folder: Path) -> Path:
     '''
     _initialize_subfolder(folder, firmware)
 
-    docker_p = subprocess.run(
-        f'docker run -m 512m -v {folder}:/tmp/interface --rm fkiecad/fact_pdf_report',
-        shell=True,
-        stdout=PIPE,
-        stderr=STDOUT,
-        text=True,
-    )
+    try:
+        result = run_docker_container(
+            'fkiecad/fact_pdf_report',
+            combine_stderr_stdout=True,
+            mem_limit='512m',
+            mounts=[
+                Mount('/tmp/interface/', str(folder), type='bind'),
+            ],
+        )
+    except (DockerException, TimeoutError):
+        logging.error('Failed to execute pdf generator.')
+        raise RuntimeError('Could not create PDF report')
 
-    if docker_p.returncode != 0:
-        logging.error('Failed to execute pdf generator with code {}:\n{}'.format(docker_p.returncode, docker_p.stdout))
+    try:
+        result.check_returncode()
+    except CalledProcessError as err:
+        logging.error(f'Failed to execute pdf generator with code {err.returncode}:\n{result.stdout}')
         raise RuntimeError('Could not create PDF report')
 
     pdf_path = _find_pdf(folder)

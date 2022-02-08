@@ -4,7 +4,6 @@ from base64 import b64decode, b64encode
 from pathlib import Path
 from unittest import TestCase
 
-import docker
 import pytest
 from common_helper_files import get_dir_of_file
 from requests.exceptions import ConnectionError as RequestConnectionError
@@ -55,7 +54,7 @@ def execute_shell_fails(monkeypatch):
 class ContainerMock:
     @staticmethod
     def wait(**_):
-        pass
+        return {'StatusCode': 0}
 
     @staticmethod
     def stop():
@@ -83,17 +82,7 @@ class DockerClientMock:
 
 @pytest.fixture
 def execute_docker_error(monkeypatch):
-    monkeypatch.setattr(docker, 'from_env', DockerClientMock)
-
-
-@pytest.fixture
-def docker_is_running(monkeypatch):
-    monkeypatch.setattr(qemu_exec, 'execute_shell_command_get_return_code', lambda _: (None, 0))
-
-
-@pytest.fixture
-def docker_is_not_running(monkeypatch):
-    monkeypatch.setattr(qemu_exec, 'execute_shell_command_get_return_code', lambda _: (None, 1))
+    monkeypatch.setattr('docker.client.from_env', lambda: DockerClientMock())
 
 
 class TestPluginQemuExec(AnalysisPluginTest):
@@ -166,7 +155,6 @@ class TestPluginQemuExec(AnalysisPluginTest):
         assert result['files'][test_uid]['executable'] is True
 
     @pytest.mark.timeout(10)
-    @pytest.mark.usefixtures('docker_is_running')
     def test_process_object(self):
         self.analysis_plugin.OPTIONS = ['-h']
         test_fw = self._set_up_fw_for_process_object()
@@ -178,7 +166,6 @@ class TestPluginQemuExec(AnalysisPluginTest):
         assert any(result['files'][uid]['executable'] for uid in result['files'])
 
     @pytest.mark.timeout(10)
-    @pytest.mark.usefixtures('docker_is_running')
     def test_process_object__with_extracted_folder(self):
         self.analysis_plugin.OPTIONS = ['-h']
         test_fw = self._set_up_fw_for_process_object(path=TEST_DATA_DIR_2)
@@ -191,7 +178,6 @@ class TestPluginQemuExec(AnalysisPluginTest):
         assert result['files'][test_file_uid]['executable'] is True
 
     @pytest.mark.timeout(10)
-    @pytest.mark.usefixtures('docker_is_running')
     def test_process_object__error(self):
         test_fw = self._set_up_fw_for_process_object(path=TEST_DATA_DIR / 'usr')
 
@@ -208,7 +194,6 @@ class TestPluginQemuExec(AnalysisPluginTest):
         )
 
     @pytest.mark.timeout(10)
-    @pytest.mark.usefixtures('docker_is_running')
     @pytest.mark.usefixtures('execute_docker_error')
     def test_process_object__timeout(self):
         test_fw = self._set_up_fw_for_process_object()
@@ -228,7 +213,6 @@ class TestPluginQemuExec(AnalysisPluginTest):
         )
 
     @pytest.mark.timeout(10)
-    @pytest.mark.usefixtures('docker_is_running')
     def test_process_object__no_files(self):
         test_fw = create_test_firmware()
         test_fw.files_included = []
@@ -238,7 +222,6 @@ class TestPluginQemuExec(AnalysisPluginTest):
         assert test_fw.processed_analysis[self.analysis_plugin.NAME] == {'summary': []}
 
     @pytest.mark.timeout(10)
-    @pytest.mark.usefixtures('docker_is_running')
     def test_process_object__included_binary(self):
         test_fw = create_test_firmware()
         test_fw.processed_analysis['file_type']['mime'] = self.analysis_plugin.FILE_TYPES[0]
@@ -247,14 +230,6 @@ class TestPluginQemuExec(AnalysisPluginTest):
         assert self.analysis_plugin.NAME in test_fw.processed_analysis
         assert 'parent_flag' in test_fw.processed_analysis[self.analysis_plugin.NAME]
         assert test_fw.processed_analysis[self.analysis_plugin.NAME]['parent_flag'] is True
-
-    @pytest.mark.timeout(10)
-    @pytest.mark.usefixtures('docker_is_not_running')
-    def test_process_object__docker_not_running(self):
-        test_fw = create_test_firmware()
-        test_fw.files_included = ['foo', 'bar']
-        self.analysis_plugin.process_object(test_fw)
-        assert self.analysis_plugin.NAME not in test_fw.processed_analysis
 
     def _set_up_fw_for_process_object(self, path: Path = TEST_DATA_DIR):
         test_fw = create_test_firmware()
@@ -315,14 +290,6 @@ def test_get_docker_output__json_error(execute_docker_error):
     result = qemu_exec.get_docker_output('mips', '/json-error', TEST_DATA_DIR)
     assert 'error' in result
     assert result['error'] == 'could not decode result'
-
-
-def test_docker_is_running():
-    assert qemu_exec.docker_is_running() is True, 'Docker is not running'
-
-
-def test_docker_is_running__not_running(execute_shell_fails):
-    assert qemu_exec.docker_is_running() is False
 
 
 def test_process_qemu_job():

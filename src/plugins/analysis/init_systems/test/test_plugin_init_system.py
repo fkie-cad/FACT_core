@@ -1,4 +1,5 @@
 import os
+from copy import deepcopy
 
 from common_helper_files import get_dir_of_file
 
@@ -119,6 +120,14 @@ class TestAnalysisPluginInit(AnalysisPluginTest):
         self.assertIn('if [ true != "$INIT_D_SCRIPT_SOURCED" ] ; then\n    set "$0" "$@"; INIT_D_SCRIPT_SOURCED=true . /lib/init/init-d-script\nfi', result['script'], 'record not found')
         self.assertEqual(['SysVInit'], result['init_type'], 'init type missing')
         self.assertEqual(['SysVInit'], result['summary'], 'description missing')
+
+    def test_root_uid_is_none(self):
+        fo = deepcopy(self.test_file_initd)
+        fo.root_uid = None
+        fo.parent_firmware_uids = set(fo.virtual_file_path)
+        processed_file = self.analysis_plugin.process_object(fo)
+        # missing fo.root_uid should not break the analysis
+        assert processed_file.processed_analysis[self.PLUGIN_NAME]['summary'] != []
 
     def test_get_not_text_file(self):
         processed_file = self.analysis_plugin.process_object(self.test_file_not_text)
