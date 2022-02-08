@@ -11,14 +11,14 @@ class LuaLinter:
     Wrapper for luacheck luascript linter
     '''
     def do_analysis(self, file_path):
-        luacheck_p = subprocess.run(
+        luacheck_process = subprocess.run(
             'luacheck -q --ranges --config  {} {}'.format(CONFIG_FILE_PATH, file_path),
             shell=True,
             stdout=PIPE,
             stderr=STDOUT,
             universal_newlines=True,
         )
-        return self._parse_linter_output(luacheck_p.stdout)
+        return self._parse_linter_output(luacheck_process.stdout)
 
     def _parse_linter_output(self, output):
         '''

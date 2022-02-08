@@ -26,11 +26,11 @@ class UsersAndPasswordsInstaller(AbstractPluginInstaller):
     def install_system_packages(self):
         super().install_system_packages()
 
-        lshw_p = subprocess.run('lshw -c display'.split(), stdout=PIPE, stderr=PIPE, check=True)
+        lshw_process = subprocess.run('lshw -c display'.split(), stdout=PIPE, stderr=PIPE, check=True)
         opencl_pkgs = []
-        if lshw_p.stdout == 'NVIDIA':
+        if lshw_process.stdout == 'NVIDIA':
             opencl_pkgs = ['nvidia-opencl-dev']
-        elif lshw_p.stdout == 'AMD':
+        elif lshw_process.stdout == 'AMD':
             opencl_pkgs = ['ocl-icd-opencl-dev', 'opencl-headers']
 
         # Somehow we don't care about opencl on fedora

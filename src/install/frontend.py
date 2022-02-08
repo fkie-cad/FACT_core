@@ -20,21 +20,21 @@ PIP_DEPENDENCIES = INSTALL_DIR / 'requirements_frontend.txt'
 def execute_commands_and_raise_on_return_code(commands, error=None):  # pylint: disable=invalid-name
     for command in commands:
         bad_return = error if error else 'execute {}'.format(command)
-        cmd_p = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
-        if cmd_p.returncode != 0:
-            raise InstallationError('Failed to {}\n{}'.format(bad_return, cmd_p.stdout))
+        cmd_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
+        if cmd_process.returncode != 0:
+            raise InstallationError('Failed to {}\n{}'.format(bad_return, cmd_process.stdout))
 
 
 def wget_static_web_content(url, target_folder, additional_actions, resource_logging_name=None):
     logging.info('Install static {} content'.format(resource_logging_name if resource_logging_name else url))
     with OperateInDirectory(target_folder):
-        wget_p = subprocess.run('wget -nc {}'.format(url), shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
-        if wget_p.returncode != 0:
-            raise InstallationError('Failed to fetch resource at {}\n{}'.format(url, wget_p.stdout))
+        wget_process = subprocess.run('wget -nc {}'.format(url), shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
+        if wget_process.returncode != 0:
+            raise InstallationError('Failed to fetch resource at {}\n{}'.format(url, wget_process.stdout))
         for action in additional_actions:
-            action_p = subprocess.run(action, shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
-            if action_p.returncode != 0:
-                raise InstallationError('Problem in processing resource at {}\n{}'.format(url, action_p.stdout))
+            action_process = subprocess.run(action, shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
+            if action_process.returncode != 0:
+                raise InstallationError('Problem in processing resource at {}\n{}'.format(url, action_process.stdout))
 
 
 def _build_highlight_js():
@@ -66,11 +66,11 @@ def _create_directory_for_authentication():  # pylint: disable=invalid-name
     # pylint: disable=fixme
     factauthdir = '/'.join(dburi.split('/')[:-1])[10:]  # FIXME this should be beautified with pathlib
 
-    mkdir_p = subprocess.run('sudo mkdir -p --mode=0744 {}'.format(factauthdir), shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
-    chown_p = subprocess.run('sudo chown {}:{} {}'.format(os.getuid(), os.getgid(), factauthdir), shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
+    mkdir_process = subprocess.run('sudo mkdir -p --mode=0744 {}'.format(factauthdir), shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
+    chown_process = subprocess.run('sudo chown {}:{} {}'.format(os.getuid(), os.getgid(), factauthdir), shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
 
-    if not all(return_code == 0 for return_code in [mkdir_p.returncode, chown_p.returncode]):
-        raise InstallationError('Error in creating directory for authentication database.\n{}'.format('\n'.join((mkdir_p.stdout, mkdir_p.stdout))))
+    if not all(return_code == 0 for return_code in [mkdir_process.returncode, chown_process.returncode]):
+        raise InstallationError('Error in creating directory for authentication database.\n{}'.format('\n'.join((mkdir_process.stdout, mkdir_process.stdout))))
 
 
 def _install_nginx(distribution):
@@ -86,9 +86,9 @@ def _install_nginx(distribution):
             'sudo semanage fcontext -at httpd_log_t "/var/log/fact(/.*)?" || true',
             'sudo restorecon -v -R /var/log/fact'
         ], error='restore selinux context')
-    nginx_p = subprocess.run('sudo nginx -s reload', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
-    if nginx_p.returncode != 0:
-        raise InstallationError('Failed to start nginx\n{}'.format(nginx_p.stderr))
+    nginx_process = subprocess.run('sudo nginx -s reload', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
+    if nginx_process.returncode != 0:
+        raise InstallationError('Failed to start nginx\n{}'.format(nginx_process.stderr))
 
 
 def _generate_and_install_certificate():
@@ -160,15 +160,15 @@ def _install_docker_images(radare):
         logging.info('Initializing docker container for radare')
 
         with OperateInDirectory('radare'):
-            docker_compose_p = subprocess.run('docker-compose build', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
-            if docker_compose_p.returncode != 0:
-                raise InstallationError('Failed to initialize radare container:\n{}'.format(docker_compose_p.stdout))
+            docker_compose_process = subprocess.run('docker-compose build', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
+            if docker_compose_process.returncode != 0:
+                raise InstallationError('Failed to initialize radare container:\n{}'.format(docker_compose_process.stdout))
 
     # pull pdf report container
     logging.info('Pulling pdf report container')
-    docker_p = subprocess.run('docker pull fkiecad/fact_pdf_report', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
-    if docker_p.returncode != 0:
-        raise InstallationError('Failed to pull pdf report container:\n{}'.format(docker_p.stdout))
+    docker_process = subprocess.run('docker pull fkiecad/fact_pdf_report', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
+    if docker_process.returncode != 0:
+        raise InstallationError('Failed to pull pdf report container:\n{}'.format(docker_process.stdout))
 
 
 def main(skip_docker, radare, nginx, distribution):

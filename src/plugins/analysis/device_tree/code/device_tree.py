@@ -46,15 +46,15 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     @staticmethod
     def convert_device_tree(file_path: Union[str, Path]) -> Optional[str]:
-        dtc_p = subprocess.run(f'dtc -I dtb -O dts {file_path}', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
-        if dtc_p.returncode != 0:
-            logging.warning(f'The Device Tree Compiler exited with non-zero return code {dtc_p.returncode} after working on {file_path}')
+        dtc_process = subprocess.run(f'dtc -I dtb -O dts {file_path}', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
+        if dtc_process.returncode != 0:
+            logging.warning(f'The Device Tree Compiler exited with non-zero return code {dtc_process.returncode} after working on {file_path}')
             return None
-        return dtc_p.stdout
+        return dtc_process.stdout
 
     @staticmethod
     def dump_device_tree(file_path: Union[str, Path]) -> Optional[str]:
-        fdtdump_p = subprocess.run(f'fdtdump --scan {file_path}', shell=True, stdout=PIPE, stderr=STDOUT)
-        if fdtdump_p.returncode != 0:
+        fdtdump_process = subprocess.run(f'fdtdump --scan {file_path}', shell=True, stdout=PIPE, stderr=STDOUT)
+        if fdtdump_process.returncode != 0:
             return None
-        return fdtdump_p.stdout
+        return fdtdump_process.stdout

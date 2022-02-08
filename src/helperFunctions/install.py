@@ -69,12 +69,12 @@ def log_current_packages(packages: Tuple[str], install: bool = True):
 
 
 def _run_shell_command_raise_on_return_code(command: str, error: str, add_output_on_error=False) -> str:  # pylint: disable=invalid-name
-    cmd_p = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
-    if cmd_p.returncode != 0:
+    cmd_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
+    if cmd_process.returncode != 0:
         if add_output_on_error:
-            error = '{}\n{}'.format(error, cmd_p.stdout)
+            error = '{}\n{}'.format(error, cmd_process.stdout)
         raise InstallationError(error)
-    return cmd_p.stdout
+    return cmd_process.stdout
 
 
 def dnf_update_sources():
@@ -138,8 +138,8 @@ def check_if_command_in_path(command: str) -> bool:
 
     :param command: Command to check.
     '''
-    command_p = subprocess.run('command -v {}'.format(command), shell=True, stdout=DEVNULL, stderr=DEVNULL, universal_newlines=True)
-    return command_p.returncode == 0
+    command_process = subprocess.run('command -v {}'.format(command), shell=True, stdout=DEVNULL, stderr=DEVNULL, universal_newlines=True)
+    return command_process.returncode == 0
 
 
 def install_github_project(project_path: str, commands: List[str]):
@@ -165,9 +165,9 @@ def install_github_project(project_path: str, commands: List[str]):
     with OperateInDirectory(folder_name, remove=True):
         error = None
         for command in commands:
-            cmd_p = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
-            if cmd_p.returncode != 0:
-                error = 'Error while processing github project {}!\n{}'.format(project_path, cmd_p.stdout)
+            cmd_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
+            if cmd_process.returncode != 0:
+                error = 'Error while processing github project {}!\n{}'.format(project_path, cmd_process.stdout)
                 break
 
     if error:
@@ -176,8 +176,8 @@ def install_github_project(project_path: str, commands: List[str]):
 
 def _checkout_github_project(github_path: str, folder_name: str):
     clone_url = 'https://www.github.com/{}'.format(github_path)
-    git_p = subprocess.run('git clone {}'.format(clone_url), shell=True, stdout=DEVNULL, stderr=DEVNULL, universal_newlines=True)
-    if git_p.returncode != 0:
+    git_process = subprocess.run('git clone {}'.format(clone_url), shell=True, stdout=DEVNULL, stderr=DEVNULL, universal_newlines=True)
+    if git_process.returncode != 0:
         raise InstallationError('Cloning from github failed for project {}\n {}'.format(github_path, clone_url))
     if not Path('.', folder_name).exists():
         raise InstallationError('Repository creation failed on folder {}\n {}'.format(folder_name, clone_url))

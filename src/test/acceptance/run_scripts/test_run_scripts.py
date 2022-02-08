@@ -18,7 +18,7 @@ from helperFunctions.fileSystem import get_src_dir
     ('start_fact_db.py', 'FACT DB-Service'),
 ])
 def test_start_script_help_and_version(script, expected_str):
-    cmd_p = subprocess.run(
+    cmd_process = subprocess.run(
         '{} -h'.format(os.path.join(get_src_dir(), script)),
         timeout=5,
         shell=True,
@@ -26,10 +26,10 @@ def test_start_script_help_and_version(script, expected_str):
         stderr=STDOUT,
         universal_newlines=True,
     )
-    assert cmd_p.returncode == 0
-    assert 'usage: {}'.format(script) in cmd_p.stdout
+    assert cmd_process.returncode == 0
+    assert 'usage: {}'.format(script) in cmd_process.stdout
 
-    cmd_p = subprocess.run(
+    cmd_process = subprocess.run(
         '{} -V'.format(os.path.join(get_src_dir(), script)),
         timeout=5,
         shell=True,
@@ -37,8 +37,8 @@ def test_start_script_help_and_version(script, expected_str):
         stderr=STDOUT,
         universal_newlines=True,
     )
-    assert expected_str in cmd_p.stdout, 'Wrong output {}'.format(cmd_p.stdout)
-    assert cmd_p.returncode == 0
+    assert expected_str in cmd_process.stdout, 'Wrong output {}'.format(cmd_process.stdout)
+    assert cmd_process.returncode == 0
 
     gc.collect()
 
@@ -52,16 +52,16 @@ def test_start_scripts_with_main(script, monkeypatch):
 
 @pytest.mark.skip(reason='Not working in CI')
 def test_fact_complete_start():
-    cmd_p = subprocess.run(
+    cmd_process = subprocess.run(
         '{} -d -t'.format(os.path.join(get_src_dir(), 'start_fact.py')),
         shell=True,
         stdout=PIPE,
         stderr=STDOUT,
         universal_newlines=True,
     )
-    assert '[DEBUG]' in cmd_p.stdout
-    assert 'Analysis System online...' in cmd_p.stdout
-    assert 'Analysis System offline' in cmd_p.stdout
-    assert cmd_p.returncode == 0
+    assert '[DEBUG]' in cmd_process.stdout
+    assert 'Analysis System online...' in cmd_process.stdout
+    assert 'Analysis System offline' in cmd_process.stdout
+    assert cmd_process.returncode == 0
 
     gc.collect()

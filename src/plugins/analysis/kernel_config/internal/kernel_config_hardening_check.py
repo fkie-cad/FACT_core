@@ -104,14 +104,14 @@ def _get_kernel_hardening_data(kernel_config: str) -> List[List[str]]:
         with NamedTemporaryFile() as fp:
             fp.write(kernel_config.encode())
             fp.seek(0)
-            kconfig_p = subprocess.run(
+            kconfig_process = subprocess.run(
                 f'kconfig-hardened-check -c {fp.name} -m json 2>/dev/null',
                 shell=True,
                 stdout=PIPE,
                 stderr=STDOUT,
                 universal_newlines=True,
             )
-            return json.loads(kconfig_p.stdout)
+            return json.loads(kconfig_process.stdout)
     except (JSONDecodeError, KeyError):
         logging.warning('kconfig-hardened-check analysis failed')
     return []

@@ -43,7 +43,7 @@ def _create_variety_data(config):
             password=config['data_storage']['db_admin_pw'],
         )
     )
-    mongo_p = subprocess.run(
+    mongo_process = subprocess.run(
         '{mongo_call} {database} --eval "var collection = \'file_objects\', persistResults=true" {script_path}'.format(
             mongo_call=mongo_call,
             database=config['data_storage']['main_database'],
@@ -53,7 +53,7 @@ def _create_variety_data(config):
         stderr=STDOUT,
         universal_newlines=True,
     )
-    if mongo_p.returncode == 0:
+    if mongo_process.returncode == 0:
         subprocess.run(
             '{mongo_call} varietyResults --eval \'{command}\''.format(
                 mongo_call=mongo_call,
@@ -65,8 +65,8 @@ def _create_variety_data(config):
             universal_newlines=True,
         )
 
-    logging.debug(mongo_p.stdout)
-    return mongo_p.returncode
+    logging.debug(mongo_process.stdout)
+    return mongo_process.returncode
 
 
 def main(command_line_options=sys.argv):

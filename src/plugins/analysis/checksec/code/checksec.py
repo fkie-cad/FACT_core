@@ -42,10 +42,10 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
 
 def execute_checksec_script(file_path):
-    checksec_p = subprocess.run(f'{SHELL_SCRIPT} --file={file_path} --format=json --extended', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
-    if checksec_p.returncode != 0:
-        raise ValueError(f'Checksec script exited with non-zero return code {checksec_p.returncode}')
-    return json.loads(checksec_p.stdout)[str(file_path)]
+    checksec_process = subprocess.run(f'{SHELL_SCRIPT} --file={file_path} --format=json --extended', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
+    if checksec_process.returncode != 0:
+        raise ValueError(f'Checksec script exited with non-zero return code {checksec_process.returncode}')
+    return json.loads(checksec_process.stdout)[str(file_path)]
 
 
 def check_mitigations(file_path):

@@ -18,29 +18,29 @@ MONGO_MIRROR_COMMANDS = {
 
 
 def _get_db_directory():
-    grep_p = subprocess.run(r'grep -oP "dbPath:[\s]*\K[^\s]+" ../config/mongod.conf', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
-    if grep_p.returncode != 0:
+    grep_process = subprocess.run(r'grep -oP "dbPath:[\s]*\K[^\s]+" ../config/mongod.conf', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
+    if grep_process.returncode != 0:
         raise InstallationError('Unable to locate target for database directory')
-    return grep_p.stdout.strip()
+    return grep_process.stdout.strip()
 
 
 def _add_mongo_mirror(distribution):
-    apt_key_p = subprocess.run(
+    apt_key_process = subprocess.run(
         MONGO_MIRROR_COMMANDS[distribution]['key'],
         shell=True,
         stdout=PIPE,
         stderr=STDOUT,
         universal_newlines=True,
     )
-    tee_p = subprocess.run(
+    tee_process = subprocess.run(
         MONGO_MIRROR_COMMANDS[distribution]['sources'],
         shell=True,
         stdout=PIPE,
         stderr=STDOUT,
         universal_newlines=True,
     )
-    if any(code != 0 for code in (apt_key_p.returncode, apt_key_p.returncode)):
-        raise InstallationError('Unable to set up mongodb installation\n{}'.format('\n'.join((apt_key_p.stdout, tee_p.stdout))))
+    if any(code != 0 for code in (apt_key_process.returncode, apt_key_process.returncode)):
+        raise InstallationError('Unable to set up mongodb installation\n{}'.format('\n'.join((apt_key_process.stdout, tee_process.stdout))))
 
 
 def main(distribution):
@@ -57,17 +57,17 @@ def main(distribution):
 
     # creating DB directory
     fact_db_directory = _get_db_directory()
-    mkdir_p = subprocess.run('sudo mkdir -p --mode=0744 {}'.format(fact_db_directory), shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
-    chown_p = subprocess.run('sudo chown {}:{} {}'.format(os.getuid(), os.getgid(), fact_db_directory), shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
-    if chown_p.returncode != 0:
-        raise InstallationError('Failed to set up database directory. Check if parent folder exists\n{}'.format('\n'.join((mkdir_p.stdout, chown_p.stdout))))
+    mkdir_process = subprocess.run('sudo mkdir -p --mode=0744 {}'.format(fact_db_directory), shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
+    chown_process = subprocess.run('sudo chown {}:{} {}'.format(os.getuid(), os.getgid(), fact_db_directory), shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
+    if chown_process.returncode != 0:
+        raise InstallationError('Failed to set up database directory. Check if parent folder exists\n{}'.format('\n'.join((mkdir_process.stdout, chown_process.stdout))))
 
     # initializing DB authentication
     logging.info('Initialize database')
     with OperateInDirectory('..'):
-        init_database_p = subprocess.run('python3 init_database.py', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
-    if init_database_p.returncode != 0:
-        raise InstallationError('Unable to initialize database\n{}'.format(init_database_p.stdout))
+        init_database_process = subprocess.run('python3 init_database.py', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
+    if init_database_process.returncode != 0:
+        raise InstallationError('Unable to initialize database\n{}'.format(init_database_process.stdout))
 
     with OperateInDirectory('../../'):
         with suppress(FileNotFoundError):

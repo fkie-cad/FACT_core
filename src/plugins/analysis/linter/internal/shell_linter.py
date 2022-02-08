@@ -15,7 +15,7 @@ class ShellLinter:
     Wrapper for shellcheck shell linter
     '''
     def do_analysis(self, file_path):
-        shellcheck_p = subprocess.run(
+        shellcheck_process = subprocess.run(
             'shellcheck --format=json {}'.format(file_path),
             shell=True,
             stdout=PIPE,
@@ -23,12 +23,12 @@ class ShellLinter:
             universal_newlines=True,
         )
 
-        if shellcheck_p.stdout == 2:
-            logging.debug('Failed to execute shellcheck:\n{}'.format(shellcheck_p.stdout))
+        if shellcheck_process.stdout == 2:
+            logging.debug('Failed to execute shellcheck:\n{}'.format(shellcheck_process.stdout))
             return list()
 
         try:
-            shellcheck_json = json.loads(shellcheck_p.stdout)
+            shellcheck_json = json.loads(shellcheck_process.stdout)
         except json.JSONDecodeError:
             return list()
 
