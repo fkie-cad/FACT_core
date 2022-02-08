@@ -144,6 +144,8 @@ class DatabaseRoutes(ComponentBase):
         query = {}
         if request.form['device_class_dropdown']:
             query.update({'device_class': request.form['device_class_dropdown']})
+        if request.form['tags']:
+            tag_query = [{f'tags.{tag}': 'secondary' for tag in dict(request.form.lists())['tags']}]
         for item in ['file_name', 'vendor', 'device_name', 'version', 'release_date']:
             if request.form[item]:
                 query.update({item: {'$options': 'si', '$regex': request.form[item]}})
