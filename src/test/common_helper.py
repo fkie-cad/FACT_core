@@ -15,7 +15,7 @@ from helperFunctions.fileSystem import get_src_dir
 from intercom.common_mongo_binding import InterComMongoInterface
 from objects.file import FileObject
 from objects.firmware import Firmware
-from storage.db_interface_admin import AdminDbInterface
+from storage.db_administration import DbAdministration
 from storage.mongo_interface import MongoInterface
 
 
@@ -362,8 +362,10 @@ def load_users_from_main_config(config: ConfigParser):
     config.set('data_storage', 'postgres_ro_pw', fact_config.get('data_storage', 'postgres_ro_pw'))
     config.set('data_storage', 'postgres_rw_user', fact_config.get('data_storage', 'postgres_rw_user'))
     config.set('data_storage', 'postgres_rw_pw', fact_config.get('data_storage', 'postgres_rw_pw'))
-    config.set('data_storage', 'postgres_admin_user', fact_config.get('data_storage', 'postgres_admin_user'))
-    config.set('data_storage', 'postgres_admin_pw', fact_config.get('data_storage', 'postgres_admin_pw'))
+    config.set('data_storage', 'postgres_del_user', fact_config.get('data_storage', 'postgres_del_user'))
+    config.set('data_storage', 'postgres_del_pw', fact_config.get('data_storage', 'postgres_del_pw'))
+    config.set('data_storage', 'postgres_admin_user', fact_config.get('data_storage', 'postgres_del_user'))
+    config.set('data_storage', 'postgres_admin_pw', fact_config.get('data_storage', 'postgres_del_pw'))
 
 
 def store_binary_on_file_system(tmp_dir: str, test_object: Union[FileObject, Firmware]):
@@ -372,18 +374,10 @@ def store_binary_on_file_system(tmp_dir: str, test_object: Union[FileObject, Fir
     (binary_dir / test_object.uid).write_bytes(test_object.binary)
 
 
-def setup_test_tables(config, admin_interface: AdminDbInterface):
+def setup_test_tables(config):
+    admin_interface = DbAdministration(config)
     admin_interface.create_tables()
-    ro_user = config['data_storage']['postgres_ro_user']
-    rw_user = config['data_storage']['postgres_rw_user']
-    admin_user = config['data_storage']['postgres_admin_user']
-    # privileges must be set each time the test DB tables are created
-    with admin_interface.get_read_write_session() as session:
-        session.execute(f'GRANT SELECT ON ALL TABLES IN SCHEMA public TO {ro_user}')
-        session.execute(f'GRANT SELECT ON ALL TABLES IN SCHEMA public TO {rw_user}')
-        session.execute(f'GRANT INSERT ON ALL TABLES IN SCHEMA public TO {rw_user}')
-        session.execute(f'GRANT UPDATE ON ALL TABLES IN SCHEMA public TO {rw_user}')
-        session.execute(f'GRANT ALL ON ALL TABLES IN SCHEMA public TO {admin_user}')
+    admin_interface.set_table_privileges()
 
 
 def generate_analysis_entry(

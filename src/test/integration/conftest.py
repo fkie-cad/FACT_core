@@ -27,7 +27,7 @@ class DB:
 def db_interface():
     config = get_config_for_testing()
     admin = AdminDbInterface(config, intercom=MockIntercom())
-    setup_test_tables(config, admin)
+    setup_test_tables(config)
     common = DbInterfaceCommon(config)
     backend = BackendDbInterface(config)
     frontend = FrontEndDbInterface(config)

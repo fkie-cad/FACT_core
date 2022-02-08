@@ -1,36 +1,26 @@
 import logging
 from configparser import ConfigParser
 from pathlib import Path
+from shlex import split
 from subprocess import CalledProcessError, check_output
 from typing import List, Optional
 
-# pylint: disable=ungrouped-imports
-try:
-    from helperFunctions.config import load_config
-    from storage.db_interface_admin import AdminDbInterface
-except ImportError:
+if __name__ == '__main__':
+    # add src dir to PATH if executed as individual script
     import sys
     src_dir = Path(__file__).parent.parent
     sys.path.append(str(src_dir))
-    from helperFunctions.config import load_config
-    from storage.db_interface_admin import AdminDbInterface
+
+from helperFunctions.config import load_config  # pylint: disable=wrong-import-position
+from storage.db_administration import DbAdministration  # pylint: disable=wrong-import-position
 
 
-class Privileges:
-    SELECT = 'SELECT'
-    INSERT = 'INSERT'
-    UPDATE = 'UPDATE'
-    DELETE = 'DELETE'
-    ALL = 'ALL'
-
-
-def execute_psql_command(psql_command: str, database: Optional[str] = None):
-    database_option = f'-d {database}' if database else ''
-    shell_cmd = f'sudo -u postgres psql {database_option} -c "{psql_command}"'
+def execute_psql_command(psql_command: str) -> bytes:
+    shell_cmd = f'psql postgres -c "{psql_command}"'
     try:
-        return check_output(shell_cmd, shell=True)
+        return check_output(split(shell_cmd))
     except CalledProcessError as error:
-        logging.error(f'Error during PostgreSQL installation: {error.output}')
+        logging.error(f'Error during PostgreSQL installation:\n{error.stderr}')
         raise
 
 
@@ -38,90 +28,46 @@ def user_exists(user_name: str) -> bool:
     return user_name.encode() in execute_psql_command('\\du')
 
 
-def create_user(user_name: str, password: str):
+def create_admin_user(user_name: str, password: str):
     execute_psql_command(
         f'CREATE USER {user_name} WITH PASSWORD \'{password}\' '
-        'LOGIN NOSUPERUSER INHERIT NOCREATEDB NOCREATEROLE;'
+        'LOGIN SUPERUSER INHERIT CREATEDB CREATEROLE;'
     )
 
 
-def database_exists(database_name: str) -> bool:
-    return database_name.encode() in execute_psql_command('\\l')
-
-
-def create_database(database_name: str):
-    execute_psql_command(f'CREATE DATABASE {database_name};')
-
-
-def grant_privileges(database_name: str, user_name: str, privilege: str):
-    execute_psql_command(
-        f'GRANT {privilege} ON ALL TABLES IN SCHEMA public TO {user_name};',
-        database=database_name
-    )
-
-
-def grant_connect(database_name: str, user_name: str):
-    execute_psql_command(f'GRANT CONNECT ON DATABASE {database_name} TO {user_name};')
-
-
-def grant_usage(database_name: str, user_name: str):
-    execute_psql_command(f'GRANT USAGE ON SCHEMA public TO {user_name};', database=database_name)
-
-
-def change_db_owner(database_name: str, owner: str):
-    execute_psql_command(f'ALTER DATABASE {database_name} OWNER TO {owner};')
-
-
-def main(config: Optional[ConfigParser] = None):
+def main(config: Optional[ConfigParser] = None, skip_user_creation: bool = False):
     if config is None:
         logging.info('No custom configuration path provided for PostgreSQL setup. Using main.cfg ...')
         config = load_config('main.cfg')
     fact_db = config['data_storage']['postgres_database']
     test_db = config['data_storage']['postgres_test_database']
-    _create_databases([fact_db, test_db])
-    _init_users(config, [fact_db, test_db])
-    _create_tables(config)
-    _set_table_privileges(config, fact_db)
+
+    admin_user = config.get('data_storage', 'postgres_admin_user')
+    admin_password = config.get('data_storage', 'postgres_admin_pw')
+
+    # skip_user_creation can be helpful if the DB is not directly accessible (e.g. FACT_docker)
+    if not skip_user_creation and not user_exists(admin_user):
+        create_admin_user(admin_user, admin_password)
+
+    db = DbAdministration(config, db_name='postgres', isolation_level='AUTOCOMMIT')
+    for db_name in [fact_db, test_db]:
+        db.create_database(db_name)
+    _init_users(db, config, [fact_db, test_db])
+
+    db = DbAdministration(config, db_name=fact_db)
+    db.create_tables()
+    db.set_table_privileges()
 
 
-def _create_databases(db_list):
-    for db in db_list:
-        if not database_exists(db):
-            create_database(db)
-
-
-def _init_users(config, db_list):
-    for key in ['ro', 'rw', 'admin']:
+def _init_users(db: DbAdministration, config, db_list: List[str]):
+    for key in ['ro', 'rw', 'del']:
         user = config['data_storage'][f'postgres_{key}_user']
         pw = config['data_storage'][f'postgres_{key}_pw']
-        _create_fact_user(user, pw, db_list)
-        if key == 'admin':
-            for db in db_list:
-                change_db_owner(db, user)
-
-
-def _create_fact_user(user: str, pw: str, databases: List[str]):
-    logging.info(f'creating user {user}')
-    if not user_exists(user):
-        create_user(user, pw)
-    for db in databases:
-        grant_connect(db, user)
-        grant_usage(db, user)
-
-
-def _create_tables(config):
-    AdminDbInterface(config, intercom=False).create_tables()
-
-
-def _set_table_privileges(config, fact_db):
-    for key, privileges in [
-        ('ro', [Privileges.SELECT]),
-        ('rw', [Privileges.SELECT, Privileges.INSERT, Privileges.UPDATE]),
-        ('admin', [Privileges.ALL])
-    ]:
-        user = config['data_storage'][f'postgres_{key}_user']
-        for privilege in privileges:
-            grant_privileges(fact_db, user, privilege)
+        db.create_user(user, pw)
+        for db_name in db_list:
+            db.grant_connect(db_name, user)
+            # connect to individual databases:
+            DbAdministration(config, db_name=db_name).grant_usage(user)
 
 
 if __name__ == '__main__':
