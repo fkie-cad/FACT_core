@@ -46,6 +46,16 @@
                 <input type="text" name="{{ id }}" class="form-control" id="{{ id }}" placeholder="{{ label }}">
             </div>
             {% endfor %}
+            
+            <div class="form-group">
+                <label class="control-label" for="tags">Tags:</label>
+                <select class="selectpicker" name='tags_dropdown' id="tags" multiple>
+                    {% for tag in tag_list | sort %}
+                    <option value='{{ tag }}'>{{ tag }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
 
             <button type="submit" value=submit class="btn btn-primary" id="input_submit" onclick='showImg()'>
                 <i class="fas fa-search"></i> Search
