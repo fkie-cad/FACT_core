@@ -23,7 +23,7 @@ class ShellLinter:
             universal_newlines=True,
         )
 
-        if shellcheck_process.stdout == 2:
+        if shellcheck_process.returncode == 2:
             logging.debug('Failed to execute shellcheck:\n{}'.format(shellcheck_process.stdout))
             return list()
 
