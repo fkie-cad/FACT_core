@@ -11,32 +11,32 @@
         <h3 class="mb-3">Search Firmware Database</h3>
         <form class="form-horizontal" action="" method=post enctype=multipart/form-data>
 
-        <div class="form-row">
-            <div class="form-group col-md-6">
-                <label class="control-label" for="device_class">Device Class:</label>
-                <select class="selectpicker" name='device_class_dropdown' id="device_class" multiple>
-                    {% for class in device_classes | sort %}
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label class="control-label" for="device_class">Device Class:</label>
+                    <select class="selectpicker" name='device_class' id="device_class" multiple>
+                        {% for class in device_classes | sort %}
                         <option value='{{ class }}'>{{ class }}</option>
-                    {% endfor %}
-                </select>
-            </div>
+                        {% endfor %}
+                    </select>
+                </div>
 
-            <div class="form-group col-md-6">
-                <label class="control-label" for="vendor">Vendor:</label>
-                <select class="selectpicker" name='vendor' id="vendor" multiple>
-                    {% for vendor in vendors | sort %}
+                <div class="form-group col-md-6">
+                    <label class="control-label" for="vendor">Vendor:</label>
+                    <select class="selectpicker" name='vendor' id="vendor" multiple>
+                        {% for vendor in vendors | sort %}
                         <option value='{{ vendor }}'>{{ vendor }}</option>
-                    {% endfor %}
-                </select>
+                        {% endfor %}
+                    </select>
+                </div>
             </div>
-        </div>
 
             {% set input_form_text = [
-                ("File Name", "file_name"),
-                ("Device Name", "device_name"),
-                ("Firmware Version", "version"),
-                ("Release Date", "release_date"),
-                ("Hash", "hash_value")
+            ("File Name", "file_name"),
+            ("Device Name", "device_name"),
+            ("Firmware Version", "version"),
+            ("Release Date", "release_date"),
+            ("Hash", "hash_value")
             ] -%}
             {% for label, id in input_form_text %}
             <div class="form-group">
@@ -44,10 +44,10 @@
                 <input type="text" name="{{ id }}" class="form-control" id="{{ id }}" placeholder="{{ label }}">
             </div>
             {% endfor %}
-            
+
             <div class="form-group">
                 <label class="control-label" for="tags">Tags:</label>
-                <select class="selectpicker" name='tags_dropdown' id="tags" multiple>
+                <select class="selectpicker" name='tags' id="tags" multiple>
                     {% for tag in tag_list | sort %}
                     <option value='{{ tag }}'>{{ tag }}</option>
                     {% endfor %}
