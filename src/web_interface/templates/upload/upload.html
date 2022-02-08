@@ -12,7 +12,8 @@
         var plugin_dict = {{ analysis_plugin_dict | dict_to_json | safe }};
     </script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/upload.js') }}"></script>
-    
+    <script type="text/javascript" src="{{ url_for('static', filename='js/loading.js') }}"></script>
+
 {% endblock %}
 
 {%- block styles -%}
@@ -197,6 +198,8 @@
                 {%- endif %}
             </form>
         </div>
+
+        <img id="loading_img" src="{{ url_for('.static', filename='Pacman.gif') }}" style="display: none; margin: auto;"/>
     </div>
 </div>
 
