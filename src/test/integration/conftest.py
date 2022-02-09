@@ -8,6 +8,7 @@ from storage.db_interface_common import DbInterfaceCommon
 from storage.db_interface_comparison import ComparisonDbInterface
 from storage.db_interface_frontend import FrontEndDbInterface
 from storage.db_interface_frontend_editing import FrontendEditingDbInterface
+from test.common_helper import clear_test_tables  # pylint: disable=wrong-import-order
 from test.common_helper import get_config_for_testing, setup_test_tables  # pylint: disable=wrong-import-order
 
 
@@ -33,7 +34,7 @@ def db_interface():
     frontend = FrontEndDbInterface(config)
     frontend_ed = FrontendEditingDbInterface(config)
     yield DB(common, backend, frontend, frontend_ed, admin)
-    admin.base.metadata.drop_all(admin.engine)  # delete test db tables
+    clear_test_tables(config)
 
 
 @pytest.fixture(scope='function')

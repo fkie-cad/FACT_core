@@ -380,6 +380,11 @@ def setup_test_tables(config):
     admin_interface.set_table_privileges()
 
 
+def clear_test_tables(config):
+    administration = DbAdministration(config)
+    administration.base.metadata.drop_all(administration.engine)
+
+
 def generate_analysis_entry(
     plugin_version: str = '1.0',
     analysis_date: float = 0.0,
