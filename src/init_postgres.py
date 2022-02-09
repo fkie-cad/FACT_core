@@ -4,8 +4,8 @@ from shlex import split
 from subprocess import CalledProcessError, check_output
 from typing import List, Optional
 
-from helperFunctions.config import load_config  # pylint: disable=wrong-import-position
-from storage.db_administration import DbAdministration  # pylint: disable=wrong-import-position
+from helperFunctions.config import load_config
+from storage.db_administration import DbAdministration
 
 
 def execute_psql_command(psql_command: str) -> bytes:

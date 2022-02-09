@@ -76,9 +76,10 @@ def main(distribution):
 
     # initializing DB
     logging.info('Initializing PostgreSQL database')
-    init_output, init_code = execute_shell_command_get_return_code('python3 init_postgres.py')
-    if init_code != 0:
-        raise InstallationError(f'Unable to initialize database\n{init_output}')
+    with OperateInDirectory('..'):
+        init_output, init_code = execute_shell_command_get_return_code('python3 init_postgres.py')
+        if init_code != 0:
+            raise InstallationError(f'Unable to initialize database\n{init_output}')
 
     logging.info('Setting up mongo database')
 
