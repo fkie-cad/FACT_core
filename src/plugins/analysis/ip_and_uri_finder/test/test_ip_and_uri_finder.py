@@ -78,7 +78,7 @@ class TestAnalysisPluginIpAndUriFinder(AnalysisPluginTest):
                                'telnet://192.0.2.16:80/'], results['uris'])
 
     @patch('geoip2.database.Reader', MockReader)
-    def test_add_geouri_to_ip(self):
+    def test_add_geo_uri_to_ip(self):
         test_data = {'ips_v4': ['128.101.101.101', '255.255.255.255'],
                      'ips_v6': ['1234:1234:abcd:abcd:1234:1234:abcd:abcd'],
                      'uris': 'http://www.google.de'}
@@ -100,14 +100,17 @@ class TestAnalysisPluginIpAndUriFinder(AnalysisPluginTest):
 
     @patch('geoip2.database.Reader', MockReader)
     def test_link_ips_with_geo_location(self):
-        ip_adresses = ['128.101.101.101', '255.255.255.255']
+        ip_addresses = ['128.101.101.101', '255.255.255.255']
         expected_results = [('128.101.101.101', '44.9759, -93.2166'),
                             ('255.255.255.255', '0.0, 0.0')]
-        self.assertEqual(self.analysis_plugin.link_ips_with_geo_location(ip_adresses), expected_results)
+        self.assertEqual(self.analysis_plugin.link_ips_with_geo_location(ip_addresses), expected_results)
 
     def test_get_summary(self):
-        results = {'uris': ['http://www.google.de'], 'ips_v4': [('128.101.101.101', '44.9759, -93.2166')],
-                   'ips_v6': [('1234:1234:abcd:abcd:1234:1234:abcd:abcd', '2.1, 2.1')]}
+        results = {
+            'uris': ['http://www.google.de'],
+            'ips_v4': [('128.101.101.101', '44.9759, -93.2166')],
+            'ips_v6': [('1234:1234:abcd:abcd:1234:1234:abcd:abcd', '2.1, 2.1')]
+        }
         expected_results = ['http://www.google.de', '128.101.101.101', '1234:1234:abcd:abcd:1234:1234:abcd:abcd']
         self.assertEqual(AnalysisPlugin._get_summary(results), expected_results)
 
