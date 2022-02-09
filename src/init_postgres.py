@@ -1,15 +1,8 @@
 import logging
 from configparser import ConfigParser
-from pathlib import Path
 from shlex import split
 from subprocess import CalledProcessError, check_output
 from typing import List, Optional
-
-if __name__ == '__main__':
-    # add src dir to PATH if executed as individual script
-    import sys
-    src_dir = Path(__file__).parent.parent
-    sys.path.append(str(src_dir))
 
 from helperFunctions.config import load_config  # pylint: disable=wrong-import-position
 from storage.db_administration import DbAdministration  # pylint: disable=wrong-import-position
