@@ -9,7 +9,7 @@ from storage.db_administration import DbAdministration
 
 
 def execute_psql_command(psql_command: str) -> bytes:
-    shell_cmd = f'sudo -u postgres psql -c "{psql_command}"'
+    shell_cmd = f'sudo runuser -u postgres -- psql -c "{psql_command}"'
     try:
         return check_output(split(shell_cmd))
     except CalledProcessError as error:
