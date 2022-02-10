@@ -4,9 +4,9 @@ import os
 import pytest
 from common_helper_process import execute_shell_command_get_return_code
 
+import init_postgres
 import update_statistic
 from helperFunctions.fileSystem import get_src_dir
-from install import init_postgres
 
 
 @pytest.mark.parametrize('script, expected_str', [

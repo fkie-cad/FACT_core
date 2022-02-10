@@ -1,7 +1,9 @@
 import unittest.mock
 from configparser import ConfigParser
 
-from test.common_helper import CommonDatabaseMock, load_users_from_main_config  # pylint: disable=wrong-import-order
+from test.common_helper import (  # pylint: disable=wrong-import-order
+    CommonDatabaseMock, create_docker_mount_base_dir, load_users_from_main_config
+)
 
 
 class AnalysisPluginTest(unittest.TestCase):
@@ -14,6 +16,7 @@ class AnalysisPluginTest(unittest.TestCase):
     PLUGIN_CLASS = None
 
     def setUp(self):
+        self.docker_mount_base_dir = create_docker_mount_base_dir()
         self.config = self.init_basic_config()
         self._set_config()
         self.analysis_plugin = self.setup_plugin()
@@ -36,7 +39,8 @@ class AnalysisPluginTest(unittest.TestCase):
         config.set('ExpertSettings', 'block_delay', '0.1')
         config.add_section('data_storage')
         load_users_from_main_config(config)
-        # -- postgres -- FixMe? --
+        config.set('data_storage', 'docker-mount-base-dir', str(self.docker_mount_base_dir))
+        # -- postgres --
         config.set('data_storage', 'postgres_server', 'localhost')
         config.set('data_storage', 'postgres_port', '5432')
         config.set('data_storage', 'postgres_database', 'fact_test')

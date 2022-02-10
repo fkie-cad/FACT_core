@@ -9,19 +9,15 @@ from storage.schema import FileObjectEntry
 
 class AdminDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
 
-    @staticmethod
-    def _get_user(config):
+    def _get_user(self):
         # only the admin user has privilege for "DELETE"
-        user = config.get('data_storage', 'postgres_admin_user')
-        password = config.get('data_storage', 'postgres_admin_pw')
+        user = self.config.get('data_storage', 'postgres_del_user')
+        password = self.config.get('data_storage', 'postgres_del_pw')
         return user, password
 
     def __init__(self, config=None, intercom=None):
         super().__init__(config=config)
-        if intercom is not None:  # for testing purposes
-            self.intercom = intercom
-        else:
-            self.intercom = InterComFrontEndBinding(config=config)
+        self.intercom = InterComFrontEndBinding(config=config) if intercom is None else intercom
 
     # ===== Delete / DELETE =====
 

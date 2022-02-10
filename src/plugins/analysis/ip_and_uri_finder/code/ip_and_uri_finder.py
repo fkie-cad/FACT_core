@@ -15,7 +15,7 @@ GEOIP_DATABASE_PATH = Path(__file__).parent.parent / 'bin/GeoLite2-City/GeoLite2
 
 IP_V4_BLACKLIST = [
     r'127.0.[0-9]+.1',  # localhost
-    r'255.[0-9]+.[0-9]+.[0-9]+'  # subnetmasks
+    r'255.[0-9]+.[0-9]+.[0-9]+'  # subnet masks
 ]
 IP_V6_BLACKLIST = [  # trivial addresses
     r'^[0-9A-Za-z]::$',
@@ -84,11 +84,10 @@ class AnalysisPlugin(AnalysisBasePlugin):
     @staticmethod
     def _get_summary(results):
         summary = []
-        for key in ['uris']:
-            summary.extend(results[key])
+        summary.extend(results['uris'])
         for key in ['ips_v4', 'ips_v6']:
-            for i in results[key]:
-                summary.append(i[0])
+            for ip, *_ in results[key]:  # IP results come in tuples (ip, latitude, longitude)
+                summary.append(ip)
         return summary
 
     @staticmethod

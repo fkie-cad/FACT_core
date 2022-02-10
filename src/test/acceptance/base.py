@@ -13,11 +13,10 @@ from intercom.back_end_binding import InterComBackEndBinding
 from scheduler.analysis import AnalysisScheduler
 from scheduler.comparison_scheduler import ComparisonScheduler
 from scheduler.unpacking_scheduler import UnpackingScheduler
-from storage.db_interface_admin import AdminDbInterface
 from storage.db_interface_backend import BackendDbInterface
 from storage.fsorganizer import FSOrganizer
 from storage.unpacking_locks import UnpackingLockManager
-from test.common_helper import setup_test_tables  # pylint: disable=wrong-import-order
+from test.common_helper import clear_test_tables, setup_test_tables  # pylint: disable=wrong-import-order
 from web_interface.frontend_main import WebFrontEnd
 
 TMP_DB_NAME = 'tmp_acceptance_tests'
@@ -37,8 +36,7 @@ class TestAcceptanceBase(unittest.TestCase):  # pylint: disable=too-many-instanc
         cls._set_config()
 
     def setUp(self):
-        self.admin_db = AdminDbInterface(self.config, intercom=None)
-        setup_test_tables(self.config, self.admin_db)
+        setup_test_tables(self.config)
 
         self.tmp_dir = TemporaryDirectory(prefix='fact_test_')
         self.config.set('data_storage', 'firmware_file_storage_directory', self.tmp_dir.name)
@@ -54,7 +52,7 @@ class TestAcceptanceBase(unittest.TestCase):  # pylint: disable=too-many-instanc
                                      'regression_one', 'test_fw_c')
 
     def tearDown(self):
-        self.admin_db.base.metadata.drop_all(self.admin_db.engine)  # delete test db tables
+        clear_test_tables(self.config)
         self.tmp_dir.cleanup()
         gc.collect()
 

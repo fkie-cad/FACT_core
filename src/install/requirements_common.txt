@@ -12,6 +12,7 @@ psycopg2-binary
 pylint
 pytest
 pytest-cov
+pytest-timeout
 python-magic
 python-tlsh
 requests

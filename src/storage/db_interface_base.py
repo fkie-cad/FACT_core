@@ -1,6 +1,7 @@
 import logging
 from configparser import ConfigParser
 from contextlib import contextmanager
+from typing import Optional
 
 from sqlalchemy import create_engine
 from sqlalchemy.exc import SQLAlchemyError
@@ -14,22 +15,22 @@ class DbInterfaceError(Exception):
 
 
 class ReadOnlyDbInterface:
-    def __init__(self, config: ConfigParser):
+    def __init__(self, config: ConfigParser, db_name: Optional[str] = None, **kwargs):
         self.base = Base
+        self.config = config
         address = config.get('data_storage', 'postgres_server')
         port = config.get('data_storage', 'postgres_port')
-        database = config.get('data_storage', 'postgres_database')
-        user, password = self._get_user(config)
+        database = db_name if db_name else config.get('data_storage', 'postgres_database')
+        user, password = self._get_user()
         engine_url = f'postgresql://{user}:{password}@{address}:{port}/{database}'
-        self.engine = create_engine(engine_url, pool_size=100, pool_recycle=60, future=True)
+        self.engine = create_engine(engine_url, pool_size=100, future=True, **kwargs)
         self._session_maker = sessionmaker(bind=self.engine, future=True)  # future=True => sqlalchemy 2.0 support
         self.ro_session = None
 
-    @staticmethod
-    def _get_user(config):
-        # overwritten by read-write and admin interface
-        user = config.get('data_storage', 'postgres_ro_user')
-        password = config.get('data_storage', 'postgres_ro_pw')
+    def _get_user(self):
+        # overridden by interfaces with different privileges
+        user = self.config.get('data_storage', 'postgres_ro_user')
+        password = self.config.get('data_storage', 'postgres_ro_pw')
         return user, password
 
     def create_tables(self):
@@ -50,10 +51,9 @@ class ReadOnlyDbInterface:
 
 class ReadWriteDbInterface(ReadOnlyDbInterface):
 
-    @staticmethod
-    def _get_user(config):
-        user = config.get('data_storage', 'postgres_rw_user')
-        password = config.get('data_storage', 'postgres_rw_pw')
+    def _get_user(self):
+        user = self.config.get('data_storage', 'postgres_rw_user')
+        password = self.config.get('data_storage', 'postgres_rw_pw')
         return user, password
 
     @contextmanager
@@ -63,7 +63,7 @@ class ReadWriteDbInterface(ReadOnlyDbInterface):
             yield session
             session.commit()
         except (SQLAlchemyError, DbInterfaceError) as err:
-            logging.error(f'Database error when trying to write to the Database: {err}', exc_info=True)
+            logging.error(f'Database error when trying to write to the Database: {err} {self.engine}', exc_info=True)
             session.rollback()
             raise
         finally:

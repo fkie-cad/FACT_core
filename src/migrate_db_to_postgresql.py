@@ -18,10 +18,13 @@ from storage.db_interface_backend import BackendDbInterface
 from storage.db_interface_comparison import ComparisonDbInterface
 
 try:
-    from rich.progress import Progress
+    from rich.progress import BarColumn, Progress, TimeElapsedColumn
 except ImportError:
     print('Error: rich not found. Please install it:\npython3 -m pip install rich')
     sys.exit(1)
+
+PERCENTAGE = '[progress.percentage]{task.percentage:>3.0f}%'
+DESCRIPTION = '[progress.description]{task.description}'
 
 
 class MongoInterface:
@@ -242,7 +245,7 @@ def main():
     postgres = BackendDbInterface(config=config)
 
     with ConnectTo(MigrationMongoInterface, config) as db:
-        with Progress() as progress:
+        with Progress(DESCRIPTION, BarColumn(), PERCENTAGE, TimeElapsedColumn()) as progress:
             migrator = DbMigrator(postgres=postgres, mongo=db, progress=progress)
             migrator.migrate_fw(query={}, root=True, label='firmwares')
         migrate_comparisons(db, config)

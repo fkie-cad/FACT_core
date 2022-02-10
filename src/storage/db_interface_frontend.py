@@ -360,7 +360,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
         with self.get_read_only_session() as session:
             query = (
                 select(AnalysisEntry.uid, AnalysisEntry.plugin)
-                .filter(AnalysisEntry.result.has_key('failed'))
+                .filter(AnalysisEntry.result.has_key('failed'))  # noqa: W601
             )
             for fo_uid, plugin in session.execute(query):
                 result.setdefault(plugin, set()).add(fo_uid)

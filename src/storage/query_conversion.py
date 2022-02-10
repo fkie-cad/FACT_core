@@ -105,7 +105,7 @@ def _dict_key_to_filter(column, key: str, value: Any):  # pylint: disable=too-co
     if not isinstance(value, dict):
         return column == value
     if '$exists' in value:
-        return column.has_key(key.split('.')[-1])
+        return column.has_key(key.split('.')[-1])  # noqa: W601
     if '$regex' in value:
         return column.op('~')(value['$regex'])
     if '$like' in value:  # match substring ignoring case

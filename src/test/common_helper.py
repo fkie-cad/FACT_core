@@ -1,4 +1,5 @@
 # pylint: disable=no-self-use,unused-argument
+import grp
 import os
 from base64 import standard_b64encode
 from configparser import ConfigParser
@@ -13,7 +14,7 @@ from helperFunctions.data_conversion import get_value_of_first_key
 from helperFunctions.fileSystem import get_src_dir
 from objects.file import FileObject
 from objects.firmware import Firmware
-from storage.db_interface_admin import AdminDbInterface
+from storage.db_administration import DbAdministration
 
 
 def get_test_data_dir():
@@ -293,6 +294,8 @@ def get_config_for_testing(temp_dir: Optional[Union[TemporaryDirectory, str]] = 
     config.set('data_storage', 'report_threshold', '2048')
     config.set('data_storage', 'password_salt', '1234')
     config.set('data_storage', 'firmware_file_storage_directory', '/tmp/fact_test_fs_directory')
+    docker_mount_base_dir = create_docker_mount_base_dir()
+    config.set('data_storage', 'docker-mount-base-dir', str(docker_mount_base_dir))
     config.add_section('unpack')
     config.set('unpack', 'whitelist', '')
     config.set('unpack', 'max_depth', '10')
@@ -310,7 +313,7 @@ def get_config_for_testing(temp_dir: Optional[Union[TemporaryDirectory, str]] = 
     if temp_dir is not None:
         config.set('data_storage', 'firmware_file_storage_directory', temp_dir)
     config.set('ExpertSettings', 'radare2_host', 'localhost')
-    # -- postgres -- FixMe? --
+    # -- postgres --
     config.set('data_storage', 'postgres_server', 'localhost')
     config.set('data_storage', 'postgres_port', '5432')
     config.set('data_storage', 'postgres_database', 'fact_test')
@@ -319,14 +322,16 @@ def get_config_for_testing(temp_dir: Optional[Union[TemporaryDirectory, str]] = 
 
 def load_users_from_main_config(config: ConfigParser):
     fact_config = load_config('main.cfg')
-    # -- postgres -- FixMe? --
+    # -- postgres --
     config.set('data_storage', 'postgres_ro_user', fact_config.get('data_storage', 'postgres_ro_user'))
     config.set('data_storage', 'postgres_ro_pw', fact_config.get('data_storage', 'postgres_ro_pw'))
     config.set('data_storage', 'postgres_rw_user', fact_config.get('data_storage', 'postgres_rw_user'))
     config.set('data_storage', 'postgres_rw_pw', fact_config.get('data_storage', 'postgres_rw_pw'))
+    config.set('data_storage', 'postgres_del_user', fact_config.get('data_storage', 'postgres_del_user'))
+    config.set('data_storage', 'postgres_del_pw', fact_config.get('data_storage', 'postgres_del_pw'))
     config.set('data_storage', 'postgres_admin_user', fact_config.get('data_storage', 'postgres_admin_user'))
     config.set('data_storage', 'postgres_admin_pw', fact_config.get('data_storage', 'postgres_admin_pw'))
-    # -- redis -- FixMe? --
+    # -- redis --
     config.set('data_storage', 'redis_fact_db', fact_config.get('data_storage', 'redis_test_db'))
     config.set('data_storage', 'redis_host', fact_config.get('data_storage', 'redis_host'))
     config.set('data_storage', 'redis_port', fact_config.get('data_storage', 'redis_port'))
@@ -338,18 +343,15 @@ def store_binary_on_file_system(tmp_dir: str, test_object: Union[FileObject, Fir
     (binary_dir / test_object.uid).write_bytes(test_object.binary)
 
 
-def setup_test_tables(config, admin_interface: AdminDbInterface):
+def setup_test_tables(config):
+    admin_interface = DbAdministration(config)
     admin_interface.create_tables()
-    ro_user = config['data_storage']['postgres_ro_user']
-    rw_user = config['data_storage']['postgres_rw_user']
-    admin_user = config['data_storage']['postgres_admin_user']
-    # privileges must be set each time the test DB tables are created
-    with admin_interface.get_read_write_session() as session:
-        session.execute(f'GRANT SELECT ON ALL TABLES IN SCHEMA public TO {ro_user}')
-        session.execute(f'GRANT SELECT ON ALL TABLES IN SCHEMA public TO {rw_user}')
-        session.execute(f'GRANT INSERT ON ALL TABLES IN SCHEMA public TO {rw_user}')
-        session.execute(f'GRANT UPDATE ON ALL TABLES IN SCHEMA public TO {rw_user}')
-        session.execute(f'GRANT ALL ON ALL TABLES IN SCHEMA public TO {admin_user}')
+    admin_interface.set_table_privileges()
+
+
+def clear_test_tables(config):
+    administration = DbAdministration(config)
+    administration.base.metadata.drop_all(administration.engine)
 
 
 def generate_analysis_entry(
@@ -366,3 +368,16 @@ def generate_analysis_entry(
         'tags': tags or {},
         **(analysis_result or {})
     }
+
+
+def create_docker_mount_base_dir():
+    docker_mount_base_dir = Path('/tmp/fact-docker-mount-base-dir')
+    try:
+        docker_mount_base_dir.mkdir(0o770)
+    except FileExistsError:
+        pass
+    else:
+        docker_gid = grp.getgrnam('docker').gr_gid
+        os.chown(docker_mount_base_dir, -1, docker_gid)
+
+    return docker_mount_base_dir

@@ -1,6 +1,6 @@
 import logging
 from collections import Counter
-from typing import Any, Callable, Iterator, List, Optional, Tuple, Union
+from typing import Any, Callable, Iterator, List, Optional, Tuple
 
 from sqlalchemy import column, func, select
 from sqlalchemy.exc import SQLAlchemyError
@@ -10,7 +10,6 @@ from sqlalchemy.sql import Select
 from storage.db_interface_base import ReadOnlyDbInterface, ReadWriteDbInterface
 from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry, StatsEntry
 
-Number = Union[float, int]
 Stats = List[Tuple[str, int]]
 RelativeStats = List[Tuple[str, int, float]]  # stats with relative share as third element
 
@@ -33,11 +32,12 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
         except SQLAlchemyError:
             logging.error(f'Could not save stats entry in the DB:\n{content_dict}')
 
-    def get_count(self, q_filter: Optional[dict] = None, firmware: bool = False) -> Number:
+    def get_count(self, q_filter: Optional[dict] = None, firmware: bool = False) -> int:
         return self._get_aggregate(FileObjectEntry.uid, func.count, q_filter, firmware) or 0
 
-    def get_sum(self, field: InstrumentedAttribute, q_filter: Optional[dict] = None, firmware: bool = False) -> Number:
-        return self._get_aggregate(field, func.sum, q_filter, firmware) or 0
+    def get_sum(self, field: InstrumentedAttribute, q_filter: Optional[dict] = None, firmware: bool = False) -> int:
+        sum_ = self._get_aggregate(field, func.sum, q_filter, firmware)
+        return int(sum_) if sum_ is not None else 0  # func.sum returns a `Decimal` but we want an int
 
     def get_avg(self, field: InstrumentedAttribute, q_filter: Optional[dict] = None, firmware: bool = False) -> float:
         average = self._get_aggregate(field, func.avg, q_filter, firmware)

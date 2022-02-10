@@ -45,9 +45,12 @@ def main():
         logging.info('Setting up PostgreSQL database')
         install_postgres()
 
-    # delay import so that sqlalchemy is installed
-    from install.init_postgres import main as init_postgres  # pylint: disable=import-outside-toplevel
-    init_postgres()
+    # initializing DB
+    logging.info('Initializing PostgreSQL database')
+    with OperateInDirectory('..'):
+        init_output, init_code = execute_shell_command_get_return_code('python3 init_postgres.py')
+        if init_code != 0:
+            raise InstallationError(f'Unable to initialize database\n{init_output}')
 
     with OperateInDirectory('../../'):
         with suppress(FileNotFoundError):
