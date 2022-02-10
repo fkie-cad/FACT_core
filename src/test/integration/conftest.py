@@ -33,8 +33,10 @@ def db_interface():
     backend = BackendDbInterface(config)
     frontend = FrontEndDbInterface(config)
     frontend_ed = FrontendEditingDbInterface(config)
-    yield DB(common, backend, frontend, frontend_ed, admin)
-    clear_test_tables(config)
+    try:
+        yield DB(common, backend, frontend, frontend_ed, admin)
+    finally:
+        clear_test_tables(config)
 
 
 @pytest.fixture(scope='function')

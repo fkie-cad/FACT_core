@@ -15,7 +15,7 @@ from helperFunctions.fileSystem import get_src_dir
 from intercom.common_mongo_binding import InterComMongoInterface
 from objects.file import FileObject
 from objects.firmware import Firmware
-from storage.db_administration import DbAdministration
+from storage.db_setup import DbSetup
 from storage.mongo_interface import MongoInterface
 
 
@@ -229,12 +229,6 @@ class CommonDatabaseMock:  # pylint: disable=too-many-public-methods
             return 'test_name'
         return None
 
-    def set_unpacking_lock(self, uid):
-        self.locks.append(uid)
-
-    def check_unpacking_lock(self, uid):
-        return uid in self.locks
-
     def get_summary(self, fo, selected_analysis):
         if fo.uid == TEST_FW.uid and selected_analysis == 'foobar':
             return {'foobar': ['some_uid']}
@@ -344,7 +338,7 @@ def get_config_for_testing(temp_dir: Optional[Union[TemporaryDirectory, str]] = 
         config.set('data_storage', 'firmware_file_storage_directory', temp_dir)
         config.set('Logging', 'mongoDbLogFile', os.path.join(temp_dir, 'mongo.log'))
     config.set('ExpertSettings', 'radare2_host', 'localhost')
-    # -- postgres -- FixMe? --
+    # -- postgres --
     config.set('data_storage', 'postgres_server', 'localhost')
     config.set('data_storage', 'postgres_port', '5432')
     config.set('data_storage', 'postgres_database', 'fact_test')
@@ -357,7 +351,7 @@ def load_users_from_main_config(config: ConfigParser):
     config.set('data_storage', 'db_admin_pw', fact_config['data_storage']['db_admin_pw'])
     config.set('data_storage', 'db_readonly_user', fact_config['data_storage']['db_readonly_user'])
     config.set('data_storage', 'db_readonly_pw', fact_config['data_storage']['db_readonly_pw'])
-    # -- postgres -- FixMe? --
+    # -- postgres --
     config.set('data_storage', 'postgres_ro_user', fact_config.get('data_storage', 'postgres_ro_user'))
     config.set('data_storage', 'postgres_ro_pw', fact_config.get('data_storage', 'postgres_ro_pw'))
     config.set('data_storage', 'postgres_rw_user', fact_config.get('data_storage', 'postgres_rw_user'))
@@ -375,14 +369,14 @@ def store_binary_on_file_system(tmp_dir: str, test_object: Union[FileObject, Fir
 
 
 def setup_test_tables(config):
-    admin_interface = DbAdministration(config)
-    admin_interface.create_tables()
-    admin_interface.set_table_privileges()
+    db_setup = DbSetup(config)
+    db_setup.create_tables()
+    db_setup.set_table_privileges()
 
 
 def clear_test_tables(config):
-    administration = DbAdministration(config)
-    administration.base.metadata.drop_all(administration.engine)
+    db_setup = DbSetup(config)
+    db_setup.base.metadata.drop_all(db_setup.engine)
 
 
 def generate_analysis_entry(

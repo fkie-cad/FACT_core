@@ -30,7 +30,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     DEPENDENCIES = ['file_type']
     DESCRIPTION = 'extract file system metadata (e.g. owner, group, etc.) from file system images contained in firmware'
     VERSION = '0.2.1'
-    timeout = 600
+    TIMEOUT = 600
     FILE = __file__
 
     ARCHIVE_MIME_TYPES = [
@@ -118,7 +118,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             mounts=[
                 Mount('/work', input_dir, type='bind'),
             ],
-            timeout=int(self.timeout * .8),
+            timeout=int(self.TIMEOUT * .8),  # docker call gets 80% of the analysis time before it times out
             privileged=True,
         )
 

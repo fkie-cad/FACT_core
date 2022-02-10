@@ -16,7 +16,6 @@ pytest-timeout
 python-magic
 python-tlsh
 requests
-rich
 ssdeep
 sqlalchemy
 xmltodict

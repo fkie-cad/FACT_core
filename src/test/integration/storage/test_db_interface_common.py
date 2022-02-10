@@ -82,14 +82,6 @@ def test_is_fw(db):
     assert db.common.is_firmware(TEST_FW.uid) is True
 
 
-def test_is_fo(db):
-    assert db.common.is_file_object(TEST_FW.uid) is False
-    db.backend.insert_object(TEST_FW)
-    assert db.common.is_file_object(TEST_FW.uid) is False
-    db.backend.insert_object(TEST_FO)
-    assert db.common.is_file_object(TEST_FO.uid) is True
-
-
 def test_get_object_relationship(db):
     fo, fw = create_fw_with_child_fo()
 

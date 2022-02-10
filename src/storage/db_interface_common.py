@@ -34,10 +34,6 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
             query = select(FirmwareEntry.uid).filter(FirmwareEntry.uid == uid)
             return bool(session.execute(query).scalar())
 
-    def is_file_object(self, uid: str) -> bool:
-        # aka "is_in_the_db_but_not_a_firmware"
-        return not self.is_firmware(uid) and self.exists(uid)
-
     def all_uids_found_in_database(self, uid_list: List[str]) -> bool:
         if not uid_list:
             return True
@@ -120,9 +116,6 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
         if isinstance(fo, Firmware):
             return self.get_all_files_in_fw(fo.uid)
         return self.get_all_files_in_fo(fo)
-
-    def get_uids_of_all_included_files(self, uid: str) -> Set[str]:
-        return self.get_all_files_in_fw(uid)  # FixMe: rename call
 
     def get_all_files_in_fw(self, fw_uid: str) -> Set[str]:
         '''Get a set of UIDs of all files (recursively) contained in a firmware'''

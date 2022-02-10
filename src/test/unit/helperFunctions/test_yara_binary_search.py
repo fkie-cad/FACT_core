@@ -20,7 +20,7 @@ class MockCommonDbInterface:
             get_test_data_dir(), TEST_FILE_1)
 
     @staticmethod
-    def get_uids_of_all_included_files(uid):
+    def get_all_files_in_fw(uid):
         if uid == 'single_firmware':
             return [TEST_FILE_2, TEST_FILE_3]
         return []

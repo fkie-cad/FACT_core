@@ -9,7 +9,7 @@ class Privileges:
     ALL = 'ALL'
 
 
-class DbAdministration(ReadWriteDbInterface):
+class DbSetup(ReadWriteDbInterface):
 
     def _get_user(self):
         user = self.config.get('data_storage', 'postgres_admin_user')

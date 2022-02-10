@@ -49,11 +49,17 @@ def get_parent_uids_from_virtual_path(file_object) -> Set[str]:
     for path_list in file_object.virtual_file_path.values():
         for virtual_path in path_list:
             with suppress(IndexError):
-                parent_uids.add(virtual_path.split('|')[-2])
+                parent_uids.add(split_virtual_path(virtual_path)[-2])  # second last element is the parent object
     return parent_uids
 
 
 def get_uids_from_virtual_path(virtual_path: str) -> List[str]:
+    '''
+    Get all UIDs from a virtual file path (one element from the virtual path list for one root UID of a FW).
+
+    :param virtual_path: A virtual path consisting of UIDs, separators ('|') and file paths
+    :return: A list of UIDs
+    '''
     parts = split_virtual_path(virtual_path)
     if len(parts) == 1:  # the virtual path of a FW consists only of its UID
         return parts
