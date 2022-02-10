@@ -77,7 +77,6 @@ class AdminDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
                 for uid, path_list in fo_entry.virtual_file_paths.items()
                 if uid != root_uid
             }
-            # fo.parent_files = [f for f in fo.parent_files if f.uid != root_uid]  # TODO?
             removed_fp += 1
         else:  # file is only included in this firmware -> delete file
             uids_to_delete.add(fo_uid)

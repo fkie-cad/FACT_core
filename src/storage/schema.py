@@ -6,6 +6,7 @@ from sqlalchemy import (
     select
 )
 from sqlalchemy.dialects.postgresql import ARRAY, CHAR, JSONB, VARCHAR
+from sqlalchemy.ext.mutable import MutableDict, MutableList
 from sqlalchemy.orm import Session, backref, declarative_base, relationship
 
 Base = declarative_base()
@@ -23,8 +24,8 @@ class AnalysisEntry(Base):
     system_version = Column(VARCHAR)
     analysis_date = Column(Float, nullable=False)
     summary = Column(ARRAY(VARCHAR, dimensions=1))
-    tags = Column(JSONB)
-    result = Column(JSONB)
+    tags = Column(MutableDict.as_mutable(JSONB))
+    result = Column(MutableDict.as_mutable(JSONB))
 
     file_object = relationship('FileObjectEntry', back_populates='analyses')
 
@@ -64,8 +65,8 @@ class FileObjectEntry(Base):
     file_name = Column(VARCHAR, nullable=False)
     depth = Column(Integer, nullable=False)
     size = Column(BigInteger, nullable=False)
-    comments = Column(JSONB)
-    virtual_file_paths = Column(JSONB)
+    comments = Column(MutableList.as_mutable(JSONB))
+    virtual_file_paths = Column(MutableDict.as_mutable(JSONB))
     is_firmware = Column(Boolean, nullable=False)
 
     firmware = relationship(  # 1:1
@@ -141,14 +142,14 @@ class ComparisonEntry(Base):
 
     comparison_id = Column(VARCHAR, primary_key=True)
     submission_date = Column(Float, nullable=False)
-    data = Column(JSONB)
+    data = Column(MutableDict.as_mutable(JSONB))
 
 
 class StatsEntry(Base):
     __tablename__ = 'stats'
 
     name = Column(VARCHAR, primary_key=True)
-    data = Column(JSONB, nullable=False)
+    data = Column(MutableDict.as_mutable(JSONB), nullable=False)
 
 
 class SearchCacheEntry(Base):
