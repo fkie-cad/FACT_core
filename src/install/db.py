@@ -48,7 +48,7 @@ def install_postgres():
     codename = CODENAME_TRANSLATION.get(codename, codename)
     # based on https://www.postgresql.org/download/linux/ubuntu/
     command_list = [
-        f'sudo sh -c \'echo "deb http://apt.postgresql.org/pub/repos/apt {codename}-pgdg main" > /etc/apt/sources.list.d/pgdg.list\'',
+        f'sudo sh -c \'echo "deb [arch=amd64] http://apt.postgresql.org/pub/repos/apt {codename}-pgdg main" > /etc/apt/sources.list.d/pgdg.list\'',
         'wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -',
         'sudo apt-get update',
         'sudo apt-get -y install postgresql-14'
