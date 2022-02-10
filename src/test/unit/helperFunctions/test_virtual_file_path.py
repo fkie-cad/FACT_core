@@ -2,7 +2,7 @@ import pytest
 
 from helperFunctions.virtual_file_path import (
     get_base_of_virtual_path, get_parent_uids_from_virtual_path, get_top_of_virtual_path, join_virtual_path,
-    merge_vfp_lists, split_virtual_path
+    merge_vfp_lists, split_virtual_path, update_virtual_file_path
 )
 from test.common_helper import create_test_file_object  # pylint: disable=wrong-import-order
 
@@ -65,3 +65,16 @@ def test_get_parent_uids(vfp, expected_result):
     fo = create_test_file_object()
     fo.virtual_file_path = vfp
     assert sorted(get_parent_uids_from_virtual_path(fo)) == expected_result
+
+
+@pytest.mark.parametrize('old_vfp, new_vfp, expected_result', [
+    ({}, {}, {}),
+    ({'uid1': ['p1', 'p2']}, {}, {'uid1': ['p1', 'p2']}),
+    ({}, {'uid1': ['p1', 'p2']}, {'uid1': ['p1', 'p2']}),
+    ({'foo': ['foo|/old']}, {'foo': ['foo|/old']}, {'foo': ['foo|/old']}),
+    ({'foo': ['foo|/old']}, {'foo': ['foo|/old', 'foo|/new']}, {'foo': ['foo|/old', 'foo|/new']}),
+    ({'foo': ['foo|/old']}, {'foo': ['foo|/new']}, {'foo': ['foo|/new']}),
+    ({'foo': ['foo|/old']}, {'bar': ['bar|/new']}, {'foo': ['foo|/old'], 'bar': ['bar|/new']}),
+])
+def test_update_virtual_file_path(old_vfp, new_vfp, expected_result):
+    assert update_virtual_file_path(new_vfp, old_vfp) == expected_result
