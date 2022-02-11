@@ -54,7 +54,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     @staticmethod
     def dump_device_tree(file_path: Union[str, Path]) -> Optional[str]:
-        fdtdump_process = subprocess.run(f'fdtdump --scan {file_path}', shell=True, stdout=PIPE, stderr=STDOUT)
+        fdtdump_process = subprocess.run(f'fdtdump --scan {file_path}', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
         if fdtdump_process.returncode != 0:
             return None
         return fdtdump_process.stdout
