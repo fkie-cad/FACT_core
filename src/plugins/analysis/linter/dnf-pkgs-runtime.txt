@@ -3,3 +3,4 @@ lua-devel
 luarocks
 nodejs
 ShellCheck
+ruby

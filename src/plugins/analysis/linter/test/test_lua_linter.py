@@ -1,8 +1,6 @@
 from subprocess import CompletedProcess
 
-import pytest
-
-from ..internal.lua_linter import LuaLinter
+from ..internal.linters import run_luacheck
 
 MOCK_RESPONSE = '''/usr/share/nmap/nse_main.lua:88:7-12: (W211) unused variable 'select'
 /usr/share/nmap/nse_main.lua:140:11-14 (W431) shadowing upvalue 'type' on line 92
@@ -17,14 +15,9 @@ MOCK_RESPONSE = '''/usr/share/nmap/nse_main.lua:88:7-12: (W211) unused variable 
 '''
 
 
-@pytest.fixture(scope='function')
-def stub_linter():
-    return LuaLinter()
-
-
-def test_do_analysis(stub_linter, monkeypatch):
+def test_do_analysis(monkeypatch):
     monkeypatch.setattr('plugins.analysis.linter.internal.lua_linter.subprocess.run', lambda *_, **__: CompletedProcess('DONT_CARE', 0, stdout=MOCK_RESPONSE))
-    result = stub_linter.do_analysis('any/path')
+    result = run_luacheck('any/path')
     assert result
     assert len(result) == 10
     assert result[0] == {
@@ -35,15 +28,15 @@ def test_do_analysis(stub_linter, monkeypatch):
     }
 
 
-def test_bad_lines(stub_linter, monkeypatch):
+def test_bad_lines(monkeypatch):
     bad_lines = MOCK_RESPONSE[0:2].replace(':', ' ')
     monkeypatch.setattr('plugins.analysis.linter.internal.lua_linter.subprocess.run', lambda *_, **__: CompletedProcess('DONT_CARRE', 0, bad_lines))
-    result = stub_linter.do_analysis('any/path')
+    result = run_luacheck('any/path')
     assert not result
 
 
-def test_skip_w6xy(stub_linter, monkeypatch):
+def test_skip_w6xy(monkeypatch):
     w6xy = MOCK_RESPONSE[0:1].replace('W211', 'W631')
     monkeypatch.setattr('plugins.analysis.linter.internal.lua_linter.subprocess.run', lambda *_, **__: CompletedProcess('DONT_CARE', 0, stdout=w6xy))
-    result = stub_linter.do_analysis('any/path')
+    result = run_luacheck('any/path')
     assert not result
