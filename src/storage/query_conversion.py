@@ -1,6 +1,7 @@
 from typing import Any, Dict, List, Optional, Type, Union
 
-from sqlalchemy import func, or_, select
+from sqlalchemy import func, or_, select, type_coerce
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql import Select
 
@@ -48,7 +49,7 @@ def query_parent_firmware(search_dict: dict, inverted: bool, count: bool = False
     return select(FirmwareEntry).filter(query_filter).order_by(*FIRMWARE_ORDER)
 
 
-def build_query_from_dict(query_dict: dict, query: Optional[Select] = None,  # pylint: disable=too-complex
+def build_query_from_dict(query_dict: dict, query: Optional[Select] = None,  # pylint: disable=too-complex, too-many-branches
                           fw_only: bool = False, or_query: bool = False) -> Select:
     '''
     Builds an ``sqlalchemy.orm.Query`` object from a query in dict form.
@@ -150,7 +151,7 @@ def _get_summary_filter(key, value):
 
 def _add_json_filter(key, value, subkey):
     column = AnalysisEntry.result
-    if '$exists' in value:
+    if isinstance(value, dict) and '$exists' in value:
         # "$exists" (aka key exists in json document) is a special case because
         # we need to query the element one level above the actual key
         for nested_key in subkey.split('.')[:-1]:
@@ -158,5 +159,8 @@ def _add_json_filter(key, value, subkey):
     else:
         for nested_key in subkey.split('.'):
             column = column[nested_key]
-        column = column.astext
+        if isinstance(value, dict):
+            column = column.astext
+        else:
+            value = type_coerce(value, JSONB)
     return _dict_key_to_filter(column, key, value)
