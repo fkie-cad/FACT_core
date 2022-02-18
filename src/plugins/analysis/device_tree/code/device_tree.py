@@ -1,7 +1,7 @@
 import logging
 import subprocess
 from pathlib import Path
-from subprocess import PIPE, STDOUT
+from subprocess import DEVNULL, PIPE, STDOUT
 from typing import Optional, Union
 
 from analysis.PluginBase import AnalysisBasePlugin
@@ -17,7 +17,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     NAME = 'device_tree'
     DESCRIPTION = 'get the device tree in text from the device tree blob'
     DEPENDENCIES = ['file_type']
-    VERSION = '0.2'
+    VERSION = '0.3'
     MIME_BLACKLIST = [*MIME_BLACKLIST_COMPRESSED, 'audio', 'image', 'video']
 
     def __init__(self, plugin_administrator, config=None, recursive=True):
@@ -54,7 +54,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     @staticmethod
     def dump_device_tree(file_path: Union[str, Path]) -> Optional[str]:
-        fdtdump_process = subprocess.run(f'fdtdump --scan {file_path}', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
+        fdtdump_process = subprocess.run(f'fdtdump --scan {file_path}', shell=True, stdout=PIPE, stderr=DEVNULL, universal_newlines=True)
         if fdtdump_process.returncode != 0:
             return None
         return fdtdump_process.stdout
