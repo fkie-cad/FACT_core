@@ -311,6 +311,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
         with self.get_read_only_session() as session:
             db_query = build_query_from_dict(query_dict=query, query=select(FirmwareEntry.uid), fw_only=True)
             db_query = self._apply_offset_and_limit(db_query, offset, limit)
+            db_query = db_query.order_by(FirmwareEntry.uid.asc())
             return list(session.execute(db_query).scalars())
 
     def rest_get_file_object_uids(self, offset: Optional[int], limit: Optional[int], query=None) -> List[str]:
