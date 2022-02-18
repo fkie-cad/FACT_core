@@ -195,8 +195,7 @@ class AnalysisRoutes(ComponentBase):
     def show_elf_dependency_graph(self, uid, root_uid):
         with ConnectTo(FrontEndDbInterface, self._config) as db:
             if root_uid in [None, 'None']:
-                fo = db.get_object(uid)
-                root_uid = list(fo.parent_firmware_uids)[0]
+                root_uid = db.get_object(uid).get_root_uid()
             data = db.get_data_for_dependency_graph(uid, root_uid)
 
             whitelist = ['application/x-executable', 'application/x-pie-executable', 'application/x-sharedlib', 'inode/symlink']
