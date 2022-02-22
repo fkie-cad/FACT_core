@@ -82,14 +82,6 @@ def test_is_fw(db):
     assert db.common.is_firmware(TEST_FW.uid) is True
 
 
-def test_is_fo(db):
-    assert db.common.is_file_object(TEST_FW.uid) is False
-    db.backend.insert_object(TEST_FW)
-    assert db.common.is_file_object(TEST_FW.uid) is False
-    db.backend.insert_object(TEST_FO)
-    assert db.common.is_file_object(TEST_FO.uid) is True
-
-
 def test_get_object_relationship(db):
     fo, fw = create_fw_with_child_fo()
 
@@ -154,20 +146,27 @@ def test_get_complete_object(db):
     result = db.common.get_complete_object_including_all_summaries(fw.uid)
     assert isinstance(result, Firmware)
     assert result.uid == fw.uid
-    assert result.processed_analysis['test_plugin']['summary'] == {
+    expected_summary = {
         'entry0': [fw.uid],
         'entry1': [parent_fo.uid],
         'entry2': [parent_fo.uid, child_fo.uid],
         'entry3': [child_fo.uid]
     }
+    _summary_is_equal(expected_summary, result.processed_analysis['test_plugin']['summary'])
 
     result = db.common.get_complete_object_including_all_summaries(parent_fo.uid)
     assert isinstance(result, FileObject)
-    assert result.processed_analysis['test_plugin']['summary'] == {
+    expected_summary = {
         'entry1': [parent_fo.uid],
         'entry2': [parent_fo.uid, child_fo.uid],
         'entry3': [child_fo.uid]
     }
+    _summary_is_equal(expected_summary, result.processed_analysis['test_plugin']['summary'])
+
+
+def _summary_is_equal(expected_summary, summary):
+    assert all(key in summary for key in expected_summary)
+    assert all(set(expected_summary[key]) == set(summary[key]) for key in expected_summary)
 
 
 def test_all_uids_found_in_database(db):

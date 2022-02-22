@@ -14,7 +14,7 @@ from helperFunctions.data_conversion import get_value_of_first_key
 from helperFunctions.fileSystem import get_src_dir
 from objects.file import FileObject
 from objects.firmware import Firmware
-from storage.db_administration import DbAdministration
+from storage.db_setup import DbSetup
 
 
 def get_test_data_dir():
@@ -227,12 +227,6 @@ class CommonDatabaseMock:  # pylint: disable=too-many-public-methods
             return 'test_name'
         return None
 
-    def set_unpacking_lock(self, uid):
-        self.locks.append(uid)
-
-    def check_unpacking_lock(self, uid):
-        return uid in self.locks
-
     def get_summary(self, fo, selected_analysis):
         if fo.uid == TEST_FW.uid and selected_analysis == 'foobar':
             return {'foobar': ['some_uid']}
@@ -344,14 +338,14 @@ def store_binary_on_file_system(tmp_dir: str, test_object: Union[FileObject, Fir
 
 
 def setup_test_tables(config):
-    admin_interface = DbAdministration(config)
-    admin_interface.create_tables()
-    admin_interface.set_table_privileges()
+    db_setup = DbSetup(config)
+    db_setup.create_tables()
+    db_setup.set_table_privileges()
 
 
 def clear_test_tables(config):
-    administration = DbAdministration(config)
-    administration.base.metadata.drop_all(administration.engine)
+    db_setup = DbSetup(config)
+    db_setup.base.metadata.drop_all(db_setup.engine)
 
 
 def generate_analysis_entry(

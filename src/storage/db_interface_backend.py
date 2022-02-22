@@ -53,7 +53,6 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
     def insert_firmware(self, firmware: Firmware):
         with self.get_read_write_session() as session:
             fo_entry = create_file_object_entry(firmware)
-            # fo_entry.root_firmware.append(fo_entry)  # ToDo FixMe??? Should root_fo ref itself?
             # references in fo_entry (e.g. analysis or included files) are populated automatically
             firmware_entry = create_firmware_entry(firmware, fo_entry)
             analyses = create_analysis_entries(firmware, fo_entry)
@@ -123,6 +122,7 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
             entry.comments = file_object.comments
             entry.virtual_file_paths = update_virtual_file_path(file_object.virtual_file_path, entry.virtual_file_paths)
             entry.is_firmware = isinstance(file_object, Firmware)
+            self._update_parents(file_object.parent_firmware_uids, file_object.parents, entry, session)
 
     def update_analysis(self, uid: str, plugin: str, analysis_data: dict):
         with self.get_read_write_session() as session:
@@ -134,7 +134,6 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
             entry.result = get_analysis_without_meta(analysis_data)
 
     def update_file_object_parents(self, file_uid: str, root_uid: str, parent_uid):
-        # FixMe? update VFP here?
         with self.get_read_write_session() as session:
             fo_entry = session.get(FileObjectEntry, file_uid)
             self._update_parents([root_uid], [parent_uid], fo_entry, session)

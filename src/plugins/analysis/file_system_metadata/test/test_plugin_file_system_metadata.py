@@ -5,11 +5,11 @@ from typing import Optional
 
 from flaky import flaky
 
-from test.common_helper import TEST_FW, TEST_FW_2, CommonDatabaseMock, create_test_file_object
+from test.common_helper import TEST_FW, TEST_FW_2, CommonDatabaseMock
 from test.mock import mock_patch
 from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
 
-from ..code.file_system_metadata import AnalysisPlugin, FsKeys, get_parent_uids_from_virtual_path
+from ..code.file_system_metadata import AnalysisPlugin, FsKeys
 
 PLUGIN_NAME = 'file_system_metadata'
 TEST_DATA_DIR = Path(__file__).parent / 'data'
@@ -237,49 +237,6 @@ class TestFileSystemMetadata(AnalysisPluginTest):
         fo.virtual_file_path['some_uid'] = [f'|some_uid|{TEST_FW_2.uid}|/some_file']
         # mime-type in mocked db is 'filesystem/cramfs' so the result should be true
         assert self.analysis_plugin._parent_has_file_system_metadata(fo) is True
-
-    def test_get_parent_uids_from_virtual_path(self):
-        fo = create_test_file_object()
-        fo.virtual_file_path = {'fw_uid': ['fw_uid']}
-        assert len(get_parent_uids_from_virtual_path(fo)) == 0
-
-        fo.virtual_file_path = {'some_UID': ['|uid1|uid2|/folder_1/some_file']}
-        assert 'uid2' in get_parent_uids_from_virtual_path(fo)
-
-        fo.virtual_file_path = {'some_UID': [
-            '|uid1|uid2|/folder_1/some_file', '|uid1|uid2|/folder_2/some_file'
-        ]}
-        result = get_parent_uids_from_virtual_path(fo)
-        assert 'uid2' in result
-        assert len(result) == 1
-
-        fo.virtual_file_path = {'uid1': [
-            '|uid1|uid2|/folder_1/some_file', '|uid1|uid3|/some_file'
-        ]}
-        result = get_parent_uids_from_virtual_path(fo)
-        assert 'uid2' in result
-        assert 'uid3' in result
-        assert len(result) == 2
-
-        fo.virtual_file_path = {
-            'uid1': ['|uid1|uid2|/folder_1/some_file'],
-            'other_UID': ['|other_UID|uid2|/folder_2/some_file']
-        }
-        result = get_parent_uids_from_virtual_path(fo)
-        assert 'uid2' in result
-        assert len(result) == 1
-
-        fo.virtual_file_path = {
-            'uid1': ['|uid1|uid2|/folder_1/some_file'],
-            'other_UID': ['|other_UID|uid3|/folder_2/some_file']
-        }
-        result = get_parent_uids_from_virtual_path(fo)
-        assert 'uid2' in result
-        assert 'uid3' in result
-        assert len(result) == 2
-
-        fo.virtual_file_path = {}
-        assert len(get_parent_uids_from_virtual_path(fo)) == 0
 
     def test_process_object(self):
         fo = FoMock(self.test_file_fs, 'filesystem/squashfs')

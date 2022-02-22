@@ -40,7 +40,47 @@ def test_update_parents(db):
 
     fo_db = db.common.get_object(fo.uid)
     assert fo_db.parents == {fw.uid, fw2.uid}
-    # assert fo_db.parent_firmware_uids == {fw.uid, fw2.uid}  # FixMe? update VFP?
+
+
+def test_update_duplicate_other_fw(db):
+    # fo is included in another fw -> check if update of entry works correctly
+    fo, fw = create_fw_with_child_fo()
+    db.backend.add_object(fw)
+    db.backend.add_object(fo)
+
+    fw2 = create_test_firmware()
+    fw2.uid = 'test_fw2'
+    fw2.files_included = [fo.uid]
+    fo2 = create_test_file_object()
+    fo2.uid = fo.uid
+    fo2.virtual_file_path = {fw2.uid: [f'{fw2.uid}|/some/path']}
+    fo2.parents = {fw2.uid}
+
+    db.backend.add_object(fw2)
+    db.backend.add_object(fo2)
+
+    db_fo = db.frontend.get_object(fo2.uid)
+    assert db_fo.virtual_file_path == {
+        fw.uid: [fo.virtual_file_path[fw.uid][0]],
+        fw2.uid: [fo2.virtual_file_path[fw2.uid][0]]
+    }
+    assert db_fo.parents == {fw.uid, fw2.uid}
+    assert db_fo.parent_firmware_uids == {fw.uid, fw2.uid}
+
+
+def test_update_duplicate_same_fw(db):
+    # fo is included multiple times in the same fw -> check if update of entry works correctly
+    fo, fw = create_fw_with_child_fo()
+    db.backend.add_object(fw)
+    db.backend.add_object(fo)
+
+    fo.virtual_file_path[fw.uid].append(f'{fw.uid}|/some/other/path')
+    db.backend.add_object(fo)
+
+    db_fo = db.frontend.get_object(fo.uid)
+    assert list(db_fo.virtual_file_path) == [fw.uid]
+    assert len(db_fo.virtual_file_path[fw.uid]) == 2
+    assert db_fo.parents == {fw.uid}
 
 
 def test_analysis_exists(db):

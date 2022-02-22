@@ -56,17 +56,6 @@ def test_merge_vfp_lists(old_vfp_list, new_vfp_list, expected_output):
     assert sorted(merge_vfp_lists(old_vfp_list, new_vfp_list)) == expected_output
 
 
-@pytest.mark.parametrize('vfp, expected_result', [
-    ({}, []),
-    ({'root uid': ['foo|bar|/some/path', 'different|parent|/some/other/path']}, ['bar', 'parent']),
-    ({'root uid': ['foo|bar|/some/path'], 'other root': ['different|parent|/some/other/path']}, ['bar', 'parent']),
-])
-def test_get_parent_uids(vfp, expected_result):
-    fo = create_test_file_object()
-    fo.virtual_file_path = vfp
-    assert sorted(get_parent_uids_from_virtual_path(fo)) == expected_result
-
-
 @pytest.mark.parametrize('old_vfp, new_vfp, expected_result', [
     ({}, {}, {}),
     ({'uid1': ['p1', 'p2']}, {}, {'uid1': ['p1', 'p2']}),
@@ -78,3 +67,18 @@ def test_get_parent_uids(vfp, expected_result):
 ])
 def test_update_virtual_file_path(old_vfp, new_vfp, expected_result):
     assert update_virtual_file_path(new_vfp, old_vfp) == expected_result
+
+
+@pytest.mark.parametrize('vfp_entry, expected_result', [
+    ({}, set()),
+    ({'fw_uid': ['fw_uid']}, set()),
+    ({'some_UID': ['|uid1|uid2|/folder_1/some_file']}, {'uid2'}),
+    ({'some_UID': ['|uid1|uid2|/folder_1/some_file', '|uid1|uid2|/folder_2/some_file']}, {'uid2'}),
+    ({'uid1': ['|uid1|uid2|/folder_1/some_file', '|uid1|uid3|/some_file']}, {'uid2', 'uid3'}),
+    ({'uid1': ['|uid1|uid2|/folder_1/some_file'], 'other_UID': ['|other_UID|uid2|/folder_2/some_file']}, {'uid2'}),
+    ({'uid1': ['|uid1|uid2|/folder_1/some_file'], 'other_UID': ['|other_UID|uid3|/some_file']}, {'uid2', 'uid3'}),
+])
+def test_get_vfp_parents(vfp_entry, expected_result):
+    fo = create_test_file_object()
+    fo.virtual_file_path = vfp_entry
+    assert get_parent_uids_from_virtual_path(fo) == expected_result

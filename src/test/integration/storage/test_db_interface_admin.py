@@ -32,7 +32,7 @@ def test_remove_vp_no_other_fw(db):
         removed_vps, deleted_uids = db.admin._remove_virtual_path_entries(fw.uid, fo.uid, session)  # pylint: disable=protected-access
 
     assert removed_vps == 0
-    assert deleted_uids == [fo.uid]
+    assert deleted_uids == {fo.uid}
 
 
 def test_remove_vp_other_fw(db):
@@ -47,7 +47,7 @@ def test_remove_vp_other_fw(db):
 
     assert fo_entry is not None
     assert removed_vps == 1
-    assert deleted_files == []
+    assert deleted_files == set()
     assert fw.uid not in fo_entry.virtual_file_path
 
 
