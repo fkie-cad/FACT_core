@@ -183,6 +183,8 @@ class AnalysisRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['view_analysis'])
     @AppRoute('/dependency-graph/<uid>/<root_uid>', GET)
     def show_elf_dependency_graph(self, uid, root_uid):
+        if root_uid in [None, 'None']:
+            root_uid = self.db.frontend.get_object(uid).get_root_uid()
         data = self.db.frontend.get_data_for_dependency_graph(uid)
 
         whitelist = ['application/x-executable', 'application/x-pie-executable', 'application/x-sharedlib', 'inode/symlink']
