@@ -1,0 +1,22 @@
+{% extends "analysis_plugins/general_information.html" %}
+
+{% block analysis_result_details %}
+
+{% for key, analysis_data in firmware.processed_analysis[selected_analysis].items() | sort %}
+    {% if key | is_not_mandatory_analysis_entry %}
+        <tr>
+            <td>{{ key }}</td>
+            <td>
+                <pre class="border rounded p-2 bg-light" style="white-space: pre-wrap;">
+                    {% if key == 'device_tree' %}
+                        <code>{{ analysis_data | hide_dts_binary_data | nice_generic | safe }}</code>
+                    {% else %}
+                        <code>{{ analysis_data | nice_generic | safe }}</code>
+                    {% endif %}
+                </pre>
+            </td>
+        </tr>
+    {% endif %}
+{% endfor %}
+
+{% endblock %}
