@@ -410,3 +410,9 @@ def linter_reformat_issues(issues) -> Dict[str, List[Dict[str, str]]]:
         content = {'line': issue['line'], 'column': issue['column'], 'message': issue['message']}
         reformatted[symbol].append(content)
     return reformatted
+
+
+def hide_dts_binary_data(device_tree: str) -> str:
+    # textual device tree data can contain huge chunks of binary data -> hide them from view if they are too large
+    device_tree = re.sub(r'\[[0-9a-f ]{32,}]', '(BINARY DATA ...)', device_tree)
+    return re.sub(r'<(0x[0-9a-f]+ ?){10,}>', '(BINARY DATA ...)', device_tree)
