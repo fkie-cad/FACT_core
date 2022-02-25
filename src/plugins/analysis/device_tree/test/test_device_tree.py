@@ -44,6 +44,7 @@ def test_dump_device_trees(file):
     for dt_dict in result:
         assert 'foo = "bar";' in dt_dict['device_tree']
         assert dt_dict['header']['version'] == 17
+        assert dt_dict['model'] in ['DeviceTreeTest-1', 'FooBar 1.0']
 
 
 @pytest.mark.parametrize('file', [TEST_FP, TEST_BROKEN])

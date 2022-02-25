@@ -1,24 +1,20 @@
 import logging
-import struct
 from pathlib import Path
 from subprocess import PIPE, run
 from tempfile import NamedTemporaryFile
-from typing import List, NamedTuple, Optional, Union
+from typing import Dict, List, NamedTuple, Optional, Union
 
 from more_itertools import chunked
 
 MAGIC = bytes.fromhex('D00DFEED')
 MODEL_STR = b'model\0'
+DESCRIPTION_STR = b'description\0'
 
 HEADER_SIZE = 40
 
 
 def _bytes_to_int(byte_str: List[int]) -> int:
     return int.from_bytes(bytes(byte_str), byteorder='big')
-
-
-def _int_to_bytes(number: int) -> bytes:
-    return struct.pack('>I', number)
 
 
 class DeviceTreeHeader(NamedTuple):
@@ -34,24 +30,39 @@ class DeviceTreeHeader(NamedTuple):
     struct_block_size: int
 
 
+class Property:
+    def __init__(self, raw: bytes, strings_by_offset: Dict[int, bytes]):
+        # a property consists of a struct {uint32_t len; uint32_t nameoff;} followed by the value
+        # nameoff is an offset of the string in the strings block
+        # see also: https://devicetree-specification.readthedocs.io/en/stable/flattened-format.html#lexical-structure
+        self.length = _bytes_to_int(list(raw[4:8]))
+        self.name_offset = _bytes_to_int(list(raw[8:12]))
+        self.name = strings_by_offset.get(self.name_offset, None)
+        self.value = raw[12:12 + self.length].strip(b'\0')
+
+    def get_size(self):
+        return self.length + 12  # len(FDT_PROP + uint32_t len + uint32_t nameoff) == 12
+
+
+class StructureBlock:
+    FDT_PROP = b'\0\0\0\3'
+
+    def __init__(self, raw: bytes, strings_by_offset: Dict[int, bytes]):
+        self.raw = raw
+        self.strings_by_offset = strings_by_offset
+
+    def __iter__(self):
+        while True:
+            next_property_offset = self.raw.find(self.FDT_PROP)
+            if next_property_offset == -1:
+                break
+            prop = Property(self.raw[next_property_offset:], self.strings_by_offset)
+            yield prop
+            self.raw = self.raw[next_property_offset + prop.get_size():]
+
+
 def parse_dtb_header(raw: bytes) -> DeviceTreeHeader:
     return DeviceTreeHeader(*[_bytes_to_int(chunk) for chunk in chunked(raw[4:HEADER_SIZE], 4)])
-
-
-def find_model(raw: bytes, header: DeviceTreeHeader) -> Optional[str]:
-    strings_block = raw[header.strings_block_offset:header.strings_block_offset + header.strings_block_size]
-    structure_block = raw[header.struct_block_offset:header.struct_block_offset + header.struct_block_size]
-    if MODEL_STR in strings_block:
-        # the model name is stored in a "property" with preceding 4 byte length and "name offset" (in the string block)
-        # => the model name will be where its string from the strings block is referenced
-        # see also: https://devicetree-specification.readthedocs.io/en/stable/flattened-format.html#lexical-structure
-        model_str_offset = strings_block.find(MODEL_STR)
-        model_str_address = _int_to_bytes(model_str_offset)
-        if model_str_address in structure_block:
-            entry_offset = structure_block.find(model_str_address) - 4
-            entry_len = _bytes_to_int(structure_block[entry_offset:entry_offset + 4])
-            return structure_block[entry_offset + 8:entry_offset + 8 + entry_len].strip(b'\0').decode(errors='replace')
-    return None
 
 
 def header_has_illegal_values(header: DeviceTreeHeader, max_size: int) -> bool:
@@ -103,19 +114,35 @@ def analyze_device_tree(raw: bytes) -> Optional[dict]:
     header = parse_dtb_header(raw)
     if header_has_illegal_values(header, len(raw)):
         return None  # probably false positive
-    model = find_model(raw, header)
+
     device_tree = raw[:header.size]
+    strings_block = device_tree[header.strings_block_offset:header.strings_block_offset + header.strings_block_size]
+    structure_block = device_tree[header.struct_block_offset:header.struct_block_offset + header.struct_block_size]
+    strings_by_offset = {strings_block.find(s): s for s in strings_block.split(b'\0') if s}
+    description, model = _get_model_or_description(StructureBlock(structure_block, strings_by_offset))
+
     with NamedTemporaryFile(mode='wb') as temp_file:
         Path(temp_file.name).write_bytes(device_tree)
         string_representation = convert_device_tree_to_str(temp_file.name)
     if string_representation:
-        return _result_to_json(header, string_representation, model)
+        return _result_to_json(header, string_representation, model, description)
     return None
 
 
-def _result_to_json(header: DeviceTreeHeader, string_representation: str, model: Optional[str]) -> dict:
+def _get_model_or_description(structure_block: StructureBlock):
+    model, description = None, None
+    for prop in structure_block:
+        if prop.name == b'model':
+            model = prop.value.decode(errors='replace')
+        if not description and prop.name == b'description':
+            description = prop.value.decode(errors='replace')
+    return description, model
+
+
+def _result_to_json(header: DeviceTreeHeader, string_representation: str, model: Optional[str], description: Optional[str]) -> dict:
     return {
         'header': header._asdict(),
         'device_tree': string_representation,
         'model': model,
+        'description': description,
     }
