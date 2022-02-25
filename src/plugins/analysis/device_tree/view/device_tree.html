@@ -24,13 +24,15 @@
     </style>
     <script src="{{ url_for('static', filename='highlight.js/languages/dts.min.js') }}"></script>
     <script>
+        async function async_highlight(element) {
+            element.innerHTML = hljs.highlight(
+                element.innerHTML.replaceAll("&lt;", "<").replaceAll("&gt;", ">"),
+                {language: 'dts'}
+            ).value;
+        };
         document.addEventListener('DOMContentLoaded', (event) => {
-
-            // hljs.registerLanguage('dts', require('highlight.js/lib/languages/dts'));
-            document.querySelectorAll('.dt-pre').forEach((el) => {
-                let tmp = el.innerHTML.replaceAll("&lt;", "<").replaceAll("&gt;", ">");
-                el.innerHTML = hljs.highlight(tmp, {language: 'dts'}).value;
-                // hljs.highlightElement(el, {language: 'dts'});
+            document.querySelectorAll('.dt-pre').forEach((element) => {
+                async_highlight(element);
             });
         });
     </script>
@@ -55,18 +57,17 @@
     <tr data-toggle="collapse" data-target="#collapse-{{ dt_dict.offset }}">
         <td class="clickable" colspan=2>
             <i class="fas fa-angle-down"></i>
-            {{ dt_dict.offset | hex }} {{ dt_dict.model if dt_dict.model else "" }}
+            Offset {{ dt_dict.offset | hex }} | {{ dt_dict.model or dt_dict.description or "" }}
         </td>
     </tr>
     <tr>
         <td colspan="2" class="qemu-td p-0">
             <div class="collapse" id="collapse-{{ dt_dict.offset }}">
-
-                <table class="table table-bordered m-0" style="width: 100%">
+                <table class="table table-bordered table-sm m-0" style="width: 100%">
                     {% for key, value in dt_dict.header.items() -%}
                         <tr>
-                            <td width="175px">{{ key | replace_underscore }}</td>
-                            <td width="100px">{{ value | nice_number }}</td>
+                            <td width="200px">{{ key | replace_underscore }}</td>
+                            <td width="125px">{{ value | nice_number }}</td>
                             <td>{{ value | hex }}</td>
                         </tr>
                     {%- endfor %}
