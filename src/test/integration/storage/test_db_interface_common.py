@@ -4,7 +4,9 @@ from objects.file import FileObject
 from objects.firmware import Firmware
 from test.common_helper import create_test_file_object, create_test_firmware, generate_analysis_entry
 
-from .helper import TEST_FO, TEST_FO_2, TEST_FW, create_fw_with_child_fo, create_fw_with_parent_and_child
+from .helper import (
+    TEST_FO, TEST_FO_2, TEST_FW, create_fw_with_child_fo, create_fw_with_parent_and_child, insert_test_fo
+)
 
 
 def test_init(db):  # pylint: disable=unused-argument
@@ -253,7 +255,7 @@ def test_update_summary(db):
     assert 'aa' in orig['b']
 
 
-def test_collect_analysis_tags_propagate(db):
+def test_collect_child_tags_propagate(db):
     fo, fw = create_fw_with_child_fo()
     tag = {'OS Version': {'color': 'success', 'value': 'FactOS', 'propagate': True}}
     fo.processed_analysis['software_components'] = generate_analysis_entry(tags=tag)
@@ -262,7 +264,7 @@ def test_collect_analysis_tags_propagate(db):
     assert db.common._collect_analysis_tags_from_children(fw.uid) == {'software_components': tag}
 
 
-def test_collect_analysis_tags_no_propagate(db):
+def test_collect_child_tags_no_propagate(db):
     fo, fw = create_fw_with_child_fo()
     tag = {'OS Version': {'color': 'success', 'value': 'FactOS', 'propagate': False}}
     fo.processed_analysis['software_components'] = generate_analysis_entry(tags=tag)
@@ -271,7 +273,7 @@ def test_collect_analysis_tags_no_propagate(db):
     assert db.common._collect_analysis_tags_from_children(fw.uid) == {}
 
 
-def test_collect_analysis_tags_no_tags(db):
+def test_collect_child_tags_no_tags(db):
     fo, fw = create_fw_with_child_fo()
     fo.processed_analysis['software_components'] = generate_analysis_entry(tags={})
     db.backend.insert_object(fw)
@@ -279,7 +281,7 @@ def test_collect_analysis_tags_no_tags(db):
     assert db.common._collect_analysis_tags_from_children(fw.uid) == {}
 
 
-def test_collect_analysis_tags_duplicate(db):
+def test_collect_child_tags_duplicate(db):
     fo, fw = create_fw_with_child_fo()
     tag = {'OS Version': {'color': 'success', 'value': 'FactOS 1.1', 'propagate': True}}
     fo.processed_analysis['software_components'] = generate_analysis_entry(tags=tag)
@@ -293,7 +295,7 @@ def test_collect_analysis_tags_duplicate(db):
     assert db.common._collect_analysis_tags_from_children(fw.uid) == {'software_components': tag}
 
 
-def test_collect_analysis_tags_unique_tags(db):
+def test_collect_child_tags_unique_tags(db):
     fo, fw = create_fw_with_child_fo()
     tags = {'OS Version': {'color': 'success', 'value': 'FactOS 1.1', 'propagate': True}}
     fo.processed_analysis['software_components'] = generate_analysis_entry(tags=tags)
@@ -306,3 +308,20 @@ def test_collect_analysis_tags_unique_tags(db):
     db.backend.insert_object(fo_2)
 
     assert len(db.common._collect_analysis_tags_from_children(fw.uid)['software_components']) == 2
+
+
+def test_collect_analysis_tags(db):
+    tags1 = {
+        'tag_a': {'color': 'success', 'value': 'tag a', 'propagate': True},
+        'tag_b': {'color': 'warning', 'value': 'tag b', 'propagate': False},
+    }
+    tags2 = {'tag_c': {'color': 'success', 'value': 'tag c', 'propagate': True}}
+    insert_test_fo(db, 'fo1', analysis={
+        'foo': generate_analysis_entry(tags=tags1),
+        'bar': generate_analysis_entry(tags=tags2),
+    })
+
+    fo = db.frontend.get_object('fo1')
+    assert 'foo' in fo.analysis_tags and 'bar' in fo.analysis_tags
+    assert set(fo.analysis_tags['foo']) == {'tag_a', 'tag_b'}
+    assert fo.analysis_tags['foo']['tag_a'] == tags1['tag_a']

@@ -1,5 +1,6 @@
 import pytest
 
+from storage.db_interface_frontend import CachedQuery
 from storage.query_conversion import QueryConversionException
 from test.common_helper import generate_analysis_entry  # pylint: disable=wrong-import-order
 from test.common_helper import create_test_file_object, create_test_firmware  # pylint: disable=wrong-import-order
@@ -61,7 +62,7 @@ def test_get_data_for_nice_list(db):
 
     nice_list_data = db.frontend.get_data_for_nice_list(uid_list, uid_list[0])
     assert len(nice_list_data) == 2
-    expected_result = ['current_virtual_path', 'file_name', 'files_included', 'mime-type', 'size', 'uid']
+    expected_result = ['current_virtual_path', 'file_name', 'mime-type', 'size', 'uid']
     assert sorted(nice_list_data[0].keys()) == expected_result
     assert nice_list_data[0]['uid'] == TEST_FW.uid
     expected_hid = 'test_vendor test_router - 0.1 (Router)'
@@ -422,7 +423,10 @@ def test_get_query_from_cache(db):
     assert db.frontend.get_query_from_cache('non-existent') is None
 
     id_ = db.frontend_ed.add_to_search_query_cache('foo', 'bar')
-    assert db.frontend.get_query_from_cache(id_) == {'query_title': 'bar', 'search_query': 'foo'}
+    entry = db.frontend.get_query_from_cache(id_)
+    assert isinstance(entry, CachedQuery)
+    assert entry.query == 'foo'
+    assert entry.yara_rule == 'bar'
 
 
 def test_get_cached_count(db):

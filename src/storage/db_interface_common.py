@@ -13,7 +13,6 @@ from storage.db_interface_base import ReadOnlyDbInterface
 from storage.entry_conversion import analysis_entry_to_dict, file_object_from_entry, firmware_from_entry
 from storage.query_conversion import build_query_from_dict
 from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry, fw_files_table, included_files_table
-from storage.tags import append_unique_tag
 
 PLUGINS_WITH_TAG_PROPAGATION = [  # FIXME This should be inferred in a sensible way. This is not possible yet.
     'crypto_material', 'cve_lookup', 'known_vulnerabilities', 'qemu_exec', 'software_components',
@@ -215,10 +214,16 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
                 .join(AnalysisEntry, FileObjectEntry.uid == AnalysisEntry.uid)
                 .filter(AnalysisEntry.tags != JSONB.NULL, AnalysisEntry.plugin.in_(PLUGINS_WITH_TAG_PROPAGATION))
             )
-            for _, plugin, tags in session.execute(query):
+            for _, plugin_name, tags in session.execute(query):
                 for tag_type, tag in tags.items():
-                    if tag_type != 'root_uid' and tag['propagate']:
-                        append_unique_tag(unique_tags, tag, plugin, tag_type)
+                    if tag_type == 'root_uid' or not tag['propagate']:
+                        continue
+                    unique_tags.setdefault(plugin_name, {})
+                    if tag_type in unique_tags[plugin_name] and tag not in unique_tags[plugin_name].values():
+                        key = f'{tag_type}-{len(unique_tags[plugin_name])}'
+                    else:
+                        key = tag_type
+                    unique_tags[plugin_name][key] = tag
         return unique_tags
 
     # ===== misc. =====

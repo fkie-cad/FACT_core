@@ -23,7 +23,7 @@ import pickle
 import sys
 from pathlib import Path
 
-from helperFunctions.program_setup import _setup_logging
+from helperFunctions.program_setup import setup_logging
 from web_interface.frontend_main import WebFrontEnd
 
 
@@ -48,7 +48,7 @@ def create_web_interface():
     if args_path.is_file():
         args = pickle.loads(args_path.read_bytes())
         config = _load_config(args)
-        _setup_logging(config, args, component='frontend')
+        setup_logging(config, args, component='frontend')
         return WebFrontEnd(config=config)
     return WebFrontEnd()
 

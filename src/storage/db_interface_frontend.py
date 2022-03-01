@@ -25,6 +25,11 @@ class MetaEntry(NamedTuple):
     submission_date: int
 
 
+class CachedQuery(NamedTuple):
+    query: str
+    yara_rule: str
+
+
 class FrontEndDbInterface(DbInterfaceCommon):
 
     def get_last_added_firmwares(self, limit: int = 10) -> List[MetaEntry]:
@@ -64,7 +69,6 @@ class FrontEndDbInterface(DbInterfaceCommon):
 
     def get_data_for_nice_list(self, uid_list: List[str], root_uid: Optional[str]) -> List[dict]:
         with self.get_read_only_session() as session:
-            included_files_dict = self._get_included_files_for_uid_list(session, uid_list)
             mime_dict = self._get_mime_types_for_uid_list(session, uid_list)
             query = (
                 select(
@@ -78,7 +82,6 @@ class FrontEndDbInterface(DbInterfaceCommon):
             nice_list_data = [
                 {
                     'uid': uid,
-                    'files_included': included_files_dict.get(uid, set()),
                     'size': size,
                     'file_name': file_name,
                     'mime-type': mime_dict.get(uid, 'file-type-plugin/not-run-yet'),
@@ -210,7 +213,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
     def _get_meta_for_fw(self, entry: FirmwareEntry) -> MetaEntry:
         hid = self._get_hid_for_fw_entry(entry)
         tags = {
-            **{tag: 'secondary' for tag in entry.firmware_tags},
+            **{tag: TagColor.GRAY for tag in entry.firmware_tags},
             self._get_unpacker_name(entry): TagColor.LIGHT_BLUE
         }
         submission_date = entry.submission_date
@@ -288,7 +291,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
             .filter(AnalysisEntry.plugin == 'file_type')
             .filter(AnalysisEntry.uid.in_(uid_list))
         )
-        return dict(e for e in session.execute(type_query))
+        return dict(iter(session.execute(type_query)))
 
     @staticmethod
     def _get_included_files_for_uid_list(session, uid_list: List[str]) -> Dict[str, List[str]]:
@@ -299,7 +302,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
             .join(included_files_table, included_files_table.c.parent_uid == FileObjectEntry.uid)
             .group_by(FileObjectEntry)
         )
-        return dict(e for e in session.execute(included_query))
+        return dict(iter(session.execute(included_query)))
 
     # --- REST ---
 
@@ -318,7 +321,8 @@ class FrontEndDbInterface(DbInterfaceCommon):
         if query:
             return self.generic_search(query, skip=offset, limit=limit)
         with self.get_read_only_session() as session:
-            db_query = select(FileObjectEntry.uid).offset(offset).limit(limit)
+            db_query = select(FileObjectEntry.uid)
+            db_query = self._apply_offset_and_limit(db_query, offset, limit)
             return list(session.execute(db_query).scalars())
 
     # --- missing files/analyses ---
@@ -369,13 +373,12 @@ class FrontEndDbInterface(DbInterfaceCommon):
 
     # --- search cache ---
 
-    def get_query_from_cache(self, query_id: str) -> Optional[dict]:
+    def get_query_from_cache(self, query_id: str) -> Optional[CachedQuery]:
         with self.get_read_only_session() as session:
-            entry = session.get(SearchCacheEntry, query_id)
+            entry: SearchCacheEntry = session.get(SearchCacheEntry, query_id)
             if entry is None:
                 return None
-            # FixMe? for backwards compatibility. replace with NamedTuple/etc.?
-            return {'search_query': entry.data, 'query_title': entry.title}
+            return CachedQuery(query=entry.query, yara_rule=entry.yara_rule)
 
     def get_total_cached_query_count(self):
         with self.get_read_only_session() as session:
@@ -386,7 +389,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
         with self.get_read_only_session() as session:
             query = select(SearchCacheEntry).offset(offset).limit(limit)
             return [
-                (entry.uid, entry.title, RULE_REGEX.findall(entry.title))  # FIXME Use a proper yara parser
+                (entry.uid, entry.yara_rule, RULE_REGEX.findall(entry.yara_rule))  # FIXME Use a proper yara parser
                 for entry in (session.execute(query).scalars())
             ]
 

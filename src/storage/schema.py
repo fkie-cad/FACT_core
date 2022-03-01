@@ -156,8 +156,8 @@ class SearchCacheEntry(Base):
     __tablename__ = 'search_cache'
 
     uid = Column(UID, primary_key=True)
-    data = Column(VARCHAR, nullable=False)
-    title = Column(VARCHAR, nullable=False)
+    query = Column(VARCHAR, nullable=False)  # the query that searches for the files that the YARA rule matched
+    yara_rule = Column(VARCHAR, nullable=False)
 
 
 class WebInterfaceTemplateEntry(Base):

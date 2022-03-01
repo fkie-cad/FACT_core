@@ -69,10 +69,10 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
 
     def count_distinct_values(self, key: InstrumentedAttribute, q_filter=None) -> Stats:
         """
-        Get a list of tuples with all unique values of a column `key` and the count of occurrences.
-        E.g. key=FileObjectEntry.file_name, result: [('some.other.file', 2), ('some.file', 1)]
+        Get a sorted list of tuples with all unique values of a column `key` and the count of occurrences.
+        E.g. key=FileObjectEntry.file_name, result: [('some.other.file', 1), ('some.file', 2)]
 
-        :param key: `Table.column`
+        :param key: A table column
         :param q_filter: Additional query filter (e.g. `AnalysisEntry.plugin == 'file_type'`)
         :return: list of unique values with their count
         """
@@ -83,10 +83,18 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
             return _sort_tuples(session.execute(query))
 
     def count_distinct_in_analysis(
-        self, key: InstrumentedAttribute, plugin: str, firmware: bool = False, q_filter=None, analysis_filter=None
+        self, key: InstrumentedAttribute, plugin: str, firmware: bool = False, q_filter=None
     ) -> Stats:
         """
-        Count distinct values in analysis results.
+        Count distinct values in analysis results: Get a list of tuples with all unique values of a key `key`
+        inside analysis results. Example: get all unique MIME types and their count from the file_type analysis.
+        Results are sorted by count in ascending order.
+
+        :param key: Some field inside an analysis result (e.g. AnalysisEntry.result['mime'])
+        :param plugin: The plugin name (e.g. `file_type`)
+        :param firmware: Boolean flag indicating if we are searching for file or firmware entries
+        :param q_filter: Additional query filter (e.g. `FirmwareEntry.device_class == 'router'`)
+        :return: A list of unique values with their count (e.g. `[('text/plain': 2), ('application/x-executable': 3)]`
         """
         with self.get_read_only_session() as session:
             query = (
@@ -95,8 +103,6 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
                 .filter(key.isnot(None))
                 .group_by(key)
             )
-            if analysis_filter:
-                query = query.filter(analysis_filter)
             query = self._join_fw_or_fo(query, firmware)
             if self._filter_is_not_empty(q_filter):
                 query = query.filter_by(**q_filter)
@@ -280,6 +286,7 @@ def count_occurrences(result_list: List[str]) -> Stats:
 
 
 def _sort_tuples(query_result: Stats) -> Stats:
+    # Sort stats tuples by count in ascending order
     return sorted(_convert_to_tuples(query_result), key=lambda e: (e[1], e[0]))
 
 

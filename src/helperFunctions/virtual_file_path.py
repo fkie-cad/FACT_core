@@ -1,5 +1,8 @@
 from contextlib import suppress
-from typing import Dict, List, Set
+from typing import TYPE_CHECKING, Dict, List, Set
+
+if TYPE_CHECKING:  # avoid circular import
+    from objects.file import FileObject
 
 
 def split_virtual_path(virtual_path: str) -> List[str]:
@@ -41,9 +44,12 @@ def _split_vfp_list_by_base(vfp_list: List[str]) -> Dict[str, List[str]]:
     return vfp_list_by_base
 
 
-def get_parent_uids_from_virtual_path(file_object) -> Set[str]:
+def get_parent_uids_from_virtual_path(file_object: 'FileObject') -> Set[str]:
     '''
-    Get the UIDs of parent files (aka files with include this file) from the virtual file paths.
+    Get the UIDs of parent files (aka files with include this file) from the virtual file paths of a FileObject.
+
+    :param file_object: The FileObject whose virtual file paths are searched for parent UIDs
+    :return: A set of parent UIDs
     '''
     parent_uids = set()
     for path_list in file_object.virtual_file_path.values():

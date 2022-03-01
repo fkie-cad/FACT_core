@@ -175,21 +175,18 @@ def test_count_distinct_values(db, stats_db):
     ]
 
 
-@pytest.mark.parametrize('q_filter, analysis_filter, expected_result', [
-    (None, None, [('value2', 1), ('value1', 2)]),
-    ({'vendor': 'foobar'}, None, [('value1', 2)]),
-    (None, AnalysisEntry.result['x'] != '0', [('value1', 1)]),
+@pytest.mark.parametrize('q_filter, expected_result', [
+    (None, [('value2', 1), ('value1', 2)]),
+    ({'vendor': 'foobar'}, [('value1', 2)]),
 ])
-def test_count_distinct_analysis(db, stats_db, q_filter, analysis_filter, expected_result):
+def test_count_distinct_analysis(db, stats_db, q_filter, expected_result):
     insert_test_fw(db, 'root_fw', vendor='foobar')
     insert_test_fw(db, 'another_fw', vendor='another_vendor')
     insert_test_fo(db, 'fo1', analysis={'foo': generate_analysis_entry(analysis_result={'key': 'value1', 'x': 0})}, parent_fw='root_fw')
     insert_test_fo(db, 'fo2', analysis={'foo': generate_analysis_entry(analysis_result={'key': 'value1', 'x': 1})}, parent_fw='root_fw')
     insert_test_fo(db, 'fo3', analysis={'foo': generate_analysis_entry(analysis_result={'key': 'value2', 'x': 0})}, parent_fw='another_fw')
 
-    result = stats_db.count_distinct_in_analysis(
-        AnalysisEntry.result['key'], plugin='foo', q_filter=q_filter, analysis_filter=analysis_filter
-    )
+    result = stats_db.count_distinct_in_analysis(AnalysisEntry.result['key'], plugin='foo', q_filter=q_filter)
     assert result == expected_result
 
 

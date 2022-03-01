@@ -1,4 +1,7 @@
-from test.common_helper import create_test_file_object
+from storage.db_interface_frontend import CachedQuery
+from test.common_helper import create_test_file_object  # pylint: disable=wrong-import-order
+
+RULE_UID = 'decd4f7805e81c4730fc97cc65e10c53519dbbc65730e477685ee05ad105e319_10'
 
 COMMENT1 = {'author': 'foo', 'comment': 'bar', 'time': '123'}
 COMMENT2 = {'author': 'foo', 'comment': 'bar', 'time': '456'}
@@ -28,15 +31,22 @@ def test_delete_comment(db):
     assert fo_from_db.comments == [COMMENT1, COMMENT3]
 
 
-def test_search_cache(db):
-    uid = '426fc04f04bf8fdb5831dc37bbb6dcf70f63a37e05a68c6ea5f63e85ae579376_14'
-    result = db.frontend.get_query_from_cache(uid)
+def test_search_cache_insert(db):
+    result = db.frontend.get_query_from_cache(RULE_UID)
     assert result is None
 
-    result = db.frontend_ed.add_to_search_query_cache('{"foo": "bar"}', 'foo')
-    assert result == uid
+    result = db.frontend_ed.add_to_search_query_cache('{"foo": "bar"}', 'rule foo{}')
+    assert result == RULE_UID
 
-    result = db.frontend.get_query_from_cache(uid)
-    assert isinstance(result, dict)
-    assert result['search_query'] == '{"foo": "bar"}'
-    assert result['query_title'] == 'foo'
+    result = db.frontend.get_query_from_cache(RULE_UID)
+    assert isinstance(result, CachedQuery)
+    assert result.query == '{"foo": "bar"}'
+    assert result.yara_rule == 'rule foo{}'
+
+
+def test_search_cache_update(db):
+    assert db.frontend_ed.add_to_search_query_cache('{"uid": "some uid"}', 'rule foo{}') == RULE_UID
+    # update
+    assert db.frontend_ed.add_to_search_query_cache('{"uid": "some other uid"}', 'rule foo{}') == RULE_UID
+
+    assert db.frontend.get_query_from_cache(RULE_UID).query == '{"uid": "some other uid"}'
