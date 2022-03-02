@@ -6,7 +6,6 @@ from helperFunctions.data_conversion import convert_time_to_str
 from objects.file import FileObject
 from objects.firmware import Firmware
 from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry
-from storage.tags import collect_analysis_tags
 
 
 def firmware_from_entry(fw_entry: FirmwareEntry, analysis_filter: Optional[List[str]] = None) -> Firmware:
@@ -30,7 +29,6 @@ def file_object_from_entry(
 ) -> FileObject:
     file_object = FileObject()
     _populate_fo_data(fo_entry, file_object, analysis_filter, included_files, parents)
-    file_object.analysis_tags = collect_analysis_tags(file_object)
     return file_object
 
 

@@ -1,7 +1,7 @@
 # pylint: disable=wrong-import-order
 from io import BytesIO
 
-from storage.db_interface_frontend import MetaEntry
+from storage.db_interface_frontend import CachedQuery, MetaEntry
 from test.common_helper import CommonDatabaseMock
 from test.unit.web_interface.base import WebInterfaceTest
 
@@ -23,7 +23,7 @@ class DbMock(CommonDatabaseMock):
     @staticmethod
     def get_query_from_cache(query_id):
         if query_id == QUERY_CACHE_UID:
-            return {'search_query': '{"uid": {"$in": ["test_uid"]}}', 'query_title': 'some yara rule'}
+            return CachedQuery(query='{"uid": {"$in": ["test_uid"]}}', yara_rule='some yara rule')
         return None
 
 

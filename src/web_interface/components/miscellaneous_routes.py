@@ -80,30 +80,10 @@ class MiscellaneousRoutes(ComponentBase):
     @AppRoute('/admin/missing_analyses', GET)
     def find_missing_analyses(self):
         template_data = {
-            'missing_files': self._find_missing_files(),
-            'orphaned_files': self._find_orphaned_files(),
             'missing_analyses': self._find_missing_analyses(),
             'failed_analyses': self._find_failed_analyses(),
         }
         return render_template('find_missing_analyses.html', **template_data)
-
-    def _find_missing_files(self):  # FixMe: should be always empty with postgres
-        start = time()
-        parent_to_included = self.db.frontend.find_missing_files()
-        return {
-            'tuples': list(parent_to_included.items()),
-            'count': self._count_values(parent_to_included),
-            'duration': format_time(time() - start),
-        }
-
-    def _find_orphaned_files(self):  # FixMe: should be always empty with postgres
-        start = time()
-        parent_to_included = self.db.frontend.find_orphaned_objects()
-        return {
-            'tuples': list(parent_to_included.items()),
-            'count': self._count_values(parent_to_included),
-            'duration': format_time(time() - start),
-        }
 
     def _find_missing_analyses(self):
         start = time()

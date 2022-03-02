@@ -22,10 +22,8 @@ class RestMissingAnalyses(RestResourceBase):
         Search for missing or orphaned files and missing or failed analyses
         '''
         missing_analyses_data = {
-            'missing_files': self._make_json_serializable(self.db.frontend.find_missing_files()),
             'missing_analyses': self._make_json_serializable(self.db.frontend.find_missing_analyses()),
             'failed_analyses': self._make_json_serializable(self.db.frontend.find_failed_analyses()),
-            'orphaned_objects': self.db.frontend.find_orphaned_objects(),
         }
         return success_message(missing_analyses_data, self.URL)
 

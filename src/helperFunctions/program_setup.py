@@ -39,7 +39,7 @@ def program_setup(name, description, component=None, version=__VERSION__, comman
     '''
     args = _setup_argparser(name, description, command_line_options=command_line_options or sys.argv, version=version)
     config = _load_config(args)
-    _setup_logging(config, args, component)
+    setup_logging(config, args, component)
     return args, config
 
 
@@ -68,7 +68,7 @@ def _get_console_output_level(debug_flag):
     return logging.INFO
 
 
-def _setup_logging(config, args, component=None):
+def setup_logging(config, args, component=None):
     log_level = getattr(logging, config['Logging']['logLevel'], None)
     log_format = dict(fmt='[%(asctime)s][%(module)s][%(levelname)s]: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
     logger = logging.getLogger('')
