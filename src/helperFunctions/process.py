@@ -147,3 +147,16 @@ def new_worker_was_started(new_process: ExceptionSafeProcess, old_process: Excep
     :return: ``True`` if the processes match and ``False`` otherwise.
     '''
     return new_process != old_process
+
+
+def stop_processes(processes: List[Process], timeout: float = 10.0):
+    '''
+    Try to stop processes gracefully. If a process does not stop until `timeout` is reached, terminate it.
+
+    :param processes: The list of processes that should be stopped.
+    :param timeout: Timeout for joining the process in seconds.
+    '''
+    for process in processes:
+        process.join(timeout=timeout)
+        if process.is_alive():
+            process.terminate()

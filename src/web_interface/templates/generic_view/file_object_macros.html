@@ -4,7 +4,7 @@
         {% if filename_only %}
             <h6>{{ file_object.file_name | safe }}</h6>
         {% else %}
-            <h6>{{ file_object.current_virtual_path[0] | replace_uid_with_hid(root_uid=root_uid) | safe }}</h6>
+            <h6>{{ file_object.current_virtual_path[0] | safe }}</h6>
         {% endif %}
     </a>
     <p class="d-flex justify-content-between mb-0">

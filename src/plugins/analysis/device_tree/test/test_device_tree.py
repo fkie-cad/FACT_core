@@ -13,12 +13,7 @@ EXPECTED_RESULT = 'model = "Manufac XYZ1234ABC";'
 class TestDeviceTree(AnalysisPluginTest):
 
     PLUGIN_NAME = AnalysisPlugin.NAME
-
-    def setUp(self):
-        super().setUp()
-        config = self.init_basic_config()
-
-        self.analysis_plugin = AnalysisPlugin(self, config=config)
+    PLUGIN_CLASS = AnalysisPlugin
 
     def test_process_object(self):
         test_object = FileObject()

@@ -14,8 +14,8 @@ from web_interface.security.privileges import PRIVILEGES, ROLES
 
 class UserManagementRoutes(ComponentBase):
 
-    def __init__(self, app, config, api=None, user_db=None, user_db_interface=None):
-        super().__init__(app, config, api=api)
+    def __init__(self, user_db=None, user_db_interface=None, **kwargs):
+        super().__init__(**kwargs)
         self._user_db = user_db
         self._user_db_interface = user_db_interface
 

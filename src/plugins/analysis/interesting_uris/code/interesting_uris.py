@@ -24,10 +24,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         'The resulting list of URIs has a higher probability of representing important resources.'
     )
     VERSION = '0.1'
-
-    def __init__(self, plugin_administrator, config=None, recursive=True, timeout=300):
-        super().__init__(plugin_administrator, config=config, recursive=recursive, timeout=timeout,
-                         plugin_path=__file__)
+    FILE = __file__
 
     def process_object(self, file_object):
         list_of_ips_and_uris = file_object.processed_analysis['ip_and_uri_finder']['summary']

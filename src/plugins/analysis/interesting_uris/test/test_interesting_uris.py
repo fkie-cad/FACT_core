@@ -1,6 +1,6 @@
 import pytest
 
-from test.common_helper import create_test_file_object
+from test.common_helper import create_test_file_object  # pylint: disable=wrong-import-order
 from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
 
 from ..code.interesting_uris import AnalysisPlugin
@@ -28,12 +28,9 @@ def test_white_ip_and_uris(input_list, whitelist, expected_output):
 
 
 class TestAnalysisPluginInterestingUris(AnalysisPluginTest):
-    PLUGIN_NAME = 'interesting_uris'
 
-    def setUp(self):
-        super().setUp()
-        config = self.init_basic_config()
-        self.analysis_plugin = AnalysisPlugin(self, config=config)
+    PLUGIN_NAME = 'interesting_uris'
+    PLUGIN_CLASS = AnalysisPlugin
 
     def test_process_object(self):
         fo = create_test_file_object()

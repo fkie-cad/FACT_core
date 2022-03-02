@@ -1,14 +1,51 @@
 # pylint: disable=wrong-import-order
-
-import pytest
-
-from test.common_helper import TEST_FW, TEST_FW_2
+from helperFunctions.data_conversion import normalize_compare_id
+from test.common_helper import TEST_FW, TEST_FW_2, TEST_TEXT_FILE, CommonDatabaseMock
 from test.mock import mock_patch
 from test.unit.web_interface.base import WebInterfaceTest
-from web_interface.components.ajax_routes import AjaxRoutes
+
+
+class DbMock(CommonDatabaseMock):
+
+    @staticmethod
+    def get_comparison_result(comparison_id):
+        if comparison_id == normalize_compare_id(';'.join([TEST_FW.uid, TEST_FW_2.uid])):
+            return {
+                'this_is': 'a_compare_result',
+                'general': {'hid': {TEST_FW.uid: 'foo', TEST_TEXT_FILE.uid: 'bar'}},
+                'plugins': {'File_Coverage': {'some_feature': {TEST_FW.uid: [TEST_TEXT_FILE.uid]}}}
+            }
+        if comparison_id == normalize_compare_id(';'.join([TEST_FW.uid, TEST_TEXT_FILE.uid])):
+            return {'this_is': 'a_compare_result'}
+        return 'generic error'
+
+    @staticmethod
+    def get_statistic(identifier):
+        if identifier == 'general':
+            return {
+                'number_of_firmwares': 1,
+                'number_of_unique_files': 0,
+                'total_firmware_size': 10,
+                'total_file_size': 20,
+                'average_firmware_size': 10,
+                'average_file_size': 20,
+                'benchmark': 61
+            }
+        if identifier == 'release_date':
+            return {'date_histogram_data': [['July 2014', 1]]}
+        if identifier == 'backend':
+            return {
+                'system': {'cpu_percentage': 13.37},
+                'analysis': {'current_analyses': [None, None]}
+            }
+        return None
 
 
 class TestAppAjaxRoutes(WebInterfaceTest):
+
+    @classmethod
+    def setup_class(cls, *_, **__):
+        super().setup_class(db_mock=DbMock)
 
     def test_ajax_get_summary(self):
         result = self.test_client.get(f'/ajax_get_summary/{TEST_FW.uid}/foobar').data
@@ -32,30 +69,20 @@ class TestAppAjaxRoutes(WebInterfaceTest):
         assert result['number_of_running_analyses'] == 2
 
     def test_ajax_get_system_stats_error(self):
-        with mock_patch(self.mocked_interface, 'get_statistic', lambda _: {}):
+        with mock_patch(DbMock, 'get_statistic', lambda *_: {}):
             result = self.test_client.get('/ajax/stats/system').json
 
         assert result['backend_cpu_percentage'] == 'n/a'
         assert result['number_of_running_analyses'] == 'n/a'
 
     def test_ajax_system_health(self):
-        self.mocked_interface.get_stats_list = lambda *_: [{'foo': 'bar'}]
+        DbMock.get_stats_list = lambda *_: [{'foo': 'bar'}]
         result = self.test_client.get('/ajax/system_health').json
         assert 'systemHealth' in result
         assert result['systemHealth'] == [{'foo': 'bar'}]
 
     def test_ajax_get_hex_preview(self):
-        self.mocked_interface.peek_in_binary = lambda *_: b'foobar'
+        DbMock.peek_in_binary = lambda *_: b'foobar'
         result = self.test_client.get('/ajax_get_hex_preview/some_uid/0/10')
         assert result.data.startswith(b'<pre')
         assert b'foobar' in result.data
-
-
-@pytest.mark.parametrize('candidate, compare_id, expected_result', [
-    ('all', 'uid1;uid2', 'uid1'),
-    ('uid1', 'uid1;uid2', 'uid1'),
-    ('uid2', 'uid1;uid2', 'uid2'),
-    ('all', 'uid1', 'uid1'),
-])
-def test_get_root_uid(candidate, compare_id, expected_result):
-    assert AjaxRoutes._get_root_uid(candidate, compare_id) == expected_result  # pylint: disable=protected-access

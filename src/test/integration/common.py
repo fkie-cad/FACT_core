@@ -25,10 +25,13 @@ class MockFSOrganizer:
 
 class MockDbInterface:
     def __init__(self, *_, **__):
-        self._objects = dict()
+        self._objects = {}
 
     def add_object(self, fo_fw):
         self._objects[fo_fw.uid] = fo_fw
+
+    def get_analysis(self, *_):
+        pass
 
     def get_specific_fields_of_db_entry(self, uid, field_dict):
         pass
@@ -42,6 +45,10 @@ def initialize_config(tmp_dir):
     config.set('data_storage', 'intercom_database_prefix', 'tmp_integration_tests')
     config.set('data_storage', 'statistic_database', 'tmp_integration_tests')
     config.set('data_storage', 'view_storage', 'tmp_view_storage')
+    # -- postgres -- FixMe? --
+    config.set('data_storage', 'postgres_server', 'localhost')
+    config.set('data_storage', 'postgres_port', '5432')
+    config.set('data_storage', 'postgres_database', 'fact_test')
 
     # Analysis
     config.add_section('ip_and_uri_finder')

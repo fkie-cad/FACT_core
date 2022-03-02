@@ -10,8 +10,11 @@ class CompareBasePlugin(BasePlugin):
     This is the compare plug-in base class. All compare plug-ins should be derived from this class.
     '''
 
-    def __init__(self, plugin_administrator, config=None, db_interface=None, plugin_path=None):
-        super().__init__(plugin_administrator, config=config, plugin_path=plugin_path)
+    # must be set by the plugin:
+    FILE = None
+
+    def __init__(self, plugin_administrator, config=None, db_interface=None, view_updater=None):
+        super().__init__(plugin_administrator, config=config, plugin_path=self.FILE, view_updater=view_updater)
         self.database = db_interface
         self.register_plugin()
 

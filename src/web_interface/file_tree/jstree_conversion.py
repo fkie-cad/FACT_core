@@ -33,7 +33,7 @@ def _get_not_analyzed_jstree_node(node: FileTreeNode):
 
 def _get_file_jstree_node(node: FileTreeNode):
     link = '/analysis/{}/ro/{}'.format(node.uid, node.root_uid)
-    label = '<b>{}</b> (<span style="color:gray;">{}</span>)'.format(node.name, human_readable_file_size(node.size))
+    label = f'<b>{node.name}</b> (<span style="color:gray;">{human_readable_file_size(node.size)}</span>)'
     result = _get_jstree_node_contents(label, link, get_correct_icon_for_mime(node.type))
     result['data'] = {'uid': node.uid}
     return result

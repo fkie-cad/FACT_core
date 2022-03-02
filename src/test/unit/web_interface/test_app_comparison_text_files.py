@@ -1,41 +1,45 @@
-from test.common_helper import TEST_TEXT_FILE, TEST_TEXT_FILE2, create_test_firmware
+from test.common_helper import (
+    TEST_TEXT_FILE, TEST_TEXT_FILE2, CommonDatabaseMock, CommonIntercomMock, create_test_firmware
+)
 from test.unit.web_interface.base import WebInterfaceTest
 
 
-class MockInterCom:
-    def get_binary_and_filename(self, uid: str):
+class MockInterCom(CommonIntercomMock):
+
+    @staticmethod
+    def get_binary_and_filename(uid: str):
         if uid == TEST_TEXT_FILE.uid:
             return b'file content\nfirst', TEST_TEXT_FILE.file_name
-        elif uid == TEST_TEXT_FILE2.uid:
+        if uid == TEST_TEXT_FILE2.uid:
             return b'file content\nsecond', TEST_TEXT_FILE2.file_name
-        else:
-            assert False
+        assert False, 'if this point was reached, something went wrong'
 
-    def get_object(self, uid: str):
+
+class DbMock(CommonDatabaseMock):
+
+    def get_object(self, uid: str, analysis_filter=None):
         if uid == TEST_TEXT_FILE.uid:
             return TEST_TEXT_FILE
-        elif uid == TEST_TEXT_FILE2.uid:
+        if uid == TEST_TEXT_FILE2.uid:
             return TEST_TEXT_FILE2
-        elif uid == 'file_1_root_uid':
+        if uid == 'file_1_root_uid':
             return create_test_firmware(device_name='fw1')
-        elif uid == 'file_2_root_uid':
+        if uid == 'file_2_root_uid':
             return create_test_firmware(device_name='fw2')
-        else:
-            assert False
-
-    def shutdown(self):
-        pass
+        assert False, 'if this point was reached, something went wrong'
 
 
 class TestAppComparisonTextFiles(WebInterfaceTest):
-    def setUp(self, db_mock=MockInterCom):
-        super().setUp(db_mock=db_mock)
+
+    @classmethod
+    def setup_class(cls, *_, **__):
+        super().setup_class(db_mock=DbMock, intercom_mock=MockInterCom)
 
     def test_comparison_text_files(self):
         TEST_TEXT_FILE.processed_analysis['file_type']['mime'] = 'text/plain'
         TEST_TEXT_FILE2.processed_analysis['file_type']['mime'] = 'text/plain'
         response = self._load_diff()
-        # As the javascript rendering is done clientside we test if the diffstring is valid
+        # As the javascript rendering is done clientside we test if the diff string is valid
         assert TEST_TEXT_FILE.file_name in response.decode()
 
     def test_wrong_mime_type(self):

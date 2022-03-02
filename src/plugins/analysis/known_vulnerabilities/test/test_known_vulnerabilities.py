@@ -6,7 +6,7 @@ from common_helper_files import get_dir_of_file
 
 from objects.file import FileObject
 from plugins.analysis.known_vulnerabilities.code.known_vulnerabilities import AnalysisPlugin
-from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
+from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest  # pylint: disable=wrong-import-order
 
 TEST_DATA_DIR = os.path.join(get_dir_of_file(__file__), 'data')
 
@@ -14,11 +14,10 @@ TEST_DATA_DIR = os.path.join(get_dir_of_file(__file__), 'data')
 class TestAnalysisPluginsKnownVulnerabilities(AnalysisPluginTest):
 
     PLUGIN_NAME = 'known_vulnerabilities'
+    PLUGIN_CLASS = AnalysisPlugin
 
     def setUp(self):
         super().setUp()
-        config = self.init_basic_config()
-        self.analysis_plugin = AnalysisPlugin(self, config=config)
         with open(os.path.join(TEST_DATA_DIR, 'sc.json'), 'r') as json_file:
             self._software_components_result = json.load(json_file)
 

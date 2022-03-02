@@ -2,7 +2,7 @@ import binascii
 import itertools
 import logging
 import zlib
-from base64 import b64decode
+from base64 import b64decode, b64encode
 from collections import OrderedDict
 from concurrent.futures import Future, ThreadPoolExecutor
 from json import JSONDecodeError, loads
@@ -58,8 +58,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
     DESCRIPTION = 'test binaries for executability in QEMU and display help if available'
     VERSION = '0.5.2'
     DEPENDENCIES = ['file_type']
-    FILE_TYPES = ['application/x-executable', 'application/x-pie-executable', 'application/x-sharedlib']
+    FILE = __file__
 
+    FILE_TYPES = ['application/x-executable', 'application/x-pie-executable', 'application/x-sharedlib']
     FACT_EXTRACTION_FOLDER_NAME = 'fact_extracted'
 
     arch_to_bin_dict = OrderedDict([
@@ -82,9 +83,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     root_path = None
 
-    def __init__(self, plugin_administrator, config=None, recursive=True, unpacker=None):
+    def __init__(self, *args, config=None, unpacker=None, **kwargs):
         self.unpacker = Unpacker(config) if unpacker is None else unpacker
-        super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__, timeout=900)
+        super().__init__(*args, config=config, **kwargs)
 
     def process_object(self, file_object: FileObject) -> FileObject:
         if self.NAME not in file_object.processed_analysis:
@@ -311,7 +312,8 @@ def _strace_output_exists(docker_output):
 
 def process_strace_output(docker_output: dict):
     docker_output['strace'] = (
-        zlib.compress(docker_output['strace']['stdout'].encode())
+        # b64 + zip is still smaller than raw on average
+        b64encode(zlib.compress(docker_output['strace']['stdout'].encode())).decode()
         if _strace_output_exists(docker_output) else {}
     )
 

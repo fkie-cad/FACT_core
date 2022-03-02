@@ -13,7 +13,6 @@ prompt_toolkit
 more_itertools
 python-dateutil
 si-prefix
-sqlalchemy
 uwsgi
 virtualenv
 

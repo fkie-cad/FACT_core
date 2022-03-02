@@ -1,9 +1,11 @@
 import logging
 from contextlib import suppress
+from typing import Optional
 
 from helperFunctions.plugin import import_plugins
 from objects.firmware import Firmware
 from storage.binary_service import BinaryService
+from storage.db_interface_comparison import ComparisonDbInterface
 
 
 class Compare:
@@ -13,7 +15,7 @@ class Compare:
 
     compare_plugins = {}
 
-    def __init__(self, config=None, db_interface=None):
+    def __init__(self, config=None, db_interface: Optional[ComparisonDbInterface] = None):
         '''
         Constructor
         '''

@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from objects.file import FileObject
-from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
+from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest  # pylint: disable=wrong-import-order
 
 from ..code.crypto_hints import AnalysisPlugin
 
@@ -11,11 +11,7 @@ TEST_DATA_DIR = Path(__file__).parent / 'data'
 class TestAnalysisPluginCryptoHints(AnalysisPluginTest):
 
     PLUGIN_NAME = 'crypto_hints'
-
-    def setUp(self):
-        super().setUp()
-        config = self.init_basic_config()
-        self.analysis_plugin = AnalysisPlugin(self, config=config)
+    PLUGIN_CLASS = AnalysisPlugin
 
     def test_basic_scan_feature(self):
         test_file = FileObject(file_path=str(TEST_DATA_DIR / 'CRC32_table'))

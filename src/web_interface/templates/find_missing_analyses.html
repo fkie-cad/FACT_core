@@ -35,43 +35,6 @@
 
 {% block body %}
 
-{# missing_files #}
-{% call missing_analyses_block(missing_files, "Missing Files", "Parent Object UID", "Missing File UID") %}
-                {% for parent_uid, uid_list in missing_files.tuples | sort -%}
-                <tr>
-                    <td>
-                        <a href='/analysis/{{ parent_uid }}'>{{ parent_uid }}</a>
-                    </td>
-                    <td>
-                        <div class="list-group" style="font-size: 15px">
-                            <div data-toggle="collapse" data-target="#uid_{{ parent_uid }}" class="list-group-item list-group-item-primary d-flex justify-content-between align-items-center">
-                                show files <span class="badge badge-primary badge-pill">{{ uid_list | length }}</span>
-                            </div>
-                            <div id="uid_{{ parent_uid }}" class="collapse">
-                                {% for uid in uid_list %}
-                                    <div class="list-group-item">{{ uid }}</div>
-                                {% endfor %}
-                            </div>
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
-{% endcall %}
-
-{# orphaned_files #}
-{% call missing_analyses_block(orphaned_files, "Orphaned Files", "Missing Parent Firmware UID", "File UID") %}
-                {%- for parent_uid, uid_list in orphaned_files.tuples | sort -%}
-                <tr>
-                    <td>
-                        {{ parent_uid }}
-                    </td>
-                    <td>
-                        {{ uid_list | nice_uid_list(filename_only=True) | safe }}
-                    </td>
-                </tr>
-                {%- endfor -%}
-{% endcall %}
-
 {# missing_analyses #}
 {% call missing_analyses_block(missing_analyses, "Missing Analyses", "Parent Firmware", "Files Missing Analyses") %}
                 {% for parent_uid, uid_list in missing_analyses.tuples | sort -%}

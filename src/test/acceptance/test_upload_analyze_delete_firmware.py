@@ -5,7 +5,7 @@ from helperFunctions.database import ConnectTo
 from intercom.front_end_binding import InterComFrontEndBinding
 from storage.db_interface_frontend import FrontEndDbInterface
 from storage.fsorganizer import FSOrganizer
-from test.acceptance.base_full_start import TestAcceptanceBaseFullStart
+from test.acceptance.base_full_start import TestAcceptanceBaseFullStart  # pylint: disable=wrong-import-order
 
 
 class TestAcceptanceAnalyzeFirmware(TestAcceptanceBaseFullStart):
@@ -21,18 +21,19 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBaseFullStart):
         default_plugins = [p for p in plugins if p != 'unpacker' and plugins[p][2]['default']]
         optional_plugins = [p for p in plugins if not (plugins[p][1] or plugins[p][2])]
         for mandatory_plugin in mandatory_plugins:
-            self.assertNotIn('id="{}"'.format(mandatory_plugin).encode(), rv.data, 'mandatory plugin {} found erroneously'.format(mandatory_plugin))
+            self.assertNotIn(f'id="{mandatory_plugin}"'.encode(), rv.data,
+                             f'mandatory plugin {mandatory_plugin} found erroneously')
         for default_plugin in default_plugins:
-            self.assertIn('value="{}" checked'.format(default_plugin).encode(), rv.data,
-                          'default plugin {} erroneously unchecked or not found'.format(default_plugin))
+            self.assertIn(f'value="{default_plugin}" checked'.encode(), rv.data,
+                          f'default plugin {default_plugin} erroneously unchecked or not found')
         for optional_plugin in optional_plugins:
-            self.assertIn('value="{}" unchecked'.format(optional_plugin).encode(), rv.data,
-                          'optional plugin {} erroneously checked or not found'.format(optional_plugin))
+            self.assertIn(f'value="{optional_plugin}" unchecked'.encode(), rv.data,
+                          f'optional plugin {optional_plugin} erroneously checked or not found')
 
     def _show_analysis_page(self):
-        with ConnectTo(FrontEndDbInterface, self.config) as connection:
-            self.assertIsNotNone(connection.firmwares.find_one({'_id': self.test_fw_a.uid}), 'Error: Test firmware not found in DB!')
-        rv = self.test_client.get('/analysis/{}'.format(self.test_fw_a.uid))
+        db = FrontEndDbInterface(self.config)
+        assert db.exists(self.test_fw_a.uid), 'Error: Test firmware not found in DB!'
+        rv = self.test_client.get(f'/analysis/{self.test_fw_a.uid}')
         self.assertIn(self.test_fw_a.uid.encode(), rv.data)
         self.assertIn(self.test_fw_a.name.encode(), rv.data)
         self.assertIn(b'test_class', rv.data)
@@ -43,9 +44,9 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBaseFullStart):
         self.assertIn(b'Admin</button>', rv.data, 'admin options not shown with disabled auth')
 
     def _check_ajax_file_tree_routes(self):
-        rv = self.test_client.get('/ajax_tree/{}/{}'.format(self.test_fw_a.uid, self.test_fw_a.uid))
+        rv = self.test_client.get(f'/ajax_tree/{self.test_fw_a.uid}/{self.test_fw_a.uid}')
         self.assertIn(b'"children":', rv.data)
-        rv = self.test_client.get('/ajax_root/{}/{}'.format(self.test_fw_a.uid, self.test_fw_a.uid))
+        rv = self.test_client.get(f'/ajax_root/{self.test_fw_a.uid}/{self.test_fw_a.uid}')
         self.assertIn(b'"children":', rv.data)
 
     def _check_ajax_on_demand_binary_load(self):
@@ -53,7 +54,7 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBaseFullStart):
         self.assertIn(b'test file', rv.data)
 
     def _show_analysis_details_file_type(self):
-        rv = self.test_client.get('/analysis/{}/file_type'.format(self.test_fw_a.uid))
+        rv = self.test_client.get(f'/analysis/{self.test_fw_a.uid}/file_type')
         self.assertIn(b'application/zip', rv.data)
         self.assertIn(b'Zip archive data', rv.data)
         self.assertNotIn(b'<pre><code>', rv.data, 'generic template used instead of specific template -> sync view error!')
@@ -63,18 +64,18 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBaseFullStart):
         self.assertIn(self.test_fw_a.uid.encode(), rv.data, 'test firmware not found under recent analysis on home page')
 
     def _re_do_analysis_get(self):
-        rv = self.test_client.get('/admin/re-do_analysis/{}'.format(self.test_fw_a.uid))
+        rv = self.test_client.get(f'/admin/re-do_analysis/{self.test_fw_a.uid}')
         self.assertIn(b'<input type="hidden" name="file_name" id="file_name" value="' + self.test_fw_a.file_name.encode() + b'">', rv.data, 'file name not set in re-do page')
 
     def _delete_firmware(self):
         fs_backend = FSOrganizer(config=self.config)
         local_firmware_path = Path(fs_backend.generate_path_from_uid(self.test_fw_a.uid))
         self.assertTrue(local_firmware_path.exists(), 'file not found before delete')
-        rv = self.test_client.get('/admin/delete/{}'.format(self.test_fw_a.uid))
+        rv = self.test_client.get(f'/admin/delete/{self.test_fw_a.uid}')
         self.assertIn(b'Deleted 4 file(s) from database', rv.data, 'deletion success page not shown')
-        rv = self.test_client.get('/analysis/{}'.format(self.test_fw_a.uid))
+        rv = self.test_client.get(f'/analysis/{self.test_fw_a.uid}')
         self.assertIn(b'File not found in database', rv.data, 'file is still available after delete')
-        time.sleep(5)
+        time.sleep(3)
         self.assertFalse(local_firmware_path.exists(), 'file not deleted')
 
     def test_run_from_upload_via_show_analysis_to_delete(self):

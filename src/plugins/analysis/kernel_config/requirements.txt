@@ -1,1 +1,1 @@
-git+https://github.com/a13xp0p0v/kconfig-hardened-check
+git+https://github.com/a13xp0p0v/kconfig-hardened-check@v0.5.14 

@@ -1,7 +1,5 @@
 from flask_restx import Namespace
 
-from helperFunctions.database import ConnectTo
-from storage.db_interface_statistic import StatisticDbViewer
 from web_interface.rest.helper import error_message
 from web_interface.rest.rest_resource_base import RestResourceBase
 from web_interface.security.decorator import roles_accepted
@@ -33,12 +31,11 @@ class RestStatisticsWithoutName(RestResourceBase):
         '''
         Get all statistics
         '''
-        with ConnectTo(StatisticDbViewer, self.config) as stats_db:
-            statistics_dict = {}
-            for stat in STATISTICS:
-                statistics_dict[stat] = stats_db.get_statistic(stat)
+        statistics_dict = {}
+        for stat in STATISTICS:
+            statistics_dict[stat] = self.db.stats_viewer.get_statistic(stat)
 
-            _delete_id_and_check_empty_stat(statistics_dict)
+        _delete_id_and_check_empty_stat(statistics_dict)
 
         return statistics_dict
 
@@ -59,9 +56,8 @@ class RestStatisticsWithName(RestResourceBase):
         '''
         Get specific statistic
         '''
-        with ConnectTo(StatisticDbViewer, self.config) as stats_db:
-            statistic_dict = {stat_name: stats_db.get_statistic(stat_name)}
-            _delete_id_and_check_empty_stat(statistic_dict)
+        statistic_dict = {stat_name: self.db.stats_viewer.get_statistic(stat_name)}
+        _delete_id_and_check_empty_stat(statistic_dict)
         if stat_name not in STATISTICS:
             return error_message(f'A statistic with the ID {stat_name} does not exist', self.URL, dict(stat_name=stat_name))
 

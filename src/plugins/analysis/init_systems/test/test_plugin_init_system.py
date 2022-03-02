@@ -1,14 +1,17 @@
+# pylint: disable=protected-access,no-member
 import os
 
 from common_helper_files import get_dir_of_file
 
 from objects.file import FileObject
 from plugins.analysis.init_systems.code.init_system import AnalysisPlugin
-from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
+from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest  # pylint: disable=wrong-import-order
 
 
 class TestAnalysisPluginInit(AnalysisPluginTest):
+
     PLUGIN_NAME = 'init_systems'
+    PLUGIN_CLASS = AnalysisPlugin
 
     @classmethod
     def setUpClass(cls):
@@ -36,11 +39,6 @@ class TestAnalysisPluginInit(AnalysisPluginTest):
 
         cls.test_file_not_text = FileObject(file_path='{}etc/systemd/system/foobar'.format(test_init_dir))
         cls.test_file_not_text.processed_analysis['file_type'] = {'mime': 'application/zip'}
-
-    def setUp(self):
-        super().setUp()
-        config = self.init_basic_config()
-        self.analysis_plugin = AnalysisPlugin(self, config=config)
 
     def test_get_systemd_config(self):
         processed_file = self.analysis_plugin.process_object(self.test_file_systemd)

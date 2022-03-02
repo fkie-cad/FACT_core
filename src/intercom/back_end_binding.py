@@ -7,25 +7,28 @@ from typing import Callable, Optional, Tuple, Type
 
 from common_helper_mongo.gridfs import overwrite_file
 
-from helperFunctions.database import ConnectTo
+from helperFunctions.process import stop_processes
 from helperFunctions.program_setup import get_log_file_for_component
 from helperFunctions.yara_binary_search import YaraBinarySearchScanner
 from intercom.common_mongo_binding import InterComListener, InterComListenerAndResponder, InterComMongoInterface
 from storage.binary_service import BinaryService
-from storage.db_interface_common import MongoInterfaceCommon
+from storage.db_interface_common import DbInterfaceCommon
 from storage.fsorganizer import FSOrganizer
+from storage.unpacking_locks import UnpackingLockManager
 
 
-class InterComBackEndBinding:
+class InterComBackEndBinding:  # pylint: disable=too-many-instance-attributes
     '''
     Internal Communication Backend Binding
     '''
 
-    def __init__(self, config=None, analysis_service=None, compare_service=None, unpacking_service=None, testing=False):
+    def __init__(self, config=None, analysis_service=None, compare_service=None, unpacking_service=None,
+                 unpacking_locks=None, testing=False):
         self.config = config
         self.analysis_service = analysis_service
         self.compare_service = compare_service
         self.unpacking_service = unpacking_service
+        self.unpacking_locks = unpacking_locks
         self.poll_delay = self.config['ExpertSettings'].getfloat('intercom_poll_delay')
 
         self.stop_condition = Value('i', 0)
@@ -43,24 +46,24 @@ class InterComBackEndBinding:
         self._start_listener(InterComBackEndTarRepackTask)
         self._start_listener(InterComBackEndBinarySearchTask)
         self._start_listener(InterComBackEndUpdateTask, self.analysis_service.update_analysis_of_object_and_children)
-        self._start_listener(InterComBackEndDeleteFile)
+        self._start_listener(InterComBackEndDeleteFile, unpacking_locks=self.unpacking_locks,
+                             db_interface=DbInterfaceCommon(config=self.config))
         self._start_listener(InterComBackEndSingleFileTask, self.analysis_service.update_analysis_of_single_object)
         self._start_listener(InterComBackEndPeekBinaryTask)
         self._start_listener(InterComBackEndLogsTask)
 
     def shutdown(self):
         self.stop_condition.value = 1
-        for item in self.process_list:
-            item.join()
-        logging.info('InterCom down')
+        stop_processes(self.process_list)
+        logging.warning('InterCom down')
 
-    def _start_listener(self, listener: Type[InterComListener], do_after_function: Optional[Callable] = None):
-        process = Process(target=self._backend_worker, args=(listener, do_after_function))
+    def _start_listener(self, listener: Type[InterComListener], do_after_function: Optional[Callable] = None, **kwargs):
+        process = Process(target=self._backend_worker, args=(listener, do_after_function, kwargs))
         process.start()
         self.process_list.append(process)
 
-    def _backend_worker(self, listener: Type[InterComListener], do_after_function: Optional[Callable]):
-        interface = listener(config=self.config)
+    def _backend_worker(self, listener: Type[InterComListener], do_after_function: Optional[Callable], additional_args):
+        interface = listener(config=self.config, **additional_args)
         logging.debug(f'{listener.__name__} listener started')
         while self.stop_condition.value == 0:
             task = interface.get_next_task()
@@ -180,24 +183,27 @@ class InterComBackEndDeleteFile(InterComListener):
 
     CONNECTION_TYPE = 'file_delete_task'
 
-    def __init__(self, config=None):
+    def __init__(self, config=None, unpacking_locks=None, db_interface=None):
         super().__init__(config)
         self.fs_organizer = FSOrganizer(config=config)
+        self.db = db_interface
+        self.unpacking_locks: UnpackingLockManager = unpacking_locks
 
     def post_processing(self, task, task_id):
-        if self._entry_was_removed_from_db(task['_id']):
-            logging.info('remove file: {}'.format(task['_id']))
-            self.fs_organizer.delete_file(task['_id'])
+        # task is a UID list here
+        for uid in task:
+            if self._entry_was_removed_from_db(uid):
+                logging.info(f'removing file: {uid}')
+                self.fs_organizer.delete_file(uid)
         return task
 
-    def _entry_was_removed_from_db(self, uid):
-        with ConnectTo(MongoInterfaceCommon, self.config) as db:
-            if db.exists(uid):
-                logging.debug('file not removed, because database entry exists: {}'.format(uid))
-                return False
-            if db.check_unpacking_lock(uid):
-                logging.debug('file not removed, because it is processed by unpacker: {}'.format(uid))
-                return False
+    def _entry_was_removed_from_db(self, uid: str) -> bool:
+        if self.db.exists(uid):
+            logging.debug(f'file not removed, because database entry exists: {uid}')
+            return False
+        if self.unpacking_locks is not None and self.unpacking_locks.unpacking_lock_is_set(uid):
+            logging.debug(f'file not removed, because it is processed by unpacker: {uid}')
+            return False
         return True
 
 

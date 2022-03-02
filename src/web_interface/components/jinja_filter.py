@@ -7,12 +7,11 @@ from flask import render_template
 
 import web_interface.filter as flt
 from helperFunctions.data_conversion import none_to_none
-from helperFunctions.database import ConnectTo
 from helperFunctions.hash import get_md5
 from helperFunctions.uid import is_list_of_uids, is_uid
 from helperFunctions.virtual_file_path import split_virtual_path
 from helperFunctions.web_interface import cap_length_of_element, get_color_list
-from storage.db_interface_frontend import FrontEndDbInterface
+from storage.db_interface_frontend import MetaEntry
 from web_interface.filter import elapsed_time, random_collapse_id
 
 
@@ -21,23 +20,23 @@ class FilterClass:
     This is WEB front end main class
     '''
 
-    def __init__(self, app, program_version, config):
+    def __init__(self, app, program_version, config, frontend_db, **_):
         self._program_version = program_version
         self._app = app
         self._config = config
+        self.db = frontend_db
 
         self._setup_filters()
 
     def _filter_print_program_version(self, *_):
-        return '{}'.format(self._program_version)
+        return f'{self._program_version}'
 
     def _filter_replace_uid_with_file_name(self, input_data):
         tmp = input_data.__str__()
         uid_list = flt.get_all_uids_in_string(tmp)
         for item in uid_list:
-            with ConnectTo(FrontEndDbInterface, self._config) as sc:
-                file_name = sc.get_file_name(item)
-            tmp = tmp.replace('>{}<'.format(item), '>{}<'.format(file_name))
+            file_name = self.db.get_file_name(item)
+            tmp = tmp.replace(f'>{item}<', f'>{file_name}<')
         return tmp
 
     def _filter_replace_uid_with_hid(self, input_data, root_uid=None):
@@ -45,9 +44,8 @@ class FilterClass:
         if tmp == 'None':
             return ' '
         uid_list = flt.get_all_uids_in_string(tmp)
-        with ConnectTo(FrontEndDbInterface, self._config) as sc:
-            for item in uid_list:
-                tmp = tmp.replace(item, sc.get_hid(item, root_uid=root_uid))
+        for item in uid_list:
+            tmp = tmp.replace(item, self.db.get_hid(item, root_uid=root_uid))
         return tmp
 
     def _filter_replace_comparison_uid_with_hid(self, input_data, root_uid=None):
@@ -56,23 +54,21 @@ class FilterClass:
         return '  ||  '.join(res)
 
     def _filter_replace_uid_with_hid_link(self, input_data, root_uid=None):
-        tmp = input_data.__str__()
-        if tmp == 'None':
+        content = str(input_data)
+        if content == 'None':
             return ' '
-        uid_list = flt.get_all_uids_in_string(tmp)
-        with ConnectTo(FrontEndDbInterface, self._config) as sc:
-            for item in uid_list:
-                tmp = tmp.replace(item, '<a style="text-reset" href="/analysis/{}/ro/{}">{}</a>'.format(
-                    item, root_uid, sc.get_hid(item, root_uid=root_uid)))
-        return tmp
+        uid_list = flt.get_all_uids_in_string(content)
+        for uid in uid_list:
+            hid = self.db.get_hid(uid, root_uid=root_uid)
+            content = content.replace(uid, f'<a style="text-reset" href="/analysis/{uid}/ro/{root_uid}">{hid}</a>')
+        return content
 
     def _filter_nice_uid_list(self, uids, root_uid=None, selected_analysis=None, filename_only=False):
         root_uid = none_to_none(root_uid)
         if not is_list_of_uids(uids):
             return uids
 
-        with ConnectTo(FrontEndDbInterface, self._config) as sc:
-            analyzed_uids = sc.get_data_for_nice_list(uids, root_uid)
+        analyzed_uids = self.db.get_data_for_nice_list(uids, root_uid)
         number_of_unanalyzed_files = len(uids) - len(analyzed_uids)
         first_item = analyzed_uids.pop(0)
 
@@ -96,22 +92,23 @@ class FilterClass:
 
     @staticmethod
     def _virtual_path_element_to_span(hid_element: str, uid_element, root_uid) -> str:
+        hid = cap_length_of_element(hid_element)
         if is_uid(uid_element):
             return (
                 '<span class="badge badge-primary">'
-                '    <a style="color: #fff" href="/analysis/{uid}/ro/{root_uid}">'
-                '        {hid}'
+                f'    <a style="color: #fff" href="/analysis/{uid_element}/ro/{root_uid}">'
+                f'        {hid}'
                 '    </a>'
-                '</span>'.format(uid=uid_element, root_uid=root_uid, hid=cap_length_of_element(hid_element))
+                '</span>'
             )
-        return '<span class="badge badge-secondary">{}</span>'.format(cap_length_of_element(hid_element))
+        return f'<span class="badge badge-secondary">{hid}</span>'
 
     @staticmethod
     def _render_firmware_detail_tabular_field(firmware_meta_data):
         return render_template('generic_view/firmware_detail_tabular_field.html', firmware=firmware_meta_data)
 
     @staticmethod
-    def _render_general_information_table(firmware, root_uid, other_versions, selected_analysis):
+    def _render_general_information_table(firmware: MetaEntry, root_uid: str, other_versions, selected_analysis):
         return render_template(
             'generic_view/general_information.html',
             firmware=firmware, root_uid=root_uid, other_versions=other_versions, selected_analysis=selected_analysis

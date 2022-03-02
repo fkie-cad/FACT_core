@@ -7,15 +7,15 @@ class TestAcceptanceCompareFirmwares(TestAcceptanceBaseFullStart):
     NUMBER_OF_PLUGINS = 2
 
     def _add_firmwares_to_compare(self):
-        rv = self.test_client.get('/analysis/{}'.format(self.test_fw_a.uid))
+        rv = self.test_client.get(f'/analysis/{self.test_fw_a.uid}')
         self.assertIn(self.test_fw_a.uid, rv.data.decode(), '')
-        rv = self.test_client.get('/comparison/add/{}'.format(self.test_fw_a.uid), follow_redirects=True)
+        rv = self.test_client.get(f'/comparison/add/{self.test_fw_a.uid}', follow_redirects=True)
         self.assertIn('Firmware Selected for Comparison', rv.data.decode())
 
-        rv = self.test_client.get('/analysis/{}'.format(self.test_fw_c.uid))
+        rv = self.test_client.get(f'/analysis/{self.test_fw_c.uid}')
         self.assertIn(self.test_fw_c.uid, rv.data.decode())
         self.assertIn(self.test_fw_c.name, rv.data.decode())
-        rv = self.test_client.get('/comparison/add/{}'.format(self.test_fw_c.uid), follow_redirects=True)
+        rv = self.test_client.get(f'/comparison/add/{self.test_fw_c.uid}', follow_redirects=True)
         self.assertIn('Remove All', rv.data.decode())
 
     def _start_compare(self):
@@ -23,7 +23,7 @@ class TestAcceptanceCompareFirmwares(TestAcceptanceBaseFullStart):
         self.assertIn(b'Your compare task is in progress.', rv.data, 'compare wait page not displayed correctly')
 
     def _show_comparison_results(self):
-        rv = self.test_client.get('/compare/{};{}'.format(self.test_fw_a.uid, self.test_fw_c.uid))
+        rv = self.test_client.get(f'/compare/{self.test_fw_a.uid};{self.test_fw_c.uid}')
         self.assertIn(self.test_fw_a.name.encode(), rv.data, 'test firmware a comparison not displayed correctly')
         self.assertIn(self.test_fw_c.name.encode(), rv.data, 'test firmware b comparison not displayed correctly')
         self.assertIn(b'File Coverage', rv.data, 'comparison page not displayed correctly')
@@ -37,11 +37,11 @@ class TestAcceptanceCompareFirmwares(TestAcceptanceBaseFullStart):
         self.assertIn(self.test_fw_a.name.encode(), rv.data, 'no compare result shown in browse')
 
     def _show_analysis_without_compare_list(self):
-        rv = self.test_client.get('/analysis/{}'.format(self.test_fw_a.uid))
+        rv = self.test_client.get(f'/analysis/{self.test_fw_a.uid}')
         assert b'Show list of known comparisons' not in rv.data
 
     def _show_analysis_with_compare_list(self):
-        rv = self.test_client.get('/analysis/{}'.format(self.test_fw_a.uid))
+        rv = self.test_client.get(f'/analysis/{self.test_fw_a.uid}')
         assert b'Show list of known comparisons' in rv.data
 
     def test_compare_firmwares(self):
