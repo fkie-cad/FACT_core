@@ -1,5 +1,4 @@
 import logging
-import pickle
 from time import sleep, time
 from typing import Any, Optional
 
@@ -30,11 +29,10 @@ class InterComFrontEndBinding(InterComRedisInterface):
         self._add_to_redis_queue('file_delete_task', uid_list)
 
     def get_available_analysis_plugins(self):
-        plugin_file = self.redis.get('analysis_plugins')
-        if plugin_file is not None:
-            plugin_dict = pickle.loads(plugin_file)
-            return plugin_dict
-        raise Exception('No available plug-ins found. FACT backend might be down!')
+        plugin_dict = self.redis.get('analysis_plugins', delete=False)
+        if plugin_dict is None:
+            raise Exception('No available plug-ins found. FACT backend might be down!')
+        return plugin_dict
 
     def get_binary_and_filename(self, uid):
         return self._request_response_listener(uid, 'raw_download_task', 'raw_download_task_resp')
@@ -51,7 +49,7 @@ class InterComFrontEndBinding(InterComRedisInterface):
         return request_id
 
     def get_binary_search_result(self, request_id):
-        result = self._response_listener('binary_search_task_resp', request_id, timeout=time() + 10, delete=False)
+        result = self._response_listener('binary_search_task_resp', request_id, timeout=time() + 10)
         return result if result is not None else (None, None)
 
     def get_backend_logs(self):
@@ -64,16 +62,13 @@ class InterComFrontEndBinding(InterComRedisInterface):
         sleep(1)
         return self._response_listener(response_connection, request_id)
 
-    def _response_listener(self, response_connection, request_id, timeout=None, delete=True):
+    def _response_listener(self, response_connection, request_id, timeout=None):
         output_data = None
         if timeout is None:
             timeout = time() + int(self.config['ExpertSettings'].get('communication_timeout', '60'))
         while timeout > time():
-            resp = self.redis.get(request_id)
-            if resp:
-                output_data = pickle.loads(resp)
-                if delete:
-                    self.redis.delete(request_id)
+            output_data = self.redis.get(request_id)
+            if output_data:
                 logging.debug(f'Response received: {response_connection} -> {request_id}')
                 break
             logging.debug(f'No response yet: {response_connection} -> {request_id}')
@@ -81,4 +76,4 @@ class InterComFrontEndBinding(InterComRedisInterface):
         return output_data
 
     def _add_to_redis_queue(self, key: str, data: Any, task_id: Optional[str] = None):
-        self.redis.rpush(key, pickle.dumps((data, task_id)))
+        self.redis.queue_put(key, (data, task_id))

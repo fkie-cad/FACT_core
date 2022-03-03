@@ -4,9 +4,10 @@ from configparser import ConfigParser
 from time import time
 from typing import Any
 
-from redis import Redis
+from redis.exceptions import RedisError
 
 from helperFunctions.hash import get_sha256
+from storage.redis_interface import RedisInterface
 
 
 def generate_task_id(input_data: Any) -> str:
@@ -18,10 +19,7 @@ def generate_task_id(input_data: Any) -> str:
 class InterComRedisInterface:
     def __init__(self, config: ConfigParser):
         self.config = config
-        redis_db = config.getint('data_storage', 'redis_fact_db')
-        redis_host = config.get('data_storage', 'redis_host')
-        redis_port = config.getint('data_storage', 'redis_port')
-        self.redis = Redis(host=redis_host, port=redis_port, db=redis_db)
+        self.redis = RedisInterface(config)
 
     INTERCOM_CONNECTION_TYPES = [
         'test',
@@ -57,12 +55,12 @@ class InterComListener(InterComRedisInterface):
 
     def get_next_task(self):
         try:
-            task_obj = self.redis.lpop(self.CONNECTION_TYPE)
-        except Exception as exc:
+            task_obj = self.redis.queue_get(self.CONNECTION_TYPE)
+        except RedisError as exc:
             logging.error(f'Could not get next task: {str(exc)}', exc_info=True)
             return None
         if task_obj is not None:
-            task, task_id = pickle.loads(task_obj)
+            task, task_id = task_obj
             task = self.post_processing(task, task_id)
             logging.debug(f'{self.CONNECTION_TYPE}: New task received: {task}')
             return task
@@ -86,7 +84,7 @@ class InterComListenerAndResponder(InterComListener):
     def post_processing(self, task, task_id):
         logging.debug(f'request received: {self.CONNECTION_TYPE} -> {task_id}')
         response = self.get_response(task)
-        self.redis.set(task_id, pickle.dumps(response))
+        self.redis.set(task_id, response)
         logging.debug(f'response send: {self.OUTGOING_CONNECTION_TYPE} -> {task_id}')
         return task
 

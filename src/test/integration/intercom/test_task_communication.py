@@ -37,7 +37,7 @@ class TestInterComTaskCommunication(unittest.TestCase):
         self.backend = None
 
     def tearDown(self):
-        self.frontend.redis.flushdb()
+        self.frontend.redis.redis.flushdb()
         gc.collect()
 
     @classmethod

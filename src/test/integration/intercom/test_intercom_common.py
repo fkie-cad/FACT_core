@@ -1,11 +1,10 @@
-import pickle
+# pylint: disable=redefined-outer-name,wrong-import-order
 
 import pytest
 
 from intercom.common_redis_binding import InterComListener
+from storage.redis_interface import REDIS_MAX_VALUE_SIZE
 from test.common_helper import get_config_for_testing
-
-REDIS_MAX_VALUE_SIZE = 512_000_000
 
 
 @pytest.fixture(scope='function')
@@ -14,11 +13,11 @@ def listener():
     try:
         yield generic_listener
     finally:
-        generic_listener.redis.flushdb()
+        generic_listener.redis.redis.flushdb()
 
 
 def check_file(binary, generic_listener):
-    generic_listener.redis.rpush(generic_listener.CONNECTION_TYPE, pickle.dumps((binary, 'task_id')))
+    generic_listener.redis.queue_put(generic_listener.CONNECTION_TYPE, (binary, 'task_id'))
     task = generic_listener.get_next_task()
     assert task == binary
     another_task = generic_listener.get_next_task()
@@ -29,8 +28,7 @@ def test_small_file(listener):
     check_file(b'this is a test', listener)
 
 
-# ToDo: fix intercom for larger values
-@pytest.mark.skip(reason='fixme plz')
+@pytest.mark.skip(reason='should not run on CI')
 def test_big_file(listener):
-    large_test_data = b'\x00' * (REDIS_MAX_VALUE_SIZE + 1024)
+    large_test_data = b'\x00' * int(REDIS_MAX_VALUE_SIZE * 1.2)
     check_file(large_test_data, listener)

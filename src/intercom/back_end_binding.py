@@ -1,5 +1,4 @@
 import logging
-import pickle
 from multiprocessing import Process, Value
 from pathlib import Path
 from time import sleep
@@ -81,7 +80,7 @@ class InterComBackEndAnalysisPlugInsPublisher(InterComRedisInterface):
 
     def publish_available_analysis_plugins(self, analysis_service):
         available_plugin_dictionary = analysis_service.get_plugin_dict()
-        self.redis.set('analysis_plugins', pickle.dumps(available_plugin_dictionary))
+        self.redis.set('analysis_plugins', available_plugin_dictionary)
 
 
 class InterComBackEndAnalysisTask(InterComListener):
