@@ -14,7 +14,7 @@ CODENAME_TRANSLATION = {
 }
 
 
-def install_postgres():
+def install_postgres(version: int = 14):
     codename = execute_shell_command('lsb_release -cs').rstrip()
     codename = CODENAME_TRANSLATION.get(codename, codename)
     # based on https://www.postgresql.org/download/linux/ubuntu/
@@ -22,12 +22,17 @@ def install_postgres():
         f'sudo sh -c \'echo "deb [arch=amd64] http://apt.postgresql.org/pub/repos/apt {codename}-pgdg main" > /etc/apt/sources.list.d/pgdg.list\'',
         'wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -',
         'sudo apt-get update',
-        'sudo apt-get -y install postgresql-14'
+        f'sudo apt-get -y install postgresql-{version}'
     ]
     for command in command_list:
         output, return_code = execute_shell_command_get_return_code(command)
         if return_code != 0:
             raise InstallationError(f'Failed to set up PostgreSQL: {output}')
+
+    # increase the maximum number of concurrent connections (and restart for the change to take effect)
+    config_path = f'/etc/postgresql/{version}/main/postgresql.conf'
+    execute_shell_command(f'sudo sed -i -E "s/max_connections = [0-9]+/max_connections = 999/g" {config_path}')
+    execute_shell_command('sudo service postgresql restart')
 
 
 def postgres_is_installed():
