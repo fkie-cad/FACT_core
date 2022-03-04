@@ -1,8 +1,8 @@
 from flask import request
 from flask_restx import Namespace
-from pymongo.errors import PyMongoError
 
 from helperFunctions.object_conversion import create_meta_dict
+from storage.db_interface_base import DbInterfaceError
 from web_interface.rest.helper import error_message, get_paging, get_query, success_message
 from web_interface.rest.rest_resource_base import RestResourceBase
 from web_interface.security.decorator import roles_accepted
@@ -39,7 +39,7 @@ class RestFileObjectWithoutUid(RestResourceBase):
         try:
             uids = self.db.frontend.rest_get_file_object_uids(**parameters)
             return success_message(dict(uids=uids), self.URL, parameters)
-        except PyMongoError:
+        except DbInterfaceError:
             return error_message('Unknown exception on request', self.URL, parameters)
 
 

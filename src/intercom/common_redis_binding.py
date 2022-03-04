@@ -42,9 +42,6 @@ class InterComRedisInterface:
         'logs_task_resp'
     ]
 
-    def _setup_database_mapping(self):
-        pass
-
 
 class InterComListener(InterComRedisInterface):
     '''
