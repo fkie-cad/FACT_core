@@ -111,7 +111,7 @@
             <h3>
                 {{ firmware.get_hid(root_uid=root_uid) }}<br />
                 {% if firmware.analysis_tags or firmware.tags %}
-                    {{ firmware.analysis_tags | render_analysis_tags | safe }} {{ firmware.tags | render_tags | safe }}<br />
+                    {{ firmware.analysis_tags | render_analysis_tags | safe }} {{ firmware.tags | render_fw_tags | safe }}<br />
                 {% endif %}
                 <span style="font-size: 15px"><strong>UID:</strong> {{ uid | safe }}</span>
             </h3>

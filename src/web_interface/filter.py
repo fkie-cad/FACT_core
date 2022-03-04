@@ -264,12 +264,11 @@ def comment_out_regex_meta_chars(input_data):
     return input_data
 
 
-def render_tags(tag_dict, additional_class='', size=14):
+def render_fw_tags(tag_dict, size=14):
     output = ''
     if tag_dict:
-        for tag in sorted(tag_dict.keys()):
-            output += '<span class="badge badge-{} {}" style="font-size: {}px;">{}</span>\n'.format(
-                _fix_color_class(tag_dict[tag]), additional_class, size, tag)
+        for tag, color in sorted(tag_dict.items()):
+            output += render_template('generic_view/tags.html', color=color, value=tag, size=size)
     return output
 
 
@@ -278,8 +277,11 @@ def render_analysis_tags(tags, size=14):
     if tags:
         for plugin_name in tags:
             for key, tag in tags[plugin_name].items():
-                output += '<span class="badge badge-{}" style="font-size: {}px;" data-toggle="tooltip" title="{}: {}">{}</span>\n'.format(
-                    _fix_color_class(tag['color']), size, replace_underscore_filter(plugin_name), replace_underscore_filter(key), tag['value']
+                if key == 'root_uid':
+                    continue
+                output += render_template(
+                    'generic_view/tags.html',
+                    color=tag['color'], value=tag['value'], tooltip=f'{plugin_name}: {key}', size=size
                 )
     return output
 
