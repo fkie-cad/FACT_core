@@ -16,7 +16,7 @@ class TestAppShowAnalysis(WebInterfaceTest):
             return render_template_string(
                 f'<html><body><div>{{{{ data | {filter_name} | safe }}}}</div></body></html>',
                 data=data
-            )
+            ).replace('\n', '')
 
     def test_filter_replace_uid_with_file_name(self):
         test_string = '"abcdefghijk>deadbeef00000000000000000000000000000000000000000000000000000000_123<abcdefghijk"'
@@ -29,13 +29,13 @@ class TestAppShowAnalysis(WebInterfaceTest):
     def test_filter_firmware_detail_tabular_field(self):
         test_firmware_meta_data = MetaEntry('UID', 'HID', {'tag1': 'danger', 'tag2': 'default'}, 0)
         result = self._get_template_filter_output(test_firmware_meta_data, 'firmware_detail_tabular_field')
-        for expected_part in ['/analysis/UID', 'HID', '>tag1<', '>tag2<']:
+        for expected_part in ['/analysis/UID', 'HID', 'tag1<', 'tag2<']:
             assert expected_part in result
 
     def test_filter_replace_uid_with_hid(self):
-        one_uid = '{}_1234'.format('a' * 64)
-        assert self.filter._filter_replace_uid_with_hid('{0}_{0}'.format(one_uid)) == 'TEST_FW_HID_TEST_FW_HID'
+        one_uid = f'{"a" * 64}_1234'
+        assert self.filter._filter_replace_uid_with_hid(f'{one_uid}_{one_uid}') == 'TEST_FW_HID_TEST_FW_HID'
 
     def test_filter_replace_comparison_uid_with_hid(self):
-        one_uid = '{}_1234'.format('a' * 64)
-        assert self.filter._filter_replace_comparison_uid_with_hid('{0};{0}'.format(one_uid)) == 'TEST_FW_HID  ||  TEST_FW_HID'
+        one_uid = f'{"a" * 64}_1234'
+        assert self.filter._filter_replace_comparison_uid_with_hid(f'{one_uid};{one_uid}') == 'TEST_FW_HID  ||  TEST_FW_HID'

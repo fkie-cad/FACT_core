@@ -11,10 +11,10 @@ from web_interface.filter import (
     filter_format_string_list_with_offset, fix_cwe, format_duration, generic_nice_representation,
     get_all_uids_in_string, get_unique_keys_from_list_of_dicts, infection_color, is_not_mandatory_analysis_entry,
     list_group, list_to_line_break_string, list_to_line_break_string_no_sort, nice_number_filter, nice_unix_time,
-    random_collapse_id, render_analysis_tags, render_fw_tags, replace_cve_with_link, replace_cwe_with_link,
-    replace_underscore_filter, set_limit_for_data_to_chart, sort_chart_list_by_name, sort_chart_list_by_value,
-    sort_comments, sort_cve_results, sort_roles_by_number_of_privileges, sort_users_by_name, text_highlighter,
-    uids_to_link, user_has_role, vulnerability_class
+    random_collapse_id, replace_cve_with_link, replace_cwe_with_link, replace_underscore_filter,
+    set_limit_for_data_to_chart, sort_chart_list_by_name, sort_chart_list_by_value, sort_comments, sort_cve_results,
+    sort_roles_by_number_of_privileges, sort_users_by_name, text_highlighter, uids_to_link, user_has_role,
+    vulnerability_class
 )
 
 UNSORTABLE_LIST = [[], ()]
@@ -192,43 +192,6 @@ def test_nice_number(input_data, expected):
 ])
 def test_generic_nice_representation(input_data, expected):
     assert generic_nice_representation(input_data) == expected
-
-
-@pytest.mark.parametrize('tag_dict, output', [
-    ({'a': 'danger'}, '<span class="badge badge-danger " style="font-size: 14px;">a</span>\n'),
-    (
-        {'a': 'danger', 'b': 'primary'},
-        '<span class="badge badge-danger " style="font-size: 14px;">a</span>\n'
-        '<span class="badge badge-primary " style="font-size: 14px;">b</span>\n'
-    ),
-    (None, '')
-])
-def test_render_fw_tags(tag_dict, output):
-    assert render_fw_tags(tag_dict) == output
-
-
-def test_empty_analysis_tags():
-    assert render_analysis_tags({}) == ''
-
-
-def test_render_analysis_tags_success():
-    tags = {'such plugin': {'tag': {'color': 'success', 'value': 'wow'}}}
-    output = render_analysis_tags(tags)
-    assert 'badge-success' in output
-    assert '>wow<' in output
-
-
-def test_render_analysis_tags_fix():
-    tags = {'such plugin': {'tag': {'color': 'very color', 'value': 'wow'}}}
-    output = render_analysis_tags(tags)
-    assert 'badge-primary' in output
-    assert '>wow<' in output
-
-
-def test_render_analysis_tags_bad_type():
-    tags = {'such plugin': {42: {'color': 'very color', 'value': 'wow'}}}
-    with pytest.raises(AttributeError):
-        render_analysis_tags(tags)
 
 
 @pytest.mark.parametrize('score, class_', [('low', 'active'), ('medium', 'warning'), ('high', 'danger')])
