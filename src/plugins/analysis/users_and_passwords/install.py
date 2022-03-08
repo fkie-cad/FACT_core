@@ -26,7 +26,7 @@ class UsersAndPasswordsInstaller(AbstractPluginInstaller):
     def install_system_packages(self):
         super().install_system_packages()
 
-        lshw_process = subprocess.run('lshw -c display'.split(), stdout=PIPE, stderr=PIPE, check=True)
+        lshw_process = subprocess.run('lshw -c display'.split(), stdout=PIPE, stderr=PIPE, check=True, universal_newlines=True)
         opencl_pkgs = []
         if lshw_process.stdout == 'NVIDIA':
             opencl_pkgs = ['nvidia-opencl-dev']

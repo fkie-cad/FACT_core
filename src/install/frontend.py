@@ -86,7 +86,7 @@ def _install_nginx(distribution):
             'sudo semanage fcontext -at httpd_log_t "/var/log/fact(/.*)?" || true',
             'sudo restorecon -v -R /var/log/fact'
         ], error='restore selinux context')
-    nginx_process = subprocess.run('sudo nginx -s reload', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
+    nginx_process = subprocess.run('sudo nginx -s reload', shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True)
     if nginx_process.returncode != 0:
         raise InstallationError('Failed to start nginx\n{}'.format(nginx_process.stderr))
 
