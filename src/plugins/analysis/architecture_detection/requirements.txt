@@ -1,0 +1,2 @@
+pyelftools==0.28
+pyyaml==5.3.1

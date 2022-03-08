@@ -1,25 +1,32 @@
-import logging
-from pathlib import Path
+from typing import Dict
 
 from analysis.PluginBase import AnalysisBasePlugin
+from storage.fsorganizer import FSOrganizer
 
 try:
-    from ..internal.metadata_detector import MetaDataDetector
+    from ..internal import dt, elf, kconfig, metadata
 except ImportError:
     import sys
+    from pathlib import Path
     sys.path.append(str(Path(__file__).parent.parent / 'internal'))
-    from metadata_detector import MetaDataDetector
+
+    import dt
+    import elf
+    import kconfig
+    import metadata
+    sys.path.pop()
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
     '''
     Generically detected target architecture for firmware images.
     '''
-    NAME = 'cpu_architecture'
-    DEPENDENCIES = ['file_type']
-    DESCRIPTION = 'identify CPU architecture'
-    VERSION = '0.3.3'
     FILE = __file__
+    NAME = 'cpu_architecture'
+    DESCRIPTION = 'identify CPU architecture'
+    VERSION = '0.4.0'
+
+    DEPENDENCIES = ['file_type', 'kernel_config', 'device_tree']
     MIME_BLACKLIST = [
         'application/msword',
         'application/pdf',
@@ -29,26 +36,31 @@ class AnalysisPlugin(AnalysisBasePlugin):
         'application/xhtml+xml',
         'application/xml',
         'image',
-        'text',
         'video',
     ]
 
-    detectors = [MetaDataDetector()]
+    def __init__(self, plugin_administrator, config=None):
+        self.config = config
+        self._fs_organizer = FSOrganizer(config)
+        super().__init__(plugin_administrator, config=config)
 
     def process_object(self, file_object):
-        '''
-        This function must be implemented by the plugin.
-        Analysis result must be a list stored in file_object.processed_analysis[self.NAME]
-        '''
-        arch_dict = self._get_device_architectures(file_object)
-        file_object.processed_analysis[self.NAME] = arch_dict
+        arch_dict = construct_result(file_object, self._fs_organizer)
+        file_object.processed_analysis[self.NAME]['architectures'] = arch_dict
         file_object.processed_analysis[self.NAME]['summary'] = list(arch_dict.keys())
+
         return file_object
 
-    def _get_device_architectures(self, file_object):
-        for detector in self.detectors:
-            arch_dict = detector.get_device_architecture(file_object)
-            if arch_dict:
-                return arch_dict
-        logging.debug(f'Arch Detection Failed: {file_object.uid}')
-        return {}
+
+def construct_result(file_object, fs_organizer) -> Dict[str,  str]:
+    '''
+    Returns a dict where keys are the architecture and values are the means of
+    detection
+    '''
+    result = {}
+    result.update(dt.construct_result(file_object))
+    result.update(kconfig.construct_result(file_object))
+    result.update(elf.construct_result(file_object, fs_organizer))
+    result.update(metadata.construct_result(file_object))
+
+    return result
