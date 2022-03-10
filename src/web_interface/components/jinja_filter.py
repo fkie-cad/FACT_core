@@ -177,6 +177,8 @@ class FilterClass:
         self._app.jinja_env.filters['format_string_list_with_offset'] = flt.filter_format_string_list_with_offset
         self._app.jinja_env.filters['get_canvas_height'] = flt.get_canvas_height
         self._app.jinja_env.filters['get_unique_keys_from_list_of_dicts'] = flt.get_unique_keys_from_list_of_dicts
+        self._app.jinja_env.filters['hex'] = hex
+        self._app.jinja_env.filters['hide_dts_binary_data'] = flt.hide_dts_binary_data
         self._app.jinja_env.filters['infection_color'] = flt.infection_color
         self._app.jinja_env.filters['is_list'] = lambda item: isinstance(item, list)
         self._app.jinja_env.filters['is_not_mandatory_analysis_entry'] = flt.is_not_mandatory_analysis_entry
