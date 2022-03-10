@@ -141,7 +141,6 @@ class DatabaseRoutes(ComponentBase):
 
     def _build_search_query(self):
         query = {}
-        print(request.form)
         for item in ['device_class', 'vendor']:
             if item in request.form and request.form[item]:
                 self._add_multiple_choice(query, item)
@@ -152,18 +151,17 @@ class DatabaseRoutes(ComponentBase):
             self._add_hash_query_to_query(query, request.form['hash_value'])
         if 'tags' in request.form and request.form['tags']:
             self._add_tag_query(query)
-        print(query)
         return json.dumps(query)
 
     @staticmethod
     def _add_multiple_choice(query, key):
-        new_query = [{key: name} for name in dict(request.form.lists())[key]]
-        query.setdefault('$or', []).extend(new_query)
+        for name in dict(request.form.lists())[key]:
+            query[key] = {"$in": [name]}
 
     @staticmethod
     def _add_tag_query(query):
-        tag_query = [{f'tags.{tag}': 'secondary' for tag in dict(request.form.lists())['tags']}]
-        query.setdefault('$or', []).extend(tag_query)
+        for tag in dict(request.form.lists())['tags']:
+            query[f'tags.{tag}'] = {"$in": ['secondary']}
 
     def _add_hash_query_to_query(self, query, value):
         hash_types = read_list_from_config(self._config, 'file_hashes', 'hashes')
