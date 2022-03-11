@@ -6,6 +6,7 @@ from itertools import chain
 
 from dateutil.relativedelta import relativedelta
 from flask import redirect, render_template, request, url_for
+
 from helperFunctions.config import read_list_from_config
 from helperFunctions.data_conversion import make_unicode_string
 from helperFunctions.database import ConnectTo
@@ -155,11 +156,11 @@ class DatabaseRoutes(ComponentBase):
 
     @staticmethod
     def _add_multiple_choice(query, key):
-        query[key] = {"$in": [name for name in dict(request.form.lists())[key]]}
+        query[key] = {'$in': list(dict(request.form.lists())[key])}
 
     @staticmethod
     def _add_tag_query(query):
-        tag_query = [{f'tags.{tag}': 'secondary' for tag in dict(request.form.lists())['tags']}]
+        tag_query = [{f'tags.{tag}': 'secondary'} for tag in dict(request.form.lists())['tags']]
         query.setdefault('$or', []).extend(tag_query)
 
     def _add_hash_query_to_query(self, query, value):

@@ -91,6 +91,8 @@ class TestStorageDbInterfaceFrontend(unittest.TestCase):
         self.assertEqual(self.db_frontend_interface.get_device_name_dict(), {'Router': {'test_vendor': ['test_router']}})
 
     def test_get_tag_list(self):
+        assert self.db_frontend_interface.get_tag_list() == []
+
         fw_1 = create_test_firmware()
         fw_1.uid = 'fw_1'
         fw_1.tags = {'foo': 'some_color', 'bar': 'some_color'}

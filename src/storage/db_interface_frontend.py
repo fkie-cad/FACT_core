@@ -98,8 +98,9 @@ class FrontEndDbInterface(MongoInterfaceCommon):
             {'$unwind': '$tags'},
             {'$group': {'_id': None, 'tag_set': {'$addToSet': '$tags.k'}}},
         ], allowDiskUse=True)
-        for entry in query:  # there is only one result in this query
+        for entry in query:  # there should be only one result in this query
             return sorted(entry['tag_set'])
+        return []  # no tags exist (yet)
 
     def get_device_name_dict(self):
         device_name_dict = {}
