@@ -155,13 +155,12 @@ class DatabaseRoutes(ComponentBase):
 
     @staticmethod
     def _add_multiple_choice(query, key):
-        for name in dict(request.form.lists())[key]:
-            query[key] = {"$in": [name]}
+        query[key] = {"$in": [name for name in dict(request.form.lists())[key]]}
 
     @staticmethod
     def _add_tag_query(query):
-        for tag in dict(request.form.lists())['tags']:
-            query[f'tags.{tag}'] = {"$in": ['secondary']}
+        tag_query = [{f'tags.{tag}': 'secondary' for tag in dict(request.form.lists())['tags']}]
+        query.setdefault('$or', []).extend(tag_query)
 
     def _add_hash_query_to_query(self, query, value):
         hash_types = read_list_from_config(self._config, 'file_hashes', 'hashes')
