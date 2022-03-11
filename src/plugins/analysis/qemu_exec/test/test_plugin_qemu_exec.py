@@ -153,7 +153,7 @@ class TestPluginQemuExec(AnalysisPluginTest):
         assert test_uid in result['files']
         assert result['files'][test_uid]['executable'] is True
 
-    @pytest.mark.timeout(10)
+    @pytest.mark.timeout(15)
     def test_process_object(self):
         self.analysis_plugin.OPTIONS = ['-h']
         test_fw = self._set_up_fw_for_process_object()
