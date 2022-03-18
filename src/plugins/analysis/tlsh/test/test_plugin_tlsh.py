@@ -20,11 +20,6 @@ class MockDb:
 
 
 @pytest.fixture(scope='function')
-def test_config():
-    return get_config_for_testing()
-
-
-@pytest.fixture(scope='function')
 def test_object():
     fo = create_test_file_object()
     fo.processed_analysis['file_hashes'] = {'tlsh': HASH_1}
@@ -32,10 +27,9 @@ def test_object():
 
 
 @pytest.fixture(scope='function')
-def stub_plugin(test_config):
+def stub_plugin(monkeypatch):
     return AnalysisPlugin(
         MockAdmin(),
-        config=test_config,
         offline_testing=True,
         view_updater=CommonDatabaseMock(),
         db_interface=MockDb()

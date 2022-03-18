@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from test.common_helper import CommonDatabaseMock, create_test_file_object, get_config_for_testing
+from test.common_helper import CommonDatabaseMock, create_test_file_object
 from test.mock import mock_patch
 
 from ..code.source_code_analysis import AnalysisPlugin
@@ -18,18 +18,14 @@ class MockAdmin:
 
 
 @pytest.fixture(scope='function')
-def test_config():
-    return get_config_for_testing()
-
-
-@pytest.fixture(scope='function')
 def test_object():
     return create_test_file_object()
 
 
 @pytest.fixture(scope='function')
-def stub_plugin(test_config, monkeypatch):
-    return AnalysisPlugin(MockAdmin(), test_config, offline_testing=True, view_updater=CommonDatabaseMock())
+def stub_plugin(monkeypatch, patch_cfg):
+    _ = patch_cfg
+    return AnalysisPlugin(MockAdmin(), offline_testing=True, view_updater=CommonDatabaseMock())
 
 
 def test_process_object_not_supported(stub_plugin, test_object, monkeypatch):

@@ -6,6 +6,8 @@ from time import sleep
 from unittest import TestCase
 from unittest.mock import patch
 
+import pytest
+
 from objects.firmware import Firmware
 from scheduler.unpacking_scheduler import UnpackingScheduler
 from storage.unpacking_locks import UnpackingLockManager
@@ -40,6 +42,7 @@ class TestUnpackScheduler(TestCase):
         self.tmp_queue.close()
         gc.collect()
 
+    @pytest.mark.usefixtures('patch_cfg')
     def test_unpack_a_container_including_another_container(self):
         self._start_scheduler()
         test_fw = Firmware(file_path=f'{get_test_data_dir()}/container/test_zip.tar.gz')

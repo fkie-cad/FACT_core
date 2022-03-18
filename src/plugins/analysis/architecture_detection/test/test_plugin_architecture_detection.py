@@ -1,4 +1,5 @@
 # pylint: disable=wrong-import-order
+import pytest
 
 from objects.file import FileObject
 from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
@@ -6,6 +7,13 @@ from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
 from ..code.architecture_detection import AnalysisPlugin
 
 
+@pytest.mark.cfg_defaults(
+    {
+        'cpu_architecture': {
+            'mime_ignore': '',
+        }
+    },
+)
 class TestArchDetection(AnalysisPluginTest):
 
     PLUGIN_NAME = 'cpu_architecture'
@@ -13,7 +21,6 @@ class TestArchDetection(AnalysisPluginTest):
 
     def setUp(self):
         super().setUp()
-        self.config.set(self.PLUGIN_NAME, 'mime_ignore', '')
 
     def start_process_object_meta_for_architecture(self, architecture, bitness, endianness, full_file_type):
         test_file = FileObject()

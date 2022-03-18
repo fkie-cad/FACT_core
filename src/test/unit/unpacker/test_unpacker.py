@@ -1,5 +1,4 @@
 # pylint: disable=wrong-import-order
-
 import gc
 import grp
 import os
@@ -7,6 +6,8 @@ import unittest
 from configparser import ConfigParser
 from pathlib import Path
 from tempfile import TemporaryDirectory
+
+import pytest
 
 from objects.file import FileObject
 from storage.unpacking_locks import UnpackingLockManager
@@ -69,6 +70,7 @@ class TestUnpackerCore(TestUnpackerBase):
         assert self.unpacker.unpacking_locks.unpacking_lock_is_set(self.test_fo.uid)
 
 
+@pytest.mark.usefixtures('patch_cfg')
 class TestUnpackerCoreMain(TestUnpackerBase):
 
     test_file_path = str(TEST_DATA_DIR / 'container/test.zip')

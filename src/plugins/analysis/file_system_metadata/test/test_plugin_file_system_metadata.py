@@ -65,7 +65,7 @@ class TestFileSystemMetadata(AnalysisPluginTest):
 
     def setup_plugin(self):
         return AnalysisPlugin(
-            self, config=self.config, view_updater=CommonDatabaseMock(), db_interface=DbMock()
+            self, view_updater=CommonDatabaseMock(), db_interface=DbMock()
         )
 
     def _extract_metadata_from_archive_mock(self, _):

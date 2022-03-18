@@ -1,4 +1,6 @@
 # pylint: disable=invalid-name,no-self-use,use-implicit-booleaness-not-comparison,attribute-defined-outside-init,wrong-import-order
+import pytest
+
 from base64 import b64encode
 from unittest import TestCase
 
@@ -6,7 +8,8 @@ from decorator import contextmanager
 from flask import Flask
 from flask_restx import Api
 
-from test.common_helper import create_test_file_object, create_test_firmware, get_config_for_testing
+from config import configparser_cfg
+from test.common_helper import create_test_file_object, create_test_firmware
 
 from ..code.file_system_metadata import AnalysisPlugin
 from ..routes import routes
@@ -106,6 +109,7 @@ class DbMock:
     frontend = DbInterfaceMock()
 
 
+@pytest.mark.usefixtures('patch_cfg')
 class TestFileSystemMetadataRoutes:
 
     def setup(self):
@@ -113,8 +117,7 @@ class TestFileSystemMetadataRoutes:
         app.config.from_object(__name__)
         app.config['TESTING'] = True
         app.jinja_env.filters['replace_uid_with_hid'] = lambda x: x  # pylint: disable=no-member
-        config = get_config_for_testing()
-        self.plugin_routes = routes.PluginRoutes(app, config, db=DbMock, intercom=None)
+        self.plugin_routes = routes.PluginRoutes(app, configparser_cfg, db=DbMock, intercom=None)
         self.test_client = app.test_client()
 
     def test_get_analysis_results_of_parent_fo(self):
@@ -123,20 +126,20 @@ class TestFileSystemMetadataRoutes:
         assert 'test_value' in rv.data.decode()
 
 
+@pytest.mark.usefixtures('patch_cfg')
 class TestFileSystemMetadataRoutesRest(TestCase):
 
     def setUp(self):
         app = Flask(__name__)
         app.config.from_object(__name__)
         app.config['TESTING'] = True
-        config = get_config_for_testing()
         api = Api(app)
         endpoint, methods = routes.FSMetadataRoutesRest.ENDPOINTS[0]
         api.add_resource(
             routes.FSMetadataRoutesRest,
             endpoint,
             methods=methods,
-            resource_class_kwargs={'config': config, 'db': DbMock}
+            resource_class_kwargs={'config': configparser_cfg, 'db': DbMock}
         )
         self.test_client = app.test_client()
 
