@@ -1,6 +1,7 @@
 # pylint: disable=protected-access
 import os
 
+import pytest
 from common_helper_files import get_dir_of_file
 
 from objects.file import FileObject
@@ -11,8 +12,14 @@ from ..code.strings import AnalysisPlugin
 TEST_DATA_DIR = os.path.join(get_dir_of_file(__file__), 'data')
 
 
+@pytest.mark.cfg_defaults(
+    {
+        'printable_strings': {
+            'min-length': '4',
+        }
+    },
+)
 class TestAnalysisPlugInPrintableStrings(AnalysisPluginTest):
-
     PLUGIN_NAME = 'printable_strings'
     PLUGIN_CLASS = AnalysisPlugin
 
@@ -60,12 +67,3 @@ class TestAnalysisPlugInPrintableStrings(AnalysisPluginTest):
         test_input = b'01234a\0b\0c\0d\0e\0f\0g\0h\0i\0j\x0005678'
         result = AnalysisPlugin._match_with_offset(regex, test_input, encoding)
         assert result == [(5, 'abcdefghij')]
-
-    def test_get_min_length_from_config(self):
-        assert self.analysis_plugin._get_min_length_from_config() == '4'
-
-        self.analysis_plugin.config[self.PLUGIN_NAME].pop('min-length')
-        assert self.analysis_plugin._get_min_length_from_config() == '8'
-
-        self.analysis_plugin.config.pop(self.PLUGIN_NAME)
-        assert self.analysis_plugin._get_min_length_from_config() == '8'
