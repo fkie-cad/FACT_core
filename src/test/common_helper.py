@@ -364,7 +364,7 @@ def generate_analysis_entry(
     }
 
 
-def create_docker_mount_base_dir():
+def create_docker_mount_base_dir() -> Path:
     docker_mount_base_dir = Path('/tmp/fact-docker-mount-base-dir')
     try:
         docker_mount_base_dir.mkdir(0o770)
