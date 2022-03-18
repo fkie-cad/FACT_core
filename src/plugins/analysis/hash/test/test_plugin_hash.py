@@ -1,5 +1,6 @@
 import os
 
+import pytest
 from common_helper_files import get_dir_of_file
 
 from test.common_helper import MockFileObject  # pylint: disable=wrong-import-order
@@ -10,13 +11,16 @@ from ..code.hash import AnalysisPlugin
 TEST_DATA_DIR = os.path.join(get_dir_of_file(__file__), 'data')
 
 
+@pytest.mark.cfg_defaults(
+    {
+        'file_hashes': {
+            'hashes': 'md5, sha1, foo',
+        }
+    },
+)
 class TestAnalysisPluginHash(AnalysisPluginTest):
-
     PLUGIN_NAME = 'file_hashes'
     PLUGIN_CLASS = AnalysisPlugin
-
-    def _set_config(self):
-        self.config.set(self.PLUGIN_NAME, 'hashes', 'md5, sha1, foo')
 
     def test_all_hashes(self):
         result = self.analysis_plugin.process_object(MockFileObject()).processed_analysis[self.PLUGIN_NAME]

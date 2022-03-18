@@ -1,7 +1,7 @@
 # pylint: disable=redefined-outer-name,unused-argument,protected-access,wrong-import-order
 import pytest
 
-from test.common_helper import create_test_file_object, get_config_for_testing
+from test.common_helper import create_test_file_object
 
 from ..code.hashlookup import AnalysisPlugin
 
@@ -9,14 +9,9 @@ KNOWN_ZSH_HASH = 'A6F2177402114FC8B5E7ECF924FFA61A2AC25BD347BC3370FB92E07B76E0B4
 
 
 @pytest.fixture(scope='function')
-def test_config():
-    return get_config_for_testing()
-
-
-@pytest.fixture(scope='function')
-def stub_plugin(test_config, monkeypatch):
+def stub_plugin(monkeypatch):
     monkeypatch.setattr('plugins.base.BasePlugin._sync_view', lambda self, plugin_path: None)
-    return AnalysisPlugin(test_config, offline_testing=True)
+    return AnalysisPlugin(offline_testing=True)
 
 
 @pytest.fixture(scope='function')
