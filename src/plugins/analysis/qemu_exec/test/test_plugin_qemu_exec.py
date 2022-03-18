@@ -10,13 +10,7 @@ from common_helper_files import get_dir_of_file
 from requests.exceptions import ConnectionError as RequestConnectionError
 from requests.exceptions import ReadTimeout
 
-from test.common_helper import (
-    TEST_FW,
-    CommonDatabaseMock,
-    create_test_firmware,
-    get_config_for_testing,
-    get_test_data_dir,
-)
+from test.common_helper import TEST_FW, CommonDatabaseMock, create_test_firmware, get_test_data_dir
 from test.mock import mock_patch
 from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
 
@@ -96,7 +90,7 @@ class TestPluginQemuExec(AnalysisPluginTest):
     PLUGIN_CLASS = AnalysisPlugin
 
     def setup_plugin(self):
-        return AnalysisPlugin(self, config=self.config, unpacker=MockUnpacker(), view_updater=CommonDatabaseMock())
+        return AnalysisPlugin(self, unpacker=MockUnpacker(), view_updater=CommonDatabaseMock())
 
     def test_has_relevant_type(self):
         assert self.analysis_plugin._has_relevant_type(None) is False
@@ -435,8 +429,7 @@ def test_process_strace_output():
 class TestQemuExecUnpacker(TestCase):
     def setUp(self):
         self.name_prefix = 'FACT_plugin_qemu'
-        self.config = get_config_for_testing()
-        self.unpacker = qemu_exec.Unpacker(config=self.config)
+        self.unpacker = qemu_exec.Unpacker()
         qemu_exec.FSOrganizer = MockFSOrganizer
 
     def test_unpack_fo(self):
