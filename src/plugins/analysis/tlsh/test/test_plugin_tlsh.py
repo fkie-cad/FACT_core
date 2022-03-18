@@ -2,7 +2,7 @@
 import pytest
 
 from plugins.analysis.tlsh.code.tlsh import AnalysisPlugin
-from test.common_helper import CommonDatabaseMock, create_test_file_object, get_config_for_testing
+from test.common_helper import CommonDatabaseMock, create_test_file_object
 from test.mock import mock_patch
 
 HASH_0 = '9A355C07B5A614FDC5A2847046EF92B7693174A642327DBF3C88D6303F42E746B1ABE1'
@@ -15,11 +15,6 @@ class MockDb:
 
 
 @pytest.fixture(scope='function')
-def test_config():
-    return get_config_for_testing()
-
-
-@pytest.fixture(scope='function')
 def test_object():
     fo = create_test_file_object()
     fo.processed_analysis['file_hashes'] = {'tlsh': HASH_1}
@@ -27,9 +22,11 @@ def test_object():
 
 
 @pytest.fixture(scope='function')
-def stub_plugin(test_config):
+def stub_plugin(monkeypatch):
     return AnalysisPlugin(
-        config=test_config, offline_testing=True, view_updater=CommonDatabaseMock(), db_interface=MockDb()
+        offline_testing=True,
+        view_updater=CommonDatabaseMock(),
+        db_interface=MockDb(),
     )
 
 
