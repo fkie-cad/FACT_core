@@ -6,7 +6,7 @@ import pytest
 
 from helperFunctions.tag import TagColor
 from objects.file import FileObject
-from test.common_helper import get_config_for_testing, get_test_data_dir
+from test.common_helper import get_test_data_dir
 
 from ..code.elf_analysis import AnalysisPlugin
 
@@ -38,11 +38,6 @@ MOCK_LIEF_RESULT = LiefResult(
 
 
 @pytest.fixture(scope='function')
-def test_config():
-    return get_config_for_testing()
-
-
-@pytest.fixture(scope='function')
 def stub_object():
     test_object = FileObject(file_path=str(TEST_DATA))
     test_object.processed_analysis['file_type'] = {'mime': 'application/x-executable'}
@@ -50,9 +45,9 @@ def stub_object():
 
 
 @pytest.fixture(scope='function')
-def stub_plugin(test_config, monkeypatch):
+def stub_plugin(monkeypatch):
     monkeypatch.setattr('plugins.base.BasePlugin._sync_view', lambda self, plugin_path: None)
-    return AnalysisPlugin(test_config, offline_testing=True)
+    return AnalysisPlugin(offline_testing=True)
 
 
 @pytest.mark.parametrize(

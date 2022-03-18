@@ -29,9 +29,10 @@ class AnalysisPluginTest(unittest.TestCase):
 
     def setup_plugin(self):
         # overwrite in plugin tests if necessary
-        return self.PLUGIN_CLASS(config=self.config, view_updater=CommonDatabaseMock())
+        return self.PLUGIN_CLASS(view_updater=CommonDatabaseMock())
 
     def tearDown(self):
+
         self.analysis_plugin.shutdown()  # pylint: disable=no-member
 
     def init_basic_config(self):

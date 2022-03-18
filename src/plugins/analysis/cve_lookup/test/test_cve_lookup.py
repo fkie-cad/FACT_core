@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from test.common_helper import TEST_FW, get_config_for_testing  # pylint: disable=wrong-import-order
+from test.common_helper import TEST_FW
 
 try:
     from ..code import cve_lookup as lookup
@@ -213,14 +213,9 @@ def test_search_cve_summary(monkeypatch):
 
 
 @pytest.fixture(scope='function')
-def test_config():
-    return get_config_for_testing()
-
-
-@pytest.fixture(scope='function')
-def stub_plugin(test_config, monkeypatch):
+def stub_plugin(monkeypatch):
     monkeypatch.setattr('plugins.base.BasePlugin._sync_view', lambda self, plugin_path: None)
-    return lookup.AnalysisPlugin(test_config, offline_testing=True)
+    return lookup.AnalysisPlugin(offline_testing=True)
 
 
 def test_process_object(stub_plugin):
