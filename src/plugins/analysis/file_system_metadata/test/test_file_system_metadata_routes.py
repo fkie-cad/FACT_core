@@ -6,7 +6,8 @@ from decorator import contextmanager
 from flask import Flask
 from flask_restx import Api
 
-from test.common_helper import create_test_file_object, create_test_firmware, get_config_for_testing
+from config import configparser_cfg
+from test.common_helper import create_test_file_object, create_test_firmware
 
 from ..code.file_system_metadata import AnalysisPlugin
 from ..routes import routes
@@ -113,8 +114,7 @@ class TestFileSystemMetadataRoutes:
         app.config.from_object(__name__)
         app.config['TESTING'] = True
         app.jinja_env.filters['replace_uid_with_hid'] = lambda x: x  # pylint: disable=no-member
-        config = get_config_for_testing()
-        self.plugin_routes = routes.PluginRoutes(app, config, db=DbMock, intercom=None)
+        self.plugin_routes = routes.PluginRoutes(app, configparser_cfg, db=DbMock, intercom=None)
         self.test_client = app.test_client()
 
     def test_get_analysis_results_of_parent_fo(self):
@@ -129,14 +129,13 @@ class TestFileSystemMetadataRoutesRest(TestCase):
         app = Flask(__name__)
         app.config.from_object(__name__)
         app.config['TESTING'] = True
-        config = get_config_for_testing()
         api = Api(app)
         endpoint, methods = routes.FSMetadataRoutesRest.ENDPOINTS[0]
         api.add_resource(
             routes.FSMetadataRoutesRest,
             endpoint,
             methods=methods,
-            resource_class_kwargs={'config': config, 'db': DbMock}
+            resource_class_kwargs={'config': configparser_cfg, 'db': DbMock}
         )
         self.test_client = app.test_client()
 

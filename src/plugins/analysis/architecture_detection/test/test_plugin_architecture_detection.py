@@ -7,6 +7,7 @@ from objects.file import FileObject
 
 from ..internal import dt, elf, kconfig, metadata
 
+
 with open(Path(__file__).parent / 'data/dt.dts') as dt_file:
     dts = dt_file.read()
 
@@ -20,11 +21,13 @@ _mock_device_tree_analysis = {
     }
 }
 
+
 _mock_kernel_config_analysis_mips = {
     'kernel_config': {
         'kernel_config': 'CONFIG_CPU_MIPS32_R2=y\n',
     }
 }
+
 
 _mock_kernel_config_analysis_arm = {
     'kernel_config': {

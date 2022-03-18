@@ -3,7 +3,8 @@ from decorator import contextmanager
 from flask import Flask
 from flask_restx import Api
 
-from test.common_helper import create_test_file_object, create_test_firmware, get_config_for_testing
+from config import configparser_cfg
+from test.common_helper import create_test_file_object, create_test_firmware
 
 from ..code.qemu_exec import AnalysisPlugin
 from ..routes import routes
@@ -61,9 +62,6 @@ class DbInterfaceMock:
 
 class TestQemuExecRoutesStatic:
 
-    def setup(self):
-        self.config = get_config_for_testing()
-
     def test_get_results_for_included(self):
         result = routes.get_analysis_results_for_included_uid('foo', DbInterfaceMock())
         assert result is not None
@@ -92,8 +90,7 @@ class TestFileSystemMetadataRoutes:
         app.config.from_object(__name__)
         app.config['TESTING'] = True
         app.jinja_env.filters['replace_uid_with_hid'] = lambda x: x
-        config = get_config_for_testing()
-        self.plugin_routes = routes.PluginRoutes(app, config, db=DbMock, intercom=None)
+        self.plugin_routes = routes.PluginRoutes(app, configparser_cfg, db=DbMock, intercom=None)
         self.test_client = app.test_client()
 
     def test_not_executable(self):
@@ -126,14 +123,13 @@ class TestFileSystemMetadataRoutesRest:
         app = Flask(__name__)
         app.config.from_object(__name__)
         app.config['TESTING'] = True
-        config = get_config_for_testing()
         api = Api(app)
         endpoint, methods = routes.QemuExecRoutesRest.ENDPOINTS[0]
         api.add_resource(
             routes.QemuExecRoutesRest,
             endpoint,
             methods=methods,
-            resource_class_kwargs={'config': config, 'db': DbMock}
+            resource_class_kwargs={'config': configparser_cfg, 'db': DbMock}
         )
         self.test_client = app.test_client()
 

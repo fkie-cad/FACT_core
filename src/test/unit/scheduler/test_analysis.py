@@ -7,6 +7,7 @@ from unittest import TestCase, mock
 
 import pytest
 
+from config import configparser_cfg
 from objects.firmware import Firmware
 from scheduler.analysis import MANDATORY_PLUGINS, AnalysisScheduler
 from storage.unpacking_locks import UnpackingLockManager
@@ -29,7 +30,7 @@ class AnalysisSchedulerTest(TestCase):
     @mock.patch('plugins.base.ViewUpdater', lambda *_: ViewUpdaterMock())
     def setUp(self):
         self.mocked_interface = BackendDbInterface()
-        config = get_config_for_testing()
+        config = configparser_cfg
         config.add_section('ip_and_uri_finder')
         config.set('ip_and_uri_finder', 'signature_directory', 'analysis/signatures/ip_and_uri_finder/')
         config.set('default-plugins', 'default', 'file_hashes')
@@ -48,6 +49,14 @@ class AnalysisSchedulerTest(TestCase):
         self.tmp_queue.put({'uid': uid, 'plugin': plugin, 'result': analysis_result})
 
 
+@pytest.mark.cfg_defaults({
+    'file_hashes': {
+        'hashes': 'md5, sha1, sha256, sha512, ripemd160, whirlpool',
+    },
+    'printable_strings': {
+        'min-length': 6,
+    },
+})
 class TestScheduleInitialAnalysis(AnalysisSchedulerTest):
 
     def test_plugin_registration(self):
@@ -80,7 +89,7 @@ class TestScheduleInitialAnalysis(AnalysisSchedulerTest):
 
         assert 'file_hashes' in result, 'file hashes plugin not found'
         assert 'file_type' in result, 'file type plugin not found'
-        assert 'dummy_plug_in_for_testing_only' not in result, 'dummy plug-in not removed'
+        assert 'dummy_plugin_for_testing_only' not in result, 'dummy plug-in not removed'
 
     def test_get_plugin_dict_description(self):
         result = self.sched.get_plugin_dict()
@@ -108,6 +117,18 @@ class TestScheduleInitialAnalysis(AnalysisSchedulerTest):
             self.sched._process_next_analysis_task(test_fw)
             assert not spy.was_called(), 'unknown plugin should simply be skipped'
 
+    # TODO this marker should not completely overwrite the outer markers
+    @pytest.mark.cfg_defaults({
+        'file_hashes': {
+            'hashes': 'md5, sha1, sha256, sha512, ripemd160, whirlpool',
+        },
+        'printable_strings': {
+            'min-length': 6,
+        },
+        'dummy_plugin_for_testing_only': {
+            'mime_whitelist': 'foo, bar',
+        },
+    })
     def test_skip_analysis_because_whitelist(self):
         self.sched.config.set('dummy_plugin_for_testing_only', 'mime_whitelist', 'foo, bar')
         test_fw = Firmware(file_path=os.path.join(get_test_data_dir(), 'get_files_test/testfile1'))
