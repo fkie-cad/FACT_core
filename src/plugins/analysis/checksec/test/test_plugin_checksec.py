@@ -3,7 +3,6 @@ from pathlib import Path
 import pytest
 
 from objects.file import FileObject
-from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest  # pylint: disable=wrong-import-order
 
 from ..code.checksec import (
     AnalysisPlugin, check_canary, check_clang_cfi, check_clang_safestack, check_fortify_source, check_nx, check_pie,
@@ -24,20 +23,16 @@ FILE_PATH_EXE_RPATH = PLUGIN_DIR / 'test/data/Hallo_rpath'
 FILE_PATH_EXE_STRIPPED = PLUGIN_DIR / 'test/data/Hallo_stripped'
 
 
-class TestAnalysisPluginChecksec(AnalysisPluginTest):
+@pytest.mark.AnalysisPluginClass.with_args(AnalysisPlugin)
+def test_check_mitigations(analysis_plugin):
+    test_file = FileObject(file_path=str(FILE_PATH_EXE))
+    test_file.processed_analysis['file_type'] = {'full': 'ELF 64-bit LSB shared object, x86-64, dynamically linked'}
+    analysis_plugin.process_object(test_file)
+    result = test_file.processed_analysis[analysis_plugin.NAME]
 
-    PLUGIN_NAME = 'exploit_mitigations'
-    PLUGIN_CLASS = AnalysisPlugin
-
-    def test_check_mitigations(self):
-        test_file = FileObject(file_path=str(FILE_PATH_EXE))
-        test_file.processed_analysis['file_type'] = {'full': 'ELF 64-bit LSB shared object, x86-64, dynamically linked'}
-        self.analysis_plugin.process_object(test_file)
-        result = test_file.processed_analysis[self.PLUGIN_NAME]
-
-        assert result['NX'] == 'enabled'
-        assert 'summary' in result
-        assert 'NX enabled' in result['summary']
+    assert result['NX'] == 'enabled'
+    assert 'summary' in result
+    assert 'NX enabled' in result['summary']
 
 
 @pytest.mark.parametrize('file_path, check, expected_result, expected_summary', [

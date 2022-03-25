@@ -19,8 +19,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
     VERSION = '0.2'
     FILE = __file__
 
-    def __init__(self, *args, db_interface=None, **kwargs):
-        self.db = TLSHInterface(configparser_cfg) if db_interface is None else db_interface
+    def __init__(self, *args, **kwargs):
+        self.db = TLSHInterface(configparser_cfg)
         super().__init__(*args, **kwargs)
 
     def process_object(self, file_object):

@@ -1,7 +1,6 @@
 import pytest
 
 from test.common_helper import create_test_file_object  # pylint: disable=wrong-import-order
-from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
 
 from ..code.interesting_uris import AnalysisPlugin
 
@@ -27,20 +26,17 @@ def test_white_ip_and_uris(input_list, whitelist, expected_output):
     assert sorted(AnalysisPlugin.whitelist_ip_and_uris(whitelist, input_list)) == expected_output
 
 
-class TestAnalysisPluginInterestingUris(AnalysisPluginTest):
-
-    PLUGIN_NAME = 'interesting_uris'
-    PLUGIN_CLASS = AnalysisPlugin
-
-    def test_process_object(self):
+@pytest.mark.AnalysisPluginClass.with_args(AnalysisPlugin)
+class TestAnalysisPluginInterestingUris:
+    def test_process_object(self, analysis_plugin):
         fo = create_test_file_object()
         fo.processed_analysis['ip_and_uri_finder'] = {
             'summary': ['1.2.3.4', 'www.example.com', 'www.interesting.receive.org']}
-        self.analysis_plugin.process_object(fo)
-        assert self.PLUGIN_NAME in fo.processed_analysis
-        assert fo.processed_analysis[self.PLUGIN_NAME]['summary'] == ['www.interesting.receive.org']
+        analysis_plugin.process_object(fo)
+        assert analysis_plugin.NAME in fo.processed_analysis
+        assert fo.processed_analysis[analysis_plugin.NAME]['summary'] == ['www.interesting.receive.org']
 
-    def test_remove_ip_v4_v6_addresses(self):
-        assert self.analysis_plugin.remove_ip_v4_v6_addresses(['2001:db8::1', '127.0.255.250']) == []
-        assert self.analysis_plugin.remove_ip_v4_v6_addresses(['abcd', '127.0.255.250', 'bcde']) == ['abcd', 'bcde']
-        assert self.analysis_plugin.remove_ip_v4_v6_addresses(['abcd', '2001:db8::1', 'efgh']) == ['abcd', 'efgh']
+    def test_remove_ip_v4_v6_addresses(self, analysis_plugin):
+        assert analysis_plugin.remove_ip_v4_v6_addresses(['2001:db8::1', '127.0.255.250']) == []
+        assert analysis_plugin.remove_ip_v4_v6_addresses(['abcd', '127.0.255.250', 'bcde']) == ['abcd', 'bcde']
+        assert analysis_plugin.remove_ip_v4_v6_addresses(['abcd', '2001:db8::1', 'efgh']) == ['abcd', 'efgh']

@@ -36,7 +36,7 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
     MIME_BLACKLIST = []
     MIME_WHITELIST = []
 
-    def __init__(self, plugin_administrator, no_multithread=False, offline_testing=False, view_updater=None):
+    def __init__(self, plugin_administrator, no_multithread=False, view_updater=None):
         super().__init__(plugin_administrator, plugin_path=self.FILE, view_updater=view_updater)
         self._check_plugin_attributes()
         self.additional_setup()
@@ -47,8 +47,7 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         self.thread_count = 1 if no_multithread else int(getattr(cfg, self.NAME, {}).get('threads', 1))
         self.active = [Value('i', 0) for _ in range(self.thread_count)]
         self.register_plugin()
-        if not offline_testing:
-            self.start_worker()
+        self.start_worker()
 
     def additional_setup(self):
         '''
