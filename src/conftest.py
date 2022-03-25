@@ -152,7 +152,7 @@ class MockPluginAdministrator:
 
 
 @pytest.fixture
-def analysis_plugin(request, monkeypatch):
+def analysis_plugin(request, monkeypatch, patch_cfg):
     """
     Returns an instance of an AnalysisPlugin.
     The following pytest markers affect this fixture:
