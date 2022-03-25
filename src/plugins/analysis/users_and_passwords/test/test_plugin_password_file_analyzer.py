@@ -3,22 +3,18 @@ from pathlib import Path
 import pytest
 
 from objects.file import FileObject
-from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest  # pylint: disable=wrong-import-order
 
 from ..code.password_file_analyzer import AnalysisPlugin, crack_hash, parse_john_output
 
 TEST_DATA_DIR = Path(__file__).parent / 'data'
 
 
-class TestAnalysisPluginPasswordFileAnalyzer(AnalysisPluginTest):
-
-    PLUGIN_NAME = 'users_and_passwords'
-    PLUGIN_CLASS = AnalysisPlugin
-
-    def test_process_object_shadow_file(self):
+@pytest.mark.AnalysisPluginClass.with_args(AnalysisPlugin)
+class TestAnalysisPluginPasswordFileAnalyzer:
+    def test_process_object_shadow_file(self, analysis_plugin):
         test_file = FileObject(file_path=str(TEST_DATA_DIR / 'passwd_test'))
-        processed_object = self.analysis_plugin.process_object(test_file)
-        results = processed_object.processed_analysis[self.PLUGIN_NAME]
+        processed_object = analysis_plugin.process_object(test_file)
+        results = processed_object.processed_analysis[analysis_plugin.NAME]
 
         assert len(results) == 15
         for item in [
@@ -46,17 +42,17 @@ class TestAnalysisPluginPasswordFileAnalyzer(AnalysisPluginTest):
         self._assert_pw_match(results, 'user2:unix', 'secret')  # MD5
         self._assert_pw_match(results, 'nosalt:unix', 'root')  # MD5 without salt
 
-    def test_process_object_fp_file(self):
+    def test_process_object_fp_file(self, analysis_plugin):
         test_file = FileObject(file_path=str(TEST_DATA_DIR / 'passwd_FP_test'))
-        processed_object = self.analysis_plugin.process_object(test_file)
-        results = processed_object.processed_analysis[self.PLUGIN_NAME]
+        processed_object = analysis_plugin.process_object(test_file)
+        results = processed_object.processed_analysis[analysis_plugin.NAME]
         assert len(results) == 1
         assert 'summary' in results and results['summary'] == []
 
-    def test_process_object_password_in_binary_file(self):
+    def test_process_object_password_in_binary_file(self, analysis_plugin):
         test_file = FileObject(file_path=str(TEST_DATA_DIR / 'passwd.bin'))
-        processed_object = self.analysis_plugin.process_object(test_file)
-        results = processed_object.processed_analysis[self.PLUGIN_NAME]
+        processed_object = analysis_plugin.process_object(test_file)
+        results = processed_object.processed_analysis[analysis_plugin.NAME]
 
         assert len(results) == 4
         for item in ['johndoe:unix', 'max:htpasswd']:

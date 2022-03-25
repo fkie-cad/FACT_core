@@ -1,42 +1,40 @@
 from pathlib import Path
 
+import pytest
+
 from test.common_helper import MockFileObject
-from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
 
 from ..code.information_leaks import AnalysisPlugin, _check_file_path, _check_for_directories, _check_for_files
 
 TEST_DATA_DIR = Path(__file__).parent / 'data'
 
 
-class TestAnalysisPluginInformationLeaks(AnalysisPluginTest):
-
-    PLUGIN_NAME = 'information_leaks'
-    PLUGIN_CLASS = AnalysisPlugin
-
-    def test_find_path(self):
+@pytest.mark.AnalysisPluginClass.with_args(AnalysisPlugin)
+class TestAnalysisPluginInformationLeaks:
+    def test_find_path(self, analysis_plugin):
         fo = MockFileObject()
         fo.binary = (TEST_DATA_DIR / 'path_test_file').read_bytes()
-        fo.processed_analysis[self.PLUGIN_NAME] = {}
+        fo.processed_analysis[analysis_plugin.NAME] = {}
         fo.processed_analysis['file_type'] = {'mime': 'application/x-executable'}
         fo.virtual_file_path = {}
-        self.analysis_plugin.process_object(fo)
+        analysis_plugin.process_object(fo)
 
-        assert 'user_paths' in fo.processed_analysis[self.PLUGIN_NAME]
-        assert fo.processed_analysis[self.PLUGIN_NAME]['user_paths'] == [
+        assert 'user_paths' in fo.processed_analysis[analysis_plugin.NAME]
+        assert fo.processed_analysis[analysis_plugin.NAME]['user_paths'] == [
             '/home/multiple/file.a',
             '/home/multiple/file.b',
             '/home/user/test/urandom',
             '/home/user/urandom',
         ]
 
-        assert 'www_path' in fo.processed_analysis[self.PLUGIN_NAME]
-        assert fo.processed_analysis[self.PLUGIN_NAME]['www_path'] == ['/var/www/tmp/me_']
+        assert 'www_path' in fo.processed_analysis[analysis_plugin.NAME]
+        assert fo.processed_analysis[analysis_plugin.NAME]['www_path'] == ['/var/www/tmp/me_']
 
-        assert 'root_path' in fo.processed_analysis[self.PLUGIN_NAME]
-        assert fo.processed_analysis[self.PLUGIN_NAME]['root_path'] == ['/root/user_name/this_directory']
+        assert 'root_path' in fo.processed_analysis[analysis_plugin.NAME]
+        assert fo.processed_analysis[analysis_plugin.NAME]['root_path'] == ['/root/user_name/this_directory']
 
-        assert 'summary' in fo.processed_analysis[self.PLUGIN_NAME]
-        assert fo.processed_analysis[self.PLUGIN_NAME]['summary'] == [
+        assert 'summary' in fo.processed_analysis[analysis_plugin.NAME]
+        assert fo.processed_analysis[analysis_plugin.NAME]['summary'] == [
             '/home/multiple',
             '/home/user/test/urandom',
             '/home/user/urandom',
@@ -44,7 +42,7 @@ class TestAnalysisPluginInformationLeaks(AnalysisPluginTest):
             '/var/www/tmp/me_',
         ]
 
-    def test_find_artifacts(self):
+    def test_find_artifacts(self, analysis_plugin):
         fo = MockFileObject()
         fo.processed_analysis['file_type'] = {'mime': 'text/plain'}
         fo.virtual_file_path = {
@@ -62,7 +60,7 @@ class TestAnalysisPluginInformationLeaks(AnalysisPluginTest):
                 'some_uid|/vr4242fdsg4%%$',
             ]
         }
-        self.analysis_plugin.process_object(fo)
+        analysis_plugin.process_object(fo)
         expected_result = sorted(
             [
                 'git_config',
@@ -73,8 +71,8 @@ class TestAnalysisPluginInformationLeaks(AnalysisPluginTest):
                 'any_history',
             ]
         )
-        assert 'summary' in fo.processed_analysis[self.PLUGIN_NAME]
-        assert fo.processed_analysis[self.PLUGIN_NAME]['summary'] == expected_result
+        assert 'summary' in fo.processed_analysis[analysis_plugin.NAME]
+        assert fo.processed_analysis[analysis_plugin.NAME]['summary'] == expected_result
 
 
 def test_check_file_path():
