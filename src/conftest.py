@@ -8,7 +8,8 @@ import pytest
 
 import config
 from config import Config
-from test.common_helper import create_docker_mount_base_dir
+from analysis.PluginBase import AnalysisBasePlugin
+from test.common_helper import CommonDatabaseMock, create_docker_mount_base_dir
 
 
 def _get_test_config_tuple(defaults: Dict = None) -> Tuple[Config, ConfigParser]:
@@ -140,3 +141,59 @@ def patch_cfg(cfg_tuple):
     yield
 
     mpatch.undo()
+
+
+class MockPluginAdministrator:
+    def register_plugin(self, name, plugin_object):
+        assert plugin_object.NAME == name, 'plugin object has wrong name'
+        assert isinstance(plugin_object.DESCRIPTION, str)
+        assert isinstance(plugin_object.VERSION, str)
+        assert plugin_object.VERSION != 'not set' 'Plug-in version not set'
+
+
+@pytest.fixture
+def analysis_plugin(request, monkeypatch):
+    """
+    Returns an instance of an AnalysisPlugin.
+    The following pytest markers affect this fixture:
+        * AnalysisPluginClass: The plugin class type. Must be a class derived from `AnalysisBasePlugin`.
+            E.g `AnalysisPlugin`
+            The marker has to be set with `@pytest.mark.with_args` to work around pytest
+            (wiredness)[https://docs.pytest.org/en/7.1.x/example/markers.html#passing-a-callable-to-custom-markers].
+        * plugin_start_worker: If set the AnalysisPluginClass.start_worker method will NOT be overwritten.
+            If not set the method is overwritten by a stub that does nothing.
+        * plugin_init_kwargs: Additional keyword arguments that shall be passed to the `AnalysisPluginClass` constructor
+
+    If this fixture does not fit your needs (which should not happen) you can define a fixture like this:
+    ```@pytest.fixture
+    def my_fancy_plugin(analysis_plugin)
+        # Make sure the marker is defined as expected
+        assert isinstance(analysis_plugin, MyFancyPlugin)
+        # Patch custom things
+        analysis_plugin.db_interface = CustomDbMock()
+        # Return the plugin instance
+        yield analysis_plugin
+    ```
+    """
+
+    plugin_class_marker = request.node.get_closest_marker('AnalysisPluginClass')
+    assert plugin_class_marker, '@pytest.mark.AnalysisPluginClass has to be defined'
+    PluginClass = plugin_class_marker.args[0]
+    assert issubclass(PluginClass, AnalysisBasePlugin), f'{PluginClass.__name__} is not a subclass of {AnalysisBasePlugin.__name__}'
+
+    # We don't want to actually start workers when testing, except for some special cases
+    plugin_start_worker_marker = request.node.get_closest_marker('plugin_start_worker')
+    if not plugin_start_worker_marker:
+        monkeypatch.setattr(PluginClass, 'start_worker', lambda _: None)
+
+    plugin_init_kwargs_marker = request.node.get_closest_marker('plugin_init_kwargs')
+    kwargs = plugin_init_kwargs_marker.kwargs if plugin_init_kwargs_marker else {}
+
+    plugin_instance = PluginClass(
+        MockPluginAdministrator(),
+        view_updater=CommonDatabaseMock(),
+        **kwargs,
+    )
+    yield plugin_instance
+
+    plugin_instance.shutdown()
