@@ -6,6 +6,8 @@ import pytest
 
 from test.common_helper import TEST_FW
 
+from ..code.cve_lookup import AnalysisPlugin
+
 try:
     from ..code import cve_lookup as lookup
     from ..internal.database_interface import DatabaseInterface
@@ -212,35 +214,50 @@ def test_search_cve_summary(monkeypatch):
         assert MATCHED_SUMMARY == actual_match
 
 
-@pytest.fixture(scope='function')
-def stub_plugin(monkeypatch):
-    monkeypatch.setattr('plugins.base.BasePlugin._sync_view', lambda self, plugin_path: None)
-    return lookup.AnalysisPlugin(offline_testing=True)
+@pytest.mark.AnalysisPluginClass.with_args(AnalysisPlugin)
+class TestCveLookup:
+    def test_process_object(self, analysis_plugin):
+        TEST_FW.processed_analysis['software_components'] = SOFTWARE_COMPONENTS_ANALYSIS_RESULT
+        lookup.MAX_LEVENSHTEIN_DISTANCE = 0
+        try:
+            result = analysis_plugin.process_object(TEST_FW).processed_analysis['cve_lookup']
+            assert 'Dnsmasq 2.40 (CRITICAL)' in result['summary']
+            assert 'Dnsmasq 2.40' in result['cve_results']
+            assert 'CVE-2013-0198' in result['cve_results']['Dnsmasq 2.40']
+        finally:
+            lookup.MAX_LEVENSHTEIN_DISTANCE = 3
 
+    @pytest.mark.parametrize('cve_score, should_be_tagged', [('9.9', True), ('5.5', False)])
+    def test_add_tags(self, analysis_plugin, cve_score, should_be_tagged):
+        TEST_FW.processed_analysis['cve_lookup'] = {}
+        cve_results = {'component': {'cve_id': {'score2': cve_score, 'score3': 'N/A'}}}
+        analysis_plugin.add_tags(cve_results, TEST_FW)
+        if should_be_tagged:
+            assert 'tags' in TEST_FW.processed_analysis['cve_lookup']
+            tags = TEST_FW.processed_analysis['cve_lookup']['tags']
+            assert 'CVE' in tags and tags['CVE']['value'] == 'critical CVE'
+        else:
+            assert 'tags' not in TEST_FW.processed_analysis['cve_lookup']
 
-def test_process_object(stub_plugin):
-    TEST_FW.processed_analysis['software_components'] = SOFTWARE_COMPONENTS_ANALYSIS_RESULT
-    lookup.MAX_LEVENSHTEIN_DISTANCE = 0
-    try:
-        result = stub_plugin.process_object(TEST_FW).processed_analysis['cve_lookup']
-        assert 'Dnsmasq 2.40 (CRITICAL)' in result['summary']
-        assert 'Dnsmasq 2.40' in result['cve_results']
-        assert 'CVE-2013-0198' in result['cve_results']['Dnsmasq 2.40']
-    finally:
-        lookup.MAX_LEVENSHTEIN_DISTANCE = 3
-
-
-@pytest.mark.parametrize('cve_score, should_be_tagged', [('9.9', True), ('5.5', False)])
-def test_add_tags(stub_plugin, cve_score, should_be_tagged):
-    TEST_FW.processed_analysis['cve_lookup'] = {}
-    cve_results = {'component': {'cve_id': {'score2': cve_score, 'score3': 'N/A'}}}
-    stub_plugin.add_tags(cve_results, TEST_FW)
-    if should_be_tagged:
-        assert 'tags' in TEST_FW.processed_analysis['cve_lookup']
-        tags = TEST_FW.processed_analysis['cve_lookup']['tags']
-        assert 'CVE' in tags and tags['CVE']['value'] == 'critical CVE'
-    else:
-        assert 'tags' not in TEST_FW.processed_analysis['cve_lookup']
+    @pytest.mark.parametrize(
+        'cve_results_dict, expected_output',
+        [
+            ({}, []),
+            ({'component': {'cve_id': {'score2': '6.4', 'score3': 'N/A'}}}, ['component']),
+            ({'component': {'cve_id': {'score2': '9.4', 'score3': 'N/A'}}}, ['component (CRITICAL)']),
+            (
+                {
+                    'component': {
+                        'cve_id': {'score2': '1.1', 'score3': '9.9'},
+                        'cve_id2': {'score2': '1.1', 'score3': '0.0'},
+                    }
+                },
+                ['component (CRITICAL)'],
+            ),
+        ],
+    )
+    def test_create_summary(self, cve_results_dict, expected_output, analysis_plugin):
+        assert analysis_plugin._create_summary(cve_results_dict) == expected_output  # pylint: disable=protected-access
 
 
 @pytest.mark.parametrize(
@@ -342,24 +359,3 @@ def test_build_version_string(
         version_end_excluding,
     )
     assert lookup.build_version_string(cve_entry) == expected_output
-
-
-@pytest.mark.parametrize(
-    'cve_results_dict, expected_output',
-    [
-        ({}, []),
-        ({'component': {'cve_id': {'score2': '6.4', 'score3': 'N/A'}}}, ['component']),
-        ({'component': {'cve_id': {'score2': '9.4', 'score3': 'N/A'}}}, ['component (CRITICAL)']),
-        (
-            {
-                'component': {
-                    'cve_id': {'score2': '1.1', 'score3': '9.9'},
-                    'cve_id2': {'score2': '1.1', 'score3': '0.0'},
-                }
-            },
-            ['component (CRITICAL)'],
-        ),
-    ],
-)
-def test_create_summary(cve_results_dict, expected_output, stub_plugin):
-    assert stub_plugin._create_summary(cve_results_dict) == expected_output  # pylint: disable=protected-access

@@ -55,8 +55,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
         'filesystem/squashfs',
     ]
 
-    def __init__(self, *args, db_interface=None, **kwargs):
-        self.db = db_interface if db_interface is not None else DbInterfaceCommon()
+    def __init__(self, *args, **kwargs):
+        self.db = DbInterfaceCommon()
         self.result = None
         super().__init__(*args, **kwargs)
 

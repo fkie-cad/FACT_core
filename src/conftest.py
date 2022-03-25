@@ -140,14 +140,6 @@ def patch_cfg(cfg_tuple):
     mpatch.undo()
 
 
-class MockPluginAdministrator:
-    def register_plugin(self, name, plugin_object):
-        assert plugin_object.NAME == name, 'plugin object has wrong name'
-        assert isinstance(plugin_object.DESCRIPTION, str)
-        assert isinstance(plugin_object.VERSION, str)
-        assert plugin_object.VERSION != 'not set' 'Plug-in version not set'
-
-
 @pytest.fixture
 def analysis_plugin(request, monkeypatch, patch_cfg):
     """Returns an instance of an AnalysisPlugin.
@@ -213,7 +205,6 @@ def analysis_plugin(request, monkeypatch, patch_cfg):
     kwargs = plugin_init_kwargs_marker.kwargs if plugin_init_kwargs_marker else {}
 
     plugin_instance = PluginClass(
-        MockPluginAdministrator(),
         view_updater=CommonDatabaseMock(),
         **kwargs,
     )
