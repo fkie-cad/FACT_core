@@ -3,7 +3,6 @@ from pathlib import Path
 import pytest
 
 from objects.file import FileObject
-from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest  # pylint: disable=wrong-import-order
 
 from ..code.device_tree import AnalysisPlugin
 from ..internal.device_tree_utils import dump_device_trees
@@ -16,20 +15,18 @@ TEST_FP = TEST_DATA / 'false_positive.rnd'
 TEST_BROKEN = TEST_DATA / 'broken.dtb'
 
 
-class TestDeviceTree(AnalysisPluginTest):
+@pytest.mark.AnalysisPluginClass.with_args(AnalysisPlugin)
+def test_process_object(analysis_plugin):
+    test_object = FileObject()
+    test_object.processed_analysis['file_type'] = {'mime': 'linux/device-tree'}
+    test_object.binary = TEST_FILE.read_bytes()
+    test_object.file_path = str(TEST_FILE)
+    processed_object = analysis_plugin.process_object(test_object)
+    result = processed_object.processed_analysis[analysis_plugin.NAME]
 
-    PLUGIN_NAME = AnalysisPlugin.NAME
-    PLUGIN_CLASS = AnalysisPlugin
-
-    def test_process_object(self):
-        test_object = FileObject()
-        test_object.binary = TEST_FILE.read_bytes()
-        processed_object = self.analysis_plugin.process_object(test_object)
-        result = processed_object.processed_analysis[self.PLUGIN_NAME]
-
-        assert len(result['device_trees']) == 1
-        assert result['device_trees'][0]['model'] == 'Manufac XYZ1234ABC'
-        assert result['summary'] == ['Manufac XYZ1234ABC']
+    assert len(result['device_trees']) == 1
+    assert result['device_trees'][0]['model'] == 'Manufac XYZ1234ABC'
+    assert result['summary'] == ['Manufac XYZ1234ABC']
 
 
 @pytest.mark.parametrize('file', [TEST_EMBEDDED, TEST_IMAGE])
