@@ -115,7 +115,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         elf_dict = {}
         try:
             parsed_binary = lief.parse(file_object.file_path)
-            binary_json_dict = json.loads(lief.to_json_from_abstract(parsed_binary))
+            binary_json_dict = json.loads(lief.to_json(parsed_binary))
             if parsed_binary.exported_functions:
                 binary_json_dict['exported_functions'] = normalize_lief_items(parsed_binary.exported_functions)
             if parsed_binary.imported_functions:
