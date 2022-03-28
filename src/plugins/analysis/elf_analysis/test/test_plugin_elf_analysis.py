@@ -137,7 +137,7 @@ final_analysis_test_data = [
     ({'header': [], 'segments': [1, 2], 'a': []}, {}, 1)
 ]
 
-expected
+
 @pytest.mark.parametrize('binary_json_dict, elf_dict, expected', final_analysis_test_data)
 def test_get_final_analysis_dict(stub_plugin, binary_json_dict, elf_dict, expected):
     stub_plugin.get_final_analysis_dict(binary_json_dict, elf_dict)
