@@ -128,6 +128,7 @@ def _install_css_and_js_files():
             'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.8.0/css/bootstrap-datepicker.standalone.css',
             'https://unpkg.com/vis-network@8.5.6/styles/vis-network.min.css',
             'https://cdn.jsdelivr.net/npm/diff2html/bundles/css/diff2html.min.css',
+            'https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.14/dist/css/bootstrap-select.min.css',
         ]:
             wget_static_web_content(css_url, 'web_css', [])
 
@@ -139,6 +140,7 @@ def _install_css_and_js_files():
             'https://raw.githubusercontent.com/moment/moment/develop/moment.js',
             'https://unpkg.com/vis-network@8.5.6/standalone/umd/vis-network.min.js',
             'https://cdn.jsdelivr.net/npm/diff2html/bundles/js/diff2html-ui.min.js',
+            'https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.14/dist/js/bootstrap-select.min.js',
         ]:
             wget_static_web_content(js_url, 'web_js', [])
 

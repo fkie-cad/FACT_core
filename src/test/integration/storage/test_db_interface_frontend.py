@@ -90,6 +90,20 @@ class TestStorageDbInterfaceFrontend(unittest.TestCase):
         self.assertEqual(self.db_frontend_interface.get_firmware_attribute_list('version'), ['0.1'])
         self.assertEqual(self.db_frontend_interface.get_device_name_dict(), {'Router': {'test_vendor': ['test_router']}})
 
+    def test_get_tag_list(self):
+        assert self.db_frontend_interface.get_tag_list() == []
+
+        fw_1 = create_test_firmware()
+        fw_1.uid = 'fw_1'
+        fw_1.tags = {'foo': 'some_color', 'bar': 'some_color'}
+        self.db_backend_interface.add_firmware(fw_1)
+        fw_2 = create_test_firmware()
+        fw_1.uid = 'fw_2'
+        fw_2.tags = {'foo': 'some_color', 'test': 'some_color'}
+        self.db_backend_interface.add_firmware(fw_2)
+
+        assert self.db_frontend_interface.get_tag_list() == ['bar', 'foo', 'test']
+
     def test_get_data_for_nice_list(self):
         uid_list = [self.test_firmware.uid]
         self.db_backend_interface.add_firmware(self.test_firmware)

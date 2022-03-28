@@ -142,14 +142,26 @@ class DatabaseRoutes(ComponentBase):
 
     def _build_search_query(self):
         query = {}
-        if request.form['device_class_dropdown']:
-            query.update({'device_class': request.form['device_class_dropdown']})
-        for item in ['file_name', 'vendor', 'device_name', 'version', 'release_date']:
+        for item in ['device_class', 'vendor']:
+            if item in request.form and request.form[item]:
+                self._add_multiple_choice(query, item)
+        for item in ['file_name', 'device_name', 'version', 'release_date']:
             if request.form[item]:
                 query.update({item: {'$options': 'si', '$regex': request.form[item]}})
         if request.form['hash_value']:
             self._add_hash_query_to_query(query, request.form['hash_value'])
+        if 'tags' in request.form and request.form['tags']:
+            self._add_tag_query(query)
         return json.dumps(query)
+
+    @staticmethod
+    def _add_multiple_choice(query, key):
+        query[key] = {'$in': list(dict(request.form.lists())[key])}
+
+    @staticmethod
+    def _add_tag_query(query):
+        tag_query = [{f'tags.{tag}': 'secondary'} for tag in dict(request.form.lists())['tags']]
+        query.setdefault('$or', []).extend(tag_query)
 
     def _add_hash_query_to_query(self, query, value):
         hash_types = read_list_from_config(self._config, 'file_hashes', 'hashes')
@@ -168,7 +180,8 @@ class DatabaseRoutes(ComponentBase):
         with ConnectTo(FrontEndDbInterface, self._config) as connection:
             device_classes = connection.get_device_class_list()
             vendors = connection.get_vendor_list()
-        return render_template('database/database_search.html', device_classes=device_classes, vendors=vendors)
+            tags = connection.get_tag_list()
+        return render_template('database/database_search.html', device_classes=device_classes, vendors=vendors, tag_list=tags)
 
     @roles_accepted(*PRIVILEGES['advanced_search'])
     @AppRoute('/database/advanced_search', POST)
@@ -266,7 +279,8 @@ class DatabaseRoutes(ComponentBase):
         query['$or'].extend([
             {'device_name': {'$options': 'si', '$regex': search_term}},
             {'vendor': {'$options': 'si', '$regex': search_term}},
-            {'file_name': {'$options': 'si', '$regex': search_term}}
+            {'file_name': {'$options': 'si', '$regex': search_term}},
+            {f'tags.{search_term}': 'secondary'}
         ])
         query = json.dumps(query)
         return redirect(url_for('browse_database', query=query))

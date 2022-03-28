@@ -92,6 +92,16 @@ class FrontEndDbInterface(MongoInterfaceCommon):
     def get_vendor_list(self):
         return self.get_firmware_attribute_list('vendor')
 
+    def get_tag_list(self) -> List[str]:
+        query = self.firmwares.aggregate([
+            {'$project': {'tags': {'$objectToArray': '$tags'}}},
+            {'$unwind': '$tags'},
+            {'$group': {'_id': None, 'tag_set': {'$addToSet': '$tags.k'}}},
+        ], allowDiskUse=True)
+        for entry in query:  # there should be only one result in this query
+            return sorted(entry['tag_set'])
+        return []  # no tags exist (yet)
+
     def get_device_name_dict(self):
         device_name_dict = {}
         query = self.firmwares.find()

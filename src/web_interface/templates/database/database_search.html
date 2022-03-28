@@ -2,8 +2,10 @@
 
 {% set active_page = "Database" %}
 
-
 {% block head %}
+	{# bootstrap-select import #}
+    <link rel="stylesheet" href="{{ url_for('static', filename='web_css/bootstrap-select.min.css') }}" />
+    <script type="text/javascript" src="{{ url_for('static', filename='web_js/bootstrap-select.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/loading.js') }}"></script>
 {% endblock %}
 
@@ -18,20 +20,18 @@
             <div class="form-row">
                 <div class="form-group col-md-6">
                     <label class="control-label" for="device_class">Device Class:</label>
-                    <select class="form-control" name='device_class_dropdown' id="device_class">
-                        <option value=''></option>
+                    <select class="selectpicker" name='device_class' id="device_class" multiple>
                         {% for class in device_classes | sort %}
-                            <option value='{{ class }}'>{{ class }}</option>
+                        <option value='{{ class }}'>{{ class }}</option>
                         {% endfor %}
                     </select>
                 </div>
 
                 <div class="form-group col-md-6">
-                    <label class="control-label" for="device_class">Vendor:</label>
-                    <select class="form-control" name='vendor' id="vendor">
-                        <option value=''></option>
+                    <label class="control-label" for="vendor">Vendor:</label>
+                    <select class="selectpicker" name='vendor' id="vendor" multiple>
                         {% for vendor in vendors | sort %}
-                            <option value='{{ vendor }}'>{{ vendor }}</option>
+                        <option value='{{ vendor }}'>{{ vendor }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -51,7 +51,17 @@
             </div>
             {% endfor %}
 
-            <button type="submit" value=submit class="btn btn-primary" id="input_submit" onclick='showImg()'>
+            <div class="form-group">
+                <label class="control-label" for="tags">Tags:</label>
+                <select class="selectpicker" name='tags' id="tags" multiple>
+                    {% for tag in tag_list | sort %}
+                    <option value='{{ tag }}'>{{ tag }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+
+            <button type="submit" value=submit class="btn btn-primary" id="input_submit" onclick="showImg()">
                 <i class="fas fa-search"></i> Search
             </button>
 
