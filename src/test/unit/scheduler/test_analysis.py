@@ -10,7 +10,7 @@ from config import configparser_cfg
 from objects.firmware import Firmware
 from scheduler.analysis import MANDATORY_PLUGINS, AnalysisScheduler
 from test.common_helper import MockFileObject, get_config_for_testing, get_test_data_dir
-from test.mock import mock_patch, mock_spy
+from test.mock import mock_patch
 
 
 class ViewUpdaterMock:
@@ -97,13 +97,20 @@ class TestScheduleInitialAnalysis:
         assert analysis_scheduler.analysis_plugins['file_type'].VERSION == result['file_type'][3], 'version not correct'
         assert analysis_scheduler.analysis_plugins['file_hashes'].VERSION == result['file_hashes'][3], 'version not correct'
 
-    def test_process_next_analysis_unknown_plugin(self, analysis_scheduler):
+    def test_process_next_analysis_unknown_plugin(self, monkeypatch, analysis_scheduler):
+        called = False
+
+        def _mock_start_or_skip_analysis(*_, **__):
+            global called
+            called = True
+
+        monkeypatch.setattr(analysis_scheduler, '_start_or_skip_analysis', _mock_start_or_skip_analysis)
+
         test_fw = Firmware(file_path=os.path.join(get_test_data_dir(), 'get_files_test/testfile1'))
         test_fw.scheduled_analysis = ['unknown_plugin']
 
-        with mock_spy(analysis_scheduler, '_start_or_skip_analysis') as spy:
-            analysis_scheduler._process_next_analysis_task(test_fw)
-            assert not spy.was_called(), 'unknown plugin should simply be skipped'
+        analysis_scheduler._process_next_analysis_task(test_fw)
+        assert not called, 'unknown plugin should simply be skipped'
 
     # TODO this marker should not completely overwrite the outer markers
     @pytest.mark.cfg_defaults({
