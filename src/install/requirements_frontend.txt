@@ -2,6 +2,8 @@ werkzeug
 
 bcrypt
 email-validator
+# FIXME: werkzeug 2.1.0 removes the deprecated 'safe_str_cmp' used by latest pypi flask-login 0.5.0. The main branch has regular updates that solve this problem. We didn't see a new pypi package since Feb 9 2020. Hopefully the pypi source will be updated soon.
+git+https://github.com/maxcountryman/flask-login.git@main
 flask>=2.0
 flask-paginate
 flask_restx
