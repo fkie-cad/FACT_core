@@ -2,6 +2,7 @@ import json
 from base64 import standard_b64encode
 from urllib.parse import quote
 
+import logging
 from test.common_helper import TEST_FW
 from test.unit.web_interface.rest.conftest import decode_response
 
@@ -68,13 +69,13 @@ def test_successful_uid_request(test_app):
 
 
 def test_bad_put_request(test_app):
-    result = decode_response(test_app.put('/rest/firmware'))
-    assert 'Input payload validation failed' in result['message']
+    response = test_app.put('/rest/firmware')
+    assert response.status_code == 400
 
 
-def test_submit_empty_data(test_app):
-    result = decode_response(test_app.put('/rest/firmware', data=json.dumps({})))
-    assert 'Input payload validation failed' in result['message']
+def test_submit_non_json_data(test_app):
+    response = test_app.put('/rest/firmware', data='non-json-string')
+    assert response.status_code == 400
 
 
 def test_submit_missing_item(test_app):

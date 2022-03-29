@@ -7,8 +7,8 @@ UID_2 = 'decafbad' * 8 + '_2'
 
 
 def test_bad_request(test_app):
-    result = decode_response(test_app.put('/rest/compare'))
-    assert 'Input payload validation failed' in result['message']
+    response = test_app.put('/rest/compare')
+    assert response.status_code == 400
 
     result = test_app.get('/rest/compare/').data
     assert b'404 Not Found' in result
