@@ -1,16 +1,14 @@
 # pylint: disable=protected-access,invalid-name,wrong-import-order,use-implicit-booleaness-not-comparison,too-many-arguments
-import gc
 import os
 from multiprocessing import Queue
 from time import sleep
-from unittest import TestCase, mock
+from unittest import mock
 
 import pytest
 
 from config import configparser_cfg
 from objects.firmware import Firmware
 from scheduler.analysis import MANDATORY_PLUGINS, AnalysisScheduler
-from storage.unpacking_locks import UnpackingLockManager
 from test.common_helper import MockFileObject, get_config_for_testing, get_test_data_dir
 from test.mock import mock_patch, mock_spy
 
@@ -25,30 +23,6 @@ class BackendDbInterface:
         pass
 
 
-class AnalysisSchedulerTest(TestCase):
-
-    @mock.patch('plugins.base.ViewUpdater', lambda *_: ViewUpdaterMock())
-    def setUp(self):
-        self.mocked_interface = BackendDbInterface()
-        config = configparser_cfg
-        config.add_section('ip_and_uri_finder')
-        config.set('ip_and_uri_finder', 'signature_directory', 'analysis/signatures/ip_and_uri_finder/')
-        config.set('default-plugins', 'default', 'file_hashes')
-        self.tmp_queue = Queue()
-        self.sched = AnalysisScheduler(
-            config=config, pre_analysis=lambda *_: None, post_analysis=self.dummy_callback,
-            db_interface=self.mocked_interface, unpacking_locks=UnpackingLockManager()
-        )
-
-    def tearDown(self):
-        self.sched.shutdown()
-        self.tmp_queue.close()
-        gc.collect()
-
-    def dummy_callback(self, uid, plugin, analysis_result):
-        self.tmp_queue.put({'uid': uid, 'plugin': plugin, 'result': analysis_result})
-
-
 @pytest.mark.usefixtures('patch_cfg')
 @pytest.mark.cfg_defaults({
     'file_hashes': {
@@ -58,26 +32,25 @@ class AnalysisSchedulerTest(TestCase):
         'min-length': 6,
     },
 })
-class TestScheduleInitialAnalysis(AnalysisSchedulerTest):
+class TestScheduleInitialAnalysis:
+    def test_plugin_registration(self, analysis_scheduler):
+        assert 'dummy_plugin_for_testing_only' in analysis_scheduler.analysis_plugins, 'Dummy plugin not found'
 
-    def test_plugin_registration(self):
-        assert 'dummy_plugin_for_testing_only' in self.sched.analysis_plugins, 'Dummy plugin not found'
-
-    def test_schedule_firmware_init_no_analysis_selected(self):
-        self.sched.shutdown()
-        self.sched.process_queue = Queue()
+    def test_schedule_firmware_init_no_analysis_selected(self, analysis_scheduler):
+        analysis_scheduler.shutdown()
+        analysis_scheduler.process_queue = Queue()
         test_fw = Firmware(binary=b'test')
-        self.sched.start_analysis_of_object(test_fw)
-        test_fw = self.sched.process_queue.get(timeout=5)
+        analysis_scheduler.start_analysis_of_object(test_fw)
+        test_fw = analysis_scheduler.process_queue.get(timeout=5)
         assert len(test_fw.scheduled_analysis) == len(MANDATORY_PLUGINS), 'Mandatory Plugins not selected'
         for item in MANDATORY_PLUGINS:
             assert item in test_fw.scheduled_analysis
 
-    def test_whole_run_analysis_selected(self):
+    def test_whole_run_analysis_selected(self, analysis_scheduler, analysis_queue):
         test_fw = Firmware(file_path=os.path.join(get_test_data_dir(), 'get_files_test/testfile1'))
         test_fw.scheduled_analysis = ['dummy_plugin_for_testing_only']
-        self.sched.start_analysis_of_object(test_fw)
-        analysis_results = [self.tmp_queue.get(timeout=10) for _ in range(3)]
+        analysis_scheduler.start_analysis_of_object(test_fw)
+        analysis_results = [analysis_queue.get(timeout=10) for _ in range(3)]
         assert len(analysis_results) == 3, 'analysis not done'
         assert analysis_results[0]['plugin'] == 'file_type'
         assert analysis_results[1]['plugin'] == 'dummy_plugin_for_testing_only'
@@ -85,37 +58,51 @@ class TestScheduleInitialAnalysis(AnalysisSchedulerTest):
         assert analysis_results[1]['result']['1'] == 'first result', 'result not correct'
         assert analysis_results[1]['result']['summary'] == ['first result', 'second result']
 
-    def test_expected_plugins_are_found(self):
-        result = self.sched.get_plugin_dict()
+    def test_expected_plugins_are_found(self, analysis_scheduler):
+        result = analysis_scheduler.get_plugin_dict()
 
         assert 'file_hashes' in result, 'file hashes plugin not found'
         assert 'file_type' in result, 'file type plugin not found'
         assert 'dummy_plugin_for_testing_only' not in result, 'dummy plug-in not removed'
 
-    def test_get_plugin_dict_description(self):
-        result = self.sched.get_plugin_dict()
-        assert result['file_type'][0] == self.sched.analysis_plugins['file_type'].DESCRIPTION, 'description not correct'
+    def test_get_plugin_dict_description(self, analysis_scheduler):
+        result = analysis_scheduler.get_plugin_dict()
+        assert result['file_type'][0] == analysis_scheduler.analysis_plugins['file_type'].DESCRIPTION, 'description not correct'
 
-    def test_get_plugin_dict_flags(self):
-        result = self.sched.get_plugin_dict()
-
+    @pytest.mark.cfg_defaults({
+            'file_hashes': {
+                'hashes': 'md5, sha1, sha256, sha512, ripemd160, whirlpool',
+            },
+            'printable_strings': {
+                'min-length': 6,
+            },
+            'ip_and_uri_finder': {
+                'signature_directory': 'analysis/signatures/ip_and_uri_finder/',
+            },
+            'default-plugins': {
+                'default': 'file_hashes',
+            },
+        }
+    )
+    def test_get_plugin_dict_flags(self, analysis_scheduler):
+        result = analysis_scheduler.get_plugin_dict()
         assert result['file_hashes'][1], 'mandatory flag not set'
         assert result['unpacker'][1], 'unpacker plugin not marked as mandatory'
 
         assert result['file_hashes'][2]['default'], 'default flag not set'
         assert not result['file_type'][2]['default'], 'default flag set but should not'
 
-    def test_get_plugin_dict_version(self):
-        result = self.sched.get_plugin_dict()
-        assert self.sched.analysis_plugins['file_type'].VERSION == result['file_type'][3], 'version not correct'
-        assert self.sched.analysis_plugins['file_hashes'].VERSION == result['file_hashes'][3], 'version not correct'
+    def test_get_plugin_dict_version(self, analysis_scheduler):
+        result = analysis_scheduler.get_plugin_dict()
+        assert analysis_scheduler.analysis_plugins['file_type'].VERSION == result['file_type'][3], 'version not correct'
+        assert analysis_scheduler.analysis_plugins['file_hashes'].VERSION == result['file_hashes'][3], 'version not correct'
 
-    def test_process_next_analysis_unknown_plugin(self):
+    def test_process_next_analysis_unknown_plugin(self, analysis_scheduler):
         test_fw = Firmware(file_path=os.path.join(get_test_data_dir(), 'get_files_test/testfile1'))
         test_fw.scheduled_analysis = ['unknown_plugin']
 
-        with mock_spy(self.sched, '_start_or_skip_analysis') as spy:
-            self.sched._process_next_analysis_task(test_fw)
+        with mock_spy(analysis_scheduler, '_start_or_skip_analysis') as spy:
+            analysis_scheduler._process_next_analysis_task(test_fw)
             assert not spy.was_called(), 'unknown plugin should simply be skipped'
 
     # TODO this marker should not completely overwrite the outer markers
@@ -130,13 +117,12 @@ class TestScheduleInitialAnalysis(AnalysisSchedulerTest):
             'mime_whitelist': 'foo, bar',
         },
     })
-    def test_skip_analysis_because_whitelist(self):
-        self.sched.config.set('dummy_plugin_for_testing_only', 'mime_whitelist', 'foo, bar')
+    def test_skip_analysis_because_whitelist(self, analysis_scheduler, analysis_queue):
         test_fw = Firmware(file_path=os.path.join(get_test_data_dir(), 'get_files_test/testfile1'))
         test_fw.scheduled_analysis = ['file_hashes']
         test_fw.processed_analysis['file_type'] = {'mime': 'text/plain'}
-        self.sched._start_or_skip_analysis('dummy_plugin_for_testing_only', test_fw)
-        analysis = self.tmp_queue.get(timeout=10)
+        analysis_scheduler._start_or_skip_analysis('dummy_plugin_for_testing_only', test_fw)
+        analysis = analysis_queue.get(timeout=10)
         assert analysis['plugin'] == 'dummy_plugin_for_testing_only'
         assert 'skipped' in analysis['result']
 
