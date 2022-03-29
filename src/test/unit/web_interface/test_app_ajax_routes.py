@@ -2,7 +2,6 @@
 import pytest
 from helperFunctions.data_conversion import normalize_compare_id
 from test.common_helper import TEST_FW, TEST_FW_2, TEST_TEXT_FILE, CommonDatabaseMock
-from test.mock import mock_patch
 
 
 class DbMock(CommonDatabaseMock):
@@ -71,9 +70,10 @@ def test_ajax_get_system_stats(test_client):
 
 
 @pytest.mark.db_mock(lambda: DbMock)
-def test_ajax_get_system_stats_error(test_client):
-    with mock_patch(DbMock, 'get_statistic', lambda *_: {}):
-        result = test_client.get('/ajax/stats/system').json
+def test_ajax_get_system_stats_error(monkeypatch, test_client):
+    monkeypatch.setattr(DbMock, 'get_statistic', lambda *_: {})
+
+    result = test_client.get('/ajax/stats/system').json
 
     assert result['backend_cpu_percentage'] == 'n/a'
     assert result['number_of_running_analyses'] == 'n/a'
