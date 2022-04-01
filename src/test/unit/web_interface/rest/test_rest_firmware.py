@@ -2,7 +2,6 @@ import json
 from base64 import standard_b64encode
 from urllib.parse import quote
 
-import logging
 from test.common_helper import TEST_FW
 from test.unit.web_interface.rest.conftest import decode_response
 
