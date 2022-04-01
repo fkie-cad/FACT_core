@@ -33,7 +33,9 @@ def test_set_and_get_chunked(redis):
     value = urandom(int(CHUNK_SIZE * 2.5))
     redis.set('key', value)
     assert redis.redis.get('key').startswith(CHUNK_MAGIC)
-    assert redis.get('key') == value
+    assert redis.get('key', delete=False) == value
+    assert redis.get('key', delete=True) == value
+    assert redis.get('key') is None
 
 
 def test_queue_put_and_get(redis):

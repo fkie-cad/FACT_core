@@ -25,7 +25,7 @@ class RedisInterface:
 
     def get(self, key: str, delete: bool = True) -> Any:
         value = self._redis_pop(key) if delete else self.redis.get(key)
-        return self._combine_if_split(value)
+        return self._combine_if_split(value, delete=delete)
 
     def queue_put(self, key: str, value: Any):
         self.redis.rpush(key, self._split_if_necessary(dumps(value)))
@@ -34,9 +34,7 @@ class RedisInterface:
         return self._combine_if_split(self.redis.lpop(key))
 
     def _split_if_necessary(self, value: bytes) -> Union[str, bytes]:
-        if len(value) > self.chunk_size:
-            value = self._store_chunks(value)
-        return value
+        return self._store_chunks(value) if len(value) > self.chunk_size else value
 
     def _store_chunks(self, value) -> str:
         meta_key = CHUNK_MAGIC.decode()
@@ -53,16 +51,16 @@ class RedisInterface:
             if not self.redis.exists(key):
                 return key
 
-    def _combine_if_split(self, value: Optional[bytes]) -> Any:
+    def _combine_if_split(self, value: Optional[bytes], delete: bool = True) -> Any:
         if value is None:
             return None
         if value.startswith(CHUNK_MAGIC):
-            value = self._combine_chunks(value.decode())
+            value = self._combine_chunks(value.decode(), delete=delete)
         return loads(value)
 
-    def _combine_chunks(self, meta_key: str) -> bytes:
+    def _combine_chunks(self, meta_key: str, delete: bool) -> bytes:
         return b''.join([
-            self._redis_pop(chunk_key)
+            self._redis_pop(chunk_key) if delete else self.redis.get(chunk_key)
             for chunk_key in meta_key.split(SEPARATOR)[1:]
         ])
 

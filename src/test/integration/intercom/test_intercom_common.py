@@ -1,4 +1,5 @@
 # pylint: disable=redefined-outer-name,wrong-import-order
+import os
 
 import pytest
 
@@ -28,7 +29,7 @@ def test_small_file(listener):
     check_file(b'this is a test', listener)
 
 
-@pytest.mark.skip(reason='should not run on CI')
+@pytest.mark.skipif('RUN_EXPENSIVE_TESTS' not in os.environ, reason='should not run on CI')
 def test_big_file(listener):
     large_test_data = b'\x00' * int(REDIS_MAX_VALUE_SIZE * 1.2)
     check_file(large_test_data, listener)
