@@ -73,9 +73,9 @@ def test_bad_put_request(test_app):
     assert response.status_code == 400
 
 
-def test_submit_non_json_data(test_app):
-    response = test_app.put('/rest/firmware', data='non-json-string')
-    assert response.status_code == 400
+def test_submit_empty_data(test_app):
+    result = decode_response(test_app.put('/rest/firmware', json={}))
+    assert 'Input payload validation failed' in result['message']
 
 
 def test_submit_missing_item(test_app):
