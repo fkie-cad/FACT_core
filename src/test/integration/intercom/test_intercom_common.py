@@ -3,6 +3,7 @@ import os
 
 import pytest
 
+from helperFunctions.data_conversion import convert_str_to_bool
 from intercom.common_redis_binding import InterComListener
 from storage.redis_interface import REDIS_MAX_VALUE_SIZE
 from test.common_helper import get_config_for_testing
@@ -29,7 +30,7 @@ def test_small_file(listener):
     check_file(b'this is a test', listener)
 
 
-@pytest.mark.skipif('RUN_EXPENSIVE_TESTS' not in os.environ, reason='should not run on CI')
+@pytest.mark.skipif(not convert_str_to_bool(os.environ.get('RUN_EXPENSIVE_TESTS', '0')), reason='should not run on CI')
 def test_big_file(listener):
     large_test_data = b'\x00' * int(REDIS_MAX_VALUE_SIZE * 1.2)
     check_file(large_test_data, listener)
