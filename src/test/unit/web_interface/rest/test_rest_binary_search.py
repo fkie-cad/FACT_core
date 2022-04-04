@@ -4,10 +4,8 @@ YARA_TEST_RULE = 'rule rulename {strings: $a = "foobar" condition: $a}'
 
 
 def test_no_data(test_app):
-    result = decode_response(test_app.post('/rest/binary_search'))
-    assert 'Input payload validation failed' in result['message']
-    assert 'errors' in result
-    assert 'is a required property' in result['errors']['rule_file']
+    response = test_app.post('/rest/binary_search')
+    assert response.status_code == 400
 
 
 def test_no_rule_file(test_app):
