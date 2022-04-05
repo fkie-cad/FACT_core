@@ -72,8 +72,6 @@ NICE_LIST_DATA = {
 }
 COMPARISON_ID = f'{TEST_FW.uid};{TEST_FW_2.uid}'
 
-TEST_SEARCH_QUERY = {'_id': '0000000000000000000000000000000000000000000000000000000000000000_1', 'search_query': f'{{"_id": "{TEST_FW_2.uid}"}}', 'query_title': 'rule a_ascii_string_rule'}
-
 
 class MockFileObject:
 
@@ -257,10 +255,6 @@ class CommonDatabaseMock:  # pylint: disable=too-many-public-methods
         if compare_id in ['existing_id', 'uid1;uid2', COMPARISON_ID]:
             return True
         return False
-
-
-def fake_exit(self, *args):
-    pass
 
 
 def get_firmware_for_rest_upload_test():
