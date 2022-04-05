@@ -60,7 +60,6 @@ autodoc_mock_imports = [
     'common_helper_encoder',
     'common_helper_files',
     'common_helper_mongo',
-    'common_helper_process',
     'distro',
     'docker',
     'flask',

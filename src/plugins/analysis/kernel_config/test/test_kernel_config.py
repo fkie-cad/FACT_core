@@ -3,6 +3,7 @@
 import glob
 import sys
 from pathlib import Path
+from subprocess import CompletedProcess
 
 from objects.file import FileObject
 from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
@@ -189,7 +190,7 @@ def test_checksec_existing_config():
 
 
 def test_checksec_no_valid_json(monkeypatch):
-    monkeypatch.setattr('plugins.analysis.kernel_config.internal.checksec_check_kernel.execute_shell_command', lambda _: 'invalid json')
+    monkeypatch.setattr('plugins.analysis.kernel_config.internal.checksec_check_kernel.subprocess.run', lambda *_, **__: CompletedProcess('DONT_CARE', 0, stdout='invalid json'))
     assert check_kernel_config('no_real_config') == {}
 
 

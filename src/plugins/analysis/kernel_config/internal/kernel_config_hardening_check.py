@@ -1,10 +1,10 @@
 import json
 import logging
+import subprocess
 from json import JSONDecodeError
+from subprocess import PIPE, STDOUT
 from tempfile import NamedTemporaryFile
 from typing import List, NamedTuple
-
-from common_helper_process import execute_shell_command
 
 # Based on https://github.com/a13xp0p0v/kconfig-hardened-check and
 # https://github.com/a13xp0p0v/linux-kernel-defence-map by Alexander Popov
@@ -104,8 +104,14 @@ def _get_kernel_hardening_data(kernel_config: str) -> List[List[str]]:
         with NamedTemporaryFile() as fp:
             fp.write(kernel_config.encode())
             fp.seek(0)
-            command = f'kconfig-hardened-check -c {fp.name} -m json 2>/dev/null'
-            return json.loads(execute_shell_command(command))
+            kconfig_process = subprocess.run(
+                f'kconfig-hardened-check -c {fp.name} -m json 2>/dev/null',
+                shell=True,
+                stdout=PIPE,
+                stderr=STDOUT,
+                universal_newlines=True,
+            )
+            return json.loads(kconfig_process.stdout)
     except (JSONDecodeError, KeyError):
         logging.warning('kconfig-hardened-check analysis failed')
     return []

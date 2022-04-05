@@ -1,8 +1,9 @@
 import logging
 import os
+import subprocess
+from subprocess import PIPE, STDOUT
 
 from common_helper_files.file_functions import create_dir_for_file
-from common_helper_process import execute_shell_command
 from pymongo import MongoClient, errors
 
 from helperFunctions.config import get_config_dir
@@ -44,8 +45,8 @@ class MongoMgr:
             auth_option = '--auth ' if _authenticate else ''
             command = 'mongod {}--config {} --fork --logpath {}'.format(auth_option, self.config_path, self.mongo_log_path)
             logging.info(f'Starting DB: {command}')
-            output = execute_shell_command(command)
-            logging.debug(output)
+            mongod_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True)
+            logging.debug(mongod_process.stdout)
         else:
             logging.info('using external mongodb: {}:{}'.format(self.config['data_storage']['mongo_server'], self.config['data_storage']['mongo_port']))
 
@@ -66,8 +67,8 @@ class MongoMgr:
                 self.config['data_storage']['mongo_server'], self.config['data_storage']['mongo_port'],
                 self.config['data_storage']['db_admin_user'], self.config['data_storage']['db_admin_pw']
             )
-            output = execute_shell_command(command)
-            logging.debug(output)
+            mongo_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
+            logging.debug(mongo_process.stdout)
 
     def init_users(self):
         logging.info('Creating users for MongoDB authentication')

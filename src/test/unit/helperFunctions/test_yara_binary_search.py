@@ -30,7 +30,7 @@ def mock_connect_to_enter(_, config=None):
     return yara_binary_search.YaraBinarySearchScannerDbInterface(config)
 
 
-def mock_check_output(call, shell=True, stderr=None):
+def mock_check_output(call, shell=True, stderr=None, *_, **__):
     raise CalledProcessError(1, call, b'', stderr)
 
 
@@ -62,7 +62,7 @@ class TestHelperFunctionsYaraBinarySearch(unittest.TestCase):
         assert isinstance(result, str)
         assert 'There seems to be an error in the rule file' in result
 
-    @patch('helperFunctions.yara_binary_search.execute_shell_command', side_effect=mock_check_output)
+    @patch('helperFunctions.yara_binary_search.subprocess.run', side_effect=mock_check_output)
     def test_get_binary_search_yara_error(self, _):
         result = self.yara_binary_scanner.get_binary_search_result((self.yara_rule, None))
         assert isinstance(result, str)

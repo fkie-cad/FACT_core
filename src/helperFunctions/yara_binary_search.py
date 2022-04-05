@@ -1,12 +1,12 @@
+import subprocess
 from configparser import ConfigParser
 from os.path import basename
 from pathlib import Path
-from subprocess import CalledProcessError
+from subprocess import PIPE, STDOUT, CalledProcessError
 from tempfile import NamedTemporaryFile
 from typing import Dict, List, Optional, Tuple, Union
 
 import yara
-from common_helper_process import execute_shell_command
 
 from helperFunctions.database import ConnectTo
 from storage.db_interface_common import MongoInterfaceCommon
@@ -37,7 +37,8 @@ class YaraBinarySearchScanner:
         '''
         compiled_flag = '-C' if Path(rule_file_path).read_bytes().startswith(b'YARA') else ''
         command = f'yara -r {compiled_flag} {rule_file_path} {target_path or self.db_path}'
-        return execute_shell_command(command)
+        yara_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
+        return yara_process.stdout
 
     def _execute_yara_search_for_single_firmware(self, rule_file_path: str, firmware_uid: str) -> str:
         with ConnectTo(YaraBinarySearchScannerDbInterface, self.config) as connection:

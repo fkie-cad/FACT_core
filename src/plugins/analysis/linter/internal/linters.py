@@ -3,9 +3,8 @@ import logging
 import shlex
 import subprocess
 from pathlib import Path
-from subprocess import DEVNULL, PIPE
+from subprocess import DEVNULL, PIPE, STDOUT
 
-from common_helper_process import execute_shell_command, execute_shell_command_get_return_code
 from docker.types import Mount
 
 from helperFunctions.docker import run_docker_container
@@ -35,14 +34,20 @@ def run_eslint(file_path):
 
 
 def run_shellcheck(file_path):
-    linter_output, return_code = execute_shell_command_get_return_code('shellcheck --format=json {}'.format(file_path))
+    shellcheck_process = subprocess.run(
+        'shellcheck --format=json {}'.format(file_path),
+        shell=True,
+        stdout=PIPE,
+        stderr=STDOUT,
+        universal_newlines=True,
+    )
 
-    if return_code == 2:
-        logging.debug('Failed to execute shellcheck:\n{}'.format(linter_output))
+    if shellcheck_process.returncode == 2:
+        logging.debug('Failed to execute shellcheck:\n{}'.format(shellcheck_process.stdout))
         return list()
 
     try:
-        shellcheck_json = json.loads(linter_output)
+        shellcheck_json = json.loads(shellcheck_process.stdout)
     except json.JSONDecodeError:
         return list()
 
@@ -66,8 +71,14 @@ def _shellcheck_extract_relevant_warnings(shellcheck_json):
 def run_luacheck(file_path):
     luacheckrc_path = Path(Path(__file__).parent, 'config', 'luacheckrc')
 
-    linter_output = execute_shell_command('luacheck -q --ranges --config  {} {}'.format(luacheckrc_path, file_path))
-    return _luacheck_parse_linter_output(linter_output)
+    luacheck_process = subprocess.run(
+        'luacheck -q --ranges --config  {} {}'.format(luacheckrc_path, file_path),
+        shell=True,
+        stdout=PIPE,
+        stderr=STDOUT,
+        universal_newlines=True,
+    )
+    return _luacheck_parse_linter_output(luacheck_process.stdout)
 
 
 def _luacheck_parse_linter_output(output):
@@ -109,11 +120,12 @@ def _luacheck_get_first_column(columns):
 
 
 def run_pylint(file_path):
-    pylint_output = execute_shell_command('pylint --output-format=json {}'.format(file_path))
+    pylint_process = subprocess.run('pylint --output-format=json {}'.format(file_path), shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
+
     try:
-        pylint_json = json.loads(pylint_output)
+        pylint_json = json.loads(pylint_process.stdout)
     except json.JSONDecodeError:
-        logging.warning('Failed to execute pylint:\n{}'.format(pylint_output))
+        logging.warning('Failed to execute pylint:\n{}'.format(pylint_process.stdout))
         return list()
 
     return _pylint_extract_relevant_warnings(pylint_json)

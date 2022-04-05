@@ -1,12 +1,12 @@
 import logging
 import re
+import subprocess
 from base64 import b64decode
 from contextlib import suppress
 from pathlib import Path
+from subprocess import PIPE, STDOUT
 from tempfile import NamedTemporaryFile
 from typing import Callable, List
-
-from common_helper_process import execute_shell_command
 
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.fileSystem import get_src_dir
@@ -112,9 +112,16 @@ def crack_hash(passwd_entry: bytes, result_entry: dict, format_term: str = '') -
     with NamedTemporaryFile() as fp:
         fp.write(passwd_entry)
         fp.seek(0)
-        command = f'{JOHN_PATH} --wordlist={WORDLIST_PATH} {fp.name} {format_term}'
-        result_entry['log'] = execute_shell_command(command)
-        output = execute_shell_command(f'{JOHN_PATH} {fp.name} --show {format_term}').split('\n')
+        john_process = subprocess.run(
+            f'{JOHN_PATH} --wordlist={WORDLIST_PATH} {fp.name} {format_term}',
+            shell=True,
+            stdout=PIPE,
+            stderr=STDOUT,
+            universal_newlines=True,
+        )
+        result_entry['log'] = john_process.stdout
+        john_process = subprocess.run(f'{JOHN_PATH} {fp.name} --show {format_term}', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
+        output = john_process.stdout.split('\n')
     if len(output) > 1:
         with suppress(KeyError):
             if '0 password hashes cracked' in output[-2]:

@@ -1,3 +1,5 @@
+from subprocess import CompletedProcess
+
 from ..internal.linters import run_shellcheck
 
 MOCK_RESPONSE = '''[
@@ -39,7 +41,7 @@ BAD_RESPONSE = '''any/path: any/path: openBinaryFile: does not exist (No such fi
 
 
 def test_do_analysis(monkeypatch):
-    monkeypatch.setattr('plugins.analysis.linter.internal.linters.execute_shell_command_get_return_code', lambda command: (MOCK_RESPONSE, 0))
+    monkeypatch.setattr('plugins.analysis.linter.internal.linters.subprocess.run', lambda *_, **__: CompletedProcess('DONT_CARE', 0, stdout=MOCK_RESPONSE))
     result = run_shellcheck('any/path')
 
     assert result
@@ -50,12 +52,12 @@ def test_do_analysis(monkeypatch):
 
 
 def test_do_analysis_bad_invokation(monkeypatch):
-    monkeypatch.setattr('plugins.analysis.linter.internal.linters.execute_shell_command_get_return_code', lambda command: (BAD_RESPONSE, 1))
+    monkeypatch.setattr('plugins.analysis.linter.internal.linters.subprocess.run', lambda *_, **__: CompletedProcess('DONT_CARE', 1, stdout=BAD_RESPONSE))
     result = run_shellcheck('any/path')
     assert 'full' not in result
 
 
 def test_do_analysis_bad_status_code(monkeypatch):
-    monkeypatch.setattr('plugins.analysis.linter.internal.linters.execute_shell_command_get_return_code', lambda command: (MOCK_RESPONSE, 2))
+    monkeypatch.setattr('plugins.analysis.linter.internal.linters.subprocess.run', lambda *_, **__: CompletedProcess('DONT_CARE', 2, stdout=MOCK_RESPONSE))
     result = run_shellcheck('any/path')
     assert 'full' not in result
