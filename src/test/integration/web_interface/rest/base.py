@@ -1,17 +1,16 @@
 # pylint: disable=attribute-defined-outside-init,wrong-import-order
+import pytest
 
-from tempfile import TemporaryDirectory
-
-from test.common_helper import get_config_for_testing
+from config import configparser_cfg
 from web_interface.frontend_main import WebFrontEnd
 
 
+@pytest.mark.usefixtures('patch_cfg')
 class RestTestBase:
 
     @classmethod
     def setup_class(cls):
-        cls.tmp_dir = TemporaryDirectory(prefix='fact_test_')
-        cls.config = get_config_for_testing(cls.tmp_dir)
+        cls.config = configparser_cfg
 
     def setup(self):
         self.frontend = WebFrontEnd(config=self.config)

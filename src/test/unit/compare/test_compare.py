@@ -6,8 +6,9 @@ import pytest
 
 from compare.compare import Compare
 from compare.PluginBase import CompareBasePlugin
+from config import configparser_cfg
 from helperFunctions.hash import get_ssdeep
-from test.common_helper import create_test_file_object, create_test_firmware, get_config_for_testing
+from test.common_helper import create_test_file_object, create_test_firmware
 
 
 @pytest.fixture(autouse=True)
@@ -38,10 +39,11 @@ class MockDbInterface:
         return self.get_object(uid)
 
 
+@pytest.mark.usefixtures('patch_cfg')
 class TestCompare(unittest.TestCase):
 
     def setUp(self):
-        self.config = get_config_for_testing()
+        self.config = configparser_cfg
         self.fw_one = create_test_firmware(device_name='dev_1', all_files_included_set=True)
         self.fw_one.processed_analysis['file_hashes'] = {'ssdeep': get_ssdeep(self.fw_one.binary)}
         self.fw_two = create_test_firmware(device_name='dev_2', bin_path='container/test.7z', all_files_included_set=True)

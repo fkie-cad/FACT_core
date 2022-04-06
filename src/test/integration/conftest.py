@@ -10,7 +10,7 @@ from storage.db_interface_comparison import ComparisonDbInterface
 from storage.db_interface_frontend import FrontEndDbInterface
 from storage.db_interface_frontend_editing import FrontendEditingDbInterface
 from test.common_helper import clear_test_tables  # pylint: disable=wrong-import-order
-from test.common_helper import get_config_for_testing, setup_test_tables  # pylint: disable=wrong-import-order
+from test.common_helper import setup_test_tables  # pylint: disable=wrong-import-order
 
 
 class DB:
@@ -25,21 +25,24 @@ class DB:
         self.admin = admin
 
 
-@pytest.fixture(scope='session')
-def db_interface():
-    config = get_config_for_testing()
-    admin = AdminDbInterface(config, intercom=MockIntercom())
-    setup_test_tables(config)
-    ro_connection = ReadOnlyConnection(config)
-    rw_connection = ReadWriteConnection(config)
-    common = DbInterfaceCommon(config, connection=ro_connection)
-    backend = BackendDbInterface(config, connection=rw_connection)
-    frontend = FrontEndDbInterface(config, connection=ro_connection)
-    frontend_ed = FrontendEditingDbInterface(config, connection=rw_connection)
+# TODO scope=session
+@pytest.fixture
+def db_interface(cfg_tuple):
+    _, configparser_cfg = cfg_tuple
+    admin = AdminDbInterface(configparser_cfg, intercom=MockIntercom())
+    setup_test_tables(configparser_cfg)
+
+    ro_connection = ReadOnlyConnection(configparser_cfg)
+    rw_connection = ReadWriteConnection(configparser_cfg)
+    common = DbInterfaceCommon(configparser_cfg, connection=ro_connection)
+    backend = BackendDbInterface(configparser_cfg, connection=rw_connection)
+    frontend = FrontEndDbInterface(configparser_cfg, connection=ro_connection)
+    frontend_ed = FrontendEditingDbInterface(configparser_cfg, connection=rw_connection)
+
     try:
         yield DB(common, backend, frontend, frontend_ed, admin)
     finally:
-        clear_test_tables(config)
+        clear_test_tables(configparser_cfg)
 
 
 @pytest.fixture(scope='function')
@@ -65,6 +68,6 @@ class MockIntercom:
 
 
 @pytest.fixture()
-def comp_db():
-    config = get_config_for_testing()
-    yield ComparisonDbInterface(config)
+def comp_db(cfg_tuple):
+    _, configparser_cfg = cfg_tuple
+    yield ComparisonDbInterface(configparser_cfg)

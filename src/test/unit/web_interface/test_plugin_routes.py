@@ -1,4 +1,5 @@
 # pylint: disable=no-self-use,protected-access,wrong-import-order,attribute-defined-outside-init
+import pytest
 import os
 from itertools import chain
 
@@ -6,10 +7,10 @@ from flask import Flask
 from flask_restx import Api
 
 from helperFunctions.fileSystem import get_src_dir
-from test.common_helper import get_config_for_testing
 from web_interface.components.plugin_routes import (
     PLUGIN_CATEGORIES, PluginRoutes, _find_plugins, _get_modules_in_path, _module_has_routes
 )
+from config import configparser_cfg
 
 
 class PluginRoutesMock(PluginRoutes):
@@ -21,13 +22,14 @@ class PluginRoutesMock(PluginRoutes):
         self.intercom = intercom
 
 
+@pytest.mark.usefixtures("patch_cfg")
 class TestPluginRoutes:
 
     def setup(self):
         self.app = Flask(__name__)
         self.app.config.from_object(__name__)
         self.api = Api(self.app)
-        self.config = get_config_for_testing()
+        self.config = configparser_cfg
 
     def test_get_modules_in_path(self):
         plugin_dir_path = os.path.join(get_src_dir(), 'plugins')

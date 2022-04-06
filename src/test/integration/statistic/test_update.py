@@ -6,17 +6,14 @@ import pytest
 
 from statistic.update import StatsUpdater
 from storage.db_interface_stats import StatsUpdateDbInterface
-from test.common_helper import (
-    create_test_file_object, create_test_firmware, generate_analysis_entry, get_config_for_testing
-)
+from test.common_helper import create_test_file_object, create_test_firmware, generate_analysis_entry
 from test.integration.storage.helper import create_fw_with_parent_and_child, insert_test_fo, insert_test_fw
-
-TEST_CONFIG = get_config_for_testing()
 
 
 @pytest.fixture(scope='function')
-def stats_updater() -> StatsUpdater:
-    updater = StatsUpdater(stats_db=StatsUpdateDbInterface(TEST_CONFIG))
+def stats_updater(cfg_tuple) -> StatsUpdater:
+    _, configparser_cfg = cfg_tuple
+    updater = StatsUpdater(stats_db=StatsUpdateDbInterface(configparser_cfg))
     yield updater
 
 

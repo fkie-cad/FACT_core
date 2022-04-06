@@ -9,7 +9,7 @@ import pytest
 from config import configparser_cfg
 from objects.firmware import Firmware
 from scheduler.analysis import MANDATORY_PLUGINS, AnalysisScheduler
-from test.common_helper import MockFileObject, get_config_for_testing, get_test_data_dir
+from test.common_helper import MockFileObject, get_test_data_dir
 from test.mock import mock_patch
 
 
@@ -134,6 +134,7 @@ class TestScheduleInitialAnalysis:
         assert 'skipped' in analysis['result']
 
 
+@pytest.mark.usefixtures('patch_cfg')
 class TestAnalysisSchedulerBlacklist:
 
     test_plugin = 'test_plugin'
@@ -161,7 +162,7 @@ class TestAnalysisSchedulerBlacklist:
         cls.init_patch.stop()
 
     def setup(self):
-        self.sched.config = get_config_for_testing()
+        self.sched.config = configparser_cfg
 
     def test_get_blacklist_and_whitelist_from_plugin(self):
         self.sched.analysis_plugins['test_plugin'] = self.PluginMock(['foo'], ['bar'])

@@ -2,17 +2,19 @@ import gc
 from math import isclose
 from time import time
 
+import pytest
+
+from config import configparser_cfg
 from statistic.work_load import WorkLoadStatistic
 from storage.db_interface_stats import StatsDbViewer
-from test.common_helper import get_config_for_testing  # pylint: disable=wrong-import-order
 
 
+@pytest.mark.usefixtures('patch_cfg')
 class TestWorkloadStatistic:
 
     def setup(self):
-        self.config = get_config_for_testing()
-        self.workload_stat = WorkLoadStatistic(config=self.config, component='test')
-        self.stats_db = StatsDbViewer(config=self.config)
+        self.workload_stat = WorkLoadStatistic(config=configparser_cfg, component='test')
+        self.stats_db = StatsDbViewer(config=configparser_cfg)
 
     def teardown(self):
         self.workload_stat.shutdown()

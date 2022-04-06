@@ -6,23 +6,23 @@ import pytest
 from storage.db_interface_stats import StatsDbViewer, StatsUpdateDbInterface, count_occurrences
 from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry, StatsEntry
 from test.common_helper import (  # pylint: disable=wrong-import-order
-    create_test_file_object, create_test_firmware, generate_analysis_entry, get_config_for_testing
+    create_test_file_object, create_test_firmware, generate_analysis_entry
 )
 
 from .helper import create_fw_with_parent_and_child, insert_test_fo, insert_test_fw
 
-TEST_CONFIG = get_config_for_testing()
-
 
 @pytest.fixture
-def stats_db():
-    updater = StatsUpdateDbInterface(TEST_CONFIG)
+def stats_db(cfg_tuple):
+    _, configparser_cfg = cfg_tuple
+    updater = StatsUpdateDbInterface(configparser_cfg)
     yield updater
 
 
 @pytest.fixture
-def stats_viewer():
-    viewer = StatsDbViewer(TEST_CONFIG)
+def stats_viewer(cfg_tuple):
+    _, configparser_cfg = cfg_tuple
+    viewer = StatsDbViewer(configparser_cfg)
     yield viewer
 
 
