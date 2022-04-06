@@ -6,10 +6,8 @@ YARA_TEST_RULE = 'rule rulename {strings: $a = "foobar" condition: $a}'
 class TestRestBinarySearch(WebInterfaceTest):
 
     def test_no_data(self):
-        result = self.test_client.post('/rest/binary_search').json
-        assert 'Input payload validation failed' in result['message']
-        assert 'errors' in result
-        assert 'is a required property' in result['errors']['rule_file']
+        response = self.test_client.post('/rest/binary_search')
+        assert response.status_code == 400
 
     def test_no_rule_file(self):
         result = self.test_client.post('/rest/binary_search', json={}).json

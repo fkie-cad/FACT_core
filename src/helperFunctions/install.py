@@ -6,11 +6,10 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
-from subprocess import PIPE, CalledProcessError
+from subprocess import DEVNULL, PIPE, STDOUT, CalledProcessError
 from typing import List, Tuple, Union
 
 import distro
-from common_helper_process import execute_shell_command_get_return_code
 
 
 class InstallationError(Exception):
@@ -53,7 +52,7 @@ def remove_folder(folder_name: str):
         shutil.rmtree(folder_name)
     except PermissionError:
         logging.debug('Falling back on root permission for deleting {}'.format(folder_name))
-        execute_shell_command_get_return_code('sudo rm -rf {}'.format(folder_name))
+        subprocess.run('sudo rm -rf {}'.format(folder_name), shell=True)
     except Exception as exception:
         raise InstallationError(exception) from None
 
@@ -70,12 +69,12 @@ def log_current_packages(packages: Tuple[str], install: bool = True):
 
 
 def _run_shell_command_raise_on_return_code(command: str, error: str, add_output_on_error=False) -> str:  # pylint: disable=invalid-name
-    output, return_code = execute_shell_command_get_return_code(command)
-    if return_code != 0:
+    cmd_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
+    if cmd_process.returncode != 0:
         if add_output_on_error:
-            error = '{}\n{}'.format(error, output)
+            error = '{}\n{}'.format(error, cmd_process.stdout)
         raise InstallationError(error)
-    return output
+    return cmd_process.stdout
 
 
 def dnf_update_sources():
@@ -139,10 +138,8 @@ def check_if_command_in_path(command: str) -> bool:
 
     :param command: Command to check.
     '''
-    _, return_code = execute_shell_command_get_return_code('command -v {}'.format(command))
-    if return_code != 0:
-        return False
-    return True
+    command_process = subprocess.run('command -v {}'.format(command), shell=True, stdout=DEVNULL, stderr=DEVNULL, universal_newlines=True)
+    return command_process.returncode == 0
 
 
 def install_github_project(project_path: str, commands: List[str]):
@@ -168,9 +165,9 @@ def install_github_project(project_path: str, commands: List[str]):
     with OperateInDirectory(folder_name, remove=True):
         error = None
         for command in commands:
-            output, return_code = execute_shell_command_get_return_code(command)
-            if return_code != 0:
-                error = 'Error while processing github project {}!\n{}'.format(project_path, output)
+            cmd_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
+            if cmd_process.returncode != 0:
+                error = 'Error while processing github project {}!\n{}'.format(project_path, cmd_process.stdout)
                 break
 
     if error:
@@ -179,8 +176,8 @@ def install_github_project(project_path: str, commands: List[str]):
 
 def _checkout_github_project(github_path: str, folder_name: str):
     clone_url = 'https://www.github.com/{}'.format(github_path)
-    _, return_code = execute_shell_command_get_return_code('git clone {}'.format(clone_url))
-    if return_code != 0:
+    git_process = subprocess.run('git clone {}'.format(clone_url), shell=True, stdout=DEVNULL, stderr=DEVNULL, universal_newlines=True)
+    if git_process.returncode != 0:
         raise InstallationError('Cloning from github failed for project {}\n {}'.format(github_path, clone_url))
     if not Path('.', folder_name).exists():
         raise InstallationError('Repository creation failed on folder {}\n {}'.format(folder_name, clone_url))

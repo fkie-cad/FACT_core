@@ -132,14 +132,21 @@ class DatabaseRoutes(ComponentBase):
 
     def _build_search_query(self):
         query = {}
-        if request.form['device_class_dropdown']:
-            query.update({'device_class': request.form['device_class_dropdown']})
-        for item in ['file_name', 'vendor', 'device_name', 'version', 'release_date']:
+        for item in ['device_class', 'vendor']:
+            if item in request.form and request.form[item]:
+                self._add_multiple_choice(query, item)
+        for item in ['file_name', 'device_name', 'version', 'release_date']:
             if request.form[item]:
                 query.update({item: {'$options': 'si', '$regex': request.form[item]}})
         if request.form['hash_value']:
             self._add_hash_query_to_query(query, request.form['hash_value'])
+        if 'tags' in request.form and request.form['tags']:
+            query.update({'firmware_tags': [tag for tag in dict(request.form.lists())['tags']]})
         return json.dumps(query)
+
+    @staticmethod
+    def _add_multiple_choice(query, key):
+        query[key] = {'$in': list(dict(request.form.lists())[key])}
 
     def _add_hash_query_to_query(self, query, value):
         hash_types = read_list_from_config(self._config, 'file_hashes', 'hashes')
@@ -158,7 +165,8 @@ class DatabaseRoutes(ComponentBase):
         with self.db.frontend.get_read_only_session():
             device_classes = self.db.frontend.get_device_class_list()
             vendors = self.db.frontend.get_vendor_list()
-        return render_template('database/database_search.html', device_classes=device_classes, vendors=vendors)
+            tags = self.db.frontend.get_tag_list()
+        return render_template('database/database_search.html', device_classes=device_classes, vendors=vendors, tag_list=tags)
 
     @roles_accepted(*PRIVILEGES['advanced_search'])
     @AppRoute('/database/advanced_search', POST)
@@ -254,5 +262,6 @@ class DatabaseRoutes(ComponentBase):
             'file_name': {'$like': search_term},
             'md5': search_term,
             'sha256': search_term,
+            'firmware_tags': search_term,
         }}
         return redirect(url_for('browse_database', query=json.dumps(query)))

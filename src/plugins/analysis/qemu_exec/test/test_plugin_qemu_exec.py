@@ -2,6 +2,7 @@
 import os
 from base64 import b64decode, b64encode
 from pathlib import Path
+from subprocess import CompletedProcess
 from unittest import TestCase
 
 import pytest
@@ -48,9 +49,7 @@ class MockUnpacker:
 
 @pytest.fixture
 def execute_shell_fails(monkeypatch):
-    def mock_execute_shell(*_, **__):
-        return '', 1
-    monkeypatch.setattr(qemu_exec, 'execute_shell_command_get_return_code', mock_execute_shell)
+    monkeypatch.setattr(qemu_exec, 'subprocess.run', CompletedProcess('DONT_CARE', 1))
 
 
 class ContainerMock:

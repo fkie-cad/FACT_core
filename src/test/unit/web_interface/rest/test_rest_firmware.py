@@ -81,12 +81,12 @@ class TestRestFirmware(WebInterfaceTest):
         assert all(section in result['firmware'] for section in ['meta_data', 'analysis'])
 
     def test_bad_put_request(self):
-        result = self.test_client.put('/rest/firmware').json
-        assert 'Input payload validation failed' in result['message']
+        response = self.test_client.put('/rest/firmware')
+        assert response.status_code == 400
 
     def test_submit_empty_data(self):
-        result = self.test_client.put('/rest/firmware', data=json.dumps({})).json
-        assert 'Input payload validation failed' in result['message']
+        response = self.test_client.put('/rest/firmware', json={}).json
+        assert 'Input payload validation failed' in response['message']
 
     def test_submit_missing_item(self):
         request_data = {**TEST_FW_PAYLOAD}

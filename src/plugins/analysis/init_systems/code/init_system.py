@@ -3,6 +3,7 @@ import re
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.data_conversion import make_unicode_string
 from helperFunctions.virtual_file_path import get_top_of_virtual_path
+from objects.file import FileObject
 
 FILE_IGNORES = ['README', 'README.md', 'README.txt', 'INSTALL', 'VERSION']
 
@@ -19,7 +20,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     NAME = 'init_systems'
     DESCRIPTION = 'detect and analyze auto start services'
     DEPENDENCIES = ['file_type']
-    VERSION = '0.4.1'
+    VERSION = '0.4.2'
     FILE = __file__
 
     def additional_setup(self):
@@ -30,11 +31,12 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return file_object.processed_analysis['file_type']['mime'] in ['text/plain']
 
     @staticmethod
-    def _get_file_path(file_object):
-        return get_top_of_virtual_path(file_object.virtual_file_path[file_object.root_uid][0])
+    def _get_file_path(file_object: FileObject):
+        root_uid = file_object.root_uid or list(file_object.parent_firmware_uids)[0]
+        return get_top_of_virtual_path(file_object.virtual_file_path[root_uid][0])
 
     def _get_systemd_config(self, file_object):
-        result = dict()
+        result = {}
         match_description = self._findall_regex(r'(?:Description=)(.*)', self.content)
         match_exec = self._findall_regex(r'(?<=ExecStart=).*', self.content)
         if match_exec:
@@ -47,7 +49,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return result
 
     def _get_rc_config(self, _):
-        result = dict()
+        result = {}
         matches = self._findall_regex(r'^(?!#)(.+)', self.content)
         if matches:
             result['script'] = '\n'.join(matches)
@@ -56,10 +58,10 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return result
 
     def _get_inittab_config(self, _):
-        result = dict()
+        result = {}
         matches_sysinit = self._findall_regex(r'^[^#].*(?<=sysinit:)([^#].*)', self.content)
         matches_respawn = self._findall_regex(r'^[^#].*(?<=respawn:)([^#].*)', self.content)
-        all_matches = list()
+        all_matches = []
         all_matches.extend(list(matches_sysinit))
         all_matches.extend(list(matches_respawn))
         if all_matches:
@@ -69,7 +71,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return result
 
     def _get_initscript_config(self, _):
-        result = dict()
+        result = {}
         matches = self._findall_regex(r'^(?!#)(.+)', self.content)
         if matches:
             result['script'] = '\n'.join(matches)
@@ -78,7 +80,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return result
 
     def _get_upstart_config(self, file_object):
-        result = dict()
+        result = {}
         match_description = self._findall_regex(r'^[^#].*(?<=description)\s*(.*)', self.content)
         match_exec = self._findall_regex(r'[^#]^exec\s*((?:.*\\\n)*.*)', self.content)
         match_pre_start = self._findall_regex(r'(?<=pre-start script\n)(?:(?:[\S\s]*?)[\n]*)(?=\nend script)', self.content)
@@ -96,7 +98,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def _get_runit_config(self, file_object):
         # TODO description = filepath
-        result = dict()
+        result = {}
         match_exec = self._findall_regex(r'^([^#](?:.*\\\n)*.*)', self.content)
         if match_exec:
             result['script'] = '\n'.join(match_exec)
@@ -106,7 +108,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return result
 
     def _get_sysvinit_config(self, file_object):
-        result = dict()
+        result = {}
         match_desc1 = self._findall_regex(r'Short-Description:\s*(.*)', self.content)
         match_desc2 = self._findall_regex(r'DESC=\"*([^\"|\n]*)', self.content)
         matches = self._findall_regex(r'^(?!#)(.+)', self.content)
@@ -139,8 +141,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             if 'etc/init.d/' in file_path or 'etc/rc.d/' in file_path:
                 file_object.processed_analysis[self.NAME] = self._get_sysvinit_config(file_object)
         else:
-            file_object.processed_analysis[self.NAME] = dict()
-            file_object.processed_analysis[self.NAME]['summary'] = list()
+            file_object.processed_analysis[self.NAME] = {'summary': []}
         return file_object
 
     @staticmethod
@@ -150,4 +151,4 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     @staticmethod
     def _add_quotes(unquoted_list):
-        return ['"{}"'.format(element) for element in unquoted_list]
+        return [f'"{element}"' for element in unquoted_list]

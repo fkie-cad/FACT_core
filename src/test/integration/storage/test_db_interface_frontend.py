@@ -229,6 +229,15 @@ def test_generic_search_summary(db):
         db.frontend.generic_search({'processed_analysis.plugin.summary': {'$foo': 'bar'}})
 
 
+def test_generic_search_tags(db):
+    insert_test_fw(db, uid='fw_1', tags={'foo': 'some_color', 'bar': 'some_color'})
+    insert_test_fw(db, uid='fw_2', tags={'foo': 'some_color', 'test': 'some_color'})
+
+    assert db.frontend.generic_search({'firmware_tags': 'bar'}) == ['fw_1']
+    assert db.frontend.generic_search({'firmware_tags': 'test'}) == ['fw_2']
+    assert sorted(db.frontend.generic_search({'firmware_tags': 'foo'})) == ['fw_1', 'fw_2']
+
+
 def test_inverted_search(db):
     fo, fw = create_fw_with_child_fo()
     fo.file_name = 'foo.bar'
@@ -415,6 +424,15 @@ def test_find_failed_analyses(db):
     insert_test_fo(db, 'fo2', analysis={'plugin1': failed_result, 'plugin2': failed_result})
 
     assert db.frontend.find_failed_analyses() == {'plugin1': {'fo2'}, 'plugin2': {'fo1', 'fo2'}}
+
+
+def test_get_tag_list(db):
+    assert db.frontend.get_tag_list() == []
+
+    insert_test_fw(db, uid='fw_1', tags={'foo': 'some_color', 'bar': 'some_color'})
+    insert_test_fw(db, uid='fw_2', tags={'foo': 'some_color', 'test': 'some_color'})
+
+    assert db.frontend.get_tag_list() == ['bar', 'foo', 'test']
 
 
 # --- search cache ---

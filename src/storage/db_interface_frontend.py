@@ -141,6 +141,11 @@ class FrontEndDbInterface(DbInterfaceCommon):
     def get_vendor_list(self):
         return self.get_firmware_attribute_list(FirmwareEntry.vendor)
 
+    def get_tag_list(self) -> List[str]:
+        with self.get_read_only_session() as session:
+            query = select(func.unnest(FirmwareEntry.firmware_tags)).distinct()
+            return sorted(session.execute(query).scalars())
+
     def get_device_name_dict(self):
         device_name_dict = {}
         with self.get_read_only_session() as session:

@@ -66,7 +66,12 @@ class FactBackend(FactBase):
         docker_mount_base_dir = Path(self.config['data_storage']['docker-mount-base-dir'])
         docker_mount_base_dir.mkdir(0o770, exist_ok=True)
         docker_gid = grp.getgrnam('docker').gr_gid
-        os.chown(docker_mount_base_dir, -1, docker_gid)
+        try:
+            os.chown(docker_mount_base_dir, -1, docker_gid)
+        except PermissionError:
+            # If we don't have enough rights to change the permissions we assume they are right
+            # E.g. in FACT_docker the correct group is not the group named 'docker'
+            logging.warning('Could not change permissions of docker-mount-base-dir. Ignoring.')
 
         while self.run:
             self.work_load_stat.update(

@@ -77,7 +77,10 @@ def build_query_from_dict(query_dict: dict, query: Optional[Select] = None,  # p
             join_function = query.outerjoin if or_query else query.join  # outer join in case of "$or" so file objects still match
             query = join_function(FirmwareEntry, FirmwareEntry.uid == FileObjectEntry.uid)
         for key, value in firmware_search_dict.items():
-            filters.append(_dict_key_to_filter(_get_column(key, FirmwareEntry), key, value))
+            if key == 'firmware_tags':  # special case: array field
+                filters.append(_get_array_filter(FirmwareEntry.firmware_tags, key, value))
+            else:
+                filters.append(_dict_key_to_filter(_get_column(key, FirmwareEntry), key, value))
 
     file_search_dict = get_search_keys_from_dict(query_dict, FileObjectEntry)
     if file_search_dict:
@@ -131,21 +134,21 @@ def _get_column(key: str, table: Union[Type[FirmwareEntry], Type[FileObjectEntry
 def _add_analysis_filter_to_query(key: str, value: Any, subkey: str):
     if hasattr(AnalysisEntry, subkey):
         if subkey == 'summary':  # special case: array field
-            return _get_summary_filter(key, value)
+            return _get_array_filter(AnalysisEntry.summary, key, value)
         return getattr(AnalysisEntry, subkey) == value
     # no metadata field, actual analysis result key in `AnalysisEntry.result` (JSON)
     return _add_json_filter(key, value, subkey)
 
 
-def _get_summary_filter(key, value):
+def _get_array_filter(field, key, value):
     if isinstance(value, list):  # array can be queried with list or single value
-        return AnalysisEntry.summary.contains(value)
+        return field.contains(value)
     if isinstance(value, dict):
         if '$regex' in value:  # array + "$regex" needs a trick: convert array to string
-            column = func.array_to_string(AnalysisEntry.summary, ',')
+            column = func.array_to_string(field, ',')
             return _dict_key_to_filter(column, key, value)
         raise QueryConversionException(f'Unsupported search option for ARRAY field: {value}')
-    return AnalysisEntry.summary.contains([value])  # filter by value
+    return field.contains([value])  # filter by value
 
 
 def _add_json_filter(key, value, subkey):

@@ -18,12 +18,13 @@
 '''
 
 import logging
+import subprocess
 import sys
 from pathlib import Path
+from subprocess import PIPE, STDOUT
 from time import time
 
 from common_helper_filter import time_format
-from common_helper_process import execute_shell_command, execute_shell_command_get_return_code
 
 from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.program_setup import program_setup
@@ -42,23 +43,30 @@ def _create_variety_data(config):
             password=config['data_storage']['db_admin_pw'],
         )
     )
-    output, return_code = execute_shell_command_get_return_code(
+    mongo_process = subprocess.run(
         '{mongo_call} {database} --eval "var collection = \'file_objects\', persistResults=true" {script_path}'.format(
             mongo_call=mongo_call,
             database=config['data_storage']['main_database'],
             script_path=varietyjs_script_path),
-        timeout=None
+        shell=True,
+        stdout=PIPE,
+        stderr=STDOUT,
+        universal_newlines=True,
     )
-    if return_code == 0:
-        execute_shell_command(
+    if mongo_process.returncode == 0:
+        subprocess.run(
             '{mongo_call} varietyResults --eval \'{command}\''.format(
                 mongo_call=mongo_call,
                 command='db.file_objectsKeys.deleteMany({"_id.key": {"$regex": "skipped|file_system_flag"}})'
             ),
+            shell=True,
+            stdout=PIPE,
+            stderr=STDOUT,
+            universal_newlines=True,
         )
 
-    logging.debug(output)
-    return return_code
+    logging.debug(mongo_process.stdout)
+    return mongo_process.returncode
 
 
 def main(command_line_options=sys.argv):
