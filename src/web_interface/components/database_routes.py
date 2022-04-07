@@ -132,13 +132,18 @@ class DatabaseRoutes(ComponentBase):
 
     def _build_search_query(self):
         query = {}
-        if request.form['device_class_dropdown']:
-            query.update({'device_class': request.form['device_class_dropdown']})
-        for item in ['file_name', 'vendor', 'device_name', 'version', 'release_date']:
-            if request.form[item]:
-                query.update({item: {'$options': 'si', '$regex': request.form[item]}})
+        for key in ['device_class', 'vendor']:
+            if key in request.form and request.form[key]:
+                choices = list(dict(request.form.lists())[key])
+                query[key] = {'$in': choices}
+        for key in ['file_name', 'device_name', 'version', 'release_date']:
+            if request.form[key]:
+                query[key] = {'$like': request.form[key]}
         if request.form['hash_value']:
             self._add_hash_query_to_query(query, request.form['hash_value'])
+        if 'tags' in request.form and request.form['tags']:
+            tags = list(dict(request.form.lists())['tags'])
+            query['firmware_tags'] = {'$overlap': tags}
         return json.dumps(query)
 
     def _add_hash_query_to_query(self, query, value):
@@ -158,7 +163,8 @@ class DatabaseRoutes(ComponentBase):
         with self.db.frontend.get_read_only_session():
             device_classes = self.db.frontend.get_device_class_list()
             vendors = self.db.frontend.get_vendor_list()
-        return render_template('database/database_search.html', device_classes=device_classes, vendors=vendors)
+            tags = self.db.frontend.get_tag_list()
+        return render_template('database/database_search.html', device_classes=device_classes, vendors=vendors, tag_list=tags)
 
     @roles_accepted(*PRIVILEGES['advanced_search'])
     @AppRoute('/database/advanced_search', POST)
@@ -244,7 +250,7 @@ class DatabaseRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['basic_search'])
     @AppRoute('/database/quick_search', GET)
-    def start_quick_search(self):
+    def start_quick_search(self):  # pylint: disable=no-self-use
         search_term = filter_out_illegal_characters(request.args.get('search_term'))
         if search_term is None:
             return render_template('error.html', message='Search string not found')
@@ -254,5 +260,6 @@ class DatabaseRoutes(ComponentBase):
             'file_name': {'$like': search_term},
             'md5': search_term,
             'sha256': search_term,
+            'firmware_tags': search_term,
         }}
         return redirect(url_for('browse_database', query=json.dumps(query)))

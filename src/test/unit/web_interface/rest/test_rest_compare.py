@@ -9,11 +9,8 @@ UID_2 = 'decafbad' * 8 + '_2'
 class TestRestComparison(WebInterfaceTest):
 
     def test_bad_request(self):
-        result = self.test_client.put('/rest/compare').json
-        assert 'Input payload validation failed' in result['message']
-
-        result = self.test_client.get('/rest/compare/').data
-        assert b'404 Not Found' in result
+        response = self.test_client.put('/rest/compare')
+        assert response.status_code == 400
 
     def test_empty_data(self):
         result = self.test_client.put('/rest/compare', json={}).json

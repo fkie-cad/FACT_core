@@ -1,3 +1,4 @@
+from json import dumps
 from typing import Any, Dict, List, Optional, Type, Union
 
 from sqlalchemy import func, or_, select, type_coerce
@@ -78,7 +79,10 @@ def build_query_from_dict(query_dict: dict, query: Optional[Select] = None,  # p
             join_function = query.outerjoin if or_query else query.join  # outer join in case of "$or" so file objects still match
             query = join_function(FirmwareEntry, FirmwareEntry.uid == FileObjectEntry.uid)
         for key, value in firmware_search_dict.items():
-            filters.append(_dict_key_to_filter(_get_column(key, FirmwareEntry), key, value))
+            if key == 'firmware_tags':  # special case: array field
+                filters.append(_get_array_filter(FirmwareEntry.firmware_tags, key, value))
+            else:
+                filters.append(_dict_key_to_filter(_get_column(key, FirmwareEntry), key, value))
 
     file_search_dict = get_search_keys_from_dict(query_dict, FileObjectEntry)
     if file_search_dict:
@@ -132,21 +136,29 @@ def _get_column(key: str, table: Union[Type[FirmwareEntry], Type[FileObjectEntry
 def _add_analysis_filter_to_query(key: str, value: Any, subkey: str):
     if hasattr(AnalysisEntry, subkey):
         if subkey == 'summary':  # special case: array field
-            return _get_summary_filter(key, value)
+            return _get_array_filter(AnalysisEntry.summary, key, value)
         return getattr(AnalysisEntry, subkey) == value
     # no metadata field, actual analysis result key in `AnalysisEntry.result` (JSON)
     return _add_json_filter(key, value, subkey)
 
 
-def _get_summary_filter(key, value):
+def _get_array_filter(field, key, value):
     if isinstance(value, list):  # array can be queried with list or single value
-        return AnalysisEntry.summary.contains(value)
+        return field.contains(value)
     if isinstance(value, dict):
         if '$regex' in value:  # array + "$regex" needs a trick: convert array to string
-            column = func.array_to_string(AnalysisEntry.summary, ',')
+            column = func.array_to_string(field, ',')
             return _dict_key_to_filter(column, key, value)
+        if '$contains' in value:
+            return field.contains(_to_list(value['$contains']))
+        if '$overlap' in value:
+            return field.overlap(_to_list(value['$overlap']))
         raise QueryConversionException(f'Unsupported search option for ARRAY field: {value}')
-    return AnalysisEntry.summary.contains([value])  # filter by value
+    return field.contains([value])  # filter by value
+
+
+def _to_list(value):
+    return value if isinstance(value, list) else [value]
 
 
 def _add_json_filter(key, value, subkey):
@@ -159,8 +171,13 @@ def _add_json_filter(key, value, subkey):
     else:
         for nested_key in subkey.split('.'):
             column = column[nested_key]
-        if isinstance(value, dict):
-            column = column.astext
-        else:
-            value = type_coerce(value, JSONB)
+
+    if isinstance(value, dict):
+        for key_, value_ in value.items():
+            if key_ == '$in':
+                column = column.astext
+                break
+            value[key_] = dumps(value_)
+    else:
+        value = type_coerce(value, JSONB)
     return _dict_key_to_filter(column, key, value)

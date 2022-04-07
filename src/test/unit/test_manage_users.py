@@ -21,15 +21,12 @@ class Prompt(NamedTuple):
 @pytest.fixture()
 def prompt(monkeypatch):
     monkeypatch.setattr('getpass.getpass', lambda _: 'mock_password')
-    pipe = create_pipe_input()
-    try:
+    with create_pipe_input() as pipe:
         session = PromptSession(
             input=pipe,
             output=DummyOutput(),
         )
         yield Prompt(session, pipe)
-    finally:
-        pipe.close()
 
 
 def test_setup_argparse(monkeypatch):

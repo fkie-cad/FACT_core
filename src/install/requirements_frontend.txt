@@ -2,6 +2,7 @@ werkzeug
 
 bcrypt
 email-validator
+flask-login>=0.6.0
 flask>=2.0
 flask-paginate
 flask_restx

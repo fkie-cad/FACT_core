@@ -1,6 +1,6 @@
-import pytest
+from subprocess import CompletedProcess
 
-from ..internal.shell_linter import ShellLinter
+from ..internal.linters import run_shellcheck
 
 MOCK_RESPONSE = '''[
     {
@@ -40,14 +40,9 @@ BAD_RESPONSE = '''any/path: any/path: openBinaryFile: does not exist (No such fi
 '''
 
 
-@pytest.fixture(scope='function')
-def stub_linter():
-    return ShellLinter()
-
-
-def test_do_analysis(stub_linter, monkeypatch):
-    monkeypatch.setattr('plugins.analysis.linter.internal.shell_linter.execute_shell_command_get_return_code', lambda command: (MOCK_RESPONSE, 0))
-    result = stub_linter.do_analysis('any/path')
+def test_do_analysis(monkeypatch):
+    monkeypatch.setattr('plugins.analysis.linter.internal.linters.subprocess.run', lambda *_, **__: CompletedProcess('DONT_CARE', 0, stdout=MOCK_RESPONSE))
+    result = run_shellcheck('any/path')
 
     assert result
     assert len(result) == 2, 'info issue should be discarded'
@@ -56,13 +51,13 @@ def test_do_analysis(stub_linter, monkeypatch):
     assert result[0]['type'] == 'warning'
 
 
-def test_do_analysis_bad_invokation(stub_linter, monkeypatch):
-    monkeypatch.setattr('plugins.analysis.linter.internal.shell_linter.execute_shell_command_get_return_code', lambda command: (BAD_RESPONSE, 1))
-    result = stub_linter.do_analysis('any/path')
+def test_do_analysis_bad_invokation(monkeypatch):
+    monkeypatch.setattr('plugins.analysis.linter.internal.linters.subprocess.run', lambda *_, **__: CompletedProcess('DONT_CARE', 1, stdout=BAD_RESPONSE))
+    result = run_shellcheck('any/path')
     assert 'full' not in result
 
 
-def test_do_analysis_bad_status_code(stub_linter, monkeypatch):
-    monkeypatch.setattr('plugins.analysis.linter.internal.shell_linter.execute_shell_command_get_return_code', lambda command: (MOCK_RESPONSE, 2))
-    result = stub_linter.do_analysis('any/path')
+def test_do_analysis_bad_status_code(monkeypatch):
+    monkeypatch.setattr('plugins.analysis.linter.internal.linters.subprocess.run', lambda *_, **__: CompletedProcess('DONT_CARE', 2, stdout=MOCK_RESPONSE))
+    result = run_shellcheck('any/path')
     assert 'full' not in result

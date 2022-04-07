@@ -16,7 +16,9 @@ from scheduler.unpacking_scheduler import UnpackingScheduler
 from storage.db_interface_backend import BackendDbInterface
 from storage.fsorganizer import FSOrganizer
 from storage.unpacking_locks import UnpackingLockManager
-from test.common_helper import clear_test_tables, setup_test_tables  # pylint: disable=wrong-import-order
+from test.common_helper import (  # pylint: disable=wrong-import-order
+    clear_test_tables, create_docker_mount_base_dir, setup_test_tables
+)
 from web_interface.frontend_main import WebFrontEnd
 
 TMP_DB_NAME = 'tmp_acceptance_tests'
@@ -34,6 +36,7 @@ class TestAcceptanceBase(unittest.TestCase):  # pylint: disable=too-many-instanc
     @classmethod
     def setUpClass(cls):
         cls._set_config()
+        create_docker_mount_base_dir()
 
     def setUp(self):
         setup_test_tables(self.config)

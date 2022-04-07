@@ -32,7 +32,7 @@ def create_fw_with_parent_and_child():
 
 def insert_test_fw(
     db, uid, file_name='test.zip', device_class='class', vendor='vendor', device_name='name',
-    version='1.0', release_date='1970-01-01', analysis: Optional[dict] = None
+    version='1.0', release_date='1970-01-01', analysis: Optional[dict] = None, tags: Optional[dict] = None
 ):  # pylint: disable=too-many-arguments
     test_fw = create_test_firmware(device_class=device_class, vendor=vendor, device_name=device_name, version=version)
     test_fw.uid = uid
@@ -40,6 +40,8 @@ def insert_test_fw(
     test_fw.release_date = release_date
     if analysis:
         test_fw.processed_analysis = analysis
+    if tags:
+        test_fw.tags = tags
     db.backend.insert_object(test_fw)
     return test_fw
 

@@ -6,4 +6,3 @@ python-magic
 requests
 
 git+https://github.com/fkie-cad/common_helper_files.git
-git+https://github.com/fkie-cad/common_helper_process.git

@@ -28,6 +28,5 @@ git+https://github.com/fkie-cad/fact_helper_file.git
 # Common code modules
 git+https://github.com/fkie-cad/common_helper_files.git
 git+https://github.com/fkie-cad/common_helper_filter.git
-git+https://github.com/fkie-cad/common_helper_process.git
 git+https://github.com/mass-project/common_helper_encoder.git
 
