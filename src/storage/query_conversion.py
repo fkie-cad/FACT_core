@@ -1,3 +1,4 @@
+from json import dumps
 from typing import Any, Dict, List, Optional, Type, Union
 
 from sqlalchemy import func, or_, select
@@ -147,13 +148,21 @@ def _get_array_filter(field, key, value):
         if '$regex' in value:  # array + "$regex" needs a trick: convert array to string
             column = func.array_to_string(field, ',')
             return _dict_key_to_filter(column, key, value)
+        if '$contains' in value:
+            return field.contains(_to_list(value['$contains']))
+        if '$overlap' in value:
+            return field.overlap(_to_list(value['$overlap']))
         raise QueryConversionException(f'Unsupported search option for ARRAY field: {value}')
     return field.contains([value])  # filter by value
 
 
+def _to_list(value):
+    return value if isinstance(value, list) else [value]
+
+
 def _add_json_filter(key, value, subkey):
     column = AnalysisEntry.result
-    if '$exists' in value:
+    if isinstance(value, dict) and '$exists' in value:
         # "$exists" (aka key exists in json document) is a special case because
         # we need to query the element one level above the actual key
         for nested_key in subkey.split('.')[:-1]:
@@ -161,5 +170,13 @@ def _add_json_filter(key, value, subkey):
     else:
         for nested_key in subkey.split('.'):
             column = column[nested_key]
-        column = column.astext
+
+    if isinstance(value, dict):
+        for key_, value_ in value.items():
+            if key_ == '$in':
+                column = column.astext
+                break
+            value[key_] = dumps(value_)
+    else:
+        value = dumps(value)
     return _dict_key_to_filter(column, key, value)

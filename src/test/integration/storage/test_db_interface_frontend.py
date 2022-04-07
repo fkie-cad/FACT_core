@@ -183,7 +183,7 @@ def test_generic_search_nested(db):
     fo, fw = create_fw_with_child_fo()
     fo.processed_analysis = {'plugin': generate_analysis_entry(analysis_result={
         'nested': {'key': 'value'},
-        'nested_2': {'inner_nested': {'foo': 'bar'}}
+        'nested_2': {'inner_nested': {'foo': 'bar', 'test': 3}}
     })}
     db.backend.insert_object(fw)
     db.backend.insert_object(fo)
@@ -192,16 +192,20 @@ def test_generic_search_nested(db):
     assert db.frontend.generic_search(
         {'processed_analysis.plugin.nested.key': {'$in': ['value', 'other_value']}}) == [fo.uid]
     assert db.frontend.generic_search({'processed_analysis.plugin.nested_2.inner_nested.foo': 'bar'}) == [fo.uid]
+    assert db.frontend.generic_search({'processed_analysis.plugin.nested_2.inner_nested.test': 3}) == [fo.uid]
 
 
 def test_generic_search_json_array(db):
     fo, fw = create_fw_with_child_fo()
-    fo.processed_analysis = {'plugin': generate_analysis_entry(analysis_result={'list': ['a']})}
+    fo.processed_analysis = {'plugin': generate_analysis_entry(analysis_result={'list': ['a', 'b']})}
+    fw.processed_analysis = {'plugin': generate_analysis_entry(analysis_result={'list': ['b', 'c']})}
     db.backend.insert_object(fw)
     db.backend.insert_object(fo)
 
     assert db.frontend.generic_search({'processed_analysis.plugin.list': {'$contains': 'a'}}) == [fo.uid]
-    assert db.frontend.generic_search({'processed_analysis.plugin.list': {'$contains': 'b'}}) == []
+    assert db.frontend.generic_search({'processed_analysis.plugin.list': {'$contains': ['a']}}) == [fo.uid]
+    assert set(db.frontend.generic_search({'processed_analysis.plugin.list': {'$contains': 'b'}})) == {fo.uid, fw.uid}
+    assert db.frontend.generic_search({'processed_analysis.plugin.list': {'$contains': 'd'}}) == []
 
 
 def test_generic_search_wrong_key(db):
@@ -236,6 +240,9 @@ def test_generic_search_tags(db):
     assert db.frontend.generic_search({'firmware_tags': 'bar'}) == ['fw_1']
     assert db.frontend.generic_search({'firmware_tags': 'test'}) == ['fw_2']
     assert sorted(db.frontend.generic_search({'firmware_tags': 'foo'})) == ['fw_1', 'fw_2']
+    assert sorted(db.frontend.generic_search({'firmware_tags': {'$contains': 'foo'}})) == ['fw_1', 'fw_2']
+    assert sorted(db.frontend.generic_search({'firmware_tags': {'$overlap': ['bar', 'test']}})) == ['fw_1', 'fw_2']
+    assert db.frontend.generic_search({'firmware_tags': {'$overlap': ['none']}}) == []
 
 
 def test_inverted_search(db):
@@ -273,9 +280,9 @@ def test_search_limit_skip_and_order(db):
 def test_search_analysis_result(db):
     insert_test_fw(db, 'uid_1')
     insert_test_fw(db, 'uid_2')
-    db.backend.add_analysis('uid_2', 'test_plugin', generate_analysis_entry(analysis_result={'foo': 'bar'}))
-    result = db.frontend.generic_search({'processed_analysis.test_plugin.foo': 'bar'})
-    assert result == ['uid_2']
+    db.backend.add_analysis('uid_2', 'test_plugin', generate_analysis_entry(analysis_result={'foo': 'bar', 'test': 3}))
+    assert db.frontend.generic_search({'processed_analysis.test_plugin.foo': 'bar'}) == ['uid_2']
+    assert db.frontend.generic_search({'processed_analysis.test_plugin.test': 3}) == ['uid_2']
 
 
 def test_get_other_versions(db):

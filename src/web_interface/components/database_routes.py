@@ -132,21 +132,19 @@ class DatabaseRoutes(ComponentBase):
 
     def _build_search_query(self):
         query = {}
-        for item in ['device_class', 'vendor']:
-            if item in request.form and request.form[item]:
-                self._add_multiple_choice(query, item)
-        for item in ['file_name', 'device_name', 'version', 'release_date']:
-            if request.form[item]:
-                query.update({item: {'$options': 'si', '$regex': request.form[item]}})
+        for key in ['device_class', 'vendor']:
+            if key in request.form and request.form[key]:
+                choices = list(dict(request.form.lists())[key])
+                query[key] = {'$in': choices}
+        for key in ['file_name', 'device_name', 'version', 'release_date']:
+            if request.form[key]:
+                query[key] = {'$like': request.form[key]}
         if request.form['hash_value']:
             self._add_hash_query_to_query(query, request.form['hash_value'])
         if 'tags' in request.form and request.form['tags']:
-            query.update({'firmware_tags': [tag for tag in dict(request.form.lists())['tags']]})
+            tags = list(dict(request.form.lists())['tags'])
+            query['firmware_tags'] = {'$overlap': tags}
         return json.dumps(query)
-
-    @staticmethod
-    def _add_multiple_choice(query, key):
-        query[key] = {'$in': list(dict(request.form.lists())[key])}
 
     def _add_hash_query_to_query(self, query, value):
         hash_types = read_list_from_config(self._config, 'file_hashes', 'hashes')
@@ -252,7 +250,7 @@ class DatabaseRoutes(ComponentBase):
 
     @roles_accepted(*PRIVILEGES['basic_search'])
     @AppRoute('/database/quick_search', GET)
-    def start_quick_search(self):
+    def start_quick_search(self):  # pylint: disable=no-self-use
         search_term = filter_out_illegal_characters(request.args.get('search_term'))
         if search_term is None:
             return render_template('error.html', message='Search string not found')
