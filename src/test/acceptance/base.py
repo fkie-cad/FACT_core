@@ -19,7 +19,7 @@ from storage.fsorganizer import FSOrganizer
 from storage.MongoMgr import MongoMgr
 from storage.unpacking_locks import UnpackingLockManager
 from test.common_helper import (  # pylint: disable=wrong-import-order
-    clean_test_database, clear_test_tables, get_database_names, setup_test_tables
+    clean_test_database, clear_test_tables, create_docker_mount_base_dir, get_database_names, setup_test_tables
 )
 from web_interface.frontend_main import WebFrontEnd
 
@@ -39,6 +39,7 @@ class TestAcceptanceBase(unittest.TestCase):  # pylint: disable=too-many-instanc
     def setUpClass(cls):
         cls._set_config()
         cls.mongo_server = MongoMgr(config=cls.config)  # FixMe: still needed for intercom
+        create_docker_mount_base_dir()
 
     def setUp(self):
         setup_test_tables(self.config)
