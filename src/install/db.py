@@ -2,9 +2,7 @@ import logging
 from contextlib import suppress
 from pathlib import Path
 from shlex import split
-from subprocess import CalledProcessError, check_call
-
-from common_helper_process import execute_shell_command, execute_shell_command_get_return_code
+from subprocess import PIPE, CalledProcessError, run
 
 from helperFunctions.install import InstallationError, OperateInDirectory
 
@@ -15,7 +13,7 @@ CODENAME_TRANSLATION = {
 
 
 def install_postgres(version: int = 14):
-    codename = execute_shell_command('lsb_release -cs').rstrip()
+    codename = run('lsb_release -cs', universal_newlines=True, shell=True, stdout=PIPE, check=True).stdout.rstrip()
     codename = CODENAME_TRANSLATION.get(codename, codename)
     # based on https://www.postgresql.org/download/linux/ubuntu/
     command_list = [
@@ -25,19 +23,19 @@ def install_postgres(version: int = 14):
         f'sudo apt-get -y install postgresql-{version}'
     ]
     for command in command_list:
-        output, return_code = execute_shell_command_get_return_code(command)
-        if return_code != 0:
-            raise InstallationError(f'Failed to set up PostgreSQL: {output}')
+        process = run(command, universal_newlines=True, shell=True, check=False, stderr=PIPE)
+        if process.returncode != 0:
+            raise InstallationError(f'Failed to set up PostgreSQL: {process.stderr}')
 
     # increase the maximum number of concurrent connections (and restart for the change to take effect)
     config_path = f'/etc/postgresql/{version}/main/postgresql.conf'
-    execute_shell_command(f'sudo sed -i -E "s/max_connections = [0-9]+/max_connections = 999/g" {config_path}')
-    execute_shell_command('sudo service postgresql restart')
+    run(f'sudo sed -i -E "s/max_connections = [0-9]+/max_connections = 999/g" {config_path}', shell=True, check=True)
+    run('sudo service postgresql restart', shell=True, check=True)
 
 
 def postgres_is_installed():
     try:
-        check_call(split('psql --version'))
+        run(split('psql --version'), check=True)
         return True
     except (CalledProcessError, FileNotFoundError):
         return False
@@ -53,9 +51,9 @@ def main():
     # initializing DB
     logging.info('Initializing PostgreSQL database')
     with OperateInDirectory('..'):
-        init_output, init_code = execute_shell_command_get_return_code('python3 init_postgres.py')
-        if init_code != 0:
-            raise InstallationError(f'Unable to initialize database\n{init_output}')
+        process = run('python3 init_postgres.py', shell=True, universal_newlines=True, check=False, stderr=PIPE)
+        if process.returncode != 0:
+            raise InstallationError(f'Unable to initialize database\n{process.stderr}')
 
     with OperateInDirectory('../../'):
         with suppress(FileNotFoundError):
