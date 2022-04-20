@@ -1,4 +1,4 @@
-# pylint: disable=attribute-defined-outside-init,wrong-import-order,unused-argument
+import pytest
 import gc
 from multiprocessing import Queue
 
@@ -31,7 +31,8 @@ class TestFileAddition:
         self._tmp_queue.close()
         gc.collect()
 
-    def test_unpack_and_analyse(self, db):
+    @pytest.mark.usefixtures('test_real_database')
+    def test_unpack_and_analyse(self):
         test_fw = Firmware(file_path=f'{get_test_data_dir()}/container/test.zip')
 
         self._unpack_scheduler.add_task(test_fw)
