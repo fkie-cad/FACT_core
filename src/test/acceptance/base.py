@@ -1,5 +1,4 @@
 import gc
-import logging
 import os
 import time
 import unittest
@@ -20,8 +19,6 @@ from test.common_helper import (  # pylint: disable=wrong-import-order
     clear_test_tables, create_docker_mount_base_dir, setup_test_tables
 )
 from web_interface.frontend_main import WebFrontEnd
-
-TMP_DB_NAME = 'tmp_acceptance_tests'
 
 
 class TestAcceptanceBase(unittest.TestCase):  # pylint: disable=too-many-instance-attributes
@@ -86,23 +83,6 @@ class TestAcceptanceBase(unittest.TestCase):  # pylint: disable=too-many-instanc
             unpacking_service=self.unpacking_service, unpacking_locks=unpacking_locks
         )
         self.fs_organizer = FSOrganizer(config=self.config)
-
-    def _setup_debugging_logging(self):
-        # for debugging purposes only
-        log_level = logging.DEBUG
-        log_format = logging.Formatter(fmt='[%(asctime)s][%(module)s][%(levelname)s]: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
-        logger = logging.getLogger('')
-        logger.setLevel(logging.DEBUG)
-        create_dir_for_file(self.config['logging']['logfile'])
-        file_log = logging.FileHandler(self.config['logging']['logfile'])
-        file_log.setLevel(log_level)
-        file_log.setFormatter(log_format)
-        console_log = logging.StreamHandler()
-        console_log.setLevel(logging.DEBUG)
-        console_log.setFormatter(log_format)
-        logger.addHandler(file_log)
-        logger.addHandler(console_log)
-
 
 class TestAcceptanceBaseWithDb(TestAcceptanceBase):
     def setUp(self):
