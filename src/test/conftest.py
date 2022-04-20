@@ -6,6 +6,7 @@ import pytest
 from storage.db_interface_admin import AdminDbInterface
 from storage.db_interface_backend import BackendDbInterface
 from storage.db_interface_common import DbInterfaceCommon
+from storage.db_interface_comparison import ComparisonDbInterface
 from storage.db_interface_frontend import FrontEndDbInterface
 from storage.db_interface_frontend_editing import FrontendEditingDbInterface
 from storage.db_setup import DbSetup
@@ -120,6 +121,12 @@ def real_database(cfg_tuple, test_real_database):
         # clean intercom mock
         if hasattr(db_interface.admin.intercom, 'deleted_files'):
             db_interface.admin.intercom.deleted_files.clear()
+
+
+@pytest.fixture
+def comp_db(cfg_tuple):
+    _, configparser_cfg = cfg_tuple
+    yield ComparisonDbInterface(configparser_cfg)
 
 
 class MockIntercom:
