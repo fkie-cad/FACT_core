@@ -12,9 +12,9 @@ TEST_FW = create_test_firmware()
 
 
 @pytest.fixture
-def binary_service(db, cfg_tuple):
+def binary_service(real_database, cfg_tuple):
     _, configparser_cfg = cfg_tuple
-    _init_test_data(configparser_cfg['data-storage']['firmware-file-storage-directory'], db)
+    _init_test_data(configparser_cfg['data-storage']['firmware-file-storage-directory'], real_database)
     yield BinaryService(configparser_cfg)
     gc.collect()
 
