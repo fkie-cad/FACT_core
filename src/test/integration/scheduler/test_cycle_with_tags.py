@@ -1,7 +1,9 @@
-import pytest
+# pylint: disable=no-self-use
 import gc
 from multiprocessing import Event, Value
 from tempfile import TemporaryDirectory
+
+import pytest
 
 from objects.firmware import Firmware
 from scheduler.analysis import AnalysisScheduler

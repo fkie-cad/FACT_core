@@ -1,3 +1,4 @@
+# pylint: disable=no-self-use
 from configparser import ConfigParser
 from typing import NamedTuple
 

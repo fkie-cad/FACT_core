@@ -1,3 +1,4 @@
+# pylint: disable=no-self-use
 import pytest
 
 from test.common_helper import create_test_firmware

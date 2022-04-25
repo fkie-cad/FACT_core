@@ -1,3 +1,4 @@
+# pylint: disable=no-self-use
 import pytest
 
 from helperFunctions.task_conversion import (

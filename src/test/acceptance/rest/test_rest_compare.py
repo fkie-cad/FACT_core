@@ -1,3 +1,4 @@
+# pylint: disable=no-self-use
 import urllib.parse
 from base64 import standard_b64encode
 from pathlib import Path

@@ -1,3 +1,4 @@
+# pylint: disable=no-self-use
 import pytest
 
 from compare.PluginBase import CompareBasePlugin as ComparePlugin

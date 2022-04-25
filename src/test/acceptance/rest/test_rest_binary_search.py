@@ -1,4 +1,4 @@
-# pylint: disable=wrong-import-order
+# pylint: disable=no-self-use
 import json
 from pathlib import Path
 from time import sleep, time

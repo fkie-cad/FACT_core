@@ -1,3 +1,4 @@
+# pylint: disable=no-self-use
 # pylint: disable=wrong-import-order
 
 import os

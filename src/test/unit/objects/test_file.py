@@ -1,3 +1,4 @@
+# pylint: disable=no-self-use
 from common_helper_files import get_binary_from_file
 
 from objects.file import FileObject

@@ -1,5 +1,7 @@
+# pylint: disable=no-self-use
 # pylint: disable=wrong-import-order
 import pytest
+
 from helperFunctions.data_conversion import normalize_compare_id
 from test.common_helper import TEST_FW, TEST_FW_2, TEST_TEXT_FILE, CommonDatabaseMock
 

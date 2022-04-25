@@ -1,6 +1,8 @@
+# pylint: disable=no-self-use
 # pylint: disable=wrong-import-order
-import pytest
 from pathlib import Path
+
+import pytest
 
 import helperFunctions.fileSystem
 from test.common_helper import CommonIntercomMock
@@ -15,8 +17,8 @@ class MockIntercom(CommonIntercomMock):
 @pytest.mark.intercom_mock(lambda: MockIntercom)
 @pytest.mark.cfg_defaults(
     {
-        "logging": {
-            "logfile": 'NonExistentFile',
+        'logging': {
+            'logfile': 'NonExistentFile',
         },
     }
 )
@@ -28,8 +30,8 @@ def test_backend_available(test_client):
 @pytest.mark.intercom_mock(lambda: MockIntercom)
 @pytest.mark.cfg_defaults(
     {
-        "logging": {
-            "logfile": str(Path(helperFunctions.fileSystem.get_src_dir()) / 'test/data/logs'),
+        'logging': {
+            'logfile': str(Path(helperFunctions.fileSystem.get_src_dir()) / 'test/data/logs'),
         },
     }
 )

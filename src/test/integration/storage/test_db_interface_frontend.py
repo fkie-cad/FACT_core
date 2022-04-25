@@ -1,3 +1,4 @@
+# pylint: disable=no-self-use
 import pytest
 
 from storage.db_interface_frontend import CachedQuery

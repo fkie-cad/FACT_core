@@ -1,3 +1,4 @@
+# pylint: disable=no-self-use
 # pylint: disable=redefined-outer-name
 from math import isclose
 

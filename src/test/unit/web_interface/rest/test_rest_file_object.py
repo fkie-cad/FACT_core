@@ -1,3 +1,4 @@
+# pylint: disable=no-self-use
 from urllib.parse import quote
 
 import pytest

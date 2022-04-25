@@ -1,3 +1,4 @@
+# pylint: disable=no-self-use
 # pylint: disable=use-implicit-booleaness-not-comparison
 import logging
 from multiprocessing import Manager

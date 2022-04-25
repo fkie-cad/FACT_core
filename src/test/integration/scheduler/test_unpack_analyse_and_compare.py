@@ -1,8 +1,9 @@
-import pytest
-
+# pylint: disable=no-self-use
 import gc
 from multiprocessing import Event, Value
 from tempfile import TemporaryDirectory
+
+import pytest
 
 from helperFunctions.data_conversion import normalize_compare_id
 from objects.firmware import Firmware

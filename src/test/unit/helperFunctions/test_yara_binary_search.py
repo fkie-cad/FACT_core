@@ -1,12 +1,14 @@
+# pylint: disable=no-self-use
 # pylint: disable=protected-access
-import pytest
 from os import path
 from subprocess import CalledProcessError
+
+import pytest
 
 from helperFunctions import yara_binary_search
 from test.common_helper import get_test_data_dir  # pylint: disable=wrong-import-order
 
-TEST_DATA_DIR = path.join(get_test_data_dir(), "binary_search_test")
+TEST_DATA_DIR = path.join(get_test_data_dir(), 'binary_search_test')
 TEST_FILE_1 = 'binary_search_test'
 TEST_FILE_2 = 'binary_search_test_2'
 TEST_FILE_3 = 'binary_search_test_3'

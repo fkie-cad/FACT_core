@@ -1,3 +1,4 @@
+# pylint: disable=no-self-use
 import json
 from urllib.parse import quote
 

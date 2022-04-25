@@ -1,3 +1,4 @@
+# pylint: disable=no-self-use
 # pylint: disable=no-self-use,unused-argument
 import grp
 import os

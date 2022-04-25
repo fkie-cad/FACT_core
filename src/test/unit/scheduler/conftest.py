@@ -1,3 +1,4 @@
+# pylint: disable=no-self-use
 import gc
 from multiprocessing import Queue
 

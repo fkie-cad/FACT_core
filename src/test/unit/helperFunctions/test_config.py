@@ -1,3 +1,4 @@
+# pylint: disable=no-self-use
 import logging
 import os
 from pathlib import Path

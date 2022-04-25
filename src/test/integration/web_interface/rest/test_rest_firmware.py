@@ -1,3 +1,4 @@
+# pylint: disable=no-self-use
 # pylint: disable=attribute-defined-outside-init,wrong-import-order,unused-argument
 import urllib.parse
 from base64 import standard_b64encode

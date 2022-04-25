@@ -1,3 +1,4 @@
+# pylint: disable=no-self-use
 import logging
 from base64 import b64encode
 from time import gmtime, time

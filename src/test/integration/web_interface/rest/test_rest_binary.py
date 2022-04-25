@@ -1,3 +1,4 @@
+# pylint: disable=no-self-use
 from base64 import standard_b64encode
 from multiprocessing import Queue
 

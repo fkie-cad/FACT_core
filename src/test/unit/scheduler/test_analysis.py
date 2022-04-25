@@ -1,3 +1,4 @@
+# pylint: disable=no-self-use
 # pylint: disable=protected-access,invalid-name,wrong-import-order,use-implicit-booleaness-not-comparison,too-many-arguments
 import os
 from multiprocessing import Queue

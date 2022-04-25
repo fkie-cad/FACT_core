@@ -1,3 +1,4 @@
+# pylint: disable=no-self-use
 # pylint: disable=protected-access,redefined-outer-name,unused-argument,no-self-use
 
 from pathlib import Path

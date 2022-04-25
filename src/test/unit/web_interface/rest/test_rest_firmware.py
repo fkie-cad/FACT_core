@@ -1,3 +1,4 @@
+# pylint: disable=no-self-use
 import json
 from base64 import standard_b64encode
 from copy import deepcopy

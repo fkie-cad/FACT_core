@@ -1,3 +1,4 @@
+# pylint: disable=no-self-use
 from pathlib import Path
 from tempfile import TemporaryDirectory
 

@@ -1,3 +1,4 @@
+# pylint: disable=no-self-use
 # pylint: disable=redefined-outer-name,wrong-import-order
 from multiprocessing import Event, Value
 from pathlib import Path

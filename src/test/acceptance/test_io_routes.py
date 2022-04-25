@@ -1,3 +1,4 @@
+# pylint: disable=no-self-use
 import pytest
 from fact_helper_file import get_file_type_from_binary
 

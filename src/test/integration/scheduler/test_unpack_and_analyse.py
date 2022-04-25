@@ -1,6 +1,8 @@
-import pytest
+# pylint: disable=no-self-use
 import gc
 from multiprocessing import Queue
+
+import pytest
 
 from objects.firmware import Firmware
 from scheduler.analysis import AnalysisScheduler
