@@ -371,3 +371,26 @@ def create_docker_mount_base_dir() -> Path:
         os.chown(docker_mount_base_dir, -1, docker_gid)
 
     return docker_mount_base_dir
+
+
+def upload_test_firmware(test_client, test_fw):
+    """ TODO
+    The fixture backend_services must be used
+    """
+    testfile_path = Path(get_test_data_dir()) / test_fw.path
+    with open(str(testfile_path), 'rb') as fp:
+        data = {
+            'file': (fp, test_fw.file_name),
+            'device_name': test_fw.name,
+            'device_part': 'test_part',
+            'device_class': 'test_class',
+            'version': '1.0',
+            'vendor': 'test_vendor',
+            'release_date': '1970-01-01',
+            'tags': '',
+            'analysis_systems': []
+        }
+        rv = test_client.post('/upload', content_type='multipart/form-data', data=data, follow_redirects=True)
+
+    assert b'Upload Successful' in rv.data, 'upload not successful'
+    assert test_fw.uid.encode() in rv.data, 'uid not found on upload success page'

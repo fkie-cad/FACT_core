@@ -85,8 +85,10 @@ def test_client(web_frontend):
 # TODO scope session
 @pytest.fixture
 def test_real_database(cfg_tuple):
+    """Creates test tables in the Postgres database.
+    When the fixture goes out of scope the test tables are dropped.
+    """
     # Keep function name in sync with web_frontend fixture
-    # TODO name
     _, configparser_cfg = cfg_tuple
     db_setup = DbSetup(configparser_cfg)
     db_setup.create_tables()
@@ -97,11 +99,26 @@ def test_real_database(cfg_tuple):
     db_setup.base.metadata.drop_all(db_setup.engine)
 
 
+class DB:
+    def __init__(
+        self, common: DbInterfaceCommon, backend: BackendDbInterface, frontend: FrontEndDbInterface,
+        frontend_editing: FrontendEditingDbInterface, admin: AdminDbInterface
+    ):
+        self.common = common
+        self.backend = backend
+        self.frontend = frontend
+        self.frontend_ed = frontend_editing
+        self.admin = admin
+
+
 # See test/integration/conftest.py
 # TODO scope=function
 # TODO scope=session
 @pytest.fixture
-def real_database(cfg_tuple, test_real_database):
+def real_database(cfg_tuple, test_real_database) -> DB:
+    """Returns handles to database interfaces as defined in `storage`.
+    The database is not mocked, see `test_real_database`.
+    """
     _, configparser_cfg = cfg_tuple
     admin = AdminDbInterface(configparser_cfg, intercom=MockIntercom())
     common = DbInterfaceCommon(configparser_cfg)
@@ -135,15 +152,3 @@ class MockIntercom:
 
     def delete_file(self, uid_list: List[str]):
         self.deleted_files.extend(uid_list)
-
-
-class DB:
-    def __init__(
-        self, common: DbInterfaceCommon, backend: BackendDbInterface, frontend: FrontEndDbInterface,
-        frontend_editing: FrontendEditingDbInterface, admin: AdminDbInterface
-    ):
-        self.common = common
-        self.backend = backend
-        self.frontend = frontend
-        self.frontend_ed = frontend_editing
-        self.admin = admin
