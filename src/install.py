@@ -166,7 +166,7 @@ def install_fact_components(args, distribution, none_chosen, skip_docker):
     if args.frontend or none_chosen:
         frontend(skip_docker, not args.no_radare, args.nginx, distribution)
     if args.db or none_chosen:
-        db(distribution)
+        db()
     if args.backend or none_chosen:
         backend(skip_docker, distribution)
 

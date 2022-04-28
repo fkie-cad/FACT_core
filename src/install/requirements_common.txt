@@ -16,6 +16,8 @@ pytest-timeout
 python-magic
 python-tlsh
 requests
+redis
+rich
 ssdeep
 sqlalchemy
 xmltodict
@@ -23,13 +25,8 @@ yara-python
 
 git+https://github.com/fkie-cad/fact_helper_file.git
 
-# Python MongoDB bindings
-pymongo<4
-pyyaml
-
 # Common code modules
 git+https://github.com/fkie-cad/common_helper_files.git
 git+https://github.com/fkie-cad/common_helper_filter.git
-git+https://github.com/fkie-cad/common_helper_mongo.git
 git+https://github.com/mass-project/common_helper_encoder.git
 

@@ -1,12 +1,13 @@
 import logging
 import pickle
+from configparser import ConfigParser
 from time import time
 from typing import Any
 
-import gridfs
+from redis.exceptions import RedisError
 
 from helperFunctions.hash import get_sha256
-from storage.mongo_interface import MongoInterface
+from storage.redis_interface import RedisInterface
 
 
 def generate_task_id(input_data: Any) -> str:
@@ -15,10 +16,10 @@ def generate_task_id(input_data: Any) -> str:
     return task_id
 
 
-class InterComMongoInterface(MongoInterface):
-    '''
-    Common parts of the InterCom Mongo interface
-    '''
+class InterComRedisInterface:
+    def __init__(self, config: ConfigParser):
+        self.config = config
+        self.redis = RedisInterface(config)
 
     INTERCOM_CONNECTION_TYPES = [
         'test',
@@ -41,16 +42,8 @@ class InterComMongoInterface(MongoInterface):
         'logs_task_resp'
     ]
 
-    def _setup_database_mapping(self):
-        self.connections = {}
-        for item in self.INTERCOM_CONNECTION_TYPES:
-            prefix = self.config['data_storage']['intercom_database_prefix']
-            self.connections[item] = {'name': f'{prefix}_{item}'}
-            self.connections[item]['collection'] = self.client[self.connections[item]['name']]
-            self.connections[item]['fs'] = gridfs.GridFS(self.connections[item]['collection'])
 
-
-class InterComListener(InterComMongoInterface):
+class InterComListener(InterComRedisInterface):
     '''
     InterCom Listener Base Class
     '''
@@ -59,14 +52,12 @@ class InterComListener(InterComMongoInterface):
 
     def get_next_task(self):
         try:
-            task_obj = self.connections[self.CONNECTION_TYPE]['fs'].find_one()
-        except Exception as exc:
+            task_obj = self.redis.queue_get(self.CONNECTION_TYPE)
+        except RedisError as exc:
             logging.error(f'Could not get next task: {str(exc)}', exc_info=True)
             return None
         if task_obj is not None:
-            task = pickle.loads(task_obj.read())
-            task_id = task_obj.filename
-            self.connections[self.CONNECTION_TYPE]['fs'].delete(task_obj._id)  # pylint: disable=protected-access
+            task, task_id = task_obj
             task = self.post_processing(task, task_id)
             logging.debug(f'{self.CONNECTION_TYPE}: New task received: {task}')
             return task
@@ -74,7 +65,7 @@ class InterComListener(InterComMongoInterface):
 
     def post_processing(self, task, task_id):  # pylint: disable=no-self-use,unused-argument
         '''
-        optional post processing of a task
+        optional post-processing of a task
         '''
         return task
 
@@ -90,7 +81,7 @@ class InterComListenerAndResponder(InterComListener):
     def post_processing(self, task, task_id):
         logging.debug(f'request received: {self.CONNECTION_TYPE} -> {task_id}')
         response = self.get_response(task)
-        self.connections[self.OUTGOING_CONNECTION_TYPE]['fs'].put(pickle.dumps(response), filename='{}'.format(task_id))
+        self.redis.set(task_id, response)
         logging.debug(f'response send: {self.OUTGOING_CONNECTION_TYPE} -> {task_id}')
         return task
 

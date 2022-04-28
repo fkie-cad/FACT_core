@@ -28,7 +28,10 @@ def create_admin_user(user_name: str, password: str):
     )
 
 
-def main(config: Optional[ConfigParser] = None, skip_user_creation: bool = False):
+def main(command_line_options=None, config: Optional[ConfigParser] = None, skip_user_creation: bool = False):
+    if command_line_options and command_line_options[-1] == '-t':
+        return 0  # testing mode
+
     if config is None:
         logging.info('No custom configuration path provided for PostgreSQL setup. Using main.cfg ...')
         config = load_config('main.cfg')
@@ -50,6 +53,7 @@ def main(config: Optional[ConfigParser] = None, skip_user_creation: bool = False
     db_setup = DbSetup(config, db_name=fact_db)
     db_setup.create_tables()
     db_setup.set_table_privileges()
+    return 0
 
 
 def _init_users(db: DbSetup, config, db_list: List[str]):

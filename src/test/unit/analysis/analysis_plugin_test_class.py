@@ -39,11 +39,8 @@ class AnalysisPluginTest(unittest.TestCase):
         config.set('ExpertSettings', 'block_delay', '0.1')
         config.add_section('data_storage')
         load_users_from_main_config(config)
-        config.set('data_storage', 'mongo_server', 'localhost')
-        config.set('data_storage', 'mongo_port', '54321')
-        config.set('data_storage', 'view_storage', 'tmp_view')
         config.set('data_storage', 'docker-mount-base-dir', str(self.docker_mount_base_dir))
-        # -- postgres -- FixMe? --
+        # -- postgres --
         config.set('data_storage', 'postgres_server', 'localhost')
         config.set('data_storage', 'postgres_port', '5432')
         config.set('data_storage', 'postgres_database', 'fact_test')

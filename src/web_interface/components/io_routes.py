@@ -8,10 +8,8 @@ import requests
 from flask import make_response, redirect, render_template, request
 
 from helperFunctions.database import ConnectTo
-from helperFunctions.mongo_task_conversion import (
-    check_for_errors, convert_analysis_task_to_fw_obj, create_analysis_task
-)
 from helperFunctions.pdf import build_pdf_report
+from helperFunctions.task_conversion import check_for_errors, convert_analysis_task_to_fw_obj, create_analysis_task
 from web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES

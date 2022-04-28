@@ -120,3 +120,18 @@ def convert_time_to_str(time_obj: Any) -> str:
     if isinstance(time_obj, str):
         return time_obj
     return '1970-01-01'
+
+
+def convert_str_to_bool(string: str) -> bool:
+    '''
+    Convert a string to a boolean, e.g. `"0"` to `False` or `"Y"` to `True`.
+    Replaces `distutils.util.strtobool` which was deprecated in Python 3.10.
+    '''
+    if not isinstance(string, str):
+        raise ValueError(f'Expected type str and not {type(string)}')
+    lower: str = string.lower()
+    if lower in ('1', 'true', 't', 'yes', 'y'):
+        return True
+    if lower in ('0', 'false', 'f', 'no', 'n'):
+        return False
+    raise ValueError(f'Value {string} can not be converted to boolean')

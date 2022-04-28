@@ -330,17 +330,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
             db_query = self._apply_offset_and_limit(db_query, offset, limit)
             return list(session.execute(db_query).scalars())
 
-    # --- missing files/analyses ---
-
-    @staticmethod
-    def find_missing_files():
-        # FixMe: This should be impossible now -> Remove?
-        return {}
-
-    @staticmethod
-    def find_orphaned_objects() -> Dict[str, List[str]]:
-        # FixMe: This should be impossible now -> Remove?
-        return {}
+    # --- missing/failed analyses ---
 
     def find_missing_analyses(self) -> Dict[str, Set[str]]:
         # FixMe? Query could probably be accomplished more efficiently with left outer join (either that or the RAM could go up in flames)

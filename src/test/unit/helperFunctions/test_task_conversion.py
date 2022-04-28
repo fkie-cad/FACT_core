@@ -2,7 +2,7 @@ import unittest
 
 import pytest
 
-from helperFunctions.mongo_task_conversion import (
+from helperFunctions.task_conversion import (
     _get_tag_list, _get_uid_of_analysis_task, _get_uploaded_file_binary, check_for_errors,
     convert_analysis_task_to_fw_obj
 )
@@ -31,7 +31,7 @@ def test_get_tag_list(input_data, expected):
     assert _get_tag_list(input_data) == expected
 
 
-class TestMongoTask(unittest.TestCase):
+class TestTaskConversion(unittest.TestCase):
 
     def test_check_for_errors(self):
         valid_request = {'a': 'some', 'b': 'some data'}

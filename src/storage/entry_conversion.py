@@ -17,7 +17,7 @@ def firmware_from_entry(fw_entry: FirmwareEntry, analysis_filter: Optional[List[
     firmware.vendor = fw_entry.vendor
     firmware.version = fw_entry.version
     firmware.part = fw_entry.device_part
-    firmware.tags = getattr(fw_entry, 'tags', {})
+    firmware.tags = {tag: 'secondary' for tag in getattr(fw_entry, 'firmware_tags', [])}
     return firmware
 
 

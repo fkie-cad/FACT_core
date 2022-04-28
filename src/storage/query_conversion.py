@@ -1,7 +1,8 @@
 from json import dumps
 from typing import Any, Dict, List, Optional, Type, Union
 
-from sqlalchemy import func, or_, select
+from sqlalchemy import func, or_, select, type_coerce
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql import Select
 
@@ -49,7 +50,7 @@ def query_parent_firmware(search_dict: dict, inverted: bool, count: bool = False
     return select(FirmwareEntry).filter(query_filter).order_by(*FIRMWARE_ORDER)
 
 
-def build_query_from_dict(query_dict: dict, query: Optional[Select] = None,  # pylint: disable=too-complex
+def build_query_from_dict(query_dict: dict, query: Optional[Select] = None,  # pylint: disable=too-complex, too-many-branches
                           fw_only: bool = False, or_query: bool = False) -> Select:
     '''
     Builds an ``sqlalchemy.orm.Query`` object from a query in dict form.
@@ -178,5 +179,5 @@ def _add_json_filter(key, value, subkey):
                 break
             value[key_] = dumps(value_)
     else:
-        value = dumps(value)
+        value = type_coerce(value, JSONB)
     return _dict_key_to_filter(column, key, value)

@@ -56,17 +56,6 @@ def test_merge_vfp_lists(old_vfp_list, new_vfp_list, expected_output):
     assert sorted(merge_vfp_lists(old_vfp_list, new_vfp_list)) == expected_output
 
 
-@pytest.mark.parametrize('vfp, expected_result', [
-    ({}, []),
-    ({'root uid': ['foo|bar|/some/path', 'different|parent|/some/other/path']}, ['bar', 'parent']),
-    ({'root uid': ['foo|bar|/some/path'], 'other root': ['different|parent|/some/other/path']}, ['bar', 'parent']),
-])
-def test_get_parent_uids(vfp, expected_result):
-    fo = create_test_file_object()
-    fo.virtual_file_path = vfp
-    assert sorted(get_parent_uids_from_virtual_path(fo)) == expected_result
-
-
 @pytest.mark.parametrize('old_vfp, new_vfp, expected_result', [
     ({}, {}, {}),
     ({'uid1': ['p1', 'p2']}, {}, {'uid1': ['p1', 'p2']}),

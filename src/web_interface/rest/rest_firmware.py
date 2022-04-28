@@ -5,12 +5,12 @@ from base64 import standard_b64decode
 from flask import request
 from flask_restx import Namespace, fields
 from flask_restx.fields import MarshallingError
-from pymongo.errors import PyMongoError
 
 from helperFunctions.database import ConnectTo
-from helperFunctions.mongo_task_conversion import convert_analysis_task_to_fw_obj
 from helperFunctions.object_conversion import create_meta_dict
+from helperFunctions.task_conversion import convert_analysis_task_to_fw_obj
 from objects.firmware import Firmware
+from storage.db_interface_base import DbInterfaceError
 from web_interface.rest.helper import (
     error_message, get_boolean_from_request, get_paging, get_query, get_update, success_message
 )
@@ -72,7 +72,7 @@ class RestFirmwareGetWithoutUid(RestResourceBase):
         try:
             uids = self.db.frontend.rest_get_firmware_uids(**parameters)
             return success_message(dict(uids=uids), self.URL, parameters)
-        except PyMongoError:
+        except DbInterfaceError:
             return error_message('Unknown exception on request', self.URL, parameters)
 
     @staticmethod

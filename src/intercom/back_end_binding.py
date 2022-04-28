@@ -1,16 +1,14 @@
 import logging
-import pickle
 from multiprocessing import Process, Value
 from pathlib import Path
 from time import sleep
 from typing import Callable, Optional, Tuple, Type
 
-from common_helper_mongo.gridfs import overwrite_file
-
 from helperFunctions.process import stop_processes
 from helperFunctions.program_setup import get_log_file_for_component
 from helperFunctions.yara_binary_search import YaraBinarySearchScanner
-from intercom.common_mongo_binding import InterComListener, InterComListenerAndResponder, InterComMongoInterface
+from intercom.common_redis_binding import InterComListener, InterComListenerAndResponder, InterComRedisInterface
+from objects.firmware import Firmware
 from storage.binary_service import BinaryService
 from storage.db_interface_common import DbInterfaceCommon
 from storage.fsorganizer import FSOrganizer
@@ -71,20 +69,18 @@ class InterComBackEndBinding:  # pylint: disable=too-many-instance-attributes
                 sleep(self.poll_delay)
             elif do_after_function is not None:
                 do_after_function(task)
-        interface.shutdown()
         logging.debug(f'{listener.__name__} listener stopped')
 
 
-class InterComBackEndAnalysisPlugInsPublisher(InterComMongoInterface):
+class InterComBackEndAnalysisPlugInsPublisher(InterComRedisInterface):
 
     def __init__(self, config=None, analysis_service=None):
         super().__init__(config=config)
         self.publish_available_analysis_plugins(analysis_service)
-        self.client.close()
 
     def publish_available_analysis_plugins(self, analysis_service):
         available_plugin_dictionary = analysis_service.get_plugin_dict()
-        overwrite_file(self.connections['analysis_plugins']['fs'], 'plugin_dictionary', pickle.dumps(available_plugin_dictionary))
+        self.redis.set('analysis_plugins', available_plugin_dictionary)
 
 
 class InterComBackEndAnalysisTask(InterComListener):
@@ -108,7 +104,7 @@ class InterComBackEndReAnalyzeTask(InterComListener):
         super().__init__(config)
         self.fs_organizer = FSOrganizer(config=config)
 
-    def post_processing(self, task, task_id):
+    def post_processing(self, task: Firmware, task_id):
         task.file_path = self.fs_organizer.generate_path(task)
         task.create_binary_from_path()
         return task

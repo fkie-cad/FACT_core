@@ -4,7 +4,6 @@ import os
 import time
 import unittest
 from concurrent.futures import ThreadPoolExecutor
-from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from common_helper_files import create_dir_for_file
@@ -16,10 +15,9 @@ from scheduler.comparison_scheduler import ComparisonScheduler
 from scheduler.unpacking_scheduler import UnpackingScheduler
 from storage.db_interface_backend import BackendDbInterface
 from storage.fsorganizer import FSOrganizer
-from storage.MongoMgr import MongoMgr
 from storage.unpacking_locks import UnpackingLockManager
 from test.common_helper import (  # pylint: disable=wrong-import-order
-    clean_test_database, clear_test_tables, create_docker_mount_base_dir, get_database_names, setup_test_tables
+    clear_test_tables, create_docker_mount_base_dir, setup_test_tables
 )
 from web_interface.frontend_main import WebFrontEnd
 
@@ -38,7 +36,6 @@ class TestAcceptanceBase(unittest.TestCase):  # pylint: disable=too-many-instanc
     @classmethod
     def setUpClass(cls):
         cls._set_config()
-        cls.mongo_server = MongoMgr(config=cls.config)  # FixMe: still needed for intercom
         create_docker_mount_base_dir()
 
     def setUp(self):
@@ -46,7 +43,6 @@ class TestAcceptanceBase(unittest.TestCase):  # pylint: disable=too-many-instanc
 
         self.tmp_dir = TemporaryDirectory(prefix='fact_test_')
         self.config.set('data_storage', 'firmware_file_storage_directory', self.tmp_dir.name)
-        self.config.set('Logging', 'mongoDbLogFile', str(Path(self.tmp_dir.name) / 'mongo.log'))
         self.frontend = WebFrontEnd(config=self.config)
         self.frontend.app.config['TESTING'] = not self.config.getboolean('ExpertSettings', 'authentication')
         self.test_client = self.frontend.app.test_client()
@@ -60,13 +56,8 @@ class TestAcceptanceBase(unittest.TestCase):  # pylint: disable=too-many-instanc
 
     def tearDown(self):
         clear_test_tables(self.config)
-        clean_test_database(self.config, get_database_names(self.config))
         self.tmp_dir.cleanup()
         gc.collect()
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.mongo_server.shutdown()
 
     @classmethod
     def _set_config(cls):

@@ -184,43 +184,6 @@ def test_generic_nice_representation(input_data, expected):
     assert flt.generic_nice_representation(input_data) == expected
 
 
-@pytest.mark.parametrize('tag_dict, output', [
-    ({'a': 'danger'}, '<span class="badge badge-danger " style="font-size: 14px;">a</span>\n'),
-    (
-        {'a': 'danger', 'b': 'primary'},
-        '<span class="badge badge-danger " style="font-size: 14px;">a</span>\n'
-        '<span class="badge badge-primary " style="font-size: 14px;">b</span>\n'
-    ),
-    (None, '')
-])
-def test_render_tags(tag_dict, output):
-    assert flt.render_tags(tag_dict) == output
-
-
-def test_empty_analysis_tags():
-    assert flt.render_analysis_tags({}) == ''
-
-
-def test_render_analysis_tags_success():
-    tags = {'such plugin': {'tag': {'color': 'success', 'value': 'wow'}}}
-    output = flt.render_analysis_tags(tags)
-    assert 'badge-success' in output
-    assert '>wow<' in output
-
-
-def test_render_analysis_tags_fix():
-    tags = {'such plugin': {'tag': {'color': 'very color', 'value': 'wow'}}}
-    output = flt.render_analysis_tags(tags)
-    assert 'badge-primary' in output
-    assert '>wow<' in output
-
-
-def test_render_analysis_tags_bad_type():
-    tags = {'such plugin': {42: {'color': 'very color', 'value': 'wow'}}}
-    with pytest.raises(AttributeError):
-        flt.render_analysis_tags(tags)
-
-
 @pytest.mark.parametrize('score, class_', [('low', 'active'), ('medium', 'warning'), ('high', 'danger')])
 def test_vulnerability_class_success(score, class_):
     assert flt.vulnerability_class(score) == class_

@@ -40,13 +40,17 @@ class ReadOnlyDbInterface:
     def get_read_only_session(self) -> Session:
         if self.ro_session is not None:
             yield self.ro_session
-        else:
-            self.ro_session: Session = self._session_maker()
-            try:
-                yield self.ro_session
-            finally:
-                self.ro_session.invalidate()
-                self.ro_session = None
+            return
+        self.ro_session: Session = self._session_maker()
+        try:
+            yield self.ro_session
+        except SQLAlchemyError as err:
+            message = 'Database error when trying to read from the database'
+            logging.exception(f'{message}: {err}')
+            raise DbInterfaceError(message) from err
+        finally:
+            self.ro_session.invalidate()
+            self.ro_session = None
 
 
 class ReadWriteDbInterface(ReadOnlyDbInterface):
@@ -63,8 +67,9 @@ class ReadWriteDbInterface(ReadOnlyDbInterface):
             yield session
             session.commit()
         except (SQLAlchemyError, DbInterfaceError) as err:
-            logging.error(f'Database error when trying to write to the Database: {err} {self.engine}', exc_info=True)
+            message = 'Database error when trying to write to the database'
+            logging.exception(f'{message}: {err}')
             session.rollback()
-            raise
+            raise DbInterfaceError(message) from err
         finally:
             session.invalidate()

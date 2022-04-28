@@ -9,11 +9,8 @@ from scheduler.analysis import AnalysisScheduler
 from scheduler.comparison_scheduler import ComparisonScheduler
 from scheduler.unpacking_scheduler import UnpackingScheduler
 from storage.db_interface_backend import BackendDbInterface
-from storage.MongoMgr import MongoMgr
 from storage.unpacking_locks import UnpackingLockManager
-from test.common_helper import (  # pylint: disable=wrong-import-order
-    clean_test_database, get_database_names, get_test_data_dir
-)
+from test.common_helper import get_test_data_dir  # pylint: disable=wrong-import-order
 from test.integration.common import MockFSOrganizer, initialize_config  # pylint: disable=wrong-import-order
 
 
@@ -26,7 +23,6 @@ class TestFileAddition:
         self.analysis_finished_event = Event()
         self.compare_finished_event = Event()
 
-        self._mongo_server = MongoMgr(config=self._config, auth=False)
         self.backend_interface = BackendDbInterface(config=self._config)
         unpacking_lock_manager = UnpackingLockManager()
 
@@ -53,9 +49,6 @@ class TestFileAddition:
         self._compare_scheduler.shutdown()
         self._unpack_scheduler.shutdown()
         self._analysis_scheduler.shutdown()
-
-        clean_test_database(self._config, get_database_names(self._config))
-        self._mongo_server.shutdown()
 
         self._tmp_dir.cleanup()
         gc.collect()

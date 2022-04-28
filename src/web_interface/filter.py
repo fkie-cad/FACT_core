@@ -41,9 +41,9 @@ def generic_nice_representation(i):  # pylint: disable=too-many-return-statement
 
 def nice_number_filter(i):
     if isinstance(i, int):
-        return '{:,}'.format(i)
+        return f'{i:,}'
     if isinstance(i, float):
-        return '{:,.2f}'.format(i)
+        return f'{i:,.2f}'
     if i is None:
         return 'not available'
     return i
@@ -53,7 +53,7 @@ def byte_number_filter(i, verbose=False):
     if not isinstance(i, (float, int)):
         return 'not available'
     if verbose:
-        return '{} ({})'.format(human_readable_file_size(i), format(i, ',d') + ' bytes')
+        return f'{human_readable_file_size(i)} ({i:,d} bytes)'
     return human_readable_file_size(i)
 
 
@@ -74,7 +74,7 @@ def list_group(input_data):
     if isinstance(input_data, list):
         http_list = '<ul class="list-group list-group-flush">\n'
         for item in input_data:
-            http_list += '\t<li class="list-group-item">{}</li>\n'.format(_handle_generic_data(item))
+            http_list += f'\t<li class="list-group-item">{_handle_generic_data(item)}</li>\n'
         http_list += '</ul>\n'
         return http_list
     return input_data
@@ -104,7 +104,7 @@ def nice_dict(input_data):
         key_list = list(input_data.keys())
         key_list.sort()
         for item in key_list:
-            tmp += '{}: {}<br />'.format(item, input_data[item])
+            tmp += f'{item}: {input_data[item]}<br />'
         return tmp
     return input_data
 
@@ -124,7 +124,7 @@ def uids_to_link(input_data, root_uid=None):
     tmp = str(input_data)
     uid_list = get_all_uids_in_string(tmp)
     for match in uid_list:
-        tmp = tmp.replace(match, '<a href="/analysis/{0}/ro/{1}">{0}</a>'.format(match, root_uid))
+        tmp = tmp.replace(match, f'<a href="/analysis/{match}/ro/{root_uid}">{match}</a>')
     return tmp
 
 
@@ -196,7 +196,7 @@ def sort_chart_list_by_name(input_data):
     try:
         input_data.sort(key=lambda x: x[0])
     except (AttributeError, IndexError, KeyError, TypeError):
-        logging.error('Could not sort chart list {}'.format(input_data), exc_info=True)
+        logging.exception(f'Could not sort chart list {input_data}')
         return []
     return input_data
 
@@ -205,7 +205,7 @@ def sort_chart_list_by_value(input_data):
     try:
         input_data.sort(key=lambda x: x[1], reverse=True)
     except (AttributeError, IndexError, KeyError, TypeError):
-        logging.error('Could not sort chart list {}'.format(input_data), exc_info=True)
+        logging.exception(f'Could not sort chart list {input_data}')
         return []
     return input_data
 
@@ -214,7 +214,7 @@ def sort_comments(comment_list):
     try:
         comment_list.sort(key=itemgetter('time'), reverse=True)
     except (AttributeError, KeyError, TypeError):
-        logging.error('Could not sort comment list {}'.format(comment_list), exc_info=True)
+        logging.exception(f'Could not sort comment list {comment_list}')
         return []
     return comment_list
 
@@ -260,16 +260,15 @@ def comment_out_regex_meta_chars(input_data):
     meta_chars = ['^', '$', '.', '[', ']', '|', '(', ')', '?', '*', '+', '{', '}']
     for char in meta_chars:
         if char in input_data:
-            input_data = input_data.replace(char, '\\{}'.format(char))
+            input_data = input_data.replace(char, f'\\{char}')
     return input_data
 
 
-def render_tags(tag_dict, additional_class='', size=14):
+def render_fw_tags(tag_dict, size=14):
     output = ''
     if tag_dict:
-        for tag in sorted(tag_dict.keys()):
-            output += '<span class="badge badge-{} {}" style="font-size: {}px;">{}</span>\n'.format(
-                _fix_color_class(tag_dict[tag]), additional_class, size, tag)
+        for tag, color in sorted(tag_dict.items()):
+            output += render_template('generic_view/tags.html', color=color, value=tag, size=size)
     return output
 
 
@@ -278,8 +277,12 @@ def render_analysis_tags(tags, size=14):
     if tags:
         for plugin_name in tags:
             for key, tag in tags[plugin_name].items():
-                output += '<span class="badge badge-{}" style="font-size: {}px;" data-toggle="tooltip" title="{}: {}">{}</span>\n'.format(
-                    _fix_color_class(tag['color']), size, replace_underscore_filter(plugin_name), replace_underscore_filter(key), tag['value']
+                if key == 'root_uid':
+                    continue
+                color = tag['color'] if tag['color'] in TagColor.ALL else TagColor.BLUE
+                output += render_template(
+                    'generic_view/tags.html',
+                    color=color, value=tag['value'], tooltip=f'{plugin_name}: {key}', size=size
                 )
     return output
 
@@ -325,7 +328,7 @@ def sort_roles_by_number_of_privileges(roles, privileges=None):
 def filter_format_string_list_with_offset(offset_tuples):  # pylint: disable=invalid-name
     max_offset_len = len(str(max(list(zip(*offset_tuples))[0]))) if offset_tuples else 0
     lines = [
-        '{0: >{width}}: {1}'.format(offset, repr(string)[1:-1], width=max_offset_len)
+        f'{offset: >{max_offset_len}}: {repr(string)[1:-1]}'
         for offset, string in sorted(offset_tuples)
     ]
     return '\n'.join(lines)

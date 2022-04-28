@@ -208,6 +208,18 @@ def test_generic_search_json_array(db):
     assert db.frontend.generic_search({'processed_analysis.plugin.list': {'$contains': 'd'}}) == []
 
 
+def test_generic_search_json_types(db):
+    fo, fw = create_fw_with_child_fo()
+    fo.processed_analysis = {'plugin': generate_analysis_entry(analysis_result={'str': 'a', 'int': 1, 'float': 1.23, 'bool': True})}
+    db.backend.insert_object(fw)
+    db.backend.insert_object(fo)
+
+    assert db.frontend.generic_search({'processed_analysis.plugin.str': 'a'}) == [fo.uid]
+    assert db.frontend.generic_search({'processed_analysis.plugin.int': 1}) == [fo.uid]
+    assert db.frontend.generic_search({'processed_analysis.plugin.float': 1.23}) == [fo.uid]
+    assert db.frontend.generic_search({'processed_analysis.plugin.bool': True}) == [fo.uid]
+
+
 def test_generic_search_wrong_key(db):
     fo, fw = create_fw_with_child_fo()
     fo.processed_analysis = {'plugin': generate_analysis_entry(analysis_result={'nested': {'key': 'value'}})}

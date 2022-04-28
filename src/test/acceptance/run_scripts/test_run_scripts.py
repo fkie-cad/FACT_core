@@ -5,9 +5,8 @@ from subprocess import PIPE, STDOUT
 
 import pytest
 
-import init_database
+import init_postgres
 import update_statistic
-import update_variety_data
 from helperFunctions.fileSystem import get_src_dir
 
 
@@ -43,9 +42,8 @@ def test_start_script_help_and_version(script, expected_str):
     gc.collect()
 
 
-@pytest.mark.parametrize('script', [init_database, update_statistic, update_variety_data])
-def test_start_scripts_with_main(script, monkeypatch):
-    monkeypatch.setattr('update_variety_data._create_variety_data', lambda _: 0)
+@pytest.mark.parametrize('script', [update_statistic, init_postgres])
+def test_start_scripts_with_main(script):
     assert script.main([script.__name__, '-t']) == 0, 'script did not run successfully'
     gc.collect()
 
