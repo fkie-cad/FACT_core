@@ -13,6 +13,12 @@
     </script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/upload.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/loading.js') }}"></script>
+    <script>
+        $(window).bind("pageshow", function(event) {
+          // if we come back to the page make sure that the loading gif is not covering up the form
+          hideImg();
+        });
+    </script>
 
 {% endblock %}
 
@@ -31,7 +37,7 @@
         {%- endif %}
        
         <div id="form">
-            <form class="form-horizontal" action="" method=post enctype=multipart/form-data>
+            <form class="form-horizontal" action="" method=post enctype=multipart/form-data onsubmit="return showImg()">
 
                 {# File #}
                 {%- if not is_reanalysis %}
@@ -178,7 +184,7 @@
                     </div>
                 </div>
 
-                <button type="submit" value=submit class="btn btn-primary" id="input_submit" onclick='showImg()'>
+                <button type="submit" value=submit class="btn btn-primary" id="input_submit">
                     {%- if is_reanalysis %}
                         <i class="fas fa-redo-alt"></i> {{ title }}
                     {%- else %}
