@@ -26,6 +26,11 @@ from shlex import split
 from subprocess import Popen, TimeoutExpired
 from time import sleep
 
+try:
+    import fact_base  # pylint: disable=unused-import  # noqa: F401  # just check if FACT is installed
+except ImportError:
+    sys.exit(1)
+
 from helperFunctions.config import get_src_dir
 from helperFunctions.program_setup import program_setup
 

@@ -16,11 +16,14 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
-
+import logging
 import sys
+
+from sqlalchemy.exc import SQLAlchemyError
 
 from fact_base import FactBase
 from helperFunctions.program_setup import program_setup
+from storage.db_interface_base import ReadOnlyDbInterface
 
 
 class FactDb(FactBase):
@@ -30,8 +33,21 @@ class FactDb(FactBase):
 
     def __init__(self):
         _, config = program_setup(self.PROGRAM_NAME, self.PROGRAM_DESCRIPTION, self.COMPONENT)
+        self._check_postgres_connection(config)
         super().__init__()
-        # FixMe postgres runs as a service. Is this script still useful?
+
+    @staticmethod
+    def _check_postgres_connection(config):
+        try:
+            ReadOnlyDbInterface(config=config).engine.connect()
+        except SQLAlchemyError:
+            logging.exception('Could not connect to PostgreSQL. Is the service running?')
+            logging.warning(
+                'The database of FACT switched from MongoDB to PostgreSQL with the release of FACT 4.0. '
+                'For instructions on how to upgrade FACT and how to migrate your database see '
+                'https://fkie-cad.github.io/FACT_core/migration.html'
+            )
+            sys.exit(1)
 
 
 if __name__ == '__main__':

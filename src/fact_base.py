@@ -3,10 +3,18 @@ import os
 import signal
 from time import sleep
 
-import psutil
+try:
+    import psutil
 
-from helperFunctions.program_setup import program_setup
-from statistic.work_load import WorkLoadStatistic
+    from helperFunctions.program_setup import program_setup
+    from statistic.work_load import WorkLoadStatistic
+except ImportError:
+    import sys
+    logging.error(
+        'Could not load dependencies. Please make sure that you have installed FACT correctly '
+        '(see INSTALL.md for more information). If you recently updated FACT, you may want to rerun the installation.'
+    )
+    sys.exit(1)
 
 
 class FactBase:
