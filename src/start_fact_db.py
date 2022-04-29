@@ -40,13 +40,8 @@ class FactDb(FactBase):
     def _check_postgres_connection(config):
         try:
             ReadOnlyDbInterface(config=config).engine.connect()
-        except SQLAlchemyError:
+        except (SQLAlchemyError, ModuleNotFoundError):  # ModuleNotFoundError should handle missing psycopg2
             logging.exception('Could not connect to PostgreSQL. Is the service running?')
-            logging.warning(
-                'The database of FACT switched from MongoDB to PostgreSQL with the release of FACT 4.0. '
-                'For instructions on how to upgrade FACT and how to migrate your database see '
-                'https://fkie-cad.github.io/FACT_core/migration.html'
-            )
             sys.exit(1)
 
 
