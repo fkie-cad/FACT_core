@@ -105,7 +105,17 @@ def create_file_object_entry(file_object: FileObject) -> FileObjectEntry:
     )
 
 
+def sanitize(analysis_data):
+    '''Null bytes are not legal in PostgreSQL JSON columns -> remove them'''
+    for key, value in analysis_data.items():
+        if isinstance(value, dict):
+            sanitize(value)
+        elif isinstance(value, str) and '\0' in value:
+            analysis_data[key] = value.replace('\0', '')
+
+
 def create_analysis_entries(file_object: FileObject, fo_backref: FileObjectEntry) -> List[AnalysisEntry]:
+    sanitize(file_object.processed_analysis)
     return [
         AnalysisEntry(
             uid=file_object.uid,
