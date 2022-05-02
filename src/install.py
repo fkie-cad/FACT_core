@@ -42,8 +42,6 @@ PROGRAM_NAME = 'FACT Installer'
 PROGRAM_VERSION = '1.2'
 PROGRAM_DESCRIPTION = 'Firmware Analysis and Comparison Tool (FACT) installation script'
 
-INSTALL_CANDIDATES = ['frontend', 'db', 'backend']
-
 FACT_INSTALLER_SKIP_DOCKER = os.getenv('FACT_INSTALLER_SKIP_DOCKER')
 
 
@@ -51,8 +49,11 @@ def _setup_argparser():
     parser = argparse.ArgumentParser(description='{} - {}'.format(PROGRAM_NAME, PROGRAM_DESCRIPTION))
     parser.add_argument('-V', '--version', action='version', version='{} {}'.format(PROGRAM_NAME, PROGRAM_VERSION))
     install_options = parser.add_argument_group('Install Options', 'Choose which components should be installed')
-    for item in INSTALL_CANDIDATES:
-        install_options.add_argument('-{}'.format(item[0].upper()), '--{}'.format(item), action='store_true', default=False, help='install {}'.format(item))
+    install_options.add_argument('-B', '--backend', action='store_true', default=False, help='install backend')
+    install_options.add_argument('-F', '--frontend', action='store_true', default=False, help='install frontend')
+    install_options.add_argument('-D', '--db', action='store_true', default=False, help='install db')
+    install_options.add_argument('-C', '--common', action='store_true', default=False, help='install common')
+    install_options.add_argument('--no-common', action='store_true', default=False, help='Skip common installation')
     install_options.add_argument('--backend-docker-images', action='store_true', default=False, help='pull/build docker images required to run the backend')
     install_options.add_argument('--frontend-docker-images', action='store_true', default=False, help='pull/build docker images required to run the frontend')
     install_options.add_argument('-N', '--nginx', action='store_true', default=False, help='install and configure nginx')
@@ -138,7 +139,7 @@ def install():
     _setup_logging(args.log_level, args.log_file, debug_flag=args.debug)
     welcome()
     distribution = check_distribution()
-    none_chosen = not (args.frontend or args.db or args.backend)
+    none_chosen = not (args.frontend or args.db or args.backend or args.common)
     # TODO maybe replace this with an cli argument
     skip_docker = FACT_INSTALLER_SKIP_DOCKER is not None
     # Note that the skip_docker environment variable overrides the cli argument
@@ -162,7 +163,8 @@ def install():
 
 
 def install_fact_components(args, distribution, none_chosen, skip_docker):
-    common(distribution)
+    if (args.common or args.frontend or args.backend or none_chosen) and not args.no_common:
+        common(distribution)
     if args.frontend or none_chosen:
         frontend(skip_docker, not args.no_radare, args.nginx, distribution)
     if args.db or none_chosen:
