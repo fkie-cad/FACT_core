@@ -39,6 +39,9 @@ def intermediate_event():
 # TODO scope=module
 @pytest.fixture
 def test_scheduler(cfg_tuple, finished_event, intermediate_event):
+    """TODO
+    nothing is mocked
+    """
     _, configparser_cfg = cfg_tuple
     interface = BackendDbInterface(config=configparser_cfg)
     unpacking_lock_manager = UnpackingLockManager()

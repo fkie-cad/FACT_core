@@ -17,6 +17,7 @@ from storage.unpacking_locks import UnpackingLockManager
 
 class Services:
     def __init__(self, analysis_service, unpacking_service, compare_service, intercom, fs_organizer, db_backend_interface):
+        # TODO 's/service/scheduler/g'
         self.analysis_service = analysis_service
         self.unpacking_service = unpacking_service
         self.compare_service = compare_service
@@ -45,7 +46,11 @@ def elements_finished_analyzing() -> Value:
     """
     return Value('i', 0)
 
-
+# Look at the web_inferface fixture.
+# Provide convinience fixtures for analysis_scheduler etc.
+# TODO this can be deduplicated
+# The problem is that we have to chose wheter or not to use the real database
+# Also document the dataflow of fileobjects between unpacker, analysis, compare
 # TODO scope? Starting takes a long time
 @pytest.fixture
 def backend_services(request, cfg_tuple, test_real_database, analysis_finished_event, compare_finished_event, elements_finished_analyzing) -> Services:
@@ -56,47 +61,53 @@ def backend_services(request, cfg_tuple, test_real_database, analysis_finished_e
         - `compare_finished_event`
         - `elements_finished_analyzing`
     """
+
     _, configparser_cfg = cfg_tuple
 
     add_objects_marker = request.node.get_closest_marker('add_objects')
     objects = add_objects_marker.args if add_objects_marker else []
 
-    db_backend_interface = BackendDbInterface(
-        config=configparser_cfg
+    backend_db_interface = BackendDbInterface(
+        config=configparser_cfg,
     )
 
     for obj in objects:
-        db_backend_interface.add_object(obj)
+        backend_db_interface.add_object(obj)
 
     def _analysis_callback(uid: str, plugin: str, analysis_dict: dict):
-        db_backend_interface.add_analysis(uid, plugin, analysis_dict)
+        # Store the analysis in the database (This is the default callback)
+        backend_db_interface.add_analysis(uid, plugin, analysis_dict)
+
         elements_finished_analyzing.value += 1
-        if elements_finished_analyzing.value == 4 * 2 * 3:  # two firmware container with 3 included files each times three plugins
+        # TODO Why is the comment true, make it configurable via a mark
+        # two firmware container with 3 included files each times three plugins
+        if elements_finished_analyzing.value == 4 * 2 * 3:
             analysis_finished_event.set()
 
     def _compare_callback():
         compare_finished_event.set()
 
     _unpacking_locks = UnpackingLockManager()
-    analysis_service = AnalysisScheduler(
+    analysis_scheduler = AnalysisScheduler(
         config=configparser_cfg,
         post_analysis=_analysis_callback,
         unpacking_locks=_unpacking_locks,
     )
-    unpacking_service = UnpackingScheduler(
+    unpacking_scheduler = UnpackingScheduler(
         config=configparser_cfg,
-        post_unpack=analysis_service.start_analysis_of_object,
+        # Start the analysis once unpacking finished
+        post_unpack=analysis_scheduler.start_analysis_of_object,
         unpacking_locks=_unpacking_locks,
     )
-    compare_service = ComparisonScheduler(
+    compare_scheduler = ComparisonScheduler(
         config=configparser_cfg,
         callback=_compare_callback,
     )
     intercom = InterComBackEndBinding(
         config=configparser_cfg,
-        analysis_service=analysis_service,
-        compare_service=compare_service,
-        unpacking_service=unpacking_service,
+        analysis_service=analysis_scheduler,
+        compare_service=compare_scheduler,
+        unpacking_service=unpacking_scheduler,
         unpacking_locks=_unpacking_locks,
     )
     fs_organizer = FSOrganizer(
@@ -105,21 +116,22 @@ def backend_services(request, cfg_tuple, test_real_database, analysis_finished_e
 
     # Wait until the backend is started
     # TODO proper startup notification
+    # Removing this line does not change anything on my system?!
     time.sleep(2)
     yield Services(
-        analysis_service,
-        unpacking_service,
-        compare_service,
+        analysis_scheduler,
+        unpacking_scheduler,
+        compare_scheduler,
         intercom,
         fs_organizer,
-        db_backend_interface
+        backend_db_interface
     )
 
     with ThreadPoolExecutor(max_workers=4) as pool:
         pool.submit(intercom.shutdown)
-        pool.submit(compare_service.shutdown)
-        pool.submit(unpacking_service.shutdown)
-        pool.submit(analysis_service.shutdown)
+        pool.submit(compare_scheduler.shutdown)
+        pool.submit(unpacking_scheduler.shutdown)
+        pool.submit(analysis_scheduler.shutdown)
 
 
 class TestFW:

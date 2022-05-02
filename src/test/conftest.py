@@ -16,6 +16,14 @@ from web_interface.frontend_main import WebFrontEnd
 from web_interface.security.authentication import add_flask_security_to_app
 
 
+
+from multiprocessing import Queue
+
+
+from scheduler.analysis import AnalysisScheduler
+from storage.unpacking_locks import UnpackingLockManager
+
+
 class FrontendDbMock:
     def __init__(self, db_mock: CommonDatabaseMock):
         self.frontend = db_mock
@@ -153,3 +161,65 @@ class MockIntercom:
 
     def delete_file(self, uid_list: List[str]):
         self.deleted_files.extend(uid_list)
+
+
+
+
+
+class ViewUpdaterMock:
+    def update_view(self, *_):
+        pass
+
+
+class BackendDbInterface:
+    def get_analysis(self, *_):
+        pass
+
+
+# TODO rename to clarify that this is not something you should put into
+@pytest.fixture
+def analysis_queue():
+    """TODO
+    A queue where all analysed FileObjects are put.
+    The entrys are dicts.
+    """
+    queue = Queue()
+
+    yield queue
+
+    queue.close()
+    gc.collect()
+
+
+@pytest.fixture
+def unpacking_lock_manager():
+    yield UnpackingLockManager()
+
+
+@pytest.fixture
+def analysis_scheduler(monkeypatch, analysis_queue, unpacking_lock_manager, cfg_tuple) -> AnalysisScheduler:
+    monkeypatch.setattr('plugins.base.ViewUpdater', lambda *_: ViewUpdaterMock())
+
+    _, configparser_cfg = cfg_tuple
+
+    mocked_interface = BackendDbInterface()
+
+    def post_analysis_cb(uid, plugin, analysis_result):
+        analysis_queue.put({
+            'uid': uid,
+            'plugin': plugin,
+            'result': analysis_result,
+            }
+        )
+
+    sched = AnalysisScheduler(
+        config=configparser_cfg,
+        pre_analysis=lambda *_: None,
+        post_analysis=post_analysis_cb,
+        db_interface=mocked_interface,
+        unpacking_locks=unpacking_lock_manager,
+    )
+
+    yield sched
+
+    sched.shutdown()
