@@ -6,7 +6,7 @@ To install all dependencies, simply rerun the installation::
 
     $ python3 src/install.py
 
-The analysis and comparison results from your old FACT installation can be migrated to the new database with a migration script::
+Existing analysis and comparison results from your old FACT installation have to be migrated to the new database. You can use the migration script for this::
 
     $ python3 src/migrate_db_to_postgresql.py
 
