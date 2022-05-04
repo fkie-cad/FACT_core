@@ -20,13 +20,13 @@
 import grp
 import logging
 import os
+import sys
 from pathlib import Path
 from time import sleep
 
 try:
     from fact_base import FactBase
-except ImportError:
-    import sys
+except (ImportError, ModuleNotFoundError):
     sys.exit(1)
 
 from analysis.PluginBase import PluginInitException
@@ -110,3 +110,4 @@ class FactBackend(FactBase):
 
 if __name__ == '__main__':
     FactBackend().main()
+    sys.exit(0)

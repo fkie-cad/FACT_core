@@ -9,9 +9,8 @@ try:
 
     from helperFunctions.program_setup import program_setup
     from statistic.work_load import WorkLoadStatistic
-except ImportError:
-    import sys
-    logging.error(
+except (ImportError, ModuleNotFoundError):
+    logging.exception(
         'Could not load dependencies. Please make sure that you have installed FACT correctly '
         '(see INSTALL.md for more information). If you recently updated FACT, you may want to rerun the installation.'
     )
@@ -20,7 +19,7 @@ except ImportError:
         'For instructions on how to upgrade FACT and how to migrate your database see '
         'https://fkie-cad.github.io/FACT_core/migration.html'
     )
-    sys.exit(1)
+    raise
 
 
 class FactBase:

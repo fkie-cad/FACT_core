@@ -19,9 +19,13 @@
 import logging
 import sys
 
+try:
+    from fact_base import FactBase
+except (ImportError, ModuleNotFoundError):
+    sys.exit(1)
+
 from sqlalchemy.exc import SQLAlchemyError
 
-from fact_base import FactBase
 from helperFunctions.program_setup import program_setup
 from storage.db_interface_base import ReadOnlyDbInterface
 
@@ -47,4 +51,4 @@ class FactDb(FactBase):
 
 if __name__ == '__main__':
     FactDb().main()
-    sys.exit()
+    sys.exit(0)
