@@ -98,6 +98,8 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
     # ===== Update / UPDATE =====
 
     def update_object(self, fw_object: FileObject):
+        # If a file contained in an already analysed Firmware is uploaded it will be of type FileObject not Firmware
+        fw_object.__class__ = Firmware if self.is_firmware(fw_object.uid) else FileObject
         if isinstance(fw_object, Firmware):
             self.update_firmware(fw_object)
         self.update_file_object(fw_object)
