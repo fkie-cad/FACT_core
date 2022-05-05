@@ -1,29 +1,29 @@
 # General build stuff
-testresources
+testresources==2.0.1
 
 setuptools
 
 # General python dependencies
-appdirs
-flaky
-lief
-psutil
-pylint
-pytest
-pytest-cov
-pytest-timeout
-python-magic
-python-tlsh
-requests
-ssdeep
-xmltodict
-yara-python
+appdirs==1.4.4
+flaky==3.7.0
+lief==0.12.1
+psutil==5.9.0
+pylint==2.13.8
+pytest==7.1.2
+pytest-cov==3.0.0
+pytest-timeout==2.1.0
+python-magic==0.4.25
+python-tlsh==4.5.0
+requests==2.27.1
+ssdeep==3.4
+xmltodict==0.12.0
+yara-python==4.2.0
 
 git+https://github.com/fkie-cad/fact_helper_file.git
 
 # Python MongoDB bindings
-pymongo<4
-pyyaml
+pymongo==3.12.3
+pyyaml==5.3.1
 
 # Common code modules
 git+https://github.com/fkie-cad/common_helper_files.git
