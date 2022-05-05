@@ -1,6 +1,9 @@
+# pylint: disable=wrong-import-order
 import json
-from time import sleep
+from pathlib import Path
+from time import sleep, time
 
+from storage.fsorganizer import FSOrganizer
 from test.acceptance.base import TestAcceptanceBase
 from test.common_helper import get_firmware_for_rest_upload_test
 
@@ -10,22 +13,23 @@ class TestRestBinarySearch(TestAcceptanceBase):
     def setUp(self):
         super().setUp()
         self._start_backend()
-        sleep(1)  # wait for systems to start
+        self.fs_organizer = FSOrganizer(self.config)
 
     def tearDown(self):
         self._stop_backend()
         super().tearDown()
 
     def test_binary_search(self):
-        self._upload_firmware()
-        sleep(2)  # wait for binary to be saved
+        uid = self._upload_firmware()
+        self._wait_for_binary(Path(self.fs_organizer.generate_path_from_uid(uid)))
         search_id = self._post_binary_search()
         self._get_binary_search_result(search_id)
 
     def _upload_firmware(self):
         data = get_firmware_for_rest_upload_test()
         rv = self.test_client.put('/rest/firmware', json=data, follow_redirects=True)
-        self.assertIn(b'"status": 0', rv.data, 'rest upload not successful')
+        assert 'uid' in rv.json, 'rest upload not successful'
+        return rv.json['uid']
 
     def _post_binary_search(self):
         data = {'rule_file': 'rule rulename {strings: $a = "MyTestRule" condition: $a }'}
@@ -41,3 +45,12 @@ class TestRestBinarySearch(TestAcceptanceBase):
         results = json.loads(rv.data.decode())
         assert 'binary_search_results' in results
         assert 'rulename' in results['binary_search_results']
+
+    @staticmethod
+    def _wait_for_binary(path: Path):
+        timeout = time() + 5
+        while time() < timeout:
+            if path.is_file():
+                return
+            sleep(0.5)
+        raise TimeoutError('Binary not found after upload')
