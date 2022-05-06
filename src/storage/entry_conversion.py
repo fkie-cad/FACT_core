@@ -7,6 +7,8 @@ from objects.file import FileObject
 from objects.firmware import Firmware
 from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry
 
+META_KEYS = {'tags', 'summary', 'analysis_date', 'plugin_version', 'system_version', 'file_system_flag'}
+
 
 def firmware_from_entry(fw_entry: FirmwareEntry, analysis_filter: Optional[List[str]] = None) -> Firmware:
     firmware = Firmware()
@@ -79,12 +81,13 @@ def create_firmware_entry(firmware: Firmware, fo_entry: FileObjectEntry) -> Firm
 
 
 def get_analysis_without_meta(analysis_data: dict) -> dict:
-    meta_keys = {'tags', 'summary', 'analysis_date', 'plugin_version', 'system_version', 'file_system_flag'}
-    return {
+    analysis_without_meta = {
         key: value
         for key, value in analysis_data.items()
-        if key not in meta_keys
+        if key not in META_KEYS
     }
+    sanitize(analysis_without_meta)
+    return analysis_without_meta
 
 
 def create_file_object_entry(file_object: FileObject) -> FileObjectEntry:
@@ -112,10 +115,19 @@ def sanitize(analysis_data):
             sanitize(value)
         elif isinstance(value, str) and '\0' in value:
             analysis_data[key] = value.replace('\0', '')
+        elif isinstance(value, list):
+            _sanitize_list(value)
+
+
+def _sanitize_list(value: list):
+    for index, element in enumerate(value):
+        if isinstance(element, dict):
+            sanitize(element)
+        elif isinstance(element, str) and '\0' in element:
+            value[index] = element.replace('\0', '')
 
 
 def create_analysis_entries(file_object: FileObject, fo_backref: FileObjectEntry) -> List[AnalysisEntry]:
-    sanitize(file_object.processed_analysis)
     return [
         AnalysisEntry(
             uid=file_object.uid,
