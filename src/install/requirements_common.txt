@@ -23,7 +23,7 @@ git+https://github.com/fkie-cad/fact_helper_file.git
 
 # Python MongoDB bindings
 pymongo==3.12.3
-pyyaml==5.3.1
+pyyaml==5.4
 
 # Common code modules
 git+https://github.com/fkie-cad/common_helper_files.git
