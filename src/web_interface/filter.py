@@ -418,3 +418,9 @@ def hide_dts_binary_data(device_tree: str) -> str:
     # textual device tree data can contain huge chunks of binary data -> hide them from view if they are too large
     device_tree = re.sub(r'\[[0-9a-f ]{32,}]', '(BINARY DATA ...)', device_tree)
     return re.sub(r'<(0x[0-9a-f]+ ?){10,}>', '(BINARY DATA ...)', device_tree)
+
+
+def get_searchable_crypto_block(crypto_material: str) -> str:
+    '''crypto material plugin results contain spaces and line breaks -> get a contiguous block without those'''
+    blocks = crypto_material.replace(' ', '').split('\n')
+    return sorted(blocks, key=len, reverse=True)[0]

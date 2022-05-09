@@ -220,6 +220,17 @@ def test_generic_search_json_types(db):
     assert db.frontend.generic_search({'processed_analysis.plugin.bool': True}) == [fo.uid]
 
 
+def test_generic_search_json_like(db):
+    fo, fw = create_fw_with_child_fo()
+    fo.processed_analysis = {'plugin': generate_analysis_entry(analysis_result={'foo': 'bar123'})}
+    db.backend.insert_object(fw)
+    db.backend.insert_object(fo)
+
+    assert db.frontend.generic_search({'processed_analysis.plugin.foo': 'bar123'}) == [fo.uid]
+    assert db.frontend.generic_search({'processed_analysis.plugin.foo': {'$like': 'ar12'}}) == [fo.uid]
+    assert db.frontend.generic_search({'processed_analysis.plugin.foo': {'$like': 'no-match'}}) == []
+
+
 def test_generic_search_wrong_key(db):
     fo, fw = create_fw_with_child_fo()
     fo.processed_analysis = {'plugin': generate_analysis_entry(analysis_result={'nested': {'key': 'value'}})}

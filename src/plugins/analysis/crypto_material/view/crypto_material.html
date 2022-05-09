@@ -17,7 +17,7 @@
                         <pre class="border rounded p-2 bg-light" style="margin-bottom: 0; white-space: pre-wrap;">{{ material | safe }}</pre>
 
                         {# Crypto Key Search Button #}
-                        {% set query = {"processed_analysis.crypto_material." + key + ".material": {"$regex": material[-50:] | regex_meta }} | json_dumps %}
+                        {% set query = {"processed_analysis.crypto_material." + key + ".material": {"$like": material[-100:] | get_searchable_crypto_block }} | json_dumps %}
                         <button class="btn btn-outline-secondary btn-sm" type="button" style="margin-bottom: 10px" onclick="window.location.href='{{ '/database/browse?query=' + query | urlencode }}'">
                             <span class="fas fa-search"></span> Search for other occurrences
                         </button>
