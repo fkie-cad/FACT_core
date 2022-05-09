@@ -22,7 +22,7 @@ class TestAnalysisPlugInPrintableStrings(AnalysisPluginTest):
         self.offsets = [(3, self.strings[0]), (21, self.strings[1]), (61, self.strings[2])]
 
     def _set_config(self):
-        self.config.set(self.PLUGIN_NAME, 'min_length', '4')
+        self.config.set(self.PLUGIN_NAME, 'min-length', '4')
 
     def test_process_object(self):
         fo = FileObject(file_path=os.path.join(TEST_DATA_DIR, 'string_find_test_file2'))
