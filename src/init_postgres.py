@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import logging
+import os
 from configparser import ConfigParser
 from shlex import split
 from subprocess import CalledProcessError, check_output
@@ -9,8 +10,19 @@ from helperFunctions.config import load_config
 from storage.db_setup import DbSetup
 
 
-def execute_psql_command(psql_command: str) -> bytes:
-    shell_cmd = f'sudo runuser -u postgres -- psql -c "{psql_command}"'
+def execute_psql_command(psql_command: str, host='localhost', port=5432, user=os.getenv('PGUSER', default='postgres')) -> bytes:
+    # This is only used to create the fact_admin user.
+    # In order to create this user we have to have access to the default admin user (postgres).
+    # By default this user does not have a password and "Peer authentication" is used to login to this user.
+    # When the database is at a remote server we cant use peer authentication and want to use password authentication.
+    # As a workaround to detect which authentication method to use we check the hostname.
+    # See https://www.postgresql.org/docs/current/auth-methods.html
+
+    if host in ['localhost', '127.0.0.1']:
+        shell_cmd = f'sudo runuser -u {user} -- psql -c "{psql_command}"'
+    else:
+        shell_cmd = f'psql --host={host} --port={port} --username={user} -c "{psql_command}"'
+
     try:
         return check_output(split(shell_cmd))
     except CalledProcessError as error:
@@ -22,10 +34,12 @@ def user_exists(user_name: str) -> bool:
     return user_name.encode() in execute_psql_command('\\du')
 
 
-def create_admin_user(user_name: str, password: str):
+def create_admin_user(user_name: str, password: str, host: str, port: int):
     execute_psql_command(
         f'CREATE USER {user_name} WITH PASSWORD \'{password}\' '
-        'LOGIN SUPERUSER INHERIT CREATEDB CREATEROLE;'
+        'LOGIN SUPERUSER INHERIT CREATEDB CREATEROLE;',
+        host=host,
+        port=port,
     )
 
 
@@ -36,6 +50,10 @@ def main(command_line_options=None, config: Optional[ConfigParser] = None, skip_
     if config is None:
         logging.info('No custom configuration path provided for PostgreSQL setup. Using main.cfg ...')
         config = load_config('main.cfg')
+
+    host = config['data-storage']['postgres-server']
+    port = config['data-storage']['postgres-port']
+
     fact_db = config['data-storage']['postgres-database']
     test_db = config['data-storage']['postgres-test-database']
 
@@ -44,7 +62,7 @@ def main(command_line_options=None, config: Optional[ConfigParser] = None, skip_
 
     # skip_user_creation can be helpful if the DB is not directly accessible (e.g. FACT_docker)
     if not skip_user_creation and not user_exists(admin_user):
-        create_admin_user(admin_user, admin_password)
+        create_admin_user(admin_user, admin_password, host, port)
 
     db_setup = DbSetup(config, db_name='postgres', isolation_level='AUTOCOMMIT')
     for db_name in [fact_db, test_db]:
