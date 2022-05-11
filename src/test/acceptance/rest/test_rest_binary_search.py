@@ -7,6 +7,9 @@ from storage.fsorganizer import FSOrganizer
 from test.acceptance.base import TestAcceptanceBase
 from test.common_helper import get_firmware_for_rest_upload_test
 
+# the file inside the uploaded test file, that is matched by the binary search
+MATCH_FILE_UID = 'd558c9339cb967341d701e3184f863d3928973fccdc1d96042583730b5c7b76a_62'
+
 
 class TestRestBinarySearch(TestAcceptanceBase):
 
@@ -20,8 +23,8 @@ class TestRestBinarySearch(TestAcceptanceBase):
         super().tearDown()
 
     def test_binary_search(self):
-        uid = self._upload_firmware()
-        self._wait_for_binary(Path(self.fs_organizer.generate_path_from_uid(uid)))
+        self._upload_firmware()
+        self._wait_for_binary(Path(self.fs_organizer.generate_path_from_uid(MATCH_FILE_UID)))
         search_id = self._post_binary_search()
         self._get_binary_search_result(search_id)
 
@@ -29,7 +32,6 @@ class TestRestBinarySearch(TestAcceptanceBase):
         data = get_firmware_for_rest_upload_test()
         rv = self.test_client.put('/rest/firmware', json=data, follow_redirects=True)
         assert 'uid' in rv.json, 'rest upload not successful'
-        return rv.json['uid']
 
     def _post_binary_search(self):
         data = {'rule_file': 'rule rulename {strings: $a = "MyTestRule" condition: $a }'}
