@@ -1,13 +1,12 @@
-# dependencies
 cryptography==37.0.2
 docker==5.0.3
+MarkupSafe==2.0.1
 matplotlib==3.5.2
 networkx==2.5.1
 Pillow==9.1.0
 pluginbase==1.0.1
 pyopenssl==22.0.0
 
-# installing common code modules
 git+https://github.com/fkie-cad/common_helper_yara.git
 git+https://github.com/mass-project/common_analysis_base.git
 
