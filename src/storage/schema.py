@@ -114,9 +114,6 @@ class FileObjectEntry(Base):
     def get_parent_uids(self) -> Set[str]:
         return {parent.uid for parent in self.parent_files}
 
-    def get_root_firmware_uids(self) -> Set[str]:
-        return {root.uid for root in self.root_firmware}
-
     def __repr__(self) -> str:
         return f'FileObject({self.uid}, {self.file_name}, {self.is_firmware})'
 

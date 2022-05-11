@@ -7,8 +7,6 @@ from typing import Dict, List, NamedTuple, Optional, Union
 from more_itertools import chunked
 
 MAGIC = bytes.fromhex('D00DFEED')
-MODEL_STR = b'model\0'
-DESCRIPTION_STR = b'description\0'
 
 HEADER_SIZE = 40
 

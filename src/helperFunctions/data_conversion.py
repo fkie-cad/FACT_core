@@ -1,5 +1,4 @@
 from datetime import datetime
-from pickle import dumps
 from typing import Any, AnyStr, Dict, Iterable, List, Optional, TypeVar, Union
 
 _KT = TypeVar('_KT')  # Key type
@@ -29,16 +28,6 @@ def make_unicode_string(code: Any) -> str:
     if isinstance(code, bytes):
         return code.decode(errors='replace')
     return code.__str__()
-
-
-def get_dict_size(dict_object: dict) -> int:
-    '''
-    Get the size of a dict, measured as length of the pickled dict.
-
-    :param dict_object: The dict to calculate the size of.
-    :return: The size.
-    '''
-    return len(dumps(dict_object))
 
 
 def convert_uid_list_to_compare_id(uid_list: Iterable[str]) -> str:
@@ -91,20 +80,6 @@ def none_to_none(input_data: Optional[str]) -> Optional[str]:
     :param input_data: A string that may
     '''
     return None if input_data == 'None' else input_data
-
-
-def convert_str_to_time(string):
-    '''
-    Firmware release dates are entered in the form 'YYYY-MM-DD' and need to be converted to MongoDB date objects
-    in order to be stored in the database.
-
-    :param string: date string of the form 'YYYY-MM-DD'
-    :return: datetime object (compatible with pymongo)
-    '''
-    try:
-        return datetime.strptime(string, '%Y-%m-%d')
-    except ValueError:
-        return datetime.fromtimestamp(0)
 
 
 def convert_time_to_str(time_obj: Any) -> str:

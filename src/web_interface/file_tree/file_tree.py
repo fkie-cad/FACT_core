@@ -112,12 +112,6 @@ class VirtualPathFileTree:
     :param whitelist: A whitelist of file names needed to display partial trees in comparisons.
     '''
 
-    #: Required fields for a database query to build the file tree.
-    FO_DATA_FIELDS = {
-        '_id': 1, 'file_name': 1, 'files_included': 1, 'processed_analysis.file_type.mime': 1, 'size': 1,
-        'virtual_file_path': 1,
-    }
-
     def __init__(self, root_uid: str, parent_uid: str, fo_data: FileTreeData, whitelist: Optional[List[str]] = None):
         self.uid = fo_data.uid
         self.root_uid = root_uid if root_uid else list(fo_data.virtual_file_path)[0]

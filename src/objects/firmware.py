@@ -1,4 +1,3 @@
-from contextlib import suppress
 from typing import Dict, Optional
 
 from helperFunctions.hash import get_md5
@@ -91,7 +90,7 @@ class Firmware(FileObject):  # pylint: disable=too-many-instance-attributes
         #: It is important to understand that these tags are **separately stored** from the :attr:`objects.file.FileObject.analysis_tags`, which are propagated by analysis plugins.
         #:
         #: This attribute is **optional**, the dict may be empty.
-        self.tags: Dict[str, TagColor] = dict()
+        self.tags: Dict[str, TagColor] = {}
 
         self._update_root_id_and_virtual_path()
 
@@ -133,22 +132,12 @@ class Firmware(FileObject):  # pylint: disable=too-many-instance-attributes
         '''
         self.tags[tag] = tag_color
 
-    def remove_tag(self, tag: str):
-        '''
-        Remove a user-defined tag.
-
-        :param tag: Tag identifier
-        :type tag: str
-        '''
-        with suppress(KeyError):
-            self.tags.pop(tag)
-
     def get_hid(self, root_uid: Optional[str] = None) -> str:
         '''
         See :meth:`objects.file.FileObject.get_hid`.
         '''
-        part = ' - {}'.format(self.part) if self.part else ''
-        return '{} {}{} v. {}'.format(self.vendor, self.device_name, part, self.version)
+        part = f' - {self.part}' if self.part else ''
+        return f'{self.vendor} {self.device_name}{part} v. {self.version}'
 
     def __str__(self) -> str:
         return (

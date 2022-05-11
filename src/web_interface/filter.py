@@ -287,10 +287,6 @@ def render_analysis_tags(tags, size=14):
     return output
 
 
-def _fix_color_class(tag_color_class):
-    return tag_color_class if tag_color_class in TagColor.ALL else TagColor.BLUE
-
-
 def fix_cwe(string):
     if 'CWE' in string:
         return string.split(']')[0].split('E')[-1]
