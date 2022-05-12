@@ -20,11 +20,16 @@
 import grp
 import logging
 import os
+import sys
 from pathlib import Path
 from time import sleep
 
+try:
+    from fact_base import FactBase
+except (ImportError, ModuleNotFoundError):
+    sys.exit(1)
+
 from analysis.PluginBase import PluginInitException
-from fact_base import FactBase
 from helperFunctions.process import complete_shutdown
 from intercom.back_end_binding import InterComBackEndBinding
 from scheduler.analysis import AnalysisScheduler
@@ -105,3 +110,4 @@ class FactBackend(FactBase):
 
 if __name__ == '__main__':
     FactBackend().main()
+    sys.exit(0)
