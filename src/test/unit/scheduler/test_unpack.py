@@ -19,15 +19,15 @@ class TestUnpackScheduler(TestCase):
         self.config = ConfigParser()
         self.config.add_section('unpack')
         self.config.set('unpack', 'threads', '2')
-        self.config.set('unpack', 'max_depth', '3')
+        self.config.set('unpack', 'max-depth', '3')
         self.config.set('unpack', 'whitelist', '')
-        self.config.add_section('ExpertSettings')
-        self.config.set('ExpertSettings', 'block_delay', '1')
-        self.config.set('ExpertSettings', 'unpack_throttle_limit', '10')
-        self.config.add_section('data_storage')
-        self.config.set('data_storage', 'firmware_file_storage_directory', self.tmp_dir.name)
+        self.config.add_section('expert-settings')
+        self.config.set('expert-settings', 'block-delay', '1')
+        self.config.set('expert-settings', 'unpack-throttle-limit', '10')
+        self.config.add_section('data-storage')
+        self.config.set('data-storage', 'firmware-file-storage-directory', self.tmp_dir.name)
         self.docker_mount_base_dir = create_docker_mount_base_dir()
-        self.config.set('data_storage', 'docker-mount-base-dir', str(self.docker_mount_base_dir))
+        self.config.set('data-storage', 'docker-mount-base-dir', str(self.docker_mount_base_dir))
         self.tmp_queue = Queue()
         self.scheduler = None
 
@@ -61,7 +61,7 @@ class TestUnpackScheduler(TestCase):
 
     def test_throttle(self):
         with patch(target='scheduler.unpacking_scheduler.sleep', new=self._trigger_sleep):
-            self.config.set('ExpertSettings', 'unpack_throttle_limit', '-1')
+            self.config.set('expert-settings', 'unpack-throttle-limit', '-1')
             self._start_scheduler()
             self.sleep_event.wait(timeout=10)
 

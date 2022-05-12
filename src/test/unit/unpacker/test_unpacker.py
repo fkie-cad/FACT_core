@@ -29,13 +29,13 @@ class TestUnpackerBase(unittest.TestCase):
         else:
             docker_gid = grp.getgrnam('docker').gr_gid
             os.chown(self.docker_mount_base_dir, -1, docker_gid)
-        config.add_section('data_storage')
-        config.set('data_storage', 'firmware_file_storage_directory', self.ds_tmp_dir.name)
-        config.set('data_storage', 'docker-mount-base-dir', str(self.docker_mount_base_dir))
+        config.add_section('data-storage')
+        config.set('data-storage', 'firmware-file-storage-directory', self.ds_tmp_dir.name)
+        config.set('data-storage', 'docker-mount-base-dir', str(self.docker_mount_base_dir))
         config.add_section('unpack')
-        config.set('unpack', 'max_depth', '3')
+        config.set('unpack', 'max-depth', '3')
         config.set('unpack', 'whitelist', 'text/plain, image/png')
-        config.add_section('ExpertSettings')
+        config.add_section('expert-settings')
         self.unpacker = Unpacker(config=config, unpacking_locks=UnpackingLockManager())
         self.tmp_dir = TemporaryDirectory(prefix='fact_tests_')
         self.test_fo = create_test_file_object()

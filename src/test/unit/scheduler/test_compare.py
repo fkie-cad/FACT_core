@@ -34,9 +34,9 @@ class TestSchedulerCompare(unittest.TestCase):
     @mock.patch('plugins.base.ViewUpdater', lambda *_: None)
     def setUp(self):
         self.config = ConfigParser()
-        self.config.add_section('ExpertSettings')
-        self.config.set('ExpertSettings', 'block_delay', '2')
-        self.config.set('ExpertSettings', 'ssdeep_ignore', '80')
+        self.config.add_section('expert-settings')
+        self.config.set('expert-settings', 'block-delay', '2')
+        self.config.set('expert-settings', 'ssdeep-ignore', '80')
 
         self.bs_patch_new = unittest.mock.patch(target='storage.binary_service.BinaryService.__new__', new=lambda *_, **__: MockDbInterface())
         self.bs_patch_init = unittest.mock.patch(target='storage.binary_service.BinaryService.__init__', new=lambda _: None)

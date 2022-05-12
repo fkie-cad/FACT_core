@@ -11,8 +11,8 @@ class AdminDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
 
     def _get_user(self):
         # only the "delete user" has privilege for "DELETE" (SQL)
-        user = self.config.get('data_storage', 'postgres_del_user')
-        password = self.config.get('data_storage', 'postgres_del_pw')
+        user = self.config.get('data-storage', 'postgres-del-user')
+        password = self.config.get('data-storage', 'postgres-del-pw')
         return user, password
 
     def __init__(self, config=None, intercom=None):

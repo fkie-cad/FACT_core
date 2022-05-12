@@ -71,7 +71,7 @@ def main():
 
     config = load_config('main.cfg')
 
-    db_path = config['data_storage']['user_database'][len('sqlite:///'):]
+    db_path = config['data-storage']['user-database'][len('sqlite:///'):]
 
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()

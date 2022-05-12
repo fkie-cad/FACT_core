@@ -27,12 +27,12 @@ class Unpacker(UnpackBase):
 
         logging.debug('[worker {}] Extracting {}: Depth: {}'.format(self.worker_id, current_fo.uid, current_fo.depth))
 
-        if current_fo.depth >= self.config.getint('unpack', 'max_depth'):
-            logging.warning('{} is not extracted since depth limit ({}) is reached'.format(current_fo.uid, self.config.get('unpack', 'max_depth')))
+        if current_fo.depth >= self.config.getint('unpack', 'max-depth'):
+            logging.warning('{} is not extracted since depth limit ({}) is reached'.format(current_fo.uid, self.config.get('unpack', 'max-depth')))
             self._store_unpacking_depth_skip_info(current_fo)
             return []
 
-        with TemporaryDirectory(prefix='fact_unpack_', dir=self.config['data_storage']['docker-mount-base-dir']) as tmp_dir:
+        with TemporaryDirectory(prefix='fact_unpack_', dir=self.config['data-storage']['docker-mount-base-dir']) as tmp_dir:
             file_path = self._generate_local_file_path(current_fo)
             extracted_files = self.extract_files_from_file(file_path, tmp_dir)
             extracted_file_objects = self.generate_and_store_file_objects(extracted_files, Path(tmp_dir) / 'files', current_fo)

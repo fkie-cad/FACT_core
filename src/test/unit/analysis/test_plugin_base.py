@@ -29,8 +29,8 @@ class TestPluginBase(unittest.TestCase):
         config = ConfigParser()
         config.add_section('dummy_plugin_for_testing_only')
         config.set('dummy_plugin_for_testing_only', 'threads', '2')
-        config.add_section('ExpertSettings')
-        config.set('ExpertSettings', 'block_delay', '0.1')
+        config.add_section('expert-settings')
+        config.set('expert-settings', 'block-delay', '0.1')
         return config
 
     def tearDown(self):

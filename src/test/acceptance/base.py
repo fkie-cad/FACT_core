@@ -42,9 +42,9 @@ class TestAcceptanceBase(unittest.TestCase):  # pylint: disable=too-many-instanc
         setup_test_tables(self.config)
 
         self.tmp_dir = TemporaryDirectory(prefix='fact_test_')
-        self.config.set('data_storage', 'firmware_file_storage_directory', self.tmp_dir.name)
+        self.config.set('data-storage', 'firmware-file-storage-directory', self.tmp_dir.name)
         self.frontend = WebFrontEnd(config=self.config)
-        self.frontend.app.config['TESTING'] = not self.config.getboolean('ExpertSettings', 'authentication')
+        self.frontend.app.config['TESTING'] = not self.config.getboolean('expert-settings', 'authentication')
         self.test_client = self.frontend.app.test_client()
 
         self.test_fw_a = self.TestFW('418a54d78550e8584291c96e5d6168133621f352bfc1d43cf84e81187fef4962_787',
@@ -62,9 +62,9 @@ class TestAcceptanceBase(unittest.TestCase):  # pylint: disable=too-many-instanc
     @classmethod
     def _set_config(cls):
         cls.config = load_config('main.cfg')
-        test_db = cls.config.get('data_storage', 'postgres_test_database')
-        cls.config.set('data_storage', 'postgres_database', test_db)
-        cls.config.set('ExpertSettings', 'authentication', 'false')
+        test_db = cls.config.get('data-storage', 'postgres-test-database')
+        cls.config.set('data-storage', 'postgres-database', test_db)
+        cls.config.set('expert-settings', 'authentication', 'false')
 
     def _stop_backend(self):
         with ThreadPoolExecutor(max_workers=4) as pool:
@@ -93,8 +93,8 @@ class TestAcceptanceBase(unittest.TestCase):  # pylint: disable=too-many-instanc
         log_format = logging.Formatter(fmt='[%(asctime)s][%(module)s][%(levelname)s]: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
         logger = logging.getLogger('')
         logger.setLevel(logging.DEBUG)
-        create_dir_for_file(self.config['Logging']['logFile'])
-        file_log = logging.FileHandler(self.config['Logging']['logFile'])
+        create_dir_for_file(self.config['logging']['logfile'])
+        file_log = logging.FileHandler(self.config['logging']['logfile'])
         file_log.setLevel(log_level)
         file_log.setFormatter(log_format)
         console_log = logging.StreamHandler()

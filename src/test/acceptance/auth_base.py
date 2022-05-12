@@ -18,8 +18,8 @@ class TestAuthenticatedAcceptanceBase(TestAcceptanceBase):
     @classmethod
     def _set_config(cls):
         super()._set_config()
-        cls.config.set('ExpertSettings', 'authentication', 'true')
-        cls.config.set('data_storage', 'user_database', ''.join(['sqlite:///', get_test_data_dir(), '/user_test.db']))
+        cls.config.set('expert-settings', 'authentication', 'true')
+        cls.config.set('data-storage', 'user-database', ''.join(['sqlite:///', get_test_data_dir(), '/user_test.db']))
 
         cls.guest = MockUser(name='t_guest', password='test', key='1okMSKUKlYxSvPn0sgfHM0SWd9zqNChyj5fbcIJgfKM=')
         cls.guest_analyst = MockUser(name='t_guest_analyst', password='test', key='mDsgjAM2iE543PySnTpPZr0u8KeGTPGzPjKJVO4I4Ww=')

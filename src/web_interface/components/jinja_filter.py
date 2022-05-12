@@ -130,7 +130,7 @@ class FilterClass:
         return new_result
 
     def check_auth(self, _):
-        return self._config.getboolean('ExpertSettings', 'authentication')
+        return self._config.getboolean('expert-settings', 'authentication')
 
     def data_to_chart_limited(self, data, limit: Optional[int] = None, color_list=None):
         limit = self._get_chart_element_count() if limit is None else limit
@@ -146,7 +146,7 @@ class FilterClass:
         }
 
     def _get_chart_element_count(self):
-        limit = self._config.getint('statistics', 'max_elements_per_chart', fallback=10)
+        limit = self._config.getint('statistics', 'max-elements-per-chart', fallback=10)
         if limit > 100:
             logging.warning('Value of "max_elements_per_chart" in configuration is too large.')
             return 100

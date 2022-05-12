@@ -41,12 +41,12 @@ def _setup_frontend():
     parser = ConfigParser()
     # See add_config_from_configparser_to_app for needed values
     parser.read_dict({
-        'data_storage': {
+        'data-storage': {
             # We want an in memory database for testing
-            'user_database': 'sqlite://',
-            'password_salt': 'salt'
+            'user-database': 'sqlite://',
+            'password-salt': 'salt'
         },
-        'ExpertSettings': {
+        'expert-settings': {
             'authentication': 'true'
         },
     })

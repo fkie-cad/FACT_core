@@ -13,11 +13,11 @@ from web_interface.security.user_role_db_interface import UserRoleDbInterface
 
 def add_config_from_configparser_to_app(app, config):
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.config['SECURITY_PASSWORD_SALT'] = config.get('data_storage', 'password_salt').encode()
-    app.config['SQLALCHEMY_DATABASE_URI'] = config.get('data_storage', 'user_database', fallback='sqlite:///')
+    app.config['SECURITY_PASSWORD_SALT'] = config.get('data-storage', 'password-salt').encode()
+    app.config['SQLALCHEMY_DATABASE_URI'] = config.get('data-storage', 'user-database', fallback='sqlite:///')
     # FIXME fix redirect loop here
     app.config['SECURITY_UNAUTHORIZED_VIEW'] = '/login'
-    app.config['LOGIN_DISABLED'] = not config.getboolean('ExpertSettings', 'authentication')
+    app.config['LOGIN_DISABLED'] = not config.getboolean('expert-settings', 'authentication')
 
     # As we want to use ONLY usernames and no emails but email is hardcoded in
     # flask-security we change the validation mapper of 'email'.
