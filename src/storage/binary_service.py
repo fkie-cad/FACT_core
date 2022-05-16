@@ -42,7 +42,7 @@ class BinaryService:
         file_name = self.db_interface.get_file_name(uid)
         if file_name is None:
             return None, None
-        repack_service = TarRepack(config=self.config)
+        repack_service = TarRepack()
         tar = repack_service.tar_repack(self.fs_organizer.generate_path_from_uid(uid))
         name = f'{file_name}.tar.gz'
         return tar, name

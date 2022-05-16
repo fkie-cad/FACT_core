@@ -7,6 +7,7 @@ from tempfile import TemporaryDirectory
 
 from common_helper_files import get_binary_from_file
 
+from config import cfg, configparser_cfg
 from helperFunctions.config import get_temp_dir_path
 from unpacker.unpack_base import UnpackBase
 
@@ -14,10 +15,10 @@ from unpacker.unpack_base import UnpackBase
 class TarRepack(UnpackBase):
 
     def tar_repack(self, file_path):
-        extraction_directory = TemporaryDirectory(prefix='FACT_tar_repack', dir=self.config['data-storage']['docker-mount-base-dir'])
+        extraction_directory = TemporaryDirectory(prefix='FACT_tar_repack', dir=cfg.data_storage.docker_mount_base_dir)
         self.extract_files_from_file(file_path, extraction_directory.name)
 
-        archive_directory = TemporaryDirectory(prefix='FACT_tar_repack', dir=get_temp_dir_path(self.config))
+        archive_directory = TemporaryDirectory(prefix='FACT_tar_repack', dir=get_temp_dir_path(configparser_cfg))
         archive_path = os.path.join(archive_directory.name, 'download.tar.gz')
         tar_binary = self._repack_extracted_files(Path(extraction_directory.name, 'files'), archive_path)
 

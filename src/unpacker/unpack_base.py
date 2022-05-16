@@ -7,12 +7,12 @@ from subprocess import CalledProcessError
 from common_helper_files import safe_rglob
 from docker.types import Mount
 
+from config import cfg
 from helperFunctions.docker import run_docker_container
 
 
 class UnpackBase:
-    def __init__(self, config=None, worker_id=None):
-        self.config = config
+    def __init__(self, worker_id=None):
         self.worker_id = worker_id
 
     @staticmethod
@@ -27,7 +27,7 @@ class UnpackBase:
             'fkiecad/fact_extractor',
             combine_stderr_stdout=True,
             privileged=True,
-            mem_limit=f"{self.config.get('unpack', 'memory-limit', fallback='1024')}m",
+            mem_limit=f'{cfg.unpack.memory_limit}m',
             mounts=[
                 Mount('/dev/', '/dev/', type='bind'),
                 Mount('/tmp/extractor', tmp_dir, type='bind'),
