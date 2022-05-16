@@ -219,7 +219,7 @@ def run_cmd_with_logging(cmd: str, raise_error=True, shell=False, silent: bool =
             raise err
 
 
-def check_distribution():
+def check_distribution(allow_unsupported=False):
     '''
     Check if the distribution is supported by the installer.
 
@@ -242,8 +242,12 @@ def check_distribution():
     if distro.id() == 'fedora':
         logging.debug('Fedora detected')
         return 'fedora'
-    logging.critical('Your Distribution ({} {}) is not supported. FACT Installer requires Ubuntu 18.04, 20.04 or compatible!'.format(distro.id(), distro.version()))
-    sys.exit(1)
+    msg = f'Your Distribution ({distro.id()} {distro.version()}) is not supported. FACT Installer requires Ubuntu 18.04, 20.04 or compatible!'
+    if allow_unsupported:
+        logging.info(msg)
+    else:
+        logging.critical(msg)
+        sys.exit(1)
 
 
 def install_pip_packages(package_file: Path):
