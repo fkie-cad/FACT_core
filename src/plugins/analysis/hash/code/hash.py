@@ -2,7 +2,7 @@ import logging
 from hashlib import algorithms_guaranteed
 
 from analysis.PluginBase import AnalysisBasePlugin
-from helperFunctions.config import read_list_from_config
+from config import cfg, parse_comma_separated_list
 from helperFunctions.hash import get_hash, get_imphash, get_ssdeep, get_tlsh
 
 
@@ -18,7 +18,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
     FILE = __file__
 
     def additional_setup(self):
-        self.hashes_to_create = self._get_hash_list_from_config(self.config)
+        hashes = getattr(cfg, self.NAME, {}).get('hashes', 'sha256')
+        self.hashes_to_create = parse_comma_separated_list(hashes)
 
     def process_object(self, file_object):
         '''
@@ -40,7 +41,3 @@ class AnalysisPlugin(AnalysisBasePlugin):
             file_object.processed_analysis[self.NAME]['tlsh'] = get_tlsh(file_object.binary)
 
         return file_object
-
-    def _get_hash_list_from_config(self, config):
-        hash_list = read_list_from_config(config, self.NAME, 'hashes')
-        return hash_list or ['sha256']
