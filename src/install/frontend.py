@@ -62,7 +62,7 @@ def _create_directory_for_authentication():  # pylint: disable=invalid-name
     logging.info('Creating directory for authentication')
 
     config = load_main_config()
-    dburi = config.get('data_storage', 'user_database')
+    dburi = config.get('data-storage', 'user-database')
     # pylint: disable=fixme
     factauthdir = '/'.join(dburi.split('/')[:-1])[10:]  # FIXME this should be beautified with pathlib
 

@@ -45,7 +45,7 @@ class WorkLoadStatistic:
     def _get_system_information(self):
         memory_usage = psutil.virtual_memory()
         try:
-            disk_usage = psutil.disk_usage(self.config['data_storage']['firmware_file_storage_directory'])
+            disk_usage = psutil.disk_usage(self.config['data-storage']['firmware-file-storage-directory'])
         except Exception:
             disk_usage = psutil.disk_usage('/')
         try:

@@ -13,8 +13,8 @@ class ComparePluginTest:
 
     def setup(self):
         self.config = self.generate_config()
-        self.config.add_section('ExpertSettings')
-        self.config.set('ExpertSettings', 'ssdeep_ignore', '80')
+        self.config.add_section('expert-settings')
+        self.config.set('expert-settings', 'ssdeep-ignore', '80')
         self.compare_plugins = {}
         self.c_plugin = self.setup_plugin()
         self.setup_test_fw()

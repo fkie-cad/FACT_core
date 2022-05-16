@@ -194,9 +194,9 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         try:
             return {
                 plugin_set: read_list_from_config(
-                    self.config, 'default_plugins', plugin_set
+                    self.config, 'default-plugins', plugin_set
                 )
-                for plugin_set in self.config['default_plugins']
+                for plugin_set in self.config['default-plugins']
             }
         except (TypeError, KeyError, AttributeError):
             logging.warning('default plug-ins not set in config')
@@ -259,7 +259,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
     def _task_runner(self):
         while self.stop_condition.value == 0:
             try:
-                task = self.process_queue.get(timeout=float(self.config['ExpertSettings']['block_delay']))
+                task = self.process_queue.get(timeout=float(self.config['expert-settings']['block-delay']))
             except Empty:
                 pass
             else:
@@ -416,7 +416,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
                         self.post_analysis(fw.uid, plugin_name, fw.processed_analysis[plugin_name])
                     self._check_further_process_or_complete(fw)
             if nop:
-                sleep(float(self.config['ExpertSettings']['block_delay']))
+                sleep(float(self.config['expert-settings']['block-delay']))
 
     def _check_further_process_or_complete(self, fw_object):
         if not fw_object.scheduled_analysis:

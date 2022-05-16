@@ -17,7 +17,7 @@ def extract_pagination_from_request(request, config):
     page = int(request.args.get('page', 1))
     per_page = request.args.get('per_page')
     if not per_page:
-        per_page = int(config['database']['results_per_page'])
+        per_page = int(config['database']['results-per-page'])
     else:
         per_page = int(per_page)
     offset = (page - 1) * per_page
