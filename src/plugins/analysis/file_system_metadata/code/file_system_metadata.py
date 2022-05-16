@@ -11,6 +11,7 @@ from typing import List, NamedTuple, Tuple
 from docker.types import Mount
 
 from analysis.PluginBase import AnalysisBasePlugin
+from config import cfg, configparser_cfg
 from helperFunctions.docker import run_docker_container
 from helperFunctions.tag import TagColor
 from helperFunctions.virtual_file_path import get_parent_uids_from_virtual_path
@@ -54,10 +55,10 @@ class AnalysisPlugin(AnalysisBasePlugin):
         'filesystem/squashfs',
     ]
 
-    def __init__(self, *args, config=None, db_interface=None, **kwargs):
-        self.db = db_interface if db_interface is not None else DbInterfaceCommon(config=config)
+    def __init__(self, *args, db_interface=None, **kwargs):
+        self.db = db_interface if db_interface is not None else DbInterfaceCommon(config=configparser_cfg)
         self.result = None
-        super().__init__(*args, config=config, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def process_object(self, file_object: FileObject) -> FileObject:
         self.result = {}
@@ -99,7 +100,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             self._add_tag(file_object, self.result)
 
     def _extract_metadata_from_file_system(self, file_object: FileObject):
-        with TemporaryDirectory(dir=self.config['data-storage']['docker-mount-base-dir']) as tmp_dir:
+        with TemporaryDirectory(dir=cfg.data_storage.docker_mount_base_dir) as tmp_dir:
             input_file = Path(tmp_dir) / 'input.img'
             input_file.write_bytes(file_object.binary or Path(file_object.file_path).read_bytes())
             output = self._mount_in_docker(tmp_dir)
