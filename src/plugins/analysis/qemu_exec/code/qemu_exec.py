@@ -18,6 +18,7 @@ from fact_helper_file import get_file_type_from_path
 from requests.exceptions import ReadTimeout
 
 from analysis.PluginBase import AnalysisBasePlugin
+from config import cfg, configparser_cfg
 from helperFunctions.docker import run_docker_container
 from helperFunctions.tag import TagColor
 from helperFunctions.uid import create_uid
@@ -34,9 +35,9 @@ CONTAINER_TARGET_PATH = '/opt/firmware_root'
 
 
 class Unpacker(UnpackBase):
-    def __init__(self, config=None, worker_id=None):
-        super().__init__(config=config, worker_id=worker_id)
-        self.fs_organizer = FSOrganizer(config)
+    def __init__(self, worker_id=None):
+        super().__init__(worker_id=worker_id)
+        self.fs_organizer = FSOrganizer(configparser_cfg)
 
     def unpack_fo(self, file_object: FileObject) -> Optional[TemporaryDirectory]:
         file_path = file_object.file_path if file_object.file_path else self._get_path_from_fo(file_object)
@@ -44,9 +45,7 @@ class Unpacker(UnpackBase):
             logging.error(f'could not unpack {file_object.uid}: file path not found')
             return None
 
-        extraction_dir = TemporaryDirectory(
-            prefix='FACT_plugin_qemu_exec', dir=self.config['data-storage']['docker-mount-base-dir']
-        )
+        extraction_dir = TemporaryDirectory(prefix='FACT_plugin_qemu_exec', dir=cfg.data_storage.docker_mount_base_dir)
         self.extract_files_from_file(file_path, extraction_dir.name)
         return extraction_dir
 
@@ -83,9 +82,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     root_path = None
 
-    def __init__(self, *args, config=None, unpacker=None, **kwargs):
-        self.unpacker = Unpacker(config) if unpacker is None else unpacker
-        super().__init__(*args, config=config, **kwargs)
+    def __init__(self, *args, unpacker=None, **kwargs):
+        self.unpacker = Unpacker(configparser_cfg) if unpacker is None else unpacker
+        super().__init__(*args, **kwargs)
 
     def process_object(self, file_object: FileObject) -> FileObject:
         if self.NAME not in file_object.processed_analysis:
