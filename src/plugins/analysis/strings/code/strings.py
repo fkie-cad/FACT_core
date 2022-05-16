@@ -2,6 +2,7 @@ import re
 from typing import List, Pattern, Tuple
 
 from analysis.PluginBase import AnalysisBasePlugin
+from config import cfg
 from plugins.mime_blacklists import MIME_BLACKLIST_COMPRESSED
 
 
@@ -20,24 +21,16 @@ class AnalysisPlugin(AnalysisBasePlugin):
         (b'[\x09-\x0d\x20-\x7e]{$len,}', 'utf-8'),
         (b'(?:[\x09-\x0d\x20-\x7e]\x00){$len,}', 'utf-16'),
     ]
-    FALLBACK_MIN_LENGTH = '8'
 
     def additional_setup(self):
         self.regexes = self._compile_regexes()
 
     def _compile_regexes(self) -> List[Tuple[Pattern[bytes], str]]:
-        min_length = self._get_min_length_from_config()
+        min_length = str(getattr(cfg, self.NAME, {}).get('min-length', 8))
         return [
             (re.compile(regex.replace(b'$len', min_length.encode())), encoding)
             for regex, encoding in self.STRING_REGEXES
         ]
-
-    def _get_min_length_from_config(self):
-        try:
-            min_length = self.config[self.NAME]['min-length']
-        except KeyError:
-            min_length = self.FALLBACK_MIN_LENGTH
-        return min_length
 
     def process_object(self, file_object):
         strings, offsets = self._find_all_strings_and_offsets(file_object.binary)
