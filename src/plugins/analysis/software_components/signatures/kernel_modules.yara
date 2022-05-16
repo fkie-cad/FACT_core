@@ -10,5 +10,5 @@ rule NetUSB
         $b = "NetUSB module for Linux"
         $c = /\x001\.\d+\.\d+\x00/
     condition:
-        2 of them
+        2 of them and no_text_file
 }
