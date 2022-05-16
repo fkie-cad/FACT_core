@@ -11,6 +11,7 @@ FileX ARM9/Green Hills Version G5.1.5.1
 GoAhead-Webs
 Hewlett-Packard FTP Print Server Version 3.0
 InterNiche Portable TCP/IP Demo for Multitasking DOS, v1.8
+KC NetUSB General Driver
 Linux version 2.6.30
 Lua: Lua 5.1.4 Copyright (C) 1994-2008
 LynxOS 3.1
@@ -20,6 +21,7 @@ MicroC/OS-II
 MiniUPNP 1.7
 MyTestRule 1.2.3
 NTP daemon program - Ver. 4.2.8p10
+NetUSB module for Linux
 Netgear Smart Wizard 3.0
 OpenSSL 0.9.8
 OpenSSL 1.0.1f
