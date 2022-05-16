@@ -65,7 +65,7 @@ class InterComFrontEndBinding(InterComRedisInterface):
     def _response_listener(self, response_connection, request_id, timeout=None):
         output_data = None
         if timeout is None:
-            timeout = time() + int(self.config['ExpertSettings'].get('communication_timeout', '60'))
+            timeout = time() + int(self.config['expert-settings'].get('communication-timeout', '60'))
         while timeout > time():
             output_data = self.redis.get(request_id)
             if output_data:

@@ -12,8 +12,8 @@ class Privileges:
 class DbSetup(ReadWriteDbInterface):
 
     def _get_user(self):
-        user = self.config.get('data_storage', 'postgres_admin_user')
-        password = self.config.get('data_storage', 'postgres_admin_pw')
+        user = self.config.get('data-storage', 'postgres-admin-user')
+        password = self.config.get('data-storage', 'postgres-admin-pw')
         return user, password
 
     def create_user(self, user_name: str, password: str):
@@ -48,7 +48,7 @@ class DbSetup(ReadWriteDbInterface):
             ('rw', [Privileges.SELECT, Privileges.INSERT, Privileges.UPDATE]),
             ('del', [Privileges.ALL])
         ]:
-            user = self.config['data_storage'][f'postgres_{key}_user']
+            user = self.config['data-storage'][f'postgres-{key}-user']
             for privilege in privileges:
                 self.grant_privilege(user, privilege)
 

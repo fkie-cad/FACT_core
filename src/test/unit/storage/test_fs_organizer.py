@@ -15,8 +15,8 @@ class TestFsOrganizer(unittest.TestCase):
     def setUp(self):
         self.ds_tmp_dir = TemporaryDirectory(prefix='fact_tests_')
         config = ConfigParser()
-        config.add_section('data_storage')
-        config.set('data_storage', 'firmware_file_storage_directory', self.ds_tmp_dir.name)
+        config.add_section('data-storage')
+        config.set('data-storage', 'firmware-file-storage-directory', self.ds_tmp_dir.name)
         self.fs_organzier = FSOrganizer(config)
 
     def tearDown(self):

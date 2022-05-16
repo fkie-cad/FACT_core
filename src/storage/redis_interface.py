@@ -15,9 +15,9 @@ class RedisInterface:
     def __init__(self, config: ConfigParser, chunk_size=REDIS_MAX_VALUE_SIZE):
         self.config = config
         self.chunk_size = chunk_size
-        redis_db = config.getint('data_storage', 'redis_fact_db')
-        redis_host = config.get('data_storage', 'redis_host')
-        redis_port = config.getint('data_storage', 'redis_port')
+        redis_db = config.getint('data-storage', 'redis-fact-db')
+        redis_host = config.get('data-storage', 'redis-host')
+        redis_port = config.getint('data-storage', 'redis-port')
         self.redis = Redis(host=redis_host, port=redis_port, db=redis_db)
 
     def set(self, key: str, value: Any):

@@ -34,7 +34,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def _get_min_length_from_config(self):
         try:
-            min_length = self.config[self.NAME]['min_length']
+            min_length = self.config[self.NAME]['min-length']
         except KeyError:
             min_length = self.FALLBACK_MIN_LENGTH
         return min_length

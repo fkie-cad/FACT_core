@@ -25,5 +25,5 @@ def _get_config_from_endpoint(endpoint_class):
 
 def _get_authentication(args):
     config = _get_config_from_endpoint(endpoint_class=args[0])
-    authenticate = config.getboolean('ExpertSettings', 'authentication')
+    authenticate = config.getboolean('expert-settings', 'authentication')
     return authenticate

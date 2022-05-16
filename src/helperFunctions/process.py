@@ -128,7 +128,7 @@ def check_worker_exceptions(process_list: List[ExceptionSafeProcess], worker_lab
             logging.error(color_string(f'Exception in {worker_label} process:\n{stack_trace}', TerminalColors.FAIL))
             terminate_process_and_children(worker_process)
             process_list.remove(worker_process)
-            if config is None or config.getboolean('ExpertSettings', 'throw_exceptions'):
+            if config is None or config.getboolean('expert-settings', 'throw-exceptions'):
                 return_value = True
             elif worker_function is not None:
                 process_index = int(worker_process.name.split('-')[-1])

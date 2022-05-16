@@ -22,7 +22,7 @@ class TestAnalysisPlugInPrintableStrings(AnalysisPluginTest):
         self.offsets = [(3, self.strings[0]), (21, self.strings[1]), (61, self.strings[2])]
 
     def _set_config(self):
-        self.config.set(self.PLUGIN_NAME, 'min_length', '4')
+        self.config.set(self.PLUGIN_NAME, 'min-length', '4')
 
     def test_process_object(self):
         fo = FileObject(file_path=os.path.join(TEST_DATA_DIR, 'string_find_test_file2'))
@@ -64,7 +64,7 @@ class TestAnalysisPlugInPrintableStrings(AnalysisPluginTest):
     def test_get_min_length_from_config(self):
         assert self.analysis_plugin._get_min_length_from_config() == '4'
 
-        self.analysis_plugin.config[self.PLUGIN_NAME].pop('min_length')
+        self.analysis_plugin.config[self.PLUGIN_NAME].pop('min-length')
         assert self.analysis_plugin._get_min_length_from_config() == '8'
 
         self.analysis_plugin.config.pop(self.PLUGIN_NAME)
