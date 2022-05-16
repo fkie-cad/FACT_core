@@ -36,9 +36,12 @@ class TestAnalysisPluginsSoftwareComponents(AnalysisPluginTest):
 
     def test_get_version(self):
         self.check_version('Foo 15.14.13', '15.14.13')
-        self.check_version('Foo 1.0', '1.0')
+        self.check_version('Foo 0.1.0', '0.1.0')
         self.check_version('Foo 1.1.1b', '1.1.1b')
         self.check_version('Foo', '')
+        self.check_version('Foo 01.02.03', '1.2.3')
+        self.check_version('Foo 00.1.', '0.1')
+        self.check_version('\x001.22.333\x00', '1.22.333')
 
     def test_get_version_from_meta(self):
         version = 'v15.14.1a'

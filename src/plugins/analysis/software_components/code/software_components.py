@@ -46,8 +46,7 @@ class AnalysisPlugin(YaraBasePlugin):
             self.add_os_key(file_object)
         return file_object
 
-    @staticmethod
-    def get_version(input_string: str, meta_dict: dict) -> str:
+    def get_version(self, input_string: str, meta_dict: dict) -> str:
         if 'version_regex' in meta_dict:
             regex = meta_dict['version_regex'].replace('\\\\', '\\')
         else:
@@ -55,7 +54,7 @@ class AnalysisPlugin(YaraBasePlugin):
         pattern = re.compile(regex)
         version = pattern.search(input_string)
         if version is not None:
-            return version.group(0)
+            return self._strip_zeroes(version.group(0))
         return ''
 
     @staticmethod
@@ -102,3 +101,7 @@ class AnalysisPlugin(YaraBasePlugin):
     @staticmethod
     def _entry_has_no_trailing_version(entry, os_string):
         return os_string.strip() == entry.strip()
+
+    @staticmethod
+    def _strip_zeroes(version_string: str) -> str:
+        return '.'.join(element.lstrip('0') or '0' for element in version_string.split('.'))
