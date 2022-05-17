@@ -1,3 +1,3 @@
-[Logging]
-logFile=/some/path
-logLevel=WARNING
+[logging]
+logfile=/some/path
+loglevel=WARNING

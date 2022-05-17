@@ -16,7 +16,7 @@ TEST_FILE_3 = 'binary_search_test_3'
 class MockCommonDbInterface:
     def __init__(self, config):
         self.config = config
-        self.config['data_storage']['firmware_file_storage_directory'] = path.join(
+        self.config['data-storage']['firmware-file-storage-directory'] = path.join(
             get_test_data_dir(), TEST_FILE_1)
 
     @staticmethod
@@ -36,7 +36,7 @@ class TestHelperFunctionsYaraBinarySearch(unittest.TestCase):
     def setUp(self):
         self.yara_rule = b'rule test_rule {strings: $a = "test1234" condition: $a}'
         test_path = path.join(get_test_data_dir(), TEST_FILE_1)
-        test_config = {'data_storage': {'firmware_file_storage_directory': test_path}}
+        test_config = {'data-storage': {'firmware-file-storage-directory': test_path}}
         self.yara_binary_scanner = yara_binary_search.YaraBinarySearchScanner(test_config)
 
     def test_get_binary_search_result(self):

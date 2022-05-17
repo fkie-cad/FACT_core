@@ -18,9 +18,9 @@ class ReadOnlyDbInterface:
     def __init__(self, config: ConfigParser, db_name: Optional[str] = None, **kwargs):
         self.base = Base
         self.config = config
-        address = config.get('data_storage', 'postgres_server')
-        port = config.get('data_storage', 'postgres_port')
-        database = db_name if db_name else config.get('data_storage', 'postgres_database')
+        address = config.get('data-storage', 'postgres-server')
+        port = config.get('data-storage', 'postgres-port')
+        database = db_name if db_name else config.get('data-storage', 'postgres-database')
         user, password = self._get_user()
         engine_url = f'postgresql://{user}:{password}@{address}:{port}/{database}'
         self.engine = create_engine(engine_url, pool_size=100, future=True, **kwargs)
@@ -29,8 +29,8 @@ class ReadOnlyDbInterface:
 
     def _get_user(self):
         # overridden by interfaces with different privileges
-        user = self.config.get('data_storage', 'postgres_ro_user')
-        password = self.config.get('data_storage', 'postgres_ro_pw')
+        user = self.config.get('data-storage', 'postgres-ro-user')
+        password = self.config.get('data-storage', 'postgres-ro-pw')
         return user, password
 
     def create_tables(self):
@@ -56,8 +56,8 @@ class ReadOnlyDbInterface:
 class ReadWriteDbInterface(ReadOnlyDbInterface):
 
     def _get_user(self):
-        user = self.config.get('data_storage', 'postgres_rw_user')
-        password = self.config.get('data_storage', 'postgres_rw_pw')
+        user = self.config.get('data-storage', 'postgres-rw-user')
+        password = self.config.get('data-storage', 'postgres-rw-pw')
         return user, password
 
     @contextmanager

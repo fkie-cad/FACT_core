@@ -37,9 +37,9 @@ def _load_config(args):
     config = configparser.ConfigParser()
     config.read(args.config_file)
     if args.log_file is not None:
-        config['Logging']['logFile'] = args.log_file
+        config['logging']['logfile'] = args.log_file
     if args.log_level is not None:
-        config['Logging']['logLevel'] = args.log_level
+        config['logging']['loglevel'] = args.log_level
     return config
 
 

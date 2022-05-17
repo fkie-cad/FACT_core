@@ -77,8 +77,8 @@ save some time when you already have the images.
 The three components db, backend and frontend can be installed independently to create a distributed installation.
 
 The two worker components (frontend, backend) communicate exclusively through the database. The database in turn does not needed any knowledge of its place in the network, other than on which **ip:port** combination the database server has to be hosted.
-The main.cfg on the frontend system has to be altered so that the values of `data_storage.mongo_server` and `data_storage.mongo_port` match the **ip:port** for the database.
-The same has to be done for the backend. In addition, since the raw firmware and file binaries are stored in the backend, the `data_storage.firmware_file_storage_directory` has to be created (by default `/media/data/fact_fw_data`).
+The main.cfg on the frontend system has to be altered so that the values of `data-storage.mongo-server` and `data-storage.mongo-port` match the **ip:port** for the database.
+The same has to be done for the backend. In addition, since the raw firmware and file binaries are stored in the backend, the `data-storage.firmware-file-storage-directory` has to be created (by default `/media/data/fact_fw_data`).
 On the database system, the `mongod.conf` has to be given the correct `net.bindIp` and `net.port`. In addition the path in `storage.dbPath` of the `mongod.conf` has to be created. 
 
 ## Installation with Nginx (**--nginx**)

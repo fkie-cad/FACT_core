@@ -1,9 +1,9 @@
 import json
 import logging
-import shlex
 import subprocess
 from pathlib import Path
-from subprocess import DEVNULL, PIPE, STDOUT
+from subprocess import PIPE, STDOUT
+from typing import List, Tuple
 
 from docker.types import Mount
 
@@ -35,27 +35,28 @@ def run_eslint(file_path):
 
 def run_shellcheck(file_path):
     shellcheck_process = subprocess.run(
-        'shellcheck --format=json {}'.format(file_path),
+        f'shellcheck --format=json {file_path}',
         shell=True,
         stdout=PIPE,
         stderr=STDOUT,
+        check=False,
         universal_newlines=True,
     )
 
     if shellcheck_process.returncode == 2:
-        logging.debug('Failed to execute shellcheck:\n{}'.format(shellcheck_process.stdout))
-        return list()
+        logging.debug(f'Failed to execute shellcheck:\n{shellcheck_process.stdout}')
+        return []
 
     try:
         shellcheck_json = json.loads(shellcheck_process.stdout)
     except json.JSONDecodeError:
-        return list()
+        return []
 
-    return _shellcheck_extract_relevant_warnings(shellcheck_json)
+    return _extract_shellcheck_warnings(shellcheck_json)
 
 
-def _shellcheck_extract_relevant_warnings(shellcheck_json):
-    issues = list()
+def _extract_shellcheck_warnings(shellcheck_json):
+    issues = []
     for issue in shellcheck_json:
         if issue['level'] in ['warning', 'error']:
             issues.append({
@@ -72,10 +73,11 @@ def run_luacheck(file_path):
     luacheckrc_path = Path(Path(__file__).parent, 'config', 'luacheckrc')
 
     luacheck_process = subprocess.run(
-        'luacheck -q --ranges --config  {} {}'.format(luacheckrc_path, file_path),
+        f'luacheck -q --ranges --config  {luacheckrc_path} {file_path}',
         shell=True,
         stdout=PIPE,
         stderr=STDOUT,
+        check=False,
         universal_newlines=True,
     )
     return _luacheck_parse_linter_output(luacheck_process.stdout)
@@ -86,11 +88,11 @@ def _luacheck_parse_linter_output(output):
     https://luacheck.readthedocs.io/en/stable/warnings.html
     ignore_cases = ['(W611)', '(W612)', '(W613)', '(W614)', '(W621)', '(W631)']
     '''
-    issues = list()
+    issues = []
     for line in output.splitlines():
         try:
             line_number, columns, code_and_message = _luacheck_split_issue_line(line)
-            code, message = _luacheck_separate_message_and_code(code_and_message)
+            code, message = _separate_message_and_code(code_and_message)
             if not code.startswith('(W6'):
                 issues.append({
                     'line': int(line_number),
@@ -100,8 +102,8 @@ def _luacheck_parse_linter_output(output):
                 })
             else:
                 pass
-        except (IndexError, ValueError) as e:
-            logging.warning('Lualinter failed to parse line: {}\n{}'.format(line, e))
+        except (IndexError, ValueError) as error:
+            logging.warning(f'Lualinter failed to parse line: {line}\n{error}')
 
     return issues
 
@@ -111,7 +113,7 @@ def _luacheck_split_issue_line(line):
     return split_by_colon[1], split_by_colon[2], ':'.join(split_by_colon[3:]).strip()
 
 
-def _luacheck_separate_message_and_code(message_string):
+def _separate_message_and_code(message_string: str) -> Tuple[str, str]:
     return message_string[1:5], message_string[6:].strip()
 
 
@@ -120,19 +122,26 @@ def _luacheck_get_first_column(columns):
 
 
 def run_pylint(file_path):
-    pylint_process = subprocess.run('pylint --output-format=json {}'.format(file_path), shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
+    pylint_process = subprocess.run(
+        f'pylint --output-format=json {file_path}',
+        shell=True,
+        stdout=PIPE,
+        stderr=STDOUT,
+        check=False,
+        universal_newlines=True
+    )
 
     try:
         pylint_json = json.loads(pylint_process.stdout)
     except json.JSONDecodeError:
-        logging.warning('Failed to execute pylint:\n{}'.format(pylint_process.stdout))
-        return list()
+        logging.warning(f'Failed to execute pylint:\n{pylint_process.stdout}')
+        return []
 
     return _pylint_extract_relevant_warnings(pylint_json)
 
 
 def _pylint_extract_relevant_warnings(pylint_json):
-    issues = list()
+    issues = []
     for issue in pylint_json:
         if issue['type'] in ['error', 'warning']:
             for unnecessary_information in ['module', 'obj', 'path', 'message-id']:
@@ -141,27 +150,32 @@ def _pylint_extract_relevant_warnings(pylint_json):
     return issues
 
 
-def run_rubocop(file_path):
-    rubocop_p = subprocess.run(
-        shlex.split(f'rubocop --format json {file_path}'),
-        stdout=PIPE,
-        stderr=DEVNULL,
-        check=False,
+def run_rubocop(file_path: str) -> List[dict]:
+    container_path = '/input'
+    process = run_docker_container(
+        'pipelinecomponents/rubocop:latest',
+        combine_stderr_stdout=False,
+        mounts=[
+            Mount(container_path, file_path, type='bind', read_only=True),
+        ],
+        command=f'rubocop --format json -- {container_path}',
     )
-    linter_output = json.loads(rubocop_p.stdout)
 
-    issues = []
-    for offense in linter_output['files'][0]['offenses']:
-        issues.append(
-            {
-                'symbol': offense['cop_name'],
-                'line': offense['location']['start_line'],
-                'column': offense['location']['column'],
-                'message': offense['message'],
-            }
-        )
+    try:
+        linter_output = json.loads(process.stdout)
+    except json.JSONDecodeError:
+        logging.warning(f'Failed to execute rubocop linter:\n{process.stderr}')
+        return []
 
-    return issues
+    return [
+        {
+            'symbol': offense['cop_name'],
+            'line': offense['location']['start_line'],
+            'column': offense['location']['column'],
+            'message': offense['message'],
+        }
+        for offense in linter_output['files'][0]['offenses']
+    ]
 
 
 def run_phpstan(file_path):

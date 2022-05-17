@@ -27,7 +27,7 @@ class InterComBackEndBinding:  # pylint: disable=too-many-instance-attributes
         self.compare_service = compare_service
         self.unpacking_service = unpacking_service
         self.unpacking_locks = unpacking_locks
-        self.poll_delay = self.config['ExpertSettings'].getfloat('intercom_poll_delay')
+        self.poll_delay = self.config['expert-settings'].getfloat('intercom-poll-delay')
 
         self.stop_condition = Value('i', 0)
         self.process_list = []

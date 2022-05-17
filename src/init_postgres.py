@@ -35,11 +35,11 @@ def main(command_line_options=None, config: Optional[ConfigParser] = None, skip_
     if config is None:
         logging.info('No custom configuration path provided for PostgreSQL setup. Using main.cfg ...')
         config = load_config('main.cfg')
-    fact_db = config['data_storage']['postgres_database']
-    test_db = config['data_storage']['postgres_test_database']
+    fact_db = config['data-storage']['postgres-database']
+    test_db = config['data-storage']['postgres-test-database']
 
-    admin_user = config.get('data_storage', 'postgres_admin_user')
-    admin_password = config.get('data_storage', 'postgres_admin_pw')
+    admin_user = config.get('data-storage', 'postgres-admin-user')
+    admin_password = config.get('data-storage', 'postgres-admin-pw')
 
     # skip_user_creation can be helpful if the DB is not directly accessible (e.g. FACT_docker)
     if not skip_user_creation and not user_exists(admin_user):
@@ -58,8 +58,8 @@ def main(command_line_options=None, config: Optional[ConfigParser] = None, skip_
 
 def _init_users(db: DbSetup, config, db_list: List[str]):
     for key in ['ro', 'rw', 'del']:
-        user = config['data_storage'][f'postgres_{key}_user']
-        pw = config['data_storage'][f'postgres_{key}_pw']
+        user = config['data-storage'][f'postgres-{key}-user']
+        pw = config['data-storage'][f'postgres-{key}-pw']
         db.create_user(user, pw)
         for db_name in db_list:
             db.grant_connect(db_name, user)
