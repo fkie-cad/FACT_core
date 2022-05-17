@@ -1,8 +1,7 @@
 # pylint: disable=wrong-import-order,too-many-instance-attributes,attribute-defined-outside-init
 import gc
-from multiprocessing import Event
+from multiprocessing import Event, Value
 from tempfile import TemporaryDirectory
-from time import sleep
 
 from objects.firmware import Firmware
 from scheduler.analysis import AnalysisScheduler
@@ -16,9 +15,10 @@ from test.integration.common import initialize_config
 class TestTagPropagation:
 
     def setup(self):
-        self._tmp_dir = TemporaryDirectory()
+        self._tmp_dir = TemporaryDirectory()  # pylint: disable=consider-using-with
         self._config = initialize_config(self._tmp_dir)
         self.analysis_finished_event = Event()
+        self.elements_finished_analyzing = Value('i', 0)
         self.uid_of_key_file = '530bf2f1203b789bfe054d3118ebd29a04013c587efd22235b3b9677cee21c0e_2048'
 
         self.backend_interface = BackendDbInterface(config=self._config)
@@ -34,9 +34,9 @@ class TestTagPropagation:
         )
 
     def count_analysis_finished_event(self, uid, plugin, analysis_result):
+        self.elements_finished_analyzing.value += 1
         self.backend_interface.add_analysis(uid, plugin, analysis_result)
-        if uid == self.uid_of_key_file and plugin == 'crypto_material':
-            sleep(1)
+        if self.elements_finished_analyzing.value >= 12:  # 4 objects * 3 analyses = 12 calls
             self.analysis_finished_event.set()
 
     def teardown(self):
@@ -46,7 +46,7 @@ class TestTagPropagation:
         self._tmp_dir.cleanup()
         gc.collect()
 
-    def test_run_analysis_with_tag(self, db):
+    def test_run_analysis_with_tag(self, db):  # pylint: disable=unused-argument
         test_fw = Firmware(file_path=f'{get_test_data_dir()}/container/with_key.7z')
         test_fw.version, test_fw.vendor, test_fw.device_name, test_fw.device_class = ['foo'] * 4
         test_fw.release_date = '2017-01-01'
