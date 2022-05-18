@@ -36,7 +36,7 @@ class TestTagPropagation:
     def count_analysis_finished_event(self, uid, plugin, analysis_result):
         self.elements_finished_analyzing.value += 1
         self.backend_interface.add_analysis(uid, plugin, analysis_result)
-        if self.elements_finished_analyzing.value >= 12:  # 4 objects * 3 analyses = 12 calls
+        if self.elements_finished_analyzing.value >= 15:  # 5 objects * 3 analyses = 15 calls
             self.analysis_finished_event.set()
 
     def teardown(self):
