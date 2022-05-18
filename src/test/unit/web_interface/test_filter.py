@@ -269,7 +269,7 @@ def test_get_unique_keys_from_list_of_dicts(list_of_dicts, expected_result):
 
 
 @pytest.mark.parametrize('function, input_data, expected_output, error_message', [
-    (flt._get_sorted_list, UNSORTABLE_LIST, UNSORTABLE_LIST, 'Could not sort list'),
+    (flt._get_sorted_list, UNSORTABLE_LIST, UNSORTABLE_LIST, 'Could not sort list'),  # pylint: disable=protected-access
     (flt.sort_comments, UNSORTABLE_LIST, [], 'Could not sort comment list'),
     (flt.sort_chart_list_by_name, UNSORTABLE_LIST, [], 'Could not sort chart list'),
     (flt.sort_chart_list_by_value, UNSORTABLE_LIST, [], 'Could not sort chart list'),
@@ -373,3 +373,15 @@ def test_sort_cve_result(input_dict, expected_result):
 ])
 def test_hide_dts_data(input_dts, expected_result):
     assert flt.hide_dts_binary_data(input_dts) == expected_result
+
+
+@pytest.mark.parametrize('input_, expected_result', [
+    ('', ''),
+    ('foo', 'foo'),
+    (
+        ':37:4e:47:02:4e:2d:\n    c0:4f:2f:b3:94:e1:41:2e:2d:90:10:fc:82:92:8b:\n    0f:22:df:f2:fc:2c:ab:52:55',
+        'c0:4f:2f:b3:94:e1:41:2e:2d:90:10:fc:82:92:8b:'
+    ),
+])
+def test_get_searchable_crypto_block(input_, expected_result):
+    assert flt.get_searchable_crypto_block(input_) == expected_result

@@ -21,27 +21,6 @@ class InterComRedisInterface:
         self.config = config
         self.redis = RedisInterface(config)
 
-    INTERCOM_CONNECTION_TYPES = [
-        'test',
-        'analysis_task',
-        'analysis_plugins',
-        're_analyze_task',
-        'update_task',
-        'compare_task',
-        'file_delete_task',
-        'raw_download_task',
-        'raw_download_task_resp',
-        'tar_repack_task',
-        'tar_repack_task_resp',
-        'binary_peek_task',
-        'binary_peek_task_resp',
-        'binary_search_task',
-        'binary_search_task_resp',
-        'single_file_task',
-        'logs_task',
-        'logs_task_resp'
-    ]
-
 
 class InterComListener(InterComRedisInterface):
     '''

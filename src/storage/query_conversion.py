@@ -174,7 +174,7 @@ def _add_json_filter(key, value, subkey):
 
     if isinstance(value, dict):
         for key_, value_ in value.items():
-            if key_ == '$in':
+            if key_ in ['$in', '$like']:
                 column = column.astext
                 break
             value[key_] = dumps(value_)

@@ -2,13 +2,12 @@ import logging
 import operator
 import sys
 from collections import namedtuple
-from distutils.version import LooseVersion, StrictVersion
 from itertools import combinations
 from pathlib import Path
 from re import match
 from typing import Callable, Dict, List, NamedTuple, Optional, Tuple
 
-from packaging.version import LegacyVersion, parse
+from packaging.version import parse as parse_version
 from pyxdameraulevenshtein import damerau_levenshtein_distance as distance  # pylint: disable=no-name-in-module
 
 from analysis.PluginBase import AnalysisBasePlugin
@@ -33,7 +32,6 @@ CveDbEntry = NamedTuple(
         ('version_start_including', str), ('version_start_excluding', str), ('version_end_including', str), ('version_end_excluding', str)
     ]
 )
-MATCH_FOUND = 2
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
@@ -124,7 +122,7 @@ def find_matching_cpe_product(cpe_matches: List[Product], requested_version: str
         if requested_version in version_numbers:
             return find_cpe_product_with_version(cpe_matches, requested_version)
         version_numbers.append(requested_version)
-        version_numbers.sort(key=lambda v: LegacyVersion(parse(v)))
+        version_numbers.sort(key=parse_version)
         next_closest_version = find_next_closest_version(version_numbers, requested_version)
         return find_cpe_product_with_version(cpe_matches, next_closest_version)
     if requested_version == 'ANY':
@@ -201,17 +199,7 @@ def versions_match(cpe_version: str, cve_entry: CveDbEntry) -> bool:
 
 
 def compare_version(version1: str, version2: str, comp_operator: Callable) -> bool:
-    try:
-        return comp_operator(StrictVersion(version1), StrictVersion(version2))
-    except ValueError:
-        try:
-            return comp_operator(LooseVersion(version1), LooseVersion(version2))
-        except TypeError:
-            return False
-
-
-def get_version_index(version: str, index: int) -> str:
-    return version.split('\\.')[index]
+    return comp_operator(parse_version(version1), parse_version(version2))
 
 
 def search_cve_summary(db: DatabaseInterface, product: namedtuple) -> dict:
