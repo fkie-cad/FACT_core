@@ -1,0 +1,66 @@
+version: 2
+updates:
+
+  - package-ecosystem: "pip"
+    directory: "/src/install"
+    schedule:
+      interval: "daily"
+    commit-message:
+      prefix: "dependabot pip"
+      include: "scope"
+
+  - package-ecosystem: "pip"
+    directory: "/docsrc"
+    schedule:
+      interval: "daily"
+    commit-message:
+      prefix: "dependabot pip"
+      include: "scope"
+
+  - package-ecosystem: "pip"
+    directory: "/src/plugins/analysis/cve_lookup"
+    schedule:
+      interval: "daily"
+    commit-message:
+      prefix: "dependabot pip"
+      include: "scope"
+
+  - package-ecosystem: "pip"
+    directory: "/src/plugins/analysis/ip_and_uri_finder"
+    schedule:
+      interval: "daily"
+    commit-message:
+      prefix: "dependabot pip"
+      include: "scope"
+
+  - package-ecosystem: "pip"
+    directory: "/src/plugins/analysis/kernel_config"
+    schedule:
+      interval: "daily"
+    commit-message:
+      prefix: "dependabot pip"
+      include: "scope"
+
+  - package-ecosystem: "pip"
+    directory: "/src/plugins/analysis/linter"
+    schedule:
+      interval: "daily"
+    commit-message:
+      prefix: "dependabot pip"
+      include: "scope"
+
+  - package-ecosystem: "pip"
+    directory: "/src/plugins/analysis/oms"
+    schedule:
+      interval: "daily"
+    commit-message:
+      prefix: "dependabot pip"
+      include: "scope"
+
+  - package-ecosystem: "pip"
+    directory: "/src/plugins/analysis/users_and_passwords"
+    schedule:
+      interval: "daily"
+    commit-message:
+      prefix: "dependabot pip"
+      include: "scope"
