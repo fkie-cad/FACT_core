@@ -120,6 +120,19 @@ rule Dropbear
         $a and no_text_file
 }
 
+rule FRRouting
+{
+	meta:
+		software_name = "FRRouting"
+		open_source = true
+		website = "https://frrouting.org/"
+		description = "A free and open source Internet routing protocol suite"
+    strings:
+        $a = /FRRouting \d+\.\d+\.\d+/ nocase ascii wide
+    condition:
+        $a and no_text_file
+}
+
 rule hostapd
 {
 	meta:
@@ -222,6 +235,34 @@ rule NicheStack
         $a = /InterNiche Portable TCP\/IP[a-zA-Z ]{,30}, v\d(\.\d)?/
     condition:
         $a and no_text_file
+}
+
+rule netcat_traditional
+{
+	meta:
+		software_name = "netcat-traditional"
+		open_source = true
+		website = "https://nc110.sourceforge.io/"
+		description = "TCP/IP swiss army knife"
+    strings:
+        $a = "nc -h for help"
+        $b = /\[v1.\d+-?\d*\.?\d*]/
+    condition:
+        $a and $b and no_text_file
+}
+
+rule NTP
+{
+	meta:
+		software_name = "NTP"
+		open_source = true
+		website = "http://www.ntp.org/"
+		description = "NTP is a protocol designed to synchronize the clocks of computers over a network"
+    strings:
+        $a = /NTP daemon program - Ver. \d+\.\d+\.\d+p?\d*/
+        $b = /ntpd \d+.\d+.\d+p?\d*/
+    condition:
+        ($a or $b) and no_text_file
 }
 
 rule OpenSSH
@@ -385,6 +426,32 @@ rule samba
 		description = "Samba is the standard Windows interoperability suite of programs for Linux and Unix."
 	strings:
 		$a =  /samba-\d+.\d+.\d+/ nocase ascii wide
+	condition:
+		$a and no_text_file
+}
+
+rule squid
+{
+	meta:
+		software_name = "Squid"
+		open_source = true
+		website = "http://www.squid-cache.org/"
+		description = "Squid is a full-featured HTTP proxy cache"
+	strings:
+		$a =  /squid\/\d+.\d+.\d+/ nocase ascii wide
+	condition:
+		$a and no_text_file
+}
+
+rule strongSwan
+{
+	meta:
+		software_name = "strongSwan"
+		open_source = true
+		website = "https://www.strongswan.org/"
+		description = "OpenSource IPsec-based VPN Solution"
+	strings:
+		$a =  /strongSwan \d+.\d+.\d+/ nocase ascii wide
 	condition:
 		$a and no_text_file
 }
