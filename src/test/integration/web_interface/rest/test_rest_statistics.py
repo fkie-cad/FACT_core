@@ -7,7 +7,7 @@ from storage.db_interface_stats import StatsUpdateDbInterface
 
 
 @pytest.fixture
-def update_stats(test_real_database, cfg_tuple):
+def update_stats(use_postgres, cfg_tuple):
     _, configparser_cfg = cfg_tuple
     stats_updater = StatsUpdateDbInterface(config=configparser_cfg)
     stats_updater.update_statistic('file_type', {
@@ -17,7 +17,7 @@ def update_stats(test_real_database, cfg_tuple):
     stats_updater.update_statistic('known_vulnerabilities', {'known_vulnerabilities': [['BackDoor_String', 1]]})
 
 
-@pytest.mark.usefixtures('test_real_database', 'update_stats')
+@pytest.mark.usefixtures('use_postgres', 'update_stats')
 class TestRestStatistics:
     def test_rest_request_all_statistics(self, test_client):
         st = test_client.get('/rest/statistics', follow_redirects=True)

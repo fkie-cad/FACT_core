@@ -52,7 +52,7 @@ def web_frontend(request, monkeypatch, cfg_tuple) -> WebFrontEnd:
     db_mock_marker = request.node.get_closest_marker('db_mock')
     intercom_mock_marker = request.node.get_closest_marker('intercom_mock')
 
-    if 'test_real_database' not in request.fixturenames:
+    if 'use_postgres' not in request.fixturenames:
         # TODO rename marker, find out why lambda has to be used
         db_mock = db_mock_marker.args[0]() if db_mock_marker else CommonDatabaseMock
         db_mock_instance = db_mock()
@@ -68,8 +68,8 @@ def web_frontend(request, monkeypatch, cfg_tuple) -> WebFrontEnd:
 
         frontend = WebFrontEnd(config=configparser_cfg, db=FrontendDbMock(db_mock_instance), intercom=intercom_mock)
     else:
-        assert db_mock_marker is None, "You can't mock the database if you use test_real_database"
-        assert intercom_mock_marker is None, "You can't mock the database if you use test_real_database"
+        assert db_mock_marker is None, "You can't mock the database if you use use_postgres"
+        assert intercom_mock_marker is None, "You can't mock the database if you use use_postgres"
 
         frontend = WebFrontEnd(config=configparser_cfg)
 
@@ -77,7 +77,7 @@ def web_frontend(request, monkeypatch, cfg_tuple) -> WebFrontEnd:
 
     yield frontend
 
-    if 'test_real_database' not in request.fixturenames:
+    if 'use_postgres' not in request.fixturenames:
         # TODO This should not have to be done here
         # State should not be stored in class variables.
         # Otherwise tests are not isolated.
@@ -93,7 +93,7 @@ def test_client(web_frontend):
 
 # TODO scope session
 @pytest.fixture
-def test_real_database(cfg_tuple):
+def use_postgres(cfg_tuple):
     """Creates test tables in the Postgres database.
     When the fixture goes out of scope the test tables are dropped.
     """
@@ -124,9 +124,9 @@ class DB:
 # TODO scope=function
 # TODO scope=session
 @pytest.fixture
-def real_database(cfg_tuple, test_real_database) -> DB:
+def real_database(cfg_tuple, use_postgres) -> DB:
     """Returns handles to database interfaces as defined in `storage`.
-    The database is not mocked, see `test_real_database`.
+    The database is not mocked, see `use_postgres`.
     """
     _, configparser_cfg = cfg_tuple
     admin = AdminDbInterface(configparser_cfg, intercom=MockIntercom())

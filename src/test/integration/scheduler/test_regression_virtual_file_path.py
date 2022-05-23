@@ -80,7 +80,7 @@ def add_test_file(scheduler, path_in_test_dir):
     scheduler.add_task(firmware)
 
 
-@pytest.mark.usefixtures('test_real_database')
+@pytest.mark.usefixtures('use_postgres')
 def test_check_collision(test_client, test_scheduler, finished_event, intermediate_event):  # pylint: disable=unused-argument
     add_test_file(test_scheduler, 'regression_one')
 

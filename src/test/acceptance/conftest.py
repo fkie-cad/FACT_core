@@ -53,7 +53,7 @@ def elements_finished_analyzing() -> Value:
 # Also document the dataflow of fileobjects between unpacker, analysis, compare
 # TODO scope? Starting takes a long time
 @pytest.fixture
-def backend_services(request, cfg_tuple, test_real_database, analysis_finished_event, compare_finished_event, elements_finished_analyzing) -> Services:
+def backend_services(request, cfg_tuple, use_postgres, analysis_finished_event, compare_finished_event, elements_finished_analyzing) -> Services:
     """A fixture that starts the backend.
     Use the `pytest.mark.add_objects(fw1, fw2, ...)` to add objects to the database.
     See also:

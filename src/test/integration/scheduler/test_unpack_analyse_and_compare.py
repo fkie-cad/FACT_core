@@ -55,7 +55,7 @@ class TestFileAddition:
         self._tmp_dir.cleanup()
         gc.collect()
 
-    @pytest.mark.usefixtures('test_real_database')
+    @pytest.mark.usefixtures('use_postgres')
     def test_unpack_analyse_and_compare(self, comp_db):
         test_fw_1 = Firmware(file_path=f'{get_test_data_dir()}/container/test.zip')
         test_fw_1.version, test_fw_1.vendor, test_fw_1.device_name, test_fw_1.device_class = ['foo'] * 4

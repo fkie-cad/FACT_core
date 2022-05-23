@@ -5,7 +5,7 @@ from test.common_helper import get_test_data_dir
 
 
 # TODO the test passes without this
-@pytest.mark.usefixtures('test_real_database')
+@pytest.mark.usefixtures('use_postgres')
 def test_unpack_and_analyse(analysis_scheduler, analysis_queue, unpacking_scheduler):
     test_fw = Firmware(file_path=f'{get_test_data_dir()}/container/test.zip')
 

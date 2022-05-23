@@ -51,7 +51,7 @@ class TestTagPropagation:
 <<<<<<< HEAD
     def test_run_analysis_with_tag(self, db):  # pylint: disable=unused-argument
 =======
-    @pytest.mark.usefixtures('test_real_database')
+    @pytest.mark.usefixtures('use_postgres')
     def test_run_analysis_with_tag(self):
 >>>>>>> 68df9c00...  WIP: test/integration/scheduler: Use new fixtures
         test_fw = Firmware(file_path=f'{get_test_data_dir()}/container/with_key.7z')
