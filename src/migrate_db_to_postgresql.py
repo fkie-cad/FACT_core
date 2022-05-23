@@ -232,6 +232,16 @@ def _fix_illegal_list(list_: list, key=None, label=''):
                 list_[index] = element.replace('\0', '\\x00')
 
 
+def _migrate_plugin(plugin_name, processed_analysis):
+    if plugin_name == 'cpu_architecture':
+        architectures = {}
+        for key in processed_analysis:
+            if key not in ['analysis_date', 'plugin_version', 'skipped', 'summary', 'system_version', 'tags']:
+                architectures[key] = processed_analysis.pop(key)
+
+        processed_analysis['architectures'] = architectures
+
+
 def _check_for_missing_fields(plugin, analysis_data):
     required_fields = ['plugin_version', 'analysis_date']
     for field in required_fields:
@@ -309,6 +319,7 @@ class DbMigrator:
         for plugin, plugin_data in firmware_object.processed_analysis.items():
             _fix_illegal_dict(plugin_data, plugin)
             _check_for_missing_fields(plugin, plugin_data)
+            _migrate_plugin(plugin, plugin_data)
         try:
             self.postgres.insert_object(firmware_object)
         except StatementError:
