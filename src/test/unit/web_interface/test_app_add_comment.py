@@ -13,7 +13,7 @@ class DbMock(CommonDatabaseMock):
         )
 
 
-@pytest.mark.db_mock(lambda: DbMock)
+@pytest.mark.DatabaseMockClass(lambda: DbMock)
 class TestAppAddComment:
     def test_app_add_comment_get_not_in_db(self, test_client):
         rv = test_client.get('/comment/abc_123')

@@ -24,7 +24,7 @@ def backend_db_interface(cfg_tuple):
     yield BackendDbInterface(configparser_cfg)
 
 
-@pytest.mark.usefixtures('use_postgres')
+@pytest.mark.usefixtures('use_database')
 class TestRestDownload:
     def test_rest_download_valid(self, backend_db_interface, cfg_tuple, queue, test_client):
         cfg, configparser_cfg = cfg_tuple

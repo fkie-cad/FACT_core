@@ -25,7 +25,7 @@ def stats_db(cfg_tuple):
     StatsDbViewer(config=configparser_cfg)
 
 
-@pytest.mark.usefixtures('patch_cfg', 'use_postgres')
+@pytest.mark.usefixtures('patch_cfg', 'use_database')
 def test_update_workload_statistic(workload_stat, stats_db):
     workload_stat.update()
     result = stats_db.get_statistic('test')

@@ -29,7 +29,7 @@ class DbMock(CommonDatabaseMock):
         return None
 
 
-@pytest.mark.db_mock(lambda: DbMock)
+@pytest.mark.DatabaseMockClass(lambda: DbMock)
 class TestAppBinarySearch:
     def test_app_binary_search_get(self, test_client):
         response = test_client.get('/database/binary_search').data.decode()

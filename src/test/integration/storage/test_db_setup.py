@@ -12,7 +12,7 @@ def db_setup(cfg_tuple):
     yield DbSetup(configparser_cfg)
 
 
-@pytest.mark.usefixtures('use_postgres')
+@pytest.mark.usefixtures('use_database')
 class TestDbSetup:
     def test_user_exists(self, db_setup, cfg_tuple):
         cfg, _ = cfg_tuple

@@ -34,7 +34,7 @@ class DbMock(CommonDatabaseMock):
         return fw if uid == fw.uid else None
 
 
-@pytest.mark.db_mock(lambda: DbMock)
+@pytest.mark.DatabaseMockClass(lambda: DbMock)
 def test_successful_request(test_client):
     response = test_client.get('/rest/firmware').json
     assert 'error_message' not in response
@@ -42,7 +42,7 @@ def test_successful_request(test_client):
     assert len(response['uids']) == 10
 
 
-@pytest.mark.db_mock(lambda: DbMock)
+@pytest.mark.DatabaseMockClass(lambda: DbMock)
 def test_request_with_query(test_client):
     query = {'vendor': 'no real vendor'}
     quoted_query = quote(json.dumps(query))
@@ -51,14 +51,14 @@ def test_request_with_query(test_client):
     assert response['request']['query'] == query
 
 
-@pytest.mark.db_mock(lambda: DbMock)
+@pytest.mark.DatabaseMockClass(lambda: DbMock)
 def test_bad_query(test_client):
     search_query = quote('{\'vendor\': \'no real vendor\'}')
     result = test_client.get(f'/rest/firmware?query={search_query}').json
     assert 'Query must be a json' in result['error_message']
 
 
-@pytest.mark.db_mock(lambda: DbMock)
+@pytest.mark.DatabaseMockClass(lambda: DbMock)
 def test_empty_response(test_client):
     response = test_client.get('/rest/firmware?limit=1').json
     assert 'error_message' not in response
@@ -69,39 +69,39 @@ def test_empty_response(test_client):
     assert len(response['uids']) == 0
 
 
-@pytest.mark.db_mock(lambda: DbMock)
+@pytest.mark.DatabaseMockClass(lambda: DbMock)
 def test_bad_paging(test_client):
     response = test_client.get('/rest/firmware?offset=X&limit=V').json
     assert 'error_message' in response
     assert 'Malformed' in response['error_message']
 
 
-@pytest.mark.db_mock(lambda: DbMock)
+@pytest.mark.DatabaseMockClass(lambda: DbMock)
 def test_non_existing_uid(test_client):
     result = test_client.get('/rest/firmware/some_uid').json
     assert 'No firmware with UID some_uid' in result['error_message']
 
 
-@pytest.mark.db_mock(lambda: DbMock)
+@pytest.mark.DatabaseMockClass(lambda: DbMock)
 def test_successful_uid_request(test_client):
     result = test_client.get(f'/rest/firmware/{TEST_FW.uid}').json
     assert 'firmware' in result
     assert all(section in result['firmware'] for section in ['meta_data', 'analysis'])
 
 
-@pytest.mark.db_mock(lambda: DbMock)
+@pytest.mark.DatabaseMockClass(lambda: DbMock)
 def test_bad_put_request(test_client):
     result = test_client.put('/rest/firmware').json
     assert 'Input payload validation failed' in result['message']
 
 
-@pytest.mark.db_mock(lambda: DbMock)
+@pytest.mark.DatabaseMockClass(lambda: DbMock)
 def test_submit_empty_data(test_client):
     result = test_client.put('/rest/firmware', data=json.dumps({})).json
     assert 'Input payload validation failed' in result['message']
 
 
-@pytest.mark.db_mock(lambda: DbMock)
+@pytest.mark.DatabaseMockClass(lambda: DbMock)
 def test_submit_missing_item(test_client):
     request_data = {**TEST_FW_PAYLOAD}
     request_data.pop('vendor')
@@ -110,27 +110,27 @@ def test_submit_missing_item(test_client):
     assert 'vendor' in result['errors']
 
 
-@pytest.mark.db_mock(lambda: DbMock)
+@pytest.mark.DatabaseMockClass(lambda: DbMock)
 def test_submit_invalid_binary(test_client):
     request_data = {**TEST_FW_PAYLOAD, 'binary': 'invalid_base64'}
     result = test_client.put('/rest/firmware', json=request_data).json
     assert 'Could not parse binary (must be valid base64!)' in result['error_message']
 
 
-@pytest.mark.db_mock(lambda: DbMock)
+@pytest.mark.DatabaseMockClass(lambda: DbMock)
 def test_submit_success(test_client):
     result = test_client.put('/rest/firmware', json=TEST_FW_PAYLOAD).json
     assert result['status'] == 0
 
 
-@pytest.mark.db_mock(lambda: DbMock)
+@pytest.mark.DatabaseMockClass(lambda: DbMock)
 def test_request_update(test_client):
     requested_analysis = json.dumps(['optional_plugin'])
     result = test_client.put(f'/rest/firmware/{TEST_FW.uid}?update={quote(requested_analysis)}').json
     assert result['status'] == 0
 
 
-@pytest.mark.db_mock(lambda: DbMock)
+@pytest.mark.DatabaseMockClass(lambda: DbMock)
 def test_submit_no_tags(test_client):
     request_data = {**TEST_FW_PAYLOAD}
     request_data.pop('tags')
@@ -138,7 +138,7 @@ def test_submit_no_tags(test_client):
     assert result['status'] == 0
 
 
-@pytest.mark.db_mock(lambda: DbMock)
+@pytest.mark.DatabaseMockClass(lambda: DbMock)
 def test_submit_no_release_date(test_client):
     request_data = {**TEST_FW_PAYLOAD}
     request_data.pop('release_date')
@@ -148,7 +148,7 @@ def test_submit_no_release_date(test_client):
     assert result['request']['release_date'] == '1970-01-01'
 
 
-@pytest.mark.db_mock(lambda: DbMock)
+@pytest.mark.DatabaseMockClass(lambda: DbMock)
 def test_submit_invalid_release_date(test_client):
     request_data = {**TEST_FW_PAYLOAD, 'release_date': 'invalid date'}
     result = test_client.put('/rest/firmware', json=request_data).json
@@ -156,21 +156,21 @@ def test_submit_invalid_release_date(test_client):
     assert 'Invalid date literal' in result['error_message']
 
 
-@pytest.mark.db_mock(lambda: DbMock)
+@pytest.mark.DatabaseMockClass(lambda: DbMock)
 def test_request_update_bad_parameter(test_client):
     result = test_client.put(f'/rest/firmware/{TEST_FW.uid}?update=no_list').json
     assert result['status'] == 1
     assert 'has to be a list' in result['error_message']
 
 
-@pytest.mark.db_mock(lambda: DbMock)
+@pytest.mark.DatabaseMockClass(lambda: DbMock)
 def test_request_update_missing_parameter(test_client):  # pylint: disable=invalid-name
     result = test_client.put(f'/rest/firmware/{TEST_FW.uid}').json
     assert result['status'] == 1
     assert 'missing parameter: update' in result['error_message']
 
 
-@pytest.mark.db_mock(lambda: DbMock)
+@pytest.mark.DatabaseMockClass(lambda: DbMock)
 def test_request_with_unpacking(test_client):
     scheduled_analysis = ['unpacker', 'optional_plugin']
     requested_analysis = json.dumps(scheduled_analysis)
@@ -180,7 +180,7 @@ def test_request_with_unpacking(test_client):
     assert 'unpacker' in result['request']['update']
 
 
-@pytest.mark.db_mock(lambda: DbMock)
+@pytest.mark.DatabaseMockClass(lambda: DbMock)
 def test_request_with_bad_recursive_flag(test_client):  # pylint: disable=invalid-name
     result = test_client.get('/rest/firmware?recursive=true').json
     assert result['status'] == 1
@@ -191,7 +191,7 @@ def test_request_with_bad_recursive_flag(test_client):  # pylint: disable=invali
     assert result['status'] == 0
 
 
-@pytest.mark.db_mock(lambda: DbMock)
+@pytest.mark.DatabaseMockClass(lambda: DbMock)
 def test_request_with_inverted_flag(test_client):
     result = test_client.get('/rest/firmware?inverted=true&query={"foo": "bar"}').json
     assert result['status'] == 1
@@ -201,7 +201,7 @@ def test_request_with_inverted_flag(test_client):
     assert result['status'] == 0
 
 
-@pytest.mark.db_mock(lambda: DbMock)
+@pytest.mark.DatabaseMockClass(lambda: DbMock)
 def test_request_with_summary(test_client):
     result = test_client.get(f'/rest/firmware/{TEST_FW.uid}?summary=true').json
     assert 'firmware' in result

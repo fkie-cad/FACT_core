@@ -14,7 +14,7 @@ class MockIntercom(CommonIntercomMock):
         return ['String1', 'String2', 'String3']
 
 
-@pytest.mark.intercom_mock(lambda: MockIntercom)
+@pytest.mark.IntercomMockClass(lambda: MockIntercom)
 @pytest.mark.cfg_defaults(
     {
         'logging': {
@@ -27,7 +27,7 @@ def test_backend_available(test_client):
     assert b'String1' in rv.data
 
 
-@pytest.mark.intercom_mock(lambda: MockIntercom)
+@pytest.mark.IntercomMockClass(lambda: MockIntercom)
 @pytest.mark.cfg_defaults(
     {
         'logging': {

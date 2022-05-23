@@ -14,14 +14,14 @@ def get_db_mock_with_result(result):
     return DbMock
 
 
-@pytest.mark.db_mock(lambda: get_db_mock_with_result(None))
+@pytest.mark.DatabaseMockClass(lambda: get_db_mock_with_result(None))
 def test_no_stats_available(test_client):
     rv = test_client.get('/statistic')
     assert b'General' not in rv.data
     assert b'<strong>No statistics available!</strong>' in rv.data
 
 
-@pytest.mark.db_mock(lambda: get_db_mock_with_result(
+@pytest.mark.DatabaseMockClass(lambda: get_db_mock_with_result(
     {
         'number_of_firmwares': 1,
         'total_firmware_size': 1,

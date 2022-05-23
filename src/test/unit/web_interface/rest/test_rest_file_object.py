@@ -12,26 +12,26 @@ class DbMock(CommonDatabaseMock):
         return []
 
 
-@pytest.mark.db_mock(lambda: DbMock)
+@pytest.mark.DatabaseMockClass(lambda: DbMock)
 def test_empty_uid(test_client):
     result = test_client.get('/rest/file_object/').data
     assert b'404 Not Found' in result
 
 
-@pytest.mark.db_mock(lambda: DbMock)
+@pytest.mark.DatabaseMockClass(lambda: DbMock)
 def test_get_all_objects(test_client):
     result = test_client.get('/rest/file_object').json
     assert 'error_message' not in result
 
 
-@pytest.mark.db_mock(lambda: DbMock)
+@pytest.mark.DatabaseMockClass(lambda: DbMock)
 def test_paging(test_client):
     result = test_client.get('/rest/file_object?offset=1').json
     assert 'error_message' not in result
     assert not result['uids']
 
 
-@pytest.mark.db_mock(lambda: DbMock)
+@pytest.mark.DatabaseMockClass(lambda: DbMock)
 def test_bad_query(test_client):
     bad_json_document = '{"parameter": False}'
     result = test_client.get(f'/rest/file_object?query={quote(bad_json_document)}').json
@@ -39,13 +39,13 @@ def test_bad_query(test_client):
     assert 'Query must be a json' in result['error_message']
 
 
-@pytest.mark.db_mock(lambda: DbMock)
+@pytest.mark.DatabaseMockClass(lambda: DbMock)
 def test_non_existing_uid(test_client):
     response = test_client.get('/rest/file_object/some_uid').json
     assert 'No file object with UID some_uid' in response['error_message']
 
 
-@pytest.mark.db_mock(lambda: DbMock)
+@pytest.mark.DatabaseMockClass(lambda: DbMock)
 def test_successful_request(test_client):
     result = test_client.get(f'/rest/file_object/{TEST_TEXT_FILE.uid}').json
     assert 'file_object' in result

@@ -31,8 +31,8 @@ class DbMock(CommonDatabaseMock):
         assert False, 'if this point was reached, something went wrong'
 
 
-@pytest.mark.db_mock(lambda: DbMock)
-@pytest.mark.intercom_mock(lambda: MockInterCom)
+@pytest.mark.DatabaseMockClass(lambda: DbMock)
+@pytest.mark.IntercomMockClass(lambda: MockInterCom)
 class TestAppComparisonTextFiles:
     def test_comparison_text_files(self, test_client):
         TEST_TEXT_FILE.processed_analysis['file_type']['mime'] = 'text/plain'

@@ -42,7 +42,7 @@ class DbMock(CommonDatabaseMock):
         return None
 
 
-@pytest.mark.db_mock(lambda: DbMock)
+@pytest.mark.DatabaseMockClass(lambda: DbMock)
 def test_ajax_get_summary(test_client):
     result = test_client.get(f'/ajax_get_summary/{TEST_FW.uid}/foobar').data
     assert b'Summary including results of included files' in result
@@ -50,20 +50,20 @@ def test_ajax_get_summary(test_client):
     assert b'some_uid' in result
 
 
-@pytest.mark.db_mock(lambda: DbMock)
+@pytest.mark.DatabaseMockClass(lambda: DbMock)
 def test_ajax_get_summary__summary_not_found(test_client):
     result = test_client.get(f'/ajax_get_summary/{TEST_FW.uid}/not_found').data
     assert b'No summary found' in result
 
 
-@pytest.mark.db_mock(lambda: DbMock)
+@pytest.mark.DatabaseMockClass(lambda: DbMock)
 def test_ajax_get_common_files_for_compare(test_client):
     url = f'/compare/ajax_common_files/{f"{TEST_FW.uid};{TEST_FW_2.uid}"}/{f"some_feature___{TEST_FW.uid}"}/'
     result = test_client.get(url).data.decode()
     assert TEST_FW.uid in result
 
 
-@pytest.mark.db_mock(lambda: DbMock)
+@pytest.mark.DatabaseMockClass(lambda: DbMock)
 def test_ajax_get_system_stats(test_client):
     result = test_client.get('/ajax/stats/system').json
 
@@ -71,7 +71,7 @@ def test_ajax_get_system_stats(test_client):
     assert result['number_of_running_analyses'] == 2
 
 
-@pytest.mark.db_mock(lambda: DbMock)
+@pytest.mark.DatabaseMockClass(lambda: DbMock)
 def test_ajax_get_system_stats_error(monkeypatch, test_client):
     monkeypatch.setattr(DbMock, 'get_statistic', lambda *_: {})
 
@@ -81,7 +81,7 @@ def test_ajax_get_system_stats_error(monkeypatch, test_client):
     assert result['number_of_running_analyses'] == 'n/a'
 
 
-@pytest.mark.db_mock(lambda: DbMock)
+@pytest.mark.DatabaseMockClass(lambda: DbMock)
 def test_ajax_system_health(test_client):
     DbMock.get_stats_list = lambda *_: [{'foo': 'bar'}]
     result = test_client.get('/ajax/system_health').json
@@ -89,7 +89,7 @@ def test_ajax_system_health(test_client):
     assert result['systemHealth'] == [{'foo': 'bar'}]
 
 
-@pytest.mark.db_mock(lambda: DbMock)
+@pytest.mark.DatabaseMockClass(lambda: DbMock)
 def test_ajax_get_hex_preview(test_client):
     DbMock.peek_in_binary = lambda *_: b'foobar'
     result = test_client.get('/ajax_get_hex_preview/some_uid/0/10')

@@ -6,7 +6,7 @@ import pytest
 from test.common_helper import create_test_file_object, create_test_firmware, generate_analysis_entry
 
 
-@pytest.mark.usefixtures('use_postgres')
+@pytest.mark.usefixtures('use_database')
 class TestRestMissingAnalyses:
 
     def test_rest_get_missing_analyses(self, real_database, test_client):

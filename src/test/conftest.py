@@ -24,7 +24,7 @@ from scheduler.analysis import AnalysisScheduler
 from storage.unpacking_locks import UnpackingLockManager
 
 
-class FrontendDbMock:
+class FrontendDatabaseMock:
     def __init__(self, db_mock: CommonDatabaseMock):
         self.frontend = db_mock
         self.editing = db_mock
@@ -48,17 +48,22 @@ class UserDbMock:
 
 @pytest.fixture
 def web_frontend(request, monkeypatch, cfg_tuple) -> WebFrontEnd:
+    """Yields an intance to WebFrontEnd.
+    Respects the `use_database` and `mock_database` fixtures.
+    TODO
+    """
     _, configparser_cfg = cfg_tuple
-    db_mock_marker = request.node.get_closest_marker('db_mock')
-    intercom_mock_marker = request.node.get_closest_marker('intercom_mock')
+    # TODO document marker
+    database_mock_class_marker = request.node.get_closest_marker('DatabaseMockClass')
+    intercom_mock_class_marker = request.node.get_closest_marker('IntercomMockClass')
 
-    if 'use_postgres' not in request.fixturenames:
-        # TODO rename marker, find out why lambda has to be used
-        db_mock = db_mock_marker.args[0]() if db_mock_marker else CommonDatabaseMock
-        db_mock_instance = db_mock()
+    if 'mock_database' in request.fixturenames:
+        # TODO dont use lambda
+        DatabaseMockClass = database_mock_class_marker.args[0]() if database_mock_class_marker else CommonDatabaseMock
+        db_mock_instance = DatabaseMockClass()
 
-        # TODO rename marker, find out why lambda has to be used
-        intercom_mock = intercom_mock_marker.args[0]() if intercom_mock_marker else CommonIntercomMock
+        # TODO dont use lambda
+        IntercomMockClass = intercom_mock_class_marker.args[0]() if intercom_mock_class_marker else CommonIntercomMock
 
         def add_security_get_mocked(app):
             add_flask_security_to_app(app)
@@ -66,10 +71,10 @@ def web_frontend(request, monkeypatch, cfg_tuple) -> WebFrontEnd:
 
         monkeypatch.setattr('web_interface.frontend_main.add_flask_security_to_app', add_security_get_mocked)
 
-        frontend = WebFrontEnd(config=configparser_cfg, db=FrontendDbMock(db_mock_instance), intercom=intercom_mock)
-    else:
-        assert db_mock_marker is None, "You can't mock the database if you use use_postgres"
-        assert intercom_mock_marker is None, "You can't mock the database if you use use_postgres"
+        frontend = WebFrontEnd(config=configparser_cfg, db=FrontendDatabaseMock(db_mock_instance), intercom=IntercomMockClass)
+    elif "use_database" in request.fixturenames:
+        assert database_mock_class_marker is None, "You can't mock the database if you use use_database"
+        assert intercom_mock_class_marker is None, "You can't mock the database if you use use_database"
 
         frontend = WebFrontEnd(config=configparser_cfg)
 
@@ -77,11 +82,11 @@ def web_frontend(request, monkeypatch, cfg_tuple) -> WebFrontEnd:
 
     yield frontend
 
-    if 'use_postgres' not in request.fixturenames:
+    if 'mock_database' in request.fixturenames:
         # TODO This should not have to be done here
         # State should not be stored in class variables.
         # Otherwise tests are not isolated.
-        intercom_mock.tasks = []
+        IntercomMockClass.tasks = []
 
     gc.collect()
 
@@ -91,12 +96,16 @@ def test_client(web_frontend):
     yield web_frontend.app.test_client()
 
 
-# TODO scope session
+# TODO redis&posgres: It seems that only postgres is started
+# TODO scope
 @pytest.fixture
-def use_postgres(cfg_tuple):
+def use_database(request, cfg_tuple):
     """Creates test tables in the Postgres database.
     When the fixture goes out of scope the test tables are dropped.
+    The database has to be initialized (See init_postgres.py) and running.
     """
+    assert "mock_database" not in request.fixturenames, "You can't use the fixtures `use_database` and `mock_database` at the same time"
+
     # Keep function name in sync with web_frontend fixture
     _, configparser_cfg = cfg_tuple
     db_setup = DbSetup(configparser_cfg)
@@ -106,6 +115,18 @@ def use_postgres(cfg_tuple):
     yield
 
     db_setup.base.metadata.drop_all(db_setup.engine)
+
+
+# TODO redis&posgres
+@pytest.fixture
+def mock_database(request, monkeypatch):
+    """Patches everthing in a way that the real database is not used.
+    TODO
+    """
+    # This fixture intentionally does nothing.
+    # Its presence shall be checked in fixtures that yield something database related (e.g. web_frontend).
+    # A fixtures is used instead of a marker for symmetry with `use_database`.
+    assert "use_database" not in request.fixturenames, "You can't use the fixtures `use_database` and `mock_database` at the same time"
 
 
 class DB:
@@ -124,9 +145,9 @@ class DB:
 # TODO scope=function
 # TODO scope=session
 @pytest.fixture
-def real_database(cfg_tuple, use_postgres) -> DB:
+def real_database(cfg_tuple, use_database) -> DB:
     """Returns handles to database interfaces as defined in `storage`.
-    The database is not mocked, see `use_postgres`.
+    The database is not mocked, see `use_database`.
     """
     _, configparser_cfg = cfg_tuple
     admin = AdminDbInterface(configparser_cfg, intercom=MockIntercom())

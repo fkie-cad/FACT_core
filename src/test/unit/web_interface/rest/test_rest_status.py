@@ -16,7 +16,7 @@ class StatisticDbViewerMock(CommonDatabaseMock):
         return None if self.down or identifier != 'backend' else BACKEND_STATS
 
 
-@pytest.mark.db_mock(lambda: StatisticDbViewerMock)
+@pytest.mark.DatabaseMockClass(lambda: StatisticDbViewerMock)
 def test_empty_uid(test_client):
     StatisticDbViewerMock.down = False
     result = test_client.get('/rest/status').json
@@ -29,7 +29,7 @@ def test_empty_uid(test_client):
     }
 
 
-@pytest.mark.db_mock(lambda: StatisticDbViewerMock)
+@pytest.mark.DatabaseMockClass(lambda: StatisticDbViewerMock)
 def test_empty_result(test_client):
     StatisticDbViewerMock.down = True
     result = test_client.get('/rest/status').json

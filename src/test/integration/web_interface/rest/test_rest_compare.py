@@ -6,7 +6,7 @@ from test.common_helper import create_test_firmware
 TEST_UID = 'deadbeef' * 8 + '_1'
 
 
-@pytest.mark.usefixtures('use_postgres')
+@pytest.mark.usefixtures('use_database')
 class TestRestStartCompare:
 
     def test_rest_start_compare_valid(self, real_database, test_client):

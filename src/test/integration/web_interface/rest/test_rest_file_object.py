@@ -4,7 +4,7 @@ import pytest
 from test.common_helper import create_test_file_object
 
 
-@pytest.mark.usefixtures('use_postgres')
+@pytest.mark.usefixtures('use_database')
 class TestRestFileObject:
 
     def test_rest_download_valid(self, real_database, test_client):

@@ -34,7 +34,7 @@ def test_count_occurrences():
     assert result == expected_result
 
 
-@pytest.mark.usefixtures('use_postgres')
+@pytest.mark.usefixtures('use_database')
 class TestDbInterfaceStats:
     def test_update_stats(self, stats_db):  # pylint: disable=unused-argument
         with stats_db.get_read_only_session() as session:

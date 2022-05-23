@@ -15,7 +15,7 @@ from .helper import (
 DUMMY_RESULT = generate_analysis_entry(analysis_result={'key': 'result'})
 
 
-@pytest.mark.usefixtures('use_postgres')
+@pytest.mark.usefixtures('use_database')
 class TestDbInterfaceFrontend:
     def test_get_last_added_firmwares(self, real_database):
         insert_test_fw(real_database, 'fw1')

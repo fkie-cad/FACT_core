@@ -25,7 +25,7 @@ class DbMock(CommonDatabaseMock):
         return result
 
 
-@pytest.mark.db_mock(lambda: DbMock)
+@pytest.mark.DatabaseMockClass(lambda: DbMock)
 @pytest.mark.cfg_defaults(
     {
         'database': {

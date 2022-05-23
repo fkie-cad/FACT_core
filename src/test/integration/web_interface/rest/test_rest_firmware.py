@@ -8,7 +8,7 @@ import pytest
 from test.common_helper import create_test_firmware
 
 
-@pytest.mark.usefixtures('use_postgres')
+@pytest.mark.usefixtures('use_database')
 class TestRestFirmware:
     def test_rest_firmware_existing(self, real_database, test_client):
         test_firmware = create_test_firmware(device_class='test class', device_name='test device', vendor='test vendor')

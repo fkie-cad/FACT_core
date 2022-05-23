@@ -13,7 +13,7 @@ class IntercomMock(CommonIntercomMock):
         self.tasks.append(task)
 
 
-@pytest.mark.intercom_mock(lambda: IntercomMock)
+@pytest.mark.IntercomMockClass(lambda: IntercomMock)
 class TestAppShowAnalysis:
     def test_app_show_analysis_get_valid_fw(self, test_client):
         result = test_client.get(f'/analysis/{TEST_FW.uid}').data

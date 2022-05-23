@@ -15,14 +15,14 @@ def get_db_mock_with_result(result):
     return DbMock
 
 
-@pytest.mark.db_mock(lambda: get_db_mock_with_result({}))
+@pytest.mark.DatabaseMockClass(lambda: get_db_mock_with_result({}))
 def test_app_no_missing_analyses(test_client):
     content = test_client.get('/admin/missing_analyses').data.decode()
     assert 'Missing Analyses: No entries found' in content
     assert 'Failed Analyses: No entries found' in content
 
 
-@pytest.mark.db_mock(lambda: get_db_mock_with_result({'parent_uid': {'child_uid1', 'child_uid2'}}))
+@pytest.mark.DatabaseMockClass(lambda: get_db_mock_with_result({'parent_uid': {'child_uid1', 'child_uid2'}}))
 def test_app_missing_analyses(test_client):
     content = test_client.get('/admin/missing_analyses').data.decode()
     assert 'Missing Analyses: 2' in content
