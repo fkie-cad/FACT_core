@@ -1,20 +1,22 @@
 import logging
 import re
-import subprocess
 from base64 import b64decode
 from contextlib import suppress
 from pathlib import Path
-from subprocess import PIPE, STDOUT
 from tempfile import NamedTemporaryFile
 from typing import Callable, List
 
+from docker.types import Mount
+
 from analysis.PluginBase import AnalysisBasePlugin
+from helperFunctions.docker import run_docker_container
 from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.tag import TagColor
 from objects.file import FileObject
 from plugins.mime_blacklists import MIME_BLACKLIST_NON_EXECUTABLE
 
 JOHN_PATH = Path(__file__).parent.parent / 'bin' / 'john'
+JOHN_POT = Path(__file__).parent.parent / 'bin' / 'john.pot'
 WORDLIST_PATH = Path(get_src_dir()) / 'bin' / 'passwords.txt'
 USER_NAME_REGEX = br'[a-zA-Z][a-zA-Z0-9_-]{2,15}'
 UNIX_REGEXES = [
@@ -27,6 +29,7 @@ HTPASSWD_REGEXES = [
     USER_NAME_REGEX + br':\{SHA\}[a-zA-Z0-9\./+]{27}=',  # SHA-1
 ]
 MOSQUITTO_REGEXES = [br'[a-zA-Z][a-zA-Z0-9_-]{2,15}\:\$6\$[a-zA-Z0-9+/=]+\$[a-zA-Z0-9+/]{86}==']
+RESULTS_DELIMITER = '=== Results: ==='
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
@@ -37,7 +40,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     DEPENDENCIES = []
     MIME_BLACKLIST = MIME_BLACKLIST_NON_EXECUTABLE
     DESCRIPTION = 'search for UNIX, httpd, and mosquitto password files, parse them and try to crack the passwords'
-    VERSION = '0.5.0'
+    VERSION = '0.5.1'
     FILE = __file__
 
     def process_object(self, file_object: FileObject) -> FileObject:
@@ -110,16 +113,20 @@ def crack_hash(passwd_entry: bytes, result_entry: dict, format_term: str = '') -
     with NamedTemporaryFile() as fp:
         fp.write(passwd_entry)
         fp.seek(0)
-        john_process = subprocess.run(
-            f'{JOHN_PATH} --wordlist={WORDLIST_PATH} {fp.name} {format_term}',
-            shell=True,
-            stdout=PIPE,
-            stderr=STDOUT,
-            universal_newlines=True,
+        john_process = run_docker_container(
+            'fact/john:alpine-3.14',
+            command=f'/work/input_file {format_term}',
+            mounts=[
+                Mount('/work/input_file', fp.name, type='bind'),
+                Mount('/root/.john/john.pot', str(JOHN_POT), type='bind'),
+            ],
+            logging_label='users_and_passwords'
         )
         result_entry['log'] = john_process.stdout
-        john_process = subprocess.run(f'{JOHN_PATH} {fp.name} --show {format_term}', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
-        output = john_process.stdout.split('\n')
+        if RESULTS_DELIMITER in john_process.stdout:
+            output = john_process.stdout[john_process.stdout.find(RESULTS_DELIMITER) + len(RESULTS_DELIMITER) + 1:].split('\n')
+        else:
+            output = []
     if len(output) > 1:
         with suppress(KeyError):
             if '0 password hashes cracked' in output[-2]:
