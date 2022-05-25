@@ -1,26 +1,26 @@
 rule secp256r1 {
-	meta:
-		description = "NIST P-256 elliptic curve parameter set (RFC 5903)"
-	strings:
+    meta:
+        description = "NIST P-256 elliptic curve parameter set (RFC 5903)"
+    strings:
         // numerical form
         $p = {FFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF}
         $b = {5AC635D8AA3A93E7B3EBBD55769886BC651D06B0CC53B0F63BCE3C3E27D2604B}
         $n = {FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551}
         $gx = {6B17D1F2E12C4247F8BCE6E563A440F277037D812DEB33A0F4A13945D898C296}
         $gy = {4FE342E2FE1A7F9B8EE7EB4A7C0F9E162BCE33576B315ECECBB6406837BF51F5}
-	    // hex form
+        // hex form
         $p_hex = "FFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF"
         $b_hex = "5AC635D8AA3A93E7B3EBBD55769886BC651D06B0CC53B0F63BCE3C3E27D2604B"
         $n_hex = "FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551"
         $gx_hex = "6B17D1F2E12C4247F8BCE6E563A440F277037D812DEB33A0F4A13945D898C296"
         $gy_hex = "4FE342E2FE1A7F9B8EE7EB4A7C0F9E162BCE33576B315ECECBB6406837BF51F5"
-	condition:
-		any of them
+    condition:
+        any of them
 }
 
 rule AES_Constants {
-	meta:
-		description = "AES cipher lookup tables"
+    meta:
+        description = "AES cipher lookup tables"
     strings:
         // AES encryption substitution table
         $enc_st = { 63 7c 77 7b f2 6b 6f c5 30 01 67 2b fe d7 ab 76 ca 82 c9 7d fa 59 47 f0 ad d4 a2 af 9c a4 72 c0 }
@@ -35,8 +35,8 @@ rule AES_Constants {
 }
 
 rule SMIME_IDs {
-	meta:
-		description = "Cipher S/MIME object identifiers (RFCs 3447 & 5754)"
+    meta:
+        description = "Cipher S/MIME object identifiers (RFCs 3447 & 5754)"
     strings:
         $md2 = { 2a 86 48 86 f7 0d 02 02 05 }
         $md5 = { 2a 86 48 86 f7 0d 02 05 05 }
@@ -63,8 +63,8 @@ rule SMIME_IDs {
 }
 
 rule Tiger_Hash_Constants {
-	meta:
-		description = "Tiger hash substitution box constants"
+    meta:
+        description = "Tiger hash substitution box constants"
     strings:
         $c1 = { 5E 0C E9 F7 7C B1 AA 02 }
         $c2 = { EC A8 43 E2 03 4B 42 AC }
@@ -87,8 +87,8 @@ rule Tiger_Hash_Constants {
 }
 
 rule camellia_constants {
-	meta:
-		description = "Camellia cipher substitution table constants"
+    meta:
+        description = "Camellia cipher substitution table constants"
     strings:
         $c1 = { 70 82 2C EC B3 27 C0 E5 E4 85 57 35 EA 0C AE 41 }
         $c2 = { E0 05 58 D9 67 4E 81 CB C9 0B AE 6A D5 18 5D 82 }
@@ -99,8 +99,8 @@ rule camellia_constants {
 }
 
 rule present_cipher {
-	meta:
-		description = "PRESENT block cipher substitution table constants"
+    meta:
+        description = "PRESENT block cipher substitution table constants"
     strings:
         // substitution box
         $sb = { 0C 05 06 0B 09 00 0A 0D 03 0E 0F 08 04 07 01 02 }
