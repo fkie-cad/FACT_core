@@ -1,4 +1,3 @@
-
 import json
 import os
 
@@ -26,23 +25,23 @@ class TestAnalysisPluginsKnownVulnerabilities(AnalysisPluginTest):
         test_file.processed_analysis['file_hashes'] = {'sha256': '1234'}
         test_file.processed_analysis['software_components'] = {}
 
-        results = self.analysis_plugin.process_object(test_file).processed_analysis[self.PLUGIN_NAME]
+        results = self.analysis_plugin.process_object(test_file).processed_analysis[self.PLUGIN_NAME]['result']
 
-        self.assertEqual(len(results), 4, 'incorrect number of vulnerabilities found (summary + tag + one result)')
+        self.assertEqual(len(results), 2, 'incorrect number of vulnerabilities found')
         self.assertTrue('DLink_Bug' in results, 'test match not found')
         self.assertEqual(results['DLink_Bug']['score'], 'high', 'incorrect or no score found in meta data')
 
-        self.assertIn('DLink_Bug', results['tags'])
-        self.assertTrue(results['tags']['DLink_Bug']['propagate'])
+        self.assertIn('DLink_Bug', test_file.processed_analysis[self.PLUGIN_NAME]['tags'])
+        self.assertTrue(test_file.processed_analysis[self.PLUGIN_NAME]['tags']['DLink_Bug']['propagate'])
 
     def test_process_object_software(self):
         test_file = FileObject(file_path=os.path.join(TEST_DATA_DIR, 'empty'))
         test_file.processed_analysis['file_hashes'] = {'sha256': '1234'}
-        test_file.processed_analysis['software_components'] = self._software_components_result
+        test_file.processed_analysis['software_components'] = {'result':  self._software_components_result}
 
-        results = self.analysis_plugin.process_object(test_file).processed_analysis[self.PLUGIN_NAME]
+        results = self.analysis_plugin.process_object(test_file).processed_analysis[self.PLUGIN_NAME]['result']
 
-        self.assertEqual(len(results), 3, 'incorrect number of vulnerabilities found (summary + tag + one result)')
+        self.assertEqual(len(results), 1, 'incorrect number of vulnerabilities found')
         self.assertTrue('Heartbleed' in results, 'test match not found')
         self.assertEqual(results['Heartbleed']['score'], 'high', 'incorrect or no score found in meta data')
 
@@ -52,20 +51,20 @@ class TestAnalysisPluginsKnownVulnerabilities(AnalysisPluginTest):
         self._software_components_result['OpenSSL']['meta']['version'] = ['0.9.8', '1.0.0', '']
         test_file.processed_analysis['software_components'] = self._software_components_result
 
-        results = self.analysis_plugin.process_object(test_file).processed_analysis[self.PLUGIN_NAME]
+        self.analysis_plugin.process_object(test_file)
 
-        self.assertCountEqual(['summary'], list(results.keys()), 'no match should be found')
+        assert len(test_file.processed_analysis[self.PLUGIN_NAME]['result'].keys()) == 0, 'no match should be found'
 
     def test_process_object_hash(self):
         test_file = FileObject(file_path=os.path.join(TEST_DATA_DIR, 'empty'))
         test_file.processed_analysis['file_hashes'] = {'sha256': '7579d10e812905e134cf91ad8eef7b08f87f6f8c8e004ebefa441781fea0ec4a'}
         test_file.processed_analysis['software_components'] = {}
 
-        results = self.analysis_plugin.process_object(test_file).processed_analysis[self.PLUGIN_NAME]
+        results = self.analysis_plugin.process_object(test_file).processed_analysis[self.PLUGIN_NAME]['result']
 
-        self.assertEqual(len(results), 3, 'incorrect number of vulnerabilities found (summary + tag + one result)')
+        self.assertEqual(len(results), 1, 'incorrect number of vulnerabilities found')
         self.assertTrue('Netgear_CGI' in results, 'test match not found')
         self.assertEqual(results['Netgear_CGI']['score'], 'medium', 'incorrect or no score found in meta data')
 
-        self.assertIn('Netgear_CGI', results['tags'])
-        self.assertFalse(results['tags']['Netgear_CGI']['propagate'])
+        self.assertIn('Netgear_CGI', test_file.processed_analysis[self.PLUGIN_NAME]['tags'])
+        self.assertFalse(test_file.processed_analysis[self.PLUGIN_NAME]['tags']['Netgear_CGI']['propagate'])
