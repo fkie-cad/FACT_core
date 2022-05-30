@@ -12,7 +12,7 @@ class AbstractSignatureTest(AnalysisPluginTest):
         path = os.path.join(self.TEST_DATA_DIR, filename)
         test_file = FileObject(file_path=path)
         self.analysis_plugin.process_object(test_file)
-        number_of_rules = len(test_file.processed_analysis[self.PLUGIN_NAME]) - 1
+        number_of_rules = len(test_file.processed_analysis[self.PLUGIN_NAME]['result'])
         assert number_of_rules == expected_number_of_rules, f'Number of results is {number_of_rules} but should be {expected_number_of_rules}'
         if expected_rule_name is not None:
-            assert expected_rule_name in test_file.processed_analysis[self.PLUGIN_NAME], f'Expected rule {expected_rule_name} missing'
+            assert expected_rule_name in test_file.processed_analysis[self.PLUGIN_NAME]['result'], f'Expected rule {expected_rule_name} missing'

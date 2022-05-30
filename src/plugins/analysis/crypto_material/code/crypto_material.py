@@ -36,16 +36,17 @@ class AnalysisPlugin(YaraBasePlugin):
     def process_object(self, file_object):
         file_object = super().process_object(file_object)
         yara_results = file_object.processed_analysis[self.NAME]['result']
-        analysis_result = self.convert_yara_result(yara_results, file_object.binary)
-        analysis_result['summary'] = list(analysis_result)
+        rules_matched = file_object.processed_analysis[self.NAME]['summary']
+        analysis_result = self.convert_yara_result(yara_results, rules_matched, file_object.binary)
+        file_object.processed_analysis['summary'] = list(analysis_result)
 
-        file_object.processed_analysis[self.NAME] = analysis_result
+        file_object.processed_analysis[self.NAME]['result'] = analysis_result
         self._add_private_key_tag(file_object, analysis_result)
         return file_object
 
-    def convert_yara_result(self, yara_results, binary):
+    def convert_yara_result(self, yara_results, rules_matched, binary):
         analysis_result = {}
-        for matching_rule in yara_results.get('summary', []):
+        for matching_rule in rules_matched:
             matches = [Match(*t) for t in yara_results[matching_rule]['strings']]
             matches.sort(key=lambda m: m.offset)
             parsing_function = self._get_parsing_function(matching_rule)
