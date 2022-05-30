@@ -92,7 +92,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         self._load_plugins()
         self.stop_condition = Value('i', 0)
         self.process_queue = Queue()
-        self.unpacking_locks: UnpackingLockManager = unpacking_locks
+        self.unpacking_locks: UnpackingLockManager = UnpackingLockManager() if unpacking_locks is None else unpacking_locks
 
         self.status = AnalysisStatus()
         self.task_scheduler = AnalysisTaskScheduler(self.analysis_plugins)
