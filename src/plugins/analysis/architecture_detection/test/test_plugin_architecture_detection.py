@@ -1,8 +1,10 @@
 # pylint: disable=wrong-import-order
-
 from pathlib import Path
 
+import pytest
+
 from objects.file import FileObject
+
 from ..internal import dt, elf, kconfig, metadata
 
 with open(Path(__file__).parent / 'data/dt.dts') as dt_file:
@@ -84,8 +86,9 @@ def test_elf_construct_result():
         assert 'MIPS III' in key
 
 
-def test_metadatadetector_get_device_architecture():
-    architecture_test_data = [
+@pytest.mark.parametrize(
+    'architecture, bitness, endianness, full_file_type',
+    [
         ('x86', '64-bit', 'little endian',
          'ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-'
          '64.so.2, for GNU/Linux 2.6.32, BuildID[sha1]=2f69d48004509acdb1c638868b1381ffaf88aaac, stripped'),
@@ -143,13 +146,9 @@ def test_metadatadetector_get_device_architecture():
         ('Tilera', '32-bit', 'little endian',
          'ELF 32-bit LSB executable, Tilera TILE-Gx, version 1 (SYSV), dynamically linked, interpreter /lib32/ld.so.1, '
          'for GNU/Linux 2.6.32, stripped'),
-    ]
-
-    for data_set in architecture_test_data:
-        _get_device_architecture_wrapper(*data_set)
-
-
-def _get_device_architecture_wrapper(architecture, bitness, endianness, full_file_type):
+    ],
+)
+def test_metadatadetector_get_device_architecture(architecture, bitness, endianness, full_file_type):
     fo = FileObject()
     fo.processed_analysis['file_type'] = {'mime': 'x-executable', 'full': full_file_type}
 
