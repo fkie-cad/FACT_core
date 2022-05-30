@@ -39,9 +39,10 @@ class AnalysisPlugin(YaraBasePlugin):
     def process_object(self, file_object):
         file_object = super().process_object(file_object)
         analysis = file_object.processed_analysis[self.NAME]
-        if len(analysis) > 1:
-            analysis = self.add_version_information(analysis, file_object)
-            analysis['summary'] = self._get_summary(analysis)
+        result = file_object.processed_analysis[self.NAME]["result"]
+        if len(result) > 1:
+            result = self.add_version_information(result, file_object)
+            analysis['summary'] = self._get_summary(result)
 
             self.add_os_key(file_object)
         return file_object
@@ -61,16 +62,14 @@ class AnalysisPlugin(YaraBasePlugin):
     def _get_summary(results: dict) -> List[str]:
         summary = set()
         for key, result in results.items():
-            if key != 'summary':
-                software = result['meta']['software_name']
-                for version in result['meta']['version']:
-                    summary.add(f'{software} {version}')
+            software = result['meta']['software_name']
+            for version in result['meta']['version']:
+                summary.add(f'{software} {version}')
         return sorted(summary)
 
     def add_version_information(self, results, file_object: FileObject):
         for item in results:
-            if item != 'summary':
-                results[item] = self.get_version_for_component(results[item], file_object)
+            results[item] = self.get_version_for_component(results[item], file_object)
         return results
 
     def get_version_for_component(self, result, file_object: FileObject):

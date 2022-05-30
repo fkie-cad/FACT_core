@@ -18,7 +18,7 @@ class TestAnalysisPluginsSoftwareComponents(AnalysisPluginTest):
     def test_process_object(self):
         test_file = FileObject(file_path=os.path.join(TEST_DATA_DIR, 'yara_test_file'))
         processed_file = self.analysis_plugin.process_object(test_file)
-        results = processed_file.processed_analysis[self.PLUGIN_NAME]
+        results = processed_file.processed_analysis[self.PLUGIN_NAME]["result"]
         self.assertEqual(len(results), 2, 'incorrect number of software components found')
         self.assertTrue('MyTestRule' in results, 'test Rule match not found')
         self.assertEqual(results['MyTestRule']['meta']['software_name'], 'Test Software', 'incorrect software name from yara meta')

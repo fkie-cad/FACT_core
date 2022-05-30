@@ -16,13 +16,13 @@ class TestAnalysisPluginCryptoHints(AnalysisPluginTest):
     def test_basic_scan_feature(self):
         test_file = FileObject(file_path=str(TEST_DATA_DIR / 'CRC32_table'))
         processed_file = self.analysis_plugin.process_object(test_file)
-        result = processed_file.processed_analysis[self.PLUGIN_NAME]["result"]
+        result = processed_file.processed_analysis[self.PLUGIN_NAME]['result']
         assert 'CRC32_table' in result
 
     def test_additional_rules(self):
         test_file = FileObject(file_path=str(TEST_DATA_DIR / 'additional_rules_test_file'))
         processed_file = self.analysis_plugin.process_object(test_file)
-        result = processed_file.processed_analysis[self.PLUGIN_NAME]
+        result = processed_file.processed_analysis[self.PLUGIN_NAME]['result']
         for rule in [
             'secp256r1',
             'AES_Constants',

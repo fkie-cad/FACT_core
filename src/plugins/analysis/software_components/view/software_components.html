@@ -10,34 +10,32 @@
 			<col width="600">
 		</colgroup>
         <tbody class="table-analysis">
-            {% for key in firmware.processed_analysis[selected_analysis] %}
-                {% if key | is_not_mandatory_analysis_entry %}
-                    <tr>
-                        <td rowspan=5>{{ loop.index - 1 }}</td>
-                        <td>Software Name</td>
-                        <td>{{ firmware.processed_analysis[selected_analysis][key]['meta']['software_name'] }}</td>
-                    </tr>
-                    <tr>
-                        <td>Version</td>
-                        <td>
-                        {% for version in firmware.processed_analysis[selected_analysis][key]['meta']['version'] %}
-                            {{ version }}
-                        {% endfor %}
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Description</td>
-                        <td>{{ firmware.processed_analysis[selected_analysis][key]['meta']['description'] }}</td>
-                    </tr>
-                    <tr>
-                        <td>Website</td>
-                        <td><a href="{{ firmware.processed_analysis[selected_analysis][key]['meta']['website'] }}">{{ firmware.processed_analysis[selected_analysis][key]['meta']['website'] }}</a></td>
-                    </tr>
-                    <tr>
-                        <td>Matched Sequence</td>
-                        <td>{{ firmware.processed_analysis[selected_analysis][key]['strings'] }}</td>
-                    </tr>
-                {% endif %}
+            {% for key, value in firmware.processed_analysis[selected_analysis]["result"].items() %}
+                <tr>
+                    <td rowspan=5>{{ loop.index - 1 }}</td>
+                    <td>Software Name</td>
+                    <td>{{ value['meta']['software_name'] }}</td>
+                </tr>
+                <tr>
+                    <td>Version</td>
+                    <td>
+                    {% for version in value['meta']['version'] %}
+                        {{ version }}
+                    {% endfor %}
+                    </td>
+                </tr>
+                <tr>
+                    <td>Description</td>
+                    <td>{{ value['meta']['description'] }}</td>
+                </tr>
+                <tr>
+                    <td>Website</td>
+                    <td><a href="{{ value['meta']['website'] }}">{{ value['meta']['website'] }}</a></td>
+                </tr>
+                <tr>
+                    <td>Matched Sequence</td>
+                    <td>{{ value['strings'] }}</td>
+                </tr>
             {% endfor %}
         </tbody>
 
