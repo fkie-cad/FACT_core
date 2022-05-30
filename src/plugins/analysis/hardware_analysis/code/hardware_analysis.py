@@ -21,7 +21,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         kernel_config = self.filter_kernel_config(file_object)
 
         # store the results
-        file_object.processed_analysis[self.NAME] = {
+        file_object.processed_analysis.setdefault(self.NAME, {})['result'] = {
             'cpu architecture': cpu_architecture,
             'modinfo section': modinfo,
             'kernel configuration': kernel_config
