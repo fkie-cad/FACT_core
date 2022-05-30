@@ -35,7 +35,7 @@ class AnalysisPlugin(YaraBasePlugin):
 
     def process_object(self, file_object):
         file_object = super().process_object(file_object)
-        yara_results = file_object.processed_analysis[self.NAME]
+        yara_results = file_object.processed_analysis[self.NAME]['result']
         analysis_result = self.convert_yara_result(yara_results, file_object.binary)
         analysis_result['summary'] = list(analysis_result)
 

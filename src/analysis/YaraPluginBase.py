@@ -40,15 +40,17 @@ class YaraBasePlugin(AnalysisBasePlugin):
 
     def process_object(self, file_object):
         if self.signature_path is not None:
+            file_object.processed_analysis[self.NAME] = {}
             compiled_flag = '-C' if Path(self.signature_path).read_bytes().startswith(b'YARA') else ''
             command = f'yara {compiled_flag} --print-meta --print-strings {self.signature_path} {file_object.file_path}'
             with subprocess.Popen(command, shell=True, stdout=subprocess.PIPE) as process:
                 output = process.stdout.read().decode()
             try:
                 result = self._parse_yara_output(output)
-                file_object.processed_analysis[self.NAME] = result
+                file_object.processed_analysis[self.NAME]['result'] = result
                 file_object.processed_analysis[self.NAME]['summary'] = list(result.keys())
             except (ValueError, TypeError):
+                # TODO What about failed?!
                 file_object.processed_analysis[self.NAME] = {'failed': 'Processing corrupted. Likely bad call to yara.'}
         else:
             file_object.processed_analysis[self.NAME] = {'failed': 'Signature path not set'}

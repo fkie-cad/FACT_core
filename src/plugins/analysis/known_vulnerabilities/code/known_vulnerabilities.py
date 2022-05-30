@@ -24,7 +24,7 @@ class AnalysisPlugin(YaraBasePlugin):
     def process_object(self, file_object):
         file_object = super().process_object(file_object)
 
-        yara_results = file_object.processed_analysis.pop(self.NAME)
+        yara_results = file_object.processed_analysis[self.NAME].pop('result')
         file_object.processed_analysis[self.NAME] = {}
 
         binary_vulnerabilities = self._post_process_yara_results(yara_results)
