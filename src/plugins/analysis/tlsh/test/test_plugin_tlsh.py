@@ -45,7 +45,7 @@ def stub_plugin(test_config):
 def test_one_matching_file(stub_plugin, test_object):
 
     result = stub_plugin.process_object(test_object)
-    assert result.processed_analysis[stub_plugin.NAME] == {'test_uid': 0}
+    assert result.processed_analysis[stub_plugin.NAME]['result'] == {'test_uid': 0}
 
 
 def test_no_matching_file(test_object, stub_plugin):
@@ -53,28 +53,28 @@ def test_no_matching_file(test_object, stub_plugin):
     test_object.processed_analysis['file_hashes'] = {'tlsh': not_matching_hash}
     result = stub_plugin.process_object(test_object)
 
-    assert result.processed_analysis[stub_plugin.NAME] == {}
+    assert result.processed_analysis[stub_plugin.NAME]['result'] == {}
 
 
 def test_match_to_same_file(test_object, stub_plugin):
     test_object.uid = 'test_uid'
     result = stub_plugin.process_object(test_object)
 
-    assert result.processed_analysis[stub_plugin.NAME] == {}
+    assert result.processed_analysis[stub_plugin.NAME]['result'] == {}
 
 
 def test_file_has_no_tlsh_hash(test_object, stub_plugin):
     test_object.processed_analysis['file_hashes'].pop('tlsh')
     result = stub_plugin.process_object(test_object)
 
-    assert result.processed_analysis[stub_plugin.NAME] == {}
+    assert result.processed_analysis[stub_plugin.NAME]['result'] == {}
 
 
 def test_no_files_in_database(test_object, stub_plugin):
     with mock_patch(stub_plugin.db, 'get_all_tlsh_hashes', lambda: []):
         result = stub_plugin.process_object(test_object)
 
-    assert result.processed_analysis[stub_plugin.NAME] == {}
+    assert result.processed_analysis[stub_plugin.NAME]['result'] == {}
 
 
 def test_file_hashes_not_run(test_object, stub_plugin):

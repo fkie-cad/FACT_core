@@ -29,8 +29,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 value = get_tlsh_comparison(file_object.processed_analysis['file_hashes']['tlsh'], tlsh_hash)
                 if value <= 150 and not uid == file_object.uid:
                     comparisons_dict[uid] = value
-
-        file_object.processed_analysis[self.NAME] = comparisons_dict
+        file_object.processed_analysis[self.NAME] = {}
+        file_object.processed_analysis[self.NAME]['result'] = comparisons_dict
         return file_object
 
 
