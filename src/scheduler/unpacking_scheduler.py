@@ -8,6 +8,8 @@ from helperFunctions.logging import TerminalColors, color_string
 from helperFunctions.process import check_worker_exceptions, new_worker_was_started, start_single_worker, stop_processes
 from unpacker.unpack import Unpacker
 
+from storage.unpacking_locks import UnpackingLockManager
+
 
 class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
     '''
@@ -24,7 +26,7 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
         self.work_load_counter = 25
         self.workers = []
         self.post_unpack = post_unpack
-        self.unpacking_locks = unpacking_locks
+        self.unpacking_locks: UnpackingLockManager = UnpackingLockManager() if unpacking_locks is None else unpacking_locks
         self.start_unpack_workers()
         self.work_load_process = self.start_work_load_monitor()
         logging.info('Unpacker Module online')
