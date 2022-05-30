@@ -21,14 +21,16 @@ class TestAnalysisPluginInformationLeaks(AnalysisPluginTest):
         fo.virtual_file_path = {}
         self.analysis_plugin.process_object(fo)
 
-        assert 'user_paths' in fo.processed_analysis[self.PLUGIN_NAME]
-        assert fo.processed_analysis[self.PLUGIN_NAME]['user_paths'] == ['/home/user/test/urandom', '/home/user/urandom']
+        result = fo.processed_analysis[self.PLUGIN_NAME]["result"]
 
-        assert 'www_path' in fo.processed_analysis[self.PLUGIN_NAME]
-        assert fo.processed_analysis[self.PLUGIN_NAME]['www_path'] == ['/var/www/tmp/me_']
+        assert 'user_paths' in result
+        assert result['user_paths'] == ['/home/user/test/urandom', '/home/user/urandom']
 
-        assert 'root_path' in fo.processed_analysis[self.PLUGIN_NAME]
-        assert fo.processed_analysis[self.PLUGIN_NAME]['root_path'] == ['/root/user_name/this_directory']
+        assert 'www_path' in result
+        assert result['www_path'] == ['/var/www/tmp/me_']
+
+        assert 'root_path' in result
+        assert result['root_path'] == ['/root/user_name/this_directory']
 
         assert 'summary' in fo.processed_analysis[self.PLUGIN_NAME]
         assert fo.processed_analysis[self.PLUGIN_NAME]['summary'] == [
