@@ -54,6 +54,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
         file_object.processed_analysis[self.NAME] = self._get_augmented_result(self.add_geo_uri_to_ip(result))
 
+        print("aaaaaaaaaaaaaaaa")
+        print(file_object.processed_analysis)
+
         return file_object
 
     def _get_augmented_result(self, result):

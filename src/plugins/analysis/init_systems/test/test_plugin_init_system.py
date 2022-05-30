@@ -43,81 +43,81 @@ class TestAnalysisPluginInit(AnalysisPluginTest):
 
     def test_get_systemd_config(self):
         processed_file = self.analysis_plugin.process_object(self.test_file_systemd)
-        result = processed_file.processed_analysis[self.PLUGIN_NAME]
+        result = processed_file.processed_analysis[self.PLUGIN_NAME]['result']
 
         self.assertIn('/usr/sbin/foobar -n', result['ExecStart'], 'record not found')
         self.assertNotIn('[Unit]', result['ExecStart'], '[Unit] should not be listed')
         self.assertNotIn('Description=Foo Bar Service', result['description'], 'record not sanitized')
         self.assertEqual(['"Foo Bar Service"'], result['description'], 'description missing')
         self.assertEqual(['SystemD'], result['init_type'], 'init type missing')
-        self.assertEqual(['SystemD'], result['summary'], 'record not found in summary')
+        self.assertEqual(['SystemD'], processed_file.processed_analysis[self.PLUGIN_NAME]['summary'], 'record not found in summary')
 
     def test_get_rc_config(self):
         processed_file = self.analysis_plugin.process_object(self.test_file_rclocal)
-        result = processed_file.processed_analysis[self.PLUGIN_NAME]
+        result = processed_file.processed_analysis[self.PLUGIN_NAME]['result']
 
         self.assertEqual('/usr/bin/foo              # ein Programm\n/usr/local/bin/bar.sh     # ein Shellskript\n/etc/init.d/foobar start  # ein Dienst\nexit 0', result['script'], 'record not found')
         self.assertNotIn('#!/bin/sh -e', result['script'], 'Comments should not be listed')
         self.assertEqual(['rc'], result['init_type'], 'init type missing')
-        self.assertEqual(['rc'], result['summary'], 'init type missing')
+        self.assertEqual(['rc'], processed_file.processed_analysis[self.PLUGIN_NAME]['summary'], 'init type missing')
 
     def test_get_inittab_config(self):
         processed_file = self.analysis_plugin.process_object(self.test_file_inittab)
-        result = processed_file.processed_analysis[self.PLUGIN_NAME]
+        result = processed_file.processed_analysis[self.PLUGIN_NAME]['result']
 
         self.assertIn('/etc/init.d/rcS', result['inittab'], 'record not found')
         self.assertIn('/sbin/getty -L 9600 ttyS0 vt320', result['inittab'], 'record not found')
         self.assertEqual(['inittab'], result['init_type'], 'init type missing')
-        self.assertEqual(['inittab'], result['summary'], 'record not found in summary')
+        self.assertEqual(['inittab'], processed_file.processed_analysis[self.PLUGIN_NAME]['summary'], 'record not found in summary')
 
     def test_get_initscript_config(self):
         processed_file = self.analysis_plugin.process_object(self.test_file_initscript)
-        result = processed_file.processed_analysis[self.PLUGIN_NAME]
+        result = processed_file.processed_analysis[self.PLUGIN_NAME]['result']
 
         self.assertEqual(['initscript'], result['init_type'], 'init type missing')
-        self.assertEqual(['initscript'], result['summary'], 'record not found in summary')
+        self.assertEqual(['initscript'], processed_file.processed_analysis[self.PLUGIN_NAME]['summary'], 'record not found in summary')
 
     def test_get_upstart_config(self):
         processed_file = self.analysis_plugin.process_object(self.test_file_upstart)
-        result = processed_file.processed_analysis[self.PLUGIN_NAME]
+        result = processed_file.processed_analysis[self.PLUGIN_NAME]['result']
 
         self.assertEqual('    echo "[`date`] baz starting..." >> /var/log/baz.log', result['pre-start'], 'record not found')
         self.assertIn('/bin/baz.sh -runonce \\\n-silent', result['exec'], 'record not found')
         self.assertNotIn('script', result['script'], 'script should not be listed')
         self.assertEqual(['"Simple Baz application"'], result['description'], 'description missing')
         self.assertEqual(['UpStart'], result['init_type'], 'init type missing')
-        self.assertEqual(['UpStart'], result['summary'], 'description missing')
+        self.assertEqual(['UpStart'], processed_file.processed_analysis[self.PLUGIN_NAME]['summary'], 'description missing')
 
     def test_get_runit_config(self):
         processed_file = self.analysis_plugin.process_object(self.test_file_runit)
-        result = processed_file.processed_analysis[self.PLUGIN_NAME]
+        result = processed_file.processed_analysis[self.PLUGIN_NAME]['result']
 
         self.assertEqual('sv -w7 check postgresql\nexec 2>&1 myprocess \\\nlast line', result['script'], 'record not found')
         self.assertIn('exec 2>&1 myprocess \\\nlast line', result['script'], 'record not found')
         self.assertNotIn('#!/bin/sh -e', result['script'], 'should not be listed')
         self.assertEqual(['RunIt'], result['init_type'], 'init type missing')
-        self.assertEqual(['RunIt'], result['summary'], 'description missing')
+        self.assertEqual(['RunIt'], processed_file.processed_analysis[self.PLUGIN_NAME]['summary'], 'description missing')
 
         processed_file2 = self.analysis_plugin.process_object(self.test_file_runit_symlink)
-        result2 = processed_file2.processed_analysis[self.PLUGIN_NAME]
+        result2 = processed_file2.processed_analysis[self.PLUGIN_NAME]['result']
         self.assertIn('exec chpst -u foo /opt/example/foo-service.sh', result2['script'], 'record not found')
         self.assertEqual(['RunIt'], result['init_type'], 'init type missing')
-        self.assertEqual(['RunIt'], result2['summary'], 'description missing')
+        self.assertEqual(['RunIt'], processed_file2.processed_analysis[self.PLUGIN_NAME]['summary'], 'description missing')
 
         processed_file3 = self.analysis_plugin.process_object(self.test_file_runit_origin)
-        result3 = processed_file3.processed_analysis[self.PLUGIN_NAME]
+        result3 = processed_file3.processed_analysis[self.PLUGIN_NAME]['result']
         self.assertIn('exec chpst -u foo /opt/example/foo-service.sh', result3['script'], 'record not found')
         self.assertEqual(['RunIt'], result['init_type'], 'init type missing')
-        self.assertEqual(['RunIt'], result3['summary'], 'description missing')
+        self.assertEqual(['RunIt'], processed_file3.processed_analysis[self.PLUGIN_NAME]['summary'], 'description missing')
 
     def test_get_sysvinit_config(self):
         processed_file = self.analysis_plugin.process_object(self.test_file_initd)
-        result = processed_file.processed_analysis[self.PLUGIN_NAME]
+        result = processed_file.processed_analysis[self.PLUGIN_NAME]['result']
 
         self.assertEqual(['"Example initscript"'], result['description'], 'description missing')
         self.assertIn('if [ true != "$INIT_D_SCRIPT_SOURCED" ] ; then\n    set "$0" "$@"; INIT_D_SCRIPT_SOURCED=true . /lib/init/init-d-script\nfi', result['script'], 'record not found')
         self.assertEqual(['SysVInit'], result['init_type'], 'init type missing')
-        self.assertEqual(['SysVInit'], result['summary'], 'description missing')
+        self.assertEqual(['SysVInit'], processed_file.processed_analysis[self.PLUGIN_NAME]['summary'], 'description missing')
 
     def test_root_uid_is_none(self):
         fo = deepcopy(self.test_file_initd)
@@ -129,19 +129,17 @@ class TestAnalysisPluginInit(AnalysisPluginTest):
 
     def test_get_not_text_file(self):
         processed_file = self.analysis_plugin.process_object(self.test_file_not_text)
-        result = processed_file.processed_analysis[self.PLUGIN_NAME]
 
-        self.assertEqual([], result['summary'], 'should be empty summary')
+        self.assertEqual([], processed_file.processed_analysis[self.PLUGIN_NAME]['summary'], 'should be empty summary')
 
     def test_readme_file(self):
         processed_file = self.analysis_plugin.process_object(self.test_file_README)
-        result = processed_file.processed_analysis[self.PLUGIN_NAME]
 
-        self.assertEqual([], result['summary'], 'should be empty summary')
+        self.assertEqual([], processed_file.processed_analysis[self.PLUGIN_NAME]['summary'], 'should be empty summary')
 
     def test_only_comments_file(self):
         processed_file = self.analysis_plugin.process_object(self.test_file_only_comments)
-        result = processed_file.processed_analysis[self.PLUGIN_NAME]
+        result = processed_file.processed_analysis[self.PLUGIN_NAME]['result']
 
         self.assertDictEqual({}, result, 'should be empty for comments only in file')
 

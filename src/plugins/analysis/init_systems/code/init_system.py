@@ -123,25 +123,32 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return result
 
     def process_object(self, file_object):
+        file_object.processed_analysis[self.NAME] = {}
+        file_object.processed_analysis[self.NAME]["result"] = {}
+
         if self._is_text_file(file_object) and (file_object.file_name not in FILE_IGNORES):
             file_path = self._get_file_path(file_object)
             self.content = make_unicode_string(file_object.binary)  # pylint: disable=attribute-defined-outside-init
             if '/inittab' in file_path:
-                file_object.processed_analysis[self.NAME] = self._get_inittab_config(file_object)
+                file_object.processed_analysis[self.NAME]['result'] = self._get_inittab_config(file_object)
             if 'systemd/system/' in file_path:
-                file_object.processed_analysis[self.NAME] = self._get_systemd_config(file_object)
+                file_object.processed_analysis[self.NAME]['result'] = self._get_systemd_config(file_object)
             if file_path.endswith(('etc/rc', 'etc/rc.local', 'etc/rc.firsttime', 'etc/rc.securelevel')):
-                file_object.processed_analysis[self.NAME] = self._get_rc_config(file_object)
+                file_object.processed_analysis[self.NAME]['result'] = self._get_rc_config(file_object)
             if file_path.endswith('etc/initscript'):
-                file_object.processed_analysis[self.NAME] = self._get_initscript_config(file_object)
+                file_object.processed_analysis[self.NAME]['result'] = self._get_initscript_config(file_object)
             if 'etc/init/' in file_path or 'etc/event.d/' in file_path:
-                file_object.processed_analysis[self.NAME] = self._get_upstart_config(file_object)
+                file_object.processed_analysis[self.NAME]['result'] = self._get_upstart_config(file_object)
             if 'etc/service/' in file_path or 'etc/sv/' in file_path:
-                file_object.processed_analysis[self.NAME] = self._get_runit_config(file_object)
+                file_object.processed_analysis[self.NAME]['result'] = self._get_runit_config(file_object)
             if 'etc/init.d/' in file_path or 'etc/rc.d/' in file_path:
-                file_object.processed_analysis[self.NAME] = self._get_sysvinit_config(file_object)
+                file_object.processed_analysis[self.NAME]['result'] = self._get_sysvinit_config(file_object)
+
+            # FIXME restructure code to remove this workaround
+            file_object.processed_analysis[self.NAME]['summary'] = file_object.processed_analysis[self.NAME]['result'].pop('summary', [])
         else:
-            file_object.processed_analysis[self.NAME] = {'summary': []}
+            file_object.processed_analysis[self.NAME]["summary"] = []
+
         return file_object
 
     @staticmethod
