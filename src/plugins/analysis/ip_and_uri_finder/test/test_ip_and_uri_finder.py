@@ -58,7 +58,7 @@ class TestAnalysisPluginIpAndUriFinder(AnalysisPluginTest):
                          'd xyz 2001:db8::8d3:: xyz 2001:db8:0:0:8d3::')
             tmp_fo = FileObject(file_path=tmp.name)
             processed_object = self.analysis_plugin.process_object(tmp_fo)
-            results = processed_object.processed_analysis[self.PLUGIN_NAME]
+            results = processed_object.processed_analysis[self.PLUGIN_NAME]['result']
         self.assertEqual(results['uris'], [])
         self.assertCountEqual([('1.2.3.4', '47.913, -122.3042'), ('1.1.1.123', '-37.7, 145.1833')], results['ips_v4'])
         self.assertCountEqual([('1234:1234:abcd:abcd:1234:1234:abcd:abcd', '2.1, 2.1'), ('2001:db8:0:0:8d3::', '3.1, 3.1')],
@@ -72,7 +72,7 @@ class TestAnalysisPluginIpAndUriFinder(AnalysisPluginTest):
                          'telnet://192.0.2.16:80/')
             tmp_fo = FileObject(file_path=tmp.name)
             processed_object = self.analysis_plugin.process_object(tmp_fo)
-            results = processed_object.processed_analysis[self.PLUGIN_NAME]
+            results = processed_object.processed_analysis[self.PLUGIN_NAME]['result']
         self.assertCountEqual(['http://www.google.de', 'https://www.test.de/test/',
                                'ftp://ftp.is.co.za/rfc/rfc1808.txt',
                                'telnet://192.0.2.16:80/'], results['uris'])

@@ -46,23 +46,23 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def process_object(self, file_object):
         result = self.ip_and_uri_finder.analyze_file(file_object.file_path, separate_ipv6=True)
+        # Workaround for anything added by common_analysis_base
+        # All fields are overwritten anyway
+        result.pop('analysis_date')
+        result.pop('plugin_version')
 
         for key in ['uris', 'ips_v4', 'ips_v6']:
             result[key] = self._remove_duplicates(result[key])
         result['ips_v4'] = self._remove_blacklisted(result['ips_v4'], IP_V4_BLACKLIST)
         result['ips_v6'] = self._remove_blacklisted(result['ips_v6'], IP_V6_BLACKLIST)
 
-        file_object.processed_analysis[self.NAME] = self._get_augmented_result(self.add_geo_uri_to_ip(result))
-
-        print("aaaaaaaaaaaaaaaa")
-        print(file_object.processed_analysis)
+        res = self.add_geo_uri_to_ip(result)
+        file_object.processed_analysis[self.NAME] = {}
+        file_object.processed_analysis[self.NAME]['result'] = res
+        file_object.processed_analysis[self.NAME]['summary'] = self._get_summary(res)
+        file_object.processed_analysis[self.NAME]['system_version'] = self.ip_and_uri_finder.system_version
 
         return file_object
-
-    def _get_augmented_result(self, result):
-        result['summary'] = self._get_summary(result)
-        result['system_version'] = self.ip_and_uri_finder.system_version
-        return result
 
     def add_geo_uri_to_ip(self, result):
         for key in ['ips_v4', 'ips_v6']:
