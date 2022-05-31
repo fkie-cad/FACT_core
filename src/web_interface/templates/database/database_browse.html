@@ -21,7 +21,7 @@
     <div class="col-xl-6 col-lg-8 col-md-10">
         <form>
             <div class="form-row">
-                <div class="form-group col-md-6">
+                <div class="form-group col-md-5">
                     <label class="control-label" for="device_class_dropdown">Device Class:</label>
                     <select class="form-control form-control-sm" id="device_class_dropdown" name='device_class_dropdown'
                             onchange="window.location=update_url_variables(update_url_variables(window.location.toString(), 'device_class', this.value), 'page', '')">
@@ -32,13 +32,24 @@
                     </select>
                 </div>
 
-                <div class="form-group col-md-6">
+                <div class="form-group col-md-5">
                     <label class="control-label" for="vendor_dropdown">Vendor:</label>
                     <select class="form-control form-control-sm" id="vendor_dropdown" name='vendor_dropdown'
                             onchange="window.location=update_url_variables(update_url_variables(window.location.toString(), 'vendor', this.value), 'page', '')">
                         <option value=''></option>
                         {% for vendor in vendors | sort %}
                             <option {% if vendor in current_vendor %}selected{% endif %} value='{{ vendor }}' style="font-size: 14px;">{{ vendor }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group col-md-2">
+                    <label class="control-label" for="pp_dropdown">Per page:</label>
+                    <select class="form-control form-control-sm" id="pp_dropdown"
+                            onchange="window.location=update_url_variables(update_url_variables(window.location.toString(), 'per_page', this.value), 'page', '')">
+                        <option value=''></option>
+                        {% for value in [10, 20, 50, 100] %}
+                            <option {% if per_page == value %}selected{% endif %} value='{{ value }}' style="font-size: 14px;">{{ value }}</option>
                         {% endfor %}
                     </select>
                 </div>
