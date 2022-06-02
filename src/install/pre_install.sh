@@ -8,9 +8,9 @@ cd "$( dirname "${BASH_SOURCE[0]}" )" || exit 1
 FACTUSER=$(whoami)
 
 DISTRO=$(lsb_release -is)
-if [ "${DISTRO}" = "Linuxmint" ] || [ "${CODENAME}" = "Ubuntu" ]; then
+if [ "${DISTRO}" = "Linuxmint" ] || [ "${DISTRO}" = "Ubuntu" ]; then
     DISTRO=ubuntu
-elif [ "${DISTRO}" = "Kali" ] || [ "${CODENAME}" = "Debian" ]; then
+elif [ "${DISTRO}" = "Kali" ] || [ "${DISTRO}" = "Debian" ]; then
     DISTRO=debian
 fi
 
@@ -27,6 +27,8 @@ elif [ -z "${CODENAME}" ]; then
 	echo "Could not get distribution codename. Please make sure that lsb-release is installed."
 	exit 1
 fi
+
+echo "detected distro ${DISTRO} and codename ${CODENAME}"
 
 echo "Install Pre-Install Requirements"
 sudo apt-get -y install python3-pip git libffi-dev
