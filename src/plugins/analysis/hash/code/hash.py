@@ -43,4 +43,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def _get_hash_list_from_config(self, config):
         hash_list = read_list_from_config(config, self.NAME, 'hashes')
-        return hash_list or list(hashlib.algorithms_guaranteed)
+        return hash_list or [
+            h for h in hashlib.algorithms_guaranteed
+            if 'HASHXOF' not in str(type(getattr(hashlib, h)()))  # no variable length hashes
+        ]
