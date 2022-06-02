@@ -47,12 +47,13 @@ sudo apt-get install -y \
 
 # add Docker's GPG key
 sudo mkdir -p /etc/apt/keyrings
+echo "curl -fsSL \"https://download.docker.com/linux/${DISTRO}/gpg\""
 curl -fsSL "https://download.docker.com/linux/${DISTRO}/gpg" | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 
 # set up repository
 echo \
   "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/${DISTRO} \
-  ${CODENAME} stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+  ${CODENAME} stable" | sudo tee /etc/apt/sources.list.d/docker.list
 
 # Install Docker Engine
 sudo apt-get update
