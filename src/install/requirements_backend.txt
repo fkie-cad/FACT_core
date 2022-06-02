@@ -3,7 +3,7 @@ docker==5.0.3
 MarkupSafe==2.0.1
 matplotlib==3.5.2
 networkx==2.5.1
-Pillow==9.1.0
+Pillow==9.1.1
 pluginbase==1.0.1
 pyopenssl==22.0.0
 
