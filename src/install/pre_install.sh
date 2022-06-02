@@ -34,7 +34,9 @@ sudo apt-get -y install python3-pip git libffi-dev
 echo "Installing Docker"
 
 # uninstall old docker versions
-sudo apt-get remove docker docker-engine docker.io containerd runc
+for i in docker docker-engine docker.io containerd runc; do
+  sudo apt-get remove -y $i || true
+done
 
 # install prerequisites
 sudo apt-get install -y \
