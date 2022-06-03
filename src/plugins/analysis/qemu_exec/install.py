@@ -1,20 +1,19 @@
 #!/usr/bin/env python3
-
+# pylint: disable=duplicate-code,ungrouped-imports
 import logging
-import os
 import urllib.request
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
 try:
-    from helperFunctions.install import OperateInDirectory, check_distribution, run_cmd_with_logging
+    from helperFunctions.install import OperateInDirectory, run_cmd_with_logging
     from plugins.installer import AbstractPluginInstaller
 except ImportError:
     import sys
     SRC_PATH = Path(__file__).absolute().parent.parent.parent.parent
     sys.path.append(str(SRC_PATH))
 
-    from helperFunctions.install import OperateInDirectory, check_distribution, run_cmd_with_logging
+    from helperFunctions.install import OperateInDirectory, run_cmd_with_logging
     from plugins.installer import AbstractPluginInstaller
 
 
@@ -22,15 +21,7 @@ class QemuExecInstaller(AbstractPluginInstaller):
     base_path = Path(__file__).resolve().parent
 
     def install_docker_images(self):
-        run_cmd_with_logging(f'docker build {self._get_build_args()} -t fact/qemu-exec:alpine-3.14 {self.base_path}/docker')
-
-    @staticmethod
-    def _get_build_args():
-        return ' '.join([
-            f'--build-arg {key}={os.environ[key]}'
-            for key in ['http_proxy', 'https_proxy', 'no_proxy', 'HTTP_PROXY', 'HTTPS_PROXY', 'NO_PROXY']
-            if key in os.environ
-        ])
+        self._build_docker_image('fact/qemu-exec:alpine-3.14')
 
     def install_files(self):
         with TemporaryDirectory(dir=str(self.base_path)) as tmp_dir:
@@ -65,6 +56,4 @@ Installer = QemuExecInstaller
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
-    distribution = check_distribution()
-    installer = Installer(distribution)
-    installer.install()
+    Installer().install()
