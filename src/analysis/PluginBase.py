@@ -136,7 +136,7 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         logging.debug(f'{self.NAME}: {len(self.workers)} worker threads started')
 
     def process_next_object(self, task, result):
-        task.processed_analysis.update({self.NAME: {}})
+        task.processed_analysis.update({self.NAME: {'result': {}}})
         finished_task = self.analyze_file(task)
         result.append(finished_task)
 
