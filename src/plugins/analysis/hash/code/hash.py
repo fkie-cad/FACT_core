@@ -1,5 +1,5 @@
 import logging
-from hashlib import algorithms_available
+from hashlib import algorithms_guaranteed
 
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.config import read_list_from_config
@@ -27,7 +27,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         '''
         file_object.processed_analysis[self.NAME] = {}
         for hash_ in self.hashes_to_create:
-            if hash_ in algorithms_available:
+            if hash_ in algorithms_guaranteed:
                 file_object.processed_analysis[self.NAME][hash_] = get_hash(hash_, file_object.binary)
             else:
                 logging.debug(f'algorithm {hash_} not available')
