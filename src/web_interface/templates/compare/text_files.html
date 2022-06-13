@@ -21,7 +21,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     // This string is made safe by the python code rendering this template
-    const diffString =`{{ diffstr | safe }}`;
+    const diffString = $('<textarea />').html(`{{ diffstr }}`).text();
     const targetElement = document.getElementById('diff-element');
     const configuration = {
         drawFileList: false,
