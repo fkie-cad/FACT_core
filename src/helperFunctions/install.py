@@ -226,8 +226,9 @@ def check_distribution():
     :return: The codename of the distribution
     '''
     bionic_code_names = ['bionic', 'tara', 'tessa', 'tina', 'disco']
-    debian_code_names = ['buster', 'stretch', 'kali-rolling']
+    debian_code_names = ['buster', 'stretch', 'bullseye', 'kali-rolling']
     focal_code_names = ['focal', 'ulyana', 'ulyssa', 'uma']
+    jammy_code_names = ['jammy', 'vanessa']
 
     codename = distro.codename().lower()
     if codename in bionic_code_names:
@@ -236,6 +237,9 @@ def check_distribution():
     if codename in focal_code_names:
         logging.debug('Ubuntu 20.04 detected')
         return 'focal'
+    if codename in jammy_code_names:
+        logging.debug('Ubuntu 22.04 detected')
+        return 'jammy'
     if codename in debian_code_names:
         logging.debug('Debian/Kali detected')
         return 'debian'

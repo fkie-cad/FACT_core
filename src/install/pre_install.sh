@@ -7,10 +7,18 @@ cd "$( dirname "${BASH_SOURCE[0]}" )" || exit 1
 
 FACTUSER=$(whoami)
 
-CODENAME=$(lsb_release -cs)
-if [ "${CODENAME}" = "ulyana" ]; then
+DISTRO=$(lsb_release -is)
+if [ "${DISTRO}" = "Linuxmint" ] || [ "${DISTRO}" = "Ubuntu" ]; then
+    DISTRO=ubuntu
+elif [ "${DISTRO}" = "Kali" ] || [ "${DISTRO}" = "Debian" ]; then
+    DISTRO=debian
+fi
+
+if [ "${CODENAME}" = "vanessa" ]; then
+    CODENAME=jammy
+elif [ "${CODENAME}" = "ulyana" ] || [ "${CODENAME}" = "ulyssa" ] || [ "${CODENAME}" = "uma" ] || [ "${CODENAME}" = "una" ]; then
     CODENAME=focal
-elif [ "${CODENAME}" = "tara" ] || [ "${CODENAME}" = "tessa" ] || [ "${CODENAME}" = "tina" ]; then
+elif [ "${CODENAME}" = "tara" ] || [ "${CODENAME}" = "tessa" ] || [ "${CODENAME}" = "tina" ] || [ "${CODENAME}" = "tricia" ]; then
     CODENAME=bionic
 elif [ "${CODENAME}" = "rebecca" ] || [ "${CODENAME}" = "rafaela" ] || [ "${CODENAME}" = "rosa" ]; then
     CODENAME=trusty
@@ -18,9 +26,11 @@ elif [ "${CODENAME}" = "rebecca" ] || [ "${CODENAME}" = "rafaela" ] || [ "${CODE
 elif  [ "${CODENAME}" = "kali-rolling" ]; then
     CODENAME=buster
 elif [ -z "${CODENAME}" ]; then
-	echo "Could not get Ubuntu codename. Please make sure that lsb-release is installed."
+	echo "Could not get distribution codename. Please make sure that lsb-release is installed."
 	exit 1
 fi
+
+echo "detected distro ${DISTRO} and codename ${CODENAME}"
 
 echo "Install Pre-Install Requirements"
 sudo apt-get -y install python3-pip git libffi-dev
