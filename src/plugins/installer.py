@@ -48,6 +48,14 @@ class AbstractPluginInstaller:
         Build/Pull docker images
         '''
 
+    @staticmethod
+    def _get_docker_build_args():
+        return ' '.join([
+            f'--build-arg {key}={os.environ[key]}'
+            for key in ['http_proxy', 'https_proxy', 'no_proxy', 'HTTP_PROXY', 'HTTPS_PROXY', 'NO_PROXY']
+            if key in os.environ
+        ])
+
     def install_system_packages(self):
         '''
         Install packages with apt/dnf
