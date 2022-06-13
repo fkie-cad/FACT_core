@@ -33,7 +33,7 @@ class MetaDataDetector:
 
     def get_device_architecture(self, file_object):
         type_of_file = file_object.processed_analysis['file_type']['full']
-        arch_dict = file_object.processed_analysis.get('cpu_architecture', {})
+        arch_dict = {}
         architecture = self._search_for_arch_keys(type_of_file, self.architectures, delimiter='')
         if not architecture:
             return arch_dict

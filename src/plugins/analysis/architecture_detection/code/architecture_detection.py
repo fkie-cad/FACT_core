@@ -36,13 +36,11 @@ class AnalysisPlugin(AnalysisBasePlugin):
     detectors = [MetaDataDetector()]
 
     def process_object(self, file_object):
-        '''
-        This function must be implemented by the plugin.
-        Analysis result must be a list stored in file_object.processed_analysis[self.NAME]
-        '''
         arch_dict = self._get_device_architectures(file_object)
-        file_object.processed_analysis[self.NAME] = arch_dict
-        file_object.processed_analysis[self.NAME]['summary'] = list(arch_dict.keys())
+        file_object.processed_analysis[self.NAME] = {
+            "result": arch_dict,
+            "summary": list(arch_dict.keys()),
+        }
         return file_object
 
     def _get_device_architectures(self, file_object):
