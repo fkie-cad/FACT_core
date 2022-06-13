@@ -14,6 +14,7 @@ elif [ "${DISTRO}" = "Kali" ] || [ "${DISTRO}" = "Debian" ]; then
     DISTRO=debian
 fi
 
+CODENAME=$(lsb_release -cs)
 if [ "${CODENAME}" = "vanessa" ]; then
     CODENAME=jammy
 elif [ "${CODENAME}" = "ulyana" ] || [ "${CODENAME}" = "ulyssa" ] || [ "${CODENAME}" = "uma" ] || [ "${CODENAME}" = "una" ]; then
