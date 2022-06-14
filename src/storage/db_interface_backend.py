@@ -2,13 +2,12 @@ import logging
 from typing import List
 
 from sqlalchemy import select
-from sqlalchemy.exc import StatementError
 from sqlalchemy.orm import Session
 
 from helperFunctions.virtual_file_path import update_virtual_file_path
 from objects.file import FileObject
 from objects.firmware import Firmware
-from storage.db_interface_base import DbInterfaceError, ReadWriteDbInterface
+from storage.db_interface_base import DbInterfaceError, DbSerializationError, ReadWriteDbInterface
 from storage.db_interface_common import DbInterfaceCommon
 from storage.entry_conversion import (
     create_analysis_entries, create_file_object_entry, create_firmware_entry, get_analysis_without_meta
@@ -68,9 +67,9 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
                 self.update_analysis(uid, plugin, analysis_dict)
             else:
                 self.insert_analysis(uid, plugin, analysis_dict)
-        except (TypeError, StatementError):
-            logging.error(f'Could not store analysis of plugin result {plugin} in the DB because'
-                          f' it is not JSON-serializable: {uid}\n{analysis_dict}', exc_info=True)
+        except DbSerializationError:
+            logging.exception(f'Could not store analysis of plugin result {plugin} in the DB because'
+                              f' it is not JSON-serializable: {uid}\n{analysis_dict}')
         except DbInterfaceError as error:
             logging.error(f'Could not store analysis result: {str(error)}')
 
