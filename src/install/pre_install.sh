@@ -21,9 +21,6 @@ elif [ "${CODENAME}" = "ulyana" ] || [ "${CODENAME}" = "ulyssa" ] || [ "${CODENA
     CODENAME=focal
 elif [ "${CODENAME}" = "tara" ] || [ "${CODENAME}" = "tessa" ] || [ "${CODENAME}" = "tina" ] || [ "${CODENAME}" = "tricia" ]; then
     CODENAME=bionic
-elif [ "${CODENAME}" = "rebecca" ] || [ "${CODENAME}" = "rafaela" ] || [ "${CODENAME}" = "rosa" ]; then
-    CODENAME=trusty
-    sudo apt-get -y install "linux-image-extra-$(uname -r)" linux-image-extra-virtual
 elif  [ "${CODENAME}" = "kali-rolling" ]; then
     CODENAME=buster
 elif [ -z "${CODENAME}" ]; then
@@ -64,7 +61,6 @@ echo \
 # Install Docker Engine
 sudo apt-get update
 sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
-
 
 sudo systemctl enable docker
 
