@@ -40,7 +40,7 @@ class MongoInterface:
         self.config = config
         mongo_server = self.config['data-storage']['mongo-server']
         mongo_port = self.config['data-storage']['mongo-port']
-        self.client = MongoClient('mongodb://{}:{}'.format(mongo_server, mongo_port), connect=False)
+        self.client = MongoClient(f'mongodb://{mongo_server}:{mongo_port}', connect=False)
         self._authenticate()
         self._setup_database_mapping()
 
@@ -57,8 +57,8 @@ class MongoInterface:
             user, pw = self.config['data-storage']['db-admin-user'], self.config['data-storage']['db-admin-pw']
         try:
             self.client.admin.authenticate(user, pw, mechanism='SCRAM-SHA-1')
-        except errors.OperationFailure as e:  # Authentication not successful
-            logging.error(f'Error: Authentication not successful: {e}')
+        except errors.OperationFailure as error:  # Authentication not successful
+            logging.error(f'Error: Authentication not successful: {error}')
             sys.exit(1)
 
 
@@ -241,14 +241,27 @@ def _check_for_missing_fields(plugin, analysis_data):
 
 
 def main():
-    config = load_config('main.cfg')
-    postgres = BackendDbInterface(config=config)
+    postgres_config = load_config('main.cfg')
+    postgres = BackendDbInterface(config=postgres_config)
 
-    with ConnectTo(MigrationMongoInterface, config) as db:
-        with Progress(DESCRIPTION, BarColumn(), PERCENTAGE, TimeElapsedColumn()) as progress:
-            migrator = DbMigrator(postgres=postgres, mongo=db, progress=progress)
-            migrator.migrate_fw(query={}, root=True, label='firmwares')
-        migrate_comparisons(db, config)
+    mongo_config = load_config('migration.cfg')
+    try:
+        with ConnectTo(MigrationMongoInterface, mongo_config) as db:
+            with Progress(DESCRIPTION, BarColumn(), PERCENTAGE, TimeElapsedColumn()) as progress:
+                migrator = DbMigrator(postgres=postgres, mongo=db, progress=progress)
+                migrated_fw_count = migrator.migrate_fw(query={}, root=True, label='firmwares')
+                if not migrated_fw_count:
+                    print('No firmware to migrate')
+                else:
+                    print(f'Successfully migrated {migrated_fw_count} firmware DB entries')
+            migrate_comparisons(db, postgres_config)
+    except errors.ServerSelectionTimeoutError:
+        logging.error(
+            'Could not connect to MongoDB database.\n\t'
+            'Is the server running and the configuration in `src/config/migration.cfg` correct?\n\t'
+            'The database can be started with `mongod --config config/mongod.conf`.'
+        )
+        sys.exit(1)
 
 
 class DbMigrator:
@@ -257,11 +270,12 @@ class DbMigrator:
         self.mongo = mongo
         self.progress = progress
 
-    def migrate_fw(self, query, label: str = None, root=False, root_uid=None, parent_uid=None):
+    def migrate_fw(self, query, label: str = None, root=False, root_uid=None, parent_uid=None) -> int:
+        migrated_fw_count = 0
         collection = self.mongo.firmwares if root else self.mongo.file_objects
         total = collection.count_documents(query)
         if not total:
-            return
+            return 0
         task = self.progress.add_task(f'[{"green" if root else "cyan"}]{label}', total=total)
         for entry in collection.find(query, {'_id': 1}):
             uid = entry['_id']
@@ -284,8 +298,10 @@ class DbMigrator:
                     query=query, root_uid=root_uid, parent_uid=firmware_object.uid,
                     label=firmware_object.file_name
                 )
+                migrated_fw_count += 1
             self.progress.update(task, advance=1)
         self.progress.remove_task(task)
+        return migrated_fw_count
 
     def _migrate_single_object(self, firmware_object: Union[Firmware, FileObject], parent_uid: str, root_uid: str):
         firmware_object.parents = [parent_uid]
@@ -316,7 +332,10 @@ def migrate_comparisons(mongo: MigrationMongoInterface, config):
         if not compare_db.comparison_exists(comparison_id):
             compare_db.insert_comparison(comparison_id, results)
             count += 1
-    logging.warning(f'Migrated {count} comparison entries')
+    if not count:
+        print('No firmware comparison entries to migrate')
+    else:
+        print(f'Migrated {count} comparison DB entries')
 
 
 if __name__ == '__main__':
