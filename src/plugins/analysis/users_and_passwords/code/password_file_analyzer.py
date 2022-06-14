@@ -79,25 +79,25 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
 def generate_unix_entry(entry: bytes) -> dict:
     user_name, pw_hash, *_ = entry.split(b':')
-    result_entry = {'type': 'unix', 'entry': entry.decode(errors='replace')}
+    result_entry = {'type': 'unix', 'entry': _to_str(entry)}
     try:
         if pw_hash.startswith(b'$') or _is_des_hash(pw_hash):
-            result_entry['password-hash'] = pw_hash
+            result_entry['password-hash'] = _to_str(pw_hash)
             result_entry['cracked'] = crack_hash(b':'.join((user_name, pw_hash)), result_entry)
     except (IndexError, AttributeError, TypeError):
         logging.warning(f'Unsupported password format: {entry}', exc_info=True)
-    return {f'{user_name.decode(errors="replace")}:unix': result_entry}
+    return {f'{_to_str(user_name)}:unix': result_entry}
 
 
 def generate_htpasswd_entry(entry: bytes) -> dict:
     user_name, pw_hash = entry.split(b':')
-    result_entry = {'type': 'htpasswd', 'entry': entry, 'password-hash': pw_hash}
-    result_entry['cracked'] = crack_hash(b':'.join((user_name, pw_hash)), result_entry)
-    return {f'{user_name.decode(errors="replace")}:htpasswd': result_entry}
+    result_entry = {'type': 'htpasswd', 'entry': _to_str(entry), 'password-hash': _to_str(pw_hash)}
+    result_entry['cracked'] = crack_hash(entry, result_entry)
+    return {f'{_to_str(user_name)}:htpasswd': result_entry}
 
 
 def generate_mosquitto_entry(entry: bytes) -> dict:
-    entry_decoded = entry.decode(errors='replace')
+    entry_decoded = _to_str(entry)
     user, _, _, salt_hash, passwd_hash, *_ = re.split(r'[:$]', entry_decoded)
     passwd_entry = f'{user}:$dynamic_82${b64decode(passwd_hash).hex()}$HEX${b64decode(salt_hash).hex()}'
     result_entry = {'type': 'mosquitto', 'entry': entry_decoded, 'password-hash': passwd_hash}
@@ -139,3 +139,8 @@ def parse_john_output(john_output: str) -> List[str]:
         start_offset = john_output.find(RESULTS_DELIMITER) + len(RESULTS_DELIMITER) + 1  # +1 is '\n' after delimiter
         return [line for line in john_output[start_offset:].split('\n') if line]
     return []
+
+
+def _to_str(byte_str: bytes) -> str:
+    '''result entries must be converted from `bytes` to `str` in order to be saved as JSON'''
+    return byte_str.decode(errors='replace')
