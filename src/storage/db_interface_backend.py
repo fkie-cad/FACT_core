@@ -39,16 +39,20 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
             analyses = create_analysis_entries(file_object, fo_entry)
             session.add_all([fo_entry, *analyses])
 
+    def _update_parents(self, root_fw_uids: List[str], parent_uids: List[str], fo_entry: FileObjectEntry, session: Session):
+        self._update_entries(session, fo_entry.root_firmware, root_fw_uids, 'root')
+        self._update_entries(session, fo_entry.parent_files, parent_uids, 'parent')
+
     @staticmethod
-    def _update_parents(root_fw_uids: List[str], parent_uids: List[str], fo_entry: FileObjectEntry, session: Session):
-        for uid in root_fw_uids:
-            root_fw = session.get(FileObjectEntry, uid)
-            if root_fw not in fo_entry.root_firmware:
-                fo_entry.root_firmware.append(root_fw)
-        for uid in parent_uids:
-            parent = session.get(FileObjectEntry, uid)
-            if parent not in fo_entry.parent_files:
-                fo_entry.parent_files.append(parent)
+    def _update_entries(session: Session, db_column, uid_list: List[str], label: str):
+        entry_list = [session.get(FileObjectEntry, uid) for uid in uid_list]
+        if entry_list and not any(entry_list):  # => all None
+            raise DbInterfaceError(f'Trying to add object but no {label} object was found in DB: {uid_list}')
+        for fo_entry in entry_list:
+            if fo_entry is None:
+                logging.warning(f'Trying to add object but {label} object was not found in DB: {fo_entry}')
+            elif fo_entry and fo_entry not in db_column:
+                db_column.append(fo_entry)
 
     def insert_firmware(self, firmware: Firmware):
         with self.get_read_write_session() as session:

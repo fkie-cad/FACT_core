@@ -4,7 +4,7 @@ from configparser import ConfigParser
 from multiprocessing import Queue, Value
 from queue import Empty
 from time import sleep, time
-from typing import List, Optional, Tuple
+from typing import Callable, List, Optional, Tuple
 
 from packaging.version import parse as parse_version
 
@@ -18,6 +18,7 @@ from objects.file import FileObject
 from scheduler.analysis_status import AnalysisStatus
 from scheduler.task_scheduler import MANDATORY_PLUGINS, AnalysisTaskScheduler
 from storage.db_interface_backend import BackendDbInterface
+from storage.db_interface_base import DbInterfaceError
 from storage.fsorganizer import FSOrganizer
 from storage.unpacking_locks import UnpackingLockManager
 
@@ -85,7 +86,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
     :param db_interface: An object reference to an instance of BackEndDbInterface.
     '''
 
-    def __init__(self, config: Optional[ConfigParser] = None, pre_analysis=None, post_analysis=None, db_interface=None,
+    def __init__(self, config: Optional[ConfigParser] = None, pre_analysis: Callable[[FileObject], None] = None, post_analysis: Callable[[str, str, dict], None] = None, db_interface=None,
                  unpacking_locks=None):
         self.config = config
         self.analysis_plugins = {}
@@ -266,7 +267,15 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
                 self._process_next_analysis_task(task)
 
     def _process_next_analysis_task(self, fw_object: FileObject):
-        self.pre_analysis(fw_object)
+        try:
+            self.pre_analysis(fw_object)
+        except DbInterfaceError as error:
+            # trying to add an object to the DB could lead to an error if the root FW or the parents are missing
+            # (e.g. because they were recently deleted)
+            logging.error(f'Could not add {fw_object.uid} to the DB: {error}')
+            self.status.remove_from_current_analyses(fw_object)
+            return
+
         self.unpacking_locks.release_unpacking_lock(fw_object.uid)
         analysis_to_do = fw_object.scheduled_analysis.pop()
         if analysis_to_do not in self.analysis_plugins:
