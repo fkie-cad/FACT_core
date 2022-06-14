@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
+# pylint: disable=ungrouped-imports
 
 import logging
-import urllib.request
 from pathlib import Path
 
 try:
@@ -16,6 +16,9 @@ except ImportError:
     from plugins.installer import AbstractPluginInstaller
 
 
+JOHN_POT = Path(__file__).parent / 'bin' / 'john.pot'
+
+
 class UsersAndPasswordsInstaller(AbstractPluginInstaller):
     base_path = Path(__file__).resolve().parent
 
@@ -23,11 +26,9 @@ class UsersAndPasswordsInstaller(AbstractPluginInstaller):
         run_cmd_with_logging(f'docker build {self._get_docker_build_args()} -t fact/john:alpine-3.14 {self.base_path}/docker')
 
     def install_files(self):
-        url_10_k_most_common = 'https://raw.githubusercontent.com/danielmiessler/SecLists/master/Passwords/Common-Credentials/10k-most-common.txt'
-        dest_10_k_most_common = f'{self.base_path}/internal/passwords/10k-most-common.txt'
-        urllib.request.urlretrieve(url_10_k_most_common, dest_10_k_most_common)
-        # FIXME This should be imported rather then executed
-        run_cmd_with_logging(f'python3 {self.base_path}/internal/update_password_list.py')
+        if not JOHN_POT.is_file():
+            JOHN_POT.parent.mkdir(exist_ok=True)
+            JOHN_POT.touch()
 
 
 # Alias for generic use
@@ -35,6 +36,5 @@ Installer = UsersAndPasswordsInstaller
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
-    distribution = check_distribution()
-    installer = Installer(distribution)
+    installer = Installer(check_distribution())
     installer.install()
