@@ -17,7 +17,7 @@ from helperFunctions.virtual_file_path import get_parent_uids_from_virtual_path
 from objects.file import FileObject
 from storage.db_interface_common import DbInterfaceCommon
 
-DOCKER_IMAGE = 'fs_metadata_mounting'
+DOCKER_IMAGE = 'fact/fs_metadata:latest'
 StatResult = NamedTuple(
     'StatEntry',
     [('uid', int), ('gid', int), ('mode', int), ('a_time', float), ('c_time', float), ('m_time', float)]
