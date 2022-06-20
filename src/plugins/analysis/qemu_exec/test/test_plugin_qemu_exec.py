@@ -13,6 +13,7 @@ from requests.exceptions import ReadTimeout
 from test.common_helper import TEST_FW, CommonDatabaseMock, create_test_firmware, get_test_data_dir
 from test.mock import mock_patch
 from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
+import storage.globals
 
 from ..code import qemu_exec
 from ..code.qemu_exec import EXECUTABLE, AnalysisPlugin
@@ -417,7 +418,7 @@ class TestQemuExecUnpacker(TestCase):
     def setUp(self):
         self.name_prefix = 'FACT_plugin_qemu'
         self.unpacker = qemu_exec.Unpacker()
-        qemu_exec.FSOrganizer = MockFSOrganizer
+        storage.globals._fsorganizer = MockFSOrganizer()
 
     def test_unpack_fo(self):
         test_fw = create_test_firmware()
@@ -435,7 +436,7 @@ class TestQemuExecUnpacker(TestCase):
         test_fw = create_test_firmware()
         test_fw.file_path = None
 
-        with mock_patch(self.unpacker.fs_organizer, 'generate_path', lambda _: TEST_FW.file_path):
+        with mock_patch(storage.globals._fsorganizer, 'generate_path', lambda _: TEST_FW.file_path):
             tmp_dir = self.unpacker.unpack_fo(test_fw)
 
         try:

@@ -6,9 +6,8 @@ from pathlib import Path
 from docker.types import Mount
 
 from analysis.PluginBase import AnalysisBasePlugin
-from config import configparser_cfg
 from helperFunctions.docker import run_docker_container
-from storage.fsorganizer import FSOrganizer
+from storage.globals import fsorganizer
 
 try:
     from internal import linters
@@ -44,9 +43,6 @@ class AnalysisPlugin(AnalysisBasePlugin):
     }
     FILE = __file__
 
-    def additional_setup(self):
-        self._fs_organizer = FSOrganizer(configparser_cfg)
-
     def process_object(self, file_object):
         '''
         After only receiving text files thanks to the whitelist, we try to detect the correct scripting language
@@ -74,7 +70,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return file_object
 
     def _get_script_type(self, file_object):
-        host_path = self._fs_organizer.generate_path_from_uid(file_object.uid)
+        host_path = fsorganizer.generate_path_from_uid(file_object.uid)
         container_path = f'/repo/{file_object.file_name}'
         result = run_docker_container(
             'crazymax/linguist',

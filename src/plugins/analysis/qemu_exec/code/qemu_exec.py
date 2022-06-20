@@ -23,7 +23,7 @@ from helperFunctions.docker import run_docker_container
 from helperFunctions.tag import TagColor
 from helperFunctions.uid import create_uid
 from objects.file import FileObject
-from storage.fsorganizer import FSOrganizer
+from storage.globals import fsorganizer
 from unpacker.unpack_base import UnpackBase
 
 TIMEOUT_IN_SECONDS = 15
@@ -37,7 +37,6 @@ CONTAINER_TARGET_PATH = '/opt/firmware_root'
 class Unpacker(UnpackBase):
     def __init__(self, worker_id=None):
         super().__init__(worker_id=worker_id)
-        self.fs_organizer = FSOrganizer(configparser_cfg)
 
     def unpack_fo(self, file_object: FileObject) -> Optional[TemporaryDirectory]:
         file_path = file_object.file_path if file_object.file_path else self._get_path_from_fo(file_object)
@@ -50,7 +49,7 @@ class Unpacker(UnpackBase):
         return extraction_dir
 
     def _get_path_from_fo(self, file_object: FileObject) -> str:
-        return self.fs_organizer.generate_path(file_object)
+        return fsorganizer.generate_path(file_object)
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
