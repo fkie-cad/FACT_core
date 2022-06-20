@@ -6,6 +6,7 @@ from time import sleep
 
 from helperFunctions.logging import TerminalColors, color_string
 from helperFunctions.process import check_worker_exceptions, new_worker_was_started, start_single_worker, stop_processes
+from storage.fsorganizer import FSOrganizer
 from storage.unpacking_locks import UnpackingLockManager
 from unpacker.unpack import Unpacker
 
@@ -20,7 +21,7 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
         self.stop_condition = Value('i', 0)
         self.throttle_condition = Value('i', 0)
         self.get_analysis_workload = analysis_workload
-        self.fs_organizer = fs_organizer
+        self.fs_organizer = fs_organizer if fs_organizer else FSOrganizer(config)
         self.in_queue = Queue()
         self.work_load_counter = 25
         self.workers = []
