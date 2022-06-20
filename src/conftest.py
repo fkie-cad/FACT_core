@@ -7,6 +7,7 @@ from typing import Dict, Tuple
 import pytest
 
 import config
+import storage.globals
 from config import Config, _replace_hyphens_with_underscores
 from test.common_helper import create_docker_mount_base_dir
 
@@ -106,7 +107,7 @@ def _get_test_config_tuple(defaults: Dict = None) -> Tuple[Config, ConfigParser]
 
 
 @pytest.fixture
-def cfg_tuple(request):
+def cfg_tuple(request) -> Tuple[Dict, Config]:
     """Returns a `config.Config` and a `configparser.ConfigParser` with testing defaults.
     Defaults can be overwritten with the `cfg_defaults` pytest mark.
     """
@@ -141,3 +142,34 @@ def patch_cfg(cfg_tuple):
     yield
 
     mpatch.undo()
+
+
+# Autouse this fixture until the test framework is reworked
+@pytest.fixture(autouse=True)
+def patch_globals(patch_cfg):
+    """Calls `storage.globals.load` with testing config.
+    """
+    storage.globals.load()
+
+    # Some custom patching to to adapt interfaces to tests
+    storage.globals.redis_interface.chunk_size = 1_000
+
+    yield
+
+    storage.globals.redis_interface.redis.flushdb()
+
+
+@pytest.fixture
+def binary_service(patch_globals):
+    """Returns the global instance of `BinaryService`.
+    See `patch_globals`.
+    """
+    yield storage.globals.binary_service
+
+
+@pytest.fixture
+def redis_interface(patch_globals):
+    """Returns the global instance of `BinaryService`.
+    See `patch_globals`.
+    """
+    yield storage.globals.redis_interface
