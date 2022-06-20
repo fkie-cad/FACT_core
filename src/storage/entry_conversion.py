@@ -137,6 +137,7 @@ def create_analysis_entries(file_object: FileObject, fo_backref: FileObjectEntry
             analysis_date=analysis_data['analysis_date'],
             summary=analysis_data.get('summary'),
             tags=analysis_data.get('tags'),
+            # TODO: get_analysis_without_meta can be removed once all plugins are updated
             result=get_analysis_without_meta(analysis_data),
             file_object=fo_backref,
         )

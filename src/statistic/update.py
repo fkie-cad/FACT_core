@@ -179,7 +179,7 @@ class StatsUpdater:
     def get_ip_stats(self) -> Dict[str, Stats]:
         ip_stats = {
             key: self.db.count_distinct_values_in_array(
-                AnalysisEntry.result[key], plugin='ip_and_uri_finder', q_filter=self.match
+                AnalysisEntry.result['result'][key], plugin='ip_and_uri_finder', q_filter=self.match
             )
             for key in ['ips_v4', 'ips_v6', 'uris']
         }

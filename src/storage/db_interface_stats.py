@@ -241,13 +241,12 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
     def get_software_components(self, q_filter: Optional[dict] = None) -> Stats:
         with self.get_read_only_session() as session:
             subquery = (
-                select(func.jsonb_object_keys(AnalysisEntry.result).label('software'), AnalysisEntry.uid)
+                select(func.jsonb_object_keys(AnalysisEntry.result['result']).label('software'), AnalysisEntry.uid)
                 .filter(AnalysisEntry.plugin == 'software_components')
                 .subquery('subquery')
             )
             query = (
                 select(subquery.c.software, func.count(subquery.c.software))
-                .filter(subquery.c.software.notin_(['system_version', 'skipped']))
                 .group_by(subquery.c.software)
             )
             if self._filter_is_not_empty(q_filter):
