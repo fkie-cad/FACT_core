@@ -6,9 +6,8 @@ from time import sleep
 
 from helperFunctions.logging import TerminalColors, color_string
 from helperFunctions.process import check_worker_exceptions, new_worker_was_started, start_single_worker, stop_processes
-from unpacker.unpack import Unpacker
-
 from storage.unpacking_locks import UnpackingLockManager
+from unpacker.unpack import Unpacker
 
 
 class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
@@ -27,9 +26,18 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
         self.workers = []
         self.post_unpack = post_unpack
         self.unpacking_locks: UnpackingLockManager = UnpackingLockManager() if unpacking_locks is None else unpacking_locks
+
+    def start(self):
         self.start_unpack_workers()
         self.work_load_process = self.start_work_load_monitor()
         logging.info('Unpacker Module online')
+
+    def shutdown(self):
+        logging.debug('Shutting down...')
+        self.stop_condition.value = 1
+        stop_processes(self.workers + [self.work_load_process])
+        self.in_queue.close()
+        logging.info('Unpacker Module offline')
 
     def add_task(self, fo):
         '''
@@ -40,15 +48,6 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
     def get_scheduled_workload(self):
         return {'unpacking_queue': self.in_queue.qsize()}
 
-    def shutdown(self):
-        '''
-        shutdown the scheduler
-        '''
-        logging.debug('Shutting down...')
-        self.stop_condition.value = 1
-        stop_processes(self.workers + [self.work_load_process])
-        self.in_queue.close()
-        logging.info('Unpacker Module offline')
 
 # ---- internal functions ----
 
