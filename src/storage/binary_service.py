@@ -5,9 +5,10 @@ from typing import Optional, Tuple
 from common_helper_files.fail_safe_file_operations import get_binary_from_file
 
 from storage.db_interface_base import ReadOnlyDbInterface
-from storage.fsorganizer import FSOrganizer
 from storage.schema import FileObjectEntry
 from unpacker.tar_repack import TarRepack
+
+from storage.globals import binary_service_interface, fsorganizer
 
 
 class BinaryService:
@@ -17,8 +18,8 @@ class BinaryService:
 
     def __init__(self, config=None):
         self.config = config
-        self.fs_organizer = FSOrganizer(config=config)
-        self.db_interface = BinaryServiceDbInterface(config=config)
+        self.fs_organizer = fsorganizer
+        self.db_interface = binary_service_interface
         logging.info('binary service online')
 
     def get_binary_and_file_name(self, uid: str) -> Tuple[Optional[bytes], Optional[str]]:
