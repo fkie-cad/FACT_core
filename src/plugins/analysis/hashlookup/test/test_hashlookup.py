@@ -22,7 +22,6 @@ def stub_plugin(monkeypatch):
 @pytest.fixture(scope='function')
 def file_object(monkeypatch):
     test_file = create_test_file_object()
-    monkeypatch.setattr('storage.fsorganizer.FSOrganizer.generate_path_from_uid', lambda _self, _: test_file.file_path)
     return test_file
 
 
