@@ -67,7 +67,24 @@ class FactBackend(FactBase):
             unpacking_locks=unpacking_lock_manager,
         )
 
+    def start(self):
+        self.analysis_service.start()
+        self.unpacking_service.start()
+        self.compare_service.start()
+        self.intercom.start()
+
+    def shutdown(self):
+        super().shutdown()
+        self.intercom.shutdown()
+        self.compare_service.shutdown()
+        self.unpacking_service.shutdown()
+        self.analysis_service.shutdown()
+        if not self.args.testing:
+            complete_shutdown()
+
     def main(self):
+        self.start()
+
         docker_mount_base_dir = Path(self.config['data-storage']['docker-mount-base-dir'])
         docker_mount_base_dir.mkdir(0o770, exist_ok=True)
         docker_gid = grp.getgrnam('docker').gr_gid
@@ -90,15 +107,6 @@ class FactBackend(FactBase):
                 break
 
         self.shutdown()
-
-    def shutdown(self):
-        super().shutdown()
-        self.intercom.shutdown()
-        self.compare_service.shutdown()
-        self.unpacking_service.shutdown()
-        self.analysis_service.shutdown()
-        if not self.args.testing:
-            complete_shutdown()
 
     def _exception_occurred(self):
         return any(

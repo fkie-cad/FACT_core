@@ -25,9 +25,18 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
         self.workers = []
         self.post_unpack = post_unpack
         self.unpacking_locks = unpacking_locks
+
+    def start(self):
         self.start_unpack_workers()
         self.work_load_process = self.start_work_load_monitor()
         logging.info('Unpacker Module online')
+
+    def shutdown(self):
+        logging.debug('Shutting down...')
+        self.stop_condition.value = 1
+        stop_processes(self.workers + [self.work_load_process])
+        self.in_queue.close()
+        logging.info('Unpacker Module offline')
 
     def add_task(self, fo):
         '''
@@ -37,16 +46,6 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
 
     def get_scheduled_workload(self):
         return {'unpacking_queue': self.in_queue.qsize()}
-
-    def shutdown(self):
-        '''
-        shutdown the scheduler
-        '''
-        logging.debug('Shutting down...')
-        self.stop_condition.value = 1
-        stop_processes(self.workers + [self.work_load_process])
-        self.in_queue.close()
-        logging.info('Unpacker Module offline')
 
     # ---- internal functions ----
 

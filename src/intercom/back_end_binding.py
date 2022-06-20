@@ -38,11 +38,8 @@ class InterComBackEndBinding:  # pylint: disable=too-many-instance-attributes
 
         self.stop_condition = Value('i', 0)
         self.process_list = []
-        if not testing:
-            self.start_listeners()
-        logging.info('InterCom started')
 
-    def start_listeners(self):
+    def start(self):
         InterComBackEndAnalysisPlugInsPublisher(config=self.config, analysis_service=self.analysis_service)
         self._start_listener(InterComBackEndAnalysisTask, self.unpacking_service.add_task)
         self._start_listener(InterComBackEndReAnalyzeTask, self.unpacking_service.add_task)
@@ -59,6 +56,7 @@ class InterComBackEndBinding:  # pylint: disable=too-many-instance-attributes
         self._start_listener(InterComBackEndSingleFileTask, self.analysis_service.update_analysis_of_single_object)
         self._start_listener(InterComBackEndPeekBinaryTask)
         self._start_listener(InterComBackEndLogsTask)
+        logging.info('InterCom started')
 
     def shutdown(self):
         self.stop_condition.value = 1
