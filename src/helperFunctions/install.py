@@ -214,7 +214,7 @@ def run_cmd_with_logging(cmd: str, raise_error=True, shell=False, silent: bool =
     except CalledProcessError as err:
         # pylint:disable=no-else-raise
         if not silent:
-            logging.log(logging.ERROR if raise_error else logging.DEBUG, f'Failed to run {cmd}:\n{err.stderr}')
+            logging.log(logging.ERROR if raise_error else logging.DEBUG, f'Failed to run {cmd}:\n{err.stderr}\n{err.stdout}\n')
         if raise_error:
             raise err
 
