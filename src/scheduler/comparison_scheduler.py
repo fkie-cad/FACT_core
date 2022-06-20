@@ -21,8 +21,6 @@ class ComparisonScheduler:
         self.callback = callback
         self.comparison_module = Compare(config=self.config, db_interface=self.db_interface)
         self.worker = ExceptionSafeProcess(target=self._comparison_scheduler_main)
-        if not testing:
-            self.start()
 
     def start(self):
         self.stop_condition.value = 0
@@ -30,9 +28,6 @@ class ComparisonScheduler:
         logging.info('Comparison Scheduler online...')
 
     def shutdown(self):
-        '''
-        shutdown the scheduler
-        '''
         logging.debug('Shutting down...')
         if self.stop_condition.value == 0:
             self.stop_condition.value = 1
