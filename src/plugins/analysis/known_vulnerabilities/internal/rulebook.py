@@ -147,7 +147,7 @@ def _get_dotted_path_from_dictionary(dictionary, dotted_path):
 
 def vulnerabilities():
     heartbleed_rule = SingleRule(
-        value_path=['software_components.OpenSSL.meta.version'],
+        value_path=['software_components.result.OpenSSL.meta.version'],
         relation='intersection',
         comparison=['1.0.1{}'.format(minor) for minor in 'abcde']
     )
