@@ -25,14 +25,11 @@ import tempfile
 from shlex import split
 from subprocess import Popen, TimeoutExpired
 
-try:
-    from fact_base import FactBase
-except (ImportError, ModuleNotFoundError):
-    sys.exit(1)
-
 from helperFunctions.config import get_config_dir
 from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.install import run_cmd_with_logging
+from helperFunctions.program_setup import program_setup
+from statistic.work_load import WorkLoadStatistic
 
 COMPOSE_YAML = f'{get_src_dir()}/install/radare/docker-compose.yml'
 
@@ -57,30 +54,53 @@ class UwsgiServer:
                 self.process.kill()
 
 
-class FactFrontend(FactBase):
+class FactFrontend:
     PROGRAM_NAME = 'FACT Frontend'
     PROGRAM_DESCRIPTION = 'Firmware Analysis and Compare Tool Frontend'
     COMPONENT = 'frontend'
 
     def __init__(self):
-        super().__init__()
-        self.server = None
+        self.args, self.config = program_setup(self.PROGRAM_NAME, self.PROGRAM_DESCRIPTION, self.COMPONENT)
+
+        self.work_load_stat = WorkLoadStatistic(config=self.config, component=self.COMPONENT)
+
+        self.fp = tempfile.NamedTemporaryFile()
+        self.fp.write(pickle.dumps(self.args))
+        self.fp.flush()
+        self.server = UwsgiServer(self.fp.name)
+
+        self.run = False
+
+    def start(self):
+        self.run = True
+
+        signal.signal(signal.SIGINT, signal.SIG_IGN)
+        self.server.start()
+        self.work_load_stat.start()
         run_cmd_with_logging(f'docker-compose -f {COMPOSE_YAML} up -d')
 
-    def main(self):
-        with tempfile.NamedTemporaryFile() as fp:
-            fp.write(pickle.dumps(self.args))
-            fp.flush()
-            self.server = UwsgiServer(fp.name)
-            self.server.start()
-
-            super().main()
+        signal.signal(signal.SIGINT, self._shutdown_listener)
+        signal.signal(signal.SIGTERM, self._shutdown_listener)
 
     def shutdown(self):
-        super().shutdown()
-        if self.server:
-            self.server.shutdown()
+        self.run = False
+        self.work_load_stat.shutdown()
+        self.server.shutdown()
+        self.fp.close()
         run_cmd_with_logging(f'docker-compose -f {COMPOSE_YAML} down')
+
+    def _shutdown_listener(self, signum, _):
+        logging.info(f'Received signal {signum}. Shutting down {self.PROGRAM_NAME}...')
+        self.shutdown()
+
+    def main(self):
+        self.start()
+        logging.info(f'Successfully started {self.PROGRAM_NAME}')
+
+        while self.run:
+            signal.pause()
+
+        self.shutdown()
 
 
 if __name__ == '__main__':

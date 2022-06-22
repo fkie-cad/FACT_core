@@ -20,62 +20,83 @@
 import grp
 import logging
 import os
+import signal
 import sys
 from pathlib import Path
 from time import sleep
 
-try:
-    from fact_base import FactBase
-except (ImportError, ModuleNotFoundError):
-    sys.exit(1)
-
-from helperFunctions.process import complete_shutdown
+from helperFunctions.program_setup import program_setup
 from intercom.back_end_binding import InterComBackEndBinding
 from scheduler.analysis import AnalysisScheduler
 from scheduler.comparison_scheduler import ComparisonScheduler
 from scheduler.unpacking_scheduler import UnpackingScheduler
+from statistic.work_load import WorkLoadStatistic
 from storage.unpacking_locks import UnpackingLockManager
 
 
-class FactBackend(FactBase):
+class FactBackend:
     PROGRAM_NAME = 'FACT Backend'
     PROGRAM_DESCRIPTION = 'Firmware Analysis and Compare Tool (FACT) Backend'
     COMPONENT = 'backend'
 
     def __init__(self):
-        super().__init__()
-        unpacking_lock_manager = UnpackingLockManager()
+        self.args, self.config = program_setup(self.PROGRAM_NAME, self.PROGRAM_DESCRIPTION, self.COMPONENT)
 
-        self.analysis_service = AnalysisScheduler(config=self.config, unpacking_locks=unpacking_lock_manager)
+        self.unpacking_lock_manager = UnpackingLockManager()
+        self.analysis_service = AnalysisScheduler(
+            config=self.config,
+            unpacking_locks=self.unpacking_lock_manager,
+        )
         self.unpacking_service = UnpackingScheduler(
             config=self.config,
             post_unpack=self.analysis_service.start_analysis_of_object,
             analysis_workload=self.analysis_service.get_combined_analysis_workload,
-            unpacking_locks=unpacking_lock_manager,
+            unpacking_locks=self.unpacking_lock_manager,
         )
-        self.compare_service = ComparisonScheduler(config=self.config)
+        self.compare_service = ComparisonScheduler(
+            config=self.config,
+        )
         self.intercom = InterComBackEndBinding(
             config=self.config,
             analysis_service=self.analysis_service,
             compare_service=self.compare_service,
             unpacking_service=self.unpacking_service,
-            unpacking_locks=unpacking_lock_manager,
+            unpacking_locks=self.unpacking_lock_manager,
+        )
+        self.work_load_stat = WorkLoadStatistic(
+            config=self.config,
+            component=self.COMPONENT,
+            analysis_workload_fn=self.analysis_service.get_scheduled_workload,
+            unpacking_workload_fn=self.unpacking_service.get_scheduled_workload,
         )
 
+        self.run = False
+
+    def _shutdown_listener(self, signum, _):
+        logging.info(f'Received signal {signum}. Shutting down {self.PROGRAM_NAME}...')
+        self.shutdown()
+
     def start(self):
+        self.run = True
+
+        signal.signal(signal.SIGINT, signal.SIG_IGN)
         self.analysis_service.start()
         self.unpacking_service.start()
         self.compare_service.start()
         self.intercom.start()
+        self.work_load_stat.start()
+
+        signal.signal(signal.SIGINT, self._shutdown_listener)
+        signal.signal(signal.SIGTERM, self._shutdown_listener)
 
     def shutdown(self):
-        super().shutdown()
+        self.run = False
+        self.work_load_stat.shutdown()
         self.intercom.shutdown()
         self.compare_service.shutdown()
         self.unpacking_service.shutdown()
         self.analysis_service.shutdown()
-        if not self.args.testing:
-            complete_shutdown()
+        self.work_load_stat.shutdown()
 
     def main(self):
         self.start()
@@ -91,15 +112,9 @@ class FactBackend(FactBase):
             logging.warning('Could not change permissions of docker-mount-base-dir. Ignoring.')
 
         while self.run:
-            self.work_load_stat.update(
-                unpacking_workload=self.unpacking_service.get_scheduled_workload(),
-                analysis_workload=self.analysis_service.get_scheduled_workload(),
-            )
             if self._exception_occurred():
                 break
             sleep(5)
-            if self.args.testing:
-                break
 
         self.shutdown()
 
