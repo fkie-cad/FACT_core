@@ -235,9 +235,11 @@ def test_get_executable_stats(db, stats_updater):
 def test_get_ip_stats(db, stats_updater):
     insert_test_fw(db, 'root_fw', vendor='foobar')
     insert_test_fo(db, 'fo1', parent_fw='root_fw', analysis={
-        'ip_and_uri_finder': generate_analysis_entry(analysis_result={
-            'ips_v4': [['1.2.3.4', '123.45, 678.9']], 'ips_v6': [], 'uris': ['https://foo.bar', 'www.example.com']
-        }),
+        'ip_and_uri_finder': generate_analysis_entry(analysis_result={'result': {
+            'ips_v4': [['1.2.3.4', '123.45, 678.9']],
+            'ips_v6': [],
+            'uris': ['https://foo.bar', 'www.example.com'],
+        }}),
     })
 
     stats = stats_updater.get_ip_stats()
@@ -264,16 +266,17 @@ def test_get_time_stats(db, stats_updater):
 def test_get_software_components_stats(db, stats_updater):
     insert_test_fw(db, 'root_fw', vendor='foobar')
     insert_test_fo(db, 'fo1', parent_fw='root_fw', analysis={
-        'software_components': generate_analysis_entry(analysis_result={'LinuxKernel': {'foo': 'bar'}}),
+        'software_components': generate_analysis_entry(analysis_result={'result': {'LinuxKernel': {'foo': 'bar'}}}),
     })
     insert_test_fo(db, 'fo2', parent_fw='root_fw', analysis={
-        'software_components': generate_analysis_entry(analysis_result={'LinuxKernel': {'foo': 'bar'}}),
+        'software_components': generate_analysis_entry(analysis_result={'result': {'LinuxKernel': {'foo': 'bar'}}}),
     })
     insert_test_fo(db, 'fo3', parent_fw='root_fw', analysis={
-        'software_components': generate_analysis_entry(analysis_result={'SomeSoftware': {'foo': 'bar'}}),
+        'software_components': generate_analysis_entry(analysis_result={'result': {'SomeSoftware': {'foo': 'bar'}}}),
     })
 
     assert stats_updater.get_software_components_stats()['software_components'] == [('SomeSoftware', 1),
+
                                                                                     ('LinuxKernel', 2)]
 
     stats_updater.set_match({'vendor': 'foobar'})

@@ -348,6 +348,7 @@ def clear_test_tables(config):
     db_setup.base.metadata.drop_all(db_setup.engine)
 
 
+# TODO rework once all plugins use a documentet structure and use the "result" entry
 def generate_analysis_entry(
     plugin_version: str = '1.0',
     analysis_date: float = 0.0,
