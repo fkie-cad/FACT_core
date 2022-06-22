@@ -29,7 +29,6 @@ try:
 except (ImportError, ModuleNotFoundError):
     sys.exit(1)
 
-from analysis.PluginBase import PluginInitException
 from helperFunctions.process import complete_shutdown
 from intercom.back_end_binding import InterComBackEndBinding
 from scheduler.analysis import AnalysisScheduler
@@ -47,11 +46,7 @@ class FactBackend(FactBase):
         super().__init__()
         unpacking_lock_manager = UnpackingLockManager()
 
-        try:
-            self.analysis_service = AnalysisScheduler(config=self.config, unpacking_locks=unpacking_lock_manager)
-        except PluginInitException as error:
-            logging.critical(f'Error during initialization of plugin {error.plugin.NAME}. Shutting down FACT backend')
-            complete_shutdown()
+        self.analysis_service = AnalysisScheduler(config=self.config, unpacking_locks=unpacking_lock_manager)
         self.unpacking_service = UnpackingScheduler(
             config=self.config,
             post_unpack=self.analysis_service.start_analysis_of_object,
