@@ -1,28 +1,14 @@
 import logging
-import os
 import traceback
 from configparser import ConfigParser
 from contextlib import suppress
 from multiprocessing import Pipe, Process
-from signal import SIGKILL, SIGTERM
+from signal import SIGTERM
 from typing import Callable, List, Optional, Tuple
 
 import psutil
 
 from helperFunctions.logging import TerminalColors, color_string
-
-
-def complete_shutdown(message: Optional[str] = None) -> None:
-    '''
-    Shutdown all FACT processes (of the currently running component) by sending a signal to the process group.
-
-    :param message: Optional message to be displayed before the shutdown.
-    '''
-    if message is not None:
-        logging.warning(message)
-    logging.critical('SHUTTING DOWN SYSTEM')
-    process_group_id = os.getpgid(os.getpid())
-    os.killpg(process_group_id, SIGKILL)
 
 
 class ExceptionSafeProcess(Process):

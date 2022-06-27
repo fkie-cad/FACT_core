@@ -4,7 +4,6 @@ from configparser import ConfigParser, NoOptionError, NoSectionError
 from pathlib import Path
 
 from helperFunctions.fileSystem import get_src_dir
-from helperFunctions.process import complete_shutdown
 
 
 def load_config(config_file_name):
@@ -15,7 +14,8 @@ def load_config(config_file_name):
     config = configparser.ConfigParser()
     config_path = f'{get_config_dir()}/{config_file_name}'
     if not Path(config_path).exists():
-        complete_shutdown(f'config file not found: {config_path}')
+        logging.critical(f'config file not found: {config_path}')
+        return None
     config.read(config_path)
     return config
 
