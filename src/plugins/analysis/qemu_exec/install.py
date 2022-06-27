@@ -21,7 +21,7 @@ class QemuExecInstaller(AbstractPluginInstaller):
     base_path = Path(__file__).resolve().parent
 
     def install_docker_images(self):
-        run_cmd_with_logging(f'docker build {self._get_docker_build_args()} -t fact/qemu-exec:alpine-3.14 {self.base_path}/docker')
+        run_cmd_with_logging(f'docker build -t fact/qemu-exec:alpine-3.14 {self.base_path}/docker')
 
     def install_files(self):
         with TemporaryDirectory(dir=str(self.base_path)) as tmp_dir:
