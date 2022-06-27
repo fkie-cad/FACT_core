@@ -120,6 +120,7 @@ def convert_analysis_task_to_fw_obj(analysis_task: dict, base_fw: Optional[Firmw
     fw.device_class = analysis_task['device_class']
     fw.vendor = analysis_task['vendor']
     fw.release_date = analysis_task['release_date']
+    fw.tags = {}
     for tag in _get_tag_list(analysis_task['tags']):
         fw.set_tag(tag)
     return fw
