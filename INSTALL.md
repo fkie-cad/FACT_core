@@ -105,6 +105,55 @@ For tarball installations, the easiest way is to backup the config files, remove
 If your FACT installation is v3.2 or lower and you use authentification then you have to migrate the user database.
 To do so simply run the [migrate_database.py](src/migrate_database.py) script.
 
+## FACT and your HTTP Proxy
+
+In some advanced network setups, you might need to configure an http proxy for internet connectivity.
+Most components of FACT do not require internet access during runtime.
+The [hashlookup](https://github.com/fkie-cad/FACT_core/blob/master/src/plugins/analysis/hashlookup/code/hashlookup.py) plugin, which polls [https://hashlookup.circl.lu/](https://hashlookup.circl.lu/) during analysis, is an exemplary exception.
+
+However, FACTs **installation routine** requires a lot of internet I/O, ranging from fetching APT packages, over static assets from CDNs using `curl` or `wget`, to docker image builds.
+Thus, it is important to properly configure your system.
+Below, you will find some hints for system-wide proxy configuration.
+
+### Proxy Environment variables
+
+Most dependencies and tools used by fact honor `*_PROXY` environment variables. You can set these on a system-wide scope inside `/etc/environment`.
+
+
+```sh
+$ echo 'HTTP_PROXY=http://<YOUR-PROXY-HERE>:<PORT>/
+HTTPS_PROXY=http://<YOUR-PROXY-HERE>:<PORT>/
+http_proxy=http://<YOUR-PROXY-HERE>:<PORT>/
+https_proxy=http://<YOUR-PROXY-HERE>:<PORT>/
+no_proxy="localhost,127.0.0.1,::1"
+NO_PROXY="localhost,127.0.0.1,::1"' | sudo tee -a /etc/environment
+```
+
+### APT
+
+`apt` is usually called via `sudo` in our installation scripts.
+While `apt` honors the previously set `*_PROXY` environment variables, `sudo` is configured on some distributions to drop them upon privilege escalation.
+You have two options to fix this issue.
+
+
+**Option 1:** Configure `sudo` to not drop these variables:
+
+```sh
+$ sudo visudo  # open the sudoers file and append the following line:
+Defaults env_keep += "ftp_proxy http_proxy https_proxy no_proxy"
+``` 
+
+**Option 2:** Directly configure `apt` to use those env vars:
+
+```sh
+$ echo 'Acquire::http::Proxy "http://<YOUR-PROXY-HERE>:<PORT>/";
+Acquire::https::Proxy "http://<YOUR-PROXY-HERE>:<PORT>/";' | sudo tee /etc/apt/apt.conf.d/00proxy
+``` 
+
+### Docker
+
+Please refer to the [official docker documentation](https://docs.docker.com/network/proxy/) to configure it for proxy usage.
+
 ## Troubleshooting
 
 If you encounter any problems, check out our [Troubleshooting wiki](https://github.com/fkie-cad/FACT_core/wiki/Troubleshooting) before opening an issue on github. 
