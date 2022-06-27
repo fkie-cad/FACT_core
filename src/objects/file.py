@@ -93,6 +93,9 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
         #: for debugging purposes and as placeholder in UI.
         self.analysis_exception = None
 
+        #: The analysis and unpacking priority used for scheduling
+        self.priority = 0
+
         if binary is not None:
             self.set_binary(binary)
         else:

@@ -13,6 +13,7 @@ from helperFunctions.task_conversion import check_for_errors, convert_analysis_t
 from web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
+from web_interface.utils import set_analysis_priority
 
 
 class IORoutes(ComponentBase):
@@ -28,6 +29,7 @@ class IORoutes(ComponentBase):
             return self.get_upload(error=error)
         fw = convert_analysis_task_to_fw_obj(analysis_task)
         with ConnectTo(self.intercom, self._config) as sc:
+            set_analysis_priority(fw)
             sc.add_analysis_task(fw)
         return render_template('upload/upload_successful.html', uid=analysis_task['uid'])
 

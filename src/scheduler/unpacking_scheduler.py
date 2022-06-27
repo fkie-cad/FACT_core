@@ -1,10 +1,9 @@
 import logging
-from contextlib import suppress
-from multiprocessing import Queue, Value
-from queue import Empty
+from multiprocessing import Value
 from time import sleep
 
 from helperFunctions.logging import TerminalColors, color_string
+from helperFunctions.priority_queue import PriorityQueue
 from helperFunctions.process import check_worker_exceptions, new_worker_was_started, start_single_worker, stop_processes
 from unpacker.unpack import Unpacker
 
@@ -20,7 +19,7 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
         self.throttle_condition = Value('i', 0)
         self.get_analysis_workload = analysis_workload
         self.fs_organizer = fs_organizer
-        self.in_queue = Queue()
+        self.in_queue = PriorityQueue(ascending=False)
         self.work_load_counter = 25
         self.workers = []
         self.post_unpack = post_unpack
@@ -33,7 +32,8 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
         '''
         schedule a firmware_object for unpacking
         '''
-        self.in_queue.put(fo)
+        priority = getattr(fo, 'priority', 0)
+        self.in_queue.put(fo, priority=priority)
 
     def get_scheduled_workload(self):
         return {'unpacking_queue': self.in_queue.qsize()}
@@ -59,21 +59,26 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
     def unpack_worker(self, worker_id):
         unpacker = Unpacker(self.config, worker_id=worker_id, fs_organizer=self.fs_organizer, unpacking_locks=self.unpacking_locks)
         while self.stop_condition.value == 0:
-            with suppress(Empty):
-                fo = self.in_queue.get(timeout=float(self.config['expert-settings']['block-delay']))
+            fo = self.in_queue.get()
+            if fo is None:
+                sleep(float(self.config['expert-settings']['block-delay']))
+            else:
                 extracted_objects = unpacker.unpack(fo)
                 logging.debug(f'[worker {worker_id}] unpacking of {fo.uid} complete: {len(extracted_objects)} files extracted')
+                priority = getattr(fo, 'priority', 0)
                 self.post_unpack(fo)
-                self.schedule_extracted_files(extracted_objects)
+                self.schedule_extracted_files(extracted_objects, priority=priority)
 
-    def schedule_extracted_files(self, object_list):
+    def schedule_extracted_files(self, object_list, priority: int = 0):
         for item in object_list:
+            item.priority = priority
             self._add_object_to_unpack_queue(item)
 
     def _add_object_to_unpack_queue(self, item):
         while self.stop_condition.value == 0:
             if self.throttle_condition.value == 0:
-                self.in_queue.put(item)
+                priority = getattr(item, 'priority', 0)
+                self.in_queue.put(item, priority=priority)
                 break
             logging.debug('throttle down unpacking to reduce memory consumption...')
             sleep(5)

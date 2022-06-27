@@ -1,7 +1,7 @@
 import logging
 from concurrent.futures import ThreadPoolExecutor
 from configparser import ConfigParser
-from multiprocessing import Queue, Value
+from multiprocessing import Value
 from queue import Empty
 from time import sleep, time
 from typing import Callable, List, Optional, Tuple
@@ -13,6 +13,7 @@ from helperFunctions.compare_sets import substring_is_in_list
 from helperFunctions.config import read_list_from_config
 from helperFunctions.logging import TerminalColors, color_string
 from helperFunctions.plugin import import_plugins
+from helperFunctions.priority_queue import PriorityQueue
 from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions, stop_processes
 from objects.file import FileObject
 from scheduler.analysis_status import AnalysisStatus
@@ -92,7 +93,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         self.analysis_plugins = {}
         self._load_plugins()
         self.stop_condition = Value('i', 0)
-        self.process_queue = Queue()
+        self.process_queue = PriorityQueue(ascending=False)
         self.unpacking_locks: UnpackingLockManager = unpacking_locks
 
         self.status = AnalysisStatus()
@@ -259,10 +260,9 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
 
     def _task_runner(self):
         while self.stop_condition.value == 0:
-            try:
-                task = self.process_queue.get(timeout=float(self.config['expert-settings']['block-delay']))
-            except Empty:
-                pass
+            task = self.process_queue.get()
+            if task is None:
+                sleep(float(self.config['expert-settings']['block-delay']))
             else:
                 self._process_next_analysis_task(task)
 
@@ -432,7 +432,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             logging.info(f'Analysis Completed:\n{fw_object}')
             self.status.remove_from_current_analyses(fw_object)
         else:
-            self.process_queue.put(fw_object)
+            self.process_queue.put(fw_object, priority=fw_object.priority)
 
     # ---- miscellaneous functions ----
 
