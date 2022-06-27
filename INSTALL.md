@@ -132,7 +132,7 @@ NO_PROXY="localhost,127.0.0.1,::1"' | sudo tee -a /etc/environment
 ### APT
 
 `apt` is usually called via `sudo` in our installation scripts.
-While `apt` honors the previously set `*_PROXY` environment variables, `sudo` is configured on some distributions to drop them upon privilege escalation.
+While `apt` honors the previously set `*_PROXY` environment variables, `sudo` is configured on some distributions to drop them upon privilege elevation.
 You have two options to fix this issue.
 
 
