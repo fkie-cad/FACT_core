@@ -28,9 +28,9 @@ PROGRAM_DESCRIPTION = 'Check if each line in a file is matched by a yara rule.'
 
 
 def _setup_argparser():
-    parser = argparse.ArgumentParser(description='{} - {}'.format(PROGRAM_NAME, PROGRAM_DESCRIPTION))
+    parser = argparse.ArgumentParser(description=f'{PROGRAM_NAME} - {PROGRAM_DESCRIPTION}')
     parser.add_argument('-V', '--version', action='version',
-                        version='{} {}'.format(PROGRAM_NAME, PROGRAM_VERSION))
+                        version=f'{PROGRAM_NAME} {PROGRAM_VERSION}')
     parser.add_argument('test_file', help='File containing the list of signatures')
     parser.add_argument('--yara_path', help='File or Folder containing yara signatures (Extension .yara mandatory)', default='software_signatures/')
     return parser.parse_args()
@@ -54,6 +54,6 @@ if __name__ == '__main__':
     sig_tester = SignatureTesting()
     diff = sig_tester.check(args.yara_path, args.test_file)
     if diff:
-        logging.error('Missing yara signatures for: {}'.format(diff))
+        logging.error(f'Missing yara signatures for: {diff}')
     else:
         logging.info('Found all strings')

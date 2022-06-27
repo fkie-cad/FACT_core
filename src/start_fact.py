@@ -50,11 +50,11 @@ def _evaluate_optional_args(args):
 
 
 def _start_component(component, args):
-    script_path = Path(get_src_dir()) / '../start_fact_{}'.format(component)
+    script_path = Path(get_src_dir()) / f'../start_fact_{component}'
     if not script_path.exists():
-        logging.debug('{} not installed'.format(component))
+        logging.debug(f'{component} not installed')
         return None
-    logging.info('starting {}'.format(component))
+    logging.info(f'starting {component}')
     optional_args = _evaluate_optional_args(args)
     command = '{} -l {} -L {} -C {} {}'.format(
         script_path, config['logging']['logfile'], config['logging']['loglevel'], args.config_file, optional_args

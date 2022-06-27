@@ -43,7 +43,7 @@ class FileTreeNode:  # pylint: disable=too-many-instance-attributes,too-many-arg
         '''
         Print the file tree (used mainly for debugging).
         '''
-        logging.info('{}{} (virtual:{}, has_children:{})'.format(spacer, self.name, self.virtual, self.has_children))
+        logging.info(f'{spacer}{self.name} (virtual:{self.virtual}, has_children:{self.has_children})')
         for child_node in self.children.values():
             child_node.print_tree(spacer=spacer + '\t|')
 

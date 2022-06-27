@@ -51,8 +51,8 @@ def remove_folder(folder_name: str):
     try:
         shutil.rmtree(folder_name)
     except PermissionError:
-        logging.debug('Falling back on root permission for deleting {}'.format(folder_name))
-        subprocess.run('sudo rm -rf {}'.format(folder_name), shell=True)
+        logging.debug(f'Falling back on root permission for deleting {folder_name}')
+        subprocess.run(f'sudo rm -rf {folder_name}', shell=True)
     except Exception as exception:
         raise InstallationError(exception) from None
 
@@ -65,14 +65,14 @@ def log_current_packages(packages: Tuple[str], install: bool = True):
     :param install: Identifier to distinguish installation from removal.
     '''
     action = 'Installing' if install else 'Removing'
-    logging.info('{} {}'.format(action, ' '.join(packages)))
+    logging.info(f"{action} {' '.join(packages)}")
 
 
 def _run_shell_command_raise_on_return_code(command: str, error: str, add_output_on_error=False) -> str:  # pylint: disable=invalid-name
     cmd_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
     if cmd_process.returncode != 0:
         if add_output_on_error:
-            error = '{}\n{}'.format(error, cmd_process.stdout)
+            error = f'{error}\n{cmd_process.stdout}'
         raise InstallationError(error)
     return cmd_process.stdout
 
@@ -91,7 +91,7 @@ def dnf_install_packages(*packages: str):
     :param packages: Iterable containing packages to install.
     '''
     log_current_packages(packages)
-    return _run_shell_command_raise_on_return_code('sudo dnf install -y {}'.format(' '.join(packages)), 'Error in installation of package(s) {}'.format(' '.join(packages)), True)
+    return _run_shell_command_raise_on_return_code(f"sudo dnf install -y {' '.join(packages)}", f"Error in installation of package(s) {' '.join(packages)}", True)
 
 
 def dnf_remove_packages(*packages: str):
@@ -101,7 +101,7 @@ def dnf_remove_packages(*packages: str):
     :param packages: Iterable containing packages to remove.
     '''
     log_current_packages(packages, install=False)
-    return _run_shell_command_raise_on_return_code('sudo dnf remove -y {}'.format(' '.join(packages)), 'Error in removal of package(s) {}'.format(' '.join(packages)), True)
+    return _run_shell_command_raise_on_return_code(f"sudo dnf remove -y {' '.join(packages)}", f"Error in removal of package(s) {' '.join(packages)}", True)
 
 
 def apt_update_sources():
@@ -118,7 +118,7 @@ def apt_install_packages(*packages: str):
     :param packages: Iterable containing packages to install.
     '''
     log_current_packages(packages)
-    return _run_shell_command_raise_on_return_code('sudo apt-get install -y {}'.format(' '.join(packages)), 'Error in installation of package(s) {}'.format(' '.join(packages)), True)
+    return _run_shell_command_raise_on_return_code(f"sudo apt-get install -y {' '.join(packages)}", f"Error in installation of package(s) {' '.join(packages)}", True)
 
 
 def apt_remove_packages(*packages: str):
@@ -128,7 +128,7 @@ def apt_remove_packages(*packages: str):
     :param packages: Iterable containing packages to remove.
     '''
     log_current_packages(packages, install=False)
-    return _run_shell_command_raise_on_return_code('sudo apt-get remove -y {}'.format(' '.join(packages)), 'Error in removal of package(s) {}'.format(' '.join(packages)), True)
+    return _run_shell_command_raise_on_return_code(f"sudo apt-get remove -y {' '.join(packages)}", f"Error in removal of package(s) {' '.join(packages)}", True)
 
 
 def check_if_command_in_path(command: str) -> bool:
@@ -138,7 +138,7 @@ def check_if_command_in_path(command: str) -> bool:
 
     :param command: Command to check.
     '''
-    command_process = subprocess.run('command -v {}'.format(command), shell=True, stdout=DEVNULL, stderr=DEVNULL, universal_newlines=True)
+    command_process = subprocess.run(f'command -v {command}', shell=True, stdout=DEVNULL, stderr=DEVNULL, universal_newlines=True)
     return command_process.returncode == 0
 
 
@@ -167,7 +167,7 @@ def install_github_project(project_path: str, commands: List[str]):
         for command in commands:
             cmd_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
             if cmd_process.returncode != 0:
-                error = 'Error while processing github project {}!\n{}'.format(project_path, cmd_process.stdout)
+                error = f'Error while processing github project {project_path}!\n{cmd_process.stdout}'
                 break
 
     if error:
@@ -175,12 +175,12 @@ def install_github_project(project_path: str, commands: List[str]):
 
 
 def _checkout_github_project(github_path: str, folder_name: str):
-    clone_url = 'https://www.github.com/{}'.format(github_path)
-    git_process = subprocess.run('git clone {}'.format(clone_url), shell=True, stdout=DEVNULL, stderr=DEVNULL, universal_newlines=True)
+    clone_url = f'https://www.github.com/{github_path}'
+    git_process = subprocess.run(f'git clone {clone_url}', shell=True, stdout=DEVNULL, stderr=DEVNULL, universal_newlines=True)
     if git_process.returncode != 0:
-        raise InstallationError('Cloning from github failed for project {}\n {}'.format(github_path, clone_url))
+        raise InstallationError(f'Cloning from github failed for project {github_path}\n {clone_url}')
     if not Path('.', folder_name).exists():
-        raise InstallationError('Repository creation failed on folder {}\n {}'.format(folder_name, clone_url))
+        raise InstallationError(f'Repository creation failed on folder {folder_name}\n {clone_url}')
 
 
 def load_main_config() -> configparser.ConfigParser:
@@ -192,7 +192,7 @@ def load_main_config() -> configparser.ConfigParser:
     config = configparser.ConfigParser()
     config_path = Path(Path(__file__).parent.parent, 'config', 'main.cfg')
     if not config_path.is_file():
-        raise InstallationError('Could not load config at path {}'.format(config_path))
+        raise InstallationError(f'Could not load config at path {config_path}')
     config.read(str(config_path))
     return config
 

@@ -48,7 +48,7 @@ class TestAppShowAnalysis(WebInterfaceTest):
         assert b'Update analysis' in result.data
 
         assert not self.intercom.tasks
-        post_new = self.test_client.post('/analysis/{}'.format(TEST_FW.uid), content_type='multipart/form-data', data={'analysis_systems': ['plugin_a', 'plugin_b']})
+        post_new = self.test_client.post(f'/analysis/{TEST_FW.uid}', content_type='multipart/form-data', data={'analysis_systems': ['plugin_a', 'plugin_b']})
 
         assert post_new.status_code == 302
         assert self.intercom.tasks

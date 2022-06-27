@@ -99,19 +99,19 @@ class TestFileSystemMetadataRoutes:
         assert '<td>False</td>' in response
 
     def test_executable(self):
-        response = self.test_client.get('/plugins/qemu_exec/ajax/{}'.format('bar')).data.decode()
+        response = self.test_client.get("/plugins/qemu_exec/ajax/bar").data.decode()
         assert 'Results for this File' in response
         assert 'Executable in QEMU' in response
         assert '<td>True</td>' in response
         assert all(s in response for s in ['some-arch', 'stdout result', 'stderr result', '1337', '/some/path'])
 
     def test_error_outside(self):
-        response = self.test_client.get('/plugins/qemu_exec/ajax/{}'.format('error-outside')).data.decode()
+        response = self.test_client.get("/plugins/qemu_exec/ajax/error-outside").data.decode()
         assert 'some-arch' not in response
         assert 'some error' in response
 
     def test_error_inside(self):
-        response = self.test_client.get('/plugins/qemu_exec/ajax/{}'.format('error-inside')).data.decode()
+        response = self.test_client.get("/plugins/qemu_exec/ajax/error-inside").data.decode()
         assert 'some-arch' in response
         assert 'some error' in response
 

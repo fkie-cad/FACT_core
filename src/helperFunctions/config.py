@@ -13,9 +13,9 @@ def load_config(config_file_name):
     Returns config object
     '''
     config = configparser.ConfigParser()
-    config_path = '{}/{}'.format(get_config_dir(), config_file_name)
+    config_path = f'{get_config_dir()}/{config_file_name}'
     if not Path(config_path).exists():
-        complete_shutdown('config file not found: {}'.format(config_path))
+        complete_shutdown(f'config file not found: {config_path}')
     config.read(config_path)
     return config
 
@@ -24,7 +24,7 @@ def get_config_dir():
     '''
     Returns the absolute path of the config directory
     '''
-    return '{}/config'.format(get_src_dir())
+    return f'{get_src_dir()}/config'
 
 
 def read_list_from_config(config_file: ConfigParser, section: str, key: str, default=None):
