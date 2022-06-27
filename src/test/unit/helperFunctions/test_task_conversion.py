@@ -2,6 +2,7 @@ import unittest
 
 import pytest
 
+from helperFunctions import tag
 from helperFunctions.task_conversion import (
     _get_tag_list, _get_uid_of_analysis_task, _get_uploaded_file_binary, check_for_errors,
     convert_analysis_task_to_fw_obj
@@ -49,6 +50,8 @@ class TestTaskConversion(unittest.TestCase):
         self.assertEqual(_get_uid_of_analysis_task(analysis_task), '2e99758548972a8e8822ad47fa1017ff72f06f3ff6a016851f45c398732bc50c_14', 'result is not a uid')
 
     def test_convert_analysis_task_to_firmware_object(self):
+        fw_obj = Firmware()
+        fw_obj.tags = {'tag', tag.TagColor.GRAY}
         fw_obj = convert_analysis_task_to_fw_obj(TEST_TASK)
         self.assertIsInstance(fw_obj, Firmware, 'return type not correct')
         self.assertEqual(fw_obj.uid, '2e99758548972a8e8822ad47fa1017ff72f06f3ff6a016851f45c398732bc50c_14', 'uid not correct -> binary not correct')
@@ -62,3 +65,4 @@ class TestTaskConversion(unittest.TestCase):
         self.assertEqual(len(fw_obj.scheduled_analysis), 2)
         self.assertIn('dummy', fw_obj.scheduled_analysis)
         self.assertIsInstance(fw_obj.tags, dict, 'tag type not correct')
+        assert list(fw_obj.tags.keys()) == ['a', 'b'], 'tags not correct'
