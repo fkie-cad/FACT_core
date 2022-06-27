@@ -109,16 +109,14 @@
                             size="4"
                             onchange="update_text_input(this, document.getElementById('device_part_text'));"
                             required
-                            {%- if not is_reanalysis %} disabled {% endif %}
                     >
-                        {%- if not is_reanalysis %}
                             <option value='complete' selected>complete</option>
                             <option value='kernel'>kernel</option>
                             <option value='bootloader'>bootloader</option>
                             <option value='root-fs'>root-fs</option>
                             <option value='new entry'>new entry</option>
-                        {%- else %}
-                            <option value='{{ firmware.part or "complete" }}' selected>{{ firmware.part or "complete" }}</option>
+                        {%- if is_reanalysis and firmware.part %}
+                            <option value='{{ firmware.part }}' selected>{{ firmware.part }}</option>
                         {%- endif %}
                     </select>
                     <input type="text" name="device_part" class="form-control" id="device_part_text" placeholder="New Device Part" style="display: none;">
