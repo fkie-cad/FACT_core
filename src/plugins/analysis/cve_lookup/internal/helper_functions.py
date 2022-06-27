@@ -12,7 +12,7 @@ def escape_special_characters(attribute: str) -> str:
         group = 2 if characters.span(1)[0] == -1 else 1
         start = characters.span(group)[0] + index_shift
         if start:
-            attribute = f"{attribute[:start]}\\{attribute[start:]}"
+            attribute = f'{attribute[:start]}\\{attribute[start:]}'
             index_shift += 1
 
     return attribute
