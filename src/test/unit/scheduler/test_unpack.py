@@ -81,6 +81,7 @@ class TestUnpackScheduler(TestCase):
             analysis_workload=lambda: 3,
             unpacking_locks=UnpackingLockManager(),
         )
+        self.scheduler.start()
 
     def _mock_callback(self, fw):
         self.tmp_queue.put(fw)
