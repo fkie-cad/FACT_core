@@ -138,12 +138,14 @@ def install():
     args = _setup_argparser()
     _setup_logging(args.log_level, args.log_file, debug_flag=args.debug)
     welcome()
-    distribution = check_distribution()
     none_chosen = not (args.frontend or args.db or args.backend or args.common)
     # TODO maybe replace this with an cli argument
     skip_docker = FACT_INSTALLER_SKIP_DOCKER is not None
     # Note that the skip_docker environment variable overrides the cli argument
     only_docker = not skip_docker and none_chosen and (args.backend_docker_images or args.frontend_docker_images)
+
+    # When just pulling the docker images we don't depend on anything distribution specific
+    distribution = check_distribution(allow_unsupported=only_docker)
 
     installation_directory = get_directory_of_current_file() / 'install'
 

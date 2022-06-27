@@ -98,15 +98,7 @@ class AbstractPluginInstaller:
     def _build_docker_image(self, tag: str, dockerfile_path: Optional[Path] = None):
         if not dockerfile_path:
             dockerfile_path = self.base_path / 'docker'
-        run_cmd_with_logging(f'docker build {self._get_docker_build_args()} -t {tag} {dockerfile_path}')
-
-    @staticmethod
-    def _get_docker_build_args():
-        return ' '.join([
-            f'--build-arg {key}={os.environ[key]}'
-            for key in ['http_proxy', 'https_proxy', 'no_proxy', 'HTTP_PROXY', 'HTTPS_PROXY', 'NO_PROXY']
-            if key in os.environ
-        ])
+        run_cmd_with_logging(f'docker build -t {tag} {dockerfile_path}')
 
 
 def _read_packages(package_file: Path):

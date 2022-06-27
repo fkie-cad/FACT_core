@@ -1,11 +1,9 @@
 import logging
-import os
 from typing import Optional
-
-from flask import Flask
 
 from intercom.front_end_binding import InterComFrontEndBinding
 from version import __VERSION__
+from web_interface.app import create_app
 from web_interface.components.ajax_routes import AjaxRoutes
 from web_interface.components.analysis_routes import AnalysisRoutes
 from web_interface.components.compare_routes import CompareRoutes
@@ -18,7 +16,7 @@ from web_interface.components.statistic_routes import StatisticRoutes
 from web_interface.components.user_management_routes import UserManagementRoutes
 from web_interface.frontend_database import FrontendDatabase
 from web_interface.rest.rest_base import RestBase
-from web_interface.security.authentication import add_config_from_configparser_to_app, add_flask_security_to_app
+from web_interface.security.authentication import add_flask_security_to_app
 
 
 class WebFrontEnd:
@@ -33,11 +31,7 @@ class WebFrontEnd:
         logging.info('Web front end online')
 
     def _setup_app(self):
-        self.app = Flask(__name__)
-        self.app.config.from_object(__name__)
-
-        self.app.config['SECRET_KEY'] = os.urandom(24)
-        add_config_from_configparser_to_app(self.app, self.config)
+        self.app = create_app(self.config)
         self.user_db, self.user_datastore = add_flask_security_to_app(self.app)
         base_args = dict(app=self.app, config=self.config, db=self.db, intercom=self.intercom)
 
