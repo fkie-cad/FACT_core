@@ -117,7 +117,7 @@ Below, you will find some hints for system-wide proxy configuration.
 
 ### Proxy Environment variables
 
-Most dependencies and tools used by fact honor `*_PROXY` environment variables. You can set these on a system-wide scope inside `/etc/environment`.
+Most dependencies and tools used by FACT honor `*_PROXY` environment variables. You can set these on a system-wide scope inside `/etc/environment`.
 
 
 ```sh
