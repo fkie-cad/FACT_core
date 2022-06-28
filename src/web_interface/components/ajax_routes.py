@@ -89,10 +89,10 @@ class AjaxRoutes(ComponentBase):
         with ConnectTo(self.intercom, self._config) as sc:
             binary = sc.get_binary_and_filename(uid)[0]
         if 'text/' in mime_type:
-            return '<pre class="line_numbering" style="white-space: pre-wrap">{}</pre>'.format(html.escape(bytes_to_str_filter(binary)))
+            return f'<pre class="line_numbering" style="white-space: pre-wrap">{html.escape(bytes_to_str_filter(binary))}</pre>'
         if 'image/' in mime_type:
             div = '<div style="display: block; border: 1px solid; border-color: #dddddd; padding: 5px; text-align: center">'
-            return '{}<img src="data:image/{} ;base64,{}" style="max-width:100%"></div>'.format(div, mime_type[6:], encode_base64_filter(binary))
+            return f'{div}<img src="data:image/{mime_type[6:]} ;base64,{encode_base64_filter(binary)}" style="max-width:100%"></div>'
         return None
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
@@ -117,7 +117,7 @@ class AjaxRoutes(ComponentBase):
         backend_data = self.db.stats_viewer.get_statistic('backend')
         try:
             return {
-                'backend_cpu_percentage': '{}%'.format(backend_data['system']['cpu_percentage']),
+                'backend_cpu_percentage': f"{backend_data['system']['cpu_percentage']}%",
                 'number_of_running_analyses': len(backend_data['analysis']['current_analyses'])
             }
         except (KeyError, TypeError):

@@ -43,7 +43,7 @@ class ComparePlugin(CompareBasePlugin):
         ascii_string = '<p style="font-family: monospace; color: #eee;"><br />'
         for index in range(number_of_rows):
             partial = bytes_in_ascii[index * COLUMN_WIDTH:(index + 1) * COLUMN_WIDTH]
-            ascii_string += '| {} |<br />'.format(self._replace_forbidden_html_characters(partial))
+            ascii_string += f'| {self._replace_forbidden_html_characters(partial)} |<br />'
 
         return Markup(ascii_string + '</p>')
 
@@ -63,7 +63,7 @@ class ComparePlugin(CompareBasePlugin):
                 highlighted_string += '<br />'
 
             to_highlight = first_binary_in_hex[2 * index:2 * index + 2]
-            highlighted_string += '<span style="color: #{}">{}</span>&nbsp;'.format(color, to_highlight)
+            highlighted_string += f'<span style="color: #{color}">{to_highlight}</span>&nbsp;'
 
         return Markup(highlighted_string + '</p>')
 
@@ -72,7 +72,7 @@ class ComparePlugin(CompareBasePlugin):
 
         offsets_string = '<p style="font-family: monospace; color: #eee;"><br />'
         for row in range(number_of_rows):
-            offsets_string += '0x{:03X}<br />'.format(row * COLUMN_WIDTH)
+            offsets_string += f'0x{row * COLUMN_WIDTH:03X}<br />'
 
         return Markup(offsets_string + '</p>')
 

@@ -32,7 +32,7 @@ def setup() -> None:
         connection.commit()
         connection.close()
     except sqlite3.Error as error:
-        logging.error('[cve_lookup]: could not connect to test database: {} {}'.format(type(error).__name__, error))
+        logging.error(f'[cve_lookup]: could not connect to test database: {type(error).__name__} {error}')
     yield
     with suppress(OSError):
         remove(TEST_DB_PATH)

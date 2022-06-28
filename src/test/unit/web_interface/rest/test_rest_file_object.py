@@ -31,7 +31,7 @@ class TestRestFileObject(WebInterfaceTest):
 
     def test_bad_query(self):
         bad_json_document = '{"parameter": False}'
-        result = self.test_client.get('/rest/file_object?query={}'.format(quote(bad_json_document))).json
+        result = self.test_client.get(f'/rest/file_object?query={quote(bad_json_document)}').json
         assert 'error_message' in result
         assert 'Query must be a json' in result['error_message']
 
@@ -40,6 +40,6 @@ class TestRestFileObject(WebInterfaceTest):
         assert 'No file object with UID some_uid' in response['error_message']
 
     def test_successful_request(self):
-        result = self.test_client.get('/rest/file_object/{}'.format(TEST_TEXT_FILE.uid)).json
+        result = self.test_client.get(f'/rest/file_object/{TEST_TEXT_FILE.uid}').json
         assert 'file_object' in result
         assert all(section in result['file_object'] for section in ['meta_data', 'analysis'])

@@ -29,10 +29,10 @@ class TestAnalysisPlugInPrintableStrings(AnalysisPluginTest):
         fo = self.analysis_plugin.process_object(fo)
         results = fo.processed_analysis[self.PLUGIN_NAME]
         for item in self.strings:
-            self.assertIn(item, results['strings'], '{} not found'.format(item))
+            self.assertIn(item, results['strings'], f'{item} not found')
         self.assertEqual(len(results['strings']), len(self.strings), 'number of found strings not correct')
         for item in self.offsets:
-            assert item in results['offsets'], 'offset {} not found'.format(item)
+            assert item in results['offsets'], f'offset {item} not found'
         assert len(results['offsets']) == len(self.offsets), 'number of offsets not correct'
 
     def test_process_object__no_strings(self):

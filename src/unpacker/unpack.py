@@ -25,10 +25,10 @@ class Unpacker(UnpackBase):
         Recursively extract all objects included in current_fo and add them to current_fo.files_included
         '''
 
-        logging.debug('[worker {}] Extracting {}: Depth: {}'.format(self.worker_id, current_fo.uid, current_fo.depth))
+        logging.debug(f'[worker {self.worker_id}] Extracting {current_fo.uid}: Depth: {current_fo.depth}')
 
         if current_fo.depth >= self.config.getint('unpack', 'max-depth'):
-            logging.warning('{} is not extracted since depth limit ({}) is reached'.format(current_fo.uid, self.config.get('unpack', 'max-depth')))
+            logging.warning(f"{current_fo.uid} is not extracted since depth limit ({self.config.get('unpack', 'max-depth')}) is reached")
             self._store_unpacking_depth_skip_info(current_fo)
             return []
 
@@ -56,7 +56,7 @@ class Unpacker(UnpackBase):
         try:
             tmp_dir.cleanup()
         except OSError as error:
-            logging.error('[worker {}] Could not CleanUp tmp_dir: {} - {}'.format(self.worker_id, type(error), str(error)))
+            logging.error(f'[worker {self.worker_id}] Could not CleanUp tmp_dir: {type(error)} - {str(error)}')
 
     @staticmethod
     def add_included_files_to_object(included_file_objects, root_file_object):

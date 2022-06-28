@@ -16,7 +16,7 @@ def create_uid(input_data: bytes) -> str:
     '''
     hash_value = get_sha256(input_data)
     size = len(make_bytes(input_data))
-    return '{}_{}'.format(hash_value, size)
+    return f'{hash_value}_{size}'
 
 
 def is_uid(input_string: AnyStr) -> bool:
