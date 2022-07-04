@@ -12,7 +12,7 @@ The script looks for the function `SoftwareBus_dispatchNormalEPMsgOut` and searc
 If a parenting Basic Block contains a INT_LESS instruction, the patch is present.
 
 ## Limitations
-Patches using another approach, e.g. Netgear R6100 v1.0.1.10 by performing bit operations, are not taken into account.
+The binary is considered fixed, if at least one parent block contains INT_LESS.
 
 ## Evaluation 
 
@@ -21,7 +21,7 @@ Patches using another approach, e.g. Netgear R6100 v1.0.1.10 by performing bit o
 | Netgear AC1750 v1.0.4.120 (before patch)  | vuln      | no |
 | Netgear AC1750 v1.0.4.122 (after\ patch)  | not vuln  |   yes  |
 | Netgear PR2000  v1.0.0.15                 | vuln      |  does not look like   |
-| Netgear R6100 v1.0.1.10                   | vuln      | seems like a fix in the basic block of kmalloc using shifts|
+| Netgear R6100 v1.0.1.10                   | vuln      | does not look like |
 | Netgear R6220 v1.1.0.34                   | vuln      | does not look like|
 | Netgear\ R6300v2 v1.0.4.6                 | vuln      | does not look like|
 | Netgear R7000 Nighthawk v1.0.7.6_1.1.99   | vuln      | does not look like |
