@@ -14,6 +14,10 @@ class DbInterfaceError(Exception):
     pass
 
 
+class DbSerializationError(DbInterfaceError):
+    pass
+
+
 class ReadOnlyDbInterface:
     def __init__(self, config: ConfigParser, db_name: Optional[str] = None, **kwargs):
         self.base = Base
@@ -67,9 +71,11 @@ class ReadWriteDbInterface(ReadOnlyDbInterface):
             yield session
             session.commit()
         except (SQLAlchemyError, DbInterfaceError) as err:
+            session.rollback()
+            if 'not JSON serializable' in str(err):
+                raise DbSerializationError() from err
             message = 'Database error when trying to write to the database'
             logging.exception(f'{message}: {err}')
-            session.rollback()
             raise DbInterfaceError(message) from err
         finally:
             session.invalidate()
