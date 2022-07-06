@@ -41,5 +41,5 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return file_object
 
     def _get_hash_list_from_config(self, config):
-        hash_list = read_list_from_config(config, self.NAME, 'hashes', default=['sha256'])
-        return hash_list if hash_list else ['sha256']
+        hash_list = read_list_from_config(config, self.NAME, 'hashes')
+        return hash_list or ['sha256']

@@ -1,7 +1,10 @@
 import os
 from pathlib import Path
+from typing import Optional
 
-from helperFunctions.install import install_pip_packages, read_package_list_from_file, run_cmd_with_logging
+from helperFunctions.install import (
+    check_distribution, install_pip_packages, read_package_list_from_file, run_cmd_with_logging
+)
 
 
 class AbstractPluginInstaller:
@@ -14,8 +17,8 @@ class AbstractPluginInstaller:
     # Must be overwritten by a class variable of a child class
     base_path = None
 
-    def __init__(self, distribution, skip_docker=skip_docker_env):
-        self.distribution = distribution
+    def __init__(self, distribution: Optional[str] = None, skip_docker: bool = skip_docker_env):
+        self.distribution = distribution or check_distribution()
         self.build_path = self.base_path / 'build'
         self.skip_docker = skip_docker
 
@@ -91,6 +94,11 @@ class AbstractPluginInstaller:
         Build and install projects that can't be installed through a package
         manager
         '''
+
+    def _build_docker_image(self, tag: str, dockerfile_path: Optional[Path] = None):
+        if not dockerfile_path:
+            dockerfile_path = self.base_path / 'docker'
+        run_cmd_with_logging(f'docker build -t {tag} {dockerfile_path}')
 
 
 def _read_packages(package_file: Path):

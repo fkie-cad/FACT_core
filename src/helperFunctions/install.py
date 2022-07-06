@@ -210,11 +210,11 @@ def run_cmd_with_logging(cmd: str, raise_error=True, shell=False, silent: bool =
     logging.debug(f'Running: {cmd}')
     try:
         cmd_ = cmd if shell else shlex.split(cmd)
-        subprocess.run(cmd_, stdout=PIPE, stderr=PIPE, encoding='UTF-8', shell=shell, check=True, **kwargs)
+        subprocess.run(cmd_, stdout=PIPE, stderr=STDOUT, encoding='UTF-8', shell=shell, check=True, **kwargs)
     except CalledProcessError as err:
         # pylint:disable=no-else-raise
         if not silent:
-            logging.log(logging.ERROR if raise_error else logging.DEBUG, f'Failed to run {cmd}:\n{err.stderr}')
+            logging.log(logging.ERROR if raise_error else logging.DEBUG, f'Failed to run {cmd}:\n{err.stdout}')
         if raise_error:
             raise err
 
