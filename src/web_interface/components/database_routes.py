@@ -258,7 +258,6 @@ class DatabaseRoutes(ComponentBase):
             'device_name': {'$like': search_term},
             'vendor': {'$like': search_term},
             'file_name': {'$like': search_term},
-            'md5': search_term,
             'sha256': search_term,
             'firmware_tags': search_term,
         }}
