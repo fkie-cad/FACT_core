@@ -70,7 +70,7 @@ def main(command_line_options=None, config: Optional[ConfigParser] = None, skip_
     _init_users(db_setup, config, [fact_db, test_db])
 
     db_setup = DbSetup(config, db_name=fact_db)
-    db_setup.create_tables()
+    db_setup.connection.create_tables()
     db_setup.set_table_privileges()
     return 0
 

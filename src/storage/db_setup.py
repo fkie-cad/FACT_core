@@ -14,8 +14,8 @@ class Privileges:
 
 class DbSetup(ReadWriteDbInterface):
 
-    def __init__(self, config, connection: Optional[DbConnection] = None):
-        super().__init__(config, connection=connection or AdminConnection(config))
+    def __init__(self, config, connection: Optional[DbConnection] = None, **kwargs):
+        super().__init__(config, connection=connection or AdminConnection(config, **kwargs))
 
     def create_user(self, user_name: str, password: str):
         if not self.user_exists(user_name):
