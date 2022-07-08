@@ -37,7 +37,7 @@ class RestFileObjectWithoutUid(RestResourceBase):
 
         parameters = dict(offset=offset, limit=limit, query=query)
         try:
-            uids = self.db.frontend.rest_get_file_object_uids(**parameters)
+            uids = self.db.frontend().rest_get_file_object_uids(**parameters)
             return success_message(dict(uids=uids), self.URL, parameters)
         except DbInterfaceError:
             return error_message('Unknown exception on request', self.URL, parameters)
@@ -63,7 +63,7 @@ class RestFileObjectWithUid(RestResourceBase):
         Request a specific file
         Get the analysis results of a specific file by providing the corresponding uid
         '''
-        file_object = self.db.frontend.get_object(uid)
+        file_object = self.db.frontend().get_object(uid)
         if not file_object:
             return error_message(f'No file object with UID {uid} found', self.URL, dict(uid=uid))
 

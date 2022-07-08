@@ -46,4 +46,4 @@ class WebFrontEnd:
 
         rest_base = RestBase(**base_args)
         PluginRoutes(**base_args, api=rest_base.api)
-        FilterClass(self.app, self.program_version, self.config, frontend_db=self.db.frontend)
+        FilterClass(self.app, self.program_version, self.config, self.db)

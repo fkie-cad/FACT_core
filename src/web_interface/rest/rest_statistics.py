@@ -1,5 +1,6 @@
 from flask_restx import Namespace
 
+from helperFunctions.database import get_shared_session
 from web_interface.rest.helper import error_message
 from web_interface.rest.rest_resource_base import RestResourceBase
 from web_interface.security.decorator import roles_accepted
@@ -32,8 +33,10 @@ class RestStatisticsWithoutName(RestResourceBase):
         Get all statistics
         '''
         statistics_dict = {}
-        for stat in STATISTICS:
-            statistics_dict[stat] = self.db.stats_viewer.get_statistic(stat)
+
+        with get_shared_session(self.db.stats_viewer()) as db:
+            for stat in STATISTICS:
+                statistics_dict[stat] = db.get_statistic(stat)
 
         _delete_id_and_check_empty_stat(statistics_dict)
 
@@ -56,7 +59,7 @@ class RestStatisticsWithName(RestResourceBase):
         '''
         Get specific statistic
         '''
-        statistic_dict = {stat_name: self.db.stats_viewer.get_statistic(stat_name)}
+        statistic_dict = {stat_name: self.db.stats_viewer().get_statistic(stat_name)}
         _delete_id_and_check_empty_stat(statistic_dict)
         if stat_name not in STATISTICS:
             return error_message(f'A statistic with the ID {stat_name} does not exist', self.URL, dict(stat_name=stat_name))

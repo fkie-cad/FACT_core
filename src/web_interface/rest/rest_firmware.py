@@ -70,7 +70,7 @@ class RestFirmwareGetWithoutUid(RestResourceBase):
 
         parameters = dict(offset=offset, limit=limit, query=query, recursive=recursive, inverted=inverted)
         try:
-            uids = self.db.frontend.rest_get_firmware_uids(**parameters)
+            uids = self.db.frontend().rest_get_firmware_uids(**parameters)
             return success_message(dict(uids=uids), self.URL, parameters)
         except DbInterfaceError:
             return error_message('Unknown exception on request', self.URL, parameters)
@@ -137,9 +137,9 @@ class RestFirmwareGetWithUid(RestResourceBase):
         '''
         summary = get_boolean_from_request(request.args, 'summary')
         if summary:
-            firmware = self.db.frontend.get_complete_object_including_all_summaries(uid)
+            firmware = self.db.frontend().get_complete_object_including_all_summaries(uid)
         else:
-            firmware = self.db.frontend.get_object(uid)
+            firmware = self.db.frontend().get_object(uid)
         if not firmware or not isinstance(firmware, Firmware):
             return error_message(f'No firmware with UID {uid} found', self.URL, dict(uid=uid))
 
@@ -166,7 +166,7 @@ class RestFirmwareGetWithUid(RestResourceBase):
         return self._update_analysis(uid, update)
 
     def _update_analysis(self, uid, update):
-        firmware = self.db.frontend.get_object(uid)
+        firmware = self.db.frontend().get_object(uid)
         if not firmware:
             return error_message(f'No firmware with UID {uid} found', self.URL, dict(uid=uid))
 
