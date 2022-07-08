@@ -31,7 +31,7 @@ class DbMock(CommonDatabaseMock):
         return None
 
 
-class TestAppAdvancedSearch(WebInterfaceTest):
+class TestAppQuickSearch(WebInterfaceTest):
 
     @classmethod
     def setup_class(cls, *_, **__):
