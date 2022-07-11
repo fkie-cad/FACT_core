@@ -34,12 +34,10 @@ def encode_as_str(std_out):
 def main():
     result = {}
     for parameter in ['-h', '--help', '-help', '--version', ' ']:
-        command = 'timeout -s SIGKILL 1 qemu-{arch} {path} {parameter}'.format(
-            arch=ARCH, path=FILE_PATH, parameter=parameter
-        )
+        command = f'timeout -s SIGKILL 1 qemu-{ARCH} {FILE_PATH} {parameter}'
         result[parameter] = get_output(command)
 
-    command = 'timeout -s SIGKILL 2 qemu-{arch} -strace {path}'.format(arch=ARCH, path=FILE_PATH)
+    command = f'timeout -s SIGKILL 2 qemu-{ARCH} -strace {FILE_PATH}'
     result['strace'] = get_output(command)
     print(dumps(result), flush=True)
 

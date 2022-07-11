@@ -35,7 +35,7 @@ class Vulnerability:
             (int(self.reliability) in range(0, 101), 'reliability must be between 0 and 100'),
             (self.score in ['low', 'medium', 'high'], 'score has to be one of low, medium or high'),
             (isinstance(self.description, str), 'description must be a string'),
-            (isinstance(self.rule, (SingleRule, MetaRule, SubPathRule)), 'rule must be of type in [SingleRule, MetaRule, SubPathRule]. Has type {}'.format(type(rule))),
+            (isinstance(self.rule, (SingleRule, MetaRule, SubPathRule)), f'rule must be of type in [SingleRule, MetaRule, SubPathRule]. Has type {type(rule)}'),
             (isinstance(self.link, str) or not link, 'if link is set it has to be a string'),
             (isinstance(self.short_name, str), 'short_name has to be a string')
         ]:
@@ -50,7 +50,7 @@ class SingleRule:
     def __init__(self, value_path, relation, comparison):
         for assertion, error_message in [
             (isinstance(value_path, list), 'value_path must be list of dot seperated access strings'),
-            (relation in RELATIONS, 'relation must be one of {}'.format(list(RELATIONS.keys())))
+            (relation in RELATIONS, f'relation must be one of {list(RELATIONS.keys())}')
         ]:
             if not assertion:
                 raise BadRuleError(error_message)
@@ -137,7 +137,7 @@ def _get_value(analysis, value_path):
 
 def _get_dotted_path_from_dictionary(dictionary, dotted_path):
     if not isinstance(dictionary, dict):
-        raise ValueError('path {} can only be extracted from dict - not {}'.format(dotted_path, type(dictionary)))
+        raise ValueError(f'path {dotted_path} can only be extracted from dict - not {type(dictionary)}')
     if '.' not in dotted_path:
         return dictionary[dotted_path]
     else:
@@ -149,7 +149,7 @@ def vulnerabilities():
     heartbleed_rule = SingleRule(
         value_path=['software_components.OpenSSL.meta.version'],
         relation='intersection',
-        comparison=['1.0.1{}'.format(minor) for minor in 'abcde']
+        comparison=[f'1.0.1{minor}' for minor in 'abcde']
     )
     heartbleed_vulnerability = Vulnerability(
         rule=heartbleed_rule,

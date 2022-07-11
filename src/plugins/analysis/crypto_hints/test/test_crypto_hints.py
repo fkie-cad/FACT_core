@@ -18,3 +18,17 @@ class TestAnalysisPluginCryptoHints(AnalysisPluginTest):
         processed_file = self.analysis_plugin.process_object(test_file)
         result = processed_file.processed_analysis[self.PLUGIN_NAME]
         assert 'CRC32_table' in result
+
+    def test_additional_rules(self):
+        test_file = FileObject(file_path=str(TEST_DATA_DIR / 'additional_rules_test_file'))
+        processed_file = self.analysis_plugin.process_object(test_file)
+        result = processed_file.processed_analysis[self.PLUGIN_NAME]
+        for rule in [
+            'secp256r1',
+            'AES_Constants',
+            'SMIME_IDs',
+            'Tiger_Hash_Constants',
+            'camellia_constants',
+            'present_cipher',
+        ]:
+            assert rule in result

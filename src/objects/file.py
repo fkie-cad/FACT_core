@@ -153,7 +153,7 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
     @uid.setter
     def uid(self, new_uid: str):
         if self._uid is not None:
-            logging.warning('uid overwrite: Uid might not be related to binary data anymore: {} -> {}'.format(self._uid, new_uid))
+            logging.warning(f'uid overwrite: Uid might not be related to binary data anymore: {self._uid} -> {new_uid}')
         self._uid = new_uid
 
     def get_hid(self, root_uid: str = None) -> str:
@@ -208,7 +208,7 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
                 base_path = get_base_of_virtual_path(item)
                 if base_path:
                     base_path += '|'
-                self.virtual_file_path[self.root_uid].append('{}{}|{}'.format(base_path, parent_uid, self.file_path))
+                self.virtual_file_path[self.root_uid].append(f'{base_path}{parent_uid}|{self.file_path}')
 
     def get_virtual_paths_for_one_uid(self, root_uid: str = None) -> List[str]:
         '''
@@ -259,7 +259,7 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
         return list(self.get_virtual_file_paths().keys())[0]
 
     def __str__(self) -> str:
-        return 'UID: {}\n Processed analysis: {}\n Files included: {}'.format(self.uid, list(self.processed_analysis.keys()), self.files_included)
+        return f'UID: {self.uid}\n Processed analysis: {list(self.processed_analysis.keys())}\n Files included: {self.files_included}'
 
     def __repr__(self) -> str:
         return self.__str__()

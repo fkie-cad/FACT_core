@@ -61,11 +61,11 @@ class TestAcceptanceAdvancedSearch(TestAcceptanceBase):
         response = self.test_client.post('/database/advanced_search', content_type='multipart/form-data', follow_redirects=True, data=query).data.decode()
         assert 'Please enter a valid search request' not in response
         assert self.child_fo.uid not in response
-        assert '<strong>UID:</strong> {}'.format(self.parent_fw.uid) not in response
-        assert '<strong>UID:</strong> {}'.format(self.other_fw.uid) in response
+        assert f'<strong>UID:</strong> {self.parent_fw.uid}' not in response
+        assert f'<strong>UID:</strong> {self.other_fw.uid}' in response
 
     def test_rest_recursive_firmware_search(self):
         query = quote(json.dumps({'file_name': self.child_fo.file_name}))
-        response = self.test_client.get('/rest/firmware?recursive=true&query={}'.format(query)).data
+        response = self.test_client.get(f'/rest/firmware?recursive=true&query={query}').data
         assert b'error_message' not in response
         assert self.parent_fw.uid.encode() in response

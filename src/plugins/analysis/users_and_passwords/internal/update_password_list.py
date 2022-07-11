@@ -19,8 +19,8 @@ THIS_FILE_DIR = get_dir_of_file(__file__)
 
 
 def _setup_argparser():
-    parser = argparse.ArgumentParser(description='{} - {}'.format(PROGRAM_NAME, PROGRAM_DESCRIPTION))
-    parser.add_argument('-V', '--version', action='version', version='{} {}'.format(PROGRAM_NAME, PROGRAM_VERSION))
+    parser = argparse.ArgumentParser(description=f'{PROGRAM_NAME} - {PROGRAM_DESCRIPTION}')
+    parser.add_argument('-V', '--version', action='version', version=f'{PROGRAM_NAME} {PROGRAM_VERSION}')
     parser.add_argument('-d', '--debug', action='store_true', default=False, help='print debug messages')
     parser.add_argument('-p', '--password_lists_directory', default=os.path.join(THIS_FILE_DIR, 'passwords'))
     parser.add_argument('-o', '--output_file', default=os.path.join(THIS_FILE_DIR, '../../../..', 'bin/passwords.txt'))
@@ -50,15 +50,15 @@ if __name__ == '__main__':
 
     logging.info('Update Password List...')
 
-    logging.debug('remove old password file: {}'.format(args.output_file))
+    logging.debug(f'remove old password file: {args.output_file}')
     delete_file(args.output_file)
 
-    logging.debug('read password files in {}'.format(args.password_lists_directory))
+    logging.debug(f'read password files in {args.password_lists_directory}')
     passwords = get_merged_password_set(args.password_lists_directory)
 
-    logging.info('{} unique passwords found'.format(len(passwords)))
+    logging.info(f'{len(passwords)} unique passwords found')
 
-    logging.debug('writing passwords to file {}'.format(args.output_file))
+    logging.debug(f'writing passwords to file {args.output_file}')
     _write_password_file(passwords, args.output_file)
 
     sys.exit()

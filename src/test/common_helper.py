@@ -12,6 +12,7 @@ from typing import List, Optional, Union
 from helperFunctions.config import load_config
 from helperFunctions.data_conversion import get_value_of_first_key
 from helperFunctions.fileSystem import get_src_dir
+from helperFunctions.tag import TagColor
 from objects.file import FileObject
 from objects.firmware import Firmware
 from storage.db_setup import DbSetup
@@ -29,6 +30,7 @@ def create_test_firmware(device_class='Router', device_name='test_router', vendo
     fw.device_class = device_class
     fw.device_name = device_name
     fw.vendor = vendor
+    fw.tags = {'test_tag': TagColor.GRAY}
 
     fw.release_date = '1970-01-01'
     fw.version = version

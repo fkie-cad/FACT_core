@@ -6,7 +6,12 @@ To install all dependencies, simply rerun the installation::
 
     $ python3 src/install.py
 
-Existing analysis and comparison results from your old FACT installation have to be migrated to the new database. You can use the migration script for this::
+Existing analysis and comparison results from your old FACT installation have to be migrated to the new database.
+First you need to start the database::
+
+    $ mongod --config config/mongod.conf
+
+Then you can start the migration script::
 
     $ python3 src/migrate_db_to_postgresql.py
 

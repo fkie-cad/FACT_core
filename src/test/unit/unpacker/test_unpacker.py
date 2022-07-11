@@ -55,7 +55,7 @@ class TestUnpackerCore(TestUnpackerBase):
         self.assertEqual(len(file_objects), 1, 'number of objects not correct')
         self.assertEqual(file_objects[0].file_name, 'testfile1', 'wrong object created')
         parent_uid = self.test_fo.uid
-        self.assertIn('|{}|/get_files_test/testfile1'.format(parent_uid), file_objects[0].virtual_file_path[self.test_fo.uid])
+        self.assertIn(f'|{parent_uid}|/get_files_test/testfile1', file_objects[0].virtual_file_path[self.test_fo.uid])
 
     def test_remove_duplicates_child_equals_parent(self):
         parent = FileObject(binary=b'parent_content')

@@ -167,7 +167,7 @@ class CompareRoutes(ComponentBase):
             file1.content.splitlines(keepends=True), file2.content.splitlines(keepends=True),
             fromfile=f'{file1.file_name}', tofile=f'{file2.file_name}'
         )
-        return ''.join(diff_list).replace('`', '\\`')
+        return ''.join(diff_list)
 
     def _get_data_for_file_diff(self, uid: str, root_uid: Optional[str]) -> FileDiffData:
         with ConnectTo(self.intercom, self._config) as db:
