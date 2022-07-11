@@ -49,7 +49,7 @@ class Vulnerability:
 class SingleRule:
     def __init__(self, value_path, relation, comparison):
         for assertion, error_message in [
-            (isinstance(value_path, list), 'value_path must be list of dot seperated access strings'),
+            (isinstance(value_path, list), 'value_path must be list of dot separated access strings'),
             (relation in RELATIONS, f'relation must be one of {list(RELATIONS.keys())}')
         ]:
             if not assertion:
@@ -76,7 +76,7 @@ class MetaRule:
 class SubPathRule:
     def __init__(self, base_path, meta_rule):
         for assertion, error_message in [
-            (isinstance(base_path, list), 'base_path must be list of dot seperated access strings'),
+            (isinstance(base_path, list), 'base_path must be list of dot separated access strings'),
             (isinstance(meta_rule, MetaRule), 'rules must be a MetaRule')
         ]:
             if not assertion:
@@ -130,8 +130,8 @@ def _get_value(analysis, value_path):
     value = _get_dotted_path_from_dictionary(analysis, part)
     if isinstance(value, list) and path_copy:
         return [_get_value(item, path_copy) for item in value]
-    elif isinstance(value, list):
-        return [item for item in value]
+    if isinstance(value, list):
+        return value
     return value
 
 
@@ -140,9 +140,8 @@ def _get_dotted_path_from_dictionary(dictionary, dotted_path):
         raise ValueError(f'path {dotted_path} can only be extracted from dict - not {type(dictionary)}')
     if '.' not in dotted_path:
         return dictionary[dotted_path]
-    else:
-        split_path = dotted_path.split('.')
-        return _get_dotted_path_from_dictionary(dictionary[split_path[0]], '.'.join(split_path[1:]))
+    split_path = dotted_path.split('.')
+    return _get_dotted_path_from_dictionary(dictionary[split_path[0]], '.'.join(split_path[1:]))
 
 
 def vulnerabilities():
@@ -154,7 +153,7 @@ def vulnerabilities():
     heartbleed_vulnerability = Vulnerability(
         rule=heartbleed_rule,
         short_name='Heartbleed',
-        description='The SSL Hearbleed bug allowing buffer overread',
+        description='The SSL Heartbleed bug allowing buffer over-read',
         score='high',
         reliability='90',
         link='https://nvd.nist.gov/vuln/detail/CVE-2014-0160'
