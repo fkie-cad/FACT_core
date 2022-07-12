@@ -42,18 +42,18 @@ class AnalysisRoutes(ComponentBase):
     @AppRoute('/analysis/<uid>/<selected_analysis>/ro/<root_uid>', GET)
     def show_analysis(self, uid, selected_analysis=None, root_uid=None):
         other_versions = None
-        all_comparisons = self.db.comparison().page_comparison_results()
-        with get_shared_session(self.db.frontend()) as db:
+        all_comparisons = self.db.comparison.page_comparison_results()
+        with get_shared_session(self.db.frontend) as frontend_db:
             known_comparisons = [comparison for comparison in all_comparisons if uid in comparison[0]]
-            file_obj = db.get_object(uid)
+            file_obj = frontend_db.get_object(uid)
             if not file_obj:
                 return render_template('uid_not_found.html', uid=uid)
             if selected_analysis is not None and selected_analysis not in file_obj.processed_analysis:
                 return render_template('error.html', message=f'The requested analysis ({selected_analysis}) has not run (yet)')
             if isinstance(file_obj, Firmware):
                 root_uid = file_obj.uid
-                other_versions = db.get_other_versions_of_firmware(file_obj)
-            included_fo_analysis_complete = not db.all_uids_found_in_database(list(file_obj.files_included))
+                other_versions = frontend_db.get_other_versions_of_firmware(file_obj)
+            included_fo_analysis_complete = not frontend_db.all_uids_found_in_database(list(file_obj.files_included))
         with ConnectTo(self.intercom, self._config) as sc:
             analysis_plugins = sc.get_available_analysis_plugins()
         return render_template_string(
@@ -87,7 +87,7 @@ class AnalysisRoutes(ComponentBase):
     @AppRoute('/analysis/<uid>/<selected_analysis>', POST)
     @AppRoute('/analysis/<uid>/<selected_analysis>/ro/<root_uid>', POST)
     def start_single_file_analysis(self, uid, selected_analysis=None, root_uid=None):
-        file_object = self.db.frontend().get_object(uid)
+        file_object = self.db.frontend.get_object(uid)
         file_object.scheduled_analysis = request.form.getlist('analysis_systems')
         file_object.force_update = request.form.get('force_update') == 'true'
         with ConnectTo(self.intercom, self._config) as intercom:
@@ -104,7 +104,7 @@ class AnalysisRoutes(ComponentBase):
     def _get_analysis_view(self, selected_analysis):
         if selected_analysis == 'unpacker':
             return self.analysis_unpacker_view
-        view = self.db.template().get_view(selected_analysis)
+        view = self.db.template.get_view(selected_analysis)
         if view:
             return view.decode('utf-8')
         return self.analysis_generic_view
@@ -112,14 +112,14 @@ class AnalysisRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @AppRoute('/update-analysis/<uid>', GET)
     def get_update_analysis(self, uid, re_do=False, error=None):
-        with get_shared_session(self.db.frontend()) as db:
-            old_firmware = db.get_object(uid=uid)
+        with get_shared_session(self.db.frontend) as frontend_db:
+            old_firmware = frontend_db.get_object(uid=uid)
             if old_firmware is None:
                 return render_template('uid_not_found.html', uid=uid)
 
-            device_class_list = db.get_device_class_list()
-            vendor_list = db.get_vendor_list()
-            device_name_dict = db.get_device_name_dict()
+            device_class_list = frontend_db.get_device_class_list()
+            vendor_list = frontend_db.get_vendor_list()
+            device_name_dict = frontend_db.get_device_name_dict()
 
         device_class_list.remove(old_firmware.device_class)
         vendor_list.remove(old_firmware.vendor)
@@ -163,9 +163,9 @@ class AnalysisRoutes(ComponentBase):
     def _schedule_re_analysis_task(self, uid, analysis_task, re_do, force_reanalysis=False):
         if re_do:
             base_fw = None
-            self.db.admin().delete_firmware(uid, delete_root_file=False)
+            self.db.admin.delete_firmware(uid, delete_root_file=False)
         else:
-            base_fw = self.db.frontend().get_object(uid)
+            base_fw = self.db.frontend.get_object(uid)
             base_fw.force_update = force_reanalysis
         fw = convert_analysis_task_to_fw_obj(analysis_task, base_fw=base_fw)
         with ConnectTo(self.intercom, self._config) as sc:
@@ -181,10 +181,10 @@ class AnalysisRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['view_analysis'])
     @AppRoute('/dependency-graph/<uid>/<root_uid>', GET)
     def show_elf_dependency_graph(self, uid, root_uid):
-        with get_shared_session(self.db.frontend()) as db:
+        with get_shared_session(self.db.frontend) as frontend_db:
             if root_uid in [None, 'None']:
-                root_uid = db.get_object(uid).get_root_uid()
-            data = db.get_data_for_dependency_graph(uid)
+                root_uid = frontend_db.get_object(uid).get_root_uid()
+            data = frontend_db.get_data_for_dependency_graph(uid)
 
         whitelist = ['application/x-executable', 'application/x-pie-executable', 'application/x-sharedlib', 'inode/symlink']
 

@@ -23,7 +23,7 @@ class RestStatus(RestResourceBase):
         components = ['frontend', 'database', 'backend']
         status = {}
         for component in components:
-            status[component] = self.db.stats_viewer().get_statistic(component)
+            status[component] = self.db.stats_viewer.get_statistic(component)
 
         with ConnectTo(self.intercom, self.config) as sc:
             plugins = sc.get_available_analysis_plugins()

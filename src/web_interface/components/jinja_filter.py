@@ -7,6 +7,7 @@ from flask import render_template
 
 import web_interface.filter as flt
 from helperFunctions.data_conversion import none_to_none
+from helperFunctions.database import get_shared_session
 from helperFunctions.hash import get_md5
 from helperFunctions.uid import is_list_of_uids, is_uid
 from helperFunctions.virtual_file_path import split_virtual_path
@@ -35,9 +36,10 @@ class FilterClass:
     def _filter_replace_uid_with_file_name(self, input_data):
         tmp = input_data.__str__()
         uid_list = flt.get_all_uids_in_string(tmp)
-        for item in uid_list:
-            file_name = self.db.frontend().get_file_name(item)
-            tmp = tmp.replace(f'>{item}<', f'>{file_name}<')
+        with get_shared_session(self.db.frontend) as frontend_db:
+            for item in uid_list:
+                file_name = frontend_db.get_file_name(item)
+                tmp = tmp.replace(f'>{item}<', f'>{file_name}<')
         return tmp
 
     def _filter_replace_uid_with_hid(self, input_data, root_uid=None):
@@ -46,7 +48,7 @@ class FilterClass:
             return ' '
         uid_list = flt.get_all_uids_in_string(tmp)
         for item in uid_list:
-            tmp = tmp.replace(item, self.db.frontend().get_hid(item, root_uid=root_uid))
+            tmp = tmp.replace(item, self.db.frontend.get_hid(item, root_uid=root_uid))
         return tmp
 
     def _filter_replace_comparison_uid_with_hid(self, input_data, root_uid=None):
@@ -60,7 +62,7 @@ class FilterClass:
             return ' '
         uid_list = flt.get_all_uids_in_string(content)
         for uid in uid_list:
-            hid = self.db.frontend().get_hid(uid, root_uid=root_uid)
+            hid = self.db.frontend.get_hid(uid, root_uid=root_uid)
             content = content.replace(uid, f'<a style="text-reset" href="/analysis/{uid}/ro/{root_uid}">{hid}</a>')
         return content
 
@@ -69,7 +71,7 @@ class FilterClass:
         if not is_list_of_uids(uids):
             return uids
 
-        analyzed_uids = self.db.frontend().get_data_for_nice_list(uids, root_uid)
+        analyzed_uids = self.db.frontend.get_data_for_nice_list(uids, root_uid)
         number_of_unanalyzed_files = len(uids) - len(analyzed_uids)
         first_item = analyzed_uids.pop(0)
 

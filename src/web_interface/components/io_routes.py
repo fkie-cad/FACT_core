@@ -35,10 +35,10 @@ class IORoutes(ComponentBase):
     @AppRoute('/upload', GET)
     def get_upload(self, error=None):
         error = error or {}
-        with get_shared_session(self.db.frontend()) as db:
-            device_class_list = db.get_device_class_list()
-            vendor_list = db.get_vendor_list()
-            device_name_dict = db.get_device_name_dict()
+        with get_shared_session(self.db.frontend) as frontend_db:
+            device_class_list = frontend_db.get_device_class_list()
+            vendor_list = frontend_db.get_vendor_list()
+            device_name_dict = frontend_db.get_device_name_dict()
         with ConnectTo(self.intercom, self._config) as sc:
             analysis_plugins = sc.get_available_analysis_plugins()
         return render_template(
@@ -61,7 +61,7 @@ class IORoutes(ComponentBase):
         return self._prepare_file_download(uid, packed=True)
 
     def _prepare_file_download(self, uid, packed=False):
-        if not self.db.frontend().exists(uid):
+        if not self.db.frontend.exists(uid):
             return render_template('uid_not_found.html', uid=uid)
         with ConnectTo(self.intercom, self._config) as sc:
             if packed:
@@ -79,7 +79,7 @@ class IORoutes(ComponentBase):
     @AppRoute('/ida-download/<compare_id>', GET)
     def download_ida_file(self, compare_id):
         # FixMe: IDA comparison plugin must not add binary strings to the result (not JSON compatible)
-        result = self.db.comparison().get_comparison_result(compare_id)
+        result = self.db.comparison.get_comparison_result(compare_id)
         if result is None:
             return render_template('error.html', message=f'Comparison with ID {compare_id} not found')
         binary = result['plugins']['Ida_Diff_Highlighting']['idb_binary']
@@ -90,7 +90,7 @@ class IORoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['download'])
     @AppRoute('/radare-view/<uid>', GET)
     def show_radare(self, uid):
-        object_exists = self.db.frontend().exists(uid)
+        object_exists = self.db.frontend.exists(uid)
         if not object_exists:
             return render_template('uid_not_found.html', uid=uid)
         with ConnectTo(self.intercom, self._config) as sc:
@@ -119,12 +119,12 @@ class IORoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['download'])
     @AppRoute('/pdf-download/<uid>', GET)
     def download_pdf_report(self, uid):
-        with get_shared_session(self.db.frontend()) as db:
-            object_exists = db.exists(uid)
+        with get_shared_session(self.db.frontend) as frontend_db:
+            object_exists = frontend_db.exists(uid)
             if not object_exists:
                 return render_template('uid_not_found.html', uid=uid)
 
-            firmware = db.get_complete_object_including_all_summaries(uid)
+            firmware = frontend_db.get_complete_object_including_all_summaries(uid)
 
         try:
             with TemporaryDirectory(dir=self._config['data-storage']['docker-mount-base-dir']) as folder:

@@ -35,7 +35,7 @@ class RestBinary(RestResourceBase):
         Alternatively the tar parameter can be used to get the target archive as its content repacked into a .tar.gz.
         The return format will be {"binary": b64_encoded_binary_or_tar_gz, "file_name": file_name}
         '''
-        if not self.db.frontend().exists(uid):
+        if not self.db.frontend.exists(uid):
             return error_message(f'No firmware with UID {uid} found in database', self.URL,
                                  request_data={'uid': uid}, return_code=404)
 

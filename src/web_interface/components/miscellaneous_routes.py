@@ -17,17 +17,17 @@ from web_interface.security.privileges import PRIVILEGES
 class MiscellaneousRoutes(ComponentBase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.stats_updater = StatsUpdater(stats_db=self.db.stats_updater())
+        self.stats_updater = StatsUpdater(stats_db=self.db.stats_updater)
 
     @login_required
     @roles_accepted(*PRIVILEGES['status'])
     @AppRoute('/', GET)
     def show_home(self):
         latest_count = int(self._config['database'].get('number-of-latest-firmwares-to-display', '10'))
-        with get_shared_session(self.db.frontend()) as db:
-            latest_firmware_submissions = db.get_last_added_firmwares(latest_count)
-            latest_comments = db.get_latest_comments(latest_count)
-        latest_comparison_results = self.db.comparison().page_comparison_results(limit=10)
+        with get_shared_session(self.db.frontend) as frontend_db:
+            latest_firmware_submissions = frontend_db.get_last_added_firmwares(latest_count)
+            latest_comments = frontend_db.get_latest_comments(latest_count)
+        latest_comparison_results = self.db.comparison.page_comparison_results(limit=10)
         ajax_stats_reload_time = int(self._config['database']['ajax-stats-reload-time'])
         general_stats = self.stats_updater.get_general_stats()
 
@@ -49,27 +49,27 @@ class MiscellaneousRoutes(ComponentBase):
     def post_comment(self, uid):
         comment = request.form['comment']
         author = request.form['author']
-        self.db.editing().add_comment_to_object(uid, comment, author, round(time()))
+        self.db.editing.add_comment_to_object(uid, comment, author, round(time()))
         return redirect(url_for('show_analysis', uid=uid))
 
     @roles_accepted(*PRIVILEGES['comment'])
     @AppRoute('/comment/<uid>', GET)
     def show_add_comment(self, uid):
-        error = not self.db.frontend().exists(uid)
+        error = not self.db.frontend.exists(uid)
         return render_template('add_comment.html', uid=uid, error=error)
 
     @roles_accepted(*PRIVILEGES['delete'])
     @AppRoute('/admin/delete_comment/<uid>/<timestamp>', GET)
     def delete_comment(self, uid, timestamp):
-        self.db.editing().delete_comment(uid, timestamp)
+        self.db.editing.delete_comment(uid, timestamp)
         return redirect(url_for('show_analysis', uid=uid))
 
     @roles_accepted(*PRIVILEGES['delete'])
     @AppRoute('/admin/delete/<uid>', GET)
     def delete_firmware(self, uid):
-        if not self.db.frontend().is_firmware(uid):
+        if not self.db.frontend.is_firmware(uid):
             return render_template('error.html', message=f'Firmware not found in database: {uid}')
-        deleted_virtual_path_entries, deleted_files = self.db.admin().delete_firmware(uid)
+        deleted_virtual_path_entries, deleted_files = self.db.admin.delete_firmware(uid)
         return render_template(
             'delete_firmware.html',
             deleted_vps=deleted_virtual_path_entries,
@@ -88,7 +88,7 @@ class MiscellaneousRoutes(ComponentBase):
 
     def _find_missing_analyses(self):
         start = time()
-        missing_analyses = self.db.frontend().find_missing_analyses()
+        missing_analyses = self.db.frontend.find_missing_analyses()
         return {
             'tuples': list(missing_analyses.items()),
             'count': self._count_values(missing_analyses),
@@ -101,7 +101,7 @@ class MiscellaneousRoutes(ComponentBase):
 
     def _find_failed_analyses(self):
         start = time()
-        failed_analyses = self.db.frontend().find_failed_analyses()
+        failed_analyses = self.db.frontend.find_failed_analyses()
         return {
             'tuples': list(failed_analyses.items()),
             'count': self._count_values(failed_analyses),

@@ -10,7 +10,7 @@ from storage.db_interface_stats import StatsDbViewer, StatsUpdateDbInterface
 from storage.db_interface_view_sync import ViewReader
 
 
-class FrontendDatabase:
+class FrontendDatabase:  # pylint: disable=too-many-instance-attributes
     def __init__(  # pylint: disable=too-many-arguments
             self,
             config: ConfigParser,
@@ -36,23 +36,30 @@ class FrontendDatabase:
         self._stats_viewer = stats_viewer if stats_viewer is not None else StatsDbViewer
         self._stats_updater = stats_updater if stats_updater is not None else StatsUpdateDbInterface
 
+    @property
     def frontend(self) -> FrontEndDbInterface:
         return self._frontend(self.config, self._ro_connection)
 
+    @property
     def editing(self) -> FrontendEditingDbInterface:
         return self._editing(self.config, self._rw_connection)
 
+    @property
     def admin(self) -> AdminDbInterface:
         return self._admin(self.config, self._del_connection)
 
+    @property
     def comparison(self) -> ComparisonDbInterface:
         return self._comparison(self.config, self._rw_connection)
 
+    @property
     def template(self) -> ViewReader:
         return self._template(self.config, self._ro_connection)
 
+    @property
     def stats_viewer(self) -> StatsDbViewer:
         return self._stats_viewer(self.config, self._ro_connection)
 
+    @property
     def stats_updater(self) -> StatsUpdateDbInterface:
         return self._stats_updater(self.config, self._rw_connection)

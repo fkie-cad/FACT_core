@@ -1,7 +1,6 @@
 # pylint: disable=attribute-defined-outside-init
 import gc
 from tempfile import TemporaryDirectory
-from typing import Type
 from unittest.mock import patch
 
 from test.common_helper import CommonDatabaseMock, CommonIntercomMock, get_config_for_testing
@@ -18,7 +17,7 @@ DB_INTERFACES = [
 
 
 class FrontendDbMock:
-    def __init__(self, db_mock: Type[CommonDatabaseMock]):
+    def __init__(self, db_mock: CommonDatabaseMock):
         self.frontend = db_mock
         self.editing = db_mock
         self.admin = db_mock
@@ -49,7 +48,7 @@ class WebInterfaceTest:
         cls.db_mock = db_mock
         cls.intercom = intercom_mock
         cls._init_patches()
-        cls.frontend = WebFrontEnd(config=cls.config, db=FrontendDbMock(db_mock), intercom=intercom_mock)
+        cls.frontend = WebFrontEnd(config=cls.config, db=FrontendDbMock(db_mock()), intercom=intercom_mock)
         cls.frontend.app.config['TESTING'] = True
         cls.test_client = cls.frontend.app.test_client()
 

@@ -34,9 +34,9 @@ class RestStatisticsWithoutName(RestResourceBase):
         '''
         statistics_dict = {}
 
-        with get_shared_session(self.db.stats_viewer()) as db:
+        with get_shared_session(self.db.stats_viewer) as stats_db:
             for stat in STATISTICS:
-                statistics_dict[stat] = db.get_statistic(stat)
+                statistics_dict[stat] = stats_db.get_statistic(stat)
 
         _delete_id_and_check_empty_stat(statistics_dict)
 
@@ -59,7 +59,7 @@ class RestStatisticsWithName(RestResourceBase):
         '''
         Get specific statistic
         '''
-        statistic_dict = {stat_name: self.db.stats_viewer().get_statistic(stat_name)}
+        statistic_dict = {stat_name: self.db.stats_viewer.get_statistic(stat_name)}
         _delete_id_and_check_empty_stat(statistic_dict)
         if stat_name not in STATISTICS:
             return error_message(f'A statistic with the ID {stat_name} does not exist', self.URL, dict(stat_name=stat_name))

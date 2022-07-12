@@ -22,10 +22,10 @@ class RestMissingAnalyses(RestResourceBase):
         Search for missing files or missing analyses
         Search for missing or orphaned files and missing or failed analyses
         '''
-        with get_shared_session(self.db.frontend()) as db:
+        with get_shared_session(self.db.frontend) as frontend_db:
             missing_analyses_data = {
-                'missing_analyses': self._make_json_serializable(db.find_missing_analyses()),
-                'failed_analyses': self._make_json_serializable(db.find_failed_analyses()),
+                'missing_analyses': self._make_json_serializable(frontend_db.find_missing_analyses()),
+                'failed_analyses': self._make_json_serializable(frontend_db.find_failed_analyses()),
             }
         return success_message(missing_analyses_data, self.URL)
 

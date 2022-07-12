@@ -33,7 +33,7 @@ class RestComparePut(RestResourceBase):
         data = self.validate_payload_data(compare_model)
         compare_id = normalize_compare_id(';'.join(data['uid_list']))
 
-        with get_shared_session(self.db.comparison()) as db:
+        with get_shared_session(self.db.comparison) as db:
             if db.comparison_exists(compare_id) and not data['redo']:
                 return error_message(
                     'Compare already exists. Use "redo" to force re-compare.',
@@ -87,7 +87,7 @@ class RestCompareGet(RestResourceBase):
             )
 
         result = None
-        with get_shared_session(self.db.comparison()) as db:
+        with get_shared_session(self.db.comparison) as db:
             if db.comparison_exists(compare_id):
                 result = db.get_comparison_result(compare_id)
         if result:
