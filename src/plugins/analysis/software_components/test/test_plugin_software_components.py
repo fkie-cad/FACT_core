@@ -28,8 +28,9 @@ class TestAnalysisPluginsSoftwareComponents(AnalysisPluginTest):
         self.assertTrue((10, '$a', 'MyTestRule 0.1.3.') in results['MyTestRule']['strings'], 'string not found')
         self.assertTrue('0.1.3' in results['MyTestRule']['meta']['version'], 'Version not detected')
         self.assertEqual(len(results['MyTestRule']['strings']), 1, 'to much strings found')
-        self.assertEqual(len(results['summary']), 1, 'Number of summary results not correct')
-        self.assertIn('Test Software 0.1.3', results['summary'])
+        summary = processed_file.processed_analysis[self.PLUGIN_NAME]['summary']
+        self.assertEqual(len(summary), 1, 'Number of summary results not correct')
+        self.assertIn('Test Software 0.1.3', summary)
 
     def check_version(self, input_string, version):
         self.assertEqual(self.analysis_plugin.get_version(input_string, {}), version, f'{version} not found correctly')

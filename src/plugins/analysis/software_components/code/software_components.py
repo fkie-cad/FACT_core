@@ -39,8 +39,8 @@ class AnalysisPlugin(YaraBasePlugin):
     def process_object(self, file_object):
         file_object = super().process_object(file_object)
         analysis = file_object.processed_analysis[self.NAME]
-        result = file_object.processed_analysis[self.NAME]["result"]
-        if len(result) > 1:
+        result = file_object.processed_analysis[self.NAME]['result']
+        if len(result) > 0:
             result = self.add_version_information(result, file_object)
             analysis['summary'] = self._get_summary(result)
 
@@ -61,7 +61,7 @@ class AnalysisPlugin(YaraBasePlugin):
     @staticmethod
     def _get_summary(results: dict) -> List[str]:
         summary = set()
-        for key, result in results.items():
+        for result in results.values():
             software = result['meta']['software_name']
             for version in result['meta']['version']:
                 summary.add(f'{software} {version}')

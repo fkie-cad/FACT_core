@@ -35,17 +35,17 @@ class TestAnalysisYaraBasePlugin(AnalysisPluginTest):
         test_file = FileObject(file_path=os.path.join(get_test_data_dir(), 'yara_test_file'))
         test_file.processed_analysis.update({self.PLUGIN_NAME: []})
         processed_file = self.analysis_plugin.process_object(test_file)
-        results = processed_file.processed_analysis[self.PLUGIN_NAME]
-        assert len(results) == 2, 'not all matches found'
+        results = processed_file.processed_analysis[self.PLUGIN_NAME]['result']
+        assert len(results) == 1, 'not all matches found'
         assert 'testRule' in results, 'testRule match not found'
-        assert results['summary'] == ['testRule']
+        assert processed_file.processed_analysis[self.PLUGIN_NAME]['summary'] == ['testRule']
 
     def test_process_object_nothing_found(self):
         test_file = FileObject(file_path=os.path.join(get_test_data_dir(), 'zero_byte'))
         test_file.processed_analysis.update({self.PLUGIN_NAME: []})
         processed_file = self.analysis_plugin.process_object(test_file)
-        self.assertEqual(len(processed_file.processed_analysis[self.PLUGIN_NAME]), 1, 'result present but should not')
-        self.assertEqual(processed_file.processed_analysis[self.PLUGIN_NAME]['summary'], [], 'summary not empty')
+        assert len(processed_file.processed_analysis[self.PLUGIN_NAME]['result']) == 0, 'result present but should not'
+        assert processed_file.processed_analysis[self.PLUGIN_NAME]['summary'] == [], 'summary not empty'
 
 
 def test_parse_yara_output():
