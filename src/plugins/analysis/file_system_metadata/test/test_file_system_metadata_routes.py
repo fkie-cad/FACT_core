@@ -2,6 +2,7 @@
 from base64 import b64encode
 from unittest import TestCase
 
+from decorator import contextmanager
 from flask import Flask
 from flask_restx import Api
 
@@ -41,6 +42,10 @@ class DbInterfaceMock:
         if uid == self.fw.uid and plugin == AnalysisPlugin.NAME:
             return {'files': {b64_encode('some_file'): {'test_result': 'test_value'}}}
         return None
+
+    @contextmanager
+    def get_read_only_session(self):
+        yield None
 
 
 class TestFileSystemMetadataRoutesStatic:
