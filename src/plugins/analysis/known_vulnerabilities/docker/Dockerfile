@@ -4,12 +4,12 @@ FROM fkiecad/ghidra_headless_base:10.1.2
 VOLUME ["/work"]
 WORKDIR /work
 
-ADD ghidra_scripts /ghidra_scripts
+ADD scripts /work/scripts
 
 ENTRYPOINT [ \
     "analyzeHeadless", \
     "/tmp", "temporary_project", \
-    "-postScript", "/ghidra_scripts/format_string_version.py", \
+    "-postScript", "/work/scripts/detect_CVE-2021-45608.py", \
     "-deleteProject", \
-    "-import", "ghidra_input" \
+    "-import", "/io/ghidra_input" \
 ]
