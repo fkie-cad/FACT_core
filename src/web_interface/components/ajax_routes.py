@@ -51,8 +51,8 @@ class AjaxRoutes(ComponentBase):
     @AppRoute('/ajax_root/<uid>/<root_uid>', GET)
     def ajax_get_tree_root(self, uid, root_uid):
         root = []
-        with get_shared_session(self.db.frontend) as db:
-            for node in db.generate_file_tree_level(uid, root_uid):  # only a single item in this 'iterable'
+        with get_shared_session(self.db.frontend) as frontend_db:
+            for node in frontend_db.generate_file_tree_level(uid, root_uid):  # only a single item in this 'iterable'
                 root = [convert_to_jstree_node(node)]
         root = remove_virtual_path_from_root(root)
         return jsonify(root)
