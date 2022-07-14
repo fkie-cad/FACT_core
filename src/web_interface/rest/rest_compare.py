@@ -87,9 +87,9 @@ class RestCompareGet(RestResourceBase):
             )
 
         result = None
-        with get_shared_session(self.db.comparison) as db:
-            if db.comparison_exists(compare_id):
-                result = db.get_comparison_result(compare_id)
+        with get_shared_session(self.db.comparison) as comparison_db:
+            if comparison_db.comparison_exists(compare_id):
+                result = comparison_db.get_comparison_result(compare_id)
         if result:
             return success_message(result, self.URL, request_data={'compare_id': compare_id}, return_code=202)
         return error_message('Compare not found in database. Please use /rest/start_compare to start the compare.', self.URL, request_data={'compare_id': compare_id}, return_code=404)
