@@ -40,10 +40,10 @@ class RestComparePut(RestResourceBase):
                     self.URL, request_data=request.json, return_code=200
                 )
 
-            if not db.objects_exist(compare_id):
+            if not comparison_db.objects_exist(compare_id):
                 missing_uids = ', '.join(
                     uid for uid in convert_compare_id_to_list(compare_id)
-                    if not db.exists(uid)
+                    if not comparison_db.exists(uid)
                 )
                 return error_message(
                     f'Some objects are not found in the database: {missing_uids}', self.URL,
