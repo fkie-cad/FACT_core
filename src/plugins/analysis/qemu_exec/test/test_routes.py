@@ -1,5 +1,5 @@
 # pylint: disable=protected-access,wrong-import-order,no-self-use,no-member,attribute-defined-outside-init
-
+from decorator import contextmanager
 from flask import Flask
 from flask_restx import Api
 
@@ -53,6 +53,10 @@ class DbInterfaceMock:
 
     def shutdown(self):
         pass
+
+    @contextmanager
+    def get_read_only_session(self):
+        yield None
 
 
 class TestQemuExecRoutesStatic:

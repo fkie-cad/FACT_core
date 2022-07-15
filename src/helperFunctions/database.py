@@ -1,5 +1,6 @@
 from configparser import ConfigParser
-from typing import Generic, Type, TypeVar
+from contextlib import contextmanager
+from typing import ContextManager, Generic, Type, TypeVar
 
 DatabaseInterface = TypeVar('DatabaseInterface')
 
@@ -29,3 +30,9 @@ class ConnectTo(Generic[DatabaseInterface]):
 
     def __exit__(self, *args):
         pass
+
+
+@contextmanager
+def get_shared_session(database: DatabaseInterface) -> ContextManager[DatabaseInterface]:
+    with database.get_read_only_session():
+        yield database

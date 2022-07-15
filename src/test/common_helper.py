@@ -341,13 +341,13 @@ def store_binary_on_file_system(tmp_dir: str, test_object: Union[FileObject, Fir
 
 def setup_test_tables(config):
     db_setup = DbSetup(config)
-    db_setup.create_tables()
+    db_setup.connection.create_tables()
     db_setup.set_table_privileges()
 
 
 def clear_test_tables(config):
     db_setup = DbSetup(config)
-    db_setup.base.metadata.drop_all(db_setup.engine)
+    db_setup.connection.base.metadata.drop_all(db_setup.connection.engine)
 
 
 def generate_analysis_entry(

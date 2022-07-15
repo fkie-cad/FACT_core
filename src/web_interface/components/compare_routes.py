@@ -8,7 +8,7 @@ from flask import redirect, render_template, render_template_string, request, se
 from helperFunctions.data_conversion import (
     convert_compare_id_to_list, convert_uid_list_to_compare_id, normalize_compare_id
 )
-from helperFunctions.database import ConnectTo
+from helperFunctions.database import ConnectTo, get_shared_session
 from helperFunctions.web_interface import get_template_as_string
 from web_interface.components.component_base import GET, AppRoute, ComponentBase
 from web_interface.pagination import extract_pagination_from_request, get_pagination
@@ -27,10 +27,10 @@ class CompareRoutes(ComponentBase):
     @AppRoute('/compare/<compare_id>', GET)
     def show_compare_result(self, compare_id):
         compare_id = normalize_compare_id(compare_id)
-        with self.db.comparison.get_read_only_session():
-            if not self.db.comparison.objects_exist(compare_id):
+        with get_shared_session(self.db.comparison) as comparison_db:
+            if not comparison_db.objects_exist(compare_id):
                 return render_template('compare/error.html', error='Not all UIDs found in the DB')
-            result = self.db.comparison.get_comparison_result(compare_id)
+            result = comparison_db.get_comparison_result(compare_id)
         if not result:
             return render_template('compare/wait.html', compare_id=compare_id)
         download_link = self._create_ida_download_if_existing(result, compare_id)
@@ -58,9 +58,9 @@ class CompareRoutes(ComponentBase):
         views, plugins_without_view = [], []
         with suppress(KeyError):
             used_plugins = list(compare_result['plugins'].keys())
-            with self.db.template.get_read_only_session():
+            with get_shared_session(self.db.template) as template_db:
                 for plugin in used_plugins:
-                    view = self.db.template.get_view(plugin)
+                    view = template_db.get_view(plugin)
                     if view:
                         views.append((plugin, view))
                     else:
@@ -78,11 +78,11 @@ class CompareRoutes(ComponentBase):
         session['uids_for_comparison'] = None
         redo = True if request.args.get('force_recompare') else None
 
-        with self.db.comparison.get_read_only_session():
-            if not self.db.comparison.objects_exist(comparison_id):
+        with get_shared_session(self.db.comparison) as comparison_db:
+            if not comparison_db.objects_exist(comparison_id):
                 return render_template('compare/error.html', error='Not all UIDs found in the DB')
 
-            if not redo and self.db.comparison.comparison_exists(comparison_id):
+            if not redo and comparison_db.comparison_exists(comparison_id):
                 return redirect(url_for('show_compare_result', compare_id=comparison_id))
 
         with ConnectTo(self.intercom, self._config) as sc:
@@ -98,15 +98,16 @@ class CompareRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['compare'])
     @AppRoute('/database/browse_compare', GET)
     def browse_comparisons(self):
-        page, per_page = extract_pagination_from_request(request, self._config)[0:2]
-        try:
-            compare_list = self.db.comparison.page_comparison_results(skip=per_page * (page - 1), limit=per_page)
-        except Exception as exception:
-            error_message = f'Could not query database: {type(exception)}'
-            logging.error(error_message, exc_info=True)
-            return render_template('error.html', message=error_message)
+        with get_shared_session(self.db.comparison) as comparison_db:
+            page, per_page = extract_pagination_from_request(request, self._config)[0:2]
+            try:
+                compare_list = comparison_db.page_comparison_results(skip=per_page * (page - 1), limit=per_page)
+            except Exception as exception:
+                error_message = f'Could not query database: {type(exception)}'
+                logging.error(error_message, exc_info=True)
+                return render_template('error.html', message=error_message)
 
-        total = self.db.comparison.get_total_number_of_results()
+            total = comparison_db.get_total_number_of_results()
 
         pagination = get_pagination(page=page, per_page=per_page, total=total, record_name='compare results')
         return render_template('database/compare_browse.html', compare_list=compare_list, page=page, per_page=per_page, pagination=pagination)
@@ -170,12 +171,14 @@ class CompareRoutes(ComponentBase):
         return ''.join(diff_list)
 
     def _get_data_for_file_diff(self, uid: str, root_uid: Optional[str]) -> FileDiffData:
-        with ConnectTo(self.intercom, self._config) as db:
-            content, _ = db.get_binary_and_filename(uid)
-        fo = self.db.frontend.get_object(uid)
-        if root_uid in [None, 'None']:
-            root_uid = fo.get_root_uid()
-        fw_hid = self.db.frontend.get_object(root_uid).get_hid()
+        with ConnectTo(self.intercom, self._config) as intercom:
+            content, _ = intercom.get_binary_and_filename(uid)
+
+        with get_shared_session(self.db.frontend) as frontend_db:
+            fo = frontend_db.get_object(uid)
+            if root_uid in [None, 'None']:
+                root_uid = fo.get_root_uid()
+            fw_hid = frontend_db.get_object(root_uid).get_hid()
         mime = fo.processed_analysis.get('file_type', {}).get('mime')
         return FileDiffData(uid, content.decode(errors='replace'), fo.file_name, mime, fw_hid)
 

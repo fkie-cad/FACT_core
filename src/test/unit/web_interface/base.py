@@ -43,7 +43,7 @@ class WebInterfaceTest:
 
     @classmethod
     def setup_class(cls, db_mock=CommonDatabaseMock, intercom_mock=CommonIntercomMock):  # pylint: disable=arguments-differ
-        cls.tmp_dir = TemporaryDirectory(prefix='fact_test_')
+        cls.tmp_dir = TemporaryDirectory(prefix='fact_test_')  # pylint: disable=consider-using-with
         cls.config = get_config_for_testing(cls.tmp_dir)
         cls.db_mock = db_mock
         cls.intercom = intercom_mock
