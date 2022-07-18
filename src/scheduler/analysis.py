@@ -320,7 +320,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
 
     def _analysis_is_already_in_db_and_up_to_date(self, analysis_to_do: str, uid: str) -> bool:
         db_entry = self.db_backend_service.get_analysis(uid, analysis_to_do)
-        if db_entry is None or 'failed' in db_entry:
+        if db_entry is None or 'failed' in db_entry.get('result', {}):
             return False
         if db_entry['plugin_version'] is None:
             logging.error(f'Plugin Version missing: UID: {uid}, Plugin: {analysis_to_do}')
@@ -360,7 +360,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
 
     def _get_skipped_analysis_result(self, analysis_to_do: str) -> dict:
         return {
-            'skipped': 'blacklisted file type',
+            'result': {'skipped': 'blacklisted file type'},
             'summary': [],
             'analysis_date': time(),
             'plugin_version': self.analysis_plugins[analysis_to_do].VERSION
@@ -383,7 +383,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
     def _get_file_type_from_object_or_db(self, fw_object: FileObject) -> Optional[str]:
         if 'file_type' not in fw_object.processed_analysis:
             self._add_completed_analysis_results_to_file_object('file_type', fw_object)
-        return fw_object.processed_analysis['file_type']['mime'].lower()
+        return fw_object.processed_analysis['file_type']['result']['mime'].lower()
 
     def _get_blacklist_and_whitelist(self, next_analysis: str) -> Tuple[List, List]:
         blacklist, whitelist = self._get_blacklist_and_whitelist_from_config(next_analysis)

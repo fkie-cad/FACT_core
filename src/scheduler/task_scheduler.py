@@ -76,7 +76,7 @@ class AnalysisTaskScheduler:
 
     def _get_failed_analysis_result(self, cause: str, plugin: str) -> dict:
         return {
-            'failed': cause,
+            'result': {'failed': cause},
             'plugin_version': self.plugins[plugin].VERSION,
             'analysis_date': time(),
         }

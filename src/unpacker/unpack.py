@@ -39,16 +39,26 @@ class Unpacker(UnpackBase):
             extracted_file_objects = self.remove_duplicates(extracted_file_objects, current_fo)
             self.add_included_files_to_object(extracted_file_objects, current_fo)
             # set meta data
-            current_fo.processed_analysis['unpacker'] = json.loads(Path(tmp_dir, 'reports', 'meta.json').read_text())
+            unpacker_meta_data = json.loads(Path(tmp_dir, 'reports', 'meta.json').read_text())
+            self._split_meta_and_plugin_results(unpacker_meta_data)
+            current_fo.processed_analysis['unpacker'] = unpacker_meta_data
 
         return extracted_file_objects
 
     @staticmethod
+    def _split_meta_and_plugin_results(unpacker_analysis: dict):
+        # FixMe: fix in extractor
+        meta_keys = {'tags', 'summary', 'analysis_date', 'plugin_version', 'system_version', 'file_system_flag'}
+        for key in list(unpacker_analysis.keys()):
+            if key not in meta_keys:
+                unpacker_analysis.setdefault('result', {})[key] = unpacker_analysis.pop(key)
+
+    @staticmethod
     def _store_unpacking_depth_skip_info(file_object: FileObject):
-        file_object.processed_analysis['unpacker'] = {
+        file_object.processed_analysis['unpacker'] = {'result': {
             'plugin_used': 'None', 'number_of_unpacked_files': 0,
             'info': 'Unpacking stopped because maximum unpacking depth was reached',
-        }
+        }}
         tag_dict = {'unpacker': {'depth reached': {'value': 'unpacking depth reached', 'color': TagColor.ORANGE, 'propagate': False}}}
         file_object.analysis_tags.update(tag_dict)
 
