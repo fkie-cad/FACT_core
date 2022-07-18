@@ -7,8 +7,6 @@ from objects.file import FileObject
 from objects.firmware import Firmware
 from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry
 
-META_KEYS = {'tags', 'summary', 'analysis_date', 'plugin_version', 'system_version', 'file_system_flag'}
-
 
 def firmware_from_entry(fw_entry: FirmwareEntry, analysis_filter: Optional[List[str]] = None) -> Firmware:
     firmware = Firmware()
@@ -80,16 +78,6 @@ def create_firmware_entry(firmware: Firmware, fo_entry: FileObjectEntry) -> Firm
     )
 
 
-def get_analysis_without_meta(analysis_data: dict) -> dict:
-    analysis_without_meta = {
-        key: value
-        for key, value in analysis_data.items()
-        if key not in META_KEYS
-    }
-    sanitize(analysis_without_meta)
-    return analysis_without_meta
-
-
 def create_file_object_entry(file_object: FileObject) -> FileObjectEntry:
     return FileObjectEntry(
         uid=file_object.uid,
@@ -129,20 +117,23 @@ def _sanitize_list(value: list):
 
 def create_analysis_entries(file_object: FileObject, fo_backref: FileObjectEntry) -> List[AnalysisEntry]:
     return [
-        AnalysisEntry(
-            uid=file_object.uid,
-            plugin=plugin_name,
-            plugin_version=analysis_data['plugin_version'],
-            system_version=analysis_data.get('system_version'),
-            analysis_date=analysis_data['analysis_date'],
-            summary=analysis_data.get('summary'),
-            tags=analysis_data.get('tags'),
-            # TODO: get_analysis_without_meta can be removed once all plugins are updated
-            result=get_analysis_without_meta(analysis_data),
-            file_object=fo_backref,
-        )
+        create_analysis_entry_from_dict(analysis_data, file_object.uid, plugin_name, fo_backref)
         for plugin_name, analysis_data in file_object.processed_analysis.items()
     ]
+
+
+def create_analysis_entry_from_dict(analysis_result: dict, uid: str, plugin: str, backref: FileObjectEntry) -> AnalysisEntry:
+    return AnalysisEntry(
+        uid=uid,
+        plugin=plugin,
+        plugin_version=analysis_result['plugin_version'],
+        system_version=analysis_result.get('system_version'),
+        analysis_date=analysis_result['analysis_date'],
+        summary=analysis_result.get('summary'),
+        tags=analysis_result.get('tags'),
+        result=analysis_result.get('result'),
+        file_object=backref,
+    )
 
 
 def analysis_entry_to_dict(entry: AnalysisEntry) -> dict:
@@ -152,5 +143,5 @@ def analysis_entry_to_dict(entry: AnalysisEntry) -> dict:
         'system_version': entry.system_version,
         'summary': entry.summary,
         'tags': entry.tags or {},
-        **entry.result,
+        'result': entry.result or {},
     }

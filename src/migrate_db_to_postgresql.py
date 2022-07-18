@@ -3,7 +3,7 @@ import logging
 import pickle
 import sys
 from base64 import b64encode
-from typing import List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 import gridfs
 from pymongo import MongoClient, errors
@@ -25,6 +25,7 @@ except ImportError:
 
 PERCENTAGE = '[progress.percentage]{task.percentage:>3.0f}%'
 DESCRIPTION = '[progress.description]{task.description}'
+META_KEYS = {'tags', 'summary', 'analysis_date', 'plugin_version', 'system_version', 'file_system_flag'}
 
 
 class MongoInterface:
@@ -307,6 +308,7 @@ class DbMigrator:
         firmware_object.parents = [parent_uid]
         firmware_object.parent_firmware_uids = [root_uid]
         for plugin, plugin_data in firmware_object.processed_analysis.items():
+            _convert_to_new_structure(plugin_data)
             _fix_illegal_dict(plugin_data, plugin)
             _check_for_missing_fields(plugin, plugin_data)
         try:
@@ -321,6 +323,18 @@ class DbMigrator:
                 exc_info=True
             )
             raise
+
+
+def _convert_to_new_structure(analysis_dict: Dict[str, Any]):
+    """
+    Instead of being mixed with the meta keys (like `'plugin_version'` or `'tags'`), the analysis results are now
+    stored under the new key `'result'`
+    """
+    analysis_dict['result'] = {
+        key: analysis_dict.pop(key)
+        for key in list(analysis_dict)
+        if key not in META_KEYS
+    }
 
 
 def migrate_comparisons(mongo: MigrationMongoInterface, config):
