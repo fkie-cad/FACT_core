@@ -45,7 +45,7 @@ class AnalysisSchedulerTest(TestCase):
         gc.collect()
 
     def dummy_callback(self, uid, plugin, analysis_result):
-        self.tmp_queue.put({'uid': uid, 'plugin': plugin, 'result': analysis_result})
+        self.tmp_queue.put({'uid': uid, 'plugin': plugin, 'data': analysis_result})
 
 
 class TestScheduleInitialAnalysis(AnalysisSchedulerTest):
@@ -72,8 +72,8 @@ class TestScheduleInitialAnalysis(AnalysisSchedulerTest):
         assert analysis_results[0]['plugin'] == 'file_type'
         assert analysis_results[1]['plugin'] == 'dummy_plugin_for_testing_only'
         assert analysis_results[2]['plugin'] == 'file_hashes'
-        assert analysis_results[1]['result']['1'] == 'first result', 'result not correct'
-        assert analysis_results[1]['result']['summary'] == ['first result', 'second result']
+        assert analysis_results[1]['data']['result']['1'] == 'first result', 'result not correct'
+        assert analysis_results[1]['data']['summary'] == ['first result', 'second result']
 
     def test_expected_plugins_are_found(self):
         result = self.sched.get_plugin_dict()
@@ -112,11 +112,11 @@ class TestScheduleInitialAnalysis(AnalysisSchedulerTest):
         self.sched.config.set('dummy_plugin_for_testing_only', 'mime_whitelist', 'foo, bar')
         test_fw = Firmware(file_path=os.path.join(get_test_data_dir(), 'get_files_test/testfile1'))
         test_fw.scheduled_analysis = ['file_hashes']
-        test_fw.processed_analysis['file_type'] = {'mime': 'text/plain'}
+        test_fw.processed_analysis['file_type'] = {'result': {'mime': 'text/plain'}}
         self.sched._start_or_skip_analysis('dummy_plugin_for_testing_only', test_fw)
         analysis = self.tmp_queue.get(timeout=10)
         assert analysis['plugin'] == 'dummy_plugin_for_testing_only'
-        assert 'skipped' in analysis['result']
+        assert 'skipped' in analysis['data']['result']
 
 
 class TestAnalysisSchedulerBlacklist:
@@ -179,42 +179,42 @@ class TestAnalysisSchedulerBlacklist:
 
     def test_next_analysis_is_blacklisted__blacklisted(self):
         self.sched.analysis_plugins[self.test_plugin] = self.PluginMock(blacklist=['blacklisted_type'])
-        self.file_object.processed_analysis['file_type']['mime'] = 'blacklisted_type'
+        self.file_object.processed_analysis['file_type']['result']['mime'] = 'blacklisted_type'
         blacklisted = self.sched._next_analysis_is_blacklisted(self.test_plugin, self.file_object)
         assert blacklisted is True
 
     def test_next_analysis_is_blacklisted__not_blacklisted(self):
         self.sched.analysis_plugins[self.test_plugin] = self.PluginMock(blacklist=[])
-        self.file_object.processed_analysis['file_type']['mime'] = 'not_blacklisted_type'
+        self.file_object.processed_analysis['file_type']['result']['mime'] = 'not_blacklisted_type'
         blacklisted = self.sched._next_analysis_is_blacklisted(self.test_plugin, self.file_object)
         assert blacklisted is False
 
     def test_next_analysis_is_blacklisted__whitelisted(self):
         self.sched.analysis_plugins[self.test_plugin] = self.PluginMock(whitelist=['whitelisted_type'])
-        self.file_object.processed_analysis['file_type']['mime'] = 'whitelisted_type'
+        self.file_object.processed_analysis['file_type']['result']['mime'] = 'whitelisted_type'
         blacklisted = self.sched._next_analysis_is_blacklisted(self.test_plugin, self.file_object)
         assert blacklisted is False
 
     def test_next_analysis_is_blacklisted__not_whitelisted(self):
         self.sched.analysis_plugins[self.test_plugin] = self.PluginMock(whitelist=['some_other_type'])
-        self.file_object.processed_analysis['file_type']['mime'] = 'not_whitelisted_type'
+        self.file_object.processed_analysis['file_type']['result']['mime'] = 'not_whitelisted_type'
         blacklisted = self.sched._next_analysis_is_blacklisted(self.test_plugin, self.file_object)
         assert blacklisted is True
 
     def test_next_analysis_is_blacklisted__whitelist_precedes_blacklist(self):
         self.sched.analysis_plugins[self.test_plugin] = self.PluginMock(blacklist=['test_type'], whitelist=['test_type'])
-        self.file_object.processed_analysis['file_type']['mime'] = 'test_type'
+        self.file_object.processed_analysis['file_type']['result']['mime'] = 'test_type'
         blacklisted = self.sched._next_analysis_is_blacklisted(self.test_plugin, self.file_object)
         assert blacklisted is False
 
         self.sched.analysis_plugins[self.test_plugin] = self.PluginMock(blacklist=[], whitelist=['some_other_type'])
-        self.file_object.processed_analysis['file_type']['mime'] = 'test_type'
+        self.file_object.processed_analysis['file_type']['result']['mime'] = 'test_type'
         blacklisted = self.sched._next_analysis_is_blacklisted(self.test_plugin, self.file_object)
         assert blacklisted is True
 
     def test_get_blacklist_file_type_from_database(self):
         def add_file_type_mock(_, fo):
-            fo.processed_analysis['file_type'] = {'mime': 'foo_type'}
+            fo.processed_analysis['file_type'] = {'result': {'mime': 'foo_type'}}
 
         file_object = MockFileObject()
         file_object.processed_analysis.pop('file_type')

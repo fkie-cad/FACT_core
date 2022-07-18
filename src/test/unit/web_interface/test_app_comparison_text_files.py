@@ -36,21 +36,21 @@ class TestAppComparisonTextFiles(WebInterfaceTest):
         super().setup_class(db_mock=DbMock, intercom_mock=MockInterCom)
 
     def test_comparison_text_files(self):
-        TEST_TEXT_FILE.processed_analysis['file_type']['mime'] = 'text/plain'
-        TEST_TEXT_FILE2.processed_analysis['file_type']['mime'] = 'text/plain'
+        TEST_TEXT_FILE.processed_analysis['file_type']['result']['mime'] = 'text/plain'
+        TEST_TEXT_FILE2.processed_analysis['file_type']['result']['mime'] = 'text/plain'
         response = self._load_diff()
         # As the javascript rendering is done clientside we test if the diff string is valid
         assert TEST_TEXT_FILE.file_name in response.decode()
 
     def test_wrong_mime_type(self):
-        TEST_TEXT_FILE.processed_analysis['file_type']['mime'] = 'text/plain'
-        TEST_TEXT_FILE2.processed_analysis['file_type']['mime'] = 'some/type'
+        TEST_TEXT_FILE.processed_analysis['file_type']['result']['mime'] = 'text/plain'
+        TEST_TEXT_FILE2.processed_analysis['file_type']['result']['mime'] = 'some/type'
         response = self._load_diff()
         assert b'compare non-text mimetypes' in response
 
     def test_analysis_not_finished(self):
-        TEST_TEXT_FILE.processed_analysis['file_type']['mime'] = None
-        TEST_TEXT_FILE2.processed_analysis['file_type']['mime'] = None
+        TEST_TEXT_FILE.processed_analysis['file_type']['result']['mime'] = None
+        TEST_TEXT_FILE2.processed_analysis['file_type']['result']['mime'] = None
         response = self._load_diff()
         assert b'file_type analysis is not finished' in response
 

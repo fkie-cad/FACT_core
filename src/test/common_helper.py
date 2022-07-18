@@ -33,9 +33,12 @@ def create_test_firmware(device_class='Router', device_name='test_router', vendo
     fw.release_date = '1970-01-01'
     fw.version = version
     processed_analysis = {
-        'dummy': {'summary': ['sum a', 'fw exclusive sum a'], 'content': 'abcd', 'plugin_version': '0', 'analysis_date': 0.0},
-        'unpacker': {'plugin_used': 'used_unpack_plugin', 'plugin_version': '1.0', 'analysis_date': 0.0},
-        'file_type': {'mime': 'test_type', 'full': 'Not a PE file', 'summary': ['a summary'], 'plugin_version': '1.0', 'analysis_date': 0.0}
+        'dummy': {'summary': ['sum a', 'fw exclusive sum a'], 'result': {'content': 'abcd'}, 'plugin_version': '0', 'analysis_date': 0.0},
+        'unpacker': {'result': {'plugin_used': 'used_unpack_plugin'}, 'plugin_version': '1.0', 'analysis_date': 0.0},
+        'file_type': {
+            'result': {'mime': 'test_type', 'full': 'Not a PE file'},
+            'summary': ['a summary'], 'plugin_version': '1.0', 'analysis_date': 0.0
+        }
     }
 
     fw.processed_analysis.update(processed_analysis)
@@ -48,9 +51,9 @@ def create_test_firmware(device_class='Router', device_name='test_router', vendo
 def create_test_file_object(bin_path='get_files_test/testfile1'):
     fo = FileObject(file_path=os.path.join(get_test_data_dir(), bin_path))
     processed_analysis = {
-        'dummy': {'summary': ['sum a', 'file exclusive sum b'], 'content': 'file abcd', 'plugin_version': '0', 'analysis_date': '0'},
-        'file_type': {'full': 'Not a PE file', 'plugin_version': '1.0', 'analysis_date': '0'},
-        'unpacker': {'file_system_flag': False, 'plugin_used': 'unpacker_name', 'plugin_version': '1.0', 'analysis_date': '0'}
+        'dummy': {'summary': ['sum a', 'file exclusive sum b'], 'result': {'content': 'abcd'}, 'plugin_version': '0', 'analysis_date': '0'},
+        'file_type': {'result': {'full': 'Not a PE file'}, 'plugin_version': '1.0', 'analysis_date': '0'},
+        'unpacker': {'file_system_flag': False, 'result': {'plugin_used': 'unpacker_name'}, 'plugin_version': '1.0', 'analysis_date': '0'}
     }
     fo.processed_analysis.update(processed_analysis)
     fo.virtual_file_path = fo.get_virtual_file_paths()
@@ -78,7 +81,7 @@ class MockFileObject:
     def __init__(self, binary=b'test string', file_path='/bin/ls'):
         self.binary = binary
         self.file_path = file_path
-        self.processed_analysis = {'file_type': {'mime': 'application/x-executable'}}
+        self.processed_analysis = {'file_type': {'result': {'mime': 'application/x-executable'}}}
 
 
 class CommonIntercomMock:
@@ -159,7 +162,7 @@ class CommonDatabaseMock:  # pylint: disable=too-many-public-methods
         if uid == TEST_FW.uid:
             result = deepcopy(TEST_FW)
             result.processed_analysis = {
-                'file_type': {'mime': 'application/octet-stream', 'full': 'test text'},
+                'file_type': {'result': {'mime': 'application/octet-stream', 'full': 'test text'}},
                 'mandatory_plugin': 'mandatory result',
                 'optional_plugin': 'optional result'
             }
@@ -167,13 +170,13 @@ class CommonDatabaseMock:  # pylint: disable=too-many-public-methods
         if uid == TEST_TEXT_FILE.uid:
             result = deepcopy(TEST_TEXT_FILE)
             result.processed_analysis = {
-                'file_type': {'mime': 'text/plain', 'full': 'plain text'}
+                'file_type': {'result': {'mime': 'text/plain', 'full': 'plain text'}}
             }
             return result
         if uid == self.fw2_uid:
             result = deepcopy(TEST_FW_2)
             result.processed_analysis = {
-                'file_type': {'mime': 'filesystem/cramfs', 'full': 'test text'},
+                'file_type': {'result': {'mime': 'filesystem/cramfs', 'full': 'test text'}},
                 'mandatory_plugin': 'mandatory result',
                 'optional_plugin': 'optional result'
             }
@@ -348,7 +351,6 @@ def clear_test_tables(config):
     db_setup.base.metadata.drop_all(db_setup.engine)
 
 
-# TODO rework once all plugins use a documentet structure and use the "result" entry
 def generate_analysis_entry(
     plugin_version: str = '1.0',
     analysis_date: float = 0.0,
@@ -361,7 +363,7 @@ def generate_analysis_entry(
         'analysis_date': analysis_date,
         'summary': summary or [],
         'tags': tags or {},
-        **(analysis_result or {})
+        'result': analysis_result
     }
 
 

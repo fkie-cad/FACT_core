@@ -20,9 +20,9 @@ class MockDbInterface:
     def __init__(self):
         self.fw = create_test_firmware()
         self.fo = create_test_file_object()
-        self.fo.processed_analysis['file_hashes'] = {'ssdeep': get_ssdeep(self.fo.binary)}
+        self.fo.processed_analysis['file_hashes'] = {'result': {'ssdeep': get_ssdeep(self.fo.binary)}}
         self.fw.add_included_file(self.fo)
-        self.fw.processed_analysis['file_hashes'] = {'ssdeep': get_ssdeep(self.fw.binary)}
+        self.fw.processed_analysis['file_hashes'] = {'result': {'ssdeep': get_ssdeep(self.fw.binary)}}
 
     def get_object(self, uid, analysis_filter=None):
         if uid == self.fw.uid:
@@ -43,9 +43,9 @@ class TestCompare(unittest.TestCase):
     def setUp(self):
         self.config = get_config_for_testing()
         self.fw_one = create_test_firmware(device_name='dev_1', all_files_included_set=True)
-        self.fw_one.processed_analysis['file_hashes'] = {'ssdeep': get_ssdeep(self.fw_one.binary)}
+        self.fw_one.processed_analysis['file_hashes'] = {'result': {'ssdeep': get_ssdeep(self.fw_one.binary)}}
         self.fw_two = create_test_firmware(device_name='dev_2', bin_path='container/test.7z', all_files_included_set=True)
-        self.fw_two.processed_analysis['file_hashes'] = {'ssdeep': get_ssdeep(self.fw_two.binary)}
+        self.fw_two.processed_analysis['file_hashes'] = {'result': {'ssdeep': get_ssdeep(self.fw_two.binary)}}
         self.compare_system = Compare(db_interface=MockDbInterface(), config=self.config)
 
     def tearDown(self):
