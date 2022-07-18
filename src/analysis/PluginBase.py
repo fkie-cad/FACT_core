@@ -113,7 +113,7 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
             },
             'root_uid': file_object.get_root_uid()
         }
-        if 'tags' not in file_object.processed_analysis[self.NAME]:
+        if 'tags' not in file_object.processed_analysis.setdefault(self.NAME, {}):
             file_object.processed_analysis[self.NAME]['tags'] = new_tag
         else:
             file_object.processed_analysis[self.NAME]['tags'].update(new_tag)
