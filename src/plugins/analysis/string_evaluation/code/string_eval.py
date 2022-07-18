@@ -27,6 +27,6 @@ class AnalysisPlugin(AnalysisBasePlugin):
     FILE = __file__
 
     def process_object(self, file_object):
-        list_of_printable_strings = file_object.processed_analysis['printable_strings']['strings']
-        file_object.processed_analysis[self.NAME] = dict(string_eval=eval_strings(list_of_printable_strings))
+        list_of_printable_strings = file_object.processed_analysis['printable_strings']['result']['strings']
+        file_object.processed_analysis.setdefault(self.NAME, {})['result'] = dict(string_eval=eval_strings(list_of_printable_strings))
         return file_object

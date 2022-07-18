@@ -33,12 +33,14 @@ class AnalysisPlugin(AnalysisBasePlugin):
     def process_object(self, file_object):
         try:
             elf_dict, parsed_binary = self._analyze_elf(file_object)
-            file_object.processed_analysis[self.NAME] = {'Output': elf_dict}
             self.create_tags(parsed_binary, file_object)
-            file_object.processed_analysis[self.NAME]['summary'] = list(elf_dict.keys())
+            file_object.processed_analysis[self.NAME] = {
+                'result': {'Output': elf_dict},
+                'summary': list(elf_dict.keys())
+            }
         except (RuntimeError, ValueError):
             logging.error(f'lief could not parse {file_object.uid}', exc_info=True)
-            file_object.processed_analysis[self.NAME] = {'failed': 'lief could not parse the file'}
+            file_object.processed_analysis[self.NAME] = {'result': {'failed': 'lief could not parse the file'}}
         return file_object
 
     @staticmethod

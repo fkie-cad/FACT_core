@@ -1,6 +1,5 @@
 import json
 import logging
-import re
 import subprocess
 from pathlib import Path
 from subprocess import PIPE, STDOUT
@@ -24,17 +23,16 @@ class AnalysisPlugin(AnalysisBasePlugin):
             raise RuntimeError(f'checksec not found at path {SHELL_SCRIPT}. Please re-run the backend installation.')
 
     def process_object(self, file_object):
+        analysis = file_object.processed_analysis[self.NAME] = {'summary': [], 'result': {}}
         try:
-            if re.search(r'.*elf.*', file_object.processed_analysis['file_type']['full'].lower()) is not None:
-
+            file_type = file_object.processed_analysis['file_type'].get('result', {}).get('full', '')
+            if 'ELF' in file_type:
                 mitigation_dict, mitigation_dict_summary = check_mitigations(file_object.file_path)
-                file_object.processed_analysis[self.NAME] = mitigation_dict
-                file_object.processed_analysis[self.NAME]['summary'] = list(mitigation_dict_summary.keys())
-            else:
-                file_object.processed_analysis[self.NAME]['summary'] = []
+                analysis['result'] = mitigation_dict
+                analysis['summary'] = list(mitigation_dict_summary)
         except (IndexError, json.JSONDecodeError, ValueError) as error:
-            logging.warning('Error occurred during exploit_mitigations analysis:', exc_info=True)
-            file_object.processed_analysis[self.NAME]['failed'] = f'Error during analysis: {error}'
+            logging.exception('Error occurred during exploit_mitigations analysis')
+            analysis['result'] = {'failed': f'Error during analysis: {error}'}
         return file_object
 
 

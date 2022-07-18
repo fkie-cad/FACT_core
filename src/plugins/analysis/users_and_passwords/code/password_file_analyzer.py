@@ -44,9 +44,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     FILE = __file__
 
     def process_object(self, file_object: FileObject) -> FileObject:
-        if self.NAME not in file_object.processed_analysis:
-            file_object.processed_analysis[self.NAME] = {}
-        file_object.processed_analysis[self.NAME]['summary'] = []
+        file_object.processed_analysis[self.NAME] = {'summary': [], 'result': {}}
         self.find_password_entries(file_object, UNIX_REGEXES, generate_unix_entry)
         self.find_password_entries(file_object, HTPASSWD_REGEXES, generate_htpasswd_entry)
         self.find_password_entries(file_object, MOSQUITTO_REGEXES, generate_mosquitto_entry)
@@ -72,7 +70,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 )
 
     def update_file_object(self, file_object: FileObject, result_entry: dict):
-        file_object.processed_analysis[self.NAME].update(result_entry)
+        file_object.processed_analysis[self.NAME]['result'].update(result_entry)
         file_object.processed_analysis[self.NAME]['summary'].extend(list(result_entry))
         self._add_found_password_tag(file_object, result_entry)
 

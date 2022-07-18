@@ -94,7 +94,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return res
 
     def _is_supported_arch(self, file_object):
-        arch_type = file_object.processed_analysis['file_type']['full'].lower()
+        arch_type = file_object.processed_analysis['file_type']['result']['full'].lower()
         return any(supported_arch in arch_type for supported_arch in self.SUPPORTED_ARCHS)
 
     def _do_full_analysis(self, file_object):
@@ -102,15 +102,18 @@ class AnalysisPlugin(AnalysisBasePlugin):
         if output is not None:
             try:
                 cwe_messages = self._parse_cwe_checker_output(output)
-                file_object.processed_analysis[self.NAME] = {'full': cwe_messages, 'summary': list(cwe_messages.keys())}
+                file_object.processed_analysis[self.NAME] = {
+                    'result': {'full': cwe_messages},
+                    'summary': list(cwe_messages.keys())
+                }
             except json.JSONDecodeError:
                 message = f'cwe_checker execution failed: {output}'
                 logging.error(f'{message}\nUID: {file_object.uid}', exc_info=True)
-                file_object.processed_analysis[self.NAME] = {'summary': [], 'failed': message}
+                file_object.processed_analysis[self.NAME] = {'summary': [], 'result': {'failed': message}}
         else:
             message = 'Timeout or error during cwe_checker execution.'
             logging.error(f'{message}\nUID: {file_object.uid}')
-            file_object.processed_analysis[self.NAME] = {'summary': [], 'failed': message}
+            file_object.processed_analysis[self.NAME] = {'summary': [], 'result': {'failed': message}}
         return file_object
 
     def process_object(self, file_object):
@@ -121,7 +124,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         if not self._is_supported_arch(file_object):
             logging.debug('{}\'s arch is not supported ({})'.format(
                 file_object.file_path,
-                file_object.processed_analysis['cpu_architecture']['summary']))
+                file_object.processed_analysis['cpu_architecture']['result']['summary']))
             file_object.processed_analysis[self.NAME] = {'summary': []}
         else:
             file_object = self._do_full_analysis(file_object)

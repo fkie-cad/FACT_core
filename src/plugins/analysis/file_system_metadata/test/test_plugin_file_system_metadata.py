@@ -18,7 +18,7 @@ TEST_DATA_DIR = Path(__file__).parent / 'data'
 class FoMock:
     def __init__(self, file_path: Optional[Path], file_type: Optional[str], parent_fo_type=''):
         self.file_path = file_path
-        self.processed_analysis = {'file_type': {'mime': file_type}, PLUGIN_NAME: {}}
+        self.processed_analysis = {'file_type': {'result': {'mime': file_type}}, PLUGIN_NAME: {}}
         self.virtual_file_path = {}
         self.file_name = 'test'
         self.binary = file_path.read_bytes() if file_path is not None else None
@@ -44,8 +44,8 @@ class TarMock:
 
 class DbMock(CommonDatabaseMock):
     FILE_TYPE_RESULTS = {
-        TEST_FW.uid: {'mime': 'application/octet-stream'},
-        TEST_FW_2.uid: {'mime': 'filesystem/cramfs'},
+        TEST_FW.uid: {'result': {'mime': 'application/octet-stream'}},
+        TEST_FW_2.uid: {'result': {'mime': 'filesystem/cramfs'}},
     }
 
     def get_analysis(self, uid, _):
@@ -129,10 +129,11 @@ class TestFileSystemMetadata(AnalysisPluginTest):
 
     def test_extract_metadata_from_file_system__unmountable(self):
         fo = FoMock(self.test_file_tar, 'application/x-tar')
+        fo.processed_analysis[PLUGIN_NAME] = {'result': {}}
         self.analysis_plugin._extract_metadata_from_file_system(fo)
 
         assert self.analysis_plugin.result == {}
-        assert 'failed' in fo.processed_analysis[PLUGIN_NAME]
+        assert 'failed' in fo.processed_analysis[PLUGIN_NAME]['result']
 
     def test_extract_metadata_from_tar(self):
         fo = FoMock(self.test_file_tar, 'application/x-tar')
@@ -242,22 +243,23 @@ class TestFileSystemMetadata(AnalysisPluginTest):
         fo = FoMock(self.test_file_fs, 'filesystem/squashfs')
         result = self.analysis_plugin.process_object(fo)
         assert 'file_system_metadata' in result.processed_analysis
-        assert 'contained_in_file_system' in result.processed_analysis['file_system_metadata']
-        assert result.processed_analysis['file_system_metadata']['contained_in_file_system'] is False
-        assert result.processed_analysis['file_system_metadata'] != {}
-        assert 'files' in result.processed_analysis['file_system_metadata']
-        assert _b64_encode('testfile_sticky') in result.processed_analysis['file_system_metadata']['files']
+        assert 'contained_in_file_system' in result.processed_analysis['file_system_metadata']['result']
+        analysis = result.processed_analysis['file_system_metadata']['result']
+        assert analysis != {}
+        assert analysis['contained_in_file_system'] is False
+        assert 'files' in analysis
+        assert _b64_encode('testfile_sticky') in analysis['files']
 
         fo_2 = FoMock(self.test_file_fs, 'wrong_mime', parent_fo_type='filesystem/ext4')
         result = self.analysis_plugin.process_object(fo_2)
         assert 'file_system_metadata' in result.processed_analysis
-        assert 'contained_in_file_system' in result.processed_analysis['file_system_metadata']
+        assert 'contained_in_file_system' in result.processed_analysis['file_system_metadata']['result']
 
         fo_3 = FoMock(self.test_file_fs, 'wrong_mime')
         result = self.analysis_plugin.process_object(fo_3)
         assert 'file_system_metadata' in result.processed_analysis
-        assert result.processed_analysis['file_system_metadata']['contained_in_file_system'] is False
-        assert len(result.processed_analysis['file_system_metadata'].keys()) == 1
+        assert result.processed_analysis['file_system_metadata']['result']['contained_in_file_system'] is False
+        assert len(result.processed_analysis['file_system_metadata']['result'].keys()) == 1
 
     def test_enter_results_for_tar_file__malformed_path(self):
         file_name = './foo/bar'

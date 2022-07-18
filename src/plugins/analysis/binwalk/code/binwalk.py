@@ -21,7 +21,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     FILE = __file__
 
     def process_object(self, file_object):
-        result = {}
+        analysis = {'result': {}, 'summary': []}
         with TemporaryDirectory(prefix='fact_analysis_binwalk_', dir=get_temp_dir_path(self.config)) as tmp_dir:
             cmd_process = subprocess.run(
                 f'(cd {tmp_dir} && xvfb-run -a binwalk -BEJ {file_object.file_path})',
@@ -33,14 +33,16 @@ class AnalysisPlugin(AnalysisBasePlugin):
             signature_analysis_result = cmd_process.stdout
             try:
                 pic_path = Path(tmp_dir) / f'{Path(file_object.file_path).name}.png'
-                result['entropy_analysis_graph'] = b64encode(pic_path.read_bytes()).decode()
-                result['signature_analysis'] = signature_analysis_result
-                result['summary'] = list(set(self._extract_summary(signature_analysis_result)))
+                analysis['result'] = {
+                    'entropy_analysis_graph': b64encode(pic_path.read_bytes()).decode(),
+                    'signature_analysis': signature_analysis_result,
+                }
+                analysis['summary'] = list(set(self._extract_summary(signature_analysis_result)))
             except FileNotFoundError:
-                result = {'failed': 'Binwalk analysis failed'}
+                analysis['result'] = {'failed': 'Binwalk analysis failed'}
                 logging.error(f'Binwalk analysis on {file_object.uid} failed:\n{signature_analysis_result}')
 
-        file_object.processed_analysis[self.NAME] = result
+        file_object.processed_analysis[self.NAME] = analysis
         return file_object
 
     def _extract_summary(self, binwalk_output: str) -> List[str]:

@@ -61,23 +61,25 @@ SUMMARY_INPUT = ''
 SORT_CPE_MATCHES_OUTPUT = lookup.Product('microsoft', 'windows_8', '1\\.2\\.5')
 
 SOFTWARE_COMPONENTS_ANALYSIS_RESULT = {
-    'dnsmasq': {
-        'meta': {
-            'software_name': 'Dnsmasq',
-            'version': ['2.40']
-        }
-    },
-    'OpenSSL': {
-        'matches': True,
-        'meta': {
-            'description': 'SSL library',
-            'open_source': True,
-            'software_name': 'OpenSSL',
-            'version': [''],
-            'website': 'https://www.openssl.org'
+    'result': {
+        'dnsmasq': {
+            'meta': {
+                'software_name': 'Dnsmasq',
+                'version': ['2.40']
+            }
         },
-        'rule': 'OpenSSL',
-        'strings': [[7194, '$a', 'T1BFTlNTTA==']]
+        'OpenSSL': {
+            'matches': True,
+            'meta': {
+                'description': 'SSL library',
+                'open_source': True,
+                'software_name': 'OpenSSL',
+                'version': [''],
+                'website': 'https://www.openssl.org'
+            },
+            'rule': 'OpenSSL',
+            'strings': [[7194, '$a', 'T1BFTlNTTA==']]
+        },
     },
     'analysis_date': 1563453634.37708,
     'plugin_version': '0.3.2',
@@ -220,8 +222,8 @@ def test_process_object(stub_plugin):
     try:
         result = stub_plugin.process_object(TEST_FW).processed_analysis['cve_lookup']
         assert 'Dnsmasq 2.40 (CRITICAL)' in result['summary']
-        assert 'Dnsmasq 2.40' in result['cve_results']
-        assert 'CVE-2013-0198' in result['cve_results']['Dnsmasq 2.40']
+        assert 'Dnsmasq 2.40' in result['result']['cve_results']
+        assert 'CVE-2013-0198' in result['result']['cve_results']['Dnsmasq 2.40']
     finally:
         lookup.MAX_LEVENSHTEIN_DISTANCE = 3
 

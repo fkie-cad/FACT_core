@@ -18,7 +18,7 @@ class DbInterfaceMock:
     def __init__(self):
         self.fw = create_test_firmware()
         self.fw.uid = 'parent_uid'
-        self.fw.processed_analysis[AnalysisPlugin.NAME] = {
+        self.fw.processed_analysis.setdefault(AnalysisPlugin.NAME, {})['result'] = {
             'files': {
                 'foo': {'executable': False},
                 'bar': {

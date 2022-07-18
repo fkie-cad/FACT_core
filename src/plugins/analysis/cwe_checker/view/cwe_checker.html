@@ -6,19 +6,20 @@
     <td class="table-head-light"> Overview of CWE warnings </td>
     <td>
         <ul>
-            {% for cwe in firmware.processed_analysis[selected_analysis]['summary']|sort %}
+            {% for cwe in firmware.processed_analysis[selected_analysis]['summary'] | sort %}
                 <li><a href="https://cwe.mitre.org/data/definitions/{{ cwe | fix_cwe }}.html">{{ cwe }}</a></li>
             {% endfor %}
         </ul>
     </td>
 </tr>
 
-{% for cwe in firmware.processed_analysis[selected_analysis]['full']|sort %}
+{% set analysis = firmware.processed_analysis[selected_analysis]['result'] %}
+{% for cwe in analysis['full'] | sort %}
     <tr>
-        <td>{{ cwe }} ({{firmware.processed_analysis[selected_analysis]['full'][cwe]['plugin_version']}})</td>
+        <td>{{ cwe }} ({{ analysis['full'][cwe]['plugin_version'] }})</td>
         <td>
             <ul>
-                {% for message in firmware.processed_analysis[selected_analysis]['full'][cwe]['warnings'] %}
+                {% for message in analysis['full'][cwe]['warnings'] %}
                     <li>{{ message }}</li>
                 {% endfor %}
             </ul>

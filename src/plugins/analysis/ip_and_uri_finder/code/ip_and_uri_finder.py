@@ -56,18 +56,17 @@ class AnalysisPlugin(AnalysisBasePlugin):
         result['ips_v4'] = self._remove_blacklisted(result['ips_v4'], IP_V4_BLACKLIST)
         result['ips_v6'] = self._remove_blacklisted(result['ips_v6'], IP_V6_BLACKLIST)
 
-        res = self.add_geo_uri_to_ip(result)
-        file_object.processed_analysis[self.NAME] = {}
-        file_object.processed_analysis[self.NAME]['result'] = res
-        file_object.processed_analysis[self.NAME]['summary'] = self._get_summary(res)
-        file_object.processed_analysis[self.NAME]['system_version'] = self.ip_and_uri_finder.system_version
-
+        self.add_geo_uri_to_ip(result)
+        file_object.processed_analysis[self.NAME] = {
+            'result': result,
+            'summary': self._get_summary(result),
+            'system_version': self.ip_and_uri_finder.system_version,
+        }
         return file_object
 
     def add_geo_uri_to_ip(self, result):
         for key in ['ips_v4', 'ips_v6']:
             result[key] = self.link_ips_with_geo_location(result[key])
-        return result
 
     def find_geo_location(self, ip_address):
         response = self.reader.city(ip_address)

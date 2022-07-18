@@ -46,17 +46,17 @@ class AnalysisPlugin(AnalysisBasePlugin):
     FILE = __file__
 
     def process_object(self, file_object):
-        cves = {'cve_results': {}}
+        analysis = {'result': {'cve_results': {}}}
         for component in file_object.processed_analysis['software_components']['summary']:
             product, version = self._split_component(component)
             if product and version:
                 vulnerabilities = look_up_vulnerabilities(product_name=product, requested_version=version)
                 if vulnerabilities:
-                    cves['cve_results'][component] = vulnerabilities
+                    analysis['result']['cve_results'][component] = vulnerabilities
 
-        cves['summary'] = self._create_summary(cves['cve_results'])
-        file_object.processed_analysis[self.NAME] = cves
-        self.add_tags(cves['cve_results'], file_object)
+        analysis['summary'] = self._create_summary(analysis['result']['cve_results'])
+        file_object.processed_analysis[self.NAME] = analysis
+        self.add_tags(analysis['result']['cve_results'], file_object)
         return file_object
 
     def _create_summary(self, cve_results: Dict[str, Dict[str, Dict[str, str]]]) -> List[str]:

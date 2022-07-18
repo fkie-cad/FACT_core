@@ -27,7 +27,7 @@ class TestAnalysisPlugInPrintableStrings(AnalysisPluginTest):
     def test_process_object(self):
         fo = FileObject(file_path=os.path.join(TEST_DATA_DIR, 'string_find_test_file2'))
         fo = self.analysis_plugin.process_object(fo)
-        results = fo.processed_analysis[self.PLUGIN_NAME]
+        results = fo.processed_analysis[self.PLUGIN_NAME]['result']
         for item in self.strings:
             self.assertIn(item, results['strings'], '{} not found'.format(item))
         self.assertEqual(len(results['strings']), len(self.strings), 'number of found strings not correct')
@@ -38,7 +38,7 @@ class TestAnalysisPlugInPrintableStrings(AnalysisPluginTest):
     def test_process_object__no_strings(self):
         fo = FileObject(file_path=os.path.join(TEST_DATA_DIR, 'string_find_test_file_no_strings'))
         fo = self.analysis_plugin.process_object(fo)
-        results = fo.processed_analysis[self.PLUGIN_NAME]
+        results = fo.processed_analysis[self.PLUGIN_NAME]['result']
         self.assertIn('strings', results)
         self.assertIn('offsets', results)
         self.assertEqual(len(results['strings']), 0, 'number of found strings not correct')

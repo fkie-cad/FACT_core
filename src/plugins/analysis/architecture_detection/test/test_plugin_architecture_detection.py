@@ -17,11 +17,11 @@ class TestArchDetection(AnalysisPluginTest):
 
     def start_process_object_meta_for_architecture(self, architecture, bitness, endianness, full_file_type):
         test_file = FileObject()
-        test_file.processed_analysis['file_type'] = {'mime': 'x-executable', 'full': full_file_type}
+        test_file.processed_analysis['file_type'] = {'result': {'mime': 'x-executable', 'full': full_file_type}}
         self.analysis_plugin.process_object(test_file)
-        assert len(test_file.processed_analysis[self.PLUGIN_NAME]["result"]) == 1, 'number of archs not correct'
+        assert len(test_file.processed_analysis[self.PLUGIN_NAME]['result']) == 1, 'number of archs not correct'
         result = f'{architecture}, {bitness}, {endianness} (M)'
-        assert result in test_file.processed_analysis[self.PLUGIN_NAME]["result"].keys(), f'architecture not correct: expected {architecture}'
+        assert result in test_file.processed_analysis[self.PLUGIN_NAME]['result'].keys(), f'architecture not correct: expected {architecture}'
         assert len(test_file.processed_analysis[self.PLUGIN_NAME]['summary']) == 1, 'number of summary entries not correct'
         assert result in test_file.processed_analysis[self.PLUGIN_NAME]['summary'], f'{architecture} missing in summary'
 

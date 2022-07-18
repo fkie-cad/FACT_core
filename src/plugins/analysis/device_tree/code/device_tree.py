@@ -25,11 +25,11 @@ class AnalysisPlugin(AnalysisBasePlugin):
     FILE = __file__
 
     def process_object(self, file_object: FileObject):
-        file_object.processed_analysis[self.NAME] = {'summary': []}
+        file_object.processed_analysis[self.NAME] = {'result': {}, 'summary': []}
 
         device_trees = dump_device_trees(file_object.binary)
         if device_trees:
-            file_object.processed_analysis[self.NAME]['device_trees'] = device_trees
+            file_object.processed_analysis[self.NAME]['result']['device_trees'] = device_trees
             for result in device_trees:
                 model = result.get('model')
                 if model:

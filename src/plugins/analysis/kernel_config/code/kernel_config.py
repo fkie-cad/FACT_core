@@ -37,7 +37,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         self.kernel_pattern_old = re.compile(r'^# Linux kernel version: [\d.]+$', re.MULTILINE)
 
     def process_object(self, file_object: FileObject) -> FileObject:
-        file_object.processed_analysis[self.NAME] = {}
+        analysis = file_object.processed_analysis[self.NAME] = {'summary': [], 'result': {}}
 
         if self.object_mime_is_plaintext(file_object) and (self.has_kconfig_type(file_object) or self.probably_kernel_config(file_object.binary)):
             self.add_kernel_config_to_analysis(file_object, file_object.binary)
@@ -46,17 +46,17 @@ class AnalysisPlugin(AnalysisBasePlugin):
             if self.probably_kernel_config(maybe_config):
                 self.add_kernel_config_to_analysis(file_object, maybe_config)
 
-        file_object.processed_analysis[self.NAME]['summary'] = self._get_summary(file_object.processed_analysis[self.NAME])
+        analysis['summary'] = self._get_summary(analysis)
 
-        if 'kernel_config' in file_object.processed_analysis[self.NAME]:
-            file_object.processed_analysis[self.NAME]['checksec'] = check_kernel_config(file_object.processed_analysis[self.NAME]['kernel_config'])
-            file_object.processed_analysis[self.NAME]['hardening'] = check_kernel_hardening(file_object.processed_analysis[self.NAME]['kernel_config'])
+        if 'kernel_config' in analysis['result']:
+            analysis['result']['checksec'] = check_kernel_config(analysis['result']['kernel_config'])
+            analysis['result']['hardening'] = check_kernel_hardening(analysis['result']['kernel_config'])
 
         return file_object
 
     @staticmethod
     def has_kconfig_type(file_object: FileObject) -> bool:
-        return 'Linux make config' in file_object.processed_analysis.get('file_type', {}).get('full', '')
+        return 'Linux make config' in file_object.processed_analysis.get('file_type', {}).get('result', {}).get('full', '')
 
     @staticmethod
     def _get_summary(results: dict) -> List[str]:
@@ -65,8 +65,10 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return []
 
     def add_kernel_config_to_analysis(self, file_object: FileObject, config_bytes: bytes):
-        file_object.processed_analysis[self.NAME]['is_kernel_config'] = True
-        file_object.processed_analysis[self.NAME]['kernel_config'] = config_bytes.decode()
+        file_object.processed_analysis[self.NAME]['result'] = {
+            'is_kernel_config': True,
+            'kernel_config': config_bytes.decode(),
+        }
         self.add_analysis_tag(file_object, 'IKCONFIG', 'Kernel Configuration')
 
     def probably_kernel_config(self, raw_data: bytes) -> bool:
@@ -103,10 +105,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     @staticmethod
     def object_mime_is_plaintext(file_object: FileObject) -> bool:
-        analysis = file_object.processed_analysis
-        return 'file_type' in analysis and \
-               'mime' in analysis['file_type'] and \
-               analysis['file_type']['mime'] == 'text/plain'
+        return file_object.processed_analysis.get('file_type', {}).get('result', {}).get('mime') == 'text/plain'
 
     @staticmethod
     def object_is_kernel_image(file_object: FileObject) -> bool:

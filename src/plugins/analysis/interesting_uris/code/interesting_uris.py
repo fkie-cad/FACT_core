@@ -31,7 +31,10 @@ class AnalysisPlugin(AnalysisBasePlugin):
         uris_dict = self.remove_ip_v4_v6_addresses(list_of_ips_and_uris)
         blacklisted = self.blacklist_ip_and_uris(BLACKLIST, uris_dict)
         whitelisted = self.whitelist_ip_and_uris(WHITELIST, blacklisted)
-        file_object.processed_analysis[self.NAME] = {'whitelisted': whitelisted, 'summary': whitelisted}
+        file_object.processed_analysis[self.NAME] = {
+            'result': {'whitelisted': whitelisted},
+            'summary': whitelisted,
+        }
         return file_object
 
     @staticmethod

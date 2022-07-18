@@ -39,6 +39,7 @@ class TestAnalysisPluginInterestingUris(AnalysisPluginTest):
         self.analysis_plugin.process_object(fo)
         assert self.PLUGIN_NAME in fo.processed_analysis
         assert fo.processed_analysis[self.PLUGIN_NAME]['summary'] == ['www.interesting.receive.org']
+        assert fo.processed_analysis[self.PLUGIN_NAME]['result']['whitelisted'] == ['www.interesting.receive.org']
 
     def test_remove_ip_v4_v6_addresses(self):
         assert self.analysis_plugin.remove_ip_v4_v6_addresses(['2001:db8::1', '127.0.255.250']) == []

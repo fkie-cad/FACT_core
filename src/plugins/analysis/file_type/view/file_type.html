@@ -1,19 +1,20 @@
 {% extends "analysis_plugins/general_information.html" %}
 
+{% set analysis = firmware.processed_analysis[selected_analysis]['result'] %}
 {% block analysis_result_details %}
 
     <tr>
         <td>File type</td>
-        <td>{{ firmware.processed_analysis[selected_analysis]['full'] }}</td>
+        <td>{{ analysis['full'] }}</td>
     </tr>
     <tr>
         <td>MIME</td>
-        <td>{{ firmware.processed_analysis[selected_analysis]['mime'] }}</td>
+        <td>{{ analysis['mime'] }}</td>
     </tr>
-    {% if 'linguist' in firmware.processed_analysis[selected_analysis] %}
+    {% if 'linguist' in analysis %}
         <tr>
             <td>Linguist script detection</td>
-            <td><pre>{{ firmware.processed_analysis[selected_analysis]['linguist'] }}</pre></td>
+            <td><pre>{{ analysis['linguist'] }}</pre></td>
         </tr>
     {% endif %}
 

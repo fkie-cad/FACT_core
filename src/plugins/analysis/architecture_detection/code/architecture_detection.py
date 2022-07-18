@@ -38,8 +38,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
     def process_object(self, file_object):
         arch_dict = self._get_device_architectures(file_object)
         file_object.processed_analysis[self.NAME] = {
-            "result": arch_dict,
-            "summary": list(arch_dict.keys()),
+            'result': arch_dict,
+            'summary': list(arch_dict.keys()),
         }
         return file_object
 

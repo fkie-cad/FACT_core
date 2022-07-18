@@ -32,23 +32,23 @@ def file_object(monkeypatch):
 
 
 def test_process_object_unknown_hash(stub_plugin, file_object):
-    file_object.processed_analysis['file_hashes'] = {'sha256': file_object.sha256}
+    file_object.processed_analysis['file_hashes'] = {'result': {'sha256': file_object.sha256}}
     stub_plugin.process_object(file_object)
-    result = file_object.processed_analysis[stub_plugin.NAME]
+    result = file_object.processed_analysis[stub_plugin.NAME]['result']
     assert 'message' in result
     assert 'sha256 hash unknown' in result['message']
 
 
 def test_process_object_known_hash(stub_plugin, file_object):
-    file_object.processed_analysis['file_hashes'] = {'sha256': KNOWN_ZSH_HASH}
+    file_object.processed_analysis['file_hashes'] = {'result': {'sha256': KNOWN_ZSH_HASH}}
     stub_plugin.process_object(file_object)
-    result = file_object.processed_analysis[stub_plugin.NAME]
+    result = file_object.processed_analysis[stub_plugin.NAME]['result']
     assert 'FileName' in result
     assert result['FileName'] == './bin/zsh'
 
 
 def test_process_object_missing_hash(stub_plugin, file_object):
     stub_plugin.process_object(file_object)
-    result = file_object.processed_analysis[stub_plugin.NAME]
+    result = file_object.processed_analysis[stub_plugin.NAME]['result']
     assert 'failed' in result
     assert result['failed'].startswith('Lookup needs sha256 hash')

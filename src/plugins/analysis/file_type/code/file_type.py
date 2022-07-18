@@ -18,8 +18,10 @@ class AnalysisPlugin(AnalysisBasePlugin):
         Analysis result must be a list stored in file_object.processed_analysis[self.NAME]
         '''
         file_type = get_file_type_from_path(file_object.file_path)
-        file_object.processed_analysis[self.NAME] = file_type
-        file_object.processed_analysis[self.NAME]['summary'] = self._get_summary(file_object.processed_analysis[self.NAME])
+        file_object.processed_analysis[self.NAME] = {
+            'result': file_type,
+            'summary': self._get_summary(file_type),
+        }
         return file_object
 
     @staticmethod

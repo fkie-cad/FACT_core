@@ -19,7 +19,9 @@ def b64_encode(string):
 class DbInterfaceMock:
     def __init__(self):
         self.fw = create_test_firmware()
-        self.fw.processed_analysis[AnalysisPlugin.NAME] = {'files': {b64_encode('some_file'): {'test_result': 'test_value'}}}
+        self.fw.processed_analysis[AnalysisPlugin.NAME] = {
+            'result': {'files': {b64_encode('some_file'): {'test_result': 'test_value'}}}
+        }
         self.fo = create_test_file_object()
         self.fo.uid = 'foo'
         self.fo.parents = [self.fw.uid]
@@ -39,7 +41,7 @@ class DbInterfaceMock:
 
     def get_analysis(self, uid, plugin):
         if uid == self.fw.uid and plugin == AnalysisPlugin.NAME:
-            return {'files': {b64_encode('some_file'): {'test_result': 'test_value'}}}
+            return {'result': {'files': {b64_encode('some_file'): {'test_result': 'test_value'}}}}
         return None
 
 

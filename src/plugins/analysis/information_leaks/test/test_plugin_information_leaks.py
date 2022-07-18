@@ -17,11 +17,11 @@ class TestAnalysisPluginInformationLeaks(AnalysisPluginTest):
         fo = MockFileObject()
         fo.binary = (TEST_DATA_DIR / 'path_test_file').read_bytes()
         fo.processed_analysis[self.PLUGIN_NAME] = {}
-        fo.processed_analysis['file_type'] = {'mime': 'application/x-executable'}
+        fo.processed_analysis['file_type'] = {'result': {'mime': 'application/x-executable'}}
         fo.virtual_file_path = {}
         self.analysis_plugin.process_object(fo)
 
-        result = fo.processed_analysis[self.PLUGIN_NAME]["result"]
+        result = fo.processed_analysis[self.PLUGIN_NAME]['result']
 
         assert 'user_paths' in result
         assert result['user_paths'] == ['/home/user/test/urandom', '/home/user/urandom']
@@ -39,7 +39,7 @@ class TestAnalysisPluginInformationLeaks(AnalysisPluginTest):
 
     def test_find_artifacts(self):
         fo = MockFileObject()
-        fo.processed_analysis['file_type'] = {'mime': 'text/plain'}
+        fo.processed_analysis['file_type'] = {'result': {'mime': 'text/plain'}}
         fo.virtual_file_path = {
             1: ['some_uid|/home/user/project/.git/config',
                 'some_uid|/home/user/some_path/.pytest_cache/some_file',

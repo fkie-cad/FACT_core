@@ -42,8 +42,10 @@ class AnalysisPlugin(AnalysisBasePlugin):
     def process_object(self, file_object):
         strings, offsets = self._find_all_strings_and_offsets(file_object.binary)
         file_object.processed_analysis[self.NAME] = {
-            'strings': strings,
-            'offsets': offsets
+            'result': {
+                'strings': strings,
+                'offsets': offsets,
+            },
         }
         return file_object
 

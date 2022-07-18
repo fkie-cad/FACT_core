@@ -20,12 +20,12 @@ class TestAnalysisPluginPasswordFileAnalyzer(AnalysisPluginTest):
         processed_object = self.analysis_plugin.process_object(test_file)
         results = processed_object.processed_analysis[self.PLUGIN_NAME]
 
-        assert len(results) == 14
+        assert len(results['result']) == 12
         for item in [
             'vboxadd:unix', 'mongodb:unix', 'clamav:unix', 'pulse:unix', 'johndoe:unix', 'max:htpasswd',
             'test:mosquitto', 'admin:htpasswd', 'root:unix', 'user:unix', 'user2:unix'
         ]:
-            assert item in results
+            assert item in results['result']
             assert item in results['summary']
         self._assert_pw_match(results, 'max:htpasswd', 'dragon')  # MD5 apr1
         self._assert_pw_match(results, 'johndoe:unix', '123456')
@@ -38,31 +38,32 @@ class TestAnalysisPluginPasswordFileAnalyzer(AnalysisPluginTest):
     def test_process_object_fp_file(self):
         test_file = FileObject(file_path=str(TEST_DATA_DIR / 'passwd_FP_test'))
         processed_object = self.analysis_plugin.process_object(test_file)
-        results = processed_object.processed_analysis[self.PLUGIN_NAME]
-        assert len(results) == 1
-        assert 'summary' in results and results['summary'] == []
+        analysis = processed_object.processed_analysis[self.PLUGIN_NAME]
+        assert len(analysis['result']) == 0
+        assert 'summary' in analysis and analysis['summary'] == []
 
     def test_process_object_password_in_binary_file(self):
         test_file = FileObject(file_path=str(TEST_DATA_DIR / 'passwd.bin'))
         processed_object = self.analysis_plugin.process_object(test_file)
         results = processed_object.processed_analysis[self.PLUGIN_NAME]
 
-        assert len(results) == 4
+        assert len(results) == 3
         for item in ['johndoe:unix', 'max:htpasswd']:
-            assert item in results
+            assert item in results['result']
             assert item in results['summary']
         self._assert_pw_match(results, 'johndoe:unix', '123456')
         self._assert_pw_match(results, 'max:htpasswd', 'dragon')
 
     @staticmethod
-    def _assert_pw_match(results: dict, key: str, pw: str):
+    def _assert_pw_match(analysis: dict, key: str, pw: str):
         user, type_ = key.split(':')
-        assert 'type' in results[key]
-        assert 'password-hash' in results[key]
-        assert 'password' in results[key]
-        assert results[key]['type'] == type_
-        assert results[key]['password'] == pw
-        assert results['tags'][f'{user}_{pw}']['value'] == f'Password: {user}:{pw}'
+        result = analysis['result']
+        assert 'type' in result[key]
+        assert 'password-hash' in result[key]
+        assert 'password' in result[key]
+        assert result[key]['type'] == type_
+        assert result[key]['password'] == pw
+        assert analysis['tags'][f'{user}_{pw}']['value'] == f'Password: {user}:{pw}'
 
 
 def test_crack_hash_failure():

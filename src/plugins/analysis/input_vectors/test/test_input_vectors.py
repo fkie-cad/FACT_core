@@ -28,5 +28,5 @@ class AnalysisPluginTestInputVectors(AnalysisPluginTest):
         fo = FileObject(file_path=str(test_file))
         result = self.analysis_plugin.process_object(fo)
         assert 'input_vectors' in result.processed_analysis
-        assert result.processed_analysis['input_vectors']['full']
-        return result.processed_analysis['input_vectors']
+        assert result.processed_analysis['input_vectors']['result']['full']
+        return result.processed_analysis['input_vectors']['result']

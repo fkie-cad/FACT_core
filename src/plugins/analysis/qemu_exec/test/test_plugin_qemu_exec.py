@@ -143,7 +143,7 @@ class TestPluginQemuExec(AnalysisPluginTest):
         self.analysis_plugin.OPTIONS = ['-h']
         test_fw = create_test_firmware()
         test_uid = '6b4142fa7e0a35ff6d10e18654be8ac5b778c3b5e2d3d345d1a01c2bcbd51d33_676340'
-        test_fw.processed_analysis[self.analysis_plugin.NAME] = result = {'files': {}}
+        test_fw.processed_analysis.setdefault(self.analysis_plugin.NAME, {})['result'] = result = {'files': {}}
         file_list = [('/test_mips_static', '-MIPS32-')]
 
         self.analysis_plugin.root_path = Path(TEST_DATA_DIR)
@@ -159,7 +159,7 @@ class TestPluginQemuExec(AnalysisPluginTest):
         test_fw = self._set_up_fw_for_process_object()
 
         self.analysis_plugin.process_object(test_fw)
-        result = test_fw.processed_analysis[self.analysis_plugin.NAME]
+        result = test_fw.processed_analysis[self.analysis_plugin.NAME]['result']
         assert 'files' in result
         assert len(result['files']) == 4
         assert any(result['files'][uid]['executable'] for uid in result['files'])
@@ -171,7 +171,7 @@ class TestPluginQemuExec(AnalysisPluginTest):
         test_file_uid = '68bbef24a7083ca2f5dc93f1738e62bae73ccbd184ea3e33d5a936de1b23e24c_8020'
 
         self.analysis_plugin.process_object(test_fw)
-        result = test_fw.processed_analysis[self.analysis_plugin.NAME]
+        result = test_fw.processed_analysis[self.analysis_plugin.NAME]['result']
         assert 'files' in result
         assert len(result['files']) == 3
         assert result['files'][test_file_uid]['executable'] is True
@@ -181,7 +181,7 @@ class TestPluginQemuExec(AnalysisPluginTest):
         test_fw = self._set_up_fw_for_process_object(path=TEST_DATA_DIR / 'usr')
 
         self.analysis_plugin.process_object(test_fw)
-        result = test_fw.processed_analysis[self.analysis_plugin.NAME]
+        result = test_fw.processed_analysis[self.analysis_plugin.NAME]['result']
 
         assert 'files' in result
         assert any(result['files'][uid]['executable'] for uid in result['files']) is False
@@ -198,7 +198,7 @@ class TestPluginQemuExec(AnalysisPluginTest):
         test_fw = self._set_up_fw_for_process_object()
 
         self.analysis_plugin.process_object(test_fw)
-        result = test_fw.processed_analysis[self.analysis_plugin.NAME]
+        result = test_fw.processed_analysis[self.analysis_plugin.NAME]['result']
 
         assert 'files' in result
         assert all(
@@ -218,17 +218,17 @@ class TestPluginQemuExec(AnalysisPluginTest):
 
         self.analysis_plugin.process_object(test_fw)
         assert self.analysis_plugin.NAME in test_fw.processed_analysis
-        assert test_fw.processed_analysis[self.analysis_plugin.NAME] == {'summary': []}
+        assert test_fw.processed_analysis[self.analysis_plugin.NAME] == {'summary': [], 'result': {}}
 
     @pytest.mark.timeout(10)
     def test_process_object__included_binary(self):
         test_fw = create_test_firmware()
-        test_fw.processed_analysis['file_type']['mime'] = self.analysis_plugin.FILE_TYPES[0]
+        test_fw.processed_analysis['file_type']['result']['mime'] = self.analysis_plugin.FILE_TYPES[0]
 
         self.analysis_plugin.process_object(test_fw)
         assert self.analysis_plugin.NAME in test_fw.processed_analysis
-        assert 'parent_flag' in test_fw.processed_analysis[self.analysis_plugin.NAME]
-        assert test_fw.processed_analysis[self.analysis_plugin.NAME]['parent_flag'] is True
+        assert 'parent_flag' in test_fw.processed_analysis[self.analysis_plugin.NAME]['result']
+        assert test_fw.processed_analysis[self.analysis_plugin.NAME]['result']['parent_flag'] is True
 
     def _set_up_fw_for_process_object(self, path: Path = TEST_DATA_DIR):
         test_fw = create_test_firmware()

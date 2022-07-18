@@ -32,6 +32,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     FILE = __file__
 
     def process_object(self, file_object: FileObject):
+        analysis = file_object.processed_analysis[self.NAME] = {'summary': [], 'result': {}}
         with TemporaryDirectory(prefix=self.NAME, dir=self.config['data-storage']['docker-mount-base-dir']) as tmp_dir:
             file_path = Path(tmp_dir) / file_object.file_name
             file_path.write_bytes(file_object.binary)
@@ -47,11 +48,11 @@ class AnalysisPlugin(AnalysisBasePlugin):
                         Mount(CONTAINER_TARGET_PATH, str(file_path), type='bind'),
                     ],
                 )
-                file_object.processed_analysis[self.NAME] = loads(result.stdout)
+                analysis['result'] = loads(result.stdout)
             except ReadTimeout:
-                file_object.processed_analysis[self.NAME]['failed'] = 'Analysis timed out. It might not be complete.'
+                analysis['result']['failed'] = 'Analysis timed out. It might not be complete.'
             except (DockerException, IOError):
-                file_object.processed_analysis[self.NAME]['failed'] = 'Analysis issues. It might not be complete.'
+                analysis['result']['failed'] = 'Analysis issues. It might not be complete.'
             except JSONDecodeError:
                 logging.error('[input_vectors]: Could not decode JSON output:', exc_info=True)
 

@@ -10,7 +10,7 @@
             <col width="600">
         </colgroup>
         <tbody class="table-analysis">
-            {% for key, entry in firmware.processed_analysis[selected_analysis].items() %}
+            {% for key, entry in firmware.processed_analysis[selected_analysis]['result'].items() %}
                 {% if key | is_not_mandatory_analysis_entry %}
                     <tr>
                         {% set row_count = 3 + (1 if entry.meta.date else 0) + (1 if entry.meta.author else 0) %}

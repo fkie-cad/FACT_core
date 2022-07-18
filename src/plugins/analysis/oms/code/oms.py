@@ -1,5 +1,3 @@
-import logging
-
 from common_analysis_oms.oms import CommonAnalysisOMS
 
 from analysis.PluginBase import AnalysisBasePlugin
@@ -26,10 +24,10 @@ class AnalysisPlugin(AnalysisBasePlugin):
         If you want to propagate results to parent objects store a list of strings 'summary' entry of your result dict
         '''
         result = self.oms.analyze_file(file_object.file_path)
-        logging.debug(result)
-        logging.debug(type(result))
-        file_object.processed_analysis[self.NAME] = result
-        file_object.processed_analysis[self.NAME]['summary'] = self._get_summary(file_object.processed_analysis[self.NAME])
+        file_object.processed_analysis[self.NAME] = {
+            'result': result,
+            'summary': self._get_summary(file_object.processed_analysis[self.NAME]),
+        }
         return file_object
 
     @staticmethod

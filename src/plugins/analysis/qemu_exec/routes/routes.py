@@ -21,7 +21,8 @@ def get_analysis_results_for_included_uid(uid: str, db: FrontEndDbInterface):  #
     this_fo = db.get_object(uid)
     if this_fo is not None:
         for parent_uid in get_parent_uids_from_virtual_path(this_fo):
-            parent_results = _get_results_from_parent_fo(db.get_analysis(parent_uid, AnalysisPlugin.NAME), uid)
+            analysis = db.get_analysis(parent_uid, AnalysisPlugin.NAME)
+            parent_results = _get_results_from_parent_fo(analysis.get('result', {}), uid)
             if parent_results:
                 results[parent_uid] = parent_results
     return results

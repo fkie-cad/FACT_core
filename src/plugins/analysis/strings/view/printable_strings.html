@@ -2,10 +2,10 @@
 
 {% block analysis_result_details %}
 
-    {% set analysis = firmware.processed_analysis[selected_analysis] %}
+    {% set analysis = firmware.processed_analysis[selected_analysis]['result'] %}
     <tr>
         <td>String count</td>
-        <td>{{ firmware.processed_analysis[selected_analysis]['strings'] | length }}</td>
+        <td>{{ analysis['strings'] | length }}</td>
     </tr>
     <tr>
         <td rowspan="4">Strings</td>

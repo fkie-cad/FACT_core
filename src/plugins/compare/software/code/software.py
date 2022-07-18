@@ -52,4 +52,4 @@ class ComparePlugin(CompareBasePlugin):
 
     @staticmethod
     def _get_software_set(fo: FileObject) -> Set[str]:
-        return set(fo.processed_analysis['software_components']['summary'].keys())
+        return set(fo.processed_analysis['software_components']['summary'])

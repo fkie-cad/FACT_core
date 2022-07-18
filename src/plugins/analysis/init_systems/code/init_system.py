@@ -28,14 +28,14 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     @staticmethod
     def _is_text_file(file_object):
-        return file_object.processed_analysis['file_type']['mime'] in ['text/plain']
+        return file_object.processed_analysis['file_type']['result']['mime'] in ['text/plain']
 
     @staticmethod
     def _get_file_path(file_object: FileObject):
         root_uid = file_object.root_uid or list(file_object.parent_firmware_uids)[0]
         return get_top_of_virtual_path(file_object.virtual_file_path[root_uid][0])
 
-    def _get_systemd_config(self, file_object):
+    def _get_systemd_config(self, file_object) -> dict:
         result = {}
         match_description = self._findall_regex(r'(?:Description=)(.*)', self.content)
         match_exec = self._findall_regex(r'(?<=ExecStart=).*', self.content)
@@ -45,19 +45,17 @@ class AnalysisPlugin(AnalysisBasePlugin):
         description = self._add_quotes(description)
         result['description'] = description if description else [file_object.file_name]
         result['init_type'] = ['SystemD']
-        result['summary'] = result['init_type']
         return result
 
-    def _get_rc_config(self, _):
+    def _get_rc_config(self, _) -> dict:
         result = {}
         matches = self._findall_regex(r'^(?!#)(.+)', self.content)
         if matches:
             result['script'] = '\n'.join(matches)
         result['init_type'] = ['rc']
-        result['summary'] = result['init_type']
         return result
 
-    def _get_inittab_config(self, _):
+    def _get_inittab_config(self, _) -> dict:
         result = {}
         matches_sysinit = self._findall_regex(r'^[^#].*(?<=sysinit:)([^#].*)', self.content)
         matches_respawn = self._findall_regex(r'^[^#].*(?<=respawn:)([^#].*)', self.content)
@@ -67,19 +65,17 @@ class AnalysisPlugin(AnalysisBasePlugin):
         if all_matches:
             result['inittab'] = '\n'.join(all_matches)
             result['init_type'] = ['inittab']
-            result['summary'] = result['init_type']
         return result
 
-    def _get_initscript_config(self, _):
+    def _get_initscript_config(self, _) -> dict:
         result = {}
         matches = self._findall_regex(r'^(?!#)(.+)', self.content)
         if matches:
             result['script'] = '\n'.join(matches)
         result['init_type'] = ['initscript']
-        result['summary'] = result['init_type']
         return result
 
-    def _get_upstart_config(self, file_object):
+    def _get_upstart_config(self, file_object) -> dict:
         result = {}
         match_description = self._findall_regex(r'^[^#].*(?<=description)\s*(.*)', self.content)
         match_exec = self._findall_regex(r'[^#]^exec\s*((?:.*\\\n)*.*)', self.content)
@@ -93,10 +89,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
         if match_script:
             result['script'] = '\n'.join(match_script)
         result['init_type'] = ['UpStart']
-        result['summary'] = result['init_type']
         return result
 
-    def _get_runit_config(self, file_object):
+    def _get_runit_config(self, file_object) -> dict:
         # TODO description = filepath
         result = {}
         match_exec = self._findall_regex(r'^([^#](?:.*\\\n)*.*)', self.content)
@@ -104,10 +99,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
             result['script'] = '\n'.join(match_exec)
         result['description'] = [file_object.file_name]
         result['init_type'] = ['RunIt']
-        result['summary'] = result['init_type']
         return result
 
-    def _get_sysvinit_config(self, file_object):
+    def _get_sysvinit_config(self, file_object) -> dict:
         result = {}
         match_desc1 = self._findall_regex(r'Short-Description:\s*(.*)', self.content)
         match_desc2 = self._findall_regex(r'DESC=\"*([^\"|\n]*)', self.content)
@@ -117,37 +111,36 @@ class AnalysisPlugin(AnalysisBasePlugin):
         result['description'] = description_formatted if description_formatted else [file_object.file_name]
         if matches:
             result['script'] = '\n'.join(matches)
-        result['init_type'] = ['rc']
         result['init_type'] = ['SysVInit']
-        result['summary'] = result['init_type']
         return result
 
     def process_object(self, file_object):
-        file_object.processed_analysis[self.NAME] = {}
-        file_object.processed_analysis[self.NAME]["result"] = {}
-
         if self._is_text_file(file_object) and (file_object.file_name not in FILE_IGNORES):
             file_path = self._get_file_path(file_object)
             self.content = make_unicode_string(file_object.binary)  # pylint: disable=attribute-defined-outside-init
             if '/inittab' in file_path:
-                file_object.processed_analysis[self.NAME]['result'] = self._get_inittab_config(file_object)
-            if 'systemd/system/' in file_path:
-                file_object.processed_analysis[self.NAME]['result'] = self._get_systemd_config(file_object)
-            if file_path.endswith(('etc/rc', 'etc/rc.local', 'etc/rc.firsttime', 'etc/rc.securelevel')):
-                file_object.processed_analysis[self.NAME]['result'] = self._get_rc_config(file_object)
-            if file_path.endswith('etc/initscript'):
-                file_object.processed_analysis[self.NAME]['result'] = self._get_initscript_config(file_object)
-            if 'etc/init/' in file_path or 'etc/event.d/' in file_path:
-                file_object.processed_analysis[self.NAME]['result'] = self._get_upstart_config(file_object)
-            if 'etc/service/' in file_path or 'etc/sv/' in file_path:
-                file_object.processed_analysis[self.NAME]['result'] = self._get_runit_config(file_object)
-            if 'etc/init.d/' in file_path or 'etc/rc.d/' in file_path:
-                file_object.processed_analysis[self.NAME]['result'] = self._get_sysvinit_config(file_object)
+                result = self._get_inittab_config(file_object)
+            elif 'systemd/system/' in file_path:
+                result = self._get_systemd_config(file_object)
+            elif file_path.endswith(('etc/rc', 'etc/rc.local', 'etc/rc.firsttime', 'etc/rc.securelevel')):
+                result = self._get_rc_config(file_object)
+            elif file_path.endswith('etc/initscript'):
+                result = self._get_initscript_config(file_object)
+            elif 'etc/init/' in file_path or 'etc/event.d/' in file_path:
+                result = self._get_upstart_config(file_object)
+            elif 'etc/service/' in file_path or 'etc/sv/' in file_path:
+                result = self._get_runit_config(file_object)
+            elif 'etc/init.d/' in file_path or 'etc/rc.d/' in file_path:
+                result = self._get_sysvinit_config(file_object)
+            else:
+                result = {}
 
-            # FIXME restructure code to remove this workaround
-            file_object.processed_analysis[self.NAME]['summary'] = file_object.processed_analysis[self.NAME]['result'].pop('summary', [])
+            file_object.processed_analysis[self.NAME] = {
+                'result': result,
+                'summary': result.get('init_type', []),
+            }
         else:
-            file_object.processed_analysis[self.NAME]["summary"] = []
+            file_object.processed_analysis[self.NAME] = {'summary': []}
 
         return file_object
 

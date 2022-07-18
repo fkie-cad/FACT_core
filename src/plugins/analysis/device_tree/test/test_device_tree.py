@@ -25,11 +25,11 @@ class TestDeviceTree(AnalysisPluginTest):
         test_object = FileObject()
         test_object.binary = TEST_FILE.read_bytes()
         processed_object = self.analysis_plugin.process_object(test_object)
-        result = processed_object.processed_analysis[self.PLUGIN_NAME]
+        analysis = processed_object.processed_analysis[self.PLUGIN_NAME]
 
-        assert len(result['device_trees']) == 1
-        assert result['device_trees'][0]['model'] == 'Manufac XYZ1234ABC'
-        assert result['summary'] == ['Manufac XYZ1234ABC']
+        assert len(analysis['result']['device_trees']) == 1
+        assert analysis['result']['device_trees'][0]['model'] == 'Manufac XYZ1234ABC'
+        assert analysis['summary'] == ['Manufac XYZ1234ABC']
 
 
 @pytest.mark.parametrize('file', [TEST_EMBEDDED, TEST_IMAGE])

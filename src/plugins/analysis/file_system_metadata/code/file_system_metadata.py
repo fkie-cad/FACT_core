@@ -61,15 +61,14 @@ class AnalysisPlugin(AnalysisBasePlugin):
         super().__init__(*args, config=config, **kwargs)
 
     def process_object(self, file_object: FileObject) -> FileObject:
+        file_object.processed_analysis[self.NAME] = {'result': {}, 'summary': []}
         self.result = {}
         self._extract_metadata(file_object)
         self._set_result_propagation_flag(file_object)
         return file_object
 
     def _set_result_propagation_flag(self, file_object: FileObject):
-        if 'file_system_metadata' not in file_object.processed_analysis:
-            file_object.processed_analysis['file_system_metadata'] = {}
-        file_object.processed_analysis['file_system_metadata']['contained_in_file_system'] = self._parent_has_file_system_metadata(file_object)
+        file_object.processed_analysis['file_system_metadata']['result']['contained_in_file_system'] = self._parent_has_file_system_metadata(file_object)
 
     def _parent_has_file_system_metadata(self, file_object: FileObject) -> bool:
         if hasattr(file_object, 'temporary_data') and 'parent_fo_type' in file_object.temporary_data:
@@ -80,7 +79,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         for parent_uid in get_parent_uids_from_virtual_path(file_object):
             analysis_entry = self.db.get_analysis(parent_uid, 'file_type')
             if analysis_entry is not None:
-                if self._has_correct_type(analysis_entry['mime']):
+                if self._has_correct_type(analysis_entry['result']['mime']):
                     return True
         return False
 
@@ -88,13 +87,13 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return mime_type in self.ARCHIVE_MIME_TYPES + self.FS_MIME_TYPES
 
     def _extract_metadata(self, file_object: FileObject):
-        file_type = file_object.processed_analysis['file_type']['mime']
+        file_type = file_object.processed_analysis['file_type']['result']['mime']
         if file_type in self.FS_MIME_TYPES:
             self._extract_metadata_from_file_system(file_object)
         elif file_type in self.ARCHIVE_MIME_TYPES:
             self._extract_metadata_from_tar(file_object)
         if self.result:
-            file_object.processed_analysis[self.NAME] = {'files': self.result}
+            file_object.processed_analysis[self.NAME]['result'] = {'files': self.result}
             self._add_tag(file_object, self.result)
 
     def _extract_metadata_from_file_system(self, file_object: FileObject):
@@ -108,7 +107,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             else:
                 message = f'mount failed:\n{output}'
                 logging.warning(f'[file_system_metadata] {message}')
-                file_object.processed_analysis[self.NAME]['failed'] = message
+                file_object.processed_analysis[self.NAME]['result']['failed'] = message
 
     def _mount_in_docker(self, input_dir: str) -> str:
         result = run_docker_container(

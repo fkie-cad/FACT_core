@@ -24,13 +24,12 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def process_object(self, file_object):
         comparisons_dict = {}
-        if 'tlsh' in file_object.processed_analysis['file_hashes'].keys():
+        if 'tlsh' in file_object.processed_analysis['file_hashes']['result']:
             for uid, tlsh_hash in self.db.get_all_tlsh_hashes():
-                value = get_tlsh_comparison(file_object.processed_analysis['file_hashes']['tlsh'], tlsh_hash)
+                value = get_tlsh_comparison(file_object.processed_analysis['file_hashes']['result']['tlsh'], tlsh_hash)
                 if value <= 150 and not uid == file_object.uid:
                     comparisons_dict[uid] = value
-        file_object.processed_analysis[self.NAME] = {}
-        file_object.processed_analysis[self.NAME]['result'] = comparisons_dict
+        file_object.processed_analysis[self.NAME] = {'result': comparisons_dict}
         return file_object
 
 

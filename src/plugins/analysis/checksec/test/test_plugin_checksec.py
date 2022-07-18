@@ -31,13 +31,13 @@ class TestAnalysisPluginChecksec(AnalysisPluginTest):
 
     def test_check_mitigations(self):
         test_file = FileObject(file_path=str(FILE_PATH_EXE))
-        test_file.processed_analysis['file_type'] = {'full': 'ELF 64-bit LSB shared object, x86-64, dynamically linked'}
+        test_file.processed_analysis['file_type'] = {'result': {'full': 'ELF 64-bit LSB shared object, x86-64, dynamically linked'}}
         self.analysis_plugin.process_object(test_file)
-        result = test_file.processed_analysis[self.PLUGIN_NAME]
+        analysis = test_file.processed_analysis[self.PLUGIN_NAME]
 
-        assert result['NX'] == 'enabled'
-        assert 'summary' in result
-        assert 'NX enabled' in result['summary']
+        assert analysis['result']['NX'] == 'enabled'
+        assert 'summary' in analysis
+        assert 'NX enabled' in analysis['summary']
 
 
 @pytest.mark.parametrize('file_path, check, expected_result, expected_summary', [

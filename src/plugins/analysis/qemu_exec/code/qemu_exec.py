@@ -88,17 +88,15 @@ class AnalysisPlugin(AnalysisBasePlugin):
         super().__init__(*args, config=config, **kwargs)
 
     def process_object(self, file_object: FileObject) -> FileObject:
-        if self.NAME not in file_object.processed_analysis:
-            file_object.processed_analysis[self.NAME] = {}
-        file_object.processed_analysis[self.NAME]['summary'] = []
+        file_object.processed_analysis[self.NAME] = {'summary': [], 'result': {}}
 
-        if file_object.processed_analysis['file_type']['mime'] in self.FILE_TYPES:
+        if file_object.processed_analysis['file_type']['result']['mime'] in self.FILE_TYPES:
             return self._process_included_binary(file_object)
         return self._process_container(file_object)
 
     def _process_included_binary(self, file_object: FileObject) -> FileObject:
         # File will get analyzed in the parent container
-        file_object.processed_analysis[self.NAME]['parent_flag'] = True
+        file_object.processed_analysis[self.NAME]['result']['parent_flag'] = True
         return file_object
 
     def _process_container(self, file_object: FileObject) -> FileObject:
@@ -113,7 +111,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 self.root_path = self._find_root_path(extracted_files_dir)
                 file_list = self._find_relevant_files(extracted_files_dir)
                 if file_list:
-                    file_object.processed_analysis[self.NAME]['files'] = {}
+                    file_object.processed_analysis[self.NAME]['result']['files'] = {}
                     self._process_included_files(file_list, file_object)
             finally:
                 tmp_dir.cleanup()
@@ -167,7 +165,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def _analysis_not_already_completed(self, file_object, uid):
         # file could be contained in the fo multiple times (but should be tested only once)
-        return uid not in file_object.processed_analysis[self.NAME]['files']
+        return uid not in file_object.processed_analysis[self.NAME]['result']['files']
 
     @staticmethod
     def _get_uid(file_path, root_path: Path):
@@ -180,13 +178,13 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return []
 
     def _enter_results(self, results, file_object):
-        tmp = file_object.processed_analysis[self.NAME]['files'] = results
+        tmp = file_object.processed_analysis[self.NAME]['result']['files'] = results
         for uid in tmp:
             tmp[uid][EXECUTABLE] = _valid_execution_in_results(tmp[uid]['results'])
-        file_object.processed_analysis['qemu_exec']['summary'] = self._get_summary(tmp)
+        file_object.processed_analysis[self.NAME]['summary'] = self._get_summary(tmp)
 
     def _add_tag(self, file_object: FileObject):
-        result = file_object.processed_analysis[self.NAME]['files']
+        result = file_object.processed_analysis[self.NAME]['result']['files']
         if any(result[uid][EXECUTABLE] for uid in result):
             self.add_analysis_tag(
                 file_object=file_object,

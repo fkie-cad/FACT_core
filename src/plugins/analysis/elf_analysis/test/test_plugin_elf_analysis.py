@@ -47,7 +47,7 @@ def test_config():
 @pytest.fixture(scope='function')
 def stub_object():
     test_object = FileObject(file_path=str(TEST_DATA))
-    test_object.processed_analysis['file_type'] = {'mime': 'application/x-executable'}
+    test_object.processed_analysis['file_type'] = {'result': {'mime': 'application/x-executable'}}
     return test_object
 
 
@@ -154,10 +154,10 @@ def test_plugin(stub_plugin, stub_object, monkeypatch):
     monkeypatch.setattr('lief.parse', lambda _: MOCK_LIEF_RESULT)
     monkeypatch.setattr('lief.to_json', lambda _: MOCK_DATA)
 
-    stub_object.processed_analysis['file_type'] = {'mime': 'application/x-executable'}
+    stub_object.processed_analysis['file_type'] = {'result': {'mime': 'application/x-executable'}}
     stub_plugin.process_object(stub_object)
 
-    output = stub_object.processed_analysis[stub_plugin.NAME]['Output']
+    output = stub_object.processed_analysis[stub_plugin.NAME]['result']['Output']
     assert output != {}
     result_summary = sorted(stub_object.processed_analysis[stub_plugin.NAME]['summary'])
     assert result_summary == ['dynamic_entries', 'exported_functions', 'header', 'imported_functions', 'libraries', 'sections', 'segments', 'symbols_version']

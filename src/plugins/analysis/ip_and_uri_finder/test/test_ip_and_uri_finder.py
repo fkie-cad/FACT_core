@@ -82,11 +82,11 @@ class TestAnalysisPluginIpAndUriFinder(AnalysisPluginTest):
         test_data = {'ips_v4': ['128.101.101.101', '255.255.255.255'],
                      'ips_v6': ['1234:1234:abcd:abcd:1234:1234:abcd:abcd'],
                      'uris': 'http://www.google.de'}
-        results = self.analysis_plugin.add_geo_uri_to_ip(test_data)
-        self.assertEqual('http://www.google.de', results['uris'])
+        self.analysis_plugin.add_geo_uri_to_ip(test_data)
+        self.assertEqual('http://www.google.de', test_data['uris'])
         self.assertEqual([('128.101.101.101', '44.9759, -93.2166'),
-                          ('255.255.255.255', '0.0, 0.0')], results['ips_v4'])
-        self.assertEqual([('1234:1234:abcd:abcd:1234:1234:abcd:abcd', '2.1, 2.1')], results['ips_v6'])
+                          ('255.255.255.255', '0.0, 0.0')], test_data['ips_v4'])
+        self.assertEqual([('1234:1234:abcd:abcd:1234:1234:abcd:abcd', '2.1, 2.1')], test_data['ips_v6'])
 
     @patch('geoip2.database.Reader', MockReader(None))
     def test_find_geo_location(self):
