@@ -75,7 +75,7 @@ class AnalysisRoutes(ComponentBase):
         )
 
     def _get_correct_template(self, selected_analysis: Optional[str], fw_object: Union[Firmware, FileObject]):
-        if selected_analysis and 'failed' in fw_object.processed_analysis[selected_analysis]:
+        if selected_analysis and 'failed' in fw_object.processed_analysis[selected_analysis].get('result', {}):
             return get_template_as_string('analysis_plugins/fail.html')
         if selected_analysis:
             return self._get_analysis_view(selected_analysis)
