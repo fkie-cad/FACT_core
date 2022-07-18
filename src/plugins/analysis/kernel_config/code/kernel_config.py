@@ -8,9 +8,9 @@ from objects.file import FileObject
 from plugins.mime_blacklists import MIME_BLACKLIST_NON_EXECUTABLE
 
 try:
-    from ..internal.checksec_check_kernel import CHECKSEC_PATH, check_kernel_config
-    from ..internal.decomp import decompress
-    from ..internal.kernel_config_hardening_check import check_kernel_hardening
+    from plugins.analysis.kernel_config.internal.checksec_check_kernel import CHECKSEC_PATH, check_kernel_config
+    from plugins.analysis.kernel_config.internal.decomp import decompress
+    from plugins.analysis.kernel_config.internal.kernel_config_hardening_check import check_kernel_hardening
 except ImportError:
     sys.path.append(str(Path(__file__).parent.parent / 'internal'))
     from checksec_check_kernel import CHECKSEC_PATH, check_kernel_config

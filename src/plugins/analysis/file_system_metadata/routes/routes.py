@@ -5,6 +5,7 @@ from typing import Optional
 from flask import render_template_string
 from flask_restx import Namespace
 
+from helperFunctions.database import get_shared_session
 from objects.file import FileObject
 from storage.db_interface_frontend import FrontEndDbInterface
 from web_interface.components.component_base import ComponentBase
@@ -18,13 +19,14 @@ from ..code.file_system_metadata import AnalysisPlugin
 VIEW_PATH = Path(__file__).absolute().parent / 'ajax_view.html'
 
 
-def get_analysis_results_for_included_uid(uid: str, db: FrontEndDbInterface) -> dict:  # pylint: disable=invalid-name
+def get_analysis_results_for_included_uid(uid: str, db_interface: FrontEndDbInterface) -> dict:  # pylint: disable=invalid-name
     results = {}
-    this_fo = db.get_object(uid)
-    if this_fo is not None:
-        for parent_uid in this_fo.parents:
-            parent_results = db.get_analysis(parent_uid, AnalysisPlugin.NAME)
-            results.update(_get_results_from_parent_fo(parent_results['result'], parent_uid, this_fo))
+    with get_shared_session(db_interface) as db:
+        this_fo = db.get_object(uid)
+        if this_fo is not None:
+            for parent_uid in this_fo.parents:
+                parent_results = db.get_analysis(parent_uid, AnalysisPlugin.NAME)
+                results.update(_get_results_from_parent_fo(parent_results['result'], parent_uid, this_fo))
     return results
 
 

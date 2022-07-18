@@ -7,7 +7,7 @@ from flask import flash, redirect, render_template, render_template_string, requ
 from flask_login.utils import current_user
 
 from helperFunctions.data_conversion import none_to_none
-from helperFunctions.database import ConnectTo
+from helperFunctions.database import ConnectTo, get_shared_session
 from helperFunctions.fileSystem import get_src_dir
 from helperFunctions.task_conversion import check_for_errors, convert_analysis_task_to_fw_obj, create_re_analyze_task
 from helperFunctions.web_interface import get_template_as_string
@@ -42,18 +42,18 @@ class AnalysisRoutes(ComponentBase):
     @AppRoute('/analysis/<uid>/<selected_analysis>/ro/<root_uid>', GET)
     def show_analysis(self, uid, selected_analysis=None, root_uid=None):
         other_versions = None
-        with self.db.frontend.get_read_only_session():
-            all_comparisons = self.db.comparison.page_comparison_results()
+        all_comparisons = self.db.comparison.page_comparison_results()
+        with get_shared_session(self.db.frontend) as frontend_db:
             known_comparisons = [comparison for comparison in all_comparisons if uid in comparison[0]]
-            file_obj = self.db.frontend.get_object(uid)
+            file_obj = frontend_db.get_object(uid)
             if not file_obj:
                 return render_template('uid_not_found.html', uid=uid)
             if selected_analysis is not None and selected_analysis not in file_obj.processed_analysis:
                 return render_template('error.html', message=f'The requested analysis ({selected_analysis}) has not run (yet)')
             if isinstance(file_obj, Firmware):
                 root_uid = file_obj.uid
-                other_versions = self.db.frontend.get_other_versions_of_firmware(file_obj)
-            included_fo_analysis_complete = not self.db.frontend.all_uids_found_in_database(list(file_obj.files_included))
+                other_versions = frontend_db.get_other_versions_of_firmware(file_obj)
+            included_fo_analysis_complete = not frontend_db.all_uids_found_in_database(list(file_obj.files_included))
         with ConnectTo(self.intercom, self._config) as sc:
             analysis_plugins = sc.get_available_analysis_plugins()
         return render_template_string(
@@ -112,14 +112,14 @@ class AnalysisRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @AppRoute('/update-analysis/<uid>', GET)
     def get_update_analysis(self, uid, re_do=False, error=None):
-        with self.db.frontend.get_read_only_session():
-            old_firmware = self.db.frontend.get_object(uid=uid)
+        with get_shared_session(self.db.frontend) as frontend_db:
+            old_firmware = frontend_db.get_object(uid=uid)
             if old_firmware is None:
                 return render_template('uid_not_found.html', uid=uid)
 
-            device_class_list = self.db.frontend.get_device_class_list()
-            vendor_list = self.db.frontend.get_vendor_list()
-            device_name_dict = self.db.frontend.get_device_name_dict()
+            device_class_list = frontend_db.get_device_class_list()
+            vendor_list = frontend_db.get_vendor_list()
+            device_name_dict = frontend_db.get_device_name_dict()
 
         device_class_list.remove(old_firmware.device_class)
         vendor_list.remove(old_firmware.vendor)
@@ -181,9 +181,10 @@ class AnalysisRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['view_analysis'])
     @AppRoute('/dependency-graph/<uid>/<root_uid>', GET)
     def show_elf_dependency_graph(self, uid, root_uid):
-        if root_uid in [None, 'None']:
-            root_uid = self.db.frontend.get_object(uid).get_root_uid()
-        data = self.db.frontend.get_data_for_dependency_graph(uid)
+        with get_shared_session(self.db.frontend) as frontend_db:
+            if root_uid in [None, 'None']:
+                root_uid = frontend_db.get_object(uid).get_root_uid()
+            data = frontend_db.get_data_for_dependency_graph(uid)
 
         whitelist = ['application/x-executable', 'application/x-pie-executable', 'application/x-sharedlib', 'inode/symlink']
 

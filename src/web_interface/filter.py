@@ -301,6 +301,8 @@ def vulnerability_class(score):
         return 'warning'
     if score == 'low':
         return 'active'
+    if score == 'none':
+        return 'success'
     return None
 
 

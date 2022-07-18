@@ -9,7 +9,7 @@ from web_interface.components.jinja_filter import FilterClass
 class TestAppShowAnalysis(WebInterfaceTest):
 
     def setup(self):
-        self.filter = FilterClass(self.frontend.app, '', self.config, frontend_db=self.db_mock())
+        self.filter = FilterClass(self.frontend.app, '', self.config, self.frontend.db)
 
     def _get_template_filter_output(self, data, filter_name):
         with self.frontend.app.test_request_context():

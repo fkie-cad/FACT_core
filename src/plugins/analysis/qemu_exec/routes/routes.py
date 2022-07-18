@@ -3,6 +3,7 @@ from pathlib import Path
 from flask import render_template_string
 from flask_restx import Namespace
 
+from helperFunctions.database import get_shared_session
 from helperFunctions.virtual_file_path import get_parent_uids_from_virtual_path
 from storage.db_interface_frontend import FrontEndDbInterface
 from web_interface.components.component_base import ComponentBase
@@ -16,15 +17,16 @@ from ..code.qemu_exec import AnalysisPlugin
 VIEW_PATH = Path(__file__).absolute().parent / 'ajax_view.html'
 
 
-def get_analysis_results_for_included_uid(uid: str, db: FrontEndDbInterface):  # pylint: disable=invalid-name
+def get_analysis_results_for_included_uid(uid: str, db_interface: FrontEndDbInterface):  # pylint: disable=invalid-name
     results = {}
-    this_fo = db.get_object(uid)
-    if this_fo is not None:
-        for parent_uid in get_parent_uids_from_virtual_path(this_fo):
-            analysis = db.get_analysis(parent_uid, AnalysisPlugin.NAME)
-            parent_results = _get_results_from_parent_fo(analysis.get('result', {}), uid)
-            if parent_results:
-                results[parent_uid] = parent_results
+    with get_shared_session(db_interface) as db:
+        this_fo = db.get_object(uid)
+        if this_fo is not None:
+            for parent_uid in get_parent_uids_from_virtual_path(this_fo):
+                analysis = db.get_analysis(parent_uid, AnalysisPlugin.NAME)
+                parent_results = _get_results_from_parent_fo(analysis.get('result', {}), uid)
+                if parent_results:
+                    results[parent_uid] = parent_results
     return results
 
 

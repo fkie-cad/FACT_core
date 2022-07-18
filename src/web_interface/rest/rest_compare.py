@@ -2,7 +2,7 @@ from flask import request
 from flask_restx import Namespace, fields
 
 from helperFunctions.data_conversion import convert_compare_id_to_list, normalize_compare_id
-from helperFunctions.database import ConnectTo
+from helperFunctions.database import ConnectTo, get_shared_session
 from helperFunctions.uid import is_uid
 from web_interface.rest.helper import error_message, success_message
 from web_interface.rest.rest_resource_base import RestResourceBase
@@ -33,21 +33,22 @@ class RestComparePut(RestResourceBase):
         data = self.validate_payload_data(compare_model)
         compare_id = normalize_compare_id(';'.join(data['uid_list']))
 
-        if self.db.comparison.comparison_exists(compare_id) and not data['redo']:
-            return error_message(
-                'Compare already exists. Use "redo" to force re-compare.',
-                self.URL, request_data=request.json, return_code=200
-            )
+        with get_shared_session(self.db.comparison) as comparison_db:
+            if comparison_db.comparison_exists(compare_id) and not data['redo']:
+                return error_message(
+                    'Compare already exists. Use "redo" to force re-compare.',
+                    self.URL, request_data=request.json, return_code=200
+                )
 
-        if not self.db.comparison.objects_exist(compare_id):
-            missing_uids = ', '.join(
-                uid for uid in convert_compare_id_to_list(compare_id)
-                if not self.db.frontend.exists(uid)
-            )
-            return error_message(
-                f'Some objects are not found in the database: {missing_uids}', self.URL,
-                request_data=request.json, return_code=404
-            )
+            if not comparison_db.objects_exist(compare_id):
+                missing_uids = ', '.join(
+                    uid for uid in convert_compare_id_to_list(compare_id)
+                    if not comparison_db.exists(uid)
+                )
+                return error_message(
+                    f'Some objects are not found in the database: {missing_uids}', self.URL,
+                    request_data=request.json, return_code=404
+                )
 
         with ConnectTo(self.intercom, self.config) as intercom:
             intercom.add_compare_task(compare_id, force=data['redo'])
@@ -86,8 +87,9 @@ class RestCompareGet(RestResourceBase):
             )
 
         result = None
-        if self.db.comparison.comparison_exists(compare_id):
-            result = self.db.comparison.get_comparison_result(compare_id)
+        with get_shared_session(self.db.comparison) as comparison_db:
+            if comparison_db.comparison_exists(compare_id):
+                result = comparison_db.get_comparison_result(compare_id)
         if result:
             return success_message(result, self.URL, request_data={'compare_id': compare_id}, return_code=202)
         return error_message('Compare not found in database. Please use /rest/start_compare to start the compare.', self.URL, request_data={'compare_id': compare_id}, return_code=404)

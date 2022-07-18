@@ -27,7 +27,7 @@ class BasePlugin:
         views_dir = Path(plugin_path).parent.parent / 'view'
         view_files = list(views_dir.iterdir()) if views_dir.is_dir() else []
         if len(view_files) < 1:
-            logging.debug('{}: No view available! Generic view will be used.'.format(cls.NAME))
+            logging.debug(f'{cls.NAME}: No view available! Generic view will be used.')
             return None
         if len(view_files) > 1:
             logging.warning('{}: Plug-in provides more than one view! \'{}\' is used!'.format(cls.NAME, view_files[0]))

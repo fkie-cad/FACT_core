@@ -4,7 +4,7 @@ from typing import List
 from flask import jsonify, render_template
 
 from helperFunctions.data_conversion import none_to_none
-from helperFunctions.database import ConnectTo
+from helperFunctions.database import ConnectTo, get_shared_session
 from web_interface.components.component_base import GET, AppRoute, ComponentBase
 from web_interface.components.hex_highlighting import preview_data_as_hex
 from web_interface.file_tree.file_tree import remove_virtual_path_from_root
@@ -37,13 +37,13 @@ class AjaxRoutes(ComponentBase):
 
     def _generate_file_tree(self, root_uid: str, uid: str, whitelist: List[str]) -> FileTreeNode:
         root = FileTreeNode(None)
-        with self.db.frontend.get_read_only_session():
+        with get_shared_session(self.db.frontend) as frontend_db:
             child_uids = [
                 child_uid
-                for child_uid in self.db.frontend.get_object(uid).files_included
+                for child_uid in frontend_db.get_object(uid).files_included
                 if whitelist is None or child_uid in whitelist
             ]
-            for node in self.db.frontend.generate_file_tree_nodes_for_uid_list(child_uids, root_uid, uid, whitelist):
+            for node in frontend_db.generate_file_tree_nodes_for_uid_list(child_uids, root_uid, uid, whitelist):
                 root.add_child_node(node)
         return root
 
@@ -51,8 +51,9 @@ class AjaxRoutes(ComponentBase):
     @AppRoute('/ajax_root/<uid>/<root_uid>', GET)
     def ajax_get_tree_root(self, uid, root_uid):
         root = []
-        for node in self.db.frontend.generate_file_tree_level(uid, root_uid):  # only a single item in this 'iterable'
-            root = [convert_to_jstree_node(node)]
+        with get_shared_session(self.db.frontend) as frontend_db:
+            for node in frontend_db.generate_file_tree_level(uid, root_uid):  # only a single item in this 'iterable'
+                root = [convert_to_jstree_node(node)]
         root = remove_virtual_path_from_root(root)
         return jsonify(root)
 
@@ -89,10 +90,10 @@ class AjaxRoutes(ComponentBase):
         with ConnectTo(self.intercom, self._config) as sc:
             binary = sc.get_binary_and_filename(uid)[0]
         if 'text/' in mime_type:
-            return '<pre class="line_numbering" style="white-space: pre-wrap">{}</pre>'.format(html.escape(bytes_to_str_filter(binary)))
+            return f'<pre class="line_numbering" style="white-space: pre-wrap">{html.escape(bytes_to_str_filter(binary))}</pre>'
         if 'image/' in mime_type:
             div = '<div style="display: block; border: 1px solid; border-color: #dddddd; padding: 5px; text-align: center">'
-            return '{}<img src="data:image/{} ;base64,{}" style="max-width:100%"></div>'.format(div, mime_type[6:], encode_base64_filter(binary))
+            return f'{div}<img src="data:image/{mime_type[6:]} ;base64,{encode_base64_filter(binary)}" style="max-width:100%"></div>'
         return None
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
@@ -106,10 +107,13 @@ class AjaxRoutes(ComponentBase):
     @roles_accepted(*PRIVILEGES['view_analysis'])
     @AppRoute('/ajax_get_summary/<uid>/<selected_analysis>', GET)
     def ajax_get_summary(self, uid, selected_analysis):
-        with self.db.frontend.get_read_only_session():
-            firmware = self.db.frontend.get_object(uid, analysis_filter=selected_analysis)
-            summary_of_included_files = self.db.frontend.get_summary(firmware, selected_analysis)
-        return render_template('summary.html', summary_of_included_files=summary_of_included_files, root_uid=uid, selected_analysis=selected_analysis)
+        with get_shared_session(self.db.frontend) as frontend_db:
+            firmware = frontend_db.get_object(uid, analysis_filter=selected_analysis)
+            summary_of_included_files = frontend_db.get_summary(firmware, selected_analysis)
+        return render_template(
+            'summary.html', summary_of_included_files=summary_of_included_files, root_uid=uid,
+            selected_analysis=selected_analysis
+        )
 
     @roles_accepted(*PRIVILEGES['status'])
     @AppRoute('/ajax/stats/system', GET)
@@ -117,7 +121,7 @@ class AjaxRoutes(ComponentBase):
         backend_data = self.db.stats_viewer.get_statistic('backend')
         try:
             return {
-                'backend_cpu_percentage': '{}%'.format(backend_data['system']['cpu_percentage']),
+                'backend_cpu_percentage': f"{backend_data['system']['cpu_percentage']}%",
                 'number_of_running_analyses': len(backend_data['analysis']['current_analyses'])
             }
         except (KeyError, TypeError):

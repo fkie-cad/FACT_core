@@ -1,3 +1,5 @@
+# pylint: disable=protected-access
+
 import json
 import os
 
@@ -68,3 +70,25 @@ class TestAnalysisPluginsKnownVulnerabilities(AnalysisPluginTest):
 
         self.assertIn('Netgear_CGI', test_file.processed_analysis[self.PLUGIN_NAME]['tags'])
         self.assertFalse(test_file.processed_analysis[self.PLUGIN_NAME]['tags']['Netgear_CGI']['propagate'])
+
+    def test_netusb_vulnerable(self):
+        test_file = FileObject(file_path=os.path.join(TEST_DATA_DIR, 'netusb_vulnerable.elf'))
+        assert test_file.binary is not None
+        result = self.analysis_plugin._check_netusb_vulnerability(test_file.binary)
+        assert len(result) == 1
+        assert result[0][0] == 'CVE-2021-45608'
+        assert result[0][1]['additional_data']['is_vulnerable'] is True
+
+    def test_netusb_not_vulnerable(self):
+        test_file = FileObject(file_path=os.path.join(TEST_DATA_DIR, 'netusb_not_vulnerable.elf'))
+        assert test_file.binary is not None
+        result = self.analysis_plugin._check_netusb_vulnerability(test_file.binary)
+        assert len(result) == 1
+        assert result[0][0] == 'CVE-2021-45608'
+        assert result[0][1]['additional_data']['is_vulnerable'] is False
+
+    def test_netusb_error(self):
+        test_file = FileObject(file_path=os.path.join(TEST_DATA_DIR, 'testfile'))
+        assert test_file.binary is not None
+        result = self.analysis_plugin._check_netusb_vulnerability(test_file.binary)
+        assert len(result) == 0

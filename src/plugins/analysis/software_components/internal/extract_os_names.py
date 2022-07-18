@@ -31,7 +31,7 @@ def extract_names(yara_file_path=SIGNATURE_PATH, target_path=TARGET_PATH):
     with suppress(FileExistsError):
         os.mkdir(os.path.dirname(target_path))
 
-    binary_string = 'OS_LIST = {}\n'.format(json.dumps(software_names))
+    binary_string = f'OS_LIST = {json.dumps(software_names)}\n'
     write_binary_to_file(file_binary=binary_string.encode(), file_path=target_path, overwrite=True)
 
     os.chdir(stashed_directory)

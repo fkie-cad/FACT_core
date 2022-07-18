@@ -7,12 +7,14 @@ from flask import render_template
 
 import web_interface.filter as flt
 from helperFunctions.data_conversion import none_to_none
+from helperFunctions.database import get_shared_session
 from helperFunctions.hash import get_md5
 from helperFunctions.uid import is_list_of_uids, is_uid
 from helperFunctions.virtual_file_path import split_virtual_path
 from helperFunctions.web_interface import cap_length_of_element, get_color_list
 from storage.db_interface_frontend import MetaEntry
 from web_interface.filter import elapsed_time, random_collapse_id
+from web_interface.frontend_database import FrontendDatabase
 
 
 class FilterClass:
@@ -20,11 +22,11 @@ class FilterClass:
     This is WEB front end main class
     '''
 
-    def __init__(self, app, program_version, config, frontend_db, **_):
+    def __init__(self, app, program_version, config, db: FrontendDatabase, **_):
         self._program_version = program_version
         self._app = app
         self._config = config
-        self.db = frontend_db
+        self.db = db
 
         self._setup_filters()
 
@@ -34,9 +36,10 @@ class FilterClass:
     def _filter_replace_uid_with_file_name(self, input_data):
         tmp = input_data.__str__()
         uid_list = flt.get_all_uids_in_string(tmp)
-        for item in uid_list:
-            file_name = self.db.get_file_name(item)
-            tmp = tmp.replace(f'>{item}<', f'>{file_name}<')
+        with get_shared_session(self.db.frontend) as frontend_db:
+            for item in uid_list:
+                file_name = frontend_db.get_file_name(item)
+                tmp = tmp.replace(f'>{item}<', f'>{file_name}<')
         return tmp
 
     def _filter_replace_uid_with_hid(self, input_data, root_uid=None):
@@ -45,7 +48,7 @@ class FilterClass:
             return ' '
         uid_list = flt.get_all_uids_in_string(tmp)
         for item in uid_list:
-            tmp = tmp.replace(item, self.db.get_hid(item, root_uid=root_uid))
+            tmp = tmp.replace(item, self.db.frontend.get_hid(item, root_uid=root_uid))
         return tmp
 
     def _filter_replace_comparison_uid_with_hid(self, input_data, root_uid=None):
@@ -59,7 +62,7 @@ class FilterClass:
             return ' '
         uid_list = flt.get_all_uids_in_string(content)
         for uid in uid_list:
-            hid = self.db.get_hid(uid, root_uid=root_uid)
+            hid = self.db.frontend.get_hid(uid, root_uid=root_uid)
             content = content.replace(uid, f'<a style="text-reset" href="/analysis/{uid}/ro/{root_uid}">{hid}</a>')
         return content
 
@@ -68,7 +71,7 @@ class FilterClass:
         if not is_list_of_uids(uids):
             return uids
 
-        analyzed_uids = self.db.get_data_for_nice_list(uids, root_uid)
+        analyzed_uids = self.db.frontend.get_data_for_nice_list(uids, root_uid)
         number_of_unanalyzed_files = len(uids) - len(analyzed_uids)
         first_item = analyzed_uids.pop(0)
 

@@ -2,16 +2,29 @@
 
 {% block analysis_result_details %}
 
-{% for key, value in firmware.processed_analysis[selected_analysis]["result"].items() %}
-    <tr>
-        <td class="table-{{ value['score'] | vulnerability_class }}">{{ key }}</td>
-        <td class="d-flex justify-content-between align-items-center">
-            {{ value['description'] }}
-            {% if value['link'] %}
-                <a href="{{ value['link'] }}" target="_blank"><span class="fas fa-link"></span></a>
-            {% endif %}
-        </td>
-    </tr>
+{% set analysis = firmware.processed_analysis[selected_analysis]['result'] %}
+{% for key, value in analysis.items() %}
+    {% if key | is_not_mandatory_analysis_entry %}
+        <tr>
+            <td class="table-{{ value['score'] | vulnerability_class }}">{{ key }}</td>
+            <td class="d-flex justify-content-between align-items-center">
+                {{ value['description'] }}
+                {% if value['link'] %}
+                    <a href="{{ value['link'] }}" target="_blank"><span class="fas fa-link"></span></a>
+                {% endif %}
+                {% if value['additional_data'] %}
+                    <table class="table table-bordered mb-0 pb-0">
+                        {% for inner_key, value in value['additional_data'].items() %}
+                            <tr>
+                                <td>{{ inner_key }}</td>
+                                <td>{{ value }}</td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+                {% endif %}
+            </td>
+        </tr>
+    {% endif %}
 {% endfor %}
 
 {% endblock %}

@@ -54,7 +54,7 @@ def test_add_plugin_views():
         ('plugin_2', b'<plugin view 2>')
     ]
     key = '{# individual plugin views #}'
-    compare_view = 'xxxxx{}yyyyy'.format(key)
+    compare_view = f'xxxxx{key}yyyyy'
     key_index = compare_view.find(key)
     result = _add_plugin_views_to_compare_view(compare_view, plugin_views)
 

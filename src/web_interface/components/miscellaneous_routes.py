@@ -5,7 +5,7 @@ from typing import Dict, Sized
 from flask import redirect, render_template, request, url_for
 from flask_security import login_required
 
-from helperFunctions.database import ConnectTo
+from helperFunctions.database import ConnectTo, get_shared_session
 from helperFunctions.program_setup import get_log_file_for_component
 from helperFunctions.web_interface import format_time
 from statistic.update import StatsUpdater
@@ -24,10 +24,10 @@ class MiscellaneousRoutes(ComponentBase):
     @AppRoute('/', GET)
     def show_home(self):
         latest_count = int(self._config['database'].get('number-of-latest-firmwares-to-display', '10'))
-        with self.db.frontend.get_read_only_session():
-            latest_firmware_submissions = self.db.frontend.get_last_added_firmwares(latest_count)
-            latest_comments = self.db.frontend.get_latest_comments(latest_count)
-            latest_comparison_results = self.db.comparison.page_comparison_results(limit=10)
+        with get_shared_session(self.db.frontend) as frontend_db:
+            latest_firmware_submissions = frontend_db.get_last_added_firmwares(latest_count)
+            latest_comments = frontend_db.get_latest_comments(latest_count)
+        latest_comparison_results = self.db.comparison.page_comparison_results(limit=10)
         ajax_stats_reload_time = int(self._config['database']['ajax-stats-reload-time'])
         general_stats = self.stats_updater.get_general_stats()
 

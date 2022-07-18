@@ -34,7 +34,7 @@ def get_relative_object_path(path: Path, offset_path: Path) -> str:
     with suppress(ValueError):
         path = path.relative_to(offset_path)
         path = path.relative_to('fact_extracted')
-    return str(path) if path.is_absolute() else '/{}'.format(path)
+    return str(path) if path.is_absolute() else f'/{path}'
 
 
 def file_is_empty(file_path: Path) -> bool:
@@ -51,4 +51,4 @@ def file_is_empty(file_path: Path) -> bool:
     except (FileNotFoundError, PermissionError, OSError):
         return False
     except Exception as exception:
-        logging.error('Unexpected Exception: {} {}'.format(type(exception), str(exception)))
+        logging.error(f'Unexpected Exception: {type(exception)} {str(exception)}')

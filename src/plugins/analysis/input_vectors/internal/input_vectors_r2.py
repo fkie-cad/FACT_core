@@ -21,13 +21,13 @@ class RadareAPI:
         self.api.quit()
 
     def get_function_instructions(self, function):
-        self.api.cmd('s {}'.format(function['offset']))
+        self.api.cmd(f"s {function['offset']}")
         return self.api.cmdj('pdfj')
 
     def get_xrefs_to(self, imp):
         return {
             int(xref['from'])
-            for xref in self.api.cmdj('axtj {}'.format(imp))
+            for xref in self.api.cmdj(f'axtj {imp}')
         }
 
     def get_filtered_strings(self, regex):

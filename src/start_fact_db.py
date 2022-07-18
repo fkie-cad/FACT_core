@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 '''
     Firmware Analysis and Comparison Tool (FACT)
-    Copyright (C) 2015-2021  Fraunhofer FKIE
+    Copyright (C) 2015-2022  Fraunhofer FKIE
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -43,7 +43,7 @@ class FactDb(FactBase):
     @staticmethod
     def _check_postgres_connection(config):
         try:
-            ReadOnlyDbInterface(config=config).engine.connect()
+            ReadOnlyDbInterface(config=config).connection.engine.connect()
         except (SQLAlchemyError, ModuleNotFoundError):  # ModuleNotFoundError should handle missing psycopg2
             logging.exception('Could not connect to PostgreSQL. Is the service running?')
             sys.exit(1)

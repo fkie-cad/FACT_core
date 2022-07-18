@@ -1,7 +1,8 @@
 import logging
-from typing import Set, Tuple
+from typing import Optional, Set, Tuple
 
 from intercom.front_end_binding import InterComFrontEndBinding
+from storage.db_connection import DbConnection, ReadWriteDeleteConnection
 from storage.db_interface_base import ReadWriteDbInterface
 from storage.db_interface_common import DbInterfaceCommon
 from storage.schema import FileObjectEntry
@@ -9,15 +10,9 @@ from storage.schema import FileObjectEntry
 
 class AdminDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
 
-    def _get_user(self):
-        # only the "delete user" has privilege for "DELETE" (SQL)
-        user = self.config.get('data-storage', 'postgres-del-user')
-        password = self.config.get('data-storage', 'postgres-del-pw')
-        return user, password
-
-    def __init__(self, config=None, intercom=None):
-        super().__init__(config=config)
+    def __init__(self, config, connection: Optional[DbConnection] = None, intercom=None):
         self.intercom = InterComFrontEndBinding(config=config) if intercom is None else intercom
+        super().__init__(config, connection=connection or ReadWriteDeleteConnection(config))
 
     # ===== Delete / DELETE =====
 

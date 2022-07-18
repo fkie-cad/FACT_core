@@ -33,12 +33,12 @@ class TestAnalysisPluginInit(AnalysisPluginTest):
 
         for test_file, path in test_files.items():
             test_fo = FileObject(file_path=os.path.join(test_init_dir, path))
-            setattr(cls, 'test_file_{}'.format(test_file), test_fo)
+            setattr(cls, f'test_file_{test_file}', test_fo)
             test_fo.processed_analysis['file_type'] = {'result': {'mime': 'text/plain'}}
             test_fo.root_uid = test_fo.uid
             test_fo.virtual_file_path = {test_fo.get_root_uid(): [path]}
 
-        cls.test_file_not_text = FileObject(file_path='{}etc/systemd/system/foobar'.format(test_init_dir))
+        cls.test_file_not_text = FileObject(file_path=f'{test_init_dir}etc/systemd/system/foobar')
         cls.test_file_not_text.processed_analysis['file_type'] = {'result': {'mime': 'application/zip'}}
 
     def test_get_systemd_config(self):
