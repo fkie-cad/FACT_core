@@ -28,6 +28,7 @@ Minimal | Recommended | Software
 It is possible to install FACT on any Linux distribution, but the installer is limited to
 - Ubuntu 18.04 (with Python >3.6)
 - Ubuntu 20.04 (stable)
+- Ubuntu 22.04 (stable)
 - Debian 10 (stable)
 - Kali (experimental)
 
