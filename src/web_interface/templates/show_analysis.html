@@ -296,7 +296,7 @@
                 {% endblock %}
 
                 {# summary of included files #}
-                {%- if firmware.vendor and selected_analysis -%}
+                {%- if selected_analysis -%}
                     <div id="summary-div">
                         <div id="loading-summary-gif" style="display: block; border: 1px solid #dddddd; padding: 5px; text-align: center">
                             <img src="{{ url_for("static", filename = "Pacman.gif") }}" alt="loading gif">

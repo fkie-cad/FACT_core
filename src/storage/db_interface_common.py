@@ -163,27 +163,21 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
         if 'summary' not in fo.processed_analysis[selected_analysis]:
             return None
         if not isinstance(fo, Firmware):
-            return self._collect_summary(fo.list_of_all_included_files, selected_analysis)
-        return self._collect_summary_from_included_objects(fo, selected_analysis)
+            included_files = fo.list_of_all_included_files or self.get_list_of_all_included_files(fo)
+        else:
+            included_files = self.get_all_files_in_fw(fo.uid).union({fo.uid})
+        return self._collect_summary_for_uid_list(included_files, selected_analysis)
 
-    def _collect_summary_from_included_objects(self, fw: Firmware, plugin: str) -> Summary:
-        included_files = self.get_all_files_in_fw(fw.uid).union({fw.uid})
+    def _collect_summary_for_uid_list(self, uid_list: Union[Set[str], List[str]], plugin: str) -> Dict[str, List[str]]:
         with self.get_read_only_session() as session:
             query = select(AnalysisEntry.uid, AnalysisEntry.summary).filter(
                 AnalysisEntry.plugin == plugin,
-                AnalysisEntry.uid.in_(included_files)
+                AnalysisEntry.uid.in_(uid_list)
             )
             summary = {}
             for uid, summary_list in session.execute(query):  # type: str, List[str]
                 for item in summary_list or []:
                     summary.setdefault(item, []).append(uid)
-        return summary
-
-    def _collect_summary(self, uid_list: List[str], selected_analysis: str) -> Summary:
-        summary = {}
-        file_objects = self.get_objects_by_uid_list(uid_list, analysis_filter=[selected_analysis])
-        for fo in file_objects:
-            self._update_summary(summary, self._get_summary_of_one(fo, selected_analysis))
         return summary
 
     @staticmethod

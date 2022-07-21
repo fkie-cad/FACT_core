@@ -223,16 +223,6 @@ def test_get_summary(db):
     assert fw.uid not in result_sum['file exclusive sum b'], 'parent as origin but should not be'
 
 
-def test_collect_summary(db):
-    fo, fw = create_fw_with_child_fo()
-    db.backend.insert_object(fw)
-    db.backend.insert_object(fo)
-    fo_list = [fo.uid]
-    result_sum = db.common._collect_summary(fo_list, 'dummy')
-    assert all(item in result_sum for item in fo.processed_analysis['dummy']['summary'])
-    assert all(value == [fo.uid] for value in result_sum.values())
-
-
 def test_get_summary_of_one_error_handling(db):
     fo, fw = create_fw_with_child_fo()
     db.backend.insert_object(fw)
