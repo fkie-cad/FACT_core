@@ -2,7 +2,7 @@ import binascii
 import itertools
 import logging
 import zlib
-from base64 import b64decode
+from base64 import b64decode, b64encode
 from collections import OrderedDict
 from concurrent.futures import Future, ThreadPoolExecutor
 from json import JSONDecodeError, loads
@@ -44,7 +44,7 @@ class Unpacker(UnpackBase):
             logging.error(f'could not unpack {file_object.uid}: file path not found')
             return None
 
-        extraction_dir = TemporaryDirectory(prefix='FACT_plugin_qemu_exec', dir=self.config['data_storage']['docker-mount-base-dir'])
+        extraction_dir = TemporaryDirectory(prefix='FACT_plugin_qemu_exec', dir=self.config['data-storage']['docker-mount-base-dir'])
         self.extract_files_from_file(file_path, extraction_dir.name)
         return extraction_dir
 
@@ -58,8 +58,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
     DESCRIPTION = 'test binaries for executability in QEMU and display help if available'
     VERSION = '0.5.2'
     DEPENDENCIES = ['file_type']
-    FILE_TYPES = ['application/x-executable', 'application/x-pie-executable', 'application/x-sharedlib']
+    FILE = __file__
 
+    FILE_TYPES = ['application/x-executable', 'application/x-pie-executable', 'application/x-sharedlib']
     FACT_EXTRACTION_FOLDER_NAME = 'fact_extracted'
 
     arch_to_bin_dict = OrderedDict([
@@ -82,9 +83,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     root_path = None
 
-    def __init__(self, plugin_administrator, config=None, recursive=True, unpacker=None):
+    def __init__(self, *args, config=None, unpacker=None, **kwargs):
         self.unpacker = Unpacker(config) if unpacker is None else unpacker
-        super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__, timeout=900)
+        super().__init__(*args, config=config, **kwargs)
 
     def process_object(self, file_object: FileObject) -> FileObject:
         if self.NAME not in file_object.processed_analysis:
@@ -125,7 +126,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             if path.is_file() and not path.is_symlink():
                 file_type = get_file_type_from_path(path.absolute())
                 if self._has_relevant_type(file_type):
-                    result.append(('/{}'.format(path.relative_to(Path(self.root_path))), file_type['full']))
+                    result.append((f'/{path.relative_to(Path(self.root_path))}', file_type['full']))
         return result
 
     def _find_root_path(self, extracted_files_dir: Path) -> Path:
@@ -257,7 +258,7 @@ def get_docker_output(arch_suffix: str, file_path: str, root_path: Path) -> dict
     }
     in case of an error, there will be an entry 'error' instead of the entries stdout/stderr/return_code
     '''
-    command = '{arch_suffix} {target}'.format(arch_suffix=arch_suffix, target=file_path)
+    command = f'{arch_suffix} {file_path}'
     try:
         result = run_docker_container(
             DOCKER_IMAGE,
@@ -293,8 +294,8 @@ def decode_output_values(result_dict: Dict[str, Dict[str, Union[str, int]]]) -> 
                 try:
                     str_value = b64decode(value.encode()).decode(errors='replace')
                 except binascii.Error:
-                    logging.warning('Error while decoding b64: {}'.format(value))
-                    str_value = 'decoding error: {}'.format(value)
+                    logging.warning(f'Error while decoding b64: {value}')
+                    str_value = f'decoding error: {value}'
             else:
                 str_value = str(value)
             result.setdefault(parameter, {})[key] = str_value
@@ -311,7 +312,8 @@ def _strace_output_exists(docker_output):
 
 def process_strace_output(docker_output: dict):
     docker_output['strace'] = (
-        zlib.compress(docker_output['strace']['stdout'].encode())
+        # b64 + zip is still smaller than raw on average
+        b64encode(zlib.compress(docker_output['strace']['stdout'].encode())).decode()
         if _strace_output_exists(docker_output) else {}
     )
 
@@ -343,7 +345,7 @@ def merge_identical_results(results: Dict[str, Dict[str, str]]):
     '''
     for parameter_1, parameter_2 in itertools.combinations(results, 2):
         if results[parameter_1] == results[parameter_2]:
-            combined_key = '{}, {}'.format(parameter_1, parameter_2)
+            combined_key = f'{parameter_1}, {parameter_2}'
             results[combined_key] = results[parameter_1]
             results.pop(parameter_1)
             results.pop(parameter_2)

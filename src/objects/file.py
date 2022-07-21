@@ -122,7 +122,7 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
     def set_binary(self, binary: bytes) -> None:
         '''
         Store the binary representation of the file as byte string.
-        Additionally set binary related meta data (size, hash) and compute uid after that.
+        Additionally, set binary related metadata (size, hash) and compute uid after that.
 
         :param binary: file in binary representation
         '''
@@ -142,7 +142,7 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
     def uid(self) -> str:
         '''
         Unique identifier of this file.
-        Consisting of the file's sha256 hash and it's length in the form `hash_length`.
+        Consisting of the file's sha256 hash, and it's length in the form `hash_length`.
 
         :return: uid of this file.
         '''
@@ -153,17 +153,17 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
     @uid.setter
     def uid(self, new_uid: str):
         if self._uid is not None:
-            logging.warning('uid overwrite: Uid might not be related to binary data anymore: {} -> {}'.format(self._uid, new_uid))
+            logging.warning(f'uid overwrite: Uid might not be related to binary data anymore: {self._uid} -> {new_uid}')
         self._uid = new_uid
 
     def get_hid(self, root_uid: str = None) -> str:
         '''
-        Get a human readable identifier for the given file.
+        Get a human-readable identifier for the given file.
         This usually is the file name for extracted files.
         As files can have different names across occurrences, uid of a specific root object can be specified.
 
         :param root_uid: (Optional) root uid to base HID on.
-        :return: String representing a human readable identifier for this file.
+        :return: String representing a human-readable identifier for this file.
         '''
         if root_uid is None:
             root_uid = self.get_root_uid()
@@ -179,7 +179,7 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
         This functions adds a file to this object's list of included files.
         The function also takes care of a number of fields for the child object:
 
-        * `parents`: Adds the uid of this file to the parents field of the child.
+        * `parents`: Adds the uid of this file to the parent's field of the child.
         * `root_uid`: Sets the root uid of the child as this files uid.
         * `depth`: The child inherits the unpacking depth from this file, incremented by one.
         * `scheduled_analysis`: The child inherits this file's scheduled analysis.
@@ -208,7 +208,7 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
                 base_path = get_base_of_virtual_path(item)
                 if base_path:
                     base_path += '|'
-                self.virtual_file_path[self.root_uid].append('{}{}|{}'.format(base_path, parent_uid, self.file_path))
+                self.virtual_file_path[self.root_uid].append(f'{base_path}{parent_uid}|{self.file_path}')
 
     def get_virtual_paths_for_one_uid(self, root_uid: str = None) -> List[str]:
         '''
@@ -259,7 +259,7 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
         return list(self.get_virtual_file_paths().keys())[0]
 
     def __str__(self) -> str:
-        return 'UID: {}\n Processed analysis: {}\n Files included: {}'.format(self.uid, list(self.processed_analysis.keys()), self.files_included)
+        return f'UID: {self.uid}\n Processed analysis: {list(self.processed_analysis.keys())}\n Files included: {self.files_included}'
 
     def __repr__(self) -> str:
         return self.__str__()

@@ -41,7 +41,6 @@ class ExceptionSafeProcess(Process):
         super().__init__(*args, **kwargs)
         self._receive_pipe, self._send_pipe = Pipe()
         self._exception = None
-        self.called_function = kwargs.get('target')
 
     def run(self):
         '''
@@ -99,7 +98,7 @@ def start_single_worker(process_index: int, label: str, function: Callable) -> E
     '''
     process = ExceptionSafeProcess(
         target=function,
-        name='{}-Worker-{}'.format(label, process_index),
+        name=f'{label}-Worker-{process_index}',
         args=(process_index,) if process_index is not None else tuple()
     )
     process.start()
@@ -126,14 +125,14 @@ def check_worker_exceptions(process_list: List[ExceptionSafeProcess], worker_lab
     for worker_process in process_list:
         if worker_process.exception:
             _, stack_trace = worker_process.exception
-            logging.error(color_string('Exception in {} process:\n{}'.format(worker_label, stack_trace), TerminalColors.FAIL))
+            logging.error(color_string(f'Exception in {worker_label} process:\n{stack_trace}', TerminalColors.FAIL))
             terminate_process_and_children(worker_process)
             process_list.remove(worker_process)
-            if config is None or config.getboolean('ExpertSettings', 'throw_exceptions'):
+            if config is None or config.getboolean('expert-settings', 'throw-exceptions'):
                 return_value = True
             elif worker_function is not None:
                 process_index = int(worker_process.name.split('-')[-1])
-                logging.warning(color_string('restarting {} {} process'.format(worker_label, process_index), TerminalColors.WARNING))
+                logging.warning(color_string(f'restarting {worker_label} {process_index} process', TerminalColors.WARNING))
                 process_list.append(start_single_worker(process_index, worker_label, worker_function))
     return return_value
 
@@ -147,3 +146,16 @@ def new_worker_was_started(new_process: ExceptionSafeProcess, old_process: Excep
     :return: ``True`` if the processes match and ``False`` otherwise.
     '''
     return new_process != old_process
+
+
+def stop_processes(processes: List[Process], timeout: float = 10.0):
+    '''
+    Try to stop processes gracefully. If a process does not stop until `timeout` is reached, terminate it.
+
+    :param processes: The list of processes that should be stopped.
+    :param timeout: Timeout for joining the process in seconds.
+    '''
+    for process in processes:
+        process.join(timeout=timeout)
+        if process.is_alive():
+            process.terminate()

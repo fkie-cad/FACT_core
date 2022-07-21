@@ -4,7 +4,6 @@ import stat
 import tarfile
 import zlib
 from base64 import b64encode
-from contextlib import suppress
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import List, NamedTuple, Tuple
@@ -12,13 +11,13 @@ from typing import List, NamedTuple, Tuple
 from docker.types import Mount
 
 from analysis.PluginBase import AnalysisBasePlugin
-from helperFunctions.database import ConnectTo
 from helperFunctions.docker import run_docker_container
 from helperFunctions.tag import TagColor
+from helperFunctions.virtual_file_path import get_parent_uids_from_virtual_path
 from objects.file import FileObject
-from storage.db_interface_common import MongoInterfaceCommon
+from storage.db_interface_common import DbInterfaceCommon
 
-DOCKER_IMAGE = 'fs_metadata_mounting'
+DOCKER_IMAGE = 'fact/fs_metadata:latest'
 StatResult = NamedTuple(
     'StatEntry',
     [('uid', int), ('gid', int), ('mode', int), ('a_time', float), ('c_time', float), ('m_time', float)]
@@ -31,7 +30,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
     DEPENDENCIES = ['file_type']
     DESCRIPTION = 'extract file system metadata (e.g. owner, group, etc.) from file system images contained in firmware'
     VERSION = '0.2.1'
-    timeout = 600
+    TIMEOUT = 600
+    FILE = __file__
 
     ARCHIVE_MIME_TYPES = [
         'application/gzip',
@@ -55,9 +55,10 @@ class AnalysisPlugin(AnalysisBasePlugin):
         'filesystem/squashfs'
     ]
 
-    def __init__(self, plugin_administrator, config=None, recursive=True):
-        self.result = {}
-        super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__)
+    def __init__(self, *args, config=None, db_interface=None, **kwargs):
+        self.db = db_interface if db_interface is not None else DbInterfaceCommon(config=config)
+        self.result = None
+        super().__init__(*args, config=config, **kwargs)
 
     def process_object(self, file_object: FileObject) -> FileObject:
         self.result = {}
@@ -72,10 +73,19 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def _parent_has_file_system_metadata(self, file_object: FileObject) -> bool:
         if hasattr(file_object, 'temporary_data') and 'parent_fo_type' in file_object.temporary_data:
-            mime_type = file_object.temporary_data['parent_fo_type']
-            return mime_type in self.ARCHIVE_MIME_TYPES + self.FS_MIME_TYPES
-        with ConnectTo(FsMetadataDbInterface, self.config) as db_interface:
-            return db_interface.parent_fo_has_fs_metadata_analysis_results(file_object)
+            return self._has_correct_type(file_object.temporary_data['parent_fo_type'])
+        return self.parent_fo_has_fs_metadata_analysis_results(file_object)
+
+    def parent_fo_has_fs_metadata_analysis_results(self, file_object: FileObject):
+        for parent_uid in get_parent_uids_from_virtual_path(file_object):
+            analysis_entry = self.db.get_analysis(parent_uid, 'file_type')
+            if analysis_entry is not None:
+                if self._has_correct_type(analysis_entry['mime']):
+                    return True
+        return False
+
+    def _has_correct_type(self, mime_type: str) -> bool:
+        return mime_type in self.ARCHIVE_MIME_TYPES + self.FS_MIME_TYPES
 
     def _extract_metadata(self, file_object: FileObject):
         file_type = file_object.processed_analysis['file_type']['mime']
@@ -88,7 +98,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             self._add_tag(file_object, self.result)
 
     def _extract_metadata_from_file_system(self, file_object: FileObject):
-        with TemporaryDirectory(dir=self.config['data_storage']['docker-mount-base-dir']) as tmp_dir:
+        with TemporaryDirectory(dir=self.config['data-storage']['docker-mount-base-dir']) as tmp_dir:
             input_file = Path(tmp_dir) / 'input.img'
             input_file.write_bytes(file_object.binary or Path(file_object.file_path).read_bytes())
             output = self._mount_in_docker(tmp_dir)
@@ -108,7 +118,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             mounts=[
                 Mount('/work', input_dir, type='bind'),
             ],
-            timeout=int(self.timeout * .8),
+            timeout=int(self.TIMEOUT * .8),  # docker call gets 80% of the analysis time before it times out
             privileged=True,
         )
 
@@ -163,12 +173,12 @@ class AnalysisPlugin(AnalysisBasePlugin):
         return [b == '1' for b in extended_file_permission_bits]
 
     @staticmethod
-    def _get_tar_file_mode_str(file_info: tarfile.TarInfo) -> str:
-        return oct(file_info.mode)[2:]
-
-    @staticmethod
     def _get_mounted_file_mode(stats: StatResult):
         return oct(stat.S_IMODE(stats.mode))[2:]
+
+    @staticmethod
+    def _get_tar_file_mode_str(file_info: tarfile.TarInfo) -> str:
+        return oct(file_info.mode)[2:]
 
     def _add_tag(self, file_object: FileObject, results: dict):
         if self._tag_should_be_set(results):
@@ -204,27 +214,3 @@ class FsKeys:
     SUID = 'setuid flag'
     SGID = 'setgid flag'
     STICKY = 'sticky flag'
-
-
-class FsMetadataDbInterface(MongoInterfaceCommon):
-
-    READ_ONLY = True
-    RELEVANT_FILE_TYPES = AnalysisPlugin.ARCHIVE_MIME_TYPES + AnalysisPlugin.FS_MIME_TYPES
-
-    def parent_fo_has_fs_metadata_analysis_results(self, file_object: FileObject):
-        for parent_uid in self.get_parent_uids_from_virtual_path(file_object):
-            if self.exists(parent_uid):
-                parent_fo = self.get_object(parent_uid)
-                if 'file_type' in parent_fo.processed_analysis and \
-                        parent_fo.processed_analysis['file_type']['mime'] in self.RELEVANT_FILE_TYPES:
-                    return True
-        return False
-
-    @staticmethod
-    def get_parent_uids_from_virtual_path(file_object: FileObject):
-        result = set()
-        for path_list in file_object.virtual_file_path.values():
-            for virtual_path in path_list:
-                with suppress(IndexError):
-                    result.add(virtual_path.split('|')[-2])
-        return result

@@ -8,6 +8,12 @@
         setInterval(updateSystemHealth, 5000);
         updateSystemHealth();
     </script>
+    <style>
+        .progress {
+            color: white;
+            background-color: darkgray;
+        }
+    </style>
 {% endblock %}
 
 {% macro icon_tooltip_desk(icon, tooltip, icon_class=None) %}

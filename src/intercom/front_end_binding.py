@@ -1,40 +1,38 @@
 import logging
-import pickle
 from time import sleep, time
-from typing import Optional
+from typing import Any, Optional
 
-from intercom.common_mongo_binding import InterComMongoInterface, generate_task_id
+from intercom.common_redis_binding import InterComRedisInterface, generate_task_id
 
 
-class InterComFrontEndBinding(InterComMongoInterface):
+class InterComFrontEndBinding(InterComRedisInterface):
     '''
     Internal Communication FrontEnd Binding
     '''
 
     def add_analysis_task(self, fw):
-        self.connections['analysis_task']['fs'].put(pickle.dumps(fw), filename=fw.uid)
+        self._add_to_redis_queue('analysis_task', fw, fw.uid)
 
     def add_re_analyze_task(self, fw, unpack=True):
         if unpack:
-            self.connections['re_analyze_task']['fs'].put(pickle.dumps(fw), filename=fw.uid)
+            self._add_to_redis_queue('re_analyze_task', fw, fw.uid)
         else:
-            self.connections['update_task']['fs'].put(pickle.dumps(fw), filename=fw.uid)
+            self._add_to_redis_queue('update_task', fw, fw.uid)
 
     def add_single_file_task(self, fw):
-        self.connections['single_file_task']['fs'].put(pickle.dumps(fw), filename=fw.uid)
+        self._add_to_redis_queue('single_file_task', fw, fw.uid)
 
     def add_compare_task(self, compare_id, force=False):
-        self.connections['compare_task']['fs'].put(pickle.dumps((compare_id, force)), filename=compare_id)
+        self._add_to_redis_queue('compare_task', (compare_id, force), compare_id)
 
-    def delete_file(self, fw):
-        self.connections['file_delete_task']['fs'].put(pickle.dumps(fw))
+    def delete_file(self, uid_list):
+        self._add_to_redis_queue('file_delete_task', uid_list)
 
     def get_available_analysis_plugins(self):
-        plugin_file = self.connections['analysis_plugins']['fs'].find_one({'filename': 'plugin_dictionary'})
-        if plugin_file is not None:
-            plugin_dict = pickle.loads(plugin_file.read())
-            return plugin_dict
-        raise Exception('No available plug-ins found. FACT backend might be down!')
+        plugin_dict = self.redis.get('analysis_plugins', delete=False)
+        if plugin_dict is None:
+            raise Exception('No available plug-ins found. FACT backend might be down!')
+        return plugin_dict
 
     def get_binary_and_filename(self, uid):
         return self._request_response_listener(uid, 'raw_download_task', 'raw_download_task_resp')
@@ -46,38 +44,36 @@ class InterComFrontEndBinding(InterComMongoInterface):
         return self._request_response_listener(uid, 'tar_repack_task', 'tar_repack_task_resp')
 
     def add_binary_search_request(self, yara_rule_binary: bytes, firmware_uid: Optional[str] = None):
-        serialized_request = pickle.dumps((yara_rule_binary, firmware_uid))
         request_id = generate_task_id(yara_rule_binary)
-        self.connections['binary_search_task']['fs'].put(serialized_request, filename=request_id)
+        self._add_to_redis_queue('binary_search_task', (yara_rule_binary, firmware_uid), request_id)
         return request_id
 
     def get_binary_search_result(self, request_id):
-        result = self._response_listener('binary_search_task_resp', request_id, timeout=time() + 10, delete=False)
+        result = self._response_listener('binary_search_task_resp', request_id, timeout=time() + 10)
         return result if result is not None else (None, None)
 
+    def get_backend_logs(self):
+        return self._request_response_listener(None, 'logs_task', 'logs_task_resp')
+
     def _request_response_listener(self, input_data, request_connection, response_connection):
-        serialized_request = pickle.dumps(input_data)
         request_id = generate_task_id(input_data)
-        self.connections[request_connection]['fs'].put(serialized_request, filename=request_id)
+        self._add_to_redis_queue(request_connection, input_data, request_id)
         logging.debug(f'Request sent: {request_connection} -> {request_id}')
         sleep(1)
         return self._response_listener(response_connection, request_id)
 
-    def _response_listener(self, response_connection, request_id, timeout=None, delete=True):
+    def _response_listener(self, response_connection, request_id, timeout=None):
         output_data = None
         if timeout is None:
-            timeout = time() + int(self.config['ExpertSettings'].get('communication_timeout', '60'))
+            timeout = time() + int(self.config['expert-settings'].get('communication-timeout', '60'))
         while timeout > time():
-            resp = self.connections[response_connection]['fs'].find_one({'filename': request_id})
-            if resp:
-                output_data = pickle.loads(resp.read())
-                if delete:
-                    self.connections[response_connection]['fs'].delete(resp._id)  # pylint: disable=protected-access
+            output_data = self.redis.get(request_id)
+            if output_data:
                 logging.debug(f'Response received: {response_connection} -> {request_id}')
                 break
             logging.debug(f'No response yet: {response_connection} -> {request_id}')
             sleep(1)
         return output_data
 
-    def get_backend_logs(self):
-        return self._request_response_listener(None, 'logs_task', 'logs_task_resp')
+    def _add_to_redis_queue(self, key: str, data: Any, task_id: Optional[str] = None):
+        self.redis.queue_put(key, (data, task_id))

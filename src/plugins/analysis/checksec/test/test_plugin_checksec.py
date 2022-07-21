@@ -25,12 +25,9 @@ FILE_PATH_EXE_STRIPPED = PLUGIN_DIR / 'test/data/Hallo_stripped'
 
 
 class TestAnalysisPluginChecksec(AnalysisPluginTest):
-    PLUGIN_NAME = 'exploit_mitigations'
 
-    def setUp(self):
-        super().setUp()
-        config = self.init_basic_config()
-        self.analysis_plugin = AnalysisPlugin(self, config=config)
+    PLUGIN_NAME = 'exploit_mitigations'
+    PLUGIN_CLASS = AnalysisPlugin
 
     def test_check_mitigations(self):
         test_file = FileObject(file_path=str(FILE_PATH_EXE))

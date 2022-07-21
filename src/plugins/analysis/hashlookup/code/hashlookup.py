@@ -17,10 +17,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     MIME_BLACKLIST = [*MIME_BLACKLIST_NON_EXECUTABLE, *MIME_BLACKLIST_COMPRESSED]
     DEPENDENCIES = ['file_hashes']
     VERSION = '0.1.4'
-
-    def __init__(self, plugin_administrator, config=None, recursive=True, offline_testing=False):
-        self.config = config
-        super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__, offline_testing=offline_testing)
+    FILE = __file__
 
     def process_object(self, file_object: FileObject):
         try:

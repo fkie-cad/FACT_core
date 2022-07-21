@@ -34,9 +34,7 @@ class AnalysisPlugin(YaraBasePlugin):
     DESCRIPTION = 'identify software components'
     MIME_BLACKLIST = MIME_BLACKLIST_NON_EXECUTABLE
     VERSION = '0.4.1'
-
-    def __init__(self, plugin_administrator, config=None, recursive=True):
-        super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__)
+    FILE = __file__
 
     def process_object(self, file_object):
         file_object = super().process_object(file_object)
@@ -48,8 +46,7 @@ class AnalysisPlugin(YaraBasePlugin):
             self.add_os_key(file_object)
         return file_object
 
-    @staticmethod
-    def get_version(input_string: str, meta_dict: dict) -> str:
+    def get_version(self, input_string: str, meta_dict: dict) -> str:
         if 'version_regex' in meta_dict:
             regex = meta_dict['version_regex'].replace('\\\\', '\\')
         else:
@@ -57,16 +54,17 @@ class AnalysisPlugin(YaraBasePlugin):
         pattern = re.compile(regex)
         version = pattern.search(input_string)
         if version is not None:
-            return version.group(0)
+            return self._strip_zeroes(version.group(0))
         return ''
 
     @staticmethod
-    def _get_summary(results) -> List[str]:
+    def _get_summary(results: dict) -> List[str]:
         summary = set()
-        for item in results:
-            if item != 'summary':
-                for version in results[item]['meta']['version']:
-                    summary.add(f'{results[item]["meta"]["software_name"]} {version}')
+        for key, result in results.items():
+            if key != 'summary':
+                software = result['meta']['software_name']
+                for version in result['meta']['version']:
+                    summary.add(f'{software} {version}')
         return sorted(summary)
 
     def add_version_information(self, results, file_object: FileObject):
@@ -82,9 +80,9 @@ class AnalysisPlugin(YaraBasePlugin):
             match = make_unicode_string(match)
             versions.add(self.get_version(match, result['meta']))
         if result['meta'].get('format_string'):
-            key_strings = [s.decode() for _, _, s in result['strings'] if b'%s' in s]
+            key_strings = [s for _, _, s in result['strings'] if '%s' in s]
             if key_strings:
-                versions.update(extract_data_from_ghidra(file_object.binary, key_strings, self.config['data_storage']['docker-mount-base-dir']))
+                versions.update(extract_data_from_ghidra(file_object.binary, key_strings, self.config['data-storage']['docker-mount-base-dir']))
         if '' in versions and len(versions) > 1:  # if there are actual version results, remove the "empty" result
             versions.remove('')
         result['meta']['version'] = list(versions)
@@ -103,3 +101,7 @@ class AnalysisPlugin(YaraBasePlugin):
     @staticmethod
     def _entry_has_no_trailing_version(entry, os_string):
         return os_string.strip() == entry.strip()
+
+    @staticmethod
+    def _strip_zeroes(version_string: str) -> str:
+        return '.'.join(element.lstrip('0') or '0' for element in version_string.split('.'))

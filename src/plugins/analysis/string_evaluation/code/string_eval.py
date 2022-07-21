@@ -24,9 +24,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     MIME_BLACKLIST = MIME_BLACKLIST_COMPRESSED
     DESCRIPTION = 'Tries to sort strings based on usefulness'
     VERSION = '0.2.1'
-
-    def __init__(self, plugin_administrator, config=None, recursive=True, timeout=300):
-        super().__init__(plugin_administrator, config=config, recursive=recursive, timeout=timeout, plugin_path=__file__)
+    FILE = __file__
 
     def process_object(self, file_object):
         list_of_printable_strings = file_object.processed_analysis['printable_strings']['strings']

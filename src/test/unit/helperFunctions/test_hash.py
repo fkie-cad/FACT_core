@@ -4,8 +4,7 @@ import os
 from pathlib import Path
 
 from helperFunctions.hash import (
-    _suppress_stdout, get_imphash, get_md5, get_sha256, get_ssdeep, get_ssdeep_comparison, get_tlsh,
-    normalize_lief_items
+    _suppress_stdout, get_imphash, get_md5, get_sha256, get_ssdeep, get_tlsh, normalize_lief_items
 )
 from test.common_helper import create_test_file_object, get_test_data_dir
 
@@ -25,11 +24,6 @@ def test_get_md5():
 
 def test_get_ssdeep():
     assert get_ssdeep(TEST_STRING) == TEST_SSDEEP, 'not correct from string'
-
-
-def test_get_ssdeep_comparison():
-    factor = get_ssdeep_comparison('192:3xaGk2v7RNOrG4D9tVwTiGTUwMyKP3JDddt2vT3GiH3gnK:BHTWy66gnK', '192:3xaGk2v7RNOrG4D9tVwTiGTUwMyKP3JDddt2vT3GK:B')
-    assert factor == 96, 'ssdeep similarity seems to be out of shape'
 
 
 def test_imphash():

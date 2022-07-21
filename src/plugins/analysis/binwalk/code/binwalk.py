@@ -1,6 +1,7 @@
 import logging
 import string
 import subprocess
+from base64 import b64encode
 from pathlib import Path
 from subprocess import PIPE, STDOUT
 from tempfile import TemporaryDirectory
@@ -17,10 +18,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     DEPENDENCIES = []
     MIME_BLACKLIST = ['audio', 'image', 'video']
     VERSION = '0.5.5'
-
-    def __init__(self, plugin_administrator, config=None, recursive=True):
-        self.config = config
-        super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__)
+    FILE = __file__
 
     def process_object(self, file_object):
         result = {}
@@ -35,7 +33,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             signature_analysis_result = cmd_process.stdout
             try:
                 pic_path = Path(tmp_dir) / f'{Path(file_object.file_path).name}.png'
-                result['entropy_analysis_graph'] = pic_path.read_bytes()
+                result['entropy_analysis_graph'] = b64encode(pic_path.read_bytes()).decode()
                 result['signature_analysis'] = signature_analysis_result
                 result['summary'] = list(set(self._extract_summary(signature_analysis_result)))
             except FileNotFoundError:

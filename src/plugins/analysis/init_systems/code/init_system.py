@@ -21,11 +21,10 @@ class AnalysisPlugin(AnalysisBasePlugin):
     DESCRIPTION = 'detect and analyze auto start services'
     DEPENDENCIES = ['file_type']
     VERSION = '0.4.2'
+    FILE = __file__
 
-    def __init__(self, plugin_administrator, config=None, recursive=True):
-        self.config = config
+    def additional_setup(self):
         self.content = None
-        super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__)
 
     @staticmethod
     def _is_text_file(file_object):
@@ -126,7 +125,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     def process_object(self, file_object):
         if self._is_text_file(file_object) and (file_object.file_name not in FILE_IGNORES):
             file_path = self._get_file_path(file_object)
-            self.content = make_unicode_string(file_object.binary)
+            self.content = make_unicode_string(file_object.binary)  # pylint: disable=attribute-defined-outside-init
             if '/inittab' in file_path:
                 file_object.processed_analysis[self.NAME] = self._get_inittab_config(file_object)
             if 'systemd/system/' in file_path:

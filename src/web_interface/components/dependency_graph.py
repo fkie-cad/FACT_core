@@ -1,29 +1,34 @@
-from contextlib import suppress
 from os.path import normpath
 from pathlib import Path
+from typing import Dict, List, NamedTuple, Optional
 
 from helperFunctions.virtual_file_path import split_virtual_path
 from helperFunctions.web_interface import get_color_list
 
 
-def create_data_graph_nodes_and_groups(data, parent_uid, root_uid, whitelist):
+class DepGraphData(NamedTuple):
+    uid: str
+    file_name: str
+    virtual_file_paths: Dict[str, List[str]]
+    mime: str
+    full_type: str
+    libraries: Optional[List[str]] = None
 
+
+def create_data_graph_nodes_and_groups(dependency_data: List[DepGraphData], parent_uid, root_uid, whitelist):
     data_graph = {
         'nodes': [],
-        'edges': [],
-        'groups': []
+        'edges': []
     }
-    groups = []
+    groups = set()
 
-    for file in data:
-        mime = file['processed_analysis']['file_type']['mime']
-        if mime not in whitelist or root_uid not in file['virtual_file_path']:
+    for entry in dependency_data:
+        if entry.mime not in whitelist or root_uid not in entry.virtual_file_paths:
             continue
 
-        if mime not in groups:
-            groups.append(mime)
+        groups.add(entry.mime)
 
-        virtual_paths = file['virtual_file_path'][root_uid]
+        virtual_paths = entry.virtual_file_paths[root_uid]
 
         for vpath in virtual_paths:
 
@@ -38,19 +43,14 @@ def create_data_graph_nodes_and_groups(data, parent_uid, root_uid, whitelist):
             if parent_component != parent_uid:
                 continue
 
-            linked_libraries = []
-            elf_analysis_missing = 'elf_analysis' not in file['processed_analysis']
-            with suppress(KeyError):
-                linked_libraries = file['processed_analysis']['elf_analysis']['Output']['libraries']
-
             node = {
                 'label': name_component,
                 'id': vpath,
-                'entity': file['_id'],
-                'group': mime,
-                'full_file_type': file['processed_analysis']['file_type']['full'],
-                'linked_libraries': linked_libraries,
-                'elf_analysis_missing': elf_analysis_missing
+                'entity': entry.uid,
+                'group': entry.mime,
+                'full_file_type': entry.full_type,
+                'linked_libraries': entry.libraries or [],
+                'elf_analysis_missing': entry.libraries is None
             }
 
             data_graph['nodes'].append(node)
@@ -60,7 +60,7 @@ def create_data_graph_nodes_and_groups(data, parent_uid, root_uid, whitelist):
     return data_graph
 
 
-def create_data_graph_edges(data_graph):
+def create_data_graph_edges(data_graph: dict):
 
     create_symbolic_link_edges(data_graph)
     elf_analysis_missing_from_files = 0
@@ -73,12 +73,12 @@ def create_data_graph_edges(data_graph):
         linked_libraries = node['linked_libraries']
 
         for linked_lib_name in linked_libraries:
-            find_edges(node, linked_lib_name, data_graph)
+            _find_edges(node, linked_lib_name, data_graph)
 
     return data_graph, elf_analysis_missing_from_files
 
 
-def create_symbolic_link_edges(data_graph):
+def create_symbolic_link_edges(data_graph: dict):
     for node in data_graph['nodes']:
         if node['group'] == 'inode/symlink':
             link_to = Path(node['full_file_type'].split('\'')[1])
@@ -93,7 +93,7 @@ def create_symbolic_link_edges(data_graph):
                     data_graph['edges'].append(edge)
 
 
-def find_edges(node, linked_lib_name, data_graph):
+def _find_edges(node, linked_lib_name, data_graph):
     for lib in data_graph['nodes']:
         if linked_lib_name != Path(lib['label']).name:
             continue

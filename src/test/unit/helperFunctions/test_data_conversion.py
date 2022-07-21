@@ -3,8 +3,8 @@ from datetime import datetime
 import pytest
 
 from helperFunctions.data_conversion import (
-    convert_compare_id_to_list, convert_time_to_str, get_value_of_first_key, make_bytes, make_unicode_string,
-    none_to_none, normalize_compare_id
+    convert_compare_id_to_list, convert_str_to_bool, convert_time_to_str, get_value_of_first_key, make_bytes,
+    make_unicode_string, none_to_none, normalize_compare_id
 )
 
 
@@ -71,3 +71,16 @@ def test_none_to_none(input_data, expected):
 ])
 def test_convert_time_to_str(input_data, expected):
     assert convert_time_to_str(input_data) == expected
+
+
+@pytest.mark.parametrize('input_str, expected_output', [
+    ('yes', True), ('y', True), ('1', True), ('True', True), ('t', True),
+    ('No', False), ('N', False), ('0', False), ('false', False), ('F', False),
+])
+def test_convert_str_to_bool(input_str, expected_output):
+    assert convert_str_to_bool(input_str) == expected_output
+
+
+def test_str_to_bool_error():
+    with pytest.raises(ValueError):
+        convert_str_to_bool('foo')

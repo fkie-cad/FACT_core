@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from test.common_helper import TEST_FW, get_config_for_testing
+from test.common_helper import TEST_FW, get_config_for_testing  # pylint: disable=wrong-import-order
 
 try:
     from ..code import cve_lookup as lookup
@@ -120,11 +120,6 @@ def test_generate_search_terms(software_name, expected_output):
 ])
 def test_is_valid_dotted_version(version, expected_output):
     assert lookup.is_valid_dotted_version(version) == expected_output
-
-
-@pytest.mark.parametrize('version, index, expected', [('1\\.2\\.3', 0, '1'), ('1\\.2\\.3\\.2a', -1, '2a')])
-def test_get_version_index(version, index, expected):
-    assert lookup.get_version_index(version=version, index=index) == expected
 
 
 @pytest.mark.parametrize('target_values, search_word, expected', [

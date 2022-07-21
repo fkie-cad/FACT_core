@@ -42,17 +42,18 @@ PROGRAM_NAME = 'FACT Installer'
 PROGRAM_VERSION = '1.2'
 PROGRAM_DESCRIPTION = 'Firmware Analysis and Comparison Tool (FACT) installation script'
 
-INSTALL_CANDIDATES = ['frontend', 'db', 'backend']
-
 FACT_INSTALLER_SKIP_DOCKER = os.getenv('FACT_INSTALLER_SKIP_DOCKER')
 
 
 def _setup_argparser():
-    parser = argparse.ArgumentParser(description='{} - {}'.format(PROGRAM_NAME, PROGRAM_DESCRIPTION))
-    parser.add_argument('-V', '--version', action='version', version='{} {}'.format(PROGRAM_NAME, PROGRAM_VERSION))
+    parser = argparse.ArgumentParser(description=f'{PROGRAM_NAME} - {PROGRAM_DESCRIPTION}')
+    parser.add_argument('-V', '--version', action='version', version=f'{PROGRAM_NAME} {PROGRAM_VERSION}')
     install_options = parser.add_argument_group('Install Options', 'Choose which components should be installed')
-    for item in INSTALL_CANDIDATES:
-        install_options.add_argument('-{}'.format(item[0].upper()), '--{}'.format(item), action='store_true', default=False, help='install {}'.format(item))
+    install_options.add_argument('-B', '--backend', action='store_true', default=False, help='install backend')
+    install_options.add_argument('-F', '--frontend', action='store_true', default=False, help='install frontend')
+    install_options.add_argument('-D', '--db', action='store_true', default=False, help='install db')
+    install_options.add_argument('-C', '--common', action='store_true', default=False, help='install common')
+    install_options.add_argument('--no-common', action='store_true', default=False, help='Skip common installation')
     install_options.add_argument('--backend-docker-images', action='store_true', default=False, help='pull/build docker images required to run the backend')
     install_options.add_argument('--frontend-docker-images', action='store_true', default=False, help='pull/build docker images required to run the frontend')
     install_options.add_argument('-N', '--nginx', action='store_true', default=False, help='install and configure nginx')
@@ -87,7 +88,7 @@ def _setup_logging(log_level, log_file, debug_flag=False):
         logger.addHandler(file_log)
         logger.addHandler(console_log)
     except (KeyError, TypeError, ValueError) as exception:
-        logging.critical('Could not setup logging: {}'.format(exception), exc_info=True)
+        logging.critical(f'Could not setup logging: {exception}', exc_info=True)
         sys.exit(1)
 
 
@@ -98,7 +99,7 @@ def create_dir_for_file(file_path: str, dir_description='directory'):
     try:
         Path(file_path).absolute().parent.mkdir(parents=True, exist_ok=True)
     except OSError:
-        logging.critical('Could not create {}'.format(dir_description), exc_info=True)
+        logging.critical(f'Could not create {dir_description}', exc_info=True)
         sys.exit(1)
 
 
@@ -107,12 +108,12 @@ def get_directory_of_current_file() -> Path:
 
 
 def welcome():
-    logging.info('{} {}'.format(PROGRAM_NAME, PROGRAM_VERSION))
+    logging.info(f'{PROGRAM_NAME} {PROGRAM_VERSION}')
 
 
 def check_python_version():
     if sys.version_info.major != 3 or sys.version_info.minor < 6:
-        logging.critical('Incompatible Python version! You need at least version 3.6! Your Version: {}'.format(sys.version))
+        logging.critical(f'Incompatible Python version! You need at least version 3.6! Your Version: {sys.version}')
         sys.exit(1)
 
 
@@ -122,8 +123,8 @@ def install_statistic_cronjob():
     statistic_update_script_path = current_dir / 'update_statistic.py'
     variety_update_script_path = current_dir / 'update_variety_data.py'
     crontab_file_path = current_dir.parent / 'update_statistic.cron'
-    cron_content = '0    *    *    *    *    {} > /dev/null 2>&1\n'.format(statistic_update_script_path)
-    cron_content += '30    0    *    *    0    {} > /dev/null 2>&1\n'.format(variety_update_script_path)
+    cron_content = f'0    *    *    *    *    {statistic_update_script_path} > /dev/null 2>&1\n'
+    cron_content += f'30    0    *    *    0    {variety_update_script_path} > /dev/null 2>&1\n'
     crontab_file_path.write_text(cron_content)
     crontab_process = subprocess.run(f'crontab {crontab_file_path}', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
     if crontab_process.returncode != 0:
@@ -137,7 +138,7 @@ def install():
     args = _setup_argparser()
     _setup_logging(args.log_level, args.log_file, debug_flag=args.debug)
     welcome()
-    none_chosen = not (args.frontend or args.db or args.backend)
+    none_chosen = not (args.frontend or args.db or args.backend or args.common)
     # TODO maybe replace this with an cli argument
     skip_docker = FACT_INSTALLER_SKIP_DOCKER is not None
     # Note that the skip_docker environment variable overrides the cli argument
@@ -164,11 +165,12 @@ def install():
 
 
 def install_fact_components(args, distribution, none_chosen, skip_docker):
-    common(distribution)
+    if (args.common or args.frontend or args.backend or none_chosen) and not args.no_common:
+        common(distribution)
     if args.frontend or none_chosen:
         frontend(skip_docker, not args.no_radare, args.nginx, distribution)
     if args.db or none_chosen:
-        db(distribution)
+        db()
     if args.backend or none_chosen:
         backend(skip_docker, distribution)
 

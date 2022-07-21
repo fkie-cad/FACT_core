@@ -15,7 +15,7 @@ GEOIP_DATABASE_PATH = Path(__file__).parent.parent / 'bin/GeoLite2-City/GeoLite2
 
 IP_V4_BLACKLIST = [
     r'127.0.[0-9]+.1',  # localhost
-    r'255.[0-9]+.[0-9]+.[0-9]+'  # subnetmasks
+    r'255.[0-9]+.[0-9]+.[0-9]+'  # subnet masks
 ]
 IP_V6_BLACKLIST = [  # trivial addresses
     r'^[0-9A-Za-z]::$',
@@ -34,20 +34,15 @@ class AnalysisPlugin(AnalysisBasePlugin):
     ]
     DESCRIPTION = 'Search file for IP addresses and URIs based on regular expressions.'
     VERSION = '0.4.2'
+    FILE = __file__
 
-    def __init__(self, plugin_administrator, config=None, recursive=True):
-
-        self.config = config
-
+    def additional_setup(self):
         self.ip_and_uri_finder = CommonAnalysisIPAndURIFinder()
-
         try:
             self.reader = geoip2.database.Reader(str(GEOIP_DATABASE_PATH))
         except FileNotFoundError:
             logging.error('could not load GeoIP database')
             self.reader = None
-
-        super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=__file__)
 
     def process_object(self, file_object):
         result = self.ip_and_uri_finder.analyze_file(file_object.file_path, separate_ipv6=True)
@@ -73,7 +68,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     def find_geo_location(self, ip_address):
         response = self.reader.city(ip_address)
-        return '{}, {}'.format(response.location.latitude, response.location.longitude)  # pylint: disable=no-member
+        return f'{response.location.latitude}, {response.location.longitude}'  # pylint: disable=no-member
 
     def link_ips_with_geo_location(self, ip_addresses):
         linked_ip_geo_list = []
@@ -81,7 +76,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             try:
                 ip_tuple = ip, self.find_geo_location(ip)
             except (AttributeError, AddressNotFoundError, FileNotFoundError, ValueError, InvalidDatabaseError) as exception:
-                logging.debug('{} {}'.format(type(exception), str(exception)))
+                logging.debug(f'Error during {self.NAME} analysis: {str(exception)}', exc_info=True)
                 ip_tuple = ip, ''
             linked_ip_geo_list.append(ip_tuple)
         return linked_ip_geo_list
@@ -89,11 +84,10 @@ class AnalysisPlugin(AnalysisBasePlugin):
     @staticmethod
     def _get_summary(results):
         summary = []
-        for key in ['uris']:
-            summary.extend(results[key])
+        summary.extend(results['uris'])
         for key in ['ips_v4', 'ips_v6']:
-            for i in results[key]:
-                summary.append(i[0])
+            for ip, *_ in results[key]:  # IP results come in tuples (ip, latitude, longitude)
+                summary.append(ip)
         return summary
 
     @staticmethod

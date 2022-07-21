@@ -98,7 +98,7 @@ def _create_firmware_directory():
     logging.info('Creating firmware directory')
 
     config = load_main_config()
-    data_dir_name = config.get('data_storage', 'firmware_file_storage_directory')
+    data_dir_name = config.get('data-storage', 'firmware-file-storage-directory')
     mkdir_process = subprocess.run(f'sudo mkdir -p --mode=0744 {data_dir_name}', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
     chown_process = subprocess.run(f'sudo chown {os.getuid()}:{os.getgid()} {data_dir_name}', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
     if not all(code == 0 for code in (mkdir_process.returncode, chown_process.returncode)):

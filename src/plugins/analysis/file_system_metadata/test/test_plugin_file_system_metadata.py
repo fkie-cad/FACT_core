@@ -2,16 +2,14 @@
 from base64 import b64encode
 from pathlib import Path
 from typing import Optional
-from unittest import mock
 
 from flaky import flaky
 
-from test.common_helper import TEST_FW, TEST_FW_2, DatabaseMock, create_test_file_object
+from test.common_helper import TEST_FW, TEST_FW_2, CommonDatabaseMock
 from test.mock import mock_patch
 from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
 
-from ..code import file_system_metadata as plugin
-from ..code.file_system_metadata import FsKeys
+from ..code.file_system_metadata import AnalysisPlugin, FsKeys
 
 PLUGIN_NAME = 'file_system_metadata'
 TEST_DATA_DIR = Path(__file__).parent / 'data'
@@ -44,8 +42,14 @@ class TarMock:
         self.name = name
 
 
-def mock_connect_to_enter(_, config=None):
-    return plugin.FsMetadataDbInterface(config=config)
+class DbMock(CommonDatabaseMock):
+    FILE_TYPE_RESULTS = {
+        TEST_FW.uid: {'mime': 'application/octet-stream'},
+        TEST_FW_2.uid: {'mime': 'filesystem/cramfs'},
+    }
+
+    def get_analysis(self, uid, _):
+        return self.FILE_TYPE_RESULTS[uid]
 
 
 class TestFileSystemMetadata(AnalysisPluginTest):
@@ -55,36 +59,14 @@ class TestFileSystemMetadata(AnalysisPluginTest):
 
     def setUp(self):
         super().setUp()
-        config = self.init_basic_config()
-        self.analysis_plugin = plugin.AnalysisPlugin(self, config=config)
-        self._setup_patches()
+        self.analysis_plugin.result = {}
         self.test_file_tar = TEST_DATA_DIR / 'test.tar'
         self.test_file_fs = TEST_DATA_DIR / 'squashfs.img'
 
-    def _setup_patches(self):
-        self.patches = [
-            mock.patch.object(
-                target=plugin.FsMetadataDbInterface,
-                attribute='__bases__',
-                new=(DatabaseMock,)
-            ),
-            mock.patch(
-                target='helperFunctions.database.ConnectTo.__enter__',
-                new=mock_connect_to_enter
-            ),
-            mock.patch(
-                target='helperFunctions.database.ConnectTo.__exit__',
-                new=lambda *_: None
-            )
-        ]
-        for patch in self.patches:
-            patch.start()
-        self.patches[0].is_local = True  # shameless hack to prevent mock.patch from calling delattr
-
-    def tearDown(self):
-        for patch in self.patches:
-            patch.stop()
-        super().tearDown()
+    def setup_plugin(self):
+        return AnalysisPlugin(
+            self, config=self.config, view_updater=CommonDatabaseMock(), db_interface=DbMock()
+        )
 
     def _extract_metadata_from_archive_mock(self, _):
         self.result = 'archive'
@@ -248,56 +230,13 @@ class TestFileSystemMetadata(AnalysisPluginTest):
     def test_no_temporary_data(self):
         fo = FoMock(None, None)
 
-        fo.virtual_file_path['some_uid'] = ['|some_uid|{}|/some_file'.format(TEST_FW.uid)]
+        fo.virtual_file_path['some_uid'] = [f'|some_uid|{TEST_FW.uid}|/some_file']
         # mime-type in mocked db is 'application/octet-stream' so the result should be false
         assert self.analysis_plugin._parent_has_file_system_metadata(fo) is False
 
-        fo.virtual_file_path['some_uid'] = ['|some_uid|{}|/some_file'.format(TEST_FW_2.uid)]
+        fo.virtual_file_path['some_uid'] = [f'|some_uid|{TEST_FW_2.uid}|/some_file']
         # mime-type in mocked db is 'filesystem/cramfs' so the result should be true
         assert self.analysis_plugin._parent_has_file_system_metadata(fo) is True
-
-    def test_get_parent_uids_from_virtual_path(self):
-        fo = create_test_file_object()
-        fo.virtual_file_path = {'fw_uid': ['fw_uid']}
-        assert len(plugin.FsMetadataDbInterface.get_parent_uids_from_virtual_path(fo)) == 0
-
-        fo.virtual_file_path = {'some_UID': ['|uid1|uid2|/folder_1/some_file']}
-        assert 'uid2' in plugin.FsMetadataDbInterface.get_parent_uids_from_virtual_path(fo)
-
-        fo.virtual_file_path = {'some_UID': [
-            '|uid1|uid2|/folder_1/some_file', '|uid1|uid2|/folder_2/some_file'
-        ]}
-        result = plugin.FsMetadataDbInterface.get_parent_uids_from_virtual_path(fo)
-        assert 'uid2' in result
-        assert len(result) == 1
-
-        fo.virtual_file_path = {'uid1': [
-            '|uid1|uid2|/folder_1/some_file', '|uid1|uid3|/some_file'
-        ]}
-        result = plugin.FsMetadataDbInterface.get_parent_uids_from_virtual_path(fo)
-        assert 'uid2' in result
-        assert 'uid3' in result
-        assert len(result) == 2
-
-        fo.virtual_file_path = {
-            'uid1': ['|uid1|uid2|/folder_1/some_file'],
-            'other_UID': ['|other_UID|uid2|/folder_2/some_file']
-        }
-        result = plugin.FsMetadataDbInterface.get_parent_uids_from_virtual_path(fo)
-        assert 'uid2' in result
-        assert len(result) == 1
-
-        fo.virtual_file_path = {
-            'uid1': ['|uid1|uid2|/folder_1/some_file'],
-            'other_UID': ['|other_UID|uid3|/folder_2/some_file']
-        }
-        result = plugin.FsMetadataDbInterface.get_parent_uids_from_virtual_path(fo)
-        assert 'uid2' in result
-        assert 'uid3' in result
-        assert len(result) == 2
-
-        fo.virtual_file_path = {}
-        assert len(plugin.FsMetadataDbInterface.get_parent_uids_from_virtual_path(fo)) == 0
 
     def test_process_object(self):
         fo = FoMock(self.test_file_fs, 'filesystem/squashfs')

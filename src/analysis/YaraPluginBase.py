@@ -3,6 +3,7 @@ import logging
 import re
 import subprocess
 from pathlib import Path
+from typing import Dict
 
 from analysis.PluginBase import AnalysisBasePlugin, PluginInitException
 from helperFunctions.fileSystem import get_src_dir
@@ -15,19 +16,20 @@ class YaraBasePlugin(AnalysisBasePlugin):
     NAME = 'Yara_Base_Plugin'
     DESCRIPTION = 'this is a Yara plugin'
     VERSION = '0.0'
+    FILE = None
 
-    def __init__(self, plugin_administrator, config=None, recursive=True, plugin_path=None):
+    def __init__(self, plugin_administrator, config=None, view_updater=None):
         '''
         recursive flag: If True recursively analyze included files
         propagate flag: If True add analysis result of child to parent object
         '''
         self.config = config
-        self.signature_path = self._get_signature_file(plugin_path) if plugin_path else None
+        self.signature_path = self._get_signature_file(self.FILE) if self.FILE else None
         if self.signature_path and not Path(self.signature_path).exists():
             logging.error(f'Signature file {self.signature_path} not found. Did you run "compile_yara_signatures.py"?')
             raise PluginInitException(plugin=self)
         self.SYSTEM_VERSION = self.get_yara_system_version()  # pylint: disable=invalid-name
-        super().__init__(plugin_administrator, config=config, recursive=recursive, plugin_path=plugin_path)
+        super().__init__(plugin_administrator, config=config, view_updater=view_updater)
 
     def get_yara_system_version(self):
         with subprocess.Popen(['yara', '--version'], stdout=subprocess.PIPE) as process:
@@ -62,7 +64,7 @@ class YaraBasePlugin(AnalysisBasePlugin):
 
     @staticmethod
     def _parse_yara_output(output):
-        resulting_matches = dict()
+        resulting_matches = {}
 
         match_blocks, rules = _split_output_in_rules_and_matches(output)
 
@@ -88,23 +90,18 @@ def _split_output_in_rules_and_matches(output):
     return match_blocks, rules
 
 
-def _append_match_to_result(match, resulting_matches, rule):
+def _append_match_to_result(match, resulting_matches: Dict[str, dict], rule):
     rule_name, meta_string, _, _ = rule
     _, offset, matched_tag, matched_string = match
-
-    meta_dict = _parse_meta_data(meta_string)
-
-    this_match = resulting_matches[rule_name] if rule_name in resulting_matches else dict(rule=rule_name, matches=True, strings=list(), meta=meta_dict)
-
-    this_match['strings'].append((int(offset, 16), matched_tag, matched_string.encode()))
-    resulting_matches[rule_name] = this_match
+    resulting_matches.setdefault(rule_name, dict(rule=rule_name, matches=True, strings=[], meta=_parse_meta_data(meta_string)))
+    resulting_matches[rule_name]['strings'].append((int(offset, 16), matched_tag, matched_string))
 
 
 def _parse_meta_data(meta_data_string):
     '''
     Will be of form 'item0=lowercaseboolean0,item1="value1",item2=value2,..'
     '''
-    meta_data = dict()
+    meta_data = {}
     for item in meta_data_string.split(','):
         if '=' in item:
             key, value = item.split('=', maxsplit=1)

@@ -1,23 +1,21 @@
 # pylint: disable=no-self-use,unused-argument
 import grp
-import json
 import os
 from base64 import standard_b64encode
 from configparser import ConfigParser
+from contextlib import contextmanager
 from copy import deepcopy
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Optional, Union
+from typing import List, Optional, Union
 
 from helperFunctions.config import load_config
-from helperFunctions.data_conversion import get_value_of_first_key, normalize_compare_id
+from helperFunctions.data_conversion import get_value_of_first_key
 from helperFunctions.fileSystem import get_src_dir
-from intercom.common_mongo_binding import InterComMongoInterface
+from helperFunctions.tag import TagColor
 from objects.file import FileObject
 from objects.firmware import Firmware
-from storage.db_interface_common import MongoInterfaceCommon
-from storage.db_interface_compare import FactCompareException
-from storage.mongo_interface import MongoInterface
+from storage.db_setup import DbSetup
 
 
 def get_test_data_dir():
@@ -27,31 +25,19 @@ def get_test_data_dir():
     return os.path.join(get_src_dir(), 'test/data')
 
 
-class CommonDbInterfaceMock(MongoInterfaceCommon):
-
-    def __init__(self):  # pylint: disable=super-init-not-called
-        class Collection:
-            def aggregate(self, *_, **__):
-                return []
-
-        self.file_objects = Collection()
-
-    def retrieve_analysis(self, sanitized_dict, analysis_filter=None):
-        return {}
-
-
 def create_test_firmware(device_class='Router', device_name='test_router', vendor='test_vendor', bin_path='container/test.zip', all_files_included_set=False, version='0.1'):
     fw = Firmware(file_path=os.path.join(get_test_data_dir(), bin_path))
     fw.device_class = device_class
     fw.device_name = device_name
     fw.vendor = vendor
+    fw.tags = {'test_tag': TagColor.GRAY}
 
     fw.release_date = '1970-01-01'
     fw.version = version
     processed_analysis = {
-        'dummy': {'summary': ['sum a', 'fw exclusive sum a'], 'content': 'abcd'},
-        'unpacker': {'plugin_used': 'used_unpack_plugin'},
-        'file_type': {'mime': 'test_type', 'full': 'Not a PE file', 'summary': ['a summary']}
+        'dummy': {'summary': ['sum a', 'fw exclusive sum a'], 'content': 'abcd', 'plugin_version': '0', 'analysis_date': 0.0},
+        'unpacker': {'plugin_used': 'used_unpack_plugin', 'plugin_version': '1.0', 'analysis_date': 0.0},
+        'file_type': {'mime': 'test_type', 'full': 'Not a PE file', 'summary': ['a summary'], 'plugin_version': '1.0', 'analysis_date': 0.0}
     }
 
     fw.processed_analysis.update(processed_analysis)
@@ -64,9 +50,9 @@ def create_test_firmware(device_class='Router', device_name='test_router', vendo
 def create_test_file_object(bin_path='get_files_test/testfile1'):
     fo = FileObject(file_path=os.path.join(get_test_data_dir(), bin_path))
     processed_analysis = {
-        'dummy': {'summary': ['sum a', 'file exclusive sum b'], 'content': 'file abcd'},
-        'file_type': {'full': 'Not a PE file'},
-        'unpacker': {'file_system_flag': False, 'plugin_used': 'unpacker_name'}
+        'dummy': {'summary': ['sum a', 'file exclusive sum b'], 'content': 'file abcd', 'plugin_version': '0', 'analysis_date': '0'},
+        'file_type': {'full': 'Not a PE file', 'plugin_version': '1.0', 'analysis_date': '0'},
+        'unpacker': {'file_system_flag': False, 'plugin_used': 'unpacker_name', 'plugin_version': '1.0', 'analysis_date': '0'}
     }
     fo.processed_analysis.update(processed_analysis)
     fo.virtual_file_path = fo.get_virtual_file_paths()
@@ -77,53 +63,6 @@ TEST_FW = create_test_firmware(device_class='test class', device_name='test devi
 TEST_FW_2 = create_test_firmware(device_class='test_class', device_name='test_firmware_2', vendor='test vendor', bin_path='container/test.7z')
 TEST_TEXT_FILE = create_test_file_object()
 TEST_TEXT_FILE2 = create_test_file_object(bin_path='get_files_test/testfile2')
-TEST_GRAPH_DATA_ONE = {
-    'processed_analysis': {
-        'file_type': {
-            'mime': 'application/x-executable', 'full': 'test text'
-        }
-    },
-    'virtual_file_path': {
-        TEST_FW.uid: [
-            '|testgraph|/lib/file_one.so'
-        ]
-    },
-    '_id': '1234567',
-    'file_name': 'file_one.so'
-}
-TEST_GRAPH_DATA_TWO = {
-    'processed_analysis': {
-        'file_type': {
-            'mime': 'application/x-executable', 'full': 'test text'
-        },
-        'elf_analysis': {
-            'Output': {
-                'libraries': ['file_one.so']
-            }
-        }
-    },
-    'virtual_file_path': {
-        TEST_FW.uid: [
-            '|testgraph|/bin/file_two'
-        ]
-    },
-    '_id': '7654321',
-    'file_name': 'file_two'
-}
-TEST_GRAPH_DATA_THREE = {
-    'processed_analysis': {
-        'file_type': {
-            'mime': 'inode/symlink', 'full': 'symbolic link to \'../bin/file_two\''
-        },
-    },
-    'virtual_file_path': {
-        TEST_FW.uid: [
-            '|testgraph|/sbin/file_three'
-        ]
-    },
-    '_id': '0987654',
-    'file_name': 'file_three'
-}
 NICE_LIST_DATA = {
     'uid': TEST_FW.uid,
     'files_included': TEST_FW.files_included,
@@ -131,6 +70,7 @@ NICE_LIST_DATA = {
     'mime-type': 'file-type-plugin/not-run-yet',
     'current_virtual_path': get_value_of_first_key(TEST_FW.get_virtual_file_paths())
 }
+COMPARISON_ID = f'{TEST_FW.uid};{TEST_FW_2.uid}'
 
 TEST_SEARCH_QUERY = {'_id': '0000000000000000000000000000000000000000000000000000000000000000_1', 'search_query': f'{{"_id": "{TEST_FW_2.uid}"}}', 'query_title': 'rule a_ascii_string_rule'}
 
@@ -143,7 +83,65 @@ class MockFileObject:
         self.processed_analysis = {'file_type': {'mime': 'application/x-executable'}}
 
 
-class DatabaseMock:  # pylint: disable=too-many-public-methods
+class CommonIntercomMock:
+    tasks = []
+
+    def __init__(self, *_, **__):
+        pass
+
+    @staticmethod
+    def get_available_analysis_plugins():
+        common_fields = ('0.0.', [], [], [], 1)
+        return {
+            'default_plugin': ('default plugin description', False, {'default': True}, *common_fields),
+            'mandatory_plugin': ('mandatory plugin description', True, {'default': False}, *common_fields),
+            'optional_plugin': ('optional plugin description', False, {'default': False}, *common_fields),
+            'file_type': ('file_type plugin', False, {'default': False}, *common_fields),
+            'unpacker': ('Additional information provided by the unpacker', True, False)
+        }
+
+    def shutdown(self):
+        pass
+
+    @staticmethod
+    def peek_in_binary(*_):
+        return b'foobar'
+
+    @staticmethod
+    def get_binary_and_filename(uid):
+        if uid == TEST_FW.uid:
+            return TEST_FW.binary, TEST_FW.file_name
+        if uid == TEST_TEXT_FILE.uid:
+            return TEST_TEXT_FILE.binary, TEST_TEXT_FILE.file_name
+        return None
+
+    @staticmethod
+    def get_repacked_binary_and_file_name(uid):
+        if uid == TEST_FW.uid:
+            return TEST_FW.binary, f'{TEST_FW.file_name}.tar.gz'
+        return None, None
+
+    @staticmethod
+    def add_binary_search_request(*_):
+        return 'binary_search_id'
+
+    @staticmethod
+    def get_binary_search_result(uid):
+        if uid == 'binary_search_id':
+            return {'test_rule': ['test_uid']}, b'some yara rule'
+        return None, None
+
+    def add_compare_task(self, compare_id, force=False):
+        self.tasks.append((compare_id, force))
+
+    def add_analysis_task(self, task):
+        self.tasks.append(task)
+
+    def add_re_analyze_task(self, task, unpack=True):  # pylint: disable=unused-argument
+        self.tasks.append(task)
+
+
+class CommonDatabaseMock:  # pylint: disable=too-many-public-methods
     fw_uid = TEST_FW.uid
     fo_uid = TEST_TEXT_FILE.uid
     fw2_uid = TEST_FW_2.uid
@@ -152,20 +150,12 @@ class DatabaseMock:  # pylint: disable=too-many-public-methods
         self.tasks = []
         self.locks = []
 
-    def shutdown(self):
-        pass
+    @contextmanager
+    def get_read_only_session(self):
+        yield None
 
     def update_view(self, file_name, content):
         pass
-
-    def get_meta_list(self, firmware_list=None):
-        fw_entry = ('test_uid', 'test firmware', 'unpacker')
-        fo_entry = ('test_fo_uid', 'test file object', 'unpacker')
-        if firmware_list and self.fw_uid in firmware_list and self.fo_uid in firmware_list:
-            return [fw_entry, fo_entry]
-        if firmware_list and self.fo_uid in firmware_list:
-            return [fo_entry]
-        return [fw_entry]
 
     def get_object(self, uid, analysis_filter=None):
         if uid == TEST_FW.uid:
@@ -200,7 +190,7 @@ class DatabaseMock:  # pylint: disable=too-many-public-methods
         return ['test class']
 
     def page_compare_results(self):
-        return list()
+        return []
 
     def get_vendor_list(self):
         return ['test vendor']
@@ -208,203 +198,28 @@ class DatabaseMock:  # pylint: disable=too-many-public-methods
     def get_device_name_dict(self):
         return {'test class': {'test vendor': ['test device']}}
 
-    def compare_result_is_in_db(self, uid_list):
-        return uid_list == normalize_compare_id(';'.join([TEST_FW.uid, TEST_TEXT_FILE.uid]))
-
-    def get_compare_result(self, compare_id):
-        if compare_id == normalize_compare_id(';'.join([TEST_FW.uid, TEST_FW_2.uid])):
-            return {
-                'this_is': 'a_compare_result',
-                'general': {'hid': {TEST_FW.uid: 'foo', TEST_TEXT_FILE.uid: 'bar'}},
-                'plugins': {'File_Coverage': {'some_feature': {TEST_FW.uid: [TEST_TEXT_FILE.uid]}}}
-            }
-        if compare_id == normalize_compare_id(';'.join([TEST_FW.uid, TEST_TEXT_FILE.uid])):
-            return {'this_is': 'a_compare_result'}
-        return 'generic error'
+    def get_number_of_total_matches(self, *_, **__):
+        return 10
 
     def exists(self, uid):
         return uid in (self.fw_uid, self.fo_uid, self.fw2_uid, 'error')
 
-    def check_objects_exist(self, compare_id):
-        if compare_id == normalize_compare_id(';'.join([TEST_FW_2.uid, TEST_FW.uid])):
-            return None
-        if compare_id == normalize_compare_id(';'.join([TEST_TEXT_FILE.uid, TEST_FW.uid])):
-            return None
-        raise FactCompareException('bla')
-
     def all_uids_found_in_database(self, uid_list):
         return True
 
-    def add_comment_to_object(self, uid, comment, author, time):
-        TEST_FW.comments.append(
-            {'time': str(time), 'author': author, 'comment': comment}
-        )
-
-    def add_to_search_query_cache(self, search_query: str, query_title: str = None) -> str:
-        return '0000000000000000000000000000000000000000000000000000000000000000_0'
-
-    def get_query_from_cache(self, query_uid):
-        return TEST_SEARCH_QUERY
-
-    class firmwares:  # pylint: disable=invalid-name
-        @staticmethod
-        def find_one(uid):
-            if uid == 'test_uid':
-                return 'test'
-            if uid == TEST_FW.uid:
-                return TEST_FW.uid
-            return None
-
-        @staticmethod
-        def find(query, query_filter):
-            return {}
-
-    class file_objects:  # pylint: disable=invalid-name
-        @staticmethod
-        def find_one(uid):
-            if uid == TEST_TEXT_FILE.uid:
-                return TEST_TEXT_FILE.uid
-            return None
-
-        @staticmethod
-        def find(query, query_filter):
-            return {}
-
-    class search_query_cache:  # pylint: disable=invalid-name
-        @staticmethod
-        def find(**kwargs):
-            # We silently ignore every argument given to this function
-            # Feel free to change this behavior if your test needs it
-            return [TEST_SEARCH_QUERY]
-
-        @staticmethod
-        def count_documents(filter, **kwargs):
-            return 1
-
     def get_data_for_nice_list(self, input_data, root_uid):
-        return [NICE_LIST_DATA, ]
+        return [NICE_LIST_DATA]
+
+    @staticmethod
+    def page_comparison_results():
+        return []
 
     @staticmethod
     def create_analysis_structure():
         return ''
 
-    def generic_search(self, search_string, skip=0, limit=0, only_fo_parent_firmware=False, inverted=False):
-        result = []
-        if isinstance(search_string, dict):
-            search_string = json.dumps(search_string)
-        if self.fw_uid in search_string or search_string == '{}':
-            result.append(self.fw_uid)
-        if self.fo_uid in search_string or search_string == '{}':
-            if not only_fo_parent_firmware:
-                result.append(self.fo_uid)
-            else:
-                if self.fw_uid not in result:
-                    result.append(self.fw_uid)
-        return result
-
-    def add_analysis_task(self, task):
-        self.tasks.append(task)
-
-    def add_re_analyze_task(self, task, unpack=True):
-        self.tasks.append(task)
-
-    def add_single_file_task(self, task):
-        self.tasks.append(task)
-
-    def add_compare_task(self, task, force=None):
-        self.tasks.append((task, force))
-
-    def get_available_analysis_plugins(self):
-        common_fields = ('0.0.', [], [], [], 1)
-        return {
-            'default_plugin': ('default plugin description', False, {'default': True}, *common_fields),
-            'mandatory_plugin': ('mandatory plugin description', True, {'default': False}, *common_fields),
-            'optional_plugin': ('optional plugin description', False, {'default': False}, *common_fields),
-            'file_type': ('file_type plugin', False, {'default': False}, *common_fields),
-            'unpacker': ('Additional information provided by the unpacker', True, False)
-        }
-
-    def get_binary_and_filename(self, uid):
-        if uid == TEST_FW.uid:
-            return TEST_FW.binary, TEST_FW.file_name
-        if uid == TEST_TEXT_FILE.uid:
-            return TEST_TEXT_FILE.binary, TEST_TEXT_FILE.file_name
-        return None
-
-    def get_repacked_binary_and_file_name(self, uid):
-        if uid == TEST_FW.uid:
-            return TEST_FW.binary, '{}.tar.gz'.format(TEST_FW.file_name)
-        return None, None
-
-    def add_binary_search_request(self, yara_rule_binary, firmware_uid=None):
-        if yara_rule_binary == b'invalid_rule':
-            return 'error: invalid rule'
-        return 'some_id'
-
-    def get_binary_search_result(self, uid):
-        if uid == 'some_id':
-            return {'test_rule': ['test_uid']}, b'some yara rule'
-        return None, None
-
-    def get_statistic(self, identifier):
-        if identifier == 'general':
-            return {
-                'number_of_firmwares': 1,
-                'number_of_unique_files': 0,
-                'total_firmware_size': 10,
-                'total_file_size': 20,
-                'average_firmware_size': 10,
-                'average_file_size': 20,
-                'benchmark': 61
-            }
-        if identifier == 'release_date':
-            return {'date_histogram_data': [['July 2014', 1]]}
-        if identifier == 'backend':
-            return {
-                'system': {'cpu_percentage': 13.37},
-                'analysis': {'current_analyses': [None, None]}
-            }
-        return None
-
-    def get_complete_object_including_all_summaries(self, uid):
-        if uid == TEST_FW.uid:
-            return TEST_FW
-        raise Exception('UID not found: {}'.format(uid))
-
-    def rest_get_firmware_uids(self, offset, limit, query=None, recursive=False, inverted=False):
-        if (offset != 0) or (limit != 0):
-            return []
-        return [TEST_FW.uid, ]
-
-    def rest_get_file_object_uids(self, offset, limit, query=None):
-        if (offset != 0) or (limit != 0):
-            return []
-        return [TEST_TEXT_FILE.uid, ]
-
-    def get_firmware(self, uid, analysis_filter=None):
-        return self.get_object(uid, analysis_filter)
-
-    def get_file_object(self, uid, analysis_filter=None):
-        return self.get_object(uid, analysis_filter)
-
-    def search_cve_summaries_for(self, keyword):
-        return [{'_id': 'CVE-2012-0002'}]
-
-    def get_all_ssdeep_hashes(self):
-        return [
-            {'_id': '3', 'processed_analysis': {'file_hashes': {
-                'ssdeep': '384:aztrofSbs/7qkBYbplFPEW5d8aODW9EyGqgm/nZuxpIdQ1s4JtUn:Urofgs/uK2lF8W5dxWyGS/AxpIws'}}},
-            {'_id': '4', 'processed_analysis': {'file_hashes': {
-                'ssdeep': '384:aztrofSbs/7qkBYbplFPEW5d8aODW9EyGqgm/nZuxpIdQ1s4JwT:Urofgs/uK2lF8W5dxWyGS/AxpIwA'}}}
-        ]
-
     def get_other_versions_of_firmware(self, fo):
         return []
-
-    def get_view(self, name):
-        if name == 'plugin_1':
-            return b'<plugin 1 view>'
-        return None
 
     def is_firmware(self, uid):
         return uid == 'uid_in_db'
@@ -414,64 +229,38 @@ class DatabaseMock:  # pylint: disable=too-many-public-methods
             return 'test_name'
         return None
 
-    def set_unpacking_lock(self, uid):
-        self.locks.append(uid)
-
-    def check_unpacking_lock(self, uid):
-        return uid in self.locks
-
-    def drop_unpacking_locks(self):
-        self.locks = []
-
-    def get_specific_fields_of_db_entry(self, uid, field_dict):
-        return None  # TODO
-
     def get_summary(self, fo, selected_analysis):
         if fo.uid == TEST_FW.uid and selected_analysis == 'foobar':
             return {'foobar': ['some_uid']}
         return None
 
-    def find_missing_files(self):
-        return {'parent_uid': ['missing_child_uid']}
+    # === Comparison ===
 
-    def find_missing_analyses(self):
-        return {'root_fw_uid': ['missing_child_uid']}
+    @staticmethod
+    def comparison_exists(comparison_id):
+        if comparison_id == COMPARISON_ID:
+            return True
+        return False
 
-    def find_failed_analyses(self):
-        return {'plugin': ['missing_child_uid']}
+    @staticmethod
+    def get_comparison_result(comparison_id):
+        if comparison_id == COMPARISON_ID:
+            return {
+                'general': {'hid': {TEST_FW.uid: 'hid1', TEST_FW_2.uid: 'hid2'}},
+                '_id': comparison_id,
+                'submission_date': 0.0
+            }
+        return None
 
-    def find_orphaned_objects(self):
-        return {'root_fw_uid': ['missing_child_uid']}
-
-    def get_data_for_dependency_graph(self, uid, root_uid):
-        if uid == 'testgraph':
-            return [TEST_GRAPH_DATA_ONE, TEST_GRAPH_DATA_TWO]
-        return []
+    @staticmethod
+    def objects_exist(compare_id):
+        if compare_id in ['existing_id', 'uid1;uid2', COMPARISON_ID]:
+            return True
+        return False
 
 
 def fake_exit(self, *args):
     pass
-
-
-def get_database_names(config):
-    prefix = config.get('data_storage', 'intercom_database_prefix')
-    databases = [f'{prefix}_{intercom_db}' for intercom_db in InterComMongoInterface.INTERCOM_CONNECTION_TYPES]
-    databases.extend([
-        config.get('data_storage', 'main_database'),
-        config.get('data_storage', 'view_storage'),
-        config.get('data_storage', 'statistic_database')
-    ])
-    return databases
-
-
-def clean_test_database(config, list_of_test_databases):
-    db = MongoInterface(config=config)
-    try:
-        for database_name in list_of_test_databases:
-            db.client.drop_database(database_name)
-    except Exception:  # pylint: disable=broad-except
-        pass
-    db.shutdown()
 
 
 def get_firmware_for_rest_upload_test():
@@ -497,51 +286,84 @@ def get_config_for_testing(temp_dir: Optional[Union[TemporaryDirectory, str]] = 
     if isinstance(temp_dir, TemporaryDirectory):
         temp_dir = temp_dir.name
     config = ConfigParser()
-    config.add_section('data_storage')
-    config.set('data_storage', 'mongo_server', 'localhost')
-    config.set('data_storage', 'main_database', 'tmp_unit_tests')
-    config.set('data_storage', 'intercom_database_prefix', 'tmp_unit_tests')
-    config.set('data_storage', 'statistic_database', 'tmp_unit_tests')
-    config.set('data_storage', 'view_storage', 'tmp_tests_view')
-    config.set('data_storage', 'mongo_port', '27018')
-    config.set('data_storage', 'report_threshold', '2048')
-    config.set('data_storage', 'password_salt', '1234')
-    config.set('data_storage', 'firmware_file_storage_directory', '/tmp/fact_test_fs_directory')
+    config.add_section('data-storage')
+    config.set('data-storage', 'report-threshold', '2048')
+    config.set('data-storage', 'password-salt', '1234')
+    config.set('data-storage', 'firmware-file-storage-directory', '/tmp/fact_test_fs_directory')
     docker_mount_base_dir = create_docker_mount_base_dir()
-    config.set('data_storage', 'docker-mount-base-dir', str(docker_mount_base_dir))
+    config.set('data-storage', 'docker-mount-base-dir', str(docker_mount_base_dir))
     config.add_section('unpack')
     config.set('unpack', 'whitelist', '')
-    config.set('unpack', 'max_depth', '10')
-    config.add_section('default_plugins')
-    config.add_section('ExpertSettings')
-    config.set('ExpertSettings', 'block_delay', '0.1')
-    config.set('ExpertSettings', 'ssdeep_ignore', '1')
-    config.set('ExpertSettings', 'authentication', 'false')
-    config.set('ExpertSettings', 'intercom_poll_delay', '0.5')
-    config.set('ExpertSettings', 'nginx', 'false')
+    config.set('unpack', 'max-depth', '10')
+    config.add_section('default-plugins')
+    config.add_section('expert-settings')
+    config.set('expert-settings', 'block-delay', '0.1')
+    config.set('expert-settings', 'ssdeep-ignore', '1')
+    config.set('expert-settings', 'authentication', 'false')
+    config.set('expert-settings', 'intercom-poll-delay', '0.5')
+    config.set('expert-settings', 'nginx', 'false')
     config.add_section('database')
-    config.set('database', 'results_per_page', '10')
+    config.set('database', 'results-per-page', '10')
     load_users_from_main_config(config)
-    config.add_section('Logging')
+    config.add_section('logging')
     if temp_dir is not None:
-        config.set('data_storage', 'firmware_file_storage_directory', temp_dir)
-        config.set('Logging', 'mongoDbLogFile', os.path.join(temp_dir, 'mongo.log'))
-    config.set('ExpertSettings', 'radare2_host', 'localhost')
+        config.set('data-storage', 'firmware-file-storage-directory', temp_dir)
+    config.set('expert-settings', 'radare2-host', 'localhost')
+    # -- postgres --
+    config.set('data-storage', 'postgres-server', 'localhost')
+    config.set('data-storage', 'postgres-port', '5432')
+    config.set('data-storage', 'postgres-database', 'fact_test')
     return config
 
 
 def load_users_from_main_config(config: ConfigParser):
     fact_config = load_config('main.cfg')
-    config.set('data_storage', 'db_admin_user', fact_config['data_storage']['db_admin_user'])
-    config.set('data_storage', 'db_admin_pw', fact_config['data_storage']['db_admin_pw'])
-    config.set('data_storage', 'db_readonly_user', fact_config['data_storage']['db_readonly_user'])
-    config.set('data_storage', 'db_readonly_pw', fact_config['data_storage']['db_readonly_pw'])
+    # -- postgres --
+    config.set('data-storage', 'postgres-ro-user', fact_config.get('data-storage', 'postgres-ro-user'))
+    config.set('data-storage', 'postgres-ro-pw', fact_config.get('data-storage', 'postgres-ro-pw'))
+    config.set('data-storage', 'postgres-rw-user', fact_config.get('data-storage', 'postgres-rw-user'))
+    config.set('data-storage', 'postgres-rw-pw', fact_config.get('data-storage', 'postgres-rw-pw'))
+    config.set('data-storage', 'postgres-del-user', fact_config.get('data-storage', 'postgres-del-user'))
+    config.set('data-storage', 'postgres-del-pw', fact_config.get('data-storage', 'postgres-del-pw'))
+    config.set('data-storage', 'postgres-admin-user', fact_config.get('data-storage', 'postgres-del-user'))
+    config.set('data-storage', 'postgres-admin-pw', fact_config.get('data-storage', 'postgres-del-pw'))
+    # -- redis --
+    config.set('data-storage', 'redis-fact-db', fact_config.get('data-storage', 'redis-test-db'))
+    config.set('data-storage', 'redis-host', fact_config.get('data-storage', 'redis-host'))
+    config.set('data-storage', 'redis-port', fact_config.get('data-storage', 'redis-port'))
 
 
 def store_binary_on_file_system(tmp_dir: str, test_object: Union[FileObject, Firmware]):
     binary_dir = Path(tmp_dir) / test_object.uid[:2]
     binary_dir.mkdir(parents=True)
     (binary_dir / test_object.uid).write_bytes(test_object.binary)
+
+
+def setup_test_tables(config):
+    db_setup = DbSetup(config)
+    db_setup.connection.create_tables()
+    db_setup.set_table_privileges()
+
+
+def clear_test_tables(config):
+    db_setup = DbSetup(config)
+    db_setup.connection.base.metadata.drop_all(db_setup.connection.engine)
+
+
+def generate_analysis_entry(
+    plugin_version: str = '1.0',
+    analysis_date: float = 0.0,
+    summary: Optional[List[str]] = None,
+    tags: Optional[dict] = None,
+    analysis_result: Optional[dict] = None,
+):
+    return {
+        'plugin_version': plugin_version,
+        'analysis_date': analysis_date,
+        'summary': summary or [],
+        'tags': tags or {},
+        **(analysis_result or {})
+    }
 
 
 def create_docker_mount_base_dir():

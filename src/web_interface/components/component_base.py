@@ -1,6 +1,8 @@
 from types import MethodType
 from typing import Any, Callable, NamedTuple, Tuple
 
+from web_interface.frontend_database import FrontendDatabase
+
 ROUTES_ATTRIBUTE = 'view_routes'
 
 GET = 'GET'
@@ -35,10 +37,12 @@ class AppRoute:
 
 
 class ComponentBase:
-    def __init__(self, app, config, api=None):
+    def __init__(self, app, config, db: FrontendDatabase, intercom, api=None):
         self._app = app
         self._config = config
         self._api = api
+        self.db = db
+        self.intercom = intercom
 
         self._init_component()
 

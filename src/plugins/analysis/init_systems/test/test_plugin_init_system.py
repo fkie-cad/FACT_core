@@ -1,3 +1,4 @@
+# pylint: disable=protected-access,no-member
 import os
 from copy import deepcopy
 
@@ -5,11 +6,13 @@ from common_helper_files import get_dir_of_file
 
 from objects.file import FileObject
 from plugins.analysis.init_systems.code.init_system import AnalysisPlugin
-from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
+from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest  # pylint: disable=wrong-import-order
 
 
 class TestAnalysisPluginInit(AnalysisPluginTest):
+
     PLUGIN_NAME = 'init_systems'
+    PLUGIN_CLASS = AnalysisPlugin
 
     @classmethod
     def setUpClass(cls):
@@ -30,18 +33,13 @@ class TestAnalysisPluginInit(AnalysisPluginTest):
 
         for test_file, path in test_files.items():
             test_fo = FileObject(file_path=os.path.join(test_init_dir, path))
-            setattr(cls, 'test_file_{}'.format(test_file), test_fo)
+            setattr(cls, f'test_file_{test_file}', test_fo)
             test_fo.processed_analysis['file_type'] = {'mime': 'text/plain'}
             test_fo.root_uid = test_fo.uid
             test_fo.virtual_file_path = {test_fo.get_root_uid(): [path]}
 
-        cls.test_file_not_text = FileObject(file_path='{}etc/systemd/system/foobar'.format(test_init_dir))
+        cls.test_file_not_text = FileObject(file_path=f'{test_init_dir}etc/systemd/system/foobar')
         cls.test_file_not_text.processed_analysis['file_type'] = {'mime': 'application/zip'}
-
-    def setUp(self):
-        super().setUp()
-        config = self.init_basic_config()
-        self.analysis_plugin = AnalysisPlugin(self, config=config)
 
     def test_get_systemd_config(self):
         processed_file = self.analysis_plugin.process_object(self.test_file_systemd)

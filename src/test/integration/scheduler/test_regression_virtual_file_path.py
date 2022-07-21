@@ -1,3 +1,4 @@
+# pylint: disable=redefined-outer-name,wrong-import-order
 from multiprocessing import Event, Value
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -7,19 +8,16 @@ import pytest
 from intercom.back_end_binding import InterComBackEndBinding
 from objects.firmware import Firmware
 from scheduler.analysis import AnalysisScheduler
-from scheduler.Unpacking import UnpackingScheduler
-from storage.db_interface_backend import BackEndDbInterface
-from storage.MongoMgr import MongoMgr
-from test.common_helper import clean_test_database, get_database_names, get_test_data_dir
+from scheduler.unpacking_scheduler import UnpackingScheduler
+from storage.db_interface_backend import BackendDbInterface
+from storage.unpacking_locks import UnpackingLockManager
+from test.common_helper import get_test_data_dir
 from test.integration.common import initialize_config
 from web_interface.frontend_main import WebFrontEnd
-
-# pylint: disable=redefined-outer-name
 
 FIRST_ROOT_ID = '5fadb36c49961981f8d87cc21fc6df73a1b90aa1857621f2405d317afb994b64_68415'
 SECOND_ROOT_ID = '0383cac1dd8fbeb770559163edbd571c21696c435a4942bec6df151983719731_52143'
 TARGET_UID = '49543bc7128542b062d15419c90459be65ca93c3134554bc6224e307b359c021_9968'
-TMP_DIR = TemporaryDirectory(prefix='fact_test_')
 
 
 class MockScheduler:
@@ -42,16 +40,8 @@ def intermediate_event():
 
 @pytest.fixture(scope='module')
 def test_config():
-    return initialize_config(TMP_DIR)
-
-
-@pytest.fixture(scope='module', autouse=True)
-def test_server(test_config):
-    mongo = MongoMgr(test_config)
-    clean_test_database(test_config, get_database_names(test_config))
-    yield None
-    clean_test_database(test_config, get_database_names(test_config))
-    mongo.shutdown()
+    with TemporaryDirectory(prefix='fact_test_') as tmp_dir:
+        yield initialize_config(tmp_dir)
 
 
 @pytest.fixture(scope='module')
@@ -63,7 +53,8 @@ def test_app(test_config):
 
 @pytest.fixture(scope='module')
 def test_scheduler(test_config, finished_event, intermediate_event):
-    interface = BackEndDbInterface(config=test_config)
+    interface = BackendDbInterface(config=test_config)
+    unpacking_lock_manager = UnpackingLockManager()
     elements_finished = Value('i', 0)
 
     def count_pre_analysis(file_object):
@@ -74,22 +65,32 @@ def test_scheduler(test_config, finished_event, intermediate_event):
         elif elements_finished.value == 8:
             intermediate_event.set()
 
-    analyzer = AnalysisScheduler(test_config, pre_analysis=count_pre_analysis, db_interface=interface)
-    unpacker = UnpackingScheduler(config=test_config, post_unpack=analyzer.start_analysis_of_object)
-    intercom = InterComBackEndBinding(config=test_config, analysis_service=analyzer, unpacking_service=unpacker, compare_service=MockScheduler())
-    yield unpacker
-    intercom.shutdown()
-    unpacker.shutdown()
-    analyzer.shutdown()
+    analyzer = AnalysisScheduler(
+        test_config, pre_analysis=count_pre_analysis, db_interface=interface, unpacking_locks=unpacking_lock_manager
+    )
+    unpacker = UnpackingScheduler(
+        config=test_config, post_unpack=analyzer.start_analysis_of_object, unpacking_locks=unpacking_lock_manager
+    )
+    intercom = InterComBackEndBinding(
+        config=test_config, analysis_service=analyzer, unpacking_service=unpacker, compare_service=MockScheduler(),
+        unpacking_locks=unpacking_lock_manager
+    )
+    try:
+        yield unpacker
+    finally:
+        intercom.shutdown()
+        unpacker.shutdown()
+        analyzer.shutdown()
 
 
 def add_test_file(scheduler, path_in_test_dir):
     firmware = Firmware(file_path=str(Path(get_test_data_dir(), path_in_test_dir)))
     firmware.release_date = '1990-01-16'
+    firmware.version, firmware.vendor, firmware.device_name, firmware.device_class = ['foo'] * 4
     scheduler.add_task(firmware)
 
 
-def test_check_collision(test_app, test_scheduler, finished_event, intermediate_event):
+def test_check_collision(db, test_app, test_scheduler, finished_event, intermediate_event):  # pylint: disable=unused-argument
     add_test_file(test_scheduler, 'regression_one')
 
     intermediate_event.wait(timeout=30)
@@ -98,8 +99,8 @@ def test_check_collision(test_app, test_scheduler, finished_event, intermediate_
 
     finished_event.wait(timeout=30)
 
-    first_response = test_app.get('/analysis/{}/ro/{}'.format(TARGET_UID, FIRST_ROOT_ID))
+    first_response = test_app.get(f'/analysis/{TARGET_UID}/ro/{FIRST_ROOT_ID}')
     assert b'insufficient information' not in first_response.data
 
-    second_response = test_app.get('/analysis/{}/ro/{}'.format(TARGET_UID, SECOND_ROOT_ID))
+    second_response = test_app.get(f'/analysis/{TARGET_UID}/ro/{SECOND_ROOT_ID}')
     assert b'insufficient information' not in second_response.data

@@ -41,11 +41,10 @@ class AnalysisPlugin(AnalysisBasePlugin):
         'shell': linters.run_shellcheck,
         'php': linters.run_phpstan,
     }
+    FILE = __file__
 
-    def __init__(self, plugin_administrator, config=None, recursive=True, offline_testing=False):
-        self.config = config
-        self._fs_organizer = FSOrganizer(config)
-        super().__init__(plugin_administrator, config=config, plugin_path=__file__, recursive=recursive, offline_testing=offline_testing)
+    def additional_setup(self):
+        self._fs_organizer = FSOrganizer(self.config)
 
     def process_object(self, file_object):
         '''

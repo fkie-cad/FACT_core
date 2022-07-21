@@ -3,7 +3,7 @@ import os
 from common_helper_files import get_dir_of_file
 
 from objects.file import FileObject
-from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
+from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest  # pylint: disable=wrong-import-order
 
 from ..code.software_components import AnalysisPlugin
 
@@ -13,11 +13,7 @@ TEST_DATA_DIR = os.path.join(get_dir_of_file(__file__), 'data')
 class TestAnalysisPluginsSoftwareComponents(AnalysisPluginTest):
 
     PLUGIN_NAME = 'software_components'
-
-    def setUp(self):
-        super().setUp()
-        config = self.init_basic_config()
-        self.analysis_plugin = AnalysisPlugin(self, config=config)
+    PLUGIN_CLASS = AnalysisPlugin
 
     def test_process_object(self):
         test_file = FileObject(file_path=os.path.join(TEST_DATA_DIR, 'yara_test_file'))
@@ -29,30 +25,34 @@ class TestAnalysisPluginsSoftwareComponents(AnalysisPluginTest):
         self.assertEqual(results['MyTestRule']['meta']['website'], 'http://www.fkie.fraunhofer.de', 'incorrect website from yara meta')
         self.assertEqual(results['MyTestRule']['meta']['description'], 'This is a test rule', 'incorrect description from yara meta')
         self.assertTrue(results['MyTestRule']['meta']['open_source'], 'incorrect open-source flag from yara meta')
-        self.assertTrue((10, '$a', b'MyTestRule 0.1.3.') in results['MyTestRule']['strings'], 'string not found')
+        self.assertTrue((10, '$a', 'MyTestRule 0.1.3.') in results['MyTestRule']['strings'], 'string not found')
         self.assertTrue('0.1.3' in results['MyTestRule']['meta']['version'], 'Version not detected')
         self.assertEqual(len(results['MyTestRule']['strings']), 1, 'to much strings found')
         self.assertEqual(len(results['summary']), 1, 'Number of summary results not correct')
         self.assertIn('Test Software 0.1.3', results['summary'])
 
     def check_version(self, input_string, version):
-        self.assertEqual(self.analysis_plugin.get_version(input_string, {}), version, '{} not found correctly'.format(version))
+        self.assertEqual(self.analysis_plugin.get_version(input_string, {}), version, f'{version} not found correctly')
 
     def test_get_version(self):
         self.check_version('Foo 15.14.13', '15.14.13')
-        self.check_version('Foo 1.0', '1.0')
+        self.check_version('Foo 0.1.0', '0.1.0')
         self.check_version('Foo 1.1.1b', '1.1.1b')
         self.check_version('Foo', '')
+        self.check_version('Foo 01.02.03', '1.2.3')
+        self.check_version('Foo 00.1.', '0.1')
+        self.check_version('\x001.22.333\x00', '1.22.333')
 
     def test_get_version_from_meta(self):
         version = 'v15.14.1a'
         self.assertEqual(
-            self.analysis_plugin.get_version('Foo {}'.format(version), {'version_regex': 'v\\d\\d\\.\\d\\d\\.\\d[a-z]'}),
+            self.analysis_plugin.get_version(f'Foo {version}', {'version_regex': 'v\\d\\d\\.\\d\\d\\.\\d[a-z]'}),
             version,
             'version not found correctly'
         )
 
     def test_entry_has_no_trailing_version(self):
+        # pylint: disable=protected-access
         assert not self.analysis_plugin._entry_has_no_trailing_version('Linux', 'Linux 4.15.0-22')
         assert self.analysis_plugin._entry_has_no_trailing_version('Linux', 'Linux')
         assert self.analysis_plugin._entry_has_no_trailing_version(' Linux', 'Linux ')

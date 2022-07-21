@@ -13,9 +13,9 @@ def load_config(config_file_name):
     Returns config object
     '''
     config = configparser.ConfigParser()
-    config_path = '{}/{}'.format(get_config_dir(), config_file_name)
+    config_path = f'{get_config_dir()}/{config_file_name}'
     if not Path(config_path).exists():
-        complete_shutdown('config file not found: {}'.format(config_path))
+        complete_shutdown(f'config file not found: {config_path}')
     config.read(config_path)
     return config
 
@@ -24,7 +24,7 @@ def get_config_dir():
     '''
     Returns the absolute path of the config directory
     '''
-    return '{}/config'.format(get_src_dir())
+    return f'{get_src_dir()}/config'
 
 
 def read_list_from_config(config_file: ConfigParser, section: str, key: str, default=None):
@@ -55,7 +55,7 @@ def read_list_from_config(config_file: ConfigParser, section: str, key: str, def
 
 def get_temp_dir_path(config: ConfigParser = None) -> str:
     '''
-    Returns temp_dir_path from the section "data_storage" if it is a valid directory.
+    Returns temp-dir-path from the section "data-storage" if it is a valid directory.
     If it does not exist it will be created.
     If the directory does not exist and can not be created or if config is None
     then fallback to "/tmp"
@@ -63,7 +63,7 @@ def get_temp_dir_path(config: ConfigParser = None) -> str:
     :param config: The FACT configuration
     '''
 
-    temp_dir_path = config.get('data_storage', 'temp_dir_path', fallback='/tmp') if config else '/tmp'
+    temp_dir_path = config.get('data-storage', 'temp-dir-path', fallback='/tmp') if config else '/tmp'
     if not Path(temp_dir_path).is_dir():
         try:
             Path(temp_dir_path).mkdir()

@@ -17,30 +17,22 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import logging
 import sys
 
 from helperFunctions.program_setup import program_setup
-from statistic.update import StatisticUpdater
-from storage.MongoMgr import MongoMgr
+from statistic.update import StatsUpdater
 
 PROGRAM_NAME = 'FACT Statistic Updater'
 PROGRAM_DESCRIPTION = 'Initialize or update FACT statistic'
 
 
-def main(command_line_options=sys.argv):
-    args, config = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION, command_line_options=command_line_options)
+def main(command_line_options=None):
+    if command_line_options is None:
+        command_line_options = sys.argv
+    _, config = program_setup(PROGRAM_NAME, PROGRAM_DESCRIPTION, command_line_options=command_line_options)
 
-    logging.info('Try to start Mongo Server...')
-    mongo_server = MongoMgr(config=config)
-
-    updater = StatisticUpdater(config=config)
+    updater = StatsUpdater(config=config)
     updater.update_all_stats()
-    updater.shutdown()
-
-    if args.testing:
-        logging.info('Stopping Mongo Server...')
-        mongo_server.shutdown()
 
     return 0
 

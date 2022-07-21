@@ -11,12 +11,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     DESCRIPTION = 'Hardware Analysis Plug-in'
     DEPENDENCIES = ['cpu_architecture', 'elf_analysis', 'kernel_config']
     VERSION = '0.2'
-
-    def __init__(self, plugin_adminstrator, config=None, recursive=True):
-
-        self.config = config
-
-        super().__init__(plugin_adminstrator, config=config, recursive=recursive, plugin_path=__file__)
+    FILE = __file__
 
     def process_object(self, file_object):
 
@@ -37,21 +32,18 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
         return file_object
 
-    def cpu_architecture_analysis(self, file_object) -> Optional[str]:
+    @staticmethod
+    def cpu_architecture_analysis(file_object) -> Optional[str]:
         cpu_architecture = file_object.processed_analysis['cpu_architecture']['summary']
+        return None if cpu_architecture == [] else cpu_architecture[0]
 
-        if cpu_architecture == []:
-            cpu_architecture = None
-        else:
-            cpu_architecture = cpu_architecture[0]
-
-        return cpu_architecture
-
-    def get_modinfo(self, file_object):
+    @staticmethod
+    def get_modinfo(file_object):
         # getting the information from the *.ko files .modinfo
         return file_object.processed_analysis['elf_analysis'].get('Output', {}).get('modinfo')
 
-    def filter_kernel_config(self, file_object):
+    @staticmethod
+    def filter_kernel_config(file_object):
         kernel_config_dict = file_object.processed_analysis['kernel_config']
         kernel_config = kernel_config_dict.get('kernel_config')
         # FIXME: finer filter
@@ -68,7 +60,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
         return kernel_config
 
-    def make_summary(self, cpu_architecture, modinfo, kernel_config):
+    @staticmethod
+    def make_summary(cpu_architecture, modinfo, kernel_config):
         summary = []
 
         if cpu_architecture is not None:

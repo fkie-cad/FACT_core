@@ -1,9 +1,21 @@
 from helperFunctions.data_conversion import make_bytes
-from test.common_helper import TEST_FW, TEST_FW_2, TEST_TEXT_FILE  # pylint: disable=wrong-import-order
+from test.common_helper import (  # pylint: disable=wrong-import-order
+    TEST_FW, TEST_FW_2, TEST_TEXT_FILE, CommonIntercomMock
+)
 from test.unit.web_interface.base import WebInterfaceTest  # pylint: disable=wrong-import-order
 
 
+class IntercomMock(CommonIntercomMock):
+
+    def add_single_file_task(self, task):
+        self.tasks.append(task)
+
+
 class TestAppShowAnalysis(WebInterfaceTest):
+
+    @classmethod
+    def setup_class(cls, *_, **__):
+        super().setup_class(intercom_mock=IntercomMock)
 
     def test_app_show_analysis_get_valid_fw(self):
         result = self.test_client.get(f'/analysis/{TEST_FW.uid}').data
@@ -35,17 +47,9 @@ class TestAppShowAnalysis(WebInterfaceTest):
         assert b'Add new analysis' in result.data
         assert b'Update analysis' in result.data
 
-        assert not self.mocked_interface.tasks
+        assert not self.intercom.tasks
         post_new = self.test_client.post(f'/analysis/{TEST_FW.uid}', content_type='multipart/form-data', data={'analysis_systems': ['plugin_a', 'plugin_b']})
 
         assert post_new.status_code == 302
-        assert self.mocked_interface.tasks
-        assert self.mocked_interface.tasks[0].scheduled_analysis == ['plugin_a', 'plugin_b']
-
-    def test_app_dependency_graph(self):
-        result = self.test_client.get(f'/dependency-graph/testgraph/{TEST_FW.uid}')
-        assert b'<strong>UID:</strong> testgraph' in result.data
-        assert b'Error: Graph could not be rendered. The file chosen as root must contain a filesystem with binaries.' not in result.data
-        assert b'Warning: Elf analysis plugin result is missing for 1 files' in result.data
-        result_error = self.test_client.get('/dependency-graph/123456/567879')
-        assert b'Error: Graph could not be rendered. The file chosen as root must contain a filesystem with binaries.' in result_error.data
+        assert self.intercom.tasks
+        assert self.intercom.tasks[0].scheduled_analysis == ['plugin_a', 'plugin_b']

@@ -1,4 +1,5 @@
 import logging
+from base64 import b64encode
 from time import gmtime, time
 from zlib import compress
 
@@ -183,43 +184,6 @@ def test_generic_nice_representation(input_data, expected):
     assert flt.generic_nice_representation(input_data) == expected
 
 
-@pytest.mark.parametrize('tag_dict, output', [
-    ({'a': 'danger'}, '<span class="badge badge-danger " style="font-size: 14px;">a</span>\n'),
-    (
-        {'a': 'danger', 'b': 'primary'},
-        '<span class="badge badge-danger " style="font-size: 14px;">a</span>\n'
-        '<span class="badge badge-primary " style="font-size: 14px;">b</span>\n'
-    ),
-    (None, '')
-])
-def test_render_tags(tag_dict, output):
-    assert flt.render_tags(tag_dict) == output
-
-
-def test_empty_analysis_tags():
-    assert flt.render_analysis_tags(dict()) == ''
-
-
-def test_render_analysis_tags_success():
-    tags = {'such plugin': {'tag': {'color': 'success', 'value': 'wow'}}}
-    output = flt.render_analysis_tags(tags)
-    assert 'badge-success' in output
-    assert '>wow<' in output
-
-
-def test_render_analysis_tags_fix():
-    tags = {'such plugin': {'tag': {'color': 'very color', 'value': 'wow'}}}
-    output = flt.render_analysis_tags(tags)
-    assert 'badge-primary' in output
-    assert '>wow<' in output
-
-
-def test_render_analysis_tags_bad_type():
-    tags = {'such plugin': {42: {'color': 'very color', 'value': 'wow'}}}
-    with pytest.raises(AttributeError):
-        flt.render_analysis_tags(tags)
-
-
 @pytest.mark.parametrize('score, class_', [('low', 'active'), ('medium', 'warning'), ('high', 'danger')])
 def test_vulnerability_class_success(score, class_):
     assert flt.vulnerability_class(score) == class_
@@ -290,8 +254,7 @@ def test_filter_format_string_list_with_offset():
 
 def test_filter_decompress():
     test_string = 'test123'
-    assert flt.decompress(compress(test_string.encode())) == test_string
-    assert flt.decompress(test_string.encode()) == test_string
+    assert flt.decompress(b64encode(compress(test_string.encode())).decode()) == test_string
     assert flt.decompress(test_string) == test_string
     assert flt.decompress(None) is None
 
@@ -306,7 +269,7 @@ def test_get_unique_keys_from_list_of_dicts(list_of_dicts, expected_result):
 
 
 @pytest.mark.parametrize('function, input_data, expected_output, error_message', [
-    (flt._get_sorted_list, UNSORTABLE_LIST, UNSORTABLE_LIST, 'Could not sort list'),
+    (flt._get_sorted_list, UNSORTABLE_LIST, UNSORTABLE_LIST, 'Could not sort list'),  # pylint: disable=protected-access
     (flt.sort_comments, UNSORTABLE_LIST, [], 'Could not sort comment list'),
     (flt.sort_chart_list_by_name, UNSORTABLE_LIST, [], 'Could not sort chart list'),
     (flt.sort_chart_list_by_value, UNSORTABLE_LIST, [], 'Could not sort chart list'),
@@ -336,13 +299,13 @@ def test_is_not_mandatory_analysis_entry(input_data, additional, expected_result
 
 
 def test_version_links_no_analysis():
-    links = flt.create_firmware_version_links([{'version': '1.0', '_id': 'uid_123'}, {'version': '1.1', '_id': 'uid_234'}])
+    links = flt.create_firmware_version_links([('uid_123', '1.0'), ('uid_234', '1.1')])
     assert '<a href="/analysis/uid_123">1.0</a>' in links
     assert '<a href="/analysis/uid_234">1.1</a>' in links
 
 
 def test_version_links_with_analysis():
-    links = flt.create_firmware_version_links([{'version': '1.0', '_id': 'uid_123'}, {'version': '1.1', '_id': 'uid_234'}], 'foo')
+    links = flt.create_firmware_version_links([('uid_123', '1.0'), ('uid_234', '1.1')], 'foo')
     assert '<a href="/analysis/uid_123/foo">1.0</a>' in links
     assert '<a href="/analysis/uid_234/foo">1.1</a>' in links
 
@@ -410,3 +373,15 @@ def test_sort_cve_result(input_dict, expected_result):
 ])
 def test_hide_dts_data(input_dts, expected_result):
     assert flt.hide_dts_binary_data(input_dts) == expected_result
+
+
+@pytest.mark.parametrize('input_, expected_result', [
+    ('', ''),
+    ('foo', 'foo'),
+    (
+        ':37:4e:47:02:4e:2d:\n    c0:4f:2f:b3:94:e1:41:2e:2d:90:10:fc:82:92:8b:\n    0f:22:df:f2:fc:2c:ab:52:55',
+        'c0:4f:2f:b3:94:e1:41:2e:2d:90:10:fc:82:92:8b:'
+    ),
+])
+def test_get_searchable_crypto_block(input_, expected_result):
+    assert flt.get_searchable_crypto_block(input_) == expected_result

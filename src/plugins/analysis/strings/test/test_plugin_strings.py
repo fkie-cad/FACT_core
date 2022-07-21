@@ -1,9 +1,10 @@
+# pylint: disable=protected-access
 import os
 
 from common_helper_files import get_dir_of_file
 
 from objects.file import FileObject
-from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
+from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest  # pylint: disable=wrong-import-order
 
 from ..code.strings import AnalysisPlugin
 
@@ -13,25 +14,25 @@ TEST_DATA_DIR = os.path.join(get_dir_of_file(__file__), 'data')
 class TestAnalysisPlugInPrintableStrings(AnalysisPluginTest):
 
     PLUGIN_NAME = 'printable_strings'
+    PLUGIN_CLASS = AnalysisPlugin
 
     def setUp(self):
         super().setUp()
-        config = self.init_basic_config()
-        config.set(self.PLUGIN_NAME, 'min_length', '4')
-        self.analysis_plugin = AnalysisPlugin(self, config=config)
-
         self.strings = ['first string', 'second<>_$tring!', 'third:?-+012345/\\string']
         self.offsets = [(3, self.strings[0]), (21, self.strings[1]), (61, self.strings[2])]
+
+    def _set_config(self):
+        self.config.set(self.PLUGIN_NAME, 'min-length', '4')
 
     def test_process_object(self):
         fo = FileObject(file_path=os.path.join(TEST_DATA_DIR, 'string_find_test_file2'))
         fo = self.analysis_plugin.process_object(fo)
         results = fo.processed_analysis[self.PLUGIN_NAME]
         for item in self.strings:
-            self.assertIn(item, results['strings'], '{} not found'.format(item))
+            self.assertIn(item, results['strings'], f'{item} not found')
         self.assertEqual(len(results['strings']), len(self.strings), 'number of found strings not correct')
         for item in self.offsets:
-            assert item in results['offsets'], 'offset {} not found'.format(item)
+            assert item in results['offsets'], f'offset {item} not found'
         assert len(results['offsets']) == len(self.offsets), 'number of offsets not correct'
 
     def test_process_object__no_strings(self):
@@ -63,7 +64,7 @@ class TestAnalysisPlugInPrintableStrings(AnalysisPluginTest):
     def test_get_min_length_from_config(self):
         assert self.analysis_plugin._get_min_length_from_config() == '4'
 
-        self.analysis_plugin.config[self.PLUGIN_NAME].pop('min_length')
+        self.analysis_plugin.config[self.PLUGIN_NAME].pop('min-length')
         assert self.analysis_plugin._get_min_length_from_config() == '8'
 
         self.analysis_plugin.config.pop(self.PLUGIN_NAME)
