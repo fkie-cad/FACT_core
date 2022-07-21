@@ -16,4 +16,4 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-__VERSION__ = '4.0-dev'
+__VERSION__ = '4.0'
