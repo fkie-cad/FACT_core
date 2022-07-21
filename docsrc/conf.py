@@ -72,6 +72,7 @@ autodoc_mock_imports = [
     'pymongo',
     'requests',
     'si_prefix',
+    'sqlalchemy',
     'ssdeep',
     'tlsh',
     'werkzeug',
