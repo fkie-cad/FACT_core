@@ -48,6 +48,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../main.html#latest-news-and-contact">Latest News and Contact</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../main.html#authors-and-acknowledgment">Authors and Acknowledgment</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../main.html#source-code">Source Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../migration.html">Upgrading FACT from 3 to 4</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Modules:</span></p>
 <ul class="current">
@@ -89,7 +90,7 @@
 <span id="scheduler-analysis"></span><h1>scheduler.analysis<a class="headerlink" href="#module-scheduler.analysis" title="Permalink to this headline"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="scheduler.analysis.AnalysisScheduler">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scheduler.analysis.</span></span><span class="sig-name descname"><span class="pre">AnalysisScheduler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pre_analysis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">post_analysis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">db_interface</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#scheduler.analysis.AnalysisScheduler" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scheduler.analysis.</span></span><span class="sig-name descname"><span class="pre">AnalysisScheduler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pre_analysis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">post_analysis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">db_interface</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unpacking_locks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#scheduler.analysis.AnalysisScheduler" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>The analysis scheduler is responsible for</p>
 <ul class="simple">
@@ -147,8 +148,8 @@ actual analysis process is out of scope. Database interaction happens before (pr
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>config</strong> (<em>Optional</em><em>[</em><em>configparser.ConfigParser</em><em>]</em>) – The ConfigParser object shared by all backend entities.</p></li>
-<li><p><strong>pre_analysis</strong> – A database callback to execute before running an analysis task.</p></li>
-<li><p><strong>post_analysis</strong> – A database callback to execute after running an analysis task.</p></li>
+<li><p><strong>pre_analysis</strong> (<em>Callable</em><em>[</em><em>[</em><a class="reference internal" href="objects.file.html#objects.file.FileObject" title="objects.file.FileObject"><em>objects.file.FileObject</em></a><em>]</em><em>, </em><em>None</em><em>]</em>) – A database callback to execute before running an analysis task.</p></li>
+<li><p><strong>post_analysis</strong> (<em>Callable</em><em>[</em><em>[</em><em>str</em><em>, </em><em>str</em><em>, </em><em>dict</em><em>]</em><em>, </em><em>None</em><em>]</em>) – A database callback to execute after running an analysis task.</p></li>
 <li><p><strong>db_interface</strong> – An object reference to an instance of BackEndDbInterface.</p></li>
 </ul>
 </dd>
@@ -156,7 +157,7 @@ actual analysis process is out of scope. Database interaction happens before (pr
 <dl class="py method">
 <dt class="sig sig-object py" id="scheduler.analysis.AnalysisScheduler.check_exceptions">
 <span class="sig-name descname"><span class="pre">check_exceptions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#scheduler.analysis.AnalysisScheduler.check_exceptions" title="Permalink to this definition"></a></dt>
-<dd><p>Iterate all attached processes and see if an exception occured in any. Depending on configuration, plugin
+<dd><p>Iterate all attached processes and see if an exception occurred in any. Depending on configuration, plugin
 exceptions are not registered as they are restarted after an exception occurs.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -235,7 +236,7 @@ in the analysis selection.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="scheduler.analysis.AnalysisScheduler.register_plugin">
 <span class="sig-name descname"><span class="pre">register_plugin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plugin_instance</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#scheduler.analysis.AnalysisScheduler.register_plugin" title="Permalink to this definition"></a></dt>
-<dd><p>This function is used by analysis plugins to register themselves with this scheduler. During intialization the
+<dd><p>This function is used by analysis plugins to register themselves with this scheduler. During initialization the
 plugins will call this functions giving their name and a reference to their object to allow the scheduler to
 address them for running analyses.</p>
 <dl class="field-list simple">

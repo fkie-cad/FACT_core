@@ -6,6 +6,7 @@ helperFunctions
 
    helperFunctions.compare_sets
    helperFunctions.config
+   helperFunctions.data_conversion
    helperFunctions.database
    helperFunctions.docker
    helperFunctions.fileSystem
@@ -13,16 +14,15 @@ helperFunctions
    helperFunctions.install
    helperFunctions.logging
    helperFunctions.merge_generators
-   helperFunctions.mongo_config_parser
-   helperFunctions.mongo_task_conversion
    helperFunctions.object_conversion
-   helperFunctions.object_storage
    helperFunctions.pdf
    helperFunctions.plugin
    helperFunctions.process
    helperFunctions.program_setup
    helperFunctions.tag
+   helperFunctions.task_conversion
    helperFunctions.uid
+   helperFunctions.virtual_file_path
    helperFunctions.web_interface
    helperFunctions.yara_binary_search
 

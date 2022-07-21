@@ -48,6 +48,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../main.html#latest-news-and-contact">Latest News and Contact</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../main.html#authors-and-acknowledgment">Authors and Acknowledgment</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../main.html#source-code">Source Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../migration.html">Upgrading FACT from 3 to 4</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Modules:</span></p>
 <ul class="current">
@@ -110,7 +111,7 @@ It holds all meta information of a file along with analysis results and some int
 <dd><p>This functions adds a file to this object’s list of included files.
 The function also takes care of a number of fields for the child object:</p>
 <ul class="simple">
-<li><p><cite>parents</cite>: Adds the uid of this file to the parents field of the child.</p></li>
+<li><p><cite>parents</cite>: Adds the uid of this file to the parent’s field of the child.</p></li>
 <li><p><cite>root_uid</cite>: Sets the root uid of the child as this files uid.</p></li>
 <li><p><cite>depth</cite>: The child inherits the unpacking depth from this file, incremented by one.</p></li>
 <li><p><cite>scheduled_analysis</cite>: The child inherits this file’s scheduled analysis.</p></li>
@@ -216,7 +217,7 @@ Only lists the next layer, not recursively included files on lower extraction la
 <dl class="py method">
 <dt class="sig sig-object py" id="objects.file.FileObject.get_hid">
 <span class="sig-name descname"><span class="pre">get_hid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root_uid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#objects.file.FileObject.get_hid" title="Permalink to this definition"></a></dt>
-<dd><p>Get a human readable identifier for the given file.
+<dd><p>Get a human-readable identifier for the given file.
 This usually is the file name for extracted files.
 As files can have different names across occurrences, uid of a specific root object can be specified.</p>
 <dl class="field-list simple">
@@ -224,7 +225,7 @@ As files can have different names across occurrences, uid of a specific root obj
 <dd class="field-odd"><p><strong>root_uid</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – (Optional) root uid to base HID on.</p>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>String representing a human readable identifier for this file.</p>
+<dd class="field-even"><p>String representing a human-readable identifier for this file.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>str</p>
@@ -351,7 +352,7 @@ This value might not be set at all times (cf. <a class="reference internal" href
 <dt class="sig sig-object py" id="objects.file.FileObject.set_binary">
 <span class="sig-name descname"><span class="pre">set_binary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">binary</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#objects.file.FileObject.set_binary" title="Permalink to this definition"></a></dt>
 <dd><p>Store the binary representation of the file as byte string.
-Additionally set binary related meta data (size, hash) and compute uid after that.</p>
+Additionally, set binary related metadata (size, hash) and compute uid after that.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>binary</strong> (<em>bytes</em>) – file in binary representation</p>
@@ -385,7 +386,7 @@ It will not be persisted to the database, so it dies after the analysis cycle.</
 <dt class="sig sig-object py" id="objects.file.FileObject.uid">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">uid</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#objects.file.FileObject.uid" title="Permalink to this definition"></a></dt>
 <dd><p>Unique identifier of this file.
-Consisting of the file’s sha256 hash and it’s length in the form <cite>hash_length</cite>.</p>
+Consisting of the file’s sha256 hash, and it’s length in the form <cite>hash_length</cite>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>uid of this file.</p>

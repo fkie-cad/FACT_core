@@ -45,6 +45,7 @@
 <li class="toctree-l1"><a class="reference internal" href="main.html#latest-news-and-contact">Latest News and Contact</a></li>
 <li class="toctree-l1"><a class="reference internal" href="main.html#authors-and-acknowledgment">Authors and Acknowledgment</a></li>
 <li class="toctree-l1"><a class="reference internal" href="main.html#source-code">Source Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="migration.html">Upgrading FACT from 3 to 4</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Modules:</span></p>
 <ul>
@@ -90,6 +91,7 @@
  | <a href="#G"><strong>G</strong></a>
  | <a href="#H"><strong>H</strong></a>
  | <a href="#I"><strong>I</strong></a>
+ | <a href="#J"><strong>J</strong></a>
  | <a href="#L"><strong>L</strong></a>
  | <a href="#M"><strong>M</strong></a>
  | <a href="#N"><strong>N</strong></a>
@@ -163,7 +165,7 @@
 </li>
       <li><a href="modules/scheduler.analysis.html#scheduler.analysis.AnalysisScheduler.check_exceptions">check_exceptions() (scheduler.analysis.AnalysisScheduler method)</a>
 </li>
-      <li><a href="modules/helperFunctions.mongo_task_conversion.html#helperFunctions.mongo_task_conversion.check_for_errors">check_for_errors() (in module helperFunctions.mongo_task_conversion)</a>
+      <li><a href="modules/helperFunctions.task_conversion.html#helperFunctions.task_conversion.check_for_errors">check_for_errors() (in module helperFunctions.task_conversion)</a>
 </li>
       <li><a href="modules/helperFunctions.install.html#helperFunctions.install.check_if_command_in_path">check_if_command_in_path() (in module helperFunctions.install)</a>
 </li>
@@ -175,23 +177,29 @@
 </li>
       <li><a href="modules/objects.file.html#objects.file.FileObject.comments">comments (objects.file.FileObject attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/helperFunctions.process.html#helperFunctions.process.complete_shutdown">complete_shutdown() (in module helperFunctions.process)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/helperFunctions.database.html#helperFunctions.database.ConnectTo">ConnectTo (class in helperFunctions.database)</a>
 </li>
-      <li><a href="modules/helperFunctions.mongo_task_conversion.html#helperFunctions.mongo_task_conversion.convert_analysis_task_to_fw_obj">convert_analysis_task_to_fw_obj() (in module helperFunctions.mongo_task_conversion)</a>
+      <li><a href="modules/helperFunctions.task_conversion.html#helperFunctions.task_conversion.convert_analysis_task_to_fw_obj">convert_analysis_task_to_fw_obj() (in module helperFunctions.task_conversion)</a>
 </li>
-      <li><a href="modules/web_interface.rest.helper.html#web_interface.rest.helper.convert_rest_request">convert_rest_request() (in module web_interface.rest.helper)</a>
+      <li><a href="modules/helperFunctions.data_conversion.html#helperFunctions.data_conversion.convert_compare_id_to_list">convert_compare_id_to_list() (in module helperFunctions.data_conversion)</a>
 </li>
-      <li><a href="modules/helperFunctions.mongo_task_conversion.html#helperFunctions.mongo_task_conversion.create_analysis_task">create_analysis_task() (in module helperFunctions.mongo_task_conversion)</a>
+      <li><a href="modules/helperFunctions.data_conversion.html#helperFunctions.data_conversion.convert_str_to_bool">convert_str_to_bool() (in module helperFunctions.data_conversion)</a>
+</li>
+      <li><a href="modules/helperFunctions.data_conversion.html#helperFunctions.data_conversion.convert_time_to_str">convert_time_to_str() (in module helperFunctions.data_conversion)</a>
+</li>
+      <li><a href="modules/helperFunctions.data_conversion.html#helperFunctions.data_conversion.convert_uid_list_to_compare_id">convert_uid_list_to_compare_id() (in module helperFunctions.data_conversion)</a>
+</li>
+      <li><a href="modules/helperFunctions.task_conversion.html#helperFunctions.task_conversion.create_analysis_task">create_analysis_task() (in module helperFunctions.task_conversion)</a>
 </li>
       <li><a href="modules/objects.file.html#objects.file.FileObject.create_binary_from_path">create_binary_from_path() (objects.file.FileObject method)</a>
 </li>
       <li><a href="modules/helperFunctions.object_conversion.html#helperFunctions.object_conversion.create_meta_dict">create_meta_dict() (in module helperFunctions.object_conversion)</a>
 </li>
-      <li><a href="modules/helperFunctions.mongo_task_conversion.html#helperFunctions.mongo_task_conversion.create_re_analyze_task">create_re_analyze_task() (in module helperFunctions.mongo_task_conversion)</a>
+      <li><a href="modules/helperFunctions.task_conversion.html#helperFunctions.task_conversion.create_re_analyze_task">create_re_analyze_task() (in module helperFunctions.task_conversion)</a>
 </li>
       <li><a href="modules/helperFunctions.uid.html#helperFunctions.uid.create_uid">create_uid() (in module helperFunctions.uid)</a>
 </li>
@@ -269,6 +277,8 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/helperFunctions.web_interface.html#helperFunctions.web_interface.get_alternating_color_list">get_alternating_color_list() (in module helperFunctions.web_interface)</a>
 </li>
+      <li><a href="modules/helperFunctions.virtual_file_path.html#helperFunctions.virtual_file_path.get_base_of_virtual_path">get_base_of_virtual_path() (in module helperFunctions.virtual_file_path)</a>
+</li>
       <li><a href="modules/helperFunctions.yara_binary_search.html#helperFunctions.yara_binary_search.YaraBinarySearchScanner.get_binary_search_result">get_binary_search_result() (helperFunctions.yara_binary_search.YaraBinarySearchScanner method)</a>
 </li>
       <li><a href="modules/web_interface.rest.helper.html#web_interface.rest.helper.get_boolean_from_request">get_boolean_from_request() (in module web_interface.rest.helper)</a>
@@ -281,7 +291,7 @@
 </li>
       <li><a href="modules/web_interface.rest.helper.html#web_interface.rest.helper.get_current_gmt">get_current_gmt() (in module web_interface.rest.helper)</a>
 </li>
-      <li><a href="modules/helperFunctions.mongo_task_conversion.html#helperFunctions.mongo_task_conversion.get_file_name_and_binary_from_request">get_file_name_and_binary_from_request() (in module helperFunctions.mongo_task_conversion)</a>
+      <li><a href="modules/helperFunctions.task_conversion.html#helperFunctions.task_conversion.get_file_name_and_binary_from_request">get_file_name_and_binary_from_request() (in module helperFunctions.task_conversion)</a>
 </li>
       <li><a href="modules/helperFunctions.hash.html#helperFunctions.hash.get_hash">get_hash() (in module helperFunctions.hash)</a>
 </li>
@@ -297,9 +307,9 @@
 </li>
       <li><a href="modules/helperFunctions.hash.html#helperFunctions.hash.get_md5">get_md5() (in module helperFunctions.hash)</a>
 </li>
-      <li><a href="modules/helperFunctions.mongo_config_parser.html#helperFunctions.mongo_config_parser.get_mongo_path">get_mongo_path() (in module helperFunctions.mongo_config_parser)</a>
-</li>
       <li><a href="modules/web_interface.rest.helper.html#web_interface.rest.helper.get_paging">get_paging() (in module web_interface.rest.helper)</a>
+</li>
+      <li><a href="modules/helperFunctions.virtual_file_path.html#helperFunctions.virtual_file_path.get_parent_uids_from_virtual_path">get_parent_uids_from_virtual_path() (in module helperFunctions.virtual_file_path)</a>
 </li>
       <li><a href="modules/scheduler.analysis.html#scheduler.analysis.AnalysisScheduler.get_plugin_dict">get_plugin_dict() (scheduler.analysis.AnalysisScheduler method)</a>
 </li>
@@ -307,19 +317,19 @@
 </li>
       <li><a href="modules/helperFunctions.fileSystem.html#helperFunctions.fileSystem.get_relative_object_path">get_relative_object_path() (in module helperFunctions.fileSystem)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/objects.file.html#objects.file.FileObject.get_root_uid">get_root_uid() (objects.file.FileObject method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/scheduler.analysis.html#scheduler.analysis.AnalysisScheduler.get_scheduled_workload">get_scheduled_workload() (scheduler.analysis.AnalysisScheduler method)</a>
 </li>
       <li><a href="modules/helperFunctions.hash.html#helperFunctions.hash.get_sha256">get_sha256() (in module helperFunctions.hash)</a>
 </li>
+      <li><a href="modules/helperFunctions.database.html#helperFunctions.database.get_shared_session">get_shared_session() (in module helperFunctions.database)</a>
+</li>
       <li><a href="modules/helperFunctions.fileSystem.html#helperFunctions.fileSystem.get_src_dir">get_src_dir() (in module helperFunctions.fileSystem)</a>
 </li>
       <li><a href="modules/helperFunctions.hash.html#helperFunctions.hash.get_ssdeep">get_ssdeep() (in module helperFunctions.hash)</a>
-</li>
-      <li><a href="modules/helperFunctions.hash.html#helperFunctions.hash.get_ssdeep_comparison">get_ssdeep_comparison() (in module helperFunctions.hash)</a>
 </li>
       <li><a href="modules/helperFunctions.config.html#helperFunctions.config.get_temp_dir_path">get_temp_dir_path() (in module helperFunctions.config)</a>
 </li>
@@ -331,7 +341,13 @@
 </li>
       <li><a href="modules/helperFunctions.hash.html#helperFunctions.hash.get_tlsh_comparison">get_tlsh_comparison() (in module helperFunctions.hash)</a>
 </li>
+      <li><a href="modules/helperFunctions.virtual_file_path.html#helperFunctions.virtual_file_path.get_top_of_virtual_path">get_top_of_virtual_path() (in module helperFunctions.virtual_file_path)</a>
+</li>
+      <li><a href="modules/helperFunctions.virtual_file_path.html#helperFunctions.virtual_file_path.get_uids_from_virtual_path">get_uids_from_virtual_path() (in module helperFunctions.virtual_file_path)</a>
+</li>
       <li><a href="modules/web_interface.rest.helper.html#web_interface.rest.helper.get_update">get_update() (in module web_interface.rest.helper)</a>
+</li>
+      <li><a href="modules/helperFunctions.data_conversion.html#helperFunctions.data_conversion.get_value_of_first_key">get_value_of_first_key() (in module helperFunctions.data_conversion)</a>
 </li>
       <li><a href="modules/objects.file.html#objects.file.FileObject.get_virtual_file_paths">get_virtual_file_paths() (objects.file.FileObject method)</a>
 </li>
@@ -369,6 +385,13 @@
 
       <ul>
         <li><a href="modules/helperFunctions.config.html#module-helperFunctions.config">module</a>
+</li>
+      </ul></li>
+      <li>
+    helperFunctions.data_conversion
+
+      <ul>
+        <li><a href="modules/helperFunctions.data_conversion.html#module-helperFunctions.data_conversion">module</a>
 </li>
       </ul></li>
       <li>
@@ -420,34 +443,13 @@
         <li><a href="modules/helperFunctions.merge_generators.html#module-helperFunctions.merge_generators">module</a>
 </li>
       </ul></li>
-      <li>
-    helperFunctions.mongo_config_parser
-
-      <ul>
-        <li><a href="modules/helperFunctions.mongo_config_parser.html#module-helperFunctions.mongo_config_parser">module</a>
-</li>
-      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li>
-    helperFunctions.mongo_task_conversion
-
-      <ul>
-        <li><a href="modules/helperFunctions.mongo_task_conversion.html#module-helperFunctions.mongo_task_conversion">module</a>
-</li>
-      </ul></li>
       <li>
     helperFunctions.object_conversion
 
       <ul>
         <li><a href="modules/helperFunctions.object_conversion.html#module-helperFunctions.object_conversion">module</a>
-</li>
-      </ul></li>
-      <li>
-    helperFunctions.object_storage
-
-      <ul>
-        <li><a href="modules/helperFunctions.object_storage.html#module-helperFunctions.object_storage">module</a>
 </li>
       </ul></li>
       <li>
@@ -486,10 +488,24 @@
 </li>
       </ul></li>
       <li>
+    helperFunctions.task_conversion
+
+      <ul>
+        <li><a href="modules/helperFunctions.task_conversion.html#module-helperFunctions.task_conversion">module</a>
+</li>
+      </ul></li>
+      <li>
     helperFunctions.uid
 
       <ul>
         <li><a href="modules/helperFunctions.uid.html#module-helperFunctions.uid">module</a>
+</li>
+      </ul></li>
+      <li>
+    helperFunctions.virtual_file_path
+
+      <ul>
+        <li><a href="modules/helperFunctions.virtual_file_path.html#module-helperFunctions.virtual_file_path">module</a>
 </li>
       </ul></li>
       <li>
@@ -520,11 +536,9 @@
 </li>
       <li><a href="modules/helperFunctions.install.html#helperFunctions.install.InstallationError">InstallationError</a>
 </li>
-      <li><a href="modules/helperFunctions.uid.html#helperFunctions.uid.is_list_of_uids">is_list_of_uids() (in module helperFunctions.uid)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="modules/helperFunctions.database.html#helperFunctions.database.is_sanitized_entry">is_sanitized_entry() (in module helperFunctions.database)</a>
+      <li><a href="modules/helperFunctions.uid.html#helperFunctions.uid.is_list_of_uids">is_list_of_uids() (in module helperFunctions.uid)</a>
 </li>
       <li><a href="modules/helperFunctions.uid.html#helperFunctions.uid.is_uid">is_uid() (in module helperFunctions.uid)</a>
 </li>
@@ -533,6 +547,14 @@
       <li><a href="modules/helperFunctions.install.html#helperFunctions.install.is_virtualenv">is_virtualenv() (in module helperFunctions.install)</a>
 </li>
       <li><a href="modules/helperFunctions.compare_sets.html#helperFunctions.compare_sets.iter_element_and_rest">iter_element_and_rest() (in module helperFunctions.compare_sets)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="J">J</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="modules/helperFunctions.virtual_file_path.html#helperFunctions.virtual_file_path.join_virtual_path">join_virtual_path() (in module helperFunctions.virtual_file_path)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -562,9 +584,11 @@
 <h2 id="M">M</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="modules/helperFunctions.merge_generators.html#helperFunctions.merge_generators.merge_dict">merge_dict() (in module helperFunctions.merge_generators)</a>
+      <li><a href="modules/helperFunctions.data_conversion.html#helperFunctions.data_conversion.make_bytes">make_bytes() (in module helperFunctions.data_conversion)</a>
 </li>
-      <li><a href="modules/helperFunctions.merge_generators.html#helperFunctions.merge_generators.merge_lists">merge_lists() (in module helperFunctions.merge_generators)</a>
+      <li><a href="modules/helperFunctions.data_conversion.html#helperFunctions.data_conversion.make_unicode_string">make_unicode_string() (in module helperFunctions.data_conversion)</a>
+</li>
+      <li><a href="modules/helperFunctions.virtual_file_path.html#helperFunctions.virtual_file_path.merge_vfp_lists">merge_vfp_lists() (in module helperFunctions.virtual_file_path)</a>
 </li>
       <li>
     module
@@ -573,6 +597,8 @@
         <li><a href="modules/helperFunctions.compare_sets.html#module-helperFunctions.compare_sets">helperFunctions.compare_sets</a>
 </li>
         <li><a href="modules/helperFunctions.config.html#module-helperFunctions.config">helperFunctions.config</a>
+</li>
+        <li><a href="modules/helperFunctions.data_conversion.html#module-helperFunctions.data_conversion">helperFunctions.data_conversion</a>
 </li>
         <li><a href="modules/helperFunctions.database.html#module-helperFunctions.database">helperFunctions.database</a>
 </li>
@@ -588,13 +614,7 @@
 </li>
         <li><a href="modules/helperFunctions.merge_generators.html#module-helperFunctions.merge_generators">helperFunctions.merge_generators</a>
 </li>
-        <li><a href="modules/helperFunctions.mongo_config_parser.html#module-helperFunctions.mongo_config_parser">helperFunctions.mongo_config_parser</a>
-</li>
-        <li><a href="modules/helperFunctions.mongo_task_conversion.html#module-helperFunctions.mongo_task_conversion">helperFunctions.mongo_task_conversion</a>
-</li>
         <li><a href="modules/helperFunctions.object_conversion.html#module-helperFunctions.object_conversion">helperFunctions.object_conversion</a>
-</li>
-        <li><a href="modules/helperFunctions.object_storage.html#module-helperFunctions.object_storage">helperFunctions.object_storage</a>
 </li>
         <li><a href="modules/helperFunctions.pdf.html#module-helperFunctions.pdf">helperFunctions.pdf</a>
 </li>
@@ -606,7 +626,11 @@
 </li>
         <li><a href="modules/helperFunctions.tag.html#module-helperFunctions.tag">helperFunctions.tag</a>
 </li>
+        <li><a href="modules/helperFunctions.task_conversion.html#module-helperFunctions.task_conversion">helperFunctions.task_conversion</a>
+</li>
         <li><a href="modules/helperFunctions.uid.html#module-helperFunctions.uid">helperFunctions.uid</a>
+</li>
+        <li><a href="modules/helperFunctions.virtual_file_path.html#module-helperFunctions.virtual_file_path">helperFunctions.virtual_file_path</a>
 </li>
         <li><a href="modules/helperFunctions.web_interface.html#module-helperFunctions.web_interface">helperFunctions.web_interface</a>
 </li>
@@ -629,8 +653,12 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/helperFunctions.process.html#helperFunctions.process.new_worker_was_started">new_worker_was_started() (in module helperFunctions.process)</a>
 </li>
+      <li><a href="modules/helperFunctions.data_conversion.html#helperFunctions.data_conversion.none_to_none">none_to_none() (in module helperFunctions.data_conversion)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="modules/helperFunctions.data_conversion.html#helperFunctions.data_conversion.normalize_compare_id">normalize_compare_id() (in module helperFunctions.data_conversion)</a>
+</li>
       <li><a href="modules/helperFunctions.hash.html#helperFunctions.hash.normalize_lief_items">normalize_lief_items() (in module helperFunctions.hash)</a>
 </li>
   </ul></td>
@@ -711,8 +739,6 @@
 </li>
       <li><a href="modules/helperFunctions.install.html#helperFunctions.install.remove_folder">remove_folder() (in module helperFunctions.install)</a>
 </li>
-      <li><a href="modules/objects.firmware.html#objects.firmware.Firmware.remove_tag">remove_tag() (objects.firmware.Firmware method)</a>
-</li>
       <li><a href="modules/objects.file.html#objects.file.FileObject.root_uid">root_uid (objects.file.FileObject attribute)</a>
 </li>
       <li><a href="modules/helperFunctions.process.html#helperFunctions.process.ExceptionSafeProcess.run">run() (helperFunctions.process.ExceptionSafeProcess method)</a>
@@ -746,6 +772,8 @@
 </li>
       <li><a href="modules/objects.firmware.html#objects.firmware.Firmware.set_tag">set_tag() (objects.firmware.Firmware method)</a>
 </li>
+      <li><a href="modules/helperFunctions.program_setup.html#helperFunctions.program_setup.setup_logging">setup_logging() (in module helperFunctions.program_setup)</a>
+</li>
       <li><a href="modules/objects.file.html#objects.file.FileObject.sha256">sha256 (objects.file.FileObject attribute)</a>
 </li>
   </ul></td>
@@ -756,17 +784,17 @@
 </li>
       <li><a href="modules/objects.file.html#objects.file.FileObject.size">size (objects.file.FileObject attribute)</a>
 </li>
+      <li><a href="modules/helperFunctions.virtual_file_path.html#helperFunctions.virtual_file_path.split_virtual_path">split_virtual_path() (in module helperFunctions.virtual_file_path)</a>
+</li>
       <li><a href="modules/scheduler.analysis.html#scheduler.analysis.AnalysisScheduler.start_analysis_of_object">start_analysis_of_object() (scheduler.analysis.AnalysisScheduler method)</a>
 </li>
       <li><a href="modules/helperFunctions.process.html#helperFunctions.process.start_single_worker">start_single_worker() (in module helperFunctions.process)</a>
 </li>
+      <li><a href="modules/helperFunctions.process.html#helperFunctions.process.stop_processes">stop_processes() (in module helperFunctions.process)</a>
+</li>
       <li><a href="modules/helperFunctions.compare_sets.html#helperFunctions.compare_sets.substring_is_in_list">substring_is_in_list() (in module helperFunctions.compare_sets)</a>
 </li>
       <li><a href="modules/web_interface.rest.helper.html#web_interface.rest.helper.success_message">success_message() (in module web_interface.rest.helper)</a>
-</li>
-      <li><a href="modules/helperFunctions.merge_generators.html#helperFunctions.merge_generators.sum_up_lists">sum_up_lists() (in module helperFunctions.merge_generators)</a>
-</li>
-      <li><a href="modules/helperFunctions.merge_generators.html#helperFunctions.merge_generators.sum_up_nested_lists">sum_up_nested_lists() (in module helperFunctions.merge_generators)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -796,15 +824,13 @@
 </li>
       <li><a href="modules/helperFunctions.logging.html#helperFunctions.logging.TerminalColors.UNDERLINE">UNDERLINE (helperFunctions.logging.TerminalColors attribute)</a>
 </li>
-      <li><a href="modules/scheduler.analysis.html#scheduler.analysis.AnalysisScheduler.update_analysis_of_object_and_children">update_analysis_of_object_and_children() (scheduler.analysis.AnalysisScheduler method)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="modules/scheduler.analysis.html#scheduler.analysis.AnalysisScheduler.update_analysis_of_object_and_children">update_analysis_of_object_and_children() (scheduler.analysis.AnalysisScheduler method)</a>
+</li>
       <li><a href="modules/scheduler.analysis.html#scheduler.analysis.AnalysisScheduler.update_analysis_of_single_object">update_analysis_of_single_object() (scheduler.analysis.AnalysisScheduler method)</a>
 </li>
-      <li><a href="modules/helperFunctions.object_storage.html#helperFunctions.object_storage.update_included_files">update_included_files() (in module helperFunctions.object_storage)</a>
-</li>
-      <li><a href="modules/helperFunctions.object_storage.html#helperFunctions.object_storage.update_virtual_file_path">update_virtual_file_path() (in module helperFunctions.object_storage)</a>
+      <li><a href="modules/helperFunctions.virtual_file_path.html#helperFunctions.virtual_file_path.update_virtual_file_path">update_virtual_file_path() (in module helperFunctions.virtual_file_path)</a>
 </li>
   </ul></td>
 </tr></table>
