@@ -5,8 +5,8 @@ from analysis.PluginBase import AnalysisBasePlugin
 from objects.file import FileObject
 
 PATH_REGEX = {
-    'user_paths': re.compile(rb'/home/[^/%]+/[^\n \x00]+'),
-    'root_path': re.compile(rb'/root/[^/%]+/[^\n \x00]+'),
+    'user_paths': re.compile(rb'/home/[^%\n \x00]+'),
+    'root_path': re.compile(rb'/root/[^%\n \x00]+'),
     'www_path': re.compile(rb'/var/www/[^/%]+/[^\n \x00]+')
 }
 
