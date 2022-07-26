@@ -46,7 +46,7 @@ class Unpacker(UnpackBase):
     @staticmethod
     def _store_unpacking_depth_skip_info(file_object: FileObject):
         file_object.processed_analysis['unpacker'] = {
-            'plugin_used': 'None', 'number_of_unpacked_files': 0,
+            'plugin_used': 'None', 'number_of_unpacked_files': 0, 'plugin_version': '0.0',
             'info': 'Unpacking stopped because maximum unpacking depth was reached',
         }
         tag_dict = {'unpacker': {'depth reached': {'value': 'unpacking depth reached', 'color': TagColor.ORANGE, 'propagate': False}}}
