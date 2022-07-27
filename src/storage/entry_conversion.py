@@ -136,7 +136,7 @@ def create_analysis_entries(file_object: FileObject, fo_backref: FileObjectEntry
             system_version=analysis_data.get('system_version', '0.0'),
             analysis_date=analysis_data.get('analysis_date', '1970-01-01'),
             summary=analysis_data.get('summary', ''),
-            tags=analysis_data.get('tags', []),
+            tags=analysis_data.get('tags', {}),
             result=get_analysis_without_meta(analysis_data),
             file_object=fo_backref,
         )
