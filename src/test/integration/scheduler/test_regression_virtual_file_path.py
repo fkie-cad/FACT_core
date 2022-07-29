@@ -1,7 +1,7 @@
+# pylint: disable=no-self-use
 # pylint: disable=redefined-outer-name,wrong-import-order
 from multiprocessing import Event, Value
 from pathlib import Path
-from tempfile import TemporaryDirectory
 
 import pytest
 
@@ -12,8 +12,6 @@ from scheduler.unpacking_scheduler import UnpackingScheduler
 from storage.db_interface_backend import BackendDbInterface
 from storage.unpacking_locks import UnpackingLockManager
 from test.common_helper import get_test_data_dir
-from test.integration.common import initialize_config
-from web_interface.frontend_main import WebFrontEnd
 
 FIRST_ROOT_ID = '5fadb36c49961981f8d87cc21fc6df73a1b90aa1857621f2405d317afb994b64_68415'
 SECOND_ROOT_ID = '0383cac1dd8fbeb770559163edbd571c21696c435a4942bec6df151983719731_52143'
@@ -28,32 +26,24 @@ class MockScheduler:
         pass
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture
 def finished_event():
     return Event()
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture
 def intermediate_event():
     return Event()
 
 
-@pytest.fixture(scope='module')
-def test_config():
-    with TemporaryDirectory(prefix='fact_test_') as tmp_dir:
-        yield initialize_config(tmp_dir)
-
-
-@pytest.fixture(scope='module')
-def test_app(test_config):
-    frontend = WebFrontEnd(config=test_config)
-    frontend.app.config['TESTING'] = True
-    return frontend.app.test_client()
-
-
-@pytest.fixture(scope='module')
-def test_scheduler(test_config, finished_event, intermediate_event):
-    interface = BackendDbInterface(config=test_config)
+# TODO scope=module
+@pytest.fixture
+def test_scheduler(cfg_tuple, finished_event, intermediate_event):
+    """TODO
+    nothing is mocked
+    """
+    _, configparser_cfg = cfg_tuple
+    interface = BackendDbInterface(config=configparser_cfg)
     unpacking_lock_manager = UnpackingLockManager()
     elements_finished = Value('i', 0)
 
@@ -66,13 +56,13 @@ def test_scheduler(test_config, finished_event, intermediate_event):
             intermediate_event.set()
 
     analyzer = AnalysisScheduler(
-        test_config, pre_analysis=count_pre_analysis, db_interface=interface, unpacking_locks=unpacking_lock_manager
+        configparser_cfg, pre_analysis=count_pre_analysis, db_interface=interface, unpacking_locks=unpacking_lock_manager
     )
     unpacker = UnpackingScheduler(
-        config=test_config, post_unpack=analyzer.start_analysis_of_object, unpacking_locks=unpacking_lock_manager
+        config=configparser_cfg, post_unpack=analyzer.start_analysis_of_object, unpacking_locks=unpacking_lock_manager
     )
     intercom = InterComBackEndBinding(
-        config=test_config, analysis_service=analyzer, unpacking_service=unpacker, compare_service=MockScheduler(),
+        config=configparser_cfg, analysis_service=analyzer, unpacking_service=unpacker, compare_service=MockScheduler(),
         unpacking_locks=unpacking_lock_manager
     )
     try:
@@ -90,7 +80,8 @@ def add_test_file(scheduler, path_in_test_dir):
     scheduler.add_task(firmware)
 
 
-def test_check_collision(db, test_app, test_scheduler, finished_event, intermediate_event):  # pylint: disable=unused-argument
+@pytest.mark.usefixtures('use_database')
+def test_check_collision(test_client, test_scheduler, finished_event, intermediate_event):  # pylint: disable=unused-argument
     add_test_file(test_scheduler, 'regression_one')
 
     intermediate_event.wait(timeout=30)
@@ -99,8 +90,8 @@ def test_check_collision(db, test_app, test_scheduler, finished_event, intermedi
 
     finished_event.wait(timeout=30)
 
-    first_response = test_app.get(f'/analysis/{TARGET_UID}/ro/{FIRST_ROOT_ID}')
+    first_response = test_client.get(f'/analysis/{TARGET_UID}/ro/{FIRST_ROOT_ID}')
     assert b'insufficient information' not in first_response.data
 
-    second_response = test_app.get(f'/analysis/{TARGET_UID}/ro/{SECOND_ROOT_ID}')
+    second_response = test_client.get(f'/analysis/{TARGET_UID}/ro/{SECOND_ROOT_ID}')
     assert b'insufficient information' not in second_response.data

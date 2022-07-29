@@ -1,44 +1,66 @@
+# pylint: disable=no-self-use
 import re
+from collections import namedtuple
 
-from test.acceptance.auth_base import TestAuthenticatedAcceptanceBase
+import pytest
+
+from test.common_helper import get_test_data_dir
+
+MockUser = namedtuple('MockUser', ['name', 'password', 'key'])
 
 NO_AUTH_ENDPOINTS = ['/about', '/doc', '/static', '/swagger']
 REQUEST_FAILS = [b'404 Not Found', b'405 Method Not Allowed', b'The method is not allowed']
 
+guest = MockUser(name='t_guest', password='test', key='1okMSKUKlYxSvPn0sgfHM0SWd9zqNChyj5fbcIJgfKM=')
+guest_analyst = MockUser(name='t_guest_analyst', password='test', key='mDsgjAM2iE543PySnTpPZr0u8KeGTPGzPjKJVO4I4Ww=')
+superuser = MockUser(name='t_superuser', password='test', key='k2GKnNaA5UlENStVI4AEJKQ7BP9ZqO+21Cx746BjJDo=')
 
-class TestAcceptanceAuthentication(TestAuthenticatedAcceptanceBase):
+
+@pytest.mark.cfg_defaults({
+        'expert-settings': {
+            'authentication': 'true',
+        },
+        'data-storage': {
+            # Contents of user_test.db
+            #
+            # username,          role,          pw,    api_key
+            # t_guest,           guest,         test,  1okMSKUKlYxSvPn0sgfHM0SWd9zqNChyj5fbcIJgfKM=
+            # t_guest_analyst,   guest_analyst, test,  mDsgjAM2iE543PySnTpPZr0u8KeGTPGzPjKJVO4I4Ww=
+            # t_superuser,       superuser,     test,  k2GKnNaA5UlENStVI4AEJKQ7BP9ZqO+21Cx746BjJDo=
+            'user-database': ''.join(['sqlite:///', get_test_data_dir(), '/user_test.db']),
+        },
+    }
+)
+@pytest.mark.usefixtures('backend_services')
+class TestAcceptanceAuthentication:
     UNIQUE_LOGIN_STRING = b'<h3 class="mx-3 mt-4">Login</h3>'
     PERMISSION_DENIED_STRING = b'You do not have permission to view this resource.'
 
-    def test_redirection(self):
-        response = self.test_client.get('/', follow_redirects=False)
-        self.assertIn(b'Redirecting', response.data, 'no redirection taking place')
+    def test_redirection(self, test_client):
+        response = test_client.get('/', follow_redirects=False)
+        assert b'Redirecting' in response.data, 'no redirection taking place'
 
-    def test_show_login_page(self):
-        response = self.test_client.get('/', follow_redirects=True)
-        self.assertIn(self.UNIQUE_LOGIN_STRING, response.data, 'no authorization required')
+    def test_show_login_page(self, test_client):
+        response = test_client.get('/', follow_redirects=True)
+        assert self.UNIQUE_LOGIN_STRING in response.data, 'no authorization required'
 
-    def test_api_key_auth(self):
-        response = self.test_client.get('/', headers={'Authorization': self.guest.key}, follow_redirects=True)
-        self.assertNotIn(self.UNIQUE_LOGIN_STRING, response.data, 'authorization not working')
+    def test_api_key_auth(self, test_client):
+        response = test_client.get('/', headers={'Authorization': guest.key}, follow_redirects=True)
+        assert self.UNIQUE_LOGIN_STRING not in response.data, 'authorization not working'
 
-    def test_role_based_access(self):
-        self._start_backend()
-        try:
-            response = self.test_client.get('/upload', headers={'Authorization': self.guest.key}, follow_redirects=True)
-            self.assertIn(self.PERMISSION_DENIED_STRING, response.data, 'upload should not be accessible for guest')
+    def test_role_based_access(self, test_client):
+        response = test_client.get('/upload', headers={'Authorization': guest.key}, follow_redirects=True)
+        assert self.PERMISSION_DENIED_STRING in response.data, 'upload should not be accessible for guest'
 
-            response = self.test_client.get('/upload', headers={'Authorization': self.guest_analyst.key}, follow_redirects=True)
-            self.assertIn(self.PERMISSION_DENIED_STRING, response.data, 'upload should not be accessible for guest_analyst')
+        response = test_client.get('/upload', headers={'Authorization': guest_analyst.key}, follow_redirects=True)
+        assert self.PERMISSION_DENIED_STRING in response.data, 'upload should not be accessible for guest_analyst'
 
-            response = self.test_client.get('/upload', headers={'Authorization': self.superuser.key}, follow_redirects=True)
-            self.assertNotIn(self.PERMISSION_DENIED_STRING, response.data, 'upload should be accessible for superusers')
-        finally:
-            self._stop_backend()
+        response = test_client.get('/upload', headers={'Authorization': superuser.key}, follow_redirects=True)
+        assert self.PERMISSION_DENIED_STRING not in response.data, 'upload should be accessible for superusers'
 
-    def test_about_doesnt_need_authentication(self):
-        response = self.test_client.get('/about', follow_redirects=True)
-        self.assertNotIn(self.UNIQUE_LOGIN_STRING, response.data, 'authorization required')
+    def test_about_doesnt_need_authentication(self, test_client):
+        response = test_client.get('/about', follow_redirects=True)
+        assert self.UNIQUE_LOGIN_STRING not in response.data, 'authorization required'
 
     def test_login(self):
         '''
@@ -46,17 +68,16 @@ class TestAcceptanceAuthentication(TestAuthenticatedAcceptanceBase):
         Does not apply to production code though.
         Writing tests for this is postponed for now.
         '''
-        pass  # pylint: disable=unnecessary-pass
 
-    def test_all_endpoints_need_authentication(self):
+    def test_all_endpoints_need_authentication(self, web_frontend, test_client):
         fails = []
-        for endpoint_rule in list(self.frontend.app.url_map.iter_rules()):
+        for endpoint_rule in list(web_frontend.app.url_map.iter_rules()):
             # endpoints with type annotations need valid input or we get a 404
             if '<int:' in endpoint_rule.rule:
                 endpoint_rule.rule = re.sub('<int:[^>]+>', '1', endpoint_rule.rule)
             endpoint = endpoint_rule.rule.replace(':', '').replace('<', '').replace('>', '')
 
-            for method in [self.test_client.get, self.test_client.put, self.test_client.post]:
+            for method in [test_client.get, test_client.put, test_client.post]:
                 response = method(endpoint, follow_redirects=True)
                 if response.status_code in [405]:  # method not allowed
                     continue

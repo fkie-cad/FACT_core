@@ -1,7 +1,9 @@
-# pylint: disable=attribute-defined-outside-init,too-many-instance-attributes
+# pylint: disable=no-self-use
 import gc
 from multiprocessing import Event, Value
 from tempfile import TemporaryDirectory
+
+import pytest
 
 from helperFunctions.data_conversion import normalize_compare_id
 from objects.firmware import Firmware
@@ -53,7 +55,8 @@ class TestFileAddition:
         self._tmp_dir.cleanup()
         gc.collect()
 
-    def test_unpack_analyse_and_compare(self, db, comp_db):
+    @pytest.mark.usefixtures('use_database')
+    def test_unpack_analyse_and_compare(self, comp_db):
         test_fw_1 = Firmware(file_path=f'{get_test_data_dir()}/container/test.zip')
         test_fw_1.version, test_fw_1.vendor, test_fw_1.device_name, test_fw_1.device_class = ['foo'] * 4
         test_fw_1.release_date = '2017-01-01'

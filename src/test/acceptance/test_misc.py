@@ -1,52 +1,21 @@
+# pylint: disable=no-self-use
 # pylint: disable=wrong-import-order
 import json
 import os
 import time
-from multiprocessing import Event, Value
 from urllib.parse import quote
 
 from statistic.update import StatsUpdater
 from statistic.work_load import WorkLoadStatistic
-from storage.db_interface_backend import BackendDbInterface
-from test.acceptance.base import TestAcceptanceBase
 from test.common_helper import get_test_data_dir
 
 
-class TestAcceptanceMisc(TestAcceptanceBase):
+class TestAcceptanceMisc:
+    def _upload_firmware_get(self, test_client):
+        rv = test_client.get('/upload')
+        assert b'<h3 class="mb-3">Upload Firmware</h3>' in rv.data, 'upload page not displayed correctly'
 
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.db_backend_service = BackendDbInterface(config=cls.config)
-        cls.analysis_finished_event = Event()
-        cls.elements_finished_analyzing = Value('i', 0)
-
-    def setUp(self):
-        super().setUp()
-        self._start_backend(post_analysis=self._analysis_callback)
-        self.updater = StatsUpdater(config=self.config)
-        self.workload = WorkLoadStatistic(config=self.config, component='backend')
-        time.sleep(2)  # wait for systems to start
-
-    def tearDown(self):
-        self._stop_backend()
-        super().tearDown()
-
-    @classmethod
-    def tearDownClass(cls):
-        super().tearDownClass()
-
-    def _analysis_callback(self, uid: str, plugin: str, analysis_dict: dict):
-        self.db_backend_service.add_analysis(uid, plugin, analysis_dict)
-        self.elements_finished_analyzing.value += 1
-        if self.elements_finished_analyzing.value == 4 * 2 * 2:  # two firmware container with 3 included files each times two mandatory plugins
-            self.analysis_finished_event.set()
-
-    def _upload_firmware_get(self):
-        rv = self.test_client.get('/upload')
-        self.assertIn(b'<h3 class="mb-3">Upload Firmware</h3>', rv.data, 'upload page not displayed correctly')
-
-    def _upload_firmware_put(self, path, device_name, uid):
+    def _upload_firmware_put(self, test_client, path, device_name, uid):
         testfile_path = os.path.join(get_test_data_dir(), path)
         with open(testfile_path, 'rb') as fp:
             data = {
@@ -60,58 +29,65 @@ class TestAcceptanceMisc(TestAcceptanceBase):
                 'tags': '',
                 'analysis_systems': []
             }
-            rv = self.test_client.post('/upload', content_type='multipart/form-data', data=data, follow_redirects=True)
-        self.assertIn(b'Upload Successful', rv.data, 'upload not successful')
-        self.assertIn(uid.encode(), rv.data, 'uid not found on upload success page')
+            rv = test_client.post('/upload', content_type='multipart/form-data', data=data, follow_redirects=True)
+        assert b'Upload Successful' in rv.data, 'upload not successful'
+        assert uid.encode() in rv.data, 'uid not found on upload success page'
 
-    def _show_stats(self):
-        rv = self.test_client.get('/statistic')
-        self.assertIn(b'Firmware Container', rv.data)
-        self.assertIn(b'test_vendor', rv.data)
-        self.assertIn(b'Release Date Stats', rv.data)
+    def _show_stats(self, test_client):
+        rv = test_client.get('/statistic')
+        assert b'Firmware Container' in rv.data
+        assert b'test_vendor' in rv.data
+        assert b'Release Date Stats' in rv.data
 
-    def _show_stats_filtered(self):
-        rv = self.test_client.get('/statistic?vendor=test_vendor')
-        self.assertIn(b'Firmware Container', rv.data)
-        self.assertIn(b'test_vendor', rv.data)
-        self.assertIn(b'Release Date Stats', rv.data)
+    def _show_stats_filtered(self, test_client):
+        rv = test_client.get('/statistic?vendor=test_vendor')
+        assert b'Firmware Container' in rv.data
+        assert b'test_vendor' in rv.data
+        assert b'Release Date Stats' in rv.data
 
-    def _show_about(self):
-        rv = self.test_client.get('/about')
-        self.assertIn(b'License Information', rv.data)
+    def _show_about(self, test_client):
+        rv = test_client.get('/about')
+        assert b'License Information' in rv.data
 
-    def _show_home(self):
-        rv = self.test_client.get('/')
-        self.assertIn(b'backend cpu load', rv.data)
+    def _show_home(self, test_client):
+        rv = test_client.get('/')
+        assert b'backend cpu load' in rv.data
 
-    def _show_system_monitor(self):
-        rv = self.test_client.get('/system_health')
-        self.assertIn(b'backend status', rv.data)
+    def _show_system_monitor(self, test_client):
+        rv = test_client.get('/system_health')
+        assert b'backend status' in rv.data
 
-    def _click_chart(self):
+    def _click_chart(self, test_client, test_fw_a):
         query = json.dumps({'vendor': 'test_vendor'})
-        rv = self.test_client.get(f'/database/browse?query={quote(query)}')
-        self.assertIn(self.test_fw_a.uid.encode(), rv.data)
+        rv = test_client.get(f'/database/browse?query={quote(query)}')
+        assert test_fw_a.uid.encode() in rv.data
 
-    def _click_release_date_histogram(self):
-        rv = self.test_client.get('/database/browse?date="January 2009"')
-        self.assertIn(self.test_fw_a.uid.encode(), rv.data)
+    def _click_release_date_histogram(self, test_client, test_fw_a):
+        rv = test_client.get('/database/browse?date="January 2009"')
+        assert test_fw_a.uid.encode() in rv.data
 
-    def test_misc(self):
-        self._upload_firmware_get()
-        for fw in [self.test_fw_a, self.test_fw_c]:
-            self._upload_firmware_put(fw.path, fw.name, fw.uid)
-        self._show_about()
+    def test_misc(self, backend_services, test_client, analysis_finished_event, test_fw_a, test_fw_c, cfg_tuple):
+        _, configparser_cfg = cfg_tuple
+        updater = StatsUpdater(config=configparser_cfg)
+        workload = WorkLoadStatistic(config=configparser_cfg, component='backend')
+
+        self._upload_firmware_get(test_client)
+        for fw in [test_fw_a, test_fw_c]:
+            self._upload_firmware_put(test_client, fw.path, fw.name, fw.uid)
+        self._show_about(test_client)
         time.sleep(4)
-        self.workload.update(unpacking_workload=self.unpacking_service.get_scheduled_workload(), analysis_workload=self.analysis_service.get_scheduled_workload())
-        self.analysis_finished_event.wait(timeout=10)
-        self._show_system_monitor()
+        workload.update(
+            unpacking_workload=backend_services.unpacking_service.get_scheduled_workload(),
+            analysis_workload=backend_services.analysis_service.get_scheduled_workload(),
+        )
+        analysis_finished_event.wait(timeout=10)
+        self._show_system_monitor(test_client)
 
-        self.updater.update_all_stats()
+        updater.update_all_stats()
 
-        self._show_stats()
-        self._show_stats_filtered()
-        self._click_chart()
-        self._click_release_date_histogram()
+        self._show_stats(test_client)
+        self._show_stats_filtered(test_client)
+        self._click_chart(test_client, test_fw_a)
+        self._click_release_date_histogram(test_client, test_fw_a)
 
-        self._show_home()
+        self._show_home(test_client)

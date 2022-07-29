@@ -154,6 +154,7 @@ class DB:
 # TODO scope=function
 # TODO scope=session
 # TODO rename
+# TODO scope can be higher, but remember to clear database in between tests
 @pytest.fixture
 def real_database(cfg_tuple, use_database) -> DB:
     """Returns handles to database interfaces as defined in `storage`.
