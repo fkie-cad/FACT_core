@@ -1,39 +1,34 @@
-# pylint: disable=wrong-import-order,redefined-outer-name,protected-access
-
 from math import isclose
 
 import pytest
 
 from statistic.update import StatsUpdater
 from storage.db_interface_stats import StatsUpdateDbInterface
-from test.common_helper import (
-    create_test_file_object, create_test_firmware, generate_analysis_entry, get_config_for_testing
-)
+from test.common_helper import create_test_file_object, create_test_firmware, generate_analysis_entry
 from test.integration.storage.helper import create_fw_with_parent_and_child, insert_test_fo, insert_test_fw
-
-TEST_CONFIG = get_config_for_testing()
 
 
 @pytest.fixture(scope='function')
-def stats_updater() -> StatsUpdater:
-    updater = StatsUpdater(stats_db=StatsUpdateDbInterface(TEST_CONFIG))
+def stats_updater(cfg_tuple) -> StatsUpdater:
+    _, configparser_cfg = cfg_tuple
+    updater = StatsUpdater(stats_db=StatsUpdateDbInterface(configparser_cfg))
     yield updater
 
 
-def test_get_general_stats(db, stats_updater):
+def test_get_general_stats(real_database, stats_updater):
     stats = stats_updater.get_general_stats()
     assert stats['number_of_firmwares'] == 0, 'number of firmwares not correct'
     assert stats['number_of_unique_files'] == 0, 'number of files not correct'
     fw, parent_fo, child_fo = create_fw_with_parent_and_child()
-    db.backend.add_object(fw)
-    db.backend.add_object(parent_fo)
-    db.backend.add_object(child_fo)
+    real_database.backend.add_object(fw)
+    real_database.backend.add_object(parent_fo)
+    real_database.backend.add_object(child_fo)
     stats = stats_updater.get_general_stats()
     assert stats['number_of_firmwares'] == 1, 'number of firmwares not correct'
     assert stats['number_of_unique_files'] == 2, 'number of files not correct'
 
 
-def test_malware_stats(db, stats_updater):
+def test_malware_stats(real_database, stats_updater):
     assert stats_updater.get_malware_stats() == {'malware': []}
 
     fw, parent_fo, child_fo = create_fw_with_parent_and_child()
@@ -43,9 +38,9 @@ def test_malware_stats(db, stats_updater):
     child_fo.processed_analysis['malware_scanner'] = generate_analysis_entry(
         analysis_result={'scans': {'ClamAV': {'result': 'SomeMalware'}}}
     )
-    db.backend.add_object(fw)
-    db.backend.add_object(parent_fo)
-    db.backend.add_object(child_fo)
+    real_database.backend.add_object(fw)
+    real_database.backend.add_object(parent_fo)
+    real_database.backend.add_object(child_fo)
 
     assert stats_updater.get_malware_stats() == {'malware': [('SomeMalware', 1)]}
 
@@ -53,14 +48,14 @@ def test_malware_stats(db, stats_updater):
     assert stats_updater.get_malware_stats() == {'malware': [('SomeMalware', 1)]}
 
 
-def test_get_mitigation_stats(db, stats_updater):
+def test_get_mitigation_stats(real_database, stats_updater):
     assert stats_updater.get_exploit_mitigations_stats() == {'exploit_mitigations': []}
 
     mitigation_plugin_summaries = [[
         ['RELRO disabled', 'NX disabled', 'CANARY disabled', 'PIE disabled', 'FORTIFY_SOURCE disabled'],
         ['RELRO disabled', 'NX enabled', 'CANARY enabled', 'PIE disabled', 'FORTIFY_SOURCE disabled'],
     ]]
-    _add_objects_with_summary(db, 'exploit_mitigations', mitigation_plugin_summaries)
+    _add_objects_with_summary(real_database, 'exploit_mitigations', mitigation_plugin_summaries)
 
     stats = stats_updater.get_exploit_mitigations_stats().get('exploit_mitigations')
     expected = [
@@ -70,11 +65,11 @@ def test_get_mitigation_stats(db, stats_updater):
     assert stats == expected
 
 
-def test_get_vulnerability_stats(db, stats_updater):
+def test_get_vulnerability_stats(real_database, stats_updater):
     assert stats_updater.get_known_vulnerabilities_stats() == {'known_vulnerabilities': []}
 
     vuln_plugin_summaries = [['Heartbleed', 'WPA_Key_Hardcoded'], ['Heartbleed'], ['not available']]
-    _add_objects_with_summary(db, 'known_vulnerabilities', vuln_plugin_summaries)
+    _add_objects_with_summary(real_database, 'known_vulnerabilities', vuln_plugin_summaries)
 
     stats = stats_updater.get_known_vulnerabilities_stats().get('known_vulnerabilities')
     assert sorted(stats) == [('Heartbleed', 2), ('WPA_Key_Hardcoded', 1)]
@@ -84,25 +79,25 @@ def test_get_vulnerability_stats(db, stats_updater):
     assert sorted(stats) == [('Heartbleed', 2), ('WPA_Key_Hardcoded', 1)]
 
 
-def _add_objects_with_summary(db, plugin, summary_list):
+def _add_objects_with_summary(real_database, plugin, summary_list):
     root_fw = create_test_firmware()
     root_fw.vendor = 'test_vendor'
     root_fw.uid = 'root_fw'
-    db.backend.add_object(root_fw)
+    real_database.backend.add_object(root_fw)
     for i, summary in enumerate(summary_list):
         fo = create_test_file_object()
         fo.processed_analysis[plugin] = generate_analysis_entry(summary=summary)
         fo.uid = str(i)
         fo.parent_firmware_uids = ['root_fw']  # necessary for stats filtering join
-        db.backend.add_object(fo)
+        real_database.backend.add_object(fo)
 
 
-def test_fw_meta_stats(db, stats_updater):
+def test_fw_meta_stats(real_database, stats_updater):
     assert stats_updater.get_firmware_meta_stats() == {'device_class': [], 'vendor': []}
 
-    insert_test_fw(db, 'fw1', vendor='vendor1', device_class='class1')
-    insert_test_fw(db, 'fw2', vendor='vendor2', device_class='class1')
-    insert_test_fw(db, 'fw3', vendor='vendor3', device_class='class2')
+    insert_test_fw(real_database, 'fw1', vendor='vendor1', device_class='class1')
+    insert_test_fw(real_database, 'fw2', vendor='vendor2', device_class='class1')
+    insert_test_fw(real_database, 'fw3', vendor='vendor3', device_class='class2')
 
     stats = stats_updater.get_firmware_meta_stats()
     assert stats['vendor'] == [('vendor1', 1), ('vendor2', 1), ('vendor3', 1)]
@@ -114,7 +109,7 @@ def test_fw_meta_stats(db, stats_updater):
     assert stats['vendor'] == [('vendor1', 1), ('vendor2', 1)]
 
 
-def test_file_type_stats(db, stats_updater):
+def test_file_type_stats(real_database, stats_updater):
     assert stats_updater.get_file_type_stats() == {'file_types': [], 'firmware_container': []}
 
     type_analysis = generate_analysis_entry(analysis_result={'mime': 'fw/image'})
@@ -124,12 +119,12 @@ def test_file_type_stats(db, stats_updater):
     fw.processed_analysis['file_type'] = type_analysis
     parent_fo.processed_analysis['file_type'] = type_analysis_2
     child_fo.processed_analysis['file_type'] = generate_analysis_entry(analysis_result={'mime': 'file/type2'})
-    db.backend.add_object(fw)
-    db.backend.add_object(parent_fo)
-    db.backend.add_object(child_fo)
+    real_database.backend.add_object(fw)
+    real_database.backend.add_object(parent_fo)
+    real_database.backend.add_object(child_fo)
     # insert another FW to test filtering
-    insert_test_fw(db, 'fw1', analysis={'file_type': type_analysis}, vendor='test_vendor')
-    insert_test_fo(db, 'fo1', parent_fw='fw1', analysis={'file_type': type_analysis_2})
+    insert_test_fw(real_database, 'fw1', analysis={'file_type': type_analysis}, vendor='test_vendor')
+    insert_test_fo(real_database, 'fo1', parent_fw='fw1', analysis={'file_type': type_analysis_2})
 
     stats = stats_updater.get_file_type_stats()
     assert 'file_types' in stats and 'firmware_container' in stats
@@ -142,22 +137,22 @@ def test_file_type_stats(db, stats_updater):
     assert stats['file_types'] == [('file/type1', 1), ('file/type2', 1)]
 
 
-def test_get_unpacking_stats(db, stats_updater):
-    insert_test_fw(db, 'root_fw', vendor='foobar', analysis={
+def test_get_unpacking_stats(real_database, stats_updater):
+    insert_test_fw(real_database, 'root_fw', vendor='foobar', analysis={
         'unpacker': generate_analysis_entry(
             summary=['unpacked', 'no data lost'],
             analysis_result={'plugin_used': 'unpacker1', 'number_of_unpacked_files': 10, 'entropy': 0.4}
         ),
         'file_type': generate_analysis_entry(analysis_result={'mime': 'fw/image'}),
     })
-    insert_test_fo(db, 'fo1', parent_fw='root_fw', analysis={
+    insert_test_fo(real_database, 'fo1', parent_fw='root_fw', analysis={
         'unpacker': generate_analysis_entry(
             summary=['unpacked', 'data lost'],
             analysis_result={'plugin_used': 'unpacker2', 'number_of_unpacked_files': 2, 'entropy': 0.6}
         ),
         'file_type': generate_analysis_entry(analysis_result={'mime': 'file1'}),
     })
-    insert_test_fo(db, 'fo2', parent_fw='root_fw', analysis={
+    insert_test_fo(real_database, 'fo2', parent_fw='root_fw', analysis={
         'unpacker': generate_analysis_entry(
             summary=['packed'],
             analysis_result={'plugin_used': 'unpacker1', 'number_of_unpacked_files': 0, 'entropy': 0.8}
@@ -189,15 +184,15 @@ def test_find_most_frequent(stats_updater):
     assert stats_updater._find_most_frequent_architecture(test_list) == 'MIPS (M)'
 
 
-def test_get_architecture_stats(db, stats_updater):
-    insert_test_fw(db, 'root_fw', vendor='foobar')
-    insert_test_fo(db, 'fo1', parent_fw='root_fw', analysis={
+def test_get_architecture_stats(real_database, stats_updater):
+    insert_test_fw(real_database, 'root_fw', vendor='foobar')
+    insert_test_fo(real_database, 'fo1', parent_fw='root_fw', analysis={
         'cpu_architecture': generate_analysis_entry(summary=['MIPS, 32-bit, big endian (M)']),
     })
-    insert_test_fo(db, 'fo2', parent_fw='root_fw', analysis={
+    insert_test_fo(real_database, 'fo2', parent_fw='root_fw', analysis={
         'cpu_architecture': generate_analysis_entry(summary=['ARM, 32-bit, big endian (M)']),
     })
-    insert_test_fo(db, 'fo3', parent_fw='root_fw', analysis={
+    insert_test_fo(real_database, 'fo3', parent_fw='root_fw', analysis={
         'cpu_architecture': generate_analysis_entry(summary=['MIPS, 32-bit, big endian (M)']),
     })
 
@@ -210,7 +205,7 @@ def test_get_architecture_stats(db, stats_updater):
     assert stats_updater.get_architecture_stats() == {'cpu_architecture': []}
 
 
-def test_get_executable_stats(db, stats_updater):
+def test_get_executable_stats(real_database, stats_updater):
     for i, file_str in enumerate([
         'ELF 64-bit LSB executable, x86-64, dynamically linked, for GNU/Linux 2.6.32, not stripped',
         'ELF 32-bit MSB executable, MIPS, MIPS32 rel2 version 1 (SYSV), statically linked, not stripped',
@@ -218,7 +213,7 @@ def test_get_executable_stats(db, stats_updater):
         'ELF 64-bit LSB executable, aarch64, dynamically linked, stripped',
         'ELF 64-bit LSB shared object, x86-64, version 1 (SYSV), dynamically linked, stripped'
     ]):
-        insert_test_fo(db, str(i), analysis={'file_type': generate_analysis_entry(analysis_result={'full': file_str})})
+        insert_test_fo(real_database, str(i), analysis={'file_type': generate_analysis_entry(analysis_result={'full': file_str})})
 
     stats = stats_updater.get_executable_stats().get('executable_stats')
     expected = [
@@ -232,9 +227,9 @@ def test_get_executable_stats(db, stats_updater):
         assert percentage == expected_percentage
 
 
-def test_get_ip_stats(db, stats_updater):
-    insert_test_fw(db, 'root_fw', vendor='foobar')
-    insert_test_fo(db, 'fo1', parent_fw='root_fw', analysis={
+def test_get_ip_stats(real_database, stats_updater):
+    insert_test_fw(real_database, 'root_fw', vendor='foobar')
+    insert_test_fo(real_database, 'fo1', parent_fw='root_fw', analysis={
         'ip_and_uri_finder': generate_analysis_entry(analysis_result={
             'ips_v4': [['1.2.3.4', '123.45, 678.9']], 'ips_v6': [], 'uris': ['https://foo.bar', 'www.example.com']
         }),
@@ -252,24 +247,24 @@ def test_get_ip_stats(db, stats_updater):
     assert stats_updater.get_ip_stats()['uris'] == []
 
 
-def test_get_time_stats(db, stats_updater):
-    insert_test_fw(db, 'fw1', release_date='2022-01-01')
-    insert_test_fw(db, 'fw2', release_date='2022-01-11')
-    insert_test_fw(db, 'fw3', release_date='2021-11-11')
+def test_get_time_stats(real_database, stats_updater):
+    insert_test_fw(real_database, 'fw1', release_date='2022-01-01')
+    insert_test_fw(real_database, 'fw2', release_date='2022-01-11')
+    insert_test_fw(real_database, 'fw3', release_date='2021-11-11')
 
     stats = stats_updater.get_time_stats()
     assert stats['date_histogram_data'] == [('November 2021', 1), ('December 2021', 0), ('January 2022', 2)]
 
 
-def test_get_software_components_stats(db, stats_updater):
-    insert_test_fw(db, 'root_fw', vendor='foobar')
-    insert_test_fo(db, 'fo1', parent_fw='root_fw', analysis={
+def test_get_software_components_stats(real_database, stats_updater):
+    insert_test_fw(real_database, 'root_fw', vendor='foobar')
+    insert_test_fo(real_database, 'fo1', parent_fw='root_fw', analysis={
         'software_components': generate_analysis_entry(analysis_result={'LinuxKernel': {'foo': 'bar'}}),
     })
-    insert_test_fo(db, 'fo2', parent_fw='root_fw', analysis={
+    insert_test_fo(real_database, 'fo2', parent_fw='root_fw', analysis={
         'software_components': generate_analysis_entry(analysis_result={'LinuxKernel': {'foo': 'bar'}}),
     })
-    insert_test_fo(db, 'fo3', parent_fw='root_fw', analysis={
+    insert_test_fo(real_database, 'fo3', parent_fw='root_fw', analysis={
         'software_components': generate_analysis_entry(analysis_result={'SomeSoftware': {'foo': 'bar'}}),
     })
 
