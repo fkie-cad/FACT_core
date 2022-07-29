@@ -1,12 +1,11 @@
+# pylint: disable=no-self-use
 import gc
 from multiprocessing import Queue, Value
-from tempfile import TemporaryDirectory
 from time import sleep
 
 import pytest
 
 from intercom.back_end_binding import InterComBackEndBinding
-from test.common_helper import get_config_for_testing  # pylint: disable=wrong-import-order
 
 # This number must be changed, whenever a listener is added or removed
 NUMBER_OF_LISTENERS = 11
@@ -55,20 +54,19 @@ class AnalysisServiceMock:
 
 
 @pytest.fixture(name='intercom')
-def get_intercom_for_testing():
-    with TemporaryDirectory(prefix='fact_test_') as tmp_dir:
-        config = get_config_for_testing(tmp_dir)
-        test_queue = Queue()
-        interface = InterComBackEndBinding(
-            config=config, testing=True,
-            analysis_service=AnalysisServiceMock(),
-            compare_service=ServiceMock(test_queue),
-            unpacking_service=ServiceMock(test_queue)
-        )
-        interface.WAIT_TIME = 2
-        yield interface
-        interface.shutdown()
-        test_queue.close()
+def get_intercom_for_testing(cfg_tuple):
+    _, configparser_cfg = cfg_tuple
+    test_queue = Queue()
+    interface = InterComBackEndBinding(
+        config=configparser_cfg, testing=True,
+        analysis_service=AnalysisServiceMock(),
+        compare_service=ServiceMock(test_queue),
+        unpacking_service=ServiceMock(test_queue)
+    )
+    interface.WAIT_TIME = 2
+    yield interface
+    interface.shutdown()
+    test_queue.close()
     gc.collect()
 
 

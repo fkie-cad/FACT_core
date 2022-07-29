@@ -1,16 +1,12 @@
+# pylint: disable=no-self-use
 # pylint: disable=redefined-outer-name,wrong-import-order
 import logging
 
 import pytest
 
 from intercom.back_end_binding import InterComBackEndDeleteFile
-from test.common_helper import CommonDatabaseMock, get_config_for_testing
+from test.common_helper import CommonDatabaseMock
 from test.integration.common import MockFSOrganizer
-
-
-@pytest.fixture(scope='function')
-def config():
-    return get_config_for_testing()
 
 
 class UnpackingLockMock:
@@ -22,10 +18,11 @@ class UnpackingLockMock:
 
 
 @pytest.fixture(scope='function')
-def mock_listener(config):
-    listener = InterComBackEndDeleteFile(config, unpacking_locks=UnpackingLockMock(), db_interface=CommonDatabaseMock())
+def mock_listener(cfg_tuple):
+    _, configparser_cfg = cfg_tuple
+    listener = InterComBackEndDeleteFile(configparser_cfg, unpacking_locks=UnpackingLockMock(), db_interface=CommonDatabaseMock())
     listener.fs_organizer = MockFSOrganizer(None)
-    listener.config = config
+    listener.config = configparser_cfg
     return listener
 
 
