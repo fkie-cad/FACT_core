@@ -1,23 +1,21 @@
 # pylint: disable=attribute-defined-outside-init,wrong-import-order,redefined-outer-name,invalid-name
 
 import gc
-from tempfile import TemporaryDirectory
 
 import magic
 import pytest
 
 from storage.binary_service import BinaryService
-from test.common_helper import create_test_firmware, get_config_for_testing, store_binary_on_file_system
+from test.common_helper import create_test_firmware, store_binary_on_file_system
 
 TEST_FW = create_test_firmware()
 
 
 @pytest.fixture
-def binary_service(db):
-    with TemporaryDirectory(prefix='fact_test_') as tmp_dir:
-        config = get_config_for_testing(temp_dir=tmp_dir)
-        _init_test_data(tmp_dir, db)
-        yield BinaryService(config=config)
+def binary_service(real_database, cfg_tuple):
+    _, configparser_cfg = cfg_tuple
+    _init_test_data(configparser_cfg['data-storage']['firmware-file-storage-directory'], real_database)
+    yield BinaryService(configparser_cfg)
     gc.collect()
 
 

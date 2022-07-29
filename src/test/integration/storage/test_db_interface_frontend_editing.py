@@ -8,45 +8,45 @@ COMMENT2 = {'author': 'foo', 'comment': 'bar', 'time': '456'}
 COMMENT3 = {'author': 'foo', 'comment': 'bar', 'time': '789'}
 
 
-def test_add_comment_to_object(db):
+def test_add_comment_to_object(real_database):
     fo = create_test_file_object()
     fo.comments = [COMMENT1]
-    db.backend.insert_object(fo)
+    real_database.backend.insert_object(fo)
 
-    db.frontend_ed.add_comment_to_object(fo.uid, COMMENT2['comment'], COMMENT2['author'], int(COMMENT2['time']))
+    real_database.frontend_ed.add_comment_to_object(fo.uid, COMMENT2['comment'], COMMENT2['author'], int(COMMENT2['time']))
 
-    fo_from_db = db.frontend.get_object(fo.uid)
+    fo_from_db = real_database.frontend.get_object(fo.uid)
     assert fo_from_db.comments == [COMMENT1, COMMENT2]
 
 
-def test_delete_comment(db):
+def test_delete_comment(real_database):
     fo = create_test_file_object()
     fo.comments = [COMMENT1, COMMENT2, COMMENT3]
-    db.backend.insert_object(fo)
+    real_database.backend.insert_object(fo)
 
-    db.frontend_ed.delete_comment(fo.uid, timestamp=COMMENT2['time'])
+    real_database.frontend_ed.delete_comment(fo.uid, timestamp=COMMENT2['time'])
 
-    fo_from_db = db.frontend.get_object(fo.uid)
+    fo_from_db = real_database.frontend.get_object(fo.uid)
     assert COMMENT2 not in fo_from_db.comments
     assert fo_from_db.comments == [COMMENT1, COMMENT3]
 
 
-def test_search_cache_insert(db):
-    result = db.frontend.get_query_from_cache(RULE_UID)
+def test_search_cache_insert(real_database):
+    result = real_database.frontend.get_query_from_cache(RULE_UID)
     assert result is None
 
-    result = db.frontend_ed.add_to_search_query_cache('{"foo": "bar"}', 'rule foo{}')
+    result = real_database.frontend_ed.add_to_search_query_cache('{"foo": "bar"}', 'rule foo{}')
     assert result == RULE_UID
 
-    result = db.frontend.get_query_from_cache(RULE_UID)
+    result = real_database.frontend.get_query_from_cache(RULE_UID)
     assert isinstance(result, CachedQuery)
     assert result.query == '{"foo": "bar"}'
     assert result.yara_rule == 'rule foo{}'
 
 
-def test_search_cache_update(db):
-    assert db.frontend_ed.add_to_search_query_cache('{"uid": "some uid"}', 'rule foo{}') == RULE_UID
+def test_search_cache_update(real_database):
+    assert real_database.frontend_ed.add_to_search_query_cache('{"uid": "some uid"}', 'rule foo{}') == RULE_UID
     # update
-    assert db.frontend_ed.add_to_search_query_cache('{"uid": "some other uid"}', 'rule foo{}') == RULE_UID
+    assert real_database.frontend_ed.add_to_search_query_cache('{"uid": "some other uid"}', 'rule foo{}') == RULE_UID
 
-    assert db.frontend.get_query_from_cache(RULE_UID).query == '{"uid": "some other uid"}'
+    assert real_database.frontend.get_query_from_cache(RULE_UID).query == '{"uid": "some other uid"}'
