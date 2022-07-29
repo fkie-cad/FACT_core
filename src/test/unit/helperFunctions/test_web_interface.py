@@ -1,3 +1,4 @@
+# pylint: disable=no-self-use
 import pytest
 from flask_security.core import AnonymousUser, RoleMixin, UserMixin
 from werkzeug.local import LocalProxy

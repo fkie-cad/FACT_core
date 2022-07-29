@@ -4,7 +4,6 @@ from time import sleep
 import pytest
 
 from helperFunctions.process import ExceptionSafeProcess, check_worker_exceptions, new_worker_was_started
-from test.common_helper import get_config_for_testing
 
 
 def breaking_process(wait: bool = False):
@@ -24,33 +23,35 @@ def test_exception_safe_process():
     assert str(process.exception[0]) == 'now that\'s annoying'
 
 
-def test_check_worker_exceptions():
-    config = get_config_for_testing()
-    config.set('expert-settings', 'throw-exceptions', 'true')
-
+@pytest.mark.cfg_defaults({
+    'expert-settings': {'throw-exceptions': 'true'}
+})
+def test_check_worker_exceptions(cfg_tuple):
+    _, configparser_cfg = cfg_tuple
     process_list = [ExceptionSafeProcess(target=breaking_process, args=(True, ))]
     process_list[0].start()
 
-    result = check_worker_exceptions(process_list, 'foo', config=config)
+    result = check_worker_exceptions(process_list, 'foo', config=configparser_cfg)
     assert not result
     assert len(process_list) == 1
     sleep(1)
-    result = check_worker_exceptions(process_list, 'foo', config=config)
+    result = check_worker_exceptions(process_list, 'foo', config=configparser_cfg)
     assert result
     assert len(process_list) == 0
 
 
-def test_check_worker_restart(caplog):
-    config = get_config_for_testing()
-    config.set('expert-settings', 'throw-exceptions', 'false')
-
+@pytest.mark.cfg_defaults({
+    'expert-settings': {'throw-exceptions': 'false'}
+})
+def test_check_worker_restart(caplog, cfg_tuple):
+    _, configparser_cfg = cfg_tuple
     worker = ExceptionSafeProcess(target=breaking_process, args=(True, ))
     process_list = [worker]
     worker.start()
 
     sleep(1)
     with caplog.at_level(logging.INFO):
-        result = check_worker_exceptions(process_list, 'foo', config, worker_function=lambda _: None)
+        result = check_worker_exceptions(process_list, 'foo', configparser_cfg, worker_function=lambda _: None)
         assert not result
         assert len(process_list) == 1
         assert process_list[0] != worker
