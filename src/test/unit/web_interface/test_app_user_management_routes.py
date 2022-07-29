@@ -1,3 +1,4 @@
+# pylint: disable=no-self-use
 # pylint: disable=wrong-import-order,no-self-use,redefined-outer-name
 
 import logging
@@ -5,7 +6,6 @@ import logging
 import pytest
 from sqlalchemy.exc import SQLAlchemyError
 
-from test.unit.web_interface.base import WebInterfaceTest
 from web_interface.components import user_management_routes
 from web_interface.components.user_management_routes import UserManagementRoutes
 from web_interface.security.privileges import ROLES
@@ -76,110 +76,136 @@ def current_user_fixture(monkeypatch):
     monkeypatch.setattr(user_management_routes, 'current_user', UserMock('foobar', 'test'))
 
 
-class TestAppUpload(WebInterfaceTest):
-    @classmethod
-    def setup_class(cls, *_, **__):
-        super().setup_class(db_mock=UserDbInterfaceMock)
-
-    def test_app_manage_users(self):
-        response = self.test_client.get('/admin/manage_users', follow_redirects=True)
+@pytest.mark.DatabaseMockClass(lambda: UserDbInterfaceMock)
+class TestAppUpload:
+    def test_app_manage_users(self, test_client):
+        response = test_client.get('/admin/manage_users', follow_redirects=True)
         assert b'user_1' in response.data
         assert b'user_2' in response.data
 
-    def test_add_user(self):
-        response = self.test_client.post(
+    def test_add_user(self, test_client):
+        response = test_client.post(
             '/admin/manage_users',
             follow_redirects=True,
-            data={'username': 'foobar', 'password1': 'test', 'password2': 'test'},
+            data={
+                'username': 'foobar',
+                'password1': 'test',
+                'password2': 'test',
+            },
         )
         assert b'Successfully created user' in response.data
 
-    def test_add_user__user_already_in_db(self):
-        response = self.test_client.post(
+    def test_add_user__user_already_in_db(self, test_client):
+        response = test_client.post(
             '/admin/manage_users',
             follow_redirects=True,
-            data={'username': 'test', 'password1': 'test', 'password2': 'test'},
+            data={
+                'username': 'test',
+                'password1': 'test',
+                'password2': 'test',
+            },
         )
         assert b'Error: user is already in the database' in response.data
 
-    def test_add_user__no_match(self):
-        response = self.test_client.post(
+    def test_add_user__no_match(self, test_client):
+        response = test_client.post(
             '/admin/manage_users',
             follow_redirects=True,
-            data={'username': 'foobar', 'password1': 'a', 'password2': 'b'},
+            data={
+                'username': 'foobar',
+                'password1': 'a',
+                'password2': 'b',
+            },
         )
         assert b'Error: passwords do not match' in response.data
 
-    def test_app_edit_user(self):
-        response = self.test_client.get('/admin/user/0', follow_redirects=True)
+    def test_app_edit_user(self, test_client):
+        response = test_client.get('/admin/user/0', follow_redirects=True)
         assert b'test_user' in response.data
         assert b'abc123' in response.data
         assert b'superuser' in response.data
 
-    def test_app_edit_user__not_found(self):
-        response = self.test_client.get('/admin/user/9999', follow_redirects=True)
+    def test_app_edit_user__not_found(self, test_client):
+        response = test_client.get('/admin/user/9999', follow_redirects=True)
         assert b'Error: user with ID 9999 not found' in response.data
 
-    def test_app_delete_user(self):
-        response = self.test_client.get('/admin/delete_user/test', follow_redirects=True)
+    def test_app_delete_user(self, test_client):
+        response = test_client.get('/admin/delete_user/test', follow_redirects=True)
         assert b'Successfully deleted user' in response.data
 
-    def test_app_delete_user__error(self):
-        response = self.test_client.get('/admin/delete_user/error', follow_redirects=True)
+    def test_app_delete_user__error(self, test_client):
+        response = test_client.get('/admin/delete_user/error', follow_redirects=True)
         assert b'Error: could not delete user' in response.data
 
-    def test_change_user_password(self):
-        response = self.test_client.post(
+    def test_change_user_password(self, test_client):
+        response = test_client.post(
             '/admin/user/0',
             follow_redirects=True,
-            data={'admin_change_password': 'test', 'admin_confirm_password': 'test'},
+            data={
+                'admin_change_password': 'test',
+                'admin_confirm_password': 'test',
+            },
         )
         assert b'password change successful' in response.data
 
-    def test_change_password__no_match(self):
-        response = self.test_client.post(
+    def test_change_password__no_match(self, test_client):
+        response = test_client.post(
             '/admin/user/0',
             follow_redirects=True,
-            data={'admin_change_password': 'foo', 'admin_confirm_password': 'bar'},
+            data={
+                'admin_change_password': 'foo',
+                'admin_confirm_password': 'bar',
+            },
         )
         assert b'Error: passwords do not match' in response.data
 
-    def test_illegal_password(self):
-        response = self.test_client.post(
+    def test_illegal_password(self, test_client):
+        response = test_client.post(
             '/admin/user/0',
             follow_redirects=True,
-            data={'admin_change_password': '1234567890abc', 'admin_confirm_password': '1234567890abc'},
+            data={
+                'admin_change_password': '1234567890abc',
+                'admin_confirm_password': '1234567890abc',
+            },
         )
         assert b'password is not legal' in response.data
 
     @pytest.mark.usefixtures('current_user_fixture')
-    def test_app_show_profile(self):
-        response = self.test_client.get('/user_profile', follow_redirects=True)
+    def test_app_show_profile(self, test_client):
+        response = test_client.get('/user_profile', follow_redirects=True)
         assert b'foobar' in response.data
         assert b'abc123' in response.data
         assert b'superuser' not in response.data
 
     @pytest.mark.usefixtures('current_user_fixture')
-    def test_change_own_password(self):
-        response = self.test_client.post(
+    def test_change_own_password(self, test_client):
+        response = test_client.post(
             '/user_profile',
             follow_redirects=True,
-            data={'new_password': 'foo', 'new_password_confirm': 'foo', 'old_password': 'correct password'},
+            data={
+                'new_password': 'foo',
+                'new_password_confirm': 'foo',
+                'old_password': 'correct password',
+            },
         )
         assert b'password change successful' in response.data
 
     @pytest.mark.usefixtures('current_user_fixture')
-    def test_wrong_password(self):
-        response = self.test_client.post(
+    def test_wrong_password(self, test_client):
+        response = test_client.post(
             '/user_profile',
             follow_redirects=True,
-            data={'new_password': 'foo', 'new_password_confirm': 'foo', 'old_password': 'wrong password'},
+            data={
+                'new_password': 'foo',
+                'new_password_confirm': 'foo',
+                'old_password': 'wrong password',
+            },
         )
         assert b'Error: wrong password' in response.data
 
     @pytest.mark.usefixtures('current_user_fixture')
-    def test_change_own_pw_illegal(self):
-        response = self.test_client.post(
+    def test_change_own_pw_illegal(self, test_client):
+        response = test_client.post(
             '/user_profile',
             follow_redirects=True,
             data={
@@ -191,28 +217,49 @@ class TestAppUpload(WebInterfaceTest):
         assert b'password is not legal' in response.data
 
     @pytest.mark.usefixtures('current_user_fixture')
-    def test_change_own_pw_no_match(self):
-        response = self.test_client.post(
+    def test_change_own_pw_no_match(self, test_client):
+        response = test_client.post(
             '/user_profile',
             follow_redirects=True,
-            data={'new_password': 'foo', 'new_password_confirm': 'bar', 'old_password': 'correct password'},
+            data={
+                'new_password': 'foo',
+                'new_password_confirm': 'bar',
+                'old_password': 'correct password',
+            },
         )
         assert b'Error: new password did not match' in response.data
 
-    def test_edit_roles(self, caplog):
+    def test_edit_roles(self, caplog, test_client):
         # user 0 should have roles 0 and 1
         # this request should change the roles to 0 and 2 (add 2 and remove 1)
         with caplog.at_level(logging.INFO):
-            self.test_client.post('/admin/user/0', follow_redirects=True, data={'input_roles': [roles[0], roles[2]]})
+            test_client.post(
+                '/admin/user/0',
+                follow_redirects=True,
+                data={
+                    'input_roles': [
+                        roles[0],
+                        roles[2],
+                    ],
+                },
+            )
             assert 'Creating user role' in caplog.messages[0]
             assert f'added roles {{\'{roles[2]}\'}}, removed roles {{\'{roles[1]}\'}}' in caplog.messages[1]
 
-    def test_edit_roles__error(self):
-        response = self.test_client.post('/admin/user/0', follow_redirects=True, data={})
+    def test_edit_roles__error(self, test_client):
+        response = test_client.post('/admin/user/0', follow_redirects=True, data={})
         assert b'unknown request' in response.data
 
-    def test_edit_roles__unknown_element(self):
-        response = self.test_client.post('/admin/user/9999', follow_redirects=True, data={'input_roles': [roles[0]]})
+    def test_edit_roles__unknown_element(self, test_client):
+        response = test_client.post(
+            '/admin/user/9999',
+            follow_redirects=True,
+            data={
+                'input_roles': [
+                    roles[0],
+                ],
+            },
+        )
         assert b'user with ID 9999 not found' in response.data
 
 

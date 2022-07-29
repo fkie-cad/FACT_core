@@ -1,10 +1,13 @@
+# pylint: disable=no-self-use
 # pylint: disable=no-self-use,protected-access,wrong-import-order,attribute-defined-outside-init
 import os
 from itertools import chain
 
+import pytest
 from flask import Flask
 from flask_restx import Api
 
+from config import configparser_cfg
 from helperFunctions.fileSystem import get_src_dir
 from web_interface.components.plugin_routes import (
     PLUGIN_CATEGORIES,
@@ -23,6 +26,7 @@ class PluginRoutesMock(PluginRoutes):
         self.intercom = intercom
 
 
+@pytest.mark.usefixtures('patch_cfg')
 class TestPluginRoutes:
     def setup(self):
         self.app = Flask(__name__)
