@@ -1,7 +1,9 @@
+# pylint: disable=no-self-use
+import pytest
+
 from test.common_helper import (
     TEST_TEXT_FILE, TEST_TEXT_FILE2, CommonDatabaseMock, CommonIntercomMock, create_test_firmware
 )
-from test.unit.web_interface.base import WebInterfaceTest
 
 
 class MockInterCom(CommonIntercomMock):
@@ -29,37 +31,35 @@ class DbMock(CommonDatabaseMock):
         assert False, 'if this point was reached, something went wrong'
 
 
-class TestAppComparisonTextFiles(WebInterfaceTest):
-
-    @classmethod
-    def setup_class(cls, *_, **__):
-        super().setup_class(db_mock=DbMock, intercom_mock=MockInterCom)
-
-    def test_comparison_text_files(self):
+@pytest.mark.DatabaseMockClass(lambda: DbMock)
+@pytest.mark.IntercomMockClass(lambda: MockInterCom)
+class TestAppComparisonTextFiles:
+    def test_comparison_text_files(self, test_client):
         TEST_TEXT_FILE.processed_analysis['file_type']['mime'] = 'text/plain'
         TEST_TEXT_FILE2.processed_analysis['file_type']['mime'] = 'text/plain'
-        response = self._load_diff()
+        response = _load_diff(test_client)
         # As the javascript rendering is done clientside we test if the diff string is valid
         assert TEST_TEXT_FILE.file_name in response.decode()
 
-    def test_wrong_mime_type(self):
+    def test_wrong_mime_type(self, test_client):
         TEST_TEXT_FILE.processed_analysis['file_type']['mime'] = 'text/plain'
         TEST_TEXT_FILE2.processed_analysis['file_type']['mime'] = 'some/type'
-        response = self._load_diff()
+        response = _load_diff(test_client)
         assert b'compare non-text mimetypes' in response
 
-    def test_analysis_not_finished(self):
+    def test_analysis_not_finished(self, test_client):
         TEST_TEXT_FILE.processed_analysis['file_type']['mime'] = None
         TEST_TEXT_FILE2.processed_analysis['file_type']['mime'] = None
-        response = self._load_diff()
+        response = _load_diff(test_client)
         assert b'file_type analysis is not finished' in response
 
-    def _load_diff(self):
-        with self.test_client as tc:
-            with tc.session_transaction() as test_session:
-                test_session['uids_for_comparison'] = {
-                    TEST_TEXT_FILE.uid: 'file_1_root_uid',
-                    TEST_TEXT_FILE2.uid: 'file_2_root_uid'
-                }
-                test_session.modified = True
-            return self.test_client.get('/comparison/text_files').data
+
+def _load_diff(test_client):
+    with test_client as tc:
+        with tc.session_transaction() as test_session:
+            test_session['uids_for_comparison'] = {
+                TEST_TEXT_FILE.uid: 'file_1_root_uid',
+                TEST_TEXT_FILE2.uid: 'file_2_root_uid'
+            }
+            test_session.modified = True
+        return test_client.get('/comparison/text_files').data

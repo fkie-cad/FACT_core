@@ -1,6 +1,7 @@
-from test.common_helper import CommonDatabaseMock
+# pylint: disable=no-self-use
+import pytest
 
-from ..base import WebInterfaceTest
+from test.common_helper import CommonDatabaseMock
 
 
 class DbMock(CommonDatabaseMock):
@@ -14,14 +15,9 @@ class DbMock(CommonDatabaseMock):
         return {'plugin': ['missing_child_uid']}
 
 
-class TestRestFirmware(WebInterfaceTest):
+@pytest.mark.DatabaseMockClass(lambda: DbMock)
+def test_missing(test_client):
+    result = test_client.get('/rest/missing').json
 
-    @classmethod
-    def setup_class(cls, *_, **__):
-        super().setup_class(db_mock=DbMock)
-
-    def test_missing(self):
-        result = self.test_client.get('/rest/missing').json
-
-        assert 'missing_analyses' in result
-        assert result['missing_analyses'] == {'root_fw_uid': ['missing_child_uid']}
+    assert 'missing_analyses' in result
+    assert result['missing_analyses'] == {'root_fw_uid': ['missing_child_uid']}

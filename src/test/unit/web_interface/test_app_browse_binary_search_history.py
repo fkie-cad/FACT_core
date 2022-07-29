@@ -1,5 +1,7 @@
+# pylint: disable=no-self-use
+import pytest
+
 from test.common_helper import CommonDatabaseMock
-from test.unit.web_interface.base import WebInterfaceTest
 
 
 class DbMock(CommonDatabaseMock):
@@ -13,14 +15,9 @@ class DbMock(CommonDatabaseMock):
         return 1
 
 
-class TestBrowseBinarySearchHistory(WebInterfaceTest):
-
-    @classmethod
-    def setup_class(cls, *_, **__):
-        super().setup_class(db_mock=DbMock)
-
-    def test_browse_binary_search_history(self):
-        rv = self.test_client.get('/database/browse_binary_search_history')
-        assert b'search_title' in rv.data
-        assert b'rule_1' in rv.data
-        assert b'cache_id' in rv.data
+@pytest.mark.DatabaseMockClass(lambda: DbMock)
+def test_browse_binary_search_history(test_client):
+    rv = test_client.get('/database/browse_binary_search_history')
+    assert b'search_title' in rv.data
+    assert b'rule_1' in rv.data
+    assert b'cache_id' in rv.data

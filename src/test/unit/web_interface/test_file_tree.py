@@ -1,3 +1,4 @@
+# pylint: disable=no-self-use
 from typing import Dict
 
 import pytest
