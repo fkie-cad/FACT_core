@@ -1,33 +1,44 @@
-from unittest import mock
-
+# pylint: disable=no-self-use
 import pytest
 
 from compare.PluginBase import CompareBasePlugin as ComparePlugin
 from compare.PluginBase import _get_unmatched_dependencies
-from test.unit.compare.compare_plugin_test_class import ComparePluginTest  # pylint: disable=wrong-import-order
+from test.common_helper import CommonDatabaseMock, create_test_firmware  # pylint: disable=wrong-import-order
+
+fw_one = create_test_firmware(device_name='dev_1', all_files_included_set=True)
+fw_two = create_test_firmware(device_name='dev_2', bin_path='container/test.7z', all_files_included_set=True)
+fw_three = create_test_firmware(device_name='dev_3', bin_path='container/test.cab', all_files_included_set=True)
 
 
-class TestComparePluginBase(ComparePluginTest):
+# TODO deduplicate with other mock admin
+class MockAdmin:
+    def register_plugin(self, plugin_name, plugin_instance):
+        pass
 
-    # This name must be changed according to the name of plug-in to test
-    PLUGIN_NAME = 'base'
 
-    @mock.patch('plugins.base.ViewUpdater', lambda *_: None)
-    def setup_plugin(self):
-        """
-        This function must be overwritten by the test instance.
-        In most cases it is sufficient to copy this function.
-        """
-        return ComparePlugin(self, config=self.config)
+# TODO When needed to be more complex take inspiration from the fixture
+# 'analysis_plugin' in conftest.py
+@pytest.fixture
+def compare_plugin(monkeypatch, cfg_tuple):
+    _, configparser_cfg = cfg_tuple
+    yield ComparePlugin(MockAdmin(), config=configparser_cfg, view_updater=CommonDatabaseMock())
 
-    def test_compare_missing_dep(self):
-        self.c_plugin.DEPENDENCIES = ['test_ana']
-        self.fw_one.processed_analysis['test_ana'] = {}
-        result = self.c_plugin.compare([self.fw_one, self.fw_two])
+
+# TODO is this needed?!
+@pytest.mark.cfg_defaults({
+    'expert-settings': {
+        'ssdeep-ignore': '80',
+    },
+})
+class TestPluginBase:
+    def test_compare_missing_dep(self, compare_plugin):
+        compare_plugin.DEPENDENCIES = ['test_ana']
+        fw_one.processed_analysis['test_ana'] = {}
+        result = compare_plugin.compare([fw_one, fw_two])
         assert result == {'Compare Skipped': {'all': 'Required analysis not present: test_ana'}}, 'missing dep result not correct'
 
-    def test_compare(self):
-        result = self.c_plugin.compare([self.fw_one, self.fw_two])
+    def test_compare(self, compare_plugin):
+        result = compare_plugin.compare([fw_one, fw_two])
         assert result == {'dummy': {'all': 'dummy-content', 'collapse': False}}, 'result not correct'
 
 
