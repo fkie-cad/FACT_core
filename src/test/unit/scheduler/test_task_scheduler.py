@@ -1,3 +1,4 @@
+# pylint: disable=no-self-use
 # pylint: disable=protected-access,invalid-name,use-implicit-booleaness-not-comparison,attribute-defined-outside-init
 import pytest
 

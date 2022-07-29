@@ -1,3 +1,4 @@
+# pylint: disable=no-self-use
 import gc
 from configparser import ConfigParser
 from multiprocessing import Event, Queue

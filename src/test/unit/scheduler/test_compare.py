@@ -1,3 +1,4 @@
+# pylint: disable=no-self-use
 import gc
 import unittest
 from configparser import ConfigParser
