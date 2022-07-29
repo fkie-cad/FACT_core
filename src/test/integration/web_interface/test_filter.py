@@ -1,22 +1,10 @@
-# pylint: disable=redefined-outer-name,wrong-import-order
-
-from unittest import mock
-
 import pytest
 
-from test.common_helper import get_config_for_testing
 from web_interface.filter import list_group_collapse, render_analysis_tags, render_fw_tags
-from web_interface.frontend_main import WebFrontEnd
 
 
-@pytest.fixture()
-def frontend():
-    return WebFrontEnd(get_config_for_testing())
-
-
-@mock.patch('intercom.front_end_binding.InterComFrontEndBinding', lambda **_: None)
-def test_list_group_collapse(frontend):
-    with frontend.app.app_context():
+def test_list_group_collapse(web_frontend):
+    with web_frontend.app.app_context():
         collapsed_list_group = list_group_collapse(['a', 'b'])
 
     assert 'data-toggle="collapse"' in collapsed_list_group
@@ -34,8 +22,8 @@ def test_list_group_collapse(frontend):
     ),
     (None, '')
 ])
-def test_render_fw_tags(frontend, tag_dict, output):
-    with frontend.app.app_context():
+def test_render_fw_tags(web_frontend, tag_dict, output):
+    with web_frontend.app.app_context():
         assert render_fw_tags(tag_dict).replace('\n', '').replace('    ', ' ') == output
 
 
@@ -43,17 +31,17 @@ def test_empty_analysis_tags():
     assert render_analysis_tags({}) == ''
 
 
-def test_render_analysis_tags_success(frontend):
+def test_render_analysis_tags_success(web_frontend):
     tags = {'such plugin': {'tag': {'color': 'success', 'value': 'wow'}}}
-    with frontend.app.app_context():
+    with web_frontend.app.app_context():
         output = render_analysis_tags(tags).replace('\n', '').replace('    ', ' ')
     assert 'badge-success' in output
     assert '> wow<' in output
 
 
-def test_render_analysis_tags_fix(frontend):
+def test_render_analysis_tags_fix(web_frontend):
     tags = {'such plugin': {'tag': {'color': 'very color', 'value': 'wow'}}}
-    with frontend.app.app_context():
+    with web_frontend.app.app_context():
         output = render_analysis_tags(tags).replace('\n', '').replace('    ', ' ')
     assert 'badge-primary' in output
     assert '> wow<' in output
