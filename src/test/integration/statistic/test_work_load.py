@@ -11,6 +11,7 @@ class TestWorkloadStatistic:
     def setup(self):
         self.config = get_config_for_testing()
         self.workload_stat = WorkLoadStatistic(config=self.config, component='test')
+        self.workload_stat.start()
         self.stats_db = StatsDbViewer(config=self.config)
 
     def teardown(self):

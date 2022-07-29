@@ -30,6 +30,7 @@ class TestFileAddition:
             post_analysis=self.count_analysis_finished_event,
             unpacking_locks=unpacking_lock_manager,
         )
+        self._analysis_scheduler.start()
         self._unpack_scheduler = UnpackingScheduler(
             config=self._config,
             post_unpack=self._analysis_scheduler.start_analysis_of_object,

@@ -34,6 +34,8 @@ class TestTagPropagation:
             post_unpack=self._analysis_scheduler.start_analysis_of_object,
             unpacking_locks=unpacking_lock_manager,
         )
+        self._analysis_scheduler.start()
+        self._unpack_scheduler.start()
 
     def count_analysis_finished_event(self, uid, plugin, analysis_result):
         self.elements_finished_analyzing.value += 1
@@ -56,7 +58,7 @@ class TestTagPropagation:
 
         self._unpack_scheduler.add_task(test_fw)
 
-        assert self.analysis_finished_event.wait(timeout=20)
+        assert self.analysis_finished_event.wait(timeout=5)
 
         processed_fo = self.backend_interface.get_object(self.uid_of_key_file, analysis_filter=['crypto_material'])
         assert processed_fo.processed_analysis['crypto_material']['tags'], 'no tags set in analysis'

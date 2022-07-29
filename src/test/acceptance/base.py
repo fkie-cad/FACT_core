@@ -81,13 +81,17 @@ class TestAcceptanceBase(unittest.TestCase):  # pylint: disable=too-many-instanc
         # pylint: disable=attribute-defined-outside-init
         unpacking_locks = UnpackingLockManager()
         self.analysis_service = AnalysisScheduler(
-            config=self.config, post_analysis=post_analysis, unpacking_locks=unpacking_locks
+            config=self.config,
+            post_analysis=post_analysis,
+            unpacking_locks=unpacking_locks,
         )
+        self.analysis_service.start()
         self.unpacking_service = UnpackingScheduler(
             config=self.config,
             post_unpack=self.analysis_service.start_analysis_of_object,
             unpacking_locks=unpacking_locks,
         )
+        self.unpacking_service.start()
         self.compare_service = ComparisonScheduler(config=self.config, callback=compare_callback)
         self.intercom = InterComBackEndBinding(
             config=self.config,

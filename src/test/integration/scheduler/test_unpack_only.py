@@ -20,6 +20,7 @@ class TestFileAddition:
             fs_organizer=MockFSOrganizer(),
             unpacking_locks=unpacking_lock_manager,
         )
+        self._unpack_scheduler.start()
 
     def teardown(self):
         self._unpack_scheduler.shutdown()

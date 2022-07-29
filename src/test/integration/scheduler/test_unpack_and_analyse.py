@@ -29,6 +29,8 @@ class TestFileAddition:
             fs_organizer=MockFSOrganizer(),
             unpacking_locks=unpacking_lock_manager,
         )
+        self._analysis_scheduler.start()
+        self._unpack_scheduler.start()
 
     def teardown(self):
         self._unpack_scheduler.shutdown()
@@ -43,7 +45,7 @@ class TestFileAddition:
 
         processed_container = {}
         for _ in range(4 * 2):  # container with 3 included files times 2 mandatory plugins run
-            uid, plugin, analysis_result = self._tmp_queue.get(timeout=10)
+            uid, plugin, analysis_result = self._tmp_queue.get(timeout=1)
             processed_container.setdefault(uid, {}).setdefault(plugin, {})
             processed_container[uid][plugin] = analysis_result
 

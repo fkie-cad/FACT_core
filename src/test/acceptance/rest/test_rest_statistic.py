@@ -11,6 +11,7 @@ class TestRestStatistic(TestAcceptanceBase):
         super().setUp()
         self._start_backend()
         self.workload = WorkLoadStatistic(config=self.config, component='backend')
+        self.workload.start()
         sleep(1)  # wait for systems to start
 
     def tearDown(self):

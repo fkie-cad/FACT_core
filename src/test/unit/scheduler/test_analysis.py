@@ -334,6 +334,7 @@ class TestAnalysisShouldReanalyse:
         cls.init_patch = mock.patch(target='scheduler.analysis.AnalysisScheduler.__init__', new=lambda *_: None)
         cls.init_patch.start()
         cls.scheduler = AnalysisScheduler()
+        cls.scheduler.start()
         cls.init_patch.stop()
 
     @pytest.mark.parametrize(
