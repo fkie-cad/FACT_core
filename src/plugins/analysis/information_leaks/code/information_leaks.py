@@ -67,7 +67,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     DEPENDENCIES = []
     DESCRIPTION = 'Find leaked information like compilation artifacts'
     MIME_WHITELIST = ['application/x-executable', 'application/x-object', 'application/x-sharedlib', 'text/plain']
-    VERSION = '0.1'
+    VERSION = '0.1.1'
     FILE = __file__
 
     def process_object(self, file_object: FileObject):
