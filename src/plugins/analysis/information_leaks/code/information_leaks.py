@@ -5,9 +5,9 @@ from analysis.PluginBase import AnalysisBasePlugin
 from objects.file import FileObject
 
 PATH_REGEX = {
-    'user_paths': re.compile(rb'/home/[^/%]+/[^\n \x00]+'),
-    'root_path': re.compile(rb'/root/[^/%]+/[^\n \x00]+'),
-    'www_path': re.compile(rb'/var/www/[^/%]+/[^\n \x00]+')
+    'user_paths': re.compile(rb'/home/[^%\n \x00]+'),
+    'root_path': re.compile(rb'/root/[^%\n \x00]+'),
+    'www_path': re.compile(rb'/var/www/[^\n \x00]+')
 }
 
 FILES_REGEX = {
@@ -67,7 +67,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     DEPENDENCIES = []
     DESCRIPTION = 'Find leaked information like compilation artifacts'
     MIME_WHITELIST = ['application/x-executable', 'application/x-object', 'application/x-sharedlib', 'text/plain']
-    VERSION = '0.1'
+    VERSION = '0.1.1'
     FILE = __file__
 
     def process_object(self, file_object: FileObject):
