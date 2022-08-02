@@ -1,3 +1,4 @@
+import configparser
 from configparser import ConfigParser
 from pathlib import Path
 
@@ -13,7 +14,18 @@ _configparser_cfg = None
 configparser_cfg = LocalProxy(lambda: _configparser_cfg)
 
 
-class DataStorage(BaseModel, extra=Extra.forbid):
+class _PydanticConfigExtraForbid:
+    # FIXME this should be replaced by class kwargs (extra=Extra.forbid)
+    # Sphinx autodoc will complain about unknown kwargs
+    extra = Extra.forbid
+
+
+class _PydanticConfigExtraAllow:
+    extra = Extra.allow
+
+
+class DataStorage(BaseModel):
+    Config = _PydanticConfigExtraForbid
     postgres_server: str
     postgres_port: int
     postgres_database: str
@@ -48,33 +60,39 @@ class DataStorage(BaseModel, extra=Extra.forbid):
     docker_mount_base_dir: str
 
 
-class Logging(BaseModel, extra=Extra.forbid):
+class Logging(BaseModel):
+    Config = _PydanticConfigExtraForbid
     logfile: str
     loglevel: str
 
 
-class Unpack(BaseModel, extra=Extra.forbid):
+class Unpack(BaseModel):
+    Config = _PydanticConfigExtraForbid
     threads: str
     whitelist: list
     max_depth: int
     memory_limit: int = 1024
 
 
-class DefaultPlugins(BaseModel, extra=Extra.allow):
+class DefaultPlugins(BaseModel):
+    Config = _PydanticConfigExtraAllow
     pass
 
 
-class Database(BaseModel, extra=Extra.forbid):
+class Database(BaseModel):
+    Config = _PydanticConfigExtraForbid
     results_per_page: int
     number_of_latest_firmwares_to_display: int
     ajax_stats_reload_time: int
 
 
-class Statistics(BaseModel, extra=Extra.forbid):
+class Statistics(BaseModel):
+    Config = _PydanticConfigExtraForbid
     max_elements_per_chart: int
 
 
-class ExpertSettings(BaseModel, extra=Extra.forbid):
+class ExpertSettings(BaseModel):
+    Config = _PydanticConfigExtraForbid
     block_delay: float
     ssdeep_ignore: int
     communication_timeout: int
@@ -88,7 +106,8 @@ class ExpertSettings(BaseModel, extra=Extra.forbid):
 
 
 # We need to allow extra here since we don't know what plugins will be loaded
-class Config(BaseModel, extra=Extra.allow):
+class Config(BaseModel):
+    Config = _PydanticConfigExtraAllow
     data_storage: DataStorage
     logging: Logging
     unpack: Unpack

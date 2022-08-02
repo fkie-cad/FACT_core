@@ -69,6 +69,7 @@ autodoc_mock_imports = [
     'passlib',
     'pluginbase',
     'psutil',
+    'pydantic',
     'pymongo',
     'requests',
     'si_prefix',
