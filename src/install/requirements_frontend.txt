@@ -14,6 +14,8 @@ python-dateutil==2.8.2
 si-prefix==1.2.2
 uwsgi==2.0.20
 virtualenv
+
+# must be below dependent packages (flask, flask-login, flask-restx)
 werkzeug==2.1.2
 
 # Used for username validation by flask-security
