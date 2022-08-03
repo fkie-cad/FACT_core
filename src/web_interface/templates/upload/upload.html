@@ -109,16 +109,14 @@
                             size="4"
                             onchange="update_text_input(this, document.getElementById('device_part_text'));"
                             required
-                            {%- if not is_reanalysis %} disabled {% endif %}
                     >
-                        {%- if not is_reanalysis %}
                             <option value='complete' selected>complete</option>
                             <option value='kernel'>kernel</option>
                             <option value='bootloader'>bootloader</option>
                             <option value='root-fs'>root-fs</option>
                             <option value='new entry'>new entry</option>
-                        {%- else %}
-                            <option value='{{ firmware.part or "complete" }}' selected>{{ firmware.part or "complete" }}</option>
+                        {%- if is_reanalysis and firmware.part %}
+                            <option value='{{ firmware.part }}' selected>{{ firmware.part }}</option>
                         {%- endif %}
                     </select>
                     <input type="text" name="device_part" class="form-control" id="device_part_text" placeholder="New Device Part" style="display: none;">
@@ -153,26 +151,23 @@
                 {# Analysis Preset #}
                 <label class="control-label">Analysis Preset:</label>
                 <div class="form-group">
-                    {%- if not is_reanalysis %}
-                    
-                        <div class="col-lg-12 px-0">
-                            <select class="form-control" name='analysis_dropdown' id="analysis" onchange="change_selected_plugins(this.value);">
-                                {% for preset in analysis_presets %}
-                                    <option value="{{ preset }}">{{ preset }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    {%- endif %}
+                    <div class="col-lg-12 px-0">
+                        <select class="form-control" name='analysis_dropdown' id="analysis" onchange="change_selected_plugins(this.value);">
+                            {% for preset in analysis_presets %}
+                                <option value="{{ preset }}">{{ preset }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
                     <div class="col-lg-12 mt-4 px-0" style="column-count: 2;column-rule: 1px hidden black; column-gap:50px">
                         {% for system in analysis_plugin_dict.keys() | sort %}
                             {% if not analysis_plugin_dict[system][1] %}
                                 {# show if plug-in is not mandatory #}
                                 <div id="{{ system }}">
                                     <label class="checkbox-inline" data-toggle="tooltip" title="{{ analysis_plugin_dict[system][0] | safe }}">
-                                        {% if analysis_plugin_dict[system][2]['default'] %}
+                                        {% if analysis_plugin_dict[system][2][plugin_set] %}
                                             <input type=checkbox name="analysis_systems" value="{{ system }}" checked>
                                         {% endif %}
-                                        {% if not analysis_plugin_dict[system][2]['default'] %}
+                                        {% if not analysis_plugin_dict[system][2][plugin_set] %}
                                             <input type=checkbox name="analysis_systems" value="{{ system }}" unchecked>
                                         {% endif %}
                                         <font face="courier">{{ system | replace_underscore }}</font>

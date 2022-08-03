@@ -1,6 +1,7 @@
 import json
 import os
-from typing import Dict, Optional, Union
+from contextlib import suppress
+from typing import Optional, Union
 
 from common_helper_files import get_binary_from_file
 from flask import flash, redirect, render_template, render_template_string, request, url_for
@@ -121,13 +122,11 @@ class AnalysisRoutes(ComponentBase):
             vendor_list = frontend_db.get_vendor_list()
             device_name_dict = frontend_db.get_device_name_dict()
 
-        device_class_list.remove(old_firmware.device_class)
-        vendor_list.remove(old_firmware.vendor)
-        device_name_dict[old_firmware.device_class][old_firmware.vendor].remove(old_firmware.device_name)
-
-        previously_processed_plugins = list(old_firmware.processed_analysis.keys())
         with ConnectTo(self.intercom, self._config) as intercom:
-            plugin_dict = self._overwrite_default_plugins(intercom.get_available_analysis_plugins(), previously_processed_plugins)
+            plugin_dict = intercom.get_available_analysis_plugins()
+
+        current_analysis_preset = _add_preset_from_firmware(plugin_dict, old_firmware)
+        analysis_presets = [current_analysis_preset] + list(self._config['default-plugins'])
 
         title = 're-do analysis' if re_do else 'update analysis'
 
@@ -139,15 +138,10 @@ class AnalysisRoutes(ComponentBase):
             device_names=json.dumps(device_name_dict, sort_keys=True),
             firmware=old_firmware,
             analysis_plugin_dict=plugin_dict,
-            title=title
+            analysis_presets=analysis_presets,
+            title=title,
+            plugin_set=current_analysis_preset,
         )
-
-    @staticmethod
-    def _overwrite_default_plugins(plugin_dict: Dict[str, tuple], checked_plugin_list) -> Dict[str, tuple]:
-        plugin_dict.pop('unpacker')  # FIXME: why is this even in there?
-        for plugin in plugin_dict:
-            plugin_dict[plugin][2]['default'] = plugin in checked_plugin_list
-        return plugin_dict
 
     @roles_accepted(*PRIVILEGES['submit_analysis'])
     @AppRoute('/update-analysis/<uid>', POST)
@@ -210,3 +204,21 @@ class AnalysisRoutes(ComponentBase):
             root_uid=root_uid,
             colors=colors
         )
+
+
+def _add_preset_from_firmware(plugin_dict, fw: Firmware):
+    '''Adds a preset to plugin_dict with all plugins ticked that are processed
+    on the firmware fw.
+    Retruns the name of the new preset.
+    '''
+    preset_name = fw.uid
+
+    previously_processed_plugins = list(fw.processed_analysis.keys())
+    # FIXME: why is this even in there?
+    with suppress(ValueError):
+        plugin_dict.pop('unpacker')
+        previously_processed_plugins.remove('unpacker')
+    for plugin in previously_processed_plugins:
+        plugin_dict[plugin][2][preset_name] = True
+
+    return preset_name

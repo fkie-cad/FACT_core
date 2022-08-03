@@ -191,7 +191,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         '''
         self.analysis_plugins[name] = plugin_instance
 
-    def _get_default_plugins_from_config(self):
+    def _get_plugin_sets_from_config(self):
         try:
             return {
                 plugin_set: read_list_from_config(
@@ -213,7 +213,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
                 NAME: (
                     str: DESCRIPTION,
                     bool: mandatory,
-                    bool: default,
+                    dict: plugin_sets,
                     str: VERSION,
                     list: DEPENDENCIES,
                     list: MIME_BLACKLIST,
@@ -229,18 +229,19 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
         '''
         plugin_list = self._get_list_of_available_plugins()
         plugin_list = self._remove_unwanted_plugins(plugin_list)
-        default_plugins = self._get_default_plugins_from_config()
-        default_flag_dict = {}
+        plugin_sets = self._get_plugin_sets_from_config()
         result = {}
         for plugin in plugin_list:
+            current_plugin_plugin_sets = {}
             mandatory_flag = plugin in MANDATORY_PLUGINS
-            for key in default_plugins:
-                default_flag_dict[key] = plugin in default_plugins[key]
+            for plugin_set in plugin_sets:
+                current_plugin_plugin_sets[plugin_set] = plugin in plugin_sets[plugin_set]
             blacklist, whitelist = self._get_blacklist_and_whitelist_from_plugin(plugin)
+            # TODO this should not be a tuple but rather a dictionary/class
             result[plugin] = (
                 self.analysis_plugins[plugin].DESCRIPTION,
                 mandatory_flag,
-                dict(default_flag_dict),
+                dict(current_plugin_plugin_sets),
                 self.analysis_plugins[plugin].VERSION,
                 self.analysis_plugins[plugin].DEPENDENCIES,
                 blacklist,
