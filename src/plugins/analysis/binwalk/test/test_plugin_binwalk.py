@@ -26,15 +26,15 @@ class TestAnalysisPluginBinwalk(AnalysisPluginTest):
 
     def test_signature_analysis(self):
         test_file = FileObject(file_path=f'{get_test_data_dir()}/container/test.zip')
-        processed_file = self.analysis_plugin.process_object(test_file)
-        results = processed_file.processed_analysis[self.PLUGIN_NAME]
+        processed_file = self.analysis_plugin.analyze_file(test_file)
+        results = processed_file.processed_analysis[self.PLUGIN_NAME]['result']
         self.assertGreater(len(results['signature_analysis']), 0, 'no binwalk signature analysis found')
         self.assertTrue('DECIMAL' in results['signature_analysis'], 'no valid binwalk signature analysis')
 
     def test_entropy_graph(self):
         test_file = FileObject(file_path=f'{get_test_data_dir()}/container/test.zip')
-        processed_file = self.analysis_plugin.process_object(test_file)
-        results = processed_file.processed_analysis[self.PLUGIN_NAME]
+        processed_file = self.analysis_plugin.analyze_file(test_file)
+        results = processed_file.processed_analysis[self.PLUGIN_NAME]['result']
         self.assertGreater(len(results['entropy_analysis_graph']), 0, 'no binwalk entropy graph found')
 
     def test_summary(self):

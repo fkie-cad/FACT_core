@@ -1,7 +1,10 @@
 import logging
 from pathlib import Path
+from typing import List
 
 from analysis.PluginBase import AnalysisBasePlugin
+from helperFunctions.typing import JsonDict
+from objects.file import FileObject
 
 try:
     from ..internal.metadata_detector import MetaDataDetector
@@ -35,20 +38,14 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     detectors = [MetaDataDetector()]
 
-    def process_object(self, file_object):
-        '''
-        This function must be implemented by the plugin.
-        Analysis result must be a list stored in file_object.processed_analysis[self.NAME]
-        '''
-        arch_dict = self._get_device_architectures(file_object)
-        file_object.processed_analysis[self.NAME] = arch_dict
-        file_object.processed_analysis[self.NAME]['summary'] = list(arch_dict.keys())
-        return file_object
-
-    def _get_device_architectures(self, file_object):
+    def do_analysis(self, file_object: FileObject) -> JsonDict:
         for detector in self.detectors:
             arch_dict = detector.get_device_architecture(file_object)
             if arch_dict:
                 return arch_dict
         logging.debug(f'Arch Detection Failed: {file_object.uid}')
         return {}
+
+    @staticmethod
+    def create_summary(analysis_result: JsonDict) -> List[str]:
+        return list(analysis_result)

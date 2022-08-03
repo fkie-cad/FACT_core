@@ -27,7 +27,7 @@ class TestAnalysisPluginsKnownVulnerabilities(AnalysisPluginTest):
         test_file.processed_analysis['file_hashes'] = {'sha256': '1234'}
         test_file.processed_analysis['software_components'] = {}
 
-        results = self.analysis_plugin.process_object(test_file).processed_analysis[self.PLUGIN_NAME]
+        results = self.analysis_plugin.analyze_file(test_file).processed_analysis[self.PLUGIN_NAME]
 
         self.assertEqual(len(results), 4, 'incorrect number of vulnerabilities found (summary + tag + one result)')
         self.assertTrue('DLink_Bug' in results, 'test match not found')
@@ -38,12 +38,12 @@ class TestAnalysisPluginsKnownVulnerabilities(AnalysisPluginTest):
 
     def test_process_object_software(self):
         test_file = FileObject(file_path=os.path.join(TEST_DATA_DIR, 'empty'))
-        test_file.processed_analysis['file_hashes'] = {'sha256': '1234'}
+        test_file.processed_analysis['file_hashes'] = {'result': {'sha256': '1234'}}
         test_file.processed_analysis['software_components'] = self._software_components_result
 
-        results = self.analysis_plugin.process_object(test_file).processed_analysis[self.PLUGIN_NAME]
+        results = self.analysis_plugin.analyze_file(test_file).processed_analysis[self.PLUGIN_NAME]['result']
 
-        self.assertEqual(len(results), 3, 'incorrect number of vulnerabilities found (summary + tag + one result)')
+        self.assertEqual(len(results), 1, 'incorrect number of vulnerabilities found (one result)')
         self.assertTrue('Heartbleed' in results, 'test match not found')
         self.assertEqual(results['Heartbleed']['score'], 'high', 'incorrect or no score found in meta data')
 
@@ -53,16 +53,16 @@ class TestAnalysisPluginsKnownVulnerabilities(AnalysisPluginTest):
         self._software_components_result['OpenSSL']['meta']['version'] = ['0.9.8', '1.0.0', '']
         test_file.processed_analysis['software_components'] = self._software_components_result
 
-        results = self.analysis_plugin.process_object(test_file).processed_analysis[self.PLUGIN_NAME]
+        results = self.analysis_plugin.analyze_file(test_file).processed_analysis[self.PLUGIN_NAME]
 
         self.assertCountEqual(['summary'], list(results.keys()), 'no match should be found')
 
     def test_process_object_hash(self):
         test_file = FileObject(file_path=os.path.join(TEST_DATA_DIR, 'empty'))
-        test_file.processed_analysis['file_hashes'] = {'sha256': '7579d10e812905e134cf91ad8eef7b08f87f6f8c8e004ebefa441781fea0ec4a'}
+        test_file.processed_analysis['file_hashes'] = {'result': {'sha256': '7579d10e812905e134cf91ad8eef7b08f87f6f8c8e004ebefa441781fea0ec4a'}}
         test_file.processed_analysis['software_components'] = {}
 
-        results = self.analysis_plugin.process_object(test_file).processed_analysis[self.PLUGIN_NAME]
+        results = self.analysis_plugin.analyze_file(test_file).processed_analysis[self.PLUGIN_NAME]['result']
 
         self.assertEqual(len(results), 3, 'incorrect number of vulnerabilities found (summary + tag + one result)')
         self.assertTrue('Netgear_CGI' in results, 'test match not found')

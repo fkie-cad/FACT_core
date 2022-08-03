@@ -9,6 +9,7 @@ from typing import List
 
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.config import get_temp_dir_path
+from helperFunctions.typing import JsonDict
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
@@ -20,8 +21,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     VERSION = '0.5.5'
     FILE = __file__
 
-    def process_object(self, file_object):
-        result = {}
+    def do_analysis(self, file_object) -> JsonDict:
         with TemporaryDirectory(prefix='fact_analysis_binwalk_', dir=get_temp_dir_path(self.config)) as tmp_dir:
             cmd_process = subprocess.run(
                 f'(cd {tmp_dir} && xvfb-run -a binwalk -BEJ {file_object.file_path})',
@@ -33,15 +33,19 @@ class AnalysisPlugin(AnalysisBasePlugin):
             signature_analysis_result = cmd_process.stdout
             try:
                 pic_path = Path(tmp_dir) / f'{Path(file_object.file_path).name}.png'
-                result['entropy_analysis_graph'] = b64encode(pic_path.read_bytes()).decode()
-                result['signature_analysis'] = signature_analysis_result
-                result['summary'] = list(set(self._extract_summary(signature_analysis_result)))
+                return {
+                    'entropy_analysis_graph': b64encode(pic_path.read_bytes()).decode(),
+                    'signature_analysis': signature_analysis_result,
+                }
             except FileNotFoundError:
-                result = {'failed': 'Binwalk analysis failed'}
                 logging.error(f'Binwalk analysis on {file_object.uid} failed:\n{signature_analysis_result}')
+                return {'failed': 'Binwalk analysis failed'}
 
-        file_object.processed_analysis[self.NAME] = result
-        return file_object
+    def create_summary(self, analysis_result: JsonDict) -> List[str]:  # pylint: disable=arguments-differ
+        signature_analysis_result = analysis_result.get('signature_analysis')
+        if signature_analysis_result:
+            return list(set(self._extract_summary(signature_analysis_result)))
+        return []
 
     def _extract_summary(self, binwalk_output: str) -> List[str]:
         summary = []
@@ -53,7 +57,6 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 summary.append(signature_description.split(',', maxsplit=1)[0])
             elif signature_description:
                 summary.append(signature_description)
-
         return summary
 
     @staticmethod

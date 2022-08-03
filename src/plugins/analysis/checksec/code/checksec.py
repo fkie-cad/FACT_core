@@ -1,12 +1,14 @@
 import json
 import logging
-import re
 import subprocess
 from pathlib import Path
 from subprocess import PIPE, STDOUT
+from typing import Dict, List, Tuple
 
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.fileSystem import get_src_dir
+from helperFunctions.typing import JsonDict
+from objects.file import FileObject
 
 SHELL_SCRIPT = Path(get_src_dir()) / 'bin' / 'checksec'
 
@@ -23,157 +25,126 @@ class AnalysisPlugin(AnalysisBasePlugin):
         if not SHELL_SCRIPT.is_file():
             raise RuntimeError(f'checksec not found at path {SHELL_SCRIPT}. Please re-run the backend installation.')
 
-    def process_object(self, file_object):
+    def do_analysis(self, file_object: FileObject) -> JsonDict:
         try:
-            if re.search(r'.*elf.*', file_object.processed_analysis['file_type']['full'].lower()) is not None:
-
-                mitigation_dict, mitigation_dict_summary = check_mitigations(file_object.file_path)
-                file_object.processed_analysis[self.NAME] = mitigation_dict
-                file_object.processed_analysis[self.NAME]['summary'] = list(mitigation_dict_summary.keys())
-            else:
-                file_object.processed_analysis[self.NAME]['summary'] = []
+            file_type = file_object.processed_analysis['file_type'].get('result', {}).get('full', '')
+            if 'ELF' in file_type:
+                return check_mitigations(file_object.file_path)
+            return {}
         except (IndexError, json.JSONDecodeError, ValueError) as error:
-            logging.warning('Error occurred during exploit_mitigations analysis:', exc_info=True)
-            file_object.processed_analysis[self.NAME]['failed'] = f'Error during analysis: {error}'
-        return file_object
+            logging.exception('Error occurred during exploit_mitigations analysis')
+            return {'failed': f'Error during analysis: {error}'}
+
+    @staticmethod
+    def create_summary(analysis_result: JsonDict) -> List[str]:
+        return analysis_result.pop('summary', [])
 
 
 def execute_checksec_script(file_path):
-    checksec_process = subprocess.run(f'{SHELL_SCRIPT} --file={file_path} --format=json --extended', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
+    checksec_process = subprocess.run(
+        f'{SHELL_SCRIPT} --file={file_path} --format=json --extended',
+        shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True
+    )
     if checksec_process.returncode != 0:
         raise ValueError(f'Checksec script exited with non-zero return code {checksec_process.returncode}')
     return json.loads(checksec_process.stdout)[str(file_path)]
 
 
 def check_mitigations(file_path):
-    mitigations, summary = {}, {}
+    mitigations, summary = {}, []
     checksec_result = execute_checksec_script(file_path)
 
-    check_relro(file_path, mitigations, summary, checksec_result)
-    check_nx(file_path, mitigations, summary, checksec_result)
-    check_canary(file_path, mitigations, summary, checksec_result)
-    check_pie(file_path, mitigations, summary, checksec_result)
-    check_fortify_source(file_path, mitigations, summary, checksec_result)
-    check_clang_cfi(file_path, mitigations, summary, checksec_result)
-    check_clang_safestack(file_path, mitigations, summary, checksec_result)
-    check_stripped_symbols(file_path, mitigations, summary, checksec_result)
-    check_runpath(file_path, mitigations, summary, checksec_result)
-    check_rpath(file_path, mitigations, summary, checksec_result)
+    for check in [check_relro, check_nx, check_canary, check_pie, check_fortify_source, check_clang_cfi,
+                  check_clang_safestack, check_stripped_symbols, check_runpath, check_rpath]:
+        analysis_result, summary_item = check(checksec_result)
+        mitigations.update(analysis_result)
+        summary.extend(summary_item)
 
-    return mitigations, summary
+    mitigations.update({'summary': summary})
+    return mitigations
 
 
-def check_relro(file_path, mitigations, summary, checksec_result):
+def check_relro(checksec_result: Dict[str, str]) -> Tuple[dict, List[str]]:
     if checksec_result['relro'] == 'full':
-        summary.update({'RELRO fully enabled': file_path})
-        mitigations.update({'RELRO': 'fully enabled'})
-
-    elif checksec_result['relro'] == 'partial':
-        summary.update({'RELRO partially enabled': file_path})
-        mitigations.update({'RELRO': 'partially enabled'})
-
-    elif checksec_result['relro'] == 'no':
-        summary.update({'RELRO disabled': file_path})
-        mitigations.update({'RELRO': 'disabled'})
+        return {'RELRO': 'fully enabled'}, ['RELRO fully enabled']
+    if checksec_result['relro'] == 'partial':
+        return {'RELRO': 'partially enabled'}, ['RELRO partially enabled']
+    if checksec_result['relro'] == 'no':
+        return {'RELRO': 'disabled'}, ['RELRO disabled']
+    return {}, []
 
 
-def check_fortify_source(file_path, mitigations, summary, checksec_result):
+def check_fortify_source(checksec_result: Dict[str, str]) -> Tuple[dict, List[str]]:
     if checksec_result['fortify_source'] == 'yes':
-        summary.update({'FORTIFY_SOURCE enabled': file_path})
-        mitigations.update({'FORTIFY_SOURCE': 'enabled'})
-
-    elif checksec_result['fortify_source'] == 'no':
-        summary.update({'FORTIFY_SOURCE disabled': file_path})
-        mitigations.update({'FORTIFY_SOURCE': 'disabled'})
+        return {'FORTIFY_SOURCE': 'enabled'}, ['FORTIFY_SOURCE enabled']
+    if checksec_result['fortify_source'] == 'no':
+        return {'FORTIFY_SOURCE': 'disabled'}, ['FORTIFY_SOURCE disabled']
+    return {}, []
 
 
-def check_pie(file_path, mitigations, summary, checksec_result):
+def check_pie(checksec_result: Dict[str, str]) -> Tuple[dict, List[str]]:
     if checksec_result['pie'] == 'yes':
-        summary.update({'PIE enabled': file_path})
-        mitigations.update({'PIE': 'enabled'})
-
-    elif checksec_result['pie'] == 'no':
-        summary.update({'PIE disabled': file_path})
-        mitigations.update({'PIE': 'disabled'})
-
-    elif checksec_result['pie'] == 'dso':
-        summary.update({'PIE/DSO present': file_path})
-        mitigations.update({'PIE': 'DSO'})
-
-    elif checksec_result['pie'] == 'rel':
-        summary.update({'PIE/REL present': file_path})
-        mitigations.update({'PIE': 'REL'})
-
-    else:
-        summary.update({'PIE - invalid ELF file': file_path})
-        mitigations.update({'PIE': 'invalid ELF file'})
+        return {'PIE': 'enabled'}, ['PIE enabled']
+    if checksec_result['pie'] == 'no':
+        return {'PIE': 'disabled'}, ['PIE disabled']
+    if checksec_result['pie'] == 'dso':
+        return {'PIE': 'DSO'}, ['PIE/DSO present']
+    if checksec_result['pie'] == 'rel':
+        return {'PIE': 'REL'}, ['PIE/REL present']
+    return {'PIE': 'invalid ELF file'}, ['PIE - invalid ELF file']
 
 
-def check_nx(file_path, mitigations, summary, checksec_result):
+def check_nx(checksec_result: Dict[str, str]) -> Tuple[dict, List[str]]:
     if checksec_result['nx'] == 'yes':
-        summary.update({'NX enabled': file_path})
-        mitigations.update({'NX': 'enabled'})
-
-    elif checksec_result['nx'] == 'no':
-        summary.update({'NX disabled': file_path})
-        mitigations.update({'NX': 'disabled'})
+        return {'NX': 'enabled'}, ['NX enabled']
+    if checksec_result['nx'] == 'no':
+        return {'NX': 'disabled'}, ['NX disabled']
+    return {}, []
 
 
-def check_canary(file_path, mitigations, summary, checksec_result):
+def check_canary(checksec_result: Dict[str, str]) -> Tuple[dict, List[str]]:
     if checksec_result['canary'] == 'yes':
-        summary.update({'CANARY enabled': file_path})
-        mitigations.update({'CANARY': 'enabled'})
-
-    elif checksec_result['canary'] == 'no':
-        summary.update({'CANARY disabled': file_path})
-        mitigations.update({'CANARY': 'disabled'})
+        return {'CANARY': 'enabled'}, ['CANARY enabled']
+    if checksec_result['canary'] == 'no':
+        return {'CANARY': 'disabled'}, ['CANARY disabled']
+    return {}, []
 
 
-def check_clang_cfi(file_path, mitigations, summary, checksec_result):
+def check_clang_cfi(checksec_result: Dict[str, str]) -> Tuple[dict, List[str]]:
     if checksec_result['clangcfi'] == 'yes':
-        summary.update({'CLANGCFI enabled': file_path})
-        mitigations.update({'CLANGCFI': 'enabled'})
-
-    elif checksec_result['clangcfi'] == 'no':
-        summary.update({'CLANGCFI disabled': file_path})
-        mitigations.update({'CLANGCFI': 'disabled'})
+        return {'CLANGCFI': 'enabled'}, ['CLANGCFI enabled']
+    if checksec_result['clangcfi'] == 'no':
+        return {'CLANGCFI': 'disabled'}, ['CLANGCFI disabled']
+    return {}, []
 
 
-def check_clang_safestack(file_path, mitigations, summary, checksec_result):
+def check_clang_safestack(checksec_result: Dict[str, str]) -> Tuple[dict, List[str]]:
     if checksec_result['safestack'] == 'yes':
-        summary.update({'SAFESTACK enabled': file_path})
-        mitigations.update({'SAFESTACK': 'enabled'})
-
-    elif checksec_result['safestack'] == 'no':
-        summary.update({'SAFESTACK disabled': file_path})
-        mitigations.update({'SAFESTACK': 'disabled'})
+        return {'SAFESTACK': 'enabled'}, ['SAFESTACK enabled']
+    if checksec_result['safestack'] == 'no':
+        return {'SAFESTACK': 'disabled'}, ['SAFESTACK disabled']
+    return {}, []
 
 
-def check_rpath(file_path, mitigations, summary, checksec_result):
+def check_rpath(checksec_result: Dict[str, str]) -> Tuple[dict, List[str]]:
     if checksec_result['rpath'] == 'yes':
-        summary.update({'RPATH enabled': file_path})
-        mitigations.update({'RPATH': 'enabled'})
-
-    elif checksec_result['rpath'] == 'no':
-        summary.update({'RPATH disabled': file_path})
-        mitigations.update({'RPATH': 'disabled'})
+        return {'RPATH': 'enabled'}, ['RPATH enabled']
+    if checksec_result['rpath'] == 'no':
+        return {'RPATH': 'disabled'}, ['RPATH disabled']
+    return {}, []
 
 
-def check_runpath(file_path, mitigations, summary, checksec_result):
+def check_runpath(checksec_result: Dict[str, str]) -> Tuple[dict, List[str]]:
     if checksec_result['runpath'] == 'yes':
-        summary.update({'RUNPATH enabled': file_path})
-        mitigations.update({'RUNPATH': 'enabled'})
-
-    elif checksec_result['runpath'] == 'no':
-        summary.update({'RUNPATH disabled': file_path})
-        mitigations.update({'RUNPATH': 'disabled'})
+        return {'RUNPATH': 'enabled'}, ['RUNPATH enabled']
+    if checksec_result['runpath'] == 'no':
+        return {'RUNPATH': 'disabled'}, ['RUNPATH disabled']
+    return {}, []
 
 
-def check_stripped_symbols(file_path, mitigations, summary, checksec_result):
+def check_stripped_symbols(checksec_result: Dict[str, str]) -> Tuple[dict, List[str]]:
     if checksec_result['symbols'] == 'yes':
-        summary.update({'STRIPPED SYMBOLS disabled': file_path})
-        mitigations.update({'STRIPPED SYMBOLS': 'disabled'})
-
-    elif checksec_result['symbols'] == 'no':
-        summary.update({'STRIPPED SYMBOLS enabled': file_path})
-        mitigations.update({'STRIPPED SYMBOLS': 'enabled'})
+        return {'STRIPPED SYMBOLS': 'disabled'}, ['STRIPPED SYMBOLS disabled']
+    if checksec_result['symbols'] == 'no':
+        return {'STRIPPED SYMBOLS': 'enabled'}, ['STRIPPED SYMBOLS enabled']
+    return {}, []

@@ -3,6 +3,7 @@ import sys
 from contextlib import suppress
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from typing import Dict, List
 
 from docker.errors import DockerException
 from docker.types import Mount
@@ -10,6 +11,8 @@ from docker.types import Mount
 from analysis.YaraPluginBase import YaraBasePlugin
 from helperFunctions.docker import run_docker_container
 from helperFunctions.tag import TagColor
+from helperFunctions.typing import JsonDict
+from objects.file import FileObject
 
 try:
     from ..internal.rulebook import evaluate, vulnerabilities
@@ -28,50 +31,33 @@ class AnalysisPlugin(YaraBasePlugin):
     VERSION = '0.2.1'
     FILE = __file__
 
-    def process_object(self, file_object):
-        file_object = super().process_object(file_object)
-
-        yara_results = file_object.processed_analysis.pop(self.NAME)
-        file_object.processed_analysis[self.NAME] = {}
-
+    def do_analysis(self, file_object: FileObject) -> JsonDict:
+        yara_results = super().do_analysis(file_object)
         binary_vulnerabilities = self._post_process_yara_results(yara_results)
         matched_vulnerabilities = self._check_vulnerabilities(file_object.processed_analysis)
 
         # CVE-2021-45608 NetUSB
-        if 'NetUSB' in file_object.processed_analysis.get('software_components', {}):
+        if 'NetUSB' in file_object.processed_analysis.get('software_components', {}).get('result', {}):
             matched_vulnerabilities.extend(self._check_netusb_vulnerability(file_object.binary))
 
-        for name, vulnerability in binary_vulnerabilities + matched_vulnerabilities:
-            file_object.processed_analysis[self.NAME][name] = vulnerability
+        return dict(binary_vulnerabilities + matched_vulnerabilities)
 
-        file_object.processed_analysis[self.NAME]['summary'] = [name for name, _ in binary_vulnerabilities + matched_vulnerabilities]
-
-        self.add_tags(file_object, binary_vulnerabilities + matched_vulnerabilities)
-
-        return file_object
-
-    def add_tags(self, file_object, vulnerability_list):
-        for name, details in vulnerability_list:
+    def generate_tags(self, result: JsonDict, summary: List[str]) -> Dict[str, dict]:  # pylint: disable=arguments-differ
+        tags = {}
+        for name, details in result.items():
             if details['score'] == 'none':
                 continue
-            if details['score'] == 'high':
-                propagate = True
-                tag_color = TagColor.RED
-            else:
-                propagate = False
-                tag_color = TagColor.ORANGE
-
-            self.add_analysis_tag(
-                file_object=file_object,
+            score_is_high = details['score'] == 'high'
+            tags.update(self._create_analysis_tag(
                 tag_name=name,
                 value=name.replace('_', ' '),
-                color=tag_color,
-                propagate=propagate
-            )
+                color=TagColor.RED if score_is_high else TagColor.ORANGE,
+                propagate=score_is_high,
+            ))
+        return tags
 
     @staticmethod
     def _post_process_yara_results(yara_results):
-        yara_results.pop('summary')
         new_results = []
         for result in yara_results:
             meta = yara_results[result]['meta']
