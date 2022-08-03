@@ -2,11 +2,13 @@ import logging
 from multiprocessing import Manager, Queue, Value
 from queue import Empty
 from time import time
+from typing import Dict, List
 
 from helperFunctions.process import (
     ExceptionSafeProcess, check_worker_exceptions, start_single_worker, stop_processes, terminate_process_and_children
 )
 from helperFunctions.tag import TagColor
+from helperFunctions.typing import JsonDict
 from objects.file import FileObject
 from plugins.base import BasePlugin
 
@@ -77,20 +79,44 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
     def _analysis_depth_not_reached_yet(self, fo):
         return self.RECURSIVE or fo.depth == 0
 
-    def process_object(self, file_object):  # pylint: disable=no-self-use
-        '''
-        This function must be implemented by the plugin
-        '''
+    def do_analysis(self, file_object: FileObject) -> JsonDict:  # pylint: disable=no-self-use,unused-argument
+        """
+        This function must be implemented by the plugin and returns the result of the plugin's analysis
+        """
+        return {}
+
+    @staticmethod
+    def create_summary(analysis_result: JsonDict) -> List[str]:  # pylint: disable=unused-argument
+        """
+        This function can be implemented by the plugin and returns the summary of the plugin's analysis.
+        Input for this function is the result of the plugin's analysis (the output of `do_analysis()`).
+        """
+        return []
+
+    @staticmethod
+    def generate_tags(result: JsonDict, summary: List[str]) -> Dict[str, dict]:  # pylint: disable=unused-argument
+        """
+        This function can be implemented by the plugin and returns the analysis tags for the plugin's analysis.
+        Input for this function is the result of the plugin's analysis (the output of `do_analysis()`) and the
+        summary (the output of `create_summary()`).
+        """
+        return {}
+
+    def analyze_file(self, file_object: FileObject) -> FileObject:
+        analysis_result = self.do_analysis(file_object)
+        summary = self.create_summary(analysis_result) if 'failed' not in analysis_result else []
+        tags = self.generate_tags(analysis_result, summary) if 'failed' not in analysis_result else {}
+        if tags and 'root_uid' not in tags:
+            tags['root_uid'] = file_object.get_root_uid()
+        file_object.processed_analysis[self.NAME] = {
+            'result': analysis_result,
+            'summary': summary,
+            'tags': tags,
+            'analysis_date': time(),
+            'plugin_version': self.VERSION,
+            'system_version': self.SYSTEM_VERSION,
+        }
         return file_object
-
-    def analyze_file(self, file_object):
-        fo = self.process_object(file_object)
-        fo = self._add_plugin_version_and_timestamp_to_analysis_result(fo)
-        return fo
-
-    def _add_plugin_version_and_timestamp_to_analysis_result(self, fo):  # pylint: disable=invalid-name
-        fo.processed_analysis[self.NAME].update(self.init_dict())
-        return fo
 
     def shutdown(self):
         '''
@@ -104,25 +130,15 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
 
 # ---- internal functions ----
 
-    def add_analysis_tag(self, file_object, tag_name, value, color=TagColor.LIGHT_BLUE, propagate=False):
-        new_tag = {
+    @staticmethod
+    def _create_analysis_tag(tag_name, value, color=TagColor.LIGHT_BLUE, propagate=False):
+        return {
             tag_name: {
                 'value': value,
                 'color': color,
                 'propagate': propagate,
-            },
-            'root_uid': file_object.get_root_uid()
+            }
         }
-        if 'tags' not in file_object.processed_analysis[self.NAME]:
-            file_object.processed_analysis[self.NAME]['tags'] = new_tag
-        else:
-            file_object.processed_analysis[self.NAME]['tags'].update(new_tag)
-
-    def init_dict(self):
-        result_update = {'analysis_date': time(), 'plugin_version': self.VERSION}
-        if self.SYSTEM_VERSION:
-            result_update.update({'system_version': self.SYSTEM_VERSION})
-        return result_update
 
     def check_config(self, no_multithread):
         if self.NAME not in self.config:

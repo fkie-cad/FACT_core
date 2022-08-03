@@ -3,10 +3,12 @@ import logging
 import re
 import subprocess
 from pathlib import Path
-from typing import Dict
+from typing import Dict, List
 
 from analysis.PluginBase import AnalysisBasePlugin, PluginInitException
 from helperFunctions.fileSystem import get_src_dir
+from helperFunctions.typing import JsonDict
+from objects.file import FileObject
 
 
 class YaraBasePlugin(AnalysisBasePlugin):
@@ -38,21 +40,21 @@ class YaraBasePlugin(AnalysisBasePlugin):
         access_time = int(Path(self.signature_path).stat().st_mtime)
         return f'{yara_version}_{access_time}'
 
-    def process_object(self, file_object):
-        if self.signature_path is not None:
-            compiled_flag = '-C' if Path(self.signature_path).read_bytes().startswith(b'YARA') else ''
-            command = f'yara {compiled_flag} --print-meta --print-strings {self.signature_path} {file_object.file_path}'
-            with subprocess.Popen(command, shell=True, stdout=subprocess.PIPE) as process:
-                output = process.stdout.read().decode()
-            try:
-                result = self._parse_yara_output(output)
-                file_object.processed_analysis[self.NAME] = result
-                file_object.processed_analysis[self.NAME]['summary'] = list(result.keys())
-            except (ValueError, TypeError):
-                file_object.processed_analysis[self.NAME] = {'failed': 'Processing corrupted. Likely bad call to yara.'}
-        else:
-            file_object.processed_analysis[self.NAME] = {'failed': 'Signature path not set'}
-        return file_object
+    def do_analysis(self, file_object: FileObject) -> JsonDict:
+        if self.signature_path is None:
+            return {'failed': 'Signature path not set'}
+        compiled_flag = '-C' if Path(self.signature_path).read_bytes().startswith(b'YARA') else ''
+        command = f'yara {compiled_flag} --print-meta --print-strings {self.signature_path} {file_object.file_path}'
+        with subprocess.Popen(command, shell=True, stdout=subprocess.PIPE) as process:
+            output = process.stdout.read().decode()
+        try:
+            return self._parse_yara_output(output)
+        except (ValueError, TypeError):
+            return {'failed': 'Processing corrupted. Likely bad call to yara.'}
+
+    @staticmethod
+    def create_summary(analysis_result: JsonDict) -> List[str]:
+        return list(analysis_result)
 
     @staticmethod
     def _get_signature_file_name(plugin_path):
