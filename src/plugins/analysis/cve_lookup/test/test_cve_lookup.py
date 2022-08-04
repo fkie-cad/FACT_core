@@ -4,18 +4,21 @@ from pathlib import Path
 
 import pytest
 
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
+
 from test.common_helper import TEST_FW, get_config_for_testing  # pylint: disable=wrong-import-order
 
 try:
     from ..code import cve_lookup as lookup
-    from ..internal.database_interface import DatabaseInterface
-    from ..internal.helper_functions import replace_characters_and_wildcards
+    from ..internal.setup_repository import replace_characters_and_wildcards
+    from ..internal.schema import Summary, Cve, Base, Cpe
 except ImportError:
     ROOT = Path(__file__).parent.parent
     sys.path.extend([str(ROOT / 'code'), str(ROOT / 'internal')])
-    import vuln_lookup_plugin as lookup
-    from database_interface import DatabaseInterface
-    from helper_functions import replace_characters_and_wildcards
+    import cve_lookup as lookup
+    from setup_repository import replace_characters_and_wildcards
+    from schema import Summary, Cve, Base, Cpe
 
 
 # pylint: disable=redefined-outer-name
@@ -29,32 +32,13 @@ MATCHED_CPE = [
     lookup.Product('mircosof', 'windows_7', '0\\.7')
 ]
 MATCHED_CVE = ['CVE-1234-0010', 'CVE-1234-0011']
-CPE_CVE_OUTPUT = [
-    ('CVE-1234-0008', 'microsoft', 'server_2013', '2013', '10.0', '7.0', '1.2', '', '3.4', ''),
-    ('CVE-1234-0009', 'mircosof', 'windows_7', '0\\.7', '10.0', '7.0', '1.2', '', '3.4', ''),
-    ('CVE-1234-0010', 'microsoft', 'windows_8', '1\\.2\\.5', '10.0', '7.0', '1.2', '', '3.4', ''),
-    ('CVE-1234-0011', 'microsoft', 'windows_8', 'ANY', '10.0', '7.0', '1.2', '', '3.4', ''),
-    ('CVE-1234-0012', 'linux', 'linux_kernel', '2\\.2.\\3', '10.0', '7.0', '1.2', '', '3.4', ''),
-]
+
 
 MATCHED_SUMMARY = ['CVE-1234-0005', 'CVE-1234-0006', 'CVE-1234-0007']
-SUMMARY_OUTPUT = [
-    ('CVE-1234-0001', 'Attacker gains remote access', '5.0', '7.0'),
-    ('CVE-1234-0002', 'Attacker gains remote access to microsoft windows', '5.0', '7.0'),
-    ('CVE-1234-0003', 'Attacker gains remote access to microsoft server 2018', '5.0', '7.0'),
-    ('CVE-1234-0004', 'Attacker gains remote access to microsoft windows 2018', '5.0', '7.0'),
-    ('CVE-1234-0005', 'Attacker gains remote access to microsoft windows 8', '5.0', '7.0'),
-    ('CVE-1234-0006', 'Attacker gains remote access to microsoft windows 7', '5.0', '7.0'),
-    ('CVE-1234-0007', 'Attacker gains remote access to microsoft corporation windows 7', '5.0', '7.0'),
-]
+
 
 PRODUCT_SEARCH_TERMS = ['windows', 'windows_7']
 VERSION_SEARCH_TERM = '1\\.2\\.5'
-CPE_DATABASE_OUTPUT = [('microsoft', 'server_2013', '2013'),
-                       ('mircosof', 'windows_7', '0\\.7'),
-                       ('microsoft', 'windows_8', '1\\.2\\.5'),
-                       ('microsoft', 'windows_7', '1\\.3\\.1'),
-                       ('linux', 'linux_kernel', '2\\.2.\\3')]
 
 SUMMARY_INPUT = ''
 
@@ -172,35 +156,116 @@ def test_remaining_words_present(word_list, remaining_words, expected_output):
     ('bla bla microsoft windows home 8 bla', False),
 ])
 def test_product_is_mentioned(word_list, expected_output):
-    assert lookup.product_is_mentioned_in_summary(SORT_CPE_MATCHES_OUTPUT, word_list) == expected_output
+    summary = Summary(
+        summary=word_list,
+    )
+    assert lookup.product_is_mentioned_in_summary(SORT_CPE_MATCHES_OUTPUT, summary) == expected_output
 
 
-def test_match_cpe(monkeypatch):
-    with monkeypatch.context() as monkey:
-        monkey.setattr(DatabaseInterface, 'fetch_multiple', lambda *_, **__: CPE_DATABASE_OUTPUT)
-        actual_match = list(lookup.match_cpe(DatabaseInterface, PRODUCT_SEARCH_TERMS))
-        assert all(entry in actual_match for entry in MATCHED_CPE)
+def test_match_cpe(session):
+    for vendor, product, version in [
+        ('microsoft', 'server_2013', '2013'),
+        ('mircosof', 'windows_7', '0\\.7'),
+        ('microsoft', 'windows_8', '1\\.2\\.5'),
+        ('microsoft', 'windows_7', '1\\.3\\.1'),
+        ('linux', 'linux_kernel', '2\\.2.\\3')
+    ]:
+        session.add(Cpe(
+                vendor=vendor,
+                product=product,
+                version=version,
+                # Not needed
+                cpe_id="None",
+                part="None",
+                update="None",
+                edition="None",
+                language="None",
+                sw_edition="None",
+                target_sw="None",
+                target_hw="None",
+                other="None",
+            ),
+        )
+
+    actual_match = list(lookup.match_cpe(session, PRODUCT_SEARCH_TERMS))
+    assert all(entry in actual_match for entry in MATCHED_CPE)
 
 
-def test_search_cve(monkeypatch):
-    with monkeypatch.context() as monkey:
-        monkey.setattr(DatabaseInterface, 'fetch_multiple', lambda *_, **__: CPE_CVE_OUTPUT)
-        actual_match = list(lookup.search_cve(DatabaseInterface, SORT_CPE_MATCHES_OUTPUT))
-        assert sorted(MATCHED_CVE) == sorted(actual_match)
+def test_search_cve(session):
+    for cve_id, vendor, product_name, version, cvss_v2_score, cvss_v3_score, version_start_including, version_start_excluding, version_end_including, version_end_excluding in [
+        ('CVE-1234-0008', 'microsoft', 'server_2013', '2013', '10.0', '7.0', '1.2', '', '3.4', ''),
+        ('CVE-1234-0009', 'mircosof', 'windows_7', '0\\.7', '10.0', '7.0', '1.2', '', '3.4', ''),
+        ('CVE-1234-0010', 'microsoft', 'windows_8', '1\\.2\\.5', '10.0', '7.0', '1.2', '', '3.4', ''),
+        ('CVE-1234-0011', 'microsoft', 'windows_8', 'ANY', '10.0', '7.0', '1.2', '', '3.4', ''),
+        ('CVE-1234-0012', 'linux', 'linux_kernel', '2\\.2.\\3', '10.0', '7.0', '1.2', '', '3.4', ''),
+    ]:
+        session.add(Cve(
+            cve_id=cve_id,
+            vendor=vendor,
+            product=product_name,
+            version=version,
+            cvss_v2_score=cvss_v2_score,
+            cvss_v3_score=cvss_v3_score,
+            version_start_including=version_start_including,
+            version_start_excluding=version_start_excluding,
+            version_end_including=version_end_including,
+            version_end_excluding=version_end_excluding,
+            # Not needed
+            year="None",
+            cpe_id="None",
+            part="None",
+            update="None",
+            edition="None",
+            language="None",
+            sw_edition="None",
+            target_sw="None",
+            target_hw="None",
+            other="None",
+            ),
+        )
+
+    actual_match = list(lookup.search_cve(session, SORT_CPE_MATCHES_OUTPUT))
+    assert sorted(MATCHED_CVE) == sorted(actual_match)
 
 
-def test_search_cve_summary(monkeypatch):
-    with monkeypatch.context() as monkey:
-        monkey.setattr(DatabaseInterface, 'fetch_multiple', lambda *_, **__: SUMMARY_OUTPUT)
-        MATCHED_SUMMARY.sort()
-        actual_match = list(lookup.search_cve_summary(DatabaseInterface, SORT_CPE_MATCHES_OUTPUT))
-        actual_match.sort()
-        assert MATCHED_SUMMARY == actual_match
+def test_search_cve_summary(session):
+    for cve_id, summary, cvss_v2_score, cvss_v3_score in [
+        ('CVE-1234-0001', 'Attacker gains remote access', '5.0', '7.0'),
+        ('CVE-1234-0002', 'Attacker gains remote access to microsoft windows', '5.0', '7.0'),
+        ('CVE-1234-0003', 'Attacker gains remote access to microsoft server 2018', '5.0', '7.0'),
+        ('CVE-1234-0004', 'Attacker gains remote access to microsoft windows 2018', '5.0', '7.0'),
+        ('CVE-1234-0005', 'Attacker gains remote access to microsoft windows 8', '5.0', '7.0'),
+        ('CVE-1234-0006', 'Attacker gains remote access to microsoft windows 7', '5.0', '7.0'),
+        ('CVE-1234-0007', 'Attacker gains remote access to microsoft corporation windows 7', '5.0', '7.0'),
+    ]:
+        summary = Summary(
+            cve_id=cve_id,
+            summary=summary,
+            cvss_v2_score=cvss_v2_score,
+            cvss_v3_score=cvss_v3_score,
+            # Not needed
+            year="None",
+        )
+        session.add(summary)
+
+    MATCHED_SUMMARY.sort()
+    actual_match = list(lookup.search_cve_summary(session, SORT_CPE_MATCHES_OUTPUT))
+    actual_match.sort()
+    assert MATCHED_SUMMARY == actual_match
 
 
 class MockAdmin:
     def register_plugin(self, name, administrator):
         pass
+
+
+@pytest.fixture
+def session():
+    engine = create_engine('sqlite:///:memory:', future=True)
+    Base.metadata.create_all(engine)
+    session = Session(engine)
+    yield session
+    session.close()
 
 
 @pytest.fixture(scope='function')
@@ -281,8 +346,13 @@ def test_add_tags(stub_plugin, cve_score, should_be_tagged):
 )
 def test_versions_match(cpe_version: str, cve_version: str, version_start_including: str, version_start_excluding: str,
                         version_end_including: str, version_end_excluding: str, expected_output: bool):
-    cve_entry = lookup.CveDbEntry(None, None, None, cve_version, None, None, version_start_including,
-                                  version_start_excluding, version_end_including, version_end_excluding)
+    cve_entry = Cve(
+        version=cve_version,
+        version_start_including=version_start_including,
+        version_start_excluding=version_start_excluding,
+        version_end_including=version_end_including,
+        version_end_excluding=version_end_excluding,
+    )
     assert lookup.versions_match(cpe_version, cve_entry) == expected_output
 
 
@@ -299,8 +369,13 @@ def test_versions_match(cpe_version: str, cve_version: str, version_start_includ
 ])
 def test_build_version_string(version: str, version_start_including: str, version_start_excluding: str,
                               version_end_including: str, version_end_excluding: str, expected_output: str):
-    cve_entry = lookup.CveDbEntry(None, None, None, version, None, None, version_start_including,
-                                  version_start_excluding, version_end_including, version_end_excluding)
+    cve_entry = Cve(
+        version=version,
+        version_start_including=version_start_including,
+        version_start_excluding=version_start_excluding,
+        version_end_including=version_end_including,
+        version_end_excluding=version_end_excluding,
+    )
     assert lookup.build_version_string(cve_entry) == expected_output
 
 

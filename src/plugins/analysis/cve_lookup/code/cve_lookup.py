@@ -14,24 +14,24 @@ from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.tag import TagColor
 from objects.file import FileObject
 from plugins.mime_blacklists import MIME_BLACKLIST_NON_EXECUTABLE
+from sqlalchemy import select, distinct
+from sqlalchemy.orm import Session
 
 try:
-    from ..internal.database_interface import QUERIES, DatabaseInterface
-    from ..internal.helper_functions import replace_characters_and_wildcards, unescape
+    from ..internal.schema import Cve, Cpe, Summary, engine
+    from ..internal.utils import replace_characters_and_wildcards
 except ImportError:
     sys.path.append(str(Path(__file__).parent.parent / 'internal'))
-    from database_interface import QUERIES, DatabaseInterface
-    from helper_functions import replace_characters_and_wildcards, unescape
+    from utils import replace_characters_and_wildcards
+    from schema import Cve, Cpe, Summary, engine
 
 MAX_TERM_SPREAD = 3  # a range in which the product term is allowed to come after the vendor term for it not to be a false positive
 MAX_LEVENSHTEIN_DISTANCE = 0
 Product = NamedTuple('Product', [('vendor_name', str), ('product_name', str), ('version_number', str)])
-CveDbEntry = NamedTuple(
-    'CveDbEntry', [
-        ('cve_id', str), ('vendor', str), ('product_name', str), ('version', str), ('cvss_v2_score', str), ('cvss_v3_score', str),
-        ('version_start_including', str), ('version_start_excluding', str), ('version_end_including', str), ('version_end_excluding', str)
-    ]
-)
+
+
+def unescape(string: str) -> str:
+    return string.replace('\\', '')
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
@@ -42,7 +42,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     DESCRIPTION = 'lookup CVE vulnerabilities'
     MIME_BLACKLIST = MIME_BLACKLIST_NON_EXECUTABLE
     DEPENDENCIES = ['software_components']
-    VERSION = '0.0.4'
+    VERSION = '1.0.0'
     FILE = __file__
 
     def process_object(self, file_object):
@@ -93,10 +93,10 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
 
 def look_up_vulnerabilities(product_name: str, requested_version: str) -> Optional[dict]:
-    with DatabaseInterface() as db:
+    with Session(engine) as session:
         product_terms, version = replace_characters_and_wildcards(generate_search_terms(product_name)), replace_characters_and_wildcards([requested_version])[0]
 
-        matched_cpe = match_cpe(db, product_terms)
+        matched_cpe = match_cpe(session, product_terms)
         if len(matched_cpe) == 0:
             logging.debug(f'No CPEs were found for product {product_name}')
             return None
@@ -105,8 +105,8 @@ def look_up_vulnerabilities(product_name: str, requested_version: str) -> Option
         except IndexError:
             return None
 
-        cve_candidates = search_cve(db, matched_product)
-        cve_candidates.update(search_cve_summary(db, matched_product))
+        cve_candidates = search_cve(session, matched_product)
+        cve_candidates.update(search_cve_summary(session, matched_product))
     return cve_candidates
 
 
@@ -146,7 +146,7 @@ def find_next_closest_version(sorted_version_list: List[str], requested_version:
     return sorted_version_list[search_word_index - 1]
 
 
-def build_version_string(cve_entry: CveDbEntry) -> str:
+def build_version_string(cve_entry: Cve) -> str:
     if not any([cve_entry.version_start_including, cve_entry.version_start_excluding,
                 cve_entry.version_end_including, cve_entry.version_end_excluding]):
         return unescape(cve_entry.version)
@@ -162,28 +162,27 @@ def build_version_string(cve_entry: CveDbEntry) -> str:
     return result
 
 
-def search_cve(db: DatabaseInterface, product: Product) -> dict:
+def search_cve(session, product: Product) -> dict:
     result = {}
-    for query_result in db.fetch_multiple(QUERIES['cve_lookup']):
-        cve_entry = CveDbEntry(*query_result)
-        if _product_matches_cve(product, cve_entry):
-            result[cve_entry.cve_id] = {
-                'score2': cve_entry.cvss_v2_score,
-                'score3': cve_entry.cvss_v3_score,
-                'cpe_version': build_version_string(cve_entry)
+    for cve in session.scalars(select(Cve)):
+        if _product_matches_cve(product, cve):
+            result[cve.cve_id] = {
+                'score2': cve.cvss_v2_score,
+                'score3': cve.cvss_v3_score,
+                'cpe_version': build_version_string(cve)
             }
     return result
 
 
-def _product_matches_cve(product: Product, cve_entry: CveDbEntry) -> bool:
+def _product_matches_cve(product: Product, cve_entry: Cve) -> bool:
     return (
         terms_match(product.vendor_name, cve_entry.vendor)
-        and terms_match(product.product_name, cve_entry.product_name)
+        and terms_match(product.product_name, cve_entry.product)
         and versions_match(unescape(product.version_number), cve_entry)
     )
 
 
-def versions_match(cpe_version: str, cve_entry: CveDbEntry) -> bool:
+def versions_match(cpe_version: str, cve_entry: Cve) -> bool:
     for version_boundary, operator_ in [
             (cve_entry.version_start_including, operator.le),
             (cve_entry.version_start_excluding, operator.lt),
@@ -202,16 +201,16 @@ def compare_version(version1: str, version2: str, comp_operator: Callable) -> bo
     return comp_operator(parse_version(version1), parse_version(version2))
 
 
-def search_cve_summary(db: DatabaseInterface, product: namedtuple) -> dict:
+def search_cve_summary(session, product: namedtuple) -> dict:
     return {
-        cve_id: {'score2': cvss_v2_score, 'score3': cvss_v3_score}
-        for cve_id, summary, cvss_v2_score, cvss_v3_score in db.fetch_multiple(QUERIES['summary_lookup'])
+        summary.cve_id: {'score2': summary.cvss_v2_score, 'score3': summary.cvss_v3_score}
+        for summary in session.scalars(select(Summary))
         if product_is_mentioned_in_summary(product, summary)
     }
 
 
-def product_is_mentioned_in_summary(product: Product, summary: str) -> bool:
-    word_list = summary.split(' ')
+def product_is_mentioned_in_summary(product: Product, summary: Summary) -> bool:
+    word_list = summary.summary.split(' ')
     vendor = product.vendor_name.split('_')[0]
     name_components = product.product_name.split('_')
 
@@ -238,10 +237,12 @@ def remaining_words_present(word_list: List[str], words: List[str]) -> bool:
     return True
 
 
-def match_cpe(db: DatabaseInterface, product_search_terms: list) -> List[Product]:
+def match_cpe(session, product_search_terms: list) -> List[Product]:
     return list({
         Product(vendor, product, version)
-        for vendor, product, version in db.fetch_multiple(QUERIES['cpe_lookup'])
+        for vendor, product, version in session.execute(
+            select(distinct(Cpe.vendor), Cpe.product, Cpe.version),
+        )
         for product_term in product_search_terms
         if terms_match(product_term, product)
     })

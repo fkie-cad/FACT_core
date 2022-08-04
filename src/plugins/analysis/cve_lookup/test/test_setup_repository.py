@@ -13,8 +13,8 @@ try:
     from ..internal.helper_functions import CveEntry, CveLookupException, CveSummaryEntry
     from .test_database_interface import TEST_QUERIES
 except ImportError:
+    import data_parsing as dp
     sys.path.append(str(Path(__file__).parent.parent / 'internal'))
-    import data_prep as dp
     import setup_repository as sr
     from database_interface import QUERIES, DatabaseInterface
     from helper_functions import CveEntry, CveLookupException, CveSummaryEntry
@@ -281,18 +281,6 @@ def patch_download(monkeypatch):
     monkeypatch.setattr(dp.requests, 'get', lambda *_, **__: MockRequests)
 
 
-def test_overlap():
-    assert sr.overlap(requested_years=YEARS, years_in_cve_database=[2015, 2016, 2017]) == [2018, 2019]
-
-
-def test_exists(monkeypatch):
-    with monkeypatch.context() as monkey:
-        monkey.setattr(sr.DATABASE, 'fetch_multiple', lambda *_, **__: EXISTS_INPUT[0])
-        assert EXISTS_OUTPUT[0] == sr.table_exists(table_name='')
-        monkey.setattr(sr.DATABASE, 'fetch_multiple', lambda *_, **__: EXISTS_INPUT[1])
-        assert EXISTS_OUTPUT[1] == sr.table_exists(table_name='')
-
-
 def test_extract_relevant_feeds():
     sr.DATABASE = sr.DatabaseInterface(PATH_TO_TEST + 'test_update.db')
     assert [('CVE-2018-0002', 2018), ('CVE-2018-0003', 2018)] == sorted(sr.extract_relevant_feeds(from_table='new', where_table='outdated'))
@@ -301,22 +289,6 @@ def test_extract_relevant_feeds():
 def test_delete_outdated_feeds():
     sr.delete_outdated_feeds(delete_outdated_from='outdated', use_for_selection='new')
     assert sr.DATABASE.fetch_one(query=QUERIES['select_all'].format('outdated'))[0] == 'CVE-2018-0001'
-
-
-def test_create():
-    sr.DATABASE = sr.DatabaseInterface(PATH_TO_TEST + 'test_import.db')
-    sr.create(query='test_create', table_name='test')
-    assert sr.DATABASE.fetch_one(query=QUERIES['exist'].format('test'))[0] == 'test'
-
-
-def test_insert_into():
-    sr.insert_into(query='test_insert', table_name='test', input_data=[(1,), (2,)])
-    assert [(1,), (2,)] == sorted(sr.DATABASE.fetch_multiple(query=QUERIES['select_all'].format('test')))
-
-
-def test_drop_table():
-    sr.drop_table('test')
-    assert [] == list(sr.DATABASE.fetch_multiple(query=QUERIES['exist'].format('test')))
 
 
 def test_update_cpe(monkeypatch):
@@ -443,11 +415,6 @@ def test_update_cve_summaries():
     assert sorted(db_summary) == sorted(EXPECTED_UPDATED_SUMMARY_TABLE)
 
 
-def test_get_years_from_database():
-    sr.DATABASE = sr.DatabaseInterface(PATH_TO_TEST + 'test_update.db')
-    assert sr.get_years_from_database() == [2018]
-
-
 def test_import_cve(monkeypatch):
     with monkeypatch.context() as monkey:
         sr.DATABASE = sr.DatabaseInterface(PATH_TO_TEST + 'test_import.db')
@@ -457,20 +424,6 @@ def test_import_cve(monkeypatch):
         actual_summary_output = list(sr.DATABASE.fetch_multiple(QUERIES['select_all'].format('summary_table')))
         assert sorted(actual_cve_output) == sorted(EXPECTED_CVE_OUTPUT)
         assert sorted(actual_summary_output) == sorted(EXPECTED_SUM_OUTPUT)
-
-
-@pytest.mark.parametrize('path, choice, years, expected', [
-    ('', sr.Choice('both'), YEARS, ['cpe', 'cve']),
-    ('', sr.Choice('cpe'), YEARS, ['cpe']),
-    ('', sr.Choice('cve'), YEARS, ['cve']),
-])
-def test_set_repository(monkeypatch, path, choice, years, expected):
-    output = list()
-    with monkeypatch.context() as monkey:
-        monkey.setattr(sr, 'import_cpe', lambda *_, **__: output.append('cpe'))
-        monkey.setattr(sr, 'import_cve', lambda *_, **__: output.append('cve'))
-        sr.init_repository(path, choice, years)
-        assert output == expected
 
 
 @pytest.mark.parametrize('path, choice, expected', [
@@ -485,24 +438,6 @@ def test_update_repository(monkeypatch, path, choice, expected):
         monkey.setattr(sr, 'update_cve_repository', lambda *_, **__: output.append('cve'))
         sr.update_repository(path, choice)
         assert output == expected
-
-
-@pytest.mark.parametrize('years, raising', [
-    (YEARTUPLE(2002, 2019), None),
-    (YEARTUPLE(2001, 2019), ValueError),
-    (YEARTUPLE(2018, 2017), ValueError)
-])
-def test_check_validity_of_arguments(years, raising):
-    if raising:
-        with pytest.raises(ValueError):
-            sr.check_validity_of_arguments(years=years)
-    else:
-        sr.check_validity_of_arguments(years=years)
-
-
-def test_setup_cve_feeds_table():
-    cve_result = sr.setup_cve_feeds_table(CVE_LIST)
-    assert CVE_TABLE == cve_result
 
 
 def test_setup_cve_summary_table():
