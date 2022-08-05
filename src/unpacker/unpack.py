@@ -2,6 +2,7 @@ import json
 import logging
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from time import time
 from typing import List
 
 from fact_helper_file import get_file_type_from_path
@@ -46,7 +47,7 @@ class Unpacker(UnpackBase):
     @staticmethod
     def _store_unpacking_depth_skip_info(file_object: FileObject):
         file_object.processed_analysis['unpacker'] = {
-            'plugin_used': 'None', 'number_of_unpacked_files': 0,
+            'plugin_used': 'None', 'number_of_unpacked_files': 0, 'plugin_version': '0.0', 'analysis_date': time(),
             'info': 'Unpacking stopped because maximum unpacking depth was reached',
         }
         tag_dict = {'unpacker': {'depth reached': {'value': 'unpacking depth reached', 'color': TagColor.ORANGE, 'propagate': False}}}

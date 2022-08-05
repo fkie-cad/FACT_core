@@ -132,9 +132,9 @@ def create_analysis_entries(file_object: FileObject, fo_backref: FileObjectEntry
         AnalysisEntry(
             uid=file_object.uid,
             plugin=plugin_name,
-            plugin_version=analysis_data['plugin_version'],
+            plugin_version=analysis_data.get('plugin_version'),
             system_version=analysis_data.get('system_version'),
-            analysis_date=analysis_data['analysis_date'],
+            analysis_date=analysis_data.get('analysis_date'),
             summary=analysis_data.get('summary'),
             tags=analysis_data.get('tags'),
             result=get_analysis_without_meta(analysis_data),
