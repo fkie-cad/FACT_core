@@ -2,7 +2,6 @@
 
 [data-storage]
 # === Postgres ===
-postgres-server = localhost
 postgres-port = 5432
 postgres-database = fact_db
 postgres-test-database = fact_test
