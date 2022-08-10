@@ -30,7 +30,7 @@ def _add_file_object_only_fields(fo, meta):
     '''
     if not isinstance(fo, Firmware):
         meta['firmwares_including_this_file'] = list(fo.parent_firmware_uids)
-        meta['virtual_file_path'] = fo.get_virtual_paths_for_one_uid()
+        meta['virtual_file_path'] = fo.virtual_file_path
 
 
 def _add_general_information(fo, meta):
