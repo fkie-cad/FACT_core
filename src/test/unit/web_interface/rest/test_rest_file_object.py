@@ -43,3 +43,4 @@ class TestRestFileObject(WebInterfaceTest):
         result = self.test_client.get(f'/rest/file_object/{TEST_TEXT_FILE.uid}').json
         assert 'file_object' in result
         assert all(section in result['file_object'] for section in ['meta_data', 'analysis'])
+        assert isinstance(result['file_object']['meta_data']['virtual_file_path'], dict)
