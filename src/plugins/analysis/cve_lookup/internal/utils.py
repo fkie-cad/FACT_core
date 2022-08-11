@@ -2,6 +2,7 @@ import re
 from typing import List
 
 
+@profile
 def replace_characters_and_wildcards(attributes: List[str]) -> List[str]:
     for index, attribute in enumerate(attributes):
         if attribute == '*':

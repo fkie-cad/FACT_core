@@ -186,6 +186,7 @@ CPE_SPLIT_REGEX = r'(?<![\\:]):(?!:)|(?<=\\:):'  # don't split on '::' or '\:' b
 CURRENT_YEAR = datetime.datetime.now().year
 
 
+@profile
 def parse_cpe_id(cpe_id):
     attrs = replace_characters_and_wildcards(re.split(CPE_SPLIT_REGEX, cpe_id)[2:])
     cpe = Cpe(
@@ -204,7 +205,7 @@ def parse_cpe_id(cpe_id):
     )
     return cpe
 
-
+@profile
 def populate_cpe_table(session, cpe_list: list):
     """Populates the table defined by `Cpe`.
     The list is in the fromat as returned by `get_cpe_content`
@@ -375,9 +376,14 @@ def main():
 
             cve_content, summary_content = get_cve_content(extraction_path, years=years, delta=args.update)
 
+            start = datetime.datetime.now()
+            print(start)
             populate_cve_table(session, cve_content, delta=args.update)
             # TODO update summary table
             populate_summary_table(session, summary_content, delta=args.update)
+            session.commit()
+            diff = datetime.datetime.now() - start
+            print(diff)
 
         if 'cpe' in args.target:
             if args.update:
@@ -390,7 +396,13 @@ def main():
 
             Cpe.__table__.create(engine, checkfirst=True)
             cpe_content = get_cpe_content(path=extraction_path)
+
+            start = datetime.datetime.now()
+            print(start)
             populate_cpe_table(session, cpe_content)
+            session.commit()
+            diff = datetime.datetime.now() - start
+            print(diff)
 
         session.commit()
 

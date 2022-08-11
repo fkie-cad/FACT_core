@@ -3,7 +3,7 @@ from pathlib import Path
 from sqlalchemy import Column, Integer, Text, create_engine
 from sqlalchemy.orm import declarative_base
 
-database_path = str(Path(__file__).parent / 'cve_cpe.db')
+database_path = str(Path(__file__).parent / 'benchmark.db')
 engine = create_engine(f'sqlite+pysqlite:///{database_path}', future=True)
 
 Base = declarative_base()
