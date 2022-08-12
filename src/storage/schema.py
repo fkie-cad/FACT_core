@@ -23,9 +23,9 @@ class AnalysisEntry(Base):
     plugin_version = Column(VARCHAR(16), nullable=False)
     system_version = Column(VARCHAR)
     analysis_date = Column(Float, nullable=False)
-    summary = Column(ARRAY(VARCHAR, dimensions=1))
+    summary = Column(ARRAY(VARCHAR, dimensions=1), default=[])
     tags = Column(MutableDict.as_mutable(JSONB))
-    result = Column(MutableDict.as_mutable(JSONB))
+    result = Column(MutableDict.as_mutable(JSONB), default={})
 
     file_object = relationship('FileObjectEntry', back_populates='analyses')
 

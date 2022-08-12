@@ -149,7 +149,7 @@ def analysis_entry_to_dict(entry: AnalysisEntry) -> dict:
         'analysis_date': entry.analysis_date,
         'plugin_version': entry.plugin_version,
         'system_version': entry.system_version,
-        'summary': entry.summary,
+        'summary': entry.summary or [],
         'tags': entry.tags or {},
-        **entry.result,
+        **(entry.result or {}),
     }
