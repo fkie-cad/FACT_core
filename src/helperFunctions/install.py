@@ -270,7 +270,7 @@ def install_pip_packages(package_file: Path):
             run_cmd_with_logging(command, silent=True)
         except CalledProcessError as error:
             # don't fail if a package is already installed using apt and can't be upgraded
-            if error.stderr is not None and 'distutils installed' in error.stderr:
+            if error.stdout is not None and 'distutils installed' in error.stdout:
                 logging.warning(f'Pip package {package} is already installed with distutils. This may Cause problems:\n{error.stderr}')
                 continue
             logging.error(f'Pip package {package} could not be installed:\n{error.stderr or error.stdout}')
