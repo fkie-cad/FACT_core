@@ -2,3 +2,30 @@
 line-length = 120
 skip-string-normalization = true
 target-version = ['py37']
+
+[tool.pylint.main]
+init-hook = 'import sys; sys.path.append("./src")'
+ignore-patterns = ["test/", "src/bin"]
+load-plugins = ["pylint.extensions.bad_builtin", "pylint.extensions.mccabe"]
+extension-pkg-allow-list = ["yara"]
+jobs = 0
+
+[tool.pylint."messages control"]
+confidence = []
+disable = ["missing-docstring" , "locally-disabled", "logging-format-interpolation", "logging-fstring-interpolation"]
+
+
+[tool.pylint.reports]
+output-format = "colorized"
+msg-template="{path}:{line}: [{symbol}:{obj}] {msg}"
+
+[tool.pylint.format]
+max-line-length = 120
+
+[tool.pylint.design]
+max-complexity = 7
+min-public-methods = 0
+max-public-methods = 40
+
+[tool.pylint.imports]
+known-third-party = ["enchant", "docker"]
