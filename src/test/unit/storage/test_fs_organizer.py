@@ -43,7 +43,8 @@ class TestFsOrganizer(unittest.TestCase):
 
         self.fs_organzier.store_file(file_object)
         self.check_file_presence_and_content(
-            f'{self.ds_tmp_dir.name}/36/36bbe50ed96841d10443bcb670d6554f0a34b761be67ec9c4a8ad2c0c44ca42c_5', b'abcde',
+            f'{self.ds_tmp_dir.name}/36/36bbe50ed96841d10443bcb670d6554f0a34b761be67ec9c4a8ad2c0c44ca42c_5',
+            b'abcde',
         )
         self.assertEqual(
             file_object.file_path,

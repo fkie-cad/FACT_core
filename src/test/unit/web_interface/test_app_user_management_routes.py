@@ -237,7 +237,9 @@ class TestAppUpload(WebInterfaceTest):
         # this request should change the roles to 0 and 2 (add 2 and remove 1)
         with caplog.at_level(logging.INFO):
             self.test_client.post(
-                '/admin/user/0', follow_redirects=True, data={
+                '/admin/user/0',
+                follow_redirects=True,
+                data={
                     'input_roles': [roles[0], roles[2]],
                 },
             )
@@ -250,7 +252,9 @@ class TestAppUpload(WebInterfaceTest):
 
     def test_edit_roles__unknown_element(self):
         response = self.test_client.post(
-            '/admin/user/9999', follow_redirects=True, data={
+            '/admin/user/9999',
+            follow_redirects=True,
+            data={
                 'input_roles': [roles[0]],
             },
         )

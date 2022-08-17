@@ -69,12 +69,16 @@ def main():
     subparsers = parser.add_subparsers()
 
     upgrade_process = subparsers.add_parser(
-        'upgrade', help='Upgrade the user database', formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        'upgrade',
+        help='Upgrade the user database',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     upgrade_process.set_defaults(func=upgrade)
 
     downgrade_process = subparsers.add_parser(
-        'downgrade', help='Downgrade the user database', formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        'downgrade',
+        help='Downgrade the user database',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     downgrade_process.set_defaults(func=downgrade)
     args = parser.parse_args()

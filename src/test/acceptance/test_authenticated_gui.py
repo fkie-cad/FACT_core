@@ -29,14 +29,20 @@ class TestAcceptanceAuthentication(TestAuthenticatedAcceptanceBase):
             self.assertIn(self.PERMISSION_DENIED_STRING, response.data, 'upload should not be accessible for guest')
 
             response = self.test_client.get(
-                '/upload', headers={'Authorization': self.guest_analyst.key}, follow_redirects=True,
+                '/upload',
+                headers={'Authorization': self.guest_analyst.key},
+                follow_redirects=True,
             )
             self.assertIn(
-                self.PERMISSION_DENIED_STRING, response.data, 'upload should not be accessible for guest_analyst',
+                self.PERMISSION_DENIED_STRING,
+                response.data,
+                'upload should not be accessible for guest_analyst',
             )
 
             response = self.test_client.get(
-                '/upload', headers={'Authorization': self.superuser.key}, follow_redirects=True,
+                '/upload',
+                headers={'Authorization': self.superuser.key},
+                follow_redirects=True,
             )
             self.assertNotIn(self.PERMISSION_DENIED_STRING, response.data, 'upload should be accessible for superusers')
         finally:

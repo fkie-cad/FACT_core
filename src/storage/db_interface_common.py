@@ -80,9 +80,10 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
                     func.array_agg(children_table.c.parent_uid),
                 ).filter(FileObjectEntry.uid.in_(uid_list))
                 # outer join here because objects may not have included files
-                .outerjoin(parents_table, parents_table.c.parent_uid == FileObjectEntry.uid,
-                           ).join(children_table,
-                                  children_table.c.child_uid == FileObjectEntry.uid).group_by(FileObjectEntry),
+                .outerjoin(
+                    parents_table,
+                    parents_table.c.parent_uid == FileObjectEntry.uid,
+                ).join(children_table, children_table.c.child_uid == FileObjectEntry.uid).group_by(FileObjectEntry),
             )
             file_objects = [
                 file_object_from_entry(fo_entry, analysis_filter, {f
@@ -166,8 +167,10 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
     def _collect_summary_from_included_objects(self, fw: Firmware, plugin: str) -> Summary:
         included_files = self.get_all_files_in_fw(fw.uid).union({fw.uid})
         with self.get_read_only_session() as session:
-            query = select(AnalysisEntry.uid, AnalysisEntry.summary,
-                           ).filter(AnalysisEntry.plugin == plugin, AnalysisEntry.uid.in_(included_files))
+            query = select(
+                AnalysisEntry.uid,
+                AnalysisEntry.summary,
+            ).filter(AnalysisEntry.plugin == plugin, AnalysisEntry.uid.in_(included_files))
             summary = {}
             for uid, summary_list in session.execute(query):  # type: str, List[str]
                 for item in summary_list or []:
@@ -204,13 +207,12 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
         unique_tags = {}
         with self.get_read_only_session() as session:
             query = (
-                select(FileObjectEntry.uid, AnalysisEntry.plugin,
-                       AnalysisEntry.tags).filter(FileObjectEntry.root_firmware.any(uid=uid),
-                                                  ).join(AnalysisEntry,
-                                                         FileObjectEntry.uid == AnalysisEntry.uid).filter(
-                                                             AnalysisEntry.tags != JSONB.NULL,
-                                                             AnalysisEntry.plugin.in_(PLUGINS_WITH_TAG_PROPAGATION),
-                                                         )
+                select(FileObjectEntry.uid, AnalysisEntry.plugin, AnalysisEntry.tags).filter(
+                    FileObjectEntry.root_firmware.any(uid=uid),
+                ).join(AnalysisEntry, FileObjectEntry.uid == AnalysisEntry.uid).filter(
+                    AnalysisEntry.tags != JSONB.NULL,
+                    AnalysisEntry.plugin.in_(PLUGINS_WITH_TAG_PROPAGATION),
+                )
             )
             for _, plugin_name, tags in session.execute(query):
                 for tag_type, tag in tags.items():

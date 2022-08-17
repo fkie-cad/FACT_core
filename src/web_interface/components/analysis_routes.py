@@ -17,7 +17,9 @@ from objects.firmware import Firmware
 from web_interface.components.compare_routes import get_comparison_uid_dict_from_session
 from web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
 from web_interface.components.dependency_graph import (
-    create_data_graph_edges, create_data_graph_nodes_and_groups, get_graph_colors,
+    create_data_graph_edges,
+    create_data_graph_nodes_and_groups,
+    get_graph_colors,
 )
 from web_interface.security.authentication import user_has_privilege
 from web_interface.security.decorator import roles_accepted
@@ -50,7 +52,8 @@ class AnalysisRoutes(ComponentBase):
                 return render_template('uid_not_found.html', uid=uid)
             if selected_analysis is not None and selected_analysis not in file_obj.processed_analysis:
                 return render_template(
-                    'error.html', message=f'The requested analysis ({selected_analysis}) has not run (yet)',
+                    'error.html',
+                    message=f'The requested analysis ({selected_analysis}) has not run (yet)',
                 )
             if isinstance(file_obj, Firmware):
                 root_uid = file_obj.uid
@@ -71,7 +74,8 @@ class AnalysisRoutes(ComponentBase):
             user_has_admin_clearance=user_has_privilege(current_user, privilege='delete'),
             known_comparisons=known_comparisons,
             available_plugins=self._get_used_and_unused_plugins(
-                file_obj.processed_analysis, [x for x in analysis_plugins.keys() if x != 'unpacker'],
+                file_obj.processed_analysis,
+                [x for x in analysis_plugins.keys() if x != 'unpacker'],
             )
         )
 

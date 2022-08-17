@@ -80,7 +80,11 @@ class AnalysisPlugin(AnalysisBasePlugin):
             try:
                 ip_tuple = ip, self.find_geo_location(ip)
             except (
-                AttributeError, AddressNotFoundError, FileNotFoundError, ValueError, InvalidDatabaseError,
+                AttributeError,
+                AddressNotFoundError,
+                FileNotFoundError,
+                ValueError,
+                InvalidDatabaseError,
             ) as exception:
                 logging.debug(f'Error during {self.NAME} analysis: {str(exception)}', exc_info=True)
                 ip_tuple = ip, ''

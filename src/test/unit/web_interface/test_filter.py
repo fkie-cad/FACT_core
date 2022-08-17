@@ -136,7 +136,8 @@ def test_text_highlighter(input_data, keyword_args, expected_output):
 
 
 @pytest.mark.parametrize(
-    'input_data, expected_output', [
+    'input_data, expected_output',
+    [
         ('clean', 'color:green'),
         (0, 'color:green'),
         ('foo', 'color:red'),
@@ -279,7 +280,8 @@ def test_filter_decompress():
 
 
 @pytest.mark.parametrize(
-    'list_of_dicts, expected_result', [
+    'list_of_dicts, expected_result',
+    [
         ([], set()), ([{
             '1': ''
         }], {'1'}), ([{
@@ -311,7 +313,8 @@ def test_error_logging(function, input_data, expected_output, error_message, cap
 
 
 @pytest.mark.parametrize(
-    'input_data, expected_result', [
+    'input_data, expected_result',
+    [
         ('abc', 'abc'),
         ('^$.[]|()?*+{}', '\\^\\$\\.\\[\\]\\|\\(\\)\\?\\*\\+\\{\\}'),
     ],

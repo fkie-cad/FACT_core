@@ -136,7 +136,9 @@ class TestPluginNotRunning(TestPluginBase):
         self.config.set('dummy_plugin_for_testing_only', 'threads', threads_in_config)
         self.p_base = DummyPlugin(self, self.config, no_multithread=multithread_flag)
         self.assertEqual(
-            self.p_base.config[self.p_base.NAME]['threads'], threads_wanted, 'number of threads not correct',
+            self.p_base.config[self.p_base.NAME]['threads'],
+            threads_wanted,
+            'number of threads not correct',
         )
         self.p_base.shutdown()
 

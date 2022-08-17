@@ -204,7 +204,8 @@ class TestAnalysisSchedulerBlacklist:
 
     def test_next_analysis_is_blacklisted__whitelist_precedes_blacklist(self):
         self.sched.analysis_plugins[self.test_plugin] = self.PluginMock(
-            blacklist=['test_type'], whitelist=['test_type'],
+            blacklist=['test_type'],
+            whitelist=['test_type'],
         )
         self.file_object.processed_analysis['file_type']['mime'] = 'test_type'
         blacklisted = self.sched._next_analysis_is_blacklisted(self.test_plugin, self.file_object)
@@ -272,7 +273,12 @@ class TestAnalysisSkipping:
         ],
     )
     def test_analysis_is_already_in_db_and_up_to_date(
-        self, plugin_version, plugin_system_version, analysis_plugin_version, analysis_system_version, expected_output,
+        self,
+        plugin_version,
+        plugin_system_version,
+        analysis_plugin_version,
+        analysis_system_version,
+        expected_output,
     ):
         plugin = 'foo'
         analysis_entry = {
@@ -282,7 +288,8 @@ class TestAnalysisSkipping:
         }
         self.scheduler.db_backend_service = self.BackendMock(analysis_entry)
         self.scheduler.analysis_plugins[plugin] = self.PluginMock(
-            version=plugin_version, system_version=plugin_system_version,
+            version=plugin_version,
+            system_version=plugin_system_version,
         )
         assert self.scheduler._analysis_is_already_in_db_and_up_to_date(plugin, '') == expected_output
 
@@ -360,7 +367,9 @@ class TestAnalysisShouldReanalyse:
         expected_result,
     ):
         analysis_db_entry = dict(
-            plugin_version=db_plugin_version, analysis_date=plugin_date, system_version=db_system_version,
+            plugin_version=db_plugin_version,
+            analysis_date=plugin_date,
+            system_version=db_system_version,
         )
         self.scheduler.db_backend_service = self.BackendMock(dependency_date)
         plugin = self.PluginMock(plugin_version, system_version)

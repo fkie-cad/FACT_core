@@ -94,7 +94,8 @@ def setup() -> None:
 
 
 @pytest.mark.parametrize(
-    'software_name, expected_output', [
+    'software_name, expected_output',
+    [
         ('windows 7', ['windows', 'windows_7']),
         ('Linux Kernel', ['linux', 'linux_kernel', 'kernel']),
     ],
@@ -132,7 +133,8 @@ def test_is_valid_dotted_version(version, expected_output):
 )
 def test_find_next_closest_version(target_values, search_word, expected):
     assert lookup.find_next_closest_version(
-        sorted_version_list=target_values, requested_version=search_word,
+        sorted_version_list=target_values,
+        requested_version=search_word,
     ) == expected
 
 
@@ -141,7 +143,8 @@ def test_find_matching_cpe_product():
 
 
 @pytest.mark.parametrize(
-    'term, expected_output', [
+    'term, expected_output',
+    [
         ('mircosoft', True),
         ('microsof', True),
         ('microso', True),
@@ -379,7 +382,8 @@ def test_build_version_string(
                         'score2': '1.1', 'score3': '0.0'
                     }
                 }
-            }, ['component (CRITICAL)'],
+            },
+            ['component (CRITICAL)'],
         ),
     ],
 )

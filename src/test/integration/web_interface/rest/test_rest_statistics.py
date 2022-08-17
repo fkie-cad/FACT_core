@@ -18,7 +18,8 @@ class TestRestStatistics(RestTestBase):
             },
         )
         self.stats_updater.update_statistic(
-            'known_vulnerabilities', {'known_vulnerabilities': [['BackDoor_String', 1]]},
+            'known_vulnerabilities',
+            {'known_vulnerabilities': [['BackDoor_String', 1]]},
         )
 
     def test_rest_request_all_statistics(self, db):

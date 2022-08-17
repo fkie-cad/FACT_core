@@ -13,7 +13,8 @@ class TestAppShowAnalysis(WebInterfaceTest):
     def _get_template_filter_output(self, data, filter_name):
         with self.frontend.app.test_request_context():
             return render_template_string(
-                f'<html><body><div>{{{{ data | {filter_name} | safe }}}}</div></body></html>', data=data,
+                f'<html><body><div>{{{{ data | {filter_name} | safe }}}}</div></body></html>',
+                data=data,
             ).replace('\n', '')
 
     def test_filter_replace_uid_with_file_name(self):

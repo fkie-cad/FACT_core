@@ -9,7 +9,12 @@ DUMMY_RULE = SingleRule(['file_type'], 'is', 'application/octet-stream')
 def test_bad_reliability(reliability):
     with pytest.raises(BadRuleError):
         Vulnerability(
-            description='', score='high', reliability=reliability, short_name='name', rule=DUMMY_RULE, link=None,
+            description='',
+            score='high',
+            reliability=reliability,
+            short_name='name',
+            rule=DUMMY_RULE,
+            link=None,
         )
 
 
@@ -23,7 +28,12 @@ def test_bad_score(score):
 def test_bad_description(description):
     with pytest.raises(BadRuleError):
         Vulnerability(
-            description=description, score='high', reliability='50', short_name='name', rule=DUMMY_RULE, link=None,
+            description=description,
+            score='high',
+            reliability='50',
+            short_name='name',
+            rule=DUMMY_RULE,
+            link=None,
         )
 
 

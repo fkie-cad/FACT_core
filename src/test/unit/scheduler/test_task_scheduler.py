@@ -34,7 +34,8 @@ class TestAnalysisScheduling:
         }
 
     @pytest.mark.parametrize(
-        'input_data, expected_output', [
+        'input_data, expected_output',
+        [
             (set(), set()),
             ({'p1'}, {'p2', 'p3'}),
             ({'p3'}, set()),
@@ -47,7 +48,8 @@ class TestAnalysisScheduling:
         assert result == expected_output
 
     @pytest.mark.parametrize(
-        'input_data, expected_output', [
+        'input_data, expected_output',
+        [
             ([], set()),
             (['p3'], {'p3'}),
             (['p1'], {'p1', 'p2', 'p3'}),
@@ -73,7 +75,8 @@ class TestAnalysisScheduling:
         assert self.scheduler._get_plugins_with_met_dependencies(remaining, scheduled) == expected_output
 
     @pytest.mark.parametrize(
-        'remaining, scheduled, expected_output', [
+        'remaining, scheduled, expected_output',
+        [
             ({'bar'}, ['no_deps', 'foo'], {'bar'}),
             ({'foo', 'bar'}, ['no_deps', 'foo'], {'foo', 'bar'}),
         ],

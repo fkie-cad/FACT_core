@@ -3,7 +3,11 @@ from flask_security.core import AnonymousUser, RoleMixin, UserMixin
 from werkzeug.local import LocalProxy
 
 from helperFunctions.web_interface import (
-    _format_si_prefix, cap_length_of_element, filter_out_illegal_characters, format_time, password_is_legal,
+    _format_si_prefix,
+    cap_length_of_element,
+    filter_out_illegal_characters,
+    format_time,
+    password_is_legal,
 )
 from web_interface.security.authentication import user_has_privilege
 
@@ -60,7 +64,8 @@ def test_cap_length_of_element_short():
 
 
 @pytest.mark.parametrize(
-    'number, unit, expected_output', [
+    'number, unit, expected_output',
+    [
         (1, 'm', '1.00 m'),
         (0.034, 'g', '34.00 mg'),
         (0.0000123456789, 's', '12.35 µs'),
@@ -72,7 +77,8 @@ def test_format_si_prefix(number, unit, expected_output):
 
 
 @pytest.mark.parametrize(
-    'seconds, expected_output', [
+    'seconds, expected_output',
+    [
         (2, '2.00 s'),
         (0.2, '200.00 ms'),
         (120, '0:02:00'),

@@ -38,7 +38,9 @@ def _get_results_from_parent_fo(analysis_entry: dict, uid: str):
 class PluginRoutes(ComponentBase):
     def _init_component(self):
         self._app.add_url_rule(
-            '/plugins/qemu_exec/ajax/<uid>', 'plugins/qemu_exec/ajax/<uid>', self._get_analysis_results_of_parent_fo,
+            '/plugins/qemu_exec/ajax/<uid>',
+            'plugins/qemu_exec/ajax/<uid>',
+            self._get_analysis_results_of_parent_fo,
         )
 
     @roles_accepted(*PRIVILEGES['view_analysis'])

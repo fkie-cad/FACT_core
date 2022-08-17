@@ -88,7 +88,8 @@ def test_get_total_number_of_results(db, comp_db):
 
 
 @pytest.mark.parametrize(
-    'root_uid, expected_result', [
+    'root_uid, expected_result',
+    [
         ('the_root_uid', ['uid1', 'uid2']),
         ('some_other_uid', []),
         (None, []),

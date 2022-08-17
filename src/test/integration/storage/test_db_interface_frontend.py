@@ -8,7 +8,12 @@ from web_interface.components.dependency_graph import DepGraphData
 from web_interface.file_tree.file_tree_node import FileTreeNode
 
 from .helper import (
-    TEST_FO, TEST_FW, create_fw_with_child_fo, create_fw_with_parent_and_child, insert_test_fo, insert_test_fw,
+    TEST_FO,
+    TEST_FW,
+    create_fw_with_child_fo,
+    create_fw_with_parent_and_child,
+    insert_test_fo,
+    insert_test_fw,
 )
 
 DUMMY_RESULT = generate_analysis_entry(analysis_result={'key': 'result'})
@@ -158,7 +163,8 @@ def test_generic_search_unknown_op(db):
 
 
 @pytest.mark.parametrize(
-    'query, expected', [
+    'query, expected',
+    [
         ({}, ['uid_1']),
         ({
             'vendor': 'test_vendor'
@@ -481,12 +487,19 @@ def test_rest_get_firmware_uids(db):
     ) == [parent_fw.uid]
     assert sorted(
         db.frontend.rest_get_firmware_uids(
-            offset=None, limit=None, query={'file_name': child_fo.file_name}, recursive=True,
+            offset=None,
+            limit=None,
+            query={'file_name': child_fo.file_name},
+            recursive=True,
         )
     ) == [parent_fw.uid]
     assert sorted(
         db.frontend.rest_get_firmware_uids(
-            offset=None, limit=None, query={'file_name': child_fo.file_name}, recursive=True, inverted=True,
+            offset=None,
+            limit=None,
+            query={'file_name': child_fo.file_name},
+            recursive=True,
+            inverted=True,
         )
     ) == [test_fw1.uid, test_fw2.uid]
 

@@ -59,7 +59,10 @@ class TestAcceptanceAdvancedSearch(TestAcceptanceBase):
     def test_advanced_search_only_firmwares(self):
         query = {'advanced_search': json.dumps({'uid': self.child_fo.uid}), 'only_firmwares': 'True'}
         response = self.test_client.post(
-            '/database/advanced_search', content_type='multipart/form-data', data=query, follow_redirects=True,
+            '/database/advanced_search',
+            content_type='multipart/form-data',
+            data=query,
+            follow_redirects=True,
         ).data.decode()
         assert 'Please enter a valid search request' not in response
         assert self.child_fo.uid not in response
@@ -70,7 +73,10 @@ class TestAcceptanceAdvancedSearch(TestAcceptanceBase):
             'advanced_search': json.dumps({'uid': self.child_fo.uid}), 'only_firmwares': 'True', 'inverted': 'True'
         }
         response = self.test_client.post(
-            '/database/advanced_search', content_type='multipart/form-data', follow_redirects=True, data=query,
+            '/database/advanced_search',
+            content_type='multipart/form-data',
+            follow_redirects=True,
+            data=query,
         ).data.decode()
         assert 'Please enter a valid search request' not in response
         assert self.child_fo.uid not in response

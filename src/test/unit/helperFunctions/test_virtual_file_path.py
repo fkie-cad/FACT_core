@@ -13,7 +13,8 @@ from test.common_helper import create_test_file_object  # pylint: disable=wrong-
 
 
 @pytest.mark.parametrize(
-    'virtual_path, expected_output', [
+    'virtual_path, expected_output',
+    [
         ('', []),
         ('a|b|c', ['a', 'b', 'c']),
         ('|a|b|c|', ['a', 'b', 'c']),
@@ -44,7 +45,8 @@ def test_get_base_of_virtual_path(virtual_path, expected_output):
 
 
 @pytest.mark.parametrize(
-    'virtual_path, expected_output', [
+    'virtual_path, expected_output',
+    [
         ('', ''),
         ('root_uid', 'root_uid'),
         ('foo|bar|test', 'test'),
@@ -61,9 +63,9 @@ def test_get_top_of_virtual_path(virtual_path, expected_output):
         (['foo|/bar'], ['different|/base'], ['different|/base', 'foo|/bar']),
         (['foo|/old'], ['foo|/new'], ['foo|/new']),
         (
-            ['base1|archive1|/file1', 'base1|archive1|/file2', 'base1|archive2|/file3', 'base2|archive3|/file4'], [
-                'base1|archive1|/file5', 'base3|archive4|/file6'
-            ], ['base1|archive1|/file5', 'base1|archive2|/file3', 'base2|archive3|/file4', 'base3|archive4|/file6'],
+            ['base1|archive1|/file1', 'base1|archive1|/file2', 'base1|archive2|/file3', 'base2|archive3|/file4'],
+            ['base1|archive1|/file5', 'base3|archive4|/file6'],
+            ['base1|archive1|/file5', 'base1|archive2|/file3', 'base2|archive3|/file4', 'base3|archive4|/file6'],
         ),
     ],
 )

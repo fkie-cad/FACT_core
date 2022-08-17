@@ -2,25 +2,31 @@ import pytest
 
 from test.common_helper import TEST_FW  # pylint: disable=wrong-import-order
 from web_interface.components.dependency_graph import (
-    DepGraphData, create_data_graph_edges, create_data_graph_nodes_and_groups,
+    DepGraphData,
+    create_data_graph_edges,
+    create_data_graph_nodes_and_groups,
 )
 
 entry_1 = DepGraphData(
     '1234567',
-    'file_one.so', {TEST_FW.uid: ['|testgraph|/lib/file_one.so']},
+    'file_one.so',
+    {TEST_FW.uid: ['|testgraph|/lib/file_one.so']},
     'application/x-executable',
     'test text',
     None,
 )
 entry_2 = DepGraphData(
     '7654321',
-    'file_two', {TEST_FW.uid: ['|testgraph|/bin/file_two']},
+    'file_two',
+    {TEST_FW.uid: ['|testgraph|/bin/file_two']},
     'application/x-executable',
-    'test text', ['file_one.so'],
+    'test text',
+    ['file_one.so'],
 )
 entry_3 = DepGraphData(
     '0987654',
-    'file three', {TEST_FW.uid: ['|testgraph|/sbin/file_three']},
+    'file three',
+    {TEST_FW.uid: ['|testgraph|/sbin/file_three']},
     'inode/symlink',
     'symbolic link to \'../bin/file_two\'',
 )
@@ -96,7 +102,8 @@ def test_create_graph_nodes_and_groups(list_of_objects, parent_uid, root_uid, wh
 
 
 @pytest.mark.parametrize(
-    'graph_part, expected_graph, expected_missing_analysis', [
+    'graph_part, expected_graph, expected_missing_analysis',
+    [
         (GRAPH_PART, GRAPH_RES, 1),
         (GRAPH_PART_SYMLINK, GRAPH_RES_SYMLINK, 2),
     ],

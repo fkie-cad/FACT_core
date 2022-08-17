@@ -827,7 +827,8 @@ EXPECTED_GET_CVE_SUMMARY_UPDATE_CONTENT = [
     CveSummaryEntry(
         'CVE-2018-20229',
         'GitLab Community and Enterprise Edition before 11.3.14, 11.4.x before 11.4.12, and 11.5.x before 11.5.5 '
-        'allows Directory Traversal.', {},
+        'allows Directory Traversal.',
+        {},
     ),
     CveSummaryEntry(
         'CVE-2018-8825',
@@ -839,7 +840,8 @@ EXPECTED_GET_CVE_SUMMARY_UPDATE_CONTENT = [
 # contain input and expected results of the setup_cve_format function
 CVE_LIST = [
     CveEntry(
-        'CVE-2012-0001', {},
+        'CVE-2012-0001',
+        {},
         [
             ('cpe:2.3:a:\\$0.99_kindle_bo\\:oks_project:\\$0.99_kindle_books:6:*:*:*:*:android:*:*', '', '', '', ''),
             ('cpe:2.3:a:1000guess:1000_guess:-:*:*:*:*:*:*:*', '', '', '', ''),
@@ -1386,7 +1388,8 @@ def test_set_repository(monkeypatch, path, choice, years, expected):
 
 
 @pytest.mark.parametrize(
-    'path, choice, expected', [
+    'path, choice, expected',
+    [
         ('', sr.Choice('both'), ['cpe', 'cve']),
         ('', sr.Choice('cpe'), ['cpe']),
         ('', sr.Choice('cve'), ['cve']),

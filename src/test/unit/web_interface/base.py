@@ -58,7 +58,8 @@ class WebInterfaceTest:
     @classmethod
     def _init_patches(cls):
         cls.security_patch = patch(
-            target='web_interface.frontend_main.add_flask_security_to_app', new=cls.add_security_get_mocked,
+            target='web_interface.frontend_main.add_flask_security_to_app',
+            new=cls.add_security_get_mocked,
         )
         cls.security_patch.start()
 

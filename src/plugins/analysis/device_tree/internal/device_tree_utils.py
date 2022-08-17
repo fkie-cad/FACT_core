@@ -131,7 +131,10 @@ def _get_model_or_description(structure_block: StructureBlock):
 
 
 def _result_to_json(
-    header: DeviceTreeHeader, string_representation: str, model: Optional[str], description: Optional[str],
+    header: DeviceTreeHeader,
+    string_representation: str,
+    model: Optional[str],
+    description: Optional[str],
 ) -> dict:
     return {
         'header': header._asdict(),

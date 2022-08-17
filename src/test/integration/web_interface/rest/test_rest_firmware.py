@@ -130,6 +130,7 @@ class TestRestFirmware(RestTestBase):
         db.backend.add_object(test_firmware)
 
         request_with_summary = self.test_client.get(
-            f'/rest/firmware/{test_firmware.uid}?summary=true', follow_redirects=True,
+            f'/rest/firmware/{test_firmware.uid}?summary=true',
+            follow_redirects=True,
         )
         assert test_firmware.processed_analysis['dummy']['summary'][0].encode() in request_with_summary.data

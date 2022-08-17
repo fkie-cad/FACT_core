@@ -61,5 +61,8 @@ class TestAppAdvancedSearch(WebInterfaceTest):
 
     def _do_advanced_search(self, query: dict) -> str:
         return self.test_client.post(
-            '/database/advanced_search', data=query, content_type='multipart/form-data', follow_redirects=True,
+            '/database/advanced_search',
+            data=query,
+            content_type='multipart/form-data',
+            follow_redirects=True,
         ).data.decode()

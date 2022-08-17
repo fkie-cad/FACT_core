@@ -106,7 +106,8 @@ class MigrationMongoInterface(MongoInterface):
         firmware.vendor = entry['vendor']
         firmware.version = entry['version']
         firmware.processed_analysis = self.retrieve_analysis(
-            entry['processed_analysis'], analysis_filter=analysis_filter,
+            entry['processed_analysis'],
+            analysis_filter=analysis_filter,
         )
         firmware.files_included = set(entry['files_included'])
         firmware.virtual_file_path = entry['virtual_file_path']
@@ -131,7 +132,8 @@ class MigrationMongoInterface(MongoInterface):
         file_object.virtual_file_path = entry['virtual_file_path']
         file_object.parents = entry['parents']
         file_object.processed_analysis = self.retrieve_analysis(
-            entry['processed_analysis'], analysis_filter=analysis_filter,
+            entry['processed_analysis'],
+            analysis_filter=analysis_filter,
         )
         file_object.files_included = set(entry['files_included'])
         file_object.parent_firmware_uids = set(entry['parent_firmware_uids'])
@@ -306,7 +308,10 @@ class DbMigrator:
                 query = {'_id': {'$in': list(firmware_object.files_included)}}
                 root_uid = firmware_object.uid if root else root_uid
                 self.migrate_fw(
-                    query=query, root_uid=root_uid, parent_uid=firmware_object.uid, label=firmware_object.file_name,
+                    query=query,
+                    root_uid=root_uid,
+                    parent_uid=firmware_object.uid,
+                    label=firmware_object.file_name,
                 )
                 migrated_fw_count += 1
             self.progress.update(task, advance=1)

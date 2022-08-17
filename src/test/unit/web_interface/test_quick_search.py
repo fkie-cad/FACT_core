@@ -60,6 +60,8 @@ class TestAppQuickSearch(WebInterfaceTest):
 
     def _start_quick_search(self, search_term):
         response = self.test_client.get(
-            '/database/quick_search', query_string={'search_term': search_term}, follow_redirects=True,
+            '/database/quick_search',
+            query_string={'search_term': search_term},
+            follow_redirects=True,
         )
         return response.data.decode()

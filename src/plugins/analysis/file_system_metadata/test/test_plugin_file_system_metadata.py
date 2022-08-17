@@ -84,7 +84,9 @@ class TestFileSystemMetadata(AnalysisPluginTest):
             assert self.result == 'archive'
 
         with mock_patch(
-            self.analysis_plugin, '_extract_metadata_from_file_system', self._extract_metadata_from_file_system_mock,
+            self.analysis_plugin,
+            '_extract_metadata_from_file_system',
+            self._extract_metadata_from_file_system_mock,
         ):
             self.result = None
             fo = FoMock(None, 'filesystem/ext4')

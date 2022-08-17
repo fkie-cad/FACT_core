@@ -82,7 +82,11 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
             return _sort_tuples(session.execute(query))
 
     def count_distinct_in_analysis(
-        self, key: InstrumentedAttribute, plugin: str, firmware: bool = False, q_filter=None,
+        self,
+        key: InstrumentedAttribute,
+        plugin: str,
+        firmware: bool = False,
+        q_filter=None,
     ) -> Stats:
         """
         Count distinct values in analysis results: Get a list of tuples with all unique values of a key `key`
@@ -153,7 +157,8 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
             arch_analysis = aliased(AnalysisEntry, subquery)
             query = (
                 select(column('arch'), func.count('arch'), FirmwareEntry.uid).select_from(arch_analysis).join(
-                    FileObjectEntry, FileObjectEntry.uid == arch_analysis.uid,
+                    FileObjectEntry,
+                    FileObjectEntry.uid == arch_analysis.uid,
                 ).join(FirmwareEntry, FileObjectEntry.root_firmware.any(uid=FirmwareEntry.uid))
                 # group results by root FW so that we get results per FW
                 .group_by('arch', FirmwareEntry.uid),
@@ -168,10 +173,13 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
             key = AnalysisEntry.result['mime']
             query = (
                 select(key, func.count(key)).select_from(unpacker_analysis).join(
-                    AnalysisEntry, AnalysisEntry.uid == unpacker_analysis.uid,
-                ).filter(AnalysisEntry.plugin == 'file_type',
-                         ).filter(unpacker_analysis.plugin == 'unpacker',
-                                  ).filter(unpacker_analysis.summary.any(summary_key)).group_by(key),
+                    AnalysisEntry,
+                    AnalysisEntry.uid == unpacker_analysis.uid,
+                ).filter(
+                    AnalysisEntry.plugin == 'file_type',
+                ).filter(
+                    unpacker_analysis.plugin == 'unpacker',
+                ).filter(unpacker_analysis.summary.any(summary_key)).group_by(key),
             )
             if self._filter_is_not_empty(q_filter):
                 query = self._join_all(query)
@@ -181,8 +189,9 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
     def get_unpacking_entropy(self, summary_key: str, q_filter: Optional[dict] = None) -> float:
         with self.get_read_only_session() as session:
             query = (
-                select(AnalysisEntry.result['entropy']).filter(AnalysisEntry.plugin == 'unpacker',
-                                                               ).filter(AnalysisEntry.summary.any(summary_key)),
+                select(AnalysisEntry.result['entropy']).filter(
+                    AnalysisEntry.plugin == 'unpacker',
+                ).filter(AnalysisEntry.summary.any(summary_key)),
             )
             if self._filter_is_not_empty(q_filter):
                 query = self._join_all(query)
@@ -203,9 +212,11 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
     def get_regex_mime_match_count(self, regex: str, q_filter: Optional[dict] = None) -> int:
         with self.get_read_only_session() as session:
             query = (
-                select(func.count(AnalysisEntry.uid),
-                       ).filter(AnalysisEntry.plugin == 'file_type',
-                                ).filter(AnalysisEntry.result['full'].astext.regexp_match(regex)),
+                select(
+                    func.count(AnalysisEntry.uid),
+                ).filter(
+                    AnalysisEntry.plugin == 'file_type',
+                ).filter(AnalysisEntry.result['full'].astext.regexp_match(regex)),
             )
             if self._filter_is_not_empty(q_filter):
                 query = self._join_fw_or_fo(query, is_firmware=False)
@@ -232,10 +243,9 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
                        AnalysisEntry.uid).filter(AnalysisEntry.plugin == 'software_components').subquery('subquery'),
             )
             query = (
-                select(subquery.c.software,
-                       func.count(subquery.c.software,
-                                  )).filter(subquery.c.software.notin_(['system_version',
-                                                                        'skipped'])).group_by(subquery.c.software),
+                select(subquery.c.software, func.count(
+                    subquery.c.software,
+                )).filter(subquery.c.software.notin_(['system_version', 'skipped'])).group_by(subquery.c.software),
             )
             if self._filter_is_not_empty(q_filter):
                 query = query.join(FileObjectEntry, FileObjectEntry.uid == subquery.c.uid)

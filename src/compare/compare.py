@@ -55,7 +55,10 @@ class Compare:
                 self._add_content_to_general_dict(general, 'release_date', fo.uid, fo.release_date)
             else:
                 self._add_content_to_general_dict(
-                    general, 'firmwares_including_this_file', fo.uid, list(fo.get_virtual_file_paths().keys()),
+                    general,
+                    'firmwares_including_this_file',
+                    fo.uid,
+                    list(fo.get_virtual_file_paths().keys()),
                 )
             self._add_content_to_general_dict(general, 'hid', fo.uid, fo.get_hid())
             self._add_content_to_general_dict(general, 'size', fo.uid, fo.size)

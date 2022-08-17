@@ -92,7 +92,9 @@ def dnf_install_packages(*packages: str):
     '''
     log_current_packages(packages)
     return _run_shell_command_raise_on_return_code(
-        f"sudo dnf install -y {' '.join(packages)}", f"Error in installation of package(s) {' '.join(packages)}", True,
+        f"sudo dnf install -y {' '.join(packages)}",
+        f"Error in installation of package(s) {' '.join(packages)}",
+        True,
     )
 
 
@@ -104,7 +106,9 @@ def dnf_remove_packages(*packages: str):
     '''
     log_current_packages(packages, install=False)
     return _run_shell_command_raise_on_return_code(
-        f"sudo dnf remove -y {' '.join(packages)}", f"Error in removal of package(s) {' '.join(packages)}", True,
+        f"sudo dnf remove -y {' '.join(packages)}",
+        f"Error in removal of package(s) {' '.join(packages)}",
+        True,
     )
 
 
@@ -113,7 +117,8 @@ def apt_update_sources():
     Update package lists on Ubuntu / Debian / Mint / Kali systems.
     '''
     return _run_shell_command_raise_on_return_code(
-        'sudo apt-get update', 'Unable to update repository sources. Check network.',
+        'sudo apt-get update',
+        'Unable to update repository sources. Check network.',
     )
 
 
@@ -139,7 +144,9 @@ def apt_remove_packages(*packages: str):
     '''
     log_current_packages(packages, install=False)
     return _run_shell_command_raise_on_return_code(
-        f"sudo apt-get remove -y {' '.join(packages)}", f"Error in removal of package(s) {' '.join(packages)}", True,
+        f"sudo apt-get remove -y {' '.join(packages)}",
+        f"Error in removal of package(s) {' '.join(packages)}",
+        True,
     )
 
 
@@ -151,7 +158,11 @@ def check_if_command_in_path(command: str) -> bool:
     :param command: Command to check.
     '''
     command_process = subprocess.run(
-        f'command -v {command}', shell=True, stdout=DEVNULL, stderr=DEVNULL, universal_newlines=True,
+        f'command -v {command}',
+        shell=True,
+        stdout=DEVNULL,
+        stderr=DEVNULL,
+        universal_newlines=True,
     )
     return command_process.returncode == 0
 
@@ -191,7 +202,11 @@ def install_github_project(project_path: str, commands: List[str]):
 def _checkout_github_project(github_path: str, folder_name: str):
     clone_url = f'https://www.github.com/{github_path}'
     git_process = subprocess.run(
-        f'git clone {clone_url}', shell=True, stdout=DEVNULL, stderr=DEVNULL, universal_newlines=True,
+        f'git clone {clone_url}',
+        shell=True,
+        stdout=DEVNULL,
+        stderr=DEVNULL,
+        universal_newlines=True,
     )
     if git_process.returncode != 0:
         raise InstallationError(f'Cloning from github failed for project {github_path}\n {clone_url}')

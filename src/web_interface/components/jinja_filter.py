@@ -226,7 +226,9 @@ class FilterClass:
         self._app.jinja_env.filters['sort_comments'] = flt.sort_comments
         self._app.jinja_env.filters['sort_cve'] = flt.sort_cve_results
         self._app.jinja_env.filters['sort_privileges'] = lambda privileges: sorted(
-            privileges, key=lambda role: len(privileges[role]), reverse=True,
+            privileges,
+            key=lambda role: len(privileges[role]),
+            reverse=True,
         )
         self._app.jinja_env.filters['sort_roles'] = flt.sort_roles_by_number_of_privileges
         self._app.jinja_env.filters['sort_users'] = flt.sort_users_by_name

@@ -75,13 +75,15 @@ class TestComparePluginFileCoverage(ComparePluginTest):
             'fw1:file1;fw2:file2': '99'
         }, '99'),
         (
-            ['fw1:file1', 'fw2:file2', 'fw3:file3'], {
+            ['fw1:file1', 'fw2:file2', 'fw3:file3'],
+            {
                 'fw1:file1;fw2:file2': '80', 'fw2:file2;fw3:file3': '90'
             },
             '80 ‒ 90',
         ),
         (
-            ['fw1:file1', 'fw2:file2', 'fw3:file3'], {
+            ['fw1:file1', 'fw2:file2', 'fw3:file3'],
+            {
                 'fw1:file1;fw2:file2': '70', 'fw1:file1;fw3:file3': '80', 'fw2:file2;fw3:file3': '90'
             },
             '70 ‒ 90',

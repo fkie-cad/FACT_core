@@ -45,7 +45,8 @@ class Unpacker(UnpackBase):
             return None
 
         extraction_dir = TemporaryDirectory(
-            prefix='FACT_plugin_qemu_exec', dir=self.config['data-storage']['docker-mount-base-dir'],
+            prefix='FACT_plugin_qemu_exec',
+            dir=self.config['data-storage']['docker-mount-base-dir'],
         )
         self.extract_files_from_file(file_path, extraction_dir.name)
         return extraction_dir

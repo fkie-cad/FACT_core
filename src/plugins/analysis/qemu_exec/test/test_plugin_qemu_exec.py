@@ -11,7 +11,11 @@ from requests.exceptions import ConnectionError as RequestConnectionError
 from requests.exceptions import ReadTimeout
 
 from test.common_helper import (
-    TEST_FW, CommonDatabaseMock, create_test_firmware, get_config_for_testing, get_test_data_dir,
+    TEST_FW,
+    CommonDatabaseMock,
+    create_test_firmware,
+    get_config_for_testing,
+    get_test_data_dir,
 )
 from test.mock import mock_patch
 from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
@@ -404,7 +408,8 @@ def test_merge_similar_entries():
 
 
 @pytest.mark.parametrize(
-    'input_data, expected_output', [
+    'input_data, expected_output',
+    [
         ({
             'parameter': {
                 'std_out': 'foo Invalid ELF bar'
@@ -422,7 +427,8 @@ def test_result_contains_qemu_errors(input_data, expected_output):
 
 
 @pytest.mark.parametrize(
-    'input_data, expected_output', [
+    'input_data, expected_output',
+    [
         ('Unknown syscall 4001 qemu: Unsupported syscall: 4001\n', True),
         ('foobar', False),
         ('', False),
@@ -479,7 +485,8 @@ def test_decode_output_values(input_data, expected_output):
 
 
 @pytest.mark.parametrize(
-    'input_data', [
+    'input_data',
+    [
         {},
         {
             'strace': {}

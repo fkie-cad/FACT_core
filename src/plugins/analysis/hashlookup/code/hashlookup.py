@@ -33,7 +33,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
         try:
             result = requests.get(
-                f'https://hashlookup.circl.lu/lookup/sha256/{sha2_hash}', headers={
+                f'https://hashlookup.circl.lu/lookup/sha256/{sha2_hash}',
+                headers={
                     'accept': 'application/json'
                 },
             ).json()

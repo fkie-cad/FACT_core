@@ -22,7 +22,9 @@ class TestAnalysisPluginsSoftwareComponents(AnalysisPluginTest):
         self.assertEqual(len(results), 2, 'incorrect number of software components found')
         self.assertTrue('MyTestRule' in results, 'test Rule match not found')
         self.assertEqual(
-            results['MyTestRule']['meta']['software_name'], 'Test Software', 'incorrect software name from yara meta',
+            results['MyTestRule']['meta']['software_name'],
+            'Test Software',
+            'incorrect software name from yara meta',
         )
         self.assertEqual(
             results['MyTestRule']['meta']['website'],
@@ -30,7 +32,9 @@ class TestAnalysisPluginsSoftwareComponents(AnalysisPluginTest):
             'incorrect website from yara meta',
         )
         self.assertEqual(
-            results['MyTestRule']['meta']['description'], 'This is a test rule', 'incorrect description from yara meta',
+            results['MyTestRule']['meta']['description'],
+            'This is a test rule',
+            'incorrect description from yara meta',
         )
         self.assertTrue(results['MyTestRule']['meta']['open_source'], 'incorrect open-source flag from yara meta')
         self.assertTrue((10, '$a', 'MyTestRule 0.1.3.') in results['MyTestRule']['strings'], 'string not found')
@@ -84,7 +88,8 @@ class TestAnalysisPluginsSoftwareComponents(AnalysisPluginTest):
     def test_update_os_key(self):
         test_file = FileObject(file_path=os.path.join(TEST_DATA_DIR, 'yara_test_file'))
         test_file.processed_analysis[self.PLUGIN_NAME] = dict(
-            summary=['Linux Kernel'], tags={'OS': {
+            summary=['Linux Kernel'],
+            tags={'OS': {
                 'value': 'Fire OS'
             }},
         )

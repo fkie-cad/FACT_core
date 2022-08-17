@@ -12,7 +12,12 @@ from helperFunctions.task_conversion import convert_analysis_task_to_fw_obj
 from objects.firmware import Firmware
 from storage.db_interface_base import DbInterfaceError
 from web_interface.rest.helper import (
-    error_message, get_boolean_from_request, get_paging, get_query, get_update, success_message,
+    error_message,
+    get_boolean_from_request,
+    get_paging,
+    get_query,
+    get_update,
+    success_message,
 )
 from web_interface.rest.rest_resource_base import RestResourceBase
 from web_interface.security.decorator import roles_accepted

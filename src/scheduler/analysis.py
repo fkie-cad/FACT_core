@@ -290,7 +290,8 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
 
     def _start_or_skip_analysis(self, analysis_to_do: str, file_object: FileObject):
         if not self._is_forced_update(file_object) and self._analysis_is_already_in_db_and_up_to_date(
-            analysis_to_do, file_object.uid,
+            analysis_to_do,
+            file_object.uid,
         ):
             logging.debug(f'skipping analysis "{analysis_to_do}" for {file_object.uid} (analysis already in DB)')
             if analysis_to_do in self.task_scheduler.get_cumulative_remaining_dependencies(
@@ -299,7 +300,8 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
                 self._add_completed_analysis_results_to_file_object(analysis_to_do, file_object)
             self._check_further_process_or_complete(file_object)
         elif analysis_to_do not in MANDATORY_PLUGINS and self._next_analysis_is_blacklisted(
-            analysis_to_do, file_object,
+            analysis_to_do,
+            file_object,
         ):
             logging.debug(f'skipping analysis "{analysis_to_do}" for {file_object.uid} (blacklisted file type)')
             analysis_result = self._get_skipped_analysis_result(analysis_to_do)

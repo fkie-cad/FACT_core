@@ -253,7 +253,11 @@ class FrontEndDbInterface(DbInterfaceCommon):
     # --- file tree
 
     def generate_file_tree_nodes_for_uid_list(
-        self, uid_list: List[str], root_uid: str, parent_uid: Optional[str], whitelist: Optional[List[str]] = None,
+        self,
+        uid_list: List[str],
+        root_uid: str,
+        parent_uid: Optional[str],
+        whitelist: Optional[List[str]] = None,
     ):
         file_tree_data = self.get_file_tree_data(uid_list)
         for entry in file_tree_data:
@@ -300,8 +304,9 @@ class FrontEndDbInterface(DbInterfaceCommon):
     @staticmethod
     def _get_mime_types_for_uid_list(session, uid_list: List[str]) -> Dict[str, str]:
         type_query = (
-            select(AnalysisEntry.uid, AnalysisEntry.result['mime']).filter(AnalysisEntry.plugin == 'file_type',
-                                                                           ).filter(AnalysisEntry.uid.in_(uid_list)),
+            select(AnalysisEntry.uid, AnalysisEntry.result['mime']).filter(
+                AnalysisEntry.plugin == 'file_type',
+            ).filter(AnalysisEntry.uid.in_(uid_list)),
         )
         return dict(iter(session.execute(type_query)))
 
@@ -410,9 +415,10 @@ class FrontEndDbInterface(DbInterfaceCommon):
                     FileObjectEntry.virtual_file_paths,
                     AnalysisEntry.result['mime'],
                     AnalysisEntry.result['full'],
-                ).filter(FileObjectEntry.uid.in_(fo.files_included),
-                         ).join(AnalysisEntry,
-                                AnalysisEntry.uid == FileObjectEntry.uid).filter(AnalysisEntry.plugin == 'file_type'),
+                ).filter(
+                    FileObjectEntry.uid.in_(fo.files_included),
+                ).join(AnalysisEntry,
+                       AnalysisEntry.uid == FileObjectEntry.uid).filter(AnalysisEntry.plugin == 'file_type'),
             )
             return [
                 DepGraphData(uid, file_name, vfp, mime, full_type, libraries_by_uid.get(uid)) for uid,

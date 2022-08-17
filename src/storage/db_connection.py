@@ -9,7 +9,12 @@ from storage.schema import Base
 
 class DbConnection:
     def __init__(
-        self, config: ConfigParser, user: str = None, password: str = None, db_name: Optional[str] = None, **kwargs,
+        self,
+        config: ConfigParser,
+        user: str = None,
+        password: str = None,
+        db_name: Optional[str] = None,
+        **kwargs,
     ):
         self.base = Base
         self.config = config
@@ -28,28 +33,44 @@ class DbConnection:
 
 class ReadOnlyConnection(DbConnection):
     def __init__(
-        self, config: ConfigParser, user: str = 'postgres-ro-user', password: str = 'postgres-ro-pw', **kwargs,
+        self,
+        config: ConfigParser,
+        user: str = 'postgres-ro-user',
+        password: str = 'postgres-ro-pw',
+        **kwargs,
     ):
         super().__init__(config, user, password, **kwargs)
 
 
 class ReadWriteConnection(DbConnection):
     def __init__(
-        self, config: ConfigParser, user: str = 'postgres-rw-user', password: str = 'postgres-rw-pw', **kwargs,
+        self,
+        config: ConfigParser,
+        user: str = 'postgres-rw-user',
+        password: str = 'postgres-rw-pw',
+        **kwargs,
     ):
         super().__init__(config, user, password, **kwargs)
 
 
 class ReadWriteDeleteConnection(DbConnection):
     def __init__(
-        self, config: ConfigParser, user: str = 'postgres-del-user', password: str = 'postgres-del-pw', **kwargs,
+        self,
+        config: ConfigParser,
+        user: str = 'postgres-del-user',
+        password: str = 'postgres-del-pw',
+        **kwargs,
     ):
         super().__init__(config, user, password, **kwargs)
 
 
 class AdminConnection(DbConnection):
     def __init__(
-        self, config: ConfigParser, user: str = 'postgres-admin-user', password: str = 'postgres-admin-pw', **kwargs,
+        self,
+        config: ConfigParser,
+        user: str = 'postgres-admin-user',
+        password: str = 'postgres-admin-pw',
+        **kwargs,
     ):
         super().__init__(config, user, password, **kwargs)
 

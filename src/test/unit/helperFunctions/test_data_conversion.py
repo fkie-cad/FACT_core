@@ -15,7 +15,8 @@ from helperFunctions.data_conversion import (
 
 
 @pytest.mark.parametrize(
-    'input_data', [
+    'input_data',
+    [
         'test string',
         b'test string',
         [116, 101, 115, 116, 32, 115, 116, 114, 105, 110, 103],
@@ -66,7 +67,8 @@ def test_none_to_none(input_data, expected):
 
 
 @pytest.mark.parametrize(
-    'input_data, expected', [(datetime(2000, 2, 29), '2000-02-29'), ('1999-01-01', '1999-01-01'), (None, '1970-01-01')],
+    'input_data, expected',
+    [(datetime(2000, 2, 29), '2000-02-29'), ('1999-01-01', '1999-01-01'), (None, '1970-01-01')],
 )
 def test_convert_time_to_str(input_data, expected):
     assert convert_time_to_str(input_data) == expected

@@ -72,7 +72,8 @@ class AnalysisTaskScheduler:
                     f'Unscheduled analysis {plugin} for {fw_object.uid} because dependency {failed_plugin} failed',
                 )
                 fw_object.processed_analysis[plugin] = self._get_failed_analysis_result(
-                    f'Analysis of dependency {failed_plugin} failed', plugin,
+                    f'Analysis of dependency {failed_plugin} failed',
+                    plugin,
                 )
         fw_object.analysis_exception = None
 

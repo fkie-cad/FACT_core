@@ -34,7 +34,10 @@ class PluginRoutes(ComponentBase):
         ]:
             for endpoint, methods in rest_class.ENDPOINTS:
                 self._api.add_resource(
-                    rest_class, endpoint, methods=methods, resource_class_kwargs={'config': self._config},
+                    rest_class,
+                    endpoint,
+                    methods=methods,
+                    resource_class_kwargs={'config': self._config},
                 )
 
 

@@ -9,7 +9,8 @@ from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
 api = Namespace(
-    'rest/binary_search', description='Initiate a binary search on the binary database and fetch the results',
+    'rest/binary_search',
+    description='Initiate a binary search on the binary database and fetch the results',
 )
 
 binary_search_model = api.model(
@@ -39,7 +40,9 @@ class RestBinarySearchPost(RestResourceBase):
             return error_message('Error in YARA rule file', self.URL, request_data=request.data)
         if payload_data['uid'] and not self.db.frontend.is_firmware(payload_data['uid']):
             return error_message(
-                f'Firmware with UID {payload_data["uid"]} not found in database', self.URL, request_data=request.data,
+                f'Firmware with UID {payload_data["uid"]} not found in database',
+                self.URL,
+                request_data=request.data,
             )
 
         with ConnectTo(self.intercom, self.config) as intercom:

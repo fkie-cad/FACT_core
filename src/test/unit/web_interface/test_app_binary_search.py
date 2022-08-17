@@ -84,6 +84,9 @@ class TestAppBinarySearch(WebInterfaceTest):
 
     def _post_binary_search(self, query: dict) -> str:
         response = self.test_client.post(
-            '/database/binary_search', content_type='multipart/form-data', data=query, follow_redirects=True,
+            '/database/binary_search',
+            content_type='multipart/form-data',
+            data=query,
+            follow_redirects=True,
         )
         return response.data.decode()

@@ -66,10 +66,15 @@ def test_scheduler(test_config, finished_event, intermediate_event):
             intermediate_event.set()
 
     analyzer = AnalysisScheduler(
-        test_config, pre_analysis=count_pre_analysis, db_interface=interface, unpacking_locks=unpacking_lock_manager,
+        test_config,
+        pre_analysis=count_pre_analysis,
+        db_interface=interface,
+        unpacking_locks=unpacking_lock_manager,
     )
     unpacker = UnpackingScheduler(
-        config=test_config, post_unpack=analyzer.start_analysis_of_object, unpacking_locks=unpacking_lock_manager,
+        config=test_config,
+        post_unpack=analyzer.start_analysis_of_object,
+        unpacking_locks=unpacking_lock_manager,
     )
     intercom = InterComBackEndBinding(
         config=test_config,

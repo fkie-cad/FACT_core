@@ -85,7 +85,8 @@ class TestInterComTaskCommunication(unittest.TestCase):
 
     def test_analysis_plugin_publication(self):
         self.backend = InterComBackEndAnalysisPlugInsPublisher(
-            config=self.config, analysis_service=AnalysisServiceMock(),
+            config=self.config,
+            analysis_service=AnalysisServiceMock(),
         )
         plugins = self.frontend.get_available_analysis_plugins()
         self.assertEqual(len(plugins), 1, 'Not all plug-ins found')

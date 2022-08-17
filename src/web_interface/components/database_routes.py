@@ -60,7 +60,9 @@ class DatabaseRoutes(ComponentBase):
                 return render_template('error.html', message=error_message)
 
             total = frontend_db.get_number_of_total_matches(
-                search_parameters['query'], search_parameters['only_firmware'], inverted=search_parameters['inverted'],
+                search_parameters['query'],
+                search_parameters['only_firmware'],
+                inverted=search_parameters['inverted'],
             )
             device_classes = frontend_db.get_device_class_list()
             vendors = frontend_db.get_vendor_list()
@@ -117,8 +119,9 @@ class DatabaseRoutes(ComponentBase):
         search_parameters['only_firmware'] = request.args.get('only_firmwares') == 'True' if request.args.get(
             'only_firmwares',
         ) else only_firmware
-        search_parameters['inverted'] = request.args.get('inverted',
-                                                         ) == 'True' if request.args.get('inverted') else inverted
+        search_parameters['inverted'] = request.args.get(
+            'inverted',
+        ) == 'True' if request.args.get('inverted') else inverted
         search_parameters['query'] = apply_filters_to_query(request, query)
         if 'query_title' not in search_parameters:
             search_parameters['query_title'] = search_parameters['query']
@@ -132,7 +135,12 @@ class DatabaseRoutes(ComponentBase):
 
     def _search_database(self, query, skip=0, limit=0, only_firmwares=False, inverted=False):
         meta_list = self.db.frontend.generic_search(
-            query, skip, limit, only_fo_parent_firmware=only_firmwares, inverted=inverted, as_meta=True,
+            query,
+            skip,
+            limit,
+            only_fo_parent_firmware=only_firmwares,
+            inverted=inverted,
+            as_meta=True,
         )
         if not isinstance(meta_list, list):
             raise Exception(meta_list)
@@ -173,7 +181,10 @@ class DatabaseRoutes(ComponentBase):
             vendors = frontend_db.get_vendor_list()
             tags = frontend_db.get_tag_list()
         return render_template(
-            'database/database_search.html', device_classes=device_classes, vendors=vendors, tag_list=tags,
+            'database/database_search.html',
+            device_classes=device_classes,
+            vendors=vendors,
+            tag_list=tags,
         )
 
     @roles_accepted(*PRIVILEGES['advanced_search'])
@@ -196,7 +207,9 @@ class DatabaseRoutes(ComponentBase):
     def show_advanced_search(self, error=None):
         database_structure = self.db.frontend.create_analysis_structure()
         return render_template(
-            'database/database_advanced_search.html', error=error, database_structure=database_structure,
+            'database/database_advanced_search.html',
+            error=error,
+            database_structure=database_structure,
         )
 
     @roles_accepted(*PRIVILEGES['pattern_search'])

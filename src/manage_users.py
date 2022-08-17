@@ -113,7 +113,8 @@ class Actions:
     def create_role(self):
         role_list = self._get_role_list()
         role = self.session.prompt(
-            'role name: ', validator=ActionValidatorReverse(role_list, message='role must not exist and not be empty'),
+            'role name: ',
+            validator=ActionValidatorReverse(role_list, message='role must not exist and not be empty'),
         )
         with self.app.app_context():
             if not self._role_exists(role):
@@ -143,7 +144,9 @@ class Actions:
         user_list = self._get_user_list()
         user_completer = WordCompleter(user_list)
         user = self.session.prompt(
-            'username: ', validator=ActionValidator(user_list, message='user must exist'), completer=user_completer,
+            'username: ',
+            validator=ActionValidator(user_list, message='user must exist'),
+            completer=user_completer,
         )
         with self.app.app_context():
             user = self.store.find_user(email=user)

@@ -78,8 +78,9 @@ class TestFileAddition:
 
         assert result is not None, 'comparison result not found in DB'
         assert result['plugins']['Software'] == self._expected_result()['Software']
-        assert len(result['plugins']['File_Coverage']['files_in_common'],
-                   ) == len(self._expected_result()['File_Coverage']['files_in_common'])
+        assert len(
+            result['plugins']['File_Coverage']['files_in_common'],
+        ) == len(self._expected_result()['File_Coverage']['files_in_common'])
 
     @staticmethod
     def _expected_result():

@@ -38,16 +38,20 @@ class TestSchedulerCompare(unittest.TestCase):
         self.config.set('expert-settings', 'ssdeep-ignore', '80')
 
         self.bs_patch_new = unittest.mock.patch(
-            target='storage.binary_service.BinaryService.__new__', new=lambda *_, **__: MockDbInterface(),
+            target='storage.binary_service.BinaryService.__new__',
+            new=lambda *_, **__: MockDbInterface(),
         )
         self.bs_patch_init = unittest.mock.patch(
-            target='storage.binary_service.BinaryService.__init__', new=lambda _: None,
+            target='storage.binary_service.BinaryService.__init__',
+            new=lambda _: None,
         )
         self.bs_patch_new.start()
         self.bs_patch_init.start()
 
         self.compare_scheduler = ComparisonScheduler(
-            config=self.config, db_interface=MockDbInterface(config=self.config), testing=True,
+            config=self.config,
+            db_interface=MockDbInterface(config=self.config),
+            testing=True,
         )
 
     def tearDown(self):
@@ -73,7 +77,9 @@ class TestSchedulerCompare(unittest.TestCase):
         self.compare_scheduler._compare_single_run(compares_done)
         self.assertEqual(len(compares_done), 1, 'compares done not set correct')
         self.assertIn(
-            self.compare_scheduler.db_interface.test_object.uid, compares_done, 'correct uid not in compares done',
+            self.compare_scheduler.db_interface.test_object.uid,
+            compares_done,
+            'correct uid not in compares done',
         )
 
     def test_decide_whether_to_process(self):

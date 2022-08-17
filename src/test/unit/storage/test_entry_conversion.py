@@ -34,7 +34,8 @@ def test_sanitize(input_dict, expected):
 
 
 @pytest.mark.parametrize(
-    'input_dict, expected', [
+    'input_dict, expected',
+    [
         ({}, {}),
         ({
             'a': 1

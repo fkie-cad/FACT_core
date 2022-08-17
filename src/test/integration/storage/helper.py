@@ -55,7 +55,13 @@ def insert_test_fw(
 
 
 def insert_test_fo(
-    db, uid, file_name='test.zip', size=1, analysis: Optional[dict] = None, parent_fw=None, comments=None,
+    db,
+    uid,
+    file_name='test.zip',
+    size=1,
+    analysis: Optional[dict] = None,
+    parent_fw=None,
+    comments=None,
 ):
     test_fo = create_test_file_object()
     test_fo.uid = uid

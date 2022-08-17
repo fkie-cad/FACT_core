@@ -58,7 +58,10 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
 
     def unpack_worker(self, worker_id):
         unpacker = Unpacker(
-            self.config, worker_id=worker_id, fs_organizer=self.fs_organizer, unpacking_locks=self.unpacking_locks,
+            self.config,
+            worker_id=worker_id,
+            fs_organizer=self.fs_organizer,
+            unpacking_locks=self.unpacking_locks,
         )
         while self.stop_condition.value == 0:
             with suppress(Empty):
@@ -99,7 +102,8 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
                 log_function = logging.debug
             log_function(
                 color_string(
-                    f'Queue Length (Analysis/Unpack): {workload} / {unpack_queue_size}', TerminalColors.WARNING,
+                    f'Queue Length (Analysis/Unpack): {workload} / {unpack_queue_size}',
+                    TerminalColors.WARNING,
                 )
             )
 

@@ -14,7 +14,10 @@ class TestAcceptanceBinarySearch(TestAcceptanceBaseFullStart):
 
     def _query_page_post_file_query(self):
         rv = self.test_client.post(
-            '/database/binary_search', content_type='multipart/form-data', data=self.query, follow_redirects=True,
+            '/database/binary_search',
+            content_type='multipart/form-data',
+            data=self.query,
+            follow_redirects=True,
         )
         assert b'testfile2' in rv.data
 

@@ -81,7 +81,11 @@ def _install_docker_images():
     logging.info('Pulling fact extraction container')
 
     docker_process = subprocess.run(
-        'docker pull fkiecad/fact_extractor', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True,
+        'docker pull fkiecad/fact_extractor',
+        shell=True,
+        stdout=PIPE,
+        stderr=STDOUT,
+        universal_newlines=True,
     )
     if docker_process.returncode != 0:
         raise InstallationError(f'Failed to pull extraction container:\n{docker_process.stdout}')
@@ -109,7 +113,11 @@ def _create_firmware_directory():
     config = load_main_config()
     data_dir_name = config.get('data-storage', 'firmware-file-storage-directory')
     mkdir_process = subprocess.run(
-        f'sudo mkdir -p --mode=0744 {data_dir_name}', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True,
+        f'sudo mkdir -p --mode=0744 {data_dir_name}',
+        shell=True,
+        stdout=PIPE,
+        stderr=STDOUT,
+        universal_newlines=True,
     )
     chown_process = subprocess.run(
         f'sudo chown {os.getuid()}:{os.getgid()} {data_dir_name}',
@@ -161,7 +169,11 @@ def _install_yara():  # pylint: disable=too-complex
     archive = f'{latest_version}.zip'
     download_url = f'https://github.com/VirusTotal/yara/archive/refs/tags/{archive}'
     wget_process = subprocess.run(
-        f'wget {download_url}', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True,
+        f'wget {download_url}',
+        shell=True,
+        stdout=PIPE,
+        stderr=STDOUT,
+        universal_newlines=True,
     )
     if wget_process.returncode != 0:
         raise InstallationError(f'Error on yara download.\n{wget_process.stdout}')
@@ -184,7 +196,11 @@ def _install_checksec():
     logging.info('Installing checksec.sh')
     checksec_url = 'https://raw.githubusercontent.com/slimm609/checksec.sh/2.5.0/checksec'
     wget_process = subprocess.run(
-        f'wget -P {BIN_DIR} {checksec_url}', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True,
+        f'wget -P {BIN_DIR} {checksec_url}',
+        shell=True,
+        stdout=PIPE,
+        stderr=STDOUT,
+        universal_newlines=True,
     )
     if wget_process.returncode != 0:
         raise InstallationError(f'Error during installation of checksec.sh\n{wget_process.stdout}')

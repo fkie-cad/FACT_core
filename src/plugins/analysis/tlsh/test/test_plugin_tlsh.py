@@ -34,7 +34,11 @@ def test_object():
 @pytest.fixture(scope='function')
 def stub_plugin(test_config):
     return AnalysisPlugin(
-        MockAdmin(), config=test_config, offline_testing=True, view_updater=CommonDatabaseMock(), db_interface=MockDb(),
+        MockAdmin(),
+        config=test_config,
+        offline_testing=True,
+        view_updater=CommonDatabaseMock(),
+        db_interface=MockDb(),
     )
 
 

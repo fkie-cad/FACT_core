@@ -37,7 +37,12 @@ def install_pip():
     logging.info('Installing python3 pip')
     for command in [f'wget {pip_link}', 'sudo -EH python3 get-pip.py', 'rm get-pip.py']:
         cmd_process = subprocess.run(
-            command, shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True, check=False,
+            command,
+            shell=True,
+            stdout=PIPE,
+            stderr=STDOUT,
+            universal_newlines=True,
+            check=False,
         )
         if cmd_process.returncode != 0:
             raise InstallationError(f'Error in pip installation for python3:\n{cmd_process.stdout}')
@@ -73,7 +78,8 @@ def main(distribution):  # pylint: disable=too-many-statements
         logging.warning('variety spec not overwritten')
     else:
         install_github_project(
-            'variety/variety', ['git checkout 2f4d815', 'mv -f variety.js ../../bin/', 'mv -f spec ../../bin/'],
+            'variety/variety',
+            ['git checkout 2f4d815', 'mv -f variety.js ../../bin/', 'mv -f spec ../../bin/'],
         )
 
     with OperateInDirectory('../../'):
@@ -86,7 +92,12 @@ def main(distribution):  # pylint: disable=too-many-statements
 
 def _update_submodules():
     git_process = subprocess.run(
-        'git status', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True, check=False,
+        'git status',
+        shell=True,
+        stdout=PIPE,
+        stderr=STDOUT,
+        universal_newlines=True,
+        check=False,
     )
     if git_process.returncode == 0:
         git_submodule_process = subprocess.run(

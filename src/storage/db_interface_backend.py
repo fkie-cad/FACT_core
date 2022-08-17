@@ -10,7 +10,10 @@ from objects.firmware import Firmware
 from storage.db_interface_base import DbInterfaceError, DbSerializationError, ReadWriteDbInterface
 from storage.db_interface_common import DbInterfaceCommon
 from storage.entry_conversion import (
-    create_analysis_entries, create_file_object_entry, create_firmware_entry, get_analysis_without_meta,
+    create_analysis_entries,
+    create_file_object_entry,
+    create_firmware_entry,
+    get_analysis_without_meta,
 )
 from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry
 
@@ -39,7 +42,11 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
             session.add_all([fo_entry, *analyses])
 
     def _update_parents(
-        self, root_fw_uids: List[str], parent_uids: List[str], fo_entry: FileObjectEntry, session: Session,
+        self,
+        root_fw_uids: List[str],
+        parent_uids: List[str],
+        fo_entry: FileObjectEntry,
+        session: Session,
     ):
         self._update_entries(session, fo_entry.root_firmware, root_fw_uids, 'root')
         self._update_entries(session, fo_entry.parent_files, parent_uids, 'parent')

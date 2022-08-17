@@ -21,7 +21,9 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBaseFullStart):
         optional_plugins = [p for p in plugins if not (plugins[p][1] or plugins[p][2])]
         for mandatory_plugin in mandatory_plugins:
             self.assertNotIn(
-                f'id="{mandatory_plugin}"'.encode(), rv.data, f'mandatory plugin {mandatory_plugin} found erroneously',
+                f'id="{mandatory_plugin}"'.encode(),
+                rv.data,
+                f'mandatory plugin {mandatory_plugin} found erroneously',
             )
         for default_plugin in default_plugins:
             self.assertIn(
@@ -66,13 +68,17 @@ class TestAcceptanceAnalyzeFirmware(TestAcceptanceBaseFullStart):
         self.assertIn(b'application/zip', rv.data)
         self.assertIn(b'Zip archive data', rv.data)
         self.assertNotIn(
-            b'<pre><code>', rv.data, 'generic template used instead of specific template -> sync view error!',
+            b'<pre><code>',
+            rv.data,
+            'generic template used instead of specific template -> sync view error!',
         )
 
     def _show_home_page(self):
         rv = self.test_client.get('/')
         self.assertIn(
-            self.test_fw_a.uid.encode(), rv.data, 'test firmware not found under recent analysis on home page',
+            self.test_fw_a.uid.encode(),
+            rv.data,
+            'test firmware not found under recent analysis on home page',
         )
 
     def _re_do_analysis_get(self):

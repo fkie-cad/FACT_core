@@ -21,7 +21,8 @@ class MockAdmin:
 
 
 LiefResult = namedtuple(
-    'LiefResult', ['symbols_version', 'libraries', 'imported_functions', 'exported_functions', 'sections'],
+    'LiefResult',
+    ['symbols_version', 'libraries', 'imported_functions', 'exported_functions', 'sections'],
 )
 
 MOCK_DATA = (
@@ -109,10 +110,11 @@ def test_get_tags(stub_plugin, monkeypatch):
 
 
 @pytest.mark.parametrize(
-    'symbol_versions, expected', [
+    'symbol_versions, expected',
+    [
         (
-            ['GLIBC_2.3.4(4)', '* Local *', 'GLIBC_2.2.5(3)', '* Global *', 'GLIBC_2.2.5(3)'
-             ], ['GLIBC_2.3.4', 'GLIBC_2.2.5'],
+            ['GLIBC_2.3.4(4)', '* Local *', 'GLIBC_2.2.5(3)', '* Global *', 'GLIBC_2.2.5(3)'],
+            ['GLIBC_2.3.4', 'GLIBC_2.2.5'],
         )
     ],
 )
@@ -123,7 +125,11 @@ def test_get_symbols_version_entries(stub_plugin, symbol_versions, expected):
 def test_create_tags(stub_plugin, stub_object):
     stub_object.processed_analysis[stub_plugin.NAME] = {}
     stub_result = LiefResult(
-        libraries=['recvmsg', 'unknown'], imported_functions=[], symbols_version=[], exported_functions=[], sections=[],
+        libraries=['recvmsg', 'unknown'],
+        imported_functions=[],
+        symbols_version=[],
+        exported_functions=[],
+        sections=[],
     )
     stub_plugin.create_tags(stub_result, stub_object)
 

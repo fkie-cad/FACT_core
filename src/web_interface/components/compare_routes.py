@@ -6,7 +6,9 @@ from typing import NamedTuple, Optional
 from flask import redirect, render_template, render_template_string, request, session, url_for
 
 from helperFunctions.data_conversion import (
-    convert_compare_id_to_list, convert_uid_list_to_compare_id, normalize_compare_id,
+    convert_compare_id_to_list,
+    convert_uid_list_to_compare_id,
+    normalize_compare_id,
 )
 from helperFunctions.database import ConnectTo, get_shared_session
 from helperFunctions.web_interface import get_template_as_string
@@ -16,7 +18,8 @@ from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
 FileDiffData = NamedTuple(
-    'FileDiffData', [('uid', str), ('content', str), ('file_name', str), ('mime', str), ('fw_hid', str)],
+    'FileDiffData',
+    [('uid', str), ('content', str), ('file_name', str), ('mime', str), ('fw_hid', str)],
 )
 
 
@@ -153,7 +156,8 @@ class CompareRoutes(ComponentBase):
         uids_dict = get_comparison_uid_dict_from_session()
         if len(uids_dict) != 2:
             return render_template(
-                'compare/error.html', error=f'Can\'t compare {len(uids_dict)} files. You must select exactly 2 files.',
+                'compare/error.html',
+                error=f'Can\'t compare {len(uids_dict)} files. You must select exactly 2 files.',
             )
 
         diff_files = [self._get_data_for_file_diff(uid, root_uid) for uid, root_uid in uids_dict.items()]
@@ -161,7 +165,8 @@ class CompareRoutes(ComponentBase):
         uids_with_missing_file_type = ', '.join((f.uid for f in diff_files if f.mime is None))
         if uids_with_missing_file_type:
             return render_template(
-                'compare/error.html', error=f'file_type analysis is not finished for {uids_with_missing_file_type}',
+                'compare/error.html',
+                error=f'file_type analysis is not finished for {uids_with_missing_file_type}',
             )
 
         if any(not f.mime.startswith('text') for f in diff_files):
@@ -175,7 +180,10 @@ class CompareRoutes(ComponentBase):
         uids_dict.clear()
         session.modified = True  # pylint: disable=assigning-non-slot
         return render_template(
-            'compare/text_files.html', diffstr=diffstr, hid0=diff_files[0].fw_hid, hid1=diff_files[1].fw_hid,
+            'compare/text_files.html',
+            diffstr=diffstr,
+            hid0=diff_files[0].fw_hid,
+            hid1=diff_files[1].fw_hid,
         )
 
     @staticmethod

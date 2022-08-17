@@ -73,7 +73,8 @@ def build_query_from_dict(
     analysis_search_dict = {key: value for key, value in query_dict.items() if key.startswith('processed_analysis')}
     if analysis_search_dict:
         query = query.join(
-            AnalysisEntry, AnalysisEntry.uid == (FileObjectEntry.uid if not fw_only else FirmwareEntry.uid),
+            AnalysisEntry,
+            AnalysisEntry.uid == (FileObjectEntry.uid if not fw_only else FirmwareEntry.uid),
         )
         for key, value in analysis_search_dict.items():
             _, plugin, subkey = key.split('.', maxsplit=2)

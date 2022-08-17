@@ -61,7 +61,10 @@ class UserManagementRoutes(ComponentBase):
             return redirect(url_for('manage_users'))
         available_roles = sorted(ROLES)
         return render_template(
-            'user_management/edit_user.html', available_roles=available_roles, user=user, privileges=PRIVILEGES,
+            'user_management/edit_user.html',
+            available_roles=available_roles,
+            user=user,
+            privileges=PRIVILEGES,
         )
 
     @roles_accepted(*PRIVILEGES['manage_users'])

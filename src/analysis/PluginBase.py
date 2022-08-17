@@ -4,7 +4,11 @@ from queue import Empty
 from time import time
 
 from helperFunctions.process import (
-    ExceptionSafeProcess, check_worker_exceptions, start_single_worker, stop_processes, terminate_process_and_children,
+    ExceptionSafeProcess,
+    check_worker_exceptions,
+    start_single_worker,
+    stop_processes,
+    terminate_process_and_children,
 )
 from helperFunctions.tag import TagColor
 from objects.file import FileObject
@@ -36,7 +40,12 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
     MIME_WHITELIST = []
 
     def __init__(
-        self, plugin_administrator, config=None, no_multithread=False, offline_testing=False, view_updater=None,
+        self,
+        plugin_administrator,
+        config=None,
+        no_multithread=False,
+        offline_testing=False,
+        view_updater=None,
     ):
         super().__init__(plugin_administrator, config=config, plugin_path=self.FILE, view_updater=view_updater)
         self._check_plugin_attributes()

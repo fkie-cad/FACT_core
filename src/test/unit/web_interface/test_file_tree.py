@@ -138,7 +138,8 @@ def test_get_vpath_relative_to(virtual_path, uid, expected_output):
 
 
 @pytest.mark.parametrize(
-    'input_data, expected_output', [
+    'input_data, expected_output',
+    [
         ([], False),
         ([NON_VIRTUAL_TREE_ROOT], False),
         ([VIRTUAL_TREE_ROOT], True),

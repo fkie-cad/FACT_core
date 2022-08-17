@@ -14,7 +14,10 @@ try:
     from ..internal import data_parsing as dp
     from ..internal.database_interface import DB_PATH, QUERIES, DatabaseInterface
     from ..internal.helper_functions import (
-        CveEntry, CveLookupException, CveSummaryEntry, replace_characters_and_wildcards,
+        CveEntry,
+        CveLookupException,
+        CveSummaryEntry,
+        replace_characters_and_wildcards,
     )
 except (ImportError, ValueError, SystemError):
     sys.path.append(str(Path(__file__).parent.parent / 'internal'))
@@ -64,7 +67,9 @@ def update_cpe(cpe_extract_path: str):
     drop_table(table_name='cpe_table')
     create(query='create_cpe_table', table_name='cpe_table')
     insert_into(
-        query='insert_cpe', table_name='cpe_table', input_data=setup_cpe_table(get_cpe_content(path=cpe_extract_path)),
+        query='insert_cpe',
+        table_name='cpe_table',
+        input_data=setup_cpe_table(get_cpe_content(path=cpe_extract_path)),
     )
 
 
@@ -73,7 +78,9 @@ def import_cpe(cpe_extract_path: str):
         raise CveLookupException('CPE table does already exist')
     create(query='create_cpe_table', table_name='cpe_table')
     insert_into(
-        query='insert_cpe', table_name='cpe_table', input_data=setup_cpe_table(get_cpe_content(path=cpe_extract_path)),
+        query='insert_cpe',
+        table_name='cpe_table',
+        input_data=setup_cpe_table(get_cpe_content(path=cpe_extract_path)),
     )
 
 
@@ -92,7 +99,9 @@ def init_cve_feeds_table(cve_list: List[CveEntry], table_name: str):
 def init_cve_summaries_table(summary_list: list, table_name: str):
     create(query='create_summary_table', table_name=table_name)
     insert_into(
-        query='insert_summary', table_name=table_name, input_data=setup_cve_summary_table(summary_list=summary_list),
+        query='insert_summary',
+        table_name=table_name,
+        input_data=setup_cve_summary_table(summary_list=summary_list),
     )
 
 
@@ -249,7 +258,10 @@ def setup_argparser():
         choices=list(Choice),
     )
     parser.add_argument(
-        '--update', '-u', help='specifies if the DATABASE should be updated. Default: False', action='store_true',
+        '--update',
+        '-u',
+        help='specifies if the DATABASE should be updated. Default: False',
+        action='store_true',
     )
     parser.add_argument(
         '--years',

@@ -2,7 +2,8 @@ from re import finditer, match
 from typing import Dict, List, NamedTuple, Tuple
 
 CveEntry = NamedTuple(
-    'CveEntry', [('cve_id', str), ('impact', Dict[str, str]), ('cpe_list', List[Tuple[str, str, str, str, str]])],
+    'CveEntry',
+    [('cve_id', str), ('impact', Dict[str, str]), ('cpe_list', List[Tuple[str, str, str, str, str]])],
 )
 CveSummaryEntry = NamedTuple('CveSummaryEntry', [('cve_id', str), ('summary', str), ('impact', dict)])
 

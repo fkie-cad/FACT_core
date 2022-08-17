@@ -180,7 +180,8 @@ def test_count_distinct_values(db, stats_db):
 
 
 @pytest.mark.parametrize(
-    'q_filter, expected_result', [
+    'q_filter, expected_result',
+    [
         (None, [('value2', 1), ('value1', 2)]),
         ({
             'vendor': 'foobar'
@@ -231,11 +232,15 @@ def test_count_values_in_summary(db, stats_db):
     assert stats_db.count_values_in_summary('plugin that did not run', firmware=True) == []
     assert stats_db.count_values_in_summary('foo', firmware=True) == [('s1', 1), ('s2', 1)]
     assert stats_db.count_values_in_summary(
-        'foo', firmware=True, q_filter={'vendor': fw.vendor},
+        'foo',
+        firmware=True,
+        q_filter={'vendor': fw.vendor},
     ) == [('s1', 1), ('s2', 1)]
     assert stats_db.count_values_in_summary('foo', firmware=False) == [('s3', 1), ('s4', 2)]
     assert stats_db.count_values_in_summary(
-        'foo', firmware=False, q_filter={'vendor': fw.vendor},
+        'foo',
+        firmware=False,
+        q_filter={'vendor': fw.vendor},
     ) == [('s3', 1), ('s4', 2)]
     assert stats_db.count_values_in_summary('foo', firmware=False, q_filter={'vendor': 'different'}) == []
 

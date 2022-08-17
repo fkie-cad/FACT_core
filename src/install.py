@@ -67,10 +67,18 @@ def _setup_argparser():
         help='pull/build docker images required to run the frontend',
     )
     install_options.add_argument(
-        '-N', '--nginx', action='store_true', default=False, help='install and configure nginx',
+        '-N',
+        '--nginx',
+        action='store_true',
+        default=False,
+        help='install and configure nginx',
     )
     install_options.add_argument(
-        '-R', '--no_radare', action='store_true', default=False, help='do not install radare view container',
+        '-R',
+        '--no_radare',
+        action='store_true',
+        default=False,
+        help='do not install radare view container',
     )
     install_options.add_argument(
         '-U',
@@ -102,7 +110,8 @@ def _setup_logging(log_level, log_file, debug_flag=False):
     try:
         log_level = getattr(logging, log_level, None)
         log_format = logging.Formatter(
-            fmt='[%(asctime)s][%(module)s][%(levelname)s]: %(message)s', datefmt='%Y-%m-%d %H:%M:%S',
+            fmt='[%(asctime)s][%(module)s][%(levelname)s]: %(message)s',
+            datefmt='%Y-%m-%d %H:%M:%S',
         )
         logger = logging.getLogger('')
         logger.setLevel(logging.DEBUG)
@@ -155,7 +164,11 @@ def install_statistic_cronjob():
     cron_content += f'30    0    *    *    0    {variety_update_script_path} > /dev/null 2>&1\n'
     crontab_file_path.write_text(cron_content)
     crontab_process = subprocess.run(
-        f'crontab {crontab_file_path}', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True,
+        f'crontab {crontab_file_path}',
+        shell=True,
+        stdout=PIPE,
+        stderr=STDOUT,
+        universal_newlines=True,
     )
     if crontab_process.returncode != 0:
         logging.error(crontab_process.stdout)
