@@ -103,7 +103,7 @@ HardeningCheckResult = NamedTuple(
         ('check_result', str),
         ('actual_value', str),
         ('vulnerabilities', List[str]),
-    ]
+    ],
 )
 
 

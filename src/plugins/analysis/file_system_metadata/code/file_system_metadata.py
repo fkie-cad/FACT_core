@@ -19,7 +19,7 @@ from storage.db_interface_common import DbInterfaceCommon
 
 DOCKER_IMAGE = 'fact/fs_metadata:latest'
 StatResult = NamedTuple(
-    'StatEntry', [('uid', int), ('gid', int), ('mode', int), ('a_time', float), ('c_time', float), ('m_time', float)]
+    'StatEntry', [('uid', int), ('gid', int), ('mode', int), ('a_time', float), ('c_time', float), ('m_time', float)],
 )
 
 
@@ -187,7 +187,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 tag_name='SUID/GUID + root',
                 value='SUID/GUID + root',
                 color=TagColor.BLUE,
-                propagate=False
+                propagate=False,
             )
 
     @staticmethod

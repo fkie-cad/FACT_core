@@ -43,7 +43,7 @@ class MockFileObject:
         ([MockFileObject(['a'])], ['a'], set()),
         ([MockFileObject(['a', 'b'])], ['a', 'b', 'c', 'd'], {'c', 'd'}),
         ([MockFileObject(['b']), MockFileObject(['a'])], ['a', 'b'], {'a', 'b'}),
-    ]
+    ],
 )
 def test_get_unmatched_dependencies(fo_list, dependencies, expected_output):
     assert _get_unmatched_dependencies(fo_list, dependencies) == expected_output

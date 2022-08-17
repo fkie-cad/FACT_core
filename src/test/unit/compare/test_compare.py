@@ -43,7 +43,7 @@ class TestCompare(unittest.TestCase):
         self.fw_one = create_test_firmware(device_name='dev_1', all_files_included_set=True)
         self.fw_one.processed_analysis['file_hashes'] = {'ssdeep': get_ssdeep(self.fw_one.binary)}
         self.fw_two = create_test_firmware(
-            device_name='dev_2', bin_path='container/test.7z', all_files_included_set=True
+            device_name='dev_2', bin_path='container/test.7z', all_files_included_set=True,
         )
         self.fw_two.processed_analysis['file_hashes'] = {'ssdeep': get_ssdeep(self.fw_two.binary)}
         self.compare_system = Compare(db_interface=MockDbInterface(), config=self.config)

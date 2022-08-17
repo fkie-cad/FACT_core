@@ -8,7 +8,7 @@ from web_interface.components.dependency_graph import DepGraphData
 from web_interface.file_tree.file_tree_node import FileTreeNode
 
 from .helper import (
-    TEST_FO, TEST_FW, create_fw_with_child_fo, create_fw_with_parent_and_child, insert_test_fo, insert_test_fw
+    TEST_FO, TEST_FW, create_fw_with_child_fo, create_fw_with_parent_and_child, insert_test_fo, insert_test_fw,
 )
 
 DUMMY_RESULT = generate_analysis_entry(analysis_result={'key': 'result'})
@@ -166,7 +166,7 @@ def test_generic_search_unknown_op(db):
         ({
             'vendor': 'different_vendor'
         }, []),
-    ]
+    ],
 )
 def test_generic_search_fw(db, query, expected):
     insert_test_fw(db, 'uid_1', vendor='test_vendor')
@@ -210,7 +210,7 @@ def test_generic_search_nested(db):
                         'foo': 'bar', 'test': 3
                     }
                 },
-            }
+            },
         )
     }
     db.backend.insert_object(fw)
@@ -431,7 +431,7 @@ def test_get_file_tree_data(db):
         ({
             'vendor': 'test_vendor'
         }, 1, 1, 0),
-    ]
+    ],
 )
 def test_get_number_of_total_matches(db, query, expected, expected_fw, expected_inv):
     fw, parent_fo, child_fo = create_fw_with_parent_and_child()
@@ -477,16 +477,16 @@ def test_rest_get_firmware_uids(db):
     assert sorted(db.frontend.rest_get_firmware_uids(offset=None, limit=None, query={'device_name':
                                                                                      'some_device'})) == [test_fw1.uid]
     assert sorted(
-        db.frontend.rest_get_firmware_uids(offset=None, limit=None, query={'file_name': parent_fw.file_name})
+        db.frontend.rest_get_firmware_uids(offset=None, limit=None, query={'file_name': parent_fw.file_name}),
     ) == [parent_fw.uid]
     assert sorted(
         db.frontend.rest_get_firmware_uids(
-            offset=None, limit=None, query={'file_name': child_fo.file_name}, recursive=True
+            offset=None, limit=None, query={'file_name': child_fo.file_name}, recursive=True,
         )
     ) == [parent_fw.uid]
     assert sorted(
         db.frontend.rest_get_firmware_uids(
-            offset=None, limit=None, query={'file_name': child_fo.file_name}, recursive=True, inverted=True
+            offset=None, limit=None, query={'file_name': child_fo.file_name}, recursive=True, inverted=True,
         )
     ) == [test_fw1.uid, test_fw2.uid]
 

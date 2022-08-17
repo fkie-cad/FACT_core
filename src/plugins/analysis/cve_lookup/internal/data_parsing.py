@@ -74,7 +74,7 @@ def extract_cpe_data_from_cve(nodes: List[dict]) -> List[Tuple[str, str, str, st
                             cpe.get('versionStartIncluding', ''),
                             cpe.get('versionStartExcluding', ''),
                             cpe.get('versionEndIncluding', ''),
-                            cpe.get('versionEndExcluding', '')
+                            cpe.get('versionEndExcluding', ''),
                         )
                     )
         elif 'children' in dicts.keys():

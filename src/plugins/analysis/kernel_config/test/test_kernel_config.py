@@ -197,7 +197,7 @@ def test_checksec_no_valid_json(monkeypatch):
     monkeypatch.setattr(
         'plugins.analysis.kernel_config.internal.checksec_check_kernel.subprocess.run',
         lambda *_,
-        **__: CompletedProcess('DONT_CARE', 0, stdout='invalid json')
+        **__: CompletedProcess('DONT_CARE', 0, stdout='invalid json'),
     )
     assert check_kernel_config('no_real_config') == {}
 
@@ -223,7 +223,7 @@ def test_check_hardening_no_results():
         ('foobar 123', False),
         ('Linux make config build file, ASCII text', True),
         ('Linux make config build file (old)', True),
-    ]
+    ],
 )
 def test_foo1(full_type, expected_output):
     test_file = FileObject()

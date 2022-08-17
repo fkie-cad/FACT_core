@@ -57,7 +57,7 @@ def _start_component(component, args):
     logging.info(f'starting {component}')
     optional_args = _evaluate_optional_args(args)
     command = '{} -l {} -L {} -C {} {}'.format(
-        script_path, config['logging']['logfile'], config['logging']['loglevel'], args.config_file, optional_args
+        script_path, config['logging']['logfile'], config['logging']['loglevel'], args.config_file, optional_args,
     )
     p = Popen(split(command))
     return p

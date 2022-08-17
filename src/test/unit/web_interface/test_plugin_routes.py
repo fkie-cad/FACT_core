@@ -8,7 +8,7 @@ from flask_restx import Api
 from helperFunctions.fileSystem import get_src_dir
 from test.common_helper import get_config_for_testing
 from web_interface.components.plugin_routes import (
-    PLUGIN_CATEGORIES, PluginRoutes, _find_plugins, _get_modules_in_path, _module_has_routes
+    PLUGIN_CATEGORIES, PluginRoutes, _find_plugins, _get_modules_in_path, _module_has_routes,
 )
 
 

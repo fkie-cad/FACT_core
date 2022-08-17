@@ -31,7 +31,7 @@ def create_test_firmware(
     vendor='test_vendor',
     bin_path='container/test.zip',
     all_files_included_set=False,
-    version='0.1'
+    version='0.1',
 ):
     fw = Firmware(file_path=os.path.join(get_test_data_dir(), bin_path))
     fw.device_class = device_class
@@ -87,7 +87,7 @@ def create_test_file_object(bin_path='get_files_test/testfile1'):
 
 TEST_FW = create_test_firmware(device_class='test class', device_name='test device', vendor='test vendor')
 TEST_FW_2 = create_test_firmware(
-    device_class='test_class', device_name='test_firmware_2', vendor='test vendor', bin_path='container/test.7z'
+    device_class='test_class', device_name='test_firmware_2', vendor='test vendor', bin_path='container/test.7z',
 )
 TEST_TEXT_FILE = create_test_file_object()
 TEST_TEXT_FILE2 = create_test_file_object(bin_path='get_files_test/testfile2')

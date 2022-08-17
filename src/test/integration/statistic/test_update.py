@@ -7,7 +7,7 @@ import pytest
 from statistic.update import StatsUpdater
 from storage.db_interface_stats import StatsUpdateDbInterface
 from test.common_helper import (
-    create_test_file_object, create_test_firmware, generate_analysis_entry, get_config_for_testing
+    create_test_file_object, create_test_firmware, generate_analysis_entry, get_config_for_testing,
 )
 from test.integration.storage.helper import create_fw_with_parent_and_child, insert_test_fo, insert_test_fw
 
@@ -42,14 +42,14 @@ def test_malware_stats(db, stats_updater):
             'ClamAV': {
                 'result': 'clean'
             }
-        }}
+        }},
     )
     child_fo.processed_analysis['malware_scanner'] = generate_analysis_entry(
         analysis_result={'scans': {
             'ClamAV': {
                 'result': 'SomeMalware'
             }
-        }}
+        }},
     )
     db.backend.add_object(fw)
     db.backend.add_object(parent_fo)
@@ -163,11 +163,11 @@ def test_get_unpacking_stats(db, stats_updater):
                 summary=['unpacked', 'no data lost'],
                 analysis_result={
                     'plugin_used': 'unpacker1', 'number_of_unpacked_files': 10, 'entropy': 0.4
-                }
+                },
             ),
             'file_type':
             generate_analysis_entry(analysis_result={'mime': 'fw/image'}),
-        }
+        },
     )
     insert_test_fo(
         db,
@@ -179,11 +179,11 @@ def test_get_unpacking_stats(db, stats_updater):
                 summary=['unpacked', 'data lost'],
                 analysis_result={
                     'plugin_used': 'unpacker2', 'number_of_unpacked_files': 2, 'entropy': 0.6
-                }
+                },
             ),
             'file_type':
             generate_analysis_entry(analysis_result={'mime': 'file1'}),
-        }
+        },
     )
     insert_test_fo(
         db,
@@ -195,11 +195,11 @@ def test_get_unpacking_stats(db, stats_updater):
                 summary=['packed'],
                 analysis_result={
                     'plugin_used': 'unpacker1', 'number_of_unpacked_files': 0, 'entropy': 0.8
-                }
+                },
             ),
             'file_type':
             generate_analysis_entry(analysis_result={'mime': 'file2'}),
-        }
+        },
     )
 
     stats = stats_updater.get_unpacking_stats()
@@ -234,7 +234,7 @@ def test_get_architecture_stats(db, stats_updater):
         parent_fw='root_fw',
         analysis={
             'cpu_architecture': generate_analysis_entry(summary=['MIPS, 32-bit, big endian (M)']),
-        }
+        },
     )
     insert_test_fo(
         db,
@@ -242,7 +242,7 @@ def test_get_architecture_stats(db, stats_updater):
         parent_fw='root_fw',
         analysis={
             'cpu_architecture': generate_analysis_entry(summary=['ARM, 32-bit, big endian (M)']),
-        }
+        },
     )
     insert_test_fo(
         db,
@@ -250,7 +250,7 @@ def test_get_architecture_stats(db, stats_updater):
         parent_fw='root_fw',
         analysis={
             'cpu_architecture': generate_analysis_entry(summary=['MIPS, 32-bit, big endian (M)']),
-        }
+        },
     )
 
     assert stats_updater.get_architecture_stats() == {'cpu_architecture': [('MIPS, 32-bit', 1)]}
@@ -297,9 +297,9 @@ def test_get_ip_stats(db, stats_updater):
                     'ips_v4': [['1.2.3.4', '123.45, 678.9']],
                     'ips_v6': [],
                     'uris': ['https://foo.bar', 'www.example.com'],
-                }
+                },
             ),
-        }
+        },
     )
 
     stats = stats_updater.get_ip_stats()
@@ -333,7 +333,7 @@ def test_get_software_components_stats(db, stats_updater):
             'software_components': generate_analysis_entry(analysis_result={'LinuxKernel': {
                 'foo': 'bar'
             }}),
-        }
+        },
     )
     insert_test_fo(
         db,
@@ -343,7 +343,7 @@ def test_get_software_components_stats(db, stats_updater):
             'software_components': generate_analysis_entry(analysis_result={'LinuxKernel': {
                 'foo': 'bar'
             }}),
-        }
+        },
     )
     insert_test_fo(
         db,
@@ -353,7 +353,7 @@ def test_get_software_components_stats(db, stats_updater):
             'software_components': generate_analysis_entry(analysis_result={'SomeSoftware': {
                 'foo': 'bar'
             }}),
-        }
+        },
     )
 
     assert stats_updater.get_software_components_stats()['software_components'] == [

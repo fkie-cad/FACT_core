@@ -58,26 +58,26 @@ def _setup_argparser():
         '--backend-docker-images',
         action='store_true',
         default=False,
-        help='pull/build docker images required to run the backend'
+        help='pull/build docker images required to run the backend',
     )
     install_options.add_argument(
         '--frontend-docker-images',
         action='store_true',
         default=False,
-        help='pull/build docker images required to run the frontend'
+        help='pull/build docker images required to run the frontend',
     )
     install_options.add_argument(
-        '-N', '--nginx', action='store_true', default=False, help='install and configure nginx'
+        '-N', '--nginx', action='store_true', default=False, help='install and configure nginx',
     )
     install_options.add_argument(
-        '-R', '--no_radare', action='store_true', default=False, help='do not install radare view container'
+        '-R', '--no_radare', action='store_true', default=False, help='do not install radare view container',
     )
     install_options.add_argument(
         '-U',
         '--statistic_cronjob',
         action='store_true',
         default=False,
-        help='install cronjob to update statistics hourly and variety data once a week.'
+        help='install cronjob to update statistics hourly and variety data once a week.',
     )
     logging_options = parser.add_argument_group('Logging and Output Options')
     logging_options.add_argument('-l', '--log_file', help='path to log file', default='./install.log')
@@ -86,7 +86,7 @@ def _setup_argparser():
         '--log_level',
         help='define the log level',
         choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'],
-        default='WARNING'
+        default='WARNING',
     )
     logging_options.add_argument('-d', '--debug', action='store_true', help='print debug messages', default=False)
     return parser.parse_args()
@@ -102,7 +102,7 @@ def _setup_logging(log_level, log_file, debug_flag=False):
     try:
         log_level = getattr(logging, log_level, None)
         log_format = logging.Formatter(
-            fmt='[%(asctime)s][%(module)s][%(levelname)s]: %(message)s', datefmt='%Y-%m-%d %H:%M:%S'
+            fmt='[%(asctime)s][%(module)s][%(levelname)s]: %(message)s', datefmt='%Y-%m-%d %H:%M:%S',
         )
         logger = logging.getLogger('')
         logger.setLevel(logging.DEBUG)
@@ -155,7 +155,7 @@ def install_statistic_cronjob():
     cron_content += f'30    0    *    *    0    {variety_update_script_path} > /dev/null 2>&1\n'
     crontab_file_path.write_text(cron_content)
     crontab_process = subprocess.run(
-        f'crontab {crontab_file_path}', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True
+        f'crontab {crontab_file_path}', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True,
     )
     if crontab_process.returncode != 0:
         logging.error(crontab_process.stdout)

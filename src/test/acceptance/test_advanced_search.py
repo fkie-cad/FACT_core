@@ -4,7 +4,7 @@ from urllib.parse import quote
 from storage.db_interface_backend import BackendDbInterface
 from test.acceptance.base import TestAcceptanceBase  # pylint: disable=wrong-import-order
 from test.common_helper import (  # pylint: disable=wrong-import-order
-    create_test_file_object, create_test_firmware, generate_analysis_entry
+    create_test_file_object, create_test_firmware, generate_analysis_entry,
 )
 
 
@@ -39,7 +39,7 @@ class TestAcceptanceAdvancedSearch(TestAcceptanceBase):
             '/database/advanced_search',
             content_type='multipart/form-data',
             data={'advanced_search': '{}'},
-            follow_redirects=True
+            follow_redirects=True,
         )
         assert b'Please enter a valid search request' not in rv.data
         assert self.parent_fw.uid.encode() in rv.data
@@ -50,7 +50,7 @@ class TestAcceptanceAdvancedSearch(TestAcceptanceBase):
             '/database/advanced_search',
             content_type='multipart/form-data',
             data={'advanced_search': json.dumps({'uid': self.child_fo.uid})},
-            follow_redirects=True
+            follow_redirects=True,
         )
         assert b'Please enter a valid search request' not in rv.data
         assert b'<strong>UID:</strong> ' + self.parent_fw.uid.encode() not in rv.data
@@ -59,7 +59,7 @@ class TestAcceptanceAdvancedSearch(TestAcceptanceBase):
     def test_advanced_search_only_firmwares(self):
         query = {'advanced_search': json.dumps({'uid': self.child_fo.uid}), 'only_firmwares': 'True'}
         response = self.test_client.post(
-            '/database/advanced_search', content_type='multipart/form-data', data=query, follow_redirects=True
+            '/database/advanced_search', content_type='multipart/form-data', data=query, follow_redirects=True,
         ).data.decode()
         assert 'Please enter a valid search request' not in response
         assert self.child_fo.uid not in response
@@ -70,7 +70,7 @@ class TestAcceptanceAdvancedSearch(TestAcceptanceBase):
             'advanced_search': json.dumps({'uid': self.child_fo.uid}), 'only_firmwares': 'True', 'inverted': 'True'
         }
         response = self.test_client.post(
-            '/database/advanced_search', content_type='multipart/form-data', follow_redirects=True, data=query
+            '/database/advanced_search', content_type='multipart/form-data', follow_redirects=True, data=query,
         ).data.decode()
         assert 'Please enter a valid search request' not in response
         assert self.child_fo.uid not in response

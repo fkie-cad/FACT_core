@@ -14,7 +14,7 @@ from unpacker.unpack_base import UnpackBase
 class TarRepack(UnpackBase):
     def tar_repack(self, file_path):
         extraction_directory = TemporaryDirectory(
-            prefix='FACT_tar_repack', dir=self.config['data-storage']['docker-mount-base-dir']
+            prefix='FACT_tar_repack', dir=self.config['data-storage']['docker-mount-base-dir'],
         )
         self.extract_files_from_file(file_path, extraction_directory.name)
 
@@ -30,7 +30,7 @@ class TarRepack(UnpackBase):
     @staticmethod
     def _repack_extracted_files(extraction_dir: Path, out_file_path: str) -> bytes:
         tar_process = subprocess.run(
-            f'tar -C {extraction_dir} -cvzf {out_file_path} .', shell=True, stdout=PIPE, stderr=STDOUT
+            f'tar -C {extraction_dir} -cvzf {out_file_path} .', shell=True, stdout=PIPE, stderr=STDOUT,
         )
         logging.debug(f'tar -cvzf:\n {tar_process.stdout}')
         return get_binary_from_file(out_file_path)

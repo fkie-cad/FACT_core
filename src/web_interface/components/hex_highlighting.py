@@ -24,7 +24,7 @@ def preview_data_as_hex(data: bytes, chunk_size: int = 16, offset: int = 0):
         if len(line) < chunk_size:  # fill hex column if it isn't full
             hex_content += ' ' * (chunk_size - len(line)) * 3
         output.append(
-            f'{_format_offset(start_offset)} | {_format_offset(relative_offset)} | {hex_content} | {str_preview}'
+            f'{_format_offset(start_offset)} | {_format_offset(relative_offset)} | {hex_content} | {str_preview}',
         )
         start_offset += chunk_size
         relative_offset += chunk_size

@@ -8,7 +8,7 @@ from helperFunctions.task_conversion import (
     _get_uid_of_analysis_task,
     _get_uploaded_file_binary,
     check_for_errors,
-    convert_analysis_task_to_fw_obj
+    convert_analysis_task_to_fw_obj,
 )
 from objects.firmware import Firmware
 
@@ -49,7 +49,7 @@ class TestTaskConversion(unittest.TestCase):
         self.assertEqual(
             _get_uid_of_analysis_task(analysis_task),
             '2e99758548972a8e8822ad47fa1017ff72f06f3ff6a016851f45c398732bc50c_14',
-            'result is not a uid'
+            'result is not a uid',
         )
 
     def test_convert_analysis_task_to_firmware_object(self):
@@ -60,7 +60,7 @@ class TestTaskConversion(unittest.TestCase):
         self.assertEqual(
             fw_obj.uid,
             '2e99758548972a8e8822ad47fa1017ff72f06f3ff6a016851f45c398732bc50c_14',
-            'uid not correct -> binary not correct'
+            'uid not correct -> binary not correct',
         )
         self.assertEqual(fw_obj.file_name, 'test_file_name')
         self.assertEqual(fw_obj.device_name, 'test device')

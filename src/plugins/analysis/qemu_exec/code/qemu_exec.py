@@ -45,7 +45,7 @@ class Unpacker(UnpackBase):
             return None
 
         extraction_dir = TemporaryDirectory(
-            prefix='FACT_plugin_qemu_exec', dir=self.config['data-storage']['docker-mount-base-dir']
+            prefix='FACT_plugin_qemu_exec', dir=self.config['data-storage']['docker-mount-base-dir'],
         )
         self.extract_files_from_file(file_path, extraction_dir.name)
         return extraction_dir
@@ -78,7 +78,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             ('PowerPC', ['ppc', 'ppc64', 'ppc64le']),
             ('PPC', ['ppc', 'ppc64', 'ppc64le']),
             ('Renesas SH', ['sh4', 'sh4eb']),
-        ]
+        ],
     )
 
     root_path = None
@@ -158,7 +158,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         executor: ThreadPoolExecutor,
         file_list: List[Tuple[str, str]],
         file_object: FileObject,
-        results_dict: dict
+        results_dict: dict,
     ) -> List[Future]:
         jobs = []
         for file_path, full_type in file_list:
@@ -166,7 +166,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             if self._analysis_not_already_completed(file_object, uid):
                 for arch_suffix in self._find_arch_suffixes(full_type):
                     jobs.append(
-                        executor.submit(process_qemu_job, file_path, arch_suffix, self.root_path, results_dict, uid)
+                        executor.submit(process_qemu_job, file_path, arch_suffix, self.root_path, results_dict, uid),
                     )
         return jobs
 
@@ -198,7 +198,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 tag_name=self.NAME,
                 value='QEMU executable',
                 color=TagColor.BLUE,
-                propagate=True
+                propagate=True,
             )
 
     @staticmethod
@@ -232,7 +232,7 @@ def _valid_execution_in_results(results: dict):
 def _output_without_error_exists(docker_output: Dict[str, str]) -> bool:
     try:
         return (
-            docker_output['stdout'] != '' and (docker_output['return_code'] == '0' or docker_output['stderr'] == '')
+            docker_output['stdout'] != '' and (docker_output['return_code'] == '0' or docker_output['stderr'] == ''),
         )
     except KeyError:
         return False
@@ -269,7 +269,7 @@ def get_docker_output(arch_suffix: str, file_path: str, root_path: Path) -> dict
             mounts=[
                 Mount(CONTAINER_TARGET_PATH, str(root_path), type='bind'),
             ],
-            logging_label='qemu_exec'
+            logging_label='qemu_exec',
         )
         return loads(result.stdout)
     except ReadTimeout:
@@ -311,7 +311,7 @@ def process_strace_output(docker_output: dict):
     docker_output['strace'] = (
         # b64 + zip is still smaller than raw on average
         b64encode(zlib.compress(docker_output['strace']['stdout'].encode())).decode()
-        if _strace_output_exists(docker_output) else {}
+        if _strace_output_exists(docker_output) else {},
     )
 
 

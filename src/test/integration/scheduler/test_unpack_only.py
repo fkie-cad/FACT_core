@@ -18,7 +18,7 @@ class TestFileAddition:
             config=self._config,
             post_unpack=self._dummy_callback,
             fs_organizer=MockFSOrganizer(),
-            unpacking_locks=unpacking_lock_manager
+            unpacking_locks=unpacking_lock_manager,
         )
 
     def teardown(self):

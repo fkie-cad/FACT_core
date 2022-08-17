@@ -67,7 +67,7 @@ class AnalysisPlugin(YaraBasePlugin):
                 tag_name=name,
                 value=name.replace('_', ' '),
                 color=tag_color,
-                propagate=propagate
+                propagate=propagate,
             )
 
     @staticmethod
@@ -92,7 +92,7 @@ class AnalysisPlugin(YaraBasePlugin):
 
     def _check_netusb_vulnerability(self, input_file_data: bytes):
         with TemporaryDirectory(
-            prefix='known_vulns_', dir=self.config['data-storage']['docker-mount-base-dir']
+            prefix='known_vulns_', dir=self.config['data-storage']['docker-mount-base-dir'],
         ) as tmp_dir:
             tmp_dir_path = Path(tmp_dir)
             ghidra_input_file = tmp_dir_path / 'ghidra_input'
@@ -119,7 +119,7 @@ class AnalysisPlugin(YaraBasePlugin):
                             link='https://nvd.nist.gov/vuln/detail/CVE-2021-45608',
                             short_name='CVE-2021-45608',
                             additional_data=ghidra_results,
-                        )
+                        ),
                     )
                 ]
             except (json.JSONDecodeError, FileNotFoundError):

@@ -26,7 +26,7 @@ class InterComBackEndBinding:  # pylint: disable=too-many-instance-attributes
         compare_service=None,
         unpacking_service=None,
         unpacking_locks=None,
-        testing=False
+        testing=False,
     ):
         self.config = config
         self.analysis_service = analysis_service
@@ -53,7 +53,7 @@ class InterComBackEndBinding:  # pylint: disable=too-many-instance-attributes
         self._start_listener(
             InterComBackEndDeleteFile,
             unpacking_locks=self.unpacking_locks,
-            db_interface=DbInterfaceCommon(config=self.config)
+            db_interface=DbInterfaceCommon(config=self.config),
         )
         self._start_listener(InterComBackEndSingleFileTask, self.analysis_service.update_analysis_of_single_object)
         self._start_listener(InterComBackEndPeekBinaryTask)

@@ -26,7 +26,7 @@ def test_load_config(monkeypatch):
         ('item1, item2, item3', ['item1', 'item2', 'item3']),
         ('item1,item2,item3', ['item1', 'item2', 'item3']),
         (' item1 , item2 , item3 ', ['item1', 'item2', 'item3']),
-    ]
+    ],
 )
 def test_read_list_from_config(monkeypatch, input_data, expected):
     monkeypatch.setattr('helperFunctions.config.get_config_dir', lambda: f'{get_test_data_dir()}/helperFunctions')

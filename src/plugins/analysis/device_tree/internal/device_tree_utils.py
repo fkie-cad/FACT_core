@@ -74,7 +74,7 @@ def convert_device_tree_to_str(file_path: Union[str, Path]) -> Optional[str]:
     process = run(f'dtc -I dtb -O dts {file_path}', shell=True, stdout=PIPE, stderr=PIPE)  # pylint: disable=subprocess-run-check
     if process.returncode != 0:
         logging.warning(
-            f'The Device Tree Compiler exited with non-zero return code {process.returncode}: {process.stderr}'
+            f'The Device Tree Compiler exited with non-zero return code {process.returncode}: {process.stderr}',
         )
         return None
     return process.stdout.decode(errors='replace').strip()
@@ -131,7 +131,7 @@ def _get_model_or_description(structure_block: StructureBlock):
 
 
 def _result_to_json(
-    header: DeviceTreeHeader, string_representation: str, model: Optional[str], description: Optional[str]
+    header: DeviceTreeHeader, string_representation: str, model: Optional[str], description: Optional[str],
 ) -> dict:
     return {
         'header': header._asdict(),

@@ -17,7 +17,7 @@ from objects.firmware import Firmware
 from web_interface.components.compare_routes import get_comparison_uid_dict_from_session
 from web_interface.components.component_base import GET, POST, AppRoute, ComponentBase
 from web_interface.components.dependency_graph import (
-    create_data_graph_edges, create_data_graph_nodes_and_groups, get_graph_colors
+    create_data_graph_edges, create_data_graph_nodes_and_groups, get_graph_colors,
 )
 from web_interface.security.authentication import user_has_privilege
 from web_interface.security.decorator import roles_accepted
@@ -50,7 +50,7 @@ class AnalysisRoutes(ComponentBase):
                 return render_template('uid_not_found.html', uid=uid)
             if selected_analysis is not None and selected_analysis not in file_obj.processed_analysis:
                 return render_template(
-                    'error.html', message=f'The requested analysis ({selected_analysis}) has not run (yet)'
+                    'error.html', message=f'The requested analysis ({selected_analysis}) has not run (yet)',
                 )
             if isinstance(file_obj, Firmware):
                 root_uid = file_obj.uid
@@ -71,7 +71,7 @@ class AnalysisRoutes(ComponentBase):
             user_has_admin_clearance=user_has_privilege(current_user, privilege='delete'),
             known_comparisons=known_comparisons,
             available_plugins=self._get_used_and_unused_plugins(
-                file_obj.processed_analysis, [x for x in analysis_plugins.keys() if x != 'unpacker']
+                file_obj.processed_analysis, [x for x in analysis_plugins.keys() if x != 'unpacker'],
             )
         )
 
@@ -94,7 +94,7 @@ class AnalysisRoutes(ComponentBase):
         with ConnectTo(self.intercom, self._config) as intercom:
             intercom.add_single_file_task(file_object)
         return redirect(
-            url_for(self.show_analysis.__name__, uid=uid, root_uid=root_uid, selected_analysis=selected_analysis)
+            url_for(self.show_analysis.__name__, uid=uid, root_uid=root_uid, selected_analysis=selected_analysis),
         )
 
     @staticmethod
@@ -194,7 +194,7 @@ class AnalysisRoutes(ComponentBase):
             flash(
                 'Error: Graph could not be rendered. '
                 'The file chosen as root must contain a filesystem with binaries.',
-                'danger'
+                'danger',
             )
             return render_template('dependency_graph.html', **data_graph_part, uid=uid, root_uid=root_uid)
 
@@ -203,7 +203,7 @@ class AnalysisRoutes(ComponentBase):
         if elf_analysis_missing_from_files > 0:
             flash(
                 f'Warning: Elf analysis plugin result is missing for {elf_analysis_missing_from_files} files',
-                'warning'
+                'warning',
             )
 
         # TODO: Add a loading icon?
@@ -213,7 +213,7 @@ class AnalysisRoutes(ComponentBase):
                for key in ['nodes', 'edges', 'groups']},
             uid=uid,
             root_uid=root_uid,
-            colors=colors
+            colors=colors,
         )
 
 

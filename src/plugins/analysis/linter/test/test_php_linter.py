@@ -29,7 +29,7 @@ def test_do_analysis(monkeypatch):
     monkeypatch.setattr(
         'plugins.analysis.linter.internal.linters.run_docker_container',
         lambda *_,
-        **__: CompletedProcess('args', 0, stdout=MOCK_RESPONSE)
+        **__: CompletedProcess('args', 0, stdout=MOCK_RESPONSE),
     )
     result = run_phpstan('any/path')
 

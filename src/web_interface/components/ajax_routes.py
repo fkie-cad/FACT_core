@@ -75,7 +75,7 @@ class AjaxRoutes(ComponentBase):
             fo_list=included_files,
             number_of_unanalyzed_files=number_of_unanalyzed_files,
             omit_collapse=True,
-            root_uid=root_uid
+            root_uid=root_uid,
         )
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
@@ -109,7 +109,7 @@ class AjaxRoutes(ComponentBase):
             'summary.html',
             summary_of_included_files=summary_of_included_files,
             root_uid=uid,
-            selected_analysis=selected_analysis
+            selected_analysis=selected_analysis,
         )
 
     @roles_accepted(*PRIVILEGES['status'])

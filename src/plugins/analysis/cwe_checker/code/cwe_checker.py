@@ -122,7 +122,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         if not self._is_supported_arch(file_object):
             logging.debug(
                 '{}\'s arch is not supported ({})'.format(
-                    file_object.file_path, file_object.processed_analysis['cpu_architecture']['summary']
+                    file_object.file_path, file_object.processed_analysis['cpu_architecture']['summary'],
                 )
             )
             file_object.processed_analysis[self.NAME] = {'summary': []}

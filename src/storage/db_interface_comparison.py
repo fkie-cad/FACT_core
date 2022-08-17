@@ -5,7 +5,7 @@ from typing import List, Optional, Tuple
 from sqlalchemy import func, select
 
 from helperFunctions.data_conversion import (
-    convert_compare_id_to_list, convert_uid_list_to_compare_id, normalize_compare_id
+    convert_compare_id_to_list, convert_uid_list_to_compare_id, normalize_compare_id,
 )
 from storage.db_interface_base import ReadWriteDbInterface
 from storage.db_interface_common import DbInterfaceCommon
@@ -78,7 +78,7 @@ class ComparisonDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
                 comparison_id=comparison_id,
                 submission_date=time(),
                 data=comparison_result,
-                file_objects=[session.get(FileObjectEntry, uid) for uid in comparison_id.split(';')]
+                file_objects=[session.get(FileObjectEntry, uid) for uid in comparison_id.split(';')],
             )
             session.add(comparison_entry)
 

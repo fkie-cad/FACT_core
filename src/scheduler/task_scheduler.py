@@ -17,7 +17,7 @@ class AnalysisTaskScheduler:
     def schedule_analysis_tasks(self, fo, scheduled_analysis, mandatory=False):
         scheduled_analysis = self._add_dependencies_recursively(copy(scheduled_analysis) or [])
         fo.scheduled_analysis = self._smart_shuffle(
-            scheduled_analysis + MANDATORY_PLUGINS if mandatory else scheduled_analysis
+            scheduled_analysis + MANDATORY_PLUGINS if mandatory else scheduled_analysis,
         )
 
     def _smart_shuffle(self, plugin_list: List[str]) -> List[str]:
@@ -28,7 +28,7 @@ class AnalysisTaskScheduler:
             next_plugins = self._get_plugins_with_met_dependencies(remaining_plugins, scheduled_plugins)
             if not next_plugins:
                 logging.error(
-                    f'Error: Could not schedule plugins because dependencies cannot be fulfilled: {remaining_plugins}'
+                    f'Error: Could not schedule plugins because dependencies cannot be fulfilled: {remaining_plugins}',
                 )
                 break
             scheduled_plugins[:0] = shuffled(next_plugins)
@@ -69,10 +69,10 @@ class AnalysisTaskScheduler:
             if failed_plugin in self.plugins[plugin].DEPENDENCIES:
                 fw_object.scheduled_analysis.remove(plugin)
                 logging.warning(
-                    f'Unscheduled analysis {plugin} for {fw_object.uid} because dependency {failed_plugin} failed'
+                    f'Unscheduled analysis {plugin} for {fw_object.uid} because dependency {failed_plugin} failed',
                 )
                 fw_object.processed_analysis[plugin] = self._get_failed_analysis_result(
-                    f'Analysis of dependency {failed_plugin} failed', plugin
+                    f'Analysis of dependency {failed_plugin} failed', plugin,
                 )
         fw_object.analysis_exception = None
 

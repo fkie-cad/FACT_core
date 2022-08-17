@@ -69,7 +69,7 @@ class ComparisonScheduler:
     def _process_comparison(self, comparison_id: str):
         try:
             self.db_interface.add_comparison_result(
-                self.comparison_module.compare(convert_compare_id_to_list(comparison_id))
+                self.comparison_module.compare(convert_compare_id_to_list(comparison_id)),
             )
         except Exception:  # pylint: disable=broad-except
             logging.error(f'Fatal error in comparison process for {comparison_id}', exc_info=True)

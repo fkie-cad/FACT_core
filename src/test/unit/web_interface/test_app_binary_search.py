@@ -41,7 +41,7 @@ class TestAppBinarySearch(WebInterfaceTest):
                 'file':
                 (BytesIO(b'rule rulename {strings: $a = { 0123456789abcdef } condition: $a }'), 'test_file.txt'),
                 'textarea': '',
-            }
+            },
         )
         assert 'test_uid' in response
 
@@ -50,7 +50,7 @@ class TestAppBinarySearch(WebInterfaceTest):
             {
                 'file': None,
                 'textarea': 'rule rulename {strings: $a = { 0123456789abcdef } condition: $a }',
-            }
+            },
         )
         assert 'test_uid' in response
 
@@ -68,7 +68,7 @@ class TestAppBinarySearch(WebInterfaceTest):
                 'file': (BytesIO(b'invalid_rule'), 'test_file.txt'),
                 'textarea': '',
                 'firmware_uid': 'uid_not_in_db',
-            }
+            },
         )
         assert 'not found in database' in response
 
@@ -78,12 +78,12 @@ class TestAppBinarySearch(WebInterfaceTest):
                 'file': None,
                 'firmware_uid': 'uid_in_db',
                 'textarea': 'rule rulename {strings: $a = { 0123456789abcdef } condition: $a }',
-            }
+            },
         )
         assert 'test_uid' in response
 
     def _post_binary_search(self, query: dict) -> str:
         response = self.test_client.post(
-            '/database/binary_search', content_type='multipart/form-data', data=query, follow_redirects=True
+            '/database/binary_search', content_type='multipart/form-data', data=query, follow_redirects=True,
         )
         return response.data.decode()

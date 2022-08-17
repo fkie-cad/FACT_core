@@ -14,7 +14,7 @@ class CryptoCodeMaterialTest(AbstractSignatureTest):
 
     def test_gnupg(self):
         self._rule_match(
-            '0x6C2DF2C5-pub.asc', 'PgpPublicKeyBlock', len(['PgpPublicKeyBlock', 'PgpPublicKeyBlock_GnuPG'])
+            '0x6C2DF2C5-pub.asc', 'PgpPublicKeyBlock', len(['PgpPublicKeyBlock', 'PgpPublicKeyBlock_GnuPG']),
         )
 
     def test_ssh_public(self):

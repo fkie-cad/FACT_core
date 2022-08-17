@@ -106,7 +106,7 @@ class MigrationMongoInterface(MongoInterface):
         firmware.vendor = entry['vendor']
         firmware.version = entry['version']
         firmware.processed_analysis = self.retrieve_analysis(
-            entry['processed_analysis'], analysis_filter=analysis_filter
+            entry['processed_analysis'], analysis_filter=analysis_filter,
         )
         firmware.files_included = set(entry['files_included'])
         firmware.virtual_file_path = entry['virtual_file_path']
@@ -131,7 +131,7 @@ class MigrationMongoInterface(MongoInterface):
         file_object.virtual_file_path = entry['virtual_file_path']
         file_object.parents = entry['parents']
         file_object.processed_analysis = self.retrieve_analysis(
-            entry['processed_analysis'], analysis_filter=analysis_filter
+            entry['processed_analysis'], analysis_filter=analysis_filter,
         )
         file_object.files_included = set(entry['files_included'])
         file_object.parent_firmware_uids = set(entry['parent_firmware_uids'])
@@ -207,7 +207,7 @@ def _fix_illegal_dict(dict_: dict, label=''):  # pylint: disable=too-complex
         elif isinstance(value, str):
             if '\0' in value:
                 logging.debug(
-                    f'entry ({label}) {key} contains illegal character "\\0": {value[:10]} -> replacing with "?"'
+                    f'entry ({label}) {key} contains illegal character "\\0": {value[:10]} -> replacing with "?"',
                 )
                 dict_[key] = value.replace('\0', '\\x00')
 
@@ -216,7 +216,7 @@ def _fix_illegal_list(list_: list, key=None, label=''):
     for index, element in enumerate(list_):
         if isinstance(element, bytes):
             logging.debug(
-                f'array entry ({label}) {key} has illegal type bytes: {element[:10]}... -> converting to str...'
+                f'array entry ({label}) {key} has illegal type bytes: {element[:10]}... -> converting to str...',
             )
             list_[index] = element.decode()
         elif isinstance(element, dict):
@@ -226,7 +226,7 @@ def _fix_illegal_list(list_: list, key=None, label=''):
         elif isinstance(element, str):
             if '\0' in element:
                 logging.debug(
-                    f'entry ({label}) {key} contains illegal character "\\0": {element[:10]} -> replacing with "?"'
+                    f'entry ({label}) {key} contains illegal character "\\0": {element[:10]} -> replacing with "?"',
                 )
                 list_[index] = element.replace('\0', '\\x00')
 
@@ -268,7 +268,7 @@ def main():
         logging.error(
             'Could not connect to MongoDB database.\n\t'
             'Is the server running and the configuration in `src/config/migration.cfg` correct?\n\t'
-            'The database can be started with `mongod --config config/mongod.conf`.'
+            'The database can be started with `mongod --config config/mongod.conf`.',
         )
         sys.exit(1)
 
@@ -298,7 +298,7 @@ class DbMigrator:
                     query,
                     label=firmware_object.file_name,
                     root_uid=firmware_object.uid if root else root_uid,
-                    parent_uid=firmware_object.uid
+                    parent_uid=firmware_object.uid,
                 )
             else:
                 firmware_object = self.mongo.get_object(uid)
@@ -306,7 +306,7 @@ class DbMigrator:
                 query = {'_id': {'$in': list(firmware_object.files_included)}}
                 root_uid = firmware_object.uid if root else root_uid
                 self.migrate_fw(
-                    query=query, root_uid=root_uid, parent_uid=firmware_object.uid, label=firmware_object.file_name
+                    query=query, root_uid=root_uid, parent_uid=firmware_object.uid, label=firmware_object.file_name,
                 )
                 migrated_fw_count += 1
             self.progress.update(task, advance=1)
@@ -329,7 +329,7 @@ class DbMigrator:
             logging.error(
                 f'fields missing from analysis data: \n'
                 f'{json.dumps(firmware_object.processed_analysis, indent=2)}',
-                exc_info=True
+                exc_info=True,
             )
             raise
 

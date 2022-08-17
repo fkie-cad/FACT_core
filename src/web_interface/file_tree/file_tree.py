@@ -193,7 +193,7 @@ class VirtualPathFileTree:
             name=self._get_file_name(current_virtual_path),
             size=self.fo_data.size,
             mime_type=self.fo_data.mime,
-            has_children=self._has_children()
+            has_children=self._has_children(),
         )
 
     def _get_file_name(self, current_virtual_path: List[str]) -> str:

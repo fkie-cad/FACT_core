@@ -61,7 +61,7 @@ class RestStatisticsWithoutName(RestResourceBase):
         'params': {
             'stat_name': 'Statistic\'s name'
         },
-    }
+    },
 )
 class RestStatisticsWithName(RestResourceBase):
     URL = '/rest/statistics'
@@ -76,7 +76,7 @@ class RestStatisticsWithName(RestResourceBase):
         _delete_id_and_check_empty_stat(statistic_dict)
         if stat_name not in STATISTICS:
             return error_message(
-                f'A statistic with the ID {stat_name} does not exist', self.URL, dict(stat_name=stat_name)
+                f'A statistic with the ID {stat_name} does not exist', self.URL, dict(stat_name=stat_name),
             )
 
         return statistic_dict

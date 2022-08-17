@@ -142,7 +142,7 @@ class Firmware(FileObject):  # pylint: disable=too-many-instance-attributes
         return (
             f'{self.get_hid()}\n'
             f'Processed Analysis: {list(self.processed_analysis.keys())}\n'
-            f'Scheduled Analysis: {self.scheduled_analysis}'
+            f'Scheduled Analysis: {self.scheduled_analysis}',
         )
 
     def __repr__(self) -> str:

@@ -51,7 +51,7 @@ EXPECTED_CVE_OUTPUT = [
         '',
         '',
         '',
-        ''
+        '',
     ),
     (
         'CVE-2012-0001',
@@ -73,7 +73,7 @@ EXPECTED_CVE_OUTPUT = [
         '',
         '',
         '',
-        ''
+        '',
     ),
     (
         'CVE-2012-0001',
@@ -95,7 +95,7 @@ EXPECTED_CVE_OUTPUT = [
         '',
         '',
         '',
-        ''
+        '',
     ),
     (
         'CVE-2012-0001',
@@ -117,7 +117,7 @@ EXPECTED_CVE_OUTPUT = [
         '',
         '',
         '',
-        ''
+        '',
     ),
     (
         'CVE-2012-0001',
@@ -139,7 +139,7 @@ EXPECTED_CVE_OUTPUT = [
         '',
         '',
         '',
-        ''
+        '',
     ),
     (
         'CVE-2012-0001',
@@ -161,7 +161,7 @@ EXPECTED_CVE_OUTPUT = [
         '',
         '',
         '',
-        ''
+        '',
     ),
     (
         'CVE-2012-0001',
@@ -183,7 +183,7 @@ EXPECTED_CVE_OUTPUT = [
         '',
         '',
         '',
-        ''
+        '',
     ),
     (
         'CVE-2012-0001',
@@ -205,7 +205,7 @@ EXPECTED_CVE_OUTPUT = [
         '',
         '',
         '',
-        ''
+        '',
     ),
     (
         'CVE-2012-0001',
@@ -227,7 +227,7 @@ EXPECTED_CVE_OUTPUT = [
         '',
         '',
         '',
-        ''
+        '',
     ),
     (
         'CVE-2012-0001',
@@ -249,7 +249,7 @@ EXPECTED_CVE_OUTPUT = [
         '',
         '',
         '',
-        ''
+        '',
     ),
     (
         'CVE-2012-0001',
@@ -271,7 +271,7 @@ EXPECTED_CVE_OUTPUT = [
         '',
         '',
         '',
-        ''
+        '',
     ),
     (
         'CVE-2012-0001',
@@ -293,7 +293,7 @@ EXPECTED_CVE_OUTPUT = [
         '',
         '',
         '',
-        ''
+        '',
     ),
     (
         'CVE-2012-0001',
@@ -315,7 +315,7 @@ EXPECTED_CVE_OUTPUT = [
         '',
         '',
         '',
-        ''
+        '',
     ),
     (
         'CVE-2012-0001',
@@ -337,7 +337,7 @@ EXPECTED_CVE_OUTPUT = [
         '',
         '',
         '',
-        ''
+        '',
     ),
     (
         'CVE-2018-0010',
@@ -359,7 +359,7 @@ EXPECTED_CVE_OUTPUT = [
         '',
         '',
         '',
-        ''
+        '',
     ),
     (
         'CVE-2018-0010',
@@ -381,7 +381,7 @@ EXPECTED_CVE_OUTPUT = [
         '',
         '',
         '',
-        ''
+        '',
     ),
     (
         'CVE-2018-0010',
@@ -403,7 +403,7 @@ EXPECTED_CVE_OUTPUT = [
         '',
         '',
         '',
-        ''
+        '',
     ),
     (
         'CVE-2018-0010',
@@ -425,7 +425,7 @@ EXPECTED_CVE_OUTPUT = [
         '',
         '',
         '',
-        ''
+        '',
     )
 ]
 
@@ -443,14 +443,14 @@ EXPECTED_SUM_OUTPUT = [
         2018,
         'GitLab Community and Enterprise Edition before 11.3.14, 11.4.x before 11.4.12, and 11.5.x before 11.5.5 allows Directory Traversal.',
         'N/A',
-        'N/A'
+        'N/A',
     ),
     (
         'CVE-2018-8825',
         2018,
         'Google TensorFlow 1.7 and below is affected by: Buffer Overflow. The impact is: execute arbitrary code (local).',
         'N/A',
-        'N/A'
+        'N/A',
     )
 ]
 
@@ -467,7 +467,7 @@ EXPECTED_UPDATED_CPE_TABLE = [
         'ANY',
         'android',
         'ANY',
-        'ANY'
+        'ANY',
     ),
     (
         'cpe:2.3:a:1000guess:1000_guess:-:*:*:*:*:*:*:*',
@@ -481,7 +481,7 @@ EXPECTED_UPDATED_CPE_TABLE = [
         'ANY',
         'ANY',
         'ANY',
-        'ANY'
+        'ANY',
     ),
     (
         'cpe:2.3:a:1024cms:1024_cms:0.7:*:*:*:*:*:*:*',
@@ -495,7 +495,7 @@ EXPECTED_UPDATED_CPE_TABLE = [
         'ANY',
         'ANY',
         'ANY',
-        'ANY'
+        'ANY',
     ),
     (
         'cpe:2.3:a:1024cms:1024_cms:1.2.5:*:*:*:*:*:*:*',
@@ -509,7 +509,7 @@ EXPECTED_UPDATED_CPE_TABLE = [
         'ANY',
         'ANY',
         'ANY',
-        'ANY'
+        'ANY',
     ),
     (
         'cpe:2.3:a:1024cms:1024_cms:1.3.1:*:*:*:*:*:*:*',
@@ -523,7 +523,7 @@ EXPECTED_UPDATED_CPE_TABLE = [
         'ANY',
         'ANY',
         'ANY',
-        'ANY'
+        'ANY',
     ),
     (
         'cpe:2.3:a:1024cms:1024_cms:1.4.1:*:*:*:*:*:*:*',
@@ -537,7 +537,7 @@ EXPECTED_UPDATED_CPE_TABLE = [
         'ANY',
         'ANY',
         'ANY',
-        'ANY'
+        'ANY',
     )
 ]
 
@@ -562,7 +562,7 @@ EXPECTED_UPDATED_CVE_TABLE = [
         '',
         '',
         '',
-        ''
+        '',
     ),
     (
         'CVE-2018-0010',
@@ -584,7 +584,7 @@ EXPECTED_UPDATED_CVE_TABLE = [
         '',
         '',
         '',
-        ''
+        '',
     ),
     (
         'CVE-2018-0010',
@@ -606,7 +606,7 @@ EXPECTED_UPDATED_CVE_TABLE = [
         '',
         '',
         '',
-        ''
+        '',
     ),
     (
         'CVE-2018-0010',
@@ -628,7 +628,7 @@ EXPECTED_UPDATED_CVE_TABLE = [
         '',
         '',
         '',
-        ''
+        '',
     ),
     (
         'CVE-2018-1136',
@@ -650,7 +650,7 @@ EXPECTED_UPDATED_CVE_TABLE = [
         '3.1.0',
         '',
         '3.1.11',
-        ''
+        '',
     ),
     (
         'CVE-2018-1136',
@@ -672,7 +672,7 @@ EXPECTED_UPDATED_CVE_TABLE = [
         '3.2.0',
         '',
         '3.2.8',
-        ''
+        '',
     ),
     (
         'CVE-2018-1136',
@@ -694,7 +694,7 @@ EXPECTED_UPDATED_CVE_TABLE = [
         '3.3.0',
         '',
         '3.3.5',
-        ''
+        '',
     ),
     (
         'CVE-2018-1136',
@@ -716,7 +716,7 @@ EXPECTED_UPDATED_CVE_TABLE = [
         '3.4.0',
         '',
         '3.4.2',
-        ''
+        '',
     ),
     (
         'CVE-2018-20229',
@@ -738,7 +738,7 @@ EXPECTED_UPDATED_CVE_TABLE = [
         '',
         '',
         '',
-        ''
+        '',
     ),
     (
         'CVE-2018-20229',
@@ -760,7 +760,7 @@ EXPECTED_UPDATED_CVE_TABLE = [
         '',
         '',
         '',
-        ''
+        '',
     )
 ]
 EXPECTED_UPDATED_SUMMARY_TABLE = [
@@ -772,21 +772,21 @@ EXPECTED_UPDATED_SUMMARY_TABLE = [
         'context-dependent attackers to bypass the SafeSEH security feature by leveraging a Visual C++ .NET 2003 '
         'application, aka \"Windows Kernel SafeSEH Bypass Vulnerability.\"',
         '9.3',
-        'N/A'
+        'N/A',
     ),
     (
         'CVE-2018-7576',
         2018,
         'Google TensorFlow 1.6.x and earlier is affected by: Null Pointer Dereference. The type of exploitation is: context-dependent.',
         'N/A',
-        'N/A'
+        'N/A',
     ),
     (
         'CVE-2018-8825',
         2018,
         'Google TensorFlow 1.7 and below is affected by: Buffer Overflow. The impact is: execute arbitrary code (local).',
         'N/A',
-        'N/A'
+        'N/A',
     )
 ]
 
@@ -809,7 +809,7 @@ EXPECTED_GET_CVE_FEEDS_UPDATE_CONTENT = [
                                ''), ('cpe:2.3:o:microsoft:windows_vista:*:sp2:*:*:*:*:*:*', '', '', '', ''),
             ('cpe:2.3:o:microsoft:windows_server_2008:*:sp2:x64:*:*:*:*:*', '', '', '',
              ''), ('cpe:2.3:o:microsoft:windows_server_2008:*:sp2:x32:*:*:*:*:*', '', '', '', '')
-        ]
+        ],
     ),
     CveEntry(
         cve_id='CVE-2018-0010',
@@ -819,7 +819,7 @@ EXPECTED_GET_CVE_FEEDS_UPDATE_CONTENT = [
             ('cpe:2.3:a:microsoft:ie:8:*:*:*:*:*:*:*', '', '', '', ''),
             ('cpe:2.3:a:microsoft:ie:9:*:*:*:*:*:*:*', '', '', '', ''),
             ('cpe:2.3:a:microsoft:ie:7:*:*:*:*:*:*:*', '', '', '', '')
-        ]
+        ],
     )
 ]
 
@@ -827,12 +827,12 @@ EXPECTED_GET_CVE_SUMMARY_UPDATE_CONTENT = [
     CveSummaryEntry(
         'CVE-2018-20229',
         'GitLab Community and Enterprise Edition before 11.3.14, 11.4.x before 11.4.12, and 11.5.x before 11.5.5 '
-        'allows Directory Traversal.', {}
+        'allows Directory Traversal.', {},
     ),
     CveSummaryEntry(
         'CVE-2018-8825',
         'Google TensorFlow 1.7 and below is affected by: Buffer Overflow. The impact is: execute arbitrary code (local).',
-        {}
+        {},
     )
 ]
 
@@ -845,7 +845,7 @@ CVE_LIST = [
             ('cpe:2.3:a:1000guess:1000_guess:-:*:*:*:*:*:*:*', '', '', '', ''),
             ('cpe:2.3:a:1024cms:1024_cms:0.7:*:*:*:*:*:*:*', '', '', '', ''),
             ('cpe:2.3:a:1024cms:1024_cms:1.2.5:*:*:*:*:*:*:*', '', '', '', ''),
-        ]
+        ],
     ),
     CveEntry('CVE-2012-0002', {'cvssV2': '5.3'}, [('cpe:2.3:a:1024cms:1024_cms:1.3.1:*:*:*:*:*:*:*', '', '', '', '')]),
 ]
@@ -870,7 +870,7 @@ CVE_TABLE = [
         '',
         '',
         '',
-        ''
+        '',
     ),
     (
         'CVE-2012-0001',
@@ -892,7 +892,7 @@ CVE_TABLE = [
         '',
         '',
         '',
-        ''
+        '',
     ),
     (
         'CVE-2012-0001',
@@ -914,7 +914,7 @@ CVE_TABLE = [
         '',
         '',
         '',
-        ''
+        '',
     ),
     (
         'CVE-2012-0001',
@@ -936,7 +936,7 @@ CVE_TABLE = [
         '',
         '',
         '',
-        ''
+        '',
     ),
     (
         'CVE-2012-0002',
@@ -958,7 +958,7 @@ CVE_TABLE = [
         '',
         '',
         '',
-        ''
+        '',
     )
 ]
 
@@ -983,7 +983,7 @@ CPE_TABLE = [
         'ANY',
         'android',
         'ANY',
-        'ANY'
+        'ANY',
     ),
     (
         'cpe:2.3:a:1000guess:1000_guess:-:*:*:*:*:*:*:*',
@@ -997,7 +997,7 @@ CPE_TABLE = [
         'ANY',
         'ANY',
         'ANY',
-        'ANY'
+        'ANY',
     ),
     (
         'cpe:2.3:a:1024cms:1024_cms:0.7:*:*:*:*:*:*:*',
@@ -1011,7 +1011,7 @@ CPE_TABLE = [
         'ANY',
         'ANY',
         'ANY',
-        'ANY'
+        'ANY',
     ),
     (
         'cpe:2.3:a:1024cms:1024_cms:1.2.5:*:*:*:*:*:*:*',
@@ -1025,7 +1025,7 @@ CPE_TABLE = [
         'ANY',
         'ANY',
         'ANY',
-        'ANY'
+        'ANY',
     ),
     (
         'cpe:2.3:a:1024cms:1024_cms:1.3.1:*:*:*:*:*:*:*',
@@ -1039,7 +1039,7 @@ CPE_TABLE = [
         'ANY',
         'ANY',
         'ANY',
-        'ANY'
+        'ANY',
     )
 ]
 
@@ -1066,11 +1066,11 @@ def setup():
         db.execute_query(query=TEST_QUERIES['test_create_update'].format('new'))
         db.insert_rows(
             query=TEST_QUERIES['test_insert_cve_id'].format('outdated'),
-            input_data=[('CVE-2018-0001', 2018), ('CVE-2018-0002', 2018)]
+            input_data=[('CVE-2018-0001', 2018), ('CVE-2018-0002', 2018)],
         )
         db.insert_rows(
             query=TEST_QUERIES['test_insert_cve_id'].format('new'),
-            input_data=[('CVE-2018-0002', 2018), ('CVE-2018-0003', 2018)]
+            input_data=[('CVE-2018-0002', 2018), ('CVE-2018-0003', 2018)],
         )
 
     yield
@@ -1191,7 +1191,7 @@ def test_init_cve_feeds_table():
             '',
             '',
             '',
-            ''
+            '',
         ),
         (
             'CVE-2012-0001',
@@ -1213,7 +1213,7 @@ def test_init_cve_feeds_table():
             '',
             '',
             '',
-            ''
+            '',
         ),
         (
             'CVE-2012-0001',
@@ -1235,7 +1235,7 @@ def test_init_cve_feeds_table():
             '',
             '',
             '',
-            ''
+            '',
         ),
         (
             'CVE-2012-0001',
@@ -1257,7 +1257,7 @@ def test_init_cve_feeds_table():
             '',
             '',
             '',
-            ''
+            '',
         ),
         (
             'CVE-2012-0002',
@@ -1279,7 +1279,7 @@ def test_init_cve_feeds_table():
             '',
             '',
             '',
-            ''
+            '',
         )
     ]
     sr.init_cve_feeds_table(CVE_LIST, 'test_cve')
@@ -1374,7 +1374,7 @@ def test_import_cve(monkeypatch):
         ('', sr.Choice('both'), YEARS, ['cpe', 'cve']),
         ('', sr.Choice('cpe'), YEARS, ['cpe']),
         ('', sr.Choice('cve'), YEARS, ['cve']),
-    ]
+    ],
 )
 def test_set_repository(monkeypatch, path, choice, years, expected):
     output = list()
@@ -1390,7 +1390,7 @@ def test_set_repository(monkeypatch, path, choice, years, expected):
         ('', sr.Choice('both'), ['cpe', 'cve']),
         ('', sr.Choice('cpe'), ['cpe']),
         ('', sr.Choice('cve'), ['cve']),
-    ]
+    ],
 )
 def test_update_repository(monkeypatch, path, choice, expected):
     output = list()
@@ -1403,7 +1403,7 @@ def test_update_repository(monkeypatch, path, choice, expected):
 
 @pytest.mark.parametrize(
     'years, raising',
-    [(YEARTUPLE(2002, 2019), None), (YEARTUPLE(2001, 2019), ValueError), (YEARTUPLE(2018, 2017), ValueError)]
+    [(YEARTUPLE(2002, 2019), None), (YEARTUPLE(2001, 2019), ValueError), (YEARTUPLE(2018, 2017), ValueError)],
 )
 def test_check_validity_of_arguments(years, raising):
     if raising:
@@ -1446,7 +1446,7 @@ def test_setup_cpe_entry_with_colons():
         [
             'cpe:2.3:a:net::netmask_project:net::netmask:*:*:*:*:*:perl:*:*',
             'cpe:2.3:a:lemonldap-ng:lemonldap\\:\\::1.0.3:*:*:*:*:*:*:*'
-        ]
+        ],
     )
     expected_result = [
         (
@@ -1461,7 +1461,7 @@ def test_setup_cpe_entry_with_colons():
             'ANY',
             'perl',
             'ANY',
-            'ANY'
+            'ANY',
         ),
         (
             'cpe:2.3:a:lemonldap-ng:lemonldap\\:\\::1.0.3:*:*:*:*:*:*:*',
@@ -1475,7 +1475,7 @@ def test_setup_cpe_entry_with_colons():
             'ANY',
             'ANY',
             'ANY',
-            'ANY'
+            'ANY',
         )
     ]
     for entry in result:

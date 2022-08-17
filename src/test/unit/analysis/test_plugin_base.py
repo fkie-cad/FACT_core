@@ -63,12 +63,12 @@ class TestPluginBaseCore(TestPluginBase):
         self.assertEqual(
             processed_object.processed_analysis['dummy_plugin_for_testing_only']['plugin_version'],
             '0.0',
-            'plugin version missing in results'
+            'plugin version missing in results',
         )
         self.assertGreater(
             processed_object.processed_analysis['dummy_plugin_for_testing_only']['analysis_date'],
             1,
-            'analysis date missing in results'
+            'analysis date missing in results',
         )
 
     def test_object_processing_one_child(self):
@@ -136,7 +136,7 @@ class TestPluginNotRunning(TestPluginBase):
         self.config.set('dummy_plugin_for_testing_only', 'threads', threads_in_config)
         self.p_base = DummyPlugin(self, self.config, no_multithread=multithread_flag)
         self.assertEqual(
-            self.p_base.config[self.p_base.NAME]['threads'], threads_wanted, 'number of threads not correct'
+            self.p_base.config[self.p_base.NAME]['threads'], threads_wanted, 'number of threads not correct',
         )
         self.p_base.shutdown()
 

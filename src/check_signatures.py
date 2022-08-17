@@ -34,14 +34,14 @@ def _setup_argparser():
     parser.add_argument(
         '--yara_path',
         help='File or Folder containing yara signatures (Extension .yara mandatory)',
-        default='software_signatures/'
+        default='software_signatures/',
     )
     return parser.parse_args()
 
 
 def _setup_logging():
     log_format = logging.Formatter(
-        fmt='[%(asctime)s][%(module)s][%(levelname)s]: %(message)s', datefmt='%Y-%m-%d %H:%M:%S'
+        fmt='[%(asctime)s][%(module)s][%(levelname)s]: %(message)s', datefmt='%Y-%m-%d %H:%M:%S',
     )
     logger = logging.getLogger('')
     logger.setLevel(logging.DEBUG)

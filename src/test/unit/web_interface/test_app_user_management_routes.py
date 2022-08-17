@@ -94,7 +94,7 @@ class TestAppUpload(WebInterfaceTest):
                 'username': 'foobar',
                 'password1': 'test',
                 'password2': 'test',
-            }
+            },
         )
         assert b'Successfully created user' in response.data
 
@@ -106,7 +106,7 @@ class TestAppUpload(WebInterfaceTest):
                 'username': 'test',
                 'password1': 'test',
                 'password2': 'test',
-            }
+            },
         )
         assert b'Error: user is already in the database' in response.data
 
@@ -118,7 +118,7 @@ class TestAppUpload(WebInterfaceTest):
                 'username': 'foobar',
                 'password1': 'a',
                 'password2': 'b',
-            }
+            },
         )
         assert b'Error: passwords do not match' in response.data
 
@@ -147,7 +147,7 @@ class TestAppUpload(WebInterfaceTest):
             data={
                 'admin_change_password': 'test',
                 'admin_confirm_password': 'test',
-            }
+            },
         )
         assert b'password change successful' in response.data
 
@@ -158,7 +158,7 @@ class TestAppUpload(WebInterfaceTest):
             data={
                 'admin_change_password': 'foo',
                 'admin_confirm_password': 'bar',
-            }
+            },
         )
         assert b'Error: passwords do not match' in response.data
 
@@ -169,7 +169,7 @@ class TestAppUpload(WebInterfaceTest):
             data={
                 'admin_change_password': '1234567890abc',
                 'admin_confirm_password': '1234567890abc',
-            }
+            },
         )
         assert b'password is not legal' in response.data
 
@@ -189,7 +189,7 @@ class TestAppUpload(WebInterfaceTest):
                 'new_password': 'foo',
                 'new_password_confirm': 'foo',
                 'old_password': 'correct password',
-            }
+            },
         )
         assert b'password change successful' in response.data
 
@@ -202,7 +202,7 @@ class TestAppUpload(WebInterfaceTest):
                 'new_password': 'foo',
                 'new_password_confirm': 'foo',
                 'old_password': 'wrong password',
-            }
+            },
         )
         assert b'Error: wrong password' in response.data
 
@@ -215,7 +215,7 @@ class TestAppUpload(WebInterfaceTest):
                 'new_password': '1234567890abc',
                 'new_password_confirm': '1234567890abc',
                 'old_password': 'correct password',
-            }
+            },
         )
         assert b'password is not legal' in response.data
 
@@ -228,7 +228,7 @@ class TestAppUpload(WebInterfaceTest):
                 'new_password': 'foo',
                 'new_password_confirm': 'bar',
                 'old_password': 'correct password',
-            }
+            },
         )
         assert b'Error: new password did not match' in response.data
 
@@ -239,7 +239,7 @@ class TestAppUpload(WebInterfaceTest):
             self.test_client.post(
                 '/admin/user/0', follow_redirects=True, data={
                     'input_roles': [roles[0], roles[2]],
-                }
+                },
             )
             assert 'Creating user role' in caplog.messages[0]
             assert f'added roles {{\'{roles[2]}\'}}, removed roles {{\'{roles[1]}\'}}' in caplog.messages[1]
@@ -252,7 +252,7 @@ class TestAppUpload(WebInterfaceTest):
         response = self.test_client.post(
             '/admin/user/9999', follow_redirects=True, data={
                 'input_roles': [roles[0]],
-            }
+            },
         )
         assert b'user with ID 9999 not found' in response.data
 
@@ -264,7 +264,7 @@ class TestAppUpload(WebInterfaceTest):
         ([RoleMock(roles[1])], {roles[1]}, set(), set()),
         ([RoleMock(r) for r in roles], set(), set(), set(roles)),
         ([], set(roles), set(roles), set()),
-    ]
+    ],
 )
 def test_determine_role_changes(user_roles, role_indexes, expected_added_roles, expected_removed_roles):
     added_roles, removed_roles = UserManagementRoutes._determine_role_changes(user_roles, role_indexes)  # pylint: disable=protected-access

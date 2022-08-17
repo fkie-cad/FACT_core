@@ -128,7 +128,7 @@ class TestAnalysisStatus:
         assert result['parent_uid']['analyzed_files_count'] == 2
 
     @pytest.mark.parametrize(
-        'time_finished_delay, expected_result', [(0, True), (RECENTLY_FINISHED_DISPLAY_TIME_IN_SEC + 1, False)]
+        'time_finished_delay, expected_result', [(0, True), (RECENTLY_FINISHED_DISPLAY_TIME_IN_SEC + 1, False)],
     )
     def test_clear_recently_finished(self, time_finished_delay, expected_result):
         self.status.recently_finished = {'foo': {'time_finished': time() - time_finished_delay}}

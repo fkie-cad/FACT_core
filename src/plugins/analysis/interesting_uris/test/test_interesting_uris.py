@@ -13,7 +13,7 @@ from ..code.interesting_uris import AnalysisPlugin
         (['abcd', 'bcde'], [], ['abcd', 'bcde']),
         (['abcd', 'bcde', 'cdef', 'efgh'], ['abc', 'def'], ['bcde', 'efgh']),
         (['abcdefgh'], ['abc', 'def'], []),
-    ]
+    ],
 )
 def test_blacklist_ip_and_uris(input_list, blacklist, expected_output):
     assert AnalysisPlugin.blacklist_ip_and_uris(blacklist, input_list) == expected_output
@@ -27,7 +27,7 @@ def test_blacklist_ip_and_uris(input_list, blacklist, expected_output):
         (['abcd', 'bcde', 'cdef', 'efgh'], ['abcd', 'cdef'], ['abcd', 'cdef']),
         (['abcf', 'bcfg', 'abci', 'bdhi'], ['abc', 'hi'], ['abcf', 'abci', 'bdhi']),
         (['abcdefgh'], ['abc', 'def'], ['abcdefgh']),
-    ]
+    ],
 )
 def test_white_ip_and_uris(input_list, whitelist, expected_output):
     assert sorted(AnalysisPlugin.whitelist_ip_and_uris(whitelist, input_list)) == expected_output

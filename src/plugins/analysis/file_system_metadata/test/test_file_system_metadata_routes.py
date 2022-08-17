@@ -141,7 +141,7 @@ class TestFileSystemMetadataRoutesRest(TestCase):
             methods=methods,
             resource_class_kwargs={
                 'config': config, 'db': DbMock
-            }
+            },
         )
         self.test_client = app.test_client()
 

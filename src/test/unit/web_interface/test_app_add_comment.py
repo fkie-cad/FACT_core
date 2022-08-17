@@ -25,7 +25,7 @@ class TestAppAddComment(WebInterfaceTest):
     def test_app_add_comment_put(self):
         data = {'comment': 'this is the test comment', 'author': 'test author'}
         rv = self.test_client.post(
-            f'/comment/{TEST_FW.uid}', content_type='multipart/form-data', data=data, follow_redirects=True
+            f'/comment/{TEST_FW.uid}', content_type='multipart/form-data', data=data, follow_redirects=True,
         )
         assert b'Analysis' in rv.data
         assert b'this is the test comment' in rv.data

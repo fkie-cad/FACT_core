@@ -14,7 +14,7 @@ try:
     from ..internal import data_parsing as dp
     from ..internal.database_interface import DB_PATH, QUERIES, DatabaseInterface
     from ..internal.helper_functions import (
-        CveEntry, CveLookupException, CveSummaryEntry, replace_characters_and_wildcards
+        CveEntry, CveLookupException, CveSummaryEntry, replace_characters_and_wildcards,
     )
 except (ImportError, ValueError, SystemError):
     sys.path.append(str(Path(__file__).parent.parent / 'internal'))
@@ -64,7 +64,7 @@ def update_cpe(cpe_extract_path: str):
     drop_table(table_name='cpe_table')
     create(query='create_cpe_table', table_name='cpe_table')
     insert_into(
-        query='insert_cpe', table_name='cpe_table', input_data=setup_cpe_table(get_cpe_content(path=cpe_extract_path))
+        query='insert_cpe', table_name='cpe_table', input_data=setup_cpe_table(get_cpe_content(path=cpe_extract_path)),
     )
 
 
@@ -73,7 +73,7 @@ def import_cpe(cpe_extract_path: str):
         raise CveLookupException('CPE table does already exist')
     create(query='create_cpe_table', table_name='cpe_table')
     insert_into(
-        query='insert_cpe', table_name='cpe_table', input_data=setup_cpe_table(get_cpe_content(path=cpe_extract_path))
+        query='insert_cpe', table_name='cpe_table', input_data=setup_cpe_table(get_cpe_content(path=cpe_extract_path)),
     )
 
 
@@ -92,7 +92,7 @@ def init_cve_feeds_table(cve_list: List[CveEntry], table_name: str):
 def init_cve_summaries_table(summary_list: list, table_name: str):
     create(query='create_summary_table', table_name=table_name)
     insert_into(
-        query='insert_summary', table_name=table_name, input_data=setup_cve_summary_table(summary_list=summary_list)
+        query='insert_summary', table_name=table_name, input_data=setup_cve_summary_table(summary_list=summary_list),
     )
 
 
@@ -176,7 +176,7 @@ def setup_cve_summary_table(summary_list: List[CveSummaryEntry]) -> List[Tuple[s
             entry.cve_id.split('-')[1],  # year
             entry.summary,
             entry.impact.get('cvssV2', 'N/A'),
-            entry.impact.get('cvssV3', 'N/A')
+            entry.impact.get('cvssV3', 'N/A'),
         ) for entry in summary_list
     ]
 
@@ -199,7 +199,7 @@ def setup_cve_feeds_table(cve_list: List[CveEntry]) -> List[Tuple[str, ...]]:
                 version_start_including,
                 version_start_excluding,
                 version_end_including,
-                version_end_excluding
+                version_end_excluding,
             )
             cve_table.append(row)
     return cve_table
@@ -246,10 +246,10 @@ def setup_argparser():
         help='specifies if CPE and/or CVE should be created/updated.\nChoices: cpe, cve, both (default)',
         type=Choice,
         default='both',
-        choices=list(Choice)
+        choices=list(Choice),
     )
     parser.add_argument(
-        '--update', '-u', help='specifies if the DATABASE should be updated. Default: False', action='store_true'
+        '--update', '-u', help='specifies if the DATABASE should be updated. Default: False', action='store_true',
     )
     parser.add_argument(
         '--years',
@@ -257,7 +257,7 @@ def setup_argparser():
         nargs=2,
         help='Tuple containing start year at position 0 and end year at position 1 for the selection of the CVE feeds',
         type=int,
-        default=[2002, CURRENT_YEAR]
+        default=[2002, CURRENT_YEAR],
     )
     parser.add_argument(
         '--extraction_path',
@@ -265,7 +265,7 @@ def setup_argparser():
         help='Path to which the files containing the CPE dictionary and CVE feeds should temporarily be stored.\n'
         'Default: ./data_source/',
         type=str,
-        default='./data_source/'
+        default='./data_source/',
     )
     return parser.parse_args()
 

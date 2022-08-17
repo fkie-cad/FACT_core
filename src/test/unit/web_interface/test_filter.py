@@ -36,9 +36,9 @@ def test_set_limit_for_data_to_chart():
                         'links': 'null',
                     }
                 ],
-            }
+            },
         ), ([()], None)
-    ]
+    ],
 )
 def test_data_to_chart_with_value_percentage_pairs(input_data, expected_result):
     assert flt.data_to_chart_with_value_percentage_pairs(input_data) == expected_result
@@ -48,7 +48,7 @@ def test_get_all_uids_in_string():
     test_string = (
         '{\'d41c0f1431b39b9db565b4e32a5437c61c77762a3f4401bac3bafa4887164117_24\', '
         '\'f7c927fb0c209035c7e6939bdd00eabdaada429f2ee9aeca41290412c8c79759_25\' , '
-        '\'deaa23651f0a9cc247a20d0e0a78041a8e40b144e21b82081ecb519dd548eecf_24494080\'}'
+        '\'deaa23651f0a9cc247a20d0e0a78041a8e40b144e21b82081ecb519dd548eecf_24494080\'}',
     )
     result = flt.get_all_uids_in_string(test_string)
     assert len(result) == 3, 'not all uids found'
@@ -62,7 +62,7 @@ def test_handle_uids():
     result = flt.uids_to_link(test_string)
     expected_result = (
         'foo <a href="/analysis/d41c0f1431b39b9db565b4e32a5437c61c77762a3f4401bac3bafa4887164117_24/'
-        'ro/None">d41c0f1431b39b9db565b4e32a5437c61c77762a3f4401bac3bafa4887164117_24</a> bar'
+        'ro/None">d41c0f1431b39b9db565b4e32a5437c61c77762a3f4401bac3bafa4887164117_24</a> bar',
     )
     assert result == expected_result, 'output not correct'
 
@@ -129,7 +129,7 @@ def test_sort_chart_list_by_name():
         ('foo', {
             'red': ['*']
         }, '<span style="color:red;">foo</span>'),
-    ]
+    ],
 )
 def test_text_highlighter(input_data, keyword_args, expected_output):
     assert flt.text_highlighter(input_data, **keyword_args) == expected_output
@@ -142,7 +142,7 @@ def test_text_highlighter(input_data, keyword_args, expected_output):
         ('foo', 'color:red'),
         (9999, 'color:red'),
         (None, 'color:red'),
-    ]
+    ],
 )
 def test_infection_color(input_data, expected_output):
     assert expected_output in flt.infection_color(input_data)
@@ -170,7 +170,7 @@ def test_base64_filter():
         (1000, False, '1000.00 Byte'), (1024, False, '1.00 KiB'), (1024 * 1024, False, '1.00 MiB'),
         (1234.1234, False, '1.21 KiB'), (1000, True, '1000.00 Byte (1,000 bytes)'), (b'abc', False, 'not available'),
         (None, False, 'not available')
-    ]
+    ],
 )
 def test_byte_number_filter(input_data, verbose, expected):
     assert flt.byte_number_filter(input_data, verbose) == expected
@@ -178,7 +178,7 @@ def test_byte_number_filter(input_data, verbose, expected):
 
 @pytest.mark.parametrize(
     'input_data, expected',
-    [(b'abc', b'abc'), (123, '123'), (1234, '1,234'), (1234.1234, '1,234.12'), (None, 'not available')]
+    [(b'abc', b'abc'), (123, '123'), (1234, '1,234'), (1234.1234, '1,234.12'), (None, 'not available')],
 )
 def test_nice_number(input_data, expected):
     assert flt.nice_number_filter(input_data) == expected
@@ -190,11 +190,11 @@ def test_nice_number(input_data, expected):
         (b'abc', 'abc'), (1234, '1,234'),
         (
             [1, 3],
-            '<ul class="list-group list-group-flush">\n\t<li class="list-group-item">1</li>\n\t<li class="list-group-item">3</li>\n</ul>\n'
+            '<ul class="list-group list-group-flush">\n\t<li class="list-group-item">1</li>\n\t<li class="list-group-item">3</li>\n</ul>\n',
         ), ({
             'a': 1
         }, 'a: 1<br />'), (gmtime(0), '1970-01-01 - 00:00:00'), ('a_b', 'a b'), (gmtime, gmtime)
-    ]
+    ],
 )
 def test_generic_nice_representation(input_data, expected):
     assert flt.generic_nice_representation(input_data) == expected
@@ -241,7 +241,7 @@ class CurrentUserMock:
         (CurrentUserMock(False, ['superuser']), 'manage_users', False),
         (CurrentUserMock(True, []), 'manage_users', False),
         (CurrentUserMock(True, ['superuser']), 'manage_users', True),
-    ]
+    ],
 )
 def test_user_has_role(user, role, expected_result):
     assert flt.user_has_role(user, role) == expected_result
@@ -289,7 +289,7 @@ def test_filter_decompress():
         }, {
             '1': '', '2': '', '3': ''
         }], {'1', '2', '3'})
-    ]
+    ],
 )
 def test_get_unique_keys_from_list_of_dicts(list_of_dicts, expected_result):
     assert flt.get_unique_keys_from_list_of_dicts(list_of_dicts) == expected_result
@@ -302,7 +302,7 @@ def test_get_unique_keys_from_list_of_dicts(list_of_dicts, expected_result):
         (flt.sort_comments, UNSORTABLE_LIST, [], 'Could not sort comment list'),
         (flt.sort_chart_list_by_name, UNSORTABLE_LIST, [], 'Could not sort chart list'),
         (flt.sort_chart_list_by_value, UNSORTABLE_LIST, [], 'Could not sort chart list'),
-    ]
+    ],
 )
 def test_error_logging(function, input_data, expected_output, error_message, caplog):
     with caplog.at_level(logging.WARNING):
@@ -314,7 +314,7 @@ def test_error_logging(function, input_data, expected_output, error_message, cap
     'input_data, expected_result', [
         ('abc', 'abc'),
         ('^$.[]|()?*+{}', '\\^\\$\\.\\[\\]\\|\\(\\)\\?\\*\\+\\{\\}'),
-    ]
+    ],
 )
 def test_comment_out_regex_meta_chars(input_data, expected_result):
     assert flt.comment_out_regex_meta_chars(input_data) == expected_result
@@ -327,7 +327,7 @@ def test_comment_out_regex_meta_chars(input_data, expected_result):
         ('analysis_date', None, False),
         ('real_result', ['additional_key'], True),
         ('filtered_result', ['filtered_result'], False),
-    ]
+    ],
 )
 def test_is_not_mandatory_analysis_entry(input_data, additional, expected_result):
     assert flt.is_not_mandatory_analysis_entry(input_data, additional) is expected_result
@@ -363,9 +363,9 @@ def test_remaining_time(time_diff, expected_result):
         ('CVE-1-2', '<a href="https://nvd.nist.gov/vuln/detail/CVE-1-2">CVE-1-2</a>'),
         (
             'a CVE-1-2 b CVE-3-4 c',
-            'a <a href="https://nvd.nist.gov/vuln/detail/CVE-1-2">CVE-1-2</a> b <a href="https://nvd.nist.gov/vuln/detail/CVE-3-4">CVE-3-4</a> c'
+            'a <a href="https://nvd.nist.gov/vuln/detail/CVE-1-2">CVE-1-2</a> b <a href="https://nvd.nist.gov/vuln/detail/CVE-3-4">CVE-3-4</a> c',
         ),
-    ]
+    ],
 )
 def test_replace_cve_with_link(input_string, expected_result):
     assert flt.replace_cve_with_link(input_string) == expected_result
@@ -378,9 +378,9 @@ def test_replace_cve_with_link(input_string, expected_result):
         ('CWE-123', '<a href="https://cwe.mitre.org/data/definitions/123.html">CWE-123</a>'),
         (
             'a CWE-1 b CWE-1234 c',
-            'a <a href="https://cwe.mitre.org/data/definitions/1.html">CWE-1</a> b <a href="https://cwe.mitre.org/data/definitions/1234.html">CWE-1234</a> c'
+            'a <a href="https://cwe.mitre.org/data/definitions/1.html">CWE-1</a> b <a href="https://cwe.mitre.org/data/definitions/1234.html">CWE-1234</a> c',
         ),
-    ]
+    ],
 )
 def test_replace_cwe_with_link(input_string, expected_result):
     assert flt.replace_cwe_with_link(input_string) == expected_result
@@ -412,9 +412,9 @@ def test_replace_cwe_with_link(input_string, expected_result):
                 'cve_id4': {
                     'score2': '3.5', 'score3': 'N/A'
                 },
-            }
+            },
         )
-    ]
+    ],
 )
 def test_sort_cve_result(input_dict, expected_result):
     result = dict(flt.sort_cve_results(input_dict))
@@ -432,7 +432,7 @@ def test_sort_cve_result(input_dict, expected_result):
         ('data = <0x01 0x2345 0x67 0x89 0xabcdef 0x1234 0x56 0x78 0x90 0xab 0xcd>;', 'data = (BINARY DATA ...);'),
         ('data = [01 23 45 67];', 'data = [01 23 45 67];'),  # short entries should not be replaced
         ('data = <0x01 0x2345 0x67>;', 'data = <0x01 0x2345 0x67>;'),  # short entries should not be replaced
-    ]
+    ],
 )
 def test_hide_dts_data(input_dts, expected_result):
     assert flt.hide_dts_binary_data(input_dts) == expected_result
@@ -445,9 +445,9 @@ def test_hide_dts_data(input_dts, expected_result):
         ('foo', 'foo'),
         (
             ':37:4e:47:02:4e:2d:\n    c0:4f:2f:b3:94:e1:41:2e:2d:90:10:fc:82:92:8b:\n    0f:22:df:f2:fc:2c:ab:52:55',
-            'c0:4f:2f:b3:94:e1:41:2e:2d:90:10:fc:82:92:8b:'
+            'c0:4f:2f:b3:94:e1:41:2e:2d:90:10:fc:82:92:8b:',
         ),
-    ]
+    ],
 )
 def test_get_searchable_crypto_block(input_, expected_result):
     assert flt.get_searchable_crypto_block(input_) == expected_result

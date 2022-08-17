@@ -34,7 +34,7 @@ class ComparePlugin(CompareBasePlugin):
         for current_element, other_elements in iter_element_and_rest(fo_list):
             result[current_element.uid] = list(
                 set.difference(
-                    self._get_software_set(current_element), *[self._get_software_set(fo) for fo in other_elements]
+                    self._get_software_set(current_element), *[self._get_software_set(fo) for fo in other_elements],
                 )
             )
         return result
@@ -50,7 +50,7 @@ class ComparePlugin(CompareBasePlugin):
                 set.difference(
                     self._get_software_set(current_element),
                     result_dict['software_in_common']['all'],
-                    result_dict['exclusive_software'][current_element.uid]
+                    result_dict['exclusive_software'][current_element.uid],
                 )
             )
         return result

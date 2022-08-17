@@ -23,7 +23,7 @@ class RestBase:
             version='1.0',
             description='The FACT Rest API intends to offer close to 100 % functionality of FACT in a '
             'script-able and integrate-able interface. \n The API does not comply with all REST '
-            'guidelines perfectly, but aims to allow understandable and efficient interfacing.'
+            'guidelines perfectly, but aims to allow understandable and efficient interfacing.',
         )
 
         for api in [

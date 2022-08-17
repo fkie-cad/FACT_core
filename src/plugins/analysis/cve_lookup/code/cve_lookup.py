@@ -32,7 +32,7 @@ CveDbEntry = NamedTuple(
         ('cve_id', str), ('vendor', str), ('product_name', str), ('version', str), ('cvss_v2_score', str),
         ('cvss_v3_score', str), ('version_start_including', str), ('version_start_excluding', str),
         ('version_end_including', str), ('version_end_excluding', str)
-    ]
+    ],
 )
 
 
@@ -67,7 +67,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 software if not self._software_has_critical_cve(entry) else f'{software} (CRITICAL)'
                 for software,
                 entry in cve_results.items()
-            }
+            },
         )
 
     def _software_has_critical_cve(self, cve_dict: Dict[str, Dict[str, str]]) -> bool:
@@ -133,7 +133,7 @@ def find_matching_cpe_product(cpe_matches: List[Product], requested_version: str
     if requested_version == 'ANY':
         return find_cpe_product_with_version(cpe_matches, 'ANY')
     logging.warning(
-        'Version returned from CPE match has invalid type. Returned CPE might not contain relevant version number'
+        'Version returned from CPE match has invalid type. Returned CPE might not contain relevant version number',
     )
     return cpe_matches[0]
 
@@ -160,7 +160,7 @@ def build_version_string(cve_entry: CveDbEntry) -> str:
             cve_entry.version_start_excluding,
             cve_entry.version_end_including,
             cve_entry.version_end_excluding
-        ]
+        ],
     ):
         return unescape(cve_entry.version)
     result = 'version'
@@ -192,7 +192,7 @@ def _product_matches_cve(product: Product, cve_entry: CveDbEntry) -> bool:
     return (
         terms_match(product.vendor_name, cve_entry.vendor)
         and terms_match(product.product_name, cve_entry.product_name)
-        and versions_match(unescape(product.version_number), cve_entry)
+        and versions_match(unescape(product.version_number), cve_entry),
     )
 
 
@@ -265,7 +265,7 @@ def match_cpe(db: DatabaseInterface, product_search_terms: list) -> List[Product
             version in db.fetch_multiple(QUERIES['cpe_lookup'])
             for product_term in product_search_terms
             if terms_match(product_term, product)
-        }
+        },
     )
 
 

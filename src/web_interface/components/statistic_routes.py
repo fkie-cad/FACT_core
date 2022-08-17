@@ -26,7 +26,7 @@ class StatisticRoutes(ComponentBase):
             device_classes=device_classes,
             vendors=vendors,
             current_class=str(request.args.get('device_class')),
-            current_vendor=str(request.args.get('vendor'))
+            current_vendor=str(request.args.get('vendor')),
         )
 
     @roles_accepted(*PRIVILEGES['status'])

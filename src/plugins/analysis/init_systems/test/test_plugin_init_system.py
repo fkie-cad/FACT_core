@@ -59,7 +59,7 @@ class TestAnalysisPluginInit(AnalysisPluginTest):
         self.assertEqual(
             '/usr/bin/foo              # ein Programm\n/usr/local/bin/bar.sh     # ein Shellskript\n/etc/init.d/foobar start  # ein Dienst\nexit 0',
             result['script'],
-            'record not found'
+            'record not found',
         )
         self.assertNotIn('#!/bin/sh -e', result['script'], 'Comments should not be listed')
         self.assertEqual(['rc'], result['init_type'], 'init type missing')
@@ -86,7 +86,7 @@ class TestAnalysisPluginInit(AnalysisPluginTest):
         result = processed_file.processed_analysis[self.PLUGIN_NAME]
 
         self.assertEqual(
-            '    echo "[`date`] baz starting..." >> /var/log/baz.log', result['pre-start'], 'record not found'
+            '    echo "[`date`] baz starting..." >> /var/log/baz.log', result['pre-start'], 'record not found',
         )
         self.assertIn('/bin/baz.sh -runonce \\\n-silent', result['exec'], 'record not found')
         self.assertNotIn('script', result['script'], 'script should not be listed')
@@ -99,7 +99,7 @@ class TestAnalysisPluginInit(AnalysisPluginTest):
         result = processed_file.processed_analysis[self.PLUGIN_NAME]
 
         self.assertEqual(
-            'sv -w7 check postgresql\nexec 2>&1 myprocess \\\nlast line', result['script'], 'record not found'
+            'sv -w7 check postgresql\nexec 2>&1 myprocess \\\nlast line', result['script'], 'record not found',
         )
         self.assertIn('exec 2>&1 myprocess \\\nlast line', result['script'], 'record not found')
         self.assertNotIn('#!/bin/sh -e', result['script'], 'should not be listed')
@@ -126,7 +126,7 @@ class TestAnalysisPluginInit(AnalysisPluginTest):
         self.assertIn(
             'if [ true != "$INIT_D_SCRIPT_SOURCED" ] ; then\n    set "$0" "$@"; INIT_D_SCRIPT_SOURCED=true . /lib/init/init-d-script\nfi',
             result['script'],
-            'record not found'
+            'record not found',
         )
         self.assertEqual(['SysVInit'], result['init_type'], 'init type missing')
         self.assertEqual(['SysVInit'], result['summary'], 'description missing')
@@ -161,5 +161,5 @@ class TestAnalysisPluginInit(AnalysisPluginTest):
         unquoted = ['test', '2']
 
         self.assertEqual(
-            ['"test"', '"2"'], self.analysis_plugin._add_quotes(unquoted), 'strings should be in double quotes'
+            ['"test"', '"2"'], self.analysis_plugin._add_quotes(unquoted), 'strings should be in double quotes',
         )

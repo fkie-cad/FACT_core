@@ -5,12 +5,12 @@ import pytest
 
 try:
     from ..internal.helper_functions import (
-        escape_special_characters, get_field_names, get_field_string, replace_characters_and_wildcards
+        escape_special_characters, get_field_names, get_field_string, replace_characters_and_wildcards,
     )
 except ImportError:
     sys.path.append(str(Path(__file__).parent.parent / 'internal'))
     from helper_functions import (
-        escape_special_characters, get_field_names, get_field_string, replace_characters_and_wildcards
+        escape_special_characters, get_field_names, get_field_string, replace_characters_and_wildcards,
     )
 
 DB_FIELDS = [('cpe_id', 'TEXT'), ('year', 'INTEGER'), ('vendor', 'TEXT')]
@@ -37,9 +37,9 @@ def test_analyse_attribute():
                 'ANY',
                 'ANY',
                 'ANY'
-            ]
+            ],
         ), (['10.2.4'], ['10\\.2\\.4'])
-    ]
+    ],
 )
 def test_replace_characters(bound_string, unbound_string):
     assert replace_characters_and_wildcards(bound_string) == unbound_string

@@ -12,7 +12,7 @@ class DbMock(CommonDatabaseMock):
         limit: int = 0,  # pylint: disable=unused-argument
         only_fo_parent_firmware: bool = False,
         inverted: bool = False,
-        as_meta: bool = False
+        as_meta: bool = False,
     ):  # pylint: disable=unused-argument
         result = []
         if TEST_FW_2.uid in str(search_dict) or search_dict == {}:
@@ -54,12 +54,12 @@ class TestAppAdvancedSearch(WebInterfaceTest):
         response = self._do_advanced_search(
             {
                 'advanced_search': f'{{"_id": "{TEST_TEXT_FILE.uid}"}}', 'only_firmwares': 'True'
-            }
+            },
         )
         assert TEST_FW_2.uid in response
         assert TEST_TEXT_FILE.uid not in response
 
     def _do_advanced_search(self, query: dict) -> str:
         return self.test_client.post(
-            '/database/advanced_search', data=query, content_type='multipart/form-data', follow_redirects=True
+            '/database/advanced_search', data=query, content_type='multipart/form-data', follow_redirects=True,
         ).data.decode()

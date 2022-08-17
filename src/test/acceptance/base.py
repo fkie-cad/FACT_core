@@ -17,7 +17,7 @@ from storage.db_interface_backend import BackendDbInterface
 from storage.fsorganizer import FSOrganizer
 from storage.unpacking_locks import UnpackingLockManager
 from test.common_helper import (  # pylint: disable=wrong-import-order
-    clear_test_tables, create_docker_mount_base_dir, setup_test_tables
+    clear_test_tables, create_docker_mount_base_dir, setup_test_tables,
 )
 from web_interface.frontend_main import WebFrontEnd
 
@@ -47,13 +47,13 @@ class TestAcceptanceBase(unittest.TestCase):  # pylint: disable=too-many-instanc
         self.test_client = self.frontend.app.test_client()
 
         self.test_fw_a = self.TestFW(
-            '418a54d78550e8584291c96e5d6168133621f352bfc1d43cf84e81187fef4962_787', 'container/test.zip', 'test_fw_a'
+            '418a54d78550e8584291c96e5d6168133621f352bfc1d43cf84e81187fef4962_787', 'container/test.zip', 'test_fw_a',
         )
         self.test_fw_b = self.TestFW(
-            'd38970f8c5153d1041810d0908292bc8df21e7fd88aab211a8fb96c54afe6b01_319', 'container/test.7z', 'test_fw_b'
+            'd38970f8c5153d1041810d0908292bc8df21e7fd88aab211a8fb96c54afe6b01_319', 'container/test.7z', 'test_fw_b',
         )
         self.test_fw_c = self.TestFW(
-            '5fadb36c49961981f8d87cc21fc6df73a1b90aa1857621f2405d317afb994b64_68415', 'regression_one', 'test_fw_c'
+            '5fadb36c49961981f8d87cc21fc6df73a1b90aa1857621f2405d317afb994b64_68415', 'regression_one', 'test_fw_c',
         )
 
     def tearDown(self):
@@ -79,12 +79,12 @@ class TestAcceptanceBase(unittest.TestCase):  # pylint: disable=too-many-instanc
         # pylint: disable=attribute-defined-outside-init
         unpacking_locks = UnpackingLockManager()
         self.analysis_service = AnalysisScheduler(
-            config=self.config, post_analysis=post_analysis, unpacking_locks=unpacking_locks
+            config=self.config, post_analysis=post_analysis, unpacking_locks=unpacking_locks,
         )
         self.unpacking_service = UnpackingScheduler(
             config=self.config,
             post_unpack=self.analysis_service.start_analysis_of_object,
-            unpacking_locks=unpacking_locks
+            unpacking_locks=unpacking_locks,
         )
         self.compare_service = ComparisonScheduler(config=self.config, callback=compare_callback)
         self.intercom = InterComBackEndBinding(
@@ -92,7 +92,7 @@ class TestAcceptanceBase(unittest.TestCase):  # pylint: disable=too-many-instanc
             analysis_service=self.analysis_service,
             compare_service=self.compare_service,
             unpacking_service=self.unpacking_service,
-            unpacking_locks=unpacking_locks
+            unpacking_locks=unpacking_locks,
         )
         self.fs_organizer = FSOrganizer(config=self.config)
 
@@ -100,7 +100,7 @@ class TestAcceptanceBase(unittest.TestCase):  # pylint: disable=too-many-instanc
         # for debugging purposes only
         log_level = logging.DEBUG
         log_format = logging.Formatter(
-            fmt='[%(asctime)s][%(module)s][%(levelname)s]: %(message)s', datefmt='%Y-%m-%d %H:%M:%S'
+            fmt='[%(asctime)s][%(module)s][%(levelname)s]: %(message)s', datefmt='%Y-%m-%d %H:%M:%S',
         )
         logger = logging.getLogger('')
         logger.setLevel(logging.DEBUG)

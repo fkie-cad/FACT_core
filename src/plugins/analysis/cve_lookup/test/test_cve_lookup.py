@@ -97,7 +97,7 @@ def setup() -> None:
     'software_name, expected_output', [
         ('windows 7', ['windows', 'windows_7']),
         ('Linux Kernel', ['linux', 'linux_kernel', 'kernel']),
-    ]
+    ],
 )
 def test_generate_search_terms(software_name, expected_output):
     result = lookup.generate_search_terms(software_name)
@@ -116,7 +116,7 @@ def test_generate_search_terms(software_name, expected_output):
         ('1\\.0\\.', False),
         ('1\\.\\.0', False),
         ('\\.1\\.0\\.', False),
-    ]
+    ],
 )
 def test_is_valid_dotted_version(version, expected_output):
     assert lookup.is_valid_dotted_version(version) == expected_output
@@ -128,11 +128,11 @@ def test_is_valid_dotted_version(version, expected_output):
         (['1\\.2\\.3', '2\\.2\\.2', '4\\.5\\.6'], '2\\.2\\.2', '1\\.2\\.3'),
         (['1\\.1\\.1', '1\\.2\\.3', '4\\.5\\.6'], '1\\.1\\.1', '1\\.2\\.3'),
         (['1\\.2\\.3', '4\\.5\\.6', '7\\.8\\.9'], '7\\.8\\.9', '4\\.5\\.6')
-    ]
+    ],
 )
 def test_find_next_closest_version(target_values, search_word, expected):
     assert lookup.find_next_closest_version(
-        sorted_version_list=target_values, requested_version=search_word
+        sorted_version_list=target_values, requested_version=search_word,
     ) == expected
 
 
@@ -146,7 +146,7 @@ def test_find_matching_cpe_product():
         ('microsof', True),
         ('microso', True),
         ('ircosof', False),
-    ]
+    ],
 )
 def test_terms_match(term, expected_output):
     assert lookup.terms_match(term, 'microsoft') == expected_output
@@ -157,7 +157,7 @@ def test_terms_match(term, expected_output):
     [
         (['aaaa', 'bbbb', 'cccc', 'dddd', 'eeee', 'ffff', 'gggg'], ['cccc', 'dddd', 'eeee'], True),
         (['abcde', 'ghkl'], ['abcdef', 'ghijkl'], True), (['abcde', 'ghkl'], ['abcdef', 'ghijklmnop'], False)
-    ]
+    ],
 )
 def test_word_is_in_word_list(word_list, remaining_words, expected_output):
     assert lookup.word_sequence_is_in_word_list(word_list, remaining_words) == expected_output
@@ -165,7 +165,7 @@ def test_word_is_in_word_list(word_list, remaining_words, expected_output):
 
 @pytest.mark.parametrize(
     'word_list, remaining_words, expected_output',
-    [(['abcde', 'ghkl'], ['abcdef', 'ghijkl'], True), (['abcde', 'ghkl'], ['abcdef', 'ghijklmnop'], False)]
+    [(['abcde', 'ghkl'], ['abcdef', 'ghijkl'], True), (['abcde', 'ghkl'], ['abcdef', 'ghijklmnop'], False)],
 )
 def test_remaining_words_present(word_list, remaining_words, expected_output):
     assert lookup.remaining_words_present(word_list, remaining_words) == expected_output
@@ -181,7 +181,7 @@ def test_remaining_words_present(word_list, remaining_words, expected_output):
         ('bla bla microsoft corporation corp inc windows 8 bla', False),
         ('bla bla microsoft windows 8', True),
         ('bla bla microsoft windows home 8 bla', False),
-    ]
+    ],
 )
 def test_product_is_mentioned(word_list, expected_output):
     assert lookup.product_is_mentioned_in_summary(SORT_CPE_MATCHES_OUTPUT, word_list) == expected_output
@@ -289,7 +289,7 @@ def test_add_tags(stub_plugin, cve_score, should_be_tagged):
         ('v1.1b', 'ANY', '', 'v1.1a', '', 'v1.1c', True),
         ('v1.1a', 'ANY', '', 'v1.1b', '', 'v1.1c', False),
         ('1.1-r2345', 'ANY', '', '1.1-r1234', '', '1.1-r3456', True),
-    ]
+    ],
 )
 def test_versions_match(
     cpe_version: str,
@@ -298,7 +298,7 @@ def test_versions_match(
     version_start_excluding: str,
     version_end_including: str,
     version_end_excluding: str,
-    expected_output: bool
+    expected_output: bool,
 ):
     cve_entry = lookup.CveDbEntry(
         None,
@@ -310,7 +310,7 @@ def test_versions_match(
         version_start_including,
         version_start_excluding,
         version_end_including,
-        version_end_excluding
+        version_end_excluding,
     )
     assert lookup.versions_match(cpe_version, cve_entry) == expected_output
 
@@ -327,7 +327,7 @@ def test_versions_match(
         ('ANY', '', '', '', '1.2', 'version < 1.2'),
         ('ANY', '1.1', '', '1.2', '', '1.1 ≤ version ≤ 1.2'),
         ('ANY', '', '1.1', '', '1.2', '1.1 < version < 1.2'),
-    ]
+    ],
 )
 def test_build_version_string(
     version: str,
@@ -335,7 +335,7 @@ def test_build_version_string(
     version_start_excluding: str,
     version_end_including: str,
     version_end_excluding: str,
-    expected_output: str
+    expected_output: str,
 ):
     cve_entry = lookup.CveDbEntry(
         None,
@@ -347,7 +347,7 @@ def test_build_version_string(
         version_start_including,
         version_start_excluding,
         version_end_including,
-        version_end_excluding
+        version_end_excluding,
     )
     assert lookup.build_version_string(cve_entry) == expected_output
 
@@ -379,9 +379,9 @@ def test_build_version_string(
                         'score2': '1.1', 'score3': '0.0'
                     }
                 }
-            }, ['component (CRITICAL)']
+            }, ['component (CRITICAL)'],
         ),
-    ]
+    ],
 )
 def test_create_summary(cve_results_dict, expected_output, stub_plugin):
     assert stub_plugin._create_summary(cve_results_dict) == expected_output  # pylint: disable=protected-access

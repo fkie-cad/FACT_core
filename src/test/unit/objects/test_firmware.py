@@ -47,7 +47,7 @@ def test_set_binary():
 
 @pytest.mark.parametrize(
     'input_data, expected_output',
-    [('complete', 'foo test_device v. 1.0'), ('some_part', 'foo test_device - some_part v. 1.0')]
+    [('complete', 'foo test_device v. 1.0'), ('some_part', 'foo test_device - some_part v. 1.0')],
 )
 def test_get_hid(input_data, expected_output):
     test_fw = Firmware(binary=b'foo')

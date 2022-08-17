@@ -64,7 +64,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 username = password_entry.split(':', 1)[0]
                 password = result[password_entry]['password']
                 self.add_analysis_tag(
-                    file_object, f'{username}_{password}', f'Password: {username}:{password}', TagColor.RED, True
+                    file_object, f'{username}_{password}', f'Password: {username}:{password}', TagColor.RED, True,
                 )
 
     def update_file_object(self, file_object: FileObject, result_entry: dict):
@@ -116,7 +116,7 @@ def crack_hash(passwd_entry: bytes, result_entry: dict, format_term: str = '') -
                 Mount('/work/input_file', fp.name, type='bind'),
                 Mount('/root/.john/john.pot', str(JOHN_POT), type='bind'),
             ],
-            logging_label='users_and_passwords'
+            logging_label='users_and_passwords',
         )
         result_entry['log'] = john_process.stdout
         output = parse_john_output(john_process.stdout)

@@ -63,7 +63,7 @@ class RedisInterface:
             [
                 self._redis_pop(chunk_key) if delete else self.redis.get(chunk_key)
                 for chunk_key in meta_key.split(SEPARATOR)[1:]
-            ]
+            ],
         )
 
     def _redis_pop(self, key: str) -> Optional[bytes]:

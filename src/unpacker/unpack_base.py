@@ -32,7 +32,7 @@ class UnpackBase:
                 Mount('/dev/', '/dev/', type='bind'),
                 Mount('/tmp/extractor', tmp_dir, type='bind'),
             ],
-            command=f'--chown {getuid()}:{getgid()}'
+            command=f'--chown {getuid()}:{getgid()}',
         )
 
         try:

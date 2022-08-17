@@ -38,7 +38,7 @@ class AnalysisSchedulerTest(TestCase):
             pre_analysis=lambda *_: None,
             post_analysis=self.dummy_callback,
             db_interface=self.mocked_interface,
-            unpacking_locks=UnpackingLockManager()
+            unpacking_locks=UnpackingLockManager(),
         )
 
     def tearDown(self):
@@ -204,7 +204,7 @@ class TestAnalysisSchedulerBlacklist:
 
     def test_next_analysis_is_blacklisted__whitelist_precedes_blacklist(self):
         self.sched.analysis_plugins[self.test_plugin] = self.PluginMock(
-            blacklist=['test_type'], whitelist=['test_type']
+            blacklist=['test_type'], whitelist=['test_type'],
         )
         self.file_object.processed_analysis['file_type']['mime'] = 'test_type'
         blacklisted = self.sched._next_analysis_is_blacklisted(self.test_plugin, self.file_object)
@@ -269,10 +269,10 @@ class TestAnalysisSkipping:
             ('1.0', '2.1', '1.0', '2.0', False),
             ('1.0', '2.0', '1.0', None, False),
             (' 1.0', '1.1', '1.1', '1.0', False)  # invalid version string
-        ]
+        ],
     )
     def test_analysis_is_already_in_db_and_up_to_date(
-        self, plugin_version, plugin_system_version, analysis_plugin_version, analysis_system_version, expected_output
+        self, plugin_version, plugin_system_version, analysis_plugin_version, analysis_system_version, expected_output,
     ):
         plugin = 'foo'
         analysis_entry = {
@@ -282,7 +282,7 @@ class TestAnalysisSkipping:
         }
         self.scheduler.db_backend_service = self.BackendMock(analysis_entry)
         self.scheduler.analysis_plugins[plugin] = self.PluginMock(
-            version=plugin_version, system_version=plugin_system_version
+            version=plugin_version, system_version=plugin_system_version,
         )
         assert self.scheduler._analysis_is_already_in_db_and_up_to_date(plugin, '') == expected_output
 
@@ -297,7 +297,7 @@ class TestAnalysisSkipping:
                     'failed': 'reason'
                 }, 'plugin_version': '0', 'system_version': '0'
             },  # failed
-        ]
+        ],
     )
     def test_analysis_is_already_in_db_and_up_to_date__incomplete(self, db_entry):
         self.scheduler.db_backend_service = self.BackendMock(db_entry)
@@ -347,7 +347,7 @@ class TestAnalysisShouldReanalyse:
             (20, 10, '1.0', '1.1', '1.0', '1.0', False),  # system version > db system version => not up to date
             (20, 10, '1.0', '1.0', '1.0', '1.1', True),  # system version < db system version => up to date
             (20, 10, '1.0', '1.0', '1.0', None, False),  # system version did not exist in db => not up to date
-        ]
+        ],
     )
     def test_analysis_is_up_to_date(
         self,
@@ -357,10 +357,10 @@ class TestAnalysisShouldReanalyse:
         system_version,
         db_plugin_version,
         db_system_version,
-        expected_result
+        expected_result,
     ):
         analysis_db_entry = dict(
-            plugin_version=db_plugin_version, analysis_date=plugin_date, system_version=db_system_version
+            plugin_version=db_plugin_version, analysis_date=plugin_date, system_version=db_system_version,
         )
         self.scheduler.db_backend_service = self.BackendMock(dependency_date)
         plugin = self.PluginMock(plugin_version, system_version)

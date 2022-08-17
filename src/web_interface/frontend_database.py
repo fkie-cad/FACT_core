@@ -20,7 +20,7 @@ class FrontendDatabase:  # pylint: disable=too-many-instance-attributes
             comparison: Optional[Type[ComparisonDbInterface]] = None,
             template: Optional[Type[ViewReader]] = None,
             stats_viewer: Optional[Type[StatsDbViewer]] = None,
-            stats_updater: Optional[Type[StatsUpdateDbInterface]] = None
+            stats_updater: Optional[Type[StatsUpdateDbInterface]] = None,
     ):
         self.config = config
         self._ro_connection = ReadOnlyConnection(config)

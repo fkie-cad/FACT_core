@@ -20,7 +20,7 @@ class DbSetup(ReadWriteDbInterface):
         if not self.user_exists(user_name):
             with self.get_read_write_session() as session:
                 session.execute(
-                    f'CREATE ROLE {user_name} LOGIN PASSWORD \'{password}\' NOSUPERUSER INHERIT NOCREATEDB NOCREATEROLE;'
+                    f'CREATE ROLE {user_name} LOGIN PASSWORD \'{password}\' NOSUPERUSER INHERIT NOCREATEDB NOCREATEROLE;',
                 )
 
     def user_exists(self, user_name: str) -> bool:

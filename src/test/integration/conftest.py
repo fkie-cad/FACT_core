@@ -20,7 +20,7 @@ class DB:
         backend: BackendDbInterface,
         frontend: FrontEndDbInterface,
         frontend_editing: FrontendEditingDbInterface,
-        admin: AdminDbInterface
+        admin: AdminDbInterface,
     ):
         self.common = common
         self.backend = backend

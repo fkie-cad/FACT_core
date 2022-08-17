@@ -39,7 +39,7 @@ class TestAnalysisScheduling:
             ({'p1'}, {'p2', 'p3'}),
             ({'p3'}, set()),
             ({'p1', 'p2', 'p3', 'p4'}, {'p5'}),
-        ]
+        ],
     )
     def test_get_cumulative_remaining_dependencies(self, input_data, expected_output):
         self._add_plugins_with_recursive_dependencies()
@@ -52,7 +52,7 @@ class TestAnalysisScheduling:
             (['p3'], {'p3'}),
             (['p1'], {'p1', 'p2', 'p3'}),
             (['p4'], {'p4', 'p5', 'p6'}),
-        ]
+        ],
     )
     def test_add_dependencies_recursively(self, input_data, expected_output):
         self._add_plugins_with_recursive_dependencies()
@@ -66,7 +66,7 @@ class TestAnalysisScheduling:
             ({'no_deps', 'foo', 'bar'}, [], ['no_deps']),
             ({'foo', 'bar'}, ['no_deps'], ['foo']),
             ({'bar'}, ['no_deps', 'foo'], ['bar']),
-        ]
+        ],
     )
     def test_get_plugins_with_met_dependencies(self, remaining, scheduled, expected_output):
         self._add_plugins()
@@ -76,7 +76,7 @@ class TestAnalysisScheduling:
         'remaining, scheduled, expected_output', [
             ({'bar'}, ['no_deps', 'foo'], {'bar'}),
             ({'foo', 'bar'}, ['no_deps', 'foo'], {'foo', 'bar'}),
-        ]
+        ],
     )
     def test_get_plugins_with_met_dependencies__completed_analyses(self, remaining, scheduled, expected_output):
         self._add_plugins()

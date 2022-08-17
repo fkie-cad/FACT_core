@@ -48,7 +48,7 @@ def _setup_frontend():
             'expert-settings': {
                 'authentication': 'true',
             },
-        }
+        },
     )
     test_app = create_app(parser)
     db, store = add_flask_security_to_app(test_app)
@@ -78,7 +78,7 @@ def _setup_frontend():
             'role'
         ],
         ['create_user', 'username', 'list_all_users'],
-    ]
+    ],
 )
 def test_integration_try_actions(action_and_inputs, prompt):
     action_and_inputs.append('exit')

@@ -72,7 +72,7 @@ def test_build_pdf_error(tmpdir, monkeypatch):
     monkeypatch.setattr(
         'helperFunctions.pdf.run_docker_container',
         lambda *_,
-        **__: CompletedProcess(args=None, stdout='', stderr=None, returncode=1)
+        **__: CompletedProcess(args=None, stdout='', stderr=None, returncode=1),
     )
 
     with pytest.raises(RuntimeError):

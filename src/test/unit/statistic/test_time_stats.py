@@ -48,7 +48,7 @@ def test_build_time_dict():
                 1: 1
             }
         }),
-    ]
+    ],
 )
 def test_fill_in_time_gaps(input_data, expected):
     _fill_in_time_gaps(input_data)

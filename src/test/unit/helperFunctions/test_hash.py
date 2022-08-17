@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 
 from helperFunctions.hash import (
-    _suppress_stdout, get_imphash, get_md5, get_sha256, get_ssdeep, get_tlsh, normalize_lief_items
+    _suppress_stdout, get_imphash, get_md5, get_sha256, get_ssdeep, get_tlsh, normalize_lief_items,
 )
 from test.common_helper import create_test_file_object, get_test_data_dir
 

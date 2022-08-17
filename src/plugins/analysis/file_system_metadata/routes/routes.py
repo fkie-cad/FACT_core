@@ -60,7 +60,7 @@ class PluginRoutes(ComponentBase):
         self._app.add_url_rule(
             '/plugins/file_system_metadata/ajax/<uid>',
             'plugins/file_system_metadata/ajax/<uid>',
-            self._get_analysis_results_of_parent_fo
+            self._get_analysis_results_of_parent_fo,
         )
 
     @roles_accepted(*PRIVILEGES['view_analysis'])

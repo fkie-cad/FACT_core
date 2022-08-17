@@ -21,7 +21,7 @@ def test_extract_data_from_ghidra():
         ([], []),
         (['1.2.3.4', 'foobar'], ['1.2.3.4']),
         (['v1.2-r1234'], ['v1.2-r1234']),
-    ]
+    ],
 )
 def test_filter_implausible_results(test_input, expected_output):
     assert filter_implausible_results(test_input) == expected_output

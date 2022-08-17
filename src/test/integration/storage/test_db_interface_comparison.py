@@ -92,7 +92,7 @@ def test_get_total_number_of_results(db, comp_db):
         ('the_root_uid', ['uid1', 'uid2']),
         ('some_other_uid', []),
         (None, []),
-    ]
+    ],
 )
 def test_get_exclusive_files(db, comp_db, root_uid, expected_result):
     fw_one, fw_two, compare_dict, comp_id = _create_comparison()

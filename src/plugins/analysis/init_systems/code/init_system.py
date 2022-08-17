@@ -84,7 +84,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         match_description = self._findall_regex(r'^[^#].*(?<=description)\s*(.*)', self.content)
         match_exec = self._findall_regex(r'[^#]^exec\s*((?:.*\\\n)*.*)', self.content)
         match_pre_start = self._findall_regex(
-            r'(?<=pre-start script\n)(?:(?:[\S\s]*?)[\n]*)(?=\nend script)', self.content
+            r'(?<=pre-start script\n)(?:(?:[\S\s]*?)[\n]*)(?=\nend script)', self.content,
         )
         match_script = self._findall_regex(r'(?<=^script\n)(?:(?:[\S\s]*?)[\n]*)(?=\nend script)', self.content)
         result['description'] = match_description if match_description else [file_object.file_name]

@@ -24,7 +24,7 @@ class FileTreeNode:  # pylint: disable=too-many-instance-attributes,too-many-arg
         size=None,
         mime_type=None,
         has_children=False,
-        not_analyzed=False
+        not_analyzed=False,
     ):
         self.uid = uid
         self.root_uid = root_uid

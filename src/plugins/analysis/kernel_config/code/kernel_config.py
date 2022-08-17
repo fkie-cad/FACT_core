@@ -39,7 +39,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         file_object.processed_analysis[self.NAME] = {}
 
         if self.object_mime_is_plaintext(file_object) and (
-            self.has_kconfig_type(file_object) or self.probably_kernel_config(file_object.binary)
+            self.has_kconfig_type(file_object) or self.probably_kernel_config(file_object.binary),
         ):
             self.add_kernel_config_to_analysis(file_object, file_object.binary)
         elif file_object.file_name == 'configs.ko' or self.object_is_kernel_image(file_object):
@@ -48,15 +48,15 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 self.add_kernel_config_to_analysis(file_object, maybe_config)
 
         file_object.processed_analysis[self.NAME]['summary'] = self._get_summary(
-            file_object.processed_analysis[self.NAME]
+            file_object.processed_analysis[self.NAME],
         )
 
         if 'kernel_config' in file_object.processed_analysis[self.NAME]:
             file_object.processed_analysis[self.NAME]['checksec'] = check_kernel_config(
-                file_object.processed_analysis[self.NAME]['kernel_config']
+                file_object.processed_analysis[self.NAME]['kernel_config'],
             )
             file_object.processed_analysis[self.NAME]['hardening'] = check_kernel_hardening(
-                file_object.processed_analysis[self.NAME]['kernel_config']
+                file_object.processed_analysis[self.NAME]['kernel_config'],
             )
 
         return file_object

@@ -36,7 +36,7 @@ def query_parent_firmware(search_dict: dict, inverted: bool, count: bool = False
         # explicitly state FROM because FileObjectEntry is not in select
         .select_from(root_fo, FileObjectEntry)
         # root_fo is in parent_firmware of the FO or FO is the "root file object" of the root_fo
-        .filter(FileObjectEntry.root_firmware.any(uid=root_fo.uid) | (FileObjectEntry.uid == root_fo.uid))
+        .filter(FileObjectEntry.root_firmware.any(uid=root_fo.uid) | (FileObjectEntry.uid == root_fo.uid)),
     )
     query = build_query_from_dict(search_dict, query=base_query)
 
@@ -54,7 +54,7 @@ def build_query_from_dict(
     query_dict: dict,
     query: Optional[Select] = None,  # pylint: disable=too-complex, too-many-branches
     fw_only: bool = False,
-    or_query: bool = False
+    or_query: bool = False,
 ) -> Select:
     '''
     Builds an ``sqlalchemy.orm.Query`` object from a query in dict form.
@@ -73,7 +73,7 @@ def build_query_from_dict(
     analysis_search_dict = {key: value for key, value in query_dict.items() if key.startswith('processed_analysis')}
     if analysis_search_dict:
         query = query.join(
-            AnalysisEntry, AnalysisEntry.uid == (FileObjectEntry.uid if not fw_only else FirmwareEntry.uid)
+            AnalysisEntry, AnalysisEntry.uid == (FileObjectEntry.uid if not fw_only else FirmwareEntry.uid),
         )
         for key, value in analysis_search_dict.items():
             _, plugin, subkey = key.split('.', maxsplit=2)

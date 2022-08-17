@@ -22,15 +22,15 @@ class TestAnalysisPluginsSoftwareComponents(AnalysisPluginTest):
         self.assertEqual(len(results), 2, 'incorrect number of software components found')
         self.assertTrue('MyTestRule' in results, 'test Rule match not found')
         self.assertEqual(
-            results['MyTestRule']['meta']['software_name'], 'Test Software', 'incorrect software name from yara meta'
+            results['MyTestRule']['meta']['software_name'], 'Test Software', 'incorrect software name from yara meta',
         )
         self.assertEqual(
             results['MyTestRule']['meta']['website'],
             'http://www.fkie.fraunhofer.de',
-            'incorrect website from yara meta'
+            'incorrect website from yara meta',
         )
         self.assertEqual(
-            results['MyTestRule']['meta']['description'], 'This is a test rule', 'incorrect description from yara meta'
+            results['MyTestRule']['meta']['description'], 'This is a test rule', 'incorrect description from yara meta',
         )
         self.assertTrue(results['MyTestRule']['meta']['open_source'], 'incorrect open-source flag from yara meta')
         self.assertTrue((10, '$a', 'MyTestRule 0.1.3.') in results['MyTestRule']['strings'], 'string not found')
@@ -56,7 +56,7 @@ class TestAnalysisPluginsSoftwareComponents(AnalysisPluginTest):
         self.assertEqual(
             self.analysis_plugin.get_version(f'Foo {version}', {'version_regex': 'v\\d\\d\\.\\d\\d\\.\\d[a-z]'}),
             version,
-            'version not found correctly'
+            'version not found correctly',
         )
 
     def test_entry_has_no_trailing_version(self):
@@ -86,7 +86,7 @@ class TestAnalysisPluginsSoftwareComponents(AnalysisPluginTest):
         test_file.processed_analysis[self.PLUGIN_NAME] = dict(
             summary=['Linux Kernel'], tags={'OS': {
                 'value': 'Fire OS'
-            }}
+            }},
         )
 
         assert test_file.processed_analysis[self.PLUGIN_NAME]['tags']['OS']['value'] == 'Fire OS'

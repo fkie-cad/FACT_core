@@ -17,7 +17,7 @@ from ..code.checksec import (
     check_rpath,
     check_runpath,
     check_stripped_symbols,
-    execute_checksec_script
+    execute_checksec_script,
 )
 
 PLUGIN_DIR = Path(__file__).parent.parent
@@ -121,7 +121,7 @@ class TestAnalysisPluginChecksec(AnalysisPluginTest):
         (FILE_PATH_EXE_STRIPPED, check_stripped_symbols, {
             'STRIPPED SYMBOLS': 'enabled'
         }, 'STRIPPED SYMBOLS enabled'),
-    ]
+    ],
 )
 def test_all_checks(file_path, check, expected_result, expected_summary):
     result, dict_summary = {}, {}

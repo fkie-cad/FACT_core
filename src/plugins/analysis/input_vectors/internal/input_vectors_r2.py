@@ -88,7 +88,7 @@ class RadareAPI:
                     'name': 'interrupts',
                     'count': len(interrupts),
                     'xrefs': interrupts,
-                }
+                },
             )
         return input_vectors
 
@@ -102,7 +102,7 @@ class RadareAPI:
                         'class': input_class,
                         'name': clean_import,
                         'xrefs': [hex(address) for address in self.get_xrefs_to(function['name'])],
-                    }
+                    },
                 )
         return input_vectors
 

@@ -95,7 +95,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         # FIXME plugins should not set the output for other plugins
         # But due to performance reasons we don't want the filetype plugin to run linguist
         file_object.processed_analysis['file_type']['linguist'] = ''.join(
-            [f'{k:<10} {str(v):<10}\n' for k, v in output_json[container_path].items()]
+            [f'{k:<10} {str(v):<10}\n' for k, v in output_json[container_path].items()],
         )
 
         script_type = output_json[container_path].get('language')

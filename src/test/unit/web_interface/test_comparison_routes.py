@@ -3,7 +3,7 @@
 from test.common_helper import CommonDatabaseMock
 from test.unit.web_interface.base import WebInterfaceTest
 from web_interface.components.compare_routes import (
-    CompareRoutes, _add_plugin_views_to_compare_view, _get_compare_view, _insert_plugin_into_view_at_index
+    CompareRoutes, _add_plugin_views_to_compare_view, _get_compare_view, _insert_plugin_into_view_at_index,
 )
 
 

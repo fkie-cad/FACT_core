@@ -82,7 +82,7 @@ class FilterClass:
             root_uid=root_uid,
             selected_analysis=selected_analysis,
             first_item=first_item,
-            filename_only=filename_only
+            filename_only=filename_only,
         )
 
     def _nice_virtual_path_list(self, virtual_path_list: List[str]) -> List[str]:
@@ -105,7 +105,7 @@ class FilterClass:
                 f'    <a style="color: #fff" href="/analysis/{uid_element}/ro/{root_uid}">'
                 f'        {hid}'
                 '    </a>'
-                '</span>'
+                '</span>',
             )
         return f'<span class="badge badge-secondary">{hid}</span>'
 
@@ -120,7 +120,7 @@ class FilterClass:
             firmware=firmware,
             root_uid=root_uid,
             other_versions=other_versions,
-            selected_analysis=selected_analysis
+            selected_analysis=selected_analysis,
         )
 
     @staticmethod
@@ -226,7 +226,7 @@ class FilterClass:
         self._app.jinja_env.filters['sort_comments'] = flt.sort_comments
         self._app.jinja_env.filters['sort_cve'] = flt.sort_cve_results
         self._app.jinja_env.filters['sort_privileges'] = lambda privileges: sorted(
-            privileges, key=lambda role: len(privileges[role]), reverse=True
+            privileges, key=lambda role: len(privileges[role]), reverse=True,
         )
         self._app.jinja_env.filters['sort_roles'] = flt.sort_roles_by_number_of_privileges
         self._app.jinja_env.filters['sort_users'] = flt.sort_users_by_name

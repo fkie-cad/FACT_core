@@ -39,7 +39,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 tag_name=self.NAME,
                 value=self.NAME.replace('_', ' '),
                 color=TagColor.ORANGE,
-                propagate=False
+                propagate=False,
             )
 
         return file_object

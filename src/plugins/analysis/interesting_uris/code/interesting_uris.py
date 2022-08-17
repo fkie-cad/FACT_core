@@ -62,7 +62,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     ]
     DESCRIPTION = (
         'This plugin filters all URIs identified inside the file based on relevance.'
-        'The resulting list of URIs has a higher probability of representing important resources.'
+        'The resulting list of URIs has a higher probability of representing important resources.',
     )
     VERSION = '0.1'
     FILE = __file__

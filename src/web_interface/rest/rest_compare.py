@@ -16,7 +16,7 @@ compare_model = api.model(
     {
         'uid_list': fields.List(description='List of UIDs', cls_or_instance=fields.String, required=True),
         'redo': fields.Boolean(description='Redo', default=False),
-    }
+    },
 )
 
 
@@ -41,7 +41,7 @@ class RestComparePut(RestResourceBase):
                     'Compare already exists. Use "redo" to force re-compare.',
                     self.URL,
                     request_data=request.json,
-                    return_code=200
+                    return_code=200,
                 )
 
             if not comparison_db.objects_exist(compare_id):
@@ -52,7 +52,7 @@ class RestComparePut(RestResourceBase):
                     f'Some objects are not found in the database: {missing_uids}',
                     self.URL,
                     request_data=request.json,
-                    return_code=404
+                    return_code=404,
                 )
 
         with ConnectTo(self.intercom, self.config) as intercom:
@@ -61,7 +61,7 @@ class RestComparePut(RestResourceBase):
             {'message': 'Compare started. Please use GET to get the results.'},
             self.URL,
             request_data=request.json,
-            return_code=202
+            return_code=202,
         )
 
 
@@ -72,7 +72,7 @@ class RestComparePut(RestResourceBase):
         'params': {
             'compare_id': 'Firmware UID'
         },
-    }
+    },
 )
 class RestCompareGet(RestResourceBase):
     URL = '/rest/compare'
@@ -93,7 +93,7 @@ class RestCompareGet(RestResourceBase):
             return error_message(
                 f'Compare ID must be of the form uid1;uid2(;uid3..): {error}',
                 self.URL,
-                request_data={'compare_id': compare_id}
+                request_data={'compare_id': compare_id},
             )
 
         result = None
@@ -106,7 +106,7 @@ class RestCompareGet(RestResourceBase):
             'Compare not found in database. Please use /rest/start_compare to start the compare.',
             self.URL,
             request_data={'compare_id': compare_id},
-            return_code=404
+            return_code=404,
         )
 
     @staticmethod

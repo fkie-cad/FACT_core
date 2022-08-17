@@ -81,7 +81,7 @@ class FactBackend(FactBase):
         while self.run:
             self.work_load_stat.update(
                 unpacking_workload=self.unpacking_service.get_scheduled_workload(),
-                analysis_workload=self.analysis_service.get_scheduled_workload()
+                analysis_workload=self.analysis_service.get_scheduled_workload(),
             )
             if self._exception_occurred():
                 break
@@ -105,7 +105,7 @@ class FactBackend(FactBase):
             (
                 self.unpacking_service.check_exceptions(),
                 self.compare_service.check_exceptions(),
-                self.analysis_service.check_exceptions()
+                self.analysis_service.check_exceptions(),
             )
         )
 

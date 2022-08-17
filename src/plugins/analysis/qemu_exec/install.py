@@ -48,14 +48,14 @@ class QemuExecInstaller(AbstractPluginInstaller):
             Path('test/data/test_tmp_dir_2/fact_extracted/lib').mkdir(exist_ok=True, parents=True)
 
             run_cmd_with_logging(
-                f'cp {tmp_dir}/usr/mips-linux-gnu/lib/libc-2.23.so test/data/test_tmp_dir/lib/libc.so.6'
+                f'cp {tmp_dir}/usr/mips-linux-gnu/lib/libc-2.23.so test/data/test_tmp_dir/lib/libc.so.6',
             )
             run_cmd_with_logging(f'cp {tmp_dir}/usr/mips-linux-gnu/lib/ld-2.23.so test/data/test_tmp_dir/lib/ld.so.1')
             run_cmd_with_logging(
-                f'mv {tmp_dir}/usr/mips-linux-gnu/lib/libc-2.23.so test/data/test_tmp_dir_2/fact_extracted/lib/libc.so.6'
+                f'mv {tmp_dir}/usr/mips-linux-gnu/lib/libc-2.23.so test/data/test_tmp_dir_2/fact_extracted/lib/libc.so.6',
             )
             run_cmd_with_logging(
-                f'mv {tmp_dir}/usr/mips-linux-gnu/lib/ld-2.23.so test/data/test_tmp_dir_2/fact_extracted/lib/ld.so.1'
+                f'mv {tmp_dir}/usr/mips-linux-gnu/lib/ld-2.23.so test/data/test_tmp_dir_2/fact_extracted/lib/ld.so.1',
             )
 
 

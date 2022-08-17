@@ -30,7 +30,7 @@ class RestFileObjectWithoutUid(RestResourceBase):
             'query': {
                 'description': 'MongoDB style query', 'in': 'query', 'type': 'dict'
             },
-        }
+        },
     )
     def get(self):
         '''
@@ -61,7 +61,7 @@ class RestFileObjectWithoutUid(RestResourceBase):
                 'description': 'include summary in result', 'in': 'query', 'type': 'boolean', 'default': 'false'
             },
         }
-    }
+    },
 )
 class RestFileObjectWithUid(RestResourceBase):
     URL = '/rest/file_object'

@@ -12,7 +12,7 @@ def run_docker_container(
     logging_label: str = 'Docker',
     timeout: int = 300,
     combine_stderr_stdout: bool = False,
-    **kwargs
+    **kwargs,
 ) -> CompletedProcess:
     '''
     This is a convinience function that runs a docker container and returns a
@@ -47,9 +47,9 @@ def run_docker_container(
         response = container.wait(timeout=timeout)
         exit_code = response['StatusCode']
         stdout = container.logs(
-            stdout=True, stderr=False
+            stdout=True, stderr=False,
         ).decode() if not combine_stderr_stdout else container.logs(
-            stdout=True, stderr=True
+            stdout=True, stderr=True,
         ).decode()
         stderr = container.logs(stdout=False, stderr=True).decode() if not combine_stderr_stdout else None
     except ReadTimeout:

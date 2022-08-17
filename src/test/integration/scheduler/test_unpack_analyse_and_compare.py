@@ -28,13 +28,13 @@ class TestFileAddition:
         self._analysis_scheduler = AnalysisScheduler(
             config=self._config,
             post_analysis=self.count_analysis_finished_event,
-            unpacking_locks=unpacking_lock_manager
+            unpacking_locks=unpacking_lock_manager,
         )
         self._unpack_scheduler = UnpackingScheduler(
             config=self._config,
             post_unpack=self._analysis_scheduler.start_analysis_of_object,
             fs_organizer=MockFSOrganizer(),
-            unpacking_locks=unpacking_lock_manager
+            unpacking_locks=unpacking_lock_manager,
         )
         self._compare_scheduler = ComparisonScheduler(config=self._config, callback=self.trigger_compare_finished_event)
 
@@ -78,7 +78,7 @@ class TestFileAddition:
 
         assert result is not None, 'comparison result not found in DB'
         assert result['plugins']['Software'] == self._expected_result()['Software']
-        assert len(result['plugins']['File_Coverage']['files_in_common']
+        assert len(result['plugins']['File_Coverage']['files_in_common'],
                    ) == len(self._expected_result()['File_Coverage']['files_in_common'])
 
     @staticmethod

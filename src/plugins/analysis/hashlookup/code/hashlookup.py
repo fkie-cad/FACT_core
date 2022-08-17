@@ -12,7 +12,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     NAME = 'hashlookup'
     DESCRIPTION = (
         'Querying the circ.lu hash library to identify known binaries. The library contains file hashes for multiple'
-        '*nix distributions and the NIST software reference library.'
+        '*nix distributions and the NIST software reference library.',
     )
     MIME_BLACKLIST = [*MIME_BLACKLIST_NON_EXECUTABLE, *MIME_BLACKLIST_COMPRESSED]
     DEPENDENCIES = ['file_hashes']
@@ -35,7 +35,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             result = requests.get(
                 f'https://hashlookup.circl.lu/lookup/sha256/{sha2_hash}', headers={
                     'accept': 'application/json'
-                }
+                },
             ).json()
         except (requests.ConnectionError, json.JSONDecodeError):
             logging.error('Failed to connect to circ.lu hashlookup API', exc_info=True)

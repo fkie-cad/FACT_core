@@ -47,7 +47,7 @@ class DatabaseRoutes(ComponentBase):
                     skip=per_page * (page - 1),
                     limit=per_page,
                     only_firmwares=search_parameters['only_firmware'],
-                    inverted=search_parameters['inverted']
+                    inverted=search_parameters['inverted'],
                 )
                 if self._query_has_only_one_result(firmware_list, search_parameters['query']):
                     return redirect(url_for('show_analysis', uid=firmware_list[0][0]))
@@ -60,7 +60,7 @@ class DatabaseRoutes(ComponentBase):
                 return render_template('error.html', message=error_message)
 
             total = frontend_db.get_number_of_total_matches(
-                search_parameters['query'], search_parameters['only_firmware'], inverted=search_parameters['inverted']
+                search_parameters['query'], search_parameters['only_firmware'], inverted=search_parameters['inverted'],
             )
             device_classes = frontend_db.get_device_class_list()
             vendors = frontend_db.get_vendor_list()
@@ -76,7 +76,7 @@ class DatabaseRoutes(ComponentBase):
             vendors=vendors,
             current_class=str(request.args.get('device_class')),
             current_vendor=str(request.args.get('vendor')),
-            search_parameters=search_parameters
+            search_parameters=search_parameters,
         )
 
     @roles_accepted(*PRIVILEGES['pattern_search'])
@@ -98,7 +98,7 @@ class DatabaseRoutes(ComponentBase):
             searches_list=searches,
             page=page,
             per_page=per_page,
-            pagination=pagination
+            pagination=pagination,
         )
 
     def _get_search_parameters(self, query, only_firmware, inverted):
@@ -115,9 +115,9 @@ class DatabaseRoutes(ComponentBase):
                 query = cached_query.query
                 search_parameters['query_title'] = cached_query.yara_rule
         search_parameters['only_firmware'] = request.args.get('only_firmwares') == 'True' if request.args.get(
-            'only_firmwares'
+            'only_firmwares',
         ) else only_firmware
-        search_parameters['inverted'] = request.args.get('inverted'
+        search_parameters['inverted'] = request.args.get('inverted',
                                                          ) == 'True' if request.args.get('inverted') else inverted
         search_parameters['query'] = apply_filters_to_query(request, query)
         if 'query_title' not in search_parameters:
@@ -132,7 +132,7 @@ class DatabaseRoutes(ComponentBase):
 
     def _search_database(self, query, skip=0, limit=0, only_firmwares=False, inverted=False):
         meta_list = self.db.frontend.generic_search(
-            query, skip, limit, only_fo_parent_firmware=only_firmwares, inverted=inverted, as_meta=True
+            query, skip, limit, only_fo_parent_firmware=only_firmwares, inverted=inverted, as_meta=True,
         )
         if not isinstance(meta_list, list):
             raise Exception(meta_list)
@@ -173,7 +173,7 @@ class DatabaseRoutes(ComponentBase):
             vendors = frontend_db.get_vendor_list()
             tags = frontend_db.get_tag_list()
         return render_template(
-            'database/database_search.html', device_classes=device_classes, vendors=vendors, tag_list=tags
+            'database/database_search.html', device_classes=device_classes, vendors=vendors, tag_list=tags,
         )
 
     @roles_accepted(*PRIVILEGES['advanced_search'])
@@ -186,7 +186,7 @@ class DatabaseRoutes(ComponentBase):
             if not isinstance(query, dict):
                 raise Exception('Error: search query invalid (wrong type)')
             return redirect(
-                url_for('browse_database', query=json.dumps(query), only_firmwares=only_firmwares, inverted=inverted)
+                url_for('browse_database', query=json.dumps(query), only_firmwares=only_firmwares, inverted=inverted),
             )
         except Exception as error:
             return self.show_advanced_search(error=error)
@@ -196,7 +196,7 @@ class DatabaseRoutes(ComponentBase):
     def show_advanced_search(self, error=None):
         database_structure = self.db.frontend.create_analysis_structure()
         return render_template(
-            'database/database_advanced_search.html', error=error, database_structure=database_structure
+            'database/database_advanced_search.html', error=error, database_structure=database_structure,
         )
 
     @roles_accepted(*PRIVILEGES['pattern_search'])
@@ -212,7 +212,7 @@ class DatabaseRoutes(ComponentBase):
                     with ConnectTo(self.intercom, self._config) as connection:
                         request_id = connection.add_binary_search_request(yara_rule_file, firmware_uid)
                     return redirect(
-                        url_for('get_binary_search_results', request_id=request_id, only_firmware=only_firmware)
+                        url_for('get_binary_search_results', request_id=request_id, only_firmware=only_firmware),
                     )
                 error = f'Error in YARA rules: {get_yara_error(yara_rule_file)} (pre-compiled rules are not supported here!)'
             else:
@@ -247,7 +247,7 @@ class DatabaseRoutes(ComponentBase):
                 joined_results = self._join_results(result)
                 query_uid = self._store_binary_search_query(joined_results, yara_rules)
                 return redirect(
-                    url_for('browse_database', query=query_uid, only_firmwares=request.args.get('only_firmware'))
+                    url_for('browse_database', query=query_uid, only_firmwares=request.args.get('only_firmware')),
                 )
         else:
             error = 'No request ID found'
@@ -257,7 +257,7 @@ class DatabaseRoutes(ComponentBase):
             result=firmware_dict,
             error=error,
             request_id=request_id,
-            yara_rules=yara_rules
+            yara_rules=yara_rules,
         )
 
     def _store_binary_search_query(self, binary_search_results: list, yara_rules: str) -> str:

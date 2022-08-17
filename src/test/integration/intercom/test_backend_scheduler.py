@@ -62,7 +62,7 @@ def get_intercom_for_testing():
             testing=True,
             analysis_service=AnalysisServiceMock(),
             compare_service=ServiceMock(test_queue),
-            unpacking_service=ServiceMock(test_queue)
+            unpacking_service=ServiceMock(test_queue),
         )
         interface.WAIT_TIME = 2
         yield interface

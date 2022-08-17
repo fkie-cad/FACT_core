@@ -19,7 +19,7 @@ LIEF_DATA_ENTRIES = (
     'libraries',
     'sections',
     'segments',
-    'symbols_version'
+    'symbols_version',
 )
 TEMPLATE_FILE_PATH = Path(__file__).parent.parent / 'internal/matching_template.json'
 BEHAVIOUR_CLASSES = json.loads(TEMPLATE_FILE_PATH.read_text())
@@ -107,7 +107,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 tag_name=entry,
                 value=entry,
                 color=self._get_color_codes(entry),
-                propagate=False
+                propagate=False,
             )
 
     @staticmethod

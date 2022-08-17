@@ -5,7 +5,7 @@ from objects.firmware import Firmware
 from test.common_helper import create_test_file_object, create_test_firmware, generate_analysis_entry
 
 from .helper import (
-    TEST_FO, TEST_FO_2, TEST_FW, create_fw_with_child_fo, create_fw_with_parent_and_child, insert_test_fo
+    TEST_FO, TEST_FO_2, TEST_FW, create_fw_with_child_fo, create_fw_with_parent_and_child, insert_test_fo,
 )
 
 
@@ -318,7 +318,7 @@ def test_collect_analysis_tags(db):
         db, 'fo1', analysis={
             'foo': generate_analysis_entry(tags=tags1),
             'bar': generate_analysis_entry(tags=tags2),
-        }
+        },
     )
 
     fo = db.frontend.get_object('fo1')

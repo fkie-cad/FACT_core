@@ -30,7 +30,7 @@ class TestAnalysisYaraBasePlugin(AnalysisPluginTest):
         intended_signature_path = os.path.join(get_src_dir(), 'analysis/signatures', self.PLUGIN_NAME)
         self.assertTrue(isinstance(self.analysis_plugin.signature_path, str), 'incorrect type')
         self.assertEqual(
-            f"{intended_signature_path.rstrip('/')}.yc", self.analysis_plugin.signature_path, 'signature path is wrong'
+            f"{intended_signature_path.rstrip('/')}.yc", self.analysis_plugin.signature_path, 'signature path is wrong',
         )
 
     def test_process_object(self):

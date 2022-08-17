@@ -90,7 +90,7 @@ def list_group_collapse(input_data, btn_class=None):
             first_item=first_item,
             collapse_id=collapse_id,
             input_data=input_data,
-            btn_class=btn_class
+            btn_class=btn_class,
         )
     return ''
 
@@ -291,7 +291,7 @@ def render_analysis_tags(tags, size=14):
                     color=color,
                     value=tag['value'],
                     tooltip=f'{plugin_name}: {key}',
-                    size=size
+                    size=size,
                 )
     return output
 
@@ -356,7 +356,7 @@ def get_unique_keys_from_list_of_dicts(list_of_dicts: List[dict]):
 def is_not_mandatory_analysis_entry(item: str, additional_entries: Optional[List[str]] = None) -> bool:
     return (
         item not in ['analysis_date', 'plugin_version', 'skipped', 'summary', 'system_version', 'tags']
-        and (additional_entries is None or item not in additional_entries)
+        and (additional_entries is None or item not in additional_entries),
     )
 
 

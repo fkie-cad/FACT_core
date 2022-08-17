@@ -57,13 +57,13 @@ def _setup_argparser(name, description, command_line_options, version=__VERSION_
     parser.add_argument('-V', '--version', action='version', version=f'{name} {version}')
     parser.add_argument('-l', '--log_file', help='path to log file', default=None)
     parser.add_argument(
-        '-L', '--log_level', help='define the log level', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'], default=None
+        '-L', '--log_level', help='define the log level', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'], default=None,
     )
     parser.add_argument('-d', '--debug', action='store_true', default=False, help='print debug messages')
     parser.add_argument('-s', '--silent', action='store_true', default=False, help='don\'t log to command line')
     parser.add_argument('-C', '--config_file', help='set path to config File', default=f'{get_config_dir()}/main.cfg')
     parser.add_argument(
-        '-t', '--testing', default=False, action='store_true', help='shutdown system after one iteration'
+        '-t', '--testing', default=False, action='store_true', help='shutdown system after one iteration',
     )
     return parser.parse_args(command_line_options[1:])
 

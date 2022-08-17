@@ -10,7 +10,7 @@ from ..internal.rulebook import (
     _evaluate_sub_path_rule,
     _get_dotted_path_from_dictionary,
     _get_value,
-    evaluate
+    evaluate,
 )
 
 IPS = {
@@ -84,7 +84,7 @@ def test_all_rules_are_booleans(relation):
         ('in', '42', 'i like 42', 'more a 1337 guy'),
         ('reverse_in', [1, 3], 3, 2),
         ('intersection', [1, 2, 3], [2, 3], [4, 5])  # 'exists' can not be tested this way since its never false
-    ]
+    ],
 )
 def test_apply_relation(relation_value_good_bad):
     relation, value, good, bad = relation_value_good_bad

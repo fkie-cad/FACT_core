@@ -12,7 +12,7 @@ class DbMock(CommonDatabaseMock):
         limit: int = 0,  # pylint: disable=unused-argument
         only_fo_parent_firmware: bool = False,
         inverted: bool = False,
-        as_meta: bool = False
+        as_meta: bool = False,
     ):  # pylint: disable=unused-argument
         result = []
         if search_dict.get('$or', {}).get('file_name', {}).get('$like') == TEST_FW_2.file_name:
@@ -60,6 +60,6 @@ class TestAppQuickSearch(WebInterfaceTest):
 
     def _start_quick_search(self, search_term):
         response = self.test_client.get(
-            '/database/quick_search', query_string={'search_term': search_term}, follow_redirects=True
+            '/database/quick_search', query_string={'search_term': search_term}, follow_redirects=True,
         )
         return response.data.decode()

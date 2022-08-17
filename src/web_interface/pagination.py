@@ -9,7 +9,7 @@ def get_pagination(**kwargs):
         show_single_page=False,
         format_total=True,
         format_number=True,
-        **kwargs
+        **kwargs,
     )
 
 

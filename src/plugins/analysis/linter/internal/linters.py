@@ -66,7 +66,7 @@ def _extract_shellcheck_warnings(shellcheck_json):
                     'column': issue['column'],
                     'symbol': str(issue['code']),
                     'message': issue['message'],
-                }
+                },
             )
     return issues
 
@@ -102,7 +102,7 @@ def _luacheck_parse_linter_output(output):
                         'column': _luacheck_get_first_column(columns),
                         'symbol': code,
                         'message': message,
-                    }
+                    },
                 )
             else:
                 pass
@@ -132,7 +132,7 @@ def run_pylint(file_path):
         stdout=PIPE,
         stderr=STDOUT,
         check=False,
-        universal_newlines=True
+        universal_newlines=True,
     )
 
     try:
@@ -202,7 +202,7 @@ def run_phpstan(file_path):
                 'line': message['line'],
                 'column': -1,  # phpstan does not report columns
                 'message': message['message'],
-            }
+            },
         )
 
     return issues

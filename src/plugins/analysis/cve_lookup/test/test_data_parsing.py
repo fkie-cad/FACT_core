@@ -225,7 +225,7 @@ def test_download_cpe():
     [
         ('https://nvd.nist.gov/feeds/xml/cpe/dictionary/official-cpe-dictionary_v2.3.xml.zip', data_parsing.CPE_FILE),
         ('https://nvd.nist.gov/feeds/json/cve/1.0/nvdcve-1.0-modified.json.zip', 'nvdcve-1.0-modified.json'),
-    ]
+    ],
 )
 def test_iterate_urls(url, expected_file):
     data_parsing.process_url(url, '.')
@@ -260,5 +260,5 @@ def test_iterate_nodes():
 
 def test_extract_cpe():
     assert CPE_EXTRACT_LIST == data_parsing.extract_cpe(
-        str(Path(__file__).parent / 'test_resources/test_cpe_extract.xml')
+        str(Path(__file__).parent / 'test_resources/test_cpe_extract.xml'),
     )

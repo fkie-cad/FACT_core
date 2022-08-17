@@ -64,7 +64,7 @@ class TestAnalysisPluginInformationLeaks(AnalysisPluginTest):
                 'keil_uvision_config',
                 'zsh_history',
                 'any_history'
-            ]
+            ],
         )
         assert 'summary' in fo.processed_analysis[self.PLUGIN_NAME]
         assert fo.processed_analysis[self.PLUGIN_NAME]['summary'] == expected_result

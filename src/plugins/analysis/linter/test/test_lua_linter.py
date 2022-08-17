@@ -19,7 +19,7 @@ def test_do_analysis(monkeypatch):
     monkeypatch.setattr(
         'plugins.analysis.linter.internal.linters.subprocess.run',
         lambda *_,
-        **__: CompletedProcess('DONT_CARE', 0, stdout=MOCK_RESPONSE)
+        **__: CompletedProcess('DONT_CARE', 0, stdout=MOCK_RESPONSE),
     )
     result = run_luacheck('any/path')
     assert result
@@ -37,7 +37,7 @@ def test_bad_lines(monkeypatch):
     monkeypatch.setattr(
         'plugins.analysis.linter.internal.linters.subprocess.run',
         lambda *_,
-        **__: CompletedProcess('DONT_CARRE', 0, bad_lines)
+        **__: CompletedProcess('DONT_CARRE', 0, bad_lines),
     )
     result = run_luacheck('any/path')
     assert not result
@@ -48,7 +48,7 @@ def test_skip_w6xy(monkeypatch):
     monkeypatch.setattr(
         'plugins.analysis.linter.internal.linters.subprocess.run',
         lambda *_,
-        **__: CompletedProcess('DONT_CARE', 0, stdout=w6xy)
+        **__: CompletedProcess('DONT_CARE', 0, stdout=w6xy),
     )
     result = run_luacheck('any/path')
     assert not result

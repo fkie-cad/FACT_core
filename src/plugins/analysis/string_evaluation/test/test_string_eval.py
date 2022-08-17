@@ -16,7 +16,7 @@ from ..internal.string_eval import (
     _add_special_character_ratio_score,
     _add_underscore_or_period_at_beginning_score,
     _score,
-    eval_strings
+    eval_strings,
 )
 
 
@@ -25,7 +25,7 @@ class TestStringEval(unittest.TestCase):
         input_data = ['this string is useful', 'garbage n$%Schtz', '/an/interesting/directory']
         result = eval_strings(input_data)
         self.assertEqual(
-            result, ['/an/interesting/directory', 'this string is useful', 'garbage n$%Schtz'], 'Fehler beim bewerten'
+            result, ['/an/interesting/directory', 'this string is useful', 'garbage n$%Schtz'], 'Fehler beim bewerten',
         )
 
     def test_add_mail_adress_score(self):

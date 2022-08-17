@@ -1,5 +1,5 @@
 from test.common_helper import (
-    TEST_TEXT_FILE, TEST_TEXT_FILE2, CommonDatabaseMock, CommonIntercomMock, create_test_firmware
+    TEST_TEXT_FILE, TEST_TEXT_FILE2, CommonDatabaseMock, CommonIntercomMock, create_test_firmware,
 )
 from test.unit.web_interface.base import WebInterfaceTest
 

@@ -46,7 +46,7 @@ class AnalysisStatus:
         '''
         for parent in self._find_currently_analyzed_parents(fw_object):
             updated_dict = self.currently_running[parent]
-            new_files = set(fw_object.files_included) - set(updated_dict['files_to_unpack']
+            new_files = set(fw_object.files_included) - set(updated_dict['files_to_unpack'],
                                                             ).union(set(updated_dict['files_to_analyze']))
             updated_dict['total_files_count'] += len(new_files)
             updated_dict['files_to_unpack'] = list(set(updated_dict['files_to_unpack']).union(new_files))

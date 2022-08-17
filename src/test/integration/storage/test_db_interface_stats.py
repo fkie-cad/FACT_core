@@ -6,7 +6,7 @@ import pytest
 from storage.db_interface_stats import StatsDbViewer, StatsUpdateDbInterface, count_occurrences
 from storage.schema import AnalysisEntry, FileObjectEntry, FirmwareEntry, StatsEntry
 from test.common_helper import (  # pylint: disable=wrong-import-order
-    create_test_file_object, create_test_firmware, generate_analysis_entry, get_config_for_testing
+    create_test_file_object, create_test_firmware, generate_analysis_entry, get_config_for_testing,
 )
 
 from .helper import create_fw_with_parent_and_child, insert_test_fo, insert_test_fw
@@ -185,7 +185,7 @@ def test_count_distinct_values(db, stats_db):
         ({
             'vendor': 'foobar'
         }, [('value1', 2)]),
-    ]
+    ],
 )
 def test_count_distinct_analysis(db, stats_db, q_filter, expected_result):
     insert_test_fw(db, 'root_fw', vendor='foobar')
@@ -196,7 +196,7 @@ def test_count_distinct_analysis(db, stats_db, q_filter, expected_result):
         analysis={'foo': generate_analysis_entry(analysis_result={
             'key': 'value1', 'x': 0
         })},
-        parent_fw='root_fw'
+        parent_fw='root_fw',
     )
     insert_test_fo(
         db,
@@ -204,7 +204,7 @@ def test_count_distinct_analysis(db, stats_db, q_filter, expected_result):
         analysis={'foo': generate_analysis_entry(analysis_result={
             'key': 'value1', 'x': 1
         })},
-        parent_fw='root_fw'
+        parent_fw='root_fw',
     )
     insert_test_fo(
         db,
@@ -212,7 +212,7 @@ def test_count_distinct_analysis(db, stats_db, q_filter, expected_result):
         analysis={'foo': generate_analysis_entry(analysis_result={
             'key': 'value2', 'x': 0
         })},
-        parent_fw='another_fw'
+        parent_fw='another_fw',
     )
 
     result = stats_db.count_distinct_in_analysis(AnalysisEntry.result['key'], plugin='foo', q_filter=q_filter)
@@ -231,11 +231,11 @@ def test_count_values_in_summary(db, stats_db):
     assert stats_db.count_values_in_summary('plugin that did not run', firmware=True) == []
     assert stats_db.count_values_in_summary('foo', firmware=True) == [('s1', 1), ('s2', 1)]
     assert stats_db.count_values_in_summary(
-        'foo', firmware=True, q_filter={'vendor': fw.vendor}
+        'foo', firmware=True, q_filter={'vendor': fw.vendor},
     ) == [('s1', 1), ('s2', 1)]
     assert stats_db.count_values_in_summary('foo', firmware=False) == [('s3', 1), ('s4', 2)]
     assert stats_db.count_values_in_summary(
-        'foo', firmware=False, q_filter={'vendor': fw.vendor}
+        'foo', firmware=False, q_filter={'vendor': fw.vendor},
     ) == [('s3', 1), ('s4', 2)]
     assert stats_db.count_values_in_summary('foo', firmware=False, q_filter={'vendor': 'different'}) == []
 
@@ -251,7 +251,7 @@ def test_count_values_in_summary(db, stats_db):
         ({
             'vendor': 'unknown'
         }, 'foo', []),
-    ]
+    ],
 )
 def test_count_distinct_array(db, stats_db, q_filter, plugin, expected_result):
     insert_test_fw(db, 'root_fw', vendor='foobar')
@@ -261,7 +261,7 @@ def test_count_distinct_array(db, stats_db, q_filter, plugin, expected_result):
         parent_fw='root_fw',
         analysis={
             'foo': generate_analysis_entry(analysis_result={'key': ['value1']}),
-        }
+        },
     )
     insert_test_fo(
         db,
@@ -269,7 +269,7 @@ def test_count_distinct_array(db, stats_db, q_filter, plugin, expected_result):
         parent_fw='root_fw',
         analysis={
             'foo': generate_analysis_entry(analysis_result={'key': ['value1', 'value2']}),
-        }
+        },
     )
 
     stats = stats_db.count_distinct_values_in_array(AnalysisEntry.result['key'], plugin=plugin, q_filter=q_filter)
@@ -284,7 +284,7 @@ def test_get_unpacking_file_types(db, stats_db):
         analysis={
             'unpacker': generate_analysis_entry(summary=['unpacked']),
             'file_type': generate_analysis_entry(analysis_result={'mime': 'firmware/image'}),
-        }
+        },
     )
     insert_test_fo(
         db,
@@ -293,7 +293,7 @@ def test_get_unpacking_file_types(db, stats_db):
         analysis={
             'unpacker': generate_analysis_entry(summary=['packed']),
             'file_type': generate_analysis_entry(analysis_result={'mime': 'some/file'}),
-        }
+        },
     )
 
     assert stats_db.get_unpacking_file_types('unpacked') == [('firmware/image', 1)]
@@ -309,7 +309,7 @@ def test_get_unpacking_entropy(db, stats_db):
         vendor='foobar',
         analysis={
             'unpacker': generate_analysis_entry(summary=['unpacked'], analysis_result={'entropy': 0.4}),
-        }
+        },
     )
     insert_test_fo(
         db,
@@ -317,7 +317,7 @@ def test_get_unpacking_entropy(db, stats_db):
         parent_fw='root_fw',
         analysis={
             'unpacker': generate_analysis_entry(summary=['unpacked'], analysis_result={'entropy': 0.6}),
-        }
+        },
     )
     insert_test_fo(
         db,
@@ -325,7 +325,7 @@ def test_get_unpacking_entropy(db, stats_db):
         parent_fw='root_fw',
         analysis={
             'unpacker': generate_analysis_entry(summary=['packed'], analysis_result={'entropy': 0.8}),
-        }
+        },
     )
 
     assert isclose(stats_db.get_unpacking_entropy('packed'), 0.8, abs_tol=0.01)
@@ -344,7 +344,7 @@ def test_get_used_unpackers(db, stats_db):
             generate_analysis_entry(analysis_result={
                 'plugin_used': 'unpacker1', 'number_of_unpacked_files': 10
             }),
-        }
+        },
     )
     insert_test_fo(
         db,
@@ -355,7 +355,7 @@ def test_get_used_unpackers(db, stats_db):
             generate_analysis_entry(analysis_result={
                 'plugin_used': 'unpacker2', 'number_of_unpacked_files': 1
             }),
-        }
+        },
     )
     insert_test_fo(
         db,
@@ -366,7 +366,7 @@ def test_get_used_unpackers(db, stats_db):
             generate_analysis_entry(analysis_result={
                 'plugin_used': 'unpacker3', 'number_of_unpacked_files': 0
             }),
-        }
+        },
     )
 
     assert stats_db.get_used_unpackers() == [('unpacker1', 1), ('unpacker2', 1)]

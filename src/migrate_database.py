@@ -28,8 +28,8 @@ def upgrade(cur):
             "confirmed_at"	DATETIME,
             "fs_uniquifier"	VARCHAR(64) NOT NULL UNIQUE,
             CHECK(active IN (0,1)),
-            PRIMARY KEY("id")
-        );'''
+            PRIMARY KEY("id"),
+        );''',
     )
     cur.execute('INSERT INTO "user_tmp" SELECT * FROM "user" WHERE true')
     cur.execute('DROP TABLE "user"')
@@ -51,11 +51,11 @@ def downgrade(cur):
             "active"		BOOLEAN,
             "confirmed_at"	DATETIME,
             CHECK(active IN (0,1)),
-            PRIMARY KEY("id")
-        );'''
+            PRIMARY KEY("id"),
+        );''',
     )
     cur.execute(
-        'INSERT INTO "user_tmp" SELECT id, api_key, email, password, active, confirmed_at FROM "user" WHERE true'
+        'INSERT INTO "user_tmp" SELECT id, api_key, email, password, active, confirmed_at FROM "user" WHERE true',
     )
     cur.execute('DROP TABLE "user"')
     cur.execute('ALTER TABLE "user_tmp" RENAME TO "user"')
@@ -69,12 +69,12 @@ def main():
     subparsers = parser.add_subparsers()
 
     upgrade_process = subparsers.add_parser(
-        'upgrade', help='Upgrade the user database', formatter_class=argparse.ArgumentDefaultsHelpFormatter
+        'upgrade', help='Upgrade the user database', formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     upgrade_process.set_defaults(func=upgrade)
 
     downgrade_process = subparsers.add_parser(
-        'downgrade', help='Downgrade the user database', formatter_class=argparse.ArgumentDefaultsHelpFormatter
+        'downgrade', help='Downgrade the user database', formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     downgrade_process.set_defaults(func=downgrade)
     args = parser.parse_args()

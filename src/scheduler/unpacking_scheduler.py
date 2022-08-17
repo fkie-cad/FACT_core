@@ -58,14 +58,14 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
 
     def unpack_worker(self, worker_id):
         unpacker = Unpacker(
-            self.config, worker_id=worker_id, fs_organizer=self.fs_organizer, unpacking_locks=self.unpacking_locks
+            self.config, worker_id=worker_id, fs_organizer=self.fs_organizer, unpacking_locks=self.unpacking_locks,
         )
         while self.stop_condition.value == 0:
             with suppress(Empty):
                 fo = self.in_queue.get(timeout=float(self.config['expert-settings']['block-delay']))
                 extracted_objects = unpacker.unpack(fo)
                 logging.debug(
-                    f'[worker {worker_id}] unpacking of {fo.uid} complete: {len(extracted_objects)} files extracted'
+                    f'[worker {worker_id}] unpacking of {fo.uid} complete: {len(extracted_objects)} files extracted',
                 )
                 self.post_unpack(fo)
                 self.schedule_extracted_files(extracted_objects)
@@ -99,7 +99,7 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
                 log_function = logging.debug
             log_function(
                 color_string(
-                    f'Queue Length (Analysis/Unpack): {workload} / {unpack_queue_size}', TerminalColors.WARNING
+                    f'Queue Length (Analysis/Unpack): {workload} / {unpack_queue_size}', TerminalColors.WARNING,
                 )
             )
 

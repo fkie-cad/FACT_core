@@ -21,7 +21,7 @@ class MockAdmin:
 
 
 LiefResult = namedtuple(
-    'LiefResult', ['symbols_version', 'libraries', 'imported_functions', 'exported_functions', 'sections']
+    'LiefResult', ['symbols_version', 'libraries', 'imported_functions', 'exported_functions', 'sections'],
 )
 
 MOCK_DATA = (
@@ -30,7 +30,7 @@ MOCK_DATA = (
     '"sections": [{"alignment": 0, "entry_size": 0, "flags": [], "information": 0, "link": 0, "name": "", "offset": 0, "size": 0, "type": "NULL", "virtual_address": 0}],'
     '"segments": [{"alignment": 4, "file_offset": 2269, "flags": 4, "physical_address": 2269, "physical_size": 8, '
     '"sections": [".ARM.exidx"], "type": "ARM_EXIDX", "virtual_address": 2269, "virtual_size": 8}],'
-    '"symbols_version": [{"value": 0}, {"symbol_version_auxiliary": "GLIBC_2.4", "value": 2}, {"symbol_version_auxiliary": "GLIBC_2.4", "value": 2}]}'
+    '"symbols_version": [{"value": 0}, {"symbol_version_auxiliary": "GLIBC_2.4", "value": 2}, {"symbol_version_auxiliary": "GLIBC_2.4", "value": 2}]}',
 )
 
 MOCK_LIEF_RESULT = LiefResult(
@@ -38,7 +38,7 @@ MOCK_LIEF_RESULT = LiefResult(
     imported_functions=['fdopen', 'calloc', 'strstr', 'raise', 'gmtime_r', 'strcmp'],
     symbols_version=[],
     exported_functions=['SHA256_Transform', 'GENERAL_NAMES_free', 'i2d_RSAPrivateKey', 'd2i_OCSP_REQUEST'],
-    sections=[]
+    sections=[],
 )
 
 
@@ -65,7 +65,7 @@ def stub_plugin(test_config, monkeypatch):
     [
         ('crypto', TagColor.RED), ('file_system', TagColor.BLUE), ('network', TagColor.ORANGE),
         ('memory_operations', TagColor.GREEN), ('randomize', TagColor.LIGHT_BLUE), ('other', TagColor.GRAY)
-    ]
+    ],
 )
 def test_get_color_code(stub_plugin, tag, tag_color):
     assert stub_plugin._get_color_codes(tag) == tag_color
@@ -77,7 +77,7 @@ def test_get_color_code(stub_plugin, tag, tag_color):
         (['a'], 'b', ['c'], [], []), (['a', 'b', 'c'], 'b', ['c'], [], ['b']),
         (['a', 'b', 'c'], 'b', ['c'], ['b'], ['b', 'b']), (['a', 'b', 'c'], 'b', ['c', 'a'], [], ['b', 'b']),
         (['a', 'b', 'c'], 'b', ['d', 'e'], [], []), (['a', 'b', 'c'], 'b', ['d', 'e'], ['x'], ['x'])
-    ]
+    ],
 )
 def test_get_tags_from_library_list(stub_plugin, indicators, behaviour_class, libraries, tags, expected):
     stub_plugin._get_tags_from_library_list(libraries, behaviour_class, indicators, tags)
@@ -90,7 +90,7 @@ def test_get_tags_from_library_list(stub_plugin, indicators, behaviour_class, li
         ([], '', [], [], []), (['a'], 'c', ['b'], [], []), (['a'], 'c', ['b'], ['d'], ['d']),
         (['a', 'b'], 'c', ['b'], ['d'], ['d', 'c']), (['a', 'b', 'x', 'y'], 'c', ['o', 'p', 'y'], [], ['c']),
         (['a', 'b'], 'c', ['b'], ['d', 'e'], ['d', 'e', 'c'])
-    ]
+    ],
 )
 def test_get_tags_from_function_list(stub_plugin, functions, behaviour_class, indicators, tags, expected_result):
     stub_plugin._get_tags_from_function_list(functions, behaviour_class, indicators, tags)
@@ -112,9 +112,9 @@ def test_get_tags(stub_plugin, monkeypatch):
     'symbol_versions, expected', [
         (
             ['GLIBC_2.3.4(4)', '* Local *', 'GLIBC_2.2.5(3)', '* Global *', 'GLIBC_2.2.5(3)'
-             ], ['GLIBC_2.3.4', 'GLIBC_2.2.5']
+             ], ['GLIBC_2.3.4', 'GLIBC_2.2.5'],
         )
-    ]
+    ],
 )
 def test_get_symbols_version_entries(stub_plugin, symbol_versions, expected):
     assert sorted(stub_plugin._get_symbols_version_entries(symbol_versions)) == sorted(expected)
@@ -123,7 +123,7 @@ def test_get_symbols_version_entries(stub_plugin, symbol_versions, expected):
 def test_create_tags(stub_plugin, stub_object):
     stub_object.processed_analysis[stub_plugin.NAME] = {}
     stub_result = LiefResult(
-        libraries=['recvmsg', 'unknown'], imported_functions=[], symbols_version=[], exported_functions=[], sections=[]
+        libraries=['recvmsg', 'unknown'], imported_functions=[], symbols_version=[], exported_functions=[], sections=[],
     )
     stub_plugin.create_tags(stub_result, stub_object)
 

@@ -15,7 +15,7 @@ from helperFunctions.install import (
     install_pip_packages,
     load_main_config,
     remove_folder,
-    run_cmd_with_logging
+    run_cmd_with_logging,
 )
 
 DEFAULT_CERT = '.\n.\n.\n.\n.\nexample.com\n.\n\n\n'
@@ -35,7 +35,7 @@ def wget_static_web_content(url, target_folder, additional_actions, resource_log
     logging.info(f'Install static {resource_logging_name if resource_logging_name else url} content')
     with OperateInDirectory(target_folder):
         wget_process = subprocess.run(
-            f'wget -nc {url}', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True
+            f'wget -nc {url}', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True,
         )
         if wget_process.returncode != 0:
             raise InstallationError(f'Failed to fetch resource at {url}\n{wget_process.stdout}')
@@ -76,20 +76,20 @@ def _create_directory_for_authentication():  # pylint: disable=invalid-name
     factauthdir = '/'.join(dburi.split('/')[:-1])[10:]  # FIXME this should be beautified with pathlib
 
     mkdir_process = subprocess.run(
-        f'sudo mkdir -p --mode=0744 {factauthdir}', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True
+        f'sudo mkdir -p --mode=0744 {factauthdir}', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True,
     )
     chown_process = subprocess.run(
         f'sudo chown {os.getuid()}:{os.getgid()} {factauthdir}',
         shell=True,
         stdout=PIPE,
         stderr=STDOUT,
-        universal_newlines=True
+        universal_newlines=True,
     )
 
     if not all(return_code == 0 for return_code in [mkdir_process.returncode, chown_process.returncode]):
         raise InstallationError(
             'Error in creating directory for authentication database.\n{}'.format(
-                '\n'.join((mkdir_process.stdout, mkdir_process.stdout))
+                '\n'.join((mkdir_process.stdout, mkdir_process.stdout)),
             )
         )
 
@@ -108,10 +108,10 @@ def _install_nginx(distribution):
                 'sudo semanage fcontext -at httpd_log_t "/var/log/fact(/.*)?" || true',
                 'sudo restorecon -v -R /var/log/fact'
             ],
-            error='restore selinux context'
+            error='restore selinux context',
         )
     nginx_process = subprocess.run(
-        'sudo nginx -s reload', shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True
+        'sudo nginx -s reload', shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True,
     )
     if nginx_process.returncode != 0:
         raise InstallationError(f'Failed to start nginx\n{nginx_process.stderr}')
@@ -126,7 +126,7 @@ def _generate_and_install_certificate():
             'openssl x509 -req -days 730 -in fact.csr -signkey fact.key -out fact.crt',
             'sudo mv fact.key fact.csr fact.crt /etc/nginx'
         ],
-        error='generate SSL certificate'
+        error='generate SSL certificate',
     )
 
 
@@ -140,7 +140,7 @@ def _configure_nginx():
             '(sudo mkdir /etc/nginx/error || true)',
             '(cd ../web_interface/templates/ && sudo ln -s $PWD/maintenance.html /etc/nginx/error/maintenance.html) || true'
         ],
-        error='configuring nginx'
+        error='configuring nginx',
     )
 
 
@@ -152,13 +152,13 @@ def _install_css_and_js_files():
         wget_static_web_content(
             'https://github.com/vakata/jstree/zipball/3.3.9',
             '.', ['unzip 3.3.9', 'rm 3.3.9', 'rm -rf ./web_js/jstree/vakata*', 'mv vakata* web_js/jstree'],
-            'jstree'
+            'jstree',
         )
         wget_static_web_content(
-            'https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js', '.', [], 'angularJS'
+            'https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js', '.', [], 'angularJS',
         )
         wget_static_web_content(
-            'https://github.com/chartjs/Chart.js/releases/download/v2.3.0/Chart.js', '.', [], 'charts.js'
+            'https://github.com/chartjs/Chart.js/releases/download/v2.3.0/Chart.js', '.', [], 'charts.js',
         )
 
         _build_highlight_js()
@@ -192,7 +192,7 @@ def _install_css_and_js_files():
                     'unzip fontawesome-free-5.13.0-web.zip',
                     'rm fontawesome-free-5.13.0-web.zip',
                     'mv fontawesome-free-5.13.0-web web_css/fontawesome'
-                ]
+                ],
             )
 
 
@@ -202,7 +202,7 @@ def _install_docker_images(radare):
 
         with OperateInDirectory('radare'):
             docker_compose_process = subprocess.run(
-                'docker-compose build', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True
+                'docker-compose build', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True,
             )
             if docker_compose_process.returncode != 0:
                 raise InstallationError(f'Failed to initialize radare container:\n{docker_compose_process.stdout}')
@@ -210,7 +210,7 @@ def _install_docker_images(radare):
     # pull pdf report container
     logging.info('Pulling pdf report container')
     docker_process = subprocess.run(
-        'docker pull fkiecad/fact_pdf_report', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True
+        'docker pull fkiecad/fact_pdf_report', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True,
     )
     if docker_process.returncode != 0:
         raise InstallationError(f'Failed to pull pdf report container:\n{docker_process.stdout}')

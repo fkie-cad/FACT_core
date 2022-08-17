@@ -44,7 +44,7 @@ def execute_checksec_script(file_path):
         shell=True,
         stdout=PIPE,
         stderr=STDOUT,
-        universal_newlines=True
+        universal_newlines=True,
     )
     if checksec_process.returncode != 0:
         raise ValueError(f'Checksec script exited with non-zero return code {checksec_process.returncode}')

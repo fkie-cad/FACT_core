@@ -1,6 +1,6 @@
 from helperFunctions.data_conversion import make_bytes
 from test.common_helper import (  # pylint: disable=wrong-import-order
-    TEST_FW, TEST_FW_2, TEST_TEXT_FILE, CommonIntercomMock
+    TEST_FW, TEST_FW_2, TEST_TEXT_FILE, CommonIntercomMock,
 )
 from test.unit.web_interface.base import WebInterfaceTest  # pylint: disable=wrong-import-order
 
@@ -49,7 +49,7 @@ class TestAppShowAnalysis(WebInterfaceTest):
         post_new = self.test_client.post(
             f'/analysis/{TEST_FW.uid}',
             content_type='multipart/form-data',
-            data={'analysis_systems': ['plugin_a', 'plugin_b']}
+            data={'analysis_systems': ['plugin_a', 'plugin_b']},
         )
 
         assert post_new.status_code == 302

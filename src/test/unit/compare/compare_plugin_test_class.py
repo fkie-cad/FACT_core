@@ -47,8 +47,8 @@ class ComparePluginTest:
     def setup_test_fw(self):
         self.fw_one = create_test_firmware(device_name='dev_1', all_files_included_set=True)
         self.fw_two = create_test_firmware(
-            device_name='dev_2', bin_path='container/test.7z', all_files_included_set=True
+            device_name='dev_2', bin_path='container/test.7z', all_files_included_set=True,
         )
         self.fw_three = create_test_firmware(
-            device_name='dev_3', bin_path='container/test.cab', all_files_included_set=True
+            device_name='dev_3', bin_path='container/test.cab', all_files_included_set=True,
         )

@@ -26,7 +26,7 @@ api = Namespace('rest/binary', description='Request the binary of a given firmwa
                 'default': 'false'
             },
         }
-    }
+    },
 )
 class RestBinary(RestResourceBase):
     URL = '/rest/binary'
@@ -42,7 +42,7 @@ class RestBinary(RestResourceBase):
         '''
         if not self.db.frontend.exists(uid):
             return error_message(
-                f'No firmware with UID {uid} found in database', self.URL, request_data={'uid': uid}, return_code=404
+                f'No firmware with UID {uid} found in database', self.URL, request_data={'uid': uid}, return_code=404,
             )
 
         try:

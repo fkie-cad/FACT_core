@@ -25,7 +25,7 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
         binary: Optional[bytes] = None,
         file_name: Optional[str] = None,
         file_path: Optional[str] = None,
-        scheduled_analysis: List[str] = None
+        scheduled_analysis: List[str] = None,
     ):
         self._uid = None
 
@@ -190,7 +190,7 @@ class FileObject:  # pylint: disable=too-many-instance-attributes
         file_object.parents.append(self.uid)
         file_object.root_uid = self.root_uid
         file_object.add_virtual_file_path_if_none_exists(
-            self.get_virtual_paths_for_one_uid(root_uid=self.root_uid), self.uid
+            self.get_virtual_paths_for_one_uid(root_uid=self.root_uid), self.uid,
         )
         file_object.depth = self.depth + 1
         file_object.scheduled_analysis = self.scheduled_analysis

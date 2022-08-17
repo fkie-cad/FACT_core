@@ -56,7 +56,7 @@ class Vulnerability:
             score=self.score,
             reliability=self.reliability,
             link=self.link,
-            short_name=self.short_name
+            short_name=self.short_name,
         )
 
 
@@ -162,7 +162,7 @@ def vulnerabilities():
     heartbleed_rule = SingleRule(
         value_path=['software_components.OpenSSL.meta.version'],
         relation='intersection',
-        comparison=[f'1.0.1{minor}' for minor in 'abcde']
+        comparison=[f'1.0.1{minor}' for minor in 'abcde'],
     )
     heartbleed_vulnerability = Vulnerability(
         rule=heartbleed_rule,
@@ -170,13 +170,13 @@ def vulnerabilities():
         description='The SSL Heartbleed bug allowing buffer over-read',
         score='high',
         reliability='90',
-        link='https://nvd.nist.gov/vuln/detail/CVE-2014-0160'
+        link='https://nvd.nist.gov/vuln/detail/CVE-2014-0160',
     )
 
     netgear_cgi_rule = SingleRule(
         value_path=['file_hashes.sha256'],
         relation='equals',
-        comparison='7579d10e812905e134cf91ad8eef7b08f87f6f8c8e004ebefa441781fea0ec4a'
+        comparison='7579d10e812905e134cf91ad8eef7b08f87f6f8c8e004ebefa441781fea0ec4a',
     )
     netgear_cgi_vulnerability = Vulnerability(
         rule=netgear_cgi_rule,
@@ -184,7 +184,7 @@ def vulnerabilities():
         description='Netgear httpd vulnerable to "/cgi-bin/<shell command>" bug',
         score='medium',
         reliability='100',
-        link='https://nvd.nist.gov/vuln/detail/CVE-2016-6277'
+        link='https://nvd.nist.gov/vuln/detail/CVE-2016-6277',
     )
 
     return [heartbleed_vulnerability, netgear_cgi_vulnerability]

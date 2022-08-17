@@ -64,7 +64,7 @@ class StatsUpdater:
 
     def get_malware_stats(self) -> Dict[str, Stats]:
         result = self.db.count_distinct_in_analysis(
-            AnalysisEntry.result['scans']['ClamAV']['result'], plugin='malware_scanner', q_filter=self.match
+            AnalysisEntry.result['scans']['ClamAV']['result'], plugin='malware_scanner', q_filter=self.match,
         )
         return {'malware': self._filter_results(result)}
 
@@ -81,7 +81,7 @@ class StatsUpdater:
                 *self.get_relative_stats(['Canary enabled', 'Canary disabled'], result),
                 *self.get_relative_stats(['RELRO fully enabled', 'RELRO partially enabled', 'RELRO disabled'], result),
                 *self.get_relative_stats(
-                    ['PIE enabled', 'PIE/DSO present', 'PIE disabled', 'PIE - invalid ELF file'], result
+                    ['PIE enabled', 'PIE/DSO present', 'PIE disabled', 'PIE - invalid ELF file'], result,
                 ),
                 *self.get_relative_stats(['FORTIFY_SOURCE enabled', 'FORTIFY_SOURCE disabled'], result),
             ]
@@ -114,7 +114,7 @@ class StatsUpdater:
     def get_file_type_stats(self) -> Dict[str, Stats]:
         return {
             label: self.db.count_distinct_in_analysis(
-                AnalysisEntry.result['mime'], 'file_type', firmware=firmware, q_filter=self.match
+                AnalysisEntry.result['mime'], 'file_type', firmware=firmware, q_filter=self.match,
             )
             for label,
             firmware in [('file_types', False), ('firmware_container', True)]
@@ -123,7 +123,7 @@ class StatsUpdater:
     def get_unpacking_stats(self):
         fo_packing_stats = dict(self.db.count_values_in_summary(plugin='unpacker', q_filter=self.match))
         firmware_packing_stats = dict(
-            self.db.count_values_in_summary(plugin='unpacker', q_filter=self.match, firmware=True)
+            self.db.count_values_in_summary(plugin='unpacker', q_filter=self.match, firmware=True),
         )
         return {
             'used_unpackers':
@@ -194,7 +194,7 @@ class StatsUpdater:
     def get_ip_stats(self) -> Dict[str, Stats]:
         ip_stats = {
             key: self.db.count_distinct_values_in_array(
-                AnalysisEntry.result[key], plugin='ip_and_uri_finder', q_filter=self.match
+                AnalysisEntry.result[key], plugin='ip_and_uri_finder', q_filter=self.match,
             )
             for key in ['ips_v4', 'ips_v6', 'uris']
         }

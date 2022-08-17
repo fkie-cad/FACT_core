@@ -48,7 +48,7 @@ class TestUnpackScheduler(TestCase):
         self.assertIn(
             'ab4153d747f530f9bc3a4b71907386f50472ea5ae975c61c0bacd918f1388d4b_227',
             outer_container.files_included,
-            'included container not extracted. Unpacker tar.gz modul broken?'
+            'included container not extracted. Unpacker tar.gz modul broken?',
         )
         included_files = [self.tmp_queue.get(timeout=5), self.tmp_queue.get(timeout=5)]
         for item in included_files:
@@ -58,7 +58,7 @@ class TestUnpackScheduler(TestCase):
                 self.assertEqual(
                     item.uid,
                     'faa11db49f32a90b51dfc3f0254f9fd7a7b46d0b570abd47e1943b86d554447a_28',
-                    'none container file not rescheduled'
+                    'none container file not rescheduled',
                 )
 
     def test_get_combined_analysis_workload(self):
@@ -79,7 +79,7 @@ class TestUnpackScheduler(TestCase):
             config=self.config,
             post_unpack=self._mock_callback,
             analysis_workload=lambda: 3,
-            unpacking_locks=UnpackingLockManager()
+            unpacking_locks=UnpackingLockManager(),
         )
 
     def _mock_callback(self, fw):

@@ -103,7 +103,7 @@ JOHN_SUCCESS_OUTPUT = (
     'Session completed\n\n'
     '=== Results: ===\n'
     'max:dragon\n\n'
-    '1 password hash cracked, 0 left\n'
+    '1 password hash cracked, 0 left\n',
 )
 
 
@@ -113,7 +113,7 @@ JOHN_SUCCESS_OUTPUT = (
         ('', []),
         (JOHN_FAIL_OUTPUT, ['0 password hashes cracked, 0 left']),
         (JOHN_SUCCESS_OUTPUT, ['max:dragon', '1 password hash cracked, 0 left']),
-    ]
+    ],
 )
 def test_parse_output(john_output, expected_result):
     assert parse_john_output(john_output) == expected_result

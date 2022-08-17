@@ -29,7 +29,7 @@ def _setup_argparser():
 
 def _setup_logging(args):
     log_format = logging.Formatter(
-        fmt='[%(asctime)s][%(module)s][%(levelname)s]: %(message)s', datefmt='%Y-%m-%d %H:%M:%S'
+        fmt='[%(asctime)s][%(module)s][%(levelname)s]: %(message)s', datefmt='%Y-%m-%d %H:%M:%S',
     )
     logger = logging.getLogger('')
     if args.debug:

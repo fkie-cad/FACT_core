@@ -14,7 +14,7 @@ from intercom.back_end_binding import (
     InterComBackEndRawDownloadTask,
     InterComBackEndReAnalyzeTask,
     InterComBackEndSingleFileTask,
-    InterComBackEndTarRepackTask
+    InterComBackEndTarRepackTask,
 )
 from intercom.front_end_binding import InterComFrontEndBinding
 from test.common_helper import create_test_firmware, get_config_for_testing
@@ -85,7 +85,7 @@ class TestInterComTaskCommunication(unittest.TestCase):
 
     def test_analysis_plugin_publication(self):
         self.backend = InterComBackEndAnalysisPlugInsPublisher(
-            config=self.config, analysis_service=AnalysisServiceMock()
+            config=self.config, analysis_service=AnalysisServiceMock(),
         )
         plugins = self.frontend.get_available_analysis_plugins()
         self.assertEqual(len(plugins), 1, 'Not all plug-ins found')

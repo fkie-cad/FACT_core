@@ -11,7 +11,7 @@ from requests.exceptions import ConnectionError as RequestConnectionError
 from requests.exceptions import ReadTimeout
 
 from test.common_helper import (
-    TEST_FW, CommonDatabaseMock, create_test_firmware, get_config_for_testing, get_test_data_dir
+    TEST_FW, CommonDatabaseMock, create_test_firmware, get_config_for_testing, get_test_data_dir,
 )
 from test.mock import mock_patch
 from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
@@ -320,7 +320,7 @@ def test_process_qemu_job():
                 EXECUTABLE: True
             }
         }, [EXECUTABLE]),
-    ]
+    ],
 )
 def test_get_summary(input_data, expected_output):
     result = qemu_exec.AnalysisPlugin._get_summary(input_data)
@@ -358,7 +358,7 @@ def test_get_summary(input_data, expected_output):
                 }
             }
         }, True),
-    ]
+    ],
 )
 def test_valid_execution_in_results(input_data, expected_output):
     assert qemu_exec._valid_execution_in_results(input_data) == expected_output
@@ -374,7 +374,7 @@ def test_valid_execution_in_results(input_data, expected_output):
         (dict(return_code='1', stdout='something', stderr=''), True),
         (dict(return_code='0', stdout='something', stderr='error'), True),
         (dict(return_code='1', stdout='something', stderr='error'), False),
-    ]
+    ],
 )
 def test_output_without_error_exists(input_data, expected_output):
     assert qemu_exec._output_without_error_exists(input_data) == expected_output
@@ -415,7 +415,7 @@ def test_merge_similar_entries():
                 'std_out': 'no errors'
             }
         }, False),
-    ]
+    ],
 )
 def test_result_contains_qemu_errors(input_data, expected_output):
     assert qemu_exec.result_contains_qemu_errors(input_data) == expected_output
@@ -426,7 +426,7 @@ def test_result_contains_qemu_errors(input_data, expected_output):
         ('Unknown syscall 4001 qemu: Unsupported syscall: 4001\n', True),
         ('foobar', False),
         ('', False),
-    ]
+    ],
 )
 def test_contains_docker_error(input_data, expected_output):
     assert qemu_exec.contains_docker_error(input_data) == expected_output
@@ -470,7 +470,7 @@ def test_replace_empty_strings():
                 'output': 'no_b64'
             }
         }, 'decoding error: no_b64'),
-    ]
+    ],
 )
 def test_decode_output_values(input_data, expected_output):
     results = qemu_exec.decode_output_values(input_data)
@@ -494,7 +494,7 @@ def test_decode_output_values(input_data, expected_output):
                 'stdout': ''
             }
         },
-    ]
+    ],
 )
 def test_process_strace_output__no_strace(input_data):
     qemu_exec.process_strace_output(input_data)

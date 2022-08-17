@@ -2,7 +2,7 @@ import pytest
 
 from test.common_helper import TEST_FW  # pylint: disable=wrong-import-order
 from web_interface.components.dependency_graph import (
-    DepGraphData, create_data_graph_edges, create_data_graph_nodes_and_groups
+    DepGraphData, create_data_graph_edges, create_data_graph_nodes_and_groups,
 )
 
 entry_1 = DepGraphData(
@@ -10,19 +10,19 @@ entry_1 = DepGraphData(
     'file_one.so', {TEST_FW.uid: ['|testgraph|/lib/file_one.so']},
     'application/x-executable',
     'test text',
-    None
+    None,
 )
 entry_2 = DepGraphData(
     '7654321',
     'file_two', {TEST_FW.uid: ['|testgraph|/bin/file_two']},
     'application/x-executable',
-    'test text', ['file_one.so']
+    'test text', ['file_one.so'],
 )
 entry_3 = DepGraphData(
     '0987654',
     'file three', {TEST_FW.uid: ['|testgraph|/sbin/file_three']},
     'inode/symlink',
-    'symbolic link to \'../bin/file_two\''
+    'symbolic link to \'../bin/file_two\'',
 )
 
 FILE_THREE_RESULT = {
@@ -89,7 +89,7 @@ WHITELIST = ['application/x-executable', 'application/x-sharedlib', 'inode/symli
     [
         ([entry_1, entry_2], 'testgraph', TEST_FW.uid, WHITELIST, GRAPH_PART),
         ([entry_1, entry_2, entry_3], 'testgraph', TEST_FW.uid, WHITELIST, GRAPH_PART_SYMLINK),
-    ]
+    ],
 )
 def test_create_graph_nodes_and_groups(list_of_objects, parent_uid, root_uid, whitelist, expected_result):
     assert create_data_graph_nodes_and_groups(list_of_objects, parent_uid, root_uid, whitelist) == expected_result
@@ -99,7 +99,7 @@ def test_create_graph_nodes_and_groups(list_of_objects, parent_uid, root_uid, wh
     'graph_part, expected_graph, expected_missing_analysis', [
         (GRAPH_PART, GRAPH_RES, 1),
         (GRAPH_PART_SYMLINK, GRAPH_RES_SYMLINK, 2),
-    ]
+    ],
 )
 def test_create_graph_edges(graph_part, expected_graph, expected_missing_analysis):  # pylint: disable=too-many-function-args
     assert create_data_graph_edges(graph_part) == (expected_graph, expected_missing_analysis)

@@ -9,7 +9,7 @@ from web_interface.file_tree.file_tree import (
     _get_vpath_relative_to,
     _root_is_virtual,
     get_correct_icon_for_mime,
-    remove_virtual_path_from_root
+    remove_virtual_path_from_root,
 )
 from web_interface.file_tree.file_tree_node import FileTreeNode
 
@@ -52,7 +52,7 @@ VIRTUAL_TREE_ROOT = {
         ('text/plain', '/static/file_icons/text.png'), ('image/png', '/static/file_icons/image.png'),
         ('audio/mpeg', '/static/file_icons/multimedia.png'),
         ('some unknown mime type', '/static/file_icons/unknown.png')
-    ]
+    ],
 )
 def test_get_correct_icon_for_mime(mime_type, icon):
     assert get_correct_icon_for_mime(mime_type) == icon
@@ -119,7 +119,7 @@ VIRTUAL_PATH_INPUT = {
         ('456', ['|456|ghi|folder_1/folder_2/file']),
         ('foo', ['|foo|bar|/dir_a/dir_b/file_c', '|foo|bar|/dir_a/file_a', '|foo|bar|/dir_a/file_b']),
         ('bar', ['|bar|/dir_a/dir_b/file_c', '|bar|/dir_a/file_a', '|bar|/dir_a/file_b']),
-    ]
+    ],
 )
 def test_get_partial_virtual_paths(uid, expected_output):
     assert _get_partial_virtual_paths(VIRTUAL_PATH_INPUT, uid) == expected_output
@@ -131,7 +131,7 @@ def test_get_partial_virtual_paths(uid, expected_output):
         ('|abc|def|ghi|folder_1/folder_2/file', 'abc', '|abc|def|ghi|folder_1/folder_2/file'),
         ('|abc|def|ghi|folder_1/folder_2/file', 'def', '|def|ghi|folder_1/folder_2/file'),
         ('|abc|def|ghi|folder_1/folder_2/file', 'ghi', '|ghi|folder_1/folder_2/file'),
-    ]
+    ],
 )
 def test_get_vpath_relative_to(virtual_path, uid, expected_output):
     assert _get_vpath_relative_to(virtual_path, uid) == expected_output
@@ -142,7 +142,7 @@ def test_get_vpath_relative_to(virtual_path, uid, expected_output):
         ([], False),
         ([NON_VIRTUAL_TREE_ROOT], False),
         ([VIRTUAL_TREE_ROOT], True),
-    ]
+    ],
 )
 def test_root_is_virtual(input_data, expected_output):
     assert _root_is_virtual(input_data) == expected_output
@@ -153,7 +153,7 @@ def test_root_is_virtual(input_data, expected_output):
     [
         ([NON_VIRTUAL_TREE_ROOT], [NON_VIRTUAL_TREE_ROOT]),
         ([VIRTUAL_TREE_ROOT], [NON_VIRTUAL_TREE_ROOT]),  # virtual root includes non-virtual root as child
-    ]
+    ],
 )
 def test_remove_virtual_path_from_root(input_data, expected_output):
     assert remove_virtual_path_from_root(input_data) == expected_output

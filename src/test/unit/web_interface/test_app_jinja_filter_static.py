@@ -21,9 +21,9 @@ def test_split_user_and_password_type_entry():  # pylint: disable=invalid-name
         (
             'suuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuper/long/human_readable_id',
             'bar',
-            '~uuuuuuuuuuuuuuuuuuuuuuuuuuuuper/long/human_readable_id'
+            '~uuuuuuuuuuuuuuuuuuuuuuuuuuuuper/long/human_readable_id',
         ),
-    ]
+    ],
 )
 def test_virtual_path_element_to_span(hid, uid, expected_output):
     assert expected_output in FilterClass._virtual_path_element_to_span(hid, uid, 'root_uid')
@@ -51,7 +51,7 @@ class FilterClassMock:
                         'borderWidth': 2
                     }
                 ],
-            }
+            },
         ),
         (
             [('NX enabled', 1696), ('NX disabled', 207), ('Canary enabled', 9)],
@@ -66,9 +66,9 @@ class FilterClassMock:
                         'borderWidth': 2
                     }
                 ],
-            }
+            },
         ), ([()], None, None)
-    ]
+    ],
 )
 def test_data_to_chart_limited(input_data, limit, expected_result):
     result = FilterClass.data_to_chart_limited(FilterClassMock(), input_data, limit=limit)

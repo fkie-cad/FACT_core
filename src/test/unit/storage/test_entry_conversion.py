@@ -26,7 +26,7 @@ from storage.entry_conversion import get_analysis_without_meta, sanitize
                 'key': 'abc'
             }
         }),
-    ]
+    ],
 )
 def test_sanitize(input_dict, expected):
     sanitize(input_dict)
@@ -46,7 +46,7 @@ def test_sanitize(input_dict, expected):
         }, {
             'a': 1
         }),
-    ]
+    ],
 )
 def test_get_analysis_without_meta(input_dict, expected):
     assert get_analysis_without_meta(input_dict) == expected
