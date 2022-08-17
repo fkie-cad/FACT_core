@@ -27,7 +27,7 @@ class RadareAPI:
     def get_xrefs_to(self, imp):
         return {
             int(xref['from'])
-            for xref in self.api.cmdj(f'axtj {imp}'),
+            for xref in self.api.cmdj(f'axtj {imp}')
         }
 
     def get_filtered_strings(self, regex):

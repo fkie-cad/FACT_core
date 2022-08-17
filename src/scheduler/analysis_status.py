@@ -109,7 +109,7 @@ class AnalysisStatus:
                 'total_count': stats_dict['total_files_count'],
                 'hid': stats_dict['hid'],
             }
-            for uid, stats_dict in self.currently_running.items(),
+            for uid, stats_dict in self.currently_running.items()
         }
 
     def clear_recently_finished(self):

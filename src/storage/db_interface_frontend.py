@@ -421,5 +421,5 @@ class FrontEndDbInterface(DbInterfaceCommon):
         return {
             uid: elf_analysis_result.get('Output', {}).get('libraries', [])
             for uid, elf_analysis_result in session.execute(elf_analysis_query)
-            if elf_analysis_result is not None,
+            if elf_analysis_result is not None
         }

@@ -91,5 +91,5 @@ class Compare:
     def _execute_compare_plugins(self, fo_list):
         return {
             name: plugin.compare(fo_list)
-            for name, plugin in self.compare_plugins.items(),
+            for name, plugin in self.compare_plugins.items()
         }

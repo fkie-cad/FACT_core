@@ -197,7 +197,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
                 plugin_set: read_list_from_config(
                     self.config, 'default-plugins', plugin_set
                 )
-                for plugin_set in self.config['default-plugins'],
+                for plugin_set in self.config['default-plugins']
             }
         except (TypeError, KeyError, AttributeError):
             logging.warning('default plug-ins not set in config')

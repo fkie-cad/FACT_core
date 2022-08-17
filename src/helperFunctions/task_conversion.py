@@ -172,5 +172,5 @@ def check_for_errors(analysis_task: dict) -> Dict[str, str]:
     return {
         key: f'''Please specify the {key.replace('_', ' ')}'''
         for key in analysis_task
-        if analysis_task[key] in [None, '', b''] and key not in OPTIONAL_FIELDS,
+        if analysis_task[key] in [None, '', b''] and key not in OPTIONAL_FIELDS
     }

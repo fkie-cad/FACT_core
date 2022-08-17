@@ -62,7 +62,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
     def _create_summary(self, cve_results: Dict[str, Dict[str, Dict[str, str]]]) -> List[str]:
         return list({
             software if not self._software_has_critical_cve(entry) else f'{software} (CRITICAL)'
-            for software, entry in cve_results.items(),
+            for software, entry in cve_results.items()
         })
 
     def _software_has_critical_cve(self, cve_dict: Dict[str, Dict[str, str]]) -> bool:
@@ -206,7 +206,7 @@ def search_cve_summary(db: DatabaseInterface, product: namedtuple) -> dict:
     return {
         cve_id: {'score2': cvss_v2_score, 'score3': cvss_v3_score}
         for cve_id, summary, cvss_v2_score, cvss_v3_score in db.fetch_multiple(QUERIES['summary_lookup'])
-        if product_is_mentioned_in_summary(product, summary),
+        if product_is_mentioned_in_summary(product, summary)
     }
 
 
@@ -243,7 +243,7 @@ def match_cpe(db: DatabaseInterface, product_search_terms: list) -> List[Product
         Product(vendor, product, version)
         for vendor, product, version in db.fetch_multiple(QUERIES['cpe_lookup'])
         for product_term in product_search_terms
-        if terms_match(product_term, product),
+        if terms_match(product_term, product)
     })
 
 

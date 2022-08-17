@@ -60,7 +60,7 @@ class AnalysisTaskScheduler:
         return {
             dependency
             for plugin in scheduled_analyses
-            for dependency in self.plugins[plugin].DEPENDENCIES,
+            for dependency in self.plugins[plugin].DEPENDENCIES
         }.difference(scheduled_analyses)
 
     def reschedule_failed_analysis_task(self, fw_object: Union[Firmware, FileObject]):

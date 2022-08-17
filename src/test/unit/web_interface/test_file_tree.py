@@ -155,5 +155,5 @@ class TestVirtualPathFileTree:
     def _nodes_by_name(file_tree: VirtualPathFileTree) -> Dict[str, FileTreeNode]:
         return {
             node.name: node
-            for node in file_tree.get_file_tree_nodes(),
+            for node in file_tree.get_file_tree_nodes()
         }
