@@ -78,7 +78,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
         tmp = defaultdict(list)
         j_doc = json.loads(output)
         for warning in j_doc:
-            tmp[warning['name']] = tmp[warning['name']] + [warning, ]
+            tmp[warning['name']] = tmp[warning['name']] + [
+                warning,
+            ]
 
         res = {}
         for key, values in tmp.items():
@@ -88,8 +90,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 tmp_list.append(hit['description'])
                 if not plugin_version:
                     plugin_version = hit['version']
-            res[key] = {'plugin_version': plugin_version,
-                        'warnings': tmp_list}
+            res[key] = {'plugin_version': plugin_version, 'warnings': tmp_list}
 
         return res
 
@@ -119,9 +120,11 @@ class AnalysisPlugin(AnalysisBasePlugin):
         It calls the cwe_checker docker container.
         '''
         if not self._is_supported_arch(file_object):
-            logging.debug('{}\'s arch is not supported ({})'.format(
-                file_object.file_path,
-                file_object.processed_analysis['cpu_architecture']['summary']))
+            logging.debug(
+                '{}\'s arch is not supported ({})'.format(
+                    file_object.file_path, file_object.processed_analysis['cpu_architecture']['summary']
+                )
+            )
             file_object.processed_analysis[self.NAME] = {'summary': []}
         else:
             file_object = self._do_full_analysis(file_object)

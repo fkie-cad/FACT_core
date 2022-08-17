@@ -116,4 +116,6 @@ class ComparePlugin(CompareBasePlugin):
 
 def replace_none_ascii_with_dots(binary_block):
     ascii_range = set(range(*ASCII_RANGE))
-    return b''.join((binary_block[index:index + 1] if char in ascii_range else b'.' for index, char in enumerate(binary_block)))
+    return b''.join(
+        (binary_block[index:index + 1] if char in ascii_range else b'.' for index, char in enumerate(binary_block))
+    )

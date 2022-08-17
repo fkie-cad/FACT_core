@@ -7,16 +7,20 @@ from tempfile import TemporaryDirectory
 from unittest import mock
 
 from intercom.back_end_binding import (
-    InterComBackEndAnalysisPlugInsPublisher, InterComBackEndAnalysisTask, InterComBackEndCompareTask,
-    InterComBackEndPeekBinaryTask, InterComBackEndRawDownloadTask, InterComBackEndReAnalyzeTask,
-    InterComBackEndSingleFileTask, InterComBackEndTarRepackTask
+    InterComBackEndAnalysisPlugInsPublisher,
+    InterComBackEndAnalysisTask,
+    InterComBackEndCompareTask,
+    InterComBackEndPeekBinaryTask,
+    InterComBackEndRawDownloadTask,
+    InterComBackEndReAnalyzeTask,
+    InterComBackEndSingleFileTask,
+    InterComBackEndTarRepackTask
 )
 from intercom.front_end_binding import InterComFrontEndBinding
 from test.common_helper import create_test_firmware, get_config_for_testing
 
 
 class AnalysisServiceMock:
-
     def __init__(self, config=None):
         pass
 
@@ -25,7 +29,6 @@ class AnalysisServiceMock:
 
 
 class TestInterComTaskCommunication(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
         cls.tmp_dir = TemporaryDirectory(prefix='fact_test_')
@@ -81,7 +84,9 @@ class TestInterComTaskCommunication(unittest.TestCase):
         self.assertEqual(result, ('valid_id', False))
 
     def test_analysis_plugin_publication(self):
-        self.backend = InterComBackEndAnalysisPlugInsPublisher(config=self.config, analysis_service=AnalysisServiceMock())
+        self.backend = InterComBackEndAnalysisPlugInsPublisher(
+            config=self.config, analysis_service=AnalysisServiceMock()
+        )
         plugins = self.frontend.get_available_analysis_plugins()
         self.assertEqual(len(plugins), 1, 'Not all plug-ins found')
         self.assertEqual(plugins, {'dummy': 'dummy description'}, 'content not correct')

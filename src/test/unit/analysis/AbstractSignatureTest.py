@@ -7,7 +7,6 @@ from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
 
 
 class AbstractSignatureTest(AnalysisPluginTest):
-
     def _rule_match(self, filename, expected_rule_name, expected_number_of_rules=1):
         path = os.path.join(self.TEST_DATA_DIR, filename)
         test_file = FileObject(file_path=path)

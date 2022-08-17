@@ -21,26 +21,21 @@ PATH_ARTIFACT_DICT = {
     'clion64.exe.vmoptions': 'clion_jvm_options',
     'idea.properties': 'clion_platform_properties',
     '.config/Code/User/settings.json': 'vscode_settings',
-
     '.cproject': 'eclipse_config',
     '.csproject': 'eclipse_config',
     '.project': 'eclipse_config',
-
     '.bash_history': 'bash_history',
     '.zsh_history': 'zsh_history',
-
     '.hws': 'renesas_project_config',
     '.ewd': 'iar_embedded_workbench_config',
     '.ewp': 'iar_embedded_workbench_config',
     '.eww': 'iar_embedded_workbench_config',
     '.ewt': 'iar_embedded_workbench_config',
-
     '.Uv2': 'keil_uvision_config',
     '.uvproj': 'keil_uvision_config',
     '.uvopt': 'keil_uvision_config',
     '.uvprojx': 'keil_uvision_config',
     '.uvoptx': 'keil_uvision_config',
-
     '.atsln': 'atmel_studio_config',
     '.cyprj': 'cydesigner_config',
     '.cywrk': 'cydesigner_config',
@@ -74,12 +69,12 @@ class AnalysisPlugin(AnalysisBasePlugin):
         file_object.processed_analysis[self.NAME] = {}
         if file_object.processed_analysis['file_type']['mime'] == 'text/plain':
             self._find_artifacts(file_object)
-            file_object.processed_analysis[self.NAME]['summary'] = sorted(
-                file_object.processed_analysis[self.NAME])
+            file_object.processed_analysis[self.NAME]['summary'] = sorted(file_object.processed_analysis[self.NAME])
         else:
             self._find_regex(file_object, file_object.binary, PATH_REGEX)
             file_object.processed_analysis[self.NAME]['summary'] = sorted(
-                chain(*file_object.processed_analysis[self.NAME].values()))
+                chain(*file_object.processed_analysis[self.NAME].values())
+            )
         return file_object
 
     def _find_artifacts(self, file_object: FileObject):

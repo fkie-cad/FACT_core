@@ -54,7 +54,11 @@ def _get_jstree_child_nodes(node: FileTreeNode):
 def _get_jstree_node_contents(text: str, link: str, icon: str) -> dict:
     return {
         'text': text,
-        'a_attr': {'href': link},
-        'li_attr': {'href': link},
+        'a_attr': {
+            'href': link
+        },
+        'li_attr': {
+            'href': link
+        },
         'icon': icon,
     }

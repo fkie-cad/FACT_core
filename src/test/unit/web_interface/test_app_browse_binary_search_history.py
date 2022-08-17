@@ -3,7 +3,6 @@ from test.unit.web_interface.base import WebInterfaceTest
 
 
 class DbMock(CommonDatabaseMock):
-
     @staticmethod
     def search_query_cache(offset=0, limit=0):  # pylint: disable=unused-argument
         return [('cache_id', 'search_title', ['rule_1', 'rule_2'])]
@@ -14,7 +13,6 @@ class DbMock(CommonDatabaseMock):
 
 
 class TestBrowseBinarySearchHistory(WebInterfaceTest):
-
     @classmethod
     def setup_class(cls, *_, **__):
         super().setup_class(db_mock=DbMock)

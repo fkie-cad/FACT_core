@@ -46,7 +46,8 @@ class AnalysisStatus:
         '''
         for parent in self._find_currently_analyzed_parents(fw_object):
             updated_dict = self.currently_running[parent]
-            new_files = set(fw_object.files_included) - set(updated_dict['files_to_unpack']).union(set(updated_dict['files_to_analyze']))
+            new_files = set(fw_object.files_included) - set(updated_dict['files_to_unpack']
+                                                            ).union(set(updated_dict['files_to_analyze']))
             updated_dict['total_files_count'] += len(new_files)
             updated_dict['files_to_unpack'] = list(set(updated_dict['files_to_unpack']).union(new_files))
             if fw_object.uid in updated_dict['files_to_unpack']:
@@ -109,7 +110,8 @@ class AnalysisStatus:
                 'total_count': stats_dict['total_files_count'],
                 'hid': stats_dict['hid'],
             }
-            for uid, stats_dict in self.currently_running.items()
+            for uid,
+            stats_dict in self.currently_running.items()
         }
 
     def clear_recently_finished(self):

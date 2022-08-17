@@ -65,8 +65,12 @@ def test_get_stats_list(db, stats_db, stats_viewer):  # pylint: disable=unused-a
 
     assert len(result) == 2
     expected_results = [
-        {'_id': 'foo', 'foo': 'bar'},
-        {'_id': 'bar', 'bar': 'foo'},
+        {
+            '_id': 'foo', 'foo': 'bar'
+        },
+        {
+            '_id': 'bar', 'bar': 'foo'
+        },
     ]
     assert all(r in result for r in expected_results)
 
@@ -175,16 +179,41 @@ def test_count_distinct_values(db, stats_db):
     ]
 
 
-@pytest.mark.parametrize('q_filter, expected_result', [
-    (None, [('value2', 1), ('value1', 2)]),
-    ({'vendor': 'foobar'}, [('value1', 2)]),
-])
+@pytest.mark.parametrize(
+    'q_filter, expected_result', [
+        (None, [('value2', 1), ('value1', 2)]),
+        ({
+            'vendor': 'foobar'
+        }, [('value1', 2)]),
+    ]
+)
 def test_count_distinct_analysis(db, stats_db, q_filter, expected_result):
     insert_test_fw(db, 'root_fw', vendor='foobar')
     insert_test_fw(db, 'another_fw', vendor='another_vendor')
-    insert_test_fo(db, 'fo1', analysis={'foo': generate_analysis_entry(analysis_result={'key': 'value1', 'x': 0})}, parent_fw='root_fw')
-    insert_test_fo(db, 'fo2', analysis={'foo': generate_analysis_entry(analysis_result={'key': 'value1', 'x': 1})}, parent_fw='root_fw')
-    insert_test_fo(db, 'fo3', analysis={'foo': generate_analysis_entry(analysis_result={'key': 'value2', 'x': 0})}, parent_fw='another_fw')
+    insert_test_fo(
+        db,
+        'fo1',
+        analysis={'foo': generate_analysis_entry(analysis_result={
+            'key': 'value1', 'x': 0
+        })},
+        parent_fw='root_fw'
+    )
+    insert_test_fo(
+        db,
+        'fo2',
+        analysis={'foo': generate_analysis_entry(analysis_result={
+            'key': 'value1', 'x': 1
+        })},
+        parent_fw='root_fw'
+    )
+    insert_test_fo(
+        db,
+        'fo3',
+        analysis={'foo': generate_analysis_entry(analysis_result={
+            'key': 'value2', 'x': 0
+        })},
+        parent_fw='another_fw'
+    )
 
     result = stats_db.count_distinct_in_analysis(AnalysisEntry.result['key'], plugin='foo', q_filter=q_filter)
     assert result == expected_result
@@ -201,40 +230,71 @@ def test_count_values_in_summary(db, stats_db):
 
     assert stats_db.count_values_in_summary('plugin that did not run', firmware=True) == []
     assert stats_db.count_values_in_summary('foo', firmware=True) == [('s1', 1), ('s2', 1)]
-    assert stats_db.count_values_in_summary('foo', firmware=True, q_filter={'vendor': fw.vendor}) == [('s1', 1), ('s2', 1)]
+    assert stats_db.count_values_in_summary(
+        'foo', firmware=True, q_filter={'vendor': fw.vendor}
+    ) == [('s1', 1), ('s2', 1)]
     assert stats_db.count_values_in_summary('foo', firmware=False) == [('s3', 1), ('s4', 2)]
-    assert stats_db.count_values_in_summary('foo', firmware=False, q_filter={'vendor': fw.vendor}) == [('s3', 1), ('s4', 2)]
+    assert stats_db.count_values_in_summary(
+        'foo', firmware=False, q_filter={'vendor': fw.vendor}
+    ) == [('s3', 1), ('s4', 2)]
     assert stats_db.count_values_in_summary('foo', firmware=False, q_filter={'vendor': 'different'}) == []
 
 
-@pytest.mark.parametrize('q_filter, plugin, expected_result', [
-    (None, 'foo', [('value2', 1), ('value1', 2)]),
-    (None, 'other', []),
-    ({'vendor': 'foobar'}, 'foo', [('value2', 1), ('value1', 2)]),
-    ({'vendor': 'unknown'}, 'foo', []),
-])
+@pytest.mark.parametrize(
+    'q_filter, plugin, expected_result',
+    [
+        (None, 'foo', [('value2', 1), ('value1', 2)]),
+        (None, 'other', []),
+        ({
+            'vendor': 'foobar'
+        }, 'foo', [('value2', 1), ('value1', 2)]),
+        ({
+            'vendor': 'unknown'
+        }, 'foo', []),
+    ]
+)
 def test_count_distinct_array(db, stats_db, q_filter, plugin, expected_result):
     insert_test_fw(db, 'root_fw', vendor='foobar')
-    insert_test_fo(db, 'fo1', parent_fw='root_fw', analysis={
-        'foo': generate_analysis_entry(analysis_result={'key': ['value1']}),
-    })
-    insert_test_fo(db, 'fo2', parent_fw='root_fw', analysis={
-        'foo': generate_analysis_entry(analysis_result={'key': ['value1', 'value2']}),
-    })
+    insert_test_fo(
+        db,
+        'fo1',
+        parent_fw='root_fw',
+        analysis={
+            'foo': generate_analysis_entry(analysis_result={'key': ['value1']}),
+        }
+    )
+    insert_test_fo(
+        db,
+        'fo2',
+        parent_fw='root_fw',
+        analysis={
+            'foo': generate_analysis_entry(analysis_result={'key': ['value1', 'value2']}),
+        }
+    )
 
     stats = stats_db.count_distinct_values_in_array(AnalysisEntry.result['key'], plugin=plugin, q_filter=q_filter)
     assert stats == expected_result
 
 
 def test_get_unpacking_file_types(db, stats_db):
-    insert_test_fw(db, 'root_fw', vendor='foobar', analysis={
-        'unpacker': generate_analysis_entry(summary=['unpacked']),
-        'file_type': generate_analysis_entry(analysis_result={'mime': 'firmware/image'}),
-    })
-    insert_test_fo(db, 'fo1', parent_fw='root_fw', analysis={
-        'unpacker': generate_analysis_entry(summary=['packed']),
-        'file_type': generate_analysis_entry(analysis_result={'mime': 'some/file'}),
-    })
+    insert_test_fw(
+        db,
+        'root_fw',
+        vendor='foobar',
+        analysis={
+            'unpacker': generate_analysis_entry(summary=['unpacked']),
+            'file_type': generate_analysis_entry(analysis_result={'mime': 'firmware/image'}),
+        }
+    )
+    insert_test_fo(
+        db,
+        'fo1',
+        parent_fw='root_fw',
+        analysis={
+            'unpacker': generate_analysis_entry(summary=['packed']),
+            'file_type': generate_analysis_entry(analysis_result={'mime': 'some/file'}),
+        }
+    )
 
     assert stats_db.get_unpacking_file_types('unpacked') == [('firmware/image', 1)]
     assert stats_db.get_unpacking_file_types('packed') == [('some/file', 1)]
@@ -243,15 +303,30 @@ def test_get_unpacking_file_types(db, stats_db):
 
 
 def test_get_unpacking_entropy(db, stats_db):
-    insert_test_fw(db, 'root_fw', vendor='foobar', analysis={
-        'unpacker': generate_analysis_entry(summary=['unpacked'], analysis_result={'entropy': 0.4}),
-    })
-    insert_test_fo(db, 'fo1', parent_fw='root_fw', analysis={
-        'unpacker': generate_analysis_entry(summary=['unpacked'], analysis_result={'entropy': 0.6}),
-    })
-    insert_test_fo(db, 'fo2', parent_fw='root_fw', analysis={
-        'unpacker': generate_analysis_entry(summary=['packed'], analysis_result={'entropy': 0.8}),
-    })
+    insert_test_fw(
+        db,
+        'root_fw',
+        vendor='foobar',
+        analysis={
+            'unpacker': generate_analysis_entry(summary=['unpacked'], analysis_result={'entropy': 0.4}),
+        }
+    )
+    insert_test_fo(
+        db,
+        'fo1',
+        parent_fw='root_fw',
+        analysis={
+            'unpacker': generate_analysis_entry(summary=['unpacked'], analysis_result={'entropy': 0.6}),
+        }
+    )
+    insert_test_fo(
+        db,
+        'fo2',
+        parent_fw='root_fw',
+        analysis={
+            'unpacker': generate_analysis_entry(summary=['packed'], analysis_result={'entropy': 0.8}),
+        }
+    )
 
     assert isclose(stats_db.get_unpacking_entropy('packed'), 0.8, abs_tol=0.01)
     assert isclose(stats_db.get_unpacking_entropy('unpacked'), 0.5, abs_tol=0.01)
@@ -260,15 +335,39 @@ def test_get_unpacking_entropy(db, stats_db):
 
 
 def test_get_used_unpackers(db, stats_db):
-    insert_test_fw(db, 'root_fw', vendor='foobar', analysis={
-        'unpacker': generate_analysis_entry(analysis_result={'plugin_used': 'unpacker1', 'number_of_unpacked_files': 10}),
-    })
-    insert_test_fo(db, 'fo1', parent_fw='root_fw', analysis={
-        'unpacker': generate_analysis_entry(analysis_result={'plugin_used': 'unpacker2', 'number_of_unpacked_files': 1}),
-    })
-    insert_test_fo(db, 'fo2', parent_fw='root_fw', analysis={
-        'unpacker': generate_analysis_entry(analysis_result={'plugin_used': 'unpacker3', 'number_of_unpacked_files': 0}),
-    })
+    insert_test_fw(
+        db,
+        'root_fw',
+        vendor='foobar',
+        analysis={
+            'unpacker':
+            generate_analysis_entry(analysis_result={
+                'plugin_used': 'unpacker1', 'number_of_unpacked_files': 10
+            }),
+        }
+    )
+    insert_test_fo(
+        db,
+        'fo1',
+        parent_fw='root_fw',
+        analysis={
+            'unpacker':
+            generate_analysis_entry(analysis_result={
+                'plugin_used': 'unpacker2', 'number_of_unpacked_files': 1
+            }),
+        }
+    )
+    insert_test_fo(
+        db,
+        'fo2',
+        parent_fw='root_fw',
+        analysis={
+            'unpacker':
+            generate_analysis_entry(analysis_result={
+                'plugin_used': 'unpacker3', 'number_of_unpacked_files': 0
+            }),
+        }
+    )
 
     assert stats_db.get_used_unpackers() == [('unpacker1', 1), ('unpacker2', 1)]
     assert stats_db.get_used_unpackers(q_filter={'vendor': 'foobar'}) == [('unpacker1', 1), ('unpacker2', 1)]

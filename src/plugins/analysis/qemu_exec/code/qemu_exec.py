@@ -44,7 +44,9 @@ class Unpacker(UnpackBase):
             logging.error(f'could not unpack {file_object.uid}: file path not found')
             return None
 
-        extraction_dir = TemporaryDirectory(prefix='FACT_plugin_qemu_exec', dir=self.config['data-storage']['docker-mount-base-dir'])
+        extraction_dir = TemporaryDirectory(
+            prefix='FACT_plugin_qemu_exec', dir=self.config['data-storage']['docker-mount-base-dir']
+        )
         self.extract_files_from_file(file_path, extraction_dir.name)
         return extraction_dir
 
@@ -63,23 +65,21 @@ class AnalysisPlugin(AnalysisBasePlugin):
     FILE_TYPES = ['application/x-executable', 'application/x-pie-executable', 'application/x-sharedlib']
     FACT_EXTRACTION_FOLDER_NAME = 'fact_extracted'
 
-    arch_to_bin_dict = OrderedDict([
-        ('aarch64', ['aarch64']),
-        ('ARM', ['aarch64', 'arm', 'armeb']),
-
-        ('MIPS32', ['mipsel', 'mips', 'mipsn32', 'mipsn32el']),
-        ('MIPS64', ['mips64', 'mips64el']),
-        ('MIPS', ['mipsel', 'mips', 'mips64', 'mips64el', 'mipsn32', 'mipsn32el']),
-
-        ('80386', ['i386']),
-        ('80486', ['x86_64', 'i386']),
-        ('x86', ['x86_64', 'i386']),
-
-        ('PowerPC', ['ppc', 'ppc64', 'ppc64le']),
-        ('PPC', ['ppc', 'ppc64', 'ppc64le']),
-
-        ('Renesas SH', ['sh4', 'sh4eb']),
-    ])
+    arch_to_bin_dict = OrderedDict(
+        [
+            ('aarch64', ['aarch64']),
+            ('ARM', ['aarch64', 'arm', 'armeb']),
+            ('MIPS32', ['mipsel', 'mips', 'mipsn32', 'mipsn32el']),
+            ('MIPS64', ['mips64', 'mips64el']),
+            ('MIPS', ['mipsel', 'mips', 'mips64', 'mips64el', 'mipsn32', 'mipsn32el']),
+            ('80386', ['i386']),
+            ('80486', ['x86_64', 'i386']),
+            ('x86', ['x86_64', 'i386']),
+            ('PowerPC', ['ppc', 'ppc64', 'ppc64le']),
+            ('PPC', ['ppc', 'ppc64', 'ppc64le']),
+            ('Renesas SH', ['sh4', 'sh4eb']),
+        ]
+    )
 
     root_path = None
 
@@ -153,8 +153,13 @@ class AnalysisPlugin(AnalysisBasePlugin):
         self._enter_results(dict(results_dict), file_object)
         self._add_tag(file_object)
 
-    def _run_analysis_jobs(self, executor: ThreadPoolExecutor, file_list: List[Tuple[str, str]],
-                           file_object: FileObject, results_dict: dict) -> List[Future]:
+    def _run_analysis_jobs(
+        self,
+        executor: ThreadPoolExecutor,
+        file_list: List[Tuple[str, str]],
+        file_object: FileObject,
+        results_dict: dict
+    ) -> List[Future]:
         jobs = []
         for file_path, full_type in file_list:
             uid = self._get_uid(file_path, self.root_path)
@@ -219,19 +224,15 @@ def process_qemu_job(file_path: str, arch_suffix: str, root_path: Path, results_
 
 def _valid_execution_in_results(results: dict):
     return any(
-        _output_without_error_exists(results[arch][option])
-        for arch in results
-        if 'error' not in results[arch]
-        for option in results[arch]
-        if option not in ['strace', 'error']
+        _output_without_error_exists(results[arch][option]) for arch in results if 'error' not in results[arch]
+        for option in results[arch] if option not in ['strace', 'error']
     )
 
 
 def _output_without_error_exists(docker_output: Dict[str, str]) -> bool:
     try:
         return (
-            docker_output['stdout'] != ''
-            and (docker_output['return_code'] == '0' or docker_output['stderr'] == '')
+            docker_output['stdout'] != '' and (docker_output['return_code'] == '0' or docker_output['stderr'] == '')
         )
     except KeyError:
         return False
@@ -303,11 +304,7 @@ def decode_output_values(result_dict: Dict[str, Dict[str, Union[str, int]]]) -> 
 
 
 def _strace_output_exists(docker_output):
-    return (
-        'strace' in docker_output
-        and 'stdout' in docker_output['strace']
-        and docker_output['strace']['stdout']
-    )
+    return ('strace' in docker_output and 'stdout' in docker_output['strace'] and docker_output['strace']['stdout'])
 
 
 def process_strace_output(docker_output: dict):
@@ -320,9 +317,7 @@ def process_strace_output(docker_output: dict):
 
 def result_contains_qemu_errors(docker_output: Dict[str, Dict[str, str]]) -> bool:
     return any(
-        contains_docker_error(value)
-        for parameter in docker_output
-        for value in docker_output[parameter].values()
+        contains_docker_error(value) for parameter in docker_output for value in docker_output[parameter].values()
     )
 
 

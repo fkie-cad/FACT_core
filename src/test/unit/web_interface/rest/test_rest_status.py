@@ -3,8 +3,12 @@ from test.common_helper import CommonDatabaseMock
 from ..base import WebInterfaceTest
 
 BACKEND_STATS = {
-    'system': {'cpu_percentage': 13.37},
-    'analysis': {'current_analyses': [None, None]},
+    'system': {
+        'cpu_percentage': 13.37
+    },
+    'analysis': {
+        'current_analyses': [None, None]
+    },
 }
 
 
@@ -16,7 +20,6 @@ class StatisticDbViewerMock(CommonDatabaseMock):
 
 
 class TestRestFirmware(WebInterfaceTest):
-
     @classmethod
     def setup_class(cls, *_, **__):
         super().setup_class(db_mock=StatisticDbViewerMock)

@@ -8,7 +8,6 @@ from web_interface.components.compare_routes import (
 
 
 class TemplateDbMock(CommonDatabaseMock):
-
     @staticmethod
     def get_view(name):
         if name == 'plugin_1':
@@ -17,7 +16,6 @@ class TemplateDbMock(CommonDatabaseMock):
 
 
 class TestAppComparisonBasket(WebInterfaceTest):
-
     def setup_class(self, *_, **__):
         super().setup_class(db_mock=TemplateDbMock)
 
@@ -39,20 +37,14 @@ def test_get_compare_view():
 
 
 def test_add_views_missing_key():
-    plugin_views = [
-        ('plugin_1', b'<plugin view 1>'),
-        ('plugin_2', b'<plugin view 2>')
-    ]
+    plugin_views = [('plugin_1', b'<plugin view 1>'), ('plugin_2', b'<plugin view 2>')]
     compare_view = 'xxxxxyyyyy'
     result = _add_plugin_views_to_compare_view(compare_view, plugin_views)
     assert result == compare_view
 
 
 def test_add_plugin_views():
-    plugin_views = [
-        ('plugin_1', b'<plugin view 1>'),
-        ('plugin_2', b'<plugin view 2>')
-    ]
+    plugin_views = [('plugin_1', b'<plugin view 1>'), ('plugin_2', b'<plugin view 2>')]
     key = '{# individual plugin views #}'
     compare_view = f'xxxxx{key}yyyyy'
     key_index = compare_view.find(key)

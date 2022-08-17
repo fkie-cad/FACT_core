@@ -29,16 +29,20 @@ PROGRAM_DESCRIPTION = 'Check if each line in a file is matched by a yara rule.'
 
 def _setup_argparser():
     parser = argparse.ArgumentParser(description=f'{PROGRAM_NAME} - {PROGRAM_DESCRIPTION}')
-    parser.add_argument('-V', '--version', action='version',
-                        version=f'{PROGRAM_NAME} {PROGRAM_VERSION}')
+    parser.add_argument('-V', '--version', action='version', version=f'{PROGRAM_NAME} {PROGRAM_VERSION}')
     parser.add_argument('test_file', help='File containing the list of signatures')
-    parser.add_argument('--yara_path', help='File or Folder containing yara signatures (Extension .yara mandatory)', default='software_signatures/')
+    parser.add_argument(
+        '--yara_path',
+        help='File or Folder containing yara signatures (Extension .yara mandatory)',
+        default='software_signatures/'
+    )
     return parser.parse_args()
 
 
 def _setup_logging():
-    log_format = logging.Formatter(fmt='[%(asctime)s][%(module)s][%(levelname)s]: %(message)s',
-                                   datefmt='%Y-%m-%d %H:%M:%S')
+    log_format = logging.Formatter(
+        fmt='[%(asctime)s][%(module)s][%(levelname)s]: %(message)s', datefmt='%Y-%m-%d %H:%M:%S'
+    )
     logger = logging.getLogger('')
     logger.setLevel(logging.DEBUG)
     console_log = logging.StreamHandler()

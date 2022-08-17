@@ -54,7 +54,9 @@ class Compare:
                 self._add_content_to_general_dict(general, 'version', fo.uid, fo.version)
                 self._add_content_to_general_dict(general, 'release_date', fo.uid, fo.release_date)
             else:
-                self._add_content_to_general_dict(general, 'firmwares_including_this_file', fo.uid, list(fo.get_virtual_file_paths().keys()))
+                self._add_content_to_general_dict(
+                    general, 'firmwares_including_this_file', fo.uid, list(fo.get_virtual_file_paths().keys())
+                )
             self._add_content_to_general_dict(general, 'hid', fo.uid, fo.get_hid())
             self._add_content_to_general_dict(general, 'size', fo.uid, fo.size)
             self._add_content_to_general_dict(general, 'virtual_file_path', fo.uid, fo.get_virtual_paths_for_all_uids())
@@ -67,6 +69,7 @@ class Compare:
             if feature not in general_dict:
                 general_dict[feature] = {}
             general_dict[feature][uid] = content
+
 
 # --- plug-in system ---
 
@@ -89,7 +92,4 @@ class Compare:
         self.compare_plugins[name] = compare_plugin_instance
 
     def _execute_compare_plugins(self, fo_list):
-        return {
-            name: plugin.compare(fo_list)
-            for name, plugin in self.compare_plugins.items()
-        }
+        return {name: plugin.compare(fo_list) for name, plugin in self.compare_plugins.items()}

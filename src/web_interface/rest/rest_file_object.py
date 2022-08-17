@@ -17,11 +17,19 @@ class RestFileObjectWithoutUid(RestResourceBase):
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
     @api.doc(
-        responses={200: 'Success', 400: 'Error'},
+        responses={
+            200: 'Success', 400: 'Error'
+        },
         params={
-            'offset': {'description': 'offset of results (paging)', 'in': 'query', 'type': 'int'},
-            'limit': {'description': 'number of results (paging)', 'in': 'query', 'type': 'int'},
-            'query': {'description': 'MongoDB style query', 'in': 'query', 'type': 'dict'},
+            'offset': {
+                'description': 'offset of results (paging)', 'in': 'query', 'type': 'int'
+            },
+            'limit': {
+                'description': 'number of results (paging)', 'in': 'query', 'type': 'int'
+            },
+            'query': {
+                'description': 'MongoDB style query', 'in': 'query', 'type': 'dict'
+            },
         }
     )
     def get(self):
@@ -49,7 +57,9 @@ class RestFileObjectWithoutUid(RestResourceBase):
         'description': 'Request specific file by providing the uid of the corresponding object',
         'params': {
             'uid': 'File UID',
-            'summary': {'description': 'include summary in result', 'in': 'query', 'type': 'boolean', 'default': 'false'},
+            'summary': {
+                'description': 'include summary in result', 'in': 'query', 'type': 'boolean', 'default': 'false'
+            },
         }
     }
 )

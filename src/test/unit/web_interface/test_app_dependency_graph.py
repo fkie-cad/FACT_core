@@ -5,7 +5,6 @@ from test.unit.web_interface.test_dependency_graph import entry_1, entry_2
 
 
 class DbMock(CommonDatabaseMock):
-
     @staticmethod
     def get_data_for_dependency_graph(uid):
         if uid == 'testgraph':
@@ -14,7 +13,6 @@ class DbMock(CommonDatabaseMock):
 
 
 class TestAppDependencyGraph(WebInterfaceTest):
-
     @classmethod
     def setup_class(cls, *_, **__):
         super().setup_class(db_mock=DbMock)

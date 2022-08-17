@@ -64,11 +64,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
                 username = password_entry.split(':', 1)[0]
                 password = result[password_entry]['password']
                 self.add_analysis_tag(
-                    file_object,
-                    f'{username}_{password}',
-                    f'Password: {username}:{password}',
-                    TagColor.RED,
-                    True
+                    file_object, f'{username}_{password}', f'Password: {username}:{password}', TagColor.RED, True
                 )
 
     def update_file_object(self, file_object: FileObject, result_entry: dict):

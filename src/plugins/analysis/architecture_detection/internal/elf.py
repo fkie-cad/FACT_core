@@ -17,11 +17,9 @@ FLAGS_TO_STR = {
 
 
 def _mips_flags_to_str(flags):
-    return ', '.join((
-        arch_str
-        for arch_flags, arch_str in FLAGS_TO_STR.items()
-        if (flags & E_FLAGS.EF_MIPS_ARCH) == arch_flags
-    ))
+    return ', '.join(
+        (arch_str for arch_flags, arch_str in FLAGS_TO_STR.items() if (flags & E_FLAGS.EF_MIPS_ARCH) == arch_flags)
+    )
 
 
 def _get_mips_isa(elffile):

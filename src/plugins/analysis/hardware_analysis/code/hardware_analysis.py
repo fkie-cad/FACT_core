@@ -28,7 +28,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
         }
 
         # propagate summary to parent objects
-        file_object.processed_analysis[self.NAME]['summary'] = self.make_summary(cpu_architecture, modinfo, kernel_config)
+        file_object.processed_analysis[self.NAME
+                                       ]['summary'] = self.make_summary(cpu_architecture, modinfo, kernel_config)
 
         return file_object
 
@@ -49,11 +50,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         # FIXME: finer filter
         if isinstance(kernel_config, str):
             kernel_config_list = kernel_config.splitlines()
-            kernel_config = [
-                line
-                for line in kernel_config_list
-                if line and not line.startswith('#')
-            ]
+            kernel_config = [line for line in kernel_config_list if line and not line.startswith('#')]
 
         else:
             kernel_config = None

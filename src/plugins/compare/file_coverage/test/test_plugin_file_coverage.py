@@ -64,32 +64,44 @@ class TestComparePluginFileCoverage(ComparePluginTest):
         assert len(result.keys()) == 4
 
 
-@pytest.mark.parametrize('similar_files, similarity_dict, expected_output', [
-    (['fw1:file1', 'fw2:file2'], {}, ''),
-    (['fw1:file1', 'fw2:file2'], {'fw1:file1;fw2:file2': '99'}, '99'),
-    (['fw1:file1', 'fw2:file2', 'fw2:file3'], {'fw1:file1;fw2:file2': '99'}, '99'),
-    (
-        ['fw1:file1', 'fw2:file2', 'fw3:file3'],
-        {'fw1:file1;fw2:file2': '80', 'fw2:file2;fw3:file3': '90'},
-        '80 ‒ 90'
-    ),
-    (
-        ['fw1:file1', 'fw2:file2', 'fw3:file3'],
-        {'fw1:file1;fw2:file2': '70', 'fw1:file1;fw3:file3': '80', 'fw2:file2;fw3:file3': '90'},
-        '70 ‒ 90'
-    ),
-])
+@pytest.mark.parametrize(
+    'similar_files, similarity_dict, expected_output',
+    [
+        (['fw1:file1', 'fw2:file2'], {}, ''),
+        (['fw1:file1', 'fw2:file2'], {
+            'fw1:file1;fw2:file2': '99'
+        }, '99'),
+        (['fw1:file1', 'fw2:file2', 'fw2:file3'], {
+            'fw1:file1;fw2:file2': '99'
+        }, '99'),
+        (
+            ['fw1:file1', 'fw2:file2', 'fw3:file3'], {
+                'fw1:file1;fw2:file2': '80', 'fw2:file2;fw3:file3': '90'
+            },
+            '80 ‒ 90'
+        ),
+        (
+            ['fw1:file1', 'fw2:file2', 'fw3:file3'], {
+                'fw1:file1;fw2:file2': '70', 'fw1:file1;fw3:file3': '80', 'fw2:file2;fw3:file3': '90'
+            },
+            '70 ‒ 90'
+        ),
+    ]
+)
 def test_get_similarity_value(similar_files, similarity_dict, expected_output):
     assert ComparePlugin._get_similarity_value(similar_files, similarity_dict) == expected_output
 
 
-@pytest.mark.parametrize('test_input, expected_output', [
-    ([], []),
-    ([(1, 2), (2, 3), (1, 3)], [[1, 2, 3]]),
-    ([(1, 2), (2, 3), (1, 3), (1, 4), (2, 4), (3, 4), (1, 5), (2, 5), (3, 5), (4, 5)], [[1, 2, 3, 4, 5]]),
-    ([(1, 2), (2, 3), (1, 3), (1, 4)], [[1, 2, 3], [1, 4]]),
-    ([(1, 2), (2, 3), (1, 3), (1, 4), (3, 4)], [[1, 2, 3], [1, 3, 4]]),
-    ([(1, 4), (4, 5)], [[1, 4], [4, 5]]),
-])
+@pytest.mark.parametrize(
+    'test_input, expected_output',
+    [
+        ([], []),
+        ([(1, 2), (2, 3), (1, 3)], [[1, 2, 3]]),
+        ([(1, 2), (2, 3), (1, 3), (1, 4), (2, 4), (3, 4), (1, 5), (2, 5), (3, 5), (4, 5)], [[1, 2, 3, 4, 5]]),
+        ([(1, 2), (2, 3), (1, 3), (1, 4)], [[1, 2, 3], [1, 4]]),
+        ([(1, 2), (2, 3), (1, 3), (1, 4), (3, 4)], [[1, 2, 3], [1, 3, 4]]),
+        ([(1, 4), (4, 5)], [[1, 4], [4, 5]]),
+    ]
+)
 def test_generate_similarity_sets(test_input, expected_output):
     assert generate_similarity_sets(test_input) == expected_output

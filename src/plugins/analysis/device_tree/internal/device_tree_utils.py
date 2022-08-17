@@ -65,16 +65,9 @@ def parse_dtb_header(raw: bytes) -> DeviceTreeHeader:
 
 def header_has_illegal_values(header: DeviceTreeHeader, max_size: int) -> bool:
     values = [
-        header.struct_block_offset,
-        header.strings_block_offset,
-        header.struct_block_size,
-        header.strings_block_size
+        header.struct_block_offset, header.strings_block_offset, header.struct_block_size, header.strings_block_size
     ]
-    return (
-        header.version > 20
-        or any(n > max_size or n > header.size for n in values)
-        or header.size > max_size
-    )
+    return (header.version > 20 or any(n > max_size or n > header.size for n in values) or header.size > max_size)
 
 
 def convert_device_tree_to_str(file_path: Union[str, Path]) -> Optional[str]:
@@ -137,7 +130,9 @@ def _get_model_or_description(structure_block: StructureBlock):
     return description, model
 
 
-def _result_to_json(header: DeviceTreeHeader, string_representation: str, model: Optional[str], description: Optional[str]) -> dict:
+def _result_to_json(
+    header: DeviceTreeHeader, string_representation: str, model: Optional[str], description: Optional[str]
+) -> dict:
     return {
         'header': header._asdict(),
         'device_tree': string_representation,

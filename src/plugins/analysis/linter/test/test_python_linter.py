@@ -35,7 +35,11 @@ pylint: error: no such option: -a
 
 
 def test_do_analysis(monkeypatch):
-    monkeypatch.setattr('plugins.analysis.linter.internal.linters.subprocess.run', lambda *_, **__: CompletedProcess('DONT_CARE', 0, stdout=MOCK_RESPONSE))
+    monkeypatch.setattr(
+        'plugins.analysis.linter.internal.linters.subprocess.run',
+        lambda *_,
+        **__: CompletedProcess('DONT_CARE', 0, stdout=MOCK_RESPONSE)
+    )
     result = run_pylint('any/path')
 
     assert len(result[0].keys()) == 5
@@ -43,6 +47,10 @@ def test_do_analysis(monkeypatch):
 
 
 def test_do_analysis_bad_invokation(monkeypatch):
-    monkeypatch.setattr('plugins.analysis.linter.internal.linters.subprocess.run', lambda *_, **__: CompletedProcess('DONT_CARE', 1, stdout=BAD_RESPONSE))
+    monkeypatch.setattr(
+        'plugins.analysis.linter.internal.linters.subprocess.run',
+        lambda *_,
+        **__: CompletedProcess('DONT_CARE', 1, stdout=BAD_RESPONSE)
+    )
     result = run_pylint('any/path')
     assert not result

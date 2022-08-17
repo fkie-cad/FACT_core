@@ -44,8 +44,7 @@ class ComparePlugin(CompareBasePlugin):
         result = {}
         for current_element, other_elements in iter_element_and_rest(fo_list):
             exclusive_files = set.difference(
-                set(current_element.list_of_all_included_files),
-                *self._get_included_file_sets(other_elements)
+                set(current_element.list_of_all_included_files), *self._get_included_file_sets(other_elements)
             )
             result[current_element.uid] = list(exclusive_files)
         return result
@@ -60,26 +59,33 @@ class ComparePlugin(CompareBasePlugin):
 
     def _handle_partially_common_files(self, compare_result, fo_list):
         if len(fo_list) > 2:
-            compare_result['files_in_more_than_one_but_not_in_all'] = self._get_files_in_more_than_one_but_not_in_all(fo_list, compare_result)
+            compare_result['files_in_more_than_one_but_not_in_all'] = self._get_files_in_more_than_one_but_not_in_all(
+                fo_list, compare_result
+            )
             not_in_all = compare_result['files_in_more_than_one_but_not_in_all']
         else:
             not_in_all = {}
-        compare_result['non_zero_files_in_common'] = self._get_non_zero_common_files(compare_result['files_in_common'], not_in_all)
+        compare_result['non_zero_files_in_common'] = self._get_non_zero_common_files(
+            compare_result['files_in_common'], not_in_all
+        )
 
     @staticmethod
     def _get_files_in_more_than_one_but_not_in_all(fo_list, result_dict):
         result = {}
         for current_element in fo_list:
-            result[current_element.uid] = list(set.difference(
-                set(current_element.list_of_all_included_files),
-                result_dict['files_in_common']['all'],
-                result_dict['exclusive_files'][current_element.uid]
-            ))
+            result[current_element.uid] = list(
+                set.difference(
+                    set(current_element.list_of_all_included_files),
+                    result_dict['files_in_common']['all'],
+                    result_dict['exclusive_files'][current_element.uid]
+                )
+            )
         return result
 
     # ---- SSDEEP similarity ---- #
 
-    def _get_similar_files(self, fo_list: List[FileObject], exclusive_files: Dict[str, List[str]]) -> Tuple[List[list], dict]:
+    def _get_similar_files(self, fo_list: List[FileObject],
+                           exclusive_files: Dict[str, List[str]]) -> Tuple[List[list], dict]:
         similar_files = []
         similarity = {}
         for parent_one, parent_two in combinations(fo_list, 2):

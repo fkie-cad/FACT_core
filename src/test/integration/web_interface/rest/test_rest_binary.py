@@ -10,7 +10,6 @@ from test.integration.web_interface.rest.base import RestTestBase
 
 
 class TestRestDownload(RestTestBase):
-
     def setup(self):
         super().setup()
         self.db_interface = BackendDbInterface(self.config)

@@ -2,7 +2,7 @@ from collections import defaultdict
 from typing import Dict, List
 
 LEAF_MARKER = '<leaf>'
-LEAF_CONSTRAINT = ((LEAF_MARKER, []),)
+LEAF_CONSTRAINT = ((LEAF_MARKER, []), )
 INDENT = '  '
 
 

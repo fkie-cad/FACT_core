@@ -14,7 +14,6 @@ class BinaryService:
     '''
     This is a binary and database backend providing basic return functions
     '''
-
     def __init__(self, config=None):
         self.config = config
         self.fs_organizer = FSOrganizer(config=config)
@@ -49,7 +48,6 @@ class BinaryService:
 
 
 class BinaryServiceDbInterface(ReadOnlyDbInterface):
-
     def get_file_name(self, uid: str) -> Optional[str]:
         with self.get_read_only_session() as session:
             entry: FileObjectEntry = session.get(FileObjectEntry, uid)

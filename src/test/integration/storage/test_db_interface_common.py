@@ -19,10 +19,7 @@ def test_get_file(db):
     db_fo = db.common.get_file_object(TEST_FO.uid)
     assert isinstance(db_fo, FileObject) and not isinstance(db_fo, Firmware)
     fo_attributes = ['uid', 'file_name', 'size', 'depth']
-    assert all(
-        getattr(TEST_FO, attr) == getattr(db_fo, attr)
-        for attr in fo_attributes
-    )
+    assert all(getattr(TEST_FO, attr) == getattr(db_fo, attr) for attr in fo_attributes)
     assert set(db_fo.processed_analysis) == set(TEST_FO.processed_analysis)
 
 
@@ -42,10 +39,7 @@ def test_get_fw(db):
     db_fw = db.common.get_firmware(TEST_FW.uid)
     assert isinstance(db_fw, Firmware)
     fw_attributes = ['uid', 'vendor', 'device_name', 'release_date']
-    assert all(
-        getattr(TEST_FW, attr) == getattr(db_fw, attr)
-        for attr in fw_attributes
-    )
+    assert all(getattr(TEST_FW, attr) == getattr(db_fw, attr) for attr in fw_attributes)
     assert set(db_fw.processed_analysis) == set(TEST_FW.processed_analysis)
 
 
@@ -312,14 +306,20 @@ def test_collect_child_tags_unique_tags(db):
 
 def test_collect_analysis_tags(db):
     tags1 = {
-        'tag_a': {'color': 'success', 'value': 'tag a', 'propagate': True},
-        'tag_b': {'color': 'warning', 'value': 'tag b', 'propagate': False},
+        'tag_a': {
+            'color': 'success', 'value': 'tag a', 'propagate': True
+        },
+        'tag_b': {
+            'color': 'warning', 'value': 'tag b', 'propagate': False
+        },
     }
     tags2 = {'tag_c': {'color': 'success', 'value': 'tag c', 'propagate': True}}
-    insert_test_fo(db, 'fo1', analysis={
-        'foo': generate_analysis_entry(tags=tags1),
-        'bar': generate_analysis_entry(tags=tags2),
-    })
+    insert_test_fo(
+        db, 'fo1', analysis={
+            'foo': generate_analysis_entry(tags=tags1),
+            'bar': generate_analysis_entry(tags=tags2),
+        }
+    )
 
     fo = db.frontend.get_object('fo1')
     assert 'foo' in fo.analysis_tags and 'bar' in fo.analysis_tags

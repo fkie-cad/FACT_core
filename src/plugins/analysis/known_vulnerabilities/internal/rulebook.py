@@ -1,14 +1,22 @@
 from copy import deepcopy
 
 RELATIONS = {
-    'exists': lambda x, y: True,
-    'equals': lambda x, y: x == y,
-    'is': lambda x, y: x is y,
-    'gt': lambda x, y: x > y,
-    'lt': lambda x, y: x < y,
-    'in': lambda x, y: x in y,
-    'reverse_in': lambda x, y: y in x,
-    'intersection': lambda x, y: bool(set(x).intersection(set(y))),
+    'exists': lambda x,
+    y: True,
+    'equals': lambda x,
+    y: x == y,
+    'is': lambda x,
+    y: x is y,
+    'gt': lambda x,
+    y: x > y,
+    'lt': lambda x,
+    y: x < y,
+    'in': lambda x,
+    y: x in y,
+    'reverse_in': lambda x,
+    y: y in x,
+    'intersection': lambda x,
+    y: bool(set(x).intersection(set(y))),
 }
 
 
@@ -43,7 +51,13 @@ class Vulnerability:
                 raise ValueError(error_message)
 
     def get_dict(self):
-        return dict(description=self.description, score=self.score, reliability=self.reliability, link=self.link, short_name=self.short_name)
+        return dict(
+            description=self.description,
+            score=self.score,
+            reliability=self.reliability,
+            link=self.link,
+            short_name=self.short_name
+        )
 
 
 class SingleRule:

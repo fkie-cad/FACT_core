@@ -16,7 +16,6 @@ from web_interface.security.privileges import PRIVILEGES
 
 
 class AjaxRoutes(ComponentBase):
-
     @roles_accepted(*PRIVILEGES['view_analysis'])
     @AppRoute('/ajax_tree/<uid>/<root_uid>', GET)
     @AppRoute('/compare/ajax_tree/<compare_id>/<root_uid>/<uid>', GET)
@@ -24,10 +23,7 @@ class AjaxRoutes(ComponentBase):
         root_uid, compare_id = none_to_none(root_uid), none_to_none(compare_id)
         exclusive_files = self._get_exclusive_files(compare_id, root_uid)
         tree = self._generate_file_tree(root_uid, uid, exclusive_files)
-        children = [
-            convert_to_jstree_node(child_node)
-            for child_node in tree.get_list_of_child_nodes()
-        ]
+        children = [convert_to_jstree_node(child_node) for child_node in tree.get_list_of_child_nodes()]
         return jsonify(children)
 
     def _get_exclusive_files(self, compare_id, root_uid):
@@ -39,8 +35,7 @@ class AjaxRoutes(ComponentBase):
         root = FileTreeNode(None)
         with get_shared_session(self.db.frontend) as frontend_db:
             child_uids = [
-                child_uid
-                for child_uid in frontend_db.get_object(uid).files_included
+                child_uid for child_uid in frontend_db.get_object(uid).files_included
                 if whitelist is None or child_uid in whitelist
             ]
             for node in frontend_db.generate_file_tree_nodes_for_uid_list(child_uids, root_uid, uid, whitelist):
@@ -111,7 +106,9 @@ class AjaxRoutes(ComponentBase):
             firmware = frontend_db.get_object(uid, analysis_filter=selected_analysis)
             summary_of_included_files = frontend_db.get_summary(firmware, selected_analysis)
         return render_template(
-            'summary.html', summary_of_included_files=summary_of_included_files, root_uid=uid,
+            'summary.html',
+            summary_of_included_files=summary_of_included_files,
+            root_uid=uid,
             selected_analysis=selected_analysis
         )
 

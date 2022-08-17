@@ -44,8 +44,12 @@ class TarMock:
 
 class DbMock(CommonDatabaseMock):
     FILE_TYPE_RESULTS = {
-        TEST_FW.uid: {'mime': 'application/octet-stream'},
-        TEST_FW_2.uid: {'mime': 'filesystem/cramfs'},
+        TEST_FW.uid: {
+            'mime': 'application/octet-stream'
+        },
+        TEST_FW_2.uid: {
+            'mime': 'filesystem/cramfs'
+        },
     }
 
     def get_analysis(self, uid, _):
@@ -64,9 +68,7 @@ class TestFileSystemMetadata(AnalysisPluginTest):
         self.test_file_fs = TEST_DATA_DIR / 'squashfs.img'
 
     def setup_plugin(self):
-        return AnalysisPlugin(
-            self, config=self.config, view_updater=CommonDatabaseMock(), db_interface=DbMock()
-        )
+        return AnalysisPlugin(self, config=self.config, view_updater=CommonDatabaseMock(), db_interface=DbMock())
 
     def _extract_metadata_from_archive_mock(self, _):
         self.result = 'archive'
@@ -81,7 +83,9 @@ class TestFileSystemMetadata(AnalysisPluginTest):
             self.analysis_plugin._extract_metadata(fo)
             assert self.result == 'archive'
 
-        with mock_patch(self.analysis_plugin, '_extract_metadata_from_file_system', self._extract_metadata_from_file_system_mock):
+        with mock_patch(
+            self.analysis_plugin, '_extract_metadata_from_file_system', self._extract_metadata_from_file_system_mock
+        ):
             self.result = None
             fo = FoMock(None, 'filesystem/ext4')
             self.analysis_plugin._extract_metadata(fo)
@@ -179,8 +183,13 @@ class TestFileSystemMetadata(AnalysisPluginTest):
         self.analysis_plugin._extract_metadata_from_tar(fo)
         result = self.analysis_plugin.result
         assert all(
-            _b64_encode(key) in result
-            for key in ['mount/testfile_sticky', 'mount/testfile_sgid', 'mount/testfile_suid', 'mount/testfile_all', 'mount/testfile_none']
+            _b64_encode(key) in result for key in [
+                'mount/testfile_sticky',
+                'mount/testfile_sgid',
+                'mount/testfile_suid',
+                'mount/testfile_all',
+                'mount/testfile_none'
+            ]
         )
 
     def test_extract_metadata_from_tar__packed_tar_bz(self):
@@ -189,8 +198,13 @@ class TestFileSystemMetadata(AnalysisPluginTest):
         self.analysis_plugin._extract_metadata_from_tar(fo)
         result = self.analysis_plugin.result
         assert all(
-            _b64_encode(key) in result
-            for key in ['mount/testfile_sticky', 'mount/testfile_sgid', 'mount/testfile_suid', 'mount/testfile_all', 'mount/testfile_none']
+            _b64_encode(key) in result for key in [
+                'mount/testfile_sticky',
+                'mount/testfile_sgid',
+                'mount/testfile_suid',
+                'mount/testfile_all',
+                'mount/testfile_none'
+            ]
         )
 
     def test_extract_metadata_from_tar__tar_unreadable(self):
@@ -270,6 +284,7 @@ class TestFileSystemMetadata(AnalysisPluginTest):
     def test_tag_should_be_set(self):
         def _get_results(user, suid, sgid):
             return {'foo': {FsKeys.USER: user, FsKeys.SUID: suid, FsKeys.SGID: sgid}}
+
         test_data = [
             (_get_results(user='root', suid=True, sgid=True), True),
             (_get_results(user='root', suid=True, sgid=False), True),
@@ -279,7 +294,11 @@ class TestFileSystemMetadata(AnalysisPluginTest):
             (_get_results(user='user', suid=True, sgid=False), False),
             (_get_results(user='user', suid=False, sgid=True), False),
             (_get_results(user='user', suid=False, sgid=False), False),
-            ({'foo': {FsKeys.SUID: True, FsKeys.SGID: True}}, False),  # user missing (legacy: was not always set)
+            ({
+                'foo': {
+                    FsKeys.SUID: True, FsKeys.SGID: True
+                }
+            }, False),  # user missing (legacy: was not always set)
         ]
         for input_data, expected_result in test_data:
             assert self.analysis_plugin._tag_should_be_set(input_data) == expected_result

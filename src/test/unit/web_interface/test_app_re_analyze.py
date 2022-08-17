@@ -4,7 +4,6 @@ from test.unit.web_interface.base import WebInterfaceTest  # pylint: disable=wro
 
 
 class TestAppReAnalyze(WebInterfaceTest):
-
     def test_app_re_analyze_get_invalid_firmware(self):
         rv = self.test_client.get('/update-analysis/invalid')
         assert b'File not found in database: invalid' in rv.data
@@ -27,7 +26,8 @@ class TestAppReAnalyze(WebInterfaceTest):
             'vendor': TEST_FW.vendor,
             'release_date': TEST_FW.release_date,
             'tags': '',
-            'analysis_systems': ['new_system']}
+            'analysis_systems': ['new_system']
+        }
         rv = self.test_client.post(f'/update-analysis/{TEST_FW.uid}', data=form_data)
         assert b'Upload Successful' in rv.data
         assert make_bytes(TEST_FW.uid) in rv.data

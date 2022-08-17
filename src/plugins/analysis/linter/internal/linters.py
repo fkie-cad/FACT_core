@@ -59,13 +59,15 @@ def _extract_shellcheck_warnings(shellcheck_json):
     issues = []
     for issue in shellcheck_json:
         if issue['level'] in ['warning', 'error']:
-            issues.append({
-                'type': issue['level'],
-                'line': issue['line'],
-                'column': issue['column'],
-                'symbol': str(issue['code']),
-                'message': issue['message'],
-            })
+            issues.append(
+                {
+                    'type': issue['level'],
+                    'line': issue['line'],
+                    'column': issue['column'],
+                    'symbol': str(issue['code']),
+                    'message': issue['message'],
+                }
+            )
     return issues
 
 
@@ -94,12 +96,14 @@ def _luacheck_parse_linter_output(output):
             line_number, columns, code_and_message = _luacheck_split_issue_line(line)
             code, message = _separate_message_and_code(code_and_message)
             if not code.startswith('(W6'):
-                issues.append({
-                    'line': int(line_number),
-                    'column': _luacheck_get_first_column(columns),
-                    'symbol': code,
-                    'message': message,
-                })
+                issues.append(
+                    {
+                        'line': int(line_number),
+                        'column': _luacheck_get_first_column(columns),
+                        'symbol': code,
+                        'message': message,
+                    }
+                )
             else:
                 pass
         except (IndexError, ValueError) as error:
@@ -173,8 +177,7 @@ def run_rubocop(file_path: str) -> List[dict]:
             'line': offense['location']['start_line'],
             'column': offense['location']['column'],
             'message': offense['message'],
-        }
-        for offense in linter_output['files'][0]['offenses']
+        } for offense in linter_output['files'][0]['offenses']
     ]
 
 

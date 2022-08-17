@@ -12,7 +12,6 @@ class ComparisonScheduler:
     '''
     This module handles all request regarding comparisons
     '''
-
     def __init__(self, config=None, db_interface=None, testing=False, callback=None):
         self.config = config
         self.db_interface = db_interface if db_interface else ComparisonDbInterface(config=config)

@@ -99,8 +99,12 @@ def test_update_file_object(db):
 
     fo.file_name = 'foobar.exe'
     fo.comments = [
-        {'author': 'anonymous', 'comment': 'foobar 123', 'time': '1599726695'},
-        {'author': 'someguy', 'comment': 'this file is something!', 'time': '1636448202'},
+        {
+            'author': 'anonymous', 'comment': 'foobar 123', 'time': '1599726695'
+        },
+        {
+            'author': 'someguy', 'comment': 'this file is something!', 'time': '1636448202'
+        },
     ]
     db.backend.update_object(fo)
     db_fo = db.common.get_object(fo.uid)
@@ -130,7 +134,11 @@ def test_insert_analysis(db):
     db.backend.insert_file_object(TEST_FO)
     plugin = 'previously_not_run_plugin'
     new_analysis_data = {
-        'summary': ['sum 1', 'sum 2'], 'foo': 'bar', 'plugin_version': '1', 'analysis_date': 1.0, 'tags': {},
+        'summary': ['sum 1', 'sum 2'],
+        'foo': 'bar',
+        'plugin_version': '1',
+        'analysis_date': 1.0,
+        'tags': {},
         'system_version': '1.2',
     }
     db.backend.add_analysis(TEST_FO.uid, plugin, new_analysis_data)

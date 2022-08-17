@@ -4,16 +4,49 @@ from typing import Dict, Iterable, List, NamedTuple, Optional, Set
 from web_interface.file_tree.file_tree_node import FileTreeNode
 
 ARCHIVE_FILE_TYPES = [
-    'application/gzip', 'application/java-archive', 'application/rar', 'application/vnd.ms-cab-compressed',
-    'application/x-7z-compressed', 'application/x-ace', 'application/x-adf', 'application/x-alzip', 'application/x-arc',
-    'application/x-archive', 'application/x-arj', 'application/x-bzip2', 'application/x-cab', 'application/x-chm',
-    'application/x-compress', 'application/x-cpio', 'application/x-debian-package', 'application/x-dms',
-    'application/x-gzip', 'application/x-iso9660-image', 'application/x-lha', 'application/x-lrzip',
-    'application/x-lzh', 'application/x-lzip', 'application/x-lzma', 'application/x-lzop', 'application/x-rar',
-    'application/x-redhat-package-manager', 'application/x-rpm', 'application/x-rzip', 'application/x-shar',
-    'application/x-sit', 'application/x-sitx', 'application/x-stuffit', 'application/x-stuffitx', 'application/x-tar',
-    'application/x-xz', 'application/x-zip-compressed', 'application/x-zoo', 'application/zip', 'application/zpaq',
-    'audio/flac', 'compression/zlib'
+    'application/gzip',
+    'application/java-archive',
+    'application/rar',
+    'application/vnd.ms-cab-compressed',
+    'application/x-7z-compressed',
+    'application/x-ace',
+    'application/x-adf',
+    'application/x-alzip',
+    'application/x-arc',
+    'application/x-archive',
+    'application/x-arj',
+    'application/x-bzip2',
+    'application/x-cab',
+    'application/x-chm',
+    'application/x-compress',
+    'application/x-cpio',
+    'application/x-debian-package',
+    'application/x-dms',
+    'application/x-gzip',
+    'application/x-iso9660-image',
+    'application/x-lha',
+    'application/x-lrzip',
+    'application/x-lzh',
+    'application/x-lzip',
+    'application/x-lzma',
+    'application/x-lzop',
+    'application/x-rar',
+    'application/x-redhat-package-manager',
+    'application/x-rpm',
+    'application/x-rzip',
+    'application/x-shar',
+    'application/x-sit',
+    'application/x-sitx',
+    'application/x-stuffit',
+    'application/x-stuffitx',
+    'application/x-tar',
+    'application/x-xz',
+    'application/x-zip-compressed',
+    'application/x-zoo',
+    'application/zip',
+    'application/zpaq',
+    'audio/flac',
+    'compression/zlib'
 ]
 TYPE_TO_ICON = {
     'application/x-executable': '/static/file_icons/binary.png',
@@ -111,7 +144,6 @@ class VirtualPathFileTree:
     :param fo_data: The firmware / file object data from the database that is needed to create the file tree.
     :param whitelist: A whitelist of file names needed to display partial trees in comparisons.
     '''
-
     def __init__(self, root_uid: str, parent_uid: str, fo_data: FileTreeData, whitelist: Optional[List[str]] = None):
         self.uid = fo_data.uid
         self.root_uid = root_uid if root_uid else list(fo_data.virtual_file_path)[0]
@@ -155,8 +187,13 @@ class VirtualPathFileTree:
 
     def _get_node_for_real_file(self, current_virtual_path: List[str]) -> FileTreeNode:
         return FileTreeNode(
-            self.uid, self.root_uid, virtual=False, name=self._get_file_name(current_virtual_path),
-            size=self.fo_data.size, mime_type=self.fo_data.mime, has_children=self._has_children()
+            self.uid,
+            self.root_uid,
+            virtual=False,
+            name=self._get_file_name(current_virtual_path),
+            size=self.fo_data.size,
+            mime_type=self.fo_data.mime,
+            has_children=self._has_children()
         )
 
     def _get_file_name(self, current_virtual_path: List[str]) -> str:

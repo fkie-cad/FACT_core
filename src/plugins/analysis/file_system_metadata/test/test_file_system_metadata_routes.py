@@ -20,7 +20,13 @@ def b64_encode(string):
 class DbInterfaceMock:
     def __init__(self):
         self.fw = create_test_firmware()
-        self.fw.processed_analysis[AnalysisPlugin.NAME] = {'files': {b64_encode('some_file'): {'test_result': 'test_value'}}}
+        self.fw.processed_analysis[AnalysisPlugin.NAME] = {
+            'files': {
+                b64_encode('some_file'): {
+                    'test_result': 'test_value'
+                }
+            }
+        }
         self.fo = create_test_file_object()
         self.fo.uid = 'foo'
         self.fo.parents = [self.fw.uid]
@@ -49,7 +55,6 @@ class DbInterfaceMock:
 
 
 class TestFileSystemMetadataRoutesStatic:
-
     def test_get_results_from_parent_fos(self):
         fo = create_test_file_object()
         file_name = 'folder/file'
@@ -107,7 +112,6 @@ class DbMock:
 
 
 class TestFileSystemMetadataRoutes:
-
     def setup(self):
         app = Flask(__name__)
         app.config.from_object(__name__)
@@ -124,7 +128,6 @@ class TestFileSystemMetadataRoutes:
 
 
 class TestFileSystemMetadataRoutesRest(TestCase):
-
     def setUp(self):
         app = Flask(__name__)
         app.config.from_object(__name__)
@@ -136,7 +139,9 @@ class TestFileSystemMetadataRoutesRest(TestCase):
             routes.FSMetadataRoutesRest,
             endpoint,
             methods=methods,
-            resource_class_kwargs={'config': config, 'db': DbMock}
+            resource_class_kwargs={
+                'config': config, 'db': DbMock
+            }
         )
         self.test_client = app.test_client()
 

@@ -22,7 +22,6 @@ except ImportError:
     from decomp import GZDecompressor
     from kernel_config_hardening_check import check_kernel_hardening
 
-
 TEST_DATA_DIR = Path(__file__).parent / 'data'
 
 
@@ -195,7 +194,11 @@ def test_checksec_existing_config():
 
 
 def test_checksec_no_valid_json(monkeypatch):
-    monkeypatch.setattr('plugins.analysis.kernel_config.internal.checksec_check_kernel.subprocess.run', lambda *_, **__: CompletedProcess('DONT_CARE', 0, stdout='invalid json'))
+    monkeypatch.setattr(
+        'plugins.analysis.kernel_config.internal.checksec_check_kernel.subprocess.run',
+        lambda *_,
+        **__: CompletedProcess('DONT_CARE', 0, stdout='invalid json')
+    )
     assert check_kernel_config('no_real_config') == {}
 
 
@@ -214,11 +217,14 @@ def test_check_hardening_no_results():
     assert check_kernel_hardening('CONFIG_FOOBAR=y') == []
 
 
-@pytest.mark.parametrize('full_type, expected_output', [
-    ('foobar 123', False),
-    ('Linux make config build file, ASCII text', True),
-    ('Linux make config build file (old)', True),
-])
+@pytest.mark.parametrize(
+    'full_type, expected_output',
+    [
+        ('foobar 123', False),
+        ('Linux make config build file, ASCII text', True),
+        ('Linux make config build file (old)', True),
+    ]
+)
 def test_foo1(full_type, expected_output):
     test_file = FileObject()
     test_file.processed_analysis['file_type'] = dict(full=full_type)

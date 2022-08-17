@@ -29,14 +29,20 @@ class Unpacker(UnpackBase):
         logging.debug(f'[worker {self.worker_id}] Extracting {current_fo.uid}: Depth: {current_fo.depth}')
 
         if current_fo.depth >= self.config.getint('unpack', 'max-depth'):
-            logging.warning(f"{current_fo.uid} is not extracted since depth limit ({self.config.get('unpack', 'max-depth')}) is reached")
+            logging.warning(
+                f"{current_fo.uid} is not extracted since depth limit ({self.config.get('unpack', 'max-depth')}) is reached"
+            )
             self._store_unpacking_depth_skip_info(current_fo)
             return []
 
-        with TemporaryDirectory(prefix='fact_unpack_', dir=self.config['data-storage']['docker-mount-base-dir']) as tmp_dir:
+        with TemporaryDirectory(
+            prefix='fact_unpack_', dir=self.config['data-storage']['docker-mount-base-dir']
+        ) as tmp_dir:
             file_path = self._generate_local_file_path(current_fo)
             extracted_files = self.extract_files_from_file(file_path, tmp_dir)
-            extracted_file_objects = self.generate_and_store_file_objects(extracted_files, Path(tmp_dir) / 'files', current_fo)
+            extracted_file_objects = self.generate_and_store_file_objects(
+                extracted_files, Path(tmp_dir) / 'files', current_fo
+            )
             extracted_file_objects = self.remove_duplicates(extracted_file_objects, current_fo)
             self.add_included_files_to_object(extracted_file_objects, current_fo)
             # set meta data
@@ -47,10 +53,19 @@ class Unpacker(UnpackBase):
     @staticmethod
     def _store_unpacking_depth_skip_info(file_object: FileObject):
         file_object.processed_analysis['unpacker'] = {
-            'plugin_used': 'None', 'number_of_unpacked_files': 0, 'plugin_version': '0.0', 'analysis_date': time(),
+            'plugin_used': 'None',
+            'number_of_unpacked_files': 0,
+            'plugin_version': '0.0',
+            'analysis_date': time(),
             'info': 'Unpacking stopped because maximum unpacking depth was reached',
         }
-        tag_dict = {'unpacker': {'depth reached': {'value': 'unpacking depth reached', 'color': TagColor.ORANGE, 'propagate': False}}}
+        tag_dict = {
+            'unpacker': {
+                'depth reached': {
+                    'value': 'unpacking depth reached', 'color': TagColor.ORANGE, 'propagate': False
+                }
+            }
+        }
         file_object.analysis_tags.update(tag_dict)
 
     def cleanup(self, tmp_dir):
@@ -70,10 +85,13 @@ class Unpacker(UnpackBase):
             if not file_is_empty(item):
                 current_file = FileObject(file_path=str(item))
                 base = get_base_of_virtual_path(parent.get_virtual_file_paths()[parent.get_root_uid()][0])
-                current_virtual_path = join_virtual_path(base, parent.uid, get_relative_object_path(item, extraction_dir))
+                current_virtual_path = join_virtual_path(
+                    base, parent.uid, get_relative_object_path(item, extraction_dir)
+                )
                 current_file.temporary_data['parent_fo_type'] = get_file_type_from_path(parent.file_path)['mime']
                 if current_file.uid in extracted_files:  # the same file is extracted multiple times from one archive
-                    extracted_files[current_file.uid].virtual_file_path[parent.get_root_uid()].append(current_virtual_path)
+                    extracted_files[current_file.uid].virtual_file_path[parent.get_root_uid()
+                                                                        ].append(current_virtual_path)
                 else:
                     self.unpacking_locks.set_unpacking_lock(current_file.uid)
                     self.file_storage_system.store_file(current_file)

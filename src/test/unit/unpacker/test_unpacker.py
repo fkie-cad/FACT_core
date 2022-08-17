@@ -47,7 +47,6 @@ class TestUnpackerBase(unittest.TestCase):
 
 
 class TestUnpackerCore(TestUnpackerBase):
-
     def test_dont_store_zero_file(self):
         file_paths = [EXTRACTION_DIR / 'zero_byte', EXTRACTION_DIR / 'get_files_test' / 'testfile1']
         file_objects = self.unpacker.generate_and_store_file_objects(file_paths, EXTRACTION_DIR, self.test_fo)

@@ -4,7 +4,6 @@ from ..base import WebInterfaceTest
 
 
 class DbMock(CommonDatabaseMock):
-
     @staticmethod
     def find_missing_analyses():
         return {'root_fw_uid': ['missing_child_uid']}
@@ -15,7 +14,6 @@ class DbMock(CommonDatabaseMock):
 
 
 class TestRestFirmware(WebInterfaceTest):
-
     @classmethod
     def setup_class(cls, *_, **__):
         super().setup_class(db_mock=DbMock)

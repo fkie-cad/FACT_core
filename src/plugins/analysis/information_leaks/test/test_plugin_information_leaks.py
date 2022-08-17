@@ -22,7 +22,9 @@ class TestAnalysisPluginInformationLeaks(AnalysisPluginTest):
         self.analysis_plugin.process_object(fo)
 
         assert 'user_paths' in fo.processed_analysis[self.PLUGIN_NAME]
-        assert fo.processed_analysis[self.PLUGIN_NAME]['user_paths'] == ['/home/user/test/urandom', '/home/user/urandom']
+        assert fo.processed_analysis[self.PLUGIN_NAME]['user_paths'] == [
+            '/home/user/test/urandom', '/home/user/urandom'
+        ]
 
         assert 'www_path' in fo.processed_analysis[self.PLUGIN_NAME]
         assert fo.processed_analysis[self.PLUGIN_NAME]['www_path'] == ['/var/www/tmp/me_']
@@ -39,16 +41,30 @@ class TestAnalysisPluginInformationLeaks(AnalysisPluginTest):
         fo = MockFileObject()
         fo.processed_analysis['file_type'] = {'mime': 'text/plain'}
         fo.virtual_file_path = {
-            1: ['some_uid|/home/user/project/.git/config',
+            1: [
+                'some_uid|/home/user/project/.git/config',
                 'some_uid|/home/user/some_path/.pytest_cache/some_file',
                 'some_uid|/root/some_directory/some_more/.config/Code/User/settings.json',
                 'some_uid|/some_home/some_user/urandom/42/some_file.uvprojx',
                 'some_uid|some_more_uid|/this_home/this_dict/.zsh_history',
                 'some_uid|some_more_uid|/this_home/this_dict/.random_ambiguous_history',
-                'some_uid|home', 'some_uid|', 'some_uid|h654qf"§$%74672', 'some_uid|vuwreivh54r234/',
-                'some_uid|/vr4242fdsg4%%$']}
+                'some_uid|home',
+                'some_uid|',
+                'some_uid|h654qf"§$%74672',
+                'some_uid|vuwreivh54r234/',
+                'some_uid|/vr4242fdsg4%%$'
+            ]
+        }
         self.analysis_plugin.process_object(fo)
-        expected_result = sorted(['git_config', 'pytest_cache_directory', 'vscode_settings',
-                                  'keil_uvision_config', 'zsh_history', 'any_history'])
+        expected_result = sorted(
+            [
+                'git_config',
+                'pytest_cache_directory',
+                'vscode_settings',
+                'keil_uvision_config',
+                'zsh_history',
+                'any_history'
+            ]
+        )
         assert 'summary' in fo.processed_analysis[self.PLUGIN_NAME]
         assert fo.processed_analysis[self.PLUGIN_NAME]['summary'] == expected_result

@@ -31,14 +31,10 @@ class CachedQuery(NamedTuple):
 
 
 class FrontEndDbInterface(DbInterfaceCommon):
-
     def get_last_added_firmwares(self, limit: int = 10) -> List[MetaEntry]:
         with self.get_read_only_session() as session:
             query = select(FirmwareEntry).order_by(FirmwareEntry.submission_date.desc()).limit(limit)
-            return [
-                self._get_meta_for_entry(fw_entry)
-                for fw_entry in session.execute(query).scalars()
-            ]
+            return [self._get_meta_for_entry(fw_entry) for fw_entry in session.execute(query).scalars()]
 
     # --- HID ---
 
@@ -76,8 +72,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
                     FileObjectEntry.size,
                     FileObjectEntry.file_name,
                     FileObjectEntry.virtual_file_paths
-                )
-                .filter(FileObjectEntry.uid.in_(uid_list))
+                ).filter(FileObjectEntry.uid.in_(uid_list))
             )
             nice_list_data = [
                 {
@@ -86,8 +81,10 @@ class FrontEndDbInterface(DbInterfaceCommon):
                     'file_name': file_name,
                     'mime-type': mime_dict.get(uid, 'file-type-plugin/not-run-yet'),
                     'current_virtual_path': self._get_current_vfp(virtual_file_path, root_uid),
-                }
-                for uid, size, file_name, virtual_file_path in session.execute(query)
+                } for uid,
+                size,
+                file_name,
+                virtual_file_path in session.execute(query)
             ]
             self._replace_uids_in_nice_list(nice_list_data, root_uid)
             return nice_list_data
@@ -106,9 +103,10 @@ class FrontEndDbInterface(DbInterfaceCommon):
     def _get_hid_dict(self, uid_set: Set[str], root_uid: str) -> Dict[str, str]:
         with self.get_read_only_session() as session:
             query = (
-                select(FileObjectEntry, FirmwareEntry)
-                .outerjoin(FirmwareEntry, FirmwareEntry.uid == FileObjectEntry.uid)
-                .filter(FileObjectEntry.uid.in_(uid_set))
+                select(FileObjectEntry,
+                       FirmwareEntry).outerjoin(FirmwareEntry, FirmwareEntry.uid == FileObjectEntry.uid).filter(
+                           FileObjectEntry.uid.in_(uid_set)
+                       )
             )
             result = {}
             for fo_entry, fw_entry in session.execute(query):
@@ -159,14 +157,12 @@ class FrontEndDbInterface(DbInterfaceCommon):
             return []
         with self.get_read_only_session() as session:
             query = (
-                select(FirmwareEntry.uid, FirmwareEntry.version)
-                .filter(
+                select(FirmwareEntry.uid, FirmwareEntry.version).filter(
                     FirmwareEntry.vendor == firmware.vendor,
                     FirmwareEntry.device_name == firmware.device_name,
                     FirmwareEntry.device_part == firmware.part,
                     FirmwareEntry.uid != firmware.uid
-                )
-                .order_by(FirmwareEntry.version.asc())
+                ).order_by(FirmwareEntry.version.asc())
             )
             return list(session.execute(query))
 
@@ -182,8 +178,15 @@ class FrontEndDbInterface(DbInterfaceCommon):
 
     # --- generic search ---
 
-    def generic_search(self, search_dict: dict, skip: int = 0, limit: int = 0,
-                       only_fo_parent_firmware: bool = False, inverted: bool = False, as_meta: bool = False):
+    def generic_search(
+        self,
+        search_dict: dict,
+        skip: int = 0,
+        limit: int = 0,
+        only_fo_parent_firmware: bool = False,
+        inverted: bool = False,
+        as_meta: bool = False
+    ):
         with self.get_read_only_session() as session:
             query = build_generic_search_query(search_dict, only_fo_parent_firmware, inverted)
             query = self._apply_offset_and_limit(query, skip, limit)
@@ -218,7 +221,8 @@ class FrontEndDbInterface(DbInterfaceCommon):
     def _get_meta_for_fw(self, entry: FirmwareEntry) -> MetaEntry:
         hid = self._get_hid_for_fw_entry(entry)
         tags = {
-            **{tag: TagColor.GRAY for tag in entry.firmware_tags},
+            **{tag: TagColor.GRAY
+               for tag in entry.firmware_tags},
             self._get_unpacker_name(entry): TagColor.LIGHT_BLUE,
         }
         submission_date = entry.submission_date
@@ -249,8 +253,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
     # --- file tree
 
     def generate_file_tree_nodes_for_uid_list(
-        self, uid_list: List[str], root_uid: str,
-        parent_uid: Optional[str], whitelist: Optional[List[str]] = None
+        self, uid_list: List[str], root_uid: str, parent_uid: Optional[str], whitelist: Optional[List[str]] = None
     ):
         file_tree_data = self.get_file_tree_data(uid_list)
         for entry in file_tree_data:
@@ -258,8 +261,12 @@ class FrontEndDbInterface(DbInterfaceCommon):
                 yield node
 
     def generate_file_tree_level(
-        self, uid: str, root_uid: str,
-        parent_uid: Optional[str] = None, whitelist: Optional[List[str]] = None, data: Optional[FileTreeData] = None
+        self,
+        uid: str,
+        root_uid: str,
+        parent_uid: Optional[str] = None,
+        whitelist: Optional[List[str]] = None,
+        data: Optional[FileTreeData] = None
     ):
         if data is None:
             data = self.get_file_tree_data([uid])[0]
@@ -281,20 +288,20 @@ class FrontEndDbInterface(DbInterfaceCommon):
                     FileObjectEntry.file_name,
                     FileObjectEntry.size,
                     FileObjectEntry.virtual_file_paths,
-                )
-                .filter(FileObjectEntry.uid.in_(uid_list))
+                ).filter(FileObjectEntry.uid.in_(uid_list))
             )
             return [
-                FileTreeData(uid, file_name, size, vfp, type_analyses.get(uid), included_files.get(uid, set()))
-                for uid, file_name, size, vfp in session.execute(query)
+                FileTreeData(uid, file_name, size, vfp, type_analyses.get(uid), included_files.get(uid, set())) for uid,
+                file_name,
+                size,
+                vfp in session.execute(query)
             ]
 
     @staticmethod
     def _get_mime_types_for_uid_list(session, uid_list: List[str]) -> Dict[str, str]:
         type_query = (
-            select(AnalysisEntry.uid, AnalysisEntry.result['mime'])
-            .filter(AnalysisEntry.plugin == 'file_type')
-            .filter(AnalysisEntry.uid.in_(uid_list))
+            select(AnalysisEntry.uid, AnalysisEntry.result['mime']).filter(AnalysisEntry.plugin == 'file_type'
+                                                                           ).filter(AnalysisEntry.uid.in_(uid_list))
         )
         return dict(iter(session.execute(type_query)))
 
@@ -302,10 +309,10 @@ class FrontEndDbInterface(DbInterfaceCommon):
     def _get_included_files_for_uid_list(session, uid_list: List[str]) -> Dict[str, List[str]]:
         included_query = (
             # aggregation `array_agg()` converts multiple rows to an array
-            select(FileObjectEntry.uid, func.array_agg(included_files_table.c.child_uid))
-            .filter(FileObjectEntry.uid.in_(uid_list))
-            .join(included_files_table, included_files_table.c.parent_uid == FileObjectEntry.uid)
-            .group_by(FileObjectEntry)
+            select(FileObjectEntry.uid, func.array_agg(included_files_table.c.child_uid)).filter(
+                FileObjectEntry.uid.in_(uid_list)
+            ).join(included_files_table,
+                   included_files_table.c.parent_uid == FileObjectEntry.uid).group_by(FileObjectEntry)
         )
         return dict(iter(session.execute(included_query)))
 
@@ -349,18 +356,18 @@ class FrontEndDbInterface(DbInterfaceCommon):
     def _query_all_plugins_of_object(query_filter):
         return (
             # array_agg() aggregates different values of field into array
-            select(AnalysisEntry.uid, func.array_agg(AnalysisEntry.plugin))
-            .join(FileObjectEntry, AnalysisEntry.uid == FileObjectEntry.uid)
-            .filter(query_filter)
-            .group_by(AnalysisEntry.uid)
+            select(AnalysisEntry.uid, func.array_agg(
+                AnalysisEntry.plugin
+            )).join(FileObjectEntry,
+                    AnalysisEntry.uid == FileObjectEntry.uid).filter(query_filter).group_by(AnalysisEntry.uid)
         )
 
     def find_failed_analyses(self) -> Dict[str, List[str]]:
         result = {}
         with self.get_read_only_session() as session:
             query = (
-                select(AnalysisEntry.uid, AnalysisEntry.plugin)
-                .filter(AnalysisEntry.result.has_key('failed'))  # noqa: W601
+                select(AnalysisEntry.uid,
+                       AnalysisEntry.plugin).filter(AnalysisEntry.result.has_key('failed'))  # noqa: W601
             )
             for fo_uid, plugin in session.execute(query):
                 result.setdefault(plugin, set()).add(fo_uid)
@@ -398,28 +405,34 @@ class FrontEndDbInterface(DbInterfaceCommon):
             libraries_by_uid = self._get_elf_analysis_libraries(session, fo.files_included)
             query = (
                 select(
-                    FileObjectEntry.uid, FileObjectEntry.file_name, FileObjectEntry.virtual_file_paths,
-                    AnalysisEntry.result['mime'], AnalysisEntry.result['full']
-                )
-                .filter(FileObjectEntry.uid.in_(fo.files_included))
-                .join(AnalysisEntry, AnalysisEntry.uid == FileObjectEntry.uid)
-                .filter(AnalysisEntry.plugin == 'file_type')
+                    FileObjectEntry.uid,
+                    FileObjectEntry.file_name,
+                    FileObjectEntry.virtual_file_paths,
+                    AnalysisEntry.result['mime'],
+                    AnalysisEntry.result['full']
+                ).filter(FileObjectEntry.uid.in_(fo.files_included)
+                         ).join(AnalysisEntry,
+                                AnalysisEntry.uid == FileObjectEntry.uid).filter(AnalysisEntry.plugin == 'file_type')
             )
             return [
-                DepGraphData(uid, file_name, vfp, mime, full_type, libraries_by_uid.get(uid))
-                for uid, file_name, vfp, mime, full_type in session.execute(query)
+                DepGraphData(uid, file_name, vfp, mime, full_type, libraries_by_uid.get(uid)) for uid,
+                file_name,
+                vfp,
+                mime,
+                full_type in session.execute(query)
             ]
 
     @staticmethod
     def _get_elf_analysis_libraries(session, uid_list: List[str]) -> Dict[str, Optional[List[str]]]:
         elf_analysis_query = (
-            select(FileObjectEntry.uid, AnalysisEntry.result)
-            .filter(FileObjectEntry.uid.in_(uid_list))
-            .join(AnalysisEntry, AnalysisEntry.uid == FileObjectEntry.uid)
-            .filter(AnalysisEntry.plugin == 'elf_analysis')
+            select(FileObjectEntry.uid, AnalysisEntry.result).filter(
+                FileObjectEntry.uid.in_(uid_list)
+            ).join(AnalysisEntry,
+                   AnalysisEntry.uid == FileObjectEntry.uid).filter(AnalysisEntry.plugin == 'elf_analysis')
         )
         return {
             uid: elf_analysis_result.get('Output', {}).get('libraries', [])
-            for uid, elf_analysis_result in session.execute(elf_analysis_query)
+            for uid,
+            elf_analysis_result in session.execute(elf_analysis_query)
             if elf_analysis_result is not None
         }

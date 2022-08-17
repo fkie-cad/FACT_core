@@ -99,14 +99,18 @@ def start_single_worker(process_index: int, label: str, function: Callable) -> E
     process = ExceptionSafeProcess(
         target=function,
         name=f'{label}-Worker-{process_index}',
-        args=(process_index,) if process_index is not None else tuple()
+        args=(process_index, ) if process_index is not None else tuple()
     )
     process.start()
     return process
 
 
-def check_worker_exceptions(process_list: List[ExceptionSafeProcess], worker_label: str,
-                            config: Optional[ConfigParser] = None, worker_function: Optional[Callable] = None) -> bool:
+def check_worker_exceptions(
+    process_list: List[ExceptionSafeProcess],
+    worker_label: str,
+    config: Optional[ConfigParser] = None,
+    worker_function: Optional[Callable] = None
+) -> bool:
     '''
     Iterate over the `process_list` and check if exceptions occurred. In case of an exception, the process and its
     children will be terminated. If ``throw_exceptions`` in the FACT configuration is set to `false`, the worker
@@ -132,7 +136,9 @@ def check_worker_exceptions(process_list: List[ExceptionSafeProcess], worker_lab
                 return_value = True
             elif worker_function is not None:
                 process_index = int(worker_process.name.split('-')[-1])
-                logging.warning(color_string(f'restarting {worker_label} {process_index} process', TerminalColors.WARNING))
+                logging.warning(
+                    color_string(f'restarting {worker_label} {process_index} process', TerminalColors.WARNING)
+                )
                 process_list.append(start_single_worker(process_index, worker_label, worker_function))
     return return_value
 

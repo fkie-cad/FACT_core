@@ -6,14 +6,23 @@ from test.unit.web_interface.base import WebInterfaceTest
 
 
 class DbMock(CommonDatabaseMock):
-
     @staticmethod
     def get_comparison_result(comparison_id):
         if comparison_id == normalize_compare_id(';'.join([TEST_FW.uid, TEST_FW_2.uid])):
             return {
                 'this_is': 'a_compare_result',
-                'general': {'hid': {TEST_FW.uid: 'foo', TEST_TEXT_FILE.uid: 'bar'}},
-                'plugins': {'File_Coverage': {'some_feature': {TEST_FW.uid: [TEST_TEXT_FILE.uid]}}},
+                'general': {
+                    'hid': {
+                        TEST_FW.uid: 'foo', TEST_TEXT_FILE.uid: 'bar'
+                    }
+                },
+                'plugins': {
+                    'File_Coverage': {
+                        'some_feature': {
+                            TEST_FW.uid: [TEST_TEXT_FILE.uid]
+                        }
+                    }
+                },
             }
         if comparison_id == normalize_compare_id(';'.join([TEST_FW.uid, TEST_TEXT_FILE.uid])):
             return {'this_is': 'a_compare_result'}
@@ -35,14 +44,17 @@ class DbMock(CommonDatabaseMock):
             return {'date_histogram_data': [['July 2014', 1]]}
         if identifier == 'backend':
             return {
-                'system': {'cpu_percentage': 13.37},
-                'analysis': {'current_analyses': [None, None]},
+                'system': {
+                    'cpu_percentage': 13.37
+                },
+                'analysis': {
+                    'current_analyses': [None, None]
+                },
             }
         return None
 
 
 class TestAppAjaxRoutes(WebInterfaceTest):
-
     @classmethod
     def setup_class(cls, *_, **__):
         super().setup_class(db_mock=DbMock)

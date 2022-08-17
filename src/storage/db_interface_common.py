@@ -22,7 +22,6 @@ Summary = Dict[str, List[str]]
 
 
 class DbInterfaceCommon(ReadOnlyDbInterface):
-
     def exists(self, uid: str) -> bool:
         with self.get_read_only_session() as session:
             query = select(FileObjectEntry.uid).filter(FileObjectEntry.uid == uid)
@@ -42,7 +41,9 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
 
     # ===== Read / SELECT =====
 
-    def get_object(self, uid: str, analysis_filter: Optional[List[str]] = None) -> Optional[Union[FileObject, Firmware]]:
+    def get_object(self,
+                   uid: str,
+                   analysis_filter: Optional[List[str]] = None) -> Optional[Union[FileObject, Firmware]]:
         if self.is_firmware(uid):
             return self.get_firmware(uid, analysis_filter=analysis_filter)
         return self.get_file_object(uid, analysis_filter=analysis_filter)
@@ -66,7 +67,9 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
                 return None
             return file_object_from_entry(fo_entry, analysis_filter=analysis_filter)
 
-    def get_objects_by_uid_list(self, uid_list: List[str], analysis_filter: Optional[List[str]] = None) -> List[FileObject]:
+    def get_objects_by_uid_list(self,
+                                uid_list: List[str],
+                                analysis_filter: Optional[List[str]] = None) -> List[FileObject]:
         with self.get_read_only_session() as session:
             parents_table = aliased(included_files_table, name='parents')
             children_table = aliased(included_files_table, name='children')
@@ -75,24 +78,22 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
                     FileObjectEntry,
                     func.array_agg(parents_table.c.child_uid),
                     func.array_agg(children_table.c.parent_uid),
-                )
-                .filter(FileObjectEntry.uid.in_(uid_list))
+                ).filter(FileObjectEntry.uid.in_(uid_list))
                 # outer join here because objects may not have included files
-                .outerjoin(parents_table, parents_table.c.parent_uid == FileObjectEntry.uid)
-                .join(children_table, children_table.c.child_uid == FileObjectEntry.uid)
-                .group_by(FileObjectEntry)
+                .outerjoin(parents_table, parents_table.c.parent_uid == FileObjectEntry.uid
+                           ).join(children_table,
+                                  children_table.c.child_uid == FileObjectEntry.uid).group_by(FileObjectEntry)
             )
             file_objects = [
-                file_object_from_entry(
-                    fo_entry, analysis_filter, {f for f in included_files if f}, set(parents)
-                )
-                for fo_entry, included_files, parents in session.execute(query)
+                file_object_from_entry(fo_entry, analysis_filter, {f
+                                                                   for f in included_files
+                                                                   if f}, set(parents))
+                for fo_entry,
+                included_files,
+                parents in session.execute(query)
             ]
             fw_query = select(FirmwareEntry).filter(FirmwareEntry.uid.in_(uid_list))
-            firmware = [
-                self._firmware_from_entry(fw_entry)
-                for fw_entry in session.execute(fw_query).scalars()
-            ]
+            firmware = [self._firmware_from_entry(fw_entry) for fw_entry in session.execute(fw_query).scalars()]
             return file_objects + firmware
 
     def _get_analysis_entry(self, uid: str, plugin: str) -> Optional[AnalysisEntry]:
@@ -131,11 +132,7 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
         if not uid_set:
             return set()
         query = select(FileObjectEntry).filter(FileObjectEntry.uid.in_(uid_set))
-        included_files = {
-            child.uid
-            for fo in session.execute(query).scalars()
-            for child in fo.included_files
-        }
+        included_files = {child.uid for fo in session.execute(query).scalars() for child in fo.included_files}
         if recursive and included_files:
             included_files.update(self._get_files_in_files(session, included_files))
         return included_files
@@ -169,10 +166,8 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
     def _collect_summary_from_included_objects(self, fw: Firmware, plugin: str) -> Summary:
         included_files = self.get_all_files_in_fw(fw.uid).union({fw.uid})
         with self.get_read_only_session() as session:
-            query = select(AnalysisEntry.uid, AnalysisEntry.summary).filter(
-                AnalysisEntry.plugin == plugin,
-                AnalysisEntry.uid.in_(included_files)
-            )
+            query = select(AnalysisEntry.uid, AnalysisEntry.summary
+                           ).filter(AnalysisEntry.plugin == plugin, AnalysisEntry.uid.in_(included_files))
             summary = {}
             for uid, summary_list in session.execute(query):  # type: str, List[str]
                 for item in summary_list or []:
@@ -209,10 +204,13 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
         unique_tags = {}
         with self.get_read_only_session() as session:
             query = (
-                select(FileObjectEntry.uid, AnalysisEntry.plugin, AnalysisEntry.tags)
-                .filter(FileObjectEntry.root_firmware.any(uid=uid))
-                .join(AnalysisEntry, FileObjectEntry.uid == AnalysisEntry.uid)
-                .filter(AnalysisEntry.tags != JSONB.NULL, AnalysisEntry.plugin.in_(PLUGINS_WITH_TAG_PROPAGATION))
+                select(FileObjectEntry.uid, AnalysisEntry.plugin,
+                       AnalysisEntry.tags).filter(FileObjectEntry.root_firmware.any(uid=uid)
+                                                  ).join(AnalysisEntry,
+                                                         FileObjectEntry.uid == AnalysisEntry.uid).filter(
+                                                             AnalysisEntry.tags != JSONB.NULL,
+                                                             AnalysisEntry.plugin.in_(PLUGINS_WITH_TAG_PROPAGATION)
+                                                         )
             )
             for _, plugin_name, tags in session.execute(query):
                 for tag_type, tag in tags.items():

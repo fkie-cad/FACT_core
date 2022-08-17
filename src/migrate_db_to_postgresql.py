@@ -63,7 +63,6 @@ class MongoInterface:
 
 
 class MigrationMongoInterface(MongoInterface):
-
     def _setup_database_mapping(self):
         main_database = self.config['data-storage']['main-database']
         self.main = self.client[main_database]
@@ -296,8 +295,10 @@ class DbMigrator:
                 firmware_object = self.mongo.get_object(uid)
                 query = {'_id': {'$in': list(firmware_object.files_included)}}
                 self.migrate_fw(
-                    query, label=firmware_object.file_name,
-                    root_uid=firmware_object.uid if root else root_uid, parent_uid=firmware_object.uid
+                    query,
+                    label=firmware_object.file_name,
+                    root_uid=firmware_object.uid if root else root_uid,
+                    parent_uid=firmware_object.uid
                 )
             else:
                 firmware_object = self.mongo.get_object(uid)
@@ -305,8 +306,7 @@ class DbMigrator:
                 query = {'_id': {'$in': list(firmware_object.files_included)}}
                 root_uid = firmware_object.uid if root else root_uid
                 self.migrate_fw(
-                    query=query, root_uid=root_uid, parent_uid=firmware_object.uid,
-                    label=firmware_object.file_name
+                    query=query, root_uid=root_uid, parent_uid=firmware_object.uid, label=firmware_object.file_name
                 )
                 migrated_fw_count += 1
             self.progress.update(task, advance=1)

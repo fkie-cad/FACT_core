@@ -25,10 +25,7 @@ class RadareAPI:
         return self.api.cmdj('pdfj')
 
     def get_xrefs_to(self, imp):
-        return {
-            int(xref['from'])
-            for xref in self.api.cmdj(f'axtj {imp}')
-        }
+        return {int(xref['from']) for xref in self.api.cmdj(f'axtj {imp}')}
 
     def get_filtered_strings(self, regex):
         result = []
@@ -85,12 +82,14 @@ class RadareAPI:
 
         interrupts = self.get_interrupts(function_list)
         if interrupts:
-            input_vectors.append({
-                'class': 'kernel',
-                'name': 'interrupts',
-                'count': len(interrupts),
-                'xrefs': interrupts,
-            })
+            input_vectors.append(
+                {
+                    'class': 'kernel',
+                    'name': 'interrupts',
+                    'count': len(interrupts),
+                    'xrefs': interrupts,
+                }
+            )
         return input_vectors
 
     def find_input_vectors_of_function(self, function):
@@ -98,11 +97,13 @@ class RadareAPI:
         clean_import = function['name'].replace(self.config['import_prefix'], '')
         for input_class in self.config['input_classes']:
             if self.matches_import(clean_import.lower(), self.config['input_classes'][input_class]):
-                input_vectors.append({
-                    'class': input_class,
-                    'name': clean_import,
-                    'xrefs': [hex(address) for address in self.get_xrefs_to(function['name'])],
-                })
+                input_vectors.append(
+                    {
+                        'class': input_class,
+                        'name': clean_import,
+                        'xrefs': [hex(address) for address in self.get_xrefs_to(function['name'])],
+                    }
+                )
         return input_vectors
 
     def _is_imported_function(self, function):

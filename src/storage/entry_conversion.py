@@ -58,11 +58,7 @@ def _populate_fo_data(
 
 
 def _collect_analysis_tags(analysis_dict: dict) -> dict:
-    return {
-        plugin: plugin_data['tags']
-        for plugin, plugin_data in analysis_dict.items()
-        if 'tags' in plugin_data
-    }
+    return {plugin: plugin_data['tags'] for plugin, plugin_data in analysis_dict.items() if 'tags' in plugin_data}
 
 
 def create_firmware_entry(firmware: Firmware, fo_entry: FileObjectEntry) -> FirmwareEntry:
@@ -81,11 +77,7 @@ def create_firmware_entry(firmware: Firmware, fo_entry: FileObjectEntry) -> Firm
 
 
 def get_analysis_without_meta(analysis_data: dict) -> dict:
-    analysis_without_meta = {
-        key: value
-        for key, value in analysis_data.items()
-        if key not in META_KEYS
-    }
+    analysis_without_meta = {key: value for key, value in analysis_data.items() if key not in META_KEYS}
     sanitize(analysis_without_meta)
     return analysis_without_meta
 
@@ -139,8 +131,8 @@ def create_analysis_entries(file_object: FileObject, fo_backref: FileObjectEntry
             tags=analysis_data.get('tags'),
             result=get_analysis_without_meta(analysis_data),
             file_object=fo_backref,
-        )
-        for plugin_name, analysis_data in file_object.processed_analysis.items()
+        ) for plugin_name,
+        analysis_data in file_object.processed_analysis.items()
     ]
 
 

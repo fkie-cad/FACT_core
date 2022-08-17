@@ -8,7 +8,6 @@ ROUTES_ATTRIBUTE = 'view_routes'
 GET = 'GET'
 POST = 'POST'
 
-
 Route = NamedTuple('Route', [('rule', str), ('methods', Tuple[str, ...])])
 
 

@@ -25,10 +25,7 @@ config_mock = {
 }
 
 
-@pytest.mark.parametrize('input_data, expected_output', [
-    (True, logging.DEBUG),
-    (False, logging.INFO)
-])
+@pytest.mark.parametrize('input_data, expected_output', [(True, logging.DEBUG), (False, logging.INFO)])
 def test_get_console_output_level(input_data, expected_output):
     assert _get_console_output_level(input_data) == expected_output
 

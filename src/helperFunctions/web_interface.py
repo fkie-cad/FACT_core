@@ -26,7 +26,7 @@ def get_color_list(number: int, limit: int = 10) -> List[str]:
     :return: A list of hex color values.
     '''
     color_map = cm.get_cmap('rainbow')
-    color_list = [colors.rgb2hex(color_map(i)) for i in range(32, 256, (256 - 32)//limit)]
+    color_list = [colors.rgb2hex(color_map(i)) for i in range(32, 256, (256 - 32) // limit)]
     return color_list[:min(number, limit)]
 
 

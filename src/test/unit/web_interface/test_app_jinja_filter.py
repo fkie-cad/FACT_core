@@ -7,15 +7,13 @@ from web_interface.components.jinja_filter import FilterClass
 
 
 class TestAppShowAnalysis(WebInterfaceTest):
-
     def setup(self):
         self.filter = FilterClass(self.frontend.app, '', self.config, self.frontend.db)
 
     def _get_template_filter_output(self, data, filter_name):
         with self.frontend.app.test_request_context():
             return render_template_string(
-                f'<html><body><div>{{{{ data | {filter_name} | safe }}}}</div></body></html>',
-                data=data
+                f'<html><body><div>{{{{ data | {filter_name} | safe }}}}</div></body></html>', data=data
             ).replace('\n', '')
 
     def test_filter_replace_uid_with_file_name(self):
@@ -38,4 +36,6 @@ class TestAppShowAnalysis(WebInterfaceTest):
 
     def test_filter_replace_comparison_uid_with_hid(self):
         one_uid = f'{"a" * 64}_1234'
-        assert self.filter._filter_replace_comparison_uid_with_hid(f'{one_uid};{one_uid}') == 'TEST_FW_HID  ||  TEST_FW_HID'
+        assert self.filter._filter_replace_comparison_uid_with_hid(
+            f'{one_uid};{one_uid}'
+        ) == 'TEST_FW_HID  ||  TEST_FW_HID'

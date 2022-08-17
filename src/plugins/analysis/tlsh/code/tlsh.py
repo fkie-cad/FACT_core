@@ -38,8 +38,8 @@ class TLSHInterface(ReadOnlyDbInterface):
     def get_all_tlsh_hashes(self) -> List[Tuple[str, str]]:
         with self.get_read_only_session() as session:
             query = (
-                select(AnalysisEntry.uid, AnalysisEntry.result['tlsh'])
-                .filter(AnalysisEntry.plugin == 'file_hashes')
-                .filter(AnalysisEntry.result['tlsh'] != None)  # noqa: E711  # pylint: disable=singleton-comparison
+                select(AnalysisEntry.uid,
+                       AnalysisEntry.result['tlsh']).filter(AnalysisEntry.plugin == 'file_hashes'
+                                                            ).filter(AnalysisEntry.result['tlsh'] != None)  # noqa: E711  # pylint: disable=singleton-comparison
             )
             return list(session.execute(query))

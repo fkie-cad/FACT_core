@@ -36,11 +36,14 @@ class MockFileObject:
         self.processed_analysis = processed_analysis_list
 
 
-@pytest.mark.parametrize('fo_list, dependencies, expected_output', [
-    ([MockFileObject([])], ['a'], {'a'}),
-    ([MockFileObject(['a'])], ['a'], set()),
-    ([MockFileObject(['a', 'b'])], ['a', 'b', 'c', 'd'], {'c', 'd'}),
-    ([MockFileObject(['b']), MockFileObject(['a'])], ['a', 'b'], {'a', 'b'}),
-])
+@pytest.mark.parametrize(
+    'fo_list, dependencies, expected_output',
+    [
+        ([MockFileObject([])], ['a'], {'a'}),
+        ([MockFileObject(['a'])], ['a'], set()),
+        ([MockFileObject(['a', 'b'])], ['a', 'b', 'c', 'd'], {'c', 'd'}),
+        ([MockFileObject(['b']), MockFileObject(['a'])], ['a', 'b'], {'a', 'b'}),
+    ]
+)
 def test_get_unmatched_dependencies(fo_list, dependencies, expected_output):
     assert _get_unmatched_dependencies(fo_list, dependencies) == expected_output

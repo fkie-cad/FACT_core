@@ -30,9 +30,14 @@ class TestAnalysisStatus:
         assert result['total_files_count'] == 3
 
     def test_add_file_to_current_analyses(self):
-        self.status.currently_running = {'parent_uid': {
-            'files_to_unpack': ['foo'], 'files_to_analyze': ['bar'], 'total_files_count': 2, 'unpacked_files_count': 1,
-        }}
+        self.status.currently_running = {
+            'parent_uid': {
+                'files_to_unpack': ['foo'],
+                'files_to_analyze': ['bar'],
+                'total_files_count': 2,
+                'unpacked_files_count': 1,
+            }
+        }
         fo = FileObject(binary=b'foo')
         fo.parent_firmware_uids = {'parent_uid'}
         fo.files_included = ['bar', 'new']
@@ -46,9 +51,14 @@ class TestAnalysisStatus:
         assert result['total_files_count'] == 3
 
     def test_add_duplicate_file_to_current_analyses(self):
-        self.status.currently_running = {'parent_uid': {
-            'files_to_unpack': ['foo'], 'files_to_analyze': ['duplicate'], 'total_files_count': 2, 'unpacked_files_count': 3,
-        }}
+        self.status.currently_running = {
+            'parent_uid': {
+                'files_to_unpack': ['foo'],
+                'files_to_analyze': ['duplicate'],
+                'total_files_count': 2,
+                'unpacked_files_count': 3,
+            }
+        }
         fo = FileObject(binary=b'foo')
         fo.parent_firmware_uids = {'parent_uid'}
         fo.files_included = ['duplicate']
@@ -59,7 +69,11 @@ class TestAnalysisStatus:
         assert self.status.currently_running['parent_uid']['total_files_count'] == 2
 
     def test_remove_partial_from_current_analyses(self):
-        self.status.currently_running = {'parent_uid': {'files_to_unpack': [], 'files_to_analyze': ['foo', 'bar'], 'analyzed_files_count': 0}}
+        self.status.currently_running = {
+            'parent_uid': {
+                'files_to_unpack': [], 'files_to_analyze': ['foo', 'bar'], 'analyzed_files_count': 0
+            }
+        }
         fo = FileObject(binary=b'foo')
         fo.parent_firmware_uids = {'parent_uid'}
         fo.uid = 'foo'
@@ -78,10 +92,16 @@ class TestAnalysisStatus:
             assert any('Failed to remove' in m for m in caplog.messages)
 
     def test_remove_fully_from_current_analyses(self):
-        self.status.currently_running = {'parent_uid': {
-            'files_to_unpack': [], 'files_to_analyze': ['foo'], 'analyzed_files_count': 1, 'start_time': 0,
-            'total_files_count': 2, 'hid': 'FooBar 1.0',
-        }}
+        self.status.currently_running = {
+            'parent_uid': {
+                'files_to_unpack': [],
+                'files_to_analyze': ['foo'],
+                'analyzed_files_count': 1,
+                'start_time': 0,
+                'total_files_count': 2,
+                'hid': 'FooBar 1.0',
+            }
+        }
         self.status.recently_finished = {}
         fo = FileObject(binary=b'foo')
         fo.parent_firmware_uids = {'parent_uid'}
@@ -92,7 +112,11 @@ class TestAnalysisStatus:
         assert self.status.recently_finished['parent_uid']['total_files_count'] == 2
 
     def test_remove_but_still_unpacking(self):
-        self.status.currently_running = {'parent_uid': {'files_to_unpack': ['bar'], 'files_to_analyze': ['foo'], 'analyzed_files_count': 1}}
+        self.status.currently_running = {
+            'parent_uid': {
+                'files_to_unpack': ['bar'], 'files_to_analyze': ['foo'], 'analyzed_files_count': 1
+            }
+        }
         fo = FileObject(binary=b'foo')
         fo.parent_firmware_uids = {'parent_uid'}
         fo.uid = 'foo'
@@ -103,10 +127,9 @@ class TestAnalysisStatus:
         assert result['parent_uid']['files_to_unpack'] == ['bar']
         assert result['parent_uid']['analyzed_files_count'] == 2
 
-    @pytest.mark.parametrize('time_finished_delay, expected_result', [
-        (0, True),
-        (RECENTLY_FINISHED_DISPLAY_TIME_IN_SEC + 1, False)
-    ])
+    @pytest.mark.parametrize(
+        'time_finished_delay, expected_result', [(0, True), (RECENTLY_FINISHED_DISPLAY_TIME_IN_SEC + 1, False)]
+    )
     def test_clear_recently_finished(self, time_finished_delay, expected_result):
         self.status.recently_finished = {'foo': {'time_finished': time() - time_finished_delay}}
         self.status.clear_recently_finished()

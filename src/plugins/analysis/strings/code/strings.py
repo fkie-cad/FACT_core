@@ -28,8 +28,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
     def _compile_regexes(self) -> List[Tuple[Pattern[bytes], str]]:
         min_length = self._get_min_length_from_config()
         return [
-            (re.compile(regex.replace(b'$len', min_length.encode())), encoding)
-            for regex, encoding in self.STRING_REGEXES
+            (re.compile(regex.replace(b'$len', min_length.encode())), encoding) for regex,
+            encoding in self.STRING_REGEXES
         ]
 
     def _get_min_length_from_config(self):
@@ -55,10 +55,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
     @staticmethod
     def _match_with_offset(regex: Pattern[bytes], source: bytes, encoding: str = 'utf-8') -> List[Tuple[int, str]]:
-        return [
-            (match.start(), match.group().decode(encoding))
-            for match in regex.finditer(source)
-        ]
+        return [(match.start(), match.group().decode(encoding)) for match in regex.finditer(source)]
 
     @staticmethod
     def _get_list_of_unique_strings(strings_with_offset: List[Tuple[int, str]]) -> List[str]:

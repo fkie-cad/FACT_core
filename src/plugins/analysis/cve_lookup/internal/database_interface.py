@@ -14,9 +14,18 @@ except (ImportError, SystemError):
 DB_PATH = str(Path(__file__).parent / 'cve_cpe.db')
 
 CPE_DB_FIELDS = [
-    ('cpe_id', 'TEXT'), ('part', 'TEXT'), ('vendor', 'TEXT'), ('product', 'TEXT'), ('version', 'TEXT'),
-    ('\'update\'', 'TEXT'), ('edition', 'TEXT'), ('language', 'TEXT'), ('sw_edition', 'TEXT'), ('target_sw', 'TEXT'),
-    ('target_hw', 'TEXT'), ('other', 'TEXT'),
+    ('cpe_id', 'TEXT'),
+    ('part', 'TEXT'),
+    ('vendor', 'TEXT'),
+    ('product', 'TEXT'),
+    ('version', 'TEXT'),
+    ('\'update\'', 'TEXT'),
+    ('edition', 'TEXT'),
+    ('language', 'TEXT'),
+    ('sw_edition', 'TEXT'),
+    ('target_sw', 'TEXT'),
+    ('target_hw', 'TEXT'),
+    ('other', 'TEXT'),
 ]
 CVE_DB_FIELDS = [
     ('cve_id', 'TEXT'), ('year', 'INTEGER'), ('cpe_id', 'TEXT'), ('cvss_v2_score', 'TEXT'), ('cvss_v3_score', 'TEXT'),
@@ -33,23 +42,37 @@ TABLE_CREATION_COMMAND = 'CREATE TABLE IF NOT EXISTS {{}} ({})'
 TABLE_INSERT_COMMAND = 'INSERT INTO {{}} ({}) VALUES ({})'
 
 QUERIES = {
-    'cpe_lookup': 'SELECT DISTINCT vendor, product, version FROM cpe_table',
-    'create_cpe_table': TABLE_CREATION_COMMAND.format(get_field_string(CPE_DB_FIELDS)),
-    'create_cve_table': TABLE_CREATION_COMMAND.format(get_field_string(CVE_DB_FIELDS)),
-    'create_summary_table': TABLE_CREATION_COMMAND.format(get_field_string(CVE_SUMMARY_DB_FIELDS)),
-    'cve_lookup': 'SELECT cve_id, vendor, product, version, cvss_v2_score, cvss_v3_score, version_start_including, '
-                  'version_start_excluding, version_end_including, version_end_excluding FROM cve_table',
-    'delete_outdated': 'DELETE FROM {} WHERE cve_id IN (SELECT cve_id FROM {})',
-    'drop': 'DROP TABLE IF EXISTS {}',
-    'exist': 'SELECT name FROM sqlite_master WHERE type=\'table\' AND name=\'{}\'',
-    'extract_relevant': 'SELECT * FROM {} AS new WHERE new.year IN (SELECT distinct(year) FROM {})',
-    'get_years_from_cve': 'SELECT DISTINCT year FROM cve_table',
-    'insert_cpe': TABLE_INSERT_COMMAND.format(get_field_names(CPE_DB_FIELDS), ', '.join(['?'] * len(CPE_DB_FIELDS))),
-    'insert_cve': TABLE_INSERT_COMMAND.format(get_field_names(CVE_DB_FIELDS), ', '.join(['?'] * len(CVE_DB_FIELDS))),
-    'insert_summary': TABLE_INSERT_COMMAND.format(
-        get_field_names(CVE_SUMMARY_DB_FIELDS), ', '.join(['?'] * len(CVE_SUMMARY_DB_FIELDS))),
-    'select_all': 'SELECT * FROM {}',
-    'summary_lookup': 'SELECT cve_id, summary, cvss_v2_score, cvss_v3_score FROM summary_table',
+    'cpe_lookup':
+    'SELECT DISTINCT vendor, product, version FROM cpe_table',
+    'create_cpe_table':
+    TABLE_CREATION_COMMAND.format(get_field_string(CPE_DB_FIELDS)),
+    'create_cve_table':
+    TABLE_CREATION_COMMAND.format(get_field_string(CVE_DB_FIELDS)),
+    'create_summary_table':
+    TABLE_CREATION_COMMAND.format(get_field_string(CVE_SUMMARY_DB_FIELDS)),
+    'cve_lookup':
+    'SELECT cve_id, vendor, product, version, cvss_v2_score, cvss_v3_score, version_start_including, '
+    'version_start_excluding, version_end_including, version_end_excluding FROM cve_table',
+    'delete_outdated':
+    'DELETE FROM {} WHERE cve_id IN (SELECT cve_id FROM {})',
+    'drop':
+    'DROP TABLE IF EXISTS {}',
+    'exist':
+    'SELECT name FROM sqlite_master WHERE type=\'table\' AND name=\'{}\'',
+    'extract_relevant':
+    'SELECT * FROM {} AS new WHERE new.year IN (SELECT distinct(year) FROM {})',
+    'get_years_from_cve':
+    'SELECT DISTINCT year FROM cve_table',
+    'insert_cpe':
+    TABLE_INSERT_COMMAND.format(get_field_names(CPE_DB_FIELDS), ', '.join(['?'] * len(CPE_DB_FIELDS))),
+    'insert_cve':
+    TABLE_INSERT_COMMAND.format(get_field_names(CVE_DB_FIELDS), ', '.join(['?'] * len(CVE_DB_FIELDS))),
+    'insert_summary':
+    TABLE_INSERT_COMMAND.format(get_field_names(CVE_SUMMARY_DB_FIELDS), ', '.join(['?'] * len(CVE_SUMMARY_DB_FIELDS))),
+    'select_all':
+    'SELECT * FROM {}',
+    'summary_lookup':
+    'SELECT cve_id, summary, cvss_v2_score, cvss_v3_score FROM summary_table',
 }
 
 
@@ -57,7 +80,6 @@ class DatabaseInterface:
     '''
     class to provide connections to a sqlite database and allows to operate on it
     '''
-
     def __init__(self, db_path: str = DB_PATH):
         self.connection = None
         try:

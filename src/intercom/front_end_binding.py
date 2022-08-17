@@ -9,7 +9,6 @@ class InterComFrontEndBinding(InterComRedisInterface):
     '''
     Internal Communication FrontEnd Binding
     '''
-
     def add_analysis_task(self, fw):
         self._add_to_redis_queue('analysis_task', fw, fw.uid)
 

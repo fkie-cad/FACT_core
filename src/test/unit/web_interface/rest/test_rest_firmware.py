@@ -34,7 +34,6 @@ class DbMock(CommonDatabaseMock):
 
 
 class TestRestFirmware(WebInterfaceTest):
-
     @classmethod
     def setup_class(cls, *_, **__):
         super().setup_class(db_mock=DbMock)

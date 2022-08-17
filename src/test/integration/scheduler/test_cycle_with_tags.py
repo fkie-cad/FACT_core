@@ -13,7 +13,6 @@ from test.integration.common import initialize_config
 
 
 class TestTagPropagation:
-
     def setup(self):
         self._tmp_dir = TemporaryDirectory()  # pylint: disable=consider-using-with
         self._config = initialize_config(self._tmp_dir)
@@ -25,11 +24,14 @@ class TestTagPropagation:
         unpacking_lock_manager = UnpackingLockManager()
 
         self._analysis_scheduler = AnalysisScheduler(
-            config=self._config, pre_analysis=self.backend_interface.add_object,
-            post_analysis=self.count_analysis_finished_event, unpacking_locks=unpacking_lock_manager
+            config=self._config,
+            pre_analysis=self.backend_interface.add_object,
+            post_analysis=self.count_analysis_finished_event,
+            unpacking_locks=unpacking_lock_manager
         )
         self._unpack_scheduler = UnpackingScheduler(
-            config=self._config, post_unpack=self._analysis_scheduler.start_analysis_of_object,
+            config=self._config,
+            post_unpack=self._analysis_scheduler.start_analysis_of_object,
             unpacking_locks=unpacking_lock_manager
         )
 

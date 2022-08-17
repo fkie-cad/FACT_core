@@ -7,7 +7,6 @@ from common_helper_yara import compile_rules, get_all_matched_strings, scan
 
 
 class SignatureTestingMatching:
-
     def __init__(self):
         self.matches = []
         self.test_file = None
@@ -46,14 +45,10 @@ class SignatureTestingMeta:
     @staticmethod
     def _split_rules(raw_rules: str) -> List[str]:
         rule_lines = raw_rules.splitlines()
-        rule_start_indices = [
-            i
-            for i in range(len(rule_lines))
-            if rule_lines[i].startswith('rule ')
-        ]
+        rule_start_indices = [i for i in range(len(rule_lines)) if rule_lines[i].startswith('rule ')]
         rules = [
-            ''.join(rule_lines[start:end])
-            for start, end in zip(rule_start_indices, rule_start_indices[1:] + [len(rule_lines)])
+            ''.join(rule_lines[start:end]) for start,
+            end in zip(rule_start_indices, rule_start_indices[1:] + [len(rule_lines)])
         ]
         return rules
 

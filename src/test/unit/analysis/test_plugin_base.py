@@ -18,7 +18,6 @@ PLUGIN_PATH = Path(get_src_dir()) / 'plugins' / 'analysis'
 
 
 class TestPluginBase(unittest.TestCase):
-
     @mock.patch('plugins.base.ViewUpdater', lambda *_: None)
     def setUp(self):
         self.config = self.set_up_base_config()
@@ -46,7 +45,6 @@ class TestPluginBase(unittest.TestCase):
 
 
 class TestPluginBaseCore(TestPluginBase):
-
     @mock.patch('plugins.base.ViewUpdater', lambda *_: None)
     def test_attribute_check(self):
         with pytest.raises(PluginInitException):
@@ -62,8 +60,16 @@ class TestPluginBaseCore(TestPluginBase):
         processed_object = self.base_plugin.out_queue.get()
         self.assertEqual(processed_object.uid, root_object.uid, 'uid changed')
         self.assertTrue('dummy_plugin_for_testing_only' in processed_object.processed_analysis, 'object not processed')
-        self.assertEqual(processed_object.processed_analysis['dummy_plugin_for_testing_only']['plugin_version'], '0.0', 'plugin version missing in results')
-        self.assertGreater(processed_object.processed_analysis['dummy_plugin_for_testing_only']['analysis_date'], 1, 'analysis date missing in results')
+        self.assertEqual(
+            processed_object.processed_analysis['dummy_plugin_for_testing_only']['plugin_version'],
+            '0.0',
+            'plugin version missing in results'
+        )
+        self.assertGreater(
+            processed_object.processed_analysis['dummy_plugin_for_testing_only']['analysis_date'],
+            1,
+            'analysis date missing in results'
+        )
 
     def test_object_processing_one_child(self):
         root_object = FileObject(binary=b'root_file')
@@ -76,7 +82,6 @@ class TestPluginBaseCore(TestPluginBase):
 
 
 class TestPluginBaseAddJob(TestPluginBase):
-
     def test_analysis_depth_not_reached_yet(self):
         fo = FileObject(binary=b'test', scheduled_analysis=[])
 
@@ -108,7 +113,6 @@ class TestPluginBaseAddJob(TestPluginBase):
 
 
 class TestPluginBaseOffline:
-
     def test_get_view_file_path(self):
         code_path = PLUGIN_PATH / 'file_type' / 'code' / 'file_type.py'
         expected_view_path = PLUGIN_PATH / 'file_type' / 'view' / 'file_type.html'
@@ -120,7 +124,6 @@ class TestPluginBaseOffline:
 
 
 class TestPluginNotRunning(TestPluginBase):
-
     def setUp(self):
         self.config = self.set_up_base_config()
         self.p_base = None
@@ -132,7 +135,9 @@ class TestPluginNotRunning(TestPluginBase):
     def multithread_config_test(self, multithread_flag, threads_in_config, threads_wanted):
         self.config.set('dummy_plugin_for_testing_only', 'threads', threads_in_config)
         self.p_base = DummyPlugin(self, self.config, no_multithread=multithread_flag)
-        self.assertEqual(self.p_base.config[self.p_base.NAME]['threads'], threads_wanted, 'number of threads not correct')
+        self.assertEqual(
+            self.p_base.config[self.p_base.NAME]['threads'], threads_wanted, 'number of threads not correct'
+        )
         self.p_base.shutdown()
 
     def test_no_multithread(self):
@@ -151,7 +156,6 @@ class TestPluginNotRunning(TestPluginBase):
 
 
 class TestPluginTimeout(TestPluginBase):
-
     def setUp(self):
         self.config = self.set_up_base_config()
         self.p_base = None

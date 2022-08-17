@@ -22,8 +22,17 @@ class TestAnalysisPluginPasswordFileAnalyzer(AnalysisPluginTest):
 
         assert len(results) == 14
         for item in [
-            'vboxadd:unix', 'mongodb:unix', 'clamav:unix', 'pulse:unix', 'johndoe:unix', 'max:htpasswd',
-            'test:mosquitto', 'admin:htpasswd', 'root:unix', 'user:unix', 'user2:unix'
+            'vboxadd:unix',
+            'mongodb:unix',
+            'clamav:unix',
+            'pulse:unix',
+            'johndoe:unix',
+            'max:htpasswd',
+            'test:mosquitto',
+            'admin:htpasswd',
+            'root:unix',
+            'user:unix',
+            'user2:unix'
         ]:
             assert item in results
             assert item in results['summary']
@@ -66,7 +75,10 @@ class TestAnalysisPluginPasswordFileAnalyzer(AnalysisPluginTest):
 
 
 def test_crack_hash_failure():
-    passwd_entry = [b'user', b'$6$Ph+uRn1vmQ+pA7Ka$fcn9/Ln3W6c6oT3o8bWoLPrmTUs+NowcKYa52WFVP5qU5jzadqwSq8F+Q4AAr2qOC+Sk5LlHmisri4Eqx7/uDg==']
+    passwd_entry = [
+        b'user',
+        b'$6$Ph+uRn1vmQ+pA7Ka$fcn9/Ln3W6c6oT3o8bWoLPrmTUs+NowcKYa52WFVP5qU5jzadqwSq8F+Q4AAr2qOC+Sk5LlHmisri4Eqx7/uDg=='
+    ]
     result_entry = {}
     assert crack_hash(b':'.join(passwd_entry[:2]), result_entry) is False
     assert 'ERROR' in result_entry
@@ -80,11 +92,7 @@ def test_crack_hash_success():
     assert result_entry['password'] == '123456'
 
 
-JOHN_FAIL_OUTPUT = (
-    'No password hashes loaded (see FAQ)\n\n'
-    '=== Results: ===\n'
-    '0 password hashes cracked, 0 left'
-)
+JOHN_FAIL_OUTPUT = ('No password hashes loaded (see FAQ)\n\n' '=== Results: ===\n' '0 password hashes cracked, 0 left')
 
 JOHN_SUCCESS_OUTPUT = (
     'Loaded 1 password hash (md5crypt, crypt(3) $1$ (and variants) [MD5 128/128 AVX 4x3])\n'
@@ -99,10 +107,13 @@ JOHN_SUCCESS_OUTPUT = (
 )
 
 
-@pytest.mark.parametrize('john_output, expected_result', [
-    ('', []),
-    (JOHN_FAIL_OUTPUT, ['0 password hashes cracked, 0 left']),
-    (JOHN_SUCCESS_OUTPUT, ['max:dragon', '1 password hash cracked, 0 left']),
-])
+@pytest.mark.parametrize(
+    'john_output, expected_result',
+    [
+        ('', []),
+        (JOHN_FAIL_OUTPUT, ['0 password hashes cracked, 0 left']),
+        (JOHN_SUCCESS_OUTPUT, ['max:dragon', '1 password hash cracked, 0 left']),
+    ]
+)
 def test_parse_output(john_output, expected_result):
     assert parse_john_output(john_output) == expected_result

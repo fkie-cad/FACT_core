@@ -3,21 +3,62 @@ from ipaddress import ip_address
 from analysis.PluginBase import AnalysisBasePlugin
 from helperFunctions.compare_sets import substring_is_in_list
 
-WHITELIST = ['get', 'set', 'post', 'send', 'receive', 'firmware', 'router', 'purenetworks.com', 'tplinkwifi.net',
-             'tplinklogin.net']
+WHITELIST = [
+    'get',
+    'set',
+    'post',
+    'send',
+    'receive',
+    'firmware',
+    'router',
+    'purenetworks.com',
+    'tplinkwifi.net',
+    'tplinklogin.net'
+]
 
-BLACKLIST = ['dict', 'example', 'lighttpd', 'adobe', 'netscape', 'w3', 'haxx.se', 'any.org',
-             'schemas', 'openvpn', 'gnu', 'openssl', 'support', 'itunes', 'github', 'git', 'google',
-             'openwrt', 'wikipedia', 'wiki', 'foo', 'jquery.com', 'showme.com', 'blog', 'forum', 'documentation',
-             'docs', 'purl', 'readme']
+BLACKLIST = [
+    'dict',
+    'example',
+    'lighttpd',
+    'adobe',
+    'netscape',
+    'w3',
+    'haxx.se',
+    'any.org',
+    'schemas',
+    'openvpn',
+    'gnu',
+    'openssl',
+    'support',
+    'itunes',
+    'github',
+    'git',
+    'google',
+    'openwrt',
+    'wikipedia',
+    'wiki',
+    'foo',
+    'jquery.com',
+    'showme.com',
+    'blog',
+    'forum',
+    'documentation',
+    'docs',
+    'purl',
+    'readme'
+]
 
 
 class AnalysisPlugin(AnalysisBasePlugin):
     NAME = 'interesting_uris'
     DEPENDENCIES = ['ip_and_uri_finder']
     MIME_WHITELIST = [
-        'text/plain', 'application/octet-stream', 'application/x-executable', 'application/x-object',
-        'application/x-sharedlib', 'application/x-dosexec'
+        'text/plain',
+        'application/octet-stream',
+        'application/x-executable',
+        'application/x-object',
+        'application/x-sharedlib',
+        'application/x-dosexec'
     ]
     DESCRIPTION = (
         'This plugin filters all URIs identified inside the file based on relevance.'

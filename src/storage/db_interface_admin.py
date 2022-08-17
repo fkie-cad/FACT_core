@@ -9,7 +9,6 @@ from storage.schema import FileObjectEntry
 
 
 class AdminDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
-
     def __init__(self, config, connection: Optional[DbConnection] = None, intercom=None):
         self.intercom = InterComFrontEndBinding(config=config) if intercom is None else intercom
         super().__init__(config, connection=connection or ReadWriteDeleteConnection(config))

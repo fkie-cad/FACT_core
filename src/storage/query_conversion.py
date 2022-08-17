@@ -50,8 +50,12 @@ def query_parent_firmware(search_dict: dict, inverted: bool, count: bool = False
     return select(FirmwareEntry).filter(query_filter).order_by(*FIRMWARE_ORDER)
 
 
-def build_query_from_dict(query_dict: dict, query: Optional[Select] = None,  # pylint: disable=too-complex, too-many-branches
-                          fw_only: bool = False, or_query: bool = False) -> Select:
+def build_query_from_dict(
+    query_dict: dict,
+    query: Optional[Select] = None,  # pylint: disable=too-complex, too-many-branches
+    fw_only: bool = False,
+    or_query: bool = False
+) -> Select:
     '''
     Builds an ``sqlalchemy.orm.Query`` object from a query in dict form.
     '''
@@ -68,7 +72,9 @@ def build_query_from_dict(query_dict: dict, query: Optional[Select] = None,  # p
 
     analysis_search_dict = {key: value for key, value in query_dict.items() if key.startswith('processed_analysis')}
     if analysis_search_dict:
-        query = query.join(AnalysisEntry, AnalysisEntry.uid == (FileObjectEntry.uid if not fw_only else FirmwareEntry.uid))
+        query = query.join(
+            AnalysisEntry, AnalysisEntry.uid == (FileObjectEntry.uid if not fw_only else FirmwareEntry.uid)
+        )
         for key, value in analysis_search_dict.items():
             _, plugin, subkey = key.split('.', maxsplit=2)
             filters.append((_add_analysis_filter_to_query(key, value, subkey)) & (AnalysisEntry.plugin == plugin))
@@ -100,10 +106,7 @@ def build_query_from_dict(query_dict: dict, query: Optional[Select] = None,  # p
 
 
 def get_search_keys_from_dict(query_dict: dict, table, blacklist: List[str] = None) -> Dict[str, Any]:
-    return {
-        key: value for key, value in query_dict.items()
-        if key not in (blacklist or []) and hasattr(table, key)
-    }
+    return {key: value for key, value in query_dict.items() if key not in (blacklist or []) and hasattr(table, key)}
 
 
 def _dict_key_to_filter(column, key: str, value: Any):  # pylint: disable=too-complex,too-many-return-statements

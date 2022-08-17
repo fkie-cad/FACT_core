@@ -79,10 +79,8 @@ def construct_result(file_object):
         if compatible_entry is None:
             continue
 
-        result.update(
-            {
-                compatible_entry: 'DeviceTree',
-            },
-        )
+        result.update({
+            compatible_entry: 'DeviceTree',
+        }, )
 
     return result

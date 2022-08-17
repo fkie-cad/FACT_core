@@ -9,7 +9,6 @@ from web_interface.security.privileges import PRIVILEGES
 
 
 class StatisticRoutes(ComponentBase):
-
     @roles_accepted(*PRIVILEGES['status'])
     @AppRoute('/statistic', GET)
     def show_statistics(self):

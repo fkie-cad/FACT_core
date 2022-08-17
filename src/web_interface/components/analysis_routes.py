@@ -30,7 +30,6 @@ def get_analysis_view(view_name):
 
 
 class AnalysisRoutes(ComponentBase):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.analysis_generic_view = get_analysis_view('generic')
@@ -50,7 +49,9 @@ class AnalysisRoutes(ComponentBase):
             if not file_obj:
                 return render_template('uid_not_found.html', uid=uid)
             if selected_analysis is not None and selected_analysis not in file_obj.processed_analysis:
-                return render_template('error.html', message=f'The requested analysis ({selected_analysis}) has not run (yet)')
+                return render_template(
+                    'error.html', message=f'The requested analysis ({selected_analysis}) has not run (yet)'
+                )
             if isinstance(file_obj, Firmware):
                 root_uid = file_obj.uid
                 other_versions = frontend_db.get_other_versions_of_firmware(file_obj)
@@ -70,8 +71,7 @@ class AnalysisRoutes(ComponentBase):
             user_has_admin_clearance=user_has_privilege(current_user, privilege='delete'),
             known_comparisons=known_comparisons,
             available_plugins=self._get_used_and_unused_plugins(
-                file_obj.processed_analysis,
-                [x for x in analysis_plugins.keys() if x != 'unpacker']
+                file_obj.processed_analysis, [x for x in analysis_plugins.keys() if x != 'unpacker']
             )
         )
 
@@ -93,7 +93,9 @@ class AnalysisRoutes(ComponentBase):
         file_object.force_update = request.form.get('force_update') == 'true'
         with ConnectTo(self.intercom, self._config) as intercom:
             intercom.add_single_file_task(file_object)
-        return redirect(url_for(self.show_analysis.__name__, uid=uid, root_uid=root_uid, selected_analysis=selected_analysis))
+        return redirect(
+            url_for(self.show_analysis.__name__, uid=uid, root_uid=root_uid, selected_analysis=selected_analysis)
+        )
 
     @staticmethod
     def _get_used_and_unused_plugins(processed_analysis: dict, all_plugins: list) -> dict:
@@ -180,26 +182,35 @@ class AnalysisRoutes(ComponentBase):
                 root_uid = frontend_db.get_object(uid).get_root_uid()
             data = frontend_db.get_data_for_dependency_graph(uid)
 
-        whitelist = ['application/x-executable', 'application/x-pie-executable', 'application/x-sharedlib', 'inode/symlink']
+        whitelist = [
+            'application/x-executable', 'application/x-pie-executable', 'application/x-sharedlib', 'inode/symlink'
+        ]
 
         data_graph_part = create_data_graph_nodes_and_groups(data, uid, root_uid, whitelist)
 
         colors = sorted(get_graph_colors(len(data_graph_part['groups'])))
 
         if not data_graph_part['nodes']:
-            flash('Error: Graph could not be rendered. '
-                  'The file chosen as root must contain a filesystem with binaries.', 'danger')
+            flash(
+                'Error: Graph could not be rendered. '
+                'The file chosen as root must contain a filesystem with binaries.',
+                'danger'
+            )
             return render_template('dependency_graph.html', **data_graph_part, uid=uid, root_uid=root_uid)
 
         data_graph, elf_analysis_missing_from_files = create_data_graph_edges(data_graph_part)
 
         if elf_analysis_missing_from_files > 0:
-            flash(f'Warning: Elf analysis plugin result is missing for {elf_analysis_missing_from_files} files', 'warning')
+            flash(
+                f'Warning: Elf analysis plugin result is missing for {elf_analysis_missing_from_files} files',
+                'warning'
+            )
 
         # TODO: Add a loading icon?
         return render_template(
             'dependency_graph.html',
-            **{key: json.dumps(data_graph[key]) for key in ['nodes', 'edges', 'groups']},
+            **{key: json.dumps(data_graph[key])
+               for key in ['nodes', 'edges', 'groups']},
             uid=uid,
             root_uid=root_uid,
             colors=colors

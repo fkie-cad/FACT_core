@@ -12,7 +12,6 @@ GHIDRA_OUTPUT_FILE = 'ghidra_output.json'
 RELEVANT_REFERENCE_TYPES = ['PARAM', 'READ', 'DATA']
 KEY_FILE = 'key_file'
 
-
 if 'ghidra' not in globals():
     logging.error('this script should only run in ghidra')
     ghidra, getCurrentProgram, getMonitor = [None] * 3
@@ -120,9 +119,7 @@ class ReferencedStringFinder:
 
     def get_references_from_addresses(self, address_list):
         return [
-            reference
-            for address in address_list
-            for reference in self.flat_api.getReferencesFrom(address)
+            reference for address in address_list for reference in self.flat_api.getReferencesFrom(address)
             if str(reference.getReferenceType()) in RELEVANT_REFERENCE_TYPES
         ]
 

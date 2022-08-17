@@ -1,4 +1,3 @@
-
 import importlib
 import inspect
 import pkgutil
@@ -30,11 +29,13 @@ class PluginRoutes(ComponentBase):
         if hasattr(module, 'PluginRoutes'):
             module.PluginRoutes(self._app, self._config, db=self.db, intercom=self.intercom)
         for rest_class in [
-            element for element in [getattr(module, attribute) for attribute in dir(module)]
-            if inspect.isclass(element) and issubclass(element, Resource) and element not in [Resource, RestResourceBase]
+            element for element in [getattr(module, attribute) for attribute in dir(module)] if
+            inspect.isclass(element) and issubclass(element, Resource) and element not in [Resource, RestResourceBase]
         ]:
             for endpoint, methods in rest_class.ENDPOINTS:
-                self._api.add_resource(rest_class, endpoint, methods=methods, resource_class_kwargs={'config': self._config})
+                self._api.add_resource(
+                    rest_class, endpoint, methods=methods, resource_class_kwargs={'config': self._config}
+                )
 
 
 def _module_has_routes(plugin, plugin_type):

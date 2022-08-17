@@ -12,7 +12,6 @@ except ImportError:
     sys.path.append(str(Path(__file__).parent.parent / 'internal'))
     from key_parser import read_asn1_key, read_pkcs_cert, read_ssl_cert
 
-
 Match = NamedTuple('Match', [('offset', int), ('label', str), ('matched_string', str)])
 
 
@@ -26,8 +25,15 @@ class AnalysisPlugin(YaraBasePlugin):
     MIME_BLACKLIST = ['filesystem']
     FILE = __file__
 
-    STARTEND = ['PgpPublicKeyBlock', 'PgpPrivateKeyBlock', 'PgpPublicKeyBlock_GnuPG', 'genericPublicKey',
-                'SshRsaPrivateKeyBlock', 'SshEncryptedRsaPrivateKeyBlock', 'SSLPrivateKey']
+    STARTEND = [
+        'PgpPublicKeyBlock',
+        'PgpPrivateKeyBlock',
+        'PgpPublicKeyBlock_GnuPG',
+        'genericPublicKey',
+        'SshRsaPrivateKeyBlock',
+        'SshEncryptedRsaPrivateKeyBlock',
+        'SSLPrivateKey'
+    ]
     STARTONLY = ['SshRsaPublicKeyBlock']
     PKCS8 = 'Pkcs8PrivateKey'
     PKCS12 = 'Pkcs12Certificate'
@@ -72,18 +78,13 @@ class AnalysisPlugin(YaraBasePlugin):
 
     def extract_labeled_keys(self, matches: List[Match], binary, min_key_len=128) -> List[str]:
         return [
-            binary[start:end].decode(encoding='utf_8', errors='replace')
-            for start, end in self.get_offset_pairs(matches)
-            if end - start > min_key_len
+            binary[start:end].decode(encoding='utf_8', errors='replace') for start,
+            end in self.get_offset_pairs(matches) if end - start > min_key_len
         ]
 
     @staticmethod
     def extract_start_only_key(matches: List[Match], **_) -> List[str]:
-        return [
-            match.matched_string
-            for match in matches
-            if match.label == '$start_string'
-        ]
+        return [match.matched_string for match in matches if match.label == '$start_string']
 
     @staticmethod
     def get_pkcs8_key(matches: List[Match], binary=None) -> List[str]:
@@ -148,8 +149,9 @@ def _is_consecutive_pgp_block(matches: List[Match], index: int) -> bool:
 
 def _is_consecutive_encrypted_key(matches: List[Match], index: int) -> bool:
     return (
-        len(matches) > index + 3 and matches[index].label == '$start_string' and matches[index + 1].label == '$proc_type'
-        and matches[index + 2].label == '$dek_info' and matches[index + 3].label == '$end_string'
+        len(matches) > index + 3 and matches[index].label == '$start_string'
+        and matches[index + 1].label == '$proc_type' and matches[index + 2].label == '$dek_info'
+        and matches[index + 3].label == '$end_string'
     )
 
 

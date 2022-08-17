@@ -29,7 +29,9 @@ class AnalysisPlugin(AnalysisBasePlugin):
         logging.debug(result)
         logging.debug(type(result))
         file_object.processed_analysis[self.NAME] = result
-        file_object.processed_analysis[self.NAME]['summary'] = self._get_summary(file_object.processed_analysis[self.NAME])
+        file_object.processed_analysis[self.NAME]['summary'] = self._get_summary(
+            file_object.processed_analysis[self.NAME]
+        )
         return file_object
 
     @staticmethod

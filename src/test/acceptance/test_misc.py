@@ -13,7 +13,6 @@ from test.common_helper import get_test_data_dir
 
 
 class TestAcceptanceMisc(TestAcceptanceBase):
-
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -103,7 +102,10 @@ class TestAcceptanceMisc(TestAcceptanceBase):
             self._upload_firmware_put(fw.path, fw.name, fw.uid)
         self._show_about()
         time.sleep(4)
-        self.workload.update(unpacking_workload=self.unpacking_service.get_scheduled_workload(), analysis_workload=self.analysis_service.get_scheduled_workload())
+        self.workload.update(
+            unpacking_workload=self.unpacking_service.get_scheduled_workload(),
+            analysis_workload=self.analysis_service.get_scheduled_workload()
+        )
         self.analysis_finished_event.wait(timeout=10)
         self._show_system_monitor()
 

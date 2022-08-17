@@ -12,7 +12,6 @@ from test.common_helper import get_test_data_dir
 
 
 class TestRestCompareFirmware(TestAcceptanceBase):
-
     @classmethod
     def setUpClass(cls):
         super().setUpClass()

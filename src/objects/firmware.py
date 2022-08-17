@@ -47,7 +47,6 @@ class Firmware(FileObject):  # pylint: disable=too-many-instance-attributes
     Additionally, each Firmware can hold user-defined tags that may be used in advanced queries to categorize and filter all firmwares present in the database.
     It is important to understand that said tags are **separately stored** from the :attr:`objects.file.FileObject.analysis_tags`, which are propagated by analysis plugins.
     '''
-
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
@@ -141,10 +140,10 @@ class Firmware(FileObject):  # pylint: disable=too-many-instance-attributes
 
     def __str__(self) -> str:
         return (
-                f'{self.get_hid()}\n'
-                f'Processed Analysis: {list(self.processed_analysis.keys())}\n'
-                f'Scheduled Analysis: {self.scheduled_analysis}'
-            )
+            f'{self.get_hid()}\n'
+            f'Processed Analysis: {list(self.processed_analysis.keys())}\n'
+            f'Scheduled Analysis: {self.scheduled_analysis}'
+        )
 
     def __repr__(self) -> str:
         return self.__str__()

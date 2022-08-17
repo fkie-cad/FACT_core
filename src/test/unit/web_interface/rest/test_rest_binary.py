@@ -6,7 +6,6 @@ from ..base import WebInterfaceTest
 
 
 class TestRestBinary(WebInterfaceTest):
-
     def test_bad_requests(self):
         result = self.test_client.get('/rest/binary').data
         assert b'404 Not Found' in result

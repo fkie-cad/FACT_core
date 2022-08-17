@@ -9,7 +9,6 @@ _mips32_v2 = ['CPU_MIPS32_R2']
 _mips32_v5 = ['CPU_MIPS32_R5']
 _mips32_v6 = ['CPU_MIPS32_R6']
 
-
 _mips64_v1 = ['CPU_MIPS64_R1']
 _mips64_v2 = ['CPU_MIPS64_R2']
 _mips64_v5 = ['CPU_MIPS64_R5']

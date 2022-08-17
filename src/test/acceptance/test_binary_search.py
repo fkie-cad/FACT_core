@@ -14,10 +14,7 @@ class TestAcceptanceBinarySearch(TestAcceptanceBaseFullStart):
 
     def _query_page_post_file_query(self):
         rv = self.test_client.post(
-            '/database/binary_search',
-            content_type='multipart/form-data',
-            data=self.query,
-            follow_redirects=True
+            '/database/binary_search', content_type='multipart/form-data', data=self.query, follow_redirects=True
         )
         assert b'testfile2' in rv.data
 
@@ -25,7 +22,9 @@ class TestAcceptanceBinarySearch(TestAcceptanceBaseFullStart):
         rv = self.test_client.post(
             '/database/binary_search',
             content_type='multipart/form-data',
-            data={**self.query, 'only_firmware': 'True'},
+            data={
+                **self.query, 'only_firmware': 'True'
+            },
             follow_redirects=True
         )
         assert self.test_fw_a.name.encode() in rv.data

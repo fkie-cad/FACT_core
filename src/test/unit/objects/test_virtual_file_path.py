@@ -21,7 +21,8 @@ def test_add_file_object_to_file_object():
     root.add_included_file(child_fo)
     grandchild_fo = create_test_file_object(bin_path='get_files_test/testfile2')
     child_fo.add_included_file(grandchild_fo)
-    assert grandchild_fo.virtual_file_path[root.uid][0] == join_virtual_path(root.uid, child_fo.uid, grandchild_fo.file_path)
+    assert grandchild_fo.virtual_file_path[root.uid
+                                           ][0] == join_virtual_path(root.uid, child_fo.uid, grandchild_fo.file_path)
 
 
 def test_add_file_object_path_already_present():

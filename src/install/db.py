@@ -7,8 +7,14 @@ from subprocess import PIPE, CalledProcessError, run
 from helperFunctions.install import InstallationError, OperateInDirectory
 
 CODENAME_TRANSLATION = {
-    'tara': 'bionic', 'tessa': 'bionic', 'tina': 'bionic', 'tricia': 'bionic',
-    'ulyana': 'focal', 'ulyssa': 'focal', 'uma': 'focal', 'una': 'focal',
+    'tara': 'bionic',
+    'tessa': 'bionic',
+    'tina': 'bionic',
+    'tricia': 'bionic',
+    'ulyana': 'focal',
+    'ulyssa': 'focal',
+    'uma': 'focal',
+    'una': 'focal',
 }
 
 

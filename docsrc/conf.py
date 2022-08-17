@@ -12,14 +12,12 @@ from pathlib import Path
 FACT_SRC = Path(__file__).parent.parent / 'src'
 sys.path.insert(0, str(FACT_SRC))
 
-
 # -- Project information -----------------------------------------------------
 
 # pylint: disable=redefined-builtin,invalid-name
 project = 'FACT'
 copyright = '2020-2022  Fraunhofer FKIE'
 author = 'jstucke'
-
 
 # -- General configuration ---------------------------------------------------
 
@@ -37,7 +35,6 @@ templates_path = ['_templates']
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
-
 
 # -- Options for HTML output -------------------------------------------------
 

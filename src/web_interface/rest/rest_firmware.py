@@ -20,19 +20,22 @@ from web_interface.security.privileges import PRIVILEGES
 
 api = Namespace('rest/firmware', description='Query the firmware database or upload a firmware')
 
-
-firmware_model = api.model('Upload Firmware', {
-    'device_name': fields.String(description='Device Name', required=True),
-    'device_part': fields.String(description='Device Part', required=True),
-    'device_class': fields.String(description='Device Class', required=True),
-    'file_name':  fields.String(description='File Name', required=True),
-    'version':  fields.String(description='Version', required=True),
-    'vendor':  fields.String(description='Vendor', required=True),
-    'release_date':  fields.Date(dt_format='iso8601', description='Release Date (ISO 8601)', default='1970-01-01'),
-    'tags':  fields.String(description='Tags'),
-    'requested_analysis_systems': fields.List(description='Selected Analysis Systems', cls_or_instance=fields.String),
-    'binary': fields.String(description='Base64 String Representing the Raw Binary', required=True),
-})
+firmware_model = api.model(
+    'Upload Firmware',
+    {
+        'device_name': fields.String(description='Device Name', required=True),
+        'device_part': fields.String(description='Device Part', required=True),
+        'device_class': fields.String(description='Device Class', required=True),
+        'file_name': fields.String(description='File Name', required=True),
+        'version': fields.String(description='Version', required=True),
+        'vendor': fields.String(description='Vendor', required=True),
+        'release_date': fields.Date(dt_format='iso8601', description='Release Date (ISO 8601)', default='1970-01-01'),
+        'tags': fields.String(description='Tags'),
+        'requested_analysis_systems':
+        fields.List(description='Selected Analysis Systems', cls_or_instance=fields.String),
+        'binary': fields.String(description='Base64 String Representing the Raw Binary', required=True),
+    }
+)
 
 
 @api.route('', doc={'description': ''})
@@ -41,19 +44,31 @@ class RestFirmwareGetWithoutUid(RestResourceBase):
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
     @api.doc(
-        responses={200: 'Success', 400: 'Unknown file object'},
+        responses={
+            200: 'Success', 400: 'Unknown file object'
+        },
         params={
-            'offset': {'description': 'offset of results (paging)', 'in': 'query', 'type': 'int'},
-            'limit': {'description': 'number of results (paging)', 'in': 'query', 'type': 'int'},
-            'query': {'description': 'MongoDB style query', 'in': 'query', 'type': 'dict'},
+            'offset': {
+                'description': 'offset of results (paging)', 'in': 'query', 'type': 'int'
+            },
+            'limit': {
+                'description': 'number of results (paging)', 'in': 'query', 'type': 'int'
+            },
+            'query': {
+                'description': 'MongoDB style query', 'in': 'query', 'type': 'dict'
+            },
             'recursive': {
                 'description': 'Query for parent firmware of matching objects (requires query)',
-                'in': 'query', 'type': 'boolean', 'default': 'false',
+                'in': 'query',
+                'type': 'boolean',
+                'default': 'false',
             },
             'inverted': {
                 'description': 'Query for parent firmware that does not include the matching objects (Requires query '
-                               'and recursive)',
-                'in': 'query', 'type': 'boolean', 'default': 'false',
+                'and recursive)',
+                'in': 'query',
+                'type': 'boolean',
+                'default': 'false',
             },
         }
     )
@@ -127,8 +142,14 @@ class RestFirmwareGetWithUid(RestResourceBase):
 
     @roles_accepted(*PRIVILEGES['view_analysis'])
     @api.doc(
-        responses={200: 'Success', 400: 'Unknown UID'},
-        params={'summary': {'description': 'include summary in result', 'in': 'query', 'type': 'boolean', 'default': 'false'}}
+        responses={
+            200: 'Success', 400: 'Unknown UID'
+        },
+        params={
+            'summary': {
+                'description': 'include summary in result', 'in': 'query', 'type': 'boolean', 'default': 'false'
+            }
+        }
     )
     def get(self, uid):
         '''

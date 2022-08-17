@@ -5,7 +5,6 @@ from test.common_helper import get_test_data_dir
 
 
 class TestObjectsFile:  # pylint: disable=no-self-use
-
     def test_get_file_from_binary(self):
         file_path = f'{get_test_data_dir()}/test_data_file.bin'
         test_object = FileObject(file_path=file_path)
@@ -62,7 +61,9 @@ class TestObjectsFile:  # pylint: disable=no-self-use
     def test_get_one_virtual_path(self):
         fo = FileObject(binary=b'foo')
         assert fo.get_virtual_paths_for_one_uid() == [fo.uid], 'No Path set should be uid'
-        fo.virtual_file_path = {'uid_a': ['test_file_path_a'], 'uid_b': ['test_file_path_b'], 'uid_c': ['test_file_path_c']}
+        fo.virtual_file_path = {
+            'uid_a': ['test_file_path_a'], 'uid_b': ['test_file_path_b'], 'uid_c': ['test_file_path_c']
+        }
         assert fo.get_virtual_paths_for_one_uid() == ['test_file_path_a']
         assert fo.get_virtual_paths_for_one_uid(root_uid='uid_b') == ['test_file_path_b']
         fo.root_uid = 'uid_c'

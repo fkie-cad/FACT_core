@@ -17,7 +17,6 @@ except ImportError:
     from decomp import decompress
     from kernel_config_hardening_check import check_kernel_hardening
 
-
 MAGIC_WORD = b'IKCFG_ST\037\213'
 
 
@@ -39,18 +38,26 @@ class AnalysisPlugin(AnalysisBasePlugin):
     def process_object(self, file_object: FileObject) -> FileObject:
         file_object.processed_analysis[self.NAME] = {}
 
-        if self.object_mime_is_plaintext(file_object) and (self.has_kconfig_type(file_object) or self.probably_kernel_config(file_object.binary)):
+        if self.object_mime_is_plaintext(file_object) and (
+            self.has_kconfig_type(file_object) or self.probably_kernel_config(file_object.binary)
+        ):
             self.add_kernel_config_to_analysis(file_object, file_object.binary)
         elif file_object.file_name == 'configs.ko' or self.object_is_kernel_image(file_object):
             maybe_config = self.try_object_extract_ikconfig(file_object.binary)
             if self.probably_kernel_config(maybe_config):
                 self.add_kernel_config_to_analysis(file_object, maybe_config)
 
-        file_object.processed_analysis[self.NAME]['summary'] = self._get_summary(file_object.processed_analysis[self.NAME])
+        file_object.processed_analysis[self.NAME]['summary'] = self._get_summary(
+            file_object.processed_analysis[self.NAME]
+        )
 
         if 'kernel_config' in file_object.processed_analysis[self.NAME]:
-            file_object.processed_analysis[self.NAME]['checksec'] = check_kernel_config(file_object.processed_analysis[self.NAME]['kernel_config'])
-            file_object.processed_analysis[self.NAME]['hardening'] = check_kernel_hardening(file_object.processed_analysis[self.NAME]['kernel_config'])
+            file_object.processed_analysis[self.NAME]['checksec'] = check_kernel_config(
+                file_object.processed_analysis[self.NAME]['kernel_config']
+            )
+            file_object.processed_analysis[self.NAME]['hardening'] = check_kernel_hardening(
+                file_object.processed_analysis[self.NAME]['kernel_config']
+            )
 
         return file_object
 

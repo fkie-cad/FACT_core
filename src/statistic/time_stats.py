@@ -7,9 +7,8 @@ from storage.db_interface_stats import Stats
 def build_stats_entry_from_date_query(release_date_stats: List[Tuple[int, int, int]]) -> Stats:
     time_dict = _build_time_dict(release_date_stats)
     return [
-        (f'{_get_month_name(month)} {year}', count)
-        for year in sorted(time_dict)
-        for month, count in sorted(time_dict[year].items())
+        (f'{_get_month_name(month)} {year}', count) for year in sorted(time_dict) for month,
+        count in sorted(time_dict[year].items())
     ]
 
 

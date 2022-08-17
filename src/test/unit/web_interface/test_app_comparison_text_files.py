@@ -5,7 +5,6 @@ from test.unit.web_interface.base import WebInterfaceTest
 
 
 class MockInterCom(CommonIntercomMock):
-
     @staticmethod
     def get_binary_and_filename(uid: str):
         if uid == TEST_TEXT_FILE.uid:
@@ -16,7 +15,6 @@ class MockInterCom(CommonIntercomMock):
 
 
 class DbMock(CommonDatabaseMock):
-
     def get_object(self, uid: str, analysis_filter=None):
         if uid == TEST_TEXT_FILE.uid:
             return TEST_TEXT_FILE
@@ -30,7 +28,6 @@ class DbMock(CommonDatabaseMock):
 
 
 class TestAppComparisonTextFiles(WebInterfaceTest):
-
     @classmethod
     def setup_class(cls, *_, **__):
         super().setup_class(db_mock=DbMock, intercom_mock=MockInterCom)

@@ -6,7 +6,6 @@ from scheduler.task_scheduler import AnalysisTaskScheduler
 
 
 class TestAnalysisScheduling:
-
     class PluginMock:
         def __init__(self, dependencies):
             self.DEPENDENCIES = dependencies
@@ -34,42 +33,51 @@ class TestAnalysisScheduling:
             'p6': self.PluginMock([]),
         }
 
-    @pytest.mark.parametrize('input_data, expected_output', [
-        (set(), set()),
-        ({'p1'}, {'p2', 'p3'}),
-        ({'p3'}, set()),
-        ({'p1', 'p2', 'p3', 'p4'}, {'p5'}),
-    ])
+    @pytest.mark.parametrize(
+        'input_data, expected_output', [
+            (set(), set()),
+            ({'p1'}, {'p2', 'p3'}),
+            ({'p3'}, set()),
+            ({'p1', 'p2', 'p3', 'p4'}, {'p5'}),
+        ]
+    )
     def test_get_cumulative_remaining_dependencies(self, input_data, expected_output):
         self._add_plugins_with_recursive_dependencies()
         result = self.scheduler.get_cumulative_remaining_dependencies(input_data)
         assert result == expected_output
 
-    @pytest.mark.parametrize('input_data, expected_output', [
-        ([], set()),
-        (['p3'], {'p3'}),
-        (['p1'], {'p1', 'p2', 'p3'}),
-        (['p4'], {'p4', 'p5', 'p6'}),
-    ])
+    @pytest.mark.parametrize(
+        'input_data, expected_output', [
+            ([], set()),
+            (['p3'], {'p3'}),
+            (['p1'], {'p1', 'p2', 'p3'}),
+            (['p4'], {'p4', 'p5', 'p6'}),
+        ]
+    )
     def test_add_dependencies_recursively(self, input_data, expected_output):
         self._add_plugins_with_recursive_dependencies()
         result = self.scheduler._add_dependencies_recursively(input_data)
         assert set(result) == expected_output
 
-    @pytest.mark.parametrize('remaining, scheduled, expected_output', [
-        ({}, [], []),
-        ({'no_deps', 'foo', 'bar'}, [], ['no_deps']),
-        ({'foo', 'bar'}, ['no_deps'], ['foo']),
-        ({'bar'}, ['no_deps', 'foo'], ['bar']),
-    ])
+    @pytest.mark.parametrize(
+        'remaining, scheduled, expected_output',
+        [
+            ({}, [], []),
+            ({'no_deps', 'foo', 'bar'}, [], ['no_deps']),
+            ({'foo', 'bar'}, ['no_deps'], ['foo']),
+            ({'bar'}, ['no_deps', 'foo'], ['bar']),
+        ]
+    )
     def test_get_plugins_with_met_dependencies(self, remaining, scheduled, expected_output):
         self._add_plugins()
         assert self.scheduler._get_plugins_with_met_dependencies(remaining, scheduled) == expected_output
 
-    @pytest.mark.parametrize('remaining, scheduled, expected_output', [
-        ({'bar'}, ['no_deps', 'foo'], {'bar'}),
-        ({'foo', 'bar'}, ['no_deps', 'foo'], {'foo', 'bar'}),
-    ])
+    @pytest.mark.parametrize(
+        'remaining, scheduled, expected_output', [
+            ({'bar'}, ['no_deps', 'foo'], {'bar'}),
+            ({'foo', 'bar'}, ['no_deps', 'foo'], {'foo', 'bar'}),
+        ]
+    )
     def test_get_plugins_with_met_dependencies__completed_analyses(self, remaining, scheduled, expected_output):
         self._add_plugins()
         assert set(self.scheduler._get_plugins_with_met_dependencies(remaining, scheduled)) == expected_output

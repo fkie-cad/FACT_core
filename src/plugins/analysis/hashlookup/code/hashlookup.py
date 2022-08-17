@@ -33,10 +33,11 @@ class AnalysisPlugin(AnalysisBasePlugin):
 
         try:
             result = requests.get(
-                f'https://hashlookup.circl.lu/lookup/sha256/{sha2_hash}',
-                headers={'accept': 'application/json'}
+                f'https://hashlookup.circl.lu/lookup/sha256/{sha2_hash}', headers={
+                    'accept': 'application/json'
+                }
             ).json()
-        except (requests.ConnectionError,  json.JSONDecodeError):
+        except (requests.ConnectionError, json.JSONDecodeError):
             logging.error('Failed to connect to circ.lu hashlookup API', exc_info=True)
             result = {}
 

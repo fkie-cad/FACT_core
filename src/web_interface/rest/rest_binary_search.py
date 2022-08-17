@@ -8,12 +8,18 @@ from web_interface.rest.rest_resource_base import RestResourceBase
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
-api = Namespace('rest/binary_search', description='Initiate a binary search on the binary database and fetch the results')
+api = Namespace(
+    'rest/binary_search', description='Initiate a binary search on the binary database and fetch the results'
+)
 
-binary_search_model = api.model('Binary Search', {
-    'rule_file': fields.String(description='YARA rules', required=True),
-    'uid': fields.String(description='Firmware UID (optional)'),
-}, description='Expected value')
+binary_search_model = api.model(
+    'Binary Search',
+    {
+        'rule_file': fields.String(description='YARA rules', required=True),
+        'uid': fields.String(description='Firmware UID (optional)'),
+    },
+    description='Expected value'
+)
 
 
 @api.route('', doc={'description': 'Binary search on all files in the database (or files of a single firmware)'})
@@ -33,8 +39,7 @@ class RestBinarySearchPost(RestResourceBase):
             return error_message('Error in YARA rule file', self.URL, request_data=request.data)
         if payload_data['uid'] and not self.db.frontend.is_firmware(payload_data['uid']):
             return error_message(
-                f'Firmware with UID {payload_data["uid"]} not found in database',
-                self.URL, request_data=request.data
+                f'Firmware with UID {payload_data["uid"]} not found in database', self.URL, request_data=request.data
             )
 
         with ConnectTo(self.intercom, self.config) as intercom:
@@ -51,7 +56,9 @@ class RestBinarySearchPost(RestResourceBase):
     '/<string:search_id>',
     doc={
         'description': 'Get the results of a previously initiated binary search',
-        'params': {'search_id': 'Search ID'},
+        'params': {
+            'search_id': 'Search ID'
+        },
     }
 )
 class RestBinarySearchGet(RestResourceBase):

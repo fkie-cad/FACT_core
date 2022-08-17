@@ -19,8 +19,7 @@ from storage.db_interface_common import DbInterfaceCommon
 
 DOCKER_IMAGE = 'fact/fs_metadata:latest'
 StatResult = NamedTuple(
-    'StatEntry',
-    [('uid', int), ('gid', int), ('mode', int), ('a_time', float), ('c_time', float), ('m_time', float)]
+    'StatEntry', [('uid', int), ('gid', int), ('mode', int), ('a_time', float), ('c_time', float), ('m_time', float)]
 )
 
 
@@ -69,7 +68,8 @@ class AnalysisPlugin(AnalysisBasePlugin):
     def _set_result_propagation_flag(self, file_object: FileObject):
         if 'file_system_metadata' not in file_object.processed_analysis:
             file_object.processed_analysis['file_system_metadata'] = {}
-        file_object.processed_analysis['file_system_metadata']['contained_in_file_system'] = self._parent_has_file_system_metadata(file_object)
+        file_object.processed_analysis['file_system_metadata']['contained_in_file_system'
+                                                               ] = self._parent_has_file_system_metadata(file_object)
 
     def _parent_has_file_system_metadata(self, file_object: FileObject) -> bool:
         if hasattr(file_object, 'temporary_data') and 'parent_fo_type' in file_object.temporary_data:

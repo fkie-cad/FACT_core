@@ -38,7 +38,6 @@ _armv7_multi = [
     'ARCH_MULTI_V7',
 ]
 
-
 # arch/arm64/Kconfig
 # menu 'ARMv8.x architectural features'
 _armv8_1 = [
@@ -74,10 +73,7 @@ _armv8_5 = [
 ]
 
 # arch/arm64/Kconfig
-_arm64 = [
-    'ARM64',
-    '64BIT'
-]
+_arm64 = ['ARM64', '64BIT']
 
 armv4 = _armv4_multi + _armv4t_multi
 armv5 = _armv5_multi

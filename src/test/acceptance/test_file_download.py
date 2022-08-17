@@ -6,7 +6,6 @@ from test.common_helper import create_test_firmware  # pylint: disable=wrong-imp
 
 
 class TestAcceptanceDownloadFile(TestAcceptanceBaseWithDb):
-
     def _show_analysis_page(self, fw):
         rv = self.test_client.get(f'/analysis/{fw.uid}')
         assert fw.uid.encode() in rv.data

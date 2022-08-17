@@ -18,7 +18,6 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
     """
     Statistic module backend interface
     """
-
     def update_statistic(self, identifier: str, content_dict: dict):
         logging.debug(f'Updating {identifier} statistics')
         try:
@@ -98,10 +97,8 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
         """
         with self.get_read_only_session() as session:
             query = (
-                select(key, func.count(key))
-                .filter(AnalysisEntry.plugin == plugin)
-                .filter(key.isnot(None))
-                .group_by(key)
+                select(key,
+                       func.count(key)).filter(AnalysisEntry.plugin == plugin).filter(key.isnot(None)).group_by(key)
             )
             query = self._join_fw_or_fo(query, firmware)
             if self._filter_is_not_empty(q_filter):
@@ -120,12 +117,8 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
         with self.get_read_only_session() as session:
             # jsonb_array_elements() works somewhat like $unwind in MongoDB
             query = (
-                select(
-                    func.jsonb_array_elements(key).label('array_elements'),
-                    func.count('array_elements')
-                )
-                .filter(AnalysisEntry.plugin == plugin)
-                .group_by('array_elements')
+                select(func.jsonb_array_elements(key).label('array_elements'),
+                       func.count('array_elements')).filter(AnalysisEntry.plugin == plugin).group_by('array_elements')
             )
             if self._filter_is_not_empty(q_filter):
                 query = self._join_fw_or_fo(query, is_firmware=False)
@@ -154,16 +147,14 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
         with self.get_read_only_session() as session:
             # unnest (convert array column summary to individual rows) summary entries in a subquery
             subquery = (
-                select(func.unnest(AnalysisEntry.summary).label('arch'), AnalysisEntry.uid)
-                .filter(AnalysisEntry.plugin == 'cpu_architecture')
-                .subquery()
+                select(func.unnest(AnalysisEntry.summary).label('arch'),
+                       AnalysisEntry.uid).filter(AnalysisEntry.plugin == 'cpu_architecture').subquery()
             )
             arch_analysis = aliased(AnalysisEntry, subquery)
             query = (
-                select(column('arch'), func.count('arch'), FirmwareEntry.uid)
-                .select_from(arch_analysis)
-                .join(FileObjectEntry, FileObjectEntry.uid == arch_analysis.uid)
-                .join(FirmwareEntry, FileObjectEntry.root_firmware.any(uid=FirmwareEntry.uid))
+                select(column('arch'), func.count('arch'), FirmwareEntry.uid).select_from(arch_analysis).join(
+                    FileObjectEntry, FileObjectEntry.uid == arch_analysis.uid
+                ).join(FirmwareEntry, FileObjectEntry.root_firmware.any(uid=FirmwareEntry.uid))
                 # group results by root FW so that we get results per FW
                 .group_by('arch', FirmwareEntry.uid)
             )
@@ -176,13 +167,11 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
             unpacker_analysis = aliased(AnalysisEntry)
             key = AnalysisEntry.result['mime']
             query = (
-                select(key, func.count(key))
-                .select_from(unpacker_analysis)
-                .join(AnalysisEntry, AnalysisEntry.uid == unpacker_analysis.uid)
-                .filter(AnalysisEntry.plugin == 'file_type')
-                .filter(unpacker_analysis.plugin == 'unpacker')
-                .filter(unpacker_analysis.summary.any(summary_key))
-                .group_by(key)
+                select(key, func.count(key)).select_from(unpacker_analysis).join(
+                    AnalysisEntry, AnalysisEntry.uid == unpacker_analysis.uid
+                ).filter(AnalysisEntry.plugin == 'file_type'
+                         ).filter(unpacker_analysis.plugin == 'unpacker'
+                                  ).filter(unpacker_analysis.summary.any(summary_key)).group_by(key)
             )
             if self._filter_is_not_empty(q_filter):
                 query = self._join_all(query)
@@ -192,9 +181,8 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
     def get_unpacking_entropy(self, summary_key: str, q_filter: Optional[dict] = None) -> float:
         with self.get_read_only_session() as session:
             query = (
-                select(AnalysisEntry.result['entropy'])
-                .filter(AnalysisEntry.plugin == 'unpacker')
-                .filter(AnalysisEntry.summary.any(summary_key))
+                select(AnalysisEntry.result['entropy']).filter(AnalysisEntry.plugin == 'unpacker'
+                                                               ).filter(AnalysisEntry.summary.any(summary_key))
             )
             if self._filter_is_not_empty(q_filter):
                 query = self._join_all(query)
@@ -204,8 +192,8 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
     def get_used_unpackers(self, q_filter: Optional[dict] = None) -> Stats:
         with self.get_read_only_session() as session:
             query = (
-                select(AnalysisEntry.result['plugin_used'], AnalysisEntry.result['number_of_unpacked_files'])
-                .filter(AnalysisEntry.plugin == 'unpacker')
+                select(AnalysisEntry.result['plugin_used'],
+                       AnalysisEntry.result['number_of_unpacked_files']).filter(AnalysisEntry.plugin == 'unpacker')
             )
             if self._filter_is_not_empty(q_filter):
                 query = self._join_all(query)
@@ -215,9 +203,9 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
     def get_regex_mime_match_count(self, regex: str, q_filter: Optional[dict] = None) -> int:
         with self.get_read_only_session() as session:
             query = (
-                select(func.count(AnalysisEntry.uid))
-                .filter(AnalysisEntry.plugin == 'file_type')
-                .filter(AnalysisEntry.result['full'].astext.regexp_match(regex))
+                select(func.count(AnalysisEntry.uid)
+                       ).filter(AnalysisEntry.plugin == 'file_type'
+                                ).filter(AnalysisEntry.result['full'].astext.regexp_match(regex))
             )
             if self._filter_is_not_empty(q_filter):
                 query = self._join_fw_or_fo(query, is_firmware=False)
@@ -231,8 +219,7 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
                     func.date_part('year', FirmwareEntry.release_date).label('year'),
                     func.date_part('month', FirmwareEntry.release_date).label('month'),
                     func.count(FirmwareEntry.uid),
-                )
-                .group_by('year', 'month')
+                ).group_by('year', 'month')
             )
             if self._filter_is_not_empty(q_filter):
                 query = query.filter_by(**q_filter)
@@ -241,14 +228,14 @@ class StatsUpdateDbInterface(ReadWriteDbInterface):
     def get_software_components(self, q_filter: Optional[dict] = None) -> Stats:
         with self.get_read_only_session() as session:
             subquery = (
-                select(func.jsonb_object_keys(AnalysisEntry.result).label('software'), AnalysisEntry.uid)
-                .filter(AnalysisEntry.plugin == 'software_components')
-                .subquery('subquery')
+                select(func.jsonb_object_keys(AnalysisEntry.result).label('software'),
+                       AnalysisEntry.uid).filter(AnalysisEntry.plugin == 'software_components').subquery('subquery')
             )
             query = (
-                select(subquery.c.software, func.count(subquery.c.software))
-                .filter(subquery.c.software.notin_(['system_version', 'skipped']))
-                .group_by(subquery.c.software)
+                select(subquery.c.software,
+                       func.count(subquery.c.software
+                                  )).filter(subquery.c.software.notin_(['system_version',
+                                                                        'skipped'])).group_by(subquery.c.software)
             )
             if self._filter_is_not_empty(q_filter):
                 query = query.join(FileObjectEntry, FileObjectEntry.uid == subquery.c.uid)
@@ -299,14 +286,13 @@ def _convert_to_tuples(query_result) -> Iterator[Tuple[str, int]]:
 def _avg(values: List[float]) -> float:
     if len(values) == 0:
         return 0
-    return sum(values)/len(values)
+    return sum(values) / len(values)
 
 
 class StatsDbViewer(ReadOnlyDbInterface):
     """
     Statistic module frontend interface
     """
-
     def get_statistic(self, identifier) -> Optional[dict]:
         with self.get_read_only_session() as session:
             entry: StatsEntry = session.get(StatsEntry, identifier)

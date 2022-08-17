@@ -16,54 +16,122 @@ except ImportError:
 
 # contains a NODES list from the CVE 2012-0010 which serves as input for iterate_nodes()
 NODES = [
-    {'operator': 'AND', 'children': [
-        {'operator': 'OR', 'cpe_match': [
-            {'vulnerable': True, 'cpe23Uri': 'cpe:2.3:a:microsoft:ie:6:*:*:*:*:*:*:*'}
-        ]},
-        {'operator': 'OR', 'cpe_match': [
-            {'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o: microsoft:windows_xp:*:sp3:*:*:*:*:*:*'},
-            {'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_xp:-:sp2:x64:*:*:*:*:*'}
-        ]}
-    ]},
-    {'operator': 'AND', 'children': [
-        {'operator': 'OR', 'cpe_match': [
-            {'vulnerable': True, 'cpe23Uri': 'cpe:2.3:a:microsoft:ie:9:*:*:*:*:*:*:*'}
-        ]},
-        {'operator': 'OR', 'cpe_match': [
-            {'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_7:*:*:x64:*:*:*:*:*'},
-            {'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_7:*:*:x86:*:*:*:*:*'},
-            {'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_7:*:sp1:x64:*:*:*:*:*'},
-            {'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_7:*:sp1:x86:*:*:*:*:*'},
-            {'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_vista:*:sp2:*:*:*:*:*:*'},
-            {'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_vista:*:sp2:x64:*:*:*:*:*'},
-            {'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_xp:*:sp3:*:*:*:*:*:*'}
-        ]}
-    ]},
-    {'operator': 'AND', 'children': [
-        {'operator': 'OR', 'cpe_match': [
-            {'vulnerable': True, 'cpe23Uri': 'cpe:2.3:a:microsoft:ie:7:*:*:*:*:*:*:*'}
-        ]},
-        {'operator': 'OR', 'cpe_match': [
-            {'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_vista:*:sp2:*:*:*:*:*:*'},
-            {'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_vista:*:sp2:x64:*:*:*:*:*'},
-            {'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_xp:*:sp3:*:*:*:*:*:*'},
-            {'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_xp:-:sp2:x64:*:*:*:*:*'}
-        ]}
-    ]},
-    {'operator': 'AND', 'children': [
-        {'operator': 'OR', 'cpe_match': [
-            {'vulnerable': True, 'cpe23Uri': 'cpe:2.3:a:microsoft:ie:8:*:*:*:*:*:*:*'}
-        ]},
-        {'operator': 'OR', 'cpe_match': [
-            {'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_7:*:*:x64:*:*:*:*:*'},
-            {'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_7:*:*:x86:*:*:*:*:*'},
-            {'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_7:*:sp1:x64:*:*:*:*:*'},
-            {'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_7:*:sp1:x86:*:*:*:*:*'},
-            {'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_vista:*:sp2:*:*:*:*:*:*'},
-            {'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_vista:*:sp2:x64:*:*:*:*:*'},
-            {'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_xp:*:sp3:*:*:*:*:*:*'}
-        ]}
-    ]}
+    {
+        'operator':
+        'AND',
+        'children': [
+            {
+                'operator': 'OR',
+                'cpe_match': [{
+                    'vulnerable': True, 'cpe23Uri': 'cpe:2.3:a:microsoft:ie:6:*:*:*:*:*:*:*'
+                }]
+            },
+            {
+                'operator':
+                'OR',
+                'cpe_match': [
+                    {
+                        'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o: microsoft:windows_xp:*:sp3:*:*:*:*:*:*'
+                    }, {
+                        'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_xp:-:sp2:x64:*:*:*:*:*'
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        'operator':
+        'AND',
+        'children': [
+            {
+                'operator': 'OR',
+                'cpe_match': [{
+                    'vulnerable': True, 'cpe23Uri': 'cpe:2.3:a:microsoft:ie:9:*:*:*:*:*:*:*'
+                }]
+            },
+            {
+                'operator':
+                'OR',
+                'cpe_match': [
+                    {
+                        'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_7:*:*:x64:*:*:*:*:*'
+                    }, {
+                        'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_7:*:*:x86:*:*:*:*:*'
+                    }, {
+                        'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_7:*:sp1:x64:*:*:*:*:*'
+                    }, {
+                        'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_7:*:sp1:x86:*:*:*:*:*'
+                    }, {
+                        'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_vista:*:sp2:*:*:*:*:*:*'
+                    }, {
+                        'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_vista:*:sp2:x64:*:*:*:*:*'
+                    }, {
+                        'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_xp:*:sp3:*:*:*:*:*:*'
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        'operator':
+        'AND',
+        'children': [
+            {
+                'operator': 'OR',
+                'cpe_match': [{
+                    'vulnerable': True, 'cpe23Uri': 'cpe:2.3:a:microsoft:ie:7:*:*:*:*:*:*:*'
+                }]
+            },
+            {
+                'operator':
+                'OR',
+                'cpe_match': [
+                    {
+                        'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_vista:*:sp2:*:*:*:*:*:*'
+                    }, {
+                        'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_vista:*:sp2:x64:*:*:*:*:*'
+                    }, {
+                        'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_xp:*:sp3:*:*:*:*:*:*'
+                    }, {
+                        'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_xp:-:sp2:x64:*:*:*:*:*'
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        'operator':
+        'AND',
+        'children': [
+            {
+                'operator': 'OR',
+                'cpe_match': [{
+                    'vulnerable': True, 'cpe23Uri': 'cpe:2.3:a:microsoft:ie:8:*:*:*:*:*:*:*'
+                }]
+            },
+            {
+                'operator':
+                'OR',
+                'cpe_match': [
+                    {
+                        'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_7:*:*:x64:*:*:*:*:*'
+                    }, {
+                        'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_7:*:*:x86:*:*:*:*:*'
+                    }, {
+                        'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_7:*:sp1:x64:*:*:*:*:*'
+                    }, {
+                        'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_7:*:sp1:x86:*:*:*:*:*'
+                    }, {
+                        'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_vista:*:sp2:*:*:*:*:*:*'
+                    }, {
+                        'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_vista:*:sp2:x64:*:*:*:*:*'
+                    }, {
+                        'vulnerable': False, 'cpe23Uri': 'cpe:2.3:o:microsoft:windows_xp:*:sp3:*:*:*:*:*:*'
+                    }
+                ]
+            }
+        ]
+    }
 ]
 # contain the expected result from the extract_cve function
 CVE_CPE_LIST = [
@@ -83,17 +151,29 @@ CVE_CPE_LIST = [
     'cpe:2.3:o:microsoft:windows_xp:*:sp2:professional_x64:*:*:*:*:*',
 ]
 
-SUMMARY_EXTRACT_LIST = ['CVE-2018-20229', 'GitLab Community and Enterprise Edition before 11.3.14, '
-                                          '11.4.x before 11.4.12, and 11.5.x before 11.5.5 allows Directory Traversal.',
-                        'CVE-2018-8825', 'Google TensorFlow 1.7 and below is affected by: Buffer Overflow. '
-                                         'The impact is: execute arbitrary code (local).']
+SUMMARY_EXTRACT_LIST = [
+    'CVE-2018-20229',
+    'GitLab Community and Enterprise Edition before 11.3.14, '
+    '11.4.x before 11.4.12, and 11.5.x before 11.5.5 allows Directory Traversal.',
+    'CVE-2018-8825',
+    'Google TensorFlow 1.7 and below is affected by: Buffer Overflow. '
+    'The impact is: execute arbitrary code (local).'
+]
 # contains the expected result from the iterate_node function
-NODE_LIST = ['cpe:2.3:a:microsoft:ie:6:*:*:*:*:*:*:*', 'cpe:2.3:a:microsoft:ie:9:*:*:*:*:*:*:*',
-             'cpe:2.3:a:microsoft:ie:7:*:*:*:*:*:*:*', 'cpe:2.3:a:microsoft:ie:8:*:*:*:*:*:*:*']
+NODE_LIST = [
+    'cpe:2.3:a:microsoft:ie:6:*:*:*:*:*:*:*',
+    'cpe:2.3:a:microsoft:ie:9:*:*:*:*:*:*:*',
+    'cpe:2.3:a:microsoft:ie:7:*:*:*:*:*:*:*',
+    'cpe:2.3:a:microsoft:ie:8:*:*:*:*:*:*:*'
+]
 # contains the expected CPE format string result from the extract_cpe function
-CPE_EXTRACT_LIST = ['cpe:2.3:a:\\$0.99_kindle_books_project:\\$0.99_kindle_books:6:*:*:*:*:android:*:*',
-                    'cpe:2.3:a:1000guess:1000_guess:-:*:*:*:*:*:*:*', 'cpe:2.3:a:1024cms:1024_cms:0.7:*:*:*:*:*:*:*',
-                    'cpe:2.3:a:1024cms:1024_cms:1.2.5:*:*:*:*:*:*:*', 'cpe:2.3:a:1024cms:1024_cms:1.3.1:*:*:*:*:*:*:*']
+CPE_EXTRACT_LIST = [
+    'cpe:2.3:a:\\$0.99_kindle_books_project:\\$0.99_kindle_books:6:*:*:*:*:android:*:*',
+    'cpe:2.3:a:1000guess:1000_guess:-:*:*:*:*:*:*:*',
+    'cpe:2.3:a:1024cms:1024_cms:0.7:*:*:*:*:*:*:*',
+    'cpe:2.3:a:1024cms:1024_cms:1.2.5:*:*:*:*:*:*:*',
+    'cpe:2.3:a:1024cms:1024_cms:1.3.1:*:*:*:*:*:*:*'
+]
 
 DOWNLOAD_DATA_YEAR_INPUT = [2018, 2019]
 
@@ -140,10 +220,13 @@ def test_download_cpe():
 
 
 @pytest.mark.skip(reason='don\'t download each time')
-@pytest.mark.parametrize('url, expected_file', [
-    ('https://nvd.nist.gov/feeds/xml/cpe/dictionary/official-cpe-dictionary_v2.3.xml.zip', data_parsing.CPE_FILE),
-    ('https://nvd.nist.gov/feeds/json/cve/1.0/nvdcve-1.0-modified.json.zip', 'nvdcve-1.0-modified.json'),
-])
+@pytest.mark.parametrize(
+    'url, expected_file',
+    [
+        ('https://nvd.nist.gov/feeds/xml/cpe/dictionary/official-cpe-dictionary_v2.3.xml.zip', data_parsing.CPE_FILE),
+        ('https://nvd.nist.gov/feeds/json/cve/1.0/nvdcve-1.0-modified.json.zip', 'nvdcve-1.0-modified.json'),
+    ]
+)
 def test_iterate_urls(url, expected_file):
     data_parsing.process_url(url, '.')
     assert Path(expected_file).is_file()
@@ -176,4 +259,6 @@ def test_iterate_nodes():
 
 
 def test_extract_cpe():
-    assert CPE_EXTRACT_LIST == data_parsing.extract_cpe(str(Path(__file__).parent / 'test_resources/test_cpe_extract.xml'))
+    assert CPE_EXTRACT_LIST == data_parsing.extract_cpe(
+        str(Path(__file__).parent / 'test_resources/test_cpe_extract.xml')
+    )

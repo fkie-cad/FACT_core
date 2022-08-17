@@ -2,7 +2,17 @@ import logging
 from typing import Set
 
 from sqlalchemy import (
-    BigInteger, Boolean, Column, Date, Float, ForeignKey, Integer, LargeBinary, PrimaryKeyConstraint, Table, event,
+    BigInteger,
+    Boolean,
+    Column,
+    Date,
+    Float,
+    ForeignKey,
+    Integer,
+    LargeBinary,
+    PrimaryKeyConstraint,
+    Table,
+    event,
     select
 )
 from sqlalchemy.dialects.postgresql import ARRAY, CHAR, JSONB, VARCHAR
@@ -29,29 +39,29 @@ class AnalysisEntry(Base):
 
     file_object = relationship('FileObjectEntry', back_populates='analyses')
 
-    __table_args__ = (
-        PrimaryKeyConstraint('uid', 'plugin', name='_analysis_primary_key'),
-    )
+    __table_args__ = (PrimaryKeyConstraint('uid', 'plugin', name='_analysis_primary_key'), )
 
     def __repr__(self) -> str:
         return f'AnalysisEntry({self.uid}, {self.plugin}, {self.plugin_version})'
 
 
 included_files_table = Table(
-    'included_files', Base.metadata,
+    'included_files',
+    Base.metadata,
     Column('parent_uid', UID, ForeignKey('file_object.uid'), primary_key=True),
     Column('child_uid', UID, ForeignKey('file_object.uid'), primary_key=True)
 )
 
 fw_files_table = Table(
-    'fw_files', Base.metadata,
+    'fw_files',
+    Base.metadata,
     Column('root_uid', UID, ForeignKey('file_object.uid'), primary_key=True),
     Column('file_uid', UID, ForeignKey('file_object.uid'), primary_key=True)
 )
 
-
 comparisons_table = Table(
-    'compared_files', Base.metadata,
+    'compared_files',
+    Base.metadata,
     Column('comparison_id', VARCHAR, ForeignKey('comparison.comparison_id'), primary_key=True),
     Column('file_uid', UID, ForeignKey('file_object.uid'), primary_key=True)
 )
