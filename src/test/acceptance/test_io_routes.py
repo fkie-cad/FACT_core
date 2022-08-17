@@ -8,13 +8,13 @@ from test.common_helper import create_test_firmware  # pylint: disable=wrong-imp
 COMPARE_RESULT = {
     'general': {
         'a': {'id1': '<empty>', 'id2': '<empty>'},
-        'b': {'id1': '<empty>', 'id2': '<empty>'}
+        'b': {'id1': '<empty>', 'id2': '<empty>'},
     },
     'plugins': {
         'Ida_Diff_Highlighting': {
-            'idb_binary': 'The IDA database'
+            'idb_binary': 'The IDA database',
         }
-    }
+    },
 }
 
 

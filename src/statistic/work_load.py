@@ -63,7 +63,7 @@ class WorkLoadStatistic:
             'memory_percent': memory_usage.percent,
             'disk_total': disk_usage.total,
             'disk_used': disk_usage.used,
-            'disk_percent': disk_usage.percent
+            'disk_percent': disk_usage.percent,
         }
         return result
 
@@ -75,5 +75,5 @@ class WorkLoadStatistic:
         return {
             'os': operating_system,
             'python': python_version,
-            'fact_version': fact_version
+            'fact_version': fact_version,
         }

@@ -39,7 +39,7 @@ class Compare:
     def compare_objects(self, fo_list):
         return {
             'general': self._create_general_section_dict(fo_list),
-            'plugins': self._execute_compare_plugins(fo_list)
+            'plugins': self._execute_compare_plugins(fo_list),
         }
 
     def _create_general_section_dict(self, object_list):
@@ -91,5 +91,5 @@ class Compare:
     def _execute_compare_plugins(self, fo_list):
         return {
             name: plugin.compare(fo_list)
-            for name, plugin in self.compare_plugins.items()
+            for name, plugin in self.compare_plugins.items(),
         }

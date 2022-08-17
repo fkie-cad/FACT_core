@@ -102,7 +102,7 @@ def build_query_from_dict(query_dict: dict, query: Optional[Select] = None,  # p
 def get_search_keys_from_dict(query_dict: dict, table, blacklist: List[str] = None) -> Dict[str, Any]:
     return {
         key: value for key, value in query_dict.items()
-        if key not in (blacklist or []) and hasattr(table, key)
+        if key not in (blacklist or []) and hasattr(table, key),
     }
 
 

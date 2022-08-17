@@ -20,7 +20,7 @@ class ArgumentMock:
 config_mock = {
     'logging': {
         'logfile': '/tmp/fact_test.log',
-        'loglevel': 'DEBUG'
+        'loglevel': 'DEBUG',
     }
 }
 

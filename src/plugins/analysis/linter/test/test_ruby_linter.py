@@ -10,7 +10,7 @@ MOCK_RESPONSE = '''
     "ruby_engine": "ruby",
     "ruby_version": "2.7.0",
     "ruby_patchlevel": "0",
-    "ruby_platform": "x86_64-linux-gnu"
+    "ruby_platform": "x86_64-linux-gnu",
   },
   "files": [
     {
@@ -28,16 +28,16 @@ MOCK_RESPONSE = '''
             "last_column": 18,
             "length": 13,
             "line": 1,
-            "column": 6
+            "column": 6,
           }
         }
-      ]
+      ],
     }
   ],
   "summary": {
     "offense_count": 1,
     "target_file_count": 1,
-    "inspected_file_count": 1
+    "inspected_file_count": 1,
   }
 }
 '''

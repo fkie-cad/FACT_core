@@ -7,11 +7,11 @@ from objects.file import FileObject
 PATH_REGEX = {
     'user_paths': re.compile(rb'/home/[^%\n \x00]+'),
     'root_path': re.compile(rb'/root/[^%\n \x00]+'),
-    'www_path': re.compile(rb'/var/www/[^\n \x00]+')
+    'www_path': re.compile(rb'/var/www/[^\n \x00]+'),
 }
 
 FILES_REGEX = {
-    'any_history': re.compile(rb'.+_history')
+    'any_history': re.compile(rb'.+_history'),
 }
 
 PATH_ARTIFACT_DICT = {
@@ -43,7 +43,7 @@ PATH_ARTIFACT_DICT = {
 
     '.atsln': 'atmel_studio_config',
     '.cyprj': 'cydesigner_config',
-    '.cywrk': 'cydesigner_config'
+    '.cywrk': 'cydesigner_config',
 }
 
 DIRECTORY_DICT = {
@@ -54,7 +54,7 @@ DIRECTORY_DICT = {
     '.config': 'a_config_directory',
     '.subversion': 'svn_user_settings_directory',
     'subversion': 'svn_settings_directory',
-    '.idea': 'pycharm_config_directory'
+    '.idea': 'pycharm_config_directory',
 }
 
 

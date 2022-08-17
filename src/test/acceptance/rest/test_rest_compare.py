@@ -52,7 +52,7 @@ class TestRestCompareFirmware(TestAcceptanceBase):
             'vendor': 'test_vendor',
             'release_date': '1970-01-01',
             'tags': '',
-            'requested_analysis_systems': ['software_components']
+            'requested_analysis_systems': ['software_components'],
         }
         rv = self.test_client.put('/rest/firmware', json=data, follow_redirects=True)
         assert b'"status": 0' in rv.data, 'rest upload not successful'

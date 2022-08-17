@@ -55,7 +55,7 @@ class StatsUpdater:
                 'number_of_unique_files': self.db.get_count(q_filter=self.match, firmware=False),
                 'total_file_size': self.db.get_sum(FileObjectEntry.size, q_filter=self.match, firmware=False),
                 'average_file_size': self.db.get_avg(FileObjectEntry.size, q_filter=self.match, firmware=False),
-                'creation_time': time()
+                'creation_time': time(),
             }
         benchmark = stats['creation_time'] - self.start_time
         stats['benchmark'] = benchmark
@@ -89,7 +89,7 @@ class StatsUpdater:
             keyword: count
             for keyword in keywords
             for summary_item, count in stats
-            if keyword.lower() in summary_item.lower()
+            if keyword.lower() in summary_item.lower(),
         }
         total = sum(count_dict.values())
         return [(label, count, round(count/total, 5)) for label, count in count_dict.items()]
@@ -111,7 +111,7 @@ class StatsUpdater:
     def get_file_type_stats(self) -> Dict[str, Stats]:
         return {
             label: self.db.count_distinct_in_analysis(AnalysisEntry.result['mime'], 'file_type', firmware=firmware, q_filter=self.match)
-            for label, firmware in [('file_types', False), ('firmware_container', True)]
+            for label, firmware in [('file_types', False), ('firmware_container', True)],
         }
 
     def get_unpacking_stats(self):
@@ -181,7 +181,7 @@ class StatsUpdater:
             key: self.db.count_distinct_values_in_array(
                 AnalysisEntry.result[key], plugin='ip_and_uri_finder', q_filter=self.match
             )
-            for key in ['ips_v4', 'ips_v6', 'uris']
+            for key in ['ips_v4', 'ips_v6', 'uris'],
         }
         self._remove_location_info(ip_stats)
         return ip_stats

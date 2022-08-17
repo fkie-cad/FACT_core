@@ -19,7 +19,7 @@ FILE_THREE_RESULT = {
     'id': '|testgraph|/sbin/file_three',
     'group': 'inode/symlink',
     'full_file_type': 'symbolic link to \'../bin/file_two\'',
-    'linked_libraries': []
+    'linked_libraries': [],
 }
 FILE_TWO_RESULT = {
     'label': '/bin/file_two',
@@ -28,7 +28,7 @@ FILE_TWO_RESULT = {
     'id': '|testgraph|/bin/file_two',
     'group': 'application/x-executable',
     'full_file_type': 'test text',
-    'linked_libraries': ['file_one.so']
+    'linked_libraries': ['file_one.so'],
 }
 FILE_ONE_RESULT = {
     'label': '/lib/file_one.so',
@@ -37,23 +37,23 @@ FILE_ONE_RESULT = {
     'id': '|testgraph|/lib/file_one.so',
     'group': 'application/x-executable',
     'full_file_type': 'test text',
-    'linked_libraries': []
+    'linked_libraries': [],
 }
 
 GRAPH_PART = {
     'nodes': [FILE_ONE_RESULT, FILE_TWO_RESULT],
     'edges': [],
-    'groups': ['application/x-executable']
+    'groups': ['application/x-executable'],
 }
 GRAPH_RES = {
     'nodes': [FILE_ONE_RESULT, FILE_TWO_RESULT],
     'edges': [{'from': '|testgraph|/bin/file_two', 'to': '|testgraph|/lib/file_one.so', 'id': 0}],
-    'groups': ['application/x-executable']
+    'groups': ['application/x-executable'],
 }
 GRAPH_PART_SYMLINK = {
     'nodes': [FILE_ONE_RESULT, FILE_TWO_RESULT, FILE_THREE_RESULT],
     'edges': [],
-    'groups': ['application/x-executable', 'inode/symlink']
+    'groups': ['application/x-executable', 'inode/symlink'],
 }
 GRAPH_RES_SYMLINK = {
     'nodes': [FILE_ONE_RESULT, FILE_TWO_RESULT, FILE_THREE_RESULT],
@@ -61,7 +61,7 @@ GRAPH_RES_SYMLINK = {
         {'from': '|testgraph|/sbin/file_three', 'to': '|testgraph|/bin/file_two', 'id': 0},
         {'from': '|testgraph|/bin/file_two', 'to': '|testgraph|/lib/file_one.so', 'id': 1}
     ],
-    'groups': ['application/x-executable', 'inode/symlink']
+    'groups': ['application/x-executable', 'inode/symlink'],
 }
 WHITELIST = ['application/x-executable', 'application/x-sharedlib', 'inode/symlink']
 

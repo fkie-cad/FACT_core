@@ -19,7 +19,7 @@ api = Namespace('rest/binary', description='Request the binary of a given firmwa
         'description': 'Request a binary by providing the uid of the corresponding object',
         'params': {
             'uid': 'Firmware UID',
-            'tar': {'description': 'Get tar.gz packed contents of target', 'in': 'query', 'type': 'boolean', 'default': 'false'}
+            'tar': {'description': 'Get tar.gz packed contents of target', 'in': 'query', 'type': 'boolean', 'default': 'false'},
         }
     }
 )
@@ -53,6 +53,6 @@ class RestBinary(RestResourceBase):
         response = {
             'binary': standard_b64encode(binary).decode(),
             'file_name': file_name,
-            'SHA256': get_sha256(binary)
+            'SHA256': get_sha256(binary),
         }
         return success_message(response, self.URL, request_data={'uid': uid, 'tar': tar_flag})

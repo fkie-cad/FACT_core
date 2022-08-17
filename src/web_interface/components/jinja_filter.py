@@ -145,7 +145,7 @@ class FilterClass:
         color_list = get_color_list(len(value_list), limit=limit) if color_list is None else color_list
         return {
             'labels': label_list,
-            'datasets': [{'data': value_list, 'backgroundColor': color_list, 'borderColor': '#fff', 'borderWidth': 2}]
+            'datasets': [{'data': value_list, 'backgroundColor': color_list, 'borderColor': '#fff', 'borderWidth': 2}],
         }
 
     def _get_chart_element_count(self):

@@ -24,7 +24,7 @@ def test_do_analysis(monkeypatch):
         'message': 'unused variable \'select\'',
         'line': 88,
         'column': 7,
-        'symbol': 'W211'
+        'symbol': 'W211',
     }
 
 

@@ -233,8 +233,8 @@ def data_to_chart_with_value_percentage_pairs(data, limit=10):  # pylint: disabl
             'percentage': percentage_list,
             'backgroundColor': color_list,
             'borderWidth': 0,
-            'links': links[0] if links else 'null'
-        }]
+            'links': links[0] if links else 'null',
+        }],
     }
     return result
 

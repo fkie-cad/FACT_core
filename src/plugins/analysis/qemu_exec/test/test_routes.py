@@ -28,9 +28,9 @@ class DbInterfaceMock:
                 'error-outside': {'executable': False, 'path': '/some/path', 'results': {'error': 'some error'}},
                 'error-inside': {
                     'executable': False, 'path': '/some/path',
-                    'results': {'some-arch': {'error': 'some error'}}
+                    'results': {'some-arch': {'error': 'some error'}},
                 },
-            }
+            },
         }
 
         self.fo = create_test_file_object()

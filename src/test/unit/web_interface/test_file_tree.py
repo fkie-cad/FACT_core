@@ -12,7 +12,7 @@ from web_interface.file_tree.file_tree_node import FileTreeNode
 
 NON_VIRTUAL_TREE_ROOT = {
     'a_attr': {'href': '/analysis/someUID/ro/someUID'}, 'children': True, 'data': {'uid': 'someUID'}, 'icon': 'pic.png',
-    'li_attr': {'href': '/analysis/someUID/ro/someUID'}, 'text': 'abc'
+    'li_attr': {'href': '/analysis/someUID/ro/someUID'}, 'text': 'abc',
 }
 VIRTUAL_TREE_ROOT = {
     'a_attr': {'href': '#'}, 'children': [NON_VIRTUAL_TREE_ROOT], 'icon': 'pic.png', 'li_attr': {'href': '#'},
@@ -84,7 +84,7 @@ class TestFileTree:  # pylint: disable=no-self-use
 VIRTUAL_PATH_INPUT = {
     'abc': ['|abc|def|ghi|folder_1/folder_2/file'],
     '123': ['|123|456|ghi|folder_1/folder_2/file'],
-    'foo': ['|foo|bar|/dir_a/file_a', '|foo|bar|/dir_a/file_b', '|foo|bar|/dir_a/dir_b/file_c']
+    'foo': ['|foo|bar|/dir_a/file_a', '|foo|bar|/dir_a/file_b', '|foo|bar|/dir_a/dir_b/file_c'],
 }
 
 
@@ -155,5 +155,5 @@ class TestVirtualPathFileTree:
     def _nodes_by_name(file_tree: VirtualPathFileTree) -> Dict[str, FileTreeNode]:
         return {
             node.name: node
-            for node in file_tree.get_file_tree_nodes()
+            for node in file_tree.get_file_tree_nodes(),
         }

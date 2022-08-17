@@ -24,7 +24,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         file_object.processed_analysis[self.NAME] = {
             'cpu architecture': cpu_architecture,
             'modinfo section': modinfo,
-            'kernel configuration': kernel_config
+            'kernel configuration': kernel_config,
         }
 
         # propagate summary to parent objects

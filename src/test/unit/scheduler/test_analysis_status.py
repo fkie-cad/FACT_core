@@ -31,7 +31,7 @@ class TestAnalysisStatus:
 
     def test_add_file_to_current_analyses(self):
         self.status.currently_running = {'parent_uid': {
-            'files_to_unpack': ['foo'], 'files_to_analyze': ['bar'], 'total_files_count': 2, 'unpacked_files_count': 1
+            'files_to_unpack': ['foo'], 'files_to_analyze': ['bar'], 'total_files_count': 2, 'unpacked_files_count': 1,
         }}
         fo = FileObject(binary=b'foo')
         fo.parent_firmware_uids = {'parent_uid'}
@@ -47,7 +47,7 @@ class TestAnalysisStatus:
 
     def test_add_duplicate_file_to_current_analyses(self):
         self.status.currently_running = {'parent_uid': {
-            'files_to_unpack': ['foo'], 'files_to_analyze': ['duplicate'], 'total_files_count': 2, 'unpacked_files_count': 3
+            'files_to_unpack': ['foo'], 'files_to_analyze': ['duplicate'], 'total_files_count': 2, 'unpacked_files_count': 3,
         }}
         fo = FileObject(binary=b'foo')
         fo.parent_firmware_uids = {'parent_uid'}
@@ -80,7 +80,7 @@ class TestAnalysisStatus:
     def test_remove_fully_from_current_analyses(self):
         self.status.currently_running = {'parent_uid': {
             'files_to_unpack': [], 'files_to_analyze': ['foo'], 'analyzed_files_count': 1, 'start_time': 0,
-            'total_files_count': 2, 'hid': 'FooBar 1.0'
+            'total_files_count': 2, 'hid': 'FooBar 1.0',
         }}
         self.status.recently_finished = {}
         fo = FileObject(binary=b'foo')

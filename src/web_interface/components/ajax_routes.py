@@ -122,7 +122,7 @@ class AjaxRoutes(ComponentBase):
         try:
             return {
                 'backend_cpu_percentage': f"{backend_data['system']['cpu_percentage']}%",
-                'number_of_running_analyses': len(backend_data['analysis']['current_analyses'])
+                'number_of_running_analyses': len(backend_data['analysis']['current_analyses']),
             }
         except (KeyError, TypeError):
             return {'backend_cpu_percentage': 'n/a', 'number_of_running_analyses': 'n/a'}

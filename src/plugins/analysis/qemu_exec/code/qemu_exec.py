@@ -213,7 +213,7 @@ def process_qemu_job(file_path: str, arch_suffix: str, root_path: Path, results_
             tmp_dict = {arch_suffix: result}
         results_dict[uid] = {
             'path': file_path,
-            'results': tmp_dict
+            'results': tmp_dict,
         }
 
 

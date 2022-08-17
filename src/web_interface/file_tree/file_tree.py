@@ -65,7 +65,7 @@ def _get_partial_virtual_paths(virtual_path: Dict[str, List[str]], new_root: str
     paths_with_new_root = {
         _get_vpath_relative_to(vpath, new_root)
         for vpath in chain(*virtual_path.values())
-        if new_root in vpath
+        if new_root in vpath,
     }
     if not paths_with_new_root:
         return [f'|{new_root}|']

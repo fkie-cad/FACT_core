@@ -85,7 +85,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
                     'size': size,
                     'file_name': file_name,
                     'mime-type': mime_dict.get(uid, 'file-type-plugin/not-run-yet'),
-                    'current_virtual_path': self._get_current_vfp(virtual_file_path, root_uid)
+                    'current_virtual_path': self._get_current_vfp(virtual_file_path, root_uid),
                 }
                 for uid, size, file_name, virtual_file_path in session.execute(query)
             ]
@@ -219,7 +219,7 @@ class FrontEndDbInterface(DbInterfaceCommon):
         hid = self._get_hid_for_fw_entry(entry)
         tags = {
             **{tag: TagColor.GRAY for tag in entry.firmware_tags},
-            self._get_unpacker_name(entry): TagColor.LIGHT_BLUE
+            self._get_unpacker_name(entry): TagColor.LIGHT_BLUE,
         }
         submission_date = entry.submission_date
         return MetaEntry(entry.uid, hid, tags, submission_date)
@@ -421,5 +421,5 @@ class FrontEndDbInterface(DbInterfaceCommon):
         return {
             uid: elf_analysis_result.get('Output', {}).get('libraries', [])
             for uid, elf_analysis_result in session.execute(elf_analysis_query)
-            if elf_analysis_result is not None
+            if elf_analysis_result is not None,
         }

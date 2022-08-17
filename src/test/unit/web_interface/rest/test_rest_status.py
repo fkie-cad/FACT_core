@@ -4,7 +4,7 @@ from ..base import WebInterfaceTest
 
 BACKEND_STATS = {
     'system': {'cpu_percentage': 13.37},
-    'analysis': {'current_analyses': [None, None]}
+    'analysis': {'current_analyses': [None, None]},
 }
 
 
@@ -29,7 +29,7 @@ class TestRestFirmware(WebInterfaceTest):
         assert result['system_status'] == {
             'backend': BACKEND_STATS,
             'database': None,
-            'frontend': None
+            'frontend': None,
         }
 
     def test_empty_result(self):

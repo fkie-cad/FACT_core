@@ -27,7 +27,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
             logging.error(message)
             file_object.processed_analysis[self.NAME] = {
                 'failed': message,
-                'summary': []
+                'summary': [],
             }
             return file_object
 
@@ -46,11 +46,11 @@ class AnalysisPlugin(AnalysisBasePlugin):
         elif 'message' in result and result['message'] == 'Non existing SHA-256':
             file_object.processed_analysis[self.NAME] = {
                 'message': 'sha256 hash unknown to hashlookup at time of analysis',
-                'summary': []
+                'summary': [],
             }
         else:
             file_object.processed_analysis[self.NAME] = {
                 'failed': 'Unknown error connecting to hashlookup API',
-                'summary': []
+                'summary': [],
             }
         return file_object

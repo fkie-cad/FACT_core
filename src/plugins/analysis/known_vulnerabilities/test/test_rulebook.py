@@ -12,22 +12,22 @@ IPS = {
         'ip_v4': [
             {
                 'address': '1',
-                'location': [12, 13]
+                'location': [12, 13],
             },
             {
                 'address': '2',
-                'location': [22, 12]
+                'location': [22, 12],
             },
             {
                 'address': '3',
-                'location': [-1, 6]
+                'location': [-1, 6],
             },
             {
                 'address': '4',
-                'location': [81, 42]
+                'location': [81, 42],
             },
         ],
-        'uri': ['a', 'b', 'c']
+        'uri': ['a', 'b', 'c'],
     }
 }
 

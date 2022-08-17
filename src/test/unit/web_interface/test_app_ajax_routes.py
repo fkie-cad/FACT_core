@@ -13,7 +13,7 @@ class DbMock(CommonDatabaseMock):
             return {
                 'this_is': 'a_compare_result',
                 'general': {'hid': {TEST_FW.uid: 'foo', TEST_TEXT_FILE.uid: 'bar'}},
-                'plugins': {'File_Coverage': {'some_feature': {TEST_FW.uid: [TEST_TEXT_FILE.uid]}}}
+                'plugins': {'File_Coverage': {'some_feature': {TEST_FW.uid: [TEST_TEXT_FILE.uid]}}},
             }
         if comparison_id == normalize_compare_id(';'.join([TEST_FW.uid, TEST_TEXT_FILE.uid])):
             return {'this_is': 'a_compare_result'}
@@ -29,14 +29,14 @@ class DbMock(CommonDatabaseMock):
                 'total_file_size': 20,
                 'average_firmware_size': 10,
                 'average_file_size': 20,
-                'benchmark': 61
+                'benchmark': 61,
             }
         if identifier == 'release_date':
             return {'date_histogram_data': [['July 2014', 1]]}
         if identifier == 'backend':
             return {
                 'system': {'cpu_percentage': 13.37},
-                'analysis': {'current_analyses': [None, None]}
+                'analysis': {'current_analyses': [None, None]},
             }
         return None
 

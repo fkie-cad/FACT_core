@@ -30,7 +30,7 @@ class TestCweCheckerFunctions(AnalysisPluginTest):
                         "strlen"
                     ]
                 ],
-                "description": "(Use of Potentially Dangerous Function) FUN_00102ef0 (00103042) -> strlen"
+                "description": "(Use of Potentially Dangerous Function) FUN_00102ef0 (00103042) -> strlen",
             }
         ]"""
         result = self.analysis_plugin._parse_cwe_checker_output(test_data)

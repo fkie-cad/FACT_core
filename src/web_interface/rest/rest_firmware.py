@@ -31,7 +31,7 @@ firmware_model = api.model('Upload Firmware', {
     'release_date':  fields.Date(dt_format='iso8601', description='Release Date (ISO 8601)', default='1970-01-01'),
     'tags':  fields.String(description='Tags'),
     'requested_analysis_systems': fields.List(description='Selected Analysis Systems', cls_or_instance=fields.String),
-    'binary': fields.String(description='Base64 String Representing the Raw Binary', required=True)
+    'binary': fields.String(description='Base64 String Representing the Raw Binary', required=True),
 })
 
 
@@ -48,12 +48,12 @@ class RestFirmwareGetWithoutUid(RestResourceBase):
             'query': {'description': 'MongoDB style query', 'in': 'query', 'type': 'dict'},
             'recursive': {
                 'description': 'Query for parent firmware of matching objects (requires query)',
-                'in': 'query', 'type': 'boolean', 'default': 'false'
+                'in': 'query', 'type': 'boolean', 'default': 'false',
             },
             'inverted': {
                 'description': 'Query for parent firmware that does not include the matching objects (Requires query '
                                'and recursive)',
-                'in': 'query', 'type': 'boolean', 'default': 'false'
+                'in': 'query', 'type': 'boolean', 'default': 'false',
             },
         }
     )

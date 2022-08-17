@@ -236,7 +236,7 @@ def test_get_ip_stats(db, stats_updater):
     insert_test_fw(db, 'root_fw', vendor='foobar')
     insert_test_fo(db, 'fo1', parent_fw='root_fw', analysis={
         'ip_and_uri_finder': generate_analysis_entry(analysis_result={
-            'ips_v4': [['1.2.3.4', '123.45, 678.9']], 'ips_v6': [], 'uris': ['https://foo.bar', 'www.example.com']
+            'ips_v4': [['1.2.3.4', '123.45, 678.9']], 'ips_v6': [], 'uris': ['https://foo.bar', 'www.example.com'],
         }),
     })
 

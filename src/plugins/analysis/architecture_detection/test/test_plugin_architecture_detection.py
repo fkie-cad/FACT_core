@@ -16,20 +16,20 @@ _mock_device_tree_analysis = {
             {
                 'device_tree': dts,
             },
-        ]
+        ],
     }
 }
 
 _mock_kernel_config_analysis_mips = {
     'kernel_config': {
         'kernel_config': 'CONFIG_CPU_MIPS32_R2=y\n',
-    }
+    },
 }
 
 _mock_kernel_config_analysis_arm = {
     'kernel_config': {
         'kernel_config': 'CONFIG_CPU_V7=y\n',
-    }
+    },
 }
 
 

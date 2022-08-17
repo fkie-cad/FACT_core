@@ -40,14 +40,14 @@ class TestAppBinarySearch(WebInterfaceTest):
     def test_app_binary_search_post_from_file(self):
         response = self._post_binary_search({
             'file': (BytesIO(b'rule rulename {strings: $a = { 0123456789abcdef } condition: $a }'), 'test_file.txt'),
-            'textarea': ''
+            'textarea': '',
         })
         assert 'test_uid' in response
 
     def test_app_binary_search_post_from_textarea(self):
         response = self._post_binary_search({
             'file': None,
-            'textarea': 'rule rulename {strings: $a = { 0123456789abcdef } condition: $a }'
+            'textarea': 'rule rulename {strings: $a = { 0123456789abcdef } condition: $a }',
         })
         assert 'test_uid' in response
 
@@ -62,14 +62,14 @@ class TestAppBinarySearch(WebInterfaceTest):
     def test_app_binary_search_post_firmware_not_found(self):
         response = self._post_binary_search({
             'file': (BytesIO(b'invalid_rule'), 'test_file.txt'),
-            'textarea': '', 'firmware_uid': 'uid_not_in_db'
+            'textarea': '', 'firmware_uid': 'uid_not_in_db',
         })
         assert 'not found in database' in response
 
     def test_app_binary_search_post_single_firmware(self):
         response = self._post_binary_search({
             'file': None, 'firmware_uid': 'uid_in_db',
-            'textarea': 'rule rulename {strings: $a = { 0123456789abcdef } condition: $a }'
+            'textarea': 'rule rulename {strings: $a = { 0123456789abcdef } condition: $a }',
         })
         assert 'test_uid' in response
 

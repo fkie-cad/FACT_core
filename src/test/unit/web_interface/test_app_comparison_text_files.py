@@ -59,7 +59,7 @@ class TestAppComparisonTextFiles(WebInterfaceTest):
             with tc.session_transaction() as test_session:
                 test_session['uids_for_comparison'] = {
                     TEST_TEXT_FILE.uid: 'file_1_root_uid',
-                    TEST_TEXT_FILE2.uid: 'file_2_root_uid'
+                    TEST_TEXT_FILE2.uid: 'file_2_root_uid',
                 }
                 test_session.modified = True
             return self.test_client.get('/comparison/text_files').data

@@ -27,7 +27,7 @@ class RadareAPI:
     def get_xrefs_to(self, imp):
         return {
             int(xref['from'])
-            for xref in self.api.cmdj(f'axtj {imp}')
+            for xref in self.api.cmdj(f'axtj {imp}'),
         }
 
     def get_filtered_strings(self, regex):
@@ -89,7 +89,7 @@ class RadareAPI:
                 'class': 'kernel',
                 'name': 'interrupts',
                 'count': len(interrupts),
-                'xrefs': interrupts
+                'xrefs': interrupts,
             })
         return input_vectors
 
@@ -101,7 +101,7 @@ class RadareAPI:
                 input_vectors.append({
                     'class': input_class,
                     'name': clean_import,
-                    'xrefs': [hex(address) for address in self.get_xrefs_to(function['name'])]
+                    'xrefs': [hex(address) for address in self.get_xrefs_to(function['name'])],
                 })
         return input_vectors
 
@@ -135,7 +135,7 @@ def get_input_vectors(elf_file):
                 'inputs': input_vectors,
                 'configs': r2_api.get_filtered_strings(re.compile(config['config_regex'])),
                 'domains': r2_api.get_filtered_strings(re.compile(config['domain_regex'])),
-                'url_paths': r2_api.get_possible_url_paths(re.compile(config['config_regex']))
+                'url_paths': r2_api.get_possible_url_paths(re.compile(config['config_regex'])),
             }
         }
 

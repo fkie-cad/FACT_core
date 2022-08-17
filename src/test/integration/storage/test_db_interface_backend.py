@@ -62,7 +62,7 @@ def test_update_duplicate_other_fw(db):
     db_fo = db.frontend.get_object(fo2.uid)
     assert db_fo.virtual_file_path == {
         fw.uid: [fo.virtual_file_path[fw.uid][0]],
-        fw2.uid: [fo2.virtual_file_path[fw2.uid][0]]
+        fw2.uid: [fo2.virtual_file_path[fw2.uid][0]],
     }
     assert db_fo.parents == {fw.uid, fw2.uid}
     assert db_fo.parent_firmware_uids == {fw.uid, fw2.uid}

@@ -11,7 +11,7 @@ MOCK_RESPONSE = '''[
         "endColumn": 30,
         "level": "warning",
         "code": 2166,
-        "message": "Prefer [ p ] || [ q ] as [ p -o q ] is not well defined."
+        "message": "Prefer [ p ] || [ q ] as [ p -o q ] is not well defined.",
     },
     {
         "file": "src/install/pre_install.sh",
@@ -21,7 +21,7 @@ MOCK_RESPONSE = '''[
         "endColumn": 47,
         "level": "warning",
         "code": 2046,
-        "message": "Quote this to prevent word splitting."
+        "message": "Quote this to prevent word splitting.",
     },
     {
         "file": "src/install/pre_install.sh",
@@ -31,7 +31,7 @@ MOCK_RESPONSE = '''[
         "endColumn": 25,
         "level": "info",
         "code": 2086,
-        "message": "Double quote to prevent globbing and word splitting."
+        "message": "Double quote to prevent globbing and word splitting.",
     }
 ]'''
 

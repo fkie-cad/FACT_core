@@ -64,7 +64,7 @@ def _extract_shellcheck_warnings(shellcheck_json):
                 'line': issue['line'],
                 'column': issue['column'],
                 'symbol': str(issue['code']),
-                'message': issue['message']
+                'message': issue['message'],
             })
     return issues
 
@@ -98,7 +98,7 @@ def _luacheck_parse_linter_output(output):
                     'line': int(line_number),
                     'column': _luacheck_get_first_column(columns),
                     'symbol': code,
-                    'message': message
+                    'message': message,
                 })
             else:
                 pass

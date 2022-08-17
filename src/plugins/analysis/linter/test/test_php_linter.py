@@ -6,7 +6,7 @@ from ..internal.linters import run_phpstan
 MOCK_RESPONSE = '''{
   "totals": {
     "errors": 0,
-    "file_errors": 1
+    "file_errors": 1,
   },
   "files": {
     "/app/input.php": {
@@ -15,12 +15,12 @@ MOCK_RESPONSE = '''{
         {
           "message": "Parameter $date of method HelloWorld::sayHello() has invalid type DateTimeImutable.",
           "line": 5,
-          "ignorable": true
+          "ignorable": true,
         }
-      ]
+      ],
     }
   },
-  "errors": []
+  "errors": [],
 }
 '''
 

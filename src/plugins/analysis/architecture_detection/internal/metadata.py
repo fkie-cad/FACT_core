@@ -13,19 +13,19 @@ _architectures = {
     'ESP': ['Tensilica Xtensa'],
     'Alpha': ['Alpha'],
     'M68K': ['m68k', '68020'],
-    'Tilera': ['TILE-Gx', 'TILE64', 'TILEPro']
+    'Tilera': ['TILE-Gx', 'TILE64', 'TILEPro'],
 }
 
 _bitness = {
     '8-bit': ['8-bit'],
     '16-bit': ['16-bit'],
     '32-bit': ['32-bit', 'PE32', 'MIPS32'],
-    '64-bit': ['64-bit', 'aarch64', 'x86-64', 'MIPS64', '80860']
+    '64-bit': ['64-bit', 'aarch64', 'x86-64', 'MIPS64', '80860'],
 }
 
 _endianness = {
     'little endian': ['LSB', '80386', '80486', 'x86'],
-    'big endian': ['MSB']
+    'big endian': ['MSB'],
 }
 
 

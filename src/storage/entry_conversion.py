@@ -48,7 +48,7 @@ def _populate_fo_data(
     file_object.processed_analysis = {
         analysis_entry.plugin: analysis_entry_to_dict(analysis_entry)
         for analysis_entry in fo_entry.analyses
-        if analysis_filter is None or analysis_entry.plugin in analysis_filter
+        if analysis_filter is None or analysis_entry.plugin in analysis_filter,
     }
     file_object.analysis_tags = _collect_analysis_tags(file_object.processed_analysis)
     file_object.comments = fo_entry.comments
@@ -61,7 +61,7 @@ def _collect_analysis_tags(analysis_dict: dict) -> dict:
     return {
         plugin: plugin_data['tags']
         for plugin, plugin_data in analysis_dict.items()
-        if 'tags' in plugin_data
+        if 'tags' in plugin_data,
     }
 
 
@@ -84,7 +84,7 @@ def get_analysis_without_meta(analysis_data: dict) -> dict:
     analysis_without_meta = {
         key: value
         for key, value in analysis_data.items()
-        if key not in META_KEYS
+        if key not in META_KEYS,
     }
     sanitize(analysis_without_meta)
     return analysis_without_meta

@@ -8,7 +8,7 @@ RELATIONS = {
     'lt': lambda x, y: x < y,
     'in': lambda x, y: x in y,
     'reverse_in': lambda x, y: y in x,
-    'intersection': lambda x, y: bool(set(x).intersection(set(y)))
+    'intersection': lambda x, y: bool(set(x).intersection(set(y))),
 }
 
 

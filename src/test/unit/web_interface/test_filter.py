@@ -30,8 +30,8 @@ def test_set_limit_for_data_to_chart():
                     'percentage': [0.89122, 0.10878, 0.00473],
                     'backgroundColor': ['#4062fa', '#f4c069', '#4062fa'],
                     'borderWidth': 0,
-                    'links': 'null'
-                }]
+                    'links': 'null',
+                }],
             }
     ),
     ([()], None)
@@ -347,12 +347,12 @@ def test_replace_cwe_with_link(input_string, expected_result):
             {
                 'cve_id1': {'score2': '6.4', 'score3': 'N/A'},
                 'cve_id4': {'score2': '3.5', 'score3': 'N/A'},
-                'cve_id5': {'score2': '7.4', 'score3': 'N/A'}
+                'cve_id5': {'score2': '7.4', 'score3': 'N/A'},
             },
             {
                 'cve_id5': {'score2': '7.4', 'score3': 'N/A'},
                 'cve_id1': {'score2': '6.4', 'score3': 'N/A'},
-                'cve_id4': {'score2': '3.5', 'score3': 'N/A'}
+                'cve_id4': {'score2': '3.5', 'score3': 'N/A'},
             }
     )
 ])

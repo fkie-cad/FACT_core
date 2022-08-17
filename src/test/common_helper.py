@@ -37,7 +37,7 @@ def create_test_firmware(device_class='Router', device_name='test_router', vendo
     processed_analysis = {
         'dummy': {'summary': ['sum a', 'fw exclusive sum a'], 'content': 'abcd', 'plugin_version': '0', 'analysis_date': 0.0},
         'unpacker': {'plugin_used': 'used_unpack_plugin', 'plugin_version': '1.0', 'analysis_date': 0.0},
-        'file_type': {'mime': 'test_type', 'full': 'Not a PE file', 'summary': ['a summary'], 'plugin_version': '1.0', 'analysis_date': 0.0}
+        'file_type': {'mime': 'test_type', 'full': 'Not a PE file', 'summary': ['a summary'], 'plugin_version': '1.0', 'analysis_date': 0.0},
     }
 
     fw.processed_analysis.update(processed_analysis)
@@ -52,7 +52,7 @@ def create_test_file_object(bin_path='get_files_test/testfile1'):
     processed_analysis = {
         'dummy': {'summary': ['sum a', 'file exclusive sum b'], 'content': 'file abcd', 'plugin_version': '0', 'analysis_date': '0'},
         'file_type': {'full': 'Not a PE file', 'plugin_version': '1.0', 'analysis_date': '0'},
-        'unpacker': {'file_system_flag': False, 'plugin_used': 'unpacker_name', 'plugin_version': '1.0', 'analysis_date': '0'}
+        'unpacker': {'file_system_flag': False, 'plugin_used': 'unpacker_name', 'plugin_version': '1.0', 'analysis_date': '0'},
     }
     fo.processed_analysis.update(processed_analysis)
     fo.virtual_file_path = fo.get_virtual_file_paths()
@@ -68,7 +68,7 @@ NICE_LIST_DATA = {
     'files_included': TEST_FW.files_included,
     'size': TEST_FW.size,
     'mime-type': 'file-type-plugin/not-run-yet',
-    'current_virtual_path': get_value_of_first_key(TEST_FW.get_virtual_file_paths())
+    'current_virtual_path': get_value_of_first_key(TEST_FW.get_virtual_file_paths()),
 }
 COMPARISON_ID = f'{TEST_FW.uid};{TEST_FW_2.uid}'
 
@@ -97,7 +97,7 @@ class CommonIntercomMock:
             'mandatory_plugin': ('mandatory plugin description', True, {'default': False}, *common_fields),
             'optional_plugin': ('optional plugin description', False, {'default': False}, *common_fields),
             'file_type': ('file_type plugin', False, {'default': False}, *common_fields),
-            'unpacker': ('Additional information provided by the unpacker', True, False)
+            'unpacker': ('Additional information provided by the unpacker', True, False),
         }
 
     def shutdown(self):
@@ -163,13 +163,13 @@ class CommonDatabaseMock:  # pylint: disable=too-many-public-methods
             result.processed_analysis = {
                 'file_type': {'mime': 'application/octet-stream', 'full': 'test text'},
                 'mandatory_plugin': 'mandatory result',
-                'optional_plugin': 'optional result'
+                'optional_plugin': 'optional result',
             }
             return result
         if uid == TEST_TEXT_FILE.uid:
             result = deepcopy(TEST_TEXT_FILE)
             result.processed_analysis = {
-                'file_type': {'mime': 'text/plain', 'full': 'plain text'}
+                'file_type': {'mime': 'text/plain', 'full': 'plain text'},
             }
             return result
         if uid == self.fw2_uid:
@@ -177,7 +177,7 @@ class CommonDatabaseMock:  # pylint: disable=too-many-public-methods
             result.processed_analysis = {
                 'file_type': {'mime': 'filesystem/cramfs', 'full': 'test text'},
                 'mandatory_plugin': 'mandatory result',
-                'optional_plugin': 'optional result'
+                'optional_plugin': 'optional result',
             }
             result.release_date = '2000-01-01'
             return result
@@ -248,7 +248,7 @@ class CommonDatabaseMock:  # pylint: disable=too-many-public-methods
             return {
                 'general': {'hid': {TEST_FW.uid: 'hid1', TEST_FW_2.uid: 'hid2'}},
                 '_id': comparison_id,
-                'submission_date': 0.0
+                'submission_date': 0.0,
             }
         return None
 
@@ -277,7 +277,7 @@ def get_firmware_for_rest_upload_test():
         'vendor': 'test_vendor',
         'release_date': '1970-01-01',
         'tags': '',
-        'requested_analysis_systems': ['software_components']
+        'requested_analysis_systems': ['software_components'],
     }
     return data
 
@@ -362,7 +362,7 @@ def generate_analysis_entry(
         'analysis_date': analysis_date,
         'summary': summary or [],
         'tags': tags or {},
-        **(analysis_result or {})
+        **(analysis_result or {}),
     }
 
 

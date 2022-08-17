@@ -74,7 +74,7 @@ def _get_meta_from_request(request: Request):
         'version': escape(request.form['version']),
         'release_date': escape(request.form['release_date']),
         'requested_analysis_systems': request.form.getlist('analysis_systems'),
-        'tags': escape(request.form['tags'])
+        'tags': escape(request.form['tags']),
     }
     _get_meta_from_dropdowns(meta, request)
 
@@ -172,5 +172,5 @@ def check_for_errors(analysis_task: dict) -> Dict[str, str]:
     return {
         key: f'''Please specify the {key.replace('_', ' ')}'''
         for key in analysis_task
-        if analysis_task[key] in [None, '', b''] and key not in OPTIONAL_FIELDS
+        if analysis_task[key] in [None, '', b''] and key not in OPTIONAL_FIELDS,
     }

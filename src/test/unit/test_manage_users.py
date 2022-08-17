@@ -42,10 +42,10 @@ def _setup_frontend():
         'data-storage': {
             # We want an in memory database for testing
             'user-database': 'sqlite://',
-            'password-salt': 'salt'
+            'password-salt': 'salt',
         },
         'expert-settings': {
-            'authentication': 'true'
+            'authentication': 'true',
         },
     })
     test_app = create_app(parser)

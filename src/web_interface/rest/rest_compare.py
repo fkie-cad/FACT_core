@@ -14,7 +14,7 @@ api = Namespace('rest/compare', description='Start comparisons and retrieve resu
 
 compare_model = api.model('Compare Firmware', {
     'uid_list': fields.List(description='List of UIDs', cls_or_instance=fields.String, required=True),
-    'redo': fields.Boolean(description='Redo', default=False)
+    'redo': fields.Boolean(description='Redo', default=False),
 })
 
 
@@ -62,7 +62,7 @@ class RestComparePut(RestResourceBase):
     '/<string:compare_id>',
     doc={
         'description': 'Retrieve comparison results',
-        'params': {'compare_id': 'Firmware UID'}
+        'params': {'compare_id': 'Firmware UID'},
     }
 )
 class RestCompareGet(RestResourceBase):

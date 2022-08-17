@@ -20,7 +20,7 @@ TEST_TASK = {
     'release_date': '01.01.1970',
     'requested_analysis_systems': ['file_type', 'dummy'],
     'tags': 'a,b',
-    'uid': '2e99758548972a8e8822ad47fa1017ff72f06f3ff6a016851f45c398732bc50c_14'
+    'uid': '2e99758548972a8e8822ad47fa1017ff72f06f3ff6a016851f45c398732bc50c_14',
 }
 
 

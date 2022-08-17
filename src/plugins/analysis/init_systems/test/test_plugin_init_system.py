@@ -28,7 +28,7 @@ class TestAnalysisPluginInit(AnalysisPluginTest):
             'only_comments': 'etc/inittab.invalid',
             'initd': 'etc/init.d/skeleton',
             'README': 'etc/init.d/README',
-            'initscript': 'etc/initscript'
+            'initscript': 'etc/initscript',
         }
 
         for test_file, path in test_files.items():

@@ -22,7 +22,7 @@ class ComparePlugin(CompareBasePlugin):
         """
         compare_result = {
             'software_in_common': self._get_intersection_of_software(fo_list),
-            'exclusive_software': self._get_exclusive_software(fo_list)
+            'exclusive_software': self._get_exclusive_software(fo_list),
         }
         if len(fo_list) > 2:
             compare_result['software_in_more_than_one_but_not_in_all'] = self._get_software_in_more_than_one_but_not_in_all(fo_list, compare_result)

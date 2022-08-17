@@ -98,7 +98,7 @@ def test_get_tags(stub_plugin, monkeypatch):
     behaviour_classes = {
         'one': ['x', 'y'],
         'two': ['z', 'a'],
-        'three': ['f', 'u']
+        'three': ['f', 'u'],
     }
     monkeypatch.setattr('plugins.analysis.elf_analysis.code.elf_analysis.BEHAVIOUR_CLASSES', behaviour_classes)
     tags = stub_plugin._get_tags(libraries=['a', 'b', 'c'], functions=['d', 'e', 'f'])

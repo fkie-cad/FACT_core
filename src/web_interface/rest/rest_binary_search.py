@@ -12,7 +12,7 @@ api = Namespace('rest/binary_search', description='Initiate a binary search on t
 
 binary_search_model = api.model('Binary Search', {
     'rule_file': fields.String(description='YARA rules', required=True),
-    'uid': fields.String(description='Firmware UID (optional)')
+    'uid': fields.String(description='Firmware UID (optional)'),
 }, description='Expected value')
 
 
@@ -51,7 +51,7 @@ class RestBinarySearchPost(RestResourceBase):
     '/<string:search_id>',
     doc={
         'description': 'Get the results of a previously initiated binary search',
-        'params': {'search_id': 'Search ID'}
+        'params': {'search_id': 'Search ID'},
     }
 )
 class RestBinarySearchGet(RestResourceBase):

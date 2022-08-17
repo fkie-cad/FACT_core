@@ -197,7 +197,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
                 plugin_set: read_list_from_config(
                     self.config, 'default-plugins', plugin_set
                 )
-                for plugin_set in self.config['default-plugins']
+                for plugin_set in self.config['default-plugins'],
             }
         except (TypeError, KeyError, AttributeError):
             logging.warning('default plug-ins not set in config')
@@ -219,7 +219,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
                     list: MIME_BLACKLIST,
                     list: MIME_WHITELIST,
                     str: config.threads
-                )
+                ),
             }
 
         Mandatory plugins are not shown in the analysis selection but always executed. Default plugins are pre-selected
@@ -364,7 +364,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             'skipped': 'blacklisted file type',
             'summary': [],
             'analysis_date': time(),
-            'plugin_version': self.analysis_plugins[analysis_to_do].VERSION
+            'plugin_version': self.analysis_plugins[analysis_to_do].VERSION,
         }
 
     def _next_analysis_is_blacklisted(self, next_analysis: str, fw_object: FileObject):

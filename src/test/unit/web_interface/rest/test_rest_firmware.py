@@ -17,7 +17,7 @@ TEST_FW_PAYLOAD = {
     'release_date': '1970-01-01',
     'vendor': 'no real vendor',
     'tags': 'tag1,tag2',
-    'requested_analysis_systems': ['file_type']
+    'requested_analysis_systems': ['file_type'],
 }
 
 

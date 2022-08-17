@@ -26,7 +26,7 @@ class ComparePlugin(CompareBasePlugin):
     def compare_function(self, fo_list):
         compare_result = {
             'files_in_common': self._get_intersection_of_files(fo_list),
-            'exclusive_files': self._get_exclusive_files(fo_list)
+            'exclusive_files': self._get_exclusive_files(fo_list),
         }
 
         self._handle_partially_common_files(compare_result, fo_list)

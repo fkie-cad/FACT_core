@@ -37,7 +37,7 @@ class TestAcceptanceNormalSearch(TestAcceptanceBase):
             'device_name': '',
             'version': '',
             'release_date': '',
-            'hash_value': ''
+            'hash_value': '',
         }
         rv = self.test_client.post('/database/search', content_type='multipart/form-data', follow_redirects=True, data=data)
         assert self.test_fw.uid.encode() in rv.data, 'test firmware not found in empty search'

@@ -56,5 +56,5 @@ def _get_jstree_node_contents(text: str, link: str, icon: str) -> dict:
         'text': text,
         'a_attr': {'href': link},
         'li_attr': {'href': link},
-        'icon': icon
+        'icon': icon,
     }

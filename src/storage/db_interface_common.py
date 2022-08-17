@@ -134,7 +134,7 @@ class DbInterfaceCommon(ReadOnlyDbInterface):
         included_files = {
             child.uid
             for fo in session.execute(query).scalars()
-            for child in fo.included_files
+            for child in fo.included_files,
         }
         if recursive and included_files:
             included_files.update(self._get_files_in_files(session, included_files))

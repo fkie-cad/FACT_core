@@ -111,7 +111,7 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
                 'color': color,
                 'propagate': propagate,
             },
-            'root_uid': file_object.get_root_uid()
+            'root_uid': file_object.get_root_uid(),
         }
         if 'tags' not in file_object.processed_analysis[self.NAME]:
             file_object.processed_analysis[self.NAME]['tags'] = new_tag

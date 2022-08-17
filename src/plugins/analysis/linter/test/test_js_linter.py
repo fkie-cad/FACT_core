@@ -18,7 +18,7 @@ def run_docker_container_stub(*_, **__):
                 "nodeType": "Identifier",
                 "messageId": "unusedVar",
                 "endLine": 1,
-                "endColumn": 6
+                "endColumn": 6,
             }
         ],
         "errorCount": 1,
@@ -27,7 +27,7 @@ def run_docker_container_stub(*_, **__):
         "fixableErrorCount": 0,
         "fixableWarningCount": 0,
         "source": "var x = 5\nalert( 'Hello, world!' );\n",
-        "usedDeprecatedRules": []
+        "usedDeprecatedRules": [],
     }
 ]'''
     return CompletedProcess(args=None, returncode=1, stdout=stdout, stderr=None)

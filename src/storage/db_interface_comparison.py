@@ -63,7 +63,7 @@ class ComparisonDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
         return {
             **comparison_entry.data,
             '_id': comparison_id,  # FixMe? for backwards compatibility. change/remove?
-            'submission_date': comparison_entry.submission_date
+            'submission_date': comparison_entry.submission_date,
         }
 
     def update_comparison(self, comparison_id: str, comparison_result: dict):

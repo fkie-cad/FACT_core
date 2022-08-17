@@ -152,7 +152,7 @@ def test_get_complete_object(db):
         'entry0': [fw.uid],
         'entry1': [parent_fo.uid],
         'entry2': [parent_fo.uid, child_fo.uid],
-        'entry3': [child_fo.uid]
+        'entry3': [child_fo.uid],
     }
     _summary_is_equal(expected_summary, result.processed_analysis['test_plugin']['summary'])
 
@@ -161,7 +161,7 @@ def test_get_complete_object(db):
     expected_summary = {
         'entry1': [parent_fo.uid],
         'entry2': [parent_fo.uid, child_fo.uid],
-        'entry3': [child_fo.uid]
+        'entry3': [child_fo.uid],
     }
     _summary_is_equal(expected_summary, result.processed_analysis['test_plugin']['summary'])
 

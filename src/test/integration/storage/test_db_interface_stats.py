@@ -216,10 +216,10 @@ def test_count_values_in_summary(db, stats_db):
 def test_count_distinct_array(db, stats_db, q_filter, plugin, expected_result):
     insert_test_fw(db, 'root_fw', vendor='foobar')
     insert_test_fo(db, 'fo1', parent_fw='root_fw', analysis={
-        'foo': generate_analysis_entry(analysis_result={'key': ['value1']})
+        'foo': generate_analysis_entry(analysis_result={'key': ['value1']}),
     })
     insert_test_fo(db, 'fo2', parent_fw='root_fw', analysis={
-        'foo': generate_analysis_entry(analysis_result={'key': ['value1', 'value2']})
+        'foo': generate_analysis_entry(analysis_result={'key': ['value1', 'value2']}),
     })
 
     stats = stats_db.count_distinct_values_in_array(AnalysisEntry.result['key'], plugin=plugin, q_filter=q_filter)

@@ -109,7 +109,7 @@ class TestAnalysisPluginIpAndUriFinder(AnalysisPluginTest):
         results = {
             'uris': ['http://www.google.de'],
             'ips_v4': [('128.101.101.101', '44.9759, -93.2166')],
-            'ips_v6': [('1234:1234:abcd:abcd:1234:1234:abcd:abcd', '2.1, 2.1')]
+            'ips_v6': [('1234:1234:abcd:abcd:1234:1234:abcd:abcd', '2.1, 2.1')],
         }
         expected_results = ['http://www.google.de', '128.101.101.101', '1234:1234:abcd:abcd:1234:1234:abcd:abcd']
         self.assertEqual(AnalysisPlugin._get_summary(results), expected_results)

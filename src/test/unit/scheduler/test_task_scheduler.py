@@ -21,7 +21,7 @@ class TestAnalysisScheduling:
         self.scheduler.plugins = {
             'no_deps': self.PluginMock(dependencies=[]),
             'foo': self.PluginMock(dependencies=['no_deps']),
-            'bar': self.PluginMock(dependencies=['no_deps', 'foo'])
+            'bar': self.PluginMock(dependencies=['no_deps', 'foo']),
         }
 
     def _add_plugins_with_recursive_dependencies(self):
@@ -31,7 +31,7 @@ class TestAnalysisScheduling:
             'p3': self.PluginMock([]),
             'p4': self.PluginMock(['p5']),
             'p5': self.PluginMock(['p6']),
-            'p6': self.PluginMock([])
+            'p6': self.PluginMock([]),
         }
 
     @pytest.mark.parametrize('input_data, expected_output', [

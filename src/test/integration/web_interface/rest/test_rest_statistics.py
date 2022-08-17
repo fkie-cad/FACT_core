@@ -13,7 +13,7 @@ class TestRestStatistics(RestTestBase):
         self.stats_updater = StatsUpdateDbInterface(config=self.config)
         self.stats_updater.update_statistic('file_type', {
             'file_types': [['application/gzip', 3454]],
-            'firmware_container': [['application/zip', 3], ['firmware/foo', 1]]
+            'firmware_container': [['application/zip', 3], ['firmware/foo', 1]],
         })
         self.stats_updater.update_statistic('known_vulnerabilities', {'known_vulnerabilities': [['BackDoor_String', 1]]})
 

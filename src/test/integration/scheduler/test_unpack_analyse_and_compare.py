@@ -84,12 +84,12 @@ class TestFileAddition:
             'File_Coverage': {
                 'files_in_common': {
                     'all': [],
-                    'collapse': False
+                    'collapse': False,
                 }
             },
             'Software': {
                 'Compare Skipped': {
-                    'all': 'Required analysis not present: software_components'
+                    'all': 'Required analysis not present: software_components',
                 }
-            }
+            },
         }

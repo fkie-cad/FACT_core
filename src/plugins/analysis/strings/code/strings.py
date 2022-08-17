@@ -43,7 +43,7 @@ class AnalysisPlugin(AnalysisBasePlugin):
         strings, offsets = self._find_all_strings_and_offsets(file_object.binary)
         file_object.processed_analysis[self.NAME] = {
             'strings': strings,
-            'offsets': offsets
+            'offsets': offsets,
         }
         return file_object
 

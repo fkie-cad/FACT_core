@@ -112,7 +112,7 @@ def _create_comparison(uid1='uid1', uid2='uid2'):
     compare_dict = {
         'general': {
             'hid': {fw_one.uid: 'foo', fw_two.uid: 'bar'},
-            'virtual_file_path': {fw_one.uid: 'dev_one_name', fw_two.uid: 'dev_two_name'}
+            'virtual_file_path': {fw_one.uid: 'dev_one_name', fw_two.uid: 'dev_two_name'},
         },
         'plugins': {},
     }

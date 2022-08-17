@@ -5,7 +5,7 @@ class TestAcceptanceBinarySearch(TestAcceptanceBaseFullStart):
 
     query = {
         'file': None,
-        'textarea': 'rule test_file_string {strings: $a = "This is the second test file" condition: $a }'
+        'textarea': 'rule test_file_string {strings: $a = "This is the second test file" condition: $a }',
     }
 
     def _query_page_get(self):

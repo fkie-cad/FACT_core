@@ -47,7 +47,7 @@ class RestStatisticsWithoutName(RestResourceBase):
     '/<string:stat_name>',
     doc={
         'description': 'Retrieves statistics for a specific category',
-        'params': {'stat_name': 'Statistic\'s name'}
+        'params': {'stat_name': 'Statistic\'s name'},
     }
 )
 class RestStatisticsWithName(RestResourceBase):

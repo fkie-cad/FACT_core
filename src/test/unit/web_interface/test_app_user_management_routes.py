@@ -94,7 +94,7 @@ class TestAppUpload(WebInterfaceTest):
         response = self.test_client.post('/admin/manage_users', follow_redirects=True, data={
             'username': 'foobar',
             'password1': 'test',
-            'password2': 'test'
+            'password2': 'test',
         })
         assert b'Successfully created user' in response.data
 
@@ -102,7 +102,7 @@ class TestAppUpload(WebInterfaceTest):
         response = self.test_client.post('/admin/manage_users', follow_redirects=True, data={
             'username': 'test',
             'password1': 'test',
-            'password2': 'test'
+            'password2': 'test',
         })
         assert b'Error: user is already in the database' in response.data
 
@@ -110,7 +110,7 @@ class TestAppUpload(WebInterfaceTest):
         response = self.test_client.post('/admin/manage_users', follow_redirects=True, data={
             'username': 'foobar',
             'password1': 'a',
-            'password2': 'b'
+            'password2': 'b',
         })
         assert b'Error: passwords do not match' in response.data
 
@@ -135,21 +135,21 @@ class TestAppUpload(WebInterfaceTest):
     def test_change_user_password(self):
         response = self.test_client.post('/admin/user/0', follow_redirects=True, data={
             'admin_change_password': 'test',
-            'admin_confirm_password': 'test'
+            'admin_confirm_password': 'test',
         })
         assert b'password change successful' in response.data
 
     def test_change_password__no_match(self):
         response = self.test_client.post('/admin/user/0', follow_redirects=True, data={
             'admin_change_password': 'foo',
-            'admin_confirm_password': 'bar'
+            'admin_confirm_password': 'bar',
         })
         assert b'Error: passwords do not match' in response.data
 
     def test_illegal_password(self):
         response = self.test_client.post('/admin/user/0', follow_redirects=True, data={
             'admin_change_password': '1234567890abc',
-            'admin_confirm_password': '1234567890abc'
+            'admin_confirm_password': '1234567890abc',
         })
         assert b'password is not legal' in response.data
 
@@ -165,7 +165,7 @@ class TestAppUpload(WebInterfaceTest):
         response = self.test_client.post('/user_profile', follow_redirects=True, data={
             'new_password': 'foo',
             'new_password_confirm': 'foo',
-            'old_password': 'correct password'
+            'old_password': 'correct password',
         })
         assert b'password change successful' in response.data
 
@@ -174,7 +174,7 @@ class TestAppUpload(WebInterfaceTest):
         response = self.test_client.post('/user_profile', follow_redirects=True, data={
             'new_password': 'foo',
             'new_password_confirm': 'foo',
-            'old_password': 'wrong password'
+            'old_password': 'wrong password',
         })
         assert b'Error: wrong password' in response.data
 
@@ -183,7 +183,7 @@ class TestAppUpload(WebInterfaceTest):
         response = self.test_client.post('/user_profile', follow_redirects=True, data={
             'new_password': '1234567890abc',
             'new_password_confirm': '1234567890abc',
-            'old_password': 'correct password'
+            'old_password': 'correct password',
         })
         assert b'password is not legal' in response.data
 
@@ -192,7 +192,7 @@ class TestAppUpload(WebInterfaceTest):
         response = self.test_client.post('/user_profile', follow_redirects=True, data={
             'new_password': 'foo',
             'new_password_confirm': 'bar',
-            'old_password': 'correct password'
+            'old_password': 'correct password',
         })
         assert b'Error: new password did not match' in response.data
 
@@ -201,7 +201,7 @@ class TestAppUpload(WebInterfaceTest):
         # this request should change the roles to 0 and 2 (add 2 and remove 1)
         with caplog.at_level(logging.INFO):
             self.test_client.post('/admin/user/0', follow_redirects=True, data={
-                'input_roles': [roles[0], roles[2]]
+                'input_roles': [roles[0], roles[2]],
             })
             assert 'Creating user role' in caplog.messages[0]
             assert f'added roles {{\'{roles[2]}\'}}, removed roles {{\'{roles[1]}\'}}' in caplog.messages[1]
@@ -212,7 +212,7 @@ class TestAppUpload(WebInterfaceTest):
 
     def test_edit_roles__unknown_element(self):
         response = self.test_client.post('/admin/user/9999', follow_redirects=True, data={
-            'input_roles': [roles[0]]
+            'input_roles': [roles[0]],
         })
         assert b'user with ID 9999 not found' in response.data
 

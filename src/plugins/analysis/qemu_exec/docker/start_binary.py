@@ -23,7 +23,7 @@ def get_output(command: str) -> dict:
     return {
         'stdout': encode_as_str(std_out),
         'stderr': encode_as_str(std_err),
-        'return_code': return_code
+        'return_code': return_code,
     }
 
 

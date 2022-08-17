@@ -13,7 +13,7 @@ PRIVILEGES = {
     'delete': ['superuser'],
     'manage_users': ['superuser'],
     'view_profile': ['superuser', 'senior_analyst', 'analyst'],
-    'view_logs': ['superuser']
+    'view_logs': ['superuser'],
 }
 
 for privilege in PRIVILEGES:

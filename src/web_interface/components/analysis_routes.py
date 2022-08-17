@@ -99,7 +99,7 @@ class AnalysisRoutes(ComponentBase):
     def _get_used_and_unused_plugins(processed_analysis: dict, all_plugins: list) -> dict:
         return {
             'unused': [x for x in all_plugins if x not in processed_analysis],
-            'used': [x for x in all_plugins if x in processed_analysis]
+            'used': [x for x in all_plugins if x in processed_analysis],
         }
 
     def _get_analysis_view(self, selected_analysis):

@@ -12,7 +12,7 @@ MOCK_RESPONSE = '''[
         "path": "test/test_js_linter.py",
         "symbol": "redefined-outer-name",
         "message": "Redefining name 'stub_linter' from outer scope (line 28)",
-        "message-id": "W0621"
+        "message-id": "W0621",
     }
 ]
 '''

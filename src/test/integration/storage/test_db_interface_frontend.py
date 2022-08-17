@@ -91,7 +91,7 @@ def test_get_device_name_dict(db):
     insert_test_fw(db, 'fw4', vendor='vendor2', device_class='class1', device_name='name1')
     assert db.frontend.get_device_name_dict() == {
         'class1': {'vendor1': ['name1', 'name2'], 'vendor2': ['name1']},
-        'class2': {'vendor1': ['name1']}
+        'class2': {'vendor1': ['name1']},
     }
 
 
@@ -183,7 +183,7 @@ def test_generic_search_nested(db):
     fo, fw = create_fw_with_child_fo()
     fo.processed_analysis = {'plugin': generate_analysis_entry(analysis_result={
         'nested': {'key': 'value'},
-        'nested_2': {'inner_nested': {'foo': 'bar', 'test': 3}}
+        'nested_2': {'inner_nested': {'foo': 'bar', 'test': 3}},
     })}
     db.backend.insert_object(fw)
     db.backend.insert_object(fo)
