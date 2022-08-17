@@ -113,9 +113,7 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         self.in_queue.close()
         self.out_queue.close()
 
-
-# ---- internal functions ----
-
+    # TODO private
     def add_analysis_tag(self, file_object, tag_name, value, color=TagColor.LIGHT_BLUE, propagate=False):
         new_tag = {
             tag_name: {
@@ -130,32 +128,38 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         else:
             file_object.processed_analysis[self.NAME]['tags'].update(new_tag)
 
+    # TODO private
     def init_dict(self):
         result_update = {'analysis_date': time(), 'plugin_version': self.VERSION}
         if self.SYSTEM_VERSION:
             result_update.update({'system_version': self.SYSTEM_VERSION})
         return result_update
 
+    # TODO private
     def check_config(self, no_multithread):
         if self.NAME not in self.config:
             self.config.add_section(self.NAME)
         if 'threads' not in self.config[self.NAME] or no_multithread:
             self.config.set(self.NAME, 'threads', '1')
 
+    # TODO private
     def start_worker(self):
         for process_index in range(self.thread_count):
             self.workers.append(start_single_worker(process_index, 'Analysis', self.worker))
         logging.debug(f'{self.NAME}: {len(self.workers)} worker threads started')
 
+    # TODO private
     def process_next_object(self, task, result):
         task.processed_analysis.update({self.NAME: {}})
         finished_task = self.analyze_file(task)
         result.append(finished_task)
 
+    # TODO private
     @staticmethod
     def timeout_happened(process):
         return process.is_alive()
 
+    # TODO private
     def worker_processing_with_timeout(self, worker_id, next_task):
         manager = Manager()
         result = manager.list()
@@ -176,6 +180,7 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
         logging.error(f'Worker {worker_id}: {cause} during analysis {self.NAME} on {fw_object.uid}')
         self.out_queue.put(fw_object)
 
+    # TODO private
     def worker(self, worker_id):
         while self.stop_condition.value == 0:
             try:
@@ -190,5 +195,6 @@ class AnalysisBasePlugin(BasePlugin):  # pylint: disable=too-many-instance-attri
 
         logging.debug(f'worker {worker_id} stopped')
 
+    # TODO private
     def check_exceptions(self):
         return check_worker_exceptions(self.workers, 'Analysis', self.config, self.worker)

@@ -73,9 +73,6 @@ class Compare:
                 general_dict[feature] = {}
             general_dict[feature][uid] = content
 
-
-# --- plug-in system ---
-
     def _setup_plugins(self):
         self.compare_plugins = {}
         self._init_plugins()

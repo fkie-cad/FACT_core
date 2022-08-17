@@ -47,15 +47,14 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
         self.in_queue.close()
         logging.info('Unpacker Module offline')
 
-
-# ---- internal functions ----
-
+    # TODO private
     def start_unpack_workers(self):
         threads = int(self.config['unpack']['threads'])
         logging.debug(f'Starting {threads} working threads')
         for process_index in range(threads):
             self.workers.append(start_single_worker(process_index, 'Unpacking', self.unpack_worker))
 
+    # TODO private
     def unpack_worker(self, worker_id):
         unpacker = Unpacker(
             self.config,
@@ -73,6 +72,7 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
                 self.post_unpack(fo)
                 self.schedule_extracted_files(extracted_objects)
 
+    # TODO private
     def schedule_extracted_files(self, object_list):
         for item in object_list:
             self._add_object_to_unpack_queue(item)
@@ -85,6 +85,7 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
             logging.debug('throttle down unpacking to reduce memory consumption...')
             sleep(5)
 
+    # TODO private
     def start_work_load_monitor(self):
         logging.debug('Start work load monitor...')
         return start_single_worker(None, 'unpack-load', self._work_load_monitor)
@@ -118,6 +119,7 @@ class UnpackingScheduler:  # pylint: disable=too-many-instance-attributes
             return self.get_analysis_workload()
         return 0
 
+    # TODO private
     def check_exceptions(self):
         shutdown = check_worker_exceptions(self.workers, 'Unpacking', self.config, self.unpack_worker)
 

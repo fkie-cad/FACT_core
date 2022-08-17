@@ -41,9 +41,6 @@ class StatsUpdater:
             # should always be the last, because of the benchmark
             self.db.update_statistic('general', self.get_general_stats())
 
-
-# ---- get statistic functions
-
     def get_general_stats(self):
         if self.start_time is None:
             self.start_time = time()
