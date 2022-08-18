@@ -1,38 +1,38 @@
 {% extends "analysis_plugins/general_information.html" %}
 
 {% block analysis_result_details %}
-	<tr>
-		<td class="table-head-light">Plugin</td>
-		<td>{{ firmware.processed_analysis[selected_analysis]['plugin_used'] }}</td>
-	</tr>
-	<tr>
-		<td>Extracted</td>
-		<td>{{ firmware.processed_analysis[selected_analysis]['number_of_unpacked_files'] | nice_number }}</td>
-	</tr>
-	
-	{% if summary_of_included_files %}
-		{% if summary_of_included_files['unpacked'] and summary_of_included_files['packed'] %}
-			<tr>
-				<td>Overall Unpack Ratio</td>
-				<td>{{ '%.2f ' % (summary_of_included_files['unpacked']|length / (summary_of_included_files['unpacked'] | length + summary_of_included_files['packed'] | length) * 100) }} % </td>
-			</tr>
-		{% endif %}
-	{% endif %}
-	
-	{% if firmware.processed_analysis[selected_analysis]['output'] %}
-		<tr>
-			<td>Output</td>
-			<td><pre class="border rounded p-2 bg-light"><code style="white-space: pre-wrap;">{{ firmware.processed_analysis[selected_analysis]['output'] }}</code></pre></td>
-		</tr>
-	{% endif %}
+    <tr>
+        <td class="table-head-light">Plugin</td>
+        <td>{{ firmware.processed_analysis[selected_analysis]['plugin_used'] }}</td>
+    </tr>
+    <tr>
+        <td>Extracted</td>
+        <td>{{ firmware.processed_analysis[selected_analysis]['number_of_unpacked_files'] | nice_number }}</td>
+    </tr>
+    
+    {% if summary_of_included_files %}
+        {% if summary_of_included_files['unpacked'] and summary_of_included_files['packed'] %}
+            <tr>
+                <td>Overall Unpack Ratio</td>
+                <td>{{ '%.2f ' % (summary_of_included_files['unpacked']|length / (summary_of_included_files['unpacked'] | length + summary_of_included_files['packed'] | length) * 100) }} % </td>
+            </tr>
+        {% endif %}
+    {% endif %}
+    
+    {% if firmware.processed_analysis[selected_analysis]['output'] %}
+        <tr>
+            <td>Output</td>
+            <td><pre class="border rounded p-2 bg-light"><code style="white-space: pre-wrap;">{{ firmware.processed_analysis[selected_analysis]['output'] }}</code></pre></td>
+        </tr>
+    {% endif %}
 
-	{% for unpacker_meta_field in firmware.processed_analysis[selected_analysis].keys() %}
-		{% if unpacker_meta_field not in ['plugin_used', 'number_of_unpacked_files', 'output', 'analysis_date', 'plugin_version', 'summary'] %}
-			<tr>
-				<td>{{ unpacker_meta_field | replace_underscore }}</td>
-				<td><pre><code style="word-break: break-all; white-space: pre-wrap;">{{ firmware.processed_analysis[selected_analysis][unpacker_meta_field] | nice_generic | safe }}</code></pre></td>
-			</tr>
-		{% endif %}			
-	{% endfor %}
+    {% for unpacker_meta_field in firmware.processed_analysis[selected_analysis].keys() %}
+        {% if unpacker_meta_field not in ['plugin_used', 'number_of_unpacked_files', 'output', 'analysis_date', 'plugin_version', 'summary'] %}
+            <tr>
+                <td>{{ unpacker_meta_field | replace_underscore }}</td>
+                <td><pre><code style="word-break: break-all; white-space: pre-wrap;">{{ firmware.processed_analysis[selected_analysis][unpacker_meta_field] | nice_generic | safe }}</code></pre></td>
+            </tr>
+        {% endif %}            
+    {% endfor %}
 
 {% endblock %}

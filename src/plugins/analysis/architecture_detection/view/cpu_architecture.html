@@ -2,13 +2,13 @@
 
 {% block analysis_result_details %}
 <tr>
-	<td class="table-head-light"><b>Architecture</b></td>
-	<td class="table-head-light"><b>Means of Detection</b></td>
+    <td class="table-head-light"><b>Architecture</b></td>
+    <td class="table-head-light"><b>Means of Detection</b></td>
 </tr>
- 	{% for result, method in firmware.processed_analysis[selected_analysis]["architectures"].items() %}
- 		<tr>
- 			<td>{{ result }}</td>
- 			<td>{{ method }}</td>
- 		</tr>
-	{% endfor %}
+     {% for result, method in firmware.processed_analysis[selected_analysis]["architectures"].items() %}
+         <tr>
+             <td>{{ result }}</td>
+             <td>{{ method }}</td>
+         </tr>
+    {% endfor %}
 {% endblock %}
