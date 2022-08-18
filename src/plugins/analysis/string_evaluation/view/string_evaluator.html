@@ -2,13 +2,13 @@
 
 {% block analysis_result_details %}
 
-	<tr>
-		<td>String count</td>
-		<td>{{ firmware.processed_analysis[selected_analysis]['string_eval'] | length }}</td>
-	</tr>
-	<tr>
-		<td>Strings</td>
-		<td class="p-0"><pre class="p-2 bg-light mb-0" style="white-space: pre-wrap;">{{ firmware.processed_analysis[selected_analysis]['string_eval'] | list_to_line_break_string_no_sort}}</pre></td>
-	</tr>
-			
+    <tr>
+        <td>String count</td>
+        <td>{{ firmware.processed_analysis[selected_analysis]['string_eval'] | length }}</td>
+    </tr>
+    <tr>
+        <td>Strings</td>
+        <td class="p-0"><pre class="p-2 bg-light mb-0" style="white-space: pre-wrap;">{{ firmware.processed_analysis[selected_analysis]['string_eval'] | list_to_line_break_string_no_sort}}</pre></td>
+    </tr>
+            
 {% endblock %}
