@@ -5,11 +5,9 @@ from contextlib import suppress
 from pathlib import Path
 from subprocess import PIPE, STDOUT
 
-import requests
-
 from helperFunctions.install import (
     InstallationError, OperateInDirectory, apt_install_packages, dnf_install_packages, install_pip_packages,
-    load_main_config, remove_folder, run_cmd_with_logging
+    load_main_config, read_package_list_from_file, run_cmd_with_logging
 )
 
 DEFAULT_CERT = '.\n.\n.\n.\n.\nexample.com\n.\n\n\n'
@@ -23,39 +21,6 @@ def execute_commands_and_raise_on_return_code(commands, error=None):  # pylint: 
         cmd_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
         if cmd_process.returncode != 0:
             raise InstallationError(f'Failed to {bad_return}\n{cmd_process.stdout}')
-
-
-def wget_static_web_content(url, target_folder, additional_actions, resource_logging_name=None):
-    logging.info(f'Install static {resource_logging_name if resource_logging_name else url} content')
-    with OperateInDirectory(target_folder):
-        wget_process = subprocess.run(f'wget -nc {url}', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
-        if wget_process.returncode != 0:
-            raise InstallationError(f'Failed to fetch resource at {url}\n{wget_process.stdout}')
-        for action in additional_actions:
-            action_process = subprocess.run(action, shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
-            if action_process.returncode != 0:
-                raise InstallationError(f'Problem in processing resource at {url}\n{action_process.stdout}')
-
-
-def _build_highlight_js():
-    logging.info('Installing highlight js')
-
-    highlight_js_url = 'https://highlightjs.org/download/'
-    highlight_js_dir = 'highlight.js'
-    highlight_js_zip = 'highlight.js.zip'
-    if Path(highlight_js_dir).is_dir():
-        remove_folder(highlight_js_dir)
-
-    req = requests.get('https://highlightjs.org/download/')
-    crsf_cookie = req.headers['Set-Cookie']
-    csrf_token = crsf_cookie.split(';')[0].split('=')[1]
-
-    commands = [
-        'wget {url} --header="Host: highlightjs.org" --header="User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:61.0) Gecko/20100101 Firefox/61.0" --header="Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8" --header="Accept-Language: en-GB,en;q=0.5" --header="Accept-Encoding: gzip, deflate, br" --header="Referer: https://highlightjs.org/download/" --header="Content-Type: application/x-www-form-urlencoded" --header="Cookie: csrftoken={token}" --header="DNT: 1" --header="Connection: keep-alive" --header="Upgrade-Insecure-Requests: 1" --post-data="apache.js=on&bash.js=on&coffeescript.js=on&cpp.js=on&cs.js=on&csrfmiddlewaretoken={token}&css.js=on&diff.js=on&http.js=on&ini.js=on&java.js=on&javascript.js=on&json.js=on&makefile.js=on&markdown.js=on&nginx.js=on&objectivec.js=on&perl.js=on&php.js=on&python.js=on&ruby.js=on&shell.js=on&sql.js=on&xml.js=on" -O {zip}'.format(url=highlight_js_url, token=csrf_token, zip=highlight_js_zip),  # pylint: disable=line-too-long
-        f'unzip {highlight_js_zip} -d {highlight_js_dir}'
-    ]
-    execute_commands_and_raise_on_return_code(commands, error='Failed to set up highlight.js')
-    Path(highlight_js_zip).unlink()
 
 
 def _create_directory_for_authentication():  # pylint: disable=invalid-name
@@ -113,50 +78,6 @@ def _configure_nginx():
     ], error='configuring nginx')
 
 
-def _install_css_and_js_files():
-    with OperateInDirectory('../web_interface/static'):
-        os.makedirs('web_css', exist_ok=True)
-        os.makedirs('web_js', exist_ok=True)
-
-        wget_static_web_content('https://github.com/vakata/jstree/zipball/3.3.9', '.', ['unzip 3.3.9', 'rm 3.3.9', 'rm -rf ./web_js/jstree/vakata*', 'mv vakata* web_js/jstree'], 'jstree')
-        wget_static_web_content('https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js', '.', [], 'angularJS')
-        wget_static_web_content('https://github.com/chartjs/Chart.js/releases/download/v2.3.0/Chart.js', '.', [], 'charts.js')
-
-        _build_highlight_js()
-
-        for css_url in [
-            'https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css',
-            'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.8.0/css/bootstrap-datepicker.standalone.css',
-            'https://unpkg.com/vis-network@8.5.6/styles/vis-network.min.css',
-            'https://cdn.jsdelivr.net/npm/diff2html/bundles/css/diff2html.min.css',
-            'https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.14/dist/css/bootstrap-select.min.css',
-        ]:
-            wget_static_web_content(css_url, 'web_css', [])
-
-        for js_url in [
-            'https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.1/jquery.min.js',
-            'https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js',
-            'https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js',
-            'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.8.0/js/bootstrap-datepicker.js',
-            'https://raw.githubusercontent.com/moment/moment/develop/moment.js',
-            'https://unpkg.com/vis-network@8.5.6/standalone/umd/vis-network.min.js',
-            'https://cdn.jsdelivr.net/npm/diff2html/bundles/js/diff2html-ui.min.js',
-            'https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.14/dist/js/bootstrap-select.min.js',
-        ]:
-            wget_static_web_content(js_url, 'web_js', [])
-
-        if not Path('web_css/fontawesome').exists():
-            wget_static_web_content(
-                'https://use.fontawesome.com/releases/v5.13.0/fontawesome-free-5.13.0-web.zip',
-                '.',
-                [
-                    'unzip fontawesome-free-5.13.0-web.zip',
-                    'rm fontawesome-free-5.13.0-web.zip',
-                    'mv fontawesome-free-5.13.0-web web_css/fontawesome'
-                ]
-            )
-
-
 def _install_docker_images(radare):
     if radare:
         logging.info('Initializing docker container for radare')
@@ -174,13 +95,25 @@ def _install_docker_images(radare):
 
 
 def main(skip_docker, radare, nginx, distribution):
+    apt_packages_path = INSTALL_DIR / 'apt-pkgs-frontend.txt'
+    dnf_packages_path = INSTALL_DIR / 'dnf-pkgs-frontend.txt'
+
+    if distribution != 'fedora':
+        pkgs = read_package_list_from_file(apt_packages_path)
+        apt_install_packages(*pkgs)
+    else:
+        pkgs = read_package_list_from_file(dnf_packages_path)
+        dnf_install_packages(*pkgs)
+
     # flask-security is not maintained anymore and replaced by flask-security-too.
     # Since python package naming conflicts are not resolved automatically, we remove flask-security manually.
     run_cmd_with_logging('sudo -EH pip3 uninstall -y flask-security')
     install_pip_packages(PIP_DEPENDENCIES)
 
-    # installing web/js-frameworks
-    _install_css_and_js_files()
+    # npm does not allow us to install packages to a specific directory
+    with OperateInDirectory("../../src/web_interface/static"):
+        # EBADENGINE can probably be ignored because we probably don't need node.
+        run_cmd_with_logging('npm install --no-fund .')
 
     # create user database
     _create_directory_for_authentication()
