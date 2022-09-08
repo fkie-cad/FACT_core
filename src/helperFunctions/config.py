@@ -9,8 +9,12 @@ from helperFunctions.process import complete_shutdown
 
 def load_config(config_file_name):
     '''
-    loads config of CONFIG_DIR/config_file_name
-    Returns config object
+    This function should not be used in new code. Use `config.configparser_cfg` instead.
+
+    loads config of CONFIG_DIR/config_file_name.
+    Returns config object.
+    Note that this does return a new instance and not the instance provided by `config.configparser_cfg`.
+    This may cause the entrys in the logging section to be wrong.
     '''
     config = configparser.ConfigParser()
     config_path = f'{get_config_dir()}/{config_file_name}'
