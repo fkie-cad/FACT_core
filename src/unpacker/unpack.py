@@ -36,6 +36,10 @@ class Unpacker(UnpackBase):
         with TemporaryDirectory(prefix='fact_unpack_', dir=self.config['data-storage']['docker-mount-base-dir']) as tmp_dir:
             file_path = self._generate_local_file_path(current_fo)
             extracted_files = self.extract_files_from_file(file_path, tmp_dir)
+            if extracted_files is None:
+                self._store_unpacking_error_skip_info(current_fo)
+                return []
+
             extracted_file_objects = self.generate_and_store_file_objects(extracted_files, Path(tmp_dir) / 'files', current_fo)
             extracted_file_objects = self.remove_duplicates(extracted_file_objects, current_fo)
             self.add_included_files_to_object(extracted_file_objects, current_fo)
@@ -43,6 +47,15 @@ class Unpacker(UnpackBase):
             current_fo.processed_analysis['unpacker'] = json.loads(Path(tmp_dir, 'reports', 'meta.json').read_text())
 
         return extracted_file_objects
+
+    @staticmethod
+    def _store_unpacking_error_skip_info(file_object: FileObject):
+        file_object.processed_analysis['unpacker'] = {
+            'plugin_used': 'None', 'number_of_unpacked_files': 0, 'plugin_version': '0.0', 'analysis_date': time(),
+            'info': 'Unpacking stopped because extractor raised a exception (possible timeout)',
+        }
+        tag_dict = {'unpacker': {'extractor error': {'value': 'possible extractor timeout', 'color': TagColor.ORANGE, 'propagate': False}}}
+        file_object.analysis_tags.update(tag_dict)
 
     @staticmethod
     def _store_unpacking_depth_skip_info(file_object: FileObject):
