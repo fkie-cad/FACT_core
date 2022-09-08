@@ -159,7 +159,6 @@ def install():
         install_statistic_cronjob()
 
     logging.info('installation complete')
-    logging.warning('If FACT does not start, reload the environment variables with: source /etc/profile')
 
     sys.exit(0)
 
