@@ -4,7 +4,7 @@ from tempfile import TemporaryDirectory
 
 import pytest
 
-from helperFunctions.program_setup import _get_console_output_level, _load_config, program_setup, setup_logging
+from helperFunctions.program_setup import _get_console_output_level, program_setup, setup_logging
 from test.common_helper import get_test_data_dir  # pylint: disable=wrong-import-order
 
 
@@ -33,13 +33,6 @@ def test_get_console_output_level(input_data, expected_output):
     assert _get_console_output_level(input_data) == expected_output
 
 
-def test_load_config():
-    args = ArgumentMock()
-    config = _load_config(args)
-    assert config['logging']['loglevel'] == 'DEBUG'
-    assert config['logging']['logfile'] == '/log/file/path'
-
-
 def test_setup_logging():
     args = ArgumentMock
     setup_logging(config_mock, args)
@@ -50,8 +43,9 @@ def test_setup_logging():
 def test_program_setup():
     with TemporaryDirectory(prefix='fact_test_') as tmp_dir:
         log_file_path = Path(tmp_dir) / 'folder' / 'log_file'
-        options = ['script_name', '--config_file', ArgumentMock.config_file, '--log_file', str(log_file_path)]
+        options = ['script_name', '--config_file', ArgumentMock.config_file, '--log_file', str(log_file_path), '--log_level', 'DEBUG']
         args, config = program_setup('test', 'test description', command_line_options=options)
         assert args.debug is False
         assert config['logging']['logfile'] == str(log_file_path)
+        assert config['logging']['loglevel'] == 'DEBUG'
         assert log_file_path.exists()
