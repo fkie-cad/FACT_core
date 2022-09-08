@@ -17,7 +17,6 @@
 '''
 
 import argparse
-import configparser
 import logging
 import sys
 from configparser import ConfigParser
@@ -40,9 +39,17 @@ def program_setup(name, description, component=None, version=__VERSION__, comman
     :return: A tuple (args, config) containing the parsed args from argparser and the config read
     '''
     args = _setup_argparser(name, description, command_line_options=command_line_options or sys.argv, version=version)
-    config = _load_config(args)
-    setup_logging(config, args, component)
-    return args, config
+    load_config_global(args.config_file)
+
+    if args.log_file is not None:
+        configparser_cfg['logging']['logfile'] = args.log_file
+        cfg.logging.logfile = args.log_file
+    if args.log_level is not None:
+        configparser_cfg['logging']['loglevel'] = args.log_level
+        cfg.logging.loglevel = args.log_level
+
+    setup_logging(configparser_cfg, args, component)
+    return args, configparser_cfg
 
 
 def _setup_argparser(name, description, command_line_options, version=__VERSION__):
@@ -99,27 +106,3 @@ def get_log_file_for_component(component: str, config: ConfigParser) -> str:
     if component is None:
         return config['logging']['logfile']
     return f'{log_file.parent}/{log_file.stem}_{component}{log_file.suffix}'
-
-
-def _load_config(args):
-    '''
-    Loads the config from args.config_file
-
-    :param args: The parsed args returned from Argparser
-    :return: A dictionary containing the parsed config
-    '''
-
-    load_config_global(args.config_file)
-
-    config = configparser.ConfigParser()
-    config.read(args.config_file)
-    if args.log_file is not None:
-        config['logging']['logfile'] = args.log_file
-        configparser_cfg['logging']['logfile'] = args.log_file
-        cfg.logging.logfile = args.log_file
-    if args.log_level is not None:
-        config['logging']['loglevel'] = args.log_level
-        configparser_cfg['logging']['loglevel'] = args.log_level
-        cfg.logging.loglevel = args.log_level
-
-    return config
