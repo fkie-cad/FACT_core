@@ -45,9 +45,6 @@ def main(skip_docker, distribution):
     # install plug-in dependencies
     _install_plugins(distribution, skip_docker)
 
-    # configure environment
-    _edit_environment()
-
     # create directories
     _create_firmware_directory()
 
@@ -84,14 +81,6 @@ def install_plugin_docker_images():
     # Distribution can be None here since it will not be used for installing
     # docker images
     _install_plugins(None, skip_docker=False, only_docker=True)
-
-
-def _edit_environment():
-    logging.info('set environment variables...')
-    for command in ['sudo cp -f fact_env.sh /etc/profile.d/', 'sudo chmod 755 /etc/profile.d/fact_env.sh', '. /etc/profile']:
-        cmd_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
-        if cmd_process.returncode != 0:
-            raise InstallationError(f'Failed to add environment changes [{command}]\n{cmd_process.stdout}')
 
 
 def _create_firmware_directory():
