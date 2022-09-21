@@ -53,18 +53,16 @@ class Unpacker(UnpackBase):
         file_object.processed_analysis['unpacker'] = {
             'plugin_used': 'None', 'number_of_unpacked_files': 0, 'plugin_version': '0.0', 'analysis_date': time(),
             'info': 'Unpacking stopped because extractor raised a exception (possible timeout)',
+            'tags': {'extractor error': {'value': 'possible extractor timeout', 'color': TagColor.ORANGE, 'propagate': False}},
         }
-        tag_dict = {'unpacker': {'extractor error': {'value': 'possible extractor timeout', 'color': TagColor.ORANGE, 'propagate': False}}}
-        file_object.analysis_tags.update(tag_dict)
 
     @staticmethod
     def _store_unpacking_depth_skip_info(file_object: FileObject):
         file_object.processed_analysis['unpacker'] = {
             'plugin_used': 'None', 'number_of_unpacked_files': 0, 'plugin_version': '0.0', 'analysis_date': time(),
             'info': 'Unpacking stopped because maximum unpacking depth was reached',
+            'tags': {'depth reached': {'value': 'unpacking depth reached', 'color': TagColor.ORANGE, 'propagate': False}},
         }
-        tag_dict = {'unpacker': {'depth reached': {'value': 'unpacking depth reached', 'color': TagColor.ORANGE, 'propagate': False}}}
-        file_object.analysis_tags.update(tag_dict)
 
     def cleanup(self, tmp_dir):
         try:
