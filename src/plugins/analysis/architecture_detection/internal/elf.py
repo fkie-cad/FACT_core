@@ -39,8 +39,10 @@ def _get_arm_isa(elffile):
 
     result = ''
 
-    # Some how the section does not appear in arm64 binarys
+    # Somehow the section does not appear in arm64 binaries
     sec = elffile.get_section_by_name('.ARM.attributes')
+    if sec is None:
+        return None
     for sub_sec in sec.iter_subsections():
         for sub_sub_sec in sub_sec.iter_subsubsections():
             for attribute in sub_sub_sec.iter_attributes():
@@ -55,9 +57,9 @@ def _get_arm_isa(elffile):
 
 def construct_result(file_object, fs_organizer):
     result = {}
-    with open(fs_organizer.generate_path(file_object), 'rb') as f:
+    with open(fs_organizer.generate_path(file_object), 'rb') as fp:
         try:
-            elffile = ELFFile(f)
+            elffile = ELFFile(fp)
         except ELFError:
             # The file is not an elf file
             return {}
@@ -65,6 +67,8 @@ def construct_result(file_object, fs_organizer):
         if elffile['e_machine'] == 'EM_MIPS':
             result.update({_get_mips_isa(elffile): 'ELF'})
         elif elffile['e_machine'] == 'EM_ARM':
-            result.update({_get_arm_isa(elffile): 'ELF'})
+            arm_isa = _get_arm_isa(elffile)
+            if arm_isa is not None:
+                result.update({arm_isa: 'ELF'})
 
     return result
