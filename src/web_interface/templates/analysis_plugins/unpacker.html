@@ -27,7 +27,7 @@
 	{% endif %}
 
 	{% for unpacker_meta_field in firmware.processed_analysis[selected_analysis].keys() %}
-		{% if unpacker_meta_field not in ['plugin_used', 'number_of_unpacked_files', 'output', 'analysis_date', 'plugin_version', 'summary'] %}
+		{% if unpacker_meta_field not in ['tags', 'plugin_used', 'number_of_unpacked_files', 'output', 'analysis_date', 'plugin_version', 'summary'] %}
 			<tr>
 				<td>{{ unpacker_meta_field | replace_underscore }}</td>
 				<td><pre><code style="word-break: break-all; white-space: pre-wrap;">{{ firmware.processed_analysis[selected_analysis][unpacker_meta_field] | nice_generic | safe }}</code></pre></td>
