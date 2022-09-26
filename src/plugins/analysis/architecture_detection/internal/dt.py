@@ -19,7 +19,7 @@ def _get_compatible_entry(dts: str) -> Union[str, None]:
     # This speeds up dtc and should only affect binary data
     dts = re.sub(r'\t*[0-9a-zA-Z,._+?#-]+ = .{256,}\n', '', dts)
 
-    # TODO ideally this should use helperFuncions.docker.run_docker_container
+    # TODO ideally this should use helperFunctions.docker.run_docker_container
     # Passing stdin via docker-py is really hard.
     # The approaches described in [1] don't work for some reason.
     # See also [2].

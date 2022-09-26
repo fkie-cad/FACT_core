@@ -71,7 +71,10 @@ class BackendDbInterface(DbInterfaceCommon, ReadWriteDbInterface):
             logging.exception(f'Could not store analysis of plugin result {plugin} in the DB because'
                               f' it is not JSON-serializable: {uid}\n{analysis_dict}')
         except DbInterfaceError as error:
-            logging.error(f'Could not store analysis result: {str(error)}')
+            logging.error(f'Could not store analysis result of {plugin} on {uid}: {str(error)}')
+        except ValueError as error:
+            logging.error(f'Bad value in analysis result of {plugin} on {uid}: {str(error)}\n{analysis_dict}')
+            raise
 
     def analysis_exists(self, uid: str, plugin: str) -> bool:
         with self.get_read_only_session() as session:

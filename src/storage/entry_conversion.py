@@ -108,15 +108,25 @@ def create_file_object_entry(file_object: FileObject) -> FileObjectEntry:
     )
 
 
-def sanitize(analysis_data):
+def sanitize(analysis_data: dict):
     '''Null bytes are not legal in PostgreSQL JSON columns -> remove them'''
-    for key, value in analysis_data.items():
-        if isinstance(value, dict):
-            sanitize(value)
-        elif isinstance(value, str) and '\0' in value:
-            analysis_data[key] = value.replace('\0', '')
-        elif isinstance(value, list):
-            _sanitize_list(value)
+    for key, value in list(analysis_data.items()):
+        _sanitize_value(analysis_data, key, value)
+        _sanitize_key(analysis_data, key)
+
+
+def _sanitize_value(analysis_data: dict, key: str, value):
+    if isinstance(value, dict):
+        sanitize(value)
+    elif isinstance(value, str) and '\0' in value:
+        analysis_data[key] = value.replace('\0', '')
+    elif isinstance(value, list):
+        _sanitize_list(value)
+
+
+def _sanitize_key(analysis_data: dict, key: str):
+    if '\0' in key:
+        analysis_data[key.replace('\0', '')] = analysis_data.pop(key)
 
 
 def _sanitize_list(value: list):
