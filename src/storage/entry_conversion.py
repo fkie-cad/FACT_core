@@ -129,12 +129,13 @@ def _sanitize_key(analysis_data: dict, key: str):
         analysis_data[key.replace('\0', '')] = analysis_data.pop(key)
 
 
-def _sanitize_list(value: list):
+def _sanitize_list(value: list) -> list:
     for index, element in enumerate(value):
         if isinstance(element, dict):
             sanitize(element)
         elif isinstance(element, str) and '\0' in element:
             value[index] = element.replace('\0', '')
+    return value
 
 
 def create_analysis_entries(file_object: FileObject, fo_backref: FileObjectEntry) -> List[AnalysisEntry]:
@@ -145,7 +146,7 @@ def create_analysis_entries(file_object: FileObject, fo_backref: FileObjectEntry
             plugin_version=analysis_data.get('plugin_version'),
             system_version=analysis_data.get('system_version'),
             analysis_date=analysis_data.get('analysis_date'),
-            summary=analysis_data.get('summary'),
+            summary=_sanitize_list(analysis_data.get('summary', [])),
             tags=analysis_data.get('tags'),
             result=get_analysis_without_meta(analysis_data),
             file_object=fo_backref,
