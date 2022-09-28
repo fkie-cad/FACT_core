@@ -67,7 +67,7 @@ def _get_compatible_entry(dts: str) -> Union[str, None]:
     if compatible is None:
         return None
 
-    return compatible[0]
+    return compatible[0].replace('\0', ' ')
 
 
 def construct_result(file_object):

@@ -10,6 +10,7 @@ from storage.entry_conversion import get_analysis_without_meta, sanitize
     ({'nested': {'key': 'a\0b\0c'}}, {'nested': {'key': 'abc'}}),
     ({'ille\0gal': 'abc'}, {'illegal': 'abc'}),
     ({'nested': {'key\0': 'abc'}}, {'nested': {'key': 'abc'}}),
+    ({'list': ['item\x001', {'list_in_dict': ['item2\0']}]}, {'list': ['item1', {'list_in_dict': ['item2']}]}),
 ])
 def test_sanitize(input_dict, expected):
     sanitize(input_dict)
