@@ -114,7 +114,7 @@ def _configure_nginx():
 
 
 def _install_css_and_js_files():
-    with OperateInDirectory('../web_interface/static'):
+    with OperateInDirectory(INSTALL_DIR.parent / 'web_interface/static'):
         os.makedirs('web_css', exist_ok=True)
         os.makedirs('web_js', exist_ok=True)
 
@@ -156,6 +156,13 @@ def _install_css_and_js_files():
                 ]
             )
 
+        if not Path('jstree-bootstrap-theme-1.0.2').exists():
+            wget_static_web_content(
+                'https://github.com/orangehill/jstree-bootstrap-theme/archive/refs/tags/1.0.2.zip',
+                '.',
+                ['unzip 1.0.2.zip', 'rm 1.0.2.zip']
+            )
+
 
 def _install_docker_images(radare):
     if radare:
@@ -191,7 +198,7 @@ def main(skip_docker, radare, nginx, distribution):
     if not skip_docker:
         _install_docker_images(radare)
 
-    with OperateInDirectory('../../'):
+    with OperateInDirectory(INSTALL_DIR.parent.parent):
         with suppress(FileNotFoundError):
             Path('start_fact_frontend').unlink()
         Path('start_fact_frontend').symlink_to('src/start_fact_frontend.py')
