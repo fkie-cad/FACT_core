@@ -16,7 +16,7 @@ $('#fileTreeAjax')
             },
         },
         "search": {
-            "case_insensitive": false,
+            "case_insensitive": true,
             "show_only_matches": true,
         },
         "plugins" : [ "sort", "themes", "search" ]
