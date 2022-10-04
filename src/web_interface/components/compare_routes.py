@@ -15,7 +15,12 @@ from web_interface.pagination import extract_pagination_from_request, get_pagina
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
-FileDiffData = NamedTuple('FileDiffData', [('uid', str), ('content', str), ('file_name', str), ('mime', str), ('fw_hid', str)])
+class FileDiffData(NamedTuple):
+    uid: str
+    content: str
+    file_name: str
+    mime: str
+    fw_hid: str
 
 
 class CompareRoutes(ComponentBase):
@@ -149,7 +154,7 @@ class CompareRoutes(ComponentBase):
 
         diff_files = [self._get_data_for_file_diff(uid, root_uid) for uid, root_uid in uids_dict.items()]
 
-        uids_with_missing_file_type = ', '.join((f.uid for f in diff_files if f.mime is None))
+        uids_with_missing_file_type = ', '.join(f.uid for f in diff_files if f.mime is None)
         if uids_with_missing_file_type:
             return render_template('compare/error.html', error=f'file_type analysis is not finished for {uids_with_missing_file_type}')
 

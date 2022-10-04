@@ -25,13 +25,21 @@ except ImportError:
 
 MAX_TERM_SPREAD = 3  # a range in which the product term is allowed to come after the vendor term for it not to be a false positive
 MAX_LEVENSHTEIN_DISTANCE = 0
-Product = NamedTuple('Product', [('vendor_name', str), ('product_name', str), ('version_number', str)])
-CveDbEntry = NamedTuple(
-    'CveDbEntry', [
-        ('cve_id', str), ('vendor', str), ('product_name', str), ('version', str), ('cvss_v2_score', str), ('cvss_v3_score', str),
-        ('version_start_including', str), ('version_start_excluding', str), ('version_end_including', str), ('version_end_excluding', str)
-    ]
-)
+class Product(NamedTuple):
+    vendor_name: str
+    product_name: str
+    version_number: str
+class CveDbEntry(NamedTuple):
+    cve_id: str
+    vendor: str
+    product_name: str
+    version: str
+    cvss_v2_score: str
+    cvss_v3_score: str
+    version_start_including: str
+    version_start_excluding: str
+    version_end_including: str
+    version_end_excluding: str
 
 
 class AnalysisPlugin(AnalysisBasePlugin):

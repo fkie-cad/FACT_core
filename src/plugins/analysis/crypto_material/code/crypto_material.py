@@ -13,7 +13,10 @@ except ImportError:
     from key_parser import read_asn1_key, read_pkcs_cert, read_ssl_cert
 
 
-Match = NamedTuple('Match', [('offset', int), ('label', str), ('matched_string', str)])
+class Match(NamedTuple):
+    offset: int
+    label: str
+    matched_string: str
 
 
 class AnalysisPlugin(YaraBasePlugin):

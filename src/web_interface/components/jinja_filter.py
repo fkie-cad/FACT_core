@@ -138,7 +138,7 @@ class FilterClass:
     def data_to_chart_limited(self, data, limit: Optional[int] = None, color_list=None):
         limit = self._get_chart_element_count() if limit is None else limit
         try:
-            label_list, value_list = [list(d) for d in zip(*data)]
+            label_list, value_list = (list(d) for d in zip(*data))
         except ValueError:
             return None
         label_list, value_list = flt.set_limit_for_data_to_chart(label_list, limit, value_list)
@@ -162,7 +162,7 @@ class FilterClass:
     def _setup_filters(self):  # pylint: disable=too-many-statements
         self._app.jinja_env.add_extension('jinja2.ext.do')
 
-        self._app.jinja_env.filters['all_items_equal'] = lambda data: len(set(str(value) for value in data.values())) == 1
+        self._app.jinja_env.filters['all_items_equal'] = lambda data: len({str(value) for value in data.values()}) == 1
         self._app.jinja_env.filters['auth_enabled'] = self.check_auth
         self._app.jinja_env.filters['base64_encode'] = flt.encode_base64_filter
         self._app.jinja_env.filters['bytes_to_str'] = flt.bytes_to_str_filter

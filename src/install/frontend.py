@@ -20,7 +20,7 @@ PIP_DEPENDENCIES = INSTALL_DIR / 'requirements_frontend.txt'
 def execute_commands_and_raise_on_return_code(commands, error=None):  # pylint: disable=invalid-name
     for command in commands:
         bad_return = error if error else f'execute {command}'
-        cmd_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
+        cmd_process = subprocess.run(command, shell=True, stdout=PIPE, stderr=STDOUT, text=True)
         if cmd_process.returncode != 0:
             raise InstallationError(f'Failed to {bad_return}\n{cmd_process.stdout}')
 
@@ -28,11 +28,11 @@ def execute_commands_and_raise_on_return_code(commands, error=None):  # pylint: 
 def wget_static_web_content(url, target_folder, additional_actions, resource_logging_name=None):
     logging.info(f'Install static {resource_logging_name if resource_logging_name else url} content')
     with OperateInDirectory(target_folder):
-        wget_process = subprocess.run(f'wget -nc {url}', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
+        wget_process = subprocess.run(f'wget -nc {url}', shell=True, stdout=PIPE, stderr=STDOUT, text=True)
         if wget_process.returncode != 0:
             raise InstallationError(f'Failed to fetch resource at {url}\n{wget_process.stdout}')
         for action in additional_actions:
-            action_process = subprocess.run(action, shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
+            action_process = subprocess.run(action, shell=True, stdout=PIPE, stderr=STDOUT, text=True)
             if action_process.returncode != 0:
                 raise InstallationError(f'Problem in processing resource at {url}\n{action_process.stdout}')
 
@@ -66,8 +66,8 @@ def _create_directory_for_authentication():  # pylint: disable=invalid-name
     # pylint: disable=fixme
     factauthdir = '/'.join(dburi.split('/')[:-1])[10:]  # FIXME this should be beautified with pathlib
 
-    mkdir_process = subprocess.run(f'sudo mkdir -p --mode=0744 {factauthdir}', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
-    chown_process = subprocess.run(f'sudo chown {os.getuid()}:{os.getgid()} {factauthdir}', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
+    mkdir_process = subprocess.run(f'sudo mkdir -p --mode=0744 {factauthdir}', shell=True, stdout=PIPE, stderr=STDOUT, text=True)
+    chown_process = subprocess.run(f'sudo chown {os.getuid()}:{os.getgid()} {factauthdir}', shell=True, stdout=PIPE, stderr=STDOUT, text=True)
 
     if not all(return_code == 0 for return_code in [mkdir_process.returncode, chown_process.returncode]):
         raise InstallationError('Error in creating directory for authentication database.\n{}'.format('\n'.join((mkdir_process.stdout, mkdir_process.stdout))))
@@ -86,7 +86,7 @@ def _install_nginx(distribution):
             'sudo semanage fcontext -at httpd_log_t "/var/log/fact(/.*)?" || true',
             'sudo restorecon -v -R /var/log/fact'
         ], error='restore selinux context')
-    nginx_process = subprocess.run('sudo nginx -s reload', shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True)
+    nginx_process = subprocess.run('sudo nginx -s reload', shell=True, capture_output=True, text=True)
     if nginx_process.returncode != 0:
         raise InstallationError(f'Failed to start nginx\n{nginx_process.stderr}')
 
@@ -162,13 +162,13 @@ def _install_docker_images(radare):
         logging.info('Initializing docker container for radare')
 
         with OperateInDirectory('radare'):
-            docker_compose_process = subprocess.run('docker-compose build', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
+            docker_compose_process = subprocess.run('docker-compose build', shell=True, stdout=PIPE, stderr=STDOUT, text=True)
             if docker_compose_process.returncode != 0:
                 raise InstallationError(f'Failed to initialize radare container:\n{docker_compose_process.stdout}')
 
     # pull pdf report container
     logging.info('Pulling pdf report container')
-    docker_process = subprocess.run('docker pull fkiecad/fact_pdf_report', shell=True, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
+    docker_process = subprocess.run('docker pull fkiecad/fact_pdf_report', shell=True, stdout=PIPE, stderr=STDOUT, text=True)
     if docker_process.returncode != 0:
         raise InstallationError(f'Failed to pull pdf report container:\n{docker_process.stdout}')
 

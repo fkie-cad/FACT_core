@@ -1,8 +1,14 @@
 from re import finditer, match
 from typing import Dict, List, NamedTuple, Tuple
 
-CveEntry = NamedTuple('CveEntry', [('cve_id', str), ('impact', Dict[str, str]), ('cpe_list', List[Tuple[str, str, str, str, str]])])
-CveSummaryEntry = NamedTuple('CveSummaryEntry', [('cve_id', str), ('summary', str), ('impact', dict)])
+class CveEntry(NamedTuple):
+    cve_id: str
+    impact: Dict[str, str]
+    cpe_list: List[Tuple[str, str, str, str, str]]
+class CveSummaryEntry(NamedTuple):
+    cve_id: str
+    summary: str
+    impact: dict
 
 
 def escape_special_characters(attribute: str) -> str:

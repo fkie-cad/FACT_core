@@ -77,8 +77,7 @@ class DatabaseInterface:
                 result_batch = cursor.fetchmany(1000)
                 if not result_batch:
                     break
-                for query_result in result_batch:
-                    yield query_result
+                yield from result_batch
 
     def fetch_one(self, query: str):
         with self.get_cursor() as cursor:
