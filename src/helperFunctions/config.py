@@ -14,7 +14,7 @@ def load_config(config_file_name):
     loads config of CONFIG_DIR/config_file_name.
     Returns config object.
     Note that this does return a new instance and not the instance provided by `config.configparser_cfg`.
-    This may cause the entrys in the logging section to be wrong.
+    The recurned config may have wrong entries in the logging section.
     '''
     config = configparser.ConfigParser()
     config_path = f'{get_config_dir()}/{config_file_name}'
