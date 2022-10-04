@@ -237,6 +237,10 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             for plugin_set in plugin_sets:
                 current_plugin_plugin_sets[plugin_set] = plugin in plugin_sets[plugin_set]
             blacklist, whitelist = self._get_blacklist_and_whitelist_from_plugin(plugin)
+            try:
+                thread_count = self.config.get(plugin, "threads", 0)
+            except NoSectionError:
+                thread_count = 0
             # TODO this should not be a tuple but rather a dictionary/class
             result[plugin] = (
                 self.analysis_plugins[plugin].DESCRIPTION,
@@ -246,7 +250,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
                 self.analysis_plugins[plugin].DEPENDENCIES,
                 blacklist,
                 whitelist,
-                self.config._sections.get(plugin, {}).get('threads', '0')
+                thread_count,
             )
         result['unpacker'] = ('Additional information provided by the unpacker', True, False)
         return result
