@@ -1,10 +1,13 @@
 from re import finditer, match
 from typing import Dict, List, NamedTuple, Tuple
 
+
 class CveEntry(NamedTuple):
     cve_id: str
     impact: Dict[str, str]
     cpe_list: List[Tuple[str, str, str, str, str]]
+
+
 class CveSummaryEntry(NamedTuple):
     cve_id: str
     summary: str

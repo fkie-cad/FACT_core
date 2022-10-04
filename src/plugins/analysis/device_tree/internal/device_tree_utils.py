@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from subprocess import PIPE, run
+from subprocess import run
 from tempfile import NamedTemporaryFile
 from typing import Dict, List, NamedTuple, Optional, Union
 

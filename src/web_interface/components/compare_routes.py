@@ -15,6 +15,7 @@ from web_interface.pagination import extract_pagination_from_request, get_pagina
 from web_interface.security.decorator import roles_accepted
 from web_interface.security.privileges import PRIVILEGES
 
+
 class FileDiffData(NamedTuple):
     uid: str
     content: str

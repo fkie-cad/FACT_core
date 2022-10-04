@@ -81,6 +81,7 @@ PROTECTS_AGAINST = {
     'CONFIG_SECURITY_LOCKDOWN_LSM': ['Changing Kernel Image'],
 }
 
+
 class HardeningCheckResult(NamedTuple):
     option_name: str
     desired_value: str

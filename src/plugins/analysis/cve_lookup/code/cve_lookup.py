@@ -25,10 +25,14 @@ except ImportError:
 
 MAX_TERM_SPREAD = 3  # a range in which the product term is allowed to come after the vendor term for it not to be a false positive
 MAX_LEVENSHTEIN_DISTANCE = 0
+
+
 class Product(NamedTuple):
     vendor_name: str
     product_name: str
     version_number: str
+
+
 class CveDbEntry(NamedTuple):
     cve_id: str
     vendor: str
