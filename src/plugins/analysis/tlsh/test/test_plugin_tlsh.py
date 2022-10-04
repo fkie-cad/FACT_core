@@ -22,7 +22,7 @@ def test_object():
 
 
 @pytest.fixture(scope='function')
-def stub_plugin(monkeypatch):
+def stub_plugin():
     return AnalysisPlugin(
         offline_testing=True,
         view_updater=CommonDatabaseMock(),
