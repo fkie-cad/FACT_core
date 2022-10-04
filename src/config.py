@@ -118,9 +118,9 @@ class Config(BaseModel):
 
 
 def _parse_dict(sections):
-    sections['unpack']['whitelist'] = _parse_comma_separated_list(sections['unpack']['whitelist'])
+    sections['unpack']['whitelist'] = parse_comma_separated_list(sections['unpack']['whitelist'])
     for plugin_set in sections['default-plugins']:
-        sections['default-plugins'][plugin_set] = _parse_comma_separated_list(sections['default-plugins'][plugin_set])
+        sections['default-plugins'][plugin_set] = parse_comma_separated_list(sections['default-plugins'][plugin_set])
 
     # hyphens may not be contained in identifiers
     # plugin names may also not contain hyphens, so this is fine
@@ -155,5 +155,5 @@ def _replace_hyphens_with_underscores(sections):
         sections[section.replace('-', '_')] = sections.pop(section)
 
 
-def _parse_comma_separated_list(list_string):
+def parse_comma_separated_list(list_string):
     return [item.strip() for item in list_string.split(',')]
