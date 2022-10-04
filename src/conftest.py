@@ -1,8 +1,9 @@
+from __future__ import annotations
+
 import shutil
 import tempfile
 from configparser import ConfigParser
 from pathlib import Path
-from typing import Dict, Tuple
 
 import pytest
 
@@ -11,7 +12,7 @@ from config import Config
 from test.common_helper import create_docker_mount_base_dir
 
 
-def _get_test_config_tuple(defaults: Dict = None) -> Tuple[Config, ConfigParser]:
+def _get_test_config_tuple(defaults: dict | None = None) -> tuple[Config, ConfigParser]:
     """Returns a tuple containing a `config.Config` instance and a `ConfigParser` instance.
     Both instances are equivalent and the latter is legacy only.
     The "docker-mount-base-dir" and "firmware-file-storage-directory" in the section "data-storage"
