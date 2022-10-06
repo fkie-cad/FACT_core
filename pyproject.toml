@@ -10,6 +10,7 @@ load-plugins = ["pylint.extensions.bad_builtin", "pylint.extensions.mccabe"]
 extension-pkg-allow-list = ["yara"]
 jobs = 0
 include-naming-hint = true
+good-names = ["i", "j", "k", "ex", "Run", "_", "fo", "fw", "rv", "db", "id", "pw"]
 
 [tool.pylint."messages control"]
 confidence = []
