@@ -1,3 +1,4 @@
+import configparser
 import logging
 from concurrent.futures import ThreadPoolExecutor
 from configparser import ConfigParser
@@ -243,7 +244,7 @@ class AnalysisScheduler:  # pylint: disable=too-many-instance-attributes
             blacklist, whitelist = self._get_blacklist_and_whitelist_from_plugin(plugin)
             try:
                 thread_count = self.config.get(plugin, "threads", 0)
-            except NoSectionError:
+            except configparser.NoSectionError:
                 thread_count = 0
             # TODO this should not be a tuple but rather a dictionary/class
             result[plugin] = (
