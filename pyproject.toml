@@ -5,7 +5,7 @@ target-version = ['py37']
 
 [tool.pylint.main]
 init-hook = 'import sys; sys.path.append("./src")'
-ignore-patterns = ["test/", "src/bin"]
+ignore-paths = ["src/bin"]
 load-plugins = ["pylint.extensions.bad_builtin", "pylint.extensions.mccabe"]
 extension-pkg-allow-list = ["yara"]
 jobs = 0
