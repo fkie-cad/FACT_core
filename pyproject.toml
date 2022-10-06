@@ -23,6 +23,7 @@ msg-template="{path}:{line}: [{symbol}:{obj}] {msg}"
 max-line-length = 120
 
 [tool.pylint.design]
+max-args=7
 max-complexity = 7
 min-public-methods = 0
 max-public-methods = 40
