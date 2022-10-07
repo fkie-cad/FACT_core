@@ -3,7 +3,7 @@ from pathlib import Path
 from test.common_helper import MockFileObject
 from test.unit.analysis.analysis_plugin_test_class import AnalysisPluginTest
 
-from ..code.information_leaks import AnalysisPlugin
+from ..code.information_leaks import AnalysisPlugin, _check_file_path, _check_for_directories, _check_for_files
 
 TEST_DATA_DIR = Path(__file__).parent / 'data'
 
@@ -52,3 +52,10 @@ class TestAnalysisPluginInformationLeaks(AnalysisPluginTest):
                                   'keil_uvision_config', 'zsh_history', 'any_history'])
         assert 'summary' in fo.processed_analysis[self.PLUGIN_NAME]
         assert fo.processed_analysis[self.PLUGIN_NAME]['summary'] == expected_result
+
+
+def test_check_file_path():
+    # if multiple rules match, only the first should appear in the result
+    svn_path = '/home/user/project/.svn/entries'
+    assert _check_for_files(svn_path) and _check_for_directories(svn_path), 'both rules should match'
+    assert _check_file_path(svn_path) == {'svn_entries': ['/home/user/project/.svn/entries']}
