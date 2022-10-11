@@ -63,7 +63,6 @@ class MongoInterface:
 
 
 class MigrationMongoInterface(MongoInterface):
-
     def _setup_database_mapping(self):
         main_database = self.config['data-storage']['main-database']
         self.main = self.client[main_database]
@@ -71,7 +70,7 @@ class MigrationMongoInterface(MongoInterface):
         self.file_objects = self.main.file_objects
         self.compare_results = self.main.compare_results
         # sanitize stuff
-        sanitize_db = self.config['data-storage'].get('sanitize-database', 'faf-sanitize')
+        sanitize_db = self.config['data-storage'].get('sanitize-database', 'faf_sanitize')
         self.sanitize_storage = self.client[sanitize_db]
         self.sanitize_fs = gridfs.GridFS(self.sanitize_storage)
 
@@ -160,8 +159,8 @@ class MigrationMongoInterface(MongoInterface):
                     sanitized_dict[key] = self._retrieve_binaries(sanitized_dict, key)
                 else:
                     sanitized_dict[key].pop('file_system_flag')
-            except (KeyError, IndexError, AttributeError, TypeError, pickle.PickleError):
-                logging.error('Could not retrieve information:', exc_info=True)
+            except (KeyError, IndexError, AttributeError, TypeError, pickle.PickleError, gridfs.errors.NoFile):
+                logging.exception(f'Could not retrieve sanitized analysis:\n{sanitized_dict.get(key, {})}')
         return sanitized_dict
 
     def _retrieve_binaries(self, sanitized_dict, key):
@@ -235,7 +234,7 @@ def _fix_illegal_list(list_: list, key=None, label=''):
 def _migrate_plugin(plugin_name, processed_analysis):
     if plugin_name == 'cpu_architecture':
         architectures = {}
-        for key in processed_analysis:
+        for key in list(processed_analysis):
             if key not in ['analysis_date', 'plugin_version', 'skipped', 'summary', 'system_version', 'tags']:
                 architectures[key] = processed_analysis.pop(key)
 
@@ -296,8 +295,10 @@ class DbMigrator:
                 firmware_object = self.mongo.get_object(uid)
                 query = {'_id': {'$in': list(firmware_object.files_included)}}
                 self.migrate_fw(
-                    query, label=firmware_object.file_name,
-                    root_uid=firmware_object.uid if root else root_uid, parent_uid=firmware_object.uid
+                    query,
+                    label=firmware_object.file_name,
+                    root_uid=firmware_object.uid if root else root_uid,
+                    parent_uid=firmware_object.uid,
                 )
             else:
                 firmware_object = self.mongo.get_object(uid)
@@ -305,8 +306,7 @@ class DbMigrator:
                 query = {'_id': {'$in': list(firmware_object.files_included)}}
                 root_uid = firmware_object.uid if root else root_uid
                 self.migrate_fw(
-                    query=query, root_uid=root_uid, parent_uid=firmware_object.uid,
-                    label=firmware_object.file_name
+                    query=query, root_uid=root_uid, parent_uid=firmware_object.uid, label=firmware_object.file_name
                 )
                 migrated_fw_count += 1
             self.progress.update(task, advance=1)
@@ -327,9 +327,8 @@ class DbMigrator:
             raise
         except KeyError:
             logging.error(
-                f'fields missing from analysis data: \n'
-                f'{json.dumps(firmware_object.processed_analysis, indent=2)}',
-                exc_info=True
+                f'fields missing from analysis data: \n' f'{json.dumps(firmware_object.processed_analysis, indent=2)}',
+                exc_info=True,
             )
             raise
 
@@ -341,6 +340,9 @@ def migrate_comparisons(mongo: MigrationMongoInterface, config):
         results = {key: value for key, value in entry.items() if key not in ['_id', 'submission_date']}
         comparison_id = entry['_id']
         if not compare_db.comparison_exists(comparison_id):
+            if not compare_db.all_uids_found_in_database(comparison_id.split(';')):
+                logging.warning(f'Could not migrate comparison {comparison_id}: not all firmwares found in the DB')
+                continue
             compare_db.insert_comparison(comparison_id, results)
             count += 1
     if not count:
