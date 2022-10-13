@@ -8,7 +8,8 @@ class FSOrganizer:
     '''
     This module organizes file system storage
     '''
-    def __init__(self, config=None):
+
+    def __init__(self, config):
         self.config = config
         self.data_storage_path = Path(self.config['data-storage']['firmware-file-storage-directory']).absolute()
         self.data_storage_path.parent.mkdir(parents=True, exist_ok=True)
