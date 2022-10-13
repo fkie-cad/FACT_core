@@ -1,1 +1,2 @@
-npm
+# Not an Ubuntu package, see pre_install.sh
+nodejs
